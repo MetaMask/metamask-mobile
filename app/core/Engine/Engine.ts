@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
-///: END:ONLY_INCLUDE_IF
 import {
   AppState,
   AppStateStatus,
@@ -49,6 +46,7 @@ import {
 } from './utils/buildAssetsBalanceUpdateFromPush';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
+import { ensureError } from '../../util/errorUtils';
 import { isZero } from '../../util/lodash';
 import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
@@ -101,6 +99,7 @@ import {
   EngineState,
   EngineContext,
   getRootExtendedMessenger,
+  MessengerClientInitFunctionsByMessengerClientName,
 } from './types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
@@ -136,6 +135,7 @@ import {
   predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
+import { predictDeviceAuthServiceInit } from './controllers/predict-device-auth-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
 import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { sentinelFeeTokensDataServiceInit } from './controllers/sentinel-fee-tokens-data-service-init';
@@ -167,7 +167,6 @@ import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-se
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
-import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
@@ -177,12 +176,14 @@ import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-i
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
 import { socialServiceInit } from './controllers/social-service-init';
+import { socialRealtimeServiceInit } from './controllers/social-realtime-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { profileServiceInit } from './controllers/profile-service-init';
 import { profileControllerInit } from './controllers/profile-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
+import { predictVenueControllerInit } from './controllers/predict-venue-controller-init';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
@@ -201,6 +202,19 @@ import { isOnboardingComplete } from './utils/ensureOnboardingComplete';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
+
+/**
+ * Initializes the `SamplePetnamesController`. Only enabled when bundled with
+ * `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in; no build in builds.yml sets it); otherwise this is a no-op so
+ * `@metamask/sample-controllers` and `app/features/SampleFeature/` are
+ * dead-code-eliminated out of production bundles.
+ */
+const samplePetnamesControllerInit: MessengerClientInitFunctionsByMessengerClientName['SamplePetnamesController'] =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps sample feature dev tooling out of prod bundles
+      require('../../features/SampleFeature/controllers/sample-petnames-controller-init')
+        .samplePetnamesControllerInit
+    : () => ({ controller: undefined });
 
 /**
  * Core controller responsible for composing other metamask controllers together
@@ -291,6 +305,7 @@ export class Engine {
     this.#wallet = initializeWallet({
       messenger: this.controllerMessenger,
       state: mergedInitialState,
+      analyticsId,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -325,6 +340,7 @@ export class Engine {
         GeolocationApiService: geolocationApiServiceInit,
         SentinelApiService: sentinelApiServiceInit,
         GeolocationController: geolocationControllerInit,
+        PredictVenueController: predictVenueControllerInit,
         TokensController: tokensControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
@@ -358,9 +374,7 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
         AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
@@ -369,6 +383,7 @@ export class Engine {
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         PredictOrderService: predictOrderServiceInit,
+        PredictDeviceAuthService: predictDeviceAuthServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
         SentinelFeeTokensDataService: sentinelFeeTokensDataServiceInit,
@@ -382,13 +397,13 @@ export class Engine {
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
-        AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
         NeoBankService: neoBankServiceInit,
         RampsController: rampsControllerInit,
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
+        SocialRealtimeService: socialRealtimeServiceInit,
         SocialController: socialControllerInit,
         ProfileService: profileServiceInit,
         ProfileController: profileControllerInit,
@@ -409,7 +424,7 @@ export class Engine {
       ...initRequest,
     });
 
-    const analyticsController = messengerClientsByName.AnalyticsController;
+    const analyticsController = this.#wallet.getInstance('AnalyticsController');
     const loggingController = this.#wallet.getInstance('LoggingController');
     const remoteFeatureFlagController = this.#wallet.getInstance(
       'RemoteFeatureFlagController',
@@ -657,9 +672,12 @@ export class Engine {
       DeFiPositionsControllerV2:
         messengerClientsByName.DeFiPositionsControllerV2,
       SeedlessOnboardingController: seedlessOnboardingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController: messengerClientsByName.SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
+      // Omitted entirely unless INCLUDE_SAMPLE_FEATURE=true, so code iterating
+      // the context never sees an `undefined` controller.
+      ...(messengerClientsByName.SamplePetnamesController && {
+        SamplePetnamesController:
+          messengerClientsByName.SamplePetnamesController,
+      }),
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -667,6 +685,8 @@ export class Engine {
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       PredictOrderService: messengerClientsByName.PredictOrderService,
+      PredictDeviceAuthService: messengerClientsByName.PredictDeviceAuthService,
+      PredictVenueController: messengerClientsByName.PredictVenueController,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
       LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
@@ -684,6 +704,7 @@ export class Engine {
       RampsController: rampsController,
       AiDigestController: aiDigestController,
       SocialService: socialService,
+      SocialRealtimeService: messengerClientsByName.SocialRealtimeService,
       SocialController: socialController,
       ProfileService: messengerClientsByName.ProfileService,
       ProfileController: messengerClientsByName.ProfileController,
@@ -1351,6 +1372,10 @@ export class Engine {
       ShieldController,
       ClaimsController,
       KycController,
+      PredictOrderService,
+      PredictPortfolioService,
+      PredictDeviceAuthService,
+      PredictVenueController,
     } = this.context;
 
     // Remove all permissions.
@@ -1395,6 +1420,27 @@ export class Engine {
 
     // KYC:
     KycController.clearState();
+
+    // PredictNext account state. A wallet reset replaces the Predict User
+    // within one process, so the previous person's account reads and their
+    // Order observation must not outlive it. Commits are abandoned before the
+    // reads are dropped, so no receipt can refill the cache afterwards. The
+    // Venue-scoped market-data and live-data caches carry public data and stay.
+    try {
+      PredictOrderService.abandonCommits();
+      await PredictPortfolioService.clearAccountData();
+    } catch (error) {
+      // Housekeeping a replaced person must never break the reset itself.
+      Logger.error(
+        ensureError(error, 'Engine.resetState'),
+        'Engine: failed to clear cached PredictNext account data',
+      );
+    }
+
+    await PredictDeviceAuthService.reset();
+    // The Venue Selection Preference and the last Active Venue are device
+    // Venue history, not the next person's choice.
+    PredictVenueController.clearState();
   };
 
   removeAllListeners() {
@@ -1530,9 +1576,7 @@ export default {
   get state() {
     assertEngineExists(instance);
     const {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTreeController,
       AddressBookController,
@@ -1543,6 +1587,7 @@ export default {
       BridgeStatusController,
       CardController,
       UiSlotsController,
+      PredictVenueController,
       ConfigRegistryController,
       ConnectivityController,
       NetworkConnectionBannerController,
@@ -1606,9 +1651,12 @@ export default {
     } = instance.context;
 
     return {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController: SamplePetnamesController.state,
-      ///: END:ONLY_INCLUDE_IF
+      // Omitted entirely (rather than set to `undefined`) unless
+      // INCLUDE_SAMPLE_FEATURE=true, so consumers can rely on `in`/property
+      // presence checks matching production, where the controller never exists.
+      ...(SamplePetnamesController && {
+        SamplePetnamesController: SamplePetnamesController.state,
+      }),
       AccountsController: AccountsController.state,
       AccountTreeController: AccountTreeController.state,
       AddressBookController: AddressBookController.state,
@@ -1661,6 +1709,7 @@ export default {
       ProfileController: ProfileController.state,
       CardController: CardController.state,
       UiSlotsController: UiSlotsController.state,
+      PredictVenueController: PredictVenueController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       KycController: KycController.state,

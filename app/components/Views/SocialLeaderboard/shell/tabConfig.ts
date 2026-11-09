@@ -13,8 +13,8 @@ export const SOCIAL_SHELL_TAB_CONFIG: Record<
   leaderboard: {
     labelKey: 'social_leaderboard.feed.tabs.leaderboard',
   },
-  liveTrades: {
-    labelKey: 'social_leaderboard.feed.tabs.live_trades',
+  live: {
+    labelKey: 'social_leaderboard.feed.tabs.live',
   },
 };
 
@@ -22,5 +22,5 @@ export const SOCIAL_V1_TAB_ORDER = [
   'trending',
   'following',
   'leaderboard',
-  'liveTrades',
+  'live',
 ] as const;

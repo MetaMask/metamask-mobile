@@ -1,14 +1,22 @@
 import { Action } from '@reduxjs/toolkit';
 import type {
+  ClaimDto,
   EarningsSummaryDto,
   ReferralMeDto,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
 import initialRootState from '../../util/test/initial-root-state';
 import rewardsMoneyReducer, {
+  clearPendingReferralCode,
   resetRewardsMoneyState,
+  setPendingReferralCode,
+  setReferralLinkPending,
   setCashbackLedger,
+  setCommissionMechanisms,
   setCommissions,
   setEarningsHistory,
+  setClaimLock,
+  setClaimWaitingUntil,
+  setInFlightClaims,
   setEarningsSummary,
   setEarningsSummaryError,
   setEarningsSummaryLoading,
@@ -87,8 +95,15 @@ describe('rewardsMoneyReducer', () => {
       earningsSummary: {},
       referralFunnel: {},
       commissions: {},
+      commissionMechanisms: {},
       cashbackLedger: {},
       earningsHistory: {},
+      inFlightClaims: {},
+      claimWaitingUntil: {},
+      claimLocks: {},
+      pendingReferralCode: null,
+      answeredReferralCode: null,
+      isReferralLinkPending: false,
     });
   });
 
@@ -98,8 +113,15 @@ describe('rewardsMoneyReducer', () => {
       earningsSummary: {},
       referralFunnel: {},
       commissions: {},
+      commissionMechanisms: {},
       cashbackLedger: {},
       earningsHistory: {},
+      inFlightClaims: {},
+      claimWaitingUntil: {},
+      claimLocks: {},
+      pendingReferralCode: null,
+      answeredReferralCode: null,
+      isReferralLinkPending: false,
     });
   });
 
@@ -278,6 +300,15 @@ describe('rewardsMoneyReducer', () => {
             data: { enrolled: 12, earning_generating: 5 },
           },
         },
+        commissionMechanisms: {
+          [PROFILE_A]: {
+            REFERRAL_REV_SHARE: {
+              claim_open: false,
+              reason: 'MECHANISM_NOT_CLAIMABLE',
+            },
+            SOCIAL_FOLLOW_TRADE: { claim_open: true, reason: null },
+          },
+        },
         commissions: {
           [PROFILE_A]: [
             {
@@ -338,6 +369,26 @@ describe('rewardsMoneyReducer', () => {
             },
           ],
         },
+        inFlightClaims: {
+          [PROFILE_A]: [
+            {
+              id: 'claim-open',
+              status: 'AUTHORIZED',
+            },
+          ] as ClaimDto[],
+        },
+        claimWaitingUntil: {
+          [PROFILE_A]: 1_800_000_000_000,
+        },
+        claimLocks: {
+          [PROFILE_A]: {
+            status: 'in_progress' as const,
+            summaryKey: 'stale',
+          },
+        },
+        pendingReferralCode: null,
+        answeredReferralCode: null,
+        isReferralLinkPending: false,
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -369,6 +420,32 @@ describe('rewardsMoneyReducer', () => {
       expect(state.earningsHistory[PROFILE_A]).toEqual(
         persisted.earningsHistory[PROFILE_A],
       );
+      expect(state.inFlightClaims[PROFILE_A]).toEqual(
+        persisted.inFlightClaims[PROFILE_A],
+      );
+      expect(state.claimWaitingUntil[PROFILE_A]).toBe(
+        persisted.claimWaitingUntil[PROFILE_A],
+      );
+      expect(state.claimLocks).toEqual({});
+      expect(state.commissionMechanisms).toEqual({});
+    });
+
+    it('drops a pending referral code so a link from an earlier session cannot prompt', () => {
+      const persisted = {
+        ...initialState,
+        pendingReferralCode: 'KOL1',
+        answeredReferralCode: 'KOL0',
+        isReferralLinkPending: true,
+      };
+
+      const state = rewardsMoneyReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewardsMoney: persisted },
+      } as Action);
+
+      expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBeNull();
+      expect(state.isReferralLinkPending).toBe(false);
     });
 
     it('drops a last profile id left by an older persisted slice', () => {
@@ -388,9 +465,144 @@ describe('rewardsMoneyReducer', () => {
         earningsSummary: {},
         referralFunnel: {},
         commissions: {},
+        commissionMechanisms: {},
         cashbackLedger: {},
         earningsHistory: {},
+        inFlightClaims: {},
+        claimWaitingUntil: {},
+        claimLocks: {},
+        pendingReferralCode: null,
+        answeredReferralCode: null,
+        isReferralLinkPending: false,
       });
+    });
+  });
+
+  describe('referral link pending', () => {
+    it('marks a referral link as being handled', () => {
+      const state = rewardsMoneyReducer(
+        initialState,
+        setReferralLinkPending(true),
+      );
+
+      expect(state.isReferralLinkPending).toBe(true);
+    });
+
+    it('clears the mark once the link is handled', () => {
+      const pending = rewardsMoneyReducer(
+        initialState,
+        setReferralLinkPending(true),
+      );
+
+      const state = rewardsMoneyReducer(pending, setReferralLinkPending(false));
+
+      expect(state.isReferralLinkPending).toBe(false);
+    });
+  });
+
+  describe('pending referral code', () => {
+    it('stores the code a deeplink left behind', () => {
+      const state = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL1');
+    });
+
+    it('replaces an older code with the newer link', () => {
+      const withCode = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      const state = rewardsMoneyReducer(
+        withCode,
+        setPendingReferralCode('KOL2'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL2');
+    });
+
+    it('clears the code once it is answered', () => {
+      const withCode = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      const state = rewardsMoneyReducer(withCode, clearPendingReferralCode());
+
+      expect(state.pendingReferralCode).toBeNull();
+    });
+
+    it('ignores the same code once it was answered', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(
+        answered,
+        setPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('still stores a different code after one was answered', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(
+        answered,
+        setPendingReferralCode('KOL2'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL2');
+    });
+
+    it('keeps a newer code pending when the older one it replaced is answered', () => {
+      const replaced = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        setPendingReferralCode('KOL2'),
+      );
+
+      const state = rewardsMoneyReducer(
+        replaced,
+        clearPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL2');
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('clears the pending code when that code is answered', () => {
+      const withCode = rewardsMoneyReducer(
+        initialState,
+        setPendingReferralCode('KOL1'),
+      );
+
+      const state = rewardsMoneyReducer(
+        withCode,
+        clearPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('keeps the answered code when clearing with nothing pending', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(answered, clearPendingReferralCode());
+
+      expect(state.answeredReferralCode).toBe('KOL1');
     });
   });
 
@@ -415,8 +627,15 @@ describe('rewardsMoneyReducer', () => {
         earningsSummary: {},
         referralFunnel: {},
         commissions: {},
+        commissionMechanisms: {},
         cashbackLedger: {},
         earningsHistory: {},
+        inFlightClaims: {},
+        claimWaitingUntil: {},
+        claimLocks: {},
+        pendingReferralCode: null,
+        answeredReferralCode: null,
+        isReferralLinkPending: false,
       });
     });
   });
@@ -457,6 +676,39 @@ describe('rewardsMoneyReducer', () => {
       );
 
       expect(state.commissions[PROFILE_A]).toEqual(items);
+    });
+
+    it('stores commission mechanisms and drops them on rehydrate', () => {
+      const mechanisms = {
+        REFERRAL_REV_SHARE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE' as const,
+        },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: true,
+          reason: null,
+        },
+      };
+      const stored = rewardsMoneyReducer(
+        initialState,
+        setCommissionMechanisms({ profileId: PROFILE_A, mechanisms }),
+      );
+
+      expect(stored.commissionMechanisms[PROFILE_A]).toEqual(mechanisms);
+
+      const state = rewardsMoneyReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewardsMoney: {
+            ...stored,
+            commissionMechanisms: {
+              [PROFILE_A]: mechanisms,
+            },
+          },
+        },
+      } as Action);
+
+      expect(state.commissionMechanisms).toEqual({});
     });
 
     it('caches cashback ledger rows by profile', () => {
@@ -527,6 +779,63 @@ describe('rewardsMoneyReducer', () => {
       );
 
       expect(state.earningsHistory[PROFILE_A]).toEqual(items);
+    });
+
+    it('caches open claims by profile', () => {
+      const claims = [
+        {
+          id: 'claim-open',
+          status: 'AUTHORIZED' as const,
+        },
+      ] as ClaimDto[];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setInFlightClaims({ profileId: PROFILE_A, claims }),
+      );
+
+      expect(state.inFlightClaims[PROFILE_A]).toEqual(claims);
+    });
+
+    it('keeps a claim wait by profile and clears it', () => {
+      const waiting = rewardsMoneyReducer(
+        initialState,
+        setClaimWaitingUntil({
+          profileId: PROFILE_A,
+          until: 1_800_000_000_000,
+        }),
+      );
+
+      expect(waiting.claimWaitingUntil[PROFILE_A]).toBe(1_800_000_000_000);
+
+      const cleared = rewardsMoneyReducer(
+        waiting,
+        setClaimWaitingUntil({ profileId: PROFILE_A, until: null }),
+      );
+
+      expect(cleared.claimWaitingUntil[PROFILE_A]).toBeUndefined();
+    });
+
+    it('keeps a claim lock by profile and clears it', () => {
+      const locked = rewardsMoneyReducer(
+        initialState,
+        setClaimLock({
+          profileId: PROFILE_A,
+          lock: { status: 'awaiting_fresh_summary', summaryKey: 'before' },
+        }),
+      );
+
+      expect(locked.claimLocks[PROFILE_A]).toEqual({
+        status: 'awaiting_fresh_summary',
+        summaryKey: 'before',
+      });
+
+      const cleared = rewardsMoneyReducer(
+        locked,
+        setClaimLock({ profileId: PROFILE_A, lock: null }),
+      );
+
+      expect(cleared.claimLocks[PROFILE_A]).toBeUndefined();
     });
   });
 });

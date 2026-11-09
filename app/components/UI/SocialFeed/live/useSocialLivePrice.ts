@@ -1,11 +1,13 @@
 import {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useSyncExternalStore,
 } from 'react';
 import type { View } from 'react-native';
+import { SocialFeedPageActiveContext } from '../components/SocialFeedPageActiveContext';
 import { computeLivePositionFigures } from './computeLivePositionFigures';
 import { useSocialLivePrices } from './SocialLivePricesContext';
 import type { SocialLivePositionFigures, SocialLivePriceSource } from './types';
@@ -23,15 +25,16 @@ export interface UseSocialLivePriceResult {
 /**
  * Live figures for one open position card. Registers the card for visibility
  * tracking and re-renders only when its own asset ticks. A no-op without a
- * `live` source or outside `SocialLivePricesProvider`.
+ * `live` source, outside `SocialLivePricesProvider`, or on an inactive page.
  */
 export function useSocialLivePrice(
   id: string,
   live: SocialLivePriceSource | undefined,
 ): UseSocialLivePriceResult {
   const context = useSocialLivePrices();
+  const isPageActive = useContext(SocialFeedPageActiveContext);
   const trackRef = useRef<View>(null);
-  const key = live?.key;
+  const key = isPageActive ? live?.key : undefined;
 
   useEffect(() => {
     if (!context || !key) {

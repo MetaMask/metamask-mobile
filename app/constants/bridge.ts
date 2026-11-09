@@ -15,8 +15,6 @@ import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
 export const NATIVE_SWAPS_TOKEN_ADDRESS: Hex =
   '0x0000000000000000000000000000000000000000';
 
-export const ETH_USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
-
 export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   Hex | CaipChainId,
   string

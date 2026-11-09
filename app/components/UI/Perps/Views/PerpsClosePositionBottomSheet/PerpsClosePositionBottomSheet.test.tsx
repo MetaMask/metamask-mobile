@@ -345,78 +345,6 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows a gain and its return percentage in the P&L row', () => {
-      const { getByTestId } = renderSheet();
-
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('+$150 (+10.34%)');
-    });
-
-    it('shows a loss and its return percentage in the P&L row', () => {
-      const losingPosition = {
-        ...defaultPerpsPositionMock,
-        unrealizedPnl: '-150.00',
-      };
-      useRouteMock.mockReturnValue({ params: { position: losingPosition } });
-      usePerpsLivePositionsMock.mockReturnValue({
-        positions: [losingPosition],
-        isInitialLoading: false,
-      });
-
-      const { getByTestId } = renderSheet();
-
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('-$150 (-10.34%)');
-    });
-
-    it('keeps the percentage sign aligned with the loss when a limit price wipes out the effective margin', () => {
-      mockKeypadValue = '1000';
-      const utils = renderSheet();
-
-      toggleOrderType(utils);
-      fireEvent.press(utils.getByTestId('mock-keypad'));
-      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
-
-      const pnlRow = utils.getByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-      );
-      expect(pnlRow).toHaveTextContent('-$2,850 (-183.87%)');
-    });
-
-    it('omits the percentage when a limit price exhausts the effective margin exactly', () => {
-      const zeroMarginPosition = {
-        ...defaultPerpsPositionMock,
-        entryPrice: '2000.00',
-        size: '1',
-        marginUsed: '500.00',
-        unrealizedPnl: '0.00',
-      };
-      useRouteMock.mockReturnValue({
-        params: { position: zeroMarginPosition },
-      });
-      usePerpsLivePositionsMock.mockReturnValue({
-        positions: [zeroMarginPosition],
-        isInitialLoading: false,
-      });
-      // Effective margin (marginUsed - unrealizedPnl + effectivePnL) lands on
-      // exactly 0 at this limit price, so the true percentage is undefined
-      // (division by zero) rather than actually 0.
-      mockKeypadValue = '1500';
-      const utils = renderSheet();
-
-      toggleOrderType(utils);
-      fireEvent.press(utils.getByTestId('mock-keypad'));
-      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
-
-      const pnlRow = utils.getByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-      );
-      expect(pnlRow).toHaveTextContent('-$500');
-      expect(pnlRow).not.toHaveTextContent('%');
-    });
-
     it('renders the fiat/token display toggle', () => {
       const { getByTestId } = renderSheet();
 
@@ -514,7 +442,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
       const unit = () =>
         queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL);
-      const fiatFirst = amount().props.children;
+      expect(amount()).toHaveTextContent('$4,500');
       expect(unit()).toBeNull();
 
       fireEvent.press(
@@ -522,9 +450,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
         ),
       );
-      const tokenFirst = amount().props.children;
-
-      expect(tokenFirst).not.toBe(fiatFirst);
+      expect(amount()).toHaveTextContent('1.5');
       expect(unit()).toHaveTextContent('ETH');
 
       fireEvent.press(
@@ -532,7 +458,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
         ),
       );
-      expect(amount().props.children).toBe(fiatFirst);
+      expect(amount()).toHaveTextContent('$4,500');
       expect(unit()).toBeNull();
     });
 

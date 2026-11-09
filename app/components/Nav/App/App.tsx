@@ -42,6 +42,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
+  addDeviceToWalletPageOptions,
   slideFromRightNativeOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -56,6 +57,7 @@ import PerpsWebSocketHealthToast, {
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
+import { usePredictOrderToastRegistrations } from '../../UI/PredictNext/notifications';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
 import { PostTradeShareBottomSheet } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
@@ -146,7 +148,6 @@ import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import AccountStatus from '../../Views/AccountStatus';
-import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
@@ -430,6 +431,7 @@ const SimpleWebviewScreen = () => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
     />
   </NativeStack.Navigator>
 );
@@ -542,10 +544,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory as ScreenComponent}
-    />
-    <NativeStack.Screen
-      name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -787,6 +785,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
       options={{
         presentation: 'modal',
         animation: 'slide_from_bottom',
@@ -1249,7 +1248,7 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
         component={AddDeviceToWalletWithMessenger}
-        options={{ headerShown: false }}
+        options={addDeviceToWalletPageOptions}
       />
       <NativeStack.Screen
         name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
@@ -1276,6 +1275,17 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={MultichainAddressList}
+        options={{
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+          contentStyle: { backgroundColor: colors.background.default },
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW}
+        component={SimpleWebview}
         options={{
           ...slideFromRightNativeOptions,
           presentation: 'card',
@@ -1446,16 +1456,25 @@ const App: React.FC = () => {
   );
 
   useOTAUpdates();
+  // Both Predict lanes register unconditionally, whatever the Active Venue:
+  // an operation started on one Venue still notifies after a switch.
   const predictRegistrations = usePredictToastRegistrations();
+  const predictOrderRegistrations = usePredictOrderToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
   const quickBuyRegistrations = useQuickBuyToastRegistrations();
   const toastRegistrations = useMemo(
     () => [
       ...predictRegistrations,
+      ...predictOrderRegistrations,
       ...perpsWithdrawRegistrations,
       ...quickBuyRegistrations,
     ],
-    [predictRegistrations, perpsWithdrawRegistrations, quickBuyRegistrations],
+    [
+      predictRegistrations,
+      predictOrderRegistrations,
+      perpsWithdrawRegistrations,
+      quickBuyRegistrations,
+    ],
   );
 
   useEffect(() => {

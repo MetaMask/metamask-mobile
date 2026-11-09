@@ -1,19 +1,50 @@
 import type { RootState } from '..';
 import type {
+  ClaimDto,
   EarningsSummaryDto,
   ReferralMeDto,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
+import { selectRewardsMoneyControllerEnabled } from '../../selectors/featureFlagController/rewardsMoneyController';
+import { selectSessionProfileId } from '../../selectors/identity';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import initialRootState from '../../util/test/initial-root-state';
 import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
 import {
   canAcceptMoneyReferralInvite,
   moneyDashboardPersona,
+  refereeMoneySections,
+  selectCashbackLedger,
+  selectClaimLock,
+  selectClaimWaitingUntil,
+  selectCommissionMechanisms,
+  selectCommissions,
+  selectEarningsHistory,
   selectEarningsSummaryEntry,
+  selectInFlightClaims,
   selectMoneyDashboardPersona,
+  selectIsReferralLinkPending,
   selectMoneyReferralAllowedForGeo,
+  selectPendingMoneyReferralCode,
+  selectReferralFunnelEntry,
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
+  selectSettingsReferralAvailable,
 } from './selectors';
+
+jest.mock('../../selectors/settings', () => ({
+  selectBasicFunctionalityEnabled: jest.fn(),
+}));
+
+jest.mock(
+  '../../selectors/featureFlagController/rewardsMoneyController',
+  () => ({
+    selectRewardsMoneyControllerEnabled: jest.fn(),
+  }),
+);
+
+jest.mock('../../selectors/identity', () => ({
+  selectSessionProfileId: jest.fn(),
+}));
 
 const PROFILE_A = 'profile-a';
 const PROFILE_B = 'profile-b';
@@ -160,6 +191,26 @@ describe('rewardsMoney selectors', () => {
     });
   });
 
+  describe('refereeMoneySections', () => {
+    it.each([
+      [undefined, true, true],
+      [['REFEREE'], true, true],
+      [['CASHBACK_EXPERIMENT'], false, true],
+      [['COPY_TRADING'], true, false],
+      [['REFEREE', 'COPY_TRADING'], true, true],
+      [['CASHBACK_EXPERIMENT', 'COPY_TRADING'], true, true],
+      [['REFERRER'], false, false],
+    ] as const)(
+      'maps %j to social %s and rebates %s',
+      (roles, social, rebates) => {
+        expect(refereeMoneySections(roles)).toEqual({
+          socialRewards: social,
+          tradingRebates: rebates,
+        });
+      },
+    );
+  });
+
   describe('canAcceptMoneyReferralInvite', () => {
     it('stays open for a plain user and a cashback-experiment member', () => {
       expect(canAcceptMoneyReferralInvite({ roles: [] })).toBe(true);
@@ -248,6 +299,46 @@ describe('rewardsMoney selectors', () => {
     });
   });
 
+  describe('selectIsReferralLinkPending', () => {
+    it('returns false when no referral link is being handled', () => {
+      const state = buildState();
+
+      expect(selectIsReferralLinkPending(state)).toBe(false);
+    });
+
+    it('returns true while a referral link is being handled', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          isReferralLinkPending: true,
+        },
+      } as RootState;
+
+      expect(selectIsReferralLinkPending(state)).toBe(true);
+    });
+  });
+
+  describe('selectPendingMoneyReferralCode', () => {
+    it('returns null when no deeplink left a code', () => {
+      const state = buildState();
+
+      expect(selectPendingMoneyReferralCode(state)).toBeNull();
+    });
+
+    it('returns the code a deeplink left behind', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          pendingReferralCode: 'KOL1',
+        },
+      } as RootState;
+
+      expect(selectPendingMoneyReferralCode(state)).toBe('KOL1');
+    });
+  });
+
   describe('selectEarningsSummaryEntry', () => {
     it('returns the entry for the given profile', () => {
       const state = buildState({}, { [PROFILE_A]: settledSummaryEntry });
@@ -267,6 +358,215 @@ describe('rewardsMoney selectors', () => {
       const state = buildState({}, { [PROFILE_A]: settledSummaryEntry });
 
       expect(selectEarningsSummaryEntry(state, undefined)).toBeUndefined();
+    });
+  });
+
+  describe('selectInFlightClaims', () => {
+    it('returns the open claims stored for the profile', () => {
+      const claims = [{ id: 'claim-open' }] as ClaimDto[];
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          inFlightClaims: { [PROFILE_A]: claims },
+        },
+      } as RootState;
+
+      expect(selectInFlightClaims(state, PROFILE_A)).toEqual(claims);
+    });
+
+    it('returns undefined when a restored slice is missing the map', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {},
+      } as RootState;
+
+      expect(selectReferralMeEntry(state, PROFILE_A)).toBeUndefined();
+      expect(selectEarningsSummaryEntry(state, PROFILE_A)).toBeUndefined();
+      expect(selectReferralFunnelEntry(state, PROFILE_A)).toBeUndefined();
+      expect(selectCommissions(state, PROFILE_A)).toBeUndefined();
+      expect(selectCommissionMechanisms(state, PROFILE_A)).toBeUndefined();
+      expect(selectCashbackLedger(state, PROFILE_A)).toBeUndefined();
+      expect(selectEarningsHistory(state, PROFILE_A)).toBeUndefined();
+      expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();
+      expect(selectClaimWaitingUntil(state, PROFILE_A)).toBeUndefined();
+    });
+
+    it('returns undefined when the profile or the page is missing', () => {
+      const state = buildState();
+
+      expect(selectInFlightClaims(state, undefined)).toBeUndefined();
+      expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();
+      expect(selectInFlightClaims(state, PROFILE_B)).toBeUndefined();
+    });
+  });
+
+  describe('selectClaimWaitingUntil', () => {
+    it('returns the stored wait for the profile', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          claimWaitingUntil: { [PROFILE_A]: 1_800_000_000_000 },
+        },
+      };
+
+      expect(selectClaimWaitingUntil(state, PROFILE_A)).toBe(1_800_000_000_000);
+      expect(selectClaimWaitingUntil(state, PROFILE_B)).toBeUndefined();
+      expect(selectClaimWaitingUntil(state, undefined)).toBeUndefined();
+    });
+  });
+
+  describe('selectClaimLock', () => {
+    it('returns the session lock for the profile', () => {
+      const lock = {
+        status: 'in_progress' as const,
+        summaryKey: '1000000',
+      };
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          claimLocks: { [PROFILE_A]: lock },
+        },
+      };
+
+      expect(selectClaimLock(state, PROFILE_A)).toEqual(lock);
+      expect(selectClaimLock(state, PROFILE_B)).toBeUndefined();
+      expect(selectClaimLock(state, undefined)).toBeUndefined();
+    });
+  });
+
+  describe('selectSettingsReferralAvailable', () => {
+    const plainReferralMe: ReferralMeDto = {
+      ...mockReferralMe,
+      roles: [],
+      ui_variant: 'NONE',
+    };
+    const plainEntry: ReferralMeEntry = {
+      loading: false,
+      error: false,
+      data: plainReferralMe,
+    };
+
+    beforeEach(() => {
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+      jest.mocked(selectRewardsMoneyControllerEnabled).mockReturnValue(true);
+      jest.mocked(selectSessionProfileId).mockReturnValue(PROFILE_A);
+    });
+
+    it('is available when the controller is on and referral me is cached', () => {
+      const state = buildState({ [PROFILE_A]: plainEntry });
+
+      expect(selectSettingsReferralAvailable(state)).toBe(true);
+    });
+
+    it('stays available when a refresh fails but the cached payload remains', () => {
+      const state = buildState({
+        [PROFILE_A]: { loading: false, error: true, data: plainReferralMe },
+      });
+
+      expect(selectSettingsReferralAvailable(state)).toBe(true);
+    });
+
+    it('stays available for a referee', () => {
+      const state = buildState({
+        [PROFILE_A]: {
+          loading: false,
+          error: false,
+          data: {
+            ...mockReferralMe,
+            roles: ['REFEREE'],
+            ui_variant: 'REFEREE',
+          },
+        },
+      });
+
+      expect(selectSettingsReferralAvailable(state)).toBe(true);
+    });
+
+    it('is unavailable when the cached payload is a referrer', () => {
+      const state = buildState({ [PROFILE_A]: settledEntry });
+
+      expect(selectSettingsReferralAvailable(state)).toBe(false);
+    });
+
+    it('is unavailable when roles include REFERRER on another screen variant', () => {
+      const state = buildState({
+        [PROFILE_A]: {
+          loading: false,
+          error: false,
+          data: {
+            ...plainReferralMe,
+            roles: ['REFERRER'],
+            ui_variant: 'NONE',
+          },
+        },
+      });
+
+      expect(selectSettingsReferralAvailable(state)).toBe(false);
+    });
+
+    it('is unavailable when the device country is excluded', () => {
+      const state = {
+        ...buildState({
+          [PROFILE_A]: {
+            ...plainEntry,
+            data: { ...plainReferralMe, excluded_regions: ['GB'] },
+          },
+        }),
+        rewards: {
+          ...initialRootState.rewards,
+          geoLocation: 'GB',
+        },
+      } as RootState;
+
+      expect(selectSettingsReferralAvailable(state)).toBe(false);
+    });
+
+    it('stays available when geo is unknown', () => {
+      const state = {
+        ...buildState({
+          [PROFILE_A]: {
+            ...plainEntry,
+            data: { ...plainReferralMe, excluded_regions: ['GB'] },
+          },
+        }),
+        rewards: {
+          ...initialRootState.rewards,
+          geoLocation: null,
+        },
+      } as RootState;
+
+      expect(selectSettingsReferralAvailable(state)).toBe(true);
+    });
+
+    it('is unavailable when basic functionality is off', () => {
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const state = buildState({ [PROFILE_A]: plainEntry });
+
+      expect(selectSettingsReferralAvailable(state)).toBe(false);
+    });
+
+    it('is unavailable when the rewards money controller flag is off', () => {
+      jest.mocked(selectRewardsMoneyControllerEnabled).mockReturnValue(false);
+      const state = buildState({ [PROFILE_A]: plainEntry });
+
+      expect(selectSettingsReferralAvailable(state)).toBe(false);
+    });
+
+    it('is unavailable when referral me has no cached payload', () => {
+      const state = buildState({
+        [PROFILE_A]: { loading: false, error: true, data: null },
+      });
+
+      expect(selectSettingsReferralAvailable(state)).toBe(false);
+    });
+
+    it('is unavailable while the first referral me read has not landed', () => {
+      const state = buildState({ [PROFILE_A]: loadingEntry });
+
+      expect(selectSettingsReferralAvailable(state)).toBe(false);
     });
   });
 });

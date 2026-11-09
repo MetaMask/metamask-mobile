@@ -1,5 +1,9 @@
+import { Interface } from 'ethers/lib/utils';
 import type { PredictPosition } from '../../../types';
-import { POLYMARKET_V2_PROTOCOL } from '../protocol/definitions';
+import {
+  POLYMARKET_POSITIONS_PROTOCOL,
+  POLYMARKET_V2_PROTOCOL,
+} from '../protocol/definitions';
 import { PERMIT2_ADDRESS } from '../safe/constants';
 import { planDepositWalletClaim } from './claim';
 import { compileRequirementTransactions } from './compileRequirementTransactions';
@@ -26,6 +30,10 @@ const mockInspectMissingRequirements = jest.mocked(inspectMissingRequirements);
 const mockCompileRequirementTransactions = jest.mocked(
   compileRequirementTransactions,
 );
+
+const redeemInterface = new Interface([
+  'function redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)',
+]);
 
 const walletAddress = '0x1111111111111111111111111111111111111111';
 
@@ -181,5 +189,84 @@ describe('planDepositWalletClaim', () => {
       POLYMARKET_V2_PROTOCOL.claim.standardTarget,
       POLYMARKET_V2_PROTOCOL.claim.negRiskTarget,
     ]);
+  });
+
+  it('routes v2 positions to Router redeems with the share size in base units', async () => {
+    const calls = await planDepositWalletClaim({
+      positions: [
+        createPosition({
+          outcomeId: `0x${'ab'.repeat(31)}00`,
+          size: 2,
+          outcomeIndex: 1,
+        }),
+      ],
+      walletAddress,
+      marketVersions: { [`0x${'ab'.repeat(31)}00`]: 'v2' },
+    });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toEqual(
+      expect.objectContaining({
+        target: POLYMARKET_POSITIONS_PROTOCOL.contracts.router,
+        value: '0',
+      }),
+    );
+
+    const [decodedConditionId, outcomeIndex, amount] =
+      redeemInterface.decodeFunctionData('redeem', calls[0].data);
+
+    expect(decodedConditionId).toBe(`0x${'ab'.repeat(31)}`);
+    expect(String(outcomeIndex)).toBe('1');
+    expect(String(amount)).toBe('2000000');
+  });
+
+  it('keeps the Router operator requirement for deposit-wallet v2 claims', async () => {
+    await planDepositWalletClaim({
+      positions: [createPosition({ outcomeId: `0x${'ab'.repeat(31)}00` })],
+      walletAddress,
+      marketVersions: { [`0x${'ab'.repeat(31)}00`]: 'v2' },
+    });
+
+    expect(mockInspectMissingRequirements).toHaveBeenCalledWith({
+      address: walletAddress,
+      requirements: expect.arrayContaining([
+        expect.objectContaining({
+          type: 'erc1155-operator',
+          tokenAddress: POLYMARKET_POSITIONS_PROTOCOL.contracts.positionManager,
+          operator: POLYMARKET_POSITIONS_PROTOCOL.contracts.router,
+        }),
+      ]),
+    });
+  });
+
+  it('keeps CTF and Router redeems in order for a mixed deposit-wallet batch', async () => {
+    const calls = await planDepositWalletClaim({
+      positions: [
+        createPosition({ id: 'ctf-position', marketId: 'market-ctf' }),
+        createPosition({
+          id: 'v2-position',
+          outcomeId: `0x${'cd'.repeat(31)}`,
+          size: 3,
+        }),
+      ],
+      walletAddress,
+      marketVersions: { [`0x${'cd'.repeat(31)}`]: 'v2' },
+    });
+
+    expect(calls.map((call) => call.target)).toEqual([
+      POLYMARKET_V2_PROTOCOL.claim.standardTarget,
+      POLYMARKET_POSITIONS_PROTOCOL.contracts.router,
+    ]);
+  });
+
+  it('falls back to the CTF claim for an unknown market version', async () => {
+    const calls = await planDepositWalletClaim({
+      positions: [createPosition()],
+      walletAddress,
+      marketVersions: { [createPosition().outcomeId]: 'v3' },
+    });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0].target).toBe(POLYMARKET_V2_PROTOCOL.claim.standardTarget);
   });
 });

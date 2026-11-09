@@ -1,5 +1,4 @@
 import {
-  getTransparentOnboardingNavbarOptions,
   getOfflineModalNavbar,
   getEditAccountNameNavBarOptions,
 } from './index';
@@ -26,50 +25,6 @@ const mockThemeColors = {
 /* eslint-enable @metamask/design-tokens/color-no-hex */
 
 describe('Navbar', () => {
-  describe('getTransparentOnboardingNavbarOptions', () => {
-    it('returns correct options', () => {
-      const options = getTransparentOnboardingNavbarOptions(mockThemeColors);
-
-      expect(options).toHaveProperty('headerTitle');
-      expect(options).toHaveProperty('headerLeft');
-      expect(options).toHaveProperty('headerRight');
-      expect(options).toHaveProperty('headerStyle');
-    });
-
-    it('uses custom background color when provided', () => {
-      const testColor = 'rgb(255, 0, 0)';
-      const options = getTransparentOnboardingNavbarOptions(
-        mockThemeColors,
-        testColor,
-      );
-
-      expect(options.headerStyle.backgroundColor).toBe(testColor);
-    });
-
-    it('hides logo when showLogo is false', () => {
-      const options = getTransparentOnboardingNavbarOptions(
-        mockThemeColors,
-        undefined,
-        false,
-      );
-
-      expect(options.headerTitle()).toBeNull();
-    });
-
-    it('applies custom logo tint color when provided', () => {
-      const options = getTransparentOnboardingNavbarOptions(
-        mockThemeColors,
-        'red',
-        true,
-        'blue',
-      );
-
-      expect(options).toBeDefined();
-      expect(options.headerStyle.backgroundColor).toBe('red');
-      expect(options.headerTitle()).not.toBeNull();
-    });
-  });
-
   describe('getOfflineModalNavbar', () => {
     it('returns correct options', () => {
       const options = getOfflineModalNavbar();

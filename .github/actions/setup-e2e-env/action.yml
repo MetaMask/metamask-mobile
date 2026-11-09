@@ -8,7 +8,7 @@ inputs:
   node-version:
     description: 'Node.js version'
     required: false
-    default: '24.16.0'
+    default: '24.22.1'
   yarn-version:
     description: Yarn version to use with Corepack
     required: false

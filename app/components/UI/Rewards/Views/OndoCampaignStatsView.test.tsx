@@ -29,6 +29,10 @@ declare global {
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => false,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({

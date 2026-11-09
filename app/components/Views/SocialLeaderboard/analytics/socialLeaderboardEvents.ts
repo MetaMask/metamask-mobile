@@ -22,6 +22,7 @@ export const SocialLeaderboardEventProperties = {
   IS_FOLLOWING: 'is_following',
   IS_OPEN: 'is_open',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
+  DEDUPLICATION_ID: 'deduplication_id',
   INTERACTION_TYPE: 'interaction_type',
   NUX_STEP: 'nux_step',
   NOTIFICATION_TEMPLATE_VARIANT: 'notification_template_variant',
@@ -94,7 +95,7 @@ export const SocialLeaderboardEventValues = {
     FOLLOWING: 'tab_following',
     TRENDING: 'tab_trending',
     LEADERBOARD: 'tab_leaderboard',
-    LIVE_TRADES: 'tab_live_trades',
+    LIVE: 'tab_live',
     OPEN: 'open',
   },
   TAB_CHANGE_METHOD: {

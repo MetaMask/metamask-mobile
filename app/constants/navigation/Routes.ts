@@ -109,13 +109,12 @@ const Routes = {
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
+  NFT_DETAILS: 'NftDetails',
   TRANSACTION_DETAILS: 'TransactionDetails',
-  // Redesigned activity details screen (gated by selectIsTransactionsRedesignEnabled).
-  // Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
+  // Activity details screen. Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
   ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
   REWARDS_FLOW: 'RewardsFlow',
-  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   /** Rewards Money home, a sibling of REWARDS_DASHBOARD in the Rewards tab. */
@@ -132,6 +131,7 @@ const Routes = {
   REWARDS_TRADING_COMMISSIONS_VIEW: 'RewardsTradingCommissionsView',
   REWARDS_TRADING_REBATES_VIEW: 'RewardsTradingRebatesView',
   REWARDS_EARNINGS_HISTORY_VIEW: 'RewardsEarningsHistoryView',
+  REWARDS_TAX_FORM_VIEW: 'RewardsTaxFormView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
   REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
@@ -193,6 +193,7 @@ const Routes = {
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_INFO_SHEET_MODAL: 'RewardsInfoSheetModal',
+    REWARDS_MONEY_CLAIMS_PAUSED_MODAL: 'RewardsMoneyClaimsPausedModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
@@ -200,6 +201,9 @@ const Routes = {
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
     REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
     REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
+    REWARDS_TAX_QUESTION_SHEET: 'RewardsTaxQuestionSheet',
+    REWARDS_TAX_OPEN_FORM_SHEET: 'RewardsTaxOpenFormSheet',
+    REWARDS_TAX_CONTACT_SHEET: 'RewardsTaxContactSheet',
     SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
@@ -462,6 +466,7 @@ const Routes = {
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
     MANAGE_PROFILE_LINKED_ACCOUNT: 'ManageProfileLinkedAccountView',
+    EDIT_AVATAR: 'EditProfileAvatarView',
     POSITION: 'TraderPositionView',
     POSITION_SHEET: 'SocialPositionDetailsSheet',
     ONBOARDING: 'SocialLeaderboardOnboarding',
@@ -482,6 +487,7 @@ const Routes = {
       BUY_PREVIEW: 'PredictBuyPreview',
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
+      MARKET_UNAVAILABLE: 'PredictMarketUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
@@ -537,6 +543,7 @@ const Routes = {
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
+    DEPOSIT_DEEPLINK: 'MoneyDepositDeeplink',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
@@ -570,6 +577,8 @@ const Routes = {
     ADDRESS_LIST: 'MultichainAddressList',
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
+    /** Block explorer pushed on AppFlow, above the address list. */
+    EXPLORER_WEBVIEW: 'MultichainAccountsExplorerWebview',
   },
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
@@ -594,14 +603,16 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SAMPLE_FEATURE: 'SampleFeature',
-  ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
+    APPLE_PAY_SPLASH: 'CardApplePaySplash',
+    APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    MFA_METHOD: 'CardMfaMethod',
+    MFA_CODE: 'CardMfaCode',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
@@ -650,6 +661,7 @@ const Routes = {
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      APPLE_PAY_USAGE: 'CardApplePayUsageSheet',
       SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },

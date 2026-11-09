@@ -192,7 +192,12 @@ describe('limitOrderPriceAdjustReducer', () => {
     it('is not set when the price is seeded from market', () => {
       const result = limitOrderPriceAdjustReducer(
         initialLimitOrderPriceAdjustState,
-        { type: 'seedFromMarket', limitPrice: '100' },
+        {
+          type: 'seedFromMarket',
+          limitPrice: '100',
+          executionType: initialLimitOrderPriceAdjustState.executionType,
+          isLimitFiatMode: initialLimitOrderPriceAdjustState.isLimitFiatMode,
+        },
       );
 
       expect(result.hasUserEditedLimitPrice).toBe(false);
@@ -213,6 +218,8 @@ describe('limitOrderPriceAdjustReducer', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'seedFromMarket',
         limitPrice: '100',
+        executionType: modifiedState.executionType,
+        isLimitFiatMode: modifiedState.isLimitFiatMode,
       });
 
       expect(result).toEqual({
@@ -225,9 +232,55 @@ describe('limitOrderPriceAdjustReducer', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'seedFromMarket',
         limitPrice: modifiedState.limitPrice as string,
+        executionType: modifiedState.executionType,
+        isLimitFiatMode: modifiedState.isLimitFiatMode,
       });
 
       expect(result).toBe(modifiedState);
+    });
+
+    it('ignores a price seeded for a side the state no longer holds', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'seedFromMarket',
+        limitPrice: '1',
+        executionType: LimitOrderExecutionType.BUY,
+        isLimitFiatMode: modifiedState.isLimitFiatMode,
+      });
+
+      expect(result).toBe(modifiedState);
+    });
+
+    it('ignores a price seeded for a denomination the state no longer holds', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'seedFromMarket',
+        limitPrice: '1',
+        executionType: modifiedState.executionType,
+        isLimitFiatMode: !modifiedState.isLimitFiatMode,
+      });
+
+      expect(result).toBe(modifiedState);
+    });
+
+    it('ignores a stale seed queued after a reset to a new pair', () => {
+      const staleSideState = getInitialLimitOrderPriceAdjustState({
+        executionType: LimitOrderExecutionType.BUY,
+        isLimitFiatMode: true,
+      });
+
+      const afterReset = limitOrderPriceAdjustReducer(staleSideState, {
+        type: 'reset',
+        executionType: LimitOrderExecutionType.SELL,
+        isLimitFiatMode: false,
+      });
+      const result = limitOrderPriceAdjustReducer(afterReset, {
+        type: 'seedFromMarket',
+        limitPrice: '1',
+        executionType: staleSideState.executionType,
+        isLimitFiatMode: staleSideState.isLimitFiatMode,
+      });
+
+      expect(result).toBe(afterReset);
+      expect(result.limitPrice).toBeUndefined();
     });
   });
 

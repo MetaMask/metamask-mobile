@@ -32,6 +32,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'KycService',
   'QrSyncProvisioningService',
   'SocialService',
+  'SocialRealtimeService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
   'MoneyAccountApiDataService',
@@ -42,6 +43,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'PredictLiveDataService',
   'PredictPortfolioService',
   'PredictOrderService',
+  'PredictDeviceAuthService',
   'RecurringOrdersDataService',
   'LimitOrdersDataService',
   'SentinelFeeTokensDataService',
@@ -104,14 +106,15 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'DeFiPositionsController:stateChange',
   'DeFiPositionsControllerV2:stateChanged',
   'SeedlessOnboardingController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  'SamplePetnamesController:stateChange',
-  ///: END:ONLY_INCLUDE_IF
+  ...(process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? (['SamplePetnamesController:stateChange'] as const)
+    : []),
   'NetworkConnectionBannerController:stateChanged',
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'CardController:stateChange',
   'UiSlotsController:stateChanged',
+  'PredictVenueController:stateChanged',
   'ClientController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',

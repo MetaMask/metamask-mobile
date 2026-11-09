@@ -32,6 +32,7 @@ import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
   HomeTabsParamList,
+  RewardsHomeParamList,
   ImportPrivateKeyStackParamList,
   MainStackParamList,
   SocialLeaderboardTabParams,
@@ -71,8 +72,6 @@ import type { AccountConnectParams } from '../../components/Views/MultichainAcco
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 import type { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 import type { SuccessErrorSheetParams } from '../../components/Views/SuccessErrorSheet/interface';
-import type { OnboardingSheetParams } from '../../components/Views/OnboardingSheet';
-
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
 import type { DeleteWalletModalParams } from '../../components/UI/DeleteWalletModal/DeleteWalletModal.types';
@@ -98,7 +97,6 @@ import type {
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
 import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
-import type { VbaSourceCurrency } from '../../util/region/getVbaSourceCurrency';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -172,11 +170,7 @@ import type {
 import type { SendStackParamList } from '../../components/Views/confirmations/components/send/types/navigation';
 
 // Predict params
-import type {
-  PredictStackParamList,
-  PredictModalsNavigationParamList,
-  PredictNavigationParamList,
-} from '../../components/UI/Predict/types/navigation';
+import type { PredictAppRouteParamList } from '../../components/UI/PredictNext';
 
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
@@ -410,7 +404,6 @@ export type RootModalFlowParamList = {
   DeleteWalletModal: DeleteWalletModalParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
-  OnboardingSheet: OnboardingSheetParams | undefined;
   SeedphraseModal: SeedphraseModalParams | undefined;
   SkipAccountSecurityModal: undefined;
   SuccessErrorSheet: SuccessErrorSheetParams | undefined;
@@ -587,7 +580,7 @@ export type RootStackParamList = {
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
-  RampVbaDetails: { sourceCurrency?: VbaSourceCurrency } | undefined;
+  RampVbaDetails: undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
@@ -637,9 +630,8 @@ export type RootStackParamList = {
   TransactionsView: TransactionsViewParams | NestedNavigationParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
-  RewardsView: undefined;
+  RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
-  ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
   TrendingView: ExploreFeedRouteParams | undefined;
@@ -708,6 +700,9 @@ export type RootStackParamList = {
   RewardsInfoSheetModal:
     | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
+  RewardsMoneyClaimsPausedModal:
+    | RewardsNavigationParamList['RewardsMoneyClaimsPausedModal']
+    | undefined;
   RewardsClaimBottomSheetModal:
     | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
     | undefined;
@@ -725,6 +720,10 @@ export type RootStackParamList = {
   RewardsMoneyTermsSheet:
     | RewardsNavigationParamList['RewardsMoneyTermsSheet']
     | undefined;
+  RewardsTaxQuestionSheet: RewardsNavigationParamList['RewardsTaxQuestionSheet'];
+  RewardsTaxOpenFormSheet: RewardsNavigationParamList['RewardsTaxOpenFormSheet'];
+  RewardsTaxContactSheet: RewardsNavigationParamList['RewardsTaxContactSheet'];
+  RewardsTaxFormView: RewardsNavigationParamList['RewardsTaxFormView'];
   /**
    * Post-accept confirmation. Registered on the root stack so it can fade
    * over the Money dashboard after the invite sheet dismisses.
@@ -744,7 +743,16 @@ export type RootStackParamList = {
   HomeNav: NavigatorScreenParams<MainStackParamList> | undefined;
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
   Onboarding: undefined;
-  Login: undefined;
+  Login:
+    | {
+        locked?: boolean;
+        /**
+         * Resume authentication failed. Login covers the screen the user left.
+         * Unlock dismisses it instead of navigating Home.
+         */
+        resumeOverlay?: boolean;
+      }
+    | undefined;
   OnboardingNav: undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
@@ -846,7 +854,6 @@ export type RootStackParamList = {
   NetworkManager: undefined;
   ChangeInSimulationModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
-  OnboardingSheet: OnboardingSheetParams | undefined;
   ImportWalletTipSheet: undefined;
   MAPicker: MAPickerSheetParams | undefined;
   SeedphraseModal: SeedphraseModalParams | undefined;
@@ -908,6 +915,7 @@ export type RootStackParamList = {
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
+  MoneyDepositDeeplink: MoneyNavigationParamList['MoneyDepositDeeplink'];
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
   MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
   MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];
@@ -1012,20 +1020,19 @@ export type RootStackParamList = {
   PerpsPriceAlerts: PerpsStackParamList['PerpsPriceAlerts'];
   PerpsCreatePriceAlert: PerpsStackParamList['PerpsCreatePriceAlert'];
 
-  // Predict routes — `Predict` is a nested stack navigator.
-  Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
-  PredictMarketList: PredictNavigationParamList['PredictMarketList'];
-  PredictFeed: PredictNavigationParamList['PredictFeed'];
-  PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
-  PredictPositions: PredictNavigationParamList['PredictPositions'];
-  PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
-  PredictModals:
-    | NavigatorScreenParams<PredictModalsNavigationParamList>
-    | undefined;
-  PredictBuyPreview: PredictNavigationParamList['PredictBuyPreview'];
-  PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
-  PredictUnavailable: undefined;
-  PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
+  // Predict routes, owned by PredictNext — `Predict` is a nested stack navigator.
+  Predict: PredictAppRouteParamList['Predict'];
+  PredictMarketList: PredictAppRouteParamList['PredictMarketList'];
+  PredictFeed: PredictAppRouteParamList['PredictFeed'];
+  PredictMarketDetails: PredictAppRouteParamList['PredictMarketDetails'];
+  PredictPositions: PredictAppRouteParamList['PredictPositions'];
+  PredictActivityDetail: PredictAppRouteParamList['PredictActivityDetail'];
+  PredictModals: PredictAppRouteParamList['PredictModals'];
+  PredictBuyPreview: PredictAppRouteParamList['PredictBuyPreview'];
+  PredictSellPreview: PredictAppRouteParamList['PredictSellPreview'];
+  PredictUnavailable: PredictAppRouteParamList['PredictUnavailable'];
+  PredictMarketUnavailable: PredictAppRouteParamList['PredictMarketUnavailable'];
+  PredictAddFundsSheet: PredictAppRouteParamList['PredictAddFundsSheet'];
 
   // Social Leaderboard routes
   SocialV0View:
@@ -1060,7 +1067,12 @@ export type RootStackParamList = {
       }
     | undefined;
   SocialPostComposerView: SocialPostComposerViewParams | undefined;
-  SocialProfileOnboardingView: undefined;
+  SocialProfileOnboardingView:
+    | {
+        /** Opens only the terms sheet for users with an existing profile. */
+        termsOnly?: boolean;
+      }
+    | undefined;
   MyProfileView: SocialV1ProfileViewParams | undefined;
   SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
   FollowConnectionsView: {
@@ -1075,6 +1087,7 @@ export type RootStackParamList = {
   };
   ManageProfileTradingActivityView: undefined;
   ManageProfileLinkedAccountView: undefined;
+  EditProfileAvatarView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;
@@ -1173,6 +1186,7 @@ export type RootStackParamList = {
   MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
+  MultichainAccountsExplorerWebview: WebviewStackParamList['SimpleWebview'];
   SmartAccountDetails: SmartAccountParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1186,16 +1200,18 @@ export type RootStackParamList = {
   SetPasswordFlow: NavigatorScreenParams<SetPasswordFlowParamList> | undefined;
   EditAccountName: EditAccountNameParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   // Sample feature
   SampleFeature: undefined;
-  ///: END:ONLY_INCLUDE_IF
 
   // Card routes
   CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
   CardHome: CardScreensStackParamList['CardHome'];
+  CardApplePaySplash: CardScreensStackParamList['CardApplePaySplash'];
+  CardApplePayConfirmation: CardScreensStackParamList['CardApplePayConfirmation'];
   CardWelcome: CardScreensStackParamList['CardWelcome'];
   CardAuthentication: CardScreensStackParamList['CardAuthentication'];
+  CardMfaMethod: CardScreensStackParamList['CardMfaMethod'];
+  CardMfaCode: CardScreensStackParamList['CardMfaCode'];
   CardSpendingLimit: CardScreensStackParamList['CardSpendingLimit'];
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];
@@ -1239,6 +1255,7 @@ export type RootStackParamList = {
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
   CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
   CardDigitalWalletInstructionsModal: CardModalsNavigationParamList['CardDigitalWalletInstructionsModal'];
+  CardApplePayUsageSheet: CardModalsNavigationParamList['CardApplePayUsageSheet'];
   CardRevokeAllowanceSheet: CardModalsNavigationParamList['CardRevokeAllowanceSheet'];
 
   // Send routes

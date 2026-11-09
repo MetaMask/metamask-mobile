@@ -18,6 +18,7 @@ import {
 import type { BridgeToken } from '../../Bridge/types';
 import {
   selectDestAddress,
+  selectIsSlippageUserOverride,
   selectSlippage,
 } from '../../../../core/redux/slices/bridge';
 import {
@@ -57,6 +58,7 @@ jest.mock('../../../../util/analytics/analytics', () => ({
 
 jest.mock('../../../../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlags: jest.fn(() => ({ bridgeConfig: {} })),
+  selectFeatureFlagThresholdGroups: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({
@@ -209,6 +211,7 @@ const mockRootState = {
 
 const setupSelectors = () => {
   (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
+  (selectIsSlippageUserOverride as unknown as jest.Mock).mockReturnValue(false);
   (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
   (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
     '0xWALLET',
@@ -294,6 +297,49 @@ describe('useQuickBuyQuotes', () => {
 
     expect(fetchQuotesMock).not.toHaveBeenCalled();
     expect(streamQuickBuyQuotesMock).not.toHaveBeenCalled();
+  });
+
+  it('does not re-send quote params when slippage is only hydrated from the first quote', () => {
+    const sourceToken = createSourceToken();
+    const destToken = createDestToken();
+    mockUseSwapQuotes.mockReturnValue({ refreshQuotes: jest.fn() });
+    (selectSlippage as unknown as jest.Mock).mockReturnValue(undefined);
+
+    const { rerender } = renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({ sourceToken, destToken, sourceTokenAmount: '0.001' }),
+      ),
+    );
+    expect(mockSetQuoteParams).toHaveBeenCalledTimes(1);
+
+    (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
+    rerender({});
+
+    expect(mockSetQuoteParams).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-sends quote params when the user overrides slippage', () => {
+    const sourceToken = createSourceToken();
+    const destToken = createDestToken();
+    mockUseSwapQuotes.mockReturnValue({ refreshQuotes: jest.fn() });
+    (selectSlippage as unknown as jest.Mock).mockReturnValue(undefined);
+
+    const { rerender } = renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({ sourceToken, destToken, sourceTokenAmount: '0.001' }),
+      ),
+    );
+
+    (selectSlippage as unknown as jest.Mock).mockReturnValue('2');
+    (selectIsSlippageUserOverride as unknown as jest.Mock).mockReturnValue(
+      true,
+    );
+    rerender({});
+
+    expect(mockSetQuoteParams).toHaveBeenCalledTimes(2);
+    expect(mockSetQuoteParams).toHaveBeenLastCalledWith(
+      expect.objectContaining({ slippage: '2' }),
+    );
   });
 
   it('returns idle state when any required input is missing', () => {

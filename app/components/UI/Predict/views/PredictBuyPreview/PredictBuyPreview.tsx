@@ -3,7 +3,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonSize as ButtonSizeHero,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Icon,
   IconName,
   IconSize,
@@ -26,20 +28,9 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
@@ -67,7 +58,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
@@ -156,8 +146,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         entryPoint,
         predictFeedTab,
         predictScreen,
+        outcome,
       ),
-    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen, outcome],
   );
 
   const {
@@ -538,53 +529,22 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     </ActiveScrollView>
   );
 
-  const renderActionButton = () => {
-    if (isLoading) {
-      return (
-        <Button
-          label={
-            <Box twClassName="flex-row items-center gap-1">
-              <ActivityIndicator size="small" />
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="font-medium"
-                color={TextColor.PrimaryInverse}
-              >
-                {`${strings('predict.order.placing_prediction')}...`}
-              </Text>
-            </Box>
-          }
-          variant={ButtonVariants.Primary}
-          onPress={onPlaceBet}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={tw.style('opacity-50')}
-          disabled
-        />
-      );
-    }
-
-    return (
-      <ButtonHero
-        testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
-        onPress={onPlaceBet}
-        isDisabled={!canPlaceBet}
-        isLoading={isLoading}
-        size={ButtonSizeHero.Lg}
-        style={tw.style('w-full')}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          style={tw.style('text-white font-medium')}
-        >
-          {outcomeToken?.title} ·{' '}
-          {formatCents(
-            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
-          )}
-        </Text>
-      </ButtonHero>
-    );
-  };
+  const renderActionButton = () => (
+    <Button
+      testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      isDisabled={!canPlaceBet || isLoading}
+      isLoading={isLoading}
+      loadingText={`${strings('predict.order.placing_prediction')}...`}
+      onPress={onPlaceBet}
+    >
+      {`${outcomeToken?.title} · ${formatCents(
+        preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
+      )}`}
+    </Button>
+  );
 
   const renderMinimumBetWarning = () => {
     if (isBalanceLoading || !isBelowMinimum) {
@@ -624,7 +584,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
             disabled={false}
             total={total}
             originalTotal={originalFeeBreakdown?.total}
-            feePolicyDiscountType={preview?.feePolicy?.discountType}
+            feePolicy={preview?.feePolicy}
             rewardsFeeAmountUsd={rewardsFeeAmountUsd}
             rewardsLoadingOverride={isCalculating && isUserInputChange}
             handleFeesInfoPress={handleFeesInfoPress}
@@ -656,7 +616,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               variant={TextVariant.BodyXs}
               style={tw.style('text-info-default')}
               onPress={() => {
-                Linking.openURL('https://polymarket.com/tos');
+                Linking.openURL('https://polymarket.com/tos'); // NOSONAR
               }}
             >
               {strings('predict.consent_sheet.learn_more')}
@@ -692,8 +652,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           ref={feeBreakdownSheetRef}
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
-          feePolicyDiscountType={preview?.feePolicy?.discountType}
           originalTotal={originalFeeBreakdown?.total}
+          feePolicy={preview?.feePolicy}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
           }

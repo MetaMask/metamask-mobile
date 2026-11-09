@@ -1,11 +1,13 @@
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import {
+// The `SamplePetnamesController` is only registered when
+// `INCLUDE_SAMPLE_FEATURE=true` (see Engine.ts and messengers/index.ts), so
+// this import must stay `import type` to avoid pulling the runtime module
+// into production bundles.
+import type {
   SamplePetnamesController,
   SamplePetnamesControllerState,
   SamplePetnamesControllerActions,
   SamplePetnamesControllerEvents,
 } from '@metamask/sample-controllers';
-///: END:ONLY_INCLUDE_IF
 import { ExtendedMessenger } from '../ExtendedMessenger';
 import {
   NftController,
@@ -20,7 +22,6 @@ import {
   TokensControllerState,
   AssetsContractController,
   AssetsContractControllerActions,
-  AssetsContractControllerEvents,
   DeFiPositionsController,
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
@@ -44,6 +45,7 @@ import {
   // TransactionControllerInitMessenger uses the full actions union.
   type CurrencyRateControllerActions,
   type MultichainAssetsControllerGetStateAction,
+  type NftDetectionControllerDetectNftsAction,
 } from '@metamask/assets-controllers';
 import {
   AssetsController,
@@ -85,7 +87,6 @@ import {
   type ConfigRegistryControllerEvents,
   ConfigRegistryControllerActions,
   ConfigRegistryApiServiceActions,
-  ConfigRegistryApiServiceEvents,
   ConfigRegistryApiService,
 } from '@metamask/config-registry-controller';
 import {
@@ -127,13 +128,10 @@ import {
   RampsControllerEvents,
   RampsService,
   RampsServiceActions,
-  RampsServiceEvents,
   TransakService,
   TransakServiceActions,
-  TransakServiceEvents,
   NeoBankService,
   NeoBankServiceActions,
-  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -246,7 +244,6 @@ import {
   BackendWebSocketServiceActions,
   BackendWebSocketServiceEvents,
   AccountActivityService,
-  AccountActivityServiceActions,
   AccountActivityServiceEvents,
   OHLCVService,
   OHLCVServiceActions,
@@ -380,6 +377,16 @@ import {
   type PredictOrderServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictOrderService';
 import {
+  PredictDeviceAuthService,
+  type PredictDeviceAuthServiceActions,
+} from '../../components/UI/PredictNext/services/PredictDeviceAuthService';
+import {
+  PredictVenueController,
+  type PredictVenueControllerActions,
+  type PredictVenueControllerEvents,
+  type PredictVenueControllerState,
+} from '../../components/UI/PredictNext/implementation/PredictVenueController';
+import {
   RecurringOrdersDataService,
   type RecurringOrdersDataServiceActions,
   type RecurringOrdersDataServiceEvents,
@@ -489,10 +496,7 @@ import type {
   DelegationControllerEvents,
 } from '@metamask/delegation-controller';
 type DelegationControllerState = DelegationController['state'];
-import {
-  ControllerGetStateAction,
-  ControllerStateChangeEvent,
-} from '@metamask/base-controller';
+import { ControllerGetStateAction } from '@metamask/base-controller';
 import {
   ProfileMetricsController,
   ProfileMetricsControllerActions,
@@ -500,21 +504,28 @@ import {
   ProfileMetricsControllerState,
   ProfileMetricsService,
   ProfileMetricsServiceActions,
-  ProfileMetricsServiceEvents,
   ProofOfOwnershipService,
   ProofOfOwnershipServiceActions,
-  ProofOfOwnershipServiceEvents,
 } from '@metamask/profile-metrics-controller';
 
-type NftDetectionControllerActions = ControllerGetStateAction<
-  'NftDetectionController',
-  NftDetectionController['state']
->;
+type NftDetectionControllerActions =
+  | ControllerGetStateAction<
+      'NftDetectionController',
+      NftDetectionController['state']
+    >
+  | NftDetectionControllerDetectNftsAction;
 
-type NftDetectionControllerEvents = ControllerStateChangeEvent<
-  'NftDetectionController',
-  NftDetectionController['state']
->;
+/** Immer patch shape, inlined so this file does not depend on `immer`. */
+interface StateChangePatch {
+  op: 'replace' | 'remove' | 'add';
+  path: (string | number)[];
+  value?: unknown;
+}
+
+interface NftDetectionControllerEvents {
+  type: 'NftDetectionController:stateChange';
+  payload: [NftDetectionController['state'], StateChangePatch[]];
+}
 import {
   TransactionPayController,
   TransactionPayControllerActions,
@@ -540,6 +551,7 @@ import {
 } from '@metamask/client-controller';
 import {
   SocialController,
+  SocialRealtimeService,
   SocialService,
   type SocialControllerActions,
   type SocialControllerEvents,
@@ -568,7 +580,6 @@ import {
   ComplianceControllerState,
   ComplianceService,
   ComplianceServiceActions,
-  ComplianceServiceEvents,
 } from '@metamask/compliance-controller';
 import {
   KycController,
@@ -661,9 +672,7 @@ type SnapsGlobalEvents =
 ///: END:ONLY_INCLUDE_IF
 
 export type GlobalActions =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerActions
-  ///: END:ONLY_INCLUDE_IF
   | AssetsControllerActions
   | AccountTrackerControllerGetStateAction
   | CurrencyRateControllerActions
@@ -695,7 +704,6 @@ export type GlobalActions =
   | ExecutionServiceActions
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceActions
-  | AccountActivityServiceActions
   | OHLCVServiceActions
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainTransactionsControllerActions
@@ -727,6 +735,8 @@ export type GlobalActions =
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
   | PredictOrderServiceActions
+  | PredictDeviceAuthServiceActions
+  | PredictVenueControllerActions
   | RecurringOrdersDataServiceActions
   | LimitOrdersDataServiceActions
   | SentinelFeeTokensDataServiceActions
@@ -779,9 +789,7 @@ export type GlobalActions =
   | SentinelApiServiceActions;
 
 export type GlobalEvents =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
-  ///: END:ONLY_INCLUDE_IF
   | AssetsControllerEvents
   | NftControllerEvents
   | TokensControllerEvents
@@ -789,7 +797,6 @@ export type GlobalEvents =
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
   | ConfigRegistryControllerEvents
-  | ConfigRegistryApiServiceEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents
   | KeyringControllerEvents
@@ -831,7 +838,6 @@ export type GlobalEvents =
   | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
-  | AssetsContractControllerEvents
   | RemoteFeatureFlagControllerEvents
   | TokenSearchDiscoveryDataControllerEvents
   | SnapKeyringEvents
@@ -849,6 +855,7 @@ export type GlobalEvents =
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
   | PredictOrderServiceEvents
+  | PredictVenueControllerEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
   | SentinelFeeTokensDataServiceEvents
@@ -866,10 +873,7 @@ export type GlobalEvents =
   | DelegationControllerEvents
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
-  | ProfileMetricsServiceEvents
-  | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
-  | RampsServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
@@ -877,11 +881,8 @@ export type GlobalEvents =
   | ProfileServiceEvents
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
-  | ComplianceServiceEvents
   | KycControllerEvents
   | KycServiceEvents
-  | TransakServiceEvents
-  | NeoBankServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
   | SentinelApiServiceEvents;
@@ -924,9 +925,8 @@ export const getRootMessenger = (): RootMessenger =>
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MessengerClients = {
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: SamplePetnamesController;
-  ///: END:ONLY_INCLUDE_IF
+  // Only registered when INCLUDE_SAMPLE_FEATURE=true.
+  SamplePetnamesController?: SamplePetnamesController;
   AccountsController: AccountsController;
   AccountTreeController: AccountTreeController;
   AddressBookController: AddressBookController;
@@ -1009,6 +1009,8 @@ export type MessengerClients = {
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
   PredictOrderService: PredictOrderService;
+  PredictDeviceAuthService: PredictDeviceAuthService;
+  PredictVenueController: PredictVenueController;
   RecurringOrdersDataService: RecurringOrdersDataService;
   LimitOrdersDataService: LimitOrdersDataService;
   SentinelFeeTokensDataService: SentinelFeeTokensDataService;
@@ -1031,6 +1033,7 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  SocialRealtimeService: SocialRealtimeService;
   ProfileController: ProfileController;
   ProfileService: ProfileService;
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
@@ -1111,6 +1114,7 @@ export type EngineState = {
   GeolocationController: GeolocationControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
+  PredictVenueController: PredictVenueControllerState;
   CardController: CardControllerState;
   UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
@@ -1118,9 +1122,8 @@ export type EngineState = {
   RewardsController: RewardsControllerState;
   RewardsMoneyController: RewardsMoneyControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: SamplePetnamesControllerState;
-  ///: END:ONLY_INCLUDE_IF
+  // Only registered when INCLUDE_SAMPLE_FEATURE=true.
+  SamplePetnamesController?: SamplePetnamesControllerState;
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
@@ -1158,9 +1161,7 @@ export type ControllerMessenger = Messenger<
  * Specify messenger clients to initialize.
  */
 export type MessengerClientsToInitialize =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | 'SamplePetnamesController'
-  ///: END:ONLY_INCLUDE_IF
   | 'AssetsContractController'
   | 'AssetsController'
   | 'NetworkConnectionBannerController'
@@ -1211,6 +1212,8 @@ export type MessengerClientsToInitialize =
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
   | 'PredictOrderService'
+  | 'PredictDeviceAuthService'
+  | 'PredictVenueController'
   | 'RecurringOrdersDataService'
   | 'LimitOrdersDataService'
   | 'SentinelFeeTokensDataService'
@@ -1235,9 +1238,9 @@ export type MessengerClientsToInitialize =
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
   | 'ProofOfOwnershipService'
-  | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'
+  | 'SocialRealtimeService'
   | 'SocialController'
   | 'ProfileService'
   | 'ProfileController'
@@ -1264,7 +1267,7 @@ type MessengerClientPersistedState = Partial<{
   [Name in Exclude<
     MessengerClientName,
     (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
-  >]: Partial<MessengerClientsByName[Name]['state']>;
+  >]: Partial<NonNullable<MessengerClientsByName[Name]>['state']>;
 }>;
 
 /**

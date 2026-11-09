@@ -1,6 +1,10 @@
 import Utilities from './Utilities.ts';
 import { RetryOptions } from './types.ts';
 import type { AppiumElement } from './AppiumElement.ts';
+import {
+  consumeSharedSessionRecreate,
+  resetSharedSessionRecreateState,
+} from './services/appium/sessionRecovery.ts';
 
 describe('Utilities.executeWithRetry', () => {
   let consoleLogSpy: jest.SpyInstance;
@@ -168,6 +172,56 @@ describe('Utilities.executeWithRetry', () => {
       ).rejects.toThrow(/test operation failed after 3 attempt\(s\)/);
 
       expect(mockOperation).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('dead WebDriver session', () => {
+    beforeEach(() => {
+      resetSharedSessionRecreateState();
+    });
+
+    afterEach(() => {
+      resetSharedSessionRecreateState();
+    });
+
+    it('stops after one attempt when UiAutomator2 is dead and requests a new session', async () => {
+      const mockOperation = jest
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            'instrumentation process is not running (probably crashed)',
+          ),
+        );
+      const options: RetryOptions = {
+        timeout: 5_000,
+        interval: 20,
+        description: 'test operation',
+      };
+
+      await expect(
+        Utilities.executeWithRetry(mockOperation, options),
+      ).rejects.toThrow(/instrumentation process is not running/);
+
+      expect(mockOperation).toHaveBeenCalledTimes(1);
+      expect(consumeSharedSessionRecreate()).toBe(true);
+    });
+
+    it('retries an assertion failure without requesting a new session', async () => {
+      const mockOperation = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Element not visible'))
+        .mockResolvedValue('success');
+      const options: RetryOptions = {
+        timeout: 1_000,
+        interval: 20,
+        description: 'test operation',
+      };
+
+      const result = await Utilities.executeWithRetry(mockOperation, options);
+
+      expect(result).toBe('success');
+      expect(mockOperation).toHaveBeenCalledTimes(2);
+      expect(consumeSharedSessionRecreate()).toBe(false);
     });
   });
 });

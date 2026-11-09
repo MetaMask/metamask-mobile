@@ -2,8 +2,10 @@ import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
+  selectMoneyAccountPremiumVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
   selectMoneyMovementNeobank,
+  selectNeobankMarkets,
   isVbaGeoBypassEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
   selectProSubscriptionEnabled,
@@ -11,6 +13,8 @@ import {
   MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
   MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
 import type { Json } from '@metamask/utils';
@@ -110,171 +114,58 @@ describe('Money Account feature flag selectors', () => {
   });
 
   describe('selectMoneyMovementNeobank', () => {
-    const disabled = {
-      isEnabled: false,
-      regions: [],
-      regionCurrencies: {},
-      defaultCurrency: undefined,
+    const defaults = {
       chooseCurrency: false,
       regionOverride: undefined,
     };
-    const enabledFlag = {
+    const versionedFlag = {
       enabled: true,
       minimumVersion: '0.0.0',
-      regions: ['BR'],
-      regionCurrencies: { BR: 'BRL' },
     };
 
     it('reads the camelCase key Client Config stores for money-movement-neobank', () => {
       expect(MONEY_MOVEMENT_NEOBANK_FLAG_KEY).toBe('moneyMovementNeobank');
     });
 
-    it('returns uppercase region codes when enabled and the minimum version passes', () => {
-      const result = selectMoneyMovementNeobank.resultFunc({
-        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          ...enabledFlag,
-          regions: ['br', ' us ', 'BR'],
-        },
-      });
-
-      expect(result).toEqual({
-        isEnabled: true,
-        regions: ['BR', 'US'],
-        regionCurrencies: { BR: 'BRL' },
-        defaultCurrency: undefined,
-        chooseCurrency: false,
-        regionOverride: undefined,
-      });
-    });
-
-    it('reads regions from a progressive-rollout wrapper', () => {
+    it('reads chooseCurrency and regionOverride from a progressive-rollout wrapper', () => {
       const result = selectMoneyMovementNeobank.resultFunc({
         [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
           name: 'treatment',
-          value: { ...enabledFlag, regions: ['US'] },
+          value: {
+            ...versionedFlag,
+            chooseCurrency: true,
+            regionOverride: 'br',
+          },
         },
       });
 
       expect(result).toEqual({
-        isEnabled: true,
-        regions: ['US'],
-        regionCurrencies: { BR: 'BRL' },
-        defaultCurrency: undefined,
-        chooseCurrency: false,
-        regionOverride: undefined,
+        chooseCurrency: true,
+        regionOverride: 'BR',
       });
     });
 
-    it('normalizes the region currency map and drops unsupported values', () => {
+    it('does not read enabled, regions, regionCurrencies, or defaultCurrency', () => {
       const result = selectMoneyMovementNeobank.resultFunc({
         [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          ...enabledFlag,
-          regionCurrencies: {
-            br: 'brl',
-            ' us ': ' usd ',
-            DE: 'GBP',
-            FR: 1,
-          },
-        },
-      });
-
-      expect(result.regionCurrencies).toEqual({ BR: 'BRL', US: 'USD' });
-    });
-
-    it('fails closed with an empty currency map when it is missing or malformed', () => {
-      const { regionCurrencies: _regionCurrencies, ...flagWithoutCurrencies } =
-        enabledFlag;
-      const withoutMap = selectMoneyMovementNeobank.resultFunc({
-        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: flagWithoutCurrencies,
-      });
-      const malformedMap = selectMoneyMovementNeobank.resultFunc({
-        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          ...enabledFlag,
-          regionCurrencies: ['BRL'],
-        },
-      });
-
-      expect(withoutMap.regionCurrencies).toEqual({});
-      expect(malformedMap.regionCurrencies).toEqual({});
-    });
-
-    it('normalizes a br region and a spaced default currency to USD', () => {
-      const result = selectMoneyMovementNeobank.resultFunc({
-        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          enabled: true,
-          minimumVersion: '0.0.0',
-          regions: ['br'],
-          regionCurrencies: {},
-          defaultCurrency: ' usd ',
-        },
-      });
-
-      expect(result).toEqual({
-        isEnabled: true,
-        regions: ['BR'],
-        regionCurrencies: {},
-        defaultCurrency: 'USD',
-        chooseCurrency: false,
-        regionOverride: undefined,
-      });
-      expect(
-        selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-            ...enabledFlag,
-            defaultCurrency: 'brl',
-          },
-        }).defaultCurrency,
-      ).toBe('BRL');
-      expect(
-        selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-            ...enabledFlag,
-            defaultCurrency: 'eur',
-          },
-        }).defaultCurrency,
-      ).toBe('EUR');
-    });
-
-    it('rejects gbp, blank, missing, and non-string default currencies', () => {
-      const readDefault = (defaultCurrency: string | number | boolean | null) =>
-        selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-            ...enabledFlag,
-            defaultCurrency,
-          },
-        }).defaultCurrency;
-
-      expect(readDefault('gbp')).toBeUndefined();
-      expect(readDefault('GBP')).toBeUndefined();
-      expect(readDefault('')).toBeUndefined();
-      expect(readDefault('   ')).toBeUndefined();
-      expect(
-        selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: enabledFlag,
-        }).defaultCurrency,
-      ).toBeUndefined();
-      expect(readDefault(null)).toBeUndefined();
-      expect(readDefault(1)).toBeUndefined();
-      expect(readDefault(true)).toBeUndefined();
-    });
-
-    it('does not expose defaultCurrency when the flag is disabled', () => {
-      const result = selectMoneyMovementNeobank.resultFunc({
-        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          ...enabledFlag,
-          enabled: false,
+          ...versionedFlag,
+          regions: ['BR', 'US'],
+          regionCurrencies: { BR: 'BRL' },
           defaultCurrency: 'USD',
         },
       });
 
-      expect(result.defaultCurrency).toBeUndefined();
-      expect(result).toEqual(disabled);
+      expect(result).toEqual(defaults);
+      expect(result).not.toHaveProperty('isEnabled');
     });
 
     it('reads chooseCurrency only when it is literally true', () => {
       const readChooseCurrency = (chooseCurrency: boolean | string) =>
         selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: { ...enabledFlag, chooseCurrency },
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...versionedFlag,
+            chooseCurrency,
+          },
         }).chooseCurrency;
 
       expect(readChooseCurrency(true)).toBe(true);
@@ -282,38 +173,47 @@ describe('Money Account feature flag selectors', () => {
       expect(readChooseCurrency('true')).toBe(false);
       expect(
         selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: enabledFlag,
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: versionedFlag,
         }).chooseCurrency,
       ).toBe(false);
     });
 
-    it('reads chooseCurrency from a progressive-rollout wrapper', () => {
+    it('reads chooseCurrency and regionOverride even when enabled is false', () => {
       const result = selectMoneyMovementNeobank.resultFunc({
         [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          name: 'treatment',
-          value: { ...enabledFlag, chooseCurrency: true },
-        },
-      });
-
-      expect(result.chooseCurrency).toBe(true);
-    });
-
-    it('turns chooseCurrency off when the flag is disabled', () => {
-      const result = selectMoneyMovementNeobank.resultFunc({
-        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          ...enabledFlag,
+          ...versionedFlag,
           enabled: false,
           chooseCurrency: true,
+          regionOverride: 'US',
         },
       });
 
-      expect(result).toEqual(disabled);
+      expect(result).toEqual({
+        chooseCurrency: true,
+        regionOverride: 'US',
+      });
+    });
+
+    it('reads chooseCurrency and regionOverride even when the minimum version fails', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...versionedFlag,
+          minimumVersion: '999.0.0',
+          chooseCurrency: true,
+          regionOverride: 'BR',
+        },
+      });
+
+      expect(result).toEqual({
+        chooseCurrency: true,
+        regionOverride: 'BR',
+      });
     });
 
     it('uppercases and trims regionOverride without limiting it to a currency', () => {
       const result = selectMoneyMovementNeobank.resultFunc({
         [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          ...enabledFlag,
+          ...versionedFlag,
           regionOverride: ' de ',
         },
       });
@@ -325,7 +225,7 @@ describe('Money Account feature flag selectors', () => {
       const readOverride = (regionOverride: Json) =>
         selectMoneyMovementNeobank.resultFunc({
           [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-            ...enabledFlag,
+            ...versionedFlag,
             regionOverride,
           },
         }).regionOverride;
@@ -338,96 +238,104 @@ describe('Money Account feature flag selectors', () => {
       expect(readOverride(['BR'])).toBeUndefined();
       expect(
         selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: enabledFlag,
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: versionedFlag,
         }).regionOverride,
       ).toBeUndefined();
     });
 
-    it('drops a present regionOverride when the gate is closed', () => {
-      const readClosed = (flag: Record<string, Json>) =>
-        selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-            ...enabledFlag,
-            regionOverride: 'BR',
-            ...flag,
-          },
-        });
-
-      expect(readClosed({ enabled: false })).toEqual(disabled);
-      expect(readClosed({ minimumVersion: '999.0.0' })).toEqual(disabled);
-      expect(readClosed({ regions: [] })).toEqual(disabled);
-      expect(
-        selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-            regionOverride: 'BR',
-          },
-        }),
-      ).toEqual(disabled);
-    });
-
-    it('is disabled when the flag serves enabled: false', () => {
-      const result = selectMoneyMovementNeobank.resultFunc({
-        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          ...enabledFlag,
-          enabled: false,
-        },
-      });
-
-      expect(result).toEqual(disabled);
-    });
-
-    it('is disabled when the minimum version requirement fails', () => {
-      const result = selectMoneyMovementNeobank.resultFunc({
-        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-          ...enabledFlag,
-          minimumVersion: '999.0.0',
-        },
-      });
-
-      expect(result).toEqual(disabled);
-    });
-
-    it('is disabled when the flag is absent or malformed', () => {
-      expect(selectMoneyMovementNeobank.resultFunc({})).toEqual(disabled);
+    it('returns defaults when the flag is absent or malformed', () => {
+      expect(selectMoneyMovementNeobank.resultFunc({})).toEqual(defaults);
       expect(
         selectMoneyMovementNeobank.resultFunc({
           [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: 'not-an-object',
         }),
-      ).toEqual(disabled);
+      ).toEqual(defaults);
       expect(
         selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: { enabled: true },
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: { chooseCurrency: true },
         }),
-      ).toEqual(disabled);
+      ).toEqual(defaults);
       expect(
         selectMoneyMovementNeobank.resultFunc({
           [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: true,
         }),
-      ).toEqual(disabled);
+      ).toEqual(defaults);
+    });
+  });
+
+  describe('selectNeobankMarkets', () => {
+    const brlFlagOn = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+      currency: 'BRL',
+      regions: ['br', ' BR ', 1],
+    };
+    const usdFlagOn = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+      currency: 'USD',
+      regions: ['US'],
+    };
+
+    it('returns each open market with normalized regions', () => {
+      const result = selectNeobankMarkets.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: brlFlagOn,
+        [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: { name: 'on', value: usdFlagOn },
+      });
+
+      expect(result).toEqual([
+        { currency: 'BRL', regions: ['BR'] },
+        { currency: 'USD', regions: ['US'] },
+      ]);
     });
 
-    it('is disabled when regions is missing, empty, or not a list of strings', () => {
-      expect(
-        selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-            enabled: true,
-            minimumVersion: '0.0.0',
+    it('puts BRL before USD even when both open markets list the same country', () => {
+      const sharedCountry = 'BR';
+      const result = selectNeobankMarkets.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: {
+          ...brlFlagOn,
+          regions: [sharedCountry],
+        },
+        [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: {
+          ...usdFlagOn,
+          regions: [sharedCountry],
+        },
+      });
+
+      expect(result).toEqual([
+        { currency: 'BRL', regions: [sharedCountry] },
+        { currency: 'USD', regions: [sharedCountry] },
+      ]);
+    });
+
+    it.each([
+      ['missing', undefined],
+      ['disabled', { ...brlFlagOn, enabled: false }],
+      ['too old', { ...brlFlagOn, minimumVersion: '999.0.0' }],
+      ['for another currency', { ...brlFlagOn, currency: 'USD' }],
+      [
+        'an invalid minimumVersion placeholder',
+        { ...brlFlagOn, minimumVersion: '<release>' },
+      ],
+      ['without regions', { ...brlFlagOn, regions: [] }],
+      ['with only invalid regions', { ...brlFlagOn, regions: [' ', 1] }],
+      ['with no regions field', { ...brlFlagOn, regions: undefined }],
+      [
+        'an unresolved threshold array',
+        [
+          {
+            name: 'on',
+            scope: { type: 'threshold', value: 1 },
+            value: brlFlagOn,
           },
-        }),
-      ).toEqual(disabled);
+        ],
+      ],
+    ])('leaves out a flag that is %s', (_label, flag) => {
       expect(
-        selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: { ...enabledFlag, regions: [] },
+        selectNeobankMarkets.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: flag as Json,
         }),
-      ).toEqual(disabled);
-      expect(
-        selectMoneyMovementNeobank.resultFunc({
-          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-            ...enabledFlag,
-            regions: ['', '  ', 1, null],
-          },
-        }),
-      ).toEqual(disabled);
+      ).toEqual([]);
     });
   });
 
@@ -741,6 +649,42 @@ describe('Money Account feature flag selectors', () => {
       });
 
       expect(result).toEqual(remoteConfig);
+    });
+  });
+
+  describe('selectMoneyAccountPremiumVaultConfig', () => {
+    const premiumConfig = {
+      chainId: '0x8f',
+      boringVault: '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7',
+      tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
+      accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
+      lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
+      underlyingToken: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    };
+
+    it('returns the parsed premium vault config when the flag is valid', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({
+        moneyAccountPremiumVaultConfig: premiumConfig,
+      });
+
+      expect(result).toEqual(premiumConfig);
+    });
+
+    it('returns undefined when the premium vault flag is missing', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({});
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the premium vault flag is malformed', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({
+        moneyAccountPremiumVaultConfig: {
+          ...premiumConfig,
+          lensAddress: '0x0',
+        },
+      });
+
+      expect(result).toBeUndefined();
     });
   });
 });

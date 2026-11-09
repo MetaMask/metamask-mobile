@@ -102,6 +102,7 @@ jest.mock('../analytics', () => {
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
+    selectSocialLeaderboardEnabled: () => false,
     selectSocialLeaderboardPerpsEnabled: () => false,
   }),
 );

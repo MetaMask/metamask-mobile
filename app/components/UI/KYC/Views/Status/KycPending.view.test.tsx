@@ -14,7 +14,7 @@ import renderWithProvider, {
 import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
-import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
+import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
 import { VbaKycPendingAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
@@ -195,7 +195,7 @@ const hydratedSnapshot = (
 });
 
 const buildKycState = (session: KycSession) =>
-  initialStateWallet()
+  initialStateVba()
     .withOverrides({
       engine: {
         backgroundState: {
@@ -263,7 +263,7 @@ describeForPlatforms('VbaKycPending', () => {
     storeReady = true;
   });
 
-  it('returns to the previous screen from Come back later', async () => {
+  it('returns to the previous screen from Done', async () => {
     const { getByTestId, getByText, queryByLabelText } = renderKycScreen(
       <PendingWithHistory />,
       { finalStatus: 'pending', kycStatus: 'pending' },
@@ -278,10 +278,14 @@ describeForPlatforms('VbaKycPending', () => {
       getByText(strings('virtual_bank_account.kyc_taking_longer.title')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_taking_longer.description')),
+      getByText(
+        strings(
+          'virtual_bank_account.kyc_taking_longer.description_few_minutes',
+        ),
+      ),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_taking_longer.button')),
+      getByText(strings('virtual_bank_account.kyc_taking_longer.done_button')),
     ).toBeOnTheScreen();
     expect(queryByLabelText('Back')).not.toBeOnTheScreen();
 
@@ -294,7 +298,7 @@ describeForPlatforms('VbaKycPending', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens Money home from Come back later when there is no previous screen', async () => {
+  it('opens Money home from Done when there is no previous screen', async () => {
     const { getByTestId, findByTestId } = renderKycScreen(<PendingAtRoot />, {
       finalStatus: 'pending',
       kycStatus: 'pending',

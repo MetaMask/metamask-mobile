@@ -11,7 +11,7 @@ jest.mock('./useEarningsSummary');
 jest.mock('./useReferralMe');
 
 const PROFILE_ID = 'profile-a';
-const mockFetchEarningsSummary = jest.fn();
+const mockFetchEarningsSummary = jest.fn(() => Promise.resolve(undefined));
 const mockFetchReferralMe = jest.fn();
 const summary = { lifetime_total: '1' } as EarningsSummaryDto;
 const referralData = { roles: [] } as unknown as ReferralMeDto;

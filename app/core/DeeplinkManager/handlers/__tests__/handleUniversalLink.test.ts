@@ -1,5 +1,6 @@
 import QuickCrypto from 'react-native-quick-crypto';
 import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../../constants/deeplinks';
+import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../AppConstants';
 import SDKConnect from '../../../SDKConnect/SDKConnect';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
@@ -14,14 +15,21 @@ import { DeepLinkModalLinkType } from '../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import Logger from '../../../../util/Logger';
 import handleRampReturnUrl from '../legacy/handleRampReturnUrl';
+import { navigateToHomeUrl } from '../legacy/handleHomeUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../legacy/handleSocialLeaderboardUrl';
+import { handleSocialTraderUrl } from '../legacy/handleSocialTraderUrl';
 import { handleSocialTraderPositionUrl } from '../legacy/handleSocialTraderPositionUrl';
 import { handleWhatsHappeningUrl } from '../legacy/handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../intent/handleSwapUrl';
 import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
 import { handleAssetUrl } from '../legacy/handleAssetUrl';
 import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
+import { handleMoney } from '../legacy/handleMoney';
+import {
+  createMoneyDepositDeeplinkIntent,
+  handleMoneyDeposit,
+} from '../intent/handleMoneyDeposit';
 import {
   handlePerpsUrl,
   createPerpsDeeplinkIntent,
@@ -43,6 +51,7 @@ import {
   createPredictDeeplinkIntent,
 } from '../intent/handlePredictUrl';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
+import { setPendingReferralCode } from '../../../../reducers/rewardsMoney';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../utils/verifySignature';
 import {
@@ -72,6 +81,8 @@ jest.mock('../intent/handleSwapUrl');
 jest.mock('../legacy/handleBatchSellUrl');
 jest.mock('../legacy/handleAssetUrl');
 jest.mock('../legacy/handlePrivacyUrl');
+jest.mock('../legacy/handleMoney');
+jest.mock('../intent/handleMoneyDeposit');
 jest.mock('../intent/handleNotificationsSettingsUrl');
 jest.mock('../intent/handleBrowserUrl');
 jest.mock('../intent/handleDappUrl', () => {
@@ -91,6 +102,7 @@ jest.mock('../legacy/handleFastOnboarding');
 jest.mock('../intent/handleTrendingUrl');
 jest.mock('../legacy/handleWhatsHappeningUrl');
 jest.mock('../legacy/handleSocialLeaderboardUrl');
+jest.mock('../legacy/handleSocialTraderUrl');
 jest.mock('../legacy/handleSocialTraderPositionUrl');
 jest.mock('../../../redux', () => ({
   __esModule: true,
@@ -159,6 +171,16 @@ describe('handleUniversalLink', () => {
   const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
     typeof handleBrowserUrl
   >;
+  const mockNavigateToHomeUrl = navigateToHomeUrl as jest.MockedFunction<
+    typeof navigateToHomeUrl
+  >;
+  const mockHandleMoneyDeposit = handleMoneyDeposit as jest.MockedFunction<
+    typeof handleMoneyDeposit
+  >;
+  const mockCreateMoneyDepositDeeplinkIntent =
+    createMoneyDepositDeeplinkIntent as jest.MockedFunction<
+      typeof createMoneyDepositDeeplinkIntent
+    >;
   const mockCreateDappDeeplinkIntent =
     createDappDeeplinkIntent as jest.MockedFunction<
       typeof createDappDeeplinkIntent
@@ -631,6 +653,30 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handlePrivacyUrl).toHaveBeenCalledWith({ privacyPath });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.MONEY', () => {
+    it('calls handleMoney with the path after the action', async () => {
+      const moneyPath = '?screen=account';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY}${moneyPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.MONEY}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleMoney).toHaveBeenCalledWith({ moneyPath });
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -1203,7 +1249,7 @@ describe('handleUniversalLink', () => {
         createPerpsDeeplinkIntent as jest.MockedFunction<
           typeof createPerpsDeeplinkIntent
         >
-      ).mockReturnValueOnce(intent);
+      ).mockResolvedValueOnce(intent);
 
       const result = await handleUniversalLink({
         instance,
@@ -1218,6 +1264,93 @@ describe('handleUniversalLink', () => {
       expect(result).toBe(intent);
       expect(createPerpsDeeplinkIntent).toHaveBeenCalledWith({
         perpsPath: 'perps?screen=asset&symbol=ETH',
+      });
+      expect(handlePerpsUrl).not.toHaveBeenCalled();
+    });
+
+    it('forwards a mode=pro param on PERPS_ASSET through to the shared perps handler in execute mode', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=ETH&mode=pro`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=ETH&mode=pro',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&symbol=ETH&mode=pro',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('forwards a mode=pro param with no symbol so the handler defaults to BTC', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?mode=pro`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?mode=pro',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&mode=pro',
+      });
+    });
+
+    it('returns a perps asset startup intent in resolve mode with mode=pro forwarded', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=BTC&mode=pro`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=BTC&mode=pro',
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'main-stack',
+          routeName: 'Perps',
+        },
+      };
+      (
+        createPerpsDeeplinkIntent as jest.MockedFunction<
+          typeof createPerpsDeeplinkIntent
+        >
+      ).mockResolvedValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createPerpsDeeplinkIntent).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&symbol=BTC&mode=pro',
       });
       expect(handlePerpsUrl).not.toHaveBeenCalled();
     });
@@ -1704,7 +1837,78 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleSocialLeaderboardUrl).toHaveBeenCalledTimes(1);
+      expect(handleSocialLeaderboardUrl).toHaveBeenCalledWith({
+        actionPath: '?ignored=true',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.SOCIAL', () => {
+    it.each([
+      ['?tab=following', handleSocialLeaderboardUrl],
+      ['/profile?traderId=trader-1', handleSocialTraderUrl],
+      [
+        '/profile/position?positionId=position-1&traderId=trader-1',
+        handleSocialTraderPositionUrl,
+      ],
+      ['/feed', handleSocialLeaderboardUrl],
+    ])(
+      'routes /social%s without showing the interstitial',
+      async (actionPath, handler) => {
+        const queryIndex = actionPath.indexOf('?');
+        const path =
+          queryIndex === -1 ? actionPath : actionPath.slice(0, queryIndex);
+        const search = queryIndex === -1 ? '' : actionPath.slice(queryIndex);
+        const socialUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}${actionPath}`;
+        const socialUrlObj = {
+          ...urlObj,
+          hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+          href: socialUrl,
+          pathname: `/${ACTIONS.SOCIAL}${path}`,
+          search,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: socialUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: socialUrl,
+          source: 'test-source',
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+        expect(handler).toHaveBeenCalledWith({ actionPath });
+        expect(handled).toHaveBeenCalled();
+      },
+    );
+  });
+
+  describe('ACTIONS.SOCIAL_TRADER', () => {
+    it('opens a trader profile without showing the interstitial', async () => {
+      const traderUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER}?traderId=trader-1`;
+      const traderUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: traderUrl,
+        pathname: `/${ACTIONS.SOCIAL_TRADER}`,
+        search: '?traderId=trader-1',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: traderUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: traderUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleSocialTraderUrl).toHaveBeenCalledWith({
+        actionPath: '?traderId=trader-1',
+      });
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -1829,6 +2033,66 @@ describe('handleUniversalLink', () => {
         expect(handled).toHaveBeenCalled();
       },
     );
+  });
+
+  describe('ACTIONS.MONEY_ACCOUNT_DEPOSIT', () => {
+    it('dispatches to handleMoneyDeposit for the standard Money deposit deeplink', async () => {
+      const depositUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}`;
+      const depositUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}`,
+        href: depositUrl,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: depositUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: depositUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleMoneyDeposit).toHaveBeenCalledWith({
+        moneyDepositPath: '',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns the Money deposit startup intent in resolve mode', async () => {
+      const depositUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}?tokenType=atoken&utm_source=braze`;
+      const depositUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}`,
+        href: depositUrl,
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'main-stack',
+          routeName: Routes.MONEY.DEPOSIT_DEEPLINK,
+        },
+      };
+      mockCreateMoneyDepositDeeplinkIntent.mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: depositUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: depositUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(mockCreateMoneyDepositDeeplinkIntent).toHaveBeenCalledWith({
+        moneyDepositPath: '?tokenType=atoken&utm_source=braze',
+      });
+      expect(mockHandleMoneyDeposit).not.toHaveBeenCalled();
+      expect(handled).toHaveBeenCalled();
+    });
   });
 
   describe('signature verification', () => {
@@ -2268,6 +2532,29 @@ describe('handleUniversalLink', () => {
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
       expect(handleBatchSellUrl).toHaveBeenCalled();
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('does not show interstitial modal for HOME action (whitelisted)', async () => {
+      const homeUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.HOME}`;
+      const homeUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: homeUrl,
+        pathname: `/${ACTIONS.HOME}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: homeUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: homeUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(mockNavigateToHomeUrl).toHaveBeenCalledWith({ homePath: '' });
       expect(handled).toHaveBeenCalled();
     });
 
@@ -3525,6 +3812,130 @@ describe('handleUniversalLink', () => {
         // regressed to awaiting Branch (which would push this >=500 ms).
         expect(elapsed).toBeLessThan(200);
       });
+    });
+  });
+
+  describe('money referral code', () => {
+    const mockDispatch = (
+      jest.requireMock('../../../redux') as {
+        default: { store: { dispatch: jest.Mock } };
+      }
+    ).default.store.dispatch;
+
+    const buildLink = (action: string, search: string) => {
+      const linkUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${action}${search}`;
+      return {
+        url: linkUrl,
+        urlObj: {
+          ...urlObj,
+          hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+          href: linkUrl,
+          pathname: `/${action}`,
+          search,
+        },
+      };
+    };
+
+    it('stores the normalized code once the link proceeds', async () => {
+      const link = buildLink(ACTIONS.REWARDS, '?ref=kol123');
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingReferralCode('KOL123'),
+      );
+      expect(handleRewardsUrl).toHaveBeenCalled();
+    });
+
+    it('stores the code for a whitelisted HOME link without an interstitial', async () => {
+      const link = buildLink(ACTIONS.HOME, '?ref=kol123');
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingReferralCode('KOL123'),
+      );
+      expect(mockNavigateToHomeUrl).toHaveBeenCalledWith({
+        homePath: '?ref=kol123',
+      });
+    });
+
+    it('stores the code in resolve mode before returning the startup intent', async () => {
+      const link = buildLink(ACTIONS.REWARDS, '?ref=KOL1');
+      const intent: DeeplinkIntent = {
+        target: { type: 'home-tab', routeName: 'RewardsView' },
+      };
+      (
+        createRewardsDeeplinkIntent as jest.MockedFunction<
+          typeof createRewardsDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingReferralCode('KOL1'));
+    });
+
+    it('does not store the code when the user rejects the interstitial', async () => {
+      mockHandleDeepLinkModalDisplay.mockImplementation(async (params) => {
+        params.onBack?.();
+      });
+      const link = buildLink(ACTIONS.SEND, '?ref=KOL1');
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setPendingReferralCode('KOL1'),
+      );
+    });
+
+    it('discards a malformed code and still opens the destination', async () => {
+      const link = buildLink(ACTIONS.REWARDS, '?ref=a');
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: link.urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: link.url,
+        source: 'test-source',
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: setPendingReferralCode.type }),
+      );
+      expect(handleRewardsUrl).toHaveBeenCalled();
     });
   });
 });

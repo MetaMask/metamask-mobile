@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
+import { useLiveTokenFiatRateState } from '../useLiveTokenFiatRate';
 import type { BridgeToken } from '../../types';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
 import {
@@ -45,6 +45,17 @@ export const useSwapsLimitOrderPriceAdjust = ({
     executionType: defaultExecutionType,
     isLimitFiatMode: defaultIsLimitFiatMode,
   } = getSwapsLimitOrderDefaultPriceMode({ destToken, sourceToken });
+  const defaultPriceModeKey = [
+    sourceToken?.chainId,
+    sourceToken?.address,
+    destToken?.chainId,
+    destToken?.address,
+    defaultExecutionType,
+    defaultIsLimitFiatMode,
+  ].join(':');
+  const previousDefaultPriceModeKeyRef = useRef(defaultPriceModeKey);
+  const isDefaultPriceModeResetPending =
+    previousDefaultPriceModeKeyRef.current !== defaultPriceModeKey;
   const [state, dispatch] = useReducer(
     limitOrderPriceAdjustReducer,
     {
@@ -63,13 +74,21 @@ export const useSwapsLimitOrderPriceAdjust = ({
     executionType,
   } = state;
 
-  const destFiatRate = useLiveTokenFiatRate(destToken);
-  const sourceFiatRate = useLiveTokenFiatRate(sourceToken);
+  const { rate: destFiatRate, isLoading: isDestFiatRateLoading } =
+    useLiveTokenFiatRateState(destToken);
+  const { rate: sourceFiatRate, isLoading: isSourceFiatRateLoading } =
+    useLiveTokenFiatRateState(sourceToken);
   const isSell = executionType === LimitOrderExecutionType.SELL;
   const quotedToken = isSell ? sourceToken : destToken;
   const counterToken = isSell ? destToken : sourceToken;
   const quotedFiatRate = isSell ? sourceFiatRate : destFiatRate;
   const counterFiatRate = isSell ? destFiatRate : sourceFiatRate;
+  const isQuotedFiatRateLoading = isSell
+    ? isSourceFiatRateLoading
+    : isDestFiatRateLoading;
+  const isCounterFiatRateLoading = isSell
+    ? isDestFiatRateLoading
+    : isSourceFiatRateLoading;
   // Precision of the limit price, shared by Market, the percent presets, the
   // keypad and the market comparison. A fiat price follows the market price so
   // that a cheap quoted token is not rounded to cents; a counter-token price
@@ -160,27 +179,23 @@ export const useSwapsLimitOrderPriceAdjust = ({
   // A new pair starts over on the side and denomination that pair defaults to,
   // which is also what makes a source/dest flip land on the right ones.
   useEffect(() => {
+    previousDefaultPriceModeKeyRef.current = defaultPriceModeKey;
     dispatch({
       type: 'reset',
       executionType: defaultExecutionType,
       isLimitFiatMode: defaultIsLimitFiatMode,
     });
-  }, [
-    defaultExecutionType,
-    defaultIsLimitFiatMode,
-    destToken?.address,
-    destToken?.chainId,
-    sourceToken?.address,
-    sourceToken?.chainId,
-  ]);
+  }, [defaultPriceModeKey, defaultExecutionType, defaultIsLimitFiatMode]);
 
-  // Seeds the limit price from the live market rate exactly once whenever
-  // there isn't one yet (initial mount, a new token pair, or after flipping
-  // sides). Once seeded, the price stays put even as the market rate keeps
-  // moving; only the market-comparison label below keeps reflecting the live
-  // difference between the fixed price and the current market rate.
+  // Wait for a token-pair reset before seeding. A cold Limit deeplink can
+  // receive ETH/mUSD after mount; seeding in that transition render would use
+  // the stale buy mode and incorrectly price mUSD ($1) instead of ETH.
   useEffect(() => {
-    if (!isTrackingMarket || limitPrice !== undefined) {
+    if (
+      isDefaultPriceModeResetPending ||
+      !isTrackingMarket ||
+      limitPrice !== undefined
+    ) {
       return;
     }
 
@@ -192,8 +207,28 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({
       type: 'seedFromMarket',
       limitPrice: nextLimitPrice,
+      executionType,
+      isLimitFiatMode,
     });
-  }, [getLimitPriceFromSignedPercent, isTrackingMarket, limitPrice]);
+  }, [
+    executionType,
+    getLimitPriceFromSignedPercent,
+    isDefaultPriceModeResetPending,
+    isLimitFiatMode,
+    isTrackingMarket,
+    limitPrice,
+  ]);
+
+  // A market price is on its way when it can already be seeded (the seed
+  // lands after this render) or when a rate it is priced from is still being
+  // fetched. A pair that no source can price stops loading, so its price can
+  // still be typed.
+  const isLimitPriceLoading =
+    isTrackingMarket &&
+    limitPrice === undefined &&
+    (getLimitPriceFromSignedPercent(0) !== undefined ||
+      isQuotedFiatRateLoading ||
+      (!isLimitFiatMode && isCounterFiatRateLoading));
 
   const canToggleLimitPrice = Boolean(
     destFiatRate && destFiatRate > 0 && sourceFiatRate && sourceFiatRate > 0,
@@ -282,6 +317,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     handlePercentPress,
     isCustomActive,
     isLimitFiatMode,
+    isLimitPriceLoading,
     isTriggerPriceNearMarket,
     executionType,
     limitPrice,

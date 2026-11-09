@@ -49,6 +49,7 @@ function toNumber(value: number | string | undefined): number {
 const TRANSACTION_TYPE_TO_RAMP_SURFACE: Partial<
   Record<TransactionType, RampSurface>
 > = {
+  [TransactionType.membershipSubscription]: RAMP_SURFACE.MONEY_ACCOUNT,
   [TransactionType.moneyAccountDeposit]: RAMP_SURFACE.MONEY_ACCOUNT,
 };
 

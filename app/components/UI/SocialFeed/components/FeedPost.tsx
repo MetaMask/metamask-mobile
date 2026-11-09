@@ -66,6 +66,7 @@ const FeedPost: React.FC<FeedPostProps> = ({
     <TraderAvatar
       imageUrl={author.avatarUri}
       address={author.address}
+      profileId={author.id}
       size={AVATAR_SIZE}
       recyclingKey={id}
       testID={getSocialFeedPostAvatarTestId(id)}

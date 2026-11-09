@@ -10,8 +10,8 @@ export const CONTENT_LAYOUT_TEST_ID = 'content-layout';
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   iconContainer: {
     alignItems: 'center',

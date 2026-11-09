@@ -20,8 +20,12 @@ const CELL_CONFIG: Record<
   { labelKey: string; testID: string }
 > = {
   pnl: {
-    labelKey: 'social_leaderboard.my_profile.pnl',
+    labelKey: 'social_leaderboard.my_profile.realized_pnl',
     testID: MyProfileViewSelectorsIDs.PERFORMANCE_PNL,
+  },
+  unrealizedPnl: {
+    labelKey: 'social_leaderboard.my_profile.unrealized_pnl',
+    testID: MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL,
   },
   winRate: {
     labelKey: 'social_leaderboard.my_profile.win_rate',
@@ -105,7 +109,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
           ))}
         </Box>
       </Box>
-      <SectionDivider marginVertical={6} />
+      <SectionDivider marginVertical={0} twClassName="mt-6" />
     </Box>
   );
 };

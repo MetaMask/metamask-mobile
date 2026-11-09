@@ -18,6 +18,11 @@ import {
 } from '../Perps.testIds';
 import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfirmSheet';
 import PerpsOrderView from '../Views/PerpsOrderView/PerpsOrderView';
+import Engine from '../../../../core/Engine';
+
+const MID_PRICE = 50000; // BTC mid in the Shape A harness fixtures
+// Spendable balance the order form reads from the harness account stream.
+const ACCOUNT_BALANCE = 10000;
 
 describe('Perps component flows — integration', () => {
   describe('placing an order from a rendered order screen', () => {
@@ -95,6 +100,70 @@ describe('Perps component flows — integration', () => {
             );
           },
           { timeout: 2000 },
+        );
+      } finally {
+        perps.teardown();
+      }
+    });
+  });
+
+  describe('placing the maximum order from a rendered order screen', () => {
+    it('sizes the max order so margin plus the real quoted fee fits the account balance', async () => {
+      // Arrange — 20x makes the fee a large share of margin, beyond the flat
+      // margin buffer, so the order only fits when the fee is reserved.
+      const leverage = 20;
+      const perps = buildPerpsComponentHarness();
+      try {
+        perps.harness.setupTradingReady();
+        perps.renderScreenWithFlow(PerpsOrderView, {
+          routeName: 'PerpsOrder',
+          initialParams: {
+            asset: 'BTC',
+            direction: 'long',
+            amount: '100000000',
+            leverage,
+            defaultSzDecimals: 3,
+            defaultMaxLeverage: 50,
+          },
+        });
+        await act(async () => {
+          await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        });
+        await waitFor(
+          () => {
+            expect(
+              screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+            ).not.toBeDisabled();
+          },
+          { timeout: 10000 },
+        );
+        const { protocolFeeRate = 0, metamaskFeeRate = 0 } =
+          await Engine.context.PerpsController.calculateFees({
+            orderType: 'market',
+            isMaker: false,
+            symbol: 'BTC',
+          });
+        const feeRate = protocolFeeRate + metamaskFeeRate;
+
+        // Act
+        await act(async () => {
+          fireEvent.press(
+            screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+          );
+        });
+
+        // Assert
+        await waitFor(() => {
+          expect(perps.mocks.exchangeClient.order).toHaveBeenCalledTimes(1);
+        });
+        const [{ orders }] = perps.mocks.exchangeClient.order.mock.calls[0];
+        const notional = Number.parseFloat(orders[0].s) * MID_PRICE;
+        expect(feeRate).toBeGreaterThan(0);
+        expect(notional / leverage + notional * feeRate).toBeLessThanOrEqual(
+          ACCOUNT_BALANCE,
+        );
+        expect(notional).toBeGreaterThan(
+          (ACCOUNT_BALANCE / (1 / leverage + feeRate)) * 0.97,
         );
       } finally {
         perps.teardown();

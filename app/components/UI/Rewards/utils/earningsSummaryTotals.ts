@@ -52,6 +52,30 @@ export function creditedBaseUnits(
   return (net.isNegative() ? new BigNumber(0) : net).toFixed(0);
 }
 
+/**
+ * A ledger row is voided when every base unit of `musd_amount` is voided.
+ * A day row adds up several earnings, and a void of some of them leaves the
+ * rest payable, so a smaller `voided_musd_amount` is not a voided row. Treat
+ * an over-void the same as a full void because the credited amount floors at
+ * zero.
+ */
+export function isVoidedEarning(
+  amount: string | null | undefined,
+  voided: string | null | undefined,
+): boolean {
+  if (amount == null || amount === '' || voided == null || voided === '') {
+    return false;
+  }
+  const total = new BigNumber(amount);
+  const removed = new BigNumber(voided);
+  return (
+    total.isFinite() &&
+    removed.isFinite() &&
+    removed.gt(0) &&
+    removed.gte(total)
+  );
+}
+
 /** Lifetime the profile earned on its own trades, e.g. its cashback. */
 export function selfEarnedLifetime(
   summary: EarningsSummaryDto | null | undefined,
@@ -66,4 +90,53 @@ export function earnedByOthersLifetime(
   family: EarningClaimFamily,
 ): string | null {
   return familyLifetime(summary?.earned_by_others, family);
+}
+
+function summaryFamilies(summary: EarningsSummaryDto) {
+  return [
+    ...Object.values(summary.self_earned?.by_claim_family ?? {}),
+    ...Object.values(summary.earned_by_others?.by_claim_family ?? {}),
+  ];
+}
+
+function finiteBaseUnits(value: string | null | undefined): BigNumber {
+  const amount = new BigNumber(value ?? 0);
+  if (!amount.isFinite() || !amount.gt(0)) {
+    return new BigNumber(0);
+  }
+  return amount;
+}
+
+function blockedUnderReview(family: {
+  blocking_reason?: string | null;
+  blocked?: string | null;
+}): BigNumber {
+  if (family.blocking_reason !== 'UNDER_REVIEW') {
+    return new BigNumber(0);
+  }
+  return finiteBaseUnits(family.blocked);
+}
+
+/**
+ * Base units a review is holding in `blocked`, summed across both branches'
+ * claim families.
+ *
+ * A branch reason is null when its families disagree, so the family is the
+ * place a mixed branch still says `UNDER_REVIEW`. Zero and any other reason
+ * add nothing, and a summary with no such family returns null.
+ */
+export function underReviewBlockedBaseUnits(
+  summary: EarningsSummaryDto | null | undefined,
+): string | null {
+  if (!summary) {
+    return null;
+  }
+  const total = summaryFamilies(summary).reduce(
+    (sum, family) => sum.plus(blockedUnderReview(family)),
+    new BigNumber(0),
+  );
+  if (!total.gt(0)) {
+    return null;
+  }
+  return total.toFixed(0);
 }

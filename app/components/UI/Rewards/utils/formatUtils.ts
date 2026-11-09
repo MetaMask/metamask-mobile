@@ -522,6 +522,23 @@ export const formatSignedUsd = (
 };
 
 /**
+ * True when a Money API base-unit string is a positive integer.
+ * Missing, zero, and unreadable values are false.
+ */
+export const isPositiveBaseUnits = (
+  value: string | null | undefined,
+): boolean => {
+  if (!value) {
+    return false;
+  }
+  try {
+    return BigInt(value) > 0n;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Formats a Money API mUSD amount as USD. Amounts cross that boundary as
  * base-unit integer strings, because they exceed what a JSON number holds
  * exactly, so they are shifted by {@link MUSD_DECIMALS} before formatting.
@@ -625,6 +642,27 @@ export const formatCompactUsd = (
   return `${sign}$${compactValue}`;
 };
 
+/**
+ * Formats a Predict campaign position amount the way Predict lists its own
+ * positions: whole dollars without cents, otherwise two decimals.
+ *
+ * @example formatPredictPositionUsd(10)     // '$10'
+ * @example formatPredictPositionUsd(1234.5) // '$1,234.50'
+ * @example formatPredictPositionUsd(NaN)    // '$0.00'
+ */
+export const formatPredictPositionUsd = (value: number): string => {
+  if (Number.isNaN(value)) {
+    return '$0.00';
+  }
+  const rounded = Math.round(value * 100) / 100;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: rounded === Math.floor(rounded) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(rounded);
+};
+
 // ── Percent / rate formatting ───────────────────────────────────────────
 
 /**
@@ -650,6 +688,26 @@ export const formatPercentChange = (value: string | number): string => {
 export const isPercentChangeNonNegative = (value: string | number): boolean => {
   const num = typeof value === 'number' ? value : parseFloat(value);
   return !Number.isNaN(num) && num >= 0;
+};
+
+/**
+ * Formats a Predict campaign position percentage (already in percent, not a
+ * ratio) the way Predict lists its own positions: up to two decimals,
+ * trailing zeros dropped, no sign on gains.
+ *
+ * @example formatPredictPositionPercent(25)     // '25%'
+ * @example formatPredictPositionPercent(-12.5)  // '-12.5%'
+ * @example formatPredictPositionPercent(-0.001) // '0%'
+ */
+export const formatPredictPositionPercent = (value: number): string => {
+  if (Number.isNaN(value)) {
+    return '0%';
+  }
+  if (value === Math.floor(value)) {
+    return `${value}%`;
+  }
+  const formatted = value.toFixed(2).replace(/\.?0+$/, '');
+  return formatted === '-0' ? '0%' : `${formatted}%`;
 };
 
 // ── Ordinal rank (English) ─────────────────────────────────────────────

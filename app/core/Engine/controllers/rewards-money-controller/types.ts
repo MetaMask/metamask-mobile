@@ -54,13 +54,9 @@ export type ClaimBlockingReason =
   | 'SIGNER_UNAVAILABLE'
   | 'TAX_DETERMINATION_REQUIRED'
   | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
-
-export type LedgerBlockingReason =
-  | 'SUSPENDED'
-  | 'TAX_DETERMINATION_REQUIRED'
-  | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
+  | 'MECHANISM_NOT_CLAIMABLE'
+  | 'VOIDED'
+  | 'UNDER_REVIEW';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralCodeView = {
@@ -108,7 +104,23 @@ export type ReferralLocalizedTextKey =
   | 'availableToClaim'
   | 'claim'
   | 'claimed'
+  | 'held'
+  | 'blocked'
+  | 'voided'
+  | 'pending'
   | 'claimSuccessToast'
+  | 'claimPartialSuccessToast'
+  | 'claimFailureToast'
+  | 'claimFailureRetryToast'
+  | 'claimFailureWaitToast'
+  | 'claimFailureWaitMinutesToast'
+  | 'claimFailureMinimumToast'
+  | 'claimFailureAddressBlockedToast'
+  | 'claimFailureTooLargeToast'
+  | 'claimFailureNoEligibleBalanceToast'
+  | 'claimFailureUnavailableToast'
+  | 'claimFailureContactSupportToast'
+  | 'historyClaimPending'
   | 'last7Days'
   | 'totalEarningsLabel'
   | 'breakdown'
@@ -139,6 +151,9 @@ export type ReferralLocalizedTextKey =
   | 'funnelFeeGenerating'
   | 'funnelFeeGeneratingDescription'
   | 'tradingCommissionsSection'
+  | 'copyTradingEmptyDescription'
+  | 'copyTradingEmptyAction'
+  | 'copyTradingInfoDescription'
   | 'tradingActivityEmptyDescription'
   | 'tradingActivityEmptyAction'
   | 'copiedOnce'
@@ -173,11 +188,134 @@ export type ReferralLocalizedTextKey =
   | 'termsTitle'
   | 'termsDescription'
   | 'termsLearnMore'
-  | 'termsUrl';
+  | 'termsUrl'
+  | 'balance'
+  | 'mUSD'
+  | 'paused'
+  | 'claimsPausedTitle'
+  | 'claimsPausedDescription'
+  | 'rewardsPausedTitle'
+  | 'rewardsPausedDescription'
+  | 'rewardsPausedBanner'
+  | 'rewardsPausedLearnMore'
+  | 'settingsReferralTitle'
+  | 'settingsReferralLinkedDescription'
+  | 'settingsReferralNotLinkedDescription'
+  | 'settingsReferralPlaceholder'
+  | 'settingsReferralApply'
+  | 'taxAttestationTitle'
+  | 'taxAttestationDescription'
+  | 'taxRenewalAttestationDescription'
+  | 'taxAttestationExpiredDescription'
+  | 'taxUsActivityTitle'
+  | 'taxUsActivityDescription'
+  | 'taxAnswerYes'
+  | 'taxAnswerNo'
+  | 'taxOpenFormTitle'
+  | 'taxFormRequiredDescription'
+  | 'taxFormFixDescription'
+  | 'taxFormUnsupportedDescription'
+  | 'taxTinMismatchDescription'
+  | 'taxFormExpiredDescription'
+  | 'taxRenewalFormDescription'
+  | 'taxOpenFormButton'
+  | 'taxNotNowButton'
+  | 'taxChangeAnswerButton'
+  | 'taxContactUsTitle'
+  | 'taxUsActivityBlockedDescription'
+  | 'taxContactSupportButton'
+  | 'taxFormPendingTitle'
+  | 'taxFormPendingDescription'
+  | 'taxDeterminationTitle'
+  | 'taxDeterminationDescription'
+  | 'taxAnswerSavedToast'
+  | 'taxNotNeededToast'
+  | 'taxFormRateLimitedToast'
+  | 'taxErrorToast'
+  | 'taxFormUrl';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {
   [key in ReferralLocalizedTextKey]: string;
+};
+
+/**
+ * `GET /tax/me` state. A string the client does not know yet still arrives;
+ * the sheet map treats that as the determination info sheet.
+ */
+export type TaxDocumentationState =
+  | 'COMPLETE_OR_VERIFIED'
+  | 'RENEWAL_REQUIRED'
+  | 'ACTION_REQUIRED'
+  | 'UNDER_REVIEW'
+  | (string & {});
+
+/** What the payee can do next. An unknown action uses the same fallback. */
+export type TaxNextAction =
+  | 'NONE'
+  | 'ANSWER_ATTESTATION'
+  | 'ANSWER_US_ACTIVITY'
+  | 'OPEN_FORM'
+  | (string & {});
+
+/** Why that action is next. Null when the state carries no reason. */
+export type TaxDocumentationReason =
+  | 'NO_ATTESTATION'
+  | 'ATTESTATION_EXPIRED'
+  | 'US_ACTIVITY_ANSWER_REQUIRED'
+  | 'NO_FORM'
+  | 'FORM_INVALID'
+  | 'NEEDS_RESUBMISSION'
+  | 'OPEN_ISSUE'
+  | 'UNSUPPORTED_FORM'
+  | 'TIN_NOT_MATCHED'
+  | 'FORM_EXPIRED'
+  | 'FORM_PENDING'
+  | 'REVIEW_PENDING'
+  | 'EXPIRY_UNKNOWN'
+  | 'FORM_NOT_AVAILABLE'
+  | 'US_ACTIVITY_BLOCKED'
+  | 'GATE_OFF'
+  | (string & {});
+
+/**
+ * `GET /tax/me`. The controller keeps this for five minutes per profile.
+ * A tax POST drops that entry. A read after the form, or after a claim
+ * refusal, passes `forceFresh`.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TaxMeDto = {
+  state: TaxDocumentationState;
+  next_action: TaxNextAction;
+  reason: TaxDocumentationReason | null;
+  clears_until: string | null;
+  cleared: boolean;
+  can_change_answer: boolean;
+};
+
+/**
+ * The `GET /tax/me` snapshot remembered when the form page reports success.
+ * Claim keeps showing "submitted, checking" while a later read still matches
+ * it. A webhook that changes the snapshot drops the marker.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TaxFormSubmittedSnapshot = {
+  state: TaxDocumentationState;
+  next_action: TaxNextAction;
+  reason: TaxDocumentationReason | null;
+};
+
+/** `POST /wr/tax/attestation` and `POST /wr/tax/w8-us-activity`. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TaxAnswerResultDto = {
+  review: 'NONE' | 'PENDING' | (string & {});
+};
+
+/** `POST /wr/tax/form-token`. Held in memory for the WebView, never in state. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TaxFormTokenDto = {
+  token: string;
+  expires_at: string;
 };
 
 /** Light/dark Contentful asset URLs. Type alias (not interface) for Json/StateConstraint. */
@@ -241,19 +379,59 @@ export type ReadWindowDto = {
   to: string | null;
 };
 
+/**
+ * Totals at one level of `GET /earnings/summary`.
+ *
+ * Every amount is an mUSD base-unit integer string. At the root of the
+ * summary, `lifetime_total` is this same `lifetime`.
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SummaryTotalsDto = {
+  /**
+   * Everything at this level. It currently partitions exactly as
+   * `claimed + pending + claimable + held + blocked + voided`. An upcoming
+   * change will remove `voided` from `lifetime`. The client treats this
+   * backend figure as the source of truth and does not subtract `voided`.
+   */
   lifetime: string;
+  /**
+   * Exact base units a claim over this slice would pay now. Absent when
+   * claimability was not requested; absent is not zero.
+   */
   claimable?: string;
+  /**
+   * Base units the income threshold is holding, or, while the account is
+   * suspended, everything that was otherwise payable. Valued at what a claim
+   * would release.
+   */
   held?: string;
+  /**
+   * Base units a durable reason excluded: the mechanism is closed, the
+   * accrual has no producing address, the address cannot be screened, or an
+   * operator hold is under review. A suspension does not move this money.
+   * Voided money is not included.
+   */
   blocked?: string;
   /**
-   * Base units voided and not paid. Absent when the caller opted out of
-   * claimability, like `claimable`, `held`, and `blocked`.
+   * Base units cancelled and never payable. Final, and separate from
+   * `blocked`. Absent when claimability was not requested.
    */
   voided?: string;
+  /**
+   * Earned but not claimable yet, including an open trading day and cashback
+   * still inside its claim delay.
+   */
   pending: string;
+  /** Already paid out. */
   claimed: string;
+  /**
+   * Why this level pays nothing. Null only when `claimable` is non-zero. On
+   * a family it is that family's claim reason. On a branch it is set only
+   * when every family shares the same reason. It names the durable `blocked`
+   * state, except `VOIDED`, which is used only when `blocked` and `held` are
+   * zero and `voided` is not. A suspension reports `SUSPENDED` even though
+   * that money sits in `held`.
+   */
   blocking_reason?: ClaimBlockingReason | null;
 };
 
@@ -285,6 +463,11 @@ export type BranchViewDto<F extends SummaryTotalsDto> = SummaryTotalsDto & {
 /** `GET /earnings/summary` — live backend SummaryView shape. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarningsSummaryDto = {
+  /**
+   * The root `lifetime`: everything in this summary. It currently includes
+   * `voided`. An upcoming change will remove `voided` from it. Read this
+   * figure as returned.
+   */
   lifetime_total: string;
   window: ReadWindowDto | null;
   claimable?: string;
@@ -294,6 +477,10 @@ export type EarningsSummaryDto = {
   voided?: string;
   pending: string;
   claimed: string;
+  /**
+   * Server claim minimum, `claimMinimumMusdBaseUnits`, as mUSD base units.
+   * A claimable balance below this is not offered as Claim.
+   */
   minimum_musd_base_units: string;
   self_earned: BranchViewDto<SelfEarnedFamilyTotalsDto>;
   earned_by_others: BranchViewDto<EarnedByOthersFamilyTotalsDto>;
@@ -348,7 +535,6 @@ export type LedgerEarningEntryDto = {
    * the end of its claim delay, and a day entry carries its UTC day's close.
    */
   claimable_at: string;
-  blocking_reason?: LedgerBlockingReason | null;
   swaps_source: LedgerSwapsSourceView | null;
   perps_source: LedgerPerpsSourceView | null;
   predict_source: LedgerPredictSourceView | null;
@@ -425,6 +611,68 @@ export type ClaimHistoryPageDto = {
   cursor: string | null;
 };
 
+/** Last path segment of `POST /wr/earnings/claim/<slug>`. */
+export type ClaimRouteSlug =
+  | 'referral-trade-fee-cashback'
+  | 'referral-rev-share'
+  | 'social-follow-trade';
+
+export interface ClaimVoucherDto {
+  claim_id: string;
+  from: string;
+  to: string;
+  value: string;
+  valid_after: number;
+  valid_before: number;
+  nonce: string;
+  signature: string;
+}
+
+export interface ClaimExcludedDto {
+  type: string;
+  reason: string;
+}
+
+export interface ClaimInitiateDto {
+  claim: ClaimDto;
+  voucher: ClaimVoucherDto | null;
+  excluded: ClaimExcludedDto[];
+  status: 'LIVE_VOUCHER' | 'AWAITING_RELEASE' | 'OPENED';
+}
+
+export interface ClaimProofChallengeDto {
+  earning_address: string;
+  amount_musd_base_units: string;
+  message: string;
+}
+
+export interface ClaimProofRequiredDto {
+  reason: 'PROOF_REQUIRED';
+  claim_intent_id: string;
+  expires_at: string;
+  challenges: ClaimProofChallengeDto[];
+}
+
+export interface ClaimProofSubmissionDto {
+  earning_address: string;
+  signature: string;
+}
+
+export interface InitiateClaimBody {
+  money_account_address: string;
+  /**
+   * Earning-address keys this handset can sign. Omitting it asks for every
+   * address with eligible cashback. An empty array is refused.
+   */
+  earning_addresses?: string[];
+  claim_intent_id?: string;
+  proofs?: ClaimProofSubmissionDto[];
+}
+
+export type InitiateClaimResult =
+  | { kind: 'authorized'; body: ClaimInitiateDto }
+  | { kind: 'proof_required'; body: ClaimProofRequiredDto };
+
 /**
  * The mechanisms `GET /referral/me/commissions` serves.
  *
@@ -482,6 +730,10 @@ export type CommissionsPageDto = {
 // ─── Request DTOs ─────────────────────────────────────────────────────────────
 
 export interface GetReferralMeDto {
+  forceFresh?: boolean;
+}
+
+export interface GetTaxMeDto {
   forceFresh?: boolean;
 }
 
@@ -667,6 +919,13 @@ export type RewardsMoneyControllerState = {
   commissionsFirstPage: { [scopeKey: string]: CacheEntry<CommissionsPageDto> };
   /** Keyed by `${profileId}:${claimId}`. */
   claimById: { [scopeKey: string]: CacheEntry<ClaimDto> };
+  /** Keyed by Hydra profileId. */
+  taxMe: { [profileId: string]: CacheEntry<TaxMeDto> };
+  /**
+   * Keyed by Hydra profileId. Set when the form page reports success and the
+   * stored determination is still the pre-webhook open-form read.
+   */
+  taxFormSubmitted: { [profileId: string]: TaxFormSubmittedSnapshot };
   /** Persisted env URL override (non-production builds only). */
   rewardsMoneyEnvUrl: string | null;
 };

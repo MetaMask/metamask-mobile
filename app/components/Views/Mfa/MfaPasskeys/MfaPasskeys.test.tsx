@@ -4,6 +4,7 @@ import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
 import { MfaPasskeysSelectorsIDs } from '../Mfa.testIds';
 import MfaPasskeys from './MfaPasskeys';
@@ -19,21 +20,33 @@ jest.mock('../../../../util/identity/mfa/engine/activeFlow', () => ({
 }));
 
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
+const mockShowToast = jest.fn();
 
 const renderPasskeys = (enrolledCredentials: EnrolledCredential[]) =>
-  renderWithProvider(<MfaPasskeys />, {
-    state: {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          AuthenticationController: {
-            ...backgroundState.AuthenticationController,
-            enrolledCredentials,
+  renderWithProvider(
+    <ToastContext.Provider
+      value={{
+        toastRef: {
+          current: { showToast: mockShowToast, closeToast: jest.fn() },
+        },
+      }}
+    >
+      <MfaPasskeys />
+    </ToastContext.Provider>,
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AuthenticationController: {
+              ...backgroundState.AuthenticationController,
+              enrolledCredentials,
+            },
           },
         },
       },
     },
-  });
+  );
 
 describe('MfaPasskeys', () => {
   beforeEach(() => {
@@ -43,9 +56,21 @@ describe('MfaPasskeys', () => {
 
   it('lists the active passkeys and opens one', () => {
     const { getByText, getByTestId, queryByTestId } = renderPasskeys([
-      { type: 'passkey', status: 'active', displayName: '1Password' },
-      { type: 'email_otp', status: 'active', email: 'a@b.co', verified: true },
       {
+        id: 'passkey',
+        type: 'passkey',
+        status: 'active',
+        displayName: '1Password',
+      },
+      {
+        id: 'email_otp',
+        type: 'email_otp',
+        status: 'active',
+        email: 'a@b.co',
+        verified: true,
+      },
+      {
+        id: 'passkey',
         type: 'passkey',
         status: 'active',
         enrolledAt: new Date(2026, 8, 17, 11, 23).getTime(),
@@ -75,6 +100,11 @@ describe('MfaPasskeys', () => {
       expect.objectContaining({
         request: { kind: 'enroll', method: 'passkey' },
         reason: { operation: 'settings.addPasskey' },
+      }),
+    );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Passkey added' }],
       }),
     );
   });
