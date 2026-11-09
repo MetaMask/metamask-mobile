@@ -49,8 +49,7 @@ export function useClearPaymentOverride() {
         (config) => {
           config.paymentOverride = undefined;
           config.refundTo = undefined;
-
-          const { atomic, atomicForbidden } = isMoneyAccountDeposit
+          config.atomic = isMoneyAccountDeposit
             ? resolveMoneyAccountDepositAtomic({
                 isMaxAmount: Boolean(isMaxAmount),
                 isMfaKeyring: isMfaMoneyKeyring,
@@ -58,10 +57,7 @@ export function useClearPaymentOverride() {
                 // no subsidised fixed-spread route survives the switch.
                 shouldHintAtomicMax: false,
               })
-            : { atomic: undefined, atomicForbidden: undefined };
-
-          config.atomic = atomic;
-          config.atomicForbidden = atomicForbidden;
+            : undefined;
         },
       );
     }

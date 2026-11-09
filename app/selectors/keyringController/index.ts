@@ -119,11 +119,6 @@ export const selectMfaMoneyKeyringAddresses = createDeepEqualSelector(
  * Fenced behind `__DEV__` so a stray env var can never force the non-atomic
  * path in a release build, matching `isMoneyAccountEnabled`'s agentic flag.
  *
- * TODO(CONF-2157): remove this override, its `.js.env.example` entry, and the
- * branch in `selectIsMfaMoneyKeyringAddress` once MFA Money Accounts can be
- * selected at runtime. At that point an MFA account reaches the path on its
- * own and this scaffolding is dead weight in a production selector.
- *
  * @returns Whether the override is active.
  */
 export function isForceNonAtomicMoneyDepositEnabled(): boolean {
