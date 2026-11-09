@@ -43,7 +43,15 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
 import { playSelection } from '../../../../util/haptics';
+import {
+  formatAbbreviatedUsd,
+  formatTradeUnitPrice,
+} from '../../../UI/SocialFeed/utils/formatters';
+import { deriveMarketCapPerPrice } from '../../../UI/SocialFeed/utils/toSocialV1FeedItem';
 import PositionSheetChart from './components/PositionSheetChart';
+import PositionSheetChartControls, {
+  type HeadlineValueMode,
+} from './components/PositionSheetChartControls';
 import PositionSheetFooter from './components/PositionSheetFooter';
 import PositionSheetHeader from './components/PositionSheetHeader';
 import PositionSheetPriceHeader from './components/PositionSheetPriceHeader';
@@ -54,7 +62,7 @@ import PositionSheetTradeSummary from './components/PositionSheetTradeSummary';
 import { useLivePosition } from './hooks/useLivePosition';
 import { usePositionSheetData } from './hooks/usePositionSheetData';
 import { useTwoStepSheetReveal } from './hooks/useTwoStepSheetReveal';
-import { formatChartTimestamp } from './utils/chartWindow';
+import { formatChartTimestamp, type ChartPeriod } from './utils/chartWindow';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
 
@@ -123,6 +131,15 @@ const PositionDetailsSheet = () => {
     addressesMatch(author.address, profile?.linkedAccountAddress);
 
   const [scrubPoint, setScrubPoint] = useState<TokenPrice | null>(null);
+  const [headlineChoice, setHeadlineChoice] =
+    useState<HeadlineValueMode | null>(null);
+  const [headlinePositionId, setHeadlinePositionId] = useState(
+    position?.positionId,
+  );
+  if (headlinePositionId !== position?.positionId) {
+    setHeadlinePositionId(position?.positionId);
+    setHeadlineChoice(null);
+  }
   const [isTabsExpanded, setIsTabsExpanded] = useState(false);
 
   // Upward-only so a downward drag still dismisses the sheet. Collapsed, the
@@ -305,8 +322,32 @@ const PositionDetailsSheet = () => {
     openQuickBuy,
   ]);
 
+  const fillMarketCapPerPrice =
+    !data.isPerp && position ? deriveMarketCapPerPrice(position) : null;
+  const cardQuotesMarketCap = fillMarketCapPerPrice != null;
+  const showMarketCapToggle =
+    !data.isPerp && ((data.marketCap ?? 0) > 0 || cardQuotesMarketCap);
+  const headlineMode: HeadlineValueMode =
+    headlineChoice ?? (cardQuotesMarketCap ? 'marketCap' : 'price');
+  const headlineIsMarketCap =
+    showMarketCapToggle && headlineMode === 'marketCap';
+  const quotedMarketCap =
+    (data.marketCap ?? 0) > 0 ? data.marketCap : undefined;
+  const marketCapPerPrice =
+    quotedMarketCap != null && data.currentPrice
+      ? quotedMarketCap / data.currentPrice
+      : (fillMarketCapPerPrice ?? undefined);
   const firstPrice = data.prices[0]?.[1];
-  const headerValue = scrubPoint ? scrubPoint[1] : data.currentPrice;
+  const headerValue = scrubPoint
+    ? headlineIsMarketCap && marketCapPerPrice
+      ? scrubPoint[1] * marketCapPerPrice
+      : scrubPoint[1]
+    : headlineIsMarketCap
+      ? (quotedMarketCap ??
+        (data.currentPrice != null && marketCapPerPrice != null
+          ? data.currentPrice * marketCapPerPrice
+          : undefined))
+      : data.currentPrice;
   const scrubChangePercent =
     firstPrice && scrubPoint
       ? ((scrubPoint[1] - firstPrice) / firstPrice) * 100
@@ -314,6 +355,20 @@ const PositionDetailsSheet = () => {
   const headerChange = scrubPoint
     ? scrubChangePercent
     : data.dailyChangePercent;
+  const headerLabel =
+    headerValue === undefined
+      ? undefined
+      : headlineIsMarketCap
+        ? formatAbbreviatedUsd(headerValue)
+        : formatTradeUnitPrice(headerValue);
+  const { setChartPeriod } = data;
+  const handlePeriodChange = useCallback(
+    (period: ChartPeriod) => {
+      setScrubPoint(null);
+      setChartPeriod(period);
+    },
+    [setChartPeriod],
+  );
   const headerCaption = scrubPoint
     ? formatChartTimestamp(Number(scrubPoint[0]))
     : strings('social_leaderboard.position_sheet.today');
@@ -379,16 +434,19 @@ const PositionDetailsSheet = () => {
               assetName={data.assetName}
               isPerp={data.isPerp}
               leverage={data.leverage}
-              valueLabel={
-                headerValue !== undefined
-                  ? data.formatValue(headerValue)
-                  : undefined
-              }
-              isMarketCapMode={data.isMarketCapMode}
+              valueLabel={headerLabel}
+              isMarketCapMode={headlineIsMarketCap}
               changePercent={headerChange}
               changeCaption={headerCaption}
               position={position}
               onPressAsset={handleOpenAsset}
+            />
+            <PositionSheetChartControls
+              period={data.chartPeriod}
+              onPeriodChange={handlePeriodChange}
+              showValueToggle={showMarketCapToggle}
+              valueMode={headlineMode}
+              onValueModeChange={setHeadlineChoice}
             />
             <PositionSheetChart
               prices={data.prices}

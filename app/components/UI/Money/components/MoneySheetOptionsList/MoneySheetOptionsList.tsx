@@ -152,13 +152,12 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                   </Text>
                   {item.newBadge ? (
                     <Tag
-                      severity={TagSeverity.Info}
-                      startIconName={IconName.Sparkle}
+                      severity={TagSeverity.Neutral}
                       // Optically center the tag against the label — mathematical
                       // centering leaves it looking slightly high next to the text.
                       twClassName="mt-[1.25px]"
                     >
-                      {strings('money.add_money_sheet.new_badge')}
+                      {strings('money.add_money_sheet.no_fees')}
                     </Tag>
                   ) : null}
                 </Box>

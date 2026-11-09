@@ -1731,13 +1731,11 @@ export function useQuickBuyController(
       rate: formattedRate,
       isNonEvmSwap,
     };
-    const tradeInFlightChain = caipChainIdToTradeInFlightChain(
-      sourceToken?.chainId
-        ? formatChainIdToCaip(sourceToken.chainId)
-        : target.chain,
-    );
-    const previewChain =
-      caipChainIdToTradeInFlightChain(target.chain) ?? target.chain;
+    // The comment is about the position token: the token bought, or the token
+    // sold. The pay token and the receive token (native or USDC) are not part
+    // of this slug.
+    const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
+    const previewChain = tradeInFlightChain ?? target.chain;
     const sharePreview: SocialPostTradePreview = {
       tokenSymbol: target.tokenSymbol,
       tokenAddress: target.tokenAddress,
@@ -1758,7 +1756,7 @@ export function useQuickBuyController(
       ? undefined
       : resolvePostTradePrompt('swap');
     let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
-    if (prompt?.kind === 'claim_sheet') {
+    if (prompt?.kind === 'claim_sheet' && canPostTradeShare) {
       trackedPostTradePrompt = prompt;
     } else if (
       prompt?.kind === 'share_sheet' &&

@@ -9799,19 +9799,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/client-utils@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "@metamask/client-utils@npm:3.0.2"
+"@metamask/client-utils@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "@metamask/client-utils@npm:3.1.1"
   dependencies:
-    "@metamask/contract-metadata": "npm:^2.4.0"
+    "@metamask/contract-metadata": "npm:^2.5.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/core-backend": "npm:^11.0.0"
-    "@metamask/keyring-api": "npm:^24.0.0"
-    "@metamask/slip44": "npm:^4.3.0"
-    "@metamask/transaction-controller": "npm:^70.1.0"
-    "@metamask/utils": "npm:^12.0.0"
-    eth-chainlist: "npm:^0.0.795"
-  checksum: 10/7b16f80abb73eae10cfa530aed0de7740486ff7b3ac75325c7bba0eee3ee89262fa564975b60e84bdcde942c15f08a750dc88e6a848fd444d2c40a4681a22629
+    "@metamask/core-backend": "npm:^14.0.0"
+    "@metamask/keyring-api": "npm:^24.3.0"
+    "@metamask/slip44": "npm:^4.5.0"
+    "@metamask/transaction-controller": "npm:^73.1.1"
+    "@metamask/utils": "npm:^12.0.1"
+    eth-chainlist: "npm:^0.0.873"
+  checksum: 10/130c4f56e7bbe8db534f764d0455822ab1673eaf478ce9150c711e593364494148a94f7051e1d6d7aa486696ae5dcf22c3ca351afe63d229479f38a038ec803e
   languageName: node
   linkType: hard
 
@@ -9874,7 +9874,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/contract-metadata@npm:^2.4.0, @metamask/contract-metadata@npm:^2.5.0":
+"@metamask/contract-metadata@npm:^2.5.0":
   version: 2.5.0
   resolution: "@metamask/contract-metadata@npm:2.5.0"
   checksum: 10/462b3ec7b32311ff5e6eec001abf25143e67ee667c70e0b9a3dee7545e7fc245b8098856ae79fef9758ef1db4930fa1d1d7681410995520935f2885bdb9641d2
@@ -9946,41 +9946,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "@metamask/core-backend@npm:11.0.0"
+"@metamask/core-backend@npm:^12.3.0":
+  version: 12.3.0
+  resolution: "@metamask/core-backend@npm:12.3.0"
   dependencies:
-    "@metamask/account-tree-controller": "npm:^10.0.1"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/keyring-controller": "npm:^28.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^32.1.1"
-    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    "@metamask/utils": "npm:^12.0.0"
-    "@tanstack/query-core": "npm:^5.62.16"
-    async-mutex: "npm:^0.5.0"
-    cockatiel: "npm:^3.1.2"
-    uuid: "npm:^9.0.1"
-  checksum: 10/5743ece912208c0c8a38c1f031343e57af73f00714e61390ffd3b29ff9e50febf88a3e9d0b2358f0badafa4fa617202c4a6baa0e785fb8758da753ad678dc983
-  languageName: node
-  linkType: hard
-
-"@metamask/core-backend@npm:^13.0.0":
-  version: 13.0.0
-  resolution: "@metamask/core-backend@npm:13.0.0"
-  dependencies:
-    "@metamask/account-tree-controller": "npm:^11.2.0"
+    "@metamask/account-tree-controller": "npm:^11.0.1"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^36.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    "@metamask/utils": "npm:^12.0.1"
+    "@metamask/utils": "npm:^12.0.0"
     "@tanstack/query-core": "npm:^5.103.2"
     async-mutex: "npm:^0.5.0"
     cockatiel: "npm:^3.2.1"
-    uuid: "npm:^14.0.0"
-  checksum: 10/7fdd621f3dd38cff0ab4d1e69de1ab2a6bc201a6556d6952de5f7d03a21451a85700b9e2f13f3b76008ca873fc390a3d86a24b6c0fd50848b5827fd78a346614
+    uuid: "npm:^11.1.1"
+  checksum: 10/2aa8bc998c485c11f32d0a3f4f29c0b4053ebe7cdcd756268d47bccf3aaed9900f35c6cbc871e4331848933aabff00d97ca9a1d0e968d9d56f8fbcbf7fe41a43
   languageName: node
   linkType: hard
 
@@ -10047,11 +10028,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.55.0":
-  version: 0.55.0
-  resolution: "@metamask/design-system-react-native@npm:0.55.0"
+"@metamask/design-system-react-native@npm:^0.56.0":
+  version: 0.56.0
+  resolution: "@metamask/design-system-react-native@npm:0.56.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.44.0"
+    "@metamask/design-system-shared": "npm:^0.45.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.14.0
@@ -10065,18 +10046,18 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/c12d54a953ab53ce45ccfd8fdc78aa35db7fcaf88fd860cd588dcab74d2d6b3258bcf9fde8621771f45105130a064b8117231bd82f393a31c11a5a7fbd4c9a83
+  checksum: 10/f0c5bdc5501b0a4cc89ec9e51b68594890eaf6340e0fcdc4e4b1f0b6b817e5f81b0e4a85a4a4d76619608c0643483d925828b866d67c4a7167d1fc851f69033e
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.44.0":
-  version: 0.44.0
-  resolution: "@metamask/design-system-shared@npm:0.44.0"
+"@metamask/design-system-shared@npm:^0.45.0":
+  version: 0.45.0
+  resolution: "@metamask/design-system-shared@npm:0.45.0"
   dependencies:
     "@metamask/utils": "npm:^11.12.1"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/f6b918dd32a15fe3ae20616bc7705cbc1f9829be1acf9e020b23711f8c8ba667233d9610fd6ddcf54dcb62f0f97395aeafdc6ee1c3947bfe331f041ec888eb3f
+  checksum: 10/522922b87353a5b0b16adc5157bcfbea153741d6818a60516280d5aa5a2eeb0ae55e22240eba37febe4198f9e553fc2ef9aa7f277ea9ad4d7de7db2e412a6243
   languageName: node
   linkType: hard
 
@@ -11645,9 +11626,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-controller@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "@metamask/profile-controller@npm:1.2.1"
+"@metamask/profile-controller@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@metamask/profile-controller@npm:2.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
@@ -11656,7 +11637,7 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.1"
-  checksum: 10/a42e453fa3ed5a68dea68a5721b335ee91f49671a111a19307a4ddd0a9e4d23b66bf263de7b20f8005129d22288595cbadf64516e16ad703622e73d726580e93
+  checksum: 10/98834b87f75f4612cd4016985e0528991cde20479792ad227d067b8442b171f769c572b7e83e13bbbee0b1f3f8ed0d8b21735b2f245ea4401a9dfc83307bf884
   languageName: node
   linkType: hard
 
@@ -12549,9 +12530,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:73.0.0":
-  version: 73.0.0
-  resolution: "@metamask/transaction-controller@npm:73.0.0"
+"@metamask/transaction-controller@npm:72.3.0":
+  version: 72.3.0
+  resolution: "@metamask/transaction-controller@npm:72.3.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/rlp": "npm:^5.0.2"
@@ -12564,7 +12545,7 @@ __metadata:
     "@metamask/approval-controller": "npm:^10.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/core-backend": "npm:^13.0.0"
+    "@metamask/core-backend": "npm:^12.3.0"
     "@metamask/gas-fee-controller": "npm:^27.0.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
@@ -12572,7 +12553,6 @@ __metadata:
     "@metamask/nonce-tracker": "npm:^6.1.0"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/rpc-errors": "npm:^7.0.3"
-    "@metamask/sentinel-api-service": "npm:^2.1.0"
     "@metamask/utils": "npm:^12.0.1"
     async-mutex: "npm:^0.5.0"
     bignumber.js: "npm:^9.1.2"
@@ -12581,11 +12561,11 @@ __metadata:
     ethereum-cryptography: "npm:^3.2.0"
     fast-json-patch: "npm:^3.1.1"
     lodash-es: "npm:^4.18.1"
-    uuid: "npm:^14.0.0"
+    uuid: "npm:^11.1.1"
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/d7d5f1c4fbf24230229fd5d79f7355c1637f1a6400f5312a31e28c37dd1dc55c2f70aa2bf8d0d3c1a6cf136ab1e69a4c62735953da911dae743f6289337fb997
+  checksum: 10/20f50d39cd2d13127a95aac8617c802e6298c0437ed8303f46100338e95f3df1eada1e0144ae0982114dba2c7e3af65546b9c47780f3c651cf6f90410d85222b
   languageName: node
   linkType: hard
 
@@ -30766,10 +30746,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eth-chainlist@npm:^0.0.795":
-  version: 0.0.795
-  resolution: "eth-chainlist@npm:0.0.795"
-  checksum: 10/1bdc634d107fd114c4b5567fba2003acc740c3e4e877dcc56db2b00071842003a2b918da1601c07451ae497291b63c923c89429d4f77dc41faf04cd186725a5e
+"eth-chainlist@npm:^0.0.873":
+  version: 0.0.873
+  resolution: "eth-chainlist@npm:0.0.873"
+  checksum: 10/797176d251b53398f02e962758fa3f3d15f91c8bbf665c8896f80d51d8cbec104e8ce75a86dfeb72930afe555c754ab208ff496ed7eb0f9e82360d076442a585
   languageName: node
   linkType: hard
 
@@ -38311,7 +38291,7 @@ __metadata:
     "@metamask/claims-controller": "npm:^1.0.3"
     "@metamask/client-controller": "npm:^2.0.0"
     "@metamask/client-mcp-core": "npm:^0.13.1"
-    "@metamask/client-utils": "npm:^3.0.2"
+    "@metamask/client-utils": "npm:^3.1.1"
     "@metamask/compliance-controller": "npm:2.1.0"
     "@metamask/config-registry-controller": "npm:^5.0.0"
     "@metamask/connectivity-controller": "npm:^1.0.0"
@@ -38320,7 +38300,7 @@ __metadata:
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/delegation-controller": "npm:^4.0.0"
     "@metamask/delegation-deployments": "npm:^2.1.0"
-    "@metamask/design-system-react-native": "npm:^0.55.0"
+    "@metamask/design-system-react-native": "npm:^0.56.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.14.0"
     "@metamask/design-tokens": "npm:^13.0.0"
     "@metamask/device-mcp": "npm:^0.7.0"
@@ -38391,7 +38371,7 @@ __metadata:
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
-    "@metamask/profile-controller": "npm:^1.2.1"
+    "@metamask/profile-controller": "npm:^2.0.0"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/providers": "npm:^18.3.1"

@@ -298,7 +298,7 @@ const WalletHeader = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName="h-14 px-3"
+        twClassName="h-14 px-4"
       >
         <CapsuleGlass twClassName="h-10 w-10 shrink-0 justify-center">
           <ButtonBase
@@ -345,7 +345,7 @@ const WalletHeader = ({
             {interimActions}
           </CapsuleGlass>
         }
-        twClassName="pl-3 pr-3"
+        twClassName="px-4"
       >
         <View style={accountPickerContainerStyle}>
           <CapsuleGlass
