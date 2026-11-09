@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import VbaEmailAdapter from '../../../KYC/Views/EmailAdapter';
 import VbaIdentityVerified from '../../../KYC/Views/Status/IdentityVerified';
@@ -129,11 +129,18 @@ interface VbaOnboardingNavigatorProps {
   route?: { params?: VbaOnboardingRootParams };
 }
 
-const VbaOnboardingNavigator = ({ route }: VbaOnboardingNavigatorProps) => (
-  <>
-    {route?.params?.focusMoneyTabBelow ? <FocusMoneyTabBelow /> : null}
-    <VbaOnboardingStack />
-  </>
-);
+const VbaOnboardingNavigator = ({ route }: VbaOnboardingNavigatorProps) => {
+  // Read once on open, so a later reset of this route cannot drop the request.
+  const [focusMoneyTabBelow] = useState(
+    Boolean(route?.params?.focusMoneyTabBelow),
+  );
+
+  return (
+    <>
+      {focusMoneyTabBelow ? <FocusMoneyTabBelow /> : null}
+      <VbaOnboardingStack />
+    </>
+  );
+};
 
 export default VbaOnboardingNavigator;
