@@ -23,7 +23,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({
-    colors: { background: { default: '#ffffff' } },
+    colors: { background: { default: 'white' } },
   }),
 }));
 
