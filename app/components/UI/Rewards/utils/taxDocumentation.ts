@@ -77,6 +77,13 @@ const OPEN_FORM_DESCRIPTIONS: Record<string, ReferralLocalizedTextKey> = {
   FORM_EXPIRED: 'taxFormExpiredDescription',
 };
 
+const PENDING_REVIEW_REASONS = new Set([
+  'FORM_PENDING',
+  'TIN_NOT_MATCHED',
+  'REVIEW_PENDING',
+  'EXPIRY_UNKNOWN',
+]);
+
 function question(
   which: TaxQuestion,
   titleKey: ReferralLocalizedTextKey,
@@ -111,113 +118,134 @@ const determinationInfo = (): TaxDocumentationSheet => ({
   descriptionKey: DETERMINATION_DESCRIPTION,
 });
 
+function sheetWhenClear(taxMe: TaxMeDto): TaxDocumentationSheet | null {
+  if (
+    taxMe.state === 'COMPLETE_OR_VERIFIED' &&
+    taxMe.next_action === 'NONE' &&
+    taxMe.reason == null
+  ) {
+    return { kind: 'none' };
+  }
+  return null;
+}
+
+function clearedRenewalSheet(taxMe: TaxMeDto): TaxDocumentationSheet {
+  const { next_action: nextAction, reason } = taxMe;
+  if (nextAction === 'ANSWER_ATTESTATION' && reason == null) {
+    return question(
+      'attestation',
+      'taxAttestationTitle',
+      'taxRenewalAttestationDescription',
+    );
+  }
+  if (nextAction === 'OPEN_FORM' && reason == null) {
+    return openForm('taxRenewalFormDescription', null, false);
+  }
+  return determinationInfo();
+}
+
+function expiredRenewalSheet(taxMe: TaxMeDto): TaxDocumentationSheet {
+  const { next_action: nextAction, reason } = taxMe;
+  if (nextAction === 'ANSWER_ATTESTATION' && reason === 'ATTESTATION_EXPIRED') {
+    return question(
+      'attestation',
+      'taxAttestationTitle',
+      'taxAttestationExpiredDescription',
+    );
+  }
+  if (nextAction === 'OPEN_FORM' && reason === 'FORM_EXPIRED') {
+    return openForm('taxFormExpiredDescription', reason, false);
+  }
+  return determinationInfo();
+}
+
+function sheetForRenewal(taxMe: TaxMeDto): TaxDocumentationSheet | null {
+  if (taxMe.state !== 'RENEWAL_REQUIRED') {
+    return null;
+  }
+  if (taxMe.cleared) {
+    return clearedRenewalSheet(taxMe);
+  }
+  return expiredRenewalSheet(taxMe);
+}
+
+function openFormForReason(taxMe: TaxMeDto): TaxDocumentationSheet {
+  const { reason } = taxMe;
+  const descriptionKey = reason ? OPEN_FORM_DESCRIPTIONS[reason] : undefined;
+  if (!descriptionKey) {
+    return determinationInfo();
+  }
+  return openForm(
+    descriptionKey,
+    reason,
+    reason === 'NO_FORM' && taxMe.can_change_answer === true,
+  );
+}
+
+function sheetForAction(taxMe: TaxMeDto): TaxDocumentationSheet | null {
+  if (taxMe.state !== 'ACTION_REQUIRED') {
+    return null;
+  }
+  const { next_action: nextAction, reason } = taxMe;
+  if (nextAction === 'ANSWER_ATTESTATION' && reason === 'NO_ATTESTATION') {
+    return question(
+      'attestation',
+      'taxAttestationTitle',
+      'taxAttestationDescription',
+    );
+  }
+  if (
+    nextAction === 'ANSWER_US_ACTIVITY' &&
+    reason === 'US_ACTIVITY_ANSWER_REQUIRED'
+  ) {
+    return question(
+      'us_activity',
+      'taxUsActivityTitle',
+      'taxUsActivityDescription',
+    );
+  }
+  if (nextAction === 'OPEN_FORM') {
+    return openFormForReason(taxMe);
+  }
+  return determinationInfo();
+}
+
+function sheetForReview(taxMe: TaxMeDto): TaxDocumentationSheet | null {
+  if (taxMe.state !== 'UNDER_REVIEW' || taxMe.next_action !== 'NONE') {
+    return null;
+  }
+  const { reason } = taxMe;
+  if (reason !== null && PENDING_REVIEW_REASONS.has(reason)) {
+    return pendingInfo();
+  }
+  if (reason === 'FORM_NOT_AVAILABLE') {
+    return determinationInfo();
+  }
+  if (reason === 'US_ACTIVITY_BLOCKED') {
+    return {
+      kind: 'contact',
+      titleKey: 'taxContactUsTitle',
+      descriptionKey: 'taxUsActivityBlockedDescription',
+    };
+  }
+  if (reason === 'GATE_OFF') {
+    return { kind: 'none' };
+  }
+  return determinationInfo();
+}
+
 /**
  * The one map from `GET /tax/me` to a sheet. An unknown state, action, or
  * reason uses the determination info sheet.
  */
 export function taxSheetFor(taxMe: TaxMeDto): TaxDocumentationSheet {
-  const { state, next_action: nextAction, reason, cleared } = taxMe;
-  const canChangeAnswer = taxMe.can_change_answer === true;
-
-  if (
-    state === 'COMPLETE_OR_VERIFIED' &&
-    nextAction === 'NONE' &&
-    reason == null
-  ) {
-    return { kind: 'none' };
-  }
-
-  if (state === 'RENEWAL_REQUIRED' && cleared) {
-    if (nextAction === 'ANSWER_ATTESTATION' && reason == null) {
-      return question(
-        'attestation',
-        'taxAttestationTitle',
-        'taxRenewalAttestationDescription',
-      );
-    }
-    if (nextAction === 'OPEN_FORM' && reason == null) {
-      return openForm('taxRenewalFormDescription', null, false);
-    }
-    return determinationInfo();
-  }
-
-  if (state === 'RENEWAL_REQUIRED' && !cleared) {
-    if (
-      nextAction === 'ANSWER_ATTESTATION' &&
-      reason === 'ATTESTATION_EXPIRED'
-    ) {
-      return question(
-        'attestation',
-        'taxAttestationTitle',
-        'taxAttestationExpiredDescription',
-      );
-    }
-    if (nextAction === 'OPEN_FORM' && reason === 'FORM_EXPIRED') {
-      return openForm('taxFormExpiredDescription', reason, false);
-    }
-    return determinationInfo();
-  }
-
-  if (state === 'ACTION_REQUIRED') {
-    if (nextAction === 'ANSWER_ATTESTATION' && reason === 'NO_ATTESTATION') {
-      return question(
-        'attestation',
-        'taxAttestationTitle',
-        'taxAttestationDescription',
-      );
-    }
-    if (
-      nextAction === 'ANSWER_US_ACTIVITY' &&
-      reason === 'US_ACTIVITY_ANSWER_REQUIRED'
-    ) {
-      return question(
-        'us_activity',
-        'taxUsActivityTitle',
-        'taxUsActivityDescription',
-      );
-    }
-    if (nextAction === 'OPEN_FORM') {
-      const descriptionKey = reason
-        ? OPEN_FORM_DESCRIPTIONS[reason]
-        : undefined;
-      if (!descriptionKey) {
-        return determinationInfo();
-      }
-      return openForm(
-        descriptionKey,
-        reason,
-        reason === 'NO_FORM' && canChangeAnswer,
-      );
-    }
-    return determinationInfo();
-  }
-
-  if (state === 'UNDER_REVIEW' && nextAction === 'NONE') {
-    if (
-      reason === 'FORM_PENDING' ||
-      reason === 'TIN_NOT_MATCHED' ||
-      reason === 'REVIEW_PENDING' ||
-      reason === 'EXPIRY_UNKNOWN'
-    ) {
-      return pendingInfo();
-    }
-    if (reason === 'FORM_NOT_AVAILABLE') {
-      return determinationInfo();
-    }
-    if (reason === 'US_ACTIVITY_BLOCKED') {
-      return {
-        kind: 'contact',
-        titleKey: 'taxContactUsTitle',
-        descriptionKey: 'taxUsActivityBlockedDescription',
-      };
-    }
-    if (reason === 'GATE_OFF') {
-      return { kind: 'none' };
-    }
-    return determinationInfo();
-  }
-
-  return determinationInfo();
+  return (
+    sheetWhenClear(taxMe) ??
+    sheetForRenewal(taxMe) ??
+    sheetForAction(taxMe) ??
+    sheetForReview(taxMe) ??
+    determinationInfo()
+  );
 }
 
 /**
@@ -293,6 +321,65 @@ export function taxSheetForClaim(
   return taxSheetFor(taxMe);
 }
 
+const ANSWER_CONFLICTS: Record<string, TaxRefusalAction> = {
+  ANSWER_ON_FILE: { kind: 'reroute', fallback: 'info' },
+  REVIEW_PENDING: { kind: 'pending_info' },
+  NO_INCOME: { kind: 'not_needed_toast' },
+  NO_VALID_W8: { kind: 'reroute', fallback: 'open_form' },
+};
+
+const MINT_CONFLICTS: Record<string, TaxRefusalAction> = {
+  ATTESTATION_REQUIRED: { kind: 'reroute', fallback: 'attestation' },
+  FORM_ON_FILE: { kind: 'reroute', fallback: 'pending' },
+  REVIEW_PENDING: { kind: 'reroute', fallback: 'pending' },
+  FORM_NOT_REQUIRED: { kind: 'reroute', fallback: 'close' },
+  NO_INCOME: { kind: 'not_needed_toast' },
+};
+
+const ERROR_TOAST: TaxRefusalAction = { kind: 'error_toast' };
+
+function refusalForConflict(
+  conflicts: Record<string, TaxRefusalAction>,
+  code: string,
+): TaxRefusalAction {
+  return conflicts[code] ?? ERROR_TOAST;
+}
+
+function answerRefusal(status: number, code: string): TaxRefusalAction {
+  if (status === 409) {
+    return refusalForConflict(ANSWER_CONFLICTS, code);
+  }
+  if (status === 503 && code === 'SERVER_BUSY') {
+    return { kind: 'wait_toast' };
+  }
+  if (status === 429) {
+    return { kind: 'wait_toast' };
+  }
+  if (status === 400) {
+    return { kind: 'log_and_error_toast' };
+  }
+  return ERROR_TOAST;
+}
+
+function providerUnavailable(code: string): boolean {
+  return (
+    code === 'TAX_PROVIDER_UNCONFIGURED' || code === 'TAX_PROVIDER_UNAVAILABLE'
+  );
+}
+
+function mintRefusal(status: number, code: string): TaxRefusalAction {
+  if (status === 409) {
+    return refusalForConflict(MINT_CONFLICTS, code);
+  }
+  if (status === 429) {
+    return { kind: 'rate_limited' };
+  }
+  if (status === 503 && providerUnavailable(code)) {
+    return { kind: 'provider_dead_end' };
+  }
+  return ERROR_TOAST;
+}
+
 /**
  * A refusal from an answer or a mint. The data service already retried
  * `SERVER_BUSY` once, so this action is what remains.
@@ -303,56 +390,9 @@ export function taxRefusalAction(
   code: string,
 ): TaxRefusalAction {
   if (call === 'answer') {
-    if (status === 409 && code === 'ANSWER_ON_FILE') {
-      return { kind: 'reroute', fallback: 'info' };
-    }
-    if (status === 409 && code === 'REVIEW_PENDING') {
-      return { kind: 'pending_info' };
-    }
-    if (status === 409 && code === 'NO_INCOME') {
-      return { kind: 'not_needed_toast' };
-    }
-    if (status === 409 && code === 'NO_VALID_W8') {
-      return { kind: 'reroute', fallback: 'open_form' };
-    }
-    if (status === 503 && code === 'SERVER_BUSY') {
-      return { kind: 'wait_toast' };
-    }
-    if (status === 429) {
-      return { kind: 'wait_toast' };
-    }
-    if (status === 400) {
-      return { kind: 'log_and_error_toast' };
-    }
-    return { kind: 'error_toast' };
+    return answerRefusal(status, code);
   }
-
-  if (status === 409 && code === 'ATTESTATION_REQUIRED') {
-    return { kind: 'reroute', fallback: 'attestation' };
-  }
-  if (status === 409 && code === 'FORM_ON_FILE') {
-    return { kind: 'reroute', fallback: 'pending' };
-  }
-  if (status === 409 && code === 'REVIEW_PENDING') {
-    return { kind: 'reroute', fallback: 'pending' };
-  }
-  if (status === 409 && code === 'FORM_NOT_REQUIRED') {
-    return { kind: 'reroute', fallback: 'close' };
-  }
-  if (status === 409 && code === 'NO_INCOME') {
-    return { kind: 'not_needed_toast' };
-  }
-  if (status === 429) {
-    return { kind: 'rate_limited' };
-  }
-  if (
-    status === 503 &&
-    (code === 'TAX_PROVIDER_UNCONFIGURED' ||
-      code === 'TAX_PROVIDER_UNAVAILABLE')
-  ) {
-    return { kind: 'provider_dead_end' };
-  }
-  return { kind: 'error_toast' };
+  return mintRefusal(status, code);
 }
 
 /** `ceil(seconds / 60)`, at least 1 when the header is missing. */
@@ -417,6 +457,19 @@ export function incomeHeldForTax(
   return followTradeHeldForTax(summary) || revShareHeldForTax(summary);
 }
 
+/** Read at call time so a test can change the process env after import. */
+const taxFormEnvFromProcess: {
+  override?: string;
+  metamaskEnvironment?: string;
+} = {
+  get override() {
+    return process.env.REWARDS_TAX_FORM_URL;
+  },
+  get metamaskEnvironment() {
+    return process.env.METAMASK_ENVIRONMENT;
+  },
+};
+
 const LOCAL_TAX_FORM_ENVIRONMENTS = new Set([
   undefined,
   '',
@@ -436,10 +489,10 @@ const LOCAL_TAX_FORM_ENVIRONMENTS = new Set([
  */
 export function resolveTaxFormUrl(
   localizedUrl: string | undefined,
-  env: { override?: string; metamaskEnvironment?: string } = {
-    override: process.env.REWARDS_TAX_FORM_URL,
-    metamaskEnvironment: process.env.METAMASK_ENVIRONMENT,
-  },
+  env: {
+    override?: string;
+    metamaskEnvironment?: string;
+  } = taxFormEnvFromProcess,
 ): string | null {
   const localRun = LOCAL_TAX_FORM_ENVIRONMENTS.has(env.metamaskEnvironment);
   const override = env.override?.trim() ?? '';
@@ -525,14 +578,15 @@ function activeMintRateLimit(profileId: string): {
   untilMs: number;
   retryAfterSeconds: number | undefined;
 } | null {
-  if (!mintLimitedUntil || mintLimitedUntil.profileId !== profileId) {
+  const limit = mintLimitedUntil;
+  if (limit?.profileId !== profileId) {
     return null;
   }
-  if (Date.now() >= mintLimitedUntil.untilMs) {
+  if (Date.now() >= limit.untilMs) {
     mintLimitedUntil = null;
     return null;
   }
-  return mintLimitedUntil;
+  return limit;
 }
 
 /** Milliseconds left for this profile, or 0 once the window has passed. */

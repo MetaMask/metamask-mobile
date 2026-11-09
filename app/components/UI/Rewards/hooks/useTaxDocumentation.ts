@@ -63,6 +63,36 @@ function copy(
   return localizedText?.[key] ?? '';
 }
 
+function summaryNeedsRefresh(
+  taxMe: TaxMeDto | null,
+  heldForTax: boolean,
+): boolean {
+  return (
+    taxMe?.reason === 'GATE_OFF' || (heldForTax && taxMe?.cleared === true)
+  );
+}
+
+/**
+ * The sheet this Claim press opens, and whether follow-trade must stay out
+ * of the claim while that sheet is up. A renewal nudge opens a sheet and
+ * still lets the claim run.
+ */
+function claimBlockedByTaxSheet(
+  taxMe: TaxMeDto,
+  submitted: TaxFormSubmittedSnapshot | null,
+): { sheet: TaxDocumentationSheet | null; omitFollowTrade: boolean } {
+  const sheet = taxSheetForClaim(taxMe, submitted);
+  const blocksClaim = sheet.kind !== 'none' && taxMe.cleared === false;
+  const renewalNudge =
+    taxMe.state === 'RENEWAL_REQUIRED' &&
+    taxMe.cleared === true &&
+    sheet.kind !== 'none';
+  if (blocksClaim || renewalNudge) {
+    return { sheet, omitFollowTrade: blocksClaim };
+  }
+  return { sheet: null, omitFollowTrade: false };
+}
+
 /**
  * Reads `GET /tax/me`, answers the two questions, and mints the form token.
  * Sheets and the Claim press share it. The controller caches the read for
@@ -566,32 +596,20 @@ export function useTaxDocumentation(profileId: string) {
           await noteSubmitted(null);
           submitted = null;
         }
-        if (
-          taxMe?.reason === 'GATE_OFF' ||
-          (heldForTax && taxMe?.cleared === true)
-        ) {
+        if (summaryNeedsRefresh(taxMe, heldForTax)) {
           refreshSummary();
         }
-        let omitFollowTrade = false;
-        if (taxMe) {
-          const sheet = taxSheetForClaim(taxMe, submitted);
-          const blocksClaim = sheet.kind !== 'none' && taxMe.cleared === false;
-          const renewalNudge =
-            taxMe.state === 'RENEWAL_REQUIRED' &&
-            taxMe.cleared === true &&
-            sheet.kind !== 'none';
-          if (blocksClaim || renewalNudge) {
-            openSheet(sheet);
-          }
-          // Income cannot clear while this sheet is up. Submitting
-          // follow-trade on its own comes back tax-required and navigates
-          // here again from Earnings, stacking a second sheet.
-          if (blocksClaim) {
-            omitFollowTrade = true;
-            blockingSheetOpen.current = true;
-          }
+        const decision = taxMe
+          ? claimBlockedByTaxSheet(taxMe, submitted)
+          : { sheet: null, omitFollowTrade: false };
+        if (decision.sheet) {
+          openSheet(decision.sheet);
         }
-        if (omitFollowTrade) {
+        // Income cannot clear while this sheet is up. Submitting
+        // follow-trade on its own comes back tax-required and navigates
+        // here again from Earnings, stacking a second sheet.
+        if (decision.omitFollowTrade) {
+          blockingSheetOpen.current = true;
           await claim({ omitFollowTrade: true });
         } else {
           await claim();
