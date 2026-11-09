@@ -11,7 +11,6 @@ import {
   Box,
   Button,
   ButtonVariant,
-  IconName,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -24,10 +23,16 @@ import {
 import { useEvent } from '../../hooks/useEvent';
 import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
 import { getOutcomeName } from '../../utils/entryCopy';
+import { formatThresholdLine } from '../../events/shared/formatting';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
-import type { PredictEvent, PredictMarket, PredictPosition } from '../../types';
+import type {
+  PredictEvent,
+  PredictMarket,
+  PredictOutcome,
+  PredictPosition,
+} from '../../types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
 import { TraceName } from '../../../../../util/trace';
 import {
@@ -38,6 +43,7 @@ import {
 import { selectTopChartMarkets } from './internal/selectTopChartMarkets';
 import {
   EventLoadingHeader,
+  EventTitleHeader,
   GameEventHeader,
   StandardEventHeader,
 } from './internal/EventHeaders';
@@ -45,9 +51,6 @@ import RulesBottomSheet from './internal/RulesBottomSheet';
 import { EventMarketList } from './internal/EventMarketList';
 import { createMarketGroupProjection } from './internal/createMarketGroupProjection';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
-import { useSelector } from 'react-redux';
-import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 type RulesTarget =
   | { type: 'event' }
@@ -58,72 +61,31 @@ type WinnerQuotes = NonNullable<ReturnType<typeof findWinnerMarketQuotes>>;
 
 const EventScreenChrome = ({
   children,
-  onBack,
-  title,
-  onRulesPress,
+  header,
 }: {
   children: React.ReactNode;
-  onBack: () => void;
-  title?: string;
-  onRulesPress?: () => void;
-}) => {
-  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
-  return (
-    <Box
-      testID={PredictEventScreenTestIds.VIEW}
-      twClassName="flex-1 bg-default"
-    >
-      <HeaderStandardGlass
-        isGlass={isGlassHeader}
-        isFloating={false}
-        includesTopInset
-        title={title}
-        titleProps={{
-          testID: PredictEventScreenTestIds.TITLE,
-          accessibilityRole: 'header',
-          numberOfLines: 1,
-        }}
-        onBack={onBack}
-        backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
-        endButtonIconProps={
-          onRulesPress
-            ? [
-                {
-                  iconName: IconName.Question,
-                  onPress: onRulesPress,
-                  testID: PredictEventScreenTestIds.EVENT_RULES_BUTTON,
-                  accessibilityLabel: strings(
-                    'predict.rules.event_accessibility_label',
-                  ),
-                  accessibilityRole: 'button',
-                },
-              ]
-            : undefined
-        }
-      />
-      {children}
-    </Box>
-  );
-};
+  header: React.ReactNode;
+}) => (
+  <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
+    {header}
+    {children}
+  </Box>
+);
 
 const EventScreenLayout = ({
   children,
   onBack,
   title,
-  onRulesPress,
 }: {
   children: React.ReactNode;
   onBack: () => void;
   title?: string;
-  onRulesPress?: () => void;
 }) => {
   const tw = useTailwind();
 
   return (
     <EventScreenChrome
-      onBack={onBack}
-      title={title}
-      onRulesPress={onRulesPress}
+      header={<EventTitleHeader title={title} onBack={onBack} />}
     >
       <ScrollView contentContainerStyle={tw.style('flex-grow')}>
         <Box twClassName="flex-1 px-4 pb-8">{children}</Box>
@@ -190,16 +152,29 @@ const EventLoadedHeader = ({
 
   return (
     <Box>
-      {game ? (
-        <GameEventHeader event={event} />
-      ) : (
-        <StandardEventHeader event={event} />
-      )}
+      {game ? <GameEventHeader event={event} /> : null}
       {marketHistory ? (
         <Box twClassName="mt-4 mb-6">{marketHistory}</Box>
       ) : null}
     </Box>
   );
+};
+
+/**
+ * The Outcome as the Order sheet names it. A threshold line's Outcome is just
+ * "Yes" or "No", so it also names the line: "Yes · Josh Jacobs · 60+".
+ */
+const orderOutcomeLabel = (
+  market: PredictMarket,
+  outcome: PredictOutcome,
+): string => {
+  const line = formatThresholdLine(market);
+  return line
+    ? strings('predict.market_groups.threshold_order_outcome', {
+        outcome: outcome.label,
+        line,
+      })
+    : outcome.label;
 };
 
 export const PredictEventScreen = () => {
@@ -302,7 +277,8 @@ export const PredictEventScreen = () => {
         marketId: position.marketId,
         side: position.side,
         outcomeLabel:
-          outcome?.label ?? getOutcomeName(position.side, position.context),
+          (market && outcome && orderOutcomeLabel(market, outcome)) ??
+          getOutcomeName(position.side, position.context),
         eventTitle: liveEvent.title,
         eventImageUrl: liveEvent.imageUrl,
         maxContracts: Math.floor(Number(position.shares)),
@@ -318,7 +294,7 @@ export const PredictEventScreen = () => {
         venueId,
         marketId: market.id,
         side: outcome.side,
-        outcomeLabel: outcome.label,
+        outcomeLabel: orderOutcomeLabel(market, outcome),
         eventTitle: liveEvent?.title ?? '',
         eventImageUrl: liveEvent?.imageUrl,
         askPrice: outcome.askPrice,
@@ -329,6 +305,8 @@ export const PredictEventScreen = () => {
   if (liveEvent) {
     const event = liveEvent;
     const eventRules = event.rules?.trim();
+    const onEventRulesPress = eventRules ? handleEventRulesPress : undefined;
+    const isGameEvent = Boolean(getEventGame(event));
     const firstProjectedMarket =
       marketProjection[0]?.type === 'group'
         ? marketProjection[0].markets[0]
@@ -344,9 +322,21 @@ export const PredictEventScreen = () => {
     return (
       <>
         <EventScreenChrome
-          title={event.title}
-          onBack={handleBack}
-          onRulesPress={eventRules ? handleEventRulesPress : undefined}
+          header={
+            isGameEvent ? (
+              <EventTitleHeader
+                title={event.title}
+                onBack={handleBack}
+                onRulesPress={onEventRulesPress}
+              />
+            ) : (
+              <StandardEventHeader
+                event={event}
+                onBack={handleBack}
+                onRulesPress={onEventRulesPress}
+              />
+            )
+          }
         >
           <EventMarketList
             event={event}

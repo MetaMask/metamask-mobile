@@ -28,15 +28,20 @@ const AGENTIC_CLI_APPROVAL_HOST = {
  */
 const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/link\.metamask\.io$/,
+  /^https:\/\/link\.metamask\.com$/,
   /^https:\/\/developer\.metamask\.io$/,
   /^https:\/\/develop-developer\.metamask\.io$/,
   /^https:\/\/staging-developer\.metamask\.io$/,
+  /^https:\/\/developer\.metamask\.com$/,
+  /^https:\/\/develop-developer\.metamask\.com$/,
+  /^https:\/\/staging-developer\.metamask\.com$/,
   /^https:\/\/test-dashboard\.web3auth\.io$/,
   /^https:\/\/dev-dashboard\.web3auth\.io$/,
   /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/js\.stripe\.com$/,
   /^https:\/\/[a-z0-9.-]+\.stripe\.network$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
+  /^https:\/\/[a-z0-9-]+\.cx\.metamask\.com$/,
 ];
 
 const isOriginAllowed = (origin: string): boolean =>

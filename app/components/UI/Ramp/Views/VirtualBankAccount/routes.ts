@@ -2,6 +2,7 @@ import type {
   AccountCreateErrorVariant,
   AccountCreateFailureFields,
 } from './accountCreateError';
+import type { KycCatalogDisclaimerLink } from '../../../KYC/hooks/useKycSessionDisclaimers';
 import type { VbaOnboardingSnapshot } from './vbaOnboardingSnapshot';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -75,6 +76,7 @@ export const getVbaOnboardingResumeState = (
 
 export const VbaIdentityVerificationRoutes = {
   PROVIDER_TERMS: 'VbaIdentityVerificationProviderTerms',
+  PARTNER_TERMS: 'VbaIdentityVerificationPartnerTerms',
   PROVIDER: 'VbaIdentityVerificationProvider',
 } as const;
 
@@ -85,5 +87,9 @@ export type VbaIdentityVerificationRoute =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VbaIdentityVerificationParamList = {
   VbaIdentityVerificationProviderTerms: undefined;
+  // The catalog is fetched on provider terms so this page has no loading state.
+  VbaIdentityVerificationPartnerTerms: {
+    disclaimers: KycCatalogDisclaimerLink[];
+  };
   VbaIdentityVerificationProvider: undefined;
 };
