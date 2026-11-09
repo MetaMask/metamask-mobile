@@ -6,7 +6,7 @@ import {
   renderExploreSearchScreenWithBackStack,
   renderExploreSearchScreenWithRoutes,
 } from '../../../../../../tests/component-view/renderers/trending';
-import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import { getRouteParamsProbeTestId, getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setupTrendingApiFetchMock,
@@ -568,6 +568,18 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
     ).toBeOnTheScreen();
+    expect(
+      JSON.parse(
+        (
+          await findByTestId(getRouteParamsProbeTestId(Routes.BROWSER.HOME))
+        ).props.children,
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        showTabsView: true,
+        fromExploreSearch: true,
+      }),
+    );
   });
 
   it('hides the open-tabs button on the control arm even with tabs open', async () => {
