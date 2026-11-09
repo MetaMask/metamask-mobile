@@ -54,8 +54,8 @@ jobs:
     needs: [resolve-context, validate-ota-pr]
     permissions:
       contents: read
-      checks: read # push-eas-update.yml approval job reads the CI check run
-      issues: read # called workflow approval job reads issue events
+      actions: read # push-eas-update.yml approval job reads the push ci.yml run
+      issues: read # called workflow approval job re-reads skip-ci-gate
       id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:

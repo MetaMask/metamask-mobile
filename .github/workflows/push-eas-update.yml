@@ -92,7 +92,6 @@ jobs:
     outputs:
       pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
       commit_sha: ${{ steps.resolve-pr.outputs.commit_sha }}
-      skip_ci_gate: ${{ steps.resolve-pr.outputs.skip_ci_gate }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -438,8 +437,8 @@ jobs:
       inputs.channel == 'production'
     permissions:
       contents: read
-      checks: read # verify-ci-check-run.sh reads the ci.yml aggregate check run
-      issues: read # who added the skip-ci-gate label
+      actions: read # verify-ci-check-run.sh reads the push ci.yml run
+      issues: read # re-reads skip-ci-gate on the OTA PR at approval time
       id-token: write # token exchange for the team approval check
     runs-on: ubuntu-latest
     steps:
@@ -455,7 +454,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
           PR_NUMBER: ${{ needs.validate-pr.outputs.pr_number }}
-          SKIP_CI_GATE: ${{ needs.validate-pr.outputs.skip_ci_gate }}
         run: .github/scripts/verify-ci-check-run.sh
 
       - name: Get token
