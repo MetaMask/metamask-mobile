@@ -14,7 +14,7 @@ import { toNextPredictSearchResult } from './toNextPredictSearchResult';
 /** Stands in for the Venue while the next branch is inactive: nothing reads. */
 export const NO_VENUE = '' as PredictVenueId;
 
-const NO_RESULTS: readonly PredictSearchResult[] = [];
+const NO_RESULTS: PredictSearchResult[] = [];
 
 interface UseNextPredictSearchResultsOptions {
   /** The Active next Venue, or {@link NO_VENUE} while the branch is inactive. */
@@ -36,7 +36,8 @@ export interface NextPredictSearchResults extends PredictSearchResults {
  * Venue change drops the old results on the same render and a late answer
  * for the old Venue lands in that Venue's cache, never here. An Event of
  * another Venue is dropped rather than re-minted onto this one. An error
- * or an empty search has no results.
+ * or an empty search has no results, and neither does a search React Query
+ * paused while offline: it would otherwise spin until the network returns.
  */
 export const useNextPredictSearchResults = ({
   venueId,
@@ -64,12 +65,16 @@ export const useNextPredictSearchResults = ({
     [events, venueId],
   );
   // A fresh key commits one frame as pending before its request starts, so
-  // "no data and no error yet" is loading.
-  const isLoading = canSearch && events === undefined && !search.isError;
+  // "no data and no error yet" is loading, unless the query is paused offline.
+  const isLoading =
+    canSearch &&
+    events === undefined &&
+    !search.isError &&
+    search.fetchStatus !== 'paused';
 
   return useMemo(
     () => ({
-      results: results as PredictSearchResult[],
+      results,
       isLoading,
       isSupported,
     }),

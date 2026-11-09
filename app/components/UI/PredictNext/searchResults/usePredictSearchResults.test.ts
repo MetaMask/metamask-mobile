@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { onlineManager } from '@tanstack/react-query';
 import { MOCK_PREDICT_MARKET } from '../../../../../tests/component-view/fixtures/predict';
 import { usePredictionsFeed } from '../../Predict/trending/usePredictionsFeed';
 import { useActiveVenue } from '../implementation/activeVenue';
@@ -277,6 +278,54 @@ describe('usePredictSearchResults', () => {
 
       expect(result.current).toEqual({ results: [], isLoading: false });
       expect(callsTo(messenger, SEARCH_EVENTS)).toEqual([]);
+    });
+
+    it('searches a query of exactly the longest length the backend accepts', async () => {
+      const longest = 'a'.repeat(SEARCH_QUERY_MAX_LENGTH);
+      const { result } = renderKalshi(` ${longest} `, { search: KALSHI_GAMES });
+
+      await waitFor(() => expect(result.current.results).toHaveLength(2));
+      expect(callsTo(messenger, SEARCH_EVENTS)).toEqual([
+        [SEARCH_EVENTS, 'kalshi', { q: longest, limit: 20 }],
+      ]);
+    });
+
+    it('has no results and searches nothing for a whitespace-only query', async () => {
+      const { result } = renderKalshi('   ', { search: KALSHI_GAMES });
+      await waitForCatalog();
+
+      expect(result.current).toEqual({ results: [], isLoading: false });
+      expect(callsTo(messenger, SEARCH_EVENTS)).toEqual([]);
+    });
+
+    it('has no results and never loads when the Venue catalog fails', async () => {
+      const { result } = renderKalshi('chiefs', {
+        catalog: new Error('catalog failed'),
+        search: KALSHI_GAMES,
+      });
+      await waitForCatalog();
+
+      expect(result.current).toEqual({ results: [], isLoading: false });
+      expect(callsTo(messenger, SEARCH_EVENTS)).toEqual([]);
+    });
+
+    it('stops loading, rather than spinning, when a new search is paused offline', async () => {
+      const { result, rerender } = renderKalshi('chiefs', {
+        search: KALSHI_GAMES,
+      });
+      await waitFor(() => expect(result.current.results).toHaveLength(2));
+      try {
+        onlineManager.setOnline(false);
+
+        rerender({ q: 'packers' });
+
+        await waitFor(() =>
+          expect(result.current).toEqual({ results: [], isLoading: false }),
+        );
+        expect(callsTo(messenger, SEARCH_EVENTS)).toHaveLength(1);
+      } finally {
+        onlineManager.setOnline(true);
+      }
     });
 
     it('does not search a query longer than the backend accepts', async () => {

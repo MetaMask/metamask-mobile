@@ -507,6 +507,29 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
     queryClient.clear();
   });
 
+  it('replaces the Polymarket rows with Kalshi ones when the Venue changes to Kalshi', async () => {
+    const view = renderAutocomplete(BOTH_VENUES, 'polymarket');
+    typeQuery(view, 'packers');
+    await view.findByTestId(
+      getPredictSearchResultRowTestId(IMAGED_MARKET.id),
+      HIDDEN,
+    );
+    expect(searchCalls()).toEqual([]);
+
+    selectVenue(view, 'kalshi');
+
+    await view.findByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN);
+    expect(
+      view.queryByTestId(
+        getPredictSearchResultRowTestId(IMAGED_MARKET.id),
+        HIDDEN,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(searchCalls()).toEqual([
+      [SEARCH_EVENTS, 'kalshi', { q: 'packers', limit: 20 }],
+    ]);
+  });
+
   it('drops the Kalshi results on the render the Venue changes, without searching Kalshi again', async () => {
     searchMarkets.mockImplementation(() => new Promise(() => undefined));
     const view = renderAutocomplete(BOTH_VENUES, 'kalshi');
