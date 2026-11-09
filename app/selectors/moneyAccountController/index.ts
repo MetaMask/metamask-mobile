@@ -21,8 +21,7 @@ const selectMoneyAccountControllerState = (state: RootState) =>
  */
 export const selectMoneyAccounts = createSelector(
   selectMoneyAccountControllerState,
-  (state: MoneyAccountControllerState | undefined) =>
-    state?.moneyAccounts ?? {},
+  (state: MoneyAccountControllerState) => state.moneyAccounts,
 );
 
 /**

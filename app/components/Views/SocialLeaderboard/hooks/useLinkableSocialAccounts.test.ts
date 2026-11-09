@@ -4,7 +4,7 @@ import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
 } from '../../../../selectors/accountsController';
-import { selectUnifiedBalancesByAccountGroup } from '../../../../selectors/assets/balances';
+import { selectUnifiedBalancesByAccountGroup } from './selectUnifiedBalancesByAccountGroup';
 import {
   selectAccountToGroupMap,
   selectSelectedAccountGroupId,
@@ -21,7 +21,7 @@ jest.mock('./useNonTokenContribution', () => ({
   useNonTokenContribution: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/assets/balances', () => {
+jest.mock('./selectUnifiedBalancesByAccountGroup', () => {
   const selector = jest.fn();
   return {
     selectUnifiedBalancesByAccountGroup: () => selector,

@@ -8,7 +8,7 @@ import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
 } from '../../../../selectors/accountsController';
-import { selectUnifiedBalancesByAccountGroup } from '../../../../selectors/assets/balances';
+import { selectUnifiedBalancesByAccountGroup } from './selectUnifiedBalancesByAccountGroup';
 import {
   selectAccountToGroupMap,
   selectSelectedAccountGroupId,

@@ -415,38 +415,6 @@ export const selectUnifiedBalanceBySelectedAccountGroup = (
 };
 
 /**
- * Aggregated fiat balance for every account group, using the same
- * `getAggregatedBalanceForAccount` path as the selected-group total.
- *
- * @param popularChainIds - Optional popular CAIP chain ids for network filtering.
- */
-export const selectUnifiedBalancesByAccountGroup = (
-  popularChainIds?: CaipChainId[],
-) =>
-  createSelector(
-    [
-      selectAssetsControllerStateForBalances,
-      selectAccountTreeStateForBalances,
-      selectNetworksMapForBalances(popularChainIds),
-    ],
-    (assetsControllerState, accountTreeState, enabledNetworkMap) => {
-      const balances: Record<string, AccountGroupBalance> = {};
-      const wallets = accountTreeState.accountTree?.wallets ?? {};
-      for (const wallet of Object.values(wallets)) {
-        for (const groupId of Object.keys(wallet?.groups ?? {})) {
-          balances[groupId] = getUnifiedBalanceForAccountGroup(
-            assetsControllerState,
-            accountTreeState,
-            groupId,
-            enabledNetworkMap,
-          );
-        }
-      }
-      return balances;
-    },
-  );
-
-/**
  * Returns the selected account group's balance
  * across mainnet networks for balance empty state display
  */

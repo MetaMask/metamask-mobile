@@ -127,7 +127,6 @@ import {
   selectIsAccountGroupFunded,
   selectTokenBalancesStateForBalances,
   selectUnifiedBalanceBySelectedAccountGroup,
-  selectUnifiedBalancesByAccountGroup,
   getUnifiedBalanceForAccountGroup,
   augmentAssetsControllerStateForBalances,
 } from './balances';
@@ -703,24 +702,6 @@ describe('assets balance and balance change selectors (mobile)', () => {
         totalBalanceInUserCurrency: 750,
         userCurrency: 'usd',
       });
-    });
-  });
-
-  describe('selectUnifiedBalancesByAccountGroup', () => {
-    it('uses getAggregatedBalanceForAccount for every account group', () => {
-      const state = makeState() as unknown as RootState;
-
-      const result = selectUnifiedBalancesByAccountGroup()(state);
-
-      expect(getAggregatedBalanceForAccount).toHaveBeenCalled();
-      expect(result['wallet-1/group-1']).toEqual({
-        walletId: 'wallet-1',
-        groupId: 'wallet-1/group-1',
-        totalBalanceInUserCurrency: 750,
-        userCurrency: 'usd',
-      });
-      expect(result['wallet-1/group-2']?.groupId).toBe('wallet-1/group-2');
-      expect(result['wallet-2/group-1']?.groupId).toBe('wallet-2/group-1');
     });
   });
 

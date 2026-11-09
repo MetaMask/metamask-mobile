@@ -1,4 +1,5 @@
 import React from 'react';
+import { MoneyContributionProvider } from '../hooks/moneyContribution';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 
@@ -15,7 +16,9 @@ export const withPortfolioBalanceProviders = <P extends object>(
   const ScreenWithBalances: React.FC<P> = (props) => (
     <PerpsConnectionProvider isEnabled={false} suppressErrorView>
       <PerpsStreamProvider>
-        <Screen {...props} />
+        <MoneyContributionProvider>
+          <Screen {...props} />
+        </MoneyContributionProvider>
       </PerpsStreamProvider>
     </PerpsConnectionProvider>
   );

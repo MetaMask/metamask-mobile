@@ -8,9 +8,6 @@ import {
   usePredictAvailability,
   usePredictPortfolioValue,
 } from '../../../UI/PredictNext';
-import useMoneyAccountBalance from '../../../UI/Money/hooks/useMoneyAccountBalance';
-import useMoneyAccountInfo from '../../../UI/Money/hooks/useMoneyAccountInfo';
-import { selectIsMoneyAccountVisible } from '../../../UI/Money/selectors/visibility';
 import { getUsdToFiatConversionRate } from '../../../UI/Money/utils/moneyActivityFiat';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectDefiPositionsByChainIds } from '../../../../selectors/defiPositionsController';
@@ -20,6 +17,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import type { RootState } from '../../../../reducers';
+import { useMoneyContribution } from './moneyContribution';
 import {
   nonTokenContribution,
   sumDefiPositionsUsd,
@@ -120,28 +118,7 @@ export const useNonTokenContribution = (): NonTokenContribution => {
     }
   }
 
-  const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
-    useMoneyAccountInfo();
-  const isMoneyAccountAvailable = useSelector(selectIsMoneyAccountVisible);
-  const { tokenTotal, isBalanceLoading, isBalanceFetchError } =
-    useMoneyAccountBalance({ enabled: isMoneyAccountFeatureEnabled });
-  const isMoneyVisible =
-    isMoneyAccountAvailable ||
-    (isMoneyAccountFeatureEnabled && hasMoneyAccount);
-  let money: PortfolioSlice = SKIP;
-  if (isMoneyVisible && hasMoneyAccount) {
-    if (isBalanceFetchError) {
-      money = { status: 'error', valueFiat: 0 };
-    } else if (isBalanceLoading || tokenTotal === undefined) {
-      money = LOADING;
-    } else {
-      const moneyFiat = toUserCurrency(tokenTotal.toNumber());
-      money =
-        moneyFiat === undefined
-          ? { status: 'error', valueFiat: 0 }
-          : { status: 'ready', valueFiat: moneyFiat };
-    }
-  }
+  const money = useMoneyContribution();
 
   return nonTokenContribution({ perps, predict, defi, money });
 };
