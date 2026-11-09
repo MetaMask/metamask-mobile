@@ -2,15 +2,10 @@ import {
   getNativeAssetForChainId,
   isNativeAddress,
 } from '@metamask/bridge-controller';
+import type { QuoteTokensResponse } from '@metamask/social-controllers';
 import { isCaipAssetType, type CaipChainId } from '@metamask/utils';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
-
-/** Response from `GET /v1/tokens/quote-tokens`. */
-export interface QuoteTokensResponse {
-  natives: string[];
-  stablecoins: string[];
-}
 
 export const QUOTE_TOKENS_QUERY_KEY = [
   'SocialService:fetchQuoteTokens',

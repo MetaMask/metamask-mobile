@@ -1,8 +1,6 @@
 import { useQuery } from '@metamask/react-data-query';
-import {
-  QUOTE_TOKENS_QUERY_KEY,
-  type QuoteTokensResponse,
-} from './quoteTokens';
+import type { QuoteTokensResponse } from '@metamask/social-controllers';
+import { QUOTE_TOKENS_QUERY_KEY } from './quoteTokens';
 
 /**
  * Loads the quote-token list once per app session. The list changes rarely,

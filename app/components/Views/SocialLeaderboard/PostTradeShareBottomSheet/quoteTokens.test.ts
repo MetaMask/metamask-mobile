@@ -1,9 +1,9 @@
+import type { QuoteTokensResponse } from '@metamask/social-controllers';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import {
   isUnsupportedPostTradeAsset,
   QUOTE_TOKENS_QUERY_KEY,
   toPositionAssetId,
-  type QuoteTokensResponse,
 } from './quoteTokens';
 
 jest.mock('../../../../core/ReactQueryService', () => {
