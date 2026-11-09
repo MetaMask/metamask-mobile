@@ -7,7 +7,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
+import {
+  MoneyPostOnboardingRedirectType,
+  type MoneyOnboardingParams,
+} from '../types/navigation';
 
 const mockNavigate = jest.fn();
 const analyticsContext = {
@@ -154,7 +157,7 @@ describe('useMoneyOnboardingNavigation', () => {
   });
 
   it('redirects to onboarding with post-onboarding deposit params', () => {
-    const params = {
+    const params: MoneyOnboardingParams = {
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.DEPOSIT,
         preferredPaymentToken: {

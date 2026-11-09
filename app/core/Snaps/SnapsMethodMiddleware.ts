@@ -43,7 +43,15 @@ const snapMethodMiddlewareBuilder = (
         await controllerMessenger.waitUntil('KeyringController:unlock');
       },
       getAllowedKeyringMethods: keyringSnapPermissionsBuilder(origin),
-      trackError: (error: Error) => captureException(error),
+      // Website origins are full dapp URLs, and Sentry tags skip URL scrubbing.
+      trackError: (error: Error) => {
+        if (subjectType !== SubjectType.Snap) {
+          return captureException(error);
+        }
+        return captureException(error, {
+          tags: { feature: 'snaps', snap_id: origin },
+        });
+      },
       trackEvent: trackSnapEvent,
       getIsActive: () =>
         AppState.currentState === 'active' &&

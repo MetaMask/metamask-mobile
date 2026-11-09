@@ -64,6 +64,8 @@ import { getMerchantCategoryLabel } from '../../../Card/utils/merchantCategoryLa
 import {
   cardTransactionDisplayInfo,
   formatCardTransactionStatus,
+  getCardTransactionStatusColor,
+  isUnsuccessfulCardTransactionStatus,
 } from '../../../Card/utils/cardTransactionDisplayInfo';
 import { getCardDeclineReasonLabel } from '../../../Card/utils/moneyAccountCardTransaction';
 import { formatNetworkFeeLabel } from '../../../Card/utils/cardTransactionAmount';
@@ -453,6 +455,14 @@ function MoneySettledCardDetailsContent({
     [activity, enrichment],
   );
 
+  // The on-chain transfer settled, so the Accounts-API row alone always reads
+  // as completed. When the card provider reports the purchase as declined or
+  // reversed, its outcome is the truthful one.
+  const unsuccessfulStatus =
+    enrichment && isUnsuccessfulCardTransactionStatus(enrichment.status)
+      ? enrichment.status
+      : undefined;
+
   return (
     <MoneyCardDetailsContent
       display={display}
@@ -465,10 +475,22 @@ function MoneySettledCardDetailsContent({
         enrichment?.feeAmount,
         MONEY_ACCOUNT_DISPLAY_SYMBOL,
       )}
-      statusLabel={strings('money.api_activity_details.completed')}
-      statusColor={TextColor.SuccessDefault}
+      statusLabel={
+        unsuccessfulStatus
+          ? formatCardTransactionStatus(unsuccessfulStatus)
+          : strings('money.api_activity_details.completed')
+      }
+      statusColor={
+        unsuccessfulStatus
+          ? getCardTransactionStatusColor(unsuccessfulStatus)
+          : TextColor.SuccessDefault
+      }
       amountColor={
-        display.isIncoming ? TextColor.SuccessDefault : TextColor.TextDefault
+        unsuccessfulStatus
+          ? getCardTransactionStatusColor(unsuccessfulStatus)
+          : display.isIncoming
+            ? TextColor.SuccessDefault
+            : TextColor.TextDefault
       }
       explorerChainId={activity.chainId}
       explorerTxHash={activity.hash}

@@ -9,7 +9,8 @@ import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { sortNotifications } from '../../../util/notifications';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useTheme } from '../../../util/theme';
 
 import {
@@ -34,7 +35,17 @@ import { useNotificationListPerformance } from '../../../util/notifications/hook
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Logger from '../../../util/Logger';
 import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
+
+const logNotificationFailure =
+  (message: string) =>
+  (error: unknown): void => {
+    Logger.error(
+      error instanceof Error ? error : new Error(String(error)),
+      message,
+    );
+  };
 
 export function useMarkAsReadCallback(props: {
   notifications: INotification[];
@@ -44,14 +55,18 @@ export function useMarkAsReadCallback(props: {
   const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
 
   const handleMarkAllAsRead = useCallback(() => {
-    markNotificationAsRead(notifications);
-    NotificationsService.setBadgeCount(0);
+    markNotificationAsRead(notifications).catch(
+      logNotificationFailure('Failed to mark all notifications as read'),
+    );
+    NotificationsService.setBadgeCount(0).catch(
+      logNotificationFailure('Failed to clear the notification badge'),
+    );
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ,
       ).build(),
     );
-  }, [markNotificationAsRead, notifications, trackEvent, createEventBuilder]);
+  }, [createEventBuilder, markNotificationAsRead, notifications, trackEvent]);
 
   return {
     handleMarkAllAsRead,
@@ -88,6 +103,7 @@ const NotificationsView = ({
 }) => {
   const { colors } = useTheme();
   const { isLoading } = useListNotifications();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -127,7 +143,9 @@ const NotificationsView = ({
       edges={['top']}
       style={[styles.wrapper, { backgroundColor: colors.background.default }]}
     >
-      <HeaderCompactStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.notifications_title')}
         titleProps={{ testID: NotificationMenuViewSelectorsIDs.TITLE }}
         onBack={handleClose}

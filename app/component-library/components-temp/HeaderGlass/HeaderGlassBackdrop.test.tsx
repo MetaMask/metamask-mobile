@@ -1,5 +1,5 @@
 import React from 'react';
-import { processColor } from 'react-native';
+import { processColor, StyleSheet } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { BlurView } from 'expo-blur';
 import { makeMutable } from 'react-native-reanimated';
@@ -17,6 +17,14 @@ const mockLiquidGlass = {
 jest.mock('../../hooks/useLiquidGlass', () => ({
   useLiquidGlass: () => mockLiquidGlass,
 }));
+
+// How far the backdrop reaches below its parent: the `bottom` of its outermost view.
+const backdropBottom = (view: ReturnType<typeof render>) => {
+  const tree = view.toJSON();
+  return tree && !Array.isArray(tree)
+    ? StyleSheet.flatten(tree.props.style)?.bottom
+    : undefined;
+};
 
 const backgroundAt = (opacities: number[]) =>
   opacities.map((opacity) =>
@@ -121,6 +129,50 @@ describe('HeaderGlassBackdrop', () => {
 
       expect(UNSAFE_getByType(BlurView).props.intensity).toBe(30);
       expect(backdropFadeOpacity(getByTestId('backdrop'))).toBe(0.5);
+    });
+  });
+
+  describe('extension', () => {
+    it.each([
+      ['Android', undefined, -40],
+      ['iOS 26', 'isGlassEnabled', -24],
+    ] as const)(
+      'keeps its own fade tail by default on %s',
+      (_, key, bottom) => {
+        if (key) {
+          mockLiquidGlass[key] = true;
+        }
+
+        const view = render(<HeaderGlassBackdrop testID="backdrop" />);
+
+        expect(backdropBottom(view)).toBe(bottom);
+      },
+    );
+
+    it.each([
+      ['Android', undefined, -88],
+      ['iOS 26', 'isGlassEnabled', -72],
+    ] as const)(
+      'reaches further down by the extension on %s',
+      (_, key, bottom) => {
+        if (key) {
+          mockLiquidGlass[key] = true;
+        }
+
+        const view = render(
+          <HeaderGlassBackdrop testID="backdrop" extension={48} />,
+        );
+
+        expect(backdropBottom(view)).toBe(bottom);
+      },
+    );
+
+    it('follows a shared value as is', () => {
+      const view = render(
+        <HeaderGlassBackdrop testID="backdrop" extension={makeMutable(30)} />,
+      );
+
+      expect(backdropBottom(view)).toBe(-70);
     });
   });
 });

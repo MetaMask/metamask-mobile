@@ -11,6 +11,9 @@ import {
   resetBridgeTokenInputs,
   selectLimitOrderCostTolerance,
   selectLimitOrderMarketComparison,
+  setDestToken,
+  setIsDestTokenManuallySet,
+  setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
@@ -18,6 +21,7 @@ import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../selec
 import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import type { LimitOrderDelegationsResponse } from '../../api/limitOrders/getDelegations/schema';
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
+import { LimitOrderGeoRestrictedError } from '../../api/limitOrders/create/errors';
 import type { SignedLimitOrderDelegation } from '../../api/limitOrders/create/schema';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
@@ -32,6 +36,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getOrderTypeFromTrigger } from '../../utils/limitOrders/getOrderTypeFromTrigger';
@@ -47,6 +52,7 @@ enum LimitOrderConfirmError {
   Delegations = 'delegations',
   Signature = 'signature',
   Create = 'create',
+  GeoRestricted = 'geoRestricted',
 }
 
 const CONFIRM_ERROR_MESSAGE_KEY: Record<LimitOrderConfirmError, string> = {
@@ -58,6 +64,8 @@ const CONFIRM_ERROR_MESSAGE_KEY: Record<LimitOrderConfirmError, string> = {
     'bridge.limit.error_fetching_delegations',
   [LimitOrderConfirmError.Signature]: 'bridge.limit.error_signing_delegations',
   [LimitOrderConfirmError.Create]: 'bridge.limit.error_creating_order',
+  [LimitOrderConfirmError.GeoRestricted]:
+    'bridge.quote_stream_complete_rwa_geo_restricted',
 };
 
 export const LimitOrderConfirmationModalScreen = () => {
@@ -72,7 +80,12 @@ export const LimitOrderConfirmationModalScreen = () => {
   const triggerComparison = useSelector(selectLimitOrderMarketComparison);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const sourceWalletAddress = useSelector(selectSourceWalletAddress);
-  const { setLimitOrdersTab } = useBridgeSession();
+  const {
+    latestSourceBalance,
+    setLimitOrdersTab,
+    setSelectedTab,
+    setRenderedTab,
+  } = useBridgeSession();
   const delegationFee = useEIP7702UpgradeFee();
   const feeTokenValidation = useSentinelFeeTokenValidation({
     chainId: parseCaipAssetType(params.order.sourceAssetId).chainId,
@@ -113,6 +126,30 @@ export const LimitOrderConfirmationModalScreen = () => {
     return getLimitOrderUsdExchangeRate(currentCurrency, fiatToUsdRate);
   }, [currentCurrency, fiatToUsdRate, trigger]);
 
+  const sourceAtomicBalance = latestSourceBalance?.atomicBalance;
+  const hasInsufficientBalance = useMemo(
+    () =>
+      sourceAtomicBalance !== undefined &&
+      sourceAtomicBalance.lt(params.order.sourceAmount),
+    [sourceAtomicBalance, params.order.sourceAmount],
+  );
+
+  // Limit orders are same-chain, so flipping the pair needs no network switch.
+  const handleSwapIntoSourceTokenPress = useCallback(() => {
+    const { sourceToken, destToken } = params;
+    if (!sourceToken || !destToken) {
+      return;
+    }
+
+    dispatch(resetBridgeTokenInputs());
+    dispatch(setSourceToken(destToken));
+    dispatch(setDestToken(sourceToken));
+    dispatch(setIsDestTokenManuallySet(true));
+    setSelectedTab(BridgeTabKey.Market);
+    setRenderedTab(BridgeTabKey.Market);
+    navigation.goBack();
+  }, [dispatch, navigation, params, setRenderedTab, setSelectedTab]);
+
   const [confirmError, setConfirmError] = useState<LimitOrderConfirmError>();
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   // The tolerance the delegations are requested with. The create request has to
@@ -143,6 +180,13 @@ export const LimitOrderConfirmationModalScreen = () => {
       return {
         bannerMessage: strings('bridge.limit.error_calculation_network_fees'),
         primaryButtonLabel: strings('bridge.limit.try_again'),
+      };
+    }
+
+    // Retrying cannot change the user's region, so there is nothing to retry.
+    if (confirmError === LimitOrderConfirmError.GeoRestricted) {
+      return {
+        bannerMessage: strings(CONFIRM_ERROR_MESSAGE_KEY[confirmError]),
       };
     }
 
@@ -286,15 +330,24 @@ export const LimitOrderConfirmationModalScreen = () => {
           .build(),
       );
     } catch (createError) {
+      const isGeoRestricted =
+        createError instanceof LimitOrderGeoRestrictedError;
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
           .addProperties({
             ...sharedAdvancedOrderProperties,
             order_type: getOrderTypeFromTrigger(trigger),
-            error: (createError as Error).message,
+            error: isGeoRestricted
+              ? 'rwa_geo_restricted'
+              : (createError as Error).message,
           })
           .build(),
       );
+      // An expected rejection for the user's region, not a fault to report.
+      if (isGeoRestricted) {
+        setConfirmError(LimitOrderConfirmError.GeoRestricted);
+        return;
+      }
       Logger.error(
         createError as Error,
         'LimitOrderConfirmationModalScreen: Failed to create limit order',
@@ -341,6 +394,11 @@ export const LimitOrderConfirmationModalScreen = () => {
       delegationFee={delegationFee}
       feeToken={feeToken}
       usdExchangeRate={usdExchangeRate}
+      insufficientBalance={
+        hasInsufficientBalance
+          ? { onSwapIntoSourceTokenPress: handleSwapIntoSourceTokenPress }
+          : undefined
+      }
       costTolerance={`${costTolerancePercent}%`}
       goBack={navigation.goBack}
       error={error?.bannerMessage}
@@ -349,7 +407,9 @@ export const LimitOrderConfirmationModalScreen = () => {
         label:
           error?.primaryButtonLabel ?? strings('bridge.limit.confirm_order'),
         isLoading: delegationFee.status === 'loading' || isCreatingOrder,
-        isDisabled: !feeTokenValidation.isValid,
+        isDisabled:
+          !feeTokenValidation.isValid ||
+          confirmError === LimitOrderConfirmError.GeoRestricted,
       }}
     />
   );

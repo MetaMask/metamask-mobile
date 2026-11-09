@@ -1,6 +1,11 @@
 import '../../../../../tests/component-view/mocks';
 import { Linking } from 'react-native';
-import { userEvent, waitFor, within } from '@testing-library/react-native';
+import {
+  fireEvent,
+  userEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 
 import { renderTokenDetailsV1View } from '../../../../../tests/component-view/renderers/tokenDetailsV1';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
@@ -32,6 +37,7 @@ import {
   formatFollowerCountLabel,
   formatPercent,
 } from '../../SocialFeed/utils/formatters';
+import { formatAddress, toChecksumAddress } from '../../../../util/address';
 
 const FIND_TIMEOUT = { timeout: 15000 };
 const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
@@ -126,7 +132,9 @@ describeForPlatforms('TokenDetailsV1', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
-    ).toHaveTextContent('0x...1933');
+    ).toHaveTextContent(
+      formatAddress(toChecksumAddress(TOKEN_DETAILS_V1_ADDRESS), 'short'),
+    );
     expect(
       within(getByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).getByText(
         TOKEN_DETAILS_V1_DESCRIPTION,
@@ -304,7 +312,9 @@ describeForPlatforms('TokenDetailsV1', () => {
     );
 
     await waitFor(() => {
-      expect(clipboardSpy).toHaveBeenCalledWith(TOKEN_DETAILS_V1_ADDRESS);
+      expect(clipboardSpy).toHaveBeenCalledWith(
+        toChecksumAddress(TOKEN_DETAILS_V1_ADDRESS),
+      );
     });
     expect(
       await findByTestId(SecuritySocialSectionSelectors.COPY_ADDRESS),
@@ -346,6 +356,27 @@ describeForPlatforms('TokenDetailsV1', () => {
     expect(
       getByTestId(tokenDetailsV1TabPageTestId('overview')),
     ).toBeOnTheScreen();
+  });
+
+  it('hides the contract address from the header while showing it in the security row', async () => {
+    const { findByTestId, queryByTestId } = renderTokenDetailsV1View();
+
+    // Wait for the security row address to appear — proves the page has loaded.
+    const copyButton = await findByTestId(
+      SecuritySocialSectionSelectors.COPY_ADDRESS,
+      {},
+      FIND_TIMEOUT,
+    );
+
+    expect(copyButton).toHaveTextContent(
+      formatAddress(toChecksumAddress(TOKEN_DETAILS_V1_ADDRESS), 'short'),
+    );
+
+    // The header subtitle must NOT contain the address or copy button — it was
+    // deduplicated so the address only appears in the security row above the
+    // stat bar.
+    expect(queryByTestId(TokenDetailsIds.header.address)).toBeNull();
+    expect(queryByTestId(TokenDetailsIds.header.copyAddressButton)).toBeNull();
   });
 
   it('stays on the legacy page when the asset has no launchpad data', async () => {
@@ -439,6 +470,67 @@ describeForPlatforms('TokenDetailsV1', () => {
     ).not.toBeOnTheScreen();
     expect(
       getByTestId(tokenDetailsV1TabPageTestId('overview')),
+    ).toBeOnTheScreen();
+  });
+
+  it('switches tabs from the docked tab bar once the page scrolls past it', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTokenDetailsV1View();
+    const tabBarSlot = await findByTestId(
+      TokenDetailsIds.tabBarSlot,
+      {},
+      FIND_TIMEOUT,
+    );
+    // Layout and scroll do not run in jest, so place the tab bar and scroll
+    // past it by hand.
+    fireEvent(tabBarSlot, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 400, width: 390, height: 48 } },
+    });
+    fireEvent.scroll(getByTestId(TokenDetailsIds.scrollView), {
+      nativeEvent: {
+        contentOffset: { x: 0, y: 900 },
+        contentSize: { width: 390, height: 3000 },
+        layoutMeasurement: { width: 390, height: 800 },
+      },
+    });
+
+    // Only the docked copy takes taps and is announced; the in-flow bar is
+    // hidden from both.
+    await waitFor(() => {
+      expect(
+        queryByTestId(getTokenDetailsV1TabTestId('security')),
+      ).not.toBeOnTheScreen();
+    });
+    await userEvent.press(getByTestId(TokenDetailsIds.pinnedTab('security')));
+
+    expect(
+      await findByTestId(SecurityTabSelectors.TAB, {}, FIND_TIMEOUT),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(tokenDetailsV1TabPageTestId('overview')),
+    ).not.toBeOnTheScreen();
+
+    // Scrolling back above the bar hands taps back to the in-flow copy.
+    fireEvent.scroll(getByTestId(TokenDetailsIds.scrollView), {
+      nativeEvent: {
+        contentOffset: { x: 0, y: 0 },
+        contentSize: { width: 390, height: 3000 },
+        layoutMeasurement: { width: 390, height: 800 },
+      },
+    });
+    await waitFor(() => {
+      expect(
+        queryByTestId(TokenDetailsIds.pinnedTab('overview')),
+      ).not.toBeOnTheScreen();
+    });
+    await userEvent.press(getByTestId(getTokenDetailsV1TabTestId('overview')));
+
+    expect(
+      await findByTestId(
+        tokenDetailsV1TabPageTestId('overview'),
+        {},
+        FIND_TIMEOUT,
+      ),
     ).toBeOnTheScreen();
   });
 });
