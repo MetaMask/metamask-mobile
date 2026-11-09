@@ -1,3 +1,4 @@
+import { addBreadcrumb } from '@sentry/react-native';
 import {
   renderHook,
   act,
@@ -537,13 +538,17 @@ describe('usePredictMarketData', () => {
       });
 
       expect(mockGetMarkets).toHaveBeenCalledTimes(3);
-      expect(Logger.log).toHaveBeenCalledWith(
-        'Predict request failed due to network conditions:',
-        networkError.message,
-        expect.objectContaining({
-          context: expect.objectContaining({ name: 'usePredictMarketData' }),
-        }),
-      );
+      expect(addBreadcrumb).toHaveBeenCalledWith({
+        category: 'predict.network',
+        level: 'warning',
+        message: 'loadMarketData network failure -1004',
+        data: {
+          source: 'usePredictMarketData',
+          method: 'loadMarketData',
+          code: '-1004',
+        },
+      });
+      expect(Logger.log).not.toHaveBeenCalled();
       expect(Logger.error).not.toHaveBeenCalled();
       expect(result.current.error).toBe(networkError.message);
     });
@@ -565,7 +570,7 @@ describe('usePredictMarketData', () => {
           context: expect.objectContaining({ name: 'usePredictMarketData' }),
         }),
       );
-      expect(Logger.log).not.toHaveBeenCalled();
+      expect(addBreadcrumb).not.toHaveBeenCalled();
     });
   });
 });

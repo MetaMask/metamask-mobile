@@ -1,4 +1,5 @@
 import { ToastSeverity, toast } from '@metamask/design-system-react-native';
+import { addBreadcrumb } from '@sentry/react-native';
 import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { Side } from '../types';
 import {
@@ -73,8 +74,6 @@ const BAD_SERVER_RESPONSE_DESCRIPTION =
   'There was a bad response from the server.';
 const LOCALIZED_CANNOT_CONNECT_DESCRIPTION =
   'No se pudo conectar con el servidor.';
-const NETWORK_FAILURE_BREADCRUMB_MESSAGE =
-  'Predict request failed due to network conditions:';
 
 function nsurlErrorMessage(code: number, description: string): string {
   return NSURL_CANNOT_CONNECT_ERROR_MESSAGE.replaceAll(
@@ -208,6 +207,28 @@ describe('predictErrorHandler', () => {
       expect(isNetworkError(new Error(message))).toBe(false);
     });
 
+    it('returns true when the NSURL code is only inside NSUnderlyingError', () => {
+      const message =
+        'Error Domain=NSPOSIXErrorDomain Code=57 "Socket is not connected" UserInfo={NSUnderlyingError=0x1 {Error Domain=NSURLErrorDomain Code=-1005 "(null)"}}';
+
+      expect(isNetworkError(new Error(message))).toBe(true);
+    });
+
+    it('returns false for a -1200 failure whose underlying error is CFNetwork', () => {
+      // 5ZC0 (bb1a2c01) puts -1200 on NSURLErrorDomain and again on
+      // kCFErrorDomainCFNetwork inside NSUnderlyingError. The inner domain
+      // is not NSURLErrorDomain, so it must stay a reported error.
+      const message = nsurlErrorMessage(
+        NSURL_ERROR_SECURE_CONNECTION_FAILED,
+        SECURE_CONNECTION_FAILED_DESCRIPTION,
+      );
+
+      expect(message).toContain(
+        'NSUnderlyingError=0x11e72e040 {Error Domain=kCFErrorDomainCFNetwork Code=-1200 "(null)"',
+      );
+      expect(isNetworkError(new Error(message))).toBe(false);
+    });
+
     it('returns false for the same connectivity code on NSCocoaErrorDomain', () => {
       const message = nsurlErrorMessage(
         NSURL_ERROR_CANNOT_CONNECT_TO_HOST,
@@ -241,6 +262,42 @@ describe('predictErrorHandler', () => {
       ).toBe(false);
     });
 
+    it.each([
+      'Polymarket request timed out',
+      'Predict positions request timed out after 60000ms',
+      'Predict balance request timed out after 60000ms',
+      'net::ERR_TIMED_OUT',
+      'net::ERR_CONNECTION_TIMED_OUT',
+      'POST /prices failed: 504 Gateway Timeout',
+      'POST /prices failed: 408 gateway',
+    ])('returns true for a real transport timeout: %s', (message) => {
+      expect(isNetworkError(new Error(message))).toBe(true);
+    });
+
+    it.each([
+      'Block tracker update timed out after 10000ms',
+      'Failed to sync deposit wallet collateral balance allowance: 500 {"error":"upstream timeout"}',
+      'timeout',
+      'java.net.SocketTimeoutException: connect timed out',
+      'java.net.SocketTimeoutException: timeout',
+      'Gateway Timeout',
+      '504 Gateway Timeout',
+      'Polymarket geoblock check failed with status 504',
+    ])(
+      'returns false when timeout text is not a transport failure: %s',
+      (message) => {
+        expect(isNetworkError(new Error(message))).toBe(false);
+      },
+    );
+
+    it.each([
+      'net::ERR_CERT_AUTHORITY_INVALID',
+      'net::ERR_CERT_DATE_INVALID',
+      'Cronet failed: Exception in CronetUrlRequest: net::ERR_CERT_AUTHORITY_INVALID',
+    ])('returns false for an Android certificate error: %s', (message) => {
+      expect(isNetworkError(new Error(message))).toBe(false);
+    });
+
     it('returns false for an NSURLErrorDomain bad-server-response failure', () => {
       const message = nsurlErrorMessage(
         NSURL_ERROR_BAD_SERVER_RESPONSE,
@@ -263,6 +320,7 @@ describe('predictErrorHandler', () => {
     beforeEach(() => {
       jest.mocked(Logger.log).mockClear();
       jest.mocked(Logger.error).mockClear();
+      jest.mocked(addBreadcrumb).mockClear();
     });
 
     it('logs a breadcrumb for an iOS connectivity failure', () => {
@@ -270,11 +328,17 @@ describe('predictErrorHandler', () => {
 
       reportPredictError(error, errorContext);
 
-      expect(Logger.log).toHaveBeenCalledWith(
-        NETWORK_FAILURE_BREADCRUMB_MESSAGE,
-        error.message,
-        errorContext,
-      );
+      expect(addBreadcrumb).toHaveBeenCalledWith({
+        category: 'predict.network',
+        level: 'warning',
+        message: 'getMarkets network failure -1004',
+        data: {
+          source: 'PolymarketProvider',
+          method: 'getMarkets',
+          code: '-1004',
+        },
+      });
+      expect(Logger.log).not.toHaveBeenCalled();
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
@@ -284,7 +348,7 @@ describe('predictErrorHandler', () => {
       reportPredictError(error, errorContext);
 
       expect(Logger.error).toHaveBeenCalledWith(error, errorContext);
-      expect(Logger.log).not.toHaveBeenCalled();
+      expect(addBreadcrumb).not.toHaveBeenCalled();
     });
   });
 

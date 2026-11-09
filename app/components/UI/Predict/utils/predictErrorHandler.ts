@@ -1,4 +1,5 @@
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { addBreadcrumb } from '@sentry/react-native';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -29,7 +30,8 @@ export function ensureError(error: unknown): Error {
  *
  * Left as errors on purpose: -999 cancelled, -1011 bad server response,
  * -1013 auth required, -1018 roaming off, -1020 data not allowed, -1022 ATS,
- * -1200 secure connection failed, -1202 to -1206 certificate.
+ * -1200 secure connection failed, -1202 to -1206 certificate. Android
+ * net::ERR_CERT_* is the same failure class and also stays an error.
  */
 const IOS_CONNECTIVITY_ERROR_CODES = {
   timedOut: -1001,
@@ -65,14 +67,20 @@ const NETWORK_ERROR_PATTERNS: RegExp[] = [
   /Network request failed/iu,
   // Common cross-platform connectivity phrases
   /connection (was |)(timed out|refused|reset|closed)/iu,
+  // Request timeouts only. A bare "timeout" also matches response bodies.
   /request tim(ed |e)?out/iu,
-  /timeout/iu,
   /network is unreachable/iu,
   /(the )?internet connection appears to be offline/iu,
   /name (not resolved|resolution failed)/iu,
   /could not (connect|resolve host)/iu,
   IOS_CONNECTIVITY_ERROR_PATTERN,
 ];
+
+// shortcut: status is read from "failed: <code>" text, upgrade when errors carry status.
+const HTTP_FAILURE_STATUS = /failed: (\d{3})\b/u;
+
+// Checked first: /net::ERR_/ and /Cronet failed/ would otherwise match it.
+const ANDROID_CERT_ERROR_PATTERN = /net::ERR_CERT_/iu;
 
 /**
  * Determines whether an error represents a transient network/connectivity
@@ -82,12 +90,13 @@ const NETWORK_ERROR_PATTERNS: RegExp[] = [
  * @param error - The caught error (Error, string, or unknown)
  * @returns true when the error looks like a connectivity failure
  */
-// shortcut: status is read from "failed: <code>" text, upgrade when errors carry status.
-const HTTP_FAILURE_STATUS = /failed: (\d{3})\b/u;
-
 export function isNetworkError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   if (!message) {
+    return false;
+  }
+
+  if (ANDROID_CERT_ERROR_PATTERN.test(message)) {
     return false;
   }
 
@@ -100,8 +109,32 @@ export function isNetworkError(error: unknown): boolean {
   return NETWORK_ERROR_PATTERNS.some((pattern) => pattern.test(message));
 }
 
-const NETWORK_FAILURE_BREADCRUMB_MESSAGE =
-  'Predict request failed due to network conditions:';
+const PREDICT_NETWORK_BREADCRUMB_CATEGORY = 'predict.network';
+const NETWORK_FAILURE_CODE =
+  /NSURLErrorDomain Code=(-\d+)|net::(ERR_[A-Z_]+)|failed: (\d{3})\b/u;
+
+// Short, fixed breadcrumb: the raw NSError text is ~1 KB and polling repeats it.
+function addPredictNetworkBreadcrumb(
+  error: unknown,
+  errorContext: LoggerErrorOptions,
+): void {
+  const code = NETWORK_FAILURE_CODE.exec(ensureError(error).message)
+    ?.slice(1)
+    .find(Boolean);
+  const methodValue = errorContext.context?.data.method;
+  const method = typeof methodValue === 'string' ? methodValue : 'unknown';
+
+  addBreadcrumb({
+    category: PREDICT_NETWORK_BREADCRUMB_CATEGORY,
+    level: 'warning',
+    message: [method, 'network failure', code].filter(Boolean).join(' '),
+    data: {
+      source: errorContext.context?.name,
+      method,
+      ...(code !== undefined && { code }),
+    },
+  });
+}
 
 /**
  * Reports a Predict failure. Connectivity errors are breadcrumbs so they do
@@ -115,11 +148,7 @@ export function reportPredictError(
   errorContext: LoggerErrorOptions,
 ): void {
   if (isNetworkError(error)) {
-    Logger.log(
-      NETWORK_FAILURE_BREADCRUMB_MESSAGE,
-      ensureError(error).message,
-      errorContext,
-    );
+    addPredictNetworkBreadcrumb(error, errorContext);
     return;
   }
 

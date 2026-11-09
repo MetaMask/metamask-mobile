@@ -1,3 +1,4 @@
+import { addBreadcrumb } from '@sentry/react-native';
 import {
   CHAIN_IDS,
   TransactionType,
@@ -876,11 +877,17 @@ describe('PolymarketProvider', () => {
       ).rejects.toBe(networkError);
 
       expect(Logger.error).not.toHaveBeenCalled();
-      expect(Logger.log).toHaveBeenCalledWith(
-        'Predict request failed due to network conditions:',
-        networkError.message,
-        expect.any(Object),
-      );
+      expect(addBreadcrumb).toHaveBeenCalledWith({
+        category: 'predict.network',
+        level: 'warning',
+        message: 'getMarkets network failure -1004',
+        data: {
+          source: 'PolymarketProvider',
+          method: 'getMarkets',
+          code: '-1004',
+        },
+      });
+      expect(Logger.log).not.toHaveBeenCalled();
     });
 
     it('prefers team-to-advance outcomes for World Cup carousel markets', async () => {
@@ -1180,17 +1187,24 @@ describe('PolymarketProvider', () => {
         results: [],
       });
       expect(Logger.error).not.toHaveBeenCalled();
-      expect(Logger.log).toHaveBeenCalledWith(
-        'Predict request failed due to network conditions:',
-        networkError.message,
-        expect.any(Object),
-      );
+      expect(addBreadcrumb).toHaveBeenCalledWith({
+        category: 'predict.network',
+        level: 'warning',
+        message: 'getPrices network failure -1005',
+        data: {
+          source: 'PolymarketProvider',
+          method: 'getPrices',
+          code: '-1005',
+        },
+      });
+      expect(Logger.log).not.toHaveBeenCalled();
     });
 
     it('reports an HTTP 500 price failure to Sentry', async () => {
       const Logger = jest.requireMock('../../../../../util/Logger').default;
       Logger.error.mockClear();
       Logger.log.mockClear();
+      jest.mocked(addBreadcrumb).mockClear();
       global.fetch = jest.fn().mockResolvedValue({
         ok: false,
         status: 500,
@@ -1209,7 +1223,7 @@ describe('PolymarketProvider', () => {
         results: [],
       });
       expect(Logger.error).toHaveBeenCalled();
-      expect(Logger.log).not.toHaveBeenCalled();
+      expect(addBreadcrumb).not.toHaveBeenCalled();
     });
   });
 
