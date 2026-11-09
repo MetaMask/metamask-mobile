@@ -11910,7 +11910,6 @@
       "email_label": "Эл. почта",
       "password_label": "Пароль",
       "login_button": "Войти",
-      "siwe_button": "Войти через Ethereum",
       "continue_button": "Продолжить",
       "uk_login_button": "Войти с этим счетом",
       "signup_button": "Зарегистрироваться",
