@@ -6,16 +6,7 @@ import {
   NetworkType,
   ProcessedNetwork,
 } from '../useNetworksByNamespace/useNetworksByNamespace';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  BtcScope,
-  ///: END:ONLY_INCLUDE_IF
-  SolScope,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TrxScope,
-  ///: END:ONLY_INCLUDE_IF
-  XlmScope,
-} from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -30,31 +21,19 @@ interface UseNetworksToUseReturn {
   networksToUse: ProcessedNetwork[];
   evmNetworks: ProcessedNetwork[];
   solanaNetworks: ProcessedNetwork[];
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   bitcoinNetworks: ProcessedNetwork[];
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   tronNetworks: ProcessedNetwork[];
-  ///: END:ONLY_INCLUDE_IF
   stellarNetworks: ProcessedNetwork[];
   selectedEvmAccount: InternalAccount | null;
   selectedSolanaAccount: InternalAccount | null;
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   selectedBitcoinAccount: InternalAccount | null;
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   selectedTronAccount: InternalAccount | null;
-  ///: END:ONLY_INCLUDE_IF
   selectedStellarAccount: InternalAccount | null;
   areAllNetworksSelectedCombined: boolean;
   areAllEvmNetworksSelected: boolean;
   areAllSolanaNetworksSelected: boolean;
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   areAllBitcoinNetworksSelected: boolean;
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   areAllTronNetworksSelected: boolean;
-  ///: END:ONLY_INCLUDE_IF
   areAllStellarNetworksSelected: boolean;
 }
 
@@ -77,15 +56,11 @@ export const useNetworksToUse = ({
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const selectedBitcoinAccount =
     useSelector(selectSelectedInternalAccountByScope)(BtcScope.Mainnet) || null;
-  ///: END:ONLY_INCLUDE_IF
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const selectedTronAccount =
     useSelector(selectSelectedInternalAccountByScope)(TrxScope.Mainnet) || null;
-  ///: END:ONLY_INCLUDE_IF
 
   const selectedStellarAccount =
     useSelector(selectSelectedInternalAccountByScope)(XlmScope.Pubnet) || null;
@@ -106,7 +81,6 @@ export const useNetworksToUse = ({
     namespace: KnownCaipNamespace.Solana,
   });
 
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const {
     networks: bitcoinNetworks = [],
     areAllNetworksSelected: areAllBitcoinNetworksSelected = false,
@@ -114,9 +88,7 @@ export const useNetworksToUse = ({
     networkType,
     namespace: KnownCaipNamespace.Bip122,
   });
-  ///: END:ONLY_INCLUDE_IF
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
     networks: tronNetworks = [],
     areAllNetworksSelected: areAllTronNetworksSelected = false,
@@ -124,7 +96,6 @@ export const useNetworksToUse = ({
     networkType,
     namespace: KnownCaipNamespace.Tron,
   });
-  ///: END:ONLY_INCLUDE_IF
 
   const {
     networks: stellarNetworks = [],
@@ -139,23 +110,15 @@ export const useNetworksToUse = ({
     () => ({
       evm: !!selectedEvmAccount,
       solana: !!selectedSolanaAccount,
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       bitcoin: !!selectedBitcoinAccount,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       tron: !!selectedTronAccount,
-      ///: END:ONLY_INCLUDE_IF
       stellar: !!selectedStellarAccount,
     }),
     [
       selectedEvmAccount,
       selectedSolanaAccount,
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       selectedBitcoinAccount,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       selectedTronAccount,
-      ///: END:ONLY_INCLUDE_IF
       selectedStellarAccount,
     ],
   );
@@ -172,12 +135,8 @@ export const useNetworksToUse = ({
     const anySelectedAccount = [
       hasSelectedAccounts.evm,
       hasSelectedAccounts.solana,
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       hasSelectedAccounts.bitcoin,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       hasSelectedAccounts.tron,
-      ///: END:ONLY_INCLUDE_IF
       hasSelectedAccounts.stellar,
     ].some(Boolean);
 
@@ -185,12 +144,8 @@ export const useNetworksToUse = ({
       return combineAvailableNetworks([
         hasSelectedAccounts.evm ? evmNetworks : [],
         hasSelectedAccounts.solana ? solanaNetworks : [],
-        ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
         hasSelectedAccounts.bitcoin ? bitcoinNetworks : [],
-        ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
         hasSelectedAccounts.tron ? tronNetworks : [],
-        ///: END:ONLY_INCLUDE_IF
         hasSelectedAccounts.stellar ? stellarNetworks : [],
       ]);
     }
@@ -200,23 +155,15 @@ export const useNetworksToUse = ({
   }, [
     hasSelectedAccounts.evm,
     hasSelectedAccounts.solana,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     hasSelectedAccounts.bitcoin,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     hasSelectedAccounts.tron,
-    ///: END:ONLY_INCLUDE_IF
     hasSelectedAccounts.stellar,
     networks,
     combineAvailableNetworks,
     evmNetworks,
     solanaNetworks,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     bitcoinNetworks,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     tronNetworks,
-    ///: END:ONLY_INCLUDE_IF
     stellarNetworks,
   ]);
 
@@ -232,17 +179,13 @@ export const useNetworksToUse = ({
       accountSelectionFlags.push(areAllSolanaNetworksSelected);
     }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     if (hasSelectedAccounts.bitcoin) {
       accountSelectionFlags.push(areAllBitcoinNetworksSelected);
     }
-    ///: END:ONLY_INCLUDE_IF
 
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (hasSelectedAccounts.tron) {
       accountSelectionFlags.push(areAllTronNetworksSelected);
     }
-    ///: END:ONLY_INCLUDE_IF
 
     if (hasSelectedAccounts.stellar) {
       accountSelectionFlags.push(areAllStellarNetworksSelected);
@@ -258,12 +201,8 @@ export const useNetworksToUse = ({
     hasSelectedAccounts,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     areAllBitcoinNetworksSelected,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     areAllTronNetworksSelected,
-    ///: END:ONLY_INCLUDE_IF
     areAllStellarNetworksSelected,
   ]);
 
@@ -271,31 +210,19 @@ export const useNetworksToUse = ({
     networksToUse,
     evmNetworks,
     solanaNetworks,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     bitcoinNetworks,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     tronNetworks,
-    ///: END:ONLY_INCLUDE_IF
     stellarNetworks,
     selectedEvmAccount,
     selectedSolanaAccount,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     selectedBitcoinAccount,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     selectedTronAccount,
-    ///: END:ONLY_INCLUDE_IF
     selectedStellarAccount,
     areAllNetworksSelectedCombined,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     areAllBitcoinNetworksSelected,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     areAllTronNetworksSelected,
-    ///: END:ONLY_INCLUDE_IF
     areAllStellarNetworksSelected,
   };
 };
