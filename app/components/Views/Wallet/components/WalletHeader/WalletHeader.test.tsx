@@ -336,35 +336,31 @@ describe('WalletHeader', () => {
       ).toHaveStyle({ paddingLeft: 12, paddingRight: 12 });
     });
 
-    it('uses the Social glass header with Profile, account and Rewards actions', () => {
-      const handleProfilePress = jest.fn();
+    it('uses the Social glass header with account, Rewards, Search and Menu actions', () => {
+      const handleHamburgerPress = jest.fn();
       const { getByTestId, queryByTestId } = renderWithProvider(
         <WalletHeader
           {...interimProps}
           isSocialLayout
-          handleProfilePress={handleProfilePress}
+          handleHamburgerPress={handleHamburgerPress}
           handleRewardsPress={jest.fn()}
         />,
       );
 
       expect(
-        getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
-      ).toBeOnTheScreen();
+        queryByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
+      ).not.toBeOnTheScreen();
       expect(
-        getByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
-      ).toBeOnTheScreen();
-      expect(mockWalletHeaderProfileAvatar).toHaveBeenCalledWith({
-        diameter: 40,
-      });
-
-      fireEvent.press(getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON));
-
-      expect(handleProfilePress).toHaveBeenCalledTimes(1);
+        queryByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+      ).not.toBeOnTheScreen();
       expect(
         getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
       ).toBeOnTheScreen();
       expect(
         getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
       ).toBeOnTheScreen();
       expect(
         getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON),
@@ -373,13 +369,16 @@ describe('WalletHeader', () => {
         getByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
-      ).toBeNull();
-      expect(
         getByTestId(
           WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE,
         ),
       ).toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+      );
+
+      expect(handleHamburgerPress).toHaveBeenCalledTimes(1);
     });
 
     it('keeps Social header action icons transparent while pressed', () => {
@@ -387,7 +386,6 @@ describe('WalletHeader', () => {
         <WalletHeader
           {...interimProps}
           isSocialLayout
-          handleProfilePress={jest.fn()}
           handleRewardsPress={jest.fn()}
         />,
       );
@@ -419,7 +417,6 @@ describe('WalletHeader', () => {
           {...interimProps}
           displayName="Test Main Account a really long name"
           isSocialLayout
-          handleProfilePress={jest.fn()}
           handleRewardsPress={jest.fn()}
         />,
       );
@@ -494,7 +491,7 @@ describe('WalletHeader', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('still opens the profile drawer from the avatar', () => {
+    it('opens the account selector from the avatar', () => {
       mockSocialV1Enabled = true;
       const navigate = jest.fn();
       const { getByTestId } = renderWithProvider(
@@ -503,7 +500,10 @@ describe('WalletHeader', () => {
 
       fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
 
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+      expect(navigate).toHaveBeenCalledWith(
+        Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
+        {},
+      );
     });
 
     it('shows no dropdown caret in the Social V1 avatar picker', () => {

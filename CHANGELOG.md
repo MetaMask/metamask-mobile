@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced the Social home header profile avatar with a hamburger menu that opens Settings from the right
+
 ## [8.19.0]
 
 ### Added

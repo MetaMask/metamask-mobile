@@ -14,7 +14,6 @@ import type {
   Position,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
-import { CommonActions } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MyProfileView from './MyProfileView';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
@@ -754,69 +753,6 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('drops the profile drawer from the stack on mount so back skips it', () => {
-    // Arrange - the drawer opened this profile, so it sits underneath.
-    mockNavigationGetState.mockReturnValue({
-      key: 'root-stack',
-      type: 'stack',
-      stale: false,
-      index: 2,
-      routeNames: [
-        Routes.HOME_TABS,
-        Routes.SOCIAL_PROFILE.DRAWER,
-        Routes.SOCIAL.V1_PROFILE,
-      ],
-      routes: [
-        { key: 'home-0', name: Routes.HOME_TABS },
-        { key: 'drawer-1', name: Routes.SOCIAL_PROFILE.DRAWER },
-        { key: 'profile-2', name: Routes.SOCIAL.V1_PROFILE },
-      ],
-    });
-
-    // Act
-    renderWithProvider(<MyProfileView />);
-
-    // Assert - the drawer is gone and the profile keeps the focus.
-    expect(mockDispatch).toHaveBeenCalledWith(
-      CommonActions.reset({
-        key: 'root-stack',
-        type: 'stack',
-        stale: false,
-        index: 1,
-        routeNames: [
-          Routes.HOME_TABS,
-          Routes.SOCIAL_PROFILE.DRAWER,
-          Routes.SOCIAL.V1_PROFILE,
-        ],
-        routes: [
-          { key: 'home-0', name: Routes.HOME_TABS },
-          { key: 'profile-2', name: Routes.SOCIAL.V1_PROFILE },
-        ],
-      }),
-    );
-  });
-
-  it('leaves the stack untouched when the profile was opened from Social', () => {
-    // Arrange - no drawer in the stack.
-    mockNavigationGetState.mockReturnValue({
-      key: 'root-stack',
-      type: 'stack',
-      stale: false,
-      index: 1,
-      routeNames: [Routes.HOME_TABS, Routes.SOCIAL.V1_PROFILE],
-      routes: [
-        { key: 'home-0', name: Routes.HOME_TABS },
-        { key: 'profile-1', name: Routes.SOCIAL.V1_PROFILE },
-      ],
-    });
-
-    // Act
-    renderWithProvider(<MyProfileView />);
-
-    // Assert
-    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('opens the post composer from the profile actions', () => {

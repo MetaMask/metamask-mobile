@@ -25,23 +25,6 @@ jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
 
-jest.mock('./WalletHeaderProfileAvatar', () => {
-  const { View } = jest.requireActual('react-native');
-  const { WalletViewSelectorsIDs: TestIds } = jest.requireActual(
-    '../../WalletView.testIds',
-  );
-  return {
-    __esModule: true,
-    default: () => <View testID={TestIds.ACCOUNT_PICKER_AVATAR} />,
-  };
-});
-
-let mockSocialV1Enabled = false;
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => mockSocialV1Enabled),
-}));
-
 const params: WalletHeaderNativeHeaderParams = {
   displayName: 'Account 1',
   isMoneyAccountVisible: true,
@@ -86,7 +69,6 @@ describe('useWalletHeaderNativeHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
-    mockSocialV1Enabled = false;
   });
 
   it('passes the screen gate through', () => {
@@ -172,19 +154,6 @@ describe('useWalletHeaderNativeHeader', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the profile drawer from the account picker when Social V1 is enabled', () => {
-    mockSocialV1Enabled = true;
-    const [accountItem] = renderNativeHeader().leftItems;
-    if (accountItem?.type !== 'custom') {
-      throw new Error('Expected a custom account picker item');
-    }
-
-    const { getByTestId } = renderWithProvider(accountItem.element);
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
-  });
-
   it('renders a truncated account picker that opens the account selector', () => {
     const [accountItem] = renderNativeHeader({
       displayName: 'Test Main Account a really long',
@@ -203,26 +172,7 @@ describe('useWalletHeaderNativeHeader', () => {
     );
   });
 
-  it('renders only the avatar in the bar when Social V1 is enabled', () => {
-    mockSocialV1Enabled = true;
-    const [accountItem] = renderNativeHeader().leftItems;
-    if (accountItem?.type !== 'custom') {
-      throw new Error('Expected a custom account picker item');
-    }
-
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      accountItem.element,
-    );
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('keeps the named picker in the bar when Social V1 is disabled', () => {
+  it('keeps the named picker in the bar', () => {
     const [accountItem] = renderNativeHeader().leftItems;
     if (accountItem?.type !== 'custom') {
       throw new Error('Expected a custom account picker item');

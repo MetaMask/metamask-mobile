@@ -809,7 +809,6 @@ export type RootStackParamList = {
   NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
-  ProfileDrawer: undefined;
   ManageProfile: ManageProfileParams | undefined;
   ManageProfileField: ManageProfileFieldParams;
   ManageProfileXAccount: undefined;
