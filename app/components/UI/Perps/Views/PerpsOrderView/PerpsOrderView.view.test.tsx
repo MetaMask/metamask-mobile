@@ -47,6 +47,7 @@ import {
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
+  createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import {
   formatPercentage,
@@ -208,6 +209,21 @@ describe('PerpsOrderView', () => {
         marketData: [ethMarket],
       },
       extraRoutes: [marketDetailsRoute],
+    });
+    // The view clears the pending trade config only after the CUF confirm race
+    // settles. Deliver the fill on the next macrotask so the race resolves from
+    // the positions stream instead of its 1s wall-clock timeout.
+    const filledLong = createLongPositionForViews({
+      size: '0.048',
+      marginUsed: '30',
+      positionValue: '120',
+      leverage: { value: 4, type: 'isolated' },
+    });
+    placeOrder.mockImplementation(async () => {
+      setTimeout(() => {
+        stream.emitPositions([filledLong]);
+      }, 0);
+      return { success: true, orderId: 'component-view-order' };
     });
 
     expect(
