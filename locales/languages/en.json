@@ -9753,7 +9753,7 @@
       "unlink_card_sheet_another_money_account": "another Money account",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
-      "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+      "verification_pending": "Your identity verification is being reviewed. Most applications are reviewed within a few hours."
     },
     "what_you_get": {
       "title": "Benefits",
@@ -11695,7 +11695,7 @@
         },
         "kyc_pending": {
           "title": "Verification in progress",
-          "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+          "description": "Your identity verification is being reviewed. Most applications are reviewed within a few hours."
         }
       },
       "messages": {
