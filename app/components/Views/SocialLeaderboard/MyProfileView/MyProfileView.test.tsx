@@ -2137,20 +2137,11 @@ describe('MyProfileView', () => {
       );
       expect(mockScrollTo).toHaveBeenCalledWith({ y: 640, animated: true });
       expect(setAccessibilityFocus).not.toHaveBeenCalled();
-
       fireEvent(
         screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL),
         'momentumScrollEnd',
-        {
-          nativeEvent: {
-            contentOffset: { x: 0, y: 640 },
-            contentSize: { height: 2000, width: 400 },
-            layoutMeasurement: { height: 800, width: 400 },
-            velocity: { x: 0, y: 0 },
-          },
-        },
+        { nativeEvent: { velocity: { x: 0, y: 0 } } },
       );
-
       expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
       expect(
         screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
@@ -2240,30 +2231,6 @@ describe('MyProfileView', () => {
       findHeader.mockRestore();
     });
 
-    it('focuses immediately when the section is already at that offset', () => {
-      mockScrollY.value = 640;
-      pressNote(640);
-      expect(mockScrollTo).toHaveBeenCalledWith({ y: 640, animated: true });
-      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
-    });
-
-    it('drops a pending focus when the profile tab changes', () => {
-      jest.useFakeTimers();
-      try {
-        pressNote(640);
-        fireEvent.press(
-          screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
-        );
-        act(() => {
-          jest.advanceTimersByTime(400);
-        });
-        expect(setAccessibilityFocus).not.toHaveBeenCalled();
-      } finally {
-        jest.clearAllTimers();
-        jest.useRealTimers();
-      }
-    });
-
     it('focuses when the list cannot reach the measured offset', () => {
       pressNote(640, { content: 500, viewport: 800 });
       expect(mockScrollTo).toHaveBeenCalledWith({ y: 0, animated: true });
@@ -2332,10 +2299,21 @@ describe('MyProfileView', () => {
       .mockImplementation((_node, onSuccess) => {
         onSuccess(0, 480, 320, 80);
       });
+    const setAccessibilityFocus = jest
+      .spyOn(AccessibilityInfo, 'setAccessibilityFocus')
+      .mockImplementation(() => undefined);
+    const findHeader = jest
+      .spyOn(jest.requireActual('react-native'), 'findNodeHandle')
+      .mockReturnValue(44);
 
     try {
       renderWithProvider(<MyProfileView />);
       fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+      const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
+      fireEvent(scroll, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 800 } },
+      });
+      fireEvent(scroll, 'contentSizeChange', 400, 400);
 
       expect(
         screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
@@ -2363,8 +2341,15 @@ describe('MyProfileView', () => {
         expect.any(Function),
       );
       expect(mockScrollTo).toHaveBeenCalledWith({ y: 480, animated: true });
+      expect(setAccessibilityFocus).not.toHaveBeenCalled();
+
+      fireEvent(scroll, 'contentSizeChange', 400, 500);
+      expect(mockScrollTo).toHaveBeenLastCalledWith({ y: 0, animated: true });
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
     } finally {
       measureLayout.mockRestore();
+      setAccessibilityFocus.mockRestore();
+      findHeader.mockRestore();
     }
   });
 

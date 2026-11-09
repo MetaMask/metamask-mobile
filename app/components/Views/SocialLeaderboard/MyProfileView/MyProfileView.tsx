@@ -388,6 +388,7 @@ const MyProfileView: React.FC = () => {
   );
   const scrollViewportHeightRef = useRef(0);
   const scrollContentHeightRef = useRef(0);
+  const scrollContentSizeStaleRef = useRef(false);
   const clearUncountedFocusTimeout = useCallback(() => {
     if (uncountedFocusTimeoutRef.current != null) {
       clearTimeout(uncountedFocusTimeoutRef.current);
@@ -411,6 +412,7 @@ const MyProfileView: React.FC = () => {
       // A later layout must not scroll for a note press the user has left.
       pendingUncountedScrollRef.current = false;
       cancelPendingUncountedHeaderFocus();
+      scrollContentSizeStaleRef.current = true;
       playSelection().catch(() => undefined);
       setActiveTab(nextTab);
     },
@@ -426,6 +428,7 @@ const MyProfileView: React.FC = () => {
     useCallback(() => {
       // Every new post lands here, pinned at the top of the Posts tab.
       if (isOwner && consumePostsTabFocus()) {
+        scrollContentSizeStaleRef.current = true;
         setActiveTab('posts');
         scrollRef.current?.scrollTo({ y: 0, animated: true });
       }
@@ -493,20 +496,21 @@ const MyProfileView: React.FC = () => {
       (_x, y) => {
         const contentHeight = scrollContentHeightRef.current;
         const viewportHeight = scrollViewportHeightRef.current;
-        const maxOffset =
-          contentHeight > 0 && viewportHeight > 0
-            ? Math.max(0, contentHeight - viewportHeight)
-            : y;
+        const canClamp =
+          !scrollContentSizeStaleRef.current &&
+          contentHeight > 0 &&
+          viewportHeight > 0;
+        const maxOffset = canClamp
+          ? Math.max(0, contentHeight - viewportHeight)
+          : y;
         const targetY = Math.min(y, maxOffset);
         scrollView.scrollTo({ y: targetY, animated: true });
-        // A scroll that does not move never emits a settle event.
         if (
           Math.abs(scrollYShared.value - targetY) <= SCROLL_OFFSET_EPSILON_PX
         ) {
           focusUncountedHeader();
           return;
         }
-        // VoiceOver and TalkBack miss a header that is still moving.
         pendingUncountedHeaderFocusRef.current = true;
         clearUncountedFocusTimeout();
         uncountedFocusTimeoutRef.current = setTimeout(() => {
@@ -529,6 +533,7 @@ const MyProfileView: React.FC = () => {
   const handleUncountedNotePress = useCallback(() => {
     if (activeTab !== uncountedTarget.tab) {
       pendingUncountedScrollRef.current = true;
+      scrollContentSizeStaleRef.current = true;
       setActiveTab(uncountedTarget.tab);
       return;
     }
@@ -1021,6 +1026,16 @@ const MyProfileView: React.FC = () => {
             }}
             onContentSizeChange={(_width: number, height: number) => {
               scrollContentHeightRef.current = height;
+              if (!scrollContentSizeStaleRef.current) {
+                return;
+              }
+              scrollContentSizeStaleRef.current = false;
+              if (
+                pendingUncountedHeaderFocusRef.current ||
+                pendingUncountedScrollRef.current
+              ) {
+                scrollToUncountedSection();
+              }
             }}
             onMomentumScrollEnd={handleMomentumScrollEnd}
             onScrollEndDrag={handleScrollEndDrag}
