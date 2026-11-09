@@ -135,12 +135,21 @@ describe('PerpsHomeView', () => {
   });
 
   it('shows and dismisses an eligible Terminal outreach campaign', async () => {
+    // The fixture's selected account enables the outreach query on the first
+    // render. Leave the session profile unset: a profile that resolves after
+    // mount changes the query key, aborts the in-flight request, and makes the
+    // banner wait on a second round trip.
     renderPerpsHomeView({
       overrides: eligibleOverrides,
     });
 
+    // Waits on the single Terminal outreach request keyed by the account.
     expect(
-      await screen.findByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
+      await screen.findByTestId(
+        PerpsOutreachBannerSelectorsIDs.BANNER,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
     ).toBeOnTheScreen();
 
     fireEvent.press(

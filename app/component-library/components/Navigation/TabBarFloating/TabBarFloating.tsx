@@ -97,7 +97,7 @@ const TabBarFloating = ({
   const handleSearchPress = useCallback(() => {
     playImpact(ImpactMoment.TabChange);
     trackExploreSearchOpened('nav_bar');
-    navigation.navigate(Routes.EXPLORE_SEARCH);
+    navigation.navigate(Routes.EXPLORE_SEARCH, { entryPoint: 'nav_bar' });
   }, [navigation]);
 
   // Tabs that stay mounted on blur (Explore) can only clean up via `onLeave`,

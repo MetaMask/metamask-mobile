@@ -14,7 +14,10 @@ import {
   SocialV1Variant,
 } from '../SocialV1View/abTestConfig';
 import type { SocialShellTab } from '../shell/types';
-import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
+import {
+  ensureSocialTermsAccepted,
+  hasAcceptedSocialTerms,
+} from '../terms/socialTermsAcceptance';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
@@ -108,6 +111,15 @@ const ensureSocialProfileCreated = (
   navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   return false;
 };
+
+/**
+ * Whether `navigateToSocialTab` would open the tab itself rather than
+ * redirecting to terms, profile setup, or onboarding.
+ */
+export const canOpenSocialTabDirectly = (): boolean =>
+  (!isSocialV1Treatment() ||
+    (hasAcceptedSocialTerms() && hasCreatedSocialProfile())) &&
+  !shouldShowSocialLeaderboardOnboarding();
 
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,
@@ -209,6 +221,23 @@ export const navigateToSocialTab = (
     return;
   }
   navigate(Routes.SOCIAL.TAB, toHomeRouteParams(params));
+};
+
+/**
+ * Leaves profile onboarding after **Let's go** on the manual path. Pops the
+ * onboarding screen off the stack and selects the Social tab under Home, so the
+ * bottom tab bar stays visible and Back returns to the previous screen.
+ *
+ * @param navigation - The onboarding screen's navigation object.
+ */
+export const finishProfileOnboardingToSocialTab = (
+  navigation: Pick<AppNavigationProp, 'navigate'>,
+): void => {
+  navigation.navigate(
+    Routes.HOME_TABS,
+    { screen: Routes.SOCIAL.TAB },
+    { pop: true },
+  );
 };
 
 /**

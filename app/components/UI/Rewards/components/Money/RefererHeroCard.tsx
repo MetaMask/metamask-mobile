@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -11,6 +13,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import type {
   ReferralCodeView,
   ReferralLocalizedText,
@@ -20,7 +24,7 @@ import ShareCodeSheet from './ShareCodeSheet';
 import MoneyHeroErrorBanner from './MoneyHeroErrorBanner';
 import MoneyHeroIdentityHeader from './MoneyHeroIdentityHeader';
 import MoneyMetricCard from './MoneyMetricCard';
-import { SHOW_TRADING_COMMISSIONS } from './constants';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { fillOfferEndsIn } from './fillOfferEndsIn';
 import { formatMusdBaseUnits } from '../../utils/formatUtils';
 import { earnedByOthersLifetime } from '../../utils/earningsSummaryTotals';
@@ -58,7 +62,23 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
   referralCode,
   localizedText,
 }) => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const commissionsInfoDescription = localizedText.copyTradingInfoDescription;
+  const openCommissionsInfo = useCallback(() => {
+    if (!commissionsInfoDescription) {
+      return;
+    }
+    navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
+      title: localizedText.tradingCommissionsSection,
+      description: commissionsInfoDescription,
+    });
+  }, [
+    commissionsInfoDescription,
+    localizedText.tradingCommissionsSection,
+    navigation,
+  ]);
   const {
     referralMeEntry,
     earningsSummary,
@@ -158,7 +178,7 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
           isLoading={isEarningsLoading}
           testID={REFERER_HERO_CARD_TEST_IDS.REFERRALS_TOTAL}
         />
-        {SHOW_TRADING_COMMISSIONS ? (
+        {showTradingCommissions ? (
           <MoneyMetricCard
             iconName={IconName.Copy}
             label={localizedText.tradingCommissionsSection}
@@ -170,6 +190,9 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
             }
             caption={localizedText.recordedEarnings}
             isLoading={isEarningsLoading}
+            onInfoPress={
+              commissionsInfoDescription ? openCommissionsInfo : undefined
+            }
             testID={REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL}
           />
         ) : null}

@@ -41,6 +41,8 @@ export interface HomeTabDefinition {
    * so a listener can decide first. Programmatic `navigate` still selects it.
    */
   tabBarSelectionEnabled?: boolean;
+  /** Native iOS 26 bar only. Also restored when the user switches tabs. */
+  initialParams?: object;
   isSelected?: (rootScreenName: string) => boolean;
   hidesTabBarFor?: (route: HomeTabRoute) => boolean;
 }
