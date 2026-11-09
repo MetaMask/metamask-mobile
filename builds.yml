@@ -438,6 +438,7 @@ builds:
     signing: *signing_uat
     env:
       <<: [*api_uat, *perf_session]
+      MM_PERF_SESSION_ENABLED: 'true' # TEMP: Social perf run, do not merge
       METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
       RAMP_INTERNAL_BUILD: 'true'
