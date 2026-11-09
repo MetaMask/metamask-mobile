@@ -26,11 +26,11 @@ export const BUDGET_RULES = [
     guardrailMs: 1411,
   },
   {
-    // Derived with no `span.op` or `result` filter, so other ops and failed searches count.
+    // Re-derived Nov 9 with `span.op` and `result:success`: Oct 12–26 p90 + 25%.
     label: 'Mobile Swap Token Search (mid-tier Android)',
     projectId: MOBILE,
-    query: `environment:production span.name:"Swap Token Search" ${MOBILE_MID_TIER}`,
-    guardrailMs: 1845,
+    query: `environment:production span.name:"Swap Token Search" span.op:bridge.data_fetch result:success ${MOBILE_MID_TIER}`,
+    guardrailMs: 1810,
   },
   {
     // Not in the proposal: Oct 23 – Nov 6 p90 plus its headroom rule.
@@ -40,35 +40,35 @@ export const BUDGET_RULES = [
     guardrailMs: 3489,
   },
   {
-    // Derived with no `span.op` filter.
+    // Re-derived Nov 9 with `span.op`: Oct 12–26 p90 + 15%.
     label: 'Mobile Swap Quote Fetch (mid-tier Android)',
     projectId: MOBILE,
-    query: `environment:production span.name:"Swap Quote Fetch" result:success ${MOBILE_MID_TIER}`,
-    guardrailMs: 5199,
+    query: `environment:production span.name:"Swap Quote Fetch" span.op:bridge.data_fetch result:success ${MOBILE_MID_TIER}`,
+    guardrailMs: 5218,
   },
-  // Extension guardrails were derived with no `result` filter.
+  // Extension guardrails re-derived Nov 9 with `result:success`: Oct 12–26 p90 + 50%.
   {
     label: 'Extension Swap View Loaded',
     projectId: EXTENSION,
-    query: 'environment:production span.name:"Swap View Loaded" span.op:bridge.screen.performance',
-    guardrailMs: 2400,
+    query: 'environment:production span.name:"Swap View Loaded" span.op:bridge.screen.performance result:success',
+    guardrailMs: 2395,
   },
   {
     label: 'Extension Swap Token Search',
     projectId: EXTENSION,
-    query: 'environment:production span.name:"Swap Token Search" span.op:bridge.data_fetch',
-    guardrailMs: 965,
+    query: 'environment:production span.name:"Swap Token Search" span.op:bridge.data_fetch result:success',
+    guardrailMs: 985,
   },
   {
     label: 'Extension Swap Popular Tokens Fetch',
     projectId: EXTENSION,
-    query: 'environment:production span.name:"Swap Popular Tokens Fetch" span.op:bridge.data_fetch',
-    guardrailMs: 1810,
+    query: 'environment:production span.name:"Swap Popular Tokens Fetch" span.op:bridge.data_fetch result:success',
+    guardrailMs: 1685,
   },
   {
     label: 'Extension Swap Quote Fetch',
     projectId: EXTENSION,
-    query: 'environment:production span.name:"Swap Quote Fetch" span.op:bridge.data_fetch',
-    guardrailMs: 3385,
+    query: 'environment:production span.name:"Swap Quote Fetch" span.op:bridge.data_fetch result:success',
+    guardrailMs: 3125,
   },
 ];

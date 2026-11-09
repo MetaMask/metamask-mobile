@@ -1,5 +1,5 @@
-# Daily Swaps performance budgets check: posts rules over their guardrail or
-# not evaluable to Slack. Rules: .github/scripts/swaps/swaps-perf-budgets.config.mjs.
+# Daily Swaps performance budgets check. Posts to Slack every day: an all-clear,
+# a breach list, or a failure notice. Rules: .github/scripts/swaps/swaps-perf-budgets.config.mjs.
 # Secrets: SWAPS_SENTRY_TOKEN (Sentry, org:read) and SLACK_BOT_TOKEN, which must
 # be invited to the channel set in the config.
 
