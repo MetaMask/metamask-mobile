@@ -16,7 +16,7 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,6 +54,10 @@ import {
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
 } from '../../QuickBuy';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import type { SocialV1FeedItem } from '../../SocialFeed/types';
 import { chainNameToId } from '../../SocialFeed/utils/chainMapping';
 import PriceChartContext, {
@@ -263,6 +267,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = useIsFocused();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
 
@@ -541,6 +546,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     [],
   );
   const closeCopyTrade = useCallback(() => setCopyTrade(null), []);
+  const handlePostTradeShareReopen = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
+      setCopyTrade({ target, copyTradeOrigin });
+    },
+    [],
+  );
+  usePostTradeShareReopen(
+    handlePostTradeShareReopen,
+    isFocused ? PostTradeShareOwner.tokenDetails : undefined,
+  );
   // Reads the same query the tab itself renders from: identical key, so
   // react-query serves both from one fetch rather than requesting twice.
   const {
@@ -1027,6 +1042,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           initialTradeMode="buy"
           analyticsContext={{ source: 'trader_feed' }}
           copyTradeOrigin={copyTrade?.copyTradeOrigin}
+          postTradeShare
+          postTradeShareOwner={PostTradeShareOwner.tokenDetails}
         />
       </View>
     </PriceChartProvider>
