@@ -5,14 +5,14 @@ A long scroll screen whose **root** subscribes to live data (price streams, cand
 1. **Scope live data to the section that renders it**, so a tick re-renders a leaf, not the screen.
 2. **Unmount and pause sections far from the viewport** with `ViewportLifecycle`, so off-screen sections stop rendering and stop their work.
 
-Measured on `PerpsMarketDetailsView` (iPhone, dev client, Perf Monitor, idle at the bottom of BTC details):
+Measured on `PerpsMarketDetailsView`: one iPhone, dev client, Perf Monitor, BTC, no open position, idle about 30 seconds. Re-render rates come from a temporary counter used during the investigation and removed before this change.
 
-| Version                 | JS thread FPS                   | Screen root re-renders |
-| ----------------------- | ------------------------------- | ---------------------- |
-| Baseline                | drops to 0, oscillates below 30 | ~2.8/s                 |
-| Unmount off-screen only | 31–46                           | ~2.8/s                 |
-| Scoped live data only   | 20–30, drops to 9               | ~2.5–2.8/s             |
-| Both                    | stable above 50                 | ~0.6–0.9/s             |
+| Version                 | Chart on screen                    | Scrolled to the bottom                | Screen root re-renders   |
+| ----------------------- | ---------------------------------- | ------------------------------------- | ------------------------ |
+| Baseline                | drops to 0, oscillates below 30    | same                                  | ~2.8/s                   |
+| Unmount off-screen only | drops to 2–3                       | 31–46                                 | ~2.8/s                   |
+| Scoped live data only   | 20–30, drops to 9                  | same, because the candles never pause | ~2.5–2.8/s               |
+| Both                    | usually 43–53, rare drops below 30 | 54–60, occasional ~37                 | ~0.6–0.9/s at the bottom |
 
 Unmounting alone leaves the streams in the root, which keeps redrawing the screen. Scoping alone leaves the chart mounted and streaming everywhere on the page.
 
