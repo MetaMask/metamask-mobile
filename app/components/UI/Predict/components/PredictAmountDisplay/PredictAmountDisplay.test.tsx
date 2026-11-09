@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Platform, StyleSheet, Text } from 'react-native';
 import { mockTheme } from '../../../../../util/theme';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
 import PredictAmountDisplay from './PredictAmountDisplay';
@@ -26,6 +26,25 @@ describe('PredictAmountDisplay', () => {
   });
 
   describe('Rendering', () => {
+    it('renders the amount in Grotzec Cond Bold', () => {
+      const { getByTestId, getByText } = render(
+        <PredictAmountDisplay amount="1000" />,
+      );
+      const amountGlyphs = getAmountGlyphs(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      );
+
+      expect(StyleSheet.flatten(getByText('$').props.style)).toEqual(
+        expect.objectContaining({ fontFamily: 'GrotzecCond-Bold' }),
+      );
+      expect(amountGlyphs).not.toHaveLength(0);
+      amountGlyphs.forEach((glyph) => {
+        expect(StyleSheet.flatten(glyph.props.style)).toEqual(
+          expect.objectContaining({ fontFamily: 'GrotzecCond-Bold' }),
+        );
+      });
+    });
+
     it('displays amount with dollar sign', () => {
       const amount = '1000';
 
@@ -395,10 +414,17 @@ describe('PredictAmountDisplay', () => {
       const cursor = getByTestId('cursor');
 
       expect(cursor).toHaveStyle({
-        backgroundColor: mockTheme.colors.text.default,
-        height: 43,
-        marginLeft: 0,
-        width: 2,
+        backgroundColor: mockTheme.colors.text.muted,
+        height: Math.round(56 * 0.95),
+        marginHorizontal: 0,
+        width: 1,
+        transform: [
+          {
+            translateY: Math.round(
+              56 * (Platform.OS === 'android' ? 0.02 : -0.04),
+            ),
+          },
+        ],
       });
     });
   });
