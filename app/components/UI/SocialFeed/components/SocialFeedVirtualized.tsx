@@ -327,8 +327,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   }, [livePrices]);
 
   // Read at tap time so the row callback stays stable across socket updates.
-  // A card with a held-back update (paused or scrolled away from the top)
-  // shows an older copy than the socket already sent.
+  // A post held behind the pill (paused, or scrolled away from the top) shows
+  // an older copy than the socket already sent.
   const liveRef = useRef(live);
   liveRef.current = live;
   const handlePositionPress = useMemo(

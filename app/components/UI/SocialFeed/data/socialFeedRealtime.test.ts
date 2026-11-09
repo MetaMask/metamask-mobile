@@ -11,6 +11,8 @@ import {
   applyRealtimeEventToRow,
   countPendingNewPosts,
   foldRealtimeRows,
+  getRowFeedItemId,
+  getRowSortTimestamp,
   getVisiblePendingNewCount,
   mergeRealtimeFeedItem,
   mergeRealtimeRows,
@@ -168,6 +170,81 @@ describe('socialFeedRealtime', () => {
     });
   });
 
+  describe('toSocialFeedRow', () => {
+    it('keys a row on the feed item id the HTTP feed returns', () => {
+      const row = buildRow({
+        positionId: 'pos-a',
+        feedItemId: 'item-a',
+      } as Partial<CoreFeedItem>);
+
+      const live = toSocialFeedRow(row);
+
+      expect(live.feedItemId).toBe('item-a');
+      expect(live.stableId).toBe('item-a');
+    });
+
+    it('keys a row on its position when the feed returns no item id', () => {
+      const row = buildRow({ positionId: 'pos-a' });
+
+      const live = toSocialFeedRow(row);
+
+      expect(live.feedItemId).toBe('pos-a');
+      expect(live.stableId).toBe(row.item.id);
+    });
+
+    it('gives two items of one position distinct identities', () => {
+      const comment = buildRow({
+        positionId: 'pos-a',
+        feedItemId: 'item-comment',
+      } as Partial<CoreFeedItem>);
+      const trade = buildRow({
+        positionId: 'pos-a',
+        feedItemId: 'item-trade',
+      } as Partial<CoreFeedItem>);
+
+      const merged = mergeRealtimeRows({
+        serverRows: [comment, trade],
+        socketRows: [],
+        revisedRows: new Map(),
+        pending: new Map(),
+      });
+
+      expect(merged.map((row) => row.stableId)).toEqual([
+        'item-comment',
+        'item-trade',
+      ]);
+    });
+  });
+
+  describe('getRowFeedItemId', () => {
+    it('prefers the feed item id over the position id', () => {
+      expect(
+        getRowFeedItemId(
+          buildRow({ feedItemId: 'item-a' } as Partial<CoreFeedItem>),
+        ),
+      ).toBe('item-a');
+    });
+  });
+
+  describe('getRowSortTimestamp', () => {
+    it('places a row at the time the server placed it', () => {
+      const row = buildRow({
+        timestamp: 1_700_000_000,
+        occurredAt: '2026-01-01T00:00:00.000Z',
+      });
+
+      expect(getRowSortTimestamp(row)).toBe(
+        Date.parse('2026-01-01T00:00:00.000Z'),
+      );
+    });
+
+    it('falls back to the latest trade when the row has no placement', () => {
+      const row = buildRow({ timestamp: 1_700_000_000 });
+
+      expect(getRowSortTimestamp(row)).toBe(row.item.timestamp);
+    });
+  });
+
   describe('applyRealtimeEventToRow', () => {
     it('preserves identity and ordering while revising a loaded row', () => {
       const row = buildRow();
@@ -195,6 +272,13 @@ describe('socialFeedRealtime', () => {
       const row = applyRealtimeEventToRow(buildRow(), event, undefined, true);
 
       expect(row?.realtimeEventId).toBe('event-2');
+    });
+
+    it('identifies a socket-only row by its feed item id', () => {
+      const row = buildSocketRow(buildEvent({ feedItemId: 'item-new' }));
+
+      expect(row.stableId).toBe('item-new');
+      expect(row.item.id).toBe('item-new');
     });
 
     it('keeps the entrance event ID across later revisions', () => {
