@@ -79,8 +79,8 @@ async function main() {
   if (!message) {
     console.log(
       results.length > 0
-        ? '\nSome queries failed and the rest are within guardrails; no Slack post.'
-        : '\nEvery query failed, so no rules could be checked; no Slack post.',
+        ? '\nSome queries failed and the rest are within guardrails; the failure notice will post instead.'
+        : '\nEvery query failed, so no rules could be checked; the failure notice will post instead.',
     );
   } else if (dryRun) {
     console.log(`\nDry run; would post to Slack:\n\n${message}`);
