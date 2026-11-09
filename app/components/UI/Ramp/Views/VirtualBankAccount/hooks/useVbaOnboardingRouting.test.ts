@@ -80,6 +80,7 @@ const mockReadSessionStatus = jest.fn();
 const mockGetSessionStatusForVendor = jest.fn();
 const mockStartSession = jest.fn();
 const mockReset = jest.fn();
+const mockMessengerCall = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
 const mockRampsState: {
   autoramps: { id: string; walletAddress: string; status: string }[];
@@ -108,6 +109,9 @@ jest.mock('../../../../../../core/Engine', () => ({
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
     },
+  },
+  controllerMessenger: {
+    call: (...args: unknown[]) => mockMessengerCall(...args),
   },
 }));
 
@@ -1201,6 +1205,24 @@ describe('resolveVbaOnboarding', () => {
     );
     expect(mockReset).toHaveBeenCalledTimes(1);
     expect(mockHydrate).toHaveBeenCalled();
+  });
+
+  it('keeps the stored email when partner identity has no verified email', async () => {
+    mockKycState.email = 'user@example.com';
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockMessengerCall.mockRejectedValue({ status: 422 });
+    mockStartSession.mockRejectedValue(
+      new Error(
+        'KycController already initialized with a different geoCountry',
+      ),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({ status: 'error' });
+    expect(mockReset).not.toHaveBeenCalled();
+    expect(mockStartSession).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).not.toHaveBeenCalled();
   });
 
   it('does not reset for an email mismatch and returns an error', async () => {

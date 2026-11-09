@@ -7,12 +7,28 @@ const GEO_MISMATCH = new Error(
   'KycController already initialized with a different geoCountry',
 );
 
+const mockKycState: { email: string | null } = { email: null };
+const mockMessengerCall = jest.fn();
+
+const partnerTokenWithEmail = (email = 'user@example.com'): string => {
+  const payload = Buffer.from(
+    JSON.stringify({ ext: { email, email_verified: true } }),
+  ).toString('base64url');
+  return `header.${payload}.signature`;
+};
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KycController: {
+      get state() {
+        return mockKycState;
+      },
       startSession: jest.fn(),
       reset: jest.fn(),
     },
+  },
+  controllerMessenger: {
+    call: (...args: unknown[]) => mockMessengerCall(...args),
   },
 }));
 
@@ -68,8 +84,10 @@ describe('isGeoCountryMismatch', () => {
 describe('startVbaKycSession', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockKycState.email = null;
     mockController.startSession.mockResolvedValue({ id: 'session-1' });
     mockController.reset.mockResolvedValue(undefined);
+    mockMessengerCall.mockResolvedValue(partnerTokenWithEmail());
   });
 
   it('starts the session without resetting when there is no mismatch', async () => {
@@ -107,6 +125,56 @@ describe('startVbaKycSession', () => {
     expect(mockController.startSession).toHaveBeenCalledTimes(2);
   });
 
+  it('does not reset when the stored email is the only copy', async () => {
+    mockKycState.email = 'user@example.com';
+    mockMessengerCall.mockRejectedValue({ status: 422 });
+    mockController.startSession.mockRejectedValueOnce(GEO_MISMATCH);
+
+    await expect(startVbaKycSession(resumeParams)).rejects.toBe(GEO_MISMATCH);
+    expect(mockController.reset).not.toHaveBeenCalled();
+    expect(mockController.startSession).toHaveBeenCalledTimes(1);
+    expect(mockMessengerCall).toHaveBeenCalledWith(
+      'AuthenticationController:getPartnerIdentityToken',
+      ['email'],
+      VBA_KYC_VENDOR,
+    );
+  });
+
+  it('resets when a stored email can be minted again', async () => {
+    mockKycState.email = 'user@example.com';
+    mockController.startSession
+      .mockRejectedValueOnce(GEO_MISMATCH)
+      .mockResolvedValueOnce({ id: 'session-1' });
+
+    await startVbaKycSession(resumeParams);
+
+    expect(mockController.reset).toHaveBeenCalledTimes(1);
+    expect(mockController.startSession).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not reset when the partner token has no verified email', async () => {
+    mockKycState.email = 'user@example.com';
+    const payload = Buffer.from(
+      JSON.stringify({
+        ext: { email: 'user@example.com', email_verified: false },
+      }),
+    ).toString('base64url');
+    mockMessengerCall.mockResolvedValue(`header.${payload}.signature`);
+    mockController.startSession.mockRejectedValueOnce(GEO_MISMATCH);
+
+    await expect(startVbaKycSession(resumeParams)).rejects.toBe(GEO_MISMATCH);
+    expect(mockController.reset).not.toHaveBeenCalled();
+  });
+
+  it('does not reset when confirming the partner email fails', async () => {
+    mockKycState.email = 'user@example.com';
+    mockMessengerCall.mockRejectedValue(new Error('network down'));
+    mockController.startSession.mockRejectedValueOnce(GEO_MISMATCH);
+
+    await expect(startVbaKycSession(resumeParams)).rejects.toBe(GEO_MISMATCH);
+    expect(mockController.reset).not.toHaveBeenCalled();
+  });
+
   it('does not reset for other errors', async () => {
     const otherError = new Error('network down');
     mockController.startSession.mockRejectedValueOnce(otherError);
@@ -128,6 +196,31 @@ describe('startVbaKycSession', () => {
 
     expect(mockController.reset).toHaveBeenCalledTimes(1);
     expect(mockController.startSession).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not share overlapping calls that carry different AAL2 tokens', async () => {
+    const resolvers: ((value: unknown) => void)[] = [];
+    mockController.startSession.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvers.push(resolve);
+        }),
+    );
+
+    const first = startVbaKycSession({
+      vendor: VBA_KYC_VENDOR,
+      aal2Token: 'token-a',
+    });
+    const second = startVbaKycSession({
+      vendor: VBA_KYC_VENDOR,
+      aal2Token: 'token-b',
+    });
+
+    expect(mockController.startSession).toHaveBeenCalledTimes(2);
+    resolvers[0]?.({ id: 'session-1' });
+    resolvers[1]?.({ id: 'session-1' });
+    await Promise.all([first, second]);
+    expect(mockController.reset).not.toHaveBeenCalled();
   });
 
   it('does not share a call with an AAL2 token and a call without one', async () => {
