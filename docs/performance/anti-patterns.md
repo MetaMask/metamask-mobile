@@ -69,6 +69,7 @@ The most common "opening a screen is slow" cause: pagers/tabs/carousels mounting
 Cost lives in the subscription/stream layer, not the render code. Watch for: N per-subscriber subscriptions instead of one shared; a per-subscriber initial snapshot that copies the whole dataset; missing throttling; `key={filter}` remounting a list and tearing down all subscribers. "Slow to open" here is usually a **warm-vs-cold cache** lifecycle, not a render bug.
 
 - ✅ One shared subscription + throttle + prewarm; seed only the requested keys; filter data instead of remounting the list.
+- ❌ A long scroll screen whose **root** calls the stream hooks: every tick re-renders every section, on-screen or not. ✅ Move each hook into the leaf that renders it, and unmount + pause sections far from the viewport → [offscreen-sections.md](./offscreen-sections.md).
 - **Find:** trace each per-item subscription hook into its manager before flagging it.
 
 ## Bundle & app size
