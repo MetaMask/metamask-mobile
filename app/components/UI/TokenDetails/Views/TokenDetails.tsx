@@ -520,7 +520,6 @@ const TokenDetails: React.FC<{
     setChartPricePositive(isPositive);
   }, []);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const refreshTronAssets = useFreshTronAssets(token.chainId);
   useFocusEffect(
     useCallback(() => {
@@ -529,18 +528,15 @@ const TokenDetails: React.FC<{
       }
     }, [refreshTronAssets, token]),
   );
-  ///: END:ONLY_INCLUDE_IF
 
   const {
     balance,
     fiatBalance,
     balanceFiatUsd,
     tokenFormattedBalance,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
-    ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -743,11 +739,9 @@ const TokenDetails: React.FC<{
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
         mostRecentOrder={mostRecentOrder}
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}
-        ///: END:ONLY_INCLUDE_IF
       />
       {(txLoading || hasTransactions) && (
         <ActivityHeader
