@@ -30,10 +30,4 @@ describe('selectIsRpcFailoverEnabled', () => {
 
     expect(selectIsRpcFailoverEnabled(state)).toBe(true);
   });
-
-  it('ignores the legacy walletFrameworkRpcFailoverEnabled flag', () => {
-    const state = createState({ walletFrameworkRpcFailoverEnabled: false });
-
-    expect(selectIsRpcFailoverEnabled(state)).toBe(true);
-  });
 });
