@@ -43,7 +43,8 @@ const PositionSheetPostRow: React.FC<PositionSheetPostRowProps> = ({
       <Box twClassName="pt-1.5">
         <TraderAvatar
           imageUrl={author.avatarUri}
-          address={author.id}
+          address={author.address}
+          profileId={author.id}
           size={AVATAR_SIZE}
         />
       </Box>

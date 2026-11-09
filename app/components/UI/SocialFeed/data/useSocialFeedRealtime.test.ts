@@ -277,6 +277,47 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.realtime.pendingNewCount).toBe(1);
   });
 
+  it('handles updates to loaded posts away from the top straight away', () => {
+    const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
+    const { result } = renderRealtime({ rows, nearTop: false });
+
+    emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
+
+    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99);
+    expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
+    expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
+    expect(result.current?.realtime.pendingNewCount).toBe(0);
+  });
+
+  it('handles a stale update to a loaded post away from the top without applying it', () => {
+    const rows = [buildRow({ positionId: 'pos-a', revision: 3 })];
+    const { result } = renderRealtime({ rows, nearTop: false });
+    const before = result.current?.posts[0]?.position?.pnlValueUsd;
+
+    emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
+
+    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(before);
+    expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
+  });
+
+  it('handles a held new post as new away from the top once its server copy loads', async () => {
+    const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
+    const { result, rerender } = renderRealtime({ nearTop: false });
+    emit(buildEvent('pos-a', { revision: 1 }));
+
+    rerender({ rows, nearTop: false });
+    emit(buildEvent('pos-a', { revision: 2 }));
+
+    expect(result.current?.posts).toEqual([]);
+    expect(result.current?.realtime.pendingNewCount).toBe(1);
+
+    rerender({ rows, nearTop: true });
+
+    await waitFor(() => expect(result.current?.posts).toHaveLength(1));
+    expect(result.current?.posts[0]?.realtimeEventId).toBe('event-pos-a');
+    expect(result.current?.realtime.pendingNewCount).toBe(0);
+  });
+
   it('drops new posts the filter rejects before holding or counting them', () => {
     const filterPost = (post: SocialV1FeedPost) =>
       post.position?.positionId !== 'pos-rejected';
@@ -301,22 +342,22 @@ describe('useSocialFeedRealtime', () => {
     expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-b']);
   });
 
-  it('holds updates to loaded posts while paused without counting them', async () => {
+  it('handles updates to loaded posts while paused without counting them', async () => {
     const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
     const { result, rerender } = renderRealtime({ rows, paused: true });
     emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
-    const heldPnl = result.current?.posts[0]?.position?.pnlValueUsd;
-    const heldCount = result.current?.realtime.pendingNewCount;
+
+    await waitFor(() =>
+      expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99),
+    );
+    const pendingCount = result.current?.realtime.pendingNewCount;
     const wasHeld = result.current?.realtime.hasPendingUpdate('pos-a');
 
     rerender({ rows, paused: false });
 
-    expect(heldPnl).not.toBe(99);
-    expect(heldCount).toBe(0);
-    expect(wasHeld).toBe(true);
-    await waitFor(() =>
-      expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99),
-    );
+    expect(pendingCount).toBe(0);
+    expect(wasHeld).toBe(false);
+    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99);
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
     expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
   });

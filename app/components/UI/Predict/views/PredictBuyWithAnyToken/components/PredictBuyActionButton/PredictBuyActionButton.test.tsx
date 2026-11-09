@@ -2,6 +2,7 @@ import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import PredictBuyActionButton from './PredictBuyActionButton';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { mockTheme } from '../../../../../../../util/theme';
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -19,27 +20,6 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 jest.mock('../../../../utils/format', () => ({
   formatCents: jest.fn((value: number) => `${value}¢`),
 }));
-
-jest.mock(
-  '../../../../../../../component-library/components-temp/Buttons/ButtonHero',
-  () => {
-    const { View: RNView, Text: RNText } = jest.requireActual('react-native');
-    return function MockButtonHero(props: Record<string, unknown>) {
-      return (
-        <RNView
-          testID={props.testID as string}
-          style={props.style}
-          accessible
-          accessibilityState={{ disabled: props.disabled as boolean }}
-        >
-          <RNText onPress={props.onPress as () => void}>
-            {props.children as React.ReactNode}
-          </RNText>
-        </RNView>
-      );
-    };
-  },
-);
 
 describe('PredictBuyActionButton', () => {
   const mockOnPress = jest.fn();
@@ -296,6 +276,23 @@ describe('PredictBuyActionButton', () => {
       expect(screen.getByText('Change Payment Method')).toBeOnTheScreen();
     });
 
+    it('renders an enabled button', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isChangePaymentMode
+          testID="action-button"
+        />,
+      );
+
+      expect(screen.getByTestId('action-button')).toBeEnabled();
+    });
+
     it('does not render outcome or share price', () => {
       renderWithProvider(
         <PredictBuyActionButton
@@ -349,6 +346,24 @@ describe('PredictBuyActionButton', () => {
       );
 
       expect(screen.getByText('Add Funds')).toBeOnTheScreen();
+    });
+
+    it('renders the label in the error text color', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isAddFundsMode
+        />,
+      );
+
+      expect(screen.getByText('Add Funds')).toHaveStyle({
+        color: mockTheme.colors.error.default,
+      });
     });
 
     it('does not render outcome or share price', () => {

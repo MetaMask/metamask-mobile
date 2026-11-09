@@ -4,6 +4,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import socialTermsOfUseContent from '../../../../../util/termsOfUse/socialTermsOfUseContent';
 import SocialTermsSheet from './SocialTermsSheet';
 import { SocialTermsSheetSelectorsIDs } from './SocialTermsSheet.testIds';
 
@@ -78,6 +79,57 @@ const renderSheet = () => {
 describe('SocialTermsSheet', () => {
   beforeEach(() => {
     mockInjectJavaScript.mockClear();
+  });
+
+  it('scrolls to the end on the first agreement tap and checks it on the second', () => {
+    const { getByTestId, queryByTestId, onAgree, UNSAFE_getByType } =
+      renderSheet();
+    const scrollToEndSpy = jest.fn();
+    UNSAFE_getByType(ScrollView).instance.scrollToEnd = scrollToEndSpy;
+    const checkbox = getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX);
+
+    fireEvent.press(checkbox);
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
+
+    expect(scrollToEndSpy).toHaveBeenCalledWith({ animated: true });
+    expect(onAgree).not.toHaveBeenCalled();
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+
+    fireEvent.scroll(
+      getByTestId(SocialTermsSheetSelectorsIDs.BODY),
+      scrollToEnd,
+    );
+    fireEvent.press(checkbox);
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
+
+    expect(
+      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).not.toBeOnTheScreen();
+    expect(onAgree).toHaveBeenCalledTimes(1);
+  });
+
+  it('scrolls hosted terms on the first agreement tap', () => {
+    const onAgree = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html="<html><body>Terms</body></html>"
+        onAgree={onAgree}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
+
+    expect(mockInjectJavaScript).toHaveBeenCalledWith(
+      expect.stringContaining("behavior: 'smooth'"),
+    );
+    expect(onAgree).not.toHaveBeenCalled();
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
   });
 
   it('keeps Agree disabled and shows the scroll helper before the end is reached', () => {
@@ -158,6 +210,25 @@ describe('SocialTermsSheet', () => {
     expect(
       queryByTestId(SocialTermsSheetSelectorsIDs.BODY),
     ).not.toBeOnTheScreen();
+  });
+
+  it('pins the bundled terms document and WebView to the app background', () => {
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html={socialTermsOfUseContent}
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+    const webView = getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW);
+    const backgroundColor = webView.props.style.backgroundColor as string;
+
+    expect(webView.props.containerStyle).toEqual({ backgroundColor });
+    expect(webView.props.overScrollMode).toBe('never');
+    expect(webView.props.source.html).toContain(
+      `--terms-bg: ${backgroundColor}`,
+    );
+    expect(webView.props.source.html).not.toContain('prefers-color-scheme');
   });
 
   it('does not hide the scroll-to-bottom button when a WebView native scroll reports the end', () => {

@@ -244,6 +244,7 @@ const NowTabContent: React.FC<TabProps> = ({
   }, [refresh.trigger, refreshWhatsHappening]);
 
   const displayedPredictions = usePredictTrendingFeed({
+    tab: 'now',
     refresh,
     enabled: isPredictEnabled,
   });

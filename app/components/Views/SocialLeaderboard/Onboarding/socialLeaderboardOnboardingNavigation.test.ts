@@ -5,8 +5,13 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { resolveABTestAssignment } from '../../../../util/abTest';
-import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
 import {
+  ensureSocialTermsAccepted,
+  hasAcceptedSocialTerms,
+} from '../terms/socialTermsAcceptance';
+import {
+  canOpenSocialTabDirectly,
+  finishProfileOnboardingToSocialTab,
   getFollowTradingHomeRoute,
   hasSeenSocialLeaderboardOnboarding,
   isSocialV1Treatment,
@@ -20,6 +25,7 @@ import {
 jest.mock('../terms/socialTermsAcceptance', () => ({
   ...jest.requireActual('../terms/__mocks__/socialTermsAcceptance'),
   ensureSocialTermsAccepted: jest.fn(() => true),
+  hasAcceptedSocialTerms: jest.fn(() => true),
 }));
 jest.mock('../../../../core/redux', () => ({
   __esModule: true,
@@ -451,6 +457,46 @@ describe('socialLeaderboardOnboardingNavigation', () => {
     });
   });
 
+  describe('canOpenSocialTabDirectly', () => {
+    it('is true for Social V1 once terms, profile and onboarding are done', () => {
+      enableSocialV1();
+      mockCreatedSocialProfile();
+      mockGetItemSync.mockReturnValue('true');
+
+      expect(canOpenSocialTabDirectly()).toBe(true);
+    });
+
+    it('is false for Social V1 when the terms are not accepted', () => {
+      enableSocialV1();
+      mockCreatedSocialProfile();
+      mockGetItemSync.mockReturnValue('true');
+      jest.mocked(hasAcceptedSocialTerms).mockReturnValueOnce(false);
+
+      expect(canOpenSocialTabDirectly()).toBe(false);
+    });
+
+    it('is false for Social V1 when no profile exists', () => {
+      enableSocialV1();
+      mockGetItemSync.mockReturnValue('true');
+
+      expect(canOpenSocialTabDirectly()).toBe(false);
+    });
+
+    it('is false while the leaderboard onboarding is still due', () => {
+      enableSocialV1();
+      mockCreatedSocialProfile();
+      mockGetItemSync.mockReturnValue(null);
+
+      expect(canOpenSocialTabDirectly()).toBe(false);
+    });
+
+    it('ignores the V1 terms and profile gates for control', () => {
+      mockGetItemSync.mockReturnValue('true');
+
+      expect(canOpenSocialTabDirectly()).toBe(true);
+    });
+  });
+
   describe('getFollowTradingHomeRoute', () => {
     it('returns the legacy home route for control', () => {
       expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL.V0);
@@ -492,5 +538,20 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
       );
     });
+  });
+});
+
+describe('finishProfileOnboardingToSocialTab', () => {
+  it('pops onboarding back to Home and selects the Social tab', () => {
+    const navigate = jest.fn();
+
+    finishProfileOnboardingToSocialTab({ navigate });
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB },
+      { pop: true },
+    );
   });
 });

@@ -48,6 +48,41 @@ export const acceptSocialTerms = (): Promise<void> => {
 };
 
 /**
+ * Whether ProfileController already has a created Social profile.
+ * An empty `profileId` is the saved "not created" state, not a profile that is
+ * still loading.
+ */
+const hasLoadedSocialProfile = (): boolean => {
+  try {
+    const profileId =
+      ReduxService.store.getState().engine.backgroundState.ProfileController
+        ?.profile?.profileId;
+    return typeof profileId === 'string' && profileId.trim().length > 0;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * A profile with no stored acceptance already accepted the current terms on
+ * another install. Writes that version locally so later reads skip the sheet.
+ * A stored older version is left unchanged so a terms change still re-prompts.
+ */
+export const recordSocialTermsAcceptanceForExistingProfile = (): void => {
+  if (hasAcceptedThisSession) {
+    return;
+  }
+  const stored = StorageWrapper.getItemSync(SOCIAL_TERMS_ACCEPTED);
+  if (stored != null && stored !== '') {
+    return;
+  }
+  if (!hasLoadedSocialProfile()) {
+    return;
+  }
+  acceptSocialTerms().catch(() => undefined);
+};
+
+/**
  * Clears the in-process acceptance and the MMKV key.
  *
  * Wallet reset calls this so the next identity is asked again. Developer
@@ -84,16 +119,13 @@ export const ensureSocialTermsAccepted = (
   navigate: SocialTermsNavigate,
   onAccepted?: () => void,
 ): boolean => {
+  recordSocialTermsAcceptanceForExistingProfile();
   if (hasAcceptedSocialTerms()) {
     return true;
   }
   pendingEntry = onAccepted;
   try {
-    const hasExistingProfile = Boolean(
-      ReduxService.store.getState().engine.backgroundState.ProfileController
-        ?.profile?.profileId,
-    );
-    if (hasExistingProfile) {
+    if (hasLoadedSocialProfile()) {
       navigate(Routes.SOCIAL.PROFILE_ONBOARDING, { termsOnly: true });
     } else {
       navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
