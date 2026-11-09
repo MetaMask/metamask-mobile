@@ -47,6 +47,7 @@ jobs:
         env:
           SEMVER: ${{ inputs.semver-version }}
           IS_OTA: ${{ inputs.is-ota }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
@@ -62,9 +63,16 @@ jobs:
           if [[ "${IS_OTA}" == "true" ]]; then
             echo "is_ota=true" >> "$GITHUB_OUTPUT"
             echo "OTA hotfix: branch release/${SEMVER}-ota; OTA_VERSION v${SEMVER}."
+            STORE=$(gh api "repos/${GITHUB_REPOSITORY}/contents/package.json?ref=release/${SEMVER}-ota" -H 'Accept: application/vnd.github.raw' --jq .version)
+            if ! gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/release/${STORE}" --jq .ref >/dev/null; then
+              echo "::error::release/${STORE} does not exist (store version from package.json on release/${SEMVER}-ota)."
+              exit 1
+            fi
+            echo "release_base=release/${STORE}" >> "$GITHUB_OUTPUT"
           else
             echo "is_ota=false" >> "$GITHUB_OUTPUT"
             echo "Native release/hotfix (patch=${patch})."
+            echo "release_base=stable" >> "$GITHUB_OUTPUT"
           fi
 
           if [ "$patch" -gt 0 ]; then
@@ -74,7 +82,6 @@ jobs:
             echo "Detected non-hotfix (patch=0): using main for checkout and stable for release PR base."
             echo "checkout_base=main" >> "$GITHUB_OUTPUT"
           fi
-          echo "release_base=stable" >> "$GITHUB_OUTPUT"
 
   resolve-previous-ref:
     needs: resolve-bases
@@ -225,7 +232,7 @@ jobs:
           platform: mobile
           github-token: ${{ steps.get-token.outputs.token }}
 
-      - name: Create OTA release PR to stable (if missing)
+      - name: Create OTA release PR (if missing)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         shell: bash
         env:
@@ -239,6 +246,7 @@ jobs:
           BODY="${BODY}"$'\n\n'"- Native semver and build version are **not** bumped."
           BODY="${BODY}"$'\n'"- \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\`."
           BODY="${BODY}"$'\n'"- CHANGELOG.md header and production git tag both use bare \`${SEMVER}\` / \`v${SEMVER}\`; the \`-ota\` suffix is branch-only."
+          BODY="${BODY}"$'\n'"- Do not merge. Close this PR after the production push."
           gh pr create --repo "$GITHUB_REPOSITORY" --draft \
             --base "$RELEASE_BASE" --head "$BRANCH" \
             --title "release: ${SEMVER} (OTA)" \
