@@ -290,6 +290,7 @@ const QRTabSwitcher = () => {
         backdrop="none"
         containerStyle={isGlassHeader ? styles.overlay : undefined}
         style={isGlassHeader ? styles.header : [styles.overlay, styles.header]}
+        twClassName="px-2"
         startButtonIconProps={{
           iconName: IconName.ArrowLeft,
           size: ButtonIconSize.Md,
