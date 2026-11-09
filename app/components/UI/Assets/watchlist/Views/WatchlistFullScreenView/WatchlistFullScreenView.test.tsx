@@ -9,9 +9,12 @@ const mockUseTokenWatchlistQuery = jest.fn();
 const mockUpdateListMutate = jest.fn();
 const mockUseTrackWatchlistPageViewed = jest.fn();
 
+const mockUseSelector = jest.fn();
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
+  useSelector: (selector: (state: unknown) => unknown) =>
+    mockUseSelector(selector),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -191,6 +194,7 @@ describe('WatchlistFullScreenView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
+    mockUseSelector.mockReturnValue(false);
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
@@ -864,6 +868,108 @@ describe('WatchlistFullScreenView', () => {
       expect(queryByTestId('editable-row-eip155:1/erc20:0xbtc')).toBeNull();
       expect(getByTestId('editable-row-eip155:1/erc20:0xsol')).toBeDefined();
       expect(getByTestId('editable-row-eip155:1/erc20:0xeth')).toBeDefined();
+    });
+  });
+
+  describe('glass header', () => {
+    beforeEach(() => {
+      mockUseSelector.mockReturnValue(true);
+    });
+
+    it('renders glass header components when flag is enabled', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.HEADER),
+      ).toBeDefined();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+      ).toBeDefined();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      ).toBeDefined();
+    });
+
+    it('renders CapsuleGlass wrapper for Done button in edit mode with glass header', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+      ).toBeDefined();
+    });
+
+    it('renders CapsuleGlass wrapper for header actions with glass header', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId } = render(<WatchlistFullScreenView />);
+
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+      ).toBeDefined();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      ).toBeDefined();
+    });
+
+    it('hides header end actions when in search mode with glass header', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <WatchlistFullScreenView />,
+      );
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+      );
+
+      expect(
+        queryByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      ).toBeNull();
+    });
+
+    it('renders header without back button when in edit mode with glass header', () => {
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [makeWatchlistToken('eth')],
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <WatchlistFullScreenView />,
+      );
+
+      fireEvent.press(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      );
+
+      expect(
+        queryByTestId(WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON),
+      ).toBeNull();
+      expect(
+        getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+      ).toBeDefined();
     });
   });
 });
