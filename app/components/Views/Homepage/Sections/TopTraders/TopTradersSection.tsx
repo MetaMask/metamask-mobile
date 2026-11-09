@@ -44,6 +44,8 @@ import { useFollowWithNotificationSetup } from '../../../SocialLeaderboard/hooks
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { navigateToSocialV1Profile } from '../../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { rankTradersByMetric } from '../../../SocialLeaderboard/TopTradersView/traderMetric';
 import {
   LEADERBOARD_LANDING_FEED_AB_KEY,
@@ -261,6 +263,17 @@ const TopTradersSection = forwardRef<
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
       const trader = traders.find((t) => t.id === traderId);
+      if (bundleVariant.useSocialV1) {
+        navigateToSocialV1Profile(navigation, {
+          traderId,
+          traderName,
+          traderAddress: trader?.address,
+          traderAvatarUri: trader?.avatarUri,
+          source,
+          traderRank: trader?.rank,
+        });
+        return;
+      }
       navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
@@ -269,7 +282,7 @@ const TopTradersSection = forwardRef<
         traderRank: trader?.rank,
       });
     },
-    [navigation, traders, source],
+    [bundleVariant.useSocialV1, navigation, traders, source],
   );
 
   const handleFollowPress = useCallback(

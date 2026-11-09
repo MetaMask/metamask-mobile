@@ -46,7 +46,7 @@ const PositionSheetFooter = ({
     if (!isClosed) {
       return (
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
           startIconName={IconName.SwapHorizontal}
@@ -102,7 +102,10 @@ const PositionSheetFooter = ({
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={() => onSpotTrade('buy')}
+          onPress={() => {
+            fireImpact(ImpactMoment.PrimaryCTA);
+            onSpotTrade('buy');
+          }}
           style={halfWidth}
           testID={PositionDetailsSheetSelectorsIDs.BUY_BUTTON}
         >
@@ -116,7 +119,7 @@ const PositionSheetFooter = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       gap={3}
-      twClassName="px-4 pt-2 pb-5"
+      twClassName="px-4 pt-4 pb-5"
     >
       {renderActions()}
     </Box>

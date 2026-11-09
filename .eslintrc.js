@@ -94,7 +94,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/hooks/useGetFormattedTokensPerChain.tsx',
   'app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx',
   'app/core/Engine/Engine.ts',
-  'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
@@ -109,6 +108,16 @@ const utilNumberImportBurndownFiles = [
   'app/util/transactions/index.js',
   'app/util/transactions/index.test.ts',
 ];
+
+// Shared by the *.view.test.* and tests/component-view/** overrides so the
+// fake-timer ban cannot drift. Covers the whole jest fake-timer API, `*Async`
+// variants included.
+const cvFakeTimerBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime(Async)?|advanceTimersToNextTimer(Async)?|runAllTimers(Async)?|runOnlyPendingTimers(Async)?|runAllTicks|setSystemTime|clearAllTimers)$/]",
+  message:
+    'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+};
 
 module.exports = {
   root: true,
@@ -187,32 +196,37 @@ module.exports = {
           },
         ],
 
-        // These rule modifications are removing changes to our shared ESLint config made after
-        // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-        // at which point we can restore the intended rules and use error suppression instead.
+        // These rules are off because the shared ESLint config turned them on
+        // after v9, and ESLint 8 cannot save the existing hits. Every rule
+        // below stays off in this change.
         //
-        // TODO: Remove these modifications after the ESLint v9 update
-        '@typescript-eslint/await-thenable': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
-        '@typescript-eslint/consistent-type-exports': 'off',
+        // Fast checks. These do not need type information. Restore them in
+        // the ESLint 9 upgrade and park existing hits in ESLint's
+        // suppressions file.
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/naming-convention': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/prefer-enum-initializers': 'off',
+        // Slow type checks. Leave these off through the ESLint 9 upgrade.
+        // Turn them on in Oxlint and park existing hits in
+        // oxlint-suppressions.json.
+        '@typescript-eslint/await-thenable': 'off',
+        '@typescript-eslint/consistent-type-exports': 'off',
+        '@typescript-eslint/consistent-type-imports': 'off',
         '@typescript-eslint/no-base-to-string': 'off',
         '@typescript-eslint/no-duplicate-type-constituents': 'off',
-        '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-redundant-type-constituents': 'off',
         '@typescript-eslint/no-throw-literal': 'off',
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/only-throw-error': 'off',
-        '@typescript-eslint/prefer-enum-initializers': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
         '@typescript-eslint/prefer-optional-chain': 'off',
@@ -430,6 +444,27 @@ module.exports = {
             message:
               'Only Engine and react-native-device-info can be mocked in component-view tests.',
           },
+          cvFakeTimerBan,
+        ],
+      },
+    },
+    {
+      // Shared component-view helpers keep the base no-restricted-syntax bans
+      // and add the fake-timer ban. The jest.mock ban above does not apply
+      // here (mocks.ts mocks Engine).
+      files: ['tests/component-view/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          cvFakeTimerBan,
         ],
       },
     },
@@ -953,11 +988,9 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // These rule modifications are removing changes to our shared ESLint config made after
-    // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-    // at which point we can restore the intended rules and use error suppression instead.
-    //
-    // TODO: Remove these modifications after the ESLint v9 update
+    // Fast checks, off for the same reason as the block above. These do not
+    // need type information. Restore them in the ESLint 9 upgrade and park
+    // existing hits in ESLint's suppressions file.
     'react-hooks/rules-of-hooks': 'off',
     'no-loss-of-precision': 'off',
   },

@@ -56,7 +56,10 @@ import {
   beginPostTradeShareSession,
   patchPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+import { getSocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
+import { resolveQuickBuySubmittedTxHash } from '../resolveQuickBuySubmittedTxHash';
 import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { isSpotPostTradeShareEligible } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
@@ -1728,13 +1731,11 @@ export function useQuickBuyController(
       rate: formattedRate,
       isNonEvmSwap,
     };
-    const tradeInFlightChain = caipChainIdToTradeInFlightChain(
-      sourceToken?.chainId
-        ? formatChainIdToCaip(sourceToken.chainId)
-        : target.chain,
-    );
-    const previewChain =
-      caipChainIdToTradeInFlightChain(target.chain) ?? target.chain;
+    // The comment is about the position token: the token bought, or the token
+    // sold. The pay token and the receive token (native or USDC) are not part
+    // of this slug.
+    const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
+    const previewChain = tradeInFlightChain ?? target.chain;
     const sharePreview: SocialPostTradePreview = {
       tokenSymbol: target.tokenSymbol,
       tokenAddress: target.tokenAddress,
@@ -1746,17 +1747,28 @@ export function useQuickBuyController(
     // Public copy-trades always share. Private profiles use the normal
     // Quick Buy toasts instead. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
-    const shouldForcePostTradeShare =
+    const canPostTradeShare = isSpotPostTradeShareEligible(amountUsdValue);
+    const isForcedPostTradeShare =
       postTradeShare && !isProfileTradingActivityPrivate;
-    const prompt = shouldForcePostTradeShare
+    const shouldForcePostTradeShare =
+      isForcedPostTradeShare && canPostTradeShare;
+    const prompt = isForcedPostTradeShare
       ? undefined
       : resolvePostTradePrompt('swap');
     let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
-    if (prompt?.kind === 'claim_sheet') {
+    if (prompt?.kind === 'claim_sheet' && canPostTradeShare) {
       trackedPostTradePrompt = prompt;
-    } else if (prompt?.kind === 'share_sheet' && tradeInFlightChain) {
+    } else if (
+      prompt?.kind === 'share_sheet' &&
+      canPostTradeShare &&
+      tradeInFlightChain
+    ) {
       trackedPostTradePrompt = prompt;
-    } else if (prompt?.kind === 'post_to_feed_toast' && tradeInFlightChain) {
+    } else if (
+      prompt?.kind === 'post_to_feed_toast' &&
+      canPostTradeShare &&
+      tradeInFlightChain
+    ) {
       trackedPostTradePrompt = {
         kind: 'post_to_feed_toast',
         tradeInFlightChain,
@@ -1770,12 +1782,16 @@ export function useQuickBuyController(
       ((shouldForcePostTradeShare ||
         trackedPostTradePrompt?.kind === 'share_sheet') &&
         Boolean(tradeInFlightChain));
+    const shareAnalyticsSource = getSocialEventSource(analyticsContext.source);
     const beginShareSession = () =>
       shouldPostTradeShare
         ? beginPostTradeShareSession({
             variant: isCreateProfilePrompt ? 'create_profile' : 'share',
             target,
             tradeMode,
+            ...(shareAnalyticsSource
+              ? { analyticsSource: shareAnalyticsSource }
+              : {}),
             pairLabel:
               sourceToken?.symbol && destToken?.symbol
                 ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
@@ -1864,11 +1880,18 @@ export function useQuickBuyController(
       if (isSocialTradeSource(analyticsContext.source)) {
         recordSocialTrade();
       }
-      const txHash =
-        submitResult &&
-        typeof (submitResult as { hash?: unknown }).hash === 'string'
-          ? ((submitResult as { hash?: string }).hash as string)
-          : undefined;
+      const bridgeStatus = Engine.context.BridgeStatusController;
+      const txHash = resolveQuickBuySubmittedTxHash(submitResult, {
+        getHistoryItem:
+          typeof bridgeStatus.getBridgeHistoryItemByTxMetaId === 'function'
+            ? (key) => bridgeStatus.getBridgeHistoryItemByTxMetaId(key)
+            : undefined,
+        historyEntries: Object.entries(bridgeStatus.state?.txHistory ?? {}),
+        getTransaction: (id) =>
+          Engine.context.TransactionController?.state?.transactions?.find(
+            (transaction) => transaction.id === id,
+          ),
+      });
       const txMetaId = (submitResult as { id?: string } | undefined)?.id;
       if (txMetaId) {
         // For Solana the tx signature (`hash`) is the id used to find the tx in
@@ -1899,7 +1922,7 @@ export function useQuickBuyController(
         trackTradeCompleted({
           ...tradeBaseProps,
           [QuickBuyEventProperties.AMOUNT_TOKEN]: amountToken,
-          [QuickBuyEventProperties.TX_HASH]: txHash,
+          ...(txHash ? { [QuickBuyEventProperties.TX_HASH]: txHash } : {}),
           [QuickBuyEventProperties.EXECUTION_TIME_MS]: elapsedMs(),
           [QuickBuyEventProperties.STATUS]: QuickBuyEventValues.STATUS.SUCCESS,
         });

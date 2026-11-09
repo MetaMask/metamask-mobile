@@ -8,7 +8,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -25,6 +24,7 @@ import {
   useRoute,
   type NavigationState,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import React, {
   useCallback,
   useContext,
@@ -32,6 +32,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import {
   Image,
@@ -60,6 +61,8 @@ import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight/useKeyboardH
 import { useTheme } from '../../../../util/theme';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import HeaderBaseGlass from '../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import {
   fireImpact,
   ImpactMoment,
@@ -71,16 +74,23 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
+import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
+import { invalidateModerationStatus } from '../../../UI/SocialFeed/moderationApi';
+import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
 import {
   addPendingPost,
   requestPostsTabFocus,
 } from '../pendingPosts/pendingPostsStore';
-import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
+import type {
+  SocialV1FeedAuthor,
+  SocialV1FeedItem,
+} from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
+import { withCreateSwapCommentTimeout } from './createSwapCommentTimeout';
 import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
@@ -88,7 +98,10 @@ import {
 } from './mapPositionToFeedItem';
 import { mapPerpsOrderInFlightToFeedItem } from './mapPerpsOrderInFlightToFeedItem';
 import { mapTradeInFlightToFeedItem } from './mapTradeInFlightToFeedItem';
-import type { SocialPostComposerViewParams } from './SocialPostComposerView.types';
+import type {
+  SocialPostComposerPreview,
+  SocialPostComposerViewParams,
+} from './SocialPostComposerView.types';
 import GifPickerSheet from './GifPickerSheet';
 import AddPositionBottomSheet from './AddPositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
@@ -96,10 +109,10 @@ import {
   SocialEvent,
   useSocialInteraction,
   useSocialScreenAnalytics,
-  type SocialEventSource,
 } from '../analytics';
+import { resolvePostComposerAnalyticsSource } from './resolvePostComposerAnalyticsSource';
 
-const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
+const { Interaction, Outcome, Screen, ShareDestination, Trade } = SocialEvent;
 type ComposerRoute = NavigationState['routes'][number];
 
 const getPreviousRoute = (
@@ -202,9 +215,217 @@ const ComposerChip = ({
   );
 };
 
-const SocialPostComposerView: React.FC = () => {
+// The caption lives outside React state so typing only re-renders the
+// subscribers, not the whole screen (the header and the ticking preview both
+// read it). Selectors must return primitives — a fresh object or array fails
+// the snapshot check and re-renders on every keystroke.
+const createComposerTextStore = () => {
+  let text = '';
+  const listeners = new Set<() => void>();
+  return {
+    get: () => text,
+    set: (next: string) => {
+      if (next === text) {
+        return;
+      }
+      text = next;
+      listeners.forEach((listener) => listener());
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+};
+type ComposerTextStore = ReturnType<typeof createComposerTextStore>;
+
+const useComposerText = <T,>(
+  store: ComposerTextStore,
+  select: (text: string) => T,
+): T => useSyncExternalStore(store.subscribe, () => select(store.get()));
+
+const ComposerTextInput = ({
+  store,
+  inputRef,
+  onImageChange,
+}: {
+  store: ComposerTextStore;
+  inputRef: React.RefObject<TextInput | null>;
+  onImageChange: (event: ImageInsertEvent) => void;
+}) => {
   const tw = useTailwind();
   const { colors, typography } = useTheme();
+  const text = useComposerText(store, (value) => value);
+  const inputTypography = useMemo<TextStyle>(
+    () => ({
+      fontSize: typography.lBodyMD.fontSize,
+      lineHeight: typography.lBodyMD.lineHeight,
+      letterSpacing: typography.lBodyMD.letterSpacing,
+      fontWeight: typography.lBodyMD.fontWeight as TextStyle['fontWeight'],
+    }),
+    [typography.lBodyMD],
+  );
+
+  return (
+    <TextInput
+      ref={inputRef}
+      value={text}
+      onChangeText={store.set}
+      placeholder={strings('social_leaderboard.composer.placeholder')}
+      placeholderTextColor={colors.text.alternative}
+      multiline
+      showSoftInputOnFocus
+      style={[tw.style('w-full text-default p-0'), inputTypography]}
+      testID={SocialPostComposerViewSelectorsIDs.INPUT}
+      {...{ onImageChange }}
+    />
+  );
+};
+
+const TABULAR_NUMS_STYLE: TextStyle = { fontVariant: ['tabular-nums'] };
+
+// HeaderBase re-renders when its end accessory's width changes, so use
+// equal-width digits to keep the count's width stable while typing.
+const ComposerCharacterCount = ({ store }: { store: ComposerTextStore }) => {
+  const count = useComposerText(store, (value) => value.length);
+
+  return (
+    <Text
+      variant={TextVariant.BodySm}
+      color={
+        count > COMPOSER_COMMENT_MAX_LENGTH
+          ? TextColor.ErrorDefault
+          : TextColor.TextAlternative
+      }
+      style={TABULAR_NUMS_STYLE}
+      testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
+    >
+      {strings('social_leaderboard.composer.character_count', {
+        count,
+        limit: COMPOSER_COMMENT_MAX_LENGTH,
+      })}
+    </Text>
+  );
+};
+
+const ComposerPostButton = ({
+  store,
+  hasTarget,
+  isSubmitting,
+  onPress,
+}: {
+  store: ComposerTextStore;
+  hasTarget: boolean;
+  isSubmitting: boolean;
+  onPress: () => void;
+}) => {
+  const hasPostableText = useComposerText(
+    store,
+    (value) =>
+      value.trim().length > 0 && value.length <= COMPOSER_COMMENT_MAX_LENGTH,
+  );
+
+  return (
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Md}
+      isDisabled={!hasTarget || !hasPostableText || isSubmitting}
+      onPress={onPress}
+      testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
+    >
+      {isSubmitting
+        ? strings('social_leaderboard.composer.posting')
+        : strings('social_leaderboard.composer.post')}
+    </Button>
+  );
+};
+
+interface ComposerPreviewProps {
+  selectedPosition: { position: Position; isClosed: boolean } | null;
+  tradeInFlightPreview: SocialPostComposerPreview | undefined;
+  composerAuthor: SocialV1FeedAuthor;
+  gifUri: string | null;
+  isLivePreview: boolean;
+  isTradeInFlightLocked: boolean;
+  onRemovePosition: () => void;
+}
+
+/**
+ * Preview card. The caption never shows here — PositionCardBody renders the
+ * card, not the comment, and `expanded` fixes the layout — so the item maps
+ * once with an empty comment and typing does not rebuild it.
+ */
+const ComposerPreview = ({
+  selectedPosition,
+  tradeInFlightPreview,
+  composerAuthor,
+  gifUri,
+  isLivePreview,
+  isTradeInFlightLocked,
+  onRemovePosition,
+}: ComposerPreviewProps) => {
+  const previewItem: SocialV1FeedItem | null = useMemo(() => {
+    if (tradeInFlightPreview) {
+      if ('product' in tradeInFlightPreview) {
+        return mapPerpsOrderInFlightToFeedItem(tradeInFlightPreview, '', {
+          author: composerAuthor,
+          commentGifUrl: gifUri ?? undefined,
+        });
+      }
+      return mapTradeInFlightToFeedItem(tradeInFlightPreview, '', {
+        author: composerAuthor,
+        commentGifUrl: gifUri ?? undefined,
+      });
+    }
+    if (!selectedPosition) {
+      return null;
+    }
+    return mapPositionToFeedItem(selectedPosition.position, '', {
+      isClosed: selectedPosition.isClosed,
+      author: composerAuthor,
+      commentGifUrl: gifUri ?? undefined,
+      liveTicks: isLivePreview,
+    });
+  }, [
+    composerAuthor,
+    gifUri,
+    isLivePreview,
+    selectedPosition,
+    tradeInFlightPreview,
+  ]);
+
+  if (!previewItem) {
+    return null;
+  }
+
+  return (
+    <Box twClassName="relative mt-12">
+      {isLivePreview ? (
+        <SocialLivePricesProvider>
+          <PositionCardBody item={previewItem} expanded showCopyTrade={false} />
+        </SocialLivePricesProvider>
+      ) : (
+        <PositionCardBody item={previewItem} expanded showCopyTrade={false} />
+      )}
+      {isTradeInFlightLocked ? null : (
+        <ComposerAttachmentCloseButton
+          onPress={onRemovePosition}
+          accessibilityLabel={strings(
+            'social_leaderboard.composer.remove_position',
+          )}
+          testID={SocialPostComposerViewSelectorsIDs.REMOVE_POSITION}
+        />
+      )}
+    </Box>
+  );
+};
+
+const SocialPostComposerView: React.FC = () => {
+  const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
@@ -218,7 +439,7 @@ const SocialPostComposerView: React.FC = () => {
   const { profile } = useMyProfile();
   const linkedAccountAddress = profile?.linkedAccountAddress?.trim() ?? '';
   const inputRef = useRef<TextInput>(null);
-  const [text, setText] = useState('');
+  const [textStore] = useState(createComposerTextStore);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<{
     position: Position;
@@ -231,14 +452,7 @@ const SocialPostComposerView: React.FC = () => {
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
-  const analyticsSource: SocialEventSource | undefined =
-    routeParams?.entryPoint === 'perps'
-      ? Source.PERP_ASSET_SCREEN
-      : routeParams?.entryPoint === 'token_details'
-        ? Source.ASSET_DETAILS
-        : tradeInFlightParams
-          ? Source.TRADER_FEED
-          : undefined;
+  const analyticsSource = resolvePostComposerAnalyticsSource(routeParams);
   const trackInteraction = useSocialScreenAnalytics(Screen.POST_COMPOSER, {
     source: analyticsSource,
   });
@@ -267,61 +481,25 @@ const SocialPostComposerView: React.FC = () => {
     [authorName, profile?.imageUrl, profile?.profileId],
   );
 
-  const previewItem: SocialV1FeedItem | null = useMemo(() => {
-    if (tradeInFlightPreview) {
-      if ('product' in tradeInFlightPreview) {
-        return mapPerpsOrderInFlightToFeedItem(
-          tradeInFlightPreview,
-          text.trim(),
-          {
-            author: composerAuthor,
-            commentGifUrl: gifUri ?? undefined,
-          },
-        );
-      }
-      return mapTradeInFlightToFeedItem(tradeInFlightPreview, text.trim(), {
-        author: composerAuthor,
-        commentGifUrl: gifUri ?? undefined,
-      });
-    }
-    if (!selectedPosition) {
-      return null;
-    }
-    return mapPositionToFeedItem(selectedPosition.position, text.trim(), {
-      isClosed: selectedPosition.isClosed,
-      author: composerAuthor,
-      commentGifUrl: gifUri ?? undefined,
-      liveTicks: isLivePreview,
-    });
-  }, [
-    composerAuthor,
-    gifUri,
-    isLivePreview,
-    selectedPosition,
-    text,
-    tradeInFlightPreview,
-  ]);
-  const analyticsTradeType = previewItem
-    ? previewItem.variant.startsWith('perps')
+  // The preview maps itself inside ComposerPreview, so the analytics trade
+  // type is derived from the raw inputs here.
+  const analyticsTradeType = tradeInFlightPreview
+    ? 'product' in tradeInFlightPreview
       ? Trade.PERPS
       : Trade.SPOT
-    : undefined;
+    : selectedPosition
+      ? isPerpPosition(selectedPosition.position)
+        ? Trade.PERPS
+        : Trade.SPOT
+      : undefined;
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
-  const isOverCharacterLimit = text.length > COMPOSER_COMMENT_MAX_LENGTH;
-  const canSubmit =
-    (selectedPosition != null || isTradeInFlightLocked) &&
-    !isOverCharacterLimit;
-  const hasComment = text.trim().length > 0;
+  const hasTarget = selectedPosition != null || isTradeInFlightLocked;
 
   const handleClose = useCallback(() => {
     trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
     navigation.goBack();
   }, [navigation, trackInteraction]);
-
-  const handleChangeText = useCallback((next: string) => {
-    setText(next);
-  }, []);
 
   const handleSelectPosition = useCallback(
     (position: Position, isClosed: boolean) => {
@@ -338,15 +516,7 @@ const SocialPostComposerView: React.FC = () => {
     }
   }, []);
 
-  const composerInputTypography = useMemo<TextStyle>(
-    () => ({
-      fontSize: typography.lBodyMD.fontSize,
-      lineHeight: typography.lBodyMD.lineHeight,
-      letterSpacing: typography.lBodyMD.letterSpacing,
-      fontWeight: typography.lBodyMD.fontWeight as TextStyle['fontWeight'],
-    }),
-    [typography.lBodyMD],
-  );
+  const handleRemovePosition = useCallback(() => setSelectedPosition(null), []);
 
   const focusComposer = useCallback(() => {
     inputRef.current?.focus();
@@ -392,32 +562,37 @@ const SocialPostComposerView: React.FC = () => {
   }, [isScreenTransitionComplete, focusComposer]);
 
   const handlePost = useCallback(async () => {
+    const rawText = textStore.get();
+    const caption = rawText.trim();
     if (
       (!selectedPosition && !tradeInFlightParams) ||
-      !canSubmit ||
-      !hasComment ||
+      rawText.length > COMPOSER_COMMENT_MAX_LENGTH ||
+      caption.length === 0 ||
       isSubmitting
     ) {
       return;
     }
-    const caption = text.trim();
     const commentText = appendKlipyGifUrlToCommentText(caption, gifUri);
     fireImpact(ImpactMoment.PrimaryCTA);
     setIsSubmitting(true);
     try {
       let created;
       if (tradeInFlightParams) {
-        created = await createSwapComment({
-          commentText,
-          tradeInFlight: tradeInFlightParams,
-          source: 'metamask-mobile',
-        });
+        created = await withCreateSwapCommentTimeout(
+          createSwapComment({
+            commentText,
+            tradeInFlight: tradeInFlightParams,
+            source: 'metamask-mobile',
+          }),
+        );
       } else if (selectedPosition) {
-        created = await createSwapComment({
-          commentText,
-          positionUid: selectedPosition.position.positionId,
-          source: 'metamask-mobile',
-        });
+        created = await withCreateSwapCommentTimeout(
+          createSwapComment({
+            commentText,
+            positionUid: selectedPosition.position.positionId,
+            source: 'metamask-mobile',
+          }),
+        );
       } else {
         return;
       }
@@ -507,6 +682,10 @@ const SocialPostComposerView: React.FC = () => {
         outcome: Outcome.SUCCESS,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
       });
+      trackInteraction(Interaction.POST_SHARED, {
+        share_destination: ShareDestination.METAMASK_POST,
+        ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+      });
       if (openFeedAfterPost) {
         // Replace so Back from the feed skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
@@ -525,7 +704,12 @@ const SocialPostComposerView: React.FC = () => {
         // Replace so Back from the profile skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1_PROFILE));
       }
-    } catch {
+    } catch (error) {
+      // The social API refuses a banned author's post with a 403, the same
+      // status as a wallet they don't own; the status tells the two apart.
+      if (extractHttpStatus(error) === 403) {
+        invalidateModerationStatus().catch(() => undefined);
+      }
       trackInteraction(Interaction.POST_FAILED, {
         outcome: Outcome.FAILED,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
@@ -545,11 +729,9 @@ const SocialPostComposerView: React.FC = () => {
   }, [
     authorName,
     analyticsTradeType,
-    canSubmit,
     colors.error.default,
     colors.success.default,
     gifUri,
-    hasComment,
     isSubmitting,
     linkedAccountAddress,
     navigation,
@@ -557,7 +739,7 @@ const SocialPostComposerView: React.FC = () => {
     profile?.imageUrl,
     profile?.profileId,
     selectedPosition,
-    text,
+    textStore,
     trackInteraction,
     toastRef,
     tradeInFlightParams,
@@ -571,7 +753,9 @@ const SocialPostComposerView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={SocialPostComposerViewSelectorsIDs.CONTAINER}
       >
-        <HeaderBase
+        <HeaderBaseGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="px-4"
           startAccessory={
@@ -593,31 +777,13 @@ const SocialPostComposerView: React.FC = () => {
               alignItems={BoxAlignItems.Center}
               gap={3}
             >
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  isOverCharacterLimit
-                    ? TextColor.ErrorDefault
-                    : TextColor.TextAlternative
-                }
-                testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
-              >
-                {strings('social_leaderboard.composer.character_count', {
-                  count: text.length,
-                  limit: COMPOSER_COMMENT_MAX_LENGTH,
-                })}
-              </Text>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Md}
-                isDisabled={!canSubmit || !hasComment || isSubmitting}
+              <ComposerCharacterCount store={textStore} />
+              <ComposerPostButton
+                store={textStore}
+                hasTarget={hasTarget}
+                isSubmitting={isSubmitting}
                 onPress={handlePost}
-                testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
-              >
-                {isSubmitting
-                  ? strings('social_leaderboard.composer.posting')
-                  : strings('social_leaderboard.composer.post')}
-              </Button>
+              />
             </Box>
           }
           testID={SocialPostComposerViewSelectorsIDs.HEADER}
@@ -643,53 +809,22 @@ const SocialPostComposerView: React.FC = () => {
                 avatarBackgroundId={profile?.avatarBackgroundId}
                 size="sm"
               />
-              <TextInput
-                ref={inputRef}
-                value={text}
-                onChangeText={handleChangeText}
-                placeholder={strings('social_leaderboard.composer.placeholder')}
-                placeholderTextColor={colors.text.alternative}
-                multiline
-                showSoftInputOnFocus
-                style={[
-                  tw.style('w-full text-default p-0'),
-                  composerInputTypography,
-                ]}
-                testID={SocialPostComposerViewSelectorsIDs.INPUT}
-                {...{
-                  onImageChange: handleImageInsert,
-                }}
+              <ComposerTextInput
+                store={textStore}
+                inputRef={inputRef}
+                onImageChange={handleImageInsert}
               />
             </Box>
 
-            {previewItem ? (
-              <Box twClassName="relative mt-12">
-                {isLivePreview ? (
-                  <SocialLivePricesProvider>
-                    <PositionCardBody
-                      item={previewItem}
-                      expanded
-                      showCopyTrade={false}
-                    />
-                  </SocialLivePricesProvider>
-                ) : (
-                  <PositionCardBody
-                    item={previewItem}
-                    expanded
-                    showCopyTrade={false}
-                  />
-                )}
-                {isTradeInFlightLocked ? null : (
-                  <ComposerAttachmentCloseButton
-                    onPress={() => setSelectedPosition(null)}
-                    accessibilityLabel={strings(
-                      'social_leaderboard.composer.remove_position',
-                    )}
-                    testID={SocialPostComposerViewSelectorsIDs.REMOVE_POSITION}
-                  />
-                )}
-              </Box>
-            ) : null}
+            <ComposerPreview
+              selectedPosition={selectedPosition}
+              tradeInFlightPreview={tradeInFlightPreview}
+              composerAuthor={composerAuthor}
+              gifUri={gifUri}
+              isLivePreview={isLivePreview}
+              isTradeInFlightLocked={isTradeInFlightLocked}
+              onRemovePosition={handleRemovePosition}
+            />
 
             {gifUri ? (
               <Box twClassName="relative mt-4">

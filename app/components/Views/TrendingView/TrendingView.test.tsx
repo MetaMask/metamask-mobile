@@ -455,7 +455,9 @@ describe('TrendingView', () => {
     );
     fireEvent.press(searchButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH, {
+      entryPoint: 'explore',
+    });
   });
 
   it('tracks the search opened event with the explore entry point', () => {

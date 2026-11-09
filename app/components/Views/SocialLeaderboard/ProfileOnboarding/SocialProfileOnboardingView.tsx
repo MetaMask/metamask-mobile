@@ -46,7 +46,8 @@ import {
   XAuthError,
   XAuthErrorType,
 } from '../../../../core/XAuthService';
-import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
+import { getSocialProfileId } from '../../../../util/social/getSocialProfileId';
+import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
@@ -783,7 +784,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       (account) => account.id === current.linkedAccountId,
     );
     const profileId =
-      (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
+      (await getSocialProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
     const params = buildCreateProfileParams(
       current,
       profileId,
@@ -939,13 +940,13 @@ const SocialProfileOnboardingView: React.FC = () => {
     if (!profileCreatedRef.current) {
       return;
     }
-    // Replace drops onboarding from the stack. navigate() would leave it under
-    // the feed, so a later back swipe could reopen it.
-    navigation.dispatch(
-      StackActions.replace(
-        draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
-      ),
-    );
+    if (draft.path === 'x') {
+      // Replace drops onboarding from the stack. navigate() would leave it under
+      // the profile, so a later back swipe could reopen it.
+      navigation.dispatch(StackActions.replace(Routes.SOCIAL.MY_PROFILE));
+      return;
+    }
+    finishProfileOnboardingToSocialTab(navigation);
   }, [draft.path, navigation]);
 
   const usernameStatus = getUsernameStatus(draft.username);

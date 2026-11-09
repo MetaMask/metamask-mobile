@@ -13,11 +13,7 @@ import {
 } from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  Box,
-  HeaderStandard,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { Box, IconName } from '@metamask/design-system-react-native';
 import {
   TabsBar,
   type TabItem,
@@ -39,6 +35,9 @@ import {
   setBridgeViewMode,
   setLimitOrderCostTolerance,
   setLimitOrderExpirationMinutes,
+  setRecurringEveryUnit,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
@@ -61,8 +60,11 @@ import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileI
 import { OrdersTabKey } from '../../components/OrdersTabs';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const BridgeView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     selectedTab,
     renderedTab,
@@ -94,17 +96,30 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const tokenInitializationKey =
+    route.params?.sourcePage === 'deeplink'
+      ? route.params.swapViewTraceId
+      : undefined;
   const initialLimitOrderExpirationMinutes =
     route.params?.initialLimitOrderExpirationMinutes;
   const initialLimitOrderPriceTolerance =
     route.params?.initialLimitOrderPriceTolerance;
+  const initialRecurringSchedule = route.params?.initialRecurringSchedule;
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location =
     route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
 
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
+  useInitialSourceToken(
+    initialSourceToken,
+    initialSourceAmount,
+    tokenInitializationKey,
+  );
+  useInitialDestToken(
+    initialSourceToken,
+    initialDestToken,
+    tokenInitializationKey,
+  );
   useReconcileInputsForNonMarketSwapTab({
     renderedTab,
     sourceToken,
@@ -170,6 +185,17 @@ const BridgeView = () => {
     dispatch,
     navigation,
   ]);
+
+  useLayoutEffect(() => {
+    if (!initialRecurringSchedule) {
+      return;
+    }
+
+    dispatch(setRecurringEveryUnit(initialRecurringSchedule.everyUnit));
+    dispatch(setRecurringEveryValue(initialRecurringSchedule.everyValue));
+    dispatch(setRecurringRepeatCount(initialRecurringSchedule.repeatCount));
+    navigation.setParams({ initialRecurringSchedule: undefined });
+  }, [dispatch, initialRecurringSchedule, navigation]);
 
   const quoteParams = useMemo(
     (): QuoteParams => ({
@@ -363,7 +389,9 @@ const BridgeView = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleBack}
         backButtonProps={{

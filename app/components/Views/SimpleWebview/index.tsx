@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
-import { HeaderStandard, IconName } from '@metamask/design-system-react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
@@ -14,6 +14,8 @@ import { useNetworkTier } from '../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../util/deviceCapability';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { SimpleWebviewParams } from '../Webview/Webview.types';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 // TODO: This will be replaced with the actual route params type once navigation is refactored
 type RouteParams = {
@@ -21,6 +23,7 @@ type RouteParams = {
 };
 
 const SimpleWebView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RouteParams, 'SimpleWebView'>>();
@@ -93,7 +96,11 @@ const SimpleWebView = () => {
           />
         </>
       ) : (
-        <HeaderStandard {...headerProps} />
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
+          {...headerProps}
+        />
       )}
       <WebView
         containerStyle={tw.style('flex-1')}

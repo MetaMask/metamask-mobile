@@ -89,7 +89,10 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -651,6 +654,7 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
 let mockSelectedEvmAccount: { address: string } | undefined;
 let mockIsPerpsProModeActive = false;
 let mockProfileTradingActivityPrivate = false;
@@ -682,56 +686,73 @@ jest.mock(
 );
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(() => jest.fn()),
-  useSelector: jest.fn((selector) => {
-    // reselect selectors do not carry their export name in `toString()`, so
-    // match this one by identity.
-    const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
-      '../../selectors/featureFlags',
-    );
-    if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
-      return mockTradeWithAnyTokenEnabled;
-    }
-    const { selectSelectedInternalAccountByScope } = jest.requireActual(
-      '../../../../../selectors/multichainAccounts/accounts',
-    );
-    if (selector === selectSelectedInternalAccountByScope) {
-      return () => mockSelectedEvmAccount;
-    }
-    const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
-      '../../../../../selectors/profileController',
-    );
-    if (selector === selectIsProfileTradingActivityPrivate) {
-      return mockProfileTradingActivityPrivate;
-    }
-    if (
-      selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
-      selector.toString().includes('perpsAdvancedChart')
-    ) {
-      return mockPerpsAdvancedChartEnabled;
-    }
-    if (selector.toString().includes('selectTokenList')) {
-      return {};
-    }
-    if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
-      return false;
-    }
-    if (selector.toString().includes('selectPaymentOverrideByTransactionId')) {
-      return mockPaymentOverride;
-    }
-    if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
-      return {};
-    }
-    if (
-      selector.toString().includes('selectSelectedAccountGroupInternalAccounts')
-    ) {
-      return [];
-    }
-    return null;
-  }),
-}));
+jest.mock('react-redux', () => {
+  const orderBookByUnit = {
+    usd: { currency: 'usd', metric: 'total' },
+    asset: { currency: 'base', metric: 'total' },
+  };
+
+  return {
+    ...jest.requireActual('react-redux'),
+    useDispatch: jest.fn(() => jest.fn()),
+    useSelector: jest.fn((selector) => {
+      // reselect selectors do not carry their export name in `toString()`, so
+      // match this one by identity.
+      const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
+        '../../selectors/featureFlags',
+      );
+      const { selectPerpsOrderBookPreferences } = jest.requireActual(
+        '../../selectors/perpsController',
+      );
+      if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
+        return mockTradeWithAnyTokenEnabled;
+      }
+      if (selector === selectPerpsOrderBookPreferences) {
+        return orderBookByUnit[mockPerpsSizeDenomination];
+      }
+      const { selectSelectedInternalAccountByScope } = jest.requireActual(
+        '../../../../../selectors/multichainAccounts/accounts',
+      );
+      if (selector === selectSelectedInternalAccountByScope) {
+        return () => mockSelectedEvmAccount;
+      }
+      const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
+        '../../../../../selectors/profileController',
+      );
+      if (selector === selectIsProfileTradingActivityPrivate) {
+        return mockProfileTradingActivityPrivate;
+      }
+      if (
+        selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
+        selector.toString().includes('perpsAdvancedChart')
+      ) {
+        return mockPerpsAdvancedChartEnabled;
+      }
+      if (selector.toString().includes('selectTokenList')) {
+        return {};
+      }
+      if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
+        return false;
+      }
+      if (
+        selector.toString().includes('selectPaymentOverrideByTransactionId')
+      ) {
+        return mockPaymentOverride;
+      }
+      if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
+        return {};
+      }
+      if (
+        selector
+          .toString()
+          .includes('selectSelectedAccountGroupInternalAccounts')
+      ) {
+        return [];
+      }
+      return null;
+    }),
+  };
+});
 
 // Rewards feature flag removed - rewards are always enabled
 
@@ -785,16 +806,6 @@ jest.mock('../../../../../core/Engine', () => ({
       clearPendingTradeConfiguration: jest.fn(),
     },
   },
-}));
-
-// Mock useABTest hook (controllable per-test)
-const mockUseABTest = jest.fn(() => ({
-  variantName: 'control',
-  variant: { long: 'white', short: 'white' },
-  isActive: false,
-}));
-jest.mock('../../../../../hooks/useABTest', () => ({
-  useABTest: () => mockUseABTest(),
 }));
 
 // Mock useTooltipModal hook
@@ -1351,11 +1362,6 @@ function applyDefaultHookMocks() {
     setPayToken: jest.fn(),
     isNative: undefined,
   });
-  mockUseABTest.mockReturnValue({
-    variantName: 'control',
-    variant: { long: 'white', short: 'white' },
-    isActive: false,
-  });
   mockCreateEventBuilder.mockImplementation(() => ({
     addProperties: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({}),
@@ -1374,6 +1380,7 @@ function applyDefaultHookMocks() {
 
 describe('PerpsOrderView', () => {
   beforeEach(() => {
+    mockPerpsSizeDenomination = 'usd';
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();
@@ -4672,43 +4679,6 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
     });
 
-    it('disables control (white) button variant when TP/SL is invalid', async () => {
-      // Arrange: control (default/white) A/B test variant + invalid TP
-      mockUseABTest.mockReturnValue({
-        variantName: 'control',
-        variant: { long: 'white', short: 'white' },
-        isActive: true,
-      });
-      (usePerpsOrderContext as jest.Mock).mockReturnValue(
-        orderContextWithTPSL({ direction: 'long', takeProfitPrice: '2000' }),
-      );
-      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
-        isValid: true,
-        errors: [],
-        isValidating: false,
-        insufficientBalanceErrors: [],
-        validateNow: jest.fn(),
-      });
-      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-        placeOrder: jest.fn(),
-        isPlacing: false,
-      });
-
-      // Act
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      // Assert: warning visible (proves hasInvalidTPSL is true in control/white path)
-      await waitFor(() => {
-        expect(screen.getByText(/Take profit must be above/)).toBeDefined();
-      });
-
-      // Assert: control (white) button rendered and receives isDisabled prop
-      const placeOrderButton = await screen.findByTestId(
-        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-      );
-      expect(placeOrderButton).toBeDefined();
-    });
-
     describe('limit order TP/SL validates against entry price, not market price', () => {
       const orderContextForLimitOrder = (overrides: {
         direction: 'long' | 'short';
@@ -7177,7 +7147,7 @@ describe('PerpsOrderView', () => {
 
     it('emits PERPS_TRANSACTION_CONSIDERED once the filled order form settles (1s debounce)', () => {
       jest.useFakeTimers();
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const view = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // Nothing before the 1s debounce window elapses.
       act(() => {
@@ -7208,11 +7178,26 @@ describe('PerpsOrderView', () => {
           [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: false,
           [PERPS_EVENT_PROPERTY.LEVERAGE]: 3,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
 
+      mockPerpsSizeDenomination = 'asset';
+      act(() => {
+        view.rerender(<PerpsOrderView />);
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED),
+      ).toHaveLength(1);
+
       jest.useRealTimers();
     });
+
+    // Full-screen vs Trade-sheet size_unit, including a saved coin unit before
+    // the price can project it, is covered in PerpsOrderView.view.test.tsx
+    // against the real sheet and settings store.
 
     it('emits PERPS_TRADE_QUOTE_RECEIVED with quote_latency_ms when a pay-token quote completes', () => {
       // Quote request in flight (custom pay token selected by default).
@@ -7371,10 +7356,22 @@ describe('PerpsOrderView', () => {
       return options.onSuccess;
     };
 
+    const mockOrderSize = (amount: string, leverage = 3) => {
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsOrderContext,
+        orderForm: {
+          ...defaultMockHooks.usePerpsOrderContext.orderForm,
+          amount,
+          leverage,
+        },
+      });
+    };
+
     beforeEach(() => {
       mockSelectedEvmAccount = { address: '0xTRADER' };
       mockMessengerCall.mockResolvedValue({});
       clearPostTradeShareSession();
+      mockOrderSize('100', 3);
     });
 
     afterEach(() => {
@@ -7457,6 +7454,31 @@ describe('PerpsOrderView', () => {
 
     it('keeps the normal toasts for a copied market order from a private profile', async () => {
       mockProfileTradingActivityPrivate = true;
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('keeps the normal toasts for a copied market order below $10 margin', async () => {
+      mockOrderSize('50', 10);
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
         ...mockDefaultUsePerpsToasts(),
@@ -7574,6 +7596,17 @@ describe('PerpsOrderView', () => {
       return options.onSuccess;
     };
 
+    const mockOrderSize = (amount: string, leverage = 3) => {
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsOrderContext,
+        orderForm: {
+          ...defaultMockHooks.usePerpsOrderContext.orderForm,
+          amount,
+          leverage,
+        },
+      });
+    };
+
     const submitOrder = async () => {
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
@@ -7607,6 +7640,7 @@ describe('PerpsOrderView', () => {
       clearPostTradeShareSession();
       mockIsPerpsProModeActive = false;
       mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+      mockOrderSize('100', 3);
     });
 
     afterEach(() => {
@@ -7713,6 +7747,48 @@ describe('PerpsOrderView', () => {
 
       expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
       expect(getPostTradeShareSession()).toBeNull();
+    });
+
+    it('uses the normal toast for a share sheet when margin is below $10', async () => {
+      mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('does not open create profile or mark it seen when margin is below $10', async () => {
+      mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('uses the confirmed toast without Post to feed when margin is below $10', async () => {
+      mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'post_to_feed_toast',
+      });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      expect(showToast).toHaveBeenCalled();
+      expect(
+        showToast.mock.calls.at(-1)?.[0]?.linkButtonOptions,
+      ).toBeUndefined();
     });
   });
 });

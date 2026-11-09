@@ -8,9 +8,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useReferralMe, type FetchReferralMeResult } from './useReferralMe';
 import {
   MONEY_REFERRAL_CODE_UNKNOWN_ERROR,
-  normalizeMoneyReferralCode,
   useValidateMoneyReferralCode,
 } from './useValidateMoneyReferralCode';
+import { normalizeMoneyReferralCode } from '../utils/moneyReferralCode';
 
 /**
  * Substrings the API uses on the refusals a 403 can carry. The status alone
@@ -191,6 +191,14 @@ function openAcceptedSplash(
   navigation.navigate(Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW);
 }
 
+export interface AcceptReferralCodeOptions {
+  /**
+   * Called once registration succeeded, right before the accepted splash
+   * opens.
+   */
+  onAccepted?: () => void;
+}
+
 export interface UseAcceptMoneyReferralCodeResult {
   /**
    * Validates the code, registers the session profile as a referee, then reads
@@ -200,7 +208,10 @@ export interface UseAcceptMoneyReferralCodeResult {
    * splash. A client-side validation miss resolves without a reason: that
    * code never reached register.
    */
-  acceptReferralCode: (code: string) => Promise<AcceptReferralCodeResult>;
+  acceptReferralCode: (
+    code: string,
+    options?: AcceptReferralCodeOptions,
+  ) => Promise<AcceptReferralCodeResult>;
   /**
    * Whether an accept attempt is in progress
    */
@@ -321,7 +332,10 @@ export const useAcceptMoneyReferralCode =
     );
 
     const acceptReferralCode = useCallback(
-      async (code: string): Promise<AcceptReferralCodeResult> => {
+      async (
+        code: string,
+        options: AcceptReferralCodeOptions = {},
+      ): Promise<AcceptReferralCodeResult> => {
         if (
           acceptAlreadyRunning(
             isAcceptingRef.current,
@@ -378,6 +392,7 @@ export const useAcceptMoneyReferralCode =
           // tab refetches referral me the next time it is focused. Skip
           // goBack when the sheet has already left the stack, or that pop
           // would dismiss the screen underneath it.
+          options.onAccepted?.();
           openAcceptedSplash(navigation, isMountedRef.current);
           return { accepted: true };
         } finally {

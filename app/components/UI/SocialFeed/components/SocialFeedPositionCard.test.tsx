@@ -575,9 +575,9 @@ describe('SocialFeedPositionCard', () => {
       expect(statValue(item.id, 'exit')).toBe('$1,842');
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
-      ).toBe(2);
+      ).toBe(1);
     });
 
     it('hides copy trade on an open card when showCopyTrade is false', () => {
@@ -665,9 +665,9 @@ describe('SocialFeedPositionCard', () => {
       expect(statValue(item.id, 'exit')).toBe('$1,842');
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
-      ).toBe(2);
+      ).toBe(1);
     });
 
     it('keeps only the header on a closed card without a comment', () => {
@@ -693,9 +693,9 @@ describe('SocialFeedPositionCard', () => {
       ).not.toBeOnTheScreen();
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
-      ).toBe(2);
+      ).toBe(1);
     });
 
     it('captions a closed spot card without a comment as sold and keeps no side tag', () => {
@@ -1071,12 +1071,17 @@ describe('SocialFeedPositionCard', () => {
         store.publish('perp:BTC', 101_000);
       });
 
-      expect(
-        within(screen.getByLabelText('+$3K')).getByText('K'),
-      ).toBeOnTheScreen();
-      expect(
-        within(screen.getByLabelText('+30.00%')).getByText('3'),
-      ).toBeOnTheScreen();
+      const pnlValue = within(screen.getByLabelText('+$3K')).getByText('K');
+      const pnlPercent = within(screen.getByLabelText('+30.00%')).getByText(
+        '3',
+      );
+
+      expect(pnlValue).toBeOnTheScreen();
+      expect(pnlPercent).toBeOnTheScreen();
+      // The glyph row defaults to the condensed hero face. These numbers stay
+      // on Inter so a live card matches the static one.
+      expect(pnlValue).toHaveStyle({ fontFamily: 'Inter-Medium' });
+      expect(pnlPercent).toHaveStyle({ fontFamily: 'Inter-Medium' });
     });
   });
 

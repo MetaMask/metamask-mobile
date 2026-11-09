@@ -228,29 +228,6 @@ const EarnInputView = () => {
   // Preview visibility: when true, hide keypad/quick amounts and show the Tron preview box
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 
-  // Build quick-amounts list, replacing the last "Max" with "Done" when editing and a value is entered
-  const quickAmounts = React.useMemo(() => {
-    // Only adjust for TRON staking flow; otherwise, use defaults
-    if (isTronEnabled && isTronNative && !isPreviewVisible && isNonZeroAmount) {
-      const modified = [...percentageOptions];
-      modified[modified.length - 1] = {
-        ...modified[modified.length - 1],
-        label: strings('onboarding_success.done'),
-        isHighlighted: true,
-      };
-      return modified;
-    }
-    return percentageOptions;
-  }, [
-    isTronEnabled,
-    isTronNative,
-    isPreviewVisible,
-    isNonZeroAmount,
-    percentageOptions,
-  ]);
-
-  // (moved below after handleMaxPressWithTracking declaration)
-
   useEffect(() => {
     if (shouldLogStablecoinEvent()) {
       trackEvent(
@@ -744,7 +721,7 @@ const EarnInputView = () => {
         },
       });
     } else {
-      handleMax();
+      void handleMax();
     }
   }, [handleMax, isStablecoinLendingEnabled, navigation, token.isETH]);
 
@@ -791,28 +768,15 @@ const EarnInputView = () => {
     stakingExperienceType,
   ]);
 
-  // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as Max
+  // TRON uses Max directly because the EVM-specific MaxInputModal is not applicable.
   const onRightActionPress = React.useCallback(() => {
-    // For TRON: if we have a non-zero amount, show preview; otherwise just set max directly (skip modal)
     if (isTronEnabled && isTronNative) {
-      if (isNonZeroAmount && !isPreviewVisible) {
-        setIsPreviewVisible(true);
-      } else {
-        // Directly call handleMax for Tron - the MaxInputModal is EVM-specific
-        lastQuickAmountButtonPressed.current = 'MAX';
-        handleMax();
-      }
+      lastQuickAmountButtonPressed.current = 'MAX';
+      void handleMax();
       return;
     }
     handleMaxPressWithTracking();
-  }, [
-    isTronEnabled,
-    isTronNative,
-    isNonZeroAmount,
-    isPreviewVisible,
-    handleMaxPressWithTracking,
-    handleMax,
-  ]);
+  }, [isTronEnabled, isTronNative, handleMaxPressWithTracking, handleMax]);
 
   const handleCurrencySwitchWithTracking = useCallback(() => {
     // Call the original handler first
@@ -849,13 +813,6 @@ const EarnInputView = () => {
   );
 
   const getButtonLabel = () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    // Tron staking has a simpler flow - just show "Stake"
-    if (isTronEnabled) {
-      return strings('stake.stake');
-    }
-    ///: END:ONLY_INCLUDE_IF
-
     if (!isNonZeroAmount) {
       return strings('stake.enter_amount');
     }
@@ -867,10 +824,14 @@ const EarnInputView = () => {
     if (isOverMaximum.isOverMaximumEth) {
       return strings('stake.not_enough_eth');
     }
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTronEnabled && isPreviewVisible) {
+      return strings('stake.stake');
+    }
+    ///: END:ONLY_INCLUDE_IF
     return strings('stake.review');
   };
 
-  const balanceText = strings('stake.balance');
   const buttonLabel = getButtonLabel();
 
   useFocusEffect(
@@ -1043,6 +1004,17 @@ const EarnInputView = () => {
     isTronEnabled && isTronNative && isPreviewVisible && isNonZeroAmount;
   ///: END:ONLY_INCLUDE_IF
 
+  const handleReviewPress = useCallback(() => {
+    ///: BEGIN:ONLY_INCLUDE_IF(tron)
+    if (isTronEnabled && isTronNative && !isPreviewVisible) {
+      setIsPreviewVisible(true);
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    void handleEarnPress();
+  }, [handleEarnPress, isPreviewVisible, isTronEnabled, isTronNative]);
+
   const renderReviewButton = (isDisabled: boolean) => (
     <View style={styles.reviewButtonContainer}>
       <Button
@@ -1053,7 +1025,7 @@ const EarnInputView = () => {
         loading={isSubmittingStakeDepositTransaction}
         isDisabled={isDisabled}
         width={ButtonWidthTypes.Full}
-        onPress={handleEarnPress}
+        onPress={handleReviewPress}
       />
     </View>
   );
@@ -1100,9 +1072,6 @@ const EarnInputView = () => {
         contentContainerStyle={styles.scrollViewContent}
       >
         <InputDisplay
-          isOverMaximum={isOverMaximum}
-          balanceText={balanceText}
-          balanceValue={balanceValue}
           amountToken={amountToken}
           amountFiatNumber={amountFiatNumber}
           isFiat={isFiat}
@@ -1141,13 +1110,18 @@ const EarnInputView = () => {
           )
         ///: END:ONLY_INCLUDE_IF
       }
+      {isNonZeroAmount &&
+        (!isTronEnabled || (isTronNative && !isPreviewVisible)) &&
+        renderReviewButton(isReviewButtonDisabled)}
       {!isPreviewVisible && (
         <>
-          <QuickAmounts
-            amounts={quickAmounts}
-            onAmountPress={handleQuickAmountPressWithTracking}
-            onMaxPress={onRightActionPress}
-          />
+          {!isNonZeroAmount && (
+            <QuickAmounts
+              amounts={percentageOptions}
+              onAmountPress={handleQuickAmountPressWithTracking}
+              onMaxPress={onRightActionPress}
+            />
+          )}
           <Keypad
             value={!isFiat ? amountToken : amountFiatNumber}
             // Debounce used to avoid error message flicker from recalculating gas fee estimate
@@ -1163,7 +1137,6 @@ const EarnInputView = () => {
         shouldShowTronReviewButton && renderReviewButton(isReviewButtonDisabled)
         ///: END:ONLY_INCLUDE_IF
       }
-      {!isTronEnabled && renderReviewButton(isReviewButtonDisabled)}
     </ScreenLayout>
   );
 };

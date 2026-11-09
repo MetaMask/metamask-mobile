@@ -19,6 +19,7 @@ import {
   createSocialFeedEntrances,
   type SocialFeedEntrances,
 } from './socialFeedEntrances';
+import { acquireSocialRealtime } from './socialRealtimeLease';
 import {
   SOCIAL_FEED_REALTIME_BUFFER_SIZE,
   SOCIAL_FEED_REVEAL_BATCH_SIZE,
@@ -26,6 +27,7 @@ import {
   applyRealtimeEventToRow,
   countPendingNewPosts,
   foldRealtimeRows,
+  getRowFeedItemId,
   getVisiblePendingNewCount,
   mergeRealtimeRows,
   rememberEvictedRevision,
@@ -39,6 +41,8 @@ export interface SocialFeedRealtimeState {
   pendingNewCount: number;
   /** Applies every held-back post at once. */
   revealPending: () => void;
+  /** True while an update to this post is held back, so the shown copy is stale. */
+  hasPendingUpdate: (feedItemId: string) => boolean;
   entrances: SocialFeedEntrances;
 }
 
@@ -103,8 +107,9 @@ const noop = () => undefined;
  * Merges socket events into the server rows of `useSocialFeed`.
  *
  * New posts flow in at the top while the list sits there and is live, and are
- * held behind `pendingNewCount` otherwise. Updates to posts already shown are
- * held the same way and applied silently. Socket-only posts are capped at
+ * held behind `pendingNewCount` otherwise. Updates to posts already shown apply
+ * in place wherever the list is scrolled and whether or not it is paused.
+ * Socket-only posts are capped at
  * {@link SOCIAL_FEED_REALTIME_BUFFER_SIZE}; going over the cap, a reconnect,
  * or becoming active again schedules a catch-up refresh, run once the list is
  * at the top and live. Rows survive while inactive.
@@ -136,7 +141,7 @@ export const useSocialFeedRealtime = (
   const serverRowsById = useMemo(
     () =>
       realtimeScope
-        ? new Map(rows.map((row) => [row.core.positionId, row]))
+        ? new Map(rows.map((row) => [getRowFeedItemId(row), row]))
         : EMPTY_ROWS_BY_ID,
     [realtimeScope, rows],
   );
@@ -321,10 +326,12 @@ export const useSocialFeedRealtime = (
         }
       }
 
+      // Only a post the list does not show yet waits: a post still held as new
+      // stays behind the pill even once its server copy loads.
+      const isNew = !isKnown || store.pending.get(feedItemId)?.isNew === true;
       if (
-        pausedRef.current ||
-        !nearTopRef.current ||
-        (!isKnown && holdNewPostsRef.current)
+        isNew &&
+        (pausedRef.current || !nearTopRef.current || holdNewPostsRef.current)
       ) {
         queuePending(event, !isKnown);
         return;
@@ -361,19 +368,14 @@ export const useSocialFeedRealtime = (
       return undefined;
     }
 
-    let cancelled = false;
     const removeListener = realtimeService.addListener(handleEvent);
     const removeReconnectListener =
       realtimeService.addReconnectListener(markCatchUp);
-    realtimeService
-      .setScopes([realtimeScope])
-      .then(() => (cancelled ? undefined : realtimeService.setActive(true)))
-      .catch(noop);
+    const release = acquireSocialRealtime(realtimeScope);
     return () => {
-      cancelled = true;
       removeListener();
       removeReconnectListener();
-      realtimeService.setActive(false).catch(noop);
+      release();
     };
   }, [active, handleEvent, markCatchUp, realtimeScope]);
 
@@ -593,13 +595,19 @@ export const useSocialFeedRealtime = (
     setRevealRequested(true);
   }, []);
 
+  const hasPendingUpdate = useCallback(
+    (feedItemId: string) => storeRef.current.pending.has(feedItemId),
+    [],
+  );
+
   const realtime = useMemo<SocialFeedRealtimeState>(
     () => ({
       pendingNewCount: visiblePendingNewCount,
       revealPending,
+      hasPendingUpdate,
       entrances,
     }),
-    [entrances, revealPending, visiblePendingNewCount],
+    [entrances, hasPendingUpdate, revealPending, visiblePendingNewCount],
   );
 
   return realtimeScope ? { posts, realtime } : null;

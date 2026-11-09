@@ -74,4 +74,16 @@ describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {
       resolveQuickBuyOriginalEntryPointFromPositionSource('asset_details'),
     ).toBeUndefined();
   });
+
+  it('does not accept the Social feed tab sources as original_entry_point', () => {
+    expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('social_trending'),
+    ).toBeUndefined();
+    expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('social_following'),
+    ).toBeUndefined();
+    expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('social_live_trades'),
+    ).toBeUndefined();
+  });
 });
