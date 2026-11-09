@@ -1,6 +1,7 @@
 import { MOCK_LIMIT_EXPIRED_ORDER } from '../../api/limitOrders/getLimitOrders/mock';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 import {
+  getLimitOrderDuplicateCostTolerance,
   getLimitOrderDuplicateExpirationMinutes,
   getLimitOrderDuplicateParams,
   getLimitOrderDuplicateSourceAmount,
@@ -124,10 +125,50 @@ describe('getLimitOrderDuplicateExpirationMinutes', () => {
   );
 });
 
+describe('getLimitOrderDuplicateCostTolerance', () => {
+  it.each([
+    { priceTolerance: 0.5, expected: '0.5' },
+    { priceTolerance: 2, expected: '2' },
+    { priceTolerance: 2.75, expected: '2.75' },
+    { priceTolerance: 99.99, expected: '99.99' },
+  ])(
+    'resolves a price tolerance of $priceTolerance% to "$expected"',
+    ({ priceTolerance, expected }) => {
+      const result = getLimitOrderDuplicateCostTolerance({
+        ...MOCK_LIMIT_EXPIRED_ORDER,
+        priceTolerance,
+      });
+
+      expect(result).toBe(expected);
+    },
+  );
+
+  it('returns undefined when the order does not carry a price tolerance', () => {
+    const { priceTolerance: _priceTolerance, ...order } =
+      MOCK_LIMIT_EXPIRED_ORDER;
+
+    const result = getLimitOrderDuplicateCostTolerance(order);
+
+    expect(result).toBeUndefined();
+  });
+
+  it.each([0, -1, 100, 2.555, Number.NaN, Number.POSITIVE_INFINITY])(
+    'returns undefined for an unusable price tolerance of %d',
+    (priceTolerance) => {
+      const result = getLimitOrderDuplicateCostTolerance({
+        ...MOCK_LIMIT_EXPIRED_ORDER,
+        priceTolerance,
+      });
+
+      expect(result).toBeUndefined();
+    },
+  );
+});
+
 describe('getLimitOrderDuplicateParams', () => {
   const ENABLED_CHAIN_IDS = ['eip155:1' as const];
 
-  it('resolves the pair, amount and expiration of the order', () => {
+  it('resolves the pair, amount, expiration and cost tolerance of the order', () => {
     const result = getLimitOrderDuplicateParams({
       order: MOCK_LIMIT_EXPIRED_ORDER,
       enabledChainIds: ENABLED_CHAIN_IDS,
@@ -138,7 +179,20 @@ describe('getLimitOrderDuplicateParams', () => {
       destToken: expect.objectContaining({ symbol: 'USDC', chainId: '0x1' }),
       sourceAmount: '0.1',
       expirationMinutes: 4320,
+      costTolerance: '0.5',
     });
+  });
+
+  it('leaves the cost tolerance unset when the order does not carry one', () => {
+    const { priceTolerance: _priceTolerance, ...order } =
+      MOCK_LIMIT_EXPIRED_ORDER;
+
+    const result = getLimitOrderDuplicateParams({
+      order,
+      enabledChainIds: ENABLED_CHAIN_IDS,
+    });
+
+    expect(result).toMatchObject({ costTolerance: undefined });
   });
 
   it('leaves the expiration unset when the order does not tell it', () => {

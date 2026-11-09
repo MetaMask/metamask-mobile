@@ -455,9 +455,34 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
       expect(bridge.isDestTokenManuallySet).toBe(true);
       expect(bridge.sourceAmount).toBe('0.1');
       expect(bridge.limitOrderExpirationMinutes).toBe(expirationMinutes);
-      expect(bridge.limitOrderCostTolerance).toBeUndefined();
+      expect(bridge.limitOrderCostTolerance).toBe('0.5');
     },
   );
+
+  it('duplicates an order with the default cost tolerance when it carries none', async () => {
+    const { priceTolerance: _priceTolerance, ...order } =
+      MOCK_LIMIT_EXPIRED_ORDER;
+    const { getByText, findByTestId, store } = await openActivityPage(
+      order,
+      [],
+      {
+        overrides: withLimitOrderFlags(['eip155:1'], {
+          limitOrderCostTolerance: '2',
+        }),
+      },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
+    });
+
+    expect(
+      await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    const { bridge } = store.getState();
+    expect(bridge.sourceAmount).toBe('0.1');
+    expect(bridge.limitOrderCostTolerance).toBeUndefined();
+  });
 
   it('duplicates an order with the default expiration when its lifetime matches no preset', async () => {
     const { getByText, findByTestId, store } = await openActivityPage(
@@ -487,7 +512,7 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     const { bridge } = store.getState();
     expect(bridge.sourceAmount).toBe('0.1');
     expect(bridge.limitOrderExpirationMinutes).toBe(60);
-    expect(bridge.limitOrderCostTolerance).toBeUndefined();
+    expect(bridge.limitOrderCostTolerance).toBe('0.5');
   });
 
   it('leaves the limit orders tab as it was when it no longer supports the order network', async () => {

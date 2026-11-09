@@ -2,6 +2,7 @@ import { BigNumber } from 'bignumber.js';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { CaipChainId } from '@metamask/utils';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
+import { parseLimitOrderCostTolerance } from '../../components/SwapsLimitOrderCostToleranceModal/constants';
 import {
   SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES,
   type SwapsLimitOrderExpirationMinutes,
@@ -26,6 +27,8 @@ export interface LimitOrderDuplicateParams {
   sourceAmount: string | undefined;
   /** The expiration preset the order was placed with, if it can be told. */
   expirationMinutes: SwapsLimitOrderExpirationMinutes | undefined;
+  /** The cost tolerance in % the order was placed with, if it is usable. */
+  costTolerance: string | undefined;
 }
 
 /**
@@ -71,6 +74,21 @@ export function getLimitOrderDuplicateExpirationMinutes({
 }
 
 /**
+ * Resolves the cost tolerance the order was placed with.
+ *
+ * @param order - The limit order.
+ * @returns The cost tolerance in %, or `undefined` when the order doesn't
+ * carry one the Limit tab accepts.
+ */
+export function getLimitOrderDuplicateCostTolerance({
+  priceTolerance,
+}: LimitOrder): string | undefined {
+  return priceTolerance === undefined
+    ? undefined
+    : parseLimitOrderCostTolerance(String(priceTolerance));
+}
+
+/**
  * Resolves the Limit tab inputs that place the same order again.
  *
  * @param options - The order, and what the Limit tab currently accepts.
@@ -104,5 +122,6 @@ export function getLimitOrderDuplicateParams({
     expirationMinutes: getLimitOrderDuplicateExpirationMinutes(
       order.timingData,
     ),
+    costTolerance: getLimitOrderDuplicateCostTolerance(order),
   };
 }

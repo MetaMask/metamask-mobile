@@ -230,8 +230,7 @@ function SwapsLimitOrderActivityPage() {
             SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
         ),
       );
-      // Orders don't carry the price tolerance they were placed with.
-      dispatch(setLimitOrderCostTolerance(undefined));
+      dispatch(setLimitOrderCostTolerance(duplicateParams.costTolerance));
     }
 
     navigation.goBack();
