@@ -61,7 +61,7 @@ const migration = (state: unknown): unknown => {
           },
         ],
         // Legacy `failoverUrls` is no longer part of the `NetworkController` types
-        // (removed by migration 161), but is kept here so this migration's output
+        // (removed by migration 162), but is kept here so this migration's output
         // is unchanged.
       } as unknown as NetworkConfiguration;
 
