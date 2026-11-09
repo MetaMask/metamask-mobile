@@ -326,11 +326,11 @@ export const selectIsCardStateResolved = createSelector(
   selectCardHomeData,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
-  selectIsCardholder,
-  (status, cardHomeData, verificationStatus, isAuthenticated, isCardholder) =>
+  selectHasCard,
+  (status, cardHomeData, verificationStatus, isAuthenticated, hasCard) =>
     ((status === 'success' || cardHomeData !== null) &&
       (!isAuthenticated || verificationStatus !== null)) ||
-    (!isAuthenticated && !isCardholder),
+    (!isAuthenticated && !hasCard),
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
