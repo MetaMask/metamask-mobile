@@ -13,7 +13,12 @@ import VbaAccountCreateErrorAdapter from './modules/AccountCreateErrorAdapter';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaOnboardingLoading from './VbaOnboardingLoading';
 import VbaChooseCurrency from './VbaChooseCurrency';
-import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
+import {
+  VbaOnboardingRoutes,
+  type VbaOnboardingParamList,
+  type VbaOnboardingRootParams,
+} from './routes';
+import { useFocusMoneyTabBelow } from './hooks/useFocusMoneyTabBelow';
 import { withScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -66,7 +71,7 @@ const InstrumentedOnboardingError = withScreenPerformance(
   VBA_SCREEN_CONTENT_STATE.ERROR,
 );
 
-const VbaOnboardingNavigator = () => (
+const VbaOnboardingStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false, animation: 'none' }}>
     <Stack.Screen
       name={VbaOnboardingRoutes.VENDOR_TERMS}
@@ -113,6 +118,22 @@ const VbaOnboardingNavigator = () => (
       component={InstrumentedOnboardingError}
     />
   </Stack.Navigator>
+);
+
+const FocusMoneyTabBelow = () => {
+  useFocusMoneyTabBelow();
+  return null;
+};
+
+interface VbaOnboardingNavigatorProps {
+  route?: { params?: VbaOnboardingRootParams };
+}
+
+const VbaOnboardingNavigator = ({ route }: VbaOnboardingNavigatorProps) => (
+  <>
+    {route?.params?.focusMoneyTabBelow ? <FocusMoneyTabBelow /> : null}
+    <VbaOnboardingStack />
+  </>
 );
 
 export default VbaOnboardingNavigator;

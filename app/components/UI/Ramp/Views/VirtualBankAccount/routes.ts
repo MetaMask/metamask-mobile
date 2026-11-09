@@ -54,6 +54,12 @@ export const VBA_DEFAULT_CALLER_ROUTE = {
   },
 };
 
+/** Params of the main-stack route that hosts VBA onboarding. */
+export interface VbaOnboardingRootParams {
+  /** Focus the Money tab underneath once it appears. Set by a resume. */
+  focusMoneyTabBelow?: boolean;
+}
+
 /**
  * Main stack state that opens onboarding on its loading screen above Money
  * home, the same two-route shape `openAsOnlyOnboardingRoute` keeps.
@@ -66,6 +72,7 @@ export const getVbaOnboardingResumeState = (
     VBA_DEFAULT_CALLER_ROUTE,
     {
       name: Routes.RAMP.VBA_ONBOARDING,
+      params: { focusMoneyTabBelow: true } satisfies VbaOnboardingRootParams,
       state: {
         index: 0,
         routes: [{ name: VbaOnboardingRoutes.LOADING, params: { source } }],
