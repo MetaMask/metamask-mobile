@@ -558,4 +558,469 @@ describe('PolyBoltCryptoFeed', () => {
       ]);
     });
   });
+
+  describe('connection lifecycle', () => {
+    const btc: PolyBoltSubscription = {
+      channel: 'price.crypto',
+      callerSymbol: 'btc/usd',
+      wireSymbol: 'btcusd',
+    };
+    const eth: PolyBoltSubscription = {
+      channel: 'price.crypto',
+      callerSymbol: 'eth/usd',
+      wireSymbol: 'ethusd',
+    };
+
+    const sentOps = (socket: MockSocket) =>
+      socket.send.mock.calls.map(
+        ([frame]) => (JSON.parse(frame as string) as { op: string }).op,
+      );
+
+    const mockMaxRandom = () =>
+      jest
+        .spyOn(global.crypto, 'getRandomValues')
+        .mockImplementation(<T extends ArrayBufferView | null>(array: T): T => {
+          (array as unknown as Uint32Array).fill(0xffffffff);
+          return array;
+        });
+
+    it('waits for credentials before it opens a socket', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+
+      feed.setSubscriptions([btc]);
+      expect(mockSockets).toHaveLength(0);
+
+      feed.setCredentials(credentials);
+      expect(mockSockets).toHaveLength(1);
+    });
+
+    it('ignores credentials identical to the current ones', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      connectAuthedFeed(feed);
+
+      feed.setCredentials({ ...credentials });
+
+      expect(mockSockets).toHaveLength(1);
+    });
+
+    it('reports connected only while authed on an open socket', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      expect(feed.isConnected()).toBe(false);
+
+      const { socket } = connectAuthedFeed(feed);
+      expect(feed.isConnected()).toBe(true);
+
+      socket.closeWith(1006);
+      expect(feed.isConnected()).toBe(false);
+    });
+
+    it('subscribes to at most 64 symbols and logs the overflow', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      const feed = new PolyBoltCryptoFeed(listener());
+      const many = Array.from({ length: 65 }, (_, index) => ({
+        channel: 'price.crypto' as const,
+        callerSymbol: `c${index}/usd`,
+        wireSymbol: `c${index}usd`,
+      }));
+
+      feed.setCredentials(credentials);
+      feed.setSubscriptions(many);
+      const socket = mockSockets[0];
+      socket.open();
+      socket.receive({ op: 'authed', rid: 'a1' });
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'PolyBoltCryptoFeed: subscription limit exceeded',
+        { requested: 65, limit: 64 },
+      );
+      const subscribe = JSON.parse(socket.send.mock.calls[1][0] as string) as {
+        subscriptions: unknown[];
+      };
+      expect(subscribe.subscriptions).toHaveLength(64);
+    });
+
+    it('closes the socket and stays closed when the last subscription goes away', () => {
+      const handlers = listener();
+      const feed = new PolyBoltCryptoFeed(handlers);
+      const { socket } = connectAuthedFeed(feed, handlers);
+      handlers.onConnectionChange.mockClear();
+
+      feed.setSubscriptions([]);
+      jest.advanceTimersByTime(60_000);
+
+      expect(socket.close).toHaveBeenCalled();
+      expect(handlers.onConnectionChange).toHaveBeenCalled();
+      expect(feed.isConnected()).toBe(false);
+      expect(mockSockets).toHaveLength(1);
+    });
+
+    it('cancels a pending reconnect when the last subscription goes away', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+
+      socket.closeWith(1006);
+      feed.setSubscriptions([]);
+      jest.advanceTimersByTime(60_000);
+
+      expect(mockSockets).toHaveLength(1);
+    });
+
+    it('opens a fresh socket on reconnect', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+
+      feed.reconnect();
+
+      expect(socket.close).toHaveBeenCalled();
+      expect(mockSockets).toHaveLength(2);
+    });
+
+    it('does not reconnect without subscriptions', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      feed.setCredentials(credentials);
+
+      feed.reconnect();
+
+      expect(mockSockets).toHaveLength(0);
+    });
+
+    it('treats a close without a code as abnormal and reconnects', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+
+      socket.readyState = MockSocket.CLOSED;
+      socket.onclose?.({});
+      jest.advanceTimersByTime(1_000);
+
+      expect(mockSockets).toHaveLength(2);
+    });
+
+    it('doubles the backoff while reconnects keep failing', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+
+      socket.closeWith(1006);
+      jest.advanceTimersByTime(1_000);
+      mockSockets[1].closeWith(1006);
+      jest.advanceTimersByTime(1_999);
+      expect(mockSockets).toHaveLength(2);
+
+      jest.advanceTimersByTime(1);
+      expect(mockSockets).toHaveLength(3);
+    });
+
+    it('adds up to a second of jitter to the backoff', () => {
+      mockMaxRandom();
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+
+      socket.closeWith(1006);
+      jest.advanceTimersByTime(1_998);
+      expect(mockSockets).toHaveLength(1);
+
+      jest.advanceTimersByTime(1);
+      expect(mockSockets).toHaveLength(2);
+    });
+
+    it('reconnects within ten seconds after a draining close 4003', () => {
+      mockMaxRandom();
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+
+      socket.closeWith(4003);
+      jest.advanceTimersByTime(9_999);
+      expect(mockSockets).toHaveLength(1);
+
+      jest.advanceTimersByTime(1);
+      expect(mockSockets).toHaveLength(2);
+    });
+
+    it('retries with backoff when the socket cannot be opened', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      let failNext = true;
+      class FlakySocket extends MockSocket {
+        constructor(url: string) {
+          if (failNext) {
+            failNext = false;
+            throw new Error('offline');
+          }
+          super(url);
+        }
+      }
+      (global as unknown as { WebSocket: typeof MockSocket }).WebSocket =
+        FlakySocket;
+      const feed = new PolyBoltCryptoFeed(listener());
+
+      feed.setCredentials(credentials);
+      feed.setSubscriptions([btc]);
+      expect(mockSockets).toHaveLength(0);
+      expect(logSpy).toHaveBeenCalledWith(
+        'PolyBoltCryptoFeed: failed to open socket',
+        expect.objectContaining({ error: expect.any(Error) }),
+      );
+
+      jest.advanceTimersByTime(1_000);
+      expect(mockSockets).toHaveLength(1);
+    });
+
+    it('logs socket errors', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+
+      socket.onerror?.();
+
+      expect(logSpy).toHaveBeenCalledWith('PolyBoltCryptoFeed: socket error');
+    });
+
+    it('lets new credentials lift an auth block from close 4001', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+      socket.closeWith(4001);
+
+      feed.reconnect();
+      expect(mockSockets).toHaveLength(1);
+
+      feed.setCredentials({ ...credentials, apiKey: 'rotated' });
+      expect(mockSockets).toHaveLength(2);
+    });
+
+    it('stays closed after policy close 4008 until the subscriptions change', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+
+      socket.closeWith(4008);
+      jest.advanceTimersByTime(60_000);
+      feed.reconnect();
+      feed.setSubscriptions([{ ...btc }]);
+      expect(mockSockets).toHaveLength(1);
+
+      feed.setSubscriptions([btc, eth]);
+      expect(mockSockets).toHaveLength(2);
+    });
+
+    it('sends auth again on auth_required, at most eight times per connection', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        socket.receive({ op: 'error', code: 'auth_required' });
+      }
+
+      expect(sentOps(socket).filter((op) => op === 'auth')).toHaveLength(8);
+      expect(feed.isConnected()).toBe(false);
+    });
+
+    it('retries auth once after a backoff on auth_unavailable', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+      socket.send.mockClear();
+
+      socket.receive({ op: 'error', code: 'auth_unavailable' });
+      socket.receive({ op: 'error', code: 'auth_unavailable' });
+      jest.advanceTimersByTime(999);
+      expect(socket.send).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(1);
+      expect(sentOps(socket)).toEqual(['auth']);
+    });
+
+    it('drops a pending auth retry on disconnect', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+      socket.receive({ op: 'error', code: 'auth_unavailable' });
+      socket.send.mockClear();
+
+      feed.disconnect();
+      jest.advanceTimersByTime(60_000);
+
+      expect(socket.send).not.toHaveBeenCalled();
+    });
+
+    it('ignores unknown ops, errors without a code and unknown error codes', () => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      const { socket } = connectAuthedFeed(feed);
+      socket.send.mockClear();
+
+      socket.receive({ op: 'heartbeat' });
+      socket.receive({ op: 'error' });
+      socket.receive({ op: 'error', code: 'rate_limited' });
+      socket.receive({ op: 'subscribed', rid: 42 });
+      socket.receive({ op: 'subscribed', rid: 's99' });
+      jest.advanceTimersByTime(60_000);
+
+      expect(socket.send).not.toHaveBeenCalled();
+      expect(feed.isConnected()).toBe(true);
+    });
+  });
+
+  describe('message parsing', () => {
+    const connect = (channel: PolyBoltSubscription['channel']) => {
+      const handlers = listener();
+      const feed = new PolyBoltCryptoFeed(handlers);
+      feed.setCredentials(credentials);
+      feed.setSubscriptions([
+        { channel, callerSymbol: 'btc/usd', wireSymbol: 'btcusd' },
+      ]);
+      const socket = mockSockets[0];
+      socket.open();
+      socket.receive({ op: 'authed', rid: 'a1' });
+      return { socket, handlers };
+    };
+
+    const expectNothingEmitted = (handlers: ReturnType<typeof listener>) => {
+      expect(handlers.onSnapshot).not.toHaveBeenCalled();
+      expect(handlers.onLive).not.toHaveBeenCalled();
+    };
+
+    it('ignores empty frames, pong and non-object JSON', () => {
+      const { socket, handlers } = connect('price.crypto');
+
+      socket.onmessage?.({ data: '' });
+      socket.onmessage?.({ data: 'pong' });
+      socket.onmessage?.({ data: 42 as unknown as string });
+      socket.receive([1, 2]);
+
+      expectNothingEmitted(handlers);
+    });
+
+    it('logs and drops a frame that is not JSON', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      const { socket, handlers } = connect('price.crypto');
+
+      socket.onmessage?.({ data: '{not json' });
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'PolyBoltCryptoFeed: failed to parse message',
+        expect.objectContaining({ error: expect.any(SyntaxError) }),
+      );
+      expectNothingEmitted(handlers);
+    });
+
+    it('ignores envelopes for other channels or without a usable payload', () => {
+      const { socket, handlers } = connect('price.crypto');
+
+      socket.receive({
+        channel: 'price.equity',
+        payload: { symbol: 'btcusd' },
+      });
+      socket.receive({ channel: 'price.crypto', payload: 'btcusd' });
+      socket.receive({ channel: 'price.crypto', payload: { symbol: 1 } });
+      socket.receive({
+        channel: 'price.crypto',
+        payload: {
+          symbol: 'ethusd',
+          timestamp: 1,
+          full_accuracy_value: '1',
+        },
+      });
+
+      expectNothingEmitted(handlers);
+    });
+
+    it('drops snapshot points without a timestamp or a finite price', () => {
+      const { socket, handlers } = connect('price.crypto');
+
+      socket.receive({
+        channel: 'price.crypto',
+        snapshot: true,
+        payload: { symbol: 'btcusd', data: 'none' },
+      });
+      socket.receive({
+        channel: 'price.crypto',
+        snapshot: true,
+        payload: {
+          symbol: 'btcusd',
+          data: [
+            null,
+            { timestamp: '1', full_accuracy_value: '1' },
+            { timestamp: 2, full_accuracy_value: 3 },
+            { timestamp: 3, full_accuracy_value: ' ' },
+            { timestamp: 4, full_accuracy_value: 'abc' },
+          ],
+        },
+      });
+      expect(handlers.onSnapshot).not.toHaveBeenCalled();
+
+      socket.receive({
+        channel: 'price.crypto',
+        snapshot: true,
+        payload: {
+          symbol: 'btcusd',
+          data: [
+            { timestamp: 4, full_accuracy_value: 'Infinity' },
+            { timestamp: 5, full_accuracy_value: '99.5' },
+          ],
+        },
+      });
+      expect(handlers.onSnapshot).toHaveBeenCalledWith('price.crypto', [
+        { symbol: 'btc/usd', price: 99.5, timestamp: 5 },
+      ]);
+    });
+
+    it('emits a live point for an unpinned subscription without a provider', () => {
+      const { socket, handlers } = connect('price.crypto');
+
+      socket.receive({
+        channel: 'price.crypto',
+        payload: {
+          symbol: 'btcusd',
+          timestamp: 1_000,
+          full_accuracy_value: '101.25',
+        },
+      });
+
+      expect(handlers.onLive).toHaveBeenCalledWith('price.crypto', {
+        symbol: 'btc/usd',
+        price: 101.25,
+        timestamp: 1_000,
+      });
+    });
+
+    it('drops live points without a timestamp or a price', () => {
+      const { socket, handlers } = connect('price.crypto');
+
+      socket.receive({
+        channel: 'price.crypto',
+        payload: { symbol: 'btcusd', full_accuracy_value: '1' },
+      });
+      socket.receive({
+        channel: 'price.crypto',
+        payload: { symbol: 'btcusd', timestamp: 1, full_accuracy_value: '' },
+      });
+
+      expect(handlers.onLive).not.toHaveBeenCalled();
+    });
+
+    it('emits only 60 second TWAP points and tags them with the window', () => {
+      const { socket, handlers } = connect('price.crypto.twap');
+
+      socket.receive({
+        channel: 'price.crypto.twap',
+        payload: {
+          symbol: 'btcusd',
+          timestamp: 1_000,
+          window_seconds: 300,
+          full_accuracy_value: '1',
+        },
+      });
+      expect(handlers.onLive).not.toHaveBeenCalled();
+
+      socket.receive({
+        channel: 'price.crypto.twap',
+        payload: {
+          symbol: 'btcusd',
+          timestamp: 2_000,
+          window_seconds: 60,
+          full_accuracy_value: '2',
+        },
+      });
+      expect(handlers.onLive).toHaveBeenCalledWith('price.crypto.twap', {
+        symbol: 'btc/usd',
+        price: 2,
+        timestamp: 2_000,
+        twapWindowSeconds: 60,
+      });
+    });
+  });
 });

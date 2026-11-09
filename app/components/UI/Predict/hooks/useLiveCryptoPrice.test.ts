@@ -143,4 +143,16 @@ describe('useLiveCryptoPrice', () => {
       { twapWindowSeconds: 30 },
     );
   });
+
+  it('passes the settlement provider through to the subscription', () => {
+    renderHook(() =>
+      useLiveCryptoPrice({ symbol: 'BTC', provider: 'binance' }),
+    );
+
+    expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
+      ['btc/usd'],
+      expect.any(Function),
+      { twapWindowSeconds: undefined, provider: 'binance' },
+    );
+  });
 });
