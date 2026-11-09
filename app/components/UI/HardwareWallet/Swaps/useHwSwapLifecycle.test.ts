@@ -302,7 +302,7 @@ describe('useHwSwapLifecycle Quick Buy entry point', () => {
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(getMockShowToast()).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it('reports the submitted outcome once, even after unmount', () => {
