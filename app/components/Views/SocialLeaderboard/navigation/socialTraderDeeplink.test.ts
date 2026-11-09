@@ -11,8 +11,10 @@ import {
   resolveSocialShareImageUrl,
   shareSocialProfile,
   shareSocialTraderPosition,
+  toSocialBranchDeeplinkPath,
 } from './socialTraderDeeplink';
 import type { SocialOgImageRequest } from './socialOgImageService';
+import { rewriteBranchUri } from '../../../../core/DeeplinkManager/DeeplinkManager';
 
 const mockCreateBranchUniversalObject = jest.fn();
 const mockCreateSocialOgImage = jest.fn();
@@ -151,6 +153,29 @@ const mockShortLink = (url: string | Promise<{ url: string }>) => {
   });
   return { generateShortUrl, release };
 };
+
+describe('toSocialBranchDeeplinkPath', () => {
+  it('keeps the route ids on the path', () => {
+    expect(
+      toSocialBranchDeeplinkPath(
+        buildSocialTraderPositionDeeplink('pepe base', 'trader/1'),
+      ),
+    ).toBe('social/profile/position?positionId=pepe+base&traderId=trader%2F1');
+  });
+
+  it('round-trips through rewriteBranchUri to the same link', () => {
+    const canonicalUrl = buildSocialTraderPositionDeeplink(
+      'pepe base',
+      'trader/1',
+    );
+    expect(
+      rewriteBranchUri('https://metamask-alternate.app.link/AbCdEf', {
+        '+clicked_branch_link': true,
+        $deeplink_path: toSocialBranchDeeplinkPath(canonicalUrl),
+      }),
+    ).toBe(canonicalUrl);
+  });
+});
 
 describe('createSocialBranchShortUrl', () => {
   beforeEach(() => {
@@ -432,7 +457,7 @@ describe('share with a generated card', () => {
 
     expect(buildRequest).toHaveBeenCalledTimes(1);
     expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
-      'social/profile/position',
+      'social/profile/position?positionId=position-1&traderId=trader-1',
       expect.objectContaining({
         title: preview.title,
         contentDescription: preview.description,
@@ -442,6 +467,8 @@ describe('share with a generated card', () => {
     expect(generateShortUrl).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
+        $deeplink_path:
+          'social/profile/position?positionId=position-1&traderId=trader-1',
         $custom_meta_tags: JSON.stringify({
           'twitter:image': GENERATED_CARD_URL,
           'twitter:image:src': GENERATED_CARD_URL,
@@ -463,7 +490,7 @@ describe('share with a generated card', () => {
 
     expect(mockCreateSocialOgImage).not.toHaveBeenCalled();
     expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
-      'social/profile',
+      'social/profile?traderId=trader-1',
       expect.objectContaining({ contentImageUrl: profilePreview.imageUrl }),
     );
     expect(openShare).toHaveBeenCalledWith({
@@ -498,7 +525,7 @@ describe('share with a generated card', () => {
     expect(openShare).toHaveBeenCalledTimes(1);
     expect(mockCreateBranchUniversalObject).toHaveBeenCalledTimes(1);
     expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
-      'social/profile',
+      'social/profile?traderId=trader-2',
       expect.objectContaining({ contentImageUrl: GENERATED_CARD_URL }),
     );
     expect(openShare).toHaveBeenCalledWith({

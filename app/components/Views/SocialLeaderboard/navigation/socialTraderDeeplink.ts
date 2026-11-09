@@ -369,9 +369,18 @@ export const resolveSocialShareImageUrl = async (
   }
 };
 
+/**
+ * Branch `$deeplink_path` for a share: the canonical link's path and query
+ * (`social/profile?traderId=…`). A short link has no query of its own, so
+ * `rewriteBranchUri` reads the route's ids from here when the link opens.
+ */
+export const toSocialBranchDeeplinkPath = (canonicalUrl: string): string => {
+  const url = new URL(canonicalUrl);
+  return `${url.pathname.replace(/^\//, '')}${url.search}`;
+};
+
 const shareLink = (
   canonicalUrl: string,
-  deeplinkPath: string,
   openGraph: SocialLinkOpenGraph | undefined,
   onShared?: () => void,
   buildOgImageRequest?: BuildSocialOgImageRequest,
@@ -381,6 +390,7 @@ const shareLink = (
   const controller = new AbortController();
   activeShareAbort = controller;
   const isCurrent = () => generation === shareGeneration;
+  const deeplinkPath = toSocialBranchDeeplinkPath(canonicalUrl);
   logSocialOgShare('Share started', {
     generation,
     canonicalUrl,
@@ -456,7 +466,6 @@ export const shareSocialProfile = (
 ): Promise<void> =>
   shareLink(
     buildSocialTraderDeeplink(traderId),
-    PROFILE_DEEPLINK_PATH,
     openGraph,
     onShared,
     buildOgImageRequest,
@@ -479,7 +488,6 @@ export const shareSocialTraderPosition = (
 ): Promise<void> =>
   shareLink(
     buildSocialTraderPositionDeeplink(positionId, traderId),
-    POSITION_DEEPLINK_PATH,
     openGraph,
     onShared,
     buildOgImageRequest,
