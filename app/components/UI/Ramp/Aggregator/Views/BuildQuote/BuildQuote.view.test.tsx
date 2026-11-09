@@ -738,6 +738,42 @@ describe('Aggregator BuildQuote', () => {
   });
 
   describe('buy mode (Aggregator / V1)', () => {
+    it('selects SOL from the deeplink intent on the Buy quote screen', async () => {
+      const { findByText, findByTestId, getByTestId } =
+        renderBuildQuoteWithRoutes({
+          rampType: RampType.BUY,
+          initialParams: {
+            assetId: `${SolScope.Mainnet}/slip44:501`,
+          },
+          overrides: {
+            ...mixedAccountGroupState,
+            engine: {
+              backgroundState: {
+                ...mixedAccountGroupState.engine?.backgroundState,
+                AccountTreeController: {
+                  ...mixedAccountGroupState.engine?.backgroundState
+                    ?.AccountTreeController,
+                  selectedAccountGroup: MIXED_ACCOUNT_GROUP_ID,
+                },
+              },
+            },
+          },
+        });
+
+      expect(await findByText('SOL')).toBeOnTheScreen();
+      expect(await findByText('You want to buy')).toBeOnTheScreen();
+
+      fireEvent.press(await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      fireEvent.press(await findByTestId(KeypadTestIds.KEY_5));
+      fireEvent.press(await findByTestId(KeypadTestIds.KEY_0));
+
+      await waitFor(() => {
+        expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+          '$50',
+        );
+      });
+    });
+
     it('changes the selected payment method from Apple Pay to Debit or Credit', async () => {
       const { findByText, queryByText } = renderBuildQuoteWithRoutes({
         rampType: RampType.BUY,

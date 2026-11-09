@@ -4,6 +4,7 @@ export const SocialV1ViewSelectorsIDs = {
   HEADER_TITLE: 'social-v1-view-header-title',
   TITLE: 'social-v1-view-title',
   TABS: 'social-v1-view-tabs',
+  TABS_SCROLL_DIVIDER: 'social-v1-view-tabs-scroll-divider',
   PAGER: 'social-v1-view-pager',
   LEADERBOARD_PAGE: 'social-v1-view-leaderboard-page',
   TRENDING_PAGE: 'social-v1-view-trending-page',

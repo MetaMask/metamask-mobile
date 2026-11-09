@@ -223,6 +223,7 @@ jest.mock('../../../../selectors/cardController', () => ({
   selectIsCardAuthenticated: (state: {
     card: { isAuthenticatedCard: boolean };
   }) => state.card.isAuthenticatedCard,
+  selectHasCardholderAccounts: () => false,
   selectCardEntryRouting: (state: {
     card: { isCardholder: boolean; entryRouting?: EntryRouting };
   }): EntryRouting =>

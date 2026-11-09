@@ -8,6 +8,12 @@ import {
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
+import {
+  getAnalyticsControllerInstanceOptions,
+  withMobileAnalyticsControllerState,
+} from './instance-options/analytics-controller';
+import { getAnalyticsControllerInitMessenger } from './messengers/analytics-controller-messenger';
+import { setupAnalyticsControllerListeners } from './listeners/analytics-controller';
 import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
 import { unrestrictedMethods } from '../../Permissions/specifications';
 import { getLedgerDmkMode, initializeLedgerDmkMode } from '../../Ledger/dmk';
@@ -19,6 +25,23 @@ jest.mock('@metamask/wallet', () => ({
     init: mockWalletInit,
     getInstance: jest.fn(),
   })),
+}));
+jest.mock('./instance-options/analytics-controller', () => ({
+  getAnalyticsControllerInstanceOptions: jest.fn(() => 'analytics-options'),
+  withMobileAnalyticsControllerState: jest.fn(
+    (state: Record<string, unknown>, analyticsId: string) => ({
+      ...state,
+      AnalyticsController: { analyticsId },
+    }),
+  ),
+}));
+jest.mock('./messengers/analytics-controller-messenger', () => ({
+  getAnalyticsControllerInitMessenger: jest.fn(
+    () => 'analytics-init-messenger',
+  ),
+}));
+jest.mock('./listeners/analytics-controller', () => ({
+  setupAnalyticsControllerListeners: jest.fn(),
 }));
 jest.mock('./instance-options/approval-controller', () => ({
   getApprovalControllerInstanceOptions: jest.fn(() => 'approval-options'),
@@ -77,18 +100,24 @@ jest.mock('./messengers/transaction-controller-messenger', () => ({
 describe('initializeWallet', () => {
   const messenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
   const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
+  const analyticsId = 'mmkv-analytics-id';
+  const expectedState = {
+    ...state,
+    AnalyticsController: { analyticsId },
+  };
   beforeEach(() => {
     jest.clearAllMocks();
     initializeLedgerDmkMode({});
   });
 
   it('constructs a Wallet, wiring each builder output to its instanceOptions slot', () => {
-    initializeWallet({ messenger, state });
+    initializeWallet({ messenger, state, analyticsId });
 
     expect(Wallet).toHaveBeenCalledWith({
       messenger,
-      state,
+      state: expectedState,
       instanceOptions: {
+        analyticsController: 'analytics-options',
         approvalController: 'approval-options',
         keyringController: 'keyring-options',
         remoteFeatureFlagController: 'rffc-options',
@@ -115,7 +144,7 @@ describe('initializeWallet', () => {
   });
 
   it('threads the messenger and state through to the builders that need them', () => {
-    initializeWallet({ messenger, state });
+    initializeWallet({ messenger, state, analyticsId });
 
     expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
       messenger,
@@ -123,12 +152,33 @@ describe('initializeWallet', () => {
     );
     expect(getRemoteFeatureFlagControllerInstanceOptions).toHaveBeenCalledWith({
       messenger,
-      state,
+      state: expectedState,
     });
   });
 
+  it('normalizes the persisted AnalyticsController state and options with the MMKV analytics ID', () => {
+    initializeWallet({ messenger, state, analyticsId });
+
+    expect(withMobileAnalyticsControllerState).toHaveBeenCalledWith(
+      state,
+      analyticsId,
+    );
+    expect(getAnalyticsControllerInstanceOptions).toHaveBeenCalledWith(
+      analyticsId,
+    );
+  });
+
+  it('sets up the AnalyticsController listeners with its init messenger', () => {
+    initializeWallet({ messenger, state, analyticsId });
+
+    expect(getAnalyticsControllerInitMessenger).toHaveBeenCalledWith(messenger);
+    expect(setupAnalyticsControllerListeners).toHaveBeenCalledWith(
+      'analytics-init-messenger',
+    );
+  });
+
   it('builds the TransactionController options and listeners with the init messenger', () => {
-    initializeWallet({ messenger, state });
+    initializeWallet({ messenger, state, analyticsId });
 
     expect(getTransactionControllerInitMessenger).toHaveBeenCalledWith(
       messenger,
@@ -142,7 +192,7 @@ describe('initializeWallet', () => {
   });
 
   it('sets up TransactionController listeners before constructing the Wallet, so the TransactionController can emit events to the wallet messenger during initialization', () => {
-    initializeWallet({ messenger, state });
+    initializeWallet({ messenger, state, analyticsId });
 
     const setupListenersCallOrder = jest.mocked(
       setupTransactionControllerListeners,
@@ -160,7 +210,7 @@ describe('initializeWallet', () => {
       },
     };
 
-    initializeWallet({ messenger, state: stateWithDmkEnabled });
+    initializeWallet({ messenger, state: stateWithDmkEnabled, analyticsId });
 
     expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
       messenger,
@@ -178,7 +228,11 @@ describe('initializeWallet', () => {
       },
     };
 
-    initializeWallet({ messenger, state: stateWithConflictingFlags });
+    initializeWallet({
+      messenger,
+      state: stateWithConflictingFlags,
+      analyticsId,
+    });
 
     expect(getLedgerDmkMode()).toBe(false);
     expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
@@ -199,10 +253,10 @@ describe('initializeWallet', () => {
       },
     };
 
-    initializeWallet({ messenger, state: stateWithDmkEnabled });
+    initializeWallet({ messenger, state: stateWithDmkEnabled, analyticsId });
     expect(getLedgerDmkMode()).toBe(true);
 
-    initializeWallet({ messenger, state: stateWithDmkDisabled });
+    initializeWallet({ messenger, state: stateWithDmkDisabled, analyticsId });
     expect(getLedgerDmkMode()).toBe(false);
   });
 });
