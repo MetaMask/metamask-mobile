@@ -80,7 +80,6 @@ const mockReadSessionStatus = jest.fn();
 const mockGetSessionStatusForVendor = jest.fn();
 const mockStartSession = jest.fn();
 const mockReset = jest.fn();
-const mockMessengerCall = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
 const mockRampsState: {
   autoramps: { id: string; walletAddress: string; status: string }[];
@@ -109,9 +108,6 @@ jest.mock('../../../../../../core/Engine', () => ({
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
     },
-  },
-  controllerMessenger: {
-    call: (...args: unknown[]) => mockMessengerCall(...args),
   },
 }));
 
@@ -1161,15 +1157,33 @@ describe('resolveVbaOnboarding', () => {
     expect(mockHydrate).not.toHaveBeenCalled();
   });
 
-  it('resets and starts again when the persisted geoCountry changed, then hydrates', async () => {
+  it('keeps the stored session when the geoCountry changed, then hydrates', async () => {
     mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValueOnce(
+      new Error(
+        'KycController already initialized with a different geoCountry',
+      ),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(expect.objectContaining({ status: 'ready' }));
+
+    expect(mockReset).not.toHaveBeenCalled();
+    expect(mockStartSession).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('resets empty KYC state when the geoCountry changed with no stored session', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
     mockStartSession
       .mockRejectedValueOnce(
         new Error(
           'KycController already initialized with a different geoCountry',
         ),
       )
-      .mockResolvedValueOnce({ id: 'session-1' });
+      .mockResolvedValueOnce({ id: 'session-remote' });
 
     await expect(
       resolveVbaOnboarding('money-add-money-bank-account'),
@@ -1177,12 +1191,13 @@ describe('resolveVbaOnboarding', () => {
 
     expect(mockReset).toHaveBeenCalledTimes(1);
     expect(mockStartSession).toHaveBeenCalledTimes(2);
-    expect(mockHydrate).toHaveBeenCalled();
-    expect(Logger.error).not.toHaveBeenCalled();
+    expect(mockReset.mock.invocationCallOrder[0]).toBeLessThan(
+      mockHydrate.mock.invocationCallOrder[0],
+    );
   });
 
   it('continues as a new user when the retry after a geoCountry reset has no session and no AAL2 token', async () => {
-    mockReadSessionStatus.mockReturnValueOnce({ id: 'session-1' });
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
     mockStartSession
       .mockRejectedValueOnce(
         new Error(
@@ -1205,24 +1220,6 @@ describe('resolveVbaOnboarding', () => {
     );
     expect(mockReset).toHaveBeenCalledTimes(1);
     expect(mockHydrate).toHaveBeenCalled();
-  });
-
-  it('keeps the stored email when partner identity has no verified email', async () => {
-    mockKycState.email = 'user@example.com';
-    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
-    mockMessengerCall.mockRejectedValue({ status: 422 });
-    mockStartSession.mockRejectedValue(
-      new Error(
-        'KycController already initialized with a different geoCountry',
-      ),
-    );
-
-    await expect(
-      resolveVbaOnboarding('money-add-money-bank-account'),
-    ).resolves.toEqual({ status: 'error' });
-    expect(mockReset).not.toHaveBeenCalled();
-    expect(mockStartSession).toHaveBeenCalledTimes(1);
-    expect(mockHydrate).not.toHaveBeenCalled();
   });
 
   it('does not reset for an email mismatch and returns an error', async () => {

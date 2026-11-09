@@ -43,11 +43,9 @@ jest.mock('../../../../core/Engine', () => ({
       getSessionStatusForVendor: jest.fn(),
       startSession: jest.fn(),
       reset: jest.fn(),
+      readSessionStatus: jest.fn(),
       recordVendorDisclaimers: jest.fn(),
     },
-  },
-  controllerMessenger: {
-    call: jest.fn(),
   },
 }));
 
@@ -76,15 +74,12 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
-const mockMessengerCall = (
-  Engine as unknown as { controllerMessenger: { call: jest.Mock } }
-).controllerMessenger.call;
-
 const mockKycController = Engine.context.KycController as unknown as {
   state: { email: string | null };
   getSessionStatusForVendor: jest.Mock<Promise<unknown>, [unknown]>;
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
   reset: jest.Mock<Promise<unknown>, []>;
+  readSessionStatus: jest.Mock<unknown, []>;
   recordVendorDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
 };
 
@@ -273,7 +268,8 @@ describe('VbaEmailAdapter', () => {
     });
   });
 
-  it('resets the KYC session and starts again when the geoCountry changed', async () => {
+  it('resets empty KYC state and starts again when the geoCountry changed', async () => {
+    mockKycController.readSessionStatus.mockReturnValue(null);
     mockKycController.startSession
       .mockRejectedValueOnce(
         new Error(
@@ -297,28 +293,6 @@ describe('VbaEmailAdapter', () => {
     expect(mockKycController.reset.mock.invocationCallOrder[0]).toBeLessThan(
       mockKycController.startSession.mock.invocationCallOrder[1],
     );
-  });
-
-  it('does not reset a geoCountry mismatch when that would drop the stored email', async () => {
-    mockKycController.state.email = 'user@example.com';
-    mockMessengerCall.mockRejectedValue({ status: 422 });
-    mockKycController.startSession.mockRejectedValue(
-      new Error(
-        'KycController already initialized with a different geoCountry',
-      ),
-    );
-
-    const screen = renderWithProvider(<VbaEmailAdapter />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
-      ).toHaveTextContent(
-        'KycController already initialized with a different geoCountry',
-      );
-    });
-    expect(mockKycController.reset).not.toHaveBeenCalled();
-    expect(mockAdvance).not.toHaveBeenCalled();
   });
 
   it('does not reset for an email mismatch', async () => {
