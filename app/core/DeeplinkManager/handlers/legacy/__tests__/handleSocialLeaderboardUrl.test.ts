@@ -25,12 +25,12 @@ describe('handleSocialLeaderboardUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('routes into Social home through the onboarding gate when no tab is present', () => {
+  it('routes into Social home through the onboarding gate with the deep link source', () => {
     handleSocialLeaderboardUrl();
 
     expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(
       NavigationService.navigation.navigate,
-      undefined,
+      { source: 'deep_link' },
     );
   });
 
@@ -45,7 +45,7 @@ describe('handleSocialLeaderboardUrl', () => {
 
     expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(
       NavigationService.navigation.navigate,
-      { initialTab },
+      { source: 'deep_link', initialTab },
     );
   });
 
@@ -54,7 +54,7 @@ describe('handleSocialLeaderboardUrl', () => {
 
     expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(
       NavigationService.navigation.navigate,
-      undefined,
+      { source: 'deep_link' },
     );
   });
 
@@ -63,7 +63,7 @@ describe('handleSocialLeaderboardUrl', () => {
 
     expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(
       NavigationService.navigation.navigate,
-      undefined,
+      { source: 'deep_link' },
     );
   });
 
@@ -76,6 +76,7 @@ describe('handleSocialLeaderboardUrl', () => {
 
     expect(navigateToSocialLeaderboard).toHaveBeenLastCalledWith(
       NavigationService.navigation.navigate,
+      { source: 'deep_link' },
     );
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialLeaderboardUrl] Failed to handle deeplink:',

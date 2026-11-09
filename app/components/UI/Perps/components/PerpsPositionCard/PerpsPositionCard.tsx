@@ -46,6 +46,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { parsePositionRoePercentage } from '../../utils/positionDisplay';
 import PerpsCrossMarginInfoButton from '../PerpsCrossMarginInfoButton';
 import PerpsLiquidationPriceValue from '../PerpsLiquidationPriceValue';
 
@@ -130,10 +131,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const pnlNum = parseFloat(position.unrealizedPnl);
 
-  // ROE is always stored as a decimal (e.g., 0.171 for 17.10%)
-  // Convert to percentage for display
-  const roeValue = parseFloat(position.returnOnEquity || '0');
-  const roe = isNaN(roeValue) ? 0 : roeValue * 100;
+  // ROE is always stored as a decimal (e.g., 0.171 for 17.10%);
+  // the shared parser converts it to the displayed percentage.
+  const roe = parsePositionRoePercentage(position.returnOnEquity) ?? 0;
 
   // Funding cost (cumulative since open) formatting logic
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
@@ -328,8 +328,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             gap={2}
             twClassName={isTabsVariant ? 'mt-1 mb-2' : 'mb-2'}
           >
+            {/* Accessible cards expose each label with its value natively. */}
             <Card
               twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              accessible
               testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
             >
               <Text
@@ -357,6 +359,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
             <Card
               twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              accessible
               testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
             >
               <Text

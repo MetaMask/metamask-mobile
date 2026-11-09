@@ -7,6 +7,7 @@ import {
   MONEY_ACCOUNT_CAMPAIGN_PLATFORMS,
 } from '../../constants/moneyEvents';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
+import { selectHasAaveTokenMeetingDepositMinimum } from '../../selectors/aaveOutputTokenEligibility';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import MoneyDepositBrazeCampaignObserver, {
   __resetMoneyDepositBrazeCampaignEventForTesting,
@@ -23,6 +24,7 @@ const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockTrackCampaignTriggered = jest.fn();
 let isMoneyAccountVisible = true;
 let isUnlocked = true;
+let hasAaveTokenMeetingDepositMinimum = true;
 
 const arrangeVisibility = (isVisible: boolean) => {
   isMoneyAccountVisible = isVisible;
@@ -33,6 +35,9 @@ const arrangeVisibility = (isVisible: boolean) => {
     if (selector === selectIsUnlocked) {
       return isUnlocked;
     }
+    if (selector === selectHasAaveTokenMeetingDepositMinimum) {
+      return hasAaveTokenMeetingDepositMinimum;
+    }
     return undefined;
   });
 };
@@ -42,6 +47,7 @@ describe('MoneyDepositBrazeCampaignObserver', () => {
     jest.clearAllMocks();
     __resetMoneyDepositBrazeCampaignEventForTesting();
     isUnlocked = true;
+    hasAaveTokenMeetingDepositMinimum = true;
     arrangeVisibility(true);
     mockUseMoneyAnalytics.mockReturnValue({
       trackCampaignTriggered: mockTrackCampaignTriggered,
@@ -64,13 +70,22 @@ describe('MoneyDepositBrazeCampaignObserver', () => {
     expect(mockTrackCampaignTriggered).not.toHaveBeenCalled();
   });
 
-  it('emits only reusable campaign identity properties for a visible Money account', async () => {
+  it('does not emit when the Aave output token is below the deposit minimum', () => {
+    hasAaveTokenMeetingDepositMinimum = false;
+    arrangeVisibility(true);
+
+    render(<MoneyDepositBrazeCampaignObserver />);
+
+    expect(mockTrackCampaignTriggered).not.toHaveBeenCalled();
+  });
+
+  it('emits the aToken campaign when all eligibility conditions pass', async () => {
     render(<MoneyDepositBrazeCampaignObserver />);
 
     await waitFor(() => {
       expect(mockTrackCampaignTriggered).toHaveBeenCalledWith({
         campaign_name:
-          MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH,
+          MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH_ATOKENS,
         campaign_platform: MONEY_ACCOUNT_CAMPAIGN_PLATFORMS.BRAZE,
       });
     });
