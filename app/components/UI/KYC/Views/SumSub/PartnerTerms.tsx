@@ -38,7 +38,7 @@ import {
   SUMSUB_BIOMETRICS_CONSENT_URL,
   SUMSUB_PERSONAL_DATA_PROCESSING_URL,
   SUMSUB_PRIVACY_NOTICE_URL,
-} from '../../../Ramp/Views/VirtualBankAccount/constants';
+} from '../../constants';
 import { VbaPartnerTermsSelectorsIDs } from './VerifyIdentity.testIds';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { trackIdentityTerms } from '../../utils/identityTermsAnalytics';
