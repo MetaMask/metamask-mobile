@@ -101,6 +101,7 @@ export const VbaDetailsSelectorsIDs = {
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
   DONE_BUTTON: 'vba-details-done-button',
+  COPY_ALL_BUTTON: 'vba-details-copy-all-button',
 } as const;
 
 interface AutorampCursor {
@@ -215,6 +216,15 @@ const buildDetailRows = (
   });
   return rows;
 };
+
+/** Notes-friendly block: each label on its own line, a blank line between fields. */
+export const formatBankDetailsForCopy = (
+  rows: readonly { label: string; value: string }[],
+): string =>
+  rows
+    .filter((row) => row.value.length > 0)
+    .map((row) => `${row.label}\n${row.value}`)
+    .join('\n\n');
 
 /**
  * Virtual bank account screen. This is the only place that registers the
@@ -741,6 +751,12 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
+  const handleCopyAll = useCallback(() => {
+    Clipboard.setString(formatBankDetailsForCopy(rows));
+    AccessibilityInfo.announceForAccessibility(
+      strings('virtual_bank_account.vba_details.copied_all_label'),
+    );
+  }, [rows]);
   const hasCurrentAccountState = stateAccountKey === accountKey;
   let accountDetailsContentState: VbaScreenContentState =
     VBA_SCREEN_CONTENT_STATE.EMPTY;
@@ -956,6 +972,17 @@ const VbaDetails = () => {
               )}
             </TextButton>
           </Text>
+        ) : null}
+        {instructions?.type === 'UsBank' && rows.length > 0 ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleCopyAll}
+            testID={VbaDetailsSelectorsIDs.COPY_ALL_BUTTON}
+          >
+            {strings('virtual_bank_account.vba_details.copy_all_button')}
+          </Button>
         ) : null}
         {debugEnabled ? (
           <Button

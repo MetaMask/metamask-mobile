@@ -1292,6 +1292,8 @@
       "bank_name_label": "Bank name",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
+      "copy_all_button": "Copy all",
+      "copied_all_label": "Copied bank details",
       "button": "Done",
       "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
