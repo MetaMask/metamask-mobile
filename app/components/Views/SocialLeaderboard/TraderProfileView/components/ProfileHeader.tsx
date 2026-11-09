@@ -47,6 +47,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <TraderAvatar
         imageUrl={profile.imageUrl}
         address={profile.address}
+        profileId={profile.profileId}
         size={AVATAR_SIZE}
       />
 

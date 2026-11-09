@@ -73,7 +73,9 @@ describe('CreateVirtualBankAccount', () => {
     } as unknown as ReturnType<typeof useMoneyVaultApy>);
     // Arrival-row behavior is covered by CreateVirtualBankAccount.view.test.tsx
     // (real hooks); the stub keeps KYC/CTA/APY tests off the payment-methods query.
-    mockUseVbaArrivalTime.mockReturnValue({ arrivalTimeframe: undefined });
+    mockUseVbaArrivalTime.mockReturnValue({
+      arrivalTitle: 'Arrives in a few business days',
+    });
   });
 
   it('renders the intro design with feature rows and footer', () => {

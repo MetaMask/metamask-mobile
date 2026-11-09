@@ -132,27 +132,18 @@ describe('PerpsHomeView', () => {
     cleanup();
     clearExploreSessionTab();
     clearPerpsOutreachApiMocks();
-    // Later cases in this file match on an absent session profile.
-    (
-      Engine.context.AuthenticationController.getSessionProfile as jest.Mock
-    ).mockResolvedValue(undefined);
   });
 
   it('shows and dismisses an eligible Terminal outreach campaign', async () => {
-    // The outreach query stays disabled until a profile id or selected
-    // account address exists. Seed a session profile so the request still
-    // runs when the account selector has not settled.
-    (
-      Engine.context.AuthenticationController.getSessionProfile as jest.Mock
-    ).mockResolvedValue({
-      profileId: 'perps-outreach-profile',
-    });
-
+    // The fixture's selected account enables the outreach query on the first
+    // render. Leave the session profile unset: a profile that resolves after
+    // mount changes the query key, aborts the in-flight request, and makes the
+    // banner wait on a second round trip.
     renderPerpsHomeView({
       overrides: eligibleOverrides,
     });
 
-    // Waits on the Terminal outreach query (session profile, then HTTP).
+    // Waits on the single Terminal outreach request keyed by the account.
     expect(
       await screen.findByTestId(
         PerpsOutreachBannerSelectorsIDs.BANNER,
