@@ -160,6 +160,29 @@ describe('Transaction Pay Controller Init', () => {
     expect(trackSolanaPayLifecycle).not.toHaveBeenCalled();
   });
 
+  it('tracks Solana Pay lifecycle events published by the controller', () => {
+    const requestMock = buildInitRequestMock();
+    const subscribeSpy = jest.spyOn(
+      requestMock.controllerMessenger,
+      'subscribe',
+    );
+    const payload = { transactionId: 'transaction-id' };
+
+    TransactionPayControllerInit(requestMock);
+
+    const [, handler] =
+      subscribeSpy.mock.calls.find(
+        ([eventType]) =>
+          eventType === 'TransactionPayController:solanaPayLifecycle',
+      ) ?? [];
+    (handler as (lifecyclePayload: typeof payload) => void)(payload);
+
+    expect(trackSolanaPayLifecycle).toHaveBeenCalledWith(
+      requestMock.initMessenger,
+      payload,
+    );
+  });
+
   it('wires fiat test options through controller options', () => {
     const fiatOptions = {
       testAmountOverride: '0.1',
