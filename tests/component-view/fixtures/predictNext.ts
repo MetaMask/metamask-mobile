@@ -495,7 +495,7 @@ export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
  * The Market, side and catalog context of an entry (Position, Trade or
  * Settlement) on one of the player-props Game's threshold lines, as the
  * backend sends them: the Outcome label is only "Yes" or "No", and the
- * context names the line.
+ * context's `marketLabels` name the Player and the line.
  */
 export const makePredictNextThresholdEntry = (
   event: PredictEvent,
@@ -517,7 +517,7 @@ export const makePredictNextThresholdEntry = (
       eventTitle: event.title,
       marketQuestion: market.question,
       outcomeLabel: side === 'yes' ? 'Yes' : 'No',
-      threshold: { line: threshold, label: player },
+      marketLabels: [player, `${threshold}+`],
     },
   };
 };

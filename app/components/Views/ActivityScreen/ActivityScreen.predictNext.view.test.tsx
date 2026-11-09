@@ -363,7 +363,7 @@ describeForPlatforms('ActivityScreen — PredictNext (Kalshi) Activity', () => {
       });
     });
 
-    it("names a threshold Trade's Outcome by its line in its details", async () => {
+    it("names a threshold Trade's Outcome by its Market labels in its details", async () => {
       const screen = renderPredictions(KALSHI_CONFIG);
 
       fireEvent.press(await screen.findByTestId(rowTitle(BUY_ID)));
@@ -374,7 +374,7 @@ describeForPlatforms('ActivityScreen — PredictNext (Kalshi) Activity', () => {
       ).toBeOnTheScreen();
     });
 
-    it("names a threshold Settlement's Outcome by its line in its details", async () => {
+    it("names a threshold Settlement's Outcome by its Market labels in its details", async () => {
       const screen = renderPredictions(KALSHI_CONFIG);
 
       fireEvent.press(await screen.findByTestId(rowTitle(SETTLEMENT_ID)));

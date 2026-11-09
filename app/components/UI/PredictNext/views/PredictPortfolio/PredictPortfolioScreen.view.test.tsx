@@ -419,7 +419,7 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
-  it('names threshold Positions by their context line, so two Players in one Game read differently', async () => {
+  it('names threshold Positions by their Market labels, so two Players in one Game read differently', async () => {
     const event = makePredictNextPlayerPropsEvent();
     configurePredictNextFeeds({
       positions: [
@@ -453,7 +453,7 @@ describe('PredictPortfolioScreen', () => {
       await within(walker).findByText('Yes · Kenneth Walker · 50+ · 75 shares'),
     ).toBeOnTheScreen();
     expect(within(lakers).getByText('Lakers · 75 shares')).toBeOnTheScreen();
-    // The entry context names the line: no Event is read for it.
+    // The entry context names the Market: no Event is read for it.
     expect(messengerCall).not.toHaveBeenCalledWith(
       'PredictMarketDataService:getEvent',
       expect.anything(),
@@ -612,7 +612,7 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
-  it('names threshold trades and Settlements by their line', async () => {
+  it('names threshold trades and Settlements by their Market labels', async () => {
     const event = makePredictNextPlayerPropsEvent();
     configurePredictNextFeeds({
       activity: [
@@ -1205,7 +1205,7 @@ describe('PredictPortfolioScreen', () => {
       ).toBeOnTheScreen();
     });
 
-    it('names a threshold Position by its line in the Cash Out sheet', async () => {
+    it('names a threshold Position by its Market labels in the Cash Out sheet', async () => {
       const event = makePredictNextPlayerPropsEvent();
       configurePredictNextFeeds({
         positions: [

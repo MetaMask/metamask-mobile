@@ -200,16 +200,39 @@ describe('Predict API canonical Positions parser', () => {
   });
 
   it.each([
-    ['a labelled', { line: 60, label: 'Josh Jacobs' }],
-    ['an unlabelled', { line: 60 }],
-  ])('parses a Position on %s threshold line', (_name, threshold) => {
+    ['a Player and a line', ['Josh Jacobs', '60+']],
+    ['a line alone', ['60+']],
+  ])('parses a Position whose Market labels name %s', (_name, marketLabels) => {
     const input = {
       venueId: 'kalshi',
-      positions: [createPosition({ context: createContext({ threshold }) })],
+      positions: [createPosition({ context: createContext({ marketLabels }) })],
     };
 
     expect(parsePredictPositionsPage(input)).toEqual(input);
   });
+
+  it.each([
+    ['empty', []],
+    ['with a blank label', ['Josh Jacobs', ' ']],
+    ['with a non-string label', ['Josh Jacobs', 60]],
+    ['not an array', 'Josh Jacobs · 60+'],
+  ])(
+    'drops Market labels that are %s and keeps the Position',
+    (_name, marketLabels) => {
+      const position = createPosition({ context: createContext() });
+      const input = {
+        venueId: 'kalshi',
+        positions: [
+          { ...position, context: { ...position.context, marketLabels } },
+        ],
+      };
+
+      expect(parsePredictPositionsPage(input)).toEqual({
+        venueId: 'kalshi',
+        positions: [position],
+      });
+    },
+  );
 
   it('discards superseded and unknown fields', () => {
     const input = {
@@ -262,18 +285,6 @@ describe('Predict API canonical Positions parser', () => {
     [
       'a context with a non-HTTPS image',
       { context: createContext({ imageUrl: 'http://example.com/a.png' }) },
-    ],
-    [
-      'a threshold without its line',
-      { context: createContext({ threshold: { label: 'Josh Jacobs' } }) },
-    ],
-    [
-      'a preformatted threshold line',
-      { context: createContext({ threshold: { line: '60+' } }) },
-    ],
-    [
-      'a threshold with a blank label',
-      { context: createContext({ threshold: { line: 60, label: '' } }) },
     ],
   ])('rejects a Position with %s', (_name, overrides) => {
     const input = {

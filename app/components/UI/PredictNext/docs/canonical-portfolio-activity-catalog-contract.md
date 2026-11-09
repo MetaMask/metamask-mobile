@@ -60,18 +60,32 @@ interface PredictEntryContext {
   marketQuestion: string;
   outcomeLabel: string;
   imageUrl?: PredictHttpsUrl;
-  threshold?: { line: number; label?: string };
+  marketLabels?: string[];
 }
 ```
 
-| Field            | Rule                                                                                                                    | Needed by                                                          |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `eventId`        | Canonical Event ID for navigation to the Event Screen.                                                                  | Home rows `onPress`, Portfolio and Activity row navigation         |
-| `eventTitle`     | Event title.                                                                                                            | Home rows, Portfolio rows, Activity `eventTitle`, Activity details |
-| `marketQuestion` | Market question. Distinguishes Markets in multi-Market Events.                                                          | Portfolio rows, Activity rows and details                          |
-| `outcomeLabel`   | Label of the held or traded Outcome. Required, because a catalog Market always has both Outcomes.                       | Home rows ("on Yes"), Portfolio rows, Activity details             |
-| `imageUrl`       | Most specific approved image: the Market image, else the Event image. The backend chooses it. Replaces `eventImageUrl`. | Home rows, Portfolio rows, Activity `icon`                         |
-| `threshold`      | Threshold Markets only: the raw `line` (group `option.value`) and group `label` (the Player). Mobile formats them.      | Home, Portfolio and Activity rows, Activity details                |
+| Field            | Rule                                                                                                                    | Needed by                                                                                        |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `eventId`        | Canonical Event ID for navigation to the Event Screen.                                                                  | Home rows `onPress`, Portfolio and Activity row navigation                                       |
+| `eventTitle`     | Event title.                                                                                                            | Home rows, Portfolio rows, Activity `eventTitle`, Activity details                               |
+| `marketQuestion` | Market question. Distinguishes Markets in multi-Market Events.                                                          | Portfolio rows, Activity rows and details                                                        |
+| `outcomeLabel`   | Label of the held or traded Outcome. Required, because a catalog Market always has both Outcomes.                       | Home rows ("on Yes"), Portfolio rows, Activity details                                           |
+| `imageUrl`       | Most specific approved image: the Market image, else the Event image. The backend chooses it. Replaces `eventImageUrl`. | Home rows, Portfolio rows, Activity `icon`                                                       |
+| `marketLabels`   | Ordered, display-ready parts naming the Market beyond its Outcome. See below.                                           | Home, Portfolio and Activity rows, Activity details, Cash Out sheet, Event screen Position cards |
+
+An entry's name is `[outcomeLabel, ...marketLabels].join(' · ')`. The backend owns all per-group-type formatting and sends each part ready to show; mobile only joins them and never reads a group type. Today only threshold lines send `marketLabels`: their `outcomeLabel` is only "Yes" or "No", so without it two Players' Positions in one Game read the same.
+
+```json
+"context": {
+  "eventId": "KXNFLGAME-26NOV08NESEA",
+  "eventTitle": "Patriots at Seahawks",
+  "marketQuestion": "Josh Jacobs: 60+",
+  "outcomeLabel": "Yes",
+  "marketLabels": ["Josh Jacobs", "60+"]
+}
+```
+
+This context renders "Yes · Josh Jacobs · 60+". A line without a Player sends `["60+"]` ("Yes · 60+"). When there is nothing to add, `marketLabels` is absent and the entry shows `outcomeLabel` alone. When present it has at least one element, and every element is a non-blank string; mobile drops a malformed `marketLabels` and keeps the entry, so it falls back to `outcomeLabel` alone.
 
 When `context` is absent, mobile renders neutral fallback copy and the Outcome side. It never renders a raw Venue identifier as a title.
 

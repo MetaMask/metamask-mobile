@@ -123,13 +123,13 @@ describe('mapActivityEntry', () => {
     expect(item.data).not.toHaveProperty('realizedPnl', expect.anything());
   });
 
-  it("names a threshold Settlement's Outcome with its line", () => {
+  it("names a Settlement's Outcome with its context's Market labels", () => {
     const item = map({
       ...settlement,
       context: {
         ...context,
         outcomeLabel: 'No',
-        threshold: { line: 50, label: 'Kenneth Walker' },
+        marketLabels: ['Kenneth Walker', '50+'],
       },
     } as PredictSettlementEntry);
 

@@ -2564,7 +2564,7 @@ describe('PredictEventScreen', () => {
       ).toHaveTextContent('Yes');
     });
 
-    it('titles a threshold Position by its line, not its Yes or No label', async () => {
+    it("titles a threshold Position by its context's Market labels, not its Yes or No label", async () => {
       const event = makePredictNextPlayerPropsEvent();
       const labelled = `${event.id}-rushing_yards-Rhamondre Stevenson-60`;
       const unlabelled = `${event.id}-rushing_yards-Kenneth Walker-50`;
@@ -2574,11 +2574,6 @@ describe('PredictEventScreen', () => {
             ...event,
             venueId,
             id: eventId,
-            markets: event.markets.map((market) =>
-              market.id === unlabelled && market.group
-                ? { ...market, group: { ...market.group, label: undefined } }
-                : market,
-            ),
           },
         ],
         positions: [
@@ -2590,6 +2585,7 @@ describe('PredictEventScreen', () => {
               eventTitle: 'Patriots vs Seahawks',
               marketQuestion: 'Rhamondre Stevenson: 60+',
               outcomeLabel: 'Yes',
+              marketLabels: ['Rhamondre Stevenson', '60+'],
             },
           }),
           makePredictNextPosition({
@@ -2600,6 +2596,7 @@ describe('PredictEventScreen', () => {
               eventTitle: 'Patriots vs Seahawks',
               marketQuestion: 'Kenneth Walker: 50+',
               outcomeLabel: 'No',
+              marketLabels: ['50+'],
             },
           }),
         ],

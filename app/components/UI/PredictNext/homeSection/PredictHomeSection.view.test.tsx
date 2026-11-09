@@ -340,7 +340,7 @@ describe('PredictHomeSection', () => {
       expect(sliceOf(view)).toEqual({ status: 'ready', valueFiat: 220 });
     });
 
-    it('names threshold Positions by their line, so two Players in one Game read differently', async () => {
+    it('names threshold Positions by their Market labels, so two Players in one Game read differently', async () => {
       const event = makePredictNextPlayerPropsEvent();
       configurePredictNextFeeds({
         positions: [

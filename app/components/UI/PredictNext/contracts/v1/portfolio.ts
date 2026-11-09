@@ -2,10 +2,10 @@ import BigNumber from 'bignumber.js';
 import {
   array,
   boolean,
+  coerce,
   enums,
   literal,
   mask,
-  number,
   object,
   optional,
   refine,
@@ -49,6 +49,32 @@ const heldShares = refine(amount, 'PredictHeldShares', (value) =>
   new BigNumber(value).isGreaterThan(0),
 );
 
+/** Ordered, display-ready parts naming the Market beyond its Outcome, such
+ * as a Player and a line. At least one, none blank. */
+const marketLabelsStruct = refine(
+  array(
+    refine(string(), 'PredictMarketLabel', (value) => value.trim().length > 0),
+  ),
+  'PredictMarketLabels',
+  (labels) => labels.length > 0,
+);
+
+/**
+ * Presentation only, so malformed `marketLabels` are dropped rather than
+ * rejecting the entry: it then shows its Outcome label alone.
+ */
+const marketLabelsSchema = coerce(
+  optional(marketLabelsStruct),
+  unknown(),
+  (value) => {
+    try {
+      return mask(value, marketLabelsStruct);
+    } catch {
+      return undefined;
+    }
+  },
+);
+
 /**
  * Catalog-derived presentation data joined from the canonical catalog.
  * Present only when the entry's Market exists in the catalog; a missing
@@ -60,13 +86,7 @@ const entryContextSchema = object({
   marketQuestion: nonEmptyString,
   outcomeLabel: nonEmptyString,
   imageUrl: optional(httpsUrl),
-  /** A threshold line's raw N and card label; mobile formats them. */
-  threshold: optional(
-    object({
-      line: number(),
-      label: optional(nonEmptyString),
-    }),
-  ),
+  marketLabels: marketLabelsSchema,
 });
 
 /**

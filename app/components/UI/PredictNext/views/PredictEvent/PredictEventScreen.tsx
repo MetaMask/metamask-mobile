@@ -23,7 +23,7 @@ import {
 import { useEvent } from '../../hooks/useEvent';
 import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
 import { getOutcomeName } from '../../utils/entryCopy';
-import { formatThresholdOutcome } from '../../events/shared/formatting';
+import { formatThresholdLine } from '../../events/shared/formatting';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
@@ -167,7 +167,15 @@ const EventLoadedHeader = ({
 const orderOutcomeLabel = (
   market: PredictMarket,
   outcome: PredictOutcome,
-): string => formatThresholdOutcome(market, outcome.label) ?? outcome.label;
+): string => {
+  const line = formatThresholdLine(market);
+  return line
+    ? strings('predict.market_groups.threshold_order_outcome', {
+        outcome: outcome.label,
+        line,
+      })
+    : outcome.label;
+};
 
 export const PredictEventScreen = () => {
   const navigation =
