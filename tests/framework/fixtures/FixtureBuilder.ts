@@ -2435,15 +2435,11 @@ class FixtureBuilder {
     return this;
   }
 
-  /** Referee `referral/me` for the fixture account. Login still mocks the live read. */
   withRewardsMoneyReferee() {
     const referralMe = referralMeWithInvitedBenefit();
-    const background = this.fixture.state.engine.backgroundState;
-    const rewardsController =
-      (background.RewardsController as Record<string, unknown> | undefined) ??
-      {};
-    background.RewardsController = {
-      ...rewardsController,
+    const { backgroundState } = this.fixture.state.engine;
+    backgroundState.RewardsController = {
+      ...(backgroundState.RewardsController as object),
       activeAccount: {
         account: `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
         hasOptedIn: true,
@@ -2452,32 +2448,15 @@ class FixtureBuilder {
         lastPerpsDiscountRateFetched: null,
       },
     };
-
-    const rewardsMoneyController =
-      (background.RewardsMoneyController as
-        | Record<string, unknown>
-        | undefined) ?? {};
-    background.RewardsMoneyController = {
-      ...rewardsMoneyController,
+    backgroundState.RewardsMoneyController = {
+      ...(backgroundState.RewardsMoneyController as object),
       referralMe: {
-        [REWARDS_MONEY_E2E_PROFILE_ID]: {
-          lastFetched: 1,
-          payload: referralMe,
-        },
+        [REWARDS_MONEY_E2E_PROFILE_ID]: { lastFetched: 1, payload: referralMe },
       },
     };
-
-    const rewardsMoneySlice =
-      (this.fixture.state.rewardsMoney as
-        | Record<string, unknown>
-        | undefined) ?? {};
-    const cachedReferralMe =
-      (rewardsMoneySlice.referralMe as Record<string, unknown> | undefined) ??
-      {};
     this.fixture.state.rewardsMoney = {
-      ...rewardsMoneySlice,
+      ...(this.fixture.state.rewardsMoney as object),
       referralMe: {
-        ...cachedReferralMe,
         [REWARDS_MONEY_E2E_PROFILE_ID]: {
           loading: false,
           error: false,
@@ -2485,7 +2464,6 @@ class FixtureBuilder {
         },
       },
     };
-
     return this;
   }
 

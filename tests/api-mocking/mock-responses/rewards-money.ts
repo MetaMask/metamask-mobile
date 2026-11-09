@@ -23,6 +23,14 @@ const EMPTY_LEDGER = {
   cursor: null,
   window: null,
 };
+const CLEARED_TAX_ME = {
+  state: 'COMPLETE_OR_VERIFIED',
+  next_action: 'NONE',
+  reason: null,
+  clears_until: null,
+  cleared: true,
+  can_change_answer: false,
+};
 
 export async function mockRewardsMoneyApi(
   mockServer: Mockttp,
@@ -103,5 +111,12 @@ export async function mockRewardsMoneyApi(
     ),
     responseCode: 200,
     response: EMPTY_LEDGER,
+  });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: new RegExp(`^${REWARDS_MONEY_HOST}\\/tax\\/me(?:\\?.*)?$`),
+    responseCode: 200,
+    response: CLEARED_TAX_ME,
   });
 }

@@ -12,7 +12,6 @@ import { mockRewardsMoneyApi } from '../../api-mocking/mock-responses/rewards-mo
 import { CLAIMED_EARNINGS_SUMMARY } from '../../component-view/presets/rewardsMoney.js';
 import { mockIdentityServices } from '../../smoke/identity/utils/mocks.js';
 
-/** iOS relaunch repeats fixture launch args. activateApp drops them after terminateApp. */
 const MONEY_CAMPAIGN_DEEPLINK =
   'https://link.metamask.io/rewards?campaign=money';
 
@@ -39,8 +38,6 @@ appiumTest.describe(SmokeWalletPlatform('Rewards Money relaunch'), () => {
           restartDevice: true,
           currentDeviceDetails,
           testSpecificMock: async (mockServer: Mockttp) => {
-            // iOS kill starts a new process, so identity storage has to live on
-            // this mock server. Android keeps app data and these auth mocks stall it.
             if (currentDeviceDetails.platform === 'ios') {
               await mockIdentityServices(mockServer);
             }

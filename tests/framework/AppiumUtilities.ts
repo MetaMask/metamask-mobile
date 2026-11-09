@@ -1098,14 +1098,10 @@ class AppiumUtilities {
       if (!bundleId) {
         throw new Error('app id is not available for iOS relaunch');
       }
-      if (!lastIosLaunchArguments || lastIosLaunchArguments.length === 0) {
-        throw new Error(
-          'No iOS fixture launch arguments stored. Launch the app before relaunching it.',
-        );
+      if (!lastIosLaunchArguments?.length) {
+        throw new Error('No iOS fixture launch arguments stored');
       }
-      logger.debug(
-        `Relaunching iOS app ${bundleId} with the previous fixture launch arguments`,
-      );
+      logger.debug(`Relaunching iOS app ${bundleId}`);
       await drv.execute('mobile: launchApp', {
         bundleId,
         arguments: lastIosLaunchArguments,

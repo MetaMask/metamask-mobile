@@ -5,9 +5,10 @@ import Assertions from '../../framework/Assertions';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
-  isLoginScreenDisplayed,
+  isTestIdDisplayed,
   isWalletHomeReadyOnAppium,
 } from '../../flows/wallet-home-readiness';
+import { sleep } from '../../framework/Utilities';
 
 class LoginView {
   get container(): Promise<AppiumElement> {
@@ -61,15 +62,17 @@ class LoginView {
   }
 
   async tapLoginButton(): Promise<void> {
-    // Dismissing the keyboard can also submit the password field.
+    // Hiding the keyboard can submit the password and leave the login screen.
     await Gestures.hideKeyboard();
-    // Check the login screen first: it is one probe on the usual path, while
-    // the wallet-home check runs several lookups that each wait when absent.
-    if (
-      !(await isLoginScreenDisplayed()) &&
-      (await isWalletHomeReadyOnAppium())
+    const deadline = Date.now() + 10_000;
+    while (
+      Date.now() < deadline &&
+      !(await isTestIdDisplayed(LoginViewSelectors.LOGIN_BUTTON_ID))
     ) {
-      return;
+      if (await isWalletHomeReadyOnAppium()) {
+        return;
+      }
+      await sleep(250);
     }
     await Gestures.waitAndTap(this.loginButton, {
       elemDescription: 'Login Button',

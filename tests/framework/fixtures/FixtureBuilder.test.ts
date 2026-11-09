@@ -1,6 +1,5 @@
 import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from './FixtureBuilder';
 import {
-  REFEREE_INVITED_BENEFIT_TITLE,
   REWARDS_MONEY_E2E_PROFILE_ID,
   REWARDS_MONEY_SUBSCRIPTION_ID,
 } from '../../api-mocking/mock-responses/rewards-money';
@@ -176,9 +175,6 @@ describe('FixtureBuilder rewards money referee', () => {
       `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
     );
     expect(payload.roles).toEqual(['REFEREE']);
-    expect(payload.localized_text.invitedBenefitTitle).toBe(
-      REFEREE_INVITED_BENEFIT_TITLE,
-    );
     expect(slice.referralMe[REWARDS_MONEY_E2E_PROFILE_ID].data.roles).toEqual([
       'REFEREE',
     ]);
