@@ -2,68 +2,114 @@ import React from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   Box,
-  HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  ListItem,
+  ListItemVariant,
   Text,
-  TextColor,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import SettingsDrawer from '../../../UI/SettingsDrawer';
+import Logger from '../../../../util/Logger';
+import { useSelector } from 'react-redux';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const DefaultSettings = () => {
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const navigation = useNavigation<AppNavigationProp>();
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+  const isBasicFunctionalityConsolidationEnabled = useSelector(
+    selectMobileUxBftcConsolidationFlagEnabled,
+  );
 
   const handleLink = () => {
-    Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);
+    Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES).catch(
+      (error: Error) => {
+        Logger.error(
+          error,
+          'DefaultSettings: failed to open privacy best practices',
+        );
+      },
+    );
   };
+
+  const chevron = (
+    <Icon name={IconName.ArrowRight} color={IconColor.IconAlternative} />
+  );
 
   return (
     <SafeAreaView
       edges={['left', 'right', 'bottom']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
         includesTopInset
         title={strings('default_settings.default_settings')}
         onBack={() => navigation.goBack()}
       />
-      <ScrollView style={tw.style('flex-1')}>
-        <Box twClassName="px-4">
+      <ScrollView style={[tw.style('flex-1'), { marginTop: headerInset }]}>
+        <Box twClassName="px-4 pt-2">
           <Text variant={TextVariant.BodyMd}>
-            {strings('default_settings.description')}
-            <Text color={TextColor.InfoDefault} onPress={handleLink}>
-              {' '}
+            {strings('default_settings.description')}{' '}
+            <TextButton onPress={handleLink}>
               {strings('default_settings.learn_more_about_privacy')}
-            </Text>
+            </TextButton>
           </Text>
         </Box>
-        <SettingsDrawer
+        <ListItem
+          isInteractive
+          variant={ListItemVariant.MultiLine}
           title={strings('default_settings.drawer_general_title')}
           description={strings('default_settings.drawer_general_title_desc')}
+          endAccessory={chevron}
+          accessoryGap={4}
           onPress={() =>
             navigation.navigate(Routes.ONBOARDING.GENERAL_SETTINGS)
           }
         />
-        <SettingsDrawer
+        <ListItem
+          isInteractive
+          variant={ListItemVariant.MultiLine}
           title={strings('default_settings.drawer_assets_title')}
           description={strings('default_settings.drawer_assets_desc')}
+          endAccessory={chevron}
+          accessoryGap={4}
           onPress={() => navigation.navigate(Routes.ONBOARDING.ASSETS_SETTINGS)}
         />
-        <SettingsDrawer
-          title={strings('default_settings.drawer_security_title')}
-          description={strings('default_settings.drawer_security_desc')}
-          onPress={() =>
-            navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS)
-          }
-        />
+        {(!isBasicFunctionalityConsolidationEnabled || isSocialLogin) && (
+          <ListItem
+            isInteractive
+            variant={ListItemVariant.MultiLine}
+            title={strings('default_settings.drawer_security_title')}
+            description={strings('default_settings.drawer_security_desc')}
+            endAccessory={chevron}
+            accessoryGap={4}
+            onPress={() =>
+              navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS)
+            }
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

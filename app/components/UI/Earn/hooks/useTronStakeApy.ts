@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { tronStakingApiService } from '../../Stake/sdk/stakeSdkProvider';
 import { ChainId } from '@metamask/stake-sdk';
-import { truncateNumber } from '../utils';
+import { formatEarnRatePercentage } from '../utils';
 
 type TronChainId = ChainId.TRON_MAINNET | ChainId.TRON_NILE;
 
@@ -84,7 +84,9 @@ const useTronStakeApy = ({
         isValidAnnualizedRate(consensysWitness.annualizedRate)
       ) {
         setApyDecimal(consensysWitness.annualizedRate);
-        setApyPercent(`${truncateNumber(consensysWitness.annualizedRate)}%`);
+        setApyPercent(
+          `${formatEarnRatePercentage(consensysWitness.annualizedRate)}%`,
+        );
       } else {
         setApyDecimal(null);
         setApyPercent(null);

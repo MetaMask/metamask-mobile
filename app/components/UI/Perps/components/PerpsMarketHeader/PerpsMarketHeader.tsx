@@ -2,7 +2,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
@@ -15,6 +14,7 @@ import { AnimationDuration } from '@metamask/design-tokens';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedReaction,
@@ -28,6 +28,10 @@ import { PERPS_COLLATERAL_SYMBOL } from '../../constants/perpsConfig';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsMarketIdentity from '../PerpsMarketIdentity';
 import PerpsModeToggle from '../PerpsModeToggle';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
+import HeaderGlass from '../../../../../component-library/components-temp/HeaderGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   PERPS_MARKET_HEADER_HEIGHT,
@@ -123,8 +127,10 @@ const PerpsMarketHeader = ({
   scrollY,
   priceSectionHeight,
   currentPrice: currentPriceOverride,
+  topInset,
 }: PerpsMarketHeaderProps) => {
   const { playImpact, playSelection } = useHaptics();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const shouldEnableModeHaptics = enableModeHaptics || enableHaptics;
   const fallbackScrollY = useSharedValue(0);
   const fallbackPriceSectionHeight = useSharedValue(0);
@@ -244,75 +250,79 @@ const PerpsMarketHeader = ({
     </Box>
   );
 
+  const iconButtons = [
+    onWalletPress ? (
+      <ButtonIcon
+        key="wallet"
+        iconName={IconName.Wallet}
+        size={ButtonIconSize.Md}
+        onPress={handleWalletPress}
+        accessibilityLabel={strings('perps.market_details.wallet')}
+        testID={testIDs.walletButton}
+      />
+    ) : null,
+    onFavoritePress ? (
+      <ButtonIcon
+        key="favorite"
+        iconName={isFavorite ? IconName.StarFilled : IconName.Star}
+        size={ButtonIconSize.Md}
+        onPress={handleFavoritePress}
+        accessibilityLabel={strings(
+          isFavorite
+            ? 'perps.market_details.remove_from_watchlist'
+            : 'perps.market_details.add_to_watchlist',
+        )}
+        testID={testIDs.favoriteButton}
+      />
+    ) : null,
+  ].filter(Boolean);
+
   const rightActions =
     endAccessory ??
-    (onWalletPress || onFavoritePress || (onModeChange && mode) ? (
+    (iconButtons.length > 0 || (onModeChange && mode) ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        twClassName="gap-2"
       >
-        {onWalletPress ? (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="size-10"
+        {/* On glass the icons share one capsule, as on the home header. */}
+        {isBrandRefresh && iconButtons.length > 0 ? (
+          <CapsuleGlass
+            twClassName="gap-1 px-1"
+            testID={`${testIDs.container}-actions-capsule`}
           >
-            <ButtonIcon
-              iconName={IconName.Wallet}
-              size={ButtonIconSize.Md}
-              onPress={handleWalletPress}
-              accessibilityLabel={strings('perps.market_details.wallet')}
-              testID={testIDs.walletButton}
-            />
-          </Box>
-        ) : null}
-        {onFavoritePress ? (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="size-10"
-          >
-            <ButtonIcon
-              iconName={isFavorite ? IconName.StarFilled : IconName.Star}
-              size={ButtonIconSize.Md}
-              onPress={handleFavoritePress}
-              accessibilityLabel={strings(
-                isFavorite
-                  ? 'perps.market_details.remove_from_watchlist'
-                  : 'perps.market_details.add_to_watchlist',
-              )}
-              testID={testIDs.favoriteButton}
-            />
-          </Box>
-        ) : null}
+            {iconButtons}
+          </CapsuleGlass>
+        ) : (
+          iconButtons
+        )}
         {onModeChange && mode ? (
-          <Box justifyContent={BoxJustifyContent.Center} twClassName="h-10">
-            <PerpsModeToggle
-              mode={mode}
-              variant="active"
-              onChange={onModeChange}
-              enableHaptics={shouldEnableModeHaptics}
-              source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
-            />
-          </Box>
+          <PerpsModeToggle
+            mode={mode}
+            variant="active"
+            onChange={onModeChange}
+            enableHaptics={shouldEnableModeHaptics}
+            isCapsule={isBrandRefresh}
+            source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
+          />
         ) : null}
       </Box>
     ) : null);
 
-  return (
+  const header = (
     <Box
       testID={testIDs.container}
       style={styles.container}
-      twClassName="bg-default px-4"
+      // The glass backdrop replaces the solid background.
+      twClassName={isBrandRefresh ? 'px-4' : 'bg-default px-4'}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
     >
       {onBackPress ? (
-        <ButtonIcon
+        <ButtonIconGlass
+          isCapsule={isBrandRefresh}
           iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Sm}
           onPress={handleBackPress}
           accessibilityLabel={strings('perps.market_details.back')}
           testID={testIDs.backButton}
@@ -341,6 +351,20 @@ const PerpsMarketHeader = ({
 
       {rightActions}
     </Box>
+  );
+
+  if (!isBrandRefresh) {
+    return header;
+  }
+
+  return (
+    <HeaderGlass
+      topInset={topInset}
+      scrollDistance={scrollY}
+      testID={`${testIDs.container}-glass`}
+    >
+      {header}
+    </HeaderGlass>
   );
 };
 

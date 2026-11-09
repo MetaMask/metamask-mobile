@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import { usePerpsNetworkConfig } from '../../hooks/usePerpsNetworkConfig';
+import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import PerpsSelectProviderView from './PerpsSelectProviderView';
 
 jest.mock('@react-navigation/native', () => ({
@@ -22,6 +23,12 @@ jest.mock('../../hooks/usePerpsNetworkConfig', () => ({
   usePerpsNetworkConfig: jest.fn(),
 }));
 
+jest.mock('../../services/PerpsConnectionManager', () => ({
+  PerpsConnectionManager: {
+    waitForConnection: jest.fn(),
+  },
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -29,10 +36,10 @@ jest.mock('../../../../../util/Logger', () => ({
 // Configurable option for the sheet mock — set per-test to drive onOptionSelect
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSheetOption: any = {
-  id: 'myx-mainnet',
-  providerId: 'myx',
+  id: 'lighter-mainnet',
+  providerId: 'lighter',
   isTestnet: false,
-  name: 'MYX',
+  name: 'Lighter',
   network: 'Mainnet',
   description: '',
 };
@@ -64,6 +71,8 @@ jest.mock(
 const mockGoBack = jest.fn();
 const mockSwitchProvider = jest.fn();
 const mockToggleTestnet = jest.fn();
+const mockWaitForConnection =
+  PerpsConnectionManager.waitForConnection as jest.Mock;
 const mockUseSelector = useSelector as jest.Mock;
 const mockUsePerpsProvider = usePerpsProvider as jest.Mock;
 const mockUsePerpsNetworkConfig = usePerpsNetworkConfig as jest.Mock;
@@ -75,28 +84,42 @@ beforeEach(() => {
   mockUsePerpsProvider.mockReturnValue({
     activeProvider: 'hyperliquid',
     switchProvider: mockSwitchProvider,
+    isProviderSelectorEnabled: true,
   });
   mockUsePerpsNetworkConfig.mockReturnValue({
     toggleTestnet: mockToggleTestnet,
   });
   mockSwitchProvider.mockResolvedValue({ success: true });
   mockToggleTestnet.mockResolvedValue({ success: true });
-  // Default: select myx (provider changes, no network change)
+  mockWaitForConnection.mockResolvedValue(undefined);
+  // Default: select Lighter (provider changes, no network change)
   mockSheetOption = {
-    id: 'myx-mainnet',
-    providerId: 'myx',
+    id: 'lighter-mainnet',
+    providerId: 'lighter',
     isTestnet: false,
-    name: 'MYX',
+    name: 'Lighter',
     network: 'Mainnet',
     description: '',
   };
 });
 
 describe('PerpsSelectProviderView', () => {
-  it('renders the sheet with isVisible=true', () => {
+  it('renders the sheet when the developer selector is enabled', () => {
     const { getByTestId } = render(<PerpsSelectProviderView />);
 
-    expect(getByTestId('perps-select-provider-sheet')).toBeTruthy();
+    expect(getByTestId('perps-select-provider-sheet')).toBeOnTheScreen();
+  });
+
+  it('hides the sheet when the developer selector is disabled', () => {
+    mockUsePerpsProvider.mockReturnValue({
+      activeProvider: 'hyperliquid',
+      switchProvider: mockSwitchProvider,
+      isProviderSelectorEnabled: false,
+    });
+
+    const { queryByTestId } = render(<PerpsSelectProviderView />);
+
+    expect(queryByTestId('perps-select-provider-sheet')).not.toBeOnTheScreen();
   });
 
   it('shows selectedOptionId as hyperliquid-mainnet by default', () => {
@@ -134,7 +157,7 @@ describe('PerpsSelectProviderView', () => {
       fireEvent.press(getByTestId('btn-select-option'));
     });
 
-    expect(mockSwitchProvider).toHaveBeenCalledWith('myx');
+    expect(mockSwitchProvider).toHaveBeenCalledWith('lighter');
   });
 
   it('does not call switchProvider or toggleTestnet when nothing changes', async () => {
@@ -177,6 +200,30 @@ describe('PerpsSelectProviderView', () => {
 
     expect(mockSwitchProvider).not.toHaveBeenCalled();
     expect(mockToggleTestnet).toHaveBeenCalled();
+  });
+
+  it('waits for the provider connection before also changing network', async () => {
+    mockSheetOption = {
+      id: 'lighter-testnet',
+      providerId: 'lighter',
+      isTestnet: true,
+      name: 'Lighter',
+      network: 'Testnet',
+      description: '',
+    };
+
+    const { getByTestId } = render(<PerpsSelectProviderView />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('btn-select-option'));
+    });
+
+    expect(mockSwitchProvider).toHaveBeenCalledWith('lighter');
+    expect(mockWaitForConnection).toHaveBeenCalledTimes(1);
+    expect(mockToggleTestnet).toHaveBeenCalledTimes(1);
+    expect(mockWaitForConnection.mock.invocationCallOrder[0]).toBeLessThan(
+      mockToggleTestnet.mock.invocationCallOrder[0],
+    );
   });
 
   it('logs error when switchProvider fails', async () => {

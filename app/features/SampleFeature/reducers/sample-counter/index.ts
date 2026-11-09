@@ -82,7 +82,8 @@ export const { increment, setCount } = actions;
  *
  * @sampleFeature do not use in production code
  */
-export const selectCount = (state: RootState) => state[name].count;
+export const selectCount = (state: RootState) =>
+  state[name]?.count ?? initialState.count;
 
 export { initialState };
 

@@ -1,7 +1,10 @@
 import type { Position } from '@metamask/social-controllers';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { chainNameToId } from '../utils/chainMapping';
-import { getSupportedXyzPerpMarketSymbol, isPerpPosition } from '../utils/perp';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import {
+  getSupportedXyzPerpMarketSymbol,
+  isPerpPosition,
+} from '../../../UI/SocialFeed/utils/perp';
 import { SocialLeaderboardEventProperties } from './socialLeaderboardEvents';
 
 export type FollowTradingTokenContext = {

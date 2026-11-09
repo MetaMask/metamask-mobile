@@ -11,75 +11,72 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+import { isPerformanceSuiteActive } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import WalletHomeScroll from './WalletHomeScroll';
 
 export class WalletHomeSections {
-  get defiTab(): EncapsulatedElementType {
+  get defiTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB);
   }
 
-  get defiNetworkFilter(): EncapsulatedElementType {
+  get defiNetworkFilter(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
     );
   }
 
-  get defiTabContainer(): EncapsulatedElementType {
+  get defiTabContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
     );
   }
 
-  get claimButton(): EncapsulatedElementType {
+  get claimButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
     );
   }
 
-  get predictClaimConfirmButton(): EncapsulatedElementType {
+  get predictClaimConfirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
     );
   }
 
-  get availableBalanceLabel(): EncapsulatedElementType {
+  get availableBalanceLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE);
   }
 
-  get defiPositionsNew(): EncapsulatedElementType {
+  get defiPositionsNew(): Promise<AppiumElement> {
     return Matchers.getElementByText(WalletViewSelectorsText.DEFI_SECTION);
   }
 
-  get perpsSectionHeader(): EncapsulatedElementType {
+  get perpsSectionHeader(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('perps'),
     );
   }
 
-  get predictionsSectionHeader(): EncapsulatedElementType {
+  get predictionsSectionHeader(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions'),
     );
   }
 
-  get getMoneySection(): EncapsulatedElementType {
+  get getMoneySection(): Promise<AppiumElement> {
     // Partial ID match for package-qualified Android resource IDs.
     return Matchers.getElementByID(/homepage-section-title-cash/);
   }
 
-  get tokensSectionHeader(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
-  }
-
-  get tokensSection(): EncapsulatedElementType {
+  get tokensSectionHeader(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
     );
   }
 
-  get nftsSectionHeader(): EncapsulatedElementType {
+  get nftsSectionHeader(): Promise<AppiumElement> {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
   }
 
@@ -127,7 +124,7 @@ export class WalletHomeSections {
   }
 
   async tapOnTokensSection(): Promise<void> {
-    await Gestures.waitAndTap(this.tokensSection, {
+    await Gestures.waitAndTap(this.tokensSectionHeader, {
       checkStability: true,
       elemDescription: 'Tokens Section',
     });
@@ -152,31 +149,27 @@ export class WalletHomeSections {
     );
   }
 
-  async scrollAndTapPerpsSection(): Promise<void> {
-    try {
-      await WalletHomeScroll.scrollAndTapSection(
-        this.perpsSectionHeader,
-        'Perpetuals section',
-      );
-    } catch {
-      await WalletHomeScroll.scrollAndTapSection(
-        this.perpsSectionHeader,
-        'Perpetuals section',
-        'up',
-      );
-    }
-  }
-
-  async scrollAndTapPredictionsSection(
+  async scrollAndTapPerpsSection(
     direction: 'up' | 'down' = 'down',
     options: {
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
     } = {},
   ): Promise<void> {
+    // One short pass. The Perps flow owns retries so a late-mounted header can
+    // be probed again before this scroll burns the whole timeout.
+    const clippedHeaderNudge = options.overshootSwipe ?? {
+      direction: 'up' as const,
+      percentage: 0.2,
+    };
     if (
       await WalletHomeScroll.tapIfAlreadyVisible(
-        this.predictionsSectionHeader,
-        'Predictions section',
+        this.perpsSectionHeader,
+        'Perpetuals section',
+        {
+          tapTimeout: 5_000,
+          overshootSwipe: clippedHeaderNudge,
+          clearTabBar: true,
+        },
       )
     ) {
       return;
@@ -187,8 +180,8 @@ export class WalletHomeSections {
     await WalletHomeScroll.tryScrollDirections(
       (scrollDirection) =>
         WalletHomeScroll.scrollAndTapSection(
-          this.predictionsSectionHeader,
-          'Predictions section',
+          this.perpsSectionHeader,
+          'Perpetuals section',
           scrollDirection,
           {
             overshootSwipe: options.overshootSwipe ?? {
@@ -198,11 +191,76 @@ export class WalletHomeSections {
                   : ('down' as const),
               percentage: 0.15,
             },
-            timeout: 60_000,
+            maxAttempts: 2,
+            tapTimeout: 3_000,
+            clearTabBar: true,
           },
         ),
       [direction, fallbackDirection],
     );
+  }
+
+  async scrollAndTapPredictionsSection(
+    direction: 'up' | 'down' = 'down',
+    options: {
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
+  ): Promise<void> {
+    if (!isPerformanceSuiteActive()) {
+      if (
+        await WalletHomeScroll.tapIfAlreadyVisible(
+          this.predictionsSectionHeader,
+          'Predictions section',
+        )
+      ) {
+        return;
+      }
+
+      const fallbackDirection = direction === 'down' ? 'up' : 'down';
+
+      await WalletHomeScroll.tryScrollDirections(
+        (scrollDirection) =>
+          WalletHomeScroll.scrollAndTapSection(
+            this.predictionsSectionHeader,
+            'Predictions section',
+            scrollDirection,
+            {
+              overshootSwipe: options.overshootSwipe ?? {
+                direction:
+                  scrollDirection === 'down'
+                    ? ('up' as const)
+                    : ('down' as const),
+                percentage: 0.15,
+              },
+              timeout: 60_000,
+            },
+          ),
+        [direction, fallbackDirection],
+      );
+      return;
+    }
+
+    try {
+      await WalletHomeScroll.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        'down',
+        {
+          overshootSwipe: { direction: 'up', percentage: 0.2 },
+          clearTabBar: true,
+        },
+      );
+    } catch {
+      await WalletHomeScroll.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        'up',
+        {
+          overshootSwipe: { direction: 'down', percentage: 0.2 },
+          clearTabBar: true,
+        },
+      );
+    }
   }
 
   async scrollPredictionsSectionIntoView(
@@ -274,6 +332,7 @@ export class WalletHomeSections {
           WalletHomeScroll.scrollAndTapSection(target, description, direction, {
             timeout: scrollAndTapPerDirectionMs,
             tapTimeout: tapTimeoutMs,
+            fullyVisible: true,
             overshootSwipe: {
               direction: direction === 'down' ? 'up' : 'down',
               percentage: 0.15,

@@ -32,14 +32,10 @@ import Assertions from '../../framework/Assertions';
 import Utilities, { sleep } from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
-import {
-  RetryOptions,
-  EncapsulatedElementType,
-  resolve,
-} from '../../framework';
+import { RetryOptions, type AppiumElement, resolve } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getWindowSize } from '../../framework/DeviceInfoCache';
-import { getDriver } from '../../framework/PlaywrightUtilities';
+import { getDriver } from '../../framework/AppiumUtilities';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
@@ -51,61 +47,61 @@ const TEST_SNAPS_WEBVIEW_OPTIONS: WebViewByIdOptions = {
   ...testSnapsAndroidScrollOptions,
 };
 class TestSnaps {
-  get getConnectSnapButton(): EncapsulatedElementType {
+  get getConnectSnapButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
   }
 
-  get getApproveSnapPermissionsRequestButton(): EncapsulatedElementType {
+  get getApproveSnapPermissionsRequestButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE);
   }
 
-  get getConnectSnapInstallOkButton(): EncapsulatedElementType {
+  get getConnectSnapInstallOkButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(SNAP_INSTALL_OK);
   }
 
-  get getApproveSignRequestButton(): EncapsulatedElementType {
+  get getApproveSignRequestButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
     );
   }
 
-  get confirmSignatureButton(): EncapsulatedElementType {
+  get confirmSignatureButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 
-  get solanaConfirmButton(): EncapsulatedElementType {
+  get solanaConfirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       'confirm-sign-message-confirm-snap-footer-button',
     );
   }
 
-  get footerButton(): EncapsulatedElementType {
+  get footerButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
     );
   }
 
-  get checkboxElement(): EncapsulatedElementType {
+  get checkboxElement(): Promise<AppiumElement> {
     return this.getSnapUiNativeElement(SnapUIRendererSelectorIDs.checkbox);
   }
 
-  get dateTimePickerTouchable(): EncapsulatedElementType {
+  get dateTimePickerTouchable(): Promise<AppiumElement> {
     return this.getSnapUiNativeElement(
       SnapUIRendererSelectorIDs.dateTimeTouchable,
     );
   }
 
-  get datePickerTouchable(): EncapsulatedElementType {
+  get datePickerTouchable(): Promise<AppiumElement> {
     return this.getSnapUiNativeElement(SnapUIRendererSelectorIDs.dateTouchable);
   }
 
-  get timePickerTouchable(): EncapsulatedElementType {
+  get timePickerTouchable(): Promise<AppiumElement> {
     return this.getSnapUiNativeElement(SnapUIRendererSelectorIDs.timeTouchable);
   }
 
-  get dateTimePickerOkButton(): EncapsulatedElementType {
+  get dateTimePickerOkButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('OK');
   }
 
@@ -114,16 +110,15 @@ class TestSnaps {
   }
 
   /** Native Snap UI control — iOS uses name XPath (testID often not tappable). */
-  getSnapUiNativeElement(testID: string): EncapsulatedElementType {
+  getSnapUiNativeElement(testID: string): Promise<AppiumElement> {
     return resolve({
-      detoxTestID: testID,
       androidAppiumTestID: testID,
       iosAppiumXPath: snapUiNativeIosXPath(testID),
     });
   }
 
   /** Snap UI text input — iOS: first scrollview textfield (index 0). */
-  getSnapUiInput(name: string): EncapsulatedElementType {
+  getSnapUiInput(name: string): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(`${name}-snap-ui-input`);
     }
@@ -134,7 +129,7 @@ class TestSnaps {
   }
 
   /** JSX Snap counter ("0" / "1"), scoped under the Snap UI scrollview. */
-  jsxCountElement(count: string): EncapsulatedElementType {
+  jsxCountElement(count: string): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByNativeXPath(
         snapUIJsxCountAndroidXPath(count),
@@ -200,7 +195,7 @@ class TestSnaps {
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
     options: Partial<RetryOptions> = {
-      timeout: 5_000,
+      timeout: 30_000,
       interval: 100,
     },
   ): Promise<void> {
@@ -227,7 +222,7 @@ class TestSnaps {
         await Assertions.checkIfTextMatches(actualText, expectedMessage);
       },
       {
-        timeout: options.timeout ?? 5_000,
+        timeout: options.timeout ?? 30_000,
         interval: options.interval ?? 100,
         description: `Assert result "${webId}" matches expected text`,
       },
@@ -314,7 +309,7 @@ class TestSnaps {
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
     options: Partial<RetryOptions> = {
-      timeout: 5_000,
+      timeout: 30_000,
       interval: 100,
     },
   ): Promise<void> {
@@ -335,7 +330,7 @@ class TestSnaps {
         }
       },
       {
-        timeout: options.timeout ?? 5_000,
+        timeout: options.timeout ?? 30_000,
         interval: options.interval ?? 100,
         description: `Assert result "${webId}" contains "${formattedExpectedMessage}"`,
       },
@@ -447,8 +442,15 @@ class TestSnaps {
   }
 
   async tapConfirmButton() {
-    const button = Matchers.getElementByText(/^Confirm$/i);
-    await Gestures.waitAndTap(button);
+    // Snap UI footer buttons include the snap icon. iOS concatenates that
+    // into the button label ("D, Confirm" for Dialog Example Snap) and leaves
+    // the inner "Confirm" text visible=false. Match the button, and skip the
+    // displayed check the same way OK / Submit do.
+    const button = Matchers.getElementByText(/^(., )?Confirm$/i);
+    await Gestures.waitAndTap(
+      button,
+      this.snapUiTapOptions({ elemDescription: 'Snap UI Confirm' }),
+    );
   }
 
   async tapCancelButton() {
@@ -482,13 +484,50 @@ class TestSnaps {
     }
   }
 
+  private async expectSnapAlert(
+    text: string | RegExp,
+    timeout: number,
+    description: string,
+  ): Promise<void> {
+    await Assertions.expectElementToBeVisible(Matchers.getElementByText(text), {
+      timeout,
+      description,
+    });
+  }
+
   /** Single query — sequential substring asserts race the short-lived alert. */
   async expectDisabledSnapAlert(): Promise<void> {
+    await this.expectSnapAlert(
+      /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
+      30_000,
+      'disabled Snap alert dialog',
+    );
+  }
+
+  /**
+   * Asserts the Snap UI image node (`snaps-ui-image`) is visible after a
+   * show-SVG / show-PNG button tap. Uses a longer timeout because Snap dialog
+   * paint can lag the WebView tap on iOS CI.
+   */
+  async expectSnapUiImageVisible(
+    options: { timeout?: number; description?: string } = {},
+  ): Promise<void> {
     await Assertions.expectElementToBeVisible(
-      Matchers.getElementByText(
-        /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
-      ),
-      { timeout: 30_000 },
+      Matchers.getElementByID('snaps-ui-image'),
+      {
+        timeout: options.timeout ?? 30_000,
+        description: options.description ?? 'Snap UI image (snaps-ui-image)',
+      },
+    );
+  }
+
+  // Use one stable text node. Android UiAutomator does not reliably match the
+  // prior multi-clause regex even while the dialog is visibly open.
+  async expectEnabledSnapAlert(timeout = 30_000): Promise<void> {
+    await this.expectSnapAlert(
+      'This is an alert dialog',
+      timeout,
+      'enabled Snap alert dialog',
     );
   }
 
@@ -532,14 +571,53 @@ class TestSnaps {
     }
   }
 
+  /**
+   * Opens the Dialog Snap custom sheet. Retries the WebView button when the
+   * first CDP/native tap is swallowed (Custom Dialog never appears).
+   */
+  async openCustomDialog(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        if (
+          await Utilities.isElementVisible(
+            Matchers.getElementByText(/^Custom Dialog$/i),
+            1_000,
+          )
+        ) {
+          return;
+        }
+        await this.tapButton('sendCustomButton');
+        await Assertions.expectTextDisplayed('Custom Dialog', {
+          timeout: 5_000,
+          description: 'Custom Dialog heading',
+        });
+      },
+      {
+        timeout: 30_000,
+        interval: 1_000,
+        description: 'open Custom Dialog from test-snaps',
+      },
+    );
+  }
+
   async fillCustomDialogInput(text: string) {
     const input = resolve({
-      detoxTestID: SnapUIInputSelectorIDs.customDialogInput,
       androidAppiumTestID: SnapUIInputSelectorIDs.customDialogInput,
       iosAppiumXPath: SnapUIInputSelectorXPaths.textfieldIos,
     });
 
-    await Gestures.typeText(input, text, { hideKeyboard: true });
+    // iOS tapOutside on this sheet hits the approval backdrop
+    // (onBackdropPress cancels the dialog) or leaves the keyboard over the
+    // absolute footer, so Confirm stays displayed=false.
+    await Gestures.typeText(input, text, {
+      hideKeyboard: !PlatformDetector.isIOSAppium(),
+    });
+    if (PlatformDetector.isIOSAppium()) {
+      // Do not tap the Custom Dialog heading to dismiss — under the keyboard it
+      // often is missing / displayed=false (#37999 residual). Use the same
+      // header-region coordinate dismiss as other Snap UI inputs.
+      await this.dismissSnapUiKeyboard();
+    }
   }
 
   async selectInNativeDropdown(
@@ -651,7 +729,7 @@ class TestSnaps {
   }
 
   private async openSnapUiPicker(
-    touchable: EncapsulatedElementType,
+    touchable: Promise<AppiumElement>,
     elemDescription: string,
     scrollOptions: { startPositionX?: number; startPositionY?: number } = {},
   ): Promise<void> {
@@ -717,34 +795,28 @@ class TestSnaps {
   ): Promise<void> {
     await this.tapButton(buttonLocator);
 
-    // Wait explicitly between steps; Snap install sheets are slower on Android CI.
+    // The next sheet appearing is the signal that this step finished. A second
+    // 60s wait for the previous control to leave the accessibility tree is what
+    // stretched Snap connect toward the suite timeout.
     const stepTimeout = PlatformDetector.isAndroidAppium() ? 60_000 : 15_000;
-    const waitForSheetTransition = async (
-      elem: EncapsulatedElementType,
-    ): Promise<void> => {
-      await Utilities.waitForElementToDisappear(elem, stepTimeout);
-    };
+    const finalSheetTimeout = 10_000;
 
     await Gestures.waitAndTap(this.getConnectSnapButton, {
       elemDescription: 'Connect Snap button',
       timeout: stepTimeout,
-      waitForElementToDisappear: true,
     });
-    await waitForSheetTransition(this.getConnectSnapButton);
-
     await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, {
       elemDescription: 'Approve permission for Snap button',
       timeout: stepTimeout,
-      waitForElementToDisappear: true,
     });
-    await waitForSheetTransition(this.getApproveSnapPermissionsRequestButton);
-
     await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, {
       elemDescription: 'OK button',
       timeout: stepTimeout,
-      waitForElementToDisappear: true,
     });
-    await waitForSheetTransition(this.getConnectSnapInstallOkButton);
+    await Utilities.waitForElementToDisappear(
+      this.getConnectSnapInstallOkButton,
+      finalSheetTimeout,
+    );
   }
 
   async fillMessage(

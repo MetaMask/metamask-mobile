@@ -8,7 +8,9 @@ import Logger from '../../../../../util/Logger';
 import {
   selectIsCardAuthenticated,
   selectCardholderAccounts,
+  selectCardEntryRouting,
 } from '../../../../../selectors/cardController';
+import { trackCardLinkRoutingDisagreement } from '../../../../../components/UI/Card/util/trackCardLinkRoutingDisagreement';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 
 jest.mock('../../../../redux', () => ({
@@ -21,8 +23,15 @@ jest.mock('../../../../redux', () => ({
   },
 }));
 jest.mock('../../../../NavigationService');
+const mockFindLinkedAccountAddress = jest.fn();
 jest.mock('../../../../Engine', () => ({
   setSelectedAddress: jest.fn(),
+  context: {
+    CardController: {
+      findLinkedAccountAddress: (...args: unknown[]) =>
+        mockFindLinkedAccountAddress(...args),
+    },
+  },
 }));
 jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/cardController');
@@ -30,6 +39,15 @@ jest.mock('../../../../../selectors/accountsController');
 jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
+jest.mock(
+  '../../../../../components/UI/Card/util/trackCardLinkRoutingDisagreement',
+);
+
+const flushMicrotasks = async () => {
+  for (let i = 0; i < 5; i++) {
+    await Promise.resolve();
+  }
+};
 
 describe('handleCardHome', () => {
   const mockGetState = jest.fn();
@@ -57,6 +75,15 @@ describe('handleCardHome', () => {
 
     (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
     (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(false);
+    (selectCardEntryRouting as unknown as jest.Mock).mockImplementation(
+      (state) => ({
+        hasCard:
+          (selectCardholderAccounts as unknown as jest.Mock)(state).length > 0,
+        provider: null,
+        source: 'legacy',
+        disagreesWithLegacy: false,
+      }),
+    );
     (selectInternalAccounts as unknown as jest.Mock).mockReturnValue([
       { address: mockInternalAccountAddress },
     ]);
@@ -236,6 +263,103 @@ describe('handleCardHome', () => {
           secondCardholderAddress,
         );
       });
+    });
+  });
+
+  describe('when routed by card links', () => {
+    const linksRouting = {
+      hasCard: true,
+      provider: 'immersve',
+      source: 'card_links',
+      disagreesWithLegacy: false,
+    };
+
+    beforeEach(() => {
+      (selectCardEntryRouting as unknown as jest.Mock).mockReturnValue(
+        linksRouting,
+      );
+    });
+
+    it('switches to the account matching the link, then navigates to Card Home', async () => {
+      mockFindLinkedAccountAddress.mockResolvedValue(mockCardholderAddress);
+
+      handleCardHome();
+      await flushMicrotasks();
+      jest.runAllTimers();
+
+      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+        mockCardholderAddress,
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ROOT,
+        expect.objectContaining({ screen: Routes.CARD.HOME }),
+      );
+    });
+
+    it('stays on the current account when no account matches the link', async () => {
+      mockFindLinkedAccountAddress.mockResolvedValue(null);
+
+      handleCardHome();
+      await flushMicrotasks();
+      jest.runAllTimers();
+
+      expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ROOT,
+        expect.objectContaining({ screen: Routes.CARD.HOME }),
+      );
+    });
+
+    it('ignores the legacy cardholder list', async () => {
+      (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([
+        `eip155:0:0xlegacy`,
+      ]);
+      mockFindLinkedAccountAddress.mockResolvedValue(null);
+
+      handleCardHome();
+      await flushMicrotasks();
+      jest.runAllTimers();
+
+      expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
+    });
+
+    it('does not switch account when the user is authenticated', async () => {
+      (selectIsCardAuthenticated as unknown as jest.Mock).mockReturnValue(true);
+
+      handleCardHome();
+      await flushMicrotasks();
+      jest.runAllTimers();
+
+      expect(mockFindLinkedAccountAddress).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ROOT,
+        expect.objectContaining({ screen: Routes.CARD.HOME }),
+      );
+    });
+
+    it('sends the user to Card Welcome when the links say there is no card', () => {
+      (selectCardEntryRouting as unknown as jest.Mock).mockReturnValue({
+        ...linksRouting,
+        hasCard: false,
+        provider: null,
+      });
+
+      handleCardHome();
+      jest.runAllTimers();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.WELCOME,
+      });
+      expect(mockFindLinkedAccountAddress).not.toHaveBeenCalled();
+    });
+
+    it('reports the routing decision for the disagreement metric', () => {
+      handleCardHome();
+
+      expect(trackCardLinkRoutingDisagreement).toHaveBeenCalledWith(
+        linksRouting,
+        'deeplink_card_home',
+      );
     });
   });
 

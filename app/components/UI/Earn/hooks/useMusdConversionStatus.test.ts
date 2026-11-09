@@ -112,7 +112,7 @@ describe('useMusdConversionStatus', () => {
     title: 'In Progress',
   };
   const mockInProgressFn = jest.fn(() => mockInProgressToast);
-  const mockEarnToastOptions: EarnToastOptionsConfig = {
+  const mockEarnToastOptions = {
     mUsdConversion: {
       inProgress: mockInProgressFn,
       success: {
@@ -150,7 +150,7 @@ describe('useMusdConversionStatus', () => {
         title: 'Withdrawal failed',
       }),
     },
-  };
+  } as unknown as EarnToastOptionsConfig;
 
   beforeEach(() => {
     jest.clearAllMocks();

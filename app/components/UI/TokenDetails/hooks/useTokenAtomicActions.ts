@@ -20,7 +20,6 @@ import {
 } from '../../../../util/analytics/actionButtonTracking';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { areAddressesEqual } from '../../../../util/address';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { TokenI } from '../../Tokens/types';
 import {
@@ -45,6 +44,7 @@ import resolveBuyAssetId from '../../Ramp/utils/resolveBuyAssetId';
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
 import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
+import { computeBuySourceToken } from '../../Bridge/utils/computeBuySourceToken';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import {
   isExploreTokenDetailsSource,
@@ -52,112 +52,13 @@ import {
 } from '../constants/constants';
 import type { RootState } from '../../../../reducers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 
 export type TokenActionInput = TokenI & {
   /** Preferred CAIP-19 when already resolved (e.g. Asset route params). */
   caipAssetId?: CaipAssetType;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   source?: TokenDetailsSource;
-};
-
-interface BuySourceAsset {
-  chainId: string;
-  assetId: string;
-  isNative?: boolean;
-  decimals: number;
-  symbol: string;
-  name: string;
-  image?: string;
-  fiat?: { balance?: number };
-}
-
-/**
- * Smart picker for the swap "source" token when the current token has no
- * balance: pick the user's best available asset (highest fiat) to spend.
- *
- * Pure function so it can be invoked lazily at click time (avoiding the
- * full sort/rank pass on every redux update). Mirrors the priority order
- * used by the legacy `buySourceToken` memo:
- * 1. Highest USD-value token on the same chain (excluding current token)
- * 2. Native token with highest USD value across other chains
- * 3. Fallback: highest USD-value token across any chain
- */
-export const computeBuySourceToken = (
-  userAssetsMap: Record<string, BuySourceAsset[]> | undefined,
-  tokenChainId: string | undefined,
-  tokenAddress: string,
-): BridgeToken | null => {
-  const userAssets = Object.values(userAssetsMap || {}).flat();
-
-  // Check if asset has positive fiat balance
-  const hasPositiveFiat = (a: { fiat?: { balance?: number } }) =>
-    (a.fiat?.balance ?? 0) > 0;
-
-  // Priority 1: Find highest USD value token on same chain (with positive balance)
-  // Note: assetId contains the token address for EVM assets
-  const sameChainAssets = userAssets
-    .filter(
-      (a) =>
-        a.chainId === tokenChainId &&
-        !areAddressesEqual(a.assetId, tokenAddress) &&
-        hasPositiveFiat(a),
-    )
-    .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
-
-  if (sameChainAssets.length > 0) {
-    const asset = sameChainAssets[0];
-    return {
-      address: asset.assetId,
-      chainId: asset.chainId as Hex | CaipChainId,
-      decimals: asset.decimals,
-      symbol: asset.symbol,
-      name: asset.name,
-      image: asset.image,
-    };
-  }
-
-  // Eligible cross-chain assets: exclude exact same token (address + chain match)
-  // This allows cross-chain bridging of native tokens that share the zero address
-  const crossChainAssets = userAssets
-    .filter(
-      (a) =>
-        !(
-          areAddressesEqual(a.assetId, tokenAddress) &&
-          a.chainId === tokenChainId
-        ) && hasPositiveFiat(a),
-    )
-    .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
-
-  // Priority 2: Prefer native tokens (ETH, POL, etc.) with highest fiat balance
-  const nativeAsset = crossChainAssets.find((a) => a.isNative);
-  if (nativeAsset) {
-    return {
-      address: nativeAsset.assetId,
-      chainId: nativeAsset.chainId as Hex | CaipChainId,
-      decimals: nativeAsset.decimals,
-      symbol: nativeAsset.symbol,
-      name: nativeAsset.name,
-      image: nativeAsset.image,
-    };
-  }
-
-  // Priority 3 – Last swapped token (needs selector/data source)
-  // Priority 4 – Most used token (needs selector/data source)
-
-  // Fallback: highest USD value token on any chain
-  if (crossChainAssets.length > 0) {
-    const asset = crossChainAssets[0];
-    return {
-      address: asset.assetId,
-      chainId: asset.chainId as Hex | CaipChainId,
-      decimals: asset.decimals,
-      symbol: asset.symbol,
-      name: asset.name,
-      image: asset.image,
-    };
-  }
-  // No eligible tokens found - return null to trigger on-ramp flow
-  return null;
 };
 
 const toCurrentTokenAsBridgeToken = (token: TokenI): BridgeToken => ({
@@ -219,7 +120,14 @@ const useIsRampAuthenticated = (): boolean => {
 /**
  * Atomic hook returning the click handler for the Buy CTA on Token Details
  */
-export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
+export const useHandleOnBuy = ({
+  token,
+  tdpVersion,
+}: {
+  token: TokenActionInput;
+  /** Token Details page version. When set, adds `tdp_version` to the below-chart Buy `ACTION_BUTTON_CLICKED` event. Omit for non-TDP callers. */
+  tdpVersion?: TdpVersion;
+}) => {
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
@@ -233,6 +141,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
       action_position: ActionPosition.FIRST_POSITION,
       button_label: strings('asset_overview.buy_button'),
       location: ActionLocation.ASSET_DETAILS,
+      ...(tdpVersion ? { tdp_version: tdpVersion } : {}),
     });
 
     const assetId = await resolveBuyAssetId(token);
@@ -271,7 +180,15 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     );
 
     goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
-  }, [store, token, trackEvent, createEventBuilder, isAuthenticated, goToBuy]);
+  }, [
+    store,
+    token,
+    trackEvent,
+    createEventBuilder,
+    isAuthenticated,
+    goToBuy,
+    tdpVersion,
+  ]);
 };
 
 /**
@@ -348,7 +265,14 @@ export const useHandleOnSwap = ({
  * Switches to the token's chain (when needed) and routes through the
  * non-EVM send flow first; falls through to the EVM send page otherwise.
  */
-export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
+export const useHandleOnSend = ({
+  token,
+  tdpVersion,
+}: {
+  token: TokenActionInput;
+  /** Token Details page version. When set, adds `tdp_version` to the below-chart Send `ACTION_BUTTON_CLICKED` event. Omit for non-TDP callers. */
+  tdpVersion?: TdpVersion;
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -359,16 +283,13 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
-        .addProperties({
-          action_name: ActionButtonType.SEND,
-          action_position: ActionPosition.THIRD_POSITION,
-          button_label: strings('asset_overview.send_button'),
-          location: ActionLocation.ASSET_DETAILS,
-        })
-        .build(),
-    );
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.SEND,
+      action_position: ActionPosition.THIRD_POSITION,
+      button_label: strings('asset_overview.send_button'),
+      location: ActionLocation.ASSET_DETAILS,
+      ...(tdpVersion ? { tdp_version: tdpVersion } : {}),
+    });
 
     const wasHandledAsNonEvm = await sendNonEvmAsset(
       InitSendLocation.AssetOverview,
@@ -415,6 +336,7 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
     store,
     navigateToSendPage,
     token,
+    tdpVersion,
   ]);
 };
 
@@ -424,10 +346,13 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
 export const useHandleOnReceive = ({
   token,
   networkName,
+  tdpVersion,
 }: {
   token: TokenActionInput;
   /** Optional network name displayed in the share-address QR sheet. */
   networkName?: string;
+  /** Token Details page version. When set, adds `tdp_version` to the below-chart Receive `ACTION_BUTTON_CLICKED` event. Omit for non-TDP callers. */
+  tdpVersion?: TdpVersion;
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const store = useStore<RootState>();
@@ -441,6 +366,7 @@ export const useHandleOnReceive = ({
       action_position: ActionPosition.FOURTH_POSITION,
       button_label: strings('asset_overview.receive_button'),
       location: ActionLocation.ASSET_DETAILS,
+      ...(tdpVersion ? { tdp_version: tdpVersion } : {}),
     });
 
     const state = store.getState();
@@ -483,5 +409,13 @@ export const useHandleOnReceive = ({
         },
       );
     }
-  }, [trackEvent, createEventBuilder, store, navigation, token, networkName]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    store,
+    navigation,
+    token,
+    networkName,
+    tdpVersion,
+  ]);
 };

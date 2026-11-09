@@ -36,6 +36,12 @@ export interface EarnToastOptionsConfig {
   tronWithdrawal: {
     failed: (errors: string[]) => EarnToastOptions;
   };
+  earnStrategySelection: {
+    navigationToDeposit: EarnToastOptions;
+  };
+  earnWithdrawal: {
+    detailsUnavailable: EarnToastOptions;
+  };
 }
 
 const EARN_TOASTS_DEFAULT_OPTIONS: Partial<EarnToastOptions> = {
@@ -122,6 +128,20 @@ const useEarnToasts = (): {
             description: errors.map((err) => `\u2022 ${err}`).join('\n'),
           }),
         }),
+      },
+      earnStrategySelection: {
+        navigationToDeposit: {
+          ...earnBaseToastOptions.error,
+          title: strings(
+            'earn.strategy_selection.toasts.deposit_navigation.failed',
+          ),
+        },
+      },
+      earnWithdrawal: {
+        detailsUnavailable: {
+          ...earnBaseToastOptions.error,
+          title: strings('stake.withdrawal_details_unavailable'),
+        },
       },
     }),
     [

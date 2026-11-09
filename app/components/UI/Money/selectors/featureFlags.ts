@@ -6,7 +6,10 @@ import {
   parseBlockedCountriesEnv,
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
-import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
+import {
+  isMoneyAccountEnabled,
+  isMoneyMfaEnabled,
+} from '../../../../lib/Money/feature-flags';
 import {
   MUSD_TOKEN_ADDRESS,
   getTokenDisplaySymbol,
@@ -27,7 +30,6 @@ import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmatio
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
-
 /**
  * Selects whether the Money activity detail view is enabled.
  * When off, clicking on an activity list item does nothing instead of opening
@@ -105,21 +107,43 @@ export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
   },
 );
 
-/** Temporary flag: remote value is a boolean only. */
-export const selectMoneyActivityMockDataEnabledFlag = createSelector(
+/** Dedicated opt-in gate for pending VBA activity from NeoBankService. */
+export const selectMoneyVbaPendingActivityEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remote = remoteFeatureFlags?.moneyActivityMockDataEnabled;
-    if (typeof remote === 'boolean') {
-      return remote;
-    }
-    return process.env.MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyVbaPendingActivityEnabled as unknown as VersionGatedFeatureFlag;
+    const localFlag =
+      process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/** Dedicated opt-in gate for completed VBA activity from Money Account API. */
+export const selectMoneyVbaCompletedActivityEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.moneyVbaCompletedActivityEnabled as unknown as VersionGatedFeatureFlag;
+    const localFlag =
+      process.env.MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
+);
+
+/**
+ * Selects whether Money MFA (MPC-backed 2FA) is enabled. Independent of
+ * `moneyEnableMoneyAccount` so MFA can be rolled out or killed without
+ * disabling the rest of Money. Remote flag: `isMoneyMfaEnabled`.
+ */
+export const selectMoneyEnableMfaFlag = createSelector(
+  selectRemoteFeatureFlags,
+  isMoneyMfaEnabled,
 );
 
 /**
@@ -229,6 +253,19 @@ export const selectMoneyEarningSectionEnabledFlag = createSelector(
 );
 
 /**
+ * Selects whether the Money deposit Braze campaign can emit its trigger event.
+ */
+export const selectIsMoneyDepositBrazeCampaignEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyDepositBrazeCampaignEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Kill-switch for the first-time deposit Rive animation.
  * Defaults to ON (true).
  */
@@ -267,6 +304,24 @@ export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyCardTiltAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local = process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
+ * Selects whether the card education screen plays the Rive cards entrance.
+ * Defaults to off (opt-in) so the animation stays disabled unless the remote
+ * flag or MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED turns it on; the static
+ * image is used otherwise, when reduce-motion is enabled, or when Rive fails
+ * to load.
+ */
+export const selectMoneyCardEducationAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardEducationAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local =
+      process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );

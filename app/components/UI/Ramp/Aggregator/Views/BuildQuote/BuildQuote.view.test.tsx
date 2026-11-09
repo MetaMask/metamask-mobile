@@ -24,6 +24,123 @@ import {
 } from '../../../../../../../tests/component-view/presets/ramps';
 import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../../tests/component-view/presets/multichainAccounts';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { MOCK_SOLANA_ACCOUNT } from '../../../../../../util/test/accountsControllerTestUtils';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import { SolAccountType, SolScope } from '@metamask/keyring-api';
+import { RAMPS_OFF_RAMP_NON_EVM_FLAG_KEY } from '../../../../../../selectors/featureFlagController/offRampNonEvm';
+import type { RootState } from '../../../../../../reducers';
+import type { DeepPartial } from '../../../../../../util/test/renderWithProvider';
+import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
+
+const SOLANA_ONLY_ACCOUNT_NAME = 'Solana Account';
+const SOLANA_ONLY_ACCOUNT_ID = 'solana-only-account';
+const SOLANA_ONLY_GROUP_ID = 'entropy:wallet1/99';
+const MIXED_ACCOUNT_GROUP_NAME = 'Ethereum and Solana Account';
+const MIXED_ACCOUNT_GROUP_ID = 'entropy:wallet1/98';
+const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
+  '0': KeypadTestIds.KEY_0,
+  '1': KeypadTestIds.KEY_1,
+  '2': KeypadTestIds.KEY_2,
+  '3': KeypadTestIds.KEY_3,
+  '4': KeypadTestIds.KEY_4,
+  '5': KeypadTestIds.KEY_5,
+  '6': KeypadTestIds.KEY_6,
+  '7': KeypadTestIds.KEY_7,
+  '8': KeypadTestIds.KEY_8,
+  '9': KeypadTestIds.KEY_9,
+  '.': KeypadTestIds.KEY_DOT,
+};
+
+const solanaOnlyAccountState: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      AccountTreeController: {
+        accountTree: {
+          wallets: {
+            'entropy:wallet1': {
+              id: 'entropy:wallet1',
+              type: AccountWalletType.Entropy,
+              metadata: {
+                name: 'Wallet 1',
+                entropy: { id: 'entropy-source-1' },
+              },
+              groups: {
+                [SOLANA_ONLY_GROUP_ID]: {
+                  id: SOLANA_ONLY_GROUP_ID,
+                  type: AccountGroupType.MultichainAccount,
+                  accounts: [SOLANA_ONLY_ACCOUNT_ID],
+                  metadata: {
+                    name: SOLANA_ONLY_ACCOUNT_NAME,
+                    pinned: false,
+                    hidden: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            [SOLANA_ONLY_ACCOUNT_ID]: {
+              id: SOLANA_ONLY_ACCOUNT_ID,
+              address: '7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv',
+              type: SolAccountType.DataAccount,
+              scopes: [SolScope.Mainnet],
+              options: {},
+              methods: [],
+              metadata: {
+                name: SOLANA_ONLY_ACCOUNT_NAME,
+                keyring: { type: 'snap' },
+                importTime: 1,
+                lastSelected: 1,
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+const mixedAccountGroupState: DeepPartial<RootState> = {
+  ...solanaOnlyAccountState,
+  engine: {
+    backgroundState: {
+      ...solanaOnlyAccountState.engine?.backgroundState,
+      AccountTreeController: {
+        accountTree: {
+          wallets: {
+            'entropy:wallet1': {
+              id: 'entropy:wallet1',
+              type: AccountWalletType.Entropy,
+              metadata: {
+                name: 'Wallet 1',
+                entropy: { id: 'entropy-source-1' },
+              },
+              groups: {
+                [MIXED_ACCOUNT_GROUP_ID]: {
+                  id: MIXED_ACCOUNT_GROUP_ID,
+                  type: AccountGroupType.MultichainAccount,
+                  accounts: [
+                    MULTICHAIN_TEST_ACCOUNTS.account1.id,
+                    SOLANA_ONLY_ACCOUNT_ID,
+                  ],
+                  metadata: {
+                    name: MIXED_ACCOUNT_GROUP_NAME,
+                    pinned: false,
+                    hidden: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
 
 const ETH_MAINNET_ASSET_ID = 'eip155:1/slip44:60';
 
@@ -98,11 +215,13 @@ async function enterSellAmountViaKeypad(
   fireEvent.press(await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
 
   for (const digit of amount) {
-    fireEvent.press(await findByRole('button', { name: digit }));
+    fireEvent.press(await findByTestId(KEYPAD_TEST_IDS_BY_LABEL[digit]));
   }
 
   expect(
-    await findByRole('button', { name: `${amount} ${tokenSymbol}` }),
+    await findByRole('button', {
+      name: `${amount} ${tokenSymbol}`,
+    }),
   ).toBeOnTheScreen();
 }
 
@@ -130,12 +249,17 @@ describe('Aggregator BuildQuote', () => {
 
   describe('sell mode', () => {
     it('initializes sell amount from deeplink intent params', async () => {
-      const { findByText } = renderBuildQuoteView({
+      const { findByTestId, getByTestId } = renderBuildQuoteView({
         rampType: RampType.SELL,
         initialParams: { amount: '50', assetId: ETH_MAINNET_ASSET_ID },
       });
 
-      expect(await findByText('50 ETH')).toBeOnTheScreen();
+      await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      await waitFor(() => {
+        expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+          '50 ETH',
+        );
+      });
     });
 
     it('selects mUSD, shows France defaults, enforces sell limits, then accepts a valid amount', async () => {
@@ -168,7 +292,9 @@ describe('Aggregator BuildQuote', () => {
         'mUSD',
       );
 
-      expect(await findByText('0 mUSD')).toBeOnTheScreen();
+      expect(
+        await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('0 mUSD');
       expect(await findByText(RAMPS_FRANCE_REGION.emoji)).toBeOnTheScreen();
 
       const overMaxAmount = String(RAMPS_SDK_LIMITS.maxAmount + 1);
@@ -242,6 +368,69 @@ describe('Aggregator BuildQuote', () => {
       expect(await findByText('You want to sell')).toBeOnTheScreen();
     });
 
+    it('hides a Solana-only account in the sell picker when the non-EVM flag is off', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        includeAccountSelector: true,
+        overrides: solanaOnlyAccountState,
+      });
+      const { findByText, getByText, queryByText, getByTestId } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+      fireEvent.press(getByTestId(BuildQuoteSelectors.ACCOUNT_PICKER));
+
+      expect(
+        await findByText(MULTICHAIN_TEST_ACCOUNTS.account1.name),
+      ).toBeOnTheScreen();
+      expect(queryByText(SOLANA_ONLY_ACCOUNT_NAME)).not.toBeOnTheScreen();
+    });
+
+    it('shows a mixed EVM and Solana account group when the non-EVM flag is off', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        includeAccountSelector: true,
+        overrides: mixedAccountGroupState,
+      });
+      const { findByText, getByText, queryByText, getByTestId } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+      fireEvent.press(getByTestId(BuildQuoteSelectors.ACCOUNT_PICKER));
+
+      expect(await findByText(MIXED_ACCOUNT_GROUP_NAME)).toBeOnTheScreen();
+    });
+
+    it('shows a Solana-only account in the sell picker when the non-EVM flag is on', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        includeAccountSelector: true,
+        overrides: {
+          ...solanaOnlyAccountState,
+          engine: {
+            backgroundState: {
+              ...solanaOnlyAccountState.engine?.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [RAMPS_OFF_RAMP_NON_EVM_FLAG_KEY]: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const { findByText, getByText, queryByText, getByTestId } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+      fireEvent.press(getByTestId(BuildQuoteSelectors.ACCOUNT_PICKER));
+
+      expect(await findByText(SOLANA_ONLY_ACCOUNT_NAME)).toBeOnTheScreen();
+    });
+
     it('shows insufficient balance error when sell amount exceeds ETH balance', async () => {
       const renderApi = renderBuildQuoteWithRoutes({
         rampType: RampType.SELL,
@@ -274,6 +463,73 @@ describe('Aggregator BuildQuote', () => {
           { timeout: 5000 },
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('uses the EVM sibling balance when the selected account is Solana', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        overrides: {
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: MOCK_SOLANA_ACCOUNT.id,
+                  accounts: {
+                    [MOCK_SOLANA_ACCOUNT.id]: MOCK_SOLANA_ACCOUNT,
+                  },
+                },
+              },
+              AccountTreeController: {
+                accountTree: {
+                  wallets: {
+                    'entropy:wallet1': {
+                      groups: {
+                        'entropy:wallet1/0': {
+                          accounts: [
+                            MULTICHAIN_TEST_ACCOUNTS.account1.id,
+                            MOCK_SOLANA_ACCOUNT.id,
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const {
+        findByRole,
+        findByTestId,
+        findByText,
+        getByTestId,
+        getByText,
+        queryByTestId,
+        queryByText,
+      } = renderApi;
+      await waitForBuildQuoteReady({ getByText, queryByText });
+      await findByText('EUR');
+      await findByText('Apple Pay');
+
+      await enterSellAmountViaKeypad(
+        { findByRole, findByTestId, getByTestId },
+        '50',
+        'ETH',
+      );
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR),
+        ).not.toBeOnTheScreen();
+      });
+      const getQuotesButton = await findByRole('button', {
+        name: 'Get quotes',
+      });
+      await waitFor(() => {
+        expect(getQuotesButton).not.toBeDisabled();
+      });
     });
 
     it('navigates to Quotes screen when "Get quotes" is pressed with a valid sell amount', async () => {
@@ -424,7 +680,9 @@ describe('Aggregator BuildQuote', () => {
       );
 
       // Amount should reset to 0
-      expect(await findByText('0 mUSD')).toBeOnTheScreen();
+      expect(
+        await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('0 mUSD');
     });
 
     it('changes payment method via "Send cash to" selector in sell mode', async () => {

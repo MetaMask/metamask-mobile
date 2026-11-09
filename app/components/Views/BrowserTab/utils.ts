@@ -1,5 +1,6 @@
 import AppConstants from '../../../core/AppConstants';
 import URLParse from 'url-parse';
+import { isSameOrigin } from '../../../util/url';
 import { DocumentUrlForUrlBarPayload, SessionENSNames } from './types';
 
 const DEFAULT_HTTP_PORTS: Record<string, string> = {
@@ -64,6 +65,33 @@ export const isDocumentUrlForUrlBarPayload = (
 };
 
 /**
+ * Chooses the document URL after a back/forward address-bar sync.
+ *
+ * Prefers the document URL when it shares an origin with the WebView
+ * navigation URL, so SPA path updates still apply. Otherwise uses the
+ * navigation URL. Returns null when that result would not be allowed to load.
+ *
+ * @param nativeUrl - URL from the WebView navigation event
+ * @param pageReportedUrl - URL returned by the document-URL sync script
+ * @returns The URL to show in the address bar, or `null` when it should not
+ * be committed
+ */
+export const resolveCommittedDocumentUrl = (
+  nativeUrl: string,
+  pageReportedUrl: string,
+): string | null => {
+  const candidate = isSameOrigin(nativeUrl, pageReportedUrl)
+    ? pageReportedUrl
+    : nativeUrl;
+
+  if (isDisallowedExplicitPort(candidate)) {
+    return null;
+  }
+
+  return candidate;
+};
+
+/**
  * Validates url for browser
  *
  * Regular domains (e.g., google.com)
@@ -80,6 +108,24 @@ export const isValidUrl = (url: URLParse<string>): boolean => {
     return (
       (url.protocol === 'http:' || url.protocol === 'https:') &&
       (urlPattern.test(url.origin) || url.hostname === 'localhost')
+    );
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * True for http(s) page URLs that can own a BackgroundBridge.
+ * Blank, file, and other non-page navigations are excluded so a WebView
+ * remount does not tear down the live provider.
+ */
+export const isHttpPageUrl = (url: string): boolean => {
+  try {
+    const parsed = new URLParse(url);
+    return (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      Boolean(parsed.origin) &&
+      parsed.origin !== 'null'
     );
   } catch {
     return false;

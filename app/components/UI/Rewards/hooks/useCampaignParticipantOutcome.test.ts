@@ -1,4 +1,5 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -21,6 +22,33 @@ jest.mock('../../../../selectors/rewards', () => ({
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectCampaignParticipantOptedIn: jest.fn(),
 }));
+
+jest.mock('@react-navigation/native', () => {
+  const React = jest.requireActual('react');
+  return {
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      React.useEffect(() => {
+        const cleanup = effect();
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [effect]);
+    },
+  };
+});
+
+beforeAll(() => {
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((task) => {
+      if (typeof task === 'function') {
+        task();
+      }
+      return {
+        then: (onfulfilled?: () => void) => Promise.resolve(onfulfilled?.()),
+        done: () => Promise.resolve(),
+        cancel: jest.fn(),
+      } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+    });
+});
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call

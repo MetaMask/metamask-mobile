@@ -55,7 +55,7 @@ const PillRow: React.FC<PillRowProps> = ({
                 onPress={() => onSelect(pill.key)}
                 testID={`${testIdPrefix}-pill-${pill.key}`}
                 style={tw.style(
-                  'rounded-xl px-[12px] py-2',
+                  'rounded-full px-[12px] py-2',
                   isSelected ? 'bg-icon-default' : 'bg-muted',
                 )}
               >

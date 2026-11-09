@@ -127,7 +127,9 @@ export const TransactionPayComponentIDs = {
   PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_SYMBOL: 'pay-with-symbol',
   PAY_WITH_TOKEN_LIST: 'pay-with-token-list',
+  PAY_WITH_TOKEN_LIST_SKELETON: 'pay-with-token-list-skeleton',
   KEYBOARD_CONTAINER: 'custom-amount-input',
+  AMOUNT_VALUE: 'custom-amount-input-value',
 };
 
 export const PayWithBottomSheetIDs = {

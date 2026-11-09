@@ -5,7 +5,7 @@ import {
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Assertions from '../../../framework/Assertions';
-import { EncapsulatedElementType } from '../../../framework';
+import { type AppiumElement, type ScrollContainer } from '../../../framework';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
 import type { TapOptions } from '../../../framework/types';
 
@@ -20,73 +20,73 @@ const iosAppiumTapOptions = (elemDescription: string): TapOptions => {
 };
 
 class RevealSecretRecoveryPhrase {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
     );
   }
 
-  get passwordWarning(): EncapsulatedElementType {
+  get passwordWarning(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
     );
   }
 
-  get passwordInputToRevealCredential(): EncapsulatedElementType {
+  get passwordInputToRevealCredential(): Promise<AppiumElement> {
     return Matchers.getElementByLabel(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
     );
   }
 
-  get scrollViewIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(
+  get scrollViewIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID,
     );
   }
 
-  get tabScrollViewTextIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(
+  get tabScrollViewTextIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
       RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT,
     );
   }
 
-  get tabScrollViewQRCodeIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(
+  get tabScrollViewQRCodeIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
       RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE,
     );
   }
 
-  get revealSecretRecoveryPhraseButton(): EncapsulatedElementType {
+  get revealSecretRecoveryPhraseButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
     );
   }
 
-  get revealCredentialCopyToClipboardButton(): EncapsulatedElementType {
+  get revealCredentialCopyToClipboardButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
     );
   }
 
-  get revealCredentialQRCodeTab(): EncapsulatedElementType {
+  get revealCredentialQRCodeTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
     );
   }
 
-  get revealCredentialQRCodeImage(): EncapsulatedElementType {
+  get revealCredentialQRCodeImage(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
     );
   }
 
-  get doneButton(): EncapsulatedElementType {
+  get doneButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
     );
   }
 
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
     );

@@ -1,6 +1,9 @@
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import { Interface } from 'ethers/lib/utils';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { webcrypto } from 'crypto';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import {
@@ -11,6 +14,7 @@ import {
   type PredictOutcome,
   type PredictSportsLeague,
 } from '../../types';
+import type { PredictFeeCollection } from '../../types/flags';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import {
@@ -21,16 +25,22 @@ import {
 } from './constants';
 import {
   buildMarketListQueryParams,
+  buildPolyHmacSignature,
   calculateConservativeBuyMarketFee,
   calculateConservativeSellMarketFee,
+  calculateFees,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
+  clearMarketTagSlugsCache,
   createApiKey,
   deriveApiKey,
+  encodeRouterRedeem,
   fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
   fetchRelatedTagsFromPolymarketApi,
+  mapPolymarketActivityV2,
+  mapPolymarketPositionsV2,
   normalizeRelatedTagsToFilterOptions,
   getAllowance,
   getClobMarketInfo,
@@ -42,16 +52,22 @@ import {
   getRawBalance,
   getTickSizeRoundConfig,
   parsePolymarketEvents,
+  parsePolymarketMarket,
   parsePolymarketActivity,
+  parsePolymarketPositions,
   previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
+  toBytes31ConditionId,
 } from './utils';
 import type {
   PolymarketApiActivity,
   PolymarketApiEvent,
   PolymarketApiMarket,
   PolymarketApiTeam,
+  PolymarketActivityV2,
+  PolymarketPosition,
+  PolymarketPositionV2,
 } from './types';
 
 const mockSignTypedMessage = jest.fn();
@@ -151,41 +167,230 @@ const buyPreview: OrderPreview = {
 };
 
 describe('polymarket utils', () => {
+  describe('buildPolyHmacSignature', () => {
+    const originalSubtle = global.crypto.subtle;
+
+    beforeAll(() => {
+      Object.defineProperty(global.crypto, 'subtle', {
+        value: webcrypto.subtle,
+        configurable: true,
+      });
+    });
+
+    afterAll(() => {
+      Object.defineProperty(global.crypto, 'subtle', {
+        value: originalSubtle,
+        configurable: true,
+      });
+    });
+
+    it('creates a base64 HMAC-SHA256 signature of the request', async () => {
+      const result = await buildPolyHmacSignature(
+        'c2VjcmV0',
+        1_700_000_000,
+        'GET',
+        '/orders',
+      );
+
+      expect(result).toBe('5pq6uRxdFFvJzbzIJRObr9401649NDsVtb6H2TgxZRY=');
+    });
+
+    it('signs the body and returns URL-safe base64 with padding', async () => {
+      const result = await buildPolyHmacSignature(
+        'c2VjcmV0',
+        1_700_000_000,
+        'POST',
+        '/order',
+        '{"order":2}',
+      );
+
+      expect(result).toBe('pRzrxeC2oeF_Dk2ipne3W7ErhC-B2Xee-DusSbPAkUE=');
+    });
+
+    it('rejects an empty secret', async () => {
+      await expect(
+        buildPolyHmacSignature('', 1_700_000_000, 'GET', '/orders'),
+      ).rejects.toThrow(
+        'Unsafe key length: Key must not be zero bytes for HMAC-SHA-256.',
+      );
+    });
+  });
+
   describe('getPredictPositionStatus', () => {
     it.each([
       {
         claimable: false,
         cashPnl: 10,
+        currentValue: 20,
+        curPrice: 0.6,
         expectedStatus: PredictPositionStatus.OPEN,
       },
       {
+        claimable: false,
+        cashPnl: -10,
+        currentValue: 0,
+        curPrice: 0,
+        expectedStatus: PredictPositionStatus.OPEN,
+      },
+      // Settled winner.
+      {
         claimable: true,
         cashPnl: 10,
+        currentValue: 20,
+        curPrice: 1,
         expectedStatus: PredictPositionStatus.WON,
       },
+      // Winner whose price has not settled yet is already in profit.
+      {
+        claimable: true,
+        cashPnl: 2699.75,
+        currentValue: 2999.75,
+        curPrice: 0.9995,
+        expectedStatus: PredictPositionStatus.WON,
+      },
+      // 50/50 push bought at 50c: pays back exactly what it cost.
       {
         claimable: true,
         cashPnl: 0,
+        currentValue: 10,
+        curPrice: 0.5,
         expectedStatus: PredictPositionStatus.REDEEMABLE,
       },
+      // 50/50 push bought above 50c (PRED-959): pays back less than it cost,
+      // still claimable. Values from a real settled Polymarket position.
+      {
+        claimable: true,
+        cashPnl: -134.4055,
+        currentValue: 2259.5,
+        curPrice: 0.5,
+        expectedStatus: PredictPositionStatus.REDEEMABLE,
+      },
+      // Winner dragged below break-even by fees still redeems for 1/share.
+      {
+        claimable: true,
+        cashPnl: -0.5,
+        currentValue: 100,
+        curPrice: 1,
+        expectedStatus: PredictPositionStatus.REDEEMABLE,
+      },
+      // Settled loser.
       {
         claimable: true,
         cashPnl: -10,
+        currentValue: 0,
+        curPrice: 0,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      // Loser flagged redeemable before its price settled: still carries its
+      // last traded price, so currentValue is positive. Must not be claimable.
+      // Values from real Polymarket positions observed mid-settlement.
+      {
+        claimable: true,
+        cashPnl: -304.1314,
+        currentValue: 1.5283,
+        curPrice: 0.0005,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      {
+        claimable: true,
+        cashPnl: -9.9019,
+        currentValue: 0.098,
+        curPrice: 0.005,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      // Below break-even at an unsettled mid price: not proven redeemable.
+      {
+        claimable: true,
+        cashPnl: -2,
+        currentValue: 53,
+        curPrice: 0.53,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      // Nothing to redeem even though P&L rounds to zero.
+      {
+        claimable: true,
+        cashPnl: 0,
+        currentValue: 0,
+        curPrice: 0,
         expectedStatus: PredictPositionStatus.LOST,
       },
     ])(
-      'returns $expectedStatus when claimable is $claimable and cashPnl is $cashPnl',
-      ({ claimable, cashPnl, expectedStatus }) => {
-        expect(getPredictPositionStatus({ claimable, cashPnl })).toBe(
-          expectedStatus,
-        );
+      'returns $expectedStatus when claimable is $claimable, cashPnl is $cashPnl, currentValue is $currentValue and curPrice is $curPrice',
+      ({ claimable, cashPnl, currentValue, curPrice, expectedStatus }) => {
+        expect(
+          getPredictPositionStatus({
+            claimable,
+            cashPnl,
+            currentValue,
+            curPrice,
+          }),
+        ).toBe(expectedStatus);
       },
     );
+  });
+
+  describe('parsePolymarketPositions', () => {
+    // Shape and values of a real settled 50/50 push bought above 50c.
+    const createRedeemablePosition = (
+      overrides: Partial<PolymarketPosition>,
+    ): PolymarketPosition => ({
+      conditionId: 'condition',
+      eventId: 'event',
+      icon: '',
+      title: 'Nippon Ham Fighters vs. Fukuoka SoftBank Hawks',
+      slug: 'slug',
+      size: 4519,
+      outcome: 'Fukuoka SoftBank Hawks',
+      outcomeIndex: 1,
+      cashPnl: -134.4055,
+      curPrice: 0.5,
+      currentValue: 2259.5,
+      percentPnl: -5.6,
+      initialValue: 2393.9055,
+      avgPrice: 0.5297,
+      redeemable: true,
+      negativeRisk: false,
+      endDate: '2026-09-01',
+      asset: 'asset',
+      realizedPnl: 0,
+      ...overrides,
+    });
+
+    it('marks a settled push bought above 50c as redeemable', async () => {
+      const [position] = await parsePolymarketPositions({
+        positions: [createRedeemablePosition({})],
+      });
+
+      expect(position.status).toBe(PredictPositionStatus.REDEEMABLE);
+      expect(position.claimable).toBe(true);
+      expect(position.currentValue).toBe(2259.5);
+    });
+
+    it('does not mark a loser redeemable while its price is still settling', async () => {
+      const [position] = await parsePolymarketPositions({
+        positions: [
+          createRedeemablePosition({
+            title: 'Bitcoin Up or Down - September 2, 1:55PM-2:00PM ET',
+            outcome: 'Down',
+            size: 19.6078,
+            cashPnl: -9.9019,
+            curPrice: 0.005,
+            currentValue: 0.098,
+            initialValue: 9.9999,
+            avgPrice: 0.5099,
+          }),
+        ],
+      });
+
+      expect(position.status).toBe(PredictPositionStatus.LOST);
+      expect(position.claimable).toBe(true);
+    });
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
     clearClobMarketInfoSessionState();
+    clearMarketTagSlugsCache();
     mockSignTypedMessage.mockResolvedValue('0xsig');
     mockFindNetworkClientIdByChainId.mockReturnValue('test-network-client-id');
     mockGetNetworkClientById.mockReturnValue({
@@ -233,6 +438,20 @@ describe('polymarket utils', () => {
   const nbaTeamsByAbbreviation: Record<string, PolymarketApiTeam> = {
     bos: createNbaTeam('bos'),
     nyk: createNbaTeam('nyk', { color: 'blue' }),
+  };
+
+  const nflTeamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+    ne: createNbaTeam('ne', {
+      name: 'New England Patriots',
+      alias: 'Patriots',
+      league: 'nfl',
+    }),
+    den: createNbaTeam('den', {
+      name: 'Denver Broncos',
+      alias: 'Broncos',
+      league: 'nfl',
+      color: 'blue',
+    }),
   };
 
   const createSportsMarket = ({
@@ -300,6 +519,29 @@ describe('polymarket utils', () => {
     startTime: '2026-06-12T20:00:00.000Z',
     live: false,
     ended: false,
+  });
+
+  const createNflGameEvent = (
+    markets: PolymarketApiEvent['markets'],
+  ): PolymarketApiEvent => ({
+    ...createNbaGameEvent(markets),
+    id: 'nfl-game-event',
+    slug: 'nfl-ne-den-2026-09-10',
+    title: 'New England Patriots vs Denver Broncos',
+    series: [
+      {
+        id: 'nfl-series',
+        slug: 'nfl-2026',
+        title: 'NFL 2026',
+        recurrence: 'daily',
+      },
+    ],
+    tags: [
+      { id: 'games', label: 'Games', slug: 'games' },
+      { id: 'nfl', label: 'NFL', slug: 'nfl' },
+    ],
+    teams: Object.values(nflTeamsByAbbreviation),
+    gameId: 'nfl-game-1',
   });
 
   const createEsportsTeam = (
@@ -591,6 +833,178 @@ describe('polymarket utils', () => {
     expect(market.outcomeGroups?.[1].outcomes).toEqual([
       expect.objectContaining({ sportsMarketType: 'first_half_moneyline' }),
     ]);
+  });
+
+  it('parses NFL game lines, team totals, and player props into groups', () => {
+    const markets = [
+      createSportsMarket({
+        id: 'moneyline',
+        sportsMarketType: 'moneyline',
+        overrides: {
+          groupItemTitle: 'Patriots',
+          outcomes: '["Patriots","Broncos"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'spread',
+        sportsMarketType: 'spreads',
+        overrides: {
+          groupItemTitle: 'Patriots -3.5',
+          outcomes: '["Patriots","Broncos"]',
+          line: -3.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'total',
+        sportsMarketType: 'totals',
+        overrides: {
+          groupItemTitle: 'O/U 43.5',
+          line: 43.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'first-half-moneyline',
+        sportsMarketType: 'first_half_moneyline',
+        overrides: {
+          groupItemTitle: 'Patriots',
+          outcomes: '["Patriots","Broncos"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'first-half-spread',
+        sportsMarketType: 'first_half_spreads',
+        overrides: {
+          groupItemTitle: 'Patriots -1.5',
+          outcomes: '["Patriots","Broncos"]',
+          line: -1.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'first-half-total',
+        sportsMarketType: 'first_half_totals',
+        overrides: {
+          groupItemTitle: 'O/U 20.5',
+          line: 20.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'home-total',
+        sportsMarketType: 'team_totals',
+        overrides: {
+          groupItemTitle: 'Patriots O/U 23.5',
+          groupItemThreshold: 2,
+          line: 23.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'away-total',
+        sportsMarketType: 'team_totals',
+        overrides: {
+          groupItemTitle: 'Broncos O/U 17.5',
+          line: 17.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'anytime-touchdown',
+        sportsMarketType: 'anytime_touchdowns',
+        overrides: {
+          groupItemTitle: 'Rhamondre Stevenson: Anytime Touchdown',
+        },
+      }),
+      createSportsMarket({
+        id: 'first-touchdown',
+        sportsMarketType: 'first_touchdowns',
+        overrides: {
+          groupItemTitle: 'RJ Harvey: First Touchdown',
+        },
+      }),
+      createSportsMarket({
+        id: 'rushing-yards',
+        sportsMarketType: 'rushing_yards',
+        overrides: {
+          groupItemTitle: 'Rhamondre Stevenson: Rushing Yards O/U 49.5',
+          line: 49.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'receiving-yards',
+        sportsMarketType: 'receiving_yards',
+        overrides: {
+          groupItemTitle: 'Stefon Diggs: Receiving Yards O/U 59.5',
+          line: 59.5,
+        },
+      }),
+    ];
+    const event = createNflGameEvent(markets);
+    const enabledSportsMarketTypes = [
+      'moneyline',
+      'spreads',
+      'totals',
+      'first_half_moneyline',
+      'first_half_spreads',
+      'first_half_totals',
+      'team_totals',
+      'anytime_touchdowns',
+      'first_touchdowns',
+      'rushing_yards',
+      'receiving_yards',
+    ];
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'sports',
+      teamLookup: (_league, abbreviation) =>
+        nflTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nfl'],
+      enabledSportsMarketTypes,
+    });
+
+    expect(market.game).toMatchObject({
+      league: 'nfl',
+      homeTeam: { abbreviation: 'den' },
+      awayTeam: { abbreviation: 'ne' },
+    });
+    expect(market.outcomes).toHaveLength(markets.length);
+    expect(
+      new Set(market.outcomes.map((outcome) => outcome.sportsMarketType)),
+    ).toEqual(new Set(enabledSportsMarketTypes));
+    expect(
+      market.outcomes.find((outcome) => outcome.id === 'home-total'),
+    ).toEqual(
+      expect.objectContaining({
+        groupItemTitle: 'Patriots O/U 23.5',
+        groupItemThreshold: 2,
+        line: 23.5,
+        tokens: expect.arrayContaining([
+          expect.objectContaining({ title: 'Over' }),
+          expect.objectContaining({ title: 'Under' }),
+        ]),
+      }),
+    );
+    expect(market.outcomeGroups?.map((group) => group.key)).toEqual([
+      'game_lines',
+      'team_totals',
+      'halves',
+      'first_half',
+      'touchdowns',
+      'rushing',
+      'receiving',
+    ]);
+    expect(
+      market.outcomeGroups
+        ?.find((group) => group.key === 'team_totals')
+        ?.subgroups?.map((subgroup) => subgroup.title),
+    ).toEqual(['Patriots Totals', 'Broncos Totals']);
+    expect(
+      market.outcomeGroups
+        ?.find((group) => group.key === 'first_half')
+        ?.subgroups?.map((subgroup) => subgroup.key),
+    ).toEqual(['first_half_moneyline', 'first_half_spreads']);
+    expect(
+      market.outcomeGroups?.flatMap((group) => [
+        ...group.outcomes,
+        ...(group.subgroups?.flatMap((subgroup) => subgroup.outcomes) ?? []),
+      ]),
+    ).toHaveLength(markets.length);
   });
 
   it('parses every supported CS2 market into one match with map groups', () => {
@@ -2769,6 +3183,243 @@ describe('polymarket utils', () => {
     });
   });
 
+  it('waives only the MetaMask fee for a membership policy', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ tags: [] }),
+    });
+
+    await expect(
+      calculateFees({
+        feeCollection: {
+          enabled: true,
+          metamaskFee: 0.02,
+          providerFee: 0.03,
+          waiveList: [],
+          collector: '0x1111111111111111111111111111111111111111',
+          executors: [],
+          permit2Enabled: false,
+        },
+        feePolicy: {
+          builderCode: 'predict-pro-builder',
+        },
+        marketId: 'market-1',
+        userBetAmount: 10,
+      }),
+    ).resolves.toEqual({
+      fees: {
+        metamaskFee: 0,
+        providerFee: 0.3,
+        totalFee: 0.3,
+        totalFeePercentage: 3,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      originalFees: {
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+    });
+  });
+
+  it('returns zero fees when market fees are waived', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        tags: [{ slug: 'middle-east' }],
+      }),
+    });
+
+    const waivedFees = {
+      metamaskFee: 0,
+      providerFee: 0,
+      totalFee: 0,
+      totalFeePercentage: 0,
+      collector: '0x0',
+      executors: [],
+      permit2Enabled: false,
+    };
+
+    const result = await calculateFees({
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: ['middle-east'],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      feePolicy: {
+        builderCode: 'predict-pro-builder',
+      },
+      marketId: 'market-1',
+      userBetAmount: 10,
+    });
+
+    expect(result).toEqual({ fees: waivedFees });
+  });
+
+  describe('fee waiver market lookup', () => {
+    const waiverFeeCollection: PredictFeeCollection = {
+      enabled: true,
+      metamaskFee: 0.02,
+      providerFee: 0.03,
+      waiveList: ['middle-east'],
+      collector: '0x1111111111111111111111111111111111111111',
+      executors: [],
+      permit2Enabled: false,
+    };
+
+    it('fetches market tags once across repeated and overlapping previews', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          tags: [{ slug: 'middle-east' }],
+        }),
+      });
+      const params = {
+        feeCollection: waiverFeeCollection,
+        marketId: 'market-1',
+        userBetAmount: 10,
+      };
+
+      const results = await Promise.all([
+        calculateFees(params),
+        calculateFees(params),
+      ]);
+      results.push(await calculateFees(params));
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      for (const { fees } of results) {
+        expect(fees.totalFee).toBe(0);
+      }
+    });
+
+    it('retries the market tags lookup after a failure', async () => {
+      mockFetch
+        .mockRejectedValueOnce(new Error('gamma unavailable'))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            tags: [{ slug: 'middle-east' }],
+          }),
+        });
+      const params = {
+        feeCollection: waiverFeeCollection,
+        marketId: 'market-1',
+        userBetAmount: 10,
+      };
+
+      const failed = await calculateFees(params);
+      const retried = await calculateFees(params);
+
+      expect(failed.fees.totalFee).toBe(0.5);
+      expect(retried.fees.totalFee).toBe(0);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('uses configured service fees when no membership policy is available', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ tags: [] }),
+    });
+
+    const result = await calculateFees({
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: [],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      marketId: 'market-1',
+      userBetAmount: 10,
+    });
+
+    expect(result).toEqual({
+      fees: {
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+    });
+  });
+
+  it('keeps the CLOB market fee in a membership preview', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.02,
+            e: 1,
+            to: true,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ tags: [] }),
+      });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.BUY,
+      size: 10,
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: [],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      feePolicy: {
+        builderCode: 'predict-pro-builder',
+      },
+    });
+
+    expect(preview.fees).toEqual(
+      expect.objectContaining({
+        metamaskFee: 0,
+        providerFee: 0.3,
+        totalFee: 0.3,
+        marketFee: 0.1,
+      }),
+    );
+    expect(preview.originalFees).toEqual(
+      expect.objectContaining({
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        marketFee: 0.1,
+      }),
+    );
+  });
+
   it('previews buy orders with CLOB market fee and zero fee-rate bps', async () => {
     mockFetch
       .mockResolvedValueOnce({
@@ -2808,6 +3459,7 @@ describe('polymarket utils', () => {
         negRisk: false,
       }),
     );
+    expect(preview.originalFees).toBeUndefined();
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
       expect.objectContaining({
@@ -2867,6 +3519,75 @@ describe('polymarket utils', () => {
           (preview?.fees?.marketFee ?? 0),
       ).toBeLessThanOrEqual(100);
       expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('raises the max fillable stake when a membership policy waives the MetaMask fee', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [
+              { price: '0.75', size: '100' },
+              { price: '0.50', size: '100' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            fd: { r: 0.02, e: 1, to: true },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ tags: [] }),
+        });
+
+      const preview = await previewMaxBuyOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        availableBalance: 100,
+        feeCollection: {
+          enabled: true,
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          waiveList: [],
+          collector: '0x1111111111111111111111111111111111111111',
+          executors: [],
+          permit2Enabled: false,
+        },
+        feePolicy: {
+          builderCode: 'predict-pro-builder',
+        },
+      });
+
+      const stake = preview?.maxAmountSpent ?? 0;
+
+      expect(stake).toBe(97.26);
+      expect(preview?.minAmountReceived).toBeCloseTo(163.0133);
+      expect(preview?.fees).toEqual(
+        expect.objectContaining({
+          metamaskFee: 0,
+          providerFee: expect.closeTo(stake * 0.02, 10),
+        }),
+      );
+      expect(preview?.originalFees).toEqual(
+        expect.objectContaining({
+          metamaskFee: expect.closeTo(stake * 0.02, 10),
+          providerFee: expect.closeTo(stake * 0.02, 10),
+          totalFee: expect.closeTo(stake * 0.04, 10),
+          totalFeePercentage: 4,
+        }),
+      );
+      expect(
+        stake +
+          (preview?.fees?.metamaskFee ?? 0) +
+          (preview?.fees?.providerFee ?? 0) +
+          (preview?.fees?.marketFee ?? 0),
+      ).toBeLessThanOrEqual(100);
     });
 
     it('caps the maximum stake at the fully fillable order-book liquidity', async () => {
@@ -3164,6 +3885,101 @@ describe('polymarket utils', () => {
     );
   });
 
+  it.each([
+    { size: 4, expectedWorstFillPrice: 0.49 },
+    { size: 10, expectedWorstFillPrice: 0.45 },
+    { size: 12, expectedWorstFillPrice: 0.4 },
+  ])(
+    'reports $expectedWorstFillPrice as the worst fill price when selling $size shares',
+    async ({ size, expectedWorstFillPrice }) => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            bids: [
+              { price: '0.40', size: '100' },
+              { price: '0.45', size: '5' },
+              { price: '0.49', size: '5' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      const preview = await previewOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        side: Side.SELL,
+        size,
+      });
+
+      expect(preview.sharePrice).toBe(0.49);
+      expect(preview.worstFillPrice).toBe(expectedWorstFillPrice);
+    },
+  );
+
+  it('returns original fees for a membership sell preview', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.05,
+            e: 1,
+            to: true,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ tags: [] }),
+      });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.SELL,
+      size: 10,
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: [],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      feePolicy: {
+        builderCode: 'predict-pro-builder',
+      },
+    });
+
+    expect(preview.fees).toEqual(
+      expect.objectContaining({
+        metamaskFee: 0,
+        providerFee: expect.closeTo(0.147, 10),
+      }),
+    );
+    expect(preview.originalFees).toEqual(
+      expect.objectContaining({
+        metamaskFee: expect.closeTo(0.098, 10),
+        providerFee: expect.closeTo(0.147, 10),
+        totalFee: expect.closeTo(0.245, 10),
+      }),
+    );
+  });
+
   it('returns the v2 contract config for Polygon', () => {
     expect(getContractConfig(POLYGON_MAINNET_CHAIN_ID)).toBe(
       MATIC_CONTRACTS_V2,
@@ -3229,6 +4045,137 @@ describe('polymarket utils', () => {
         parentMarketId: 'parent-market',
       }),
     ]);
+  });
+
+  describe('Protocol V2 markets', () => {
+    const createCtfMarket = (): PolymarketApiMarket => ({
+      conditionId: 'ctf-condition',
+      question: 'CTF question',
+      description: 'CTF market',
+      icon: '',
+      image: '',
+      groupItemTitle: 'Yes',
+      status: 'open',
+      volumeNum: 10,
+      liquidity: 10,
+      negRisk: false,
+      clobTokenIds: '["yes","no"]',
+      outcomes: '["Yes","No"]',
+      outcomePrices: '["0.6","0.4"]',
+      closed: false,
+      active: true,
+      resolvedBy: '',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: '',
+      version: 'v1',
+    });
+    const createV2Market = (): PolymarketApiMarket => ({
+      ...createCtfMarket(),
+      conditionId: 'v2-condition',
+      question: 'V2 question',
+      clobTokenIds: '',
+      positionIds: ['v2-yes', 'v2-no'],
+      version: 'v2',
+    });
+    const createEvent = (
+      id: string,
+      markets: PolymarketApiMarket[],
+    ): PolymarketApiEvent => ({
+      id,
+      slug: id,
+      title: id,
+      description: `${id} description`,
+      icon: '',
+      closed: false,
+      series: [],
+      markets,
+      tags: [],
+      liquidity: 10,
+      volume: 10,
+    });
+
+    it('keeps an event when every market version is v2', () => {
+      const event = createEvent('v2-event', [createV2Market()]);
+
+      const [market] = parsePolymarketEvents([event], 'trending');
+
+      expect(market.id).toBe('v2-event');
+      expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+        'v2-condition',
+      ]);
+    });
+
+    it('keeps CTF and v2 markets in a mixed event', () => {
+      const event = createEvent('mixed-event', [
+        createCtfMarket(),
+        createV2Market(),
+      ]);
+
+      const [market] = parsePolymarketEvents([event], 'trending');
+
+      expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+        'ctf-condition',
+        'v2-condition',
+      ]);
+    });
+
+    it('drops an event when every market version is v2 and v2 markets are hidden', () => {
+      const event = createEvent('v2-event', [createV2Market()]);
+
+      expect(
+        parsePolymarketEvents([event], {
+          category: 'trending',
+          hideV2Markets: true,
+        }),
+      ).toEqual([]);
+    });
+
+    it('keeps only CTF markets in a mixed event when v2 markets are hidden', () => {
+      const event = createEvent('mixed-event', [
+        createCtfMarket(),
+        createV2Market(),
+      ]);
+
+      const [market] = parsePolymarketEvents([event], {
+        category: 'trending',
+        hideV2Markets: true,
+      });
+
+      expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+        'ctf-condition',
+      ]);
+    });
+
+    it.each([false, true])(
+      'parses a CTF-only event the same way when hideV2Markets is %s',
+      (hideV2Markets) => {
+        const event = createEvent('ctf-event', [createCtfMarket()]);
+
+        expect(
+          parsePolymarketEvents([event], {
+            category: 'trending',
+            hideV2Markets,
+          }),
+        ).toEqual(parsePolymarketEvents([event], 'trending'));
+      },
+    );
+
+    it.each([false, true])(
+      'drops inactive markets when hideV2Markets is %s',
+      (hideV2Markets) => {
+        const event = createEvent('inactive-event', [
+          { ...createCtfMarket(), active: false },
+          { ...createV2Market(), active: false },
+        ]);
+
+        expect(
+          parsePolymarketEvents([event], {
+            category: 'trending',
+            hideV2Markets,
+          })[0]?.outcomes ?? [],
+        ).toEqual([]);
+      },
+    );
   });
 
   it('falls back to question when a spread market is missing group item title', () => {
@@ -3435,5 +4382,413 @@ describe('polymarket utils', () => {
     expect(parsePolymarketEvents([event], 'crypto')[0]).not.toHaveProperty(
       'twapWindowSeconds',
     );
+  });
+});
+
+describe('mapPolymarketPositionsV2', () => {
+  const row: PolymarketPositionV2 = {
+    condition_id: '0xcondition',
+    event_id: 'event-1',
+    icon: 'icon.png',
+    title: 'Market',
+    slug: 'market-slug',
+    event_slug: 'event-slug',
+    current_size: 20,
+    outcome: 'Yes',
+    outcome_index: 1,
+    unrealized_pnl: 5,
+    current_price: 0.75,
+    current_value: 15,
+    entry_cost_usdc: 10,
+    avg_price: 0.5,
+    redeemable: true,
+    negative_risk: true,
+    realized_pnl: 2,
+    end_date: '2026-12-31',
+    token_id: 'token-1',
+  };
+
+  it('maps snake_case v2 fields to the v1-shaped camelCase DTO', () => {
+    expect(mapPolymarketPositionsV2([row])).toEqual([
+      {
+        conditionId: '0xcondition',
+        eventId: 'event-1',
+        icon: 'icon.png',
+        title: 'Market',
+        slug: 'market-slug',
+        eventSlug: 'event-slug',
+        size: 20,
+        outcome: 'Yes',
+        outcomeIndex: 1,
+        cashPnl: 5,
+        curPrice: 0.75,
+        currentValue: 15,
+        percentPnl: 50,
+        initialValue: 10,
+        avgPrice: 0.5,
+        redeemable: true,
+        negativeRisk: true,
+        realizedPnl: 2,
+        endDate: '2026-12-31',
+        asset: 'token-1',
+      },
+    ]);
+  });
+
+  it('derives percentPnl with the portfolio formula and guards a zero cost basis', () => {
+    expect(
+      mapPolymarketPositionsV2([
+        { ...row, current_value: 12, entry_cost_usdc: 8 },
+      ])[0].percentPnl,
+    ).toBe(50);
+    expect(
+      mapPolymarketPositionsV2([{ ...row, entry_cost_usdc: 0 }])[0].percentPnl,
+    ).toBe(0);
+  });
+
+  it('coerces a missing unrealized_pnl to zero cashPnl', () => {
+    expect(
+      mapPolymarketPositionsV2([{ ...row, unrealized_pnl: null }])[0].cashPnl,
+    ).toBe(0);
+  });
+
+  it('coerces missing current_size/current_price to zero so live-sync math stays finite', () => {
+    // `size`/`cur_price` are v1 names; v2 sends `current_size`/`current_price`.
+    // Mapping a missing field to undefined previously poisoned the live-price
+    // sync (size * bestBid === NaN) into an infinite render loop.
+    const mapped = mapPolymarketPositionsV2([
+      {
+        ...row,
+        current_size: undefined as unknown as number,
+        current_price: undefined as unknown as number,
+      },
+    ])[0];
+    expect(mapped.size).toBe(0);
+    expect(mapped.curPrice).toBe(0);
+  });
+});
+
+describe('mapPolymarketActivityV2', () => {
+  const row: PolymarketActivityV2 = {
+    type: 'TRADE',
+    side: 'BUY',
+    size: 20,
+    price: 0.5,
+    usdc_size: 10,
+    timestamp: 1700000000,
+    transaction_hash: '0xabc',
+    condition_id: '0xcondition',
+    outcome_index: 0,
+    title: 'Market',
+    outcome: 'Yes',
+    icon: 'icon.png',
+    slug: 'market-slug',
+    event_slug: 'event-slug',
+    token_id: 'token-1',
+  };
+
+  it('maps snake_case v2 fields to the v1-shaped camelCase DTO', () => {
+    expect(mapPolymarketActivityV2([row])).toEqual([
+      {
+        type: 'TRADE',
+        side: 'BUY',
+        size: 20,
+        price: 0.5,
+        usdcSize: 10,
+        timestamp: 1700000000,
+        transactionHash: '0xabc',
+        conditionId: '0xcondition',
+        outcomeIndex: 0,
+        title: 'Market',
+        outcome: 'Yes',
+        icon: 'icon.png',
+        slug: 'market-slug',
+        eventSlug: 'event-slug',
+      },
+    ]);
+  });
+
+  it('drops lost redeems (zero payout) but keeps winning redeems', () => {
+    // The last row simulates a malformed row with no payout field at all.
+    const rows = [
+      row,
+      { ...row, type: 'REDEEM', usdc_size: 0 },
+      { ...row, type: 'REDEEM', usdc_size: 25 },
+      { ...row, type: 'REDEEM', usdc_size: undefined },
+    ] as PolymarketActivityV2[];
+
+    const mapped = mapPolymarketActivityV2(rows);
+
+    expect(mapped).toHaveLength(2);
+    expect(mapped[0]).toMatchObject({ type: 'TRADE' });
+    expect(mapped[1]).toMatchObject({ type: 'REDEEM', usdcSize: 25 });
+  });
+});
+
+describe('parsePolymarketMarket market version', () => {
+  const event = {
+    id: 'event-1',
+    description: 'Description',
+  } as PolymarketApiEvent;
+  const createVersionedMarket = (
+    overrides: Partial<PolymarketApiMarket> = {},
+  ): PolymarketApiMarket => ({
+    ...createPolymarketApiMarket(),
+    clobTokenIds: '["ctf-yes","ctf-no"]',
+    outcomes: '["Yes","No"]',
+    outcomePrices: '["0.5","0.5"]',
+    ...overrides,
+  });
+
+  it('copies the Gamma version onto the parsed market', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ version: 'v2' }),
+      event,
+    );
+
+    expect(parsed.version).toBe('v2');
+  });
+
+  it('uses positionIds for outcome token ids on v2 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        positionIds: '["pos-yes","pos-no"]',
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'pos-yes',
+      'pos-no',
+    ]);
+  });
+
+  it('uses native-array positionIds for outcome token ids on v2 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        positionIds: ['pos-yes', 'pos-no'],
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'pos-yes',
+      'pos-no',
+    ]);
+  });
+
+  it('yields no outcome token ids when a v2 market has no positionIds', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ version: 'v2' }),
+      event,
+    );
+
+    expect(parsed.tokens).toEqual([]);
+  });
+
+  it('keeps clobTokenIds for v1 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ version: 'v1' }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds when the version is missing', () => {
+    const parsed = parsePolymarketMarket(createVersionedMarket(), event);
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds for v1 markets even when positionIds are present', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v1',
+        positionIds: '["pos-yes","pos-no"]',
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds when the version is missing even when positionIds are present', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ positionIds: '["pos-yes","pos-no"]' }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it.each(['inactive', 'active', 'resolved'])(
+    'reads the Protocol V2 resolutionStatus "%s" on v2 markets',
+    (resolutionStatus) => {
+      const parsed = parsePolymarketMarket(
+        createVersionedMarket({
+          version: 'v2',
+          resolutionStatus,
+          umaResolutionStatus: 'proposed',
+        }),
+        event,
+      );
+
+      expect(parsed.resolutionStatus).toBe(resolutionStatus);
+    },
+  );
+
+  it('leaves resolutionStatus undefined when a v2 market has none', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        resolutionStatus: null,
+        umaResolutionStatus: 'resolved',
+      }),
+      event,
+    );
+
+    expect(parsed.resolutionStatus).toBeUndefined();
+  });
+
+  it.each([
+    ['v1', 'v1'],
+    ['missing', undefined],
+    ['unknown', 'v3'],
+  ])('reads umaResolutionStatus when the version is %s', (_label, version) => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version,
+        resolutionStatus: 'active',
+        umaResolutionStatus: 'resolved',
+      }),
+      event,
+    );
+
+    expect(parsed.resolutionStatus).toBe('resolved');
+  });
+});
+
+describe('calculateFees', () => {
+  it('degrades to standard fees when the waiver lookup fails', async () => {
+    mockFetch.mockRejectedValue(new Error('gamma unavailable'));
+
+    const { fees } = await calculateFees({
+      feeCollection: {
+        enabled: true,
+        collector: '0x9cNcwJegqX3hyKLM8jb9vpxUtqMVBetNhhF97k5Xy',
+        metamaskFee: 0.01,
+        providerFee: 0.02,
+        waiveList: ['some-waived-slug'],
+        executors: [],
+        permit2Enabled: false,
+      },
+      marketId: 'some-market',
+      userBetAmount: 10,
+    });
+
+    expect(fees.metamaskFee).toBeCloseTo(0.1);
+    expect(fees.providerFee).toBeCloseTo(0.2);
+    expect(fees.totalFee).toBeCloseTo(0.3);
+  });
+});
+
+describe('toBytes31ConditionId', () => {
+  it('passes a bytes31 condition id through unchanged', () => {
+    const value = `0x${'ab'.repeat(31)}`;
+
+    expect(toBytes31ConditionId(value)).toBe(value);
+  });
+
+  it('narrows a padded bytes32 condition id when the final byte is zero', () => {
+    expect(toBytes31ConditionId(`0x${'ab'.repeat(31)}00`)).toBe(
+      `0x${'ab'.repeat(31)}`,
+    );
+  });
+
+  it('accepts uppercase hex digits', () => {
+    const value = `0x${'AB'.repeat(31)}`;
+
+    expect(toBytes31ConditionId(value)).toBe(value);
+  });
+
+  it('throws for a padded bytes32 condition id with a non-zero final byte', () => {
+    expect(() => toBytes31ConditionId(`0x${'ab'.repeat(31)}01`)).toThrow(
+      'Cannot narrow condition id to bytes31',
+    );
+  });
+
+  it('throws for values that are neither bytes31 nor padded bytes32', () => {
+    expect(() => toBytes31ConditionId('0x1234')).toThrow(
+      'Cannot narrow condition id to bytes31',
+    );
+    expect(() => toBytes31ConditionId('not-a-hex-value')).toThrow(
+      'Cannot narrow condition id to bytes31',
+    );
+  });
+});
+
+describe('encodeRouterRedeem', () => {
+  const redeemInterface = new Interface([
+    'function redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)',
+  ]);
+  const conditionId = `0x${'cd'.repeat(31)}`;
+
+  it('encodes the Router redeem call with a bytes31 condition id, outcome index, and base-unit amount', () => {
+    // Snapshot: selector 0xd217a3cc, bytes31 word right-padded with 00,
+    // outcomeIndex 0, amount 1000000 (0xf4240).
+    const expectedCalldata =
+      '0xd217a3cc' +
+      'cd'.repeat(31) +
+      '00' +
+      '0'.repeat(64) +
+      '0'.repeat(59) +
+      'f4240';
+
+    expect(
+      encodeRouterRedeem({
+        conditionId,
+        outcomeIndex: 0,
+        amount: 1000000,
+      }),
+    ).toBe(expectedCalldata);
+  });
+
+  it('narrows a padded bytes32 condition id before encoding', () => {
+    const data = encodeRouterRedeem({
+      conditionId: `${conditionId}00`,
+      outcomeIndex: 1,
+      amount: '2500000',
+    });
+    const [decodedConditionId, outcomeIndex, amount] =
+      redeemInterface.decodeFunctionData('redeem', data);
+
+    expect(decodedConditionId).toBe(conditionId);
+    expect(String(outcomeIndex)).toBe('1');
+    expect(String(amount)).toBe('2500000');
+  });
+
+  it('throws when the condition id cannot be narrowed', () => {
+    expect(() =>
+      encodeRouterRedeem({
+        conditionId: `${conditionId}01`,
+        outcomeIndex: 0,
+        amount: 1000000,
+      }),
+    ).toThrow('Cannot narrow condition id to bytes31');
   });
 });

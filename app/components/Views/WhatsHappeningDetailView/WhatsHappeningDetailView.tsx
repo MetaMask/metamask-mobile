@@ -7,14 +7,25 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import type { RootState } from '../../../reducers';
+import { selectPerpsBrandRefreshEnabled } from '../../../selectors/featureFlagController/perpsBrandRefresh';
+import { selectExploreBrandRefreshEnabled } from '../../../selectors/featureFlagController/exploreBrandRefresh';
+import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import type { Article } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../UI/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
+import { endTrace, TraceName } from '../../../util/trace';
 import { useWhatsHappening } from '../../UI/WhatsHappening/hooks';
+import {
+  getWhatsHappeningTraceEndData,
+  getWhatsHappeningTraceId,
+} from '../../UI/WhatsHappening/utils/whatsHappeningPerformance';
 import WhatsHappeningExpandedCardSkeleton from './components/WhatsHappeningExpandedCardSkeleton';
 import {
   SKELETON_CARD_COUNT,
@@ -49,6 +60,15 @@ const SKELETON_KEYS = Array.from(
 
 const DEFAULT_INITIAL_INDEX = 0;
 
+// The screen follows the brand refresh flag of the surface it was opened from.
+const BRAND_REFRESH_SELECTOR_BY_SOURCE: Partial<
+  Record<WhatsHappeningSourceValue, (state: RootState) => boolean>
+> = {
+  [WhatsHappeningSource.Perps]: selectPerpsBrandRefreshEnabled,
+  [WhatsHappeningSource.Explore]: selectExploreBrandRefreshEnabled,
+  [WhatsHappeningSource.Homepage]: selectHomeBrandRefreshSurfacesEnabled,
+};
+
 interface WhatsHappeningDetailParams {
   initialIndex?: number;
   source: WhatsHappeningSourceValue;
@@ -69,9 +89,14 @@ const WhatsHappeningDetailView = () => {
   const source: WhatsHappeningSourceValue =
     route.params?.source ?? WhatsHappeningSource.Unknown;
   const outdatedItemId = route.params?.outdatedItemId;
+  const isBrandRefresh =
+    useSelector((state: RootState) =>
+      BRAND_REFRESH_SELECTOR_BY_SOURCE[source]?.(state),
+    ) === true;
 
   const { items, isLoading, error, refresh } = useWhatsHappening({
     outdatedItemId,
+    telemetryContext: { source, stage: 'expanded' },
   });
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -244,6 +269,18 @@ const WhatsHappeningDetailView = () => {
 
   const hasError = !isLoading && items.length === 0 && !!error;
 
+  useEffect(() => {
+    if (cardHeight <= 0 || items.length === 0) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.WhatsHappeningViewLoad,
+      id: getWhatsHappeningTraceId(source, 'expanded'),
+      data: getWhatsHappeningTraceEndData('success'),
+    });
+  }, [cardHeight, items.length, source]);
+
   return (
     // The top edge is deliberately off: a native SafeAreaView top padding is
     // recalculated as the view is attached, which lands after this screen's
@@ -254,7 +291,9 @@ const WhatsHappeningDetailView = () => {
       edges={['bottom', 'left', 'right']}
       style={tw`flex-1 bg-default`}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={strings('whats_happening.title')}
         onBack={handleBackPress}

@@ -1,8 +1,8 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import PredictBuyActionButton from './PredictBuyActionButton';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { mockTheme } from '../../../../../../../util/theme';
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -20,27 +20,6 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 jest.mock('../../../../utils/format', () => ({
   formatCents: jest.fn((value: number) => `${value}¢`),
 }));
-
-jest.mock(
-  '../../../../../../../component-library/components-temp/Buttons/ButtonHero',
-  () => {
-    const { View: RNView, Text: RNText } = jest.requireActual('react-native');
-    return function MockButtonHero(props: Record<string, unknown>) {
-      return (
-        <RNView
-          testID={props.testID as string}
-          style={props.style}
-          accessible
-          accessibilityState={{ disabled: props.disabled as boolean }}
-        >
-          <RNText onPress={props.onPress as () => void}>
-            {props.children as React.ReactNode}
-          </RNText>
-        </RNView>
-      );
-    };
-  },
-);
 
 describe('PredictBuyActionButton', () => {
   const mockOnPress = jest.fn();
@@ -65,8 +44,8 @@ describe('PredictBuyActionButton', () => {
       expect(screen.getByText(/Placing prediction/)).toBeOnTheScreen();
     });
 
-    it('displays ActivityIndicator', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
+    it('marks the button busy while placing a prediction', () => {
+      renderWithProvider(
         <PredictBuyActionButton
           isLoading
           onPress={mockOnPress}
@@ -77,7 +56,7 @@ describe('PredictBuyActionButton', () => {
         />,
       );
 
-      UNSAFE_getByType(ActivityIndicator);
+      expect(screen.getByRole('button')).toBeBusy();
     });
 
     it('renders button with disabled state', () => {
@@ -95,28 +74,10 @@ describe('PredictBuyActionButton', () => {
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
     });
-
-    it('applies reduced opacity style', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity={false}
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-        />,
-      );
-
-      const button = screen.getByRole('button');
-      expect(button.props.style).toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
-      );
-    });
   });
 
   describe('when isLoading is false', () => {
-    it('renders ButtonHero component', () => {
+    it('renders the place prediction button', () => {
       renderWithProvider(
         <PredictBuyActionButton
           isLoading={false}
@@ -177,44 +138,6 @@ describe('PredictBuyActionButton', () => {
       );
 
       expect(screen.getByTestId('action-button')).toBeDisabled();
-    });
-
-    it('applies reduced opacity when showReducedOpacity is true', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading={false}
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-          testID="action-button"
-        />,
-      );
-
-      const button = screen.getByTestId('action-button');
-      expect(button.props.style).toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
-      );
-    });
-
-    it('does not apply reduced opacity when showReducedOpacity is false', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading={false}
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity={false}
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-          testID="action-button"
-        />,
-      );
-
-      const button = screen.getByTestId('action-button');
-      expect(button.props.style).not.toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
-      );
     });
 
     it('calls onPress when button is pressed', () => {
@@ -353,6 +276,23 @@ describe('PredictBuyActionButton', () => {
       expect(screen.getByText('Change Payment Method')).toBeOnTheScreen();
     });
 
+    it('renders an enabled button', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isChangePaymentMode
+          testID="action-button"
+        />,
+      );
+
+      expect(screen.getByTestId('action-button')).toBeEnabled();
+    });
+
     it('does not render outcome or share price', () => {
       renderWithProvider(
         <PredictBuyActionButton
@@ -406,6 +346,24 @@ describe('PredictBuyActionButton', () => {
       );
 
       expect(screen.getByText('Add Funds')).toBeOnTheScreen();
+    });
+
+    it('renders the label in the error text color', () => {
+      renderWithProvider(
+        <PredictBuyActionButton
+          isLoading={false}
+          onPress={mockOnPress}
+          disabled={false}
+          showReducedOpacity={false}
+          outcomeTokenTitle="Yes"
+          sharePrice={0.65}
+          isAddFundsMode
+        />,
+      );
+
+      expect(screen.getByText('Add Funds')).toHaveStyle({
+        color: mockTheme.colors.error.default,
+      });
     });
 
     it('does not render outcome or share price', () => {

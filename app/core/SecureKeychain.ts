@@ -1,3 +1,4 @@
+import { SecureKeychainDecryptionError } from './SecureKeychainError';
 import { Platform } from 'react-native';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import-x/no-namespace
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
@@ -142,7 +143,11 @@ const SecureKeychain = {
         const keychainObject = await Keychain.getGenericPassword(scopeOptions);
         if (keychainObject && keychainObject.password) {
           const encryptedValue = keychainObject.password;
-          const decryptedValue = await instance.decryptPassword(encryptedValue);
+          const decryptedValue = await instance
+            .decryptPassword(encryptedValue)
+            .catch(() => {
+              throw new SecureKeychainDecryptionError();
+            });
           instance.isAuthenticating = false;
 
           return {
@@ -153,6 +158,7 @@ const SecureKeychain = {
         instance.isAuthenticating = false;
       } catch (error) {
         instance.isAuthenticating = false;
+        if (error instanceof SecureKeychainDecryptionError) throw error;
         throw new Error((error as Error).message);
       }
     }

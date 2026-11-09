@@ -1,0 +1,215 @@
+import type {
+  SocialFilterNetwork,
+  SocialFilterPositionStatus,
+  SocialFilterTimeframe,
+  SocialFilterType,
+  SocialFilterVerification,
+  SocialRangeFilter,
+  SocialShellFilters,
+  SocialTraderCohort,
+} from './types';
+import type { SocialShellTab } from '../types';
+import {
+  ALL_CHAINS,
+  PERP_CHAINS,
+  SPOT_CHAINS,
+} from '../../../shared/top-traders-constants';
+import type {
+  SocialTimeframe,
+  SocialTypeFilter,
+} from '../../components/Filters';
+
+/**
+ * Market cap slider bounds (USD billions). Matches the screenshot labels
+ * `$0` and `$1000B`.
+ */
+export const MARKET_CAP_RANGE: SocialRangeFilter = {
+  min: 0,
+  max: 1000,
+};
+
+/**
+ * 24h volume slider bounds (USD millions). Matches the screenshot labels
+ * `$0` and `$100M`.
+ */
+export const VOLUME_24H_RANGE: SocialRangeFilter = {
+  min: 0,
+  max: 100,
+};
+
+export const DEFAULT_FILTERS: SocialShellFilters = {
+  type: 'all',
+  traderCohort: 'all',
+  verification: 'all',
+  positionStatus: 'all',
+  timeframe: '7d',
+  network: 'all',
+  marketCap: { ...MARKET_CAP_RANGE },
+  volume24h: { ...VOLUME_24H_RANGE },
+};
+
+/** Default filter state for the Social V1 Leaderboard tab. */
+export const DEFAULT_LEADERBOARD_FILTERS: SocialShellFilters = {
+  ...DEFAULT_FILTERS,
+  timeframe: '30d',
+};
+
+/**
+ * Seed per-tab filter state. The sheet hides sections per tab but the
+ * underlying model is shared in shape.
+ */
+export const DEFAULT_TAB_FILTER_STATE: Record<
+  SocialShellTab,
+  SocialShellFilters
+> = {
+  trending: { ...DEFAULT_FILTERS },
+  following: { ...DEFAULT_FILTERS },
+  live: { ...DEFAULT_FILTERS },
+  leaderboard: { ...DEFAULT_LEADERBOARD_FILTERS },
+};
+
+export const TYPE_OPTIONS: SocialFilterType[] = ['all', 'tokens', 'perps'];
+
+/** Same asset chips on every V1 tab — Predictions is not in V1. */
+export const TYPE_OPTIONS_FOLLOWING: SocialFilterType[] = TYPE_OPTIONS;
+
+export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
+  all: 'social_leaderboard.shell.filters.type.all',
+  tokens: 'social_leaderboard.shell.filters.type.tokens',
+  perps: 'social_leaderboard.shell.filters.type.perps',
+  predictions: 'social_leaderboard.shell.filters.type.predictions',
+};
+
+/** Following has no sized cohort left, so the sheet hides this section. */
+export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = ['all'];
+
+export const COHORT_OPTIONS_LIVE: SocialTraderCohort[] = ['all', 'following'];
+
+export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
+  'all',
+  'following',
+  // TODO: add `verified` once the leaderboard payload has a real verified field
+  // (the row badge is mocked today).
+];
+
+/** @deprecated Use COHORT_OPTIONS_LIVE. Kept for existing imports. */
+export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE;
+
+/** @deprecated Use COHORT_OPTIONS_FOLLOWING. */
+export const COHORT_OPTIONS_WITHOUT_FOLLOWING = COHORT_OPTIONS_FOLLOWING;
+
+export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
+  all: 'social_leaderboard.shell.filters.trader_cohort.all',
+  following: 'social_leaderboard.shell.filters.trader_cohort.following',
+  shrimp: 'social_leaderboard.shell.filters.trader_cohort.shrimp',
+  dolphin: 'social_leaderboard.shell.filters.trader_cohort.dolphin',
+  whale: 'social_leaderboard.shell.filters.trader_cohort.whale',
+  verified: 'social_leaderboard.shell.filters.trader_cohort.verified',
+};
+
+export const POSITION_STATUS_OPTIONS: SocialFilterPositionStatus[] = [
+  'all',
+  'open',
+  'closed',
+];
+
+/** All reuses the asset-type All string. */
+export const POSITION_STATUS_LABEL_KEY: Record<
+  SocialFilterPositionStatus,
+  string
+> = {
+  all: 'social_leaderboard.shell.filters.type.all',
+  open: 'social_leaderboard.shell.filters.position_status.open',
+  closed: 'social_leaderboard.shell.filters.position_status.closed',
+};
+
+export const VERIFICATION_OPTIONS: SocialFilterVerification[] = [
+  'all',
+  'verified',
+  'unverified',
+];
+
+export const VERIFICATION_LABEL_KEY: Record<SocialFilterVerification, string> =
+  {
+    all: 'social_leaderboard.shell.filters.verification.all',
+    verified: 'social_leaderboard.shell.filters.verification.verified',
+    unverified: 'social_leaderboard.shell.filters.verification.unverified',
+  };
+
+/** Windows the leaderboard API already returns (`7d` / `30d`). */
+// TODO: add `1h` / `24h` when the leaderboard endpoint exposes those windows.
+export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = ['7d', '30d'];
+
+export const TIMEFRAME_LABEL_KEY: Record<SocialFilterTimeframe, string> = {
+  '1h': 'social_leaderboard.shell.filters.timeframe.1h',
+  '24h': 'social_leaderboard.shell.filters.timeframe.24h',
+  '7d': 'social_leaderboard.shell.filters.timeframe.7d',
+  '30d': 'social_leaderboard.shell.filters.timeframe.30d',
+};
+
+export const NETWORK_OPTIONS: SocialFilterNetwork[] = [
+  'all',
+  'robinhood',
+  'bnb',
+  'solana',
+  'base',
+];
+
+export const NETWORK_LABEL_KEY: Record<SocialFilterNetwork, string> = {
+  all: 'social_leaderboard.shell.filters.network.all',
+  robinhood: 'social_leaderboard.shell.filters.network.robinhood',
+  bnb: 'social_leaderboard.shell.filters.network.bnb',
+  solana: 'social_leaderboard.shell.filters.network.solana',
+  base: 'social_leaderboard.shell.filters.network.base',
+};
+
+/**
+ * Maps filter-sheet network ids to social-service chain ids. The sheet
+ * surfaces `bnb` for user-facing copy; the API expects `bsc` (see V0
+ * `SPOT_CHAINS` / `TopTradersView`).
+ */
+export const NETWORK_TO_CHAIN_ID: Record<
+  Exclude<SocialFilterNetwork, 'all'>,
+  string
+> = {
+  robinhood: 'robinhood',
+  bnb: 'bsc',
+  solana: 'solana',
+  base: 'base',
+};
+
+/**
+ * Chains surfaced for each `type` selection. Reuses the V0 chain sets so the
+ * API param mapper stays consistent with `TopTradersView`.
+ */
+export const TYPE_CHAINS: Record<SocialFilterType, readonly string[]> = {
+  all: ALL_CHAINS,
+  tokens: SPOT_CHAINS,
+  perps: PERP_CHAINS,
+  // Predictions reuse the spot chain set for now; the backend will narrow
+  // this once the predictions endpoint lands.
+  predictions: SPOT_CHAINS,
+};
+
+/**
+ * Maps a sheet type onto the three leaderboard queries (`all` / `tokens` /
+ * `perps`). Predictions ride the tokens query until a dedicated ranking exists.
+ */
+export const toLeaderboardTypeFilter = (
+  type: SocialFilterType,
+): SocialTypeFilter => {
+  if (type === 'perps') {
+    return 'perps';
+  }
+  if (type === 'tokens' || type === 'predictions') {
+    return 'tokens';
+  }
+  return 'all';
+};
+
+/**
+ * `useTopTraders` only accepts `7d` | `30d`. Shorter sheet windows use 7d.
+ */
+export const toLeaderboardTimeframe = (
+  timeframe: SocialFilterTimeframe,
+): SocialTimeframe => (timeframe === '30d' ? '30d' : '7d');

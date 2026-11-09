@@ -59,13 +59,11 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
       effectiveProvider,
       currentNetwork,
     );
+    // An unmapped provider has no supported pay-with-token deposit route.
+    if (perpsProviderChainId === undefined) return null;
 
     const allowlistTokens = paymentTokens.filter((token) => {
-      if (
-        perpsProviderChainId !== undefined &&
-        token.chainId === perpsProviderChainId
-      )
-        return false;
+      if (token.chainId === perpsProviderChainId) return false;
       const key = `${token.chainId}.${(token.address ?? '').toLowerCase()}`;
       return allowSet.has(key);
     });

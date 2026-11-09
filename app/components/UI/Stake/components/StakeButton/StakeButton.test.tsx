@@ -24,6 +24,7 @@ import {
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
+import { earnSelectors } from '../../../../../selectors/earnController/earn';
 
 const mockNavigate = jest.fn();
 
@@ -215,6 +216,7 @@ const renderComponent = (state = STATE_MOCK) =>
 const selectPrimaryEarnExperienceTypeForAssetMock = jest.requireMock(
   '../../../../../selectors/earnController/earn',
 ).earnSelectors.selectPrimaryEarnExperienceTypeForAsset as jest.Mock;
+const selectEarnTokenMock = jest.mocked(earnSelectors.selectEarnToken);
 
 const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
   typeof useStakingEligibility
@@ -254,6 +256,20 @@ describe('StakeButton', () => {
       const { getByText } = renderComponent();
 
       expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
+    });
+
+    it('rounds APR halfway values up to one decimal place in the CTA', () => {
+      selectEarnTokenMock.mockReturnValueOnce({
+        ...MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE,
+        balanceFiatNumber: Number(
+          MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE.balance,
+        ),
+        experience: { apr: '4.25' },
+      } as unknown as ReturnType<typeof earnSelectors.selectEarnToken>);
+
+      const { getByText } = renderComponent();
+
+      expect(getByText(`${strings('stake.stake')} 4.3%`)).toBeOnTheScreen();
     });
 
     it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {

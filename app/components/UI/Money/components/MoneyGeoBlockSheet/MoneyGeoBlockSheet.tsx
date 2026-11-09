@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -11,6 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import { MoneyGeoBlockSheetTestIds } from './MoneyGeoBlockSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -18,10 +20,27 @@ import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 import useMountEffect from '../../hooks/useMountEffect';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
+import {
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+} from '../../../../../selectors/geolocationController';
 
 const MoneyGeoBlockSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const geolocationLocation = useSelector(selectGeolocationLocation);
+  const geolocationStatus = useSelector(selectGeolocationStatus);
+
+  const isGeolocationLookupError =
+    geolocationStatus === 'error' &&
+    (!geolocationLocation || geolocationLocation === UNKNOWN_LOCATION);
+
+  const title = isGeolocationLookupError
+    ? strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')
+    : strings('money.geo_block.title');
+
+  const description = isGeolocationLookupError
+    ? strings('fiat_on_ramp_aggregator.eligibility_failed_modal.description')
+    : strings('money.geo_block.description');
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -33,7 +52,18 @@ const MoneyGeoBlockSheet = () => {
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.WALLET.HOME);
+      const parentNavigation = navigation.getParent();
+      if (!parentNavigation) {
+        throw new Error(
+          '[MoneyGeoBlockSheet] Cannot close without a parent navigator',
+        );
+      }
+      /**
+       * When an open Money sheet (such as Add money or Transfer) sends the user
+       * here, its route remains underneath this sheet. Close the whole Money
+       * modal flow so the user returns to where they started.
+       */
+      parentNavigation.goBack();
     });
   }, [navigation]);
 
@@ -60,7 +90,7 @@ const MoneyGeoBlockSheet = () => {
           testID: MoneyGeoBlockSheetTestIds.CLOSE_BUTTON,
         }}
       >
-        {strings('money.geo_block.title')}
+        {title}
       </BottomSheetHeader>
       <Box paddingHorizontal={4}>
         <Text
@@ -69,7 +99,7 @@ const MoneyGeoBlockSheet = () => {
           testID={MoneyGeoBlockSheetTestIds.BODY}
           twClassName="text-center"
         >
-          {strings('money.geo_block.description')}
+          {description}
         </Text>
       </Box>
       <BottomSheetFooter

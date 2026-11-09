@@ -36,6 +36,7 @@ import {
 } from '../types.ts';
 import {
   MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  SPOT_PRICES_SUPPORT_INFO,
   TEST_ANALYTICS_ID,
 } from './constants.ts';
 import {
@@ -45,12 +46,12 @@ import {
 } from '../../../app/util/test/keyringControllerTestUtils.ts';
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet.ts';
+import { USDC_MAINNET } from '../../constants/musd-mainnet.ts';
 import {
+  ANVIL_LOCAL_ETH_HOLDING,
   toWeiHex,
   type TokenHolding,
 } from './mmpay-token-holdings-registry.ts';
-import { SPOT_PRICES_SUPPORT_INFO } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import type { CaipAssetType } from '@metamask/utils';
 import type {
@@ -66,6 +67,7 @@ import type {
 import type { PreferencesState } from '@metamask/preferences-controller';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import { CardControllerState } from '../../../app/core/Engine/controllers/card-controller/types.ts';
+import { applyStateLogOmittedFields } from './state-log-omitted-fields.ts';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -80,6 +82,20 @@ export const DEFAULT_FIXTURE_ACCOUNT_2 =
 
 export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
   '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b';
+
+/**
+ * Keyring `metadata.id` (a.k.a. entropy source) of the primary HD keyring in
+ * {@link FixtureBuilder.withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController}.
+ * Because it is baked into that fixture's pre-encrypted vault, it is stable
+ * across runs — unlike fixtures whose keyrings are restored without metadata,
+ * where the KeyringController mints a fresh ULID at unlock.
+ *
+ * The AccountTreeController derives IDs from it: the wallet is
+ * `entropy:<id>` and its account groups are `entropy:<id>/<groupIndex>`, where
+ * `groupIndex` is the account's position in the keyring's `accounts` array.
+ * Tests can therefore target a specific group without scanning the UI.
+ */
+export const DEFAULT_FIXTURE_HD_KEYRING_1_ID = '01JX9NJ15HPNS6RRRYBCKDK33R';
 
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
@@ -98,15 +114,45 @@ export const GENERIC_SNAP_WALLET_1_ID = 'snap:npm:@metamask/generic-snap-1';
 export const GENERIC_SNAP_WALLET_2_ID = 'snap:npm:@metamask/generic-snap-2';
 
 /**
- * Options for mUSD conversion E2E fixture state.
+ * Options for Mainnet USDC E2E fixture state.
  */
-export interface MusdFixtureOptions {
-  musdConversionEducationSeen: boolean;
+export interface MainnetUsdcFixtureOptions {
   hasUsdcBalance?: boolean;
   usdcBalance?: number;
-  hasMusdBalance?: boolean;
-  musdBalance?: number;
 }
+
+/**
+ * State of the removed legacy asset controllers. Kept out of
+ * `default-fixture.json` so the fixture schema matches the app, but builder
+ * methods and specs still write to these keys, so `withDefaultFixture()` adds
+ * them back in memory. The app ignores them.
+ */
+const LEGACY_ASSET_CONTROLLERS_STATE = {
+  AccountTrackerController: {
+    accountsByChainId: {
+      '1': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+      '64': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+    },
+  },
+  CurrencyRateController: {
+    currencyRates: {
+      ETH: {
+        conversionDate: 1684232383.997,
+        conversionRate: 1815.41,
+        usdConversionRate: 1815.41,
+      },
+    },
+    currentCurrency: 'usd',
+  },
+  MultichainAssetsController: { accountsAssets: {}, assetsMetadata: {} },
+  MultichainAssetsRatesController: { conversionRates: {} },
+  TokenBalancesController: { tokenBalances: {} },
+  TokenRatesController: { marketData: {} },
+};
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -194,7 +240,9 @@ class FixtureBuilder {
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
+      '@MetaMask:PUSH_PRE_PROMPT_SHOWN': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
+      '@MetaMask:socialTermsAccepted': 'v1',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;
@@ -217,6 +265,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     // Deep clone the JSON fixture to avoid mutations
     this.fixture = JSON.parse(JSON.stringify(defaultFixture));
+    merge(
+      this.fixture.state.engine.backgroundState,
+      LEGACY_ASSET_CONTROLLERS_STATE,
+    );
 
     // Inject dynamic values that can't be stored in static JSON
     // 1. Timestamp for legal notices
@@ -302,6 +354,15 @@ class FixtureBuilder {
     };
 
     networkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Anvil / Localhost fixtures need a seeded native balance under
+    // assetsUnifyState; otherwise Confirm stays disabled with an empty pay
+    // balance. Not applied in withDefaultFixture() — that always registers
+    // 0x539 for RPC wiring and must not enable Anvil holdings globally.
+    if (providerConfig.chainId === '0x539') {
+      this.withAnvilLocalEthBalance();
+    }
+
     return this;
   }
 
@@ -1112,7 +1173,7 @@ class FixtureBuilder {
           type: 'HD Key Tree',
           accounts: [DEFAULT_FIXTURE_ACCOUNT, DEFAULT_FIXTURE_ACCOUNT_2],
           metadata: {
-            id: '01JX9NJ15HPNS6RRRYBCKDK33R',
+            id: DEFAULT_FIXTURE_HD_KEYRING_1_ID,
             name: '',
           },
         },
@@ -1416,6 +1477,7 @@ class FixtureBuilder {
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     });
 
     // Enable basic functionality in settings (required for profile syncing)
@@ -1508,6 +1570,13 @@ class FixtureBuilder {
     return this;
   }
 
+  withCompletedOnboardingStepper(stepperId: string, totalSteps: number) {
+    merge(this.fixture.state.user, {
+      onboardingStepperProgress: { [stepperId]: totalSteps },
+    });
+    return this;
+  }
+
   /**
    * Sets the MetaMetrics opt-in state to 'agreed' in the fixture's asyncState
    * and enables the AnalyticsController.
@@ -1585,6 +1654,7 @@ class FixtureBuilder {
       isContactSyncingEnabled,
       isBackupAndSyncUpdateLoading: false,
       isContactSyncingInProgress: false,
+      isRampsSyncingEnabled: true,
     };
     return this;
   }
@@ -1972,6 +2042,25 @@ class FixtureBuilder {
   }
 
   /**
+   * Seeds Anvil / Localhost (`0x539`) native ETH into legacy + unified
+   * AssetsController state and enables the chain. Prefer calling
+   * `withNetworkController({ chainId: '0x539', ... })`, which applies this
+   * automatically. Use this explicitly with `withDefaultFixture()` when the
+   * local node is selected without reconfiguring NetworkController.
+   *
+   * @param amount - Whole ETH amount to seed (default `100`).
+   * @returns The FixtureBuilder instance for method chaining.
+   */
+  withAnvilLocalEthBalance(amount: string = ANVIL_LOCAL_ETH_HOLDING.amount) {
+    return this.withTokenHoldings([
+      {
+        ...ANVIL_LOCAL_ETH_HOLDING,
+        amount,
+      },
+    ]);
+  }
+
+  /**
    * Seeds native and ERC20 balances (plus fiat rates and network enablement) so
    * each holding appears in both the wallet home Tokens list and the MM Pay
    * pay-token picker. Spread a PREDEFINED_TOKENS entry and supply only `amount`.
@@ -2074,8 +2163,13 @@ class FixtureBuilder {
   private applyUnifiedAssetHolding(holding: TokenHolding, account: string) {
     const engine = this.fixture.state.engine.backgroundState;
     const accountsController = engine.AccountsController;
+    const internalAccounts = accountsController?.internalAccounts?.accounts;
     const accountId =
       accountsController?.accountIdByAddress?.[account.toLowerCase()] ??
+      Object.values(internalAccounts ?? {}).find(
+        (internalAccount) =>
+          internalAccount?.address?.toLowerCase() === account.toLowerCase(),
+      )?.id ??
       accountsController?.internalAccounts?.selectedAccount;
     if (!accountId) {
       return;
@@ -2129,21 +2223,16 @@ class FixtureBuilder {
   }
 
   /**
-   * Sets mUSD conversion fixture state: user flags, fiat orders, currency rates,
-   * and Mainnet token balances (USDC, optional MUSD) and native ETH for the default account.
-   * Call after withNetworkController, withTokensForAllPopularNetworks([ETH, USDC, MUSD?]), and withTokenRates.
+   * Sets Mainnet USDC fixture state: fiat orders, currency rates, and Mainnet
+   * USDC token balance plus native ETH for the default account.
+   * Call after withNetworkController, withTokensForAllPopularNetworks([ETH, USDC]), and withTokenRates.
    *
-   * @param options - mUSD conversion options (education seen, USDC/MUSD balances).
+   * @param options - Mainnet USDC options (balance presence and amount).
    * @returns - The FixtureBuilder instance for method chaining.
    */
-  withMusdConversion(options: MusdFixtureOptions) {
+  withMainnetUsdcBalance(options: MainnetUsdcFixtureOptions) {
     const USDC_DECIMALS = 6;
-    const MUSD_DECIMALS = 6;
     const ETH_BALANCE_WEI = '0x' + (BigInt(10) * BigInt(10 ** 18)).toString(16);
-
-    merge(this.fixture.state.user, {
-      musdConversionEducationSeen: options.musdConversionEducationSeen,
-    });
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
 
@@ -2203,13 +2292,6 @@ class FixtureBuilder {
       mainnetBalances[toChecksumHexAddress(USDC_MAINNET.toLowerCase())] =
         '0x' +
         Math.floor((options.usdcBalance ?? 100) * 10 ** USDC_DECIMALS).toString(
-          16,
-        );
-    }
-    if (options.hasMusdBalance) {
-      mainnetBalances[toChecksumHexAddress(MUSD_MAINNET.toLowerCase())] =
-        '0x' +
-        Math.floor((options.musdBalance ?? 10) * 10 ** MUSD_DECIMALS).toString(
           16,
         );
     }
@@ -2334,6 +2416,8 @@ class FixtureBuilder {
         dataCollectionForMarketing: true,
         isNFTAutoDetectionModalViewed: false,
         osAuthEnabled: true,
+        shouldShowConsentSheet: true,
+        dataSharingPreference: null,
       },
       attribution: {
         attribution: {
@@ -2343,6 +2427,15 @@ class FixtureBuilder {
         _persist: { version: -1, rehydrated: true },
       },
     });
+    return this;
+  }
+
+  /**
+   * Seeds controller fields whose metadata excludes them from state logs.
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withStateLogOmittedFields() {
+    applyStateLogOmittedFields(this.fixture.state.engine.backgroundState);
     return this;
   }
 

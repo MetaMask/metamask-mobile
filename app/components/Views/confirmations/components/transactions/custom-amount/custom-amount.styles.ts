@@ -1,18 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Theme } from '../../../../../../util/theme/models';
-
-function getFontSize(length: number) {
-  if (length <= 8) return 64;
-  if (length <= 13) return 40;
-  if (length <= 18) return 30;
-  return 20;
-}
 
 const styleSheet = (params: {
   theme: Theme;
   vars: { amountLength: number; hasAlert: boolean; disabled: boolean };
 }) => {
-  const fontSize = getFontSize(params.vars.amountLength);
+  const fontSize = getFontSizeForInputLength(params.vars.amountLength);
 
   return StyleSheet.create({
     container: {
@@ -20,24 +14,33 @@ const styleSheet = (params: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      minHeight: 70,
+      minHeight: 88,
     },
     input: {
       textAlign: 'center',
       fontSize,
-      lineHeight: fontSize * 1.1,
-      fontWeight: '500',
+      lineHeight: fontSize,
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
         : params.vars.disabled
           ? params.theme.colors.text.muted
           : params.theme.colors.text.default,
     },
+    assistive: {
+      color: params.theme.colors.text.muted,
+    },
     cursor: {
       width: 1,
-      height: Math.round(fontSize * 0.7),
-      backgroundColor: params.theme.colors.primary.default,
-      transform: [{ translateY: Math.round(fontSize * -0.08) }],
+      height: Math.round(fontSize * 0.95),
+      backgroundColor: params.theme.colors.text.muted,
+      // Android renders glyphs lower than iOS in a line box equal to fontSize.
+      transform: [
+        {
+          translateY: Math.round(
+            fontSize * (Platform.OS === 'android' ? 0.02 : -0.04),
+          ),
+        },
+      ],
     },
     alertMessage: {
       textAlign: 'center',

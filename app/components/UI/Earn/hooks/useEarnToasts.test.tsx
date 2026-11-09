@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../locales/i18n';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
 import useEarnToasts from './useEarnToasts';
 
@@ -68,6 +69,33 @@ describe('useEarnToasts', () => {
       expect(
         result.current.EarnToastOptions.mUsdConversion.failed,
       ).toBeDefined();
+    });
+
+    it('includes a withdrawal details unavailable error toast', () => {
+      const { result } = renderHook(() => useEarnToasts());
+
+      const detailsUnavailable =
+        result.current.EarnToastOptions.earnWithdrawal.detailsUnavailable;
+
+      expect(detailsUnavailable.severity).toBe(ToastSeverity.Danger);
+      expect(detailsUnavailable.hapticsType).toBe(NotificationMoment.Error);
+      expect(detailsUnavailable.title).toBe(
+        strings('stake.withdrawal_details_unavailable'),
+      );
+    });
+
+    it('includes a strategy selection deposit navigation error toast', () => {
+      const { result } = renderHook(() => useEarnToasts());
+
+      const navigationToDeposit =
+        result.current.EarnToastOptions.earnStrategySelection
+          .navigationToDeposit;
+
+      expect(navigationToDeposit.severity).toBe(ToastSeverity.Danger);
+      expect(navigationToDeposit.hapticsType).toBe(NotificationMoment.Error);
+      expect(navigationToDeposit.title).toBe(
+        strings('earn.strategy_selection.toasts.deposit_navigation.failed'),
+      );
     });
 
     it('configures success toast with Success severity', () => {

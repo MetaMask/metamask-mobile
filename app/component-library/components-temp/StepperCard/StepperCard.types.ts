@@ -33,6 +33,11 @@ export interface StepperCardStep {
 export interface StepperCardProps {
   steps: StepperCardStep[];
   /**
+   * Draws the card and its secondary CTA as brand refresh Liquid Glass.
+   * Callers resolve availability, so other platforms keep the opaque card.
+   */
+  isGlass?: boolean;
+  /**
    * 0-based index of the currently active step.
    */
   currentStep: number;

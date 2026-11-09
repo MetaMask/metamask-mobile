@@ -5,7 +5,8 @@ import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { getFormattedAddressFromInternalAccount } from '../../../../../core/Multichain/utils';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
@@ -13,6 +14,8 @@ import {
   formatChainIdToCaip,
   isNativeAddress,
   isNonEvmChainId,
+  SwapFeatureTag,
+  type FeatureId,
 } from '@metamask/bridge-controller';
 import {
   endTrace,
@@ -80,26 +83,36 @@ const getTokenIdentity = (token?: {
  * @param token.decimals - The token decimals.
  * @param token.chainId - The chain ID to be used for fetching the balance.
  * @param token.balance - The cached token balance as a non-atomic decimal string, e.g. "1.23456".
+ * @param featureId - The feature requesting the latest balance. If this changes, balance will be re-fetched.
  * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
  */
-export const useLatestBalance = (token: {
-  address?: string;
-  decimals?: number;
-  chainId?: Hex | CaipChainId;
-  balance?: string;
-  refreshKey?: string | number;
-}) => {
+export const useLatestBalance = (
+  token: {
+    address?: string;
+    decimals?: number;
+    chainId?: Hex | CaipChainId;
+    balance?: string;
+    refreshKey?: string | number;
+  },
+  featureId?: FeatureId,
+) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const chainId = token.chainId;
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
+  const selectedAccount = chainId
+    ? getSelectedAccountByScope(formatChainIdToCaip(chainId))
+    : undefined;
+  const selectedAddress = selectedAccount
+    ? getFormattedAddressFromInternalAccount(selectedAccount)
+    : undefined;
   const previousToken = usePrevious(token);
 
   // Returns native non-EVM asset and non-EVM tokens, contains balance and fiat values
   // Balance and fiat values are not truncated
   const nonEvmTokens = useNonEvmTokensWithBalance();
 
-  const chainId = token.chainId;
   const previousTokenIdentity = getTokenIdentity(previousToken);
   const tokenIdentity = getTokenIdentity(token);
   const tokenIdentityChanged = previousTokenIdentity !== tokenIdentity;
@@ -142,6 +155,7 @@ export const useLatestBalance = (token: {
             srcChainId: chainId,
             isNative: isNativeAddress(token?.address),
           },
+          tags: { feature: SwapFeatureTag.SWAP },
           startTime: Date.now(),
         });
         const web3Provider = getProviderByChainId(chainId);
@@ -230,7 +244,7 @@ export const useLatestBalance = (token: {
     }
 
     handleFetchEvmAtomicBalance();
-  }, [chainId, handleFetchEvmAtomicBalance, token.refreshKey]);
+  }, [chainId, handleFetchEvmAtomicBalance, token.refreshKey, featureId]);
 
   useEffect(() => {
     if (!chainId || !isCaipChainId(chainId) || !isNonEvmChainId(chainId)) {
@@ -238,7 +252,7 @@ export const useLatestBalance = (token: {
     }
 
     handleNonEvmAtomicBalance();
-  }, [chainId, handleNonEvmAtomicBalance, token.refreshKey]);
+  }, [chainId, handleNonEvmAtomicBalance, token.refreshKey, featureId]);
 
   const cachedBalance = useMemo(() => {
     const displayBalance = token.balance;

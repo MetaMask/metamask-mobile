@@ -1,13 +1,17 @@
+import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import nock from 'nock';
 import {
   OHLCVApiCandle,
   OHLCVApiResponse,
+  ohlcvChartQueryOptions,
   useOHLCVChart,
 } from './useOHLCVChart';
 import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
 const OHLCV_HOST = 'https://price.api.cx.metamask.io';
+const DEV_HOST = 'https://price.dev-api.cx.metamask.io';
 
 const ASSET_ID = 'eip155:1/slip44:60';
 
@@ -63,9 +67,73 @@ function arrangeDefaultOptions(): Parameters<typeof useOHLCVChart>[0] {
   };
 }
 
-function renderUseOHLCVChart(options: Parameters<typeof useOHLCVChart>[0]) {
-  return renderHook(() => useOHLCVChart(options));
+function renderChartHook<Props>(
+  hook: (props: Props) => ReturnType<typeof useOHLCVChart>,
+  options?: { initialProps: Props },
+) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+  return renderHook(hook, {
+    ...options,
+    wrapper: ({ children }) =>
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        children,
+      ),
+  });
 }
+
+function renderUseOHLCVChart(options: Parameters<typeof useOHLCVChart>[0]) {
+  return renderChartHook(() => useOHLCVChart(options));
+}
+
+describe('useOHLCVChart - host', () => {
+  beforeEach(() => {
+    nock.disableNetConnect();
+  });
+
+  afterEach(() => {
+    nock.cleanAll();
+    jest.restoreAllMocks();
+  });
+
+  // Social Leaderboard's trader charts and the legacy Token Details page both
+  // reach this hook without a provider, so prod is what it must ask for.
+  it('requests prod outside a PriceApiHostProvider', async () => {
+    const scope = arrangeNockOhlcvAPISuccessResponse();
+
+    const { result } = renderUseOHLCVChart(arrangeDefaultOptions());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it('requests the given host instead of prod', async () => {
+    const devScope = nock(DEV_HOST)
+      .get(`/v3/ohlcv-chart/${ASSET_ID}`)
+      .query(true)
+      .reply(200, createSuccessBody());
+
+    const { result } = renderUseOHLCVChart({
+      ...arrangeDefaultOptions(),
+      baseUrl: DEV_HOST,
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(devScope.isDone()).toBe(true);
+  });
+
+  // Two hosts can disagree about the same asset, so they must not share an
+  // entry in the cache.
+  it('keys the query by host', () => {
+    expect(
+      ohlcvChartQueryOptions({ ...arrangeDefaultOptions(), baseUrl: DEV_HOST })
+        .queryKey,
+    ).not.toEqual(ohlcvChartQueryOptions(arrangeDefaultOptions()).queryKey);
+  });
+});
 
 describe('useOHLCVChart - initial load', () => {
   beforeEach(() => {
@@ -266,7 +334,7 @@ describe('useOHLCVChart - pagination metadata', () => {
 
     const initialProps: Parameters<typeof useOHLCVChart>[0] =
       arrangeDefaultOptions();
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderChartHook(
       (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
       { initialProps },
     );
@@ -354,7 +422,7 @@ describe('useOHLCVChart - empty data handling', () => {
       .reply(200, createSuccessBody({ data: [] }));
 
     const initialProps = arrangeDefaultOptions();
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderChartHook(
       (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
       { initialProps },
     );
@@ -458,7 +526,7 @@ describe('useOHLCVChart - abort controller', () => {
 
     const initialProps: Parameters<typeof useOHLCVChart>[0] =
       arrangeDefaultOptions();
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderChartHook(
       (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
       { initialProps },
     );
@@ -531,7 +599,7 @@ describe('useOHLCVChart - error handling', () => {
 
     const initialProps: Parameters<typeof useOHLCVChart>[0] =
       arrangeDefaultOptions();
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderChartHook(
       (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
       { initialProps },
     );

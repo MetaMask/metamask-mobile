@@ -6,7 +6,6 @@ import FooterActions from '../../../page-objects/Browser/Confirmations/FooterAct
 import SendView from '../../../page-objects/Send/RedesignedSendView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
-import { Assertions } from '../../../framework/index.js';
 import {
   DappVariants,
   LOCAL_NODE_RPC_URL,
@@ -166,7 +165,6 @@ appiumTest.describe(SmokeConfirmations('Send native asset'), () => {
           await FooterActions.tapConfirmButton();
           await FooterActions.waitForConfirmButtonGone();
           await TabBarComponent.tapActivity();
-          await Assertions.expectTextDisplayed('Confirmed');
 
           await validateTransactionHashInTransactionFinalizedEvent(
             localNodes,

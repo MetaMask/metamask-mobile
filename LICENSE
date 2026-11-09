@@ -5,3 +5,11 @@ The source code for this is currently viewable under the below copyright. A lice
 © ConsenSys Software Inc, 2021.
 
 You are granted a limited non-exclusive license to inspect and study the code in this repository. There is no associated right to reproduction granted under this license except where reproduction is necessary for inspection and study of the code. You may not otherwise reproduce, distribute, modify or create derivative works of the code without our prior consent. All other rights are expressly reserved.
+
+EXCLUDED FONT SOFTWARE
+
+The font files for Grotzec Condensed Bold located in app/fonts/GrotzecCond and android/app/src/main/assets/fonts/GrotzecCond-Bold.otf (the "Font Files") are commercial font software owned by Secretonix Lda, trading as Feliciano Type, and are licensed to ConsenSys Software Inc. for use solely within the MetaMask application.
+
+The Font Files are excluded from the license above. The limited license to inspect and study the code in this repository does not extend to the Font Files, and no right to use, copy, reproduce, modify, subset, embed, distribute, or create derivative works of the Font Files is granted. Their presence in this repository, or in any copy of it, grants no license to them. All rights in the Font Files are reserved by Feliciano Type.
+
+See app/fonts/GrotzecCond/LICENSE for the full notice. To license this typeface, visit http://www.felicianotype.com or contact mario@felicianotypefoundry.com.
