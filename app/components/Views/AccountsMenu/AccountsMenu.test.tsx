@@ -24,6 +24,9 @@ import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationS
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
 import { CardFlow } from '../../UI/Card/util/metrics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -484,6 +487,50 @@ describe('AccountsMenu', () => {
         Routes.BRIDGE.ROOT,
         expect.anything(),
       );
+    });
+  });
+
+  describe('Quick Actions', () => {
+    it('renders Activity, Scan and Batch sell in that order', () => {
+      jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      const activity = getByTestId(AccountsMenuSelectorsIDs.ACTIVITY_BUTTON);
+      const scan = getByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON);
+      const batchSell = getByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON);
+
+      expect(activity).toBeOnTheScreen();
+      expect(scan).toBeOnTheScreen();
+      expect(batchSell).toBeOnTheScreen();
+
+      const order = [activity, scan, batchSell].map(
+        (node) => node.props.testID,
+      );
+      expect(order).toEqual([
+        AccountsMenuSelectorsIDs.ACTIVITY_BUTTON,
+        WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
+        AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON,
+      ]);
+    });
+  });
+
+  describe('Activity Button', () => {
+    it('navigates to the Activity screen and tracks the click when pressed', () => {
+      mockNavigate.mockClear();
+      mockTrackEvent.mockClear();
+
+      const { getByTestId } = render(<AccountsMenu />);
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.ACTIVITY_BUTTON));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        EVENT_NAME.ACTIVITY_CLICKED,
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: { entryPoint: ActivityScreenEntryPoint.AccountsMenu },
+      });
     });
   });
 
