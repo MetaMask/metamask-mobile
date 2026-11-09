@@ -549,8 +549,10 @@ describe('PerpsClosePositionView', () => {
     const confirmButton = screen.getByTestId(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
     );
-    expect(confirmButton).toBeDisabled();
+
     fireEvent.press(confirmButton);
+
+    expect(confirmButton).toBeDisabled();
     expect(closePosition).not.toHaveBeenCalled();
   });
 

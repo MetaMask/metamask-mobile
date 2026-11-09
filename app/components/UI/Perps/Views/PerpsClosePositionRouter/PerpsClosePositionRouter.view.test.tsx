@@ -436,4 +436,58 @@ describe('PerpsClosePositionRouter', () => {
       expect(pnlRow).not.toHaveTextContent(/%/);
     });
   });
+
+  describe('bottom-sheet fee quote', () => {
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+
+    beforeEach(() => {
+      resetLastCloseOrderType();
+    });
+
+    it('holds the close until the fee is quoted, so tracking never reports an unknown fee as 0', async () => {
+      calculateFees.mockReturnValue(new Promise(() => undefined));
+      renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
+      const confirmButton = await screen.findByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      fireEvent.press(confirmButton);
+
+      expect(confirmButton).toBeDisabled();
+      expect(closePosition).not.toHaveBeenCalled();
+    });
+
+    it('submits a quoted zero fee as 0', async () => {
+      calculateFees.mockResolvedValue({
+        feeRate: 0,
+        feeAmount: 0,
+        protocolFeeRate: 0,
+        protocolFeeAmount: 0,
+        metamaskFeeRate: 0,
+        metamaskFeeAmount: 0,
+      });
+      renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
+      const confirmButton = await screen.findByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      await waitFor(() => {
+        expect(confirmButton).not.toBeDisabled();
+      });
+
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(closePosition).toHaveBeenCalledWith(
+          expect.objectContaining({
+            trackingData: expect.objectContaining({ totalFee: 0 }),
+          }),
+        );
+      });
+    });
+  });
 });

@@ -636,9 +636,15 @@ export function transformFillsToTransactions(
     // Calculate display amount based on action type
     if (isOpened || isBuy) {
       // For opening positions or buying: show fee paid (negative)
-      amountBN = BigNumber(fill.fee || 0);
-      displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
-      isPositive = false; // Fee is always a cost
+      const openingFee = parseReportedFillAmount(fee);
+      if (openingFee === undefined) {
+        // A missing or invalid fee (also a grouped order with one) stays unknown, not $0.
+        displayAmount = strings('perps.transactions.unknown_pnl');
+      } else {
+        amountBN = openingFee;
+        displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
+        isPositive = false; // Fee is always a cost
+      }
     } else if (
       (isClosed || isSell || isFlipped || isAutoDeleveraging) &&
       netClosedPnl === undefined

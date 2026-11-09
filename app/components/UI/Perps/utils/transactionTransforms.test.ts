@@ -147,6 +147,64 @@ describe('transactionTransforms', () => {
       });
     });
 
+    it.each([
+      ['Open Long', 'an absent', ''],
+      ['Open Long', 'an invalid', 'not-a-number'],
+      ['Buy', 'an absent', ''],
+      ['Buy', 'an invalid', 'not-a-number'],
+    ])(
+      'shows the grouped %s fee as unknown when one execution has %s fee',
+      (direction, _label, missingFee) => {
+        const fills = [
+          createFill({ direction, side: 'buy', pnl: undefined, fee: '5' }),
+          createFill({
+            direction,
+            side: 'buy',
+            pnl: undefined,
+            fee: missingFee,
+            timestamp: 1700000000001,
+          }),
+        ];
+
+        const [transaction] = transformFillsToTransactions(fills);
+
+        // The known $5 alone is not shown, and the unknown total is not $0.00.
+        expect(transaction.fill?.amount).not.toMatch(
+          /\[missing ".*" translation\]/,
+        );
+        expect(transaction.fill?.amount).toBe(
+          strings('perps.transactions.unknown_pnl'),
+        );
+        expect(transaction.fill?.amountNumber).toBeUndefined();
+        expect(transaction.fill?.isPositive).toBeUndefined();
+      },
+    );
+
+    it.each(['Open Long', 'Buy'])(
+      'shows a genuine zero grouped %s fee as $0.00',
+      (direction) => {
+        const fills = [
+          createFill({ direction, side: 'buy', pnl: undefined, fee: '0' }),
+          createFill({
+            direction,
+            side: 'buy',
+            pnl: undefined,
+            fee: '0',
+            timestamp: 1700000000001,
+          }),
+        ];
+
+        const [transaction] = transformFillsToTransactions(fills);
+
+        expect(transaction.fill).toMatchObject({
+          fee: '0',
+          amount: '-$0.00',
+          amountNumber: 0,
+          isPositive: false,
+        });
+      },
+    );
+
     it('preserves reported zero PnL', () => {
       const [transaction] = transformFillsToTransactions([
         createFill({ pnl: '0', fee: '0' }),
