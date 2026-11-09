@@ -4389,7 +4389,11 @@ describe('polymarket utils', () => {
 describe('parseCryptoPriceProvider', () => {
   // resolutionSource values copied from live Gamma events on 2026-11-09.
   it.each([
-    ['btc-up-or-down-5m', 'https://data.chain.link/streams/btc-usd', 'chainlink'],
+    [
+      'btc-up-or-down-5m',
+      'https://data.chain.link/streams/btc-usd',
+      'chainlink',
+    ],
     [
       'btc-up-or-down-15m',
       'https://data.chain.link/streams/btc-usd-twap-60s-streams',
@@ -4416,9 +4420,7 @@ describe('parseCryptoPriceProvider', () => {
       'binance',
     ],
   ])('reads %s settled on %s as %s', (_series, resolutionSource, provider) => {
-    expect(parseCryptoPriceProvider({}, [{ resolutionSource }])).toBe(
-      provider,
-    );
+    expect(parseCryptoPriceProvider({}, [{ resolutionSource }])).toBe(provider);
   });
 
   it.each([

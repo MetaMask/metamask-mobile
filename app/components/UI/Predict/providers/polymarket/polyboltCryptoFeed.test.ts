@@ -87,9 +87,10 @@ describe('toPolyboltFilter', () => {
   });
 
   it('never pins the TWAP channel, which only Chainlink serves', () => {
-    expect(toPolyboltFilter('price.crypto.twap', 'btcusd', 'binance')).toEqual(
-      { symbol: 'btcusd', window_seconds: 60 },
-    );
+    expect(toPolyboltFilter('price.crypto.twap', 'btcusd', 'binance')).toEqual({
+      symbol: 'btcusd',
+      window_seconds: 60,
+    });
   });
 });
 
@@ -443,7 +444,8 @@ describe('PolyBoltCryptoFeed', () => {
 
       const mismatchLogs = logSpy.mock.calls.filter(
         ([message]) =>
-          message === 'PolyBoltCryptoFeed: served provider differs from request',
+          message ===
+          'PolyBoltCryptoFeed: served provider differs from request',
       );
       expect(mismatchLogs).toEqual([
         [
