@@ -1,8 +1,16 @@
 import {
+  type PrepareRecurringDelegationQuery,
+  type PrepareRecurringDelegationResponse,
   type RecurringOrder,
   RecurringOrderState,
 } from './recurringOrders.types';
-import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
+import {
+  isCaipAccountId,
+  KnownCaipNamespace,
+  parseCaipAccountId,
+  parseCaipAssetType,
+  toCaipAccountId,
+} from '@metamask/utils';
 
 export const MOCK_RECURRING_WALLET_ADDRESS =
   '0x1234567890123456789012345678901234567890';
@@ -12,6 +20,57 @@ export const MOCK_RECURRING_ACCOUNT = toCaipAccountId(
   MOCK_RECURRING_WALLET_ADDRESS,
 );
 export const MOCK_RECURRING_PROFILE_ID = 'f2a1c0de-0000-4000-8000-000000000001';
+
+export function createMockPrepareRecurringDelegationResponse(
+  query: PrepareRecurringDelegationQuery,
+): PrepareRecurringDelegationResponse {
+  if (!isCaipAccountId(query.accountAddress)) {
+    throw new Error('Mock recurring account must be a CAIP account ID');
+  }
+
+  const { chainId, chain } = parseCaipAssetType(query.srcAssetId);
+  const { address } = parseCaipAccountId(query.accountAddress);
+  const delegationManager = '0xdb9B1e94B5b69Df7e401DDbedE43491141047dB3';
+  const delegate = '0x0000000000000000000000000000000000000a11';
+
+  return {
+    chainId,
+    delegationManager,
+    swapRouter: '0x962287c9d5B8a682389E61edAE90ec882325d08b',
+    approvalRequired: false,
+    order: {
+      ...query,
+      expiresAt: 1800000000,
+    },
+    delegations: [
+      {
+        purpose: 'swap',
+        delegation: {
+          delegate,
+          delegator: address,
+          authority:
+            '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+          caveats: [],
+          salt: '0x6572bcee6cc79e0b70128c9dd1f65f0075ebcac9b8aa38e8b6af0fa4757f2050',
+          signature: '0x',
+        },
+        typedData: {
+          domain: {
+            name: 'DelegationManager',
+            version: '1',
+            chainId: Number(chain.reference),
+            verifyingContract: delegationManager,
+          },
+          primaryType: 'Delegation',
+          types: {
+            Delegation: [{ name: 'delegate', type: 'address' }],
+          },
+          message: { delegate },
+        },
+      },
+    ],
+  };
+}
 
 const ETHEREUM_ETH = {
   assetId: 'eip155:1/slip44:60',

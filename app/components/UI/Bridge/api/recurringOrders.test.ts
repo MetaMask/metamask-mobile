@@ -1,9 +1,11 @@
 import {
   cancelRecurringOrder,
   createRecurringOrder,
+  getRecurringOrder,
   getRecurringOrders,
   getRecurringOrdersByAsset,
   getRecurringSwaps,
+  prepareRecurringDelegation,
   resetRecurringOrdersMockState,
 } from './recurringOrders';
 import {
@@ -21,6 +23,15 @@ import {
   MOCK_RECURRING_SWAPS_BY_ORDER_ID,
 } from './recurringSwaps.mock';
 import { RecurringOrderState } from './recurringOrders.types';
+
+const mockGetBearerToken = jest.fn();
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      getBearerToken: () => mockGetBearerToken(),
+    },
+  },
+}));
 
 const UNMATCHED_ASSET_ID =
   'eip155:1/erc20:0x0000000000000000000000000000000000000001';
@@ -43,6 +54,32 @@ describe('recurring orders API', () => {
 
   afterEach(() => {
     globalFetchSpy.mockRestore();
+  });
+
+  describe('prepareRecurringDelegation', () => {
+    it('returns an ADR-shaped prepared delegation from the mock', async () => {
+      const query = {
+        clientOrderId: '26b0d825-79da-45a9-ab7d-1397a091b80e',
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        srcAssetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+        srcAmount: MOCK_RECURRING_OPEN_ORDER.src.amount,
+        destAssetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
+        slippage: 0.5,
+        every: 2,
+        unit: 'day' as const,
+        repeatCount: 4,
+      };
+
+      const result = await prepareRecurringDelegation(query);
+
+      expect(result.order).toStrictEqual({
+        ...query,
+        expiresAt: 1800000000,
+      });
+      expect(result.delegations).toHaveLength(1);
+      expect(result.delegations[0].delegation.signature).toBe('0x');
+      expect(globalFetchSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('getRecurringOrders', () => {
@@ -188,6 +225,28 @@ describe('recurring orders API', () => {
       });
 
       expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('getRecurringOrder', () => {
+    it('returns the requested mock order for the account', async () => {
+      const result = await getRecurringOrder(MOCK_RECURRING_OPEN_ORDER.id, {
+        accountAddress: ALTERNATE_ETHEREUM_ACCOUNT,
+      });
+
+      expect(result).toStrictEqual({
+        ...MOCK_RECURRING_OPEN_ORDER,
+        accountAddress: ALTERNATE_ETHEREUM_ACCOUNT,
+      });
+      expect(globalFetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('rejects an unknown order', async () => {
+      await expect(
+        getRecurringOrder('missing-order', {
+          accountAddress: MOCK_RECURRING_ACCOUNT,
+        }),
+      ).rejects.toThrow('order_not_found');
     });
   });
 
@@ -341,5 +400,35 @@ describe('recurring orders API', () => {
       expect(result.order).toStrictEqual(MOCK_RECURRING_OPEN_ORDER);
       expect(globalFetchSpy).not.toHaveBeenCalled();
     });
+  });
+
+  it('does not fetch a JWT while all six API routes are mock-gated', async () => {
+    await Promise.all([
+      prepareRecurringDelegation({
+        clientOrderId: '26b0d825-79da-45a9-ab7d-1397a091b80e',
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        srcAssetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+        srcAmount: MOCK_RECURRING_OPEN_ORDER.src.amount,
+        destAssetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
+        slippage: 0.5,
+        every: 1,
+        unit: 'day',
+        repeatCount: 5,
+      }),
+      createRecurringOrder(),
+      getRecurringOrders({ accountAddress: MOCK_RECURRING_ACCOUNT }),
+      getRecurringOrder(MOCK_RECURRING_OPEN_ORDER.id, {
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+      }),
+      getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER.id, {
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+      }),
+      cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.id, {
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+      }),
+    ]);
+
+    expect(mockGetBearerToken).not.toHaveBeenCalled();
+    expect(globalFetchSpy).not.toHaveBeenCalled();
   });
 });
