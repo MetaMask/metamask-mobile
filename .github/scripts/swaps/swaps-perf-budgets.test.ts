@@ -24,13 +24,23 @@ describe('budgetStatus', () => {
 });
 
 describe('buildSlackMessage', () => {
+  it('posts one line when every rule is within its guardrail', () => {
+    const ok = result('Within', STATUS.OK, { p90: 4000, n: 4176 });
+    expect(
+      buildSlackMessage([ok, ok], {
+        windowLabel: '2026-10-26 – 2026-11-08 UTC',
+        runUrl: 'https://example.com/run',
+      }),
+    ).toBe(
+      '*Swaps performance budgets*, 2026-10-26 – 2026-11-08 UTC: all 2 rules within guardrails. <https://example.com/run|Run log>',
+    );
+  });
+
   it('lists breaches and not-evaluable rules, and nothing else', () => {
     const ok = result('Within', STATUS.OK, { p90: 4000, n: 4176 });
     const breach = result('Over', STATUS.BREACH, { p90: 5300, n: 4176 });
     const low = result('Sparse', STATUS.NOT_EVALUABLE, { p90: 9000, n: 120 });
     const options = { runUrl: 'https://example.com/run' };
-
-    expect(buildSlackMessage([ok], options)).toBeNull();
 
     const message = buildSlackMessage([ok, breach, low], options);
     expect(message).toMatch(

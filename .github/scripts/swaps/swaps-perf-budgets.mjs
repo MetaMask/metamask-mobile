@@ -95,8 +95,8 @@ export function resultLine({ rule, measured: { p90, n, fullScan }, status }) {
   return `${rule.label}: not evaluable (${reason}); ${measured}`;
 }
 
-/** The Slack message for this run, or null when every rule is within budget. */
-export function buildSlackMessage(results, { runUrl = '' } = {}) {
+/** The Slack message for this run: the findings, or one line when every rule is within budget. */
+export function buildSlackMessage(results, { windowLabel = '', runUrl = '' } = {}) {
   const sections = [
     [STATUS.BREACH, '*Over the guardrail* · 14-day p90'],
     [STATUS.NOT_EVALUABLE, '*Not evaluable*'],
@@ -104,7 +104,8 @@ export function buildSlackMessage(results, { runUrl = '' } = {}) {
     .map(([status, title]) => [title, results.filter((result) => result.status === status)])
     .filter(([, items]) => items.length > 0);
   if (sections.length === 0) {
-    return null;
+    const run = runUrl ? ` <${runUrl}|Run log>` : '';
+    return `*Swaps performance budgets*, ${windowLabel}: all ${results.length} rules within guardrails.${run}`;
   }
   const breached = results.some((result) => result.status === STATUS.BREACH);
   const lines = ['*Swaps performance budgets*'];

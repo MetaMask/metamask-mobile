@@ -12,6 +12,7 @@ import {
   resultLine,
   runBudgetCheck,
   startOfTodayUtc,
+  STATUS,
 } from './swaps-perf-budgets.mjs';
 
 /** chat.postMessage reports errors as HTTP 200 with `ok: false`. */
@@ -71,9 +72,12 @@ async function main() {
   }
   errors.forEach((error) => console.error(`- [error] ${error}`));
 
-  const message = buildSlackMessage(results, { runUrl });
+  // An all-clear would be misleading when some queries failed; the failure notice covers that.
+  const allClear = results.every((result) => result.status === STATUS.OK);
+  const message =
+    errors.length > 0 && allClear ? null : buildSlackMessage(results, { windowLabel: window.label, runUrl });
   if (!message) {
-    console.log('\nEvery rule is within its guardrail; no Slack post.');
+    console.log('\nSome queries failed and the rest are within guardrails; no Slack post.');
   } else if (dryRun) {
     console.log(`\nDry run; would post to Slack:\n\n${message}`);
   } else {
