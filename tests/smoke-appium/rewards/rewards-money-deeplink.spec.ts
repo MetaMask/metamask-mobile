@@ -13,7 +13,7 @@ import {
 } from '../../api-mocking/mock-responses/rewards-money.js';
 
 const MONEY_CAMPAIGN_DEEPLINK =
-  'https://link.metamask.io/rewards?campaign=money';
+  'metamask://rewards?campaign=money';
 
 appiumTest.describe(SmokeWalletPlatform('Rewards Money deeplink'), () => {
   appiumTest.describe.configure({ timeout: 240000 });
