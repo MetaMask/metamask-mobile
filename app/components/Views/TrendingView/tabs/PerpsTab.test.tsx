@@ -171,13 +171,23 @@ jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ source }: { source?: string }) => {
+    default: ({
+      source,
+      prefetchProfiles,
+    }: {
+      source?: string;
+      prefetchProfiles?: boolean;
+    }) => {
       MockReact.useEffect(() => {
         mockTopTradersMounted();
       }, []);
       return MockReact.createElement(
         View,
-        { testID: 'top-traders-section', accessibilityHint: source },
+        {
+          testID: 'top-traders-section',
+          accessibilityHint: source,
+          accessibilityLabel: String(prefetchProfiles),
+        },
         MockReact.createElement(Text, null, 'Top traders'),
       );
     },
@@ -196,6 +206,11 @@ jest.mock('../../../../util/theme', () => ({
 const mockUseNetworkTier = jest.fn();
 jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockUseNetworkTier(),
+}));
+
+const mockGetHardwareTier = jest.fn();
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockGetHardwareTier(),
 }));
 
 jest.mock('../feeds/perps/PerpsSectionProvider', () => ({
@@ -247,6 +262,7 @@ describe('PerpsTab', () => {
       isLoading: false,
     });
     mockUseNetworkTier.mockReturnValue(null);
+    mockGetHardwareTier.mockReturnValue(null);
   });
 
   describe('watchlist filter', () => {
@@ -282,6 +298,7 @@ describe('PerpsTab', () => {
           mockWatchlistProps.current.suggestedMarkets as { symbol: string }[]
         ).map((m) => m.symbol),
       ).toEqual(['BTC']);
+      expect(mockWatchlistProps.current.virtualized).toBe(false);
       expect(
         getByTestId('perps-tab-market-list').props.accessibilityLabel,
       ).toBe('market-count-0');
@@ -391,6 +408,27 @@ describe('PerpsTab', () => {
 
     expect(queryByTestId('top-traders-section')).toBeNull();
   });
+
+  it.each([
+    ['LOW', 'SLOW_CELLULAR', 'false'],
+    ['LOW', 'WIFI', 'true'],
+    ['MID', 'SLOW_CELLULAR', 'true'],
+    [null, 'SLOW_CELLULAR', 'true'],
+    ['LOW', null, 'true'],
+    [null, null, 'true'],
+  ])(
+    'with %s hardware and %s network, top traders profile prefetch is %s',
+    (hardwareTier, networkTier, expected) => {
+      mockGetHardwareTier.mockReturnValue(hardwareTier);
+      mockUseNetworkTier.mockReturnValue(networkTier);
+
+      const { getByTestId } = renderPerpsTab();
+
+      expect(getByTestId('top-traders-section').props.accessibilityLabel).toBe(
+        expected,
+      );
+    },
+  );
 
   it('keeps top traders on slow cellular', () => {
     mockUseNetworkTier.mockReturnValue('SLOW_CELLULAR');

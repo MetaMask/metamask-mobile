@@ -44,7 +44,11 @@ import TopTradersSection from '../../Homepage/Sections/TopTraders/TopTradersSect
 import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useTheme } from '../../../../util/theme';
 import type { TabProps } from '../hooks/useExploreRefresh';
-import { PerpsTabSelectorsIDs } from './PerpsTab.testIds';
+import { PerpsTabSelectorsIDs } from '../../../UI/Perps/Perps.testIds';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+
+// Analytics section name for rows in this tab.
+const PERPS_TAB_SOURCE_SECTION = 'perps_tab_markets';
 
 /**
  * Header rendered above the market list. Contains the top-traders carousel
@@ -52,14 +56,18 @@ import { PerpsTabSelectorsIDs } from './PerpsTab.testIds';
  * Scrolls away naturally as the FlashList scrolls; the filter bar (rendered
  * as `stickyHeader`) stays pinned.
  */
-const PerpsTabListHeader: React.FC<{ showTopTraders: boolean }> = ({
-  showTopTraders,
-}) => (
+const PerpsTabListHeader: React.FC<{
+  showTopTraders: boolean;
+  prefetchTraderProfiles: boolean;
+}> = ({ showTopTraders, prefetchTraderProfiles }) => (
   <Box>
     {showTopTraders && (
       <>
         <Box twClassName="pb-1">
-          <TopTradersSection source="explore_perps" />
+          <TopTradersSection
+            source="explore_perps"
+            prefetchProfiles={prefetchTraderProfiles}
+          />
         </Box>
         <SectionDivider />
       </>
@@ -73,20 +81,24 @@ const PerpsTabListHeader: React.FC<{ showTopTraders: boolean }> = ({
 
 // Pull-to-refresh is visual only (consistent with other Explore tabs): market
 // prices stream over websockets and top traders refetch on mount/app focus.
-const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
-  refreshing,
-  onRefresh,
-}) => {
+export const PerpsTabContent: React.FC<
+  Pick<TabProps, 'refreshing' | 'onRefresh'>
+> = ({ refreshing, onRefresh }) => {
   const { colors } = useTheme();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
   // Device capability (see app/util/deviceCapability/README.md): with no
-  // network, skip the leaderboard fetch and profile prefetch. Kept on slow
-  // cellular; `null` (unknown) keeps the default.
+  // network, skip the leaderboard fetch and profile prefetch; on LOW hardware
+  // over slow cellular keep the carousel but skip profile prefetch. `null`
+  // (unknown) keeps the default.
   const networkTier = useNetworkTier();
+  const hardwareTier = useMemo(() => getHardwareTier(), []);
   const showTopTraders = isTopTradersEnabled && networkTier !== 'NONE';
+  const prefetchTraderProfiles = !(
+    hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
+  );
   const [isSortSheetVisible, setIsSortSheetVisible] = useState(false);
   const floatingTabBarInset = useFloatingTabBarInset();
   const contentContainerStyle = useMemo(
@@ -207,7 +219,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
       trackExploreInteracted({
         interaction_type: 'section_item_tapped',
         tab_name: 'Perps',
-        section_name: 'perps_tab_markets',
+        section_name: PERPS_TAB_SOURCE_SECTION,
         ...(position >= 0 && { position }),
         asset_type: 'perp',
         item_clicked: market.symbol,
@@ -217,7 +229,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         params: {
           market,
           source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
-          source_section: 'perps_tab_markets',
+          source_section: PERPS_TAB_SOURCE_SECTION,
         },
       });
     },
@@ -225,8 +237,13 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   );
 
   const listHeader = useMemo(
-    () => <PerpsTabListHeader showTopTraders={showTopTraders} />,
-    [showTopTraders],
+    () => (
+      <PerpsTabListHeader
+        showTopTraders={showTopTraders}
+        prefetchTraderProfiles={prefetchTraderProfiles}
+      />
+    ),
+    [showTopTraders, prefetchTraderProfiles],
   );
 
   // Body shown instead of rows. While loading: skeletons (the list stays
@@ -249,6 +266,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         onMarketPress={handleMarketPress}
         displayMetric={sortBy}
         addSource={PERPS_EVENT_VALUE.SOURCE.EXPLORE}
+        virtualized={false}
       />
     ) : undefined;
   }, [

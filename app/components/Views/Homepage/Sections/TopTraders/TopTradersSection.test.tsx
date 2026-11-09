@@ -947,6 +947,17 @@ describe('TopTradersSection', () => {
     expect(mockOnLayout).toHaveBeenCalled();
   });
 
+  it('disables profile prefetch when prefetchProfiles is false', () => {
+    renderWithProvider(
+      <TopTradersSection source="explore_perps" prefetchProfiles={false} />,
+    );
+
+    expect(mockUsePrefetchTraderProfiles).toHaveBeenLastCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
   it('wires visible trader ids into the prefetch hook from FlatList viewability', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 

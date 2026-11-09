@@ -82,6 +82,8 @@ interface TopTradersSectionProps {
   totalSectionsLoaded?: number;
   /** Analytics source for navigation and follow events. */
   source?: 'home_carousel' | 'explore_perps';
+  /** Whether visible trader profiles are prefetched. Defaults to true. */
+  prefetchProfiles?: boolean;
 }
 
 /**
@@ -94,7 +96,13 @@ interface TopTradersSectionProps {
 const TopTradersSection = forwardRef<
   SectionRefreshHandle,
   TopTradersSectionProps
->(({ sectionIndex, totalSectionsLoaded, source = 'home_carousel' }, ref) => {
+>((props, ref) => {
+  const {
+    sectionIndex,
+    totalSectionsLoaded,
+    source = 'home_carousel',
+    prefetchProfiles = true,
+  } = props;
   const sectionViewRef = useRef<View>(null);
   const { followWithSetup } = useFollowWithNotificationSetup();
   const navigation = useNavigation<AppNavigationProp>();
@@ -193,7 +201,7 @@ const TopTradersSection = forwardRef<
   });
 
   usePrefetchTraderProfiles(visibleTraderIds, {
-    enabled: isEnabled && hasTraders,
+    enabled: isEnabled && hasTraders && prefetchProfiles,
     isSectionVisible: isSectionVisible || !isHomepageContext,
   });
 

@@ -5,6 +5,7 @@
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
+import { FlashList } from '@shopify/flash-list';
 import {
   fireEvent,
   screen,
@@ -14,17 +15,48 @@ import {
 import { renderPerpsComponent } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   getPerpsMarketRowItemSelector,
+  PerpsTabSelectorsIDs,
   PerpsWatchlistSelectorsIDs,
 } from '../../../UI/Perps/Perps.testIds';
-import PerpsTab from './PerpsTab';
-import { PerpsTabSelectorsIDs } from './PerpsTab.testIds';
+import PerpsTab, { PerpsTabContent } from './PerpsTab';
 
 const enabledFlag = { enabled: true, minimumVersion: '0.0.0' };
 const disabledFlag = { enabled: false, minimumVersion: '0.0.0' };
 
-const renderPerpsTab = (extraFlags: Record<string, unknown> = {}) =>
+const btcMarket = {
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  maxLeverage: '50x',
+  price: '$50,000',
+  change24h: '$500',
+  change24hPercent: '+5%',
+  volume: '$1M',
+  openInterest: '$500K',
+};
+
+const aaplMarket = {
+  symbol: 'AAPL',
+  name: 'Apple',
+  maxLeverage: '10x',
+  price: '$180',
+  change24h: '$1',
+  change24hPercent: '+1%',
+  volume: '$200M',
+  openInterest: '$50M',
+  marketType: 'stock',
+  isHip3: true,
+};
+
+const renderPerpsTab = (
+  extraFlags: Record<string, unknown> = {},
+  marketData?: unknown[],
+) =>
   renderPerpsComponent(
-    PerpsTab as unknown as React.ComponentType<Record<string, unknown>>,
+    // PerpsTab mounts its own stream provider (the E2E mock in view tests), so
+    // custom market data must go through the inner content component.
+    (marketData ? PerpsTabContent : PerpsTab) as unknown as React.ComponentType<
+      Record<string, unknown>
+    >,
     {
       refresh: { trigger: 0, silentRefresh: true },
       refreshing: false,
@@ -43,8 +75,23 @@ const renderPerpsTab = (extraFlags: Record<string, unknown> = {}) =>
           },
         },
       },
+      ...(marketData && { streamOverrides: { marketData } }),
     },
   );
+
+// FlashList recycles cells in place, so read the order from the list data.
+const listedSymbols = () =>
+  (
+    screen
+      .UNSAFE_getAllByType(FlashList)
+      .find((list) => list.props.testID === PerpsTabSelectorsIDs.MARKET_LIST)
+      ?.props.data as {
+      type: string;
+      market?: { symbol: string };
+    }[]
+  )
+    .filter((row) => row.type === 'market')
+    .map((row) => row.market?.symbol);
 
 // FlashList renders the sticky filter bar twice (in-flow + overlay); use the first.
 const findFilter = async (suffix: string) =>
@@ -96,6 +143,41 @@ describe('PerpsTab', () => {
     expect(
       store.getState().settings.perpsMarketListPreferences?.marketTypeFilter,
     ).not.toBe('crypto');
+  });
+
+  it('hides rows outside the selected category', async () => {
+    renderPerpsTab({}, [btcMarket, aaplMarket]);
+
+    expect(await screen.findByTestId(rowLabel('BTC'))).toBeOnTheScreen();
+    expect(screen.getByTestId(rowLabel('AAPL'))).toBeOnTheScreen();
+
+    fireEvent.press(await findFilter('categories-stock'));
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(rowLabel('BTC'))).not.toBeOnTheScreen();
+    });
+    expect(screen.getByTestId(rowLabel('AAPL'))).toBeOnTheScreen();
+  });
+
+  it('reorders rows when a different sort is applied', async () => {
+    renderPerpsTab();
+    await screen.findByTestId(rowLabel('SOL'));
+    expect(listedSymbols()).toStrictEqual(['BTC', 'ETH', 'SOL']);
+
+    fireEvent.press(await findFilter('sort-sort-field'));
+    // Default is price change high-to-low; pressing it again flips to low-to-high.
+    fireEvent.press(
+      await screen.findByTestId(
+        `${PerpsTabSelectorsIDs.SORT_SHEET}-option-priceChange`,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(`${PerpsTabSelectorsIDs.SORT_SHEET}-apply`),
+    );
+
+    await waitFor(() => {
+      expect(listedSymbols()).toStrictEqual(['SOL', 'ETH', 'BTC']);
+    });
   });
 
   it('opens the sort sheet from the sort control', async () => {

@@ -91,6 +91,8 @@ interface PerpsWatchlistMarketsProps {
    * so watchlist rows display the same field the user sorted by.
    */
   displayMetric?: SortField;
+  /** Render rows with a FlatList. Pass false inside another vertical list. Defaults to true. */
+  virtualized?: boolean;
   /** Section container test ID. Defaults to the home watchlist section. */
   testID?: string;
 }
@@ -220,6 +222,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   enableShowMore = true,
   showLeadingDivider = true,
   displayMetric,
+  virtualized = true,
   testID = PerpsWatchlistSelectorsIDs.SECTION,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -350,14 +353,23 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
         <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>
           {hasWatchlist && (
             <>
-              <FlatList
-                data={displayedMarkets}
-                renderItem={renderMarket}
-                keyExtractor={(item) => item.symbol}
-                showsVerticalScrollIndicator={false}
-                scrollEnabled={false}
-                contentContainerStyle={styles.listContent}
-              />
+              {virtualized ? (
+                <FlatList
+                  data={displayedMarkets}
+                  renderItem={renderMarket}
+                  keyExtractor={(item) => item.symbol}
+                  showsVerticalScrollIndicator={false}
+                  scrollEnabled={false}
+                  contentContainerStyle={styles.listContent}
+                />
+              ) : (
+                <View
+                  style={styles.listContent}
+                  testID={PerpsWatchlistSelectorsIDs.INLINE_ROWS}
+                >
+                  {displayedMarkets.map((item) => renderMarket({ item }))}
+                </View>
+              )}
 
               {hasMore && (
                 <View style={styles.showMoreButtonContainer}>

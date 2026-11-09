@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { FlatList } from 'react-native';
 import { useSelector } from 'react-redux';
 import PerpsWatchlistMarkets from './PerpsWatchlistMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
@@ -391,6 +392,21 @@ describe('PerpsWatchlistMarkets', () => {
   // -------------------------------------------------------------------------
   // Populated watchlist — > 3 markets (expand / collapse)
   // -------------------------------------------------------------------------
+
+  describe('virtualized={false}', () => {
+    it('renders watchlist rows inline without a FlatList', () => {
+      render(
+        <PerpsWatchlistMarkets markets={mockMarkets} virtualized={false} />,
+      );
+
+      expect(
+        screen.getByTestId('perps-watchlist-inline-rows'),
+      ).toBeOnTheScreen();
+      expect(screen.UNSAFE_queryByType(FlatList)).toBeNull();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+    });
+  });
 
   describe('Populated watchlist (> 3 markets) — expand/collapse', () => {
     const fiveMarkets = [
