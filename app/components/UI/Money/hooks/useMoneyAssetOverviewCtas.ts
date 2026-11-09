@@ -22,6 +22,12 @@ import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
 import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
+} from '../../TokenDetails/components/abTestConfig';
 
 const FOOTER_LABEL_KEY = 'money.asset_overview.cta.earn_apy';
 const BALANCE_BUTTON_LABEL_KEY = 'money.asset_overview.cta.start_earning';
@@ -66,7 +72,17 @@ export const useMoneyAssetOverviewCtas = ({
 
   const isStablecoinFooterCtaEligible =
     isFooterCtaEligibleFromVisibility && !isAaveOutputToken;
-
+  const { variant: stablecoinFooterCtaVariant } = useABTest(
+    EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+    EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
+    {
+      ...EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
+      trackExposure: isStablecoinFooterCtaEligible,
+    },
+  );
+  const isStablecoinFooterCtaEnabled =
+    isStablecoinFooterCtaEligible &&
+    stablecoinFooterCtaVariant.showMoneyDepositFooterCta;
   const isSubsidizedATokenFooterCtaEligible =
     isFooterCtaEligibleFromVisibility &&
     isAaveOutputToken &&
@@ -75,7 +91,7 @@ export const useMoneyAssetOverviewCtas = ({
       chainId: asset.chainId,
     });
   const isFooterCtaEligible =
-    isStablecoinFooterCtaEligible || isSubsidizedATokenFooterCtaEligible;
+    isStablecoinFooterCtaEnabled || isSubsidizedATokenFooterCtaEligible;
 
   const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({

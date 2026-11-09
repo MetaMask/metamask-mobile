@@ -21,6 +21,12 @@ import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
+} from '../../TokenDetails/components/abTestConfig';
 
 jest.mock('../../../../selectors/earnController/earn', () => ({
   earnSelectors: {
@@ -236,6 +242,83 @@ describe('useMoneyAssetOverviewCtas', () => {
     );
 
     expect(result.current.isFooterCtaVisible).toBe(true);
+  });
+
+  it('hides the footer CTA for a stablecoin in the control variant', () => {
+    setupSelectors(EMPTY_RELAY_CONFIG, false);
+    mockUseABTest.mockImplementation((flagKey) => {
+      if (flagKey === EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY) {
+        return {
+          variant: { showMoneyDepositBalanceCta: true },
+          variantName: 'treatment',
+          isActive: true,
+        };
+      }
+
+      return {
+        variant: { showMoneyDepositFooterCta: false },
+        variantName: 'control',
+        isActive: true,
+      };
+    });
+
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset: {
+          ...asset,
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          symbol: 'USDC',
+        },
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(result.current.isFooterCtaVisible).toBe(false);
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
+      {
+        ...EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
+        trackExposure: true,
+      },
+    );
+  });
+
+  it('keeps a subsidized aToken footer CTA visible in the stablecoin control variant', () => {
+    mockUseABTest.mockImplementation((flagKey) => {
+      if (flagKey === EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY) {
+        return {
+          variant: { showMoneyDepositBalanceCta: true },
+          variantName: 'treatment',
+          isActive: true,
+        };
+      }
+
+      return {
+        variant: { showMoneyDepositFooterCta: false },
+        variantName: 'control',
+        isActive: true,
+      };
+    });
+
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(result.current.isFooterCtaVisible).toBe(true);
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+      EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
+      {
+        ...EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
+        trackExposure: false,
+      },
+    );
   });
 
   it('keeps the balance CTA visible when the footer route is not subsidized', () => {
