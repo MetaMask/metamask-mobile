@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
+  evaluateExtractTagsFromChangedSpecs,
   evaluateExtractTagsFromImportGraph,
   type TagCatalog,
 } from './hard-rule-extract';
@@ -184,6 +185,31 @@ function grepFiles(
     .filter(Boolean);
 }
 
+/** i18n-js plural categories: `strings('a.b', { count })` reads `a.b.one` etc. */
+const PLURAL_CATEGORIES = new Set([
+  'zero',
+  'one',
+  'two',
+  'few',
+  'many',
+  'other',
+]);
+
+/**
+ * Keys code may use to read a changed leaf. A plural leaf (`a.b.other`) is
+ * read through its parent (`strings('a.b', { count })`), so look up both.
+ *
+ * @param key - Changed dotted key.
+ * @returns The key, plus its parent when the leaf is a plural category.
+ */
+export function lookupKeys(key: string): string[] {
+  const lastDot = key.lastIndexOf('.');
+  if (lastDot > 0 && PLURAL_CATEGORIES.has(key.slice(lastDot + 1))) {
+    return [key, key.slice(0, lastDot)];
+  }
+  return [key];
+}
+
 function escapeRegex(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -267,12 +293,12 @@ export function findKeyConsumers(
 ): Set<string> {
   const { baseDir, usagePrefixes, copyLiteralPrefixes } = options;
   const files = new Set<string>();
-  const key = escapeRegex(change.key);
+  const keys = lookupKeys(change.key).map(escapeRegex).join('|');
 
   for (const file of grepFiles(
     baseDir,
     usagePrefixes,
-    `['"\`]${key}['"\`]|enContent\\.${key}([^A-Za-z0-9_]|$)`,
+    `['"\`](${keys})['"\`]|enContent\\.(${keys})([^A-Za-z0-9_]|$)`,
     '-E',
   )) {
     files.add(file);
@@ -441,6 +467,32 @@ export function evaluateExtractTagsFromLocaleKeys(
     catalog,
     normalize,
   );
+  // The graph only counts smoke specs when it also sees a shared source, and
+  // this rule stops test-spec-tag-extraction from running. Read tags from
+  // spec inputs (changed specs, specs hardcoding old copy) directly.
+  const specs = evaluateExtractTagsFromChangedSpecs(
+    {
+      name: rule.name,
+      description: rule.description,
+      trigger: {
+        type: 'extractTagsFromChangedSpecs',
+        specPrefixes: trigger.importGraph?.specPrefixes,
+        specPattern: trigger.importGraph?.specPattern,
+        catalogGroup: trigger.importGraph?.catalogGroup,
+        tagsImportRegex: trigger.importGraph?.tagsImportRegex,
+      },
+    },
+    [...graphInputs],
+    context,
+    catalog,
+    normalize,
+  );
+  const selectedTags = [
+    ...new Set([
+      ...(graph?.selectedTags ?? []),
+      ...(specs?.selectedTags ?? []),
+    ]),
+  ];
 
   const keyList = changed.map((change) => change.key);
   const shown = keyList.slice(0, 10).join(', ');
@@ -464,7 +516,7 @@ export function evaluateExtractTagsFromLocaleKeys(
     `${rule.description}: ${keyList.length} key(s) changed [${shown}${more}], ` +
     `${consumers.size} consumer file(s)${untracedNote}`;
 
-  if (!graph) {
+  if (selectedTags.length === 0) {
     // No smoke spec imports a consumer directly. Seed the AI with the
     // consumer list (empty floor, zero confidence) so it maps those screens
     // to tags instead of re-deriving the impact from the raw diff.
@@ -476,7 +528,7 @@ export function evaluateExtractTagsFromLocaleKeys(
   }
 
   return {
-    detail: `${summary} → ${graph.selectedTags.join(', ')}.${consumerNote}`,
-    selectedTags: graph.selectedTags,
+    detail: `${summary} → ${selectedTags.join(', ')}.${consumerNote}`,
+    selectedTags,
   };
 }

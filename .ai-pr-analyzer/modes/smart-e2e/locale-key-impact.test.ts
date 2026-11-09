@@ -48,6 +48,8 @@ const baseLocale = {
   accounts: { add: 'Add account' },
   perps: { tabs: { positions: 'Positions' } },
   unused: { label: 'Never shown' },
+  positions: { count: { one: '1 position', other: '{{count}} positions' } },
+  onboarding: { welcome: 'Welcome back' },
 };
 
 const baseFiles: Record<string, string> = {
@@ -64,6 +66,11 @@ const baseFiles: Record<string, string> = {
     "import WalletView from '../../page-objects/wallet/WalletView';\n" +
     "import { WalletHeader } from '../../../app/components/Views/Wallet/WalletHeader';\n" +
     TAGS_IMPORT,
+  'app/components/Views/Positions/PositionsCount.tsx':
+    "export const t = (count: number) => strings('positions.count', { count });\n",
+  'tests/smoke-appium/onboarding/onboarding.spec.ts':
+    "import { SmokeAccounts } from '../../tags.js';\n" +
+    "it('greets', () => expect(screen).toHaveText('Welcome back'));\n",
   'tests/smoke-appium/accounts/accounts.spec.ts':
     "import AccountSheet from '../../page-objects/accounts/AccountSheet';\n" +
     "import { SmokeAccounts } from '../../tags.js';\n",
@@ -198,6 +205,39 @@ describe('locale-key-impact', () => {
 
       assert.deepEqual(result?.selectedTags, ['SmokeAccounts']);
       assert.match(String(result?.detail), /no consumers found for 1 key/);
+    });
+
+    it('traces a plural leaf to code that reads its parent key', () => {
+      headLocale({
+        ...baseLocale,
+        positions: {
+          count: { ...baseLocale.positions.count, other: '{{count}} open' },
+        },
+      });
+
+      const result = evaluate();
+
+      assert.match(
+        String(result?.detail),
+        /app\/components\/Views\/Positions\/PositionsCount\.tsx/,
+      );
+    });
+
+    it('selects a smoke spec that hardcodes the old copy', () => {
+      headLocale({ ...baseLocale, onboarding: { welcome: 'Welcome' } });
+
+      assert.deepEqual(evaluate()?.selectedTags, ['SmokeAccounts']);
+    });
+
+    it('keeps tags from a changed smoke spec when changed keys have no consumers', () => {
+      headLocale({ ...baseLocale, unused: { label: 'Still never shown' } });
+
+      const result = evaluate([
+        LOCALE,
+        'tests/smoke-appium/accounts/accounts.spec.ts',
+      ]);
+
+      assert.deepEqual(result?.selectedTags, ['SmokeAccounts']);
     });
 
     it('runs ALL when more keys change than the limit allows', () => {
