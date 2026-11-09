@@ -12,6 +12,7 @@ export const TraderPositionViewSelectorsIDs = {
   HEADER_COMPACT_PERP_BADGES: 'trader-position-view-header-compact-perp-badges',
   COMPACT_TOKEN_STATS: 'trader-position-view-compact-token-stats',
   BUY_BUTTON: 'trader-position-view-buy-button',
+  SELL_BUTTON: 'trader-position-view-sell-button',
   TRADE_BUTTON: 'trader-position-view-trade-button',
   COPY_TOKEN_ADDRESS_BUTTON: 'trader-position-view-copy-token-address-button',
   TOKEN_INFO_ROW: 'trader-position-view-token-info-row',

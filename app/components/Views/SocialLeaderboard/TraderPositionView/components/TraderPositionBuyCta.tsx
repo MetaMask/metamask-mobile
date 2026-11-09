@@ -1,14 +1,19 @@
 import type { Position } from '@metamask/social-controllers';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIsFocused } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
+  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import { areAddressesEqual } from '../../../../../util/address';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
   useSwapBridgeNavigation,
@@ -60,6 +65,7 @@ export interface TraderPositionBuyCtaProps {
    */
   onBuyCtaClicked: () => void;
   buyButtonTestID: string;
+  sellButtonTestID: string;
 }
 
 /**
@@ -72,6 +78,9 @@ export interface TraderPositionBuyCtaProps {
  *
  * Rendering this component (spot-only) is what scopes the experiment exposure
  * to spot positions — perps never mount it, so perps users are never exposed.
+ *
+ * The viewer's own OPEN spot position is a holding of the selected account, so
+ * it renders Sell + Buy instead of the copy-trade Trade button.
  */
 const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   position,
@@ -84,7 +93,10 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   postTradeShare,
   onBuyCtaClicked,
   buyButtonTestID,
+  sellButtonTestID,
 }) => {
+  const tw = useTailwind();
+  const halfWidth = tw.style('flex-1');
   const { variant } = useABTest(
     TOP_TRADERS_BUY_ACTION_AB_KEY,
     TOP_TRADERS_BUY_ACTION_VARIANTS,
@@ -94,7 +106,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   const isFocused = useIsFocused();
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
-  const [retryTradeMode, setRetryTradeMode] = useState<
+  const [sheetTradeMode, setSheetTradeMode] = useState<
     QuickBuyTradeMode | undefined
   >();
   // Treatment tapped Buy before the destination metadata finished resolving —
@@ -111,6 +123,16 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   // `target` is stable for the lifetime of this screen, so `destToken` /
   // `isLoading` always reflect the current position (no stale-carryover).
   const { destToken, isLoading } = useQuickBuySetup(target);
+
+  const selectedAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
+  const ownTraderAddress = traderAddress ?? '';
+  const ownSelectedAddress = selectedAccountAddress ?? '';
+  const isOwnOpenPosition =
+    position != null &&
+    isTraderPositionClosed === false &&
+    areAddressesEqual(ownTraderAddress, ownSelectedAddress);
 
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.FollowTradingTokenScreen,
@@ -174,8 +196,15 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
-    setRetryTradeMode(undefined);
+    setSheetTradeMode(undefined);
   }, []);
+
+  const handleSellPress = useCallback(() => {
+    if (!position) return;
+    playImpact(ImpactMoment.PrimaryCTA);
+    setSheetTradeMode('sell');
+    setIsQuickBuyVisible(true);
+  }, [position]);
 
   const handlePostSwapReopen = useCallback(
     (
@@ -188,7 +217,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
         target.tokenAddress === reopenTarget.tokenAddress &&
         target.chain === reopenTarget.chain
       ) {
-        setRetryTradeMode(tradeMode);
+        setSheetTradeMode(tradeMode);
         setIsQuickBuyVisible(true);
       }
     },
@@ -202,15 +231,38 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   return (
     <>
       <Box twClassName="px-4 py-3">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleBuyPress}
-          testID={buyButtonTestID}
-        >
-          {strings('social_leaderboard.trader_position.trade')}
-        </Button>
+        {isOwnOpenPosition ? (
+          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              style={halfWidth}
+              onPress={handleSellPress}
+              testID={sellButtonTestID}
+            >
+              {strings('social_leaderboard.trader_position.sell')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              style={halfWidth}
+              onPress={handleBuyPress}
+              testID={buyButtonTestID}
+            >
+              {strings('social_leaderboard.trader_position.buy')}
+            </Button>
+          </Box>
+        ) : (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleBuyPress}
+            testID={buyButtonTestID}
+          >
+            {strings('social_leaderboard.trader_position.trade')}
+          </Button>
+        )}
       </Box>
 
       <TraderPositionQuickBuy
@@ -227,7 +279,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
         postTradeShareOwner={
           postTradeShare ? PostTradeShareOwner.traderPosition : undefined
         }
-        initialTradeMode={retryTradeMode}
+        initialTradeMode={sheetTradeMode}
       />
     </>
   );

@@ -1,6 +1,8 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
+import type { RootState } from '../../../../../reducers';
 import TraderPositionBuyCta from './TraderPositionBuyCta';
 import { useABTest } from '../../../../../hooks/useABTest';
 import { useSwapBridgeNavigation } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
@@ -61,6 +63,12 @@ jest.mock('../../../../../util/haptics', () => ({
   ImpactMoment: { PrimaryCTA: 'PrimaryCTA' },
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
 const mockUseABTest = useABTest as jest.MockedFunction<typeof useABTest>;
 const mockUseSwapBridgeNavigation =
   useSwapBridgeNavigation as jest.MockedFunction<
@@ -71,6 +79,23 @@ const mockUseQuickBuySetup = useQuickBuySetup as jest.MockedFunction<
 >;
 
 const BUY_BUTTON_TEST_ID = 'buy-button';
+const SELL_BUTTON_TEST_ID = 'sell-button';
+const VIEWER_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
+
+const mockReduxState = {
+  engine: {
+    backgroundState: {
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            'account-1': { id: 'account-1', address: VIEWER_ADDRESS },
+          },
+          selectedAccount: 'account-1',
+        },
+      },
+    },
+  },
+} as unknown as RootState;
 
 const mockPosition: Position = {
   tokenAddress: '0xtoken',
@@ -118,6 +143,7 @@ const renderCta = (
       position={mockPosition}
       onBuyCtaClicked={props?.onBuyCtaClicked ?? jest.fn()}
       buyButtonTestID={BUY_BUTTON_TEST_ID}
+      sellButtonTestID={SELL_BUTTON_TEST_ID}
       {...props}
     />,
   );
@@ -127,6 +153,7 @@ describe('TraderPositionBuyCta', () => {
     jest.clearAllMocks();
     clearPostTradeShareSession();
     mockIsFocused = true;
+    mockUseSelector.mockImplementation((selector) => selector(mockReduxState));
     mockUseSwapBridgeNavigation.mockReturnValue({
       goToSwaps: mockGoToSwaps,
     } as unknown as ReturnType<typeof useSwapBridgeNavigation>);
@@ -156,6 +183,74 @@ describe('TraderPositionBuyCta', () => {
 
     expect(getByText('Trade')).toBeOnTheScreen();
     expect(queryByText('Buy')).toBeNull();
+  });
+
+  describe("the viewer's own open spot position", () => {
+    it('renders Sell and Buy instead of Trade', () => {
+      const { getByText, getByTestId, queryByText } = renderCta({
+        traderAddress: '0x1234567890ABCDEF1234567890abcdef12345678',
+        isTraderPositionClosed: false,
+      });
+
+      expect(getByTestId(SELL_BUTTON_TEST_ID)).toBeOnTheScreen();
+      expect(getByText('Sell')).toBeOnTheScreen();
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByText('Trade')).toBeNull();
+    });
+
+    it('opens the QuickBuy sheet in sell mode on Sell press', () => {
+      const onBuyCtaClicked = jest.fn();
+      const { getByTestId } = renderCta({
+        traderAddress: VIEWER_ADDRESS,
+        isTraderPositionClosed: false,
+        onBuyCtaClicked,
+      });
+
+      fireEvent.press(getByTestId(SELL_BUTTON_TEST_ID));
+
+      expect(mockPlayImpact).toHaveBeenCalledWith('PrimaryCTA');
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true, initialTradeMode: 'sell' }),
+      );
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+      expect(onBuyCtaClicked).not.toHaveBeenCalled();
+    });
+
+    it('opens the QuickBuy sheet in sell mode in the treatment variant', () => {
+      setVariant(true);
+      const { getByTestId } = renderCta({
+        traderAddress: VIEWER_ADDRESS,
+        isTraderPositionClosed: false,
+      });
+
+      fireEvent.press(getByTestId(SELL_BUTTON_TEST_ID));
+
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true, initialTradeMode: 'sell' }),
+      );
+    });
+  });
+
+  it("renders only Trade for another trader's open position", () => {
+    const { getByText, queryByText } = renderCta({
+      traderAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+      isTraderPositionClosed: false,
+    });
+
+    expect(getByText('Trade')).toBeOnTheScreen();
+    expect(queryByText('Sell')).toBeNull();
+    expect(queryByText('Buy')).toBeNull();
+  });
+
+  it("keeps Trade for the viewer's own closed position", () => {
+    const { getByText, queryByText } = renderCta({
+      traderAddress: VIEWER_ADDRESS,
+      isTraderPositionClosed: true,
+    });
+
+    expect(getByText('Trade')).toBeOnTheScreen();
+    expect(queryByText('Sell')).toBeNull();
   });
 
   describe('control variant', () => {
@@ -263,6 +358,7 @@ describe('TraderPositionBuyCta', () => {
           position={mockPosition}
           onBuyCtaClicked={onBuyCtaClicked}
           buyButtonTestID={BUY_BUTTON_TEST_ID}
+          sellButtonTestID={SELL_BUTTON_TEST_ID}
         />,
       );
 
@@ -292,6 +388,7 @@ describe('TraderPositionBuyCta', () => {
           position={mockPosition}
           onBuyCtaClicked={jest.fn()}
           buyButtonTestID={BUY_BUTTON_TEST_ID}
+          sellButtonTestID={SELL_BUTTON_TEST_ID}
         />,
       );
 

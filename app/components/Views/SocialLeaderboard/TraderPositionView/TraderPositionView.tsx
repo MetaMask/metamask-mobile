@@ -742,6 +742,7 @@ const TraderPositionView = () => {
         onBuyCtaClicked={handleBuyCtaClicked}
         postTradeShare={isSocialV1 === true}
         buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+        sellButtonTestID={TraderPositionViewSelectorsIDs.SELL_BUTTON}
       />
     );
   }
