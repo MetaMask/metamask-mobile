@@ -41,19 +41,24 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
   },
   {
     id: 'identityVerification',
+    // Server-side pending survives reinstall even when the local provider-flow
+    // marker does not, so it must not reopen SumSub.
     isComplete: (snapshot) =>
       snapshot.sessionDisclaimersComplete &&
       snapshot.kycStatus !== 'retry' &&
       (snapshot.kycStatus === 'approved' ||
+        (snapshot.kycStatus === 'pending' &&
+          snapshot.providerFlowStatus === 'not_started') ||
         snapshot.providerFlowStatus === 'submitted'),
   },
 ];
 
 /**
  * Maps controller facts onto the next onboarding module or status destination.
- * This read does not sign or create an account. Approved KYC with a usable
- * autoramp opens the account screen. Approved KYC without one opens Identity
- * verified. Account setup runs later, on that account screen.
+ * This read does not sign or create an account. A usable autoramp opens the
+ * account screen even when reinstall wiped local terms and the KYC session.
+ * Approved KYC without one opens Identity verified. Account setup runs later,
+ * on that account screen.
  *
  * A rejected applicant opens the failure screen. Rejection is terminal, so
  * that screen contacts support instead of requesting another SumSub token.
@@ -79,6 +84,14 @@ export const getVbaDestinationForSnapshot = (
     return 'kycRejected';
   }
 
+  // Reinstall drops local vendor terms and the persisted KYC session.
+  // Hydrate can still report a usable autoramp once that session is
+  // reattached. Those incomplete modules must not send an existing account
+  // back through creation, which then waits on a session that already exists.
+  if (snapshot.autorampStatus === 'ready') {
+    return 'complete';
+  }
+
   for (const moduleDescriptor of VBA_ONBOARDING_MODULES) {
     if (!moduleDescriptor.isComplete(snapshot)) {
       return moduleDescriptor.id;
@@ -86,9 +99,7 @@ export const getVbaDestinationForSnapshot = (
   }
 
   if (snapshot.kycStatus === 'approved') {
-    return snapshot.autorampStatus === 'ready'
-      ? 'complete'
-      : 'identityVerified';
+    return 'identityVerified';
   }
 
   if (

@@ -38,9 +38,7 @@ import { getSnapAccountServiceMessenger } from './snap-account-service-messenger
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
-///: END:ONLY_INCLUDE_IF
+import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import {
@@ -62,6 +60,11 @@ import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
 } from './predict-order-service-messenger';
+import { getPredictVenueControllerMessenger } from './predict-venue-controller-messenger';
+import {
+  getPredictDeviceAuthServiceInitMessenger,
+  getPredictDeviceAuthServiceMessenger,
+} from './predict-device-auth-service-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -293,12 +296,20 @@ export const MESSENGER_FACTORIES = {
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: {
-    getMessenger: getSamplePetnamesControllerMessenger,
+    // Only construct the (parented) messenger when the feature is actually
+    // enabled. `initMessengerClients` calls `getMessenger` unconditionally
+    // for every entry in `initFunctions`, so creating a real child messenger
+    // here even when `samplePetnamesControllerInit` is a no-op would
+    // register it with the root messenger without ever tearing it down.
+    getMessenger:
+      process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+        ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+          require('../../../features/SampleFeature/controllers/sample-petnames-controller-messenger')
+            .getSamplePetnamesControllerMessenger
+        : (noop as () => SamplePetnamesControllerMessenger),
     getInitMessenger: noop,
   },
-  ///: END:ONLY_INCLUDE_IF
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: getSmartTransactionsControllerInitMessenger,
@@ -327,9 +338,17 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPredictPortfolioServiceMessenger,
     getInitMessenger: getPredictPortfolioServiceInitMessenger,
   },
+  PredictDeviceAuthService: {
+    getMessenger: getPredictDeviceAuthServiceMessenger,
+    getInitMessenger: getPredictDeviceAuthServiceInitMessenger,
+  },
   PredictOrderService: {
     getMessenger: getPredictOrderServiceMessenger,
     getInitMessenger: getPredictOrderServiceInitMessenger,
+  },
+  PredictVenueController: {
+    getMessenger: getPredictVenueControllerMessenger,
+    getInitMessenger: noop,
   },
   RecurringOrdersDataService: {
     getMessenger: getRecurringOrdersDataServiceMessenger,

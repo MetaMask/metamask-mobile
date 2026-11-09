@@ -15,11 +15,20 @@ jest.mock('./TraderAvatar', () => {
       testID,
       imageUrl,
       address,
+      profileId,
     }: {
       testID?: string;
       imageUrl?: string | null;
       address?: string;
-    }) => <MockView testID={testID} imageUrl={imageUrl} address={address} />,
+      profileId?: string;
+    }) => (
+      <MockView
+        testID={testID}
+        imageUrl={imageUrl}
+        address={address}
+        profileId={profileId}
+      />
+    ),
   };
 });
 
@@ -174,7 +183,7 @@ describe('SocialTraderIdentityRow', () => {
     expect(onIdentityPress).toHaveBeenCalledTimes(1);
   });
 
-  it('passes the profile id to the avatar', () => {
+  it('passes the wallet address and profile id to the avatar', () => {
     renderWithProvider(
       <SocialTraderIdentityRow
         author={dolphinAuthor()}
@@ -189,7 +198,29 @@ describe('SocialTraderIdentityRow', () => {
     const avatar = screen.getByTestId(
       SocialTraderIdentityRowSelectorsIDs.AVATAR,
     );
-    expect(avatar.props.address).toBe('profile-alice');
+    expect(avatar.props.address).toBe(
+      '0x1111111111111111111111111111111111111111',
+    );
+    expect(avatar.props.profileId).toBe('profile-alice');
     expect(avatar.props.imageUrl).toBeNull();
+  });
+
+  it('passes the profile id when the author has no wallet address', () => {
+    renderWithProvider(
+      <SocialTraderIdentityRow
+        author={authorWithoutStats()}
+        handle="ghost"
+        imageUrl={null}
+        timestampMs={Date.now()}
+        recyclingKey="row-6"
+        onMorePress={onMorePress}
+      />,
+    );
+
+    const avatar = screen.getByTestId(
+      SocialTraderIdentityRowSelectorsIDs.AVATAR,
+    );
+    expect(avatar.props.address).toBeUndefined();
+    expect(avatar.props.profileId).toBe('profile-empty');
   });
 });

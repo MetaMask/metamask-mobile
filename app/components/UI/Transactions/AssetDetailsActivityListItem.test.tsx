@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import {
   TransactionStatus,
   TransactionType,
@@ -8,7 +9,10 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
 import type { TransactionWithImportTime } from './AssetDetailsActivityListItem.utils';
-import { resolveActivityListItemTitle } from '../ActivityListItemRow/ActivityListItemRow';
+import {
+  ActivityListItemRow,
+  resolveActivityListItemTitle,
+} from '../ActivityListItemRow/ActivityListItemRow';
 import { handleUnifiedSwapsTxHistoryItemClick } from '../Bridge/utils/transaction-history';
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -62,6 +66,27 @@ const createTransaction = (
   ...overrides,
 });
 
+const usdc = '0x754704bc059f8c67012fed69bc8a327a5aafb603';
+
+const renderItem = (ui: React.ReactElement) =>
+  renderWithProvider(ui, {
+    state: {
+      engine: {
+        backgroundState: {
+          AssetsController: {
+            assetsInfo: {
+              [`eip155:143/erc20:${usdc}`]: {
+                type: 'erc20',
+                symbol: 'USDC',
+                decimals: 6,
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
 describe('AssetDetailsActivityListItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -71,7 +96,7 @@ describe('AssetDetailsActivityListItem', () => {
     const navigation = createNavigation();
     const transaction = createTransaction({ insertImportTime: true });
 
-    const { getByTestId } = render(
+    const { getByTestId } = renderItem(
       <AssetDetailsActivityListItem
         transaction={transaction}
         index={0}
@@ -96,7 +121,7 @@ describe('AssetDetailsActivityListItem', () => {
     const navigation = createNavigation();
     const transaction = createTransaction({ insertImportTime: true });
 
-    const { queryByTestId } = render(
+    const { queryByTestId } = renderItem(
       <AssetDetailsActivityListItem
         transaction={transaction}
         index={0}
@@ -128,7 +153,7 @@ describe('AssetDetailsActivityListItem', () => {
       },
     };
 
-    const { getByTestId } = render(
+    const { getByTestId } = renderItem(
       <AssetDetailsActivityListItem
         transaction={transaction}
         index={0}
@@ -153,7 +178,7 @@ describe('AssetDetailsActivityListItem', () => {
     const navigation = createNavigation();
     const transaction = createTransaction();
 
-    const { getByTestId } = render(
+    const { getByTestId } = renderItem(
       <AssetDetailsActivityListItem
         transaction={transaction}
         index={0}
@@ -182,7 +207,7 @@ describe('AssetDetailsActivityListItem', () => {
       status: TransactionStatus.approved,
     });
 
-    const { getByTestId } = render(
+    const { getByTestId } = renderItem(
       <AssetDetailsActivityListItem
         transaction={transaction}
         index={0}
@@ -201,31 +226,29 @@ describe('AssetDetailsActivityListItem', () => {
     });
   });
 
-  it('renders successfully when token metadata is resolved from the selected account group EVM account', () => {
+  it('resolves token decimals from AssetsController metadata, independent of balances', () => {
     const navigation = createNavigation();
-    expect(() =>
-      render(
-        <AssetDetailsActivityListItem
-          transaction={createTransaction()}
-          index={0}
-          assetSymbol="ETH"
-          chainId="0x1"
-          groupEvmAccountAddress="0x123"
-          networkConfigurations={{ '0x1': { nativeCurrency: 'ETH' } }}
-          allTokens={{
-            '0x1': {
-              '0x123': [
-                {
-                  address: '0x456',
-                  symbol: 'USDC',
-                  decimals: 6,
-                },
-              ],
-            },
-          }}
-          navigation={navigation}
-        />,
-      ),
-    ).not.toThrow();
+
+    renderItem(
+      <AssetDetailsActivityListItem
+        transaction={createTransaction({
+          chainId: '0x8f',
+          type: TransactionType.tokenMethodTransfer,
+          txParams: { from: '0x123', to: usdc, value: '0x0' },
+        })}
+        index={0}
+        assetSymbol="USDC"
+        chainId="0x8f"
+        navigation={navigation}
+      />,
+    );
+
+    expect(jest.mocked(ActivityListItemRow).mock.calls[0][0].item).toEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          token: expect.objectContaining({ decimals: 6 }),
+        }),
+      }),
+    );
   });
 });

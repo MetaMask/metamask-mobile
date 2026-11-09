@@ -1,11 +1,17 @@
 import { getVersion } from 'react-native-device-info';
+import { BASE_USDC_TOKEN_ADDRESS } from '../../../components/UI/Card/constants';
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 import {
   DEFAULT_IMMERSVE_CHAINS,
   DEFAULT_IMMERSVE_CONFIG,
   DEFAULT_IMMERSVE_COUNTRIES,
+  IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
   defaultCardFeatureFlag,
 } from './defaults';
 import {
+  findImmersveFundingChannelById,
+  IMPLEMENTED_PROVISIONING_WALLETS,
+  NO_PROVISIONING_WALLETS,
   getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
@@ -17,15 +23,38 @@ import {
   readCardProviderEnabled,
   readCardUkMigrationFlag,
   readCardUkMigrationSignInRoutingEnabled,
+  readImmersveCountryFunding,
+  readImmersveFundingChannels,
   resolveCardProviderForCountry,
+  resolveCardProvisioningWallets,
   resolveCardUkMigrationState,
+  resolveImmersveFundingChannel,
 } from './read';
+import type { ProvisioningWallet } from './types';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '10.0.0'),
 }));
 
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
+jest.mock('../../../util/remoteFeatureFlag', () => {
+  const actual = jest.requireActual('../../../util/remoteFeatureFlag');
+  return {
+    ...actual,
+    validatedVersionGatedFeatureFlag: jest.fn((flag: unknown) =>
+      actual.validatedVersionGatedFeatureFlag(flag),
+    ),
+  };
+});
+
 const mockGetVersion = jest.mocked(getVersion);
+const mockVersionGate = jest.mocked(validatedVersionGatedFeatureFlag);
+const actualVersionGate = jest.requireActual<
+  typeof import('../../../util/remoteFeatureFlag')
+>('../../../util/remoteFeatureFlag').validatedVersionGatedFeatureFlag;
 
 const IMMERSVE = 'immersve';
 
@@ -33,6 +62,7 @@ describe('card feature flag readers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetVersion.mockReturnValue('10.0.0');
+    mockVersionGate.mockImplementation(actualVersionGate);
   });
 
   describe('readCardFeatureFlag', () => {
@@ -130,7 +160,7 @@ describe('card feature flag readers', () => {
       });
     });
 
-    it('gates off when the binary is below minimumVersion', () => {
+    it('returns false when the binary is below minimumVersion', () => {
       mockGetVersion.mockReturnValue('8.0.0');
       expect(
         readCardProviderEnabled(
@@ -198,7 +228,7 @@ describe('card feature flag readers', () => {
           { cardImmersveCountries: [1, 2], cardFeature: {} },
           IMMERSVE,
         ),
-      ).toBe(DEFAULT_IMMERSVE_COUNTRIES);
+      ).toEqual(DEFAULT_IMMERSVE_COUNTRIES);
     });
 
     it('ignores the legacy immersveCountries key entirely', () => {
@@ -207,7 +237,7 @@ describe('card feature flag readers', () => {
           { cardFeature: { immersveCountries: ['ES'] } },
           IMMERSVE,
         ),
-      ).toBe(DEFAULT_IMMERSVE_COUNTRIES);
+      ).toEqual(DEFAULT_IMMERSVE_COUNTRIES);
     });
   });
 
@@ -333,6 +363,242 @@ describe('card feature flag readers', () => {
           'GB',
         ),
       ).toBe('baanx');
+    });
+
+    it('does not route NZ to Immersve when the country funding flag is absent', () => {
+      expect(
+        resolveCardProviderForCountry(
+          {
+            cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+            cardImmersveCountries: ['GB'],
+          },
+          'NZ',
+        ),
+      ).toBe('baanx');
+    });
+  });
+
+  describe('Immersve funding channels', () => {
+    const baseAssetId = `eip155:8453/erc20:${BASE_USDC_TOKEN_ADDRESS}`;
+    const lineaUsdcAddress = '0x176211869cA2b568f2A7D4EE941E073a821EE1ff';
+    const lineaAssetId = `eip155:59144/erc20:${lineaUsdcAddress}`;
+    const moneyAssetId = `eip155:143/erc20:${IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS}`;
+    const usdcSpender = '0x1111111111111111111111111111111111111111';
+    const lineaSpender = '0x2222222222222222222222222222222222222222';
+    const moneySpender = '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964';
+    const moneyChannelId = 'd32fbc3527bc048e7de9e9fdc68c1966';
+    const topLevelWalletConfig = {
+      network: 'base-mainnet',
+      fundingChannelId: 'usdc-base-channel',
+      spenderAddress: usdcSpender,
+    };
+
+    const fundingFlags = {
+      cardImmersveConfig: {
+        ...topLevelWalletConfig,
+        fundingChannels: {
+          usdcBase: {
+            source: 'wallet',
+            fundingChannelId: 'usdc-base-channel',
+            assetId: baseAssetId,
+            spenderAddress: usdcSpender,
+          },
+          usdcLinea: {
+            source: 'wallet',
+            fundingChannelId: 'usdc-linea-channel',
+            assetId: lineaAssetId,
+            spenderAddress: lineaSpender,
+          },
+          moneyAccount: {
+            source: 'moneyAccount',
+            fundingChannelId: moneyChannelId,
+            assetId: moneyAssetId,
+            spenderAddress: moneySpender,
+          },
+        },
+      },
+      cardImmersveChains: {
+        ...DEFAULT_IMMERSVE_CHAINS,
+        'eip155:59144': {
+          network: 'linea-mainnet',
+          rpcUrl: 'https://linea.example',
+          fallbackRpcUrl: 'https://rpc.linea.build',
+          tokens: { [lineaAssetId]: { decimals: 6, symbol: 'USDC' } },
+        },
+      },
+      cardImmersveCountries: {
+        GB: { fundingChannel: 'usdcBase' },
+        TH: { fundingChannel: 'usdcLinea' },
+        NZ: { fundingChannel: 'moneyAccount' },
+      },
+    };
+
+    it('resolves a channel through cardImmersveChains', () => {
+      expect(resolveImmersveFundingChannel(fundingFlags, 'nz')).toMatchObject({
+        source: 'moneyAccount',
+        fundingChannelId: moneyChannelId,
+        assetId: moneyAssetId,
+        spenderAddress: moneySpender,
+        caipChainId: 'eip155:143',
+        network: 'monad-mainnet',
+        tokenAddress: IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
+        decimals: 6,
+        symbol: 'vmUSD',
+      });
+    });
+
+    it('lets countries use different wallet assets', () => {
+      expect(resolveImmersveFundingChannel(fundingFlags, 'GB')).toMatchObject({
+        source: 'wallet',
+        caipChainId: 'eip155:8453',
+        network: 'base-mainnet',
+        tokenAddress: BASE_USDC_TOKEN_ADDRESS,
+      });
+      expect(resolveImmersveFundingChannel(fundingFlags, 'TH')).toMatchObject({
+        source: 'wallet',
+        fundingChannelId: 'usdc-linea-channel',
+        caipChainId: 'eip155:59144',
+        network: 'linea-mainnet',
+        tokenAddress: lineaUsdcAddress,
+        spenderAddress: lineaSpender,
+        rpcUrl: 'https://linea.example',
+        fallbackRpcUrl: 'https://rpc.linea.build',
+      });
+    });
+
+    it('routes every mapped country to Immersve', () => {
+      expect(readCardProviderCountries(fundingFlags, IMMERSVE)).toEqual([
+        'GB',
+        'TH',
+        'NZ',
+      ]);
+      expect(
+        resolveCardProviderForCountry(
+          {
+            ...fundingFlags,
+            cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+          },
+          'TH',
+        ),
+      ).toBe('immersve');
+    });
+
+    it('drops a channel whose asset is missing from chains, and its countries', () => {
+      const flags = {
+        cardImmersveConfig: fundingFlags.cardImmersveConfig,
+        cardImmersveCountries: fundingFlags.cardImmersveCountries,
+      };
+
+      expect(readImmersveFundingChannels(flags).usdcLinea).toBeUndefined();
+      expect(Object.keys(readImmersveCountryFunding(flags))).toEqual([
+        'GB',
+        'NZ',
+      ]);
+    });
+
+    it('drops channels with an unknown source and countries pointing at unknown channels', () => {
+      const flags = {
+        cardImmersveConfig: {
+          ...topLevelWalletConfig,
+          fundingChannels: {
+            usdcBase: {
+              source: 'card',
+              fundingChannelId: 'usdc-base-channel',
+              assetId: baseAssetId,
+              spenderAddress: usdcSpender,
+            },
+          },
+        },
+        cardImmersveCountries: {
+          GB: { fundingChannel: 'usdcBase' },
+          FR: { fundingChannel: 'missing' },
+          DE: 'wallet',
+        },
+      };
+
+      expect(readImmersveFundingChannels(flags)).toEqual({});
+      expect(readImmersveCountryFunding(flags)).toEqual({});
+    });
+
+    it('uses the top-level wallet channel for a legacy country list', () => {
+      const flags = {
+        cardImmersveConfig: {
+          ...topLevelWalletConfig,
+          fundingChannels: fundingFlags.cardImmersveConfig.fundingChannels,
+        },
+        cardImmersveCountries: ['GB'],
+      };
+
+      expect(readImmersveCountryFunding(flags)).toEqual({
+        GB: expect.objectContaining({
+          source: 'wallet',
+          fundingChannelId: 'usdc-base-channel',
+          network: 'base-mainnet',
+          tokenAddress: BASE_USDC_TOKEN_ADDRESS,
+          spenderAddress: usdcSpender,
+        }),
+      });
+      expect(resolveImmersveFundingChannel(flags, 'NZ')).toBeNull();
+    });
+
+    it('defaults an absent country flag to GB on the top-level wallet channel', () => {
+      expect(
+        Object.keys(
+          readImmersveCountryFunding({
+            cardImmersveConfig: topLevelWalletConfig,
+          }),
+        ),
+      ).toEqual(['GB']);
+    });
+
+    it('drops a country below its minimumVersion and keeps one without a floor', () => {
+      const flags = {
+        ...fundingFlags,
+        cardImmersveCountries: {
+          GB: { fundingChannel: 'usdcBase' },
+          NZ: { fundingChannel: 'moneyAccount', minimumVersion: '9.0.0' },
+        },
+      };
+
+      mockGetVersion.mockReturnValue('8.18.0');
+      expect(Object.keys(readImmersveCountryFunding(flags))).toEqual(['GB']);
+
+      mockGetVersion.mockReturnValue('9.0.0');
+      expect(Object.keys(readImmersveCountryFunding(flags))).toEqual([
+        'GB',
+        'NZ',
+      ]);
+    });
+
+    it('drops a country with an invalid minimumVersion and keeps the rest', () => {
+      const flags = {
+        ...fundingFlags,
+        cardImmersveCountries: {
+          GB: { fundingChannel: 'usdcBase' },
+          NZ: {
+            fundingChannel: 'moneyAccount',
+            minimumVersion: 'not-a-version',
+          },
+        },
+      };
+
+      expect(() => readImmersveCountryFunding(flags)).not.toThrow();
+      expect(Object.keys(readImmersveCountryFunding(flags))).toEqual(['GB']);
+    });
+
+    it('finds a channel by its Immersve funding channel id', () => {
+      expect(
+        findImmersveFundingChannelById(fundingFlags, moneyChannelId)?.source,
+      ).toBe('moneyAccount');
+      expect(
+        findImmersveFundingChannelById(
+          { cardImmersveConfig: topLevelWalletConfig },
+          'usdc-base-channel',
+        )?.tokenAddress,
+      ).toBe(BASE_USDC_TOKEN_ADDRESS);
+      expect(
+        findImmersveFundingChannelById(fundingFlags, 'missing'),
+      ).toBeNull();
     });
   });
 
@@ -765,5 +1031,598 @@ describe('card feature flag readers', () => {
 
       expect(severity).toBe('danger');
     });
+  });
+});
+
+const provisioningOn = (minimumVersion = '0.0.0') => ({
+  enabled: true,
+  minimumVersion,
+});
+
+const provisioningOff = (minimumVersion = '0.0.0') => ({
+  enabled: false,
+  minimumVersion,
+});
+
+const WITH_SAMSUNG: ProvisioningWallet[] = [
+  ...IMPLEMENTED_PROVISIONING_WALLETS,
+  'samsung_pay',
+];
+
+const baanxUsAppleFlag = {
+  cardBaanxProvisioning: {
+    enabled: true,
+    minimumVersion: '0.0.0',
+    countries: {
+      US: {
+        enabled: true,
+        ios: { apple_wallet: provisioningOn() },
+        android: { google_wallet: provisioningOn() },
+      },
+    },
+  },
+};
+
+describe('resolveCardProvisioningWallets', () => {
+  beforeEach(() => {
+    mockGetVersion.mockReturnValue('10.0.0');
+    mockVersionGate.mockImplementation(actualVersionGate);
+  });
+
+  const iosGalileo = {
+    platform: 'ios' as const,
+    countryCode: 'US',
+    cardProcessor: 'galileo',
+  };
+
+  it('returns the shared empty list for an unknown provider', () => {
+    const result = resolveCardProvisioningWallets(
+      baanxUsAppleFlag,
+      'other',
+      iosGalileo,
+    );
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('keeps a wallet when the provider gate and the leaf are enabled', () => {
+    const result = resolveCardProvisioningWallets(
+      baanxUsAppleFlag,
+      'baanx',
+      iosGalileo,
+    );
+
+    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
+  });
+
+  it('returns no wallets when the provider gate is disabled', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        ...baanxUsAppleFlag.cardBaanxProvisioning,
+        enabled: false,
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('returns no wallets when the country entry is disabled', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: false,
+            ios: { apple_wallet: provisioningOn() },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('returns no wallets when the wallet leaf is disabled', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            ios: { apple_wallet: provisioningOff() },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('drops the provider when its minimumVersion is above the app version', () => {
+    mockGetVersion.mockReturnValue('10.0.0');
+    const flags = {
+      cardBaanxProvisioning: {
+        ...baanxUsAppleFlag.cardBaanxProvisioning,
+        minimumVersion: '11.0.0',
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('keeps the provider when its minimumVersion is below the app version', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        ...baanxUsAppleFlag.cardBaanxProvisioning,
+        minimumVersion: '9.0.0',
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
+  });
+
+  it('drops a leaf whose minimumVersion is above the app version', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            ios: { apple_wallet: provisioningOn('11.0.0') },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('keeps a leaf whose minimumVersion is below the app version', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            ios: { apple_wallet: provisioningOn('9.0.0') },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
+  });
+
+  it('reads a flag wrapped in a name and value envelope', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        name: 'treatment',
+        value: baanxUsAppleFlag.cardBaanxProvisioning,
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
+  });
+
+  it('returns no wallets when the new key is missing', () => {
+    const result = resolveCardProvisioningWallets({}, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('returns no wallets when the new key is a string', () => {
+    const result = resolveCardProvisioningWallets(
+      { cardBaanxProvisioning: 'on' },
+      'baanx',
+      iosGalileo,
+    );
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('returns no wallets when the new key is an array', () => {
+    const result = resolveCardProvisioningWallets(
+      { cardBaanxProvisioning: [] },
+      'baanx',
+      iosGalileo,
+    );
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('returns no wallets when the new key has no countries object', () => {
+    const result = resolveCardProvisioningWallets(
+      { cardBaanxProvisioning: { enabled: true, minimumVersion: '0.0.0' } },
+      'baanx',
+      iosGalileo,
+    );
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('returns no wallets for an empty countries object', () => {
+    const result = resolveCardProvisioningWallets(
+      {
+        cardBaanxProvisioning: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+          countries: {},
+        },
+      },
+      'baanx',
+      iosGalileo,
+    );
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('returns no wallets when the version helper returns undefined', () => {
+    mockVersionGate.mockReturnValue(undefined);
+
+    const result = resolveCardProvisioningWallets(
+      baanxUsAppleFlag,
+      'baanx',
+      iosGalileo,
+    );
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('drops apple_wallet listed under android', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            android: { apple_wallet: provisioningOn() },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', {
+      platform: 'android',
+      countryCode: 'US',
+      cardProcessor: 'galileo',
+    });
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('ignores devices on an apple_wallet leaf', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            ios: {
+              apple_wallet: { ...provisioningOn(), devices: ['phone'] },
+            },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
+  });
+
+  it('drops google_wallet listed under ios', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            ios: { google_wallet: provisioningOn() },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('drops samsung_pay in this build', () => {
+    const flags = {
+      cardImmersveProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          AU: {
+            enabled: true,
+            android: { samsung_pay: provisioningOn() },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'immersve', {
+      platform: 'android',
+      countryCode: 'AU',
+    });
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('uses phone and watch when an implemented samsung leaf omits devices', () => {
+    const flags = {
+      cardImmersveProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          AU: {
+            enabled: true,
+            android: { samsung_pay: provisioningOn() },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(
+      flags,
+      'immersve',
+      { platform: 'android', countryCode: 'AU' },
+      WITH_SAMSUNG,
+    );
+
+    expect(result).toEqual([
+      { wallet: 'samsung_pay', devices: ['phone', 'watch'] },
+    ]);
+  });
+
+  it('drops an implemented samsung leaf whose devices list is empty', () => {
+    const flags = {
+      cardImmersveProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          AU: {
+            enabled: true,
+            android: {
+              samsung_pay: { ...provisioningOn(), devices: [] },
+            },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(
+      flags,
+      'immersve',
+      { platform: 'android', countryCode: 'AU' },
+      WITH_SAMSUNG,
+    );
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('keeps phone when that is the only samsung device', () => {
+    const flags = {
+      cardImmersveProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          AU: {
+            enabled: true,
+            android: {
+              samsung_pay: {
+                ...provisioningOn(),
+                devices: ['phone', 'tablet'],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(
+      flags,
+      'immersve',
+      { platform: 'android', countryCode: 'AU' },
+      WITH_SAMSUNG,
+    );
+
+    expect(result).toEqual([{ wallet: 'samsung_pay', devices: ['phone'] }]);
+  });
+
+  it('matches a lowercase country fact to an uppercase flag key', () => {
+    const result = resolveCardProvisioningWallets(baanxUsAppleFlag, 'baanx', {
+      ...iosGalileo,
+      countryCode: 'us',
+    });
+
+    expect(result).toEqual([{ wallet: 'apple_wallet' }]);
+  });
+
+  it('treats a country key named * as an unknown country', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          '*': {
+            enabled: true,
+            ios: { apple_wallet: provisioningOn() },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('passes galileo and fails other processors for cardProcessors galileo', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            eligibility: { cardProcessors: ['galileo'] },
+            ios: { apple_wallet: provisioningOn() },
+          },
+        },
+      },
+    };
+
+    expect(resolveCardProvisioningWallets(flags, 'baanx', iosGalileo)).toEqual([
+      { wallet: 'apple_wallet' },
+    ]);
+    expect(
+      resolveCardProvisioningWallets(flags, 'baanx', {
+        ...iosGalileo,
+        cardProcessor: 'monavate',
+      }),
+    ).toBe(NO_PROVISIONING_WALLETS);
+    expect(
+      resolveCardProvisioningWallets(flags, 'baanx', {
+        ...iosGalileo,
+        cardProcessor: 'Galileo',
+      }),
+    ).toBe(NO_PROVISIONING_WALLETS);
+    expect(
+      resolveCardProvisioningWallets(flags, 'baanx', {
+        ...iosGalileo,
+        cardProcessor: '',
+      }),
+    ).toBe(NO_PROVISIONING_WALLETS);
+    expect(
+      resolveCardProvisioningWallets(flags, 'baanx', {
+        platform: 'ios',
+        countryCode: 'US',
+      }),
+    ).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('lets a wallet cardProcessors list replace the country list', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            eligibility: { cardProcessors: ['galileo'] },
+            ios: {
+              apple_wallet: {
+                ...provisioningOn(),
+                eligibility: { cardProcessors: ['monavate'] },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const monavate = resolveCardProvisioningWallets(flags, 'baanx', {
+      ...iosGalileo,
+      cardProcessor: 'monavate',
+    });
+    const galileo = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(monavate).toEqual([{ wallet: 'apple_wallet' }]);
+    expect(galileo).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('fails a leaf that carries an unknown eligibility key', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            eligibility: { regions: ['US'] },
+            ios: { apple_wallet: provisioningOn() },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('fails a leaf whose cardProcessors array is empty', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            eligibility: { cardProcessors: [] },
+            ios: { apple_wallet: provisioningOn() },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(flags, 'baanx', iosGalileo);
+
+    expect(result).toBe(NO_PROVISIONING_WALLETS);
+  });
+
+  it('returns google wallet before samsung pay', () => {
+    const flags = {
+      cardBaanxProvisioning: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        countries: {
+          US: {
+            enabled: true,
+            android: {
+              samsung_pay: { ...provisioningOn(), devices: ['watch'] },
+              google_wallet: provisioningOn(),
+            },
+          },
+        },
+      },
+    };
+
+    const result = resolveCardProvisioningWallets(
+      flags,
+      'baanx',
+      { platform: 'android', countryCode: 'US' },
+      WITH_SAMSUNG,
+    );
+
+    expect(result).toEqual([
+      { wallet: 'google_wallet' },
+      { wallet: 'samsung_pay', devices: ['watch'] },
+    ]);
   });
 });

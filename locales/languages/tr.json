@@ -5226,7 +5226,7 @@
     "card_update_badge": "Güncelle",
     "settings": "Ayarlar",
     "networks": "Ağlar",
-    "log_out": "Oturumu kapat",
+    "log_out": "Kilitle",
     "notifications": "Bildirimler",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "MetaMask Orange'a katıl",
@@ -10275,12 +10275,6 @@
       },
       "predict_deposit": {
         "transaction_fee": "Tokenlarınızı, Tahminler tarafından kullanılan ağ olan Polygon üzerinde pUSD ile takas edeceğiz. Takas sağlayıcıları ücret alabilir ancak MetaMask almayacaktır."
-      },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask, sizin için istediğiniz tokena takas gerçekleştirecek. mUSD'ye takas gerçekleştirirken MetaMask ücreti uygulanmaz."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask, sizin için istediğiniz tokena takas gerçekleştirecek. mUSD'ye takas gerçekleştirirken MetaMask ücreti uygulanmaz."
       },
       "musd_conversion": {
         "transaction_fee": "mUSD dönüştürme işlemine ağ maliyetleri dahildir ve sağlayıcı ücretleri dahil olabilir. mUSD dönüştürürken MetaMask ücreti uygulanmaz."

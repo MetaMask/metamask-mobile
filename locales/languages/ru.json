@@ -5226,7 +5226,7 @@
     "card_update_badge": "Обновить",
     "settings": "Настройки",
     "networks": "Сети",
-    "log_out": "Выйти",
+    "log_out": "Заблокировать",
     "notifications": "Уведомления",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Подключить MetaMask Orange",
@@ -10275,12 +10275,6 @@
       },
       "predict_deposit": {
         "transaction_fee": "Мы обменяем ваши токены на pUSD в Polygon — сети, используемой Прогнозами. Поставщикик услуг обмена могут взимать комиссию, но MetaMask — нет."
-      },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask автоматически обменяет ваш токен на желаемый. При обмене на mUSD комиссия MetaMask не взимается."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask автоматически обменяет ваш токен на желаемый. При обмене на mUSD комиссия MetaMask не взимается."
       },
       "musd_conversion": {
         "transaction_fee": "В стоимость конвертации mUSD входят расходы сети, а также могут входить комиссии поставщика. При обмене на mUSD комиссия MetaMask не взимается."

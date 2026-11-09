@@ -7,7 +7,7 @@ export const createStyles = (colors: any) =>
   StyleSheet.create({
     screen: {
       flex: 1,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
       paddingVertical: 16,
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -15,6 +15,7 @@ export const createStyles = (colors: any) =>
     },
     header: {
       alignItems: 'center',
+      alignSelf: 'stretch',
     },
     headerLogo: {
       width: 67,
@@ -22,7 +23,6 @@ export const createStyles = (colors: any) =>
     },
     content: {
       justifyContent: 'center',
-      paddingHorizontal: 16,
       flexGrow: 1,
     },
     title: {
@@ -38,7 +38,7 @@ export const createStyles = (colors: any) =>
     },
     actionButtonWrapper: {
       width: '100%',
-      padding: 16,
+      paddingVertical: 16,
     },
     actionButton: {
       height: undefined,

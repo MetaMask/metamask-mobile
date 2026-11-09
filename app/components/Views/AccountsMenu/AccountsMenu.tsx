@@ -6,7 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -44,6 +43,7 @@ import {
 } from '../../../selectors/notifications';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { getBetaSupportUrl } from './AccountsMenu.utils';
+import { isBetaBuild, isFlaskBuild } from '../../../util/environment';
 import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
 import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
 import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
@@ -59,8 +59,11 @@ import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import type { RootState } from '../../../reducers';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../util/address';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const AccountsMenu = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
@@ -311,17 +314,15 @@ const AccountsMenu = () => {
   );
 
   const aboutMetaMaskTitle = useMemo(() => {
-    let title = strings('app_settings.info_title');
+    if (isFlaskBuild) {
+      return strings('app_settings.info_title_flask');
+    }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(flask)
-    title = strings('app_settings.info_title_flask');
-    ///: END:ONLY_INCLUDE_IF
+    if (isBetaBuild) {
+      return strings('app_settings.info_title_beta');
+    }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    title = strings('app_settings.info_title_beta');
-    ///: END:ONLY_INCLUDE_IF
-
-    return title;
+    return strings('app_settings.info_title');
   }, []);
 
   const isNotificationsEnabled = useMemo(
@@ -389,7 +390,9 @@ const AccountsMenu = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
         includesTopInset

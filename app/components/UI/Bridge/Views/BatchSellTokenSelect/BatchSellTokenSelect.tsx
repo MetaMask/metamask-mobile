@@ -25,7 +25,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -97,6 +96,8 @@ import { useTrackBatchSellTokenPageContinueClicked } from '../../hooks/useTrackB
 import type { BatchSellTokenSelectRouteParams } from './types';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
@@ -245,6 +246,7 @@ interface TokenPriceDisplay {
 const EMPTY_TOKEN_PRICE_DISPLAY: TokenPriceDisplay = {};
 
 export function BatchSellTokenSelect() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<
     RouteProp<
@@ -691,7 +693,13 @@ export function BatchSellTokenSelect() {
       edges={['bottom', 'left', 'right']}
     >
       <Box twClassName="flex-1">
-        <HeaderStandard title="" onBack={handleBackPress} includesTopInset />
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          title=""
+          onBack={handleBackPress}
+          includesTopInset
+        />
         {sortedEligibleChains.length === 0 ? (
           <BatchSellEmptyState
             onExploreTokensPress={handleExploreTokensPress}

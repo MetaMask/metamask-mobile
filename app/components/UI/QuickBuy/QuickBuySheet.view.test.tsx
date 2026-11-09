@@ -11,7 +11,7 @@ import {
   FeatureId,
   type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
-import { Text, TextColor } from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
@@ -778,16 +778,26 @@ describeForPlatforms('QuickBuySheet', () => {
     expect(await within(amountArea).findByText(/Available/)).toBeOnTheScreen();
     expect(within(amountArea).queryByText('Add funds')).not.toBeOnTheScreen();
     await waitFor(() => {
-      const amountLabel = screen.getByTestId(
-        QuickBuySheetSelectorsIDs.AMOUNT_LABEL,
+      // Animated amounts render one glyph per digit, and the animated wrapper
+      // repeats that glyph. Keep the innermost colored digit so each is counted once.
+      const coloredDigits = screen.UNSAFE_root.findAll(
+        (node) =>
+          node.props?.color === TextColor.ErrorDefault &&
+          typeof node.props.children === 'string' &&
+          /^\d+$/.test(node.props.children),
       );
-      const amountGlyphs = amountLabel.findAllByType(Text);
-
-      expect(
-        amountGlyphs.some(
-          (glyph) => glyph.props.color === TextColor.ErrorDefault,
-        ),
-      ).toBe(true);
+      const amountDigits = coloredDigits
+        .filter(
+          (node) =>
+            !coloredDigits.some(
+              (other) =>
+                other !== node &&
+                node.findAll((child) => child === other).length > 0,
+            ),
+        )
+        .map((node) => node.props.children as string)
+        .join('');
+      expect(amountDigits).toBe('3000000000000');
     });
 
     const confirm = screen.getByTestId(

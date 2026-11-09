@@ -20,8 +20,6 @@ import {
   Box,
   Button,
   ButtonBaseSize,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
   TextVariant,
@@ -116,7 +114,15 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../constants/perpsAnalytics';
+import {
+  resolveShownPerpsSizeDenomination,
+  toPerpsSizeUnitAnalyticsValue,
+} from '../../utils/perpsSizeDenomination';
+import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -128,6 +134,7 @@ import {
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsMarkets,
+  usePerpsFeeDisplayAbTest,
   usePerpsOrderDepositTracking,
   usePerpsOrderExecution,
   usePerpsOrderFees,
@@ -147,7 +154,6 @@ import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
-import { useABTest } from '../../../../../hooks/useABTest';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -171,10 +177,7 @@ import {
   getCachedPerpsHeaderQuote,
   type CachedPerpsHeaderQuote,
 } from '../../utils/cachedPerpsHeaderQuote';
-import {
-  BUTTON_COLOR_VARIANTS,
-  PERPS_BUTTON_COLOR_AB_TEST_KEY,
-} from '../../abTestConfig';
+import PerpsDirectionButton from '../../components/PerpsDirectionButton';
 import {
   formatLiquidationDistance,
   formatPerpsFiat,
@@ -235,10 +238,12 @@ import {
   canPromptPerpsPostTrade,
   completePerpsPostTradeShare,
   failPerpsPostTradeShare,
+  isPerpsPostTradeShareEligible,
   openPerpsPostTradeShareSession,
 } from '../../utils/perpsPostTradeShare';
 import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
 import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { getSocialEventSource } from '../../../../Views/SocialLeaderboard/analytics/socialEvents';
 import type { PostTradePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import {
   buildPerpsPostTradeComposerParams,
@@ -347,6 +352,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ? 'trending'
       : undefined);
   const sourceSection = route.params?.source_section;
+  const shareAnalyticsSource = getSocialEventSource(source);
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
@@ -408,6 +414,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
   const { track } = usePerpsEventTracking();
+  const { denomination: sizeDenomination } = usePerpsSizeDenomination();
+  const sizeDenominationRef = useRef(sizeDenomination);
+  sizeDenominationRef.current = sizeDenomination;
+  // Price used to decide the unit on screen. Assigned once effectivePrice
+  // exists; events read it at fire time so a price tick does not restart
+  // the considered debounce.
+  const sizePriceRef = useRef(0);
+  // Set when a saved coin unit is still shown in USD and the user types.
+  // Cleared when the keypad closes, matching PerpsTradeScreen.
+  const holdUsdSizeEditRef = useRef(false);
+  // Full-screen Lite has no coin toggle. Read the arm at event time so a
+  // saved coin unit is not reported for a USD entry.
+  const useBottomSheetRef = useRef(useBottomSheet);
+  useBottomSheetRef.current = useBottomSheet;
   const { openTooltipModal } = useTooltipModal();
 
   // Feature flags
@@ -635,15 +655,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
   const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
 
-  // A/B Testing: Button color test
-  const {
-    variantName: buttonColorVariant,
-    isActive: isButtonColorTestEnabled,
-  } = useABTest(PERPS_BUTTON_COLOR_AB_TEST_KEY, BUTTON_COLOR_VARIANTS, {
-    experimentName: 'Long/Short Button Color Test',
-    variationNames: { control: 'White/White', colors: 'Green/Red' },
-  });
-
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
 
@@ -665,6 +676,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  if (!isInputFocused) {
+    holdUsdSizeEditRef.current = false;
+  }
   const [isLimitPriceFocused, setIsLimitPriceFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
 
@@ -820,6 +834,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     };
   }, [currentPrice]);
 
+  // Fee row shows a $ amount, or Taker/Maker rates when treatment is assigned.
+  const { feeDisplayMode } = usePerpsFeeDisplayAbTest();
+
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -834,6 +851,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     currentBidPrice: currentTopOfBook?.bestBid
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
+    includeFeeRateBreakdown: feeDisplayMode === 'percentage',
   });
 
   // Size the max off the same resolved quote that drives the displayed fee.
@@ -992,6 +1010,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isLoadingMarketData,
     ],
   );
+  sizePriceRef.current = effectivePrice;
 
   // Live position size for the token-size subtitle only — cheap synchronous
   // calc, safe to recompute every drag frame off the live display amount.
@@ -1088,6 +1107,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [currentMarketPositionSize, orderForm.direction],
   );
 
+  // Same decision as the Trade sheet: saved coin stays `usd` until a positive
+  // price can project it, and while a pre-price USD edit is still open.
+  // Full-screen Lite has no coin toggle. Reads refs at fire time so a price
+  // tick or a unit toggle does not restart the considered debounce.
+  const readShownSizeUnit = useCallback(
+    (): 'usd' | 'coin' =>
+      toPerpsSizeUnitAnalyticsValue(
+        resolveShownPerpsSizeDenomination({
+          saved: useBottomSheetRef.current
+            ? sizeDenominationRef.current
+            : 'usd',
+          price: sizePriceRef.current,
+          holdUsdEdit: holdUsdSizeEditRef.current,
+        }),
+      ),
+    [],
+  );
+
   // Emit "transaction considered" once the user has a stable,
   // meaningful fill. Debounced 1s and reset on each change so it fires once per
   // settled fill instead of on every keystroke.
@@ -1115,6 +1152,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: Boolean(orderForm.stopLossPrice),
         [PERPS_EVENT_PROPERTY.LEVERAGE]: orderForm.leverage,
         [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: hasCustomTokenSelected,
+        [PERPS_ANALYTICS_SIZE_UNIT]: readShownSizeUnit(),
       };
       if (hasCustomTokenSelected && payToken) {
         consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
@@ -1135,6 +1173,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     consideredTradeAction,
     hasCustomTokenSelected,
     payToken,
+    readShownSizeUnit,
     track,
   ]);
 
@@ -1156,9 +1195,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // covers both a fresh false→true transition and a quote already loading
       // when this effect first runs (custom token pre-selected), so a
       // completing quote is never missed for lack of a recorded start.
-      if (payQuoteStartRef.current === null) {
-        payQuoteStartRef.current = Date.now();
-      }
+      payQuoteStartRef.current ??= Date.now();
       return;
     }
 
@@ -1448,6 +1485,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isInputFocused || isLimitPriceFocused,
     originalUsdAmount: orderForm.amount,
+    maxLeverage: maxLeverage ?? undefined,
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
@@ -1541,6 +1579,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isAssetAmount?: boolean;
     }) => {
       inputMethodRef.current = 'keypad';
+      // A saved coin unit shown in USD (no price yet) must stay in USD for the
+      // rest of this keypad session. Coin entries set isAssetAmount.
+      if (
+        !isAssetAmount &&
+        useBottomSheetRef.current &&
+        sizeDenominationRef.current === 'asset'
+      ) {
+        holdUsdSizeEditRef.current = true;
+      }
       // The digit cap applies to what the user typed. A coin entry is already
       // capped, then converted to USD — that USD string can be longer than
       // the cap (1 cheap coin is a long decimal) and must still commit.
@@ -1656,7 +1703,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           // eslint-disable-next-line @typescript-eslint/no-deprecated -- Keep parity with the existing limit-price analytics contract.
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED,
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED, // NOSONAR
         [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'limit_price',
         [PERPS_EVENT_PROPERTY.INPUT_METHOD]: inputMethod,
         [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
@@ -1800,6 +1847,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderForm.direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_ANALYTICS_SIZE_UNIT]: readShownSizeUnit(),
         });
       }
 
@@ -2046,8 +2094,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               direction: orderForm.direction,
               leverage: orderForm.leverage,
               amountUsd: orderForm.amount,
+              analyticsSource: shareAnalyticsSource,
             });
-        perpsPostTradePromptRef.current =
+        const resolvedPerpsPostTradePrompt =
           !perpsShareSessionIdRef.current &&
           !isPerpsProModeActive &&
           canPromptPerpsPostTrade({
@@ -2056,6 +2105,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           })
             ? resolvePostTradePrompt('perps')
             : undefined;
+        perpsPostTradePromptRef.current = isPerpsPostTradeShareEligible({
+          amountUsd: orderForm.amount,
+          leverage: orderForm.leverage,
+        })
+          ? resolvedPerpsPostTradePrompt
+          : undefined;
         const promptKind = perpsPostTradePromptRef.current?.kind;
         if (promptKind === 'share_sheet' || promptKind === 'claim_sheet') {
           perpsShareSessionIdRef.current = openPerpsPostTradeShareSession({
@@ -2064,6 +2119,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             leverage: orderForm.leverage,
             amountUsd: orderForm.amount,
             variant: promptKind === 'claim_sheet' ? 'create_profile' : 'share',
+            analyticsSource: shareAnalyticsSource,
           });
         }
         navigateToMarketAfterOrder();
@@ -2219,6 +2275,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       marginRequired,
       feeResults,
       source,
+      shareAnalyticsSource,
       sourceSection,
       chartLibrary,
       isTradeWithAnyTokenEnabled,
@@ -2237,6 +2294,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       liquidityError,
       vipTier,
       useBottomSheet,
+      readShownSizeUnit,
       fireImpact,
     ],
   );
@@ -3107,6 +3165,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   }
                   placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
                   testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
+                  feeDisplayMode={feeDisplayMode}
+                  takerFeeRate={
+                    hasValidAmount ? feeResults.takerFeeRate : undefined
+                  }
+                  makerFeeRate={
+                    hasValidAmount ? feeResults.makerFeeRate : undefined
+                  }
                 />
               )
             }
@@ -3264,35 +3329,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
           />
 
-          {buttonColorVariant === 'colors' ? (
-            <ButtonSemantic
-              severity={
-                orderForm.direction === 'long'
-                  ? ButtonSemanticSeverity.Success
-                  : ButtonSemanticSeverity.Danger
-              }
-              onPress={() => handlePlaceOrder()}
-              isFullWidth
-              size={ButtonBaseSize.Lg}
-              isDisabled={isOrderSubmissionBlocked}
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </ButtonSemantic>
-          ) : (
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSizeRNDesignSystem.Lg}
-              isFullWidth
-              onPress={() => handlePlaceOrder()}
-              isDisabled={isOrderSubmissionBlocked}
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </Button>
-          )}
+          <PerpsDirectionButton
+            direction={orderForm.direction}
+            onPress={() => handlePlaceOrder()}
+            isFullWidth
+            size={ButtonBaseSize.Lg}
+            isDisabled={isOrderSubmissionBlocked}
+            isLoading={isPlacingOrder}
+            testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+          >
+            {placeOrderLabel}
+          </PerpsDirectionButton>
         </View>
       )}
       {/* Leverage Selector */}

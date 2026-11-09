@@ -1,6 +1,6 @@
 import React from 'react';
 import { FlashList } from '@shopify/flash-list';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type GestureResponderEvent } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
@@ -13,7 +13,7 @@ import {
 import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import type { ButtonProps } from '@metamask/design-system-react-native';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { configureUseAnalyticsExternalLinkMock } from '../../../util/test/analyticsMock';
 import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListItemRow';
@@ -40,10 +40,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-jest.mock(
-  '../../UI/MultichainTransactionListItem',
-  () => 'MockTransactionListItem',
-);
 jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   ActivityListItemRow: jest.fn(() => null),
 }));
@@ -61,10 +57,8 @@ jest.mock('../../hooks/useMultichainTransactionDisplay', () => ({
     isRedeposit: false,
   })),
 }));
-jest.mock('../../../component-library/components/Buttons/Button', () => {
-  const ButtonVariants = { Link: 'Link', Primary: 'Primary' };
-  const ButtonSize = { Lg: 'Lg', Md: 'Md' };
-
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const MockButton = (props: ButtonProps) => {
     MockButton.lastProps = props;
     return 'MockButton';
@@ -73,10 +67,8 @@ jest.mock('../../../component-library/components/Buttons/Button', () => {
   MockButton.lastProps = {} as ButtonProps;
 
   return {
-    __esModule: true,
-    default: MockButton,
-    ButtonVariants,
-    ButtonSize,
+    ...actual,
+    Button: MockButton,
   };
 });
 
@@ -132,26 +124,12 @@ describe('MultichainTransactionsView', () => {
     },
   ];
 
-  const customRender = (ui: React.ReactElement) => {
-    const utils = render(ui);
-
-    return {
-      ...utils,
-      queryAllByTestId: (id: string) => {
-        if (id === 'transaction-item') {
-          return Array(mockTransactions.length).fill({});
-        }
-        return utils.queryAllByTestId(id);
-      },
-    };
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const { default: MockButton } = jest.requireMock(
-      '../../../component-library/components/Buttons/Button',
-    ) as { default: { lastProps: ButtonProps } };
+    const { Button: MockButton } = jest.requireMock(
+      '@metamask/design-system-react-native',
+    ) as { Button: { lastProps: ButtonProps } };
     MockButton.lastProps = {} as ButtonProps;
 
     configureUseAnalyticsExternalLinkMock();
@@ -198,7 +176,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    const { getByText } = customRender(
+    const { getByText } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -206,18 +184,6 @@ describe('MultichainTransactionsView', () => {
     );
 
     expect(getByText('wallet.no_transactions')).toBeTruthy();
-  });
-
-  it('renders transaction list items when transactions are available', async () => {
-    const { queryAllByTestId } = customRender(
-      <MultichainTransactionsView
-        selectedAddress={mockSelectedAddress}
-        chainId={SolScope.Mainnet}
-      />,
-    );
-
-    const transactionItems = queryAllByTestId('transaction-item');
-    expect(transactionItems.length).toBe(2);
   });
 
   it('renders activity rows for asset details', async () => {
@@ -231,7 +197,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    const { queryAllByTestId } = customRender(
+    const { queryAllByTestId } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -295,7 +261,7 @@ describe('MultichainTransactionsView', () => {
         return null;
       });
 
-      customRender(
+      render(
         <MultichainTransactionsView
           selectedAddress={mockSelectedAddress}
           chainId={SolScope.Mainnet}
@@ -345,7 +311,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -402,7 +368,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -430,7 +396,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -498,7 +464,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -572,7 +538,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -614,7 +580,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -636,7 +602,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('does not render view more link for bitcoin activity', async () => {
-    const { queryByText } = customRender(
+    const { queryByText } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={BtcScope.Mainnet}
@@ -649,18 +615,18 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('tracks External Link Clicked when view more explorer link is pressed', () => {
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
       />,
     );
 
-    const { default: MockButton } = jest.requireMock(
-      '../../../component-library/components/Buttons/Button',
-    ) as { default: { lastProps: ButtonProps } };
+    const { Button: MockButton } = jest.requireMock(
+      '@metamask/design-system-react-native',
+    ) as { Button: { lastProps: ButtonProps } };
 
-    MockButton.lastProps.onPress?.();
+    MockButton.lastProps.onPress?.({} as GestureResponderEvent);
 
     expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
       expect.any(Function),
@@ -677,7 +643,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('moves the refresh spinner below a floating header', () => {
-    const { UNSAFE_getByType } = customRender(
+    const { UNSAFE_getByType } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -692,7 +658,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('pads the list to clear a footer floating over it', () => {
-    const { UNSAFE_getByType } = customRender(
+    const { UNSAFE_getByType } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -708,7 +674,7 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('keeps the default bottom padding without an inset', () => {
-    const { UNSAFE_getByType } = customRender(
+    const { UNSAFE_getByType } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}

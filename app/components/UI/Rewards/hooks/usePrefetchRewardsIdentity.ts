@@ -5,6 +5,7 @@ import { REFERRAL_ME_CACHE_THRESHOLD_MS } from '../../../../core/Engine/controll
 import type { ReferralMeDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { setReferralMe } from '../../../../reducers/rewardsMoney';
 import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featureFlagController/rewardsMoneyController';
+import { selectSessionProfileId } from '../../../../selectors/identity';
 
 /**
  * Warms `GET /referral/me` once the main app is up, so the Rewards tab does
@@ -18,13 +19,18 @@ import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featu
  * Points opt-in is not a gate. Someone who never opted into points can still
  * be a money referee, and this payload is what opens their home. Gating on
  * opt-in would put that first open back on the cold read.
+ *
+ * Home mounts this before a Hydra session exists. The warm-up waits until
+ * `selectSessionProfileId` is set, then runs, and runs again if that id
+ * changes. A failed fetch still writes nothing.
  */
 export function usePrefetchRewardsIdentity(): void {
   const dispatch = useDispatch();
   const moneyEnabled = useSelector(selectRewardsMoneyControllerEnabled);
+  const sessionProfileId = useSelector(selectSessionProfileId);
 
   useEffect(() => {
-    if (!moneyEnabled) {
+    if (!moneyEnabled || !sessionProfileId) {
       return undefined;
     }
 
@@ -80,5 +86,5 @@ export function usePrefetchRewardsIdentity(): void {
     return () => {
       active = false;
     };
-  }, [dispatch, moneyEnabled]);
+  }, [dispatch, moneyEnabled, sessionProfileId]);
 }

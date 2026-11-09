@@ -29,6 +29,7 @@ import {
 } from '../../constants/moneyEvents';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 
 let mockIsGlassEnabled = false;
 jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
@@ -132,6 +133,11 @@ jest.mock('../../selectors/eligibility', () => ({
   selectIsMoneyAccountGeoEligible: jest.fn(),
 }));
 
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
@@ -150,6 +156,9 @@ const mockSelectMoneyOnboardingStepperAnimationEnabled = jest.mocked(
 const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
 const mockSelectIsMoneyAccountGeoEligible = jest.mocked(
   selectIsMoneyAccountGeoEligible,
+);
+const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
+  selectMoneyEnableMoneyAccountFlag,
 );
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
@@ -219,6 +228,7 @@ describe('MoneyBalanceCard', () => {
     mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
     mockSelectPrivacyMode.mockReturnValue(false);
     mockSelectIsMoneyAccountGeoEligible.mockReturnValue(true);
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
     mockUseMoneyNavigation.mockReturnValue({
       isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: mockNavigateToMoneyHome,
@@ -684,6 +694,25 @@ describe('MoneyBalanceCard', () => {
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
       expect(mockInitiateDeposit).toHaveBeenCalled();
+    });
+
+    it('opens the feature-unavailable modal when Money is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        },
+      );
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
     });
 
     it('opens the geo-block sheet when Add is pressed by a geo-ineligible user', () => {

@@ -8,9 +8,15 @@ import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
-import { Text, TextColor } from '@metamask/design-system-react-native';
+import {
+  FontFamily,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { parseAmountWithAssistiveDecimals } from './custom-amount.utils';
 import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
+
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -45,7 +51,10 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     isEditing,
   );
 
-  const amountLength = typedText.length + assistiveText.length;
+  const amountLength =
+    typedText.length +
+    assistiveText.length +
+    INPUT_SIDE_MARGIN_CHARACTER_RESERVE;
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
@@ -91,7 +100,11 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
       }
       onPress={disabled ? undefined : onPress}
       prefix={
-        <Text testID="custom-amount-symbol" style={amountStyle}>
+        <Text
+          fontFamily={FontFamily.Hero}
+          testID="custom-amount-symbol"
+          style={amountStyle}
+        >
           {fiatSymbol}
         </Text>
       }
@@ -99,6 +112,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
       suffix={
         assistiveText ? (
           <Text
+            fontFamily={FontFamily.Hero}
             testID="custom-amount-assistive"
             onPress={disabled ? undefined : onPress}
             style={[amountStyle, styles.assistive]}
@@ -129,7 +143,7 @@ export function CustomAmountSkeleton({
       style={styles.container}
       testID="custom-amount-skeleton"
     >
-      <Skeleton height={70} width={80} />
+      <Skeleton height={88} twClassName="rounded-lg" width={80} />
     </Pressable>
   );
 }

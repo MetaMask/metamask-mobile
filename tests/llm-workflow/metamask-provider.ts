@@ -20,7 +20,7 @@ import {
   type TrackedPage,
   type WorkflowContext,
   generateSessionId,
-  knowledgeStore,
+  writeSessionMetadata,
 } from '@metamask/client-mcp-core';
 
 import { AndroidPlatformAdapter } from './android/platform-adapter';
@@ -41,6 +41,10 @@ interface MobileSessionManagerDependencies {
   createIOSAdapter: () => MobilePlatformAdapter;
   createAndroidAdapter: () => MobilePlatformAdapter;
 }
+
+// Fallback when the workflow context has no artifacts dir. Matches the
+// `artifactsDir` set in capabilities/factory.ts.
+const DEFAULT_ARTIFACTS_DIR = 'test-artifacts';
 
 const MOBILE_PAGE_UNAVAILABLE =
   'Playwright Page/BrowserContext is not available on mobile sessions.';
@@ -130,8 +134,6 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
         schemaVersion: 1,
         sessionId,
         createdAt: startedAt,
-        goal: input.goal,
-        flowTags: input.flowTags ?? [],
         tags: input.tags ?? [],
         launch: {
           stateMode: 'default',
@@ -142,7 +144,11 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       };
 
       try {
-        await knowledgeStore.writeSessionMetadata(this.sessionMetadata);
+        // Writes <artifactsDir>/<sessionId>/session.json.
+        await writeSessionMetadata(
+          this.workflowContext?.config?.artifactsDir ?? DEFAULT_ARTIFACTS_DIR,
+          this.sessionMetadata,
+        );
       } catch {
         // Non-blocking: launch succeeds even when metadata persistence fails.
       }

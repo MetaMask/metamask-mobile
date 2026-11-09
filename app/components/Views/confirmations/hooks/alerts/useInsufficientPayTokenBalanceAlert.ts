@@ -29,6 +29,7 @@ import { useTransactionPayingAccount } from '../transactions/useTransactionPayin
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useInsufficientPayTokenBalanceMessageKey } from './useInsufficientPayTokenBalanceMessageKey';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -70,6 +71,8 @@ export function useInsufficientPayTokenBalanceAlert({
   // on-chain units.
   const { balanceUsd: payBalanceUsd, balanceRaw } = useTransactionPayBalance();
   const balanceUsd = String(payBalanceUsd);
+  const insufficientBalanceMessageKey =
+    useInsufficientPayTokenBalanceMessageKey(balanceUsd);
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
@@ -193,9 +196,7 @@ export function useInsufficientPayTokenBalanceAlert({
         {
           ...baseAlert,
           key: AlertKeys.InsufficientPayTokenBalance,
-          message: strings(
-            'alert_system.insufficient_pay_token_balance.message',
-          ),
+          message: strings(insufficientBalanceMessageKey),
         },
       ];
     }
@@ -237,6 +238,7 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
+    insufficientBalanceMessageKey,
     isPostQuote,
     selectedFiatPaymentMethod,
     ticker,

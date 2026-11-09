@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   FontWeight,
@@ -43,14 +43,25 @@ const FilterRangeSection: React.FC<FilterRangeSectionProps> = ({
   formatLabel,
   testID,
 }) => {
-  const handleChange = useCallback(
-    (next: { min: number; max: number }) => onValueChange(next),
-    [onValueChange],
-  );
+  const [displayValue, setDisplayValue] = useState(value);
+
+  useEffect(() => {
+    setDisplayValue(value);
+  }, [value]);
+
+  // The label tracks the thumb while dragging. The sheet draft updates when
+  // the finger lifts, so the sheet does not re-render on every move.
+  const handleChange = useCallback((next: { min: number; max: number }) => {
+    setDisplayValue(next);
+  }, []);
 
   const handleDragEnd = useCallback(
-    (next: { min: number; max: number }) => onDragEnd?.(next),
-    [onDragEnd],
+    (next: { min: number; max: number }) => {
+      setDisplayValue(next);
+      onValueChange(next);
+      onDragEnd?.(next);
+    },
+    [onDragEnd, onValueChange],
   );
 
   return (
@@ -64,10 +75,10 @@ const FilterRangeSection: React.FC<FilterRangeSectionProps> = ({
           {strings(titleKey)}
         </Text>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {formatLabel(value)}
+          {formatLabel(displayValue)}
         </Text>
       </Box>
-      <Box twClassName="mt-2 overflow-visible">
+      <Box twClassName="mt-2 overflow-visible" testID={`${testID}-controls`}>
         <RangeSlider
           minimumValue={minimumValue}
           maximumValue={maximumValue}
