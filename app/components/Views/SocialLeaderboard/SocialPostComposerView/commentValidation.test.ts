@@ -50,8 +50,17 @@ describe('commentValidation', () => {
       expect(isComposerCommentValid('')).toBe(false);
     });
 
-    it('returns false when the text is longer than 250 characters', () => {
-      expect(isComposerCommentValid(`${'alpha '.repeat(50)}end`)).toBe(false);
+    it('returns true when the text is 3000 characters', () => {
+      const text = `alpha beta ${'g'.repeat(3000 - 'alpha beta '.length)}`;
+
+      expect(text).toHaveLength(3000);
+      expect(isComposerCommentValid(text)).toBe(true);
+    });
+
+    it('returns false when the text is longer than 3000 characters', () => {
+      const text = `alpha beta ${'g'.repeat(3001 - 'alpha beta '.length)}`;
+
+      expect(isComposerCommentValid(text)).toBe(false);
     });
   });
 });
