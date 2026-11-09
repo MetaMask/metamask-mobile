@@ -24,6 +24,7 @@ import { Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
+import { updateBgState } from '../../../../core/redux/slices/engine';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import {
   renderSocialProfileOnboarding,
@@ -44,6 +45,8 @@ import {
 import { SocialTermsSheetSelectorsIDs } from '../terms/SocialTermsSheet';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+const engineWithState = Engine as unknown as { state: typeof Engine.state };
+const originalEngineState = Engine.state;
 
 const goOnline = () =>
   netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
@@ -167,6 +170,7 @@ const CREATED_PROFILE: Profile = {
   avatarUrl: '',
   tradingPrivacy: 'public',
   connectedToX: false,
+  verified: false,
   createdAt: '',
   updatedAt: '',
 };
@@ -261,6 +265,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   afterEach(async () => {
+    engineWithState.state = originalEngineState;
     await resetSocialTermsAcceptance();
     clearLocalSocialProfile();
     netInfoMock.__resetMockNetInfo();
@@ -274,6 +279,61 @@ describe('SocialProfileOnboardingView', () => {
     jest.mocked(Engine.context.ProfileController.connectX).mockClear();
     restoreProfileControllerMocks();
   });
+
+  it.each([true, false])(
+    'uses server verified=%s after creation without an extra profile fetch',
+    async (verified) => {
+      let resolveCreate: (profile: Profile) => void = () => undefined;
+      jest
+        .mocked(Engine.context.ProfileController.createProfile)
+        .mockImplementationOnce(
+          () =>
+            new Promise<Profile>((resolve) => {
+              resolveCreate = resolve;
+            }),
+        );
+      const fetchProfile = jest.mocked(
+        Engine.context.ProfileController.fetchAndUpdateProfile,
+      );
+      fetchProfile.mockClear();
+      const { store } = renderSocialProfileOnboarding();
+
+      await reachReadyStep();
+
+      expect(letsGoDisabled()).toBe(true);
+      expect(
+        screen.queryByTestId(
+          SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE,
+        ),
+      ).not.toBeOnTheScreen();
+
+      await act(async () => {
+        const created = { ...CREATED_PROFILE, verified };
+        engineWithState.state = {
+          ...Engine.state,
+          ProfileController: { profile: created },
+        };
+        store.dispatch(updateBgState({ key: 'ProfileController' }));
+        resolveCreate(created);
+      });
+      await waitFor(() => expect(letsGoDisabled()).toBe(false));
+
+      if (verified) {
+        expect(
+          screen.getByTestId(
+            SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE,
+          ),
+        ).toBeOnTheScreen();
+      } else {
+        expect(
+          screen.queryByTestId(
+            SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE,
+          ),
+        ).not.toBeOnTheScreen();
+      }
+      expect(fetchProfile).not.toHaveBeenCalled();
+    },
+  );
 
   it('writes a manual profile with the typed username casing and opens the feed', async () => {
     renderSocialProfileOnboarding([
@@ -942,6 +1002,14 @@ describe('SocialProfileOnboardingView', () => {
     ).toHaveTextContent('@degangirl');
     expect(screen.getByText('View profile')).toBeOnTheScreen();
 
+    await waitFor(() => expect(letsGoDisabled()).toBe(false));
+
+    expect(
+      screen.queryByTestId(
+        SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE,
+      ),
+    ).not.toBeOnTheScreen();
+
     await leaveReadyStep();
 
     expect(
@@ -1182,6 +1250,11 @@ describe('SocialProfileOnboardingView', () => {
     expect(getLocalSocialProfileSnapshot().profile).toEqual(
       profileBeforeFinish,
     );
+    expect(
+      screen.queryByTestId(
+        SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('creates the profile with the canonical profile id of a merged session', async () => {

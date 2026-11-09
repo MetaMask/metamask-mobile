@@ -57,6 +57,33 @@ describe('MyProfileHeader', () => {
     jest.restoreAllMocks();
   });
 
+  // Narrow header presentation contract; onboarding's Redux-driven flow is
+  // covered in SocialProfileOnboardingView.view.test.tsx.
+  it('shows the verified badge without an X account when the server confirms it', () => {
+    renderHeader({ ...PROFILE, verified: true, xHandle: null });
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.VERIFIED_BADGE),
+    ).toHaveProp(
+      'accessibilityLabel',
+      strings('social_leaderboard.shell.filters.verification.verified'),
+    );
+  });
+
+  it.each([false, undefined])(
+    'omits the badge with verified=%s even when X is linked',
+    (verified) => {
+      renderHeader({ ...PROFILE, verified, connectedToX: true });
+
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.VERIFIED_BADGE),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
   it('shows the X link before the joined date', () => {
     renderHeader(PROFILE);
 
