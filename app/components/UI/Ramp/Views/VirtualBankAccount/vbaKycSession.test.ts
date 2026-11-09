@@ -94,6 +94,39 @@ describe('startVbaKycSession', () => {
     expect(Logger.log).toHaveBeenCalled();
   });
 
+  it.each(['expired', 'new'])(
+    'resets a stored session whose capability authorization is %s',
+    async (capabilityAuthorizationStatus) => {
+      mockController.readSessionStatus.mockReturnValue({
+        id: 'session-1',
+        finalStatus: 'pending',
+        capabilityAuthorizationStatus,
+      });
+      mockController.startSession
+        .mockRejectedValueOnce(GEO_MISMATCH)
+        .mockResolvedValueOnce({ id: 'session-1' });
+
+      await startVbaKycSession(resumeParams);
+
+      expect(mockController.reset).toHaveBeenCalledTimes(1);
+      expect(mockController.startSession).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('keeps an approved session even when its authorization expired', async () => {
+    mockController.readSessionStatus.mockReturnValue({
+      id: 'session-1',
+      finalStatus: 'approved',
+      capabilityAuthorizationStatus: 'expired',
+    });
+    mockController.startSession.mockRejectedValueOnce(GEO_MISMATCH);
+
+    await startVbaKycSession(resumeParams);
+
+    expect(mockController.reset).not.toHaveBeenCalled();
+    expect(mockController.startSession).toHaveBeenCalledTimes(1);
+  });
+
   it('resets and starts again once when no session is stored', async () => {
     mockController.startSession
       .mockRejectedValueOnce(GEO_MISMATCH)

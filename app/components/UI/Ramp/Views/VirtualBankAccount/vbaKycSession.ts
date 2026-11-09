@@ -1,3 +1,4 @@
+import { needsCapabilityAuthorizationRefresh } from '@metamask/kyc-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 
@@ -22,10 +23,12 @@ export const isGeoCountryMismatch = (error: unknown): boolean => {
 
 /**
  * Starts the VBA KYC session. A geoCountry mismatch keeps a session already
- * stored on the device, so its email, provider-flow status, and vendor terms
- * stay with the country it was created in. With no stored session there is
- * nothing to keep, so the controller is reset and `startSession` runs once
- * more. Every other error is thrown unchanged.
+ * stored on the device, so its email, provider-flow status, vendor terms, and
+ * stored geoCountry stay. The mismatch skips the capability authorization
+ * refresh in `startSession`, so a stored session that still needs one is not
+ * kept: the controller is reset and `startSession` runs once more, which
+ * reattaches the server session and refreshes it. The same reset runs when no
+ * session is stored. Every other error is thrown unchanged.
  *
  * @param params - Arguments for `KycController.startSession`.
  */
@@ -39,15 +42,14 @@ export const startVbaKycSession = async (
     if (!isGeoCountryMismatch(error)) {
       throw error;
     }
-    if (kycController.readSessionStatus()) {
+    const storedSession = kycController.readSessionStatus();
+    if (storedSession && !needsCapabilityAuthorizationRefresh(storedSession)) {
       Logger.log(
         '[vba-kyc-session] geoCountry changed, keeping stored session',
       );
       return;
     }
-    Logger.log(
-      '[vba-kyc-session] geoCountry changed, resetting empty KYC state',
-    );
+    Logger.log('[vba-kyc-session] geoCountry changed, resetting KYC state');
     await kycController.reset();
     await kycController.startSession(params);
   }

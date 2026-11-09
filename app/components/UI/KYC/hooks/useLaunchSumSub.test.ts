@@ -9,6 +9,7 @@ const originalLocale = I18n.locale;
 jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
+      state: { geoCountry: null as string | null },
       fetchSessionDisclaimers: jest.fn(),
       recordSessionDisclaimers: jest.fn(),
       launchProviderFlow: jest.fn(),
@@ -27,6 +28,7 @@ jest.mock('../utils/kycVerificationAnalytics', () => ({
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
+  state: { geoCountry: string | null };
   fetchSessionDisclaimers: jest.Mock;
   recordSessionDisclaimers: jest.Mock;
   launchProviderFlow: jest.Mock;
@@ -46,10 +48,37 @@ describe('useLaunchSumSub analytics', () => {
       kycProvider: [],
     });
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
+    mockKycController.state.geoCountry = null;
   });
 
   afterEach(() => {
     I18n.locale = originalLocale;
+  });
+
+  it('records consents from the catalog for the stored KYC geoCountry', async () => {
+    mockKycController.state.geoCountry = 'ARG';
+    mockKycController.launchProviderFlow.mockResolvedValue('submitted');
+    const onSubmitted = jest.fn();
+
+    renderHook(() => useLaunchSumSub(onSubmitted, jest.fn()));
+
+    await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+    expect(mockKycService.getGeoCountry).not.toHaveBeenCalled();
+    expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
+      country: 'ARG',
+    });
+  });
+
+  it('falls back to the detected country when none is stored', async () => {
+    mockKycController.launchProviderFlow.mockResolvedValue('submitted');
+    const onSubmitted = jest.fn();
+
+    renderHook(() => useLaunchSumSub(onSubmitted, jest.fn()));
+
+    await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+    expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
+      country: 'BRA',
+    });
   });
 
   it('tracks started right before the provider flow launches', async () => {
