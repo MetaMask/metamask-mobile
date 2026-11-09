@@ -12,8 +12,7 @@ import {
   REFEREE_INVITED_BENEFIT_TITLE,
 } from '../../api-mocking/mock-responses/rewards-money.js';
 
-const MONEY_CAMPAIGN_DEEPLINK =
-  'metamask://rewards?campaign=money';
+const MONEY_CAMPAIGN_DEEPLINK = 'metamask://rewards?campaign=money';
 
 appiumTest.describe(SmokeWalletPlatform('Rewards Money deeplink'), () => {
   appiumTest.describe.configure({ timeout: 240000 });
@@ -42,7 +41,6 @@ appiumTest.describe(SmokeWalletPlatform('Rewards Money deeplink'), () => {
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
           await openE2EUrl(MONEY_CAMPAIGN_DEEPLINK);
-
           await RewardsMoneyView.expectRefereeHeroVisible();
           await RewardsMoneyView.expectInvitedBenefitTitle(
             REFEREE_INVITED_BENEFIT_TITLE,

@@ -12,8 +12,7 @@ import { mockRewardsMoneyApi } from '../../api-mocking/mock-responses/rewards-mo
 import { CLAIMED_EARNINGS_SUMMARY } from '../../component-view/presets/rewardsMoney.js';
 import { mockIdentityServices } from '../../smoke/identity/utils/mocks.js';
 
-const MONEY_CAMPAIGN_DEEPLINK =
-  'metamask://rewards?campaign=money';
+const MONEY_CAMPAIGN_DEEPLINK = 'metamask://rewards?campaign=money';
 
 async function openClaimedEarnings(): Promise<void> {
   await loginToAppPlaywright({ scenarioType: 'e2e' });

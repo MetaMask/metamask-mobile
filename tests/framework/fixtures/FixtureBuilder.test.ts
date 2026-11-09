@@ -152,15 +152,7 @@ describe('FixtureBuilder rewards money referee', () => {
       activeAccount: { account: string; subscriptionId: string };
     };
     const rewardsMoney = background.RewardsMoneyController as {
-      referralMe: Record<
-        string,
-        {
-          payload: {
-            roles: string[];
-            localized_text: { invitedBenefitTitle: string };
-          };
-        }
-      >;
+      referralMe: Record<string, { payload: { roles: string[] } }>;
     };
     const slice = fixture.state.rewardsMoney as {
       referralMe: Record<string, { data: { roles: string[] } }>;

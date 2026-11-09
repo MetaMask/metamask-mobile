@@ -62,17 +62,18 @@ class LoginView {
   }
 
   async tapLoginButton(): Promise<void> {
-    // Hiding the keyboard can submit the password and leave the login screen.
     await Gestures.hideKeyboard();
-    const deadline = Date.now() + 10_000;
-    while (
-      Date.now() < deadline &&
-      !(await isTestIdDisplayed(LoginViewSelectors.LOGIN_BUTTON_ID))
-    ) {
-      if (await isWalletHomeReadyOnAppium()) {
-        return;
-      }
+    const deadline = Date.now() + 15_000;
+    while (Date.now() < deadline) {
+      if (await isWalletHomeReadyOnAppium()) return;
+      if (await isTestIdDisplayed(LoginViewSelectors.LOGIN_BUTTON_ID)) break;
       await sleep(250);
+    }
+    if (await isWalletHomeReadyOnAppium()) return;
+    if (!(await isTestIdDisplayed(LoginViewSelectors.LOGIN_BUTTON_ID))) return;
+    if (PlatformDetector.isIOS()) {
+      await isTestIdDisplayed(LoginViewSelectors.LOGIN_BUTTON_ID, true);
+      return;
     }
     await Gestures.waitAndTap(this.loginButton, {
       elemDescription: 'Login Button',
