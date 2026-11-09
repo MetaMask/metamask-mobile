@@ -4,6 +4,7 @@ import type {
   SocialFeedEvent,
 } from '@metamask/social-controllers';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
+import { getFeedItemId } from '../utils/feedItemId';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 
@@ -36,15 +37,9 @@ export interface SocialFeedRow extends TraderFeedRow {
   serverEngagement?: AuthorComment['engagement'];
 }
 
-/** Fields the all and trending feeds add that `CoreFeedItem` does not type yet. */
-type CoreFeedItemWithId = CoreFeedItem & { feedItemId?: string };
-
-/**
- * The id realtime revisions of this row carry. The all and trending feeds
- * return it; the other scopes have one row per position and key on that.
- */
+/** The id realtime revisions of this row carry. */
 export const getRowFeedItemId = (row: TraderFeedRow): string =>
-  (row.core as CoreFeedItemWithId).feedItemId ?? row.core.positionId;
+  getFeedItemId(row.core);
 
 /**
  * Where the server placed the row: its `occurredAt` on the all and trending
@@ -55,10 +50,6 @@ export const getRowSortTimestamp = (row: TraderFeedRow): number => {
   const occurredAt = Date.parse(row.core.occurredAt ?? '');
   return Number.isNaN(occurredAt) ? row.item.timestamp : occurredAt;
 };
-
-/** A position can hold several feed items, so its id alone may repeat. */
-const getRowStableId = (row: TraderFeedRow): string =>
-  (row.core as CoreFeedItemWithId).feedItemId ?? row.item.id;
 
 export interface PendingRealtimeEvent {
   event: SocialFeedEvent;
@@ -145,7 +136,7 @@ export const mergeRealtimeFeedItem = (
 
 export const toSocialFeedRow = (row: TraderFeedRow): SocialFeedRow => ({
   ...row,
-  stableId: getRowStableId(row),
+  stableId: row.item.id,
   sortTimestamp: getRowSortTimestamp(row),
   feedItemId: getRowFeedItemId(row),
   revision: row.core.revision,
@@ -181,8 +172,7 @@ export const applyRealtimeEventToRow = (
     return null;
   }
 
-  const stableId =
-    previous?.stableId ?? (row ? getRowStableId(row) : event.feedItemId);
+  const stableId = previous?.stableId ?? row?.item.id ?? event.feedItemId;
 
   return {
     item: {
