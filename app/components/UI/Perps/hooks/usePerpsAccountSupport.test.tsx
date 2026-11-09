@@ -198,6 +198,74 @@ describe('usePerpsAccountSupport', () => {
     },
   );
 
+  it('returns stale when the watched signing venue changes during an explicit check', async () => {
+    const hook = renderAccountSupport();
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
+    hook.changeContext({ provider: 'lighter' });
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalledTimes(2));
+    const resolveSupport = holdNextSupportRead();
+
+    let checkPromise: Promise<string> = Promise.resolve('supported');
+    act(() => {
+      checkPromise = hook.result.current.checkAccountSupport('lighter', {
+        watchActiveProvider: (provider) =>
+          provider === 'lighter' ? 'lighter' : 'hyperliquid',
+      });
+    });
+    hook.changeContext({ provider: 'hyperliquid' });
+    let support = 'supported';
+    await act(async () => {
+      resolveSupport({ isSupported: false, reason: 'multi_sig_account' });
+      support = await checkPromise;
+    });
+
+    expect(support).toBe('stale');
+    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
+  });
+
+  it('keeps an explicit check current when the watched signing venue stays the same', async () => {
+    const hook = renderAccountSupport();
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
+    const resolveSupport = holdNextSupportRead();
+
+    let checkPromise: Promise<string> = Promise.resolve('stale');
+    act(() => {
+      checkPromise = hook.result.current.checkAccountSupport('hyperliquid', {
+        watchActiveProvider: () => 'hyperliquid',
+      });
+    });
+    hook.changeContext({ provider: 'lighter' });
+    let support = 'stale';
+    await act(async () => {
+      resolveSupport({ isSupported: true });
+      support = await checkPromise;
+    });
+
+    expect(support).toBe('supported');
+    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(false);
+  });
+
+  it('opens the modal when the watched signing venue stays unsupported', async () => {
+    const hook = renderAccountSupport();
+    await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
+    const resolveSupport = holdNextSupportRead();
+
+    let checkPromise: Promise<string> = Promise.resolve('supported');
+    act(() => {
+      checkPromise = hook.result.current.checkAccountSupport('hyperliquid', {
+        watchActiveProvider: () => 'hyperliquid',
+      });
+    });
+    let support = 'supported';
+    await act(async () => {
+      resolveSupport({ isSupported: false, reason: 'multi_sig_account' });
+      support = await checkPromise;
+    });
+
+    expect(support).toBe('unsupported');
+    expect(hook.result.current.isAccountUnsupportedModalVisible).toBe(true);
+  });
+
   it('keeps an explicit execution route current when only the default provider changes', async () => {
     const hook = renderAccountSupport();
     await waitFor(() => expect(mockGetAccountSupport).toHaveBeenCalled());
