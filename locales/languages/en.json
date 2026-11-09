@@ -11522,7 +11522,8 @@
           "title": "Set up card funding",
           "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
           "confirm_button": "Approve funding"
-        }
+        },
+        "token_value": "USDC on Base"
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -11556,6 +11557,7 @@
         "last_name_label": "Last name",
         "date_of_birth_label": "Date of birth",
         "nationality_label": "Nationality",
+        "nationality_placeholder": "Select your nationality",
         "ssn_label": "Social Security Number",
         "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Invalid SSN",
@@ -11569,6 +11571,7 @@
         "address_line_2_label": "Address line 2",
         "city_label": "City",
         "state_label": "State",
+        "state_placeholder": "Select your state",
         "zip_code_label": "Zip code",
         "country_label": "Country",
         "electronic_consent_1": "I agree to the ",
@@ -11618,7 +11621,9 @@
         "success_toast_description": "We'll let you know when the card is available in your country."
       },
       "region_selector": {
-        "title": "Select your Region"
+        "title": "Select your region",
+        "search_label": "Search regions",
+        "search_placeholder": "Search by country"
       },
       "errors": {
         "no_region_results": "No region matches {{searchString}}",

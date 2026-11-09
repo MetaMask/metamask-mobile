@@ -2,9 +2,15 @@ import React from 'react';
 import { Linking } from 'react-native';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  HelpText,
+  HelpTextSeverity,
   Spinner,
   Text,
   TextButton,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -46,24 +52,23 @@ function getSeparator(index: number, total: number): string {
 
 function LegalDocsError({ onRetry }: { onRetry: () => void }) {
   return (
-    <Box
-      twClassName="items-center gap-1 py-2"
-      testID="signup-immersve-legal-error"
-    >
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName="text-error-default text-center"
+    <Box twClassName="items-center gap-2" testID="signup-immersve-legal-error">
+      <HelpText
+        severity={HelpTextSeverity.Danger}
+        accessibilityRole="alert"
+        accessibilityLiveRegion="polite"
+        twClassName="text-center"
       >
         {strings('card.card_onboarding.sign_up.legal_docs_error')}
-      </Text>
-      <TextButton
-        variant={TextVariant.BodySm}
+      </HelpText>
+      <Button
+        variant={ButtonVariant.Tertiary}
+        size={ButtonSize.Md}
         onPress={onRetry}
-        twClassName="text-center py-2"
         testID="signup-immersve-legal-retry"
       >
         {strings('card.card_onboarding.retry_button')}
-      </TextButton>
+      </Button>
     </Box>
   );
 }
@@ -102,7 +107,8 @@ const ImmersveLegalClickwrap = ({
   return (
     <Text
       variant={TextVariant.BodySm}
-      twClassName="text-text-alternative text-center"
+      color={TextColor.TextAlternative}
+      twClassName="text-center"
       testID="signup-immersve-legal-clickwrap"
     >
       {strings('card.card_onboarding.sign_up.clickwrap_prefix')}

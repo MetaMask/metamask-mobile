@@ -58,6 +58,9 @@ jest.mock('../../util/metrics', () => ({
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
 
@@ -65,12 +68,14 @@ jest.mock('./OnboardingStep', () => {
     title,
     description,
     formFields,
-    actions,
+    ...footerProps
   }: {
     title: string;
     description: string;
     formFields: React.ReactNode;
-    actions: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     React.createElement(
       View,
@@ -86,7 +91,11 @@ jest.mock('./OnboardingStep', () => {
         { testID: 'onboarding-step-form-fields' },
         formFields,
       ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        mockRenderFooterButtons(footerProps),
+      ),
     );
 });
 
@@ -96,6 +105,42 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text } = jest.requireActual('react-native');
 
   return {
+    // Added for the CARD-682 layout pass (CardFormField / HelpText / TextButton).
+    HelpText: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    TextButton: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    HelpTextSeverity: { Danger: 'danger' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+      ErrorDefault: 'ErrorDefault',
+    },
+    FontWeight: { Medium: '500', Regular: '400' },
     Box: ({
       children,
       ...props
