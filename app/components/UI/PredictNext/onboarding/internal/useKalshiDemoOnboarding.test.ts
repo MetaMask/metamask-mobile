@@ -340,6 +340,23 @@ describe('createOnboardingController', () => {
     expect(onActivated).toHaveBeenCalledTimes(1);
   });
 
+  it('re-reads status after activate until Kalshi leaves approved', async () => {
+    client.getStatus
+      .mockResolvedValueOnce(statusOf('approved'))
+      .mockResolvedValueOnce(statusOf('approved'))
+      .mockResolvedValueOnce(statusOf('active'));
+    const controller = start();
+
+    controller.activate();
+    await flush();
+
+    expect(client.activate).toHaveBeenCalledTimes(1);
+    expect(client.activate).toHaveBeenCalledWith(WALLET, 'base', 'key-1');
+    expect(client.getStatus).toHaveBeenCalledTimes(3);
+    expect(onActivated).toHaveBeenCalledTimes(1);
+    expect(events.map((e) => e.type)).not.toContain('failed');
+  });
+
   it('ignores a status that arrives after dismiss', async () => {
     let resolveStatus: (status: ReturnType<typeof statusOf>) => void = () =>
       undefined;

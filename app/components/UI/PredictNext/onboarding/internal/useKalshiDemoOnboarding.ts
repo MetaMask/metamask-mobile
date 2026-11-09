@@ -20,6 +20,8 @@ export const KYC_PENDING_POLL_LIMIT_MS = 60_000;
 export const LINK_VERIFY_POLL_LIMIT_MS = 60_000;
 /** Poll budget for an intent already in `kyc_review`. */
 export const KYC_REVIEW_POLL_LIMIT_MS = 120_000;
+/** Poll budget for Kalshi to move the intent off `approved` after activate. */
+export const ACTIVATE_POLL_LIMIT_MS = 60_000;
 
 export type KalshiOnboardingApi = Pick<
   KalshiOnboardingClient,
@@ -279,7 +281,11 @@ export const createOnboardingController = (
         const check = guard();
         await inputs().client.activate(walletAddress, network, key);
         check();
-        await readStatus(false);
+        // Kalshi can lag behind a successful wallet register. One re-read
+        // can drop the user back on the wallet step while the register went
+        // through, and a second activate mints a new idempotency key that
+        // conflicts. Poll through the lag instead, as verify does.
+        await poll(ACTIVATE_POLL_LIMIT_MS, ['approved']);
       });
     },
     retry: () => {
