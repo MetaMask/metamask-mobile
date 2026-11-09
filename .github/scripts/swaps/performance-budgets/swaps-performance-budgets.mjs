@@ -3,22 +3,29 @@
  * guardrail when n >= MIN_SAMPLES and the scan wasn't downsampled.
  */
 
-import { BUDGET_RULES, MIN_SAMPLES, SENTRY_DASHBOARDS, WINDOW_DAYS } from './swaps-performance-budgets.config.mjs';
+import {
+  BUDGET_RULES,
+  MIN_SAMPLES,
+  SENTRY_DASHBOARDS,
+  WINDOW_DAYS,
+} from './swaps-performance-budgets.config.mjs';
 
 const SENTRY_ORG = 'metamask';
 const P90_FIELD = 'p90(span.duration)';
 const COUNT_FIELD = 'count_sample()';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export const STATUS = { BREACH: 'breach', OK: 'ok', NOT_EVALUABLE: 'not-evaluable' };
+export const STATUS = {
+  BREACH: 'breach',
+  OK: 'ok',
+  NOT_EVALUABLE: 'not-evaluable',
+};
 
-/** 00:00 UTC today. */
-export function startOfTodayUtc(now = new Date()) {
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-}
-
-/** The `WINDOW_DAYS` complete UTC days ending at `end`. */
-export function windowEndingAt(end) {
+/** The `WINDOW_DAYS` complete UTC days ending at 00:00 UTC today. */
+export function currentWindow(now = new Date()) {
+  const end = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
   const start = new Date(end.getTime() - WINDOW_DAYS * DAY_MS);
   const last = new Date(end.getTime() - DAY_MS);
   const label = `${start.toISOString().slice(0, 10)} – ${last.toISOString().slice(0, 10)} UTC`;
@@ -62,27 +69,33 @@ export function dashboardUrl({ dashboardId, projectId }, { start, end }) {
  * `meta.dataScanned` says whether it got one.
  */
 export async function measure(rule, window, token) {
-  const params = new URLSearchParams({ dataset: 'spans', project: rule.projectId });
+  const params = new URLSearchParams({
+    dataset: 'spans',
+    project: rule.projectId,
+  });
   params.append('field', COUNT_FIELD);
   params.append('field', P90_FIELD);
   params.set('query', rule.query);
   params.set('start', isoSeconds(window.start));
   params.set('end', isoSeconds(window.end));
   params.set('sampling', 'HIGHEST_ACCURACY');
-  params.set('per_page', '1');
-  const response = await fetch(`https://sentry.io/api/0/organizations/${SENTRY_ORG}/events/?${params}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await fetch(
+    `https://sentry.io/api/0/organizations/${SENTRY_ORG}/events/?${params}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
   if (!response.ok) {
     const detail = (await response.text().catch(() => '')).slice(0, 200);
-    throw new Error(`Sentry events API HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
+    throw new Error(
+      `Sentry events API HTTP ${response.status}${detail ? `: ${detail}` : ''}`,
+    );
   }
   const body = await response.json();
   const row = body.data?.[0] || {};
-  const number = (value) => (typeof value === 'number' && Number.isFinite(value) ? value : null);
   return {
-    p90: number(row[P90_FIELD]),
-    n: number(row[COUNT_FIELD]) ?? 0,
+    p90: row[P90_FIELD] ?? null,
+    n: row[COUNT_FIELD] ?? 0,
     fullScan: body.meta?.dataScanned !== 'partial',
   };
 }
@@ -95,19 +108,7 @@ export function budgetStatus({ p90, n, fullScan }, guardrailMs) {
 }
 
 const formatCount = (value) => Math.round(value).toLocaleString('en-US');
-const formatMs = (value) => (value === null ? 'n/a' : `${formatCount(value)}ms`);
-
-/** One line per rule, for the console. */
-export function resultLine({ rule, measured: { p90, n, fullScan }, status }) {
-  const measured = `p90 ${formatMs(p90)}, guardrail ${formatMs(rule.guardrailMs)}, n=${formatCount(n)}`;
-  if (status !== STATUS.NOT_EVALUABLE) {
-    return `${rule.label}: ${measured}`;
-  }
-  const reason = fullScan
-    ? `n below ${formatCount(MIN_SAMPLES)}`
-    : 'Sentry scanned only part of the data';
-  return `${rule.label}: not evaluable (${reason}); ${measured}`;
-}
+const formatMs = (value) => `${formatCount(value)}ms`;
 
 const TITLE = 'Swaps performance budgets';
 const ICON = {
@@ -116,16 +117,18 @@ const ICON = {
   [STATUS.OK]: ':white_check_mark:',
 };
 const ORDER = [STATUS.BREACH, STATUS.NOT_EVALUABLE, STATUS.OK];
-const runLink = (runUrl) => (runUrl ? [`<${runUrl}|Run log>`] : []);
 
 /** Labels read "<client> <trace>" with an optional "(<scope>)" suffix. */
-const splitLabel = (label) => label.match(/^(\S+) (.+?)(?: \((.+)\))?$/).slice(1);
+const splitLabel = (label) =>
+  label.match(/^(\S+) (.+?)(?: \((.+)\))?$/).slice(1);
 
 function slackRuleLine({ rule, measured: { p90, n, fullScan }, status, url }) {
   const name = `<${url}|${splitLabel(rule.label)[1]}>`;
   const count = `n=${formatCount(n)}`;
   if (status === STATUS.NOT_EVALUABLE) {
-    const reason = fullScan ? `n below ${formatCount(MIN_SAMPLES)}` : 'partial scan';
+    const reason = fullScan
+      ? `n below ${formatCount(MIN_SAMPLES)}`
+      : 'partial scan';
     return `${ICON[status]} ${name}: not evaluable (${reason}) · ${count}`;
   }
   const share = Math.round((p90 / rule.guardrailMs) * 100);
@@ -134,10 +137,14 @@ function slackRuleLine({ rule, measured: { p90, n, fullScan }, status, url }) {
 }
 
 /** The daily Slack message: a verdict line, then every rule grouped by client, breaches first. */
-export function buildSlackMessage(results, { window, runUrl = '' } = {}) {
+export function buildSlackMessage(results, { window, runUrl = '' }) {
   const total = results.length;
-  const breaches = results.filter((result) => result.status === STATUS.BREACH).length;
-  const unknown = results.filter((result) => result.status === STATUS.NOT_EVALUABLE).length;
+  const breaches = results.filter(
+    (result) => result.status === STATUS.BREACH,
+  ).length;
+  const unknown = results.filter(
+    (result) => result.status === STATUS.NOT_EVALUABLE,
+  ).length;
   const unknownNote = unknown ? `, ${unknown} not evaluable` : '';
   let verdict = `:white_check_mark: *${TITLE}: all ${total} rules within guardrails*`;
   if (breaches) {
@@ -146,24 +153,34 @@ export function buildSlackMessage(results, { window, runUrl = '' } = {}) {
     verdict = `:grey_question: *${TITLE}: ${unknown} of ${total} not evaluable*`;
   }
 
-  const lines = [verdict, `${window.label} · ${WINDOW_DAYS}-day p90 vs guardrail`];
+  const lines = [
+    verdict,
+    `${window.label} · ${WINDOW_DAYS}-day p90 vs guardrail`,
+  ];
   const groups = new Map();
   for (const result of results) {
     const [client, , scope] = splitLabel(result.rule.label);
     const dashboard = SENTRY_DASHBOARDS[client];
-    const name = dashboard ? `<${dashboardUrl(dashboard, window)}|${client}>` : client;
+    const name = dashboard
+      ? `<${dashboardUrl(dashboard, window)}|${client}>`
+      : client;
     const header = `*${name}*${scope ? ` (${scope})` : ''}`;
     groups.set(header, [...(groups.get(header) || []), result]);
   }
   for (const [header, items] of groups) {
-    const sorted = [...items].sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status));
+    const sorted = [...items].sort(
+      (a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status),
+    );
     lines.push('', header, ...sorted.map(slackRuleLine));
   }
   if (breaches) {
-    lines.push('', 'Triage within 2 business days: attribute, then fix or accept with an owner and a reason.');
+    lines.push(
+      '',
+      'Triage within 2 business days: attribute, then fix or accept with an owner and a reason.',
+    );
   }
   if (runUrl) {
-    lines.push('', ...runLink(runUrl));
+    lines.push('', `<${runUrl}|Run log>`);
   }
   return lines.join('\n');
 }
@@ -172,15 +189,15 @@ export function buildFailureNotice({ runUrl = '' } = {}) {
   return [
     `:warning: *${TITLE}: check failed*`,
     "Today's results may be missing or incomplete.",
-    ...runLink(runUrl),
+    ...(runUrl ? [`<${runUrl}|Run log>`] : []),
   ].join('\n');
 }
 
-export async function runBudgetCheck({ todayEnd, token, rules = BUDGET_RULES }) {
-  const window = windowEndingAt(todayEnd);
+export async function runBudgetCheck(token) {
+  const window = currentWindow();
   const results = [];
   const errors = [];
-  for (const rule of rules) {
+  for (const rule of BUDGET_RULES) {
     try {
       const measured = await measure(rule, window, token);
       const status = budgetStatus(measured, rule.guardrailMs);

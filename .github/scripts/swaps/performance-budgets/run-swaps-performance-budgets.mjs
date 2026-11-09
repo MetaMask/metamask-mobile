@@ -1,18 +1,14 @@
-#!/usr/bin/env node
-/* eslint-disable no-console */
 /**
  * GitHub Actions entrypoint for swaps-performance-budgets.mjs. Exits 1 when any
  * Sentry query failed, after posting the other results.
  * `--failure-notice` posts only the "check failed" message.
  */
 
-import { MIN_SAMPLES, SLACK_CHANNEL_ID } from './swaps-performance-budgets.config.mjs';
+import { SLACK_CHANNEL_ID } from './swaps-performance-budgets.config.mjs';
 import {
   buildFailureNotice,
   buildSlackMessage,
-  resultLine,
   runBudgetCheck,
-  startOfTodayUtc,
   STATUS,
 } from './swaps-performance-budgets.mjs';
 
@@ -36,7 +32,9 @@ async function postToSlack(token, text) {
   }
   const body = await response.json();
   if (!body.ok) {
-    throw new Error(`Slack chat.postMessage failed: ${body.error || 'unknown error'}`);
+    throw new Error(
+      `Slack chat.postMessage failed: ${body.error || 'unknown error'}`,
+    );
   }
 }
 
@@ -51,8 +49,9 @@ async function main() {
 
   if (process.argv.includes('--failure-notice')) {
     const notice = buildFailureNotice({ runUrl });
+    console.log(`${notice}\n`);
     if (dryRun) {
-      console.log(`Dry run; would post to Slack:\n\n${notice}`);
+      console.log('Dry run; not posted.');
     } else {
       await postToSlack(slackToken, notice);
     }
@@ -63,31 +62,22 @@ async function main() {
     throw new Error('SWAPS_SENTRY_TOKEN is not set');
   }
 
-  const { window, results, errors } = await runBudgetCheck({
-    todayEnd: startOfTodayUtc(),
-    token,
-  });
-  console.log(`Swaps performance budgets, ${window.label}, minimum n ${MIN_SAMPLES.toLocaleString('en-US')}`);
-  for (const result of results) {
-    console.log(`- [${result.status}] ${resultLine(result)}`);
-  }
-  errors.forEach((error) => console.error(`- [error] ${error}`));
+  const { window, results, errors } = await runBudgetCheck(token);
+  const message = buildSlackMessage(results, { window, runUrl });
+  console.log(`${message}\n`);
+  errors.forEach((error) => console.error(`[error] ${error}`));
 
   // An all-clear would be misleading when some queries failed; the failure notice covers that.
   const allClear = results.every((result) => result.status === STATUS.OK);
-  const message =
-    errors.length > 0 && allClear ? null : buildSlackMessage(results, { window, runUrl });
-  if (!message) {
+  if (errors.length > 0 && allClear) {
     console.log(
-      results.length > 0
-        ? '\nSome queries failed and the rest are within guardrails; the failure notice will post instead.'
-        : '\nEvery query failed, so no rules could be checked; the failure notice will post instead.',
+      'Not posted because a query failed; the failure notice will post instead.',
     );
   } else if (dryRun) {
-    console.log(`\nDry run; would post to Slack:\n\n${message}`);
+    console.log('Dry run; not posted.');
   } else {
     await postToSlack(slackToken, message);
-    console.log('\nPosted to Slack.');
+    console.log('Posted to Slack.');
   }
 
   if (errors.length > 0) {

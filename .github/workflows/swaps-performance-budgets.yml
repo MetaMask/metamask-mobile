@@ -1,8 +1,4 @@
-# Daily Swaps performance budgets check. Posts to Slack every day: an all-clear,
-# a breach list, or a failure notice.
-# Rules: .github/scripts/swaps/performance-budgets/swaps-performance-budgets.config.mjs.
-# Secrets: SWAPS_SENTRY_TOKEN (Sentry, org:read) and SLACK_BOT_TOKEN, which must
-# be invited to the channel set in the config.
+# Daily Swaps performance budgets check; rules and channel are in .github/scripts/swaps/performance-budgets/swaps-performance-budgets.config.mjs.
 
 name: Swaps Performance Budgets
 
@@ -13,32 +9,24 @@ on:
     inputs:
       dry_run:
         description: 'Log the Slack message instead of posting it'
-        required: false
         type: boolean
         default: true
 
 permissions:
   contents: read
 
-concurrency:
-  group: swaps-performance-budgets
-  cancel-in-progress: false
-
 jobs:
   check-budgets:
-    name: Check Swaps performance budgets
     if: ${{ github.repository == 'MetaMask/metamask-mobile' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
-      HAS_SLACK_TOKEN: ${{ secrets.SLACK_BOT_TOKEN != '' }}
       GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 1
           persist-credentials: false
 
       - name: Setup Node.js
@@ -53,7 +41,7 @@ jobs:
         run: node .github/scripts/swaps/performance-budgets/run-swaps-performance-budgets.mjs
 
       - name: Post failure notice
-        if: ${{ failure() && env.DRY_RUN != 'true' && env.HAS_SLACK_TOKEN == 'true' }}
+        if: failure()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         run: node .github/scripts/swaps/performance-budgets/run-swaps-performance-budgets.mjs --failure-notice

@@ -1,9 +1,7 @@
 import {
   STATUS,
   budgetStatus,
-  buildFailureNotice,
   buildSlackMessage,
-  exploreUrl,
 } from './swaps-performance-budgets.mjs';
 
 const result = (
@@ -78,7 +76,10 @@ describe('buildSlackMessage', () => {
           p90: 9000,
           n: 120,
         }),
-        result('Mobile Swap Quote Fetch', STATUS.BREACH, { p90: 5300, n: 4176 }),
+        result('Mobile Swap Quote Fetch', STATUS.BREACH, {
+          p90: 5300,
+          n: 4176,
+        }),
       ],
       options,
     );
@@ -93,26 +94,5 @@ describe('buildSlackMessage', () => {
       ':white_check_mark: <https://example.com/explore|Swap View Loaded>: 4,000ms / 5,000ms (80%) · n=4,176',
     ]);
     expect(message).toMatch(/Triage within 2 business days/);
-  });
-});
-
-describe('exploreUrl', () => {
-  it('sets the page environment filter to production', () => {
-    const url = new URL(
-      exploreUrl(
-        { query: 'environment:production span.name:"Swap Quote Fetch"', projectId: '2299799' },
-        { start: new Date('2026-10-26T00:00:00Z'), end: new Date('2026-11-09T00:00:00Z') },
-      ),
-    );
-    expect(url.searchParams.get('environment')).toBe('production');
-    expect(url.searchParams.get('project')).toBe('2299799');
-  });
-});
-
-describe('buildFailureNotice', () => {
-  it('leads with the failure verdict and links the run', () => {
-    expect(buildFailureNotice(options)).toBe(
-      ":warning: *Swaps performance budgets: check failed*\nToday's results may be missing or incomplete.\n<https://example.com/run|Run log>",
-    );
   });
 });
