@@ -1085,7 +1085,7 @@ describe('Transaction Pay Utils', () => {
         shouldHintAtomicMax: false,
       });
 
-      expect(result).toBe(false);
+      expect(result).toStrictEqual({ atomic: false, atomicForbidden: true });
     });
 
     it('forces non-atomic for an MFA keyring even on a subsidised max route', () => {
@@ -1095,7 +1095,7 @@ describe('Transaction Pay Utils', () => {
         shouldHintAtomicMax: true,
       });
 
-      expect(result).toBe(false);
+      expect(result).toStrictEqual({ atomic: false, atomicForbidden: true });
     });
 
     it('defers to Core for a non-MFA keyring at a partial amount', () => {
@@ -1105,7 +1105,10 @@ describe('Transaction Pay Utils', () => {
         shouldHintAtomicMax: false,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toStrictEqual({
+        atomic: undefined,
+        atomicForbidden: undefined,
+      });
     });
 
     it('forces non-atomic for a non-MFA max amount off a subsidised route', () => {
@@ -1115,7 +1118,10 @@ describe('Transaction Pay Utils', () => {
         shouldHintAtomicMax: false,
       });
 
-      expect(result).toBe(false);
+      expect(result).toStrictEqual({
+        atomic: false,
+        atomicForbidden: undefined,
+      });
     });
 
     it('hints atomic for a non-MFA max amount on a subsidised route', () => {
@@ -1125,7 +1131,10 @@ describe('Transaction Pay Utils', () => {
         shouldHintAtomicMax: true,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toStrictEqual({
+        atomic: undefined,
+        atomicForbidden: undefined,
+      });
     });
   });
 

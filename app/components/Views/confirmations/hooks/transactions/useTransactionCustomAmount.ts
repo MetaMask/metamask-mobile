@@ -316,11 +316,13 @@ export function useTransactionCustomAmount({
         if (isMoneyAccountDeposit) {
           // Only hint atomic when Core enables it. Route configuration is
           // predictive; Core verifies the subsidy and re-quotes if needed.
-          config.atomic = resolveMoneyAccountDepositAtomic({
+          const { atomic, atomicForbidden } = resolveMoneyAccountDepositAtomic({
             isMaxAmount: value,
             isMfaKeyring: isMfaMoneyKeyring,
             shouldHintAtomicMax,
           });
+          config.atomic = atomic;
+          config.atomicForbidden = atomicForbidden;
         }
       });
     },
@@ -345,11 +347,13 @@ export function useTransactionCustomAmount({
     Engine.context.TransactionPayController.setTransactionConfig(
       transactionId,
       (config) => {
-        config.atomic = resolveMoneyAccountDepositAtomic({
+        const { atomic, atomicForbidden } = resolveMoneyAccountDepositAtomic({
           isMaxAmount,
           isMfaKeyring: isMfaMoneyKeyring,
           shouldHintAtomicMax,
         });
+        config.atomic = atomic;
+        config.atomicForbidden = atomicForbidden;
       },
     );
   }, [

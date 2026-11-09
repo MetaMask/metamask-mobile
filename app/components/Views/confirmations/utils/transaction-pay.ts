@@ -366,13 +366,14 @@ export function applyMoneyAccountOverride(
 }
 
 /**
- * Resolves the `atomic` value for a Money Account deposit.
+ * Resolves the atomicity settings for a Money Account deposit.
  *
- * Returns the value to assign to `TransactionConfig.atomic`, where
- * `undefined` means "let Core decide" (the default atomic path) and `false`
- * forces the non-atomic path.
+ * Returns the values to assign to `TransactionConfig.atomic` and
+ * `TransactionConfig.atomicForbidden`, where an `atomic` of `undefined` means
+ * "let Core decide" (the default atomic path) and `false` asks for the
+ * non-atomic path.
  *
- * Two independent reasons force non-atomic, and either one is sufficient.
+ * Two independent reasons ask for non-atomic, and either one is sufficient.
  *
  * MFA keyring: the atomic path signs a fresh delegation per quote (see
  * `getMoneyAccountDepositPaymentOverrideData`), and quotes refresh while the
@@ -385,7 +386,13 @@ export function applyMoneyAccountOverride(
  * Max amount without a subsidised route: pre-existing behaviour, since the
  * exact deposit amount is only known once Relay settles.
  *
- * Centralising both reasons here keeps a single writer for `config.atomic` on
+ * Only the MFA case also sets `atomicForbidden`. `atomic` alone is a hint that
+ * Core may override: on a subsidised max route `getRelayMaxQuote` promotes the
+ * quote back to atomic, which reintroduces the per-quote signature. That
+ * promotion is desirable for the max case and unacceptable for the MFA case,
+ * so the hard constraint is set only where it is actually required.
+ *
+ * Centralising both reasons here keeps a single writer for these fields on
  * this flow. Previously `setIsMax(false)` wrote `undefined` unconditionally,
  * which would have silently cleared an MFA-driven `false`.
  *
@@ -395,7 +402,7 @@ export function applyMoneyAccountOverride(
  * MFA to sign.
  * @param options.shouldHintAtomicMax - Whether Core's atomic-max gate is on
  * and the route is subsidised, making an atomic max quote viable.
- * @returns `false` to force the non-atomic path, otherwise `undefined`.
+ * @returns The `atomic` and `atomicForbidden` values to assign.
  */
 export function resolveMoneyAccountDepositAtomic({
   isMaxAmount,
@@ -405,16 +412,16 @@ export function resolveMoneyAccountDepositAtomic({
   isMaxAmount: boolean;
   isMfaKeyring: boolean;
   shouldHintAtomicMax: boolean;
-}): false | undefined {
+}): { atomic: false | undefined; atomicForbidden: true | undefined } {
   if (isMfaKeyring) {
-    return false;
+    return { atomic: false, atomicForbidden: true };
   }
 
   if (isMaxAmount && !shouldHintAtomicMax) {
-    return false;
+    return { atomic: false, atomicForbidden: undefined };
   }
 
-  return undefined;
+  return { atomic: undefined, atomicForbidden: undefined };
 }
 
 export function getTotalPayFeesUsd(
