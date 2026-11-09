@@ -17,6 +17,7 @@ import type { SocialShellTab } from '../shell/types';
 import {
   ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
+  recordSocialTermsAcceptanceForExistingProfile,
 } from '../terms/socialTermsAcceptance';
 
 /**
@@ -116,10 +117,14 @@ const ensureSocialProfileCreated = (
  * Whether `navigateToSocialTab` would open the tab itself rather than
  * redirecting to terms, profile setup, or onboarding.
  */
-export const canOpenSocialTabDirectly = (): boolean =>
-  (!isSocialV1Treatment() ||
-    (hasAcceptedSocialTerms() && hasCreatedSocialProfile())) &&
-  !shouldShowSocialLeaderboardOnboarding();
+export const canOpenSocialTabDirectly = (): boolean => {
+  recordSocialTermsAcceptanceForExistingProfile();
+  return (
+    (!isSocialV1Treatment() ||
+      (hasAcceptedSocialTerms() && hasCreatedSocialProfile())) &&
+    !shouldShowSocialLeaderboardOnboarding()
+  );
+};
 
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,

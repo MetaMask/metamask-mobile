@@ -21,7 +21,10 @@ import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import {
+  MoneyPostOnboardingRedirectType,
+  type MoneyOnboardingParams,
+} from '../../types/navigation';
 import type { NavigationAnalyticsContext } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
   __fireRiveTrigger,
@@ -39,20 +42,7 @@ let mockIsE2EOrPerformanceTest = false;
 let mockRiveViewReady = true;
 const mockRiveViewRef = {};
 const mockSetHybridRef = { f: jest.fn() };
-let mockRouteParams:
-  | {
-      analyticsContext?: NavigationAnalyticsContext;
-      postOnboardingRedirect?: {
-        type: MoneyPostOnboardingRedirectType;
-        preferredPaymentToken?: {
-          address: `0x${string}`;
-          chainId: `0x${string}`;
-        };
-        autoSelectFiatPayment?: boolean;
-        intent?: 'convert' | 'addMusd' | 'card';
-      };
-    }
-  | undefined;
+let mockRouteParams: MoneyOnboardingParams | undefined;
 const mockInitiateDeposit = jest.fn();
 
 const setWindowDimensions = ({
@@ -437,6 +427,42 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
+    it('returns to Card sign-in when the Card redirect asks for it', () => {
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'authentication',
+        },
+      };
+
+      renderMoneyOnboardingView();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    });
+
+    it('returns to Card onboarding when the post-onboarding redirect is Card', () => {
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'onboarding',
+        },
+      };
+
+      renderMoneyOnboardingView();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+      });
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    });
+
     it('initiates the post-onboarding deposit during E2E and performance tests', () => {
       const preferredPaymentToken = {
         address: '0xabc' as const,
@@ -684,6 +710,24 @@ describe('MoneyOnboardingView', () => {
           payload: { seen: true },
         }),
       );
+    });
+
+    it('returns to Card sign-in after onboarding when the redirect asks for it', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'authentication',
+        },
+      };
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
     });
 
     it('initiates deposit with preferred token after completing onboarding', async () => {
