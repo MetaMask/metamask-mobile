@@ -516,11 +516,11 @@ export function useTaxDocumentation(profileId: string) {
       await noteSubmitted(remembered);
       try {
         const taxMe = await readTaxMe(true);
-        const stillOpenForm = isOpenFormTaxMe(taxMe);
-        await noteSubmitted(
-          stillOpenForm ? taxFormSubmittedSnapshot(taxMe) : null,
-        );
-        if (!stillOpenForm) {
+        // A fresh read that is still an open form can be a new stored form
+        // with the same reason. Keep the pre-submit snapshot only while
+        // stored_at has not moved.
+        if (!taxFormSubmissionStillWaiting(remembered, taxMe)) {
+          await noteSubmitted(null);
           showTaxMe(taxMe);
         }
       } catch (error) {

@@ -524,6 +524,15 @@ describe('tax form submission snapshot', () => {
       titleKey: 'taxFormPendingTitle',
       descriptionKey: 'taxFormPendingDescription',
     });
+    const storedAgain = taxMe({
+      next_action: 'OPEN_FORM',
+      reason: 'TIN_NOT_MATCHED',
+      stored_at: '2026-11-09T18:00:00.000Z',
+    });
+    expect(taxFormSubmissionStillWaiting(submitted, storedAgain)).toBe(false);
+    expect(taxSheetForClaim(storedAgain, submitted)).toEqual(
+      taxSheetFor(storedAgain),
+    );
     expect(
       taxSheetForClaim(
         taxMe({

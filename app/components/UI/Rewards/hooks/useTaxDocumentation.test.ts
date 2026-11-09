@@ -548,6 +548,43 @@ describe('useTaxDocumentation', () => {
       expect(claim).toHaveBeenCalledTimes(1);
     });
 
+    it('follows a new stored form that presents the same reason', async () => {
+      mockCall.mockImplementation((action: string) => {
+        if (action === 'RewardsMoneyController:getTaxFormSubmitted') {
+          return Promise.resolve({
+            state: 'ACTION_REQUIRED',
+            next_action: 'OPEN_FORM',
+            reason: 'TIN_NOT_MATCHED',
+            stored_at: '2026-11-09T12:00:00.000Z',
+          });
+        }
+        return Promise.resolve(
+          taxMe({
+            next_action: 'OPEN_FORM',
+            reason: 'TIN_NOT_MATCHED',
+            stored_at: '2026-11-09T18:00:00.000Z',
+          }),
+        );
+      });
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(summary, claim);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+        expect.objectContaining({
+          description: localizedText.taxTinMismatchDescription,
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        expect.anything(),
+      );
+    });
+
     it('follows the new determination once the submitted snapshot changes', async () => {
       mockCall.mockImplementation((action: string) => {
         if (action === 'RewardsMoneyController:getTaxFormSubmitted') {
@@ -1053,7 +1090,48 @@ describe('useTaxDocumentation', () => {
           state: 'ACTION_REQUIRED',
           next_action: 'OPEN_FORM',
           reason: 'NO_FORM',
+          stored_at: null,
         },
+      );
+    });
+
+    it('drops the snapshot when a new form is stored with the same reason', async () => {
+      const cached = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'TIN_NOT_MATCHED',
+        stored_at: '2026-11-09T12:00:00.000Z',
+      });
+      const fresh = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'TIN_NOT_MATCHED',
+        stored_at: '2026-11-09T18:00:00.000Z',
+      });
+      mockCall.mockImplementation(
+        (action: string, params?: { forceFresh?: boolean }) => {
+          if (action === 'RewardsMoneyController:getTaxMe') {
+            return Promise.resolve(params?.forceFresh ? fresh : cached);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+      const { result } = renderTaxHook(Routes.REWARDS_TAX_FORM_VIEW);
+
+      await act(async () => {
+        result.current.openPendingReview();
+        await Promise.resolve();
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        null,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(
+          Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+          expect.objectContaining({
+            description: localizedText.taxTinMismatchDescription,
+          }),
+        ),
       );
     });
 
@@ -1077,6 +1155,7 @@ describe('useTaxDocumentation', () => {
           state: 'ACTION_REQUIRED',
           next_action: 'OPEN_FORM',
           reason: 'FORM_INVALID',
+          stored_at: null,
         },
       );
       expect(mockDispatch).toHaveBeenCalledTimes(1);
@@ -1125,6 +1204,7 @@ describe('useTaxDocumentation', () => {
           state: 'ACTION_REQUIRED',
           next_action: 'OPEN_FORM',
           reason: 'NO_FORM',
+          stored_at: null,
         },
       );
       expect(mockDispatch).toHaveBeenCalledTimes(1);
@@ -1172,6 +1252,7 @@ describe('useTaxDocumentation', () => {
           state: 'ACTION_REQUIRED',
           next_action: 'OPEN_FORM',
           reason: 'TIN_NOT_MATCHED',
+          stored_at: null,
         },
       );
 
@@ -1210,6 +1291,7 @@ describe('useTaxDocumentation', () => {
           state: 'ACTION_REQUIRED',
           next_action: 'OPEN_FORM',
           reason: 'TIN_NOT_MATCHED',
+          stored_at: null,
         },
       );
       expect(mockDispatch).toHaveBeenCalledTimes(1);

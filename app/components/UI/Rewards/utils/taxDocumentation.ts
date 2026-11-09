@@ -228,6 +228,7 @@ export const PRE_WEBHOOK_TAX_FORM_SNAPSHOT: TaxFormSubmittedSnapshot = {
   state: 'ACTION_REQUIRED',
   next_action: 'OPEN_FORM',
   reason: 'NO_FORM',
+  stored_at: null,
 };
 
 /** True only for the open-form read that exists before Taxbit's status webhook. */
@@ -254,13 +255,16 @@ export function taxFormSubmittedSnapshot(
     state: taxMe.state,
     next_action: taxMe.next_action,
     reason: taxMe.reason,
+    stored_at: taxMe.stored_at ?? null,
   };
 }
 
 /**
  * The form was submitted and `tax/me` has not moved off that snapshot.
  * The snapshot is whatever open-form read was current at submit. A null
- * marker, or any changed field, means Claim follows `taxSheetFor`.
+ * marker, a changed status, or a new `stored_at` means Claim follows
+ * `taxSheetFor`. A missing `stored_at` is a snapshot from before the field
+ * and compares as no stored form.
  */
 export function taxFormSubmissionStillWaiting(
   submitted: TaxFormSubmittedSnapshot | null,
@@ -273,7 +277,8 @@ export function taxFormSubmissionStillWaiting(
   return (
     submitted.state === current.state &&
     submitted.next_action === current.next_action &&
-    submitted.reason === current.reason
+    submitted.reason === current.reason &&
+    (submitted.stored_at ?? null) === current.stored_at
   );
 }
 
