@@ -1,12 +1,17 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  ScrollView,
+  Platform,
   View,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   BottomSheet,
   Box,
@@ -133,21 +138,40 @@ const PositionDetailsSheet = () => {
     setHeadlineChoice(null);
   }
   const [isTabsExpanded, setIsTabsExpanded] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [pinnedFooterHeight, setPinnedFooterHeight] = useState(0);
+  const { height: frameHeight } = useSafeAreaFrame();
+  const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();
+  // Matches the padding the design-system sheet adds under its content.
+  const sheetBottomPadding =
+    Platform.OS === 'ios' || Platform.OS === 'macos'
+      ? bottomInset
+      : bottomInset + 16;
+  const maxScrollHeight = Math.max(
+    0,
+    frameHeight -
+      topInset -
+      sheetBottomPadding -
+      headerHeight -
+      (isTabsExpanded ? pinnedFooterHeight : 0),
+  );
 
-  // Upward-only so a downward drag still dismisses the sheet. Collapsed, the
-  // footer sits right under the tab bar; scrolling up opens the active tab.
-  const expandGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .withTestId(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE)
-        .runOnJS(true)
-        .enabled(!isTabsExpanded)
-        .activeOffsetY(-6)
-        .failOffsetY(6)
-        .onEnd((event) => {
-          if (event.translationY < -SWIPE_THRESHOLD) setIsTabsExpanded(true);
-        }),
-    [isTabsExpanded],
+  const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+    setHeaderHeight(Math.ceil(event.nativeEvent.layout.height));
+  }, []);
+  const handlePinnedFooterLayout = useCallback((event: LayoutChangeEvent) => {
+    setPinnedFooterHeight(Math.ceil(event.nativeEvent.layout.height));
+  }, []);
+
+  // Scrolling up past the threshold opens the active tab. The sheet's own
+  // pan still dismisses on a downward drag.
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (event.nativeEvent.contentOffset.y > SWIPE_THRESHOLD) {
+        setIsTabsExpanded(true);
+      }
+    },
+    [],
   );
 
   // iOS bounce: pulling the open sheet down past its top closes the tab.
@@ -377,28 +401,26 @@ const PositionDetailsSheet = () => {
   );
 
   const details = (
-    <GestureDetector gesture={expandGesture}>
-      <View>
-        <Box twClassName="px-4 py-3" gap={2}>
-          <PositionSheetTradeSummary
-            title={data.summaryTitle}
-            tagLabel={data.summaryTagLabel}
-            direction={data.perpDirection}
-            subtitle={data.summarySubtitle}
-            pnlPercentLabel={data.pnlPercentLabel}
-            pnlValueLabel={data.pnlValueLabel}
-            isPnlPositive={data.isPnlPositive}
-          />
-        </Box>
-        <PositionSheetTabs
-          position={position}
-          author={author}
-          isExpanded={isTabsExpanded}
-          onExpandedChange={setIsTabsExpanded}
+    <View>
+      <Box twClassName="px-4 py-3" gap={2}>
+        <PositionSheetTradeSummary
+          title={data.summaryTitle}
+          tagLabel={data.summaryTagLabel}
+          direction={data.perpDirection}
+          subtitle={data.summarySubtitle}
+          pnlPercentLabel={data.pnlPercentLabel}
+          pnlValueLabel={data.pnlValueLabel}
+          isPnlPositive={data.isPnlPositive}
         />
-        {isTabsExpanded ? null : footer}
-      </View>
-    </GestureDetector>
+      </Box>
+      <PositionSheetTabs
+        position={position}
+        author={author}
+        isExpanded={isTabsExpanded}
+        onExpandedChange={setIsTabsExpanded}
+      />
+      {isTabsExpanded ? null : footer}
+    </View>
   );
 
   return (
@@ -410,15 +432,23 @@ const PositionDetailsSheet = () => {
           goBack={handleSheetClosed}
           testID={PositionDetailsSheetSelectorsIDs.CONTAINER}
         >
-          <PositionSheetHeader
-            author={author}
-            isOwnPost={isOwnPost}
-            onPressTrader={handleOpenTraderProfile}
-          />
-          {/* Collapsed, everything fits and drags move the sheet instead. */}
+          <View onLayout={handleHeaderLayout}>
+            <PositionSheetHeader
+              author={author}
+              isOwnPost={isOwnPost}
+              onPressTrader={handleOpenTraderProfile}
+            />
+          </View>
+          {/* Bounded so content past the screen scrolls instead of being clipped. */}
           <ScrollView
-            scrollEnabled={isTabsExpanded}
+            style={
+              headerHeight > 0 ? { maxHeight: maxScrollHeight } : undefined
+            }
+            scrollEnabled
+            nestedScrollEnabled
+            scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
+            onScroll={handleScroll}
             onScrollEndDrag={handleScrollEndDrag}
             testID={PositionDetailsSheetSelectorsIDs.SCROLL}
           >
@@ -454,7 +484,9 @@ const PositionDetailsSheet = () => {
               {details}
             </View>
           </ScrollView>
-          {isTabsExpanded ? footer : null}
+          {isTabsExpanded ? (
+            <View onLayout={handlePinnedFooterLayout}>{footer}</View>
+          ) : null}
         </BottomSheet>
       )}
 
