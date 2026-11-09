@@ -2,7 +2,10 @@ import { Theme } from '@metamask/design-tokens';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { TokenIconVariant } from './token-icon';
 
-function getIconSize(variant: TokenIconVariant) {
+function getIconSize(variant: TokenIconVariant, size?: number) {
+  if (size !== undefined) {
+    return size;
+  }
   switch (variant) {
     case TokenIconVariant.Hero:
       return 44;
@@ -15,17 +18,17 @@ function getIconSize(variant: TokenIconVariant) {
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { variant: TokenIconVariant };
+  vars: { variant: TokenIconVariant; size?: number };
 }) => {
-  const { variant } = params.vars;
+  const { variant, size } = params.vars;
 
   const container: ViewStyle = {
     alignSelf: 'center',
   };
 
   const tokenIcon: ViewStyle = {
-    width: getIconSize(variant),
-    height: getIconSize(variant),
+    width: getIconSize(variant, size),
+    height: getIconSize(variant, size),
     borderRadius: 99,
   };
 

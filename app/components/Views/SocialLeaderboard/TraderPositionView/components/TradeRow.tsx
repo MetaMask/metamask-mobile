@@ -42,6 +42,7 @@ export interface TradeRowProps {
   action?: TradeAction;
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
   /** When provided, the row is tappable (e.g. to focus the chart on this trade). */
   onPress?: (trade: Trade) => void;
   /**
@@ -56,6 +57,7 @@ const TradeRow: React.FC<TradeRowProps> = ({
   action,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
   onPress,
   isEmphasized = false,
 }) => {
@@ -121,6 +123,7 @@ const TradeRow: React.FC<TradeRowProps> = ({
           <TraderAvatar
             imageUrl={traderImageUrl}
             address={traderAddress}
+            profileId={traderProfileId}
             size={AVATAR_SIZE}
           />
           <Box twClassName="flex-1 min-w-0">

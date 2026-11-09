@@ -9599,10 +9599,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bitcoin-wallet-snap@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "@metamask/bitcoin-wallet-snap@npm:3.2.0"
-  checksum: 10/3a43cf6865b6e813a51511944b5b871eab3d266308abe64daa8accf2a17b250907f58fd04b7df9ea444ec5d7e80d63c4bdbbdfe2cca1c7aefd43e173c273f872
+"@metamask/bitcoin-wallet-snap@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "@metamask/bitcoin-wallet-snap@npm:3.3.0"
+  checksum: 10/cab9f63967477e0f36792adeb4963f1b4271f078a93231f3df7a379712078516f824b13d7b2cfb06b9ad0215b90256d3b1299b34ca61869f556455859508de5d
   languageName: node
   linkType: hard
 
@@ -10028,11 +10028,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.55.0":
-  version: 0.55.0
-  resolution: "@metamask/design-system-react-native@npm:0.55.0"
+"@metamask/design-system-react-native@npm:^0.56.0":
+  version: 0.56.0
+  resolution: "@metamask/design-system-react-native@npm:0.56.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.44.0"
+    "@metamask/design-system-shared": "npm:^0.45.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.14.0
@@ -10046,18 +10046,18 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/c12d54a953ab53ce45ccfd8fdc78aa35db7fcaf88fd860cd588dcab74d2d6b3258bcf9fde8621771f45105130a064b8117231bd82f393a31c11a5a7fbd4c9a83
+  checksum: 10/f0c5bdc5501b0a4cc89ec9e51b68594890eaf6340e0fcdc4e4b1f0b6b817e5f81b0e4a85a4a4d76619608c0643483d925828b866d67c4a7167d1fc851f69033e
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.44.0":
-  version: 0.44.0
-  resolution: "@metamask/design-system-shared@npm:0.44.0"
+"@metamask/design-system-shared@npm:^0.45.0":
+  version: 0.45.0
+  resolution: "@metamask/design-system-shared@npm:0.45.0"
   dependencies:
     "@metamask/utils": "npm:^11.12.1"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/f6b918dd32a15fe3ae20616bc7705cbc1f9829be1acf9e020b23711f8c8ba667233d9610fd6ddcf54dcb62f0f97395aeafdc6ee1c3947bfe331f041ec888eb3f
+  checksum: 10/522922b87353a5b0b16adc5157bcfbea153741d6818a60516280d5aa5a2eeb0ae55e22240eba37febe4198f9e553fc2ef9aa7f277ea9ad4d7de7db2e412a6243
   languageName: node
   linkType: hard
 
@@ -12351,10 +12351,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^7.2.0":
-  version: 7.2.0
-  resolution: "@metamask/solana-wallet-snap@npm:7.2.0"
-  checksum: 10/dde7895f40ac0e29490336c60b14479129c25471341127dc784c4f40b92959fa3714024730524802f614f36d637e4a63c8ff7d97b25eed96ec6c7cf164602db7
+"@metamask/solana-wallet-snap@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "@metamask/solana-wallet-snap@npm:7.3.0"
+  checksum: 10/91306254161447d1661909966992f2268838c06d753fefa12ad5afb1c8292542c83c1a434f0c0f291df62fa077dcb6b52e47cb3bad9f3f0d8b66e2789175e401
   languageName: node
   linkType: hard
 
@@ -12379,10 +12379,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/stellar-wallet-snap@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/stellar-wallet-snap@npm:2.0.0"
-  checksum: 10/c2e065eb8f0abef2b2697dfc7f29cc1ebbbc3da64c4abceadb2f9634165b5891458349822f072c32c318ac26184c821e16416f03919345c15e0144e01aca6959
+"@metamask/stellar-wallet-snap@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@metamask/stellar-wallet-snap@npm:2.1.0"
+  checksum: 10/615dacab7718a3b1d60fd8f2fb02e548e8025cadcfc5048fa7a30d9d1de78c031519f677be9f89d2380fb1a19509401177e6390ae613f8ed13b8de0382de82b8
   languageName: node
   linkType: hard
 
@@ -12598,10 +12598,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "@metamask/tron-wallet-snap@npm:4.3.0"
-  checksum: 10/e2c332fe66bdbd7e02d34c375ac335d7d2a847184700e9fbb673b1b1fd325222196d95a215b4f6360fdb423c8d626394a393442fb4b86c90baa8ec61b74f1c84
+"@metamask/tron-wallet-snap@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "@metamask/tron-wallet-snap@npm:4.4.0"
+  checksum: 10/f5e53a7b7b6f918b40c866ad724414cf178818dd4cb21b93e436ae30536a1d96dc603e3b399463ef29feed55db5f14c1ce6b3df3aa080d80838e734afa3dd311
   languageName: node
   linkType: hard
 
@@ -38279,7 +38279,7 @@ __metadata:
     "@metamask/auto-changelog": "npm:^6.2.0"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.1.0"
-    "@metamask/bitcoin-wallet-snap": "npm:^3.2.0"
+    "@metamask/bitcoin-wallet-snap": "npm:^3.3.0"
     "@metamask/bitcoin-wallet-standard": "npm:^1.0.0"
     "@metamask/bridge-controller": "npm:^83.1.2"
     "@metamask/bridge-status-controller": "npm:^78.0.0"
@@ -38300,7 +38300,7 @@ __metadata:
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/delegation-controller": "npm:^4.0.0"
     "@metamask/delegation-deployments": "npm:^2.1.0"
-    "@metamask/design-system-react-native": "npm:^0.55.0"
+    "@metamask/design-system-react-native": "npm:^0.56.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.14.0"
     "@metamask/design-tokens": "npm:^13.0.0"
     "@metamask/device-mcp": "npm:^0.7.0"
@@ -38403,10 +38403,10 @@ __metadata:
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.1"
     "@metamask/social-controllers": "npm:3.18.0"
-    "@metamask/solana-wallet-snap": "npm:^7.2.0"
+    "@metamask/solana-wallet-snap": "npm:^7.3.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
-    "@metamask/stellar-wallet-snap": "npm:^2.0.0"
+    "@metamask/stellar-wallet-snap": "npm:^2.1.0"
     "@metamask/storage-service": "npm:^2.0.0"
     "@metamask/subscription-controller": "npm:15.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
@@ -38418,7 +38418,7 @@ __metadata:
     "@metamask/tooling-insight": "npm:^1.0.1"
     "@metamask/transaction-controller": "npm:^73.0.0"
     "@metamask/transaction-pay-controller": "npm:^30.4.3"
-    "@metamask/tron-wallet-snap": "npm:^4.3.0"
+    "@metamask/tron-wallet-snap": "npm:^4.4.0"
     "@metamask/utils": "npm:^12.0.0"
     "@metamask/wallet": "npm:^18.0.0"
     "@ngraveio/bc-ur": "npm:^1.1.6"

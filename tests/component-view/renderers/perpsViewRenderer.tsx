@@ -271,6 +271,7 @@ export interface PerpsStreamControls {
   getAccountReconnectCount: () => number;
   emitPositions: (positions: Position[] | null) => void;
   emitPrices: (prices: Record<string, PriceUpdate> | null) => void;
+  emitOICaps: (symbols: string[]) => void;
 }
 
 /** Channel that calls callback once with initial value so hooks leave loading state. */
@@ -550,6 +551,11 @@ export interface PerpsStreamOverrides {
   liveCandles?: CandleData | null;
   /** `focusedPrice.getSnapshot()` only. The live focused subscription stays empty. */
   cachedFocusedPrice?: PriceUpdate | null;
+  /**
+   * Symbols at their open-interest cap. Delivered on subscribe and through
+   * `emitOICaps`.
+   */
+  oiCaps?: string[];
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
@@ -572,6 +578,9 @@ function createTestStreamManager(
     streamOverrides?.prices,
     streamOverrides?.cachedPrices,
   );
+  const oiCaps = mutableChannelWithInitialValue<string[]>(
+    streamOverrides?.oiCaps ?? [],
+  );
   const cachedCandles = streamOverrides?.cachedCandles ?? null;
   const chartCacheFresh =
     streamOverrides?.chartCacheFresh ?? cachedCandles != null;
@@ -583,7 +592,7 @@ function createTestStreamManager(
     fills,
     account,
     marketData,
-    oiCaps: noopChannel(),
+    oiCaps,
     topOfBook: topOfBookChannel(),
     focusedPrice: focusedPriceChannel(
       streamOverrides?.cachedFocusedPrice ?? null,
@@ -625,6 +634,7 @@ function createTestStreamManager(
         handlePerpsCufPositionsDelivered(nextPositions ?? []);
       },
       emitPrices: prices.emit,
+      emitOICaps: oiCaps.emit,
     },
   };
 }

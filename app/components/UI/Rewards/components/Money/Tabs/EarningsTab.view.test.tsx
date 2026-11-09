@@ -156,6 +156,34 @@ describe('EarningsTab', () => {
     ).toHaveLength(0);
   });
 
+  it('does not offer Claim when the only balance is closed revenue share', async () => {
+    const summary = earningsSummaryFixture({
+      claimable: '1000000',
+      cashbackClaimable: '0',
+      revShareLifetime: '1000000',
+    });
+    summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE = {
+      ...summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE,
+      claimable: '1000000',
+    };
+    const { findByTestId, queryByTestId } = renderEarningsTab({
+      persona: 'referrer',
+      summary,
+      claimReady: true,
+      initiateClaim: 'hang',
+    });
+
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
   it('claims follow-trade for a referrer when the claim route is open', async () => {
     const { findByTestId, engine } = renderEarningsTab({
       persona: 'referrer',
