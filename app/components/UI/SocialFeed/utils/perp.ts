@@ -124,7 +124,7 @@ export function isClosedPosition(position: ClosedPositionFields): boolean {
     }
     return position.positionAmount === 0;
   }
-  return position.positionAmount === 0 && position.soldUsd > 0;
+  return position.positionAmount === 0 && (position.soldUsd ?? 0) > 0;
 }
 
 /**

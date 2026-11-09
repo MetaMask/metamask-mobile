@@ -12,13 +12,13 @@ import {
 
 describe('Feature Flag Registry', () => {
   describe('FEATURE_FLAG_REGISTRY', () => {
-    it('registers Chase as in-prod, version-gated and default-off', () => {
+    it('registers Chase as in-prod, version-gated and default-on', () => {
       expect(FEATURE_FLAG_REGISTRY.perpsMobileChase).toMatchObject({
         name: 'perpsMobileChase',
         inProd: true,
         productionDefault: {
-          enabled: false,
-          minimumVersion: '8.13.0',
+          enabled: true,
+          minimumVersion: '8.15.0',
         },
       });
     });
@@ -60,8 +60,8 @@ describe('Feature Flag Registry', () => {
         type: FeatureFlagType.Remote,
         inProd: true,
         productionDefault: {
-          enabled: false,
-          minimumVersion: '8.13.0',
+          enabled: true,
+          minimumVersion: '8.15.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -72,6 +72,19 @@ describe('Feature Flag Registry', () => {
         FEATURE_FLAG_REGISTRY.perpsPositionModifyPreviewEnabled,
       ).toMatchObject({
         name: 'perpsPositionModifyPreviewEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.15.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
+    it('registers cross margin display as in-prod, version-gated and default-off', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsCrossMarginEnabled).toMatchObject({
+        name: 'perpsCrossMarginEnabled',
         type: FeatureFlagType.Remote,
         inProd: true,
         productionDefault: {
@@ -150,16 +163,51 @@ describe('Feature Flag Registry', () => {
       );
     });
 
+    it('registers the Predict subscription fee waiver in production with a boolean false default', () => {
+      expect(
+        getRegistryEntry('predictSubscriptionFeeWaiverEnabled'),
+      ).toMatchObject({
+        name: 'predictSubscriptionFeeWaiverEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: false,
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('keeps Perps Mobile TWAP default-off and version-gated', () => {
       expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
-        enabled: false,
-        minimumVersion: '8.13.0',
+        enabled: true,
+        minimumVersion: '8.15.0',
+      });
+    });
+
+    it('registers pending VBA activity as in-production and default-off', () => {
+      expect(getRegistryEntry('moneyVbaPendingActivityEnabled')).toMatchObject({
+        name: 'moneyVbaPendingActivityEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+        status: FeatureFlagStatus.Active,
       });
     });
 
     it('keeps the Money hub default-off', () => {
       expect(
         getRegistryEntry('earnMoneyHubEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('keeps the Money deposit Braze campaign default-off', () => {
+      expect(
+        getRegistryEntry('earnMoneyDepositBrazeCampaignEnabled')
+          ?.productionDefault,
       ).toEqual({
         enabled: false,
         minimumVersion: '0.0.0',
@@ -204,7 +252,6 @@ describe('Feature Flag Registry', () => {
         'earnMoneyBalanceAnimationEnabled',
         'earnMoneyCardFlipAnimationEnabled',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
-        'musd1313AbtestEarnSectionOnHomepage',
       ];
 
       for (const flagName of addedFlagNames) {
@@ -221,9 +268,8 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('pins Earn homepage and token-details A/B flags to control', () => {
+    it('pins Earn token-details A/B flags to control', () => {
       const abTestFlags = [
-        'musd1313AbtestEarnSectionOnHomepage',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
       ];
 
@@ -260,6 +306,15 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers Money MFA in production and default-off', () => {
+      expect(getRegistryEntry('isMoneyMfaEnabled')).toMatchObject({
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+        },
+      });
+    });
+
     it('registers Card Immersve catalog flags added in the 2026-09-08 prod sync', () => {
       const addedFlagNames = [
         'cardImmersve',
@@ -267,7 +322,6 @@ describe('Feature Flag Registry', () => {
         'cardImmersveConfig',
         'cardImmersveCountries',
         'cardIntercomSupport',
-        'immersveOnboardingEnabled',
         'moneyHeadlessAllProviders',
       ];
 
@@ -276,34 +330,29 @@ describe('Feature Flag Registry', () => {
       }
     });
 
-    it('registers UK migration flags off, with the schedule and sign-in routing shape', () => {
+    it('registers UK migration on for the prod window, with sign-in routing still off', () => {
       expect(getRegistryEntry('cardUkMigration')?.productionDefault).toEqual({
-        enabled: false,
+        enabled: true,
         minimumVersion: '8.13.0',
-        startDate: '',
-        endDate: '',
+        startDate: '2026-09-28T00:00:00.000Z',
+        endDate: '2026-12-29T23:59:59.999Z',
       });
       expect(getRegistryEntry('cardUkMigrationSignInRouting')).toMatchObject({
-        inProd: false,
+        inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.13.0',
+          minimumVersion: '0.0.0',
         },
       });
     });
 
-    it('keeps Immersve onboarding and Intercom support default-off', () => {
-      expect(
-        getRegistryEntry('immersveOnboardingEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.0',
-      });
+    it('drops removed Immersve onboarding and keeps Intercom support on at 8.13.0', () => {
+      expect(getRegistryEntry('immersveOnboardingEnabled')).toBeUndefined();
       expect(
         getRegistryEntry('cardIntercomSupport')?.productionDefault,
       ).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.0',
+        enabled: true,
+        minimumVersion: '8.13.0',
       });
     });
 
@@ -334,7 +383,6 @@ describe('Feature Flag Registry', () => {
 
     it('registers Home/TMCU and Social AI catalog flags added in the 2026-09-08 prod sync', () => {
       const addedFlagNames = [
-        'homeTMCU1209AbtestHomepageBalanceBreakdown',
         'homeTMCU470AbtestTrendingSections',
         'homeTMCU828AbtestOnboardingChecklistStepper',
         'aiSocialFeedEnabled',
@@ -349,6 +397,17 @@ describe('Feature Flag Registry', () => {
       ).toBeUndefined();
     });
 
+    it('registers the homepage balance breakdown flag default-off', () => {
+      expect(
+        getRegistryEntry('homeTMCU1209AbtestHomepageBalanceBreakdown'),
+      ).toMatchObject({
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+        },
+      });
+    });
+
     it('version-gates activity and transactions redesigns on at 8.5.0', () => {
       expect(
         getRegistryEntry('tmcuActivityRedesignEnabled')?.productionDefault,
@@ -361,6 +420,23 @@ describe('Feature Flag Registry', () => {
       ).toEqual({
         enabled: true,
         minimumVersion: '8.5.0',
+      });
+    });
+
+    it('enables Social AI comment translation from 8.17.0', () => {
+      expect(
+        getRegistryEntry('aiSocialCommentTranslation')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.17.0',
+      });
+    });
+
+    it('keeps the Social GIF API off until it is in production', () => {
+      expect(getRegistryEntry('aiSocialGifApi')).toMatchObject({
+        inProd: false,
+        productionDefault: false,
+        status: FeatureFlagStatus.Active,
       });
     });
 

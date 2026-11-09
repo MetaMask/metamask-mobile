@@ -64,8 +64,11 @@ export function useIsGaslessSupported() {
       return Boolean(chainSupport);
     }, [chainId, payingAccount, shouldCheck7702Eligibility]);
 
+  // Keyed on the signer, not the payer: a hardware payer funding a Money
+  // Account deposit must not strip sponsorship from the Money Account tx.
+  const fromAddress = txParams?.from;
   const isHardwareWallet = Boolean(
-    payingAccount && isHardwareAccount(payingAccount),
+    fromAddress && isHardwareAccount(fromAddress),
   );
 
   const is7702Supported = Boolean(

@@ -1,12 +1,15 @@
 import {
   Box,
-  ButtonSize as ButtonSizeHero,
-  FontWeight,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontFamily,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { typography } from '@metamask/design-tokens';
 import {
   RouteProp,
   StackActions,
@@ -15,19 +18,13 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import Engine from '../../../../../core/Engine';
@@ -53,15 +50,17 @@ import {
 } from '../../utils/format';
 import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import {
-  buildPredictFeeBreakdownAmounts,
+  buildPredictFeeBreakdowns,
   estimatePredictSellNetValue,
   getPredictPositionDisplay,
   getPredictSellNetProceeds,
 } from '../../utils/orders';
+import { getPredictOutcomeVersion } from '../../utils/marketVersion';
 import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
+import { usePredictCashOutSubmit } from '../../hooks/usePredictCashOutSubmit';
 import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
 import styleSheet from './PredictSellPreview.styles';
 import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
@@ -106,6 +105,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           ? PredictEventValues.MARKET_TYPE.BINARY
           : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
       outcome: position?.outcome?.toLowerCase(),
+      outcomeVersion: getPredictOutcomeVersion(outcome),
       marketSlug: market?.slug,
       gameId: market?.game?.id,
       gameStartTime: market?.game?.startTime,
@@ -122,6 +122,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     isLoading,
     result,
     error: placeOrderError,
+    lastSubmittedPreview,
+    retryOrderState,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
@@ -130,6 +132,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     preview,
     error: previewError,
     isLoading: isPreviewLoading,
+    refetchPreview,
   } = usePredictOrderPreview({
     marketId: position.marketId,
     outcomeId: position.outcomeId,
@@ -143,14 +146,38 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const {
     retrySheetRef,
     retrySheetVariant,
+    retryQuote,
+    retryPreviousPrice,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
+    handleRetryConfirm,
+    cancelRetry,
   } = usePredictOrderRetry({
     preview,
+    refetchPreview,
+    lastSubmittedPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
+  });
+
+  const {
+    cashOut,
+    isCheckingPrice,
+    sheetRef: cashOutSheetRef,
+    sheetVariant: cashOutSheetVariant,
+    sheetQuote: cashOutSheetQuote,
+    sheetPreviousPrice: cashOutSheetPreviousPrice,
+    retryCashOut,
+    confirmCashOut,
+    dismissCashOut,
+  } = usePredictCashOutSubmit({
+    preview,
+    refetchPreview,
+    placeOrder,
+    analyticsProperties,
   });
 
   // Track screen load performance (position data + preview)
@@ -230,7 +257,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const total = currentValue;
-  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+  const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
+    preview,
     side: Side.SELL,
     order: preview?.minAmountReceived ?? 0,
     metamaskFee,
@@ -244,61 +272,20 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     return cashPnl > 0 ? '+' : '-';
   }, [cashPnl]);
 
-  const onCashOut = useCallback(async () => {
-    if (!preview) return;
-
-    await placeOrder({
-      analyticsProperties,
-      preview,
-    });
-  }, [preview, placeOrder, analyticsProperties]);
-
-  const renderCashOutButton = () => {
-    if (isLoading) {
-      return (
-        <Button
-          label={
-            <Box twClassName="flex-row items-center gap-1">
-              <ActivityIndicator size="small" />
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="font-medium"
-                color={TextColor.PrimaryInverse}
-              >
-                {`${strings('predict.order.cashing_out_loading')}`}
-              </Text>
-            </Box>
-          }
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          onPress={onCashOut}
-          width={ButtonWidthTypes.Full}
-          style={tw.style('opacity-50')}
-          disabled
-        />
-      );
-    }
-
-    return (
-      <ButtonHero
-        testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
-        disabled={!preview || isLoading}
-        onPress={onCashOut}
-        style={{
-          ...styles.cashOutButton,
-        }}
-        isLoading={isLoading}
-        size={ButtonSizeHero.Lg}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          style={tw.style('text-white font-medium')}
-        >
-          {strings('predict.cash_out')}
-        </Text>
-      </ButtonHero>
-    );
-  };
+  const renderCashOutButton = () => (
+    <Button
+      testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      isDisabled={!preview || isLoading || isCheckingPrice}
+      isLoading={isLoading || isCheckingPrice}
+      loadingText={strings('predict.order.cashing_out_loading')}
+      onPress={cashOut}
+    >
+      {strings('predict.cash_out')}
+    </Button>
+  );
 
   const Wrapper = isSheetMode ? Box : SafeAreaView;
   const wrapperProps = isSheetMode
@@ -428,7 +415,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <>
                   <Skeleton
                     width={160}
-                    height={50}
+                    height={typography.sAmountDisplayLg.lineHeight}
                     style={tw.style('rounded-lg')}
                   />
                   <Skeleton
@@ -445,8 +432,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               ) : (
                 <>
                   <Text
-                    fontWeight={FontWeight.Medium}
                     variant={TextVariant.AmountDisplayLg}
+                    fontFamily={FontFamily.Hero}
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>
@@ -487,6 +474,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               disabled={!preview}
               loading={isPreviewLoading}
               total={total}
+              originalTotal={originalFeeBreakdown?.total}
+              feePolicy={preview?.feePolicy}
               handleFeesInfoPress={handleFeesInfoPress}
             />
             <View style={styles.cashOutButtonContainer}>
@@ -505,6 +494,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         <PredictFeeBreakdownSheet
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
+          originalTotal={originalFeeBreakdown?.total}
+          feePolicy={preview?.feePolicy}
           sharePrice={currentPrice}
           contractCount={preview?.maxAmountSpent ?? 0}
           betAmount={feeBreakdown.order}
@@ -516,11 +507,25 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={preview?.sharePrice ?? position?.price ?? 0}
+        preview={retryQuote}
+        previousPrice={retryPreviousPrice}
         side={Side.SELL}
-        onRetry={handleRetryWithBestPrice}
+        onRetry={handleRetry}
+        onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
+        onCancel={cancelRetry}
         isRetrying={isRetrying}
+      />
+      <PredictOrderRetrySheet
+        ref={cashOutSheetRef}
+        variant={cashOutSheetVariant}
+        preview={cashOutSheetQuote}
+        previousPrice={cashOutSheetPreviousPrice}
+        side={Side.SELL}
+        onRetry={retryCashOut}
+        onConfirm={confirmCashOut}
+        onCancel={dismissCashOut}
+        isRetrying={isCheckingPrice}
       />
     </Wrapper>
   );

@@ -772,6 +772,7 @@ jest.mock('@braze/react-native-sdk', () => ({
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     requestBannersRefresh: jest.fn(),
     getBanner: jest.fn().mockResolvedValue(null),
+    dismissBanner: jest.fn(),
     Events: {
       PUSH_NOTIFICATION_EVENT: 'push_notification_event',
       BANNER_CARDS_UPDATED: 'bannerCardsUpdated',
@@ -805,6 +806,7 @@ jest.mock('../../store/storage-wrapper', () => ({
   getItemSync: jest.fn(),
   removeItem: jest.fn(),
   setItem: jest.fn(),
+  onKeyChange: jest.fn(() => jest.fn()),
 }));
 
 // eslint-disable-next-line import/no-commonjs
@@ -1187,6 +1189,11 @@ jest.mock('@sentry/react-native', () => ({
   setMeasurement: jest.fn(),
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
+  startInactiveSpan: jest.fn(() => ({ end: jest.fn() })),
+  extendAppStart: jest.fn(),
+  getExtendedAppStartSpan: jest.fn(),
+  finishExtendedAppStart: jest.fn(() => Promise.resolve()),
+  spanIsSampled: jest.fn(() => true),
   startTransaction: jest.fn(),
   reactNativeTracingIntegration: jest.fn(() => ({
     name: 'ReactNativeTracing',

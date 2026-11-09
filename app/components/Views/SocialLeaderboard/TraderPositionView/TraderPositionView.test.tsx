@@ -15,11 +15,19 @@ import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
 import type { TradeAction } from '../../../UI/SocialFeed/utils/tradeAction';
+import Share from 'react-native-share';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn(() => Promise.resolve({ success: true, message: '' })),
+  },
+}));
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../Onboarding/socialLeaderboardOnboardingNavigation', () => ({
   ...jest.requireActual('../Onboarding/socialLeaderboardOnboardingNavigation'),
   isSocialV1Treatment: jest.fn(() => false),
@@ -312,6 +320,7 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
+    selectSocialLeaderboardEnabled: () => false,
     selectSocialLeaderboardPerpsEnabled: () =>
       mockSelectSocialLeaderboardPerpsEnabled(),
   }),
@@ -408,6 +417,24 @@ describe('TraderPositionView', () => {
       tokenSymbol: 'PEPE',
       position: makeDefaultPosition(),
     };
+  });
+
+  it('shares the position deeplink from the header', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(Share.open).toHaveBeenCalledWith({
+      message:
+        'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
+      url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
+      failOnCancel: false,
+    });
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+    ).toHaveProp('accessibilityLabel', 'Share position');
   });
 
   it('renders the container with real position data', () => {
@@ -635,6 +662,47 @@ describe('TraderPositionView', () => {
     ).toBeOnTheScreen();
   });
 
+  it.each(['insider', 'developer', 'blocked'] as const)(
+    'hides Buy for a %s position and keeps the history view',
+    (flag) => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        flags: [flag],
+      };
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('keeps Buy when the position has an empty flags list', () => {
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      flags: [],
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('fires Follow Trading Token CTA Clicked with cta_type buy when the Buy button is pressed', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -723,6 +791,32 @@ describe('TraderPositionView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('hides Trade for a flagged perp position and keeps the history view', () => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        tokenSymbol: 'ETH',
+        chain: 'hyperliquid',
+        perpPositionType: 'short',
+        perpLeverage: 10,
+        flags: ['insider'],
+      };
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW),
+      ).toBeOnTheScreen();
+    });
+
     it('navigates to the Perps market page (not QuickBuy) when the Trade button is pressed', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -741,6 +835,26 @@ describe('TraderPositionView', () => {
         },
       });
     });
+
+    it.each(['notification', 'deep_link'] as const)(
+      'keeps a %s origin on the Perps market navigation',
+      (origin) => {
+        mockRouteParams = { ...mockRouteParams, source: origin };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'ETH', name: 'ETH' },
+            source: origin,
+          },
+        });
+      },
+    );
 
     it('fires Follow Trading Token Screen Viewed with perps_market on mount', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
@@ -826,8 +940,8 @@ describe('TraderPositionView', () => {
     it('renders the perp candle period selector instead of the spot time period selector', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      expect(screen.getByText('1min')).toBeOnTheScreen();
-      expect(screen.getByText('15min')).toBeOnTheScreen();
+      expect(screen.getByText('1m')).toBeOnTheScreen();
+      expect(screen.getByText('5m')).toBeOnTheScreen();
       expect(screen.queryByText('1H')).not.toBeOnTheScreen();
       expect(screen.queryByText('1W')).not.toBeOnTheScreen();
     });
@@ -883,7 +997,7 @@ describe('TraderPositionView', () => {
     it('updates the local candle period without persisting to Redux settings', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      fireEvent.press(screen.getByText('5min'));
+      fireEvent.press(screen.getByText('5m'));
 
       expect(mockUseSocialPerpsChartAdapter).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -1,6 +1,7 @@
 import { BackendWebSocketService } from '@metamask/core-backend';
 import Logger from '../../../../util/Logger';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { store } from '../../../../store';
 import { backendWebSocketServiceInit } from './backend-websocket-service-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { BackendWebSocketServiceInitMessenger } from '../../messengers/core-backend';
@@ -11,10 +12,21 @@ jest.mock('@metamask/core-backend');
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
 }));
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      settings: { basicFunctionalityEnabled: true },
+    })),
+    subscribe: jest.fn(() => jest.fn()),
+  },
+}));
 
 describe('backendWebSocketServiceInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(store.getState).mockReturnValue({
+      settings: { basicFunctionalityEnabled: true },
+    } as ReturnType<typeof store.getState>);
   });
 
   const arrangeMocks = () => {
@@ -27,11 +39,44 @@ describe('backendWebSocketServiceInit', () => {
 
     const mockInitMessenger = {
       call: jest.fn(),
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
     } as unknown as BackendWebSocketServiceInitMessenger;
 
     return {
       ...initRequestMock,
       initMessenger: mockInitMessenger,
+    };
+  };
+
+  const setBasicFunctionality = (enabled: boolean) => {
+    jest.mocked(store.getState).mockReturnValue({
+      settings: { basicFunctionalityEnabled: enabled },
+    } as ReturnType<typeof store.getState>);
+  };
+
+  const subscribeToBasicFunctionality = () => {
+    const { subscribeToBasicFunctionalityChange } = (
+      BackendWebSocketService as jest.Mock
+    ).mock.calls[0][0];
+    const onChange = jest.fn();
+    const unsubscribe = subscribeToBasicFunctionalityChange(onChange);
+
+    return { onChange, unsubscribe };
+  };
+
+  const captureBasicFunctionalitySubscription = () => {
+    let storeListener: (() => void) | undefined;
+    const unsubscribeStore = jest.fn();
+
+    jest.mocked(store.subscribe).mockImplementation((listener) => {
+      storeListener = listener;
+      return unsubscribeStore;
+    });
+
+    return {
+      storeListener: () => storeListener,
+      unsubscribeStore,
     };
   };
 
@@ -125,6 +170,75 @@ describe('backendWebSocketServiceInit', () => {
         'BackendWebSocketService: Could not check feature flag, defaulting to NOT connect',
         testError,
       );
+    });
+  });
+
+  describe('isBasicFunctionality', () => {
+    it('returns the Basic Functionality setting from the store', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: false },
+      } as ReturnType<typeof store.getState>);
+
+      const mocks = arrangeMocks();
+      backendWebSocketServiceInit(mocks);
+
+      const { isBasicFunctionality } = (BackendWebSocketService as jest.Mock)
+        .mock.calls[0][0];
+
+      expect(isBasicFunctionality()).toBe(false);
+    });
+
+    it('notifies the service when Basic Functionality turns off', () => {
+      const mocks = arrangeMocks();
+      const { storeListener } = captureBasicFunctionalitySubscription();
+      backendWebSocketServiceInit(mocks);
+
+      const { onChange } = subscribeToBasicFunctionality();
+
+      setBasicFunctionality(false);
+      storeListener()?.();
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(false);
+    });
+
+    it('notifies the service when Basic Functionality turns on', () => {
+      const mocks = arrangeMocks();
+      const { storeListener } = captureBasicFunctionalitySubscription();
+      backendWebSocketServiceInit(mocks);
+      const { onChange } = subscribeToBasicFunctionality();
+
+      setBasicFunctionality(false);
+      storeListener()?.();
+      onChange.mockClear();
+
+      setBasicFunctionality(true);
+      storeListener()?.();
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(true);
+    });
+
+    it('does not notify when Basic Functionality is unchanged', () => {
+      const mocks = arrangeMocks();
+      const { storeListener } = captureBasicFunctionalitySubscription();
+      backendWebSocketServiceInit(mocks);
+      const { onChange } = subscribeToBasicFunctionality();
+
+      storeListener()?.();
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes from the store', () => {
+      const mocks = arrangeMocks();
+      const { unsubscribeStore } = captureBasicFunctionalitySubscription();
+      backendWebSocketServiceInit(mocks);
+      const { unsubscribe } = subscribeToBasicFunctionality();
+
+      unsubscribe();
+
+      expect(unsubscribeStore).toHaveBeenCalledTimes(1);
     });
   });
 });

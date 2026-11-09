@@ -562,7 +562,7 @@ describe('EarnInputView', () => {
     });
   };
 
-  const renderTronComponent = () => {
+  const renderTronComponent = (balance = '100') => {
     const tronToken = {
       ...MOCK_ETH_MAINNET_ASSET,
       name: 'TRON',
@@ -573,11 +573,11 @@ describe('EarnInputView', () => {
       isETH: false,
       decimals: 6,
       address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
-      balance: '100',
-      balanceFiat: '$100',
-      balanceMinimalUnit: '100000000',
-      balanceFormatted: '100 TRX',
-      balanceFiatNumber: 100,
+      balance,
+      balanceFiat: `$${balance}`,
+      balanceMinimalUnit: new BigNumber(balance).shiftedBy(6).toFixed(0),
+      balanceFormatted: `${balance} TRX`,
+      balanceFiatNumber: Number(balance),
       tokenUsdExchangeRate: 1,
       experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
       experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
@@ -714,7 +714,7 @@ describe('EarnInputView', () => {
         })),
       });
 
-      const { getByText, getAllByText } = render(EarnInputView, {
+      const { getByText, getAllByText, queryByText } = render(EarnInputView, {
         params: {
           ...baseProps.route.params,
           token: MOCK_USDC_MAINNET_ASSET,
@@ -735,16 +735,15 @@ describe('EarnInputView', () => {
       // Token Selector should display USDC as selected token
       expect(getByText('2.5% APR')).toBeOnTheScreen();
       expect(getByText('100 USDC')).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.press(getByText('1'));
-      });
+      expect(getByText('Max')).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('Max'));
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(getByText('Review')).toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
     });
   });
 
@@ -760,7 +759,7 @@ describe('EarnInputView', () => {
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('onboarding_success.done')));
+        fireEvent.press(getByText(strings('stake.review')));
       });
 
       expect(
@@ -779,7 +778,7 @@ describe('EarnInputView', () => {
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('onboarding_success.done')));
+        fireEvent.press(getByText(strings('stake.review')));
       });
 
       expect(
@@ -800,7 +799,7 @@ describe('EarnInputView', () => {
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('onboarding_success.done')));
+        fireEvent.press(getByText(strings('stake.review')));
       });
 
       expect(
@@ -822,7 +821,7 @@ describe('EarnInputView', () => {
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('onboarding_success.done')));
+        fireEvent.press(getByText(strings('stake.review')));
       });
 
       expect(
@@ -924,7 +923,7 @@ describe('EarnInputView', () => {
       expect(getByTestId('resource-toggle-bandwidth')).toBeOnTheScreen();
     });
 
-    it('replaces Max button with Done when non-zero amount is entered', async () => {
+    it('replaces quick amounts with Review when a non-zero amount is entered', async () => {
       (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
 
       const TRX_TOKEN = {
@@ -962,16 +961,52 @@ describe('EarnInputView', () => {
       });
 
       expect(getByText('Max')).toBeOnTheScreen();
-      expect(
-        queryByText(strings('onboarding_success.done')),
-      ).not.toBeOnTheScreen();
+      expect(queryByText(strings('stake.review'))).not.toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
 
       expect(queryByText('Max')).not.toBeOnTheScreen();
-      expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(getByText(strings('stake.review'))).toBeOnTheScreen();
+    });
+
+    it('shows Not enough TRX in the button when the amount exceeds the balance', async () => {
+      const { getByRole, getByText } = renderTronComponent('0.5');
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', {
+          name: strings('stake.not_enough_token', { ticker: 'TRX' }),
+        }),
+      ).toBeDisabled();
+    });
+
+    it('reopens keypad editing when the amount is pressed during preview', async () => {
+      const { getByRole, getByText, queryByText } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('stake.review')));
+      });
+
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByRole('button', { name: '1 TRX' }));
+      });
+
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(getByText(strings('stake.review'))).toBeOnTheScreen();
+      expect(queryByText(strings('stake.stake'))).not.toBeOnTheScreen();
     });
 
     it('does not show MaxInputModal when Max button is pressed for TRX', async () => {
@@ -1105,28 +1140,22 @@ describe('EarnInputView', () => {
     });
   });
 
-  describe('quick amount buttons', () => {
-    it('handles 25% quick amount button press correctly', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(getByText('25%'));
-
-      expect(getByText('0.375')).toBeOnTheScreen();
-    });
-  });
-
   describe('stake button states', () => {
-    it('displays `Enter amount` if input is 0', () => {
-      const { getByText } = renderComponent();
+    it('hides the review button and keeps quick amounts when the amount is zero', () => {
+      const { getByText, queryByText } = renderComponent();
 
-      expect(getByText('Enter amount')).toBeOnTheScreen();
+      expect(queryByText('Enter amount')).not.toBeOnTheScreen();
+      expect(getByText('25%')).toBeOnTheScreen();
     });
 
-    it('displays `Review` on stake button if input is valid', () => {
-      const { getByText } = renderComponent();
+    it('replaces quick amounts with Review when the amount is greater than zero', () => {
+      const { getByText, queryByText } = renderComponent();
 
       fireEvent.press(getByText('1'));
+
       expect(getByText('Review')).toBeOnTheScreen();
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
     });
 
     it('disables pooled staking review button during service interruption', async () => {
@@ -1232,7 +1261,7 @@ describe('EarnInputView', () => {
       const { getByText, queryAllByText } = renderComponent();
 
       fireEvent.press(getByText('4'));
-      expect(queryAllByText('Not enough ETH')).toHaveLength(2);
+      expect(queryAllByText('Not enough ETH')).toHaveLength(1);
     });
   });
 

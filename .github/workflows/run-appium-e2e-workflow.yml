@@ -87,7 +87,7 @@ on:
         description: 'Android emulator count and Playwright worker count'
         required: false
         type: number
-        default: 3
+        default: 2
       ios-device-pool-size:
         description: 'iOS simulator count and Playwright worker count'
         required: false
@@ -109,12 +109,13 @@ jobs:
     # preempted around ~15m wall-clock, which kills the Playwright step before
     # reports/logs upload (and before shards that no longer fail-fast can finish).
     #
-    # Android moves to `android-e2e`, off the `android-build` profile it used to
-    # share with Gradle. Both are ubuntu-24.04 / 16x32 with the same 90 GB cache
-    # volume, so this is a no-op on shape — the point is to be able to size the
-    # two workloads apart. They are not the same workload: Gradle sits at 100%
-    # CPU-saturated and wants more, while Appium peaks at 57% of 16 vCPU and 37%
-    # of 32 GB and wants less. Right-sizing this profile is a follow-up.
+    # Android runs on `android-e2e-small` (8x16), built from the same image and
+    # 90 GB cache volume config as the 16x32 `android-e2e` profile. Appium
+    # peaked at 9.1 of 16 vCPU and 11.9 of 32 GB with one emulator per shard
+    # (#35490), so shards pool two 4-core / 5120 MB emulators like iOS pools two
+    # simulators, and use the iOS shard counts. 2 x 5120 MB of guest RAM leaves
+    # ~6 GB for Appium, Playwright workers, Anvil and the dapp servers.
+    # update-e2e-fixtures.yml stays on 16x32 `android-e2e` with an 8-core guest.
     #
     # iOS stays on the `ios-e2e` profile: this job never compiles app code (the
     # .app comes prebuilt from build-ios-e2e), it only builds WebDriverAgent.
@@ -128,7 +129,7 @@ jobs:
       ${{
         inputs.runner_provider == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
-         'namespace-profile-metamask-android-e2e') ||
+         'namespace-profile-metamask-android-e2e-small') ||
         (inputs.platform == 'ios' &&
           fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]')) ||
         (startsWith(github.base_ref, 'release/') &&
@@ -147,6 +148,9 @@ jobs:
       # makes mm-connect invent emulator serials and fail closed on missing adb.
       ANDROID_DEVICE_POOL_SIZE: ${{ inputs.platform == 'android' && inputs.android-device-pool-size || '' }}
       IOS_DEVICE_POOL_SIZE: ${{ inputs.platform == 'ios' && inputs.ios-device-pool-size || '' }}
+      # Inside the workspace so actions/cache does not archive ~/appium-wda as
+      # ../../../../appium-wda (gtar cannot create that path on restore).
+      WDA_DERIVED_DATA_PATH: ${{ github.workspace }}/.cache/appium-wda
 
     steps:
       - name: Checkout (Namespace)
@@ -325,8 +329,10 @@ jobs:
       - name: Determine Android artifact paths
         if: ${{ inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         id: android-artifacts
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
         run: |
-          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+          if [[ "${BUILD_TYPE}" == "flask" ]]; then
             {
               echo "apk-target-path=android/app/build/outputs/apk/flask/release"
               echo "apk-file-name=app-flask-release.apk"
@@ -385,7 +391,10 @@ jobs:
             steps.download-ios-app-namespace.outcome != 'success'
           }}
         shell: bash
-        run: rm -rf "artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+        run: rm -rf "artifacts/${BUILD_TYPE}-${METAMASK_ENVIRONMENT}-MetaMask.app"
       - name: Download iOS build artifacts (GitHub — build may be on Cirrus)
         if: >-
           ${{
@@ -455,17 +464,17 @@ jobs:
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/cache@v6
         with:
-          path: ~/appium-wda
-          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          path: ${{ env.WDA_DERIVED_DATA_PATH }}
+          key: wda-derived-data-v2-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
           restore-keys: |
-            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
+            wda-derived-data-v2-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
 
       - name: Check if WDA is prebuilt
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         id: wda-prebuilt
         run: |
-          WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
-          XCTESTRUN=$(find ~/appium-wda/Build/Products -name '*.xctestrun' 2>/dev/null | head -1 || true)
+          WDA_APP=$(find "$WDA_DERIVED_DATA_PATH/Build/Products" -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
+          XCTESTRUN=$(find "$WDA_DERIVED_DATA_PATH/Build/Products" -name '*.xctestrun' 2>/dev/null | head -1 || true)
           if [ -n "$WDA_APP" ] && [ -n "$XCTESTRUN" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
             echo "WDA prebuilt artifacts found"
@@ -522,6 +531,7 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
           APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
+          TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
         run: |
           set -euo pipefail
           echo "Android device pool size=${ANDROID_DEVICE_POOL_SIZE} workers=${E2E_WORKERS}"
@@ -529,11 +539,14 @@ jobs:
           yarn playwright test "${specs[@]}" \
             --config tests/playwright.smoke-appium.config.ts \
             --project android-smoke \
-            --grep "${{ inputs.test_suite_tag }}" \
+            --grep "${TEST_SUITE_TAG}" \
             --pass-with-no-tests
 
       - name: Record Android device pool impact
         if: ${{ inputs.platform == 'android' && always() && steps.run-tests-android.outcome != 'skipped' }}
+        env:
+          TEST_SUITE_NAME: ${{ inputs.test-suite-name }}
+          ANDROID_EMULATOR_BOOT_MODE: ${{ inputs.android-emulator-boot-mode }}
         run: |
           set -euo pipefail
           report='tests/test-reports/playwright-json/playwright-report.json'
@@ -543,9 +556,9 @@ jobs:
           fi
           {
             echo "### Android device pool"
-            echo "- suite: \`${{ inputs.test-suite-name }}\`"
+            echo "- suite: \`${TEST_SUITE_NAME}\`"
             echo "- pool size / workers: ${{ inputs.android-device-pool-size }}"
-            echo "- boot mode: \`${{ inputs.android-emulator-boot-mode }}\`"
+            echo "- boot mode: \`${ANDROID_EMULATOR_BOOT_MODE}\`"
             echo "- Playwright outcome: ${{ steps.run-tests-android.outcome }}"
             echo "- Playwright duration_ms: ${duration_ms}"
             echo
@@ -582,6 +595,7 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
           APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
+          TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
         run: |
           set -euo pipefail
           echo "iOS device pool size=${IOS_DEVICE_POOL_SIZE} workers=${E2E_WORKERS}"
@@ -589,11 +603,13 @@ jobs:
           yarn playwright test "${specs[@]}" \
             --config tests/playwright.smoke-appium.config.ts \
             --project ios-smoke \
-            --grep "${{ inputs.test_suite_tag }}" \
+            --grep "${TEST_SUITE_TAG}" \
             --pass-with-no-tests
 
       - name: Record iOS device pool impact
         if: ${{ inputs.platform == 'ios' && always() && steps.run-tests-ios.outcome != 'skipped' }}
+        env:
+          TEST_SUITE_NAME: ${{ inputs.test-suite-name }}
         run: |
           set -euo pipefail
           report='tests/test-reports/playwright-json/playwright-report.json'
@@ -603,7 +619,7 @@ jobs:
           fi
           {
             echo "### iOS device pool"
-            echo "- suite: \`${{ inputs.test-suite-name }}\`"
+            echo "- suite: \`${TEST_SUITE_NAME}\`"
             echo "- pool size / workers: ${{ inputs.ios-device-pool-size }}"
             echo "- Playwright outcome: ${{ steps.run-tests-ios.outcome }}"
             echo "- Playwright duration_ms: ${duration_ms}"

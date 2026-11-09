@@ -1,4 +1,7 @@
 import {
+  PR_TEMPLATE_SECTIONS,
+  PR_TEMPLATE_SECTION_TITLES,
+  buildRequiredSectionTitles,
   buildValidationPlan,
   extractSection,
   hasAllAuthorChecklistChecked,
@@ -510,6 +513,14 @@ Feature: my feature name
     expect(extractSection(fullValidBody, '## **Pre-merge reviewer checklist**')).toContain('- [ ]');
     expect(runAllChecks(fullValidBody, false)).toEqual([]);
   });
+
+  it('passes when the optional Test layer placement section is present but empty', () => {
+    const body = fullValidBody.replace(
+      '## **Changelog**',
+      '## Test layer placement\n\n<!-- optional -->\n\n## **Changelog**',
+    );
+    expect(runAllChecks(body, false)).toEqual([]);
+  });
 });
 
 // ─── parseDirective ───────────────────────────────────────────────────────────
@@ -657,6 +668,61 @@ describe('validatePlanTypes', () => {
       { title: '## Bad', type: 'typo-type', required: true, blocking: false },
     ];
     expect(() => validatePlanTypes(plan, registry)).toThrow(/typo-type/);
+  });
+});
+
+// ─── buildRequiredSectionTitles ───────────────────────────────────────────────
+
+describe('buildRequiredSectionTitles', () => {
+  it('includes headings that have no directive or required=true', () => {
+    const md = [
+      '## **Section A**',
+      '<!-- mms-check: type=text required=true -->',
+      '',
+      '## **Section B**',
+    ].join('\n');
+    expect(buildRequiredSectionTitles(tokenize(md))).toEqual([
+      '## **Section A**',
+      '## **Section B**',
+    ]);
+  });
+
+  it('excludes headings whose directive sets required=false', () => {
+    const md = [
+      '## **Description**',
+      '<!-- mms-check: type=text required=true -->',
+      '',
+      '## Test layer placement',
+      '<!-- mms-check: type=text required=false -->',
+      '',
+      '## **Changelog**',
+      '<!-- mms-check: type=changelog required=true -->',
+    ].join('\n');
+    expect(buildRequiredSectionTitles(tokenize(md))).toEqual([
+      '## **Description**',
+      '## **Changelog**',
+    ]);
+  });
+
+  it('ignores level-3 headings', () => {
+    const md = ['## **Section A**', '### **Before**', '### **After**'].join('\n');
+    expect(buildRequiredSectionTitles(tokenize(md))).toEqual(['## **Section A**']);
+  });
+});
+
+describe('PR_TEMPLATE_SECTIONS (from the real pull-request-template.md)', () => {
+  it('lists the Test layer placement heading among all template headings', () => {
+    expect(PR_TEMPLATE_SECTION_TITLES).toContain('## Test layer placement');
+  });
+
+  it('does not require the optional Test layer placement heading', () => {
+    expect(PR_TEMPLATE_SECTIONS).not.toContain('## Test layer placement');
+  });
+
+  it('still requires every other template heading', () => {
+    expect(PR_TEMPLATE_SECTIONS).toEqual(
+      PR_TEMPLATE_SECTION_TITLES.filter((title) => title !== '## Test layer placement'),
+    );
   });
 });
 

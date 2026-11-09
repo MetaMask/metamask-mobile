@@ -40,6 +40,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { validatePassword } from '../../util/validatePassword';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import {
+  selectCardImmersveCountries,
+  selectCardImmersveEnabled,
+} from '../../../../../selectors/featureFlagController/card';
+import { useIsImmersveMoneyAccountCountry } from '../../hooks/useImmersveFundingChannel';
+import {
+  MoneyAccountRequired,
+  MoneyAccountIdentity,
+} from '../MoneyAccountRow/MoneyAccountRow';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { safeToChecksumAddress } from '../../../../../util/address';
@@ -51,7 +61,6 @@ import {
   CardActions,
   CardEntryPoint,
   CardFlow,
-  CardScreens,
   buildCardMigrationBadgeReasons,
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
@@ -66,12 +75,9 @@ import {
 import CountrySelectField from './CountrySelectField';
 import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import { UK_MIGRATION_COUNTRY_CODE } from '../../util/countryPrefill';
+import { useSignUpCountryPrefill } from '../../hooks/useSignUpCountryPrefill';
 import type { Region } from '../../types';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import {
-  selectCardImmersveCountries,
-  selectCardImmersveEnabled,
-} from '../../../../../selectors/featureFlagController/card';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
@@ -82,9 +88,8 @@ import type { CardOnboardingStackParamList } from '../../types/navigation';
 import Logger from '../../../../../util/Logger';
 import { isValidLocalPhoneNumber } from '../../util/contactDetails';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
-
-const UK_MIGRATION_COUNTRY_CODE = 'GB';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -123,6 +128,58 @@ const matchPhoneRegionByCallingCode = (
   return allRegions.find((region) => region.areaCode === callingCode) ?? null;
 };
 
+const ImmersveAccountField = ({
+  isMoneyAccountMode,
+  immersveAddress,
+  accountName,
+  avatarAccountType,
+  onSelect,
+}: {
+  isMoneyAccountMode: boolean;
+  immersveAddress: string | undefined;
+  accountName: string | null;
+  avatarAccountType: AvatarAccountType;
+  onSelect: () => void;
+}) => {
+  if (isMoneyAccountMode && immersveAddress) {
+    return (
+      <Box
+        twClassName="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
+        testID="signup-immersve-money-account-row"
+      >
+        <MoneyAccountIdentity testID="signup-immersve-money-account" />
+      </Box>
+    );
+  }
+
+  if (isMoneyAccountMode) {
+    return (
+      <MoneyAccountRequired
+        returnTo="onboarding"
+        testID="signup-money-account-required"
+      />
+    );
+  }
+
+  return (
+    <SelectField
+      value={accountName ?? undefined}
+      onPress={onSelect}
+      testID="signup-immersve-account-select"
+      startAccessory={
+        immersveAddress ? (
+          <AvatarAccount
+            address={immersveAddress}
+            variant={getAvatarAccountVariant(avatarAccountType)}
+            size={AvatarBaseSize.Sm}
+            testID="signup-immersve-account-avatar"
+          />
+        ) : undefined
+      }
+    />
+  );
+};
+
 const SignUp = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -137,12 +194,10 @@ const SignUp = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
-  const hasAutoSelectedCountry = useRef(false);
   const hasPrefillAttempted = useRef(false);
   const hasUserEditedEmail = useRef(false);
   const hasUserEditedPhoneNumber = useRef(false);
   const hasUserEditedPhoneRegion = useRef(false);
-  const geoLocation = useSelector(selectGeolocationLocation);
   const immersveCountries = useSelector(selectCardImmersveCountries);
   const immersveOnboardingEnabled = useSelector(selectCardImmersveEnabled);
   const {
@@ -167,6 +222,7 @@ const SignUp = () => {
     allRegions,
     getRegionByCode,
     isLoading: isLoadingRegistrationSettings,
+    isRegistrationSettingsFetched,
   } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const postAuthRedirect = useCardPostAuthRedirect();
@@ -178,8 +234,14 @@ const SignUp = () => {
     selectSelectedInternalAccountByScope,
   );
   const selectedImmersveAccount = selectAccountByScope('eip155:0');
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const isMoneyAccountMode = useIsImmersveMoneyAccountCountry(
+    selectedCountry?.key,
+  );
   const immersveAddress = safeToChecksumAddress(
-    selectedImmersveAccount?.address,
+    isMoneyAccountMode
+      ? primaryMoneyAccount?.address
+      : selectedImmersveAccount?.address,
   );
   const resumeImmersveOnboarding = useImmersveResumeOnboarding();
   const [isImmersveSubmitting, setIsImmersveSubmitting] = useState(false);
@@ -208,46 +270,18 @@ const SignUp = () => {
   const debouncedEmail = useDebouncedValue(email, 1000);
   const debouncedPassword = useDebouncedValue(password, 1000);
 
-  useEffect(() => {
-    if (!allRegions.length) {
-      return;
-    }
-
-    // Run at most once: prevents a background re-fetch of registrationSettings
-    // (which produces a new getRegionByCode reference) from overwriting the
-    // user's manual country selection.
-    if (hasAutoSelectedCountry.current) {
-      return;
-    }
-
-    if (fromMigration) {
-      const ukRegion = getRegionByCode(UK_MIGRATION_COUNTRY_CODE);
-      if (!ukRegion) {
-        return;
-      }
-      // Local UI only — do not call setSelectedCountry here. That would switch
-      hasAutoSelectedCountry.current = true;
-      setSelectedCountry(ukRegion);
-      setPhoneRegion(ukRegion);
-      return;
-    }
-
-    if (geoLocation === 'UNKNOWN') {
-      return;
-    }
-
-    const matchedRegion = getRegionByCode(geoLocation);
-
-    if (matchedRegion) {
-      hasAutoSelectedCountry.current = true;
-      setSelectedCountry(matchedRegion);
-      setPhoneRegion(matchedRegion);
-      Engine.context.CardController.setUserLocation(
-        mapCountryToLocation(matchedRegion.key),
-      );
-      Engine.context.CardController.setSelectedCountry(matchedRegion.key);
-    }
-  }, [allRegions.length, fromMigration, geoLocation, getRegionByCode]);
+  useSignUpCountryPrefill({
+    fromMigration,
+    allRegions,
+    getRegionByCode,
+    isRegistrationSettingsFetched,
+    immersveCountries,
+    immersveOnboardingEnabled,
+    migrationAnalyticsProps,
+    selectedCountry,
+    setSelectedCountry,
+    setPhoneRegion,
+  });
 
   useEffect(() => {
     if (!fromMigration) {
@@ -349,39 +383,6 @@ const SignUp = () => {
       selectedCountry &&
       immersveCountries.includes(selectedCountry.key),
   );
-
-  const lastTrackedSignUpView = useRef<string | null>(null);
-  useEffect(() => {
-    // Wait until country is known so Immersve (e.g. GB) is not stamped as Baanx.
-    // Re-fire when provider changes (e.g. geo auto-select then user switches country).
-    if (!selectedCountry) {
-      return;
-    }
-    const provider = isImmersveCountry
-      ? CardProviderIds.Immersve
-      : CardProviderIds.Baanx;
-    const viewKey = `${CardScreens.SIGN_UP}:${provider}`;
-    if (lastTrackedSignUpView.current === viewKey) {
-      return;
-    }
-    lastTrackedSignUpView.current = viewKey;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties(
-          withCardProvider(provider, {
-            screen: CardScreens.SIGN_UP,
-            ...migrationAnalyticsProps,
-          }),
-        )
-        .build(),
-    );
-  }, [
-    trackEvent,
-    createEventBuilder,
-    selectedCountry,
-    isImmersveCountry,
-    migrationAnalyticsProps,
-  ]);
 
   const {
     onboardingDocuments,
@@ -741,7 +742,7 @@ const SignUp = () => {
           <Box>
             <Label>
               {strings(
-                'card.card_onboarding.set_phone_number.phone_number_label',
+                'card.card_onboarding.sign_up.phone_number_label_immersve',
               )}
             </Label>
             <Box twClassName="flex flex-row items-center justify-center gap-2">
@@ -764,7 +765,7 @@ const SignUp = () => {
                     keyboardType: 'phone-pad',
                     maxLength: 255,
                     accessibilityLabel: strings(
-                      'card.card_onboarding.set_phone_number.phone_number_label',
+                      'card.card_onboarding.sign_up.phone_number_label_immersve',
                     ),
                     testID: 'signup-immersve-phone-number-input',
                     onSubmitEditing: Keyboard.dismiss,
@@ -790,20 +791,12 @@ const SignUp = () => {
             <Label>
               {strings('card.card_onboarding.sign_up.account_label_immersve')}
             </Label>
-            <SelectField
-              value={accountName ?? undefined}
-              onPress={openAccountSelector}
-              testID="signup-immersve-account-select"
-              startAccessory={
-                immersveAddress ? (
-                  <AvatarAccount
-                    address={immersveAddress}
-                    variant={getAvatarAccountVariant(avatarAccountType)}
-                    size={AvatarBaseSize.Sm}
-                    testID="signup-immersve-account-avatar"
-                  />
-                ) : undefined
-              }
+            <ImmersveAccountField
+              isMoneyAccountMode={isMoneyAccountMode}
+              immersveAddress={immersveAddress}
+              accountName={accountName}
+              avatarAccountType={avatarAccountType}
+              onSelect={openAccountSelector}
             />
             <Text
               variant={TextVariant.BodySm}

@@ -27,7 +27,11 @@ const AVATAR_SIZE = 40;
 export interface ConnectionRowProps {
   id: string;
   username: string;
-  subtitle: string;
+  /**
+   * Secondary line under the display name. Omit it when the row has nothing
+   * public to show there. Never pass a wallet address.
+   */
+  subtitle?: string;
   address: string;
   avatarUri?: string;
   isFollowing: boolean;
@@ -71,6 +75,7 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
           <TraderAvatar
             imageUrl={avatarUri}
             address={address}
+            profileId={id}
             size={AVATAR_SIZE}
             recyclingKey={id}
           />
@@ -82,26 +87,32 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
             >
               {username}
             </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-            >
-              {subtitle}
-            </Text>
+            {subtitle ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+              >
+                {subtitle}
+              </Text>
+            ) : null}
           </Box>
         </Box>
       </Pressable>
-      <Button
-        variant={isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary}
-        size={ButtonSize.Md}
-        onPress={onFollowPress ?? (() => undefined)}
-        testID={getConnectionFollowButtonTestId(id)}
-      >
-        {isFollowing
-          ? strings('social_leaderboard.following')
-          : strings('social_leaderboard.follow')}
-      </Button>
+      {onFollowPress ? (
+        <Button
+          variant={
+            isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
+          }
+          size={ButtonSize.Md}
+          onPress={onFollowPress}
+          testID={getConnectionFollowButtonTestId(id)}
+        >
+          {isFollowing
+            ? strings('social_leaderboard.following')
+            : strings('social_leaderboard.follow')}
+        </Button>
+      ) : null}
     </Box>
   );
 };

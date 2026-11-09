@@ -12,11 +12,18 @@ import {
   RewardsMoneyDataServiceGetReferralFunnelAction,
   RewardsMoneyDataServiceGetReferralCodesAction,
   RewardsMoneyDataServiceValidateReferralCodeAction,
+  RewardsMoneyDataServiceRegisterRefereeAction,
   RewardsMoneyDataServiceGetEarningsSummaryAction,
   RewardsMoneyDataServiceGetEarningsLedgerAction,
   RewardsMoneyDataServiceGetClaimHistoryAction,
   RewardsMoneyDataServiceGetCommissionsAction,
   RewardsMoneyDataServiceGetClaimByIdAction,
+  RewardsMoneyDataServiceGetRebateQuoteAction,
+  RewardsMoneyDataServiceInitiateClaimAction,
+  RewardsMoneyDataServiceGetTaxMeAction,
+  RewardsMoneyDataServiceSubmitTaxAttestationAction,
+  RewardsMoneyDataServiceSubmitTaxUsActivityAction,
+  RewardsMoneyDataServiceMintTaxFormTokenAction,
   RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction,
   RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction,
   RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction,
@@ -36,11 +43,18 @@ type AllowedActions =
   | RewardsMoneyDataServiceGetReferralFunnelAction
   | RewardsMoneyDataServiceGetReferralCodesAction
   | RewardsMoneyDataServiceValidateReferralCodeAction
+  | RewardsMoneyDataServiceRegisterRefereeAction
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
   | RewardsMoneyDataServiceGetClaimHistoryAction
   | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
+  | RewardsMoneyDataServiceGetRebateQuoteAction
+  | RewardsMoneyDataServiceInitiateClaimAction
+  | RewardsMoneyDataServiceGetTaxMeAction
+  | RewardsMoneyDataServiceSubmitTaxAttestationAction
+  | RewardsMoneyDataServiceSubmitTaxUsActivityAction
+  | RewardsMoneyDataServiceMintTaxFormTokenAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
@@ -80,11 +94,18 @@ export function getRewardsMoneyControllerMessenger(
       'RewardsMoneyDataService:getReferralFunnel',
       'RewardsMoneyDataService:getReferralCodes',
       'RewardsMoneyDataService:validateReferralCode',
+      'RewardsMoneyDataService:registerReferee',
       'RewardsMoneyDataService:getEarningsSummary',
       'RewardsMoneyDataService:getEarningsLedger',
       'RewardsMoneyDataService:getClaimHistory',
       'RewardsMoneyDataService:getCommissions',
       'RewardsMoneyDataService:getClaimById',
+      'RewardsMoneyDataService:getRebateQuote',
+      'RewardsMoneyDataService:initiateClaim',
+      'RewardsMoneyDataService:getTaxMe',
+      'RewardsMoneyDataService:submitTaxAttestation',
+      'RewardsMoneyDataService:submitTaxUsActivity',
+      'RewardsMoneyDataService:mintTaxFormToken',
       'RewardsMoneyDataService:getRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:canChangeRewardsMoneyEnvUrl',
       'RewardsMoneyDataService:setRewardsMoneyEnvUrl',

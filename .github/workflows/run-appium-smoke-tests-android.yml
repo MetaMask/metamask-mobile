@@ -40,10 +40,10 @@ on:
         type: string
         default: 'auto'
       android-device-pool-size:
-        description: 'Android emulator and Playwright worker count (default 3)'
+        description: 'Android emulator and Playwright worker count (default 2). Mirrors ios-device-pool-size.'
         required: false
         type: number
-        default: 3
+        default: 2
   workflow_dispatch:
     inputs:
       build_type:
@@ -77,17 +77,13 @@ on:
         type: string
         default: 'auto'
       android-device-pool-size:
-        description: 'Android emulator and Playwright worker count (default 3)'
+        description: 'Android emulator and Playwright worker count (default 2). Mirrors ios-device-pool-size.'
         required: false
         type: number
-        default: 3
+        default: 2
 
 permissions:
   contents: read
-  checks: write
-  # write: nested prime workflow saves golden AVD via actions/cache.
-  actions: write
-  pull-requests: read
 
 jobs:
   compute-matrix:
@@ -100,22 +96,27 @@ jobs:
       - name: Filter suites by selected_tags
         id: filter
         shell: bash
+        env:
+          SELECTED: ${{ inputs.selected_tags }}
         run: |
           # Full suite list — one entry per shard: {tag, slug, split, total_splits}.
           # Suites with N shards appear N times with split: 1..N.
           SUITES='[
             {"tag":"SmokeAccounts",           "slug":"accounts",            "split":1,"total_splits":2},
             {"tag":"SmokeAccounts",           "slug":"accounts",            "split":2,"total_splits":2},
-            {"tag":"SmokePerps",              "slug":"perps",               "split":1,"total_splits":4},
-            {"tag":"SmokePerps",              "slug":"perps",               "split":2,"total_splits":4},
-            {"tag":"SmokePerps",              "slug":"perps",               "split":3,"total_splits":4},
-            {"tag":"SmokePerps",              "slug":"perps",               "split":4,"total_splits":4},
-            {"tag":"SmokePredictions",        "slug":"predictions",         "split":1,"total_splits":1},
-            {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":1,"total_splits":1},
-            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":1,"total_splits":3},
-            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":2,"total_splits":3},
-            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":3,"total_splits":3},
-            {"tag":"SmokeNetworkAbstractions","slug":"network-abstractions","split":1,"total_splits":1},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":1,"total_splits":3},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":2,"total_splits":3},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":3,"total_splits":3},
+            {"tag":"SmokePredictions",        "slug":"predictions",         "split":1,"total_splits":2},
+            {"tag":"SmokePredictions",        "slug":"predictions",         "split":2,"total_splits":2},
+            {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":1,"total_splits":2},
+            {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":2,"total_splits":2},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":1,"total_splits":4},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":2,"total_splits":4},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":3,"total_splits":4},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":4,"total_splits":4},
+            {"tag":"SmokeNetworkAbstractions","slug":"network-abstractions","split":1,"total_splits":2},
+            {"tag":"SmokeNetworkAbstractions","slug":"network-abstractions","split":2,"total_splits":2},
             {"tag":"SmokeWalletPlatform",     "slug":"wallet-platform",     "split":1,"total_splits":2},
             {"tag":"SmokeWalletPlatform",     "slug":"wallet-platform",     "split":2,"total_splits":2},
             {"tag":"SmokeSwap",               "slug":"swap",                "split":1,"total_splits":2},
@@ -123,13 +124,15 @@ jobs:
             {"tag":"SmokeStake",              "slug":"stake",               "split":1,"total_splits":1},
             {"tag":"SmokeMoney",              "slug":"money",               "split":1,"total_splits":1},
             {"tag":"SmokeBrowser",            "slug":"browser",             "split":1,"total_splits":1},
-            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":1,"total_splits":2},
-            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":2,"total_splits":2},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":1,"total_splits":4},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":2,"total_splits":4},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":3,"total_splits":4},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":4,"total_splits":4},
             {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":1,"total_splits":2},
             {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":2,"total_splits":2},
-            {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":1,"total_splits":1}
+            {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":1,"total_splits":2},
+            {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":2,"total_splits":2}
           ]'
-          SELECTED='${{ inputs.selected_tags }}'
           if echo "$SELECTED" | jq -e 'contains(["ALL"])' > /dev/null; then
             INCLUDE="$SUITES"
           else
@@ -151,6 +154,9 @@ jobs:
   # emulator boot mode `auto` then falls back to the historical cold boot.
   prime-android-emulator-snapshot:
     if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      actions: write # saves the golden AVD via actions/cache
     uses: ./.github/workflows/prime-appium-e2e-android-emulator.yml
     with:
       runner_provider: ${{ inputs.runner_provider }}
@@ -162,6 +168,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+    permissions:
+      contents: read
+      checks: write
+      actions: read
+      pull-requests: read
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: appium-${{ matrix.slug }}-android-smoke-${{ matrix.split }}

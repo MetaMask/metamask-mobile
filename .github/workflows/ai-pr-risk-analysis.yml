@@ -41,6 +41,7 @@ jobs:
       contents: read
       pull-requests: write
       checks: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -48,13 +49,21 @@ jobs:
           fetch-depth: 0
 
       # https://github.com/MetaMask/ai-analyzer/releases
+      - name: Get AI Analyzer token
+        id: get-ai-analyzer-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/ai-analyzer
+          permissions: |
+            contents: read
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
           ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348
           path: .ai-analyzer-action
-          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
 
       - name: Run AI PR Analysis
         uses: ./.ai-analyzer-action

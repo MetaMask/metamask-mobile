@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import {
   Text,
@@ -61,7 +60,7 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({
       {children}
       <View style={styles.spacer} />
       <Icon
-        name={IconName.Export}
+        name={IconName.ArrowSquareOut}
         color={IconColor.Primary}
         size={IconSize.Sm}
         testID="snaps-ui-link-icon"
@@ -69,5 +68,3 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({
     </Component>
   );
 };
-
-///: END:ONLY_INCLUDE_IF

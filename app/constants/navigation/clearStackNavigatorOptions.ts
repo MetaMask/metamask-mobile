@@ -51,6 +51,21 @@ export const slideFromRightNativeOptions: NativeStackNavigationOptions = {
   animation: 'ios_from_right',
 };
 
+export const addDeviceToWalletPageOptions: NativeStackNavigationOptions = {
+  headerShown: false,
+  animation: 'slide_from_right',
+  presentation: 'card',
+};
+
+/**
+ * Pushes the screen in from the left. `animationMatchesGesture` makes the iOS
+ * swipe-to-dismiss follow the same direction.
+ */
+export const slideFromLeftNativeOptions: NativeStackNavigationOptions = {
+  animation: 'slide_from_left',
+  animationMatchesGesture: true,
+};
+
 export const fadeNativeOptions: NativeStackNavigationOptions = {
   animation: 'fade',
   gestureEnabled: false,

@@ -5,7 +5,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Platform } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   BottomSheet,
@@ -27,6 +26,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type { WalletType } from '../../pushProvisioning/types';
+import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { CardScreens, withCardProvider } from '../../util/metrics';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
@@ -34,9 +34,6 @@ import { useRevealCardDetails } from '../../hooks/useRevealCardDetails';
 import CardSecureDetailsView from '../CardSecureDetailsView';
 import { CardScreenshotDeterrent } from '../CardScreenshotDeterrent';
 import { DigitalWalletInstructionsSheetSelectors } from './DigitalWalletInstructionsSheet.testIds';
-
-const getOsWalletType = (): WalletType =>
-  Platform.OS === 'ios' ? 'apple_wallet' : 'google_wallet';
 
 const STEP_KEYS: Record<WalletType, readonly string[]> = {
   apple_wallet: [
@@ -65,7 +62,7 @@ const DigitalWalletInstructionsSheet = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const capabilities = useCardCapabilities();
   const { data } = useCardHomeData();
-  const walletType = useMemo(() => getOsWalletType(), []);
+  const walletType = useMemo(() => getWalletTypeForPlatform(), []);
 
   const {
     isCardDetailsLoading,

@@ -11,6 +11,9 @@ import {
   REWARDS_MONEY_CONTROLLER_NAME,
   type ClaimDto,
   type ClaimHistoryPageDto,
+  type ClaimRouteSlug,
+  type InitiateClaimBody,
+  type InitiateClaimResult,
   type CommissionsPageDto,
   type EarningOriginType,
   type EarningsLedgerPageDto,
@@ -19,15 +22,26 @@ import {
   type GetClaimHistoryDto,
   type GetCommissionsDto,
   type GetEarningsLedgerDto,
+  type EarningsSummaryQuery,
   type GetEarningsSummaryDto,
   type GetReferralCodesDto,
   type GetReferralFunnelDto,
   type GetReferralMeDto,
   type OwnReferralCodesDto,
+  type PerpsRebateTrade,
+  type RebateQuoteBody,
+  type RebateQuoteResponse,
+  type SwapsRebateBridgeQuote,
   type ReferralFunnelDto,
   type ReferralMeDto,
   type ReferrerOriginType,
+  type RegisterRefereeDto,
   type RewardsMoneyControllerState,
+  type GetTaxMeDto,
+  type TaxAnswerResultDto,
+  type TaxFormTokenDto,
+  type TaxFormSubmittedSnapshot,
+  type TaxMeDto,
 } from './types';
 
 export type { RewardsMoneyControllerMessenger };
@@ -38,11 +52,21 @@ const controllerName = REWARDS_MONEY_CONTROLLER_NAME;
 export const REFERRAL_ME_CACHE_THRESHOLD_MS = 300_000;
 export const REFERRAL_CODES_CACHE_THRESHOLD_MS = 300_000;
 export const CLAIM_BY_ID_CACHE_THRESHOLD_MS = 300_000;
+/**
+ * Tax determination. A tax POST drops the entry. The form coming back, and a
+ * claim the server refused for tax, pass `forceFresh` because that change
+ * did not come from a POST this app made.
+ */
+export const TAX_ME_CACHE_THRESHOLD_MS = 300_000;
 
 /** Money / funnel cadence — moves with enrollments and fills. */
 export const REFERRAL_FUNNEL_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_SUMMARY_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_LEDGER_CACHE_THRESHOLD_MS = 60_000;
+/**
+ * Claim history first page. A focus visit reads through this cache. A claim
+ * that opens drops the entry. `forceFresh` does not join a read already running.
+ */
 export const CLAIM_HISTORY_CACHE_THRESHOLD_MS = 60_000;
 export const COMMISSIONS_CACHE_THRESHOLD_MS = 60_000;
 
@@ -95,6 +119,18 @@ const metadata: StateMetadata<RewardsMoneyControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  taxMe: {
+    includeInStateLogs: false,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  taxFormSubmitted: {
+    includeInStateLogs: false,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   rewardsMoneyEnvUrl: {
     includeInStateLogs: true,
     persist: true,
@@ -120,6 +156,29 @@ export function originTypeScopeKey(originTypes?: EarningOriginType[]): string {
     return 'all';
   }
   return [...originTypes].sort(compareOriginTypes).join(',');
+}
+
+/**
+ * Cache key for an earnings summary.
+ *
+ * The default call — no window, claimability included — stays on the origin-type
+ * key the heroes already read. A windowed lifetime is a different figure and
+ * omits `claimable`, so it must not land in that bucket.
+ */
+export function summaryScopeKey(
+  originTypes?: EarningOriginType[],
+  query?: EarningsSummaryQuery,
+): string {
+  const base = originTypeScopeKey(originTypes);
+  const from = query?.from;
+  const to = query?.to;
+  const hasWindow = Boolean(from || to);
+  const includeClaimable = query?.includeClaimable !== false;
+  if (!hasWindow && includeClaimable) {
+    return base;
+  }
+  const windowPart = hasWindow ? `${from ?? ''}..${to ?? ''}` : 'all-time';
+  return `${base}|window:${windowPart}|claimable:${includeClaimable ? '1' : '0'}`;
 }
 
 /**
@@ -149,22 +208,173 @@ export function profileCacheKey(profileId: string, scope?: string): string {
   return scope ? `${profileId}:${scope}` : profileId;
 }
 
+/**
+ * The money service's checks on a perps quote `trade`, copied so a trade it
+ * would refuse is never sent: a Hyperliquid perp name (`BTC`, `xyz:TSLA`),
+ * and a non-negative decimal USD amount. `side` is already narrowed to
+ * `BUY` | `SELL` by its type.
+ */
+const PERPS_REBATE_TRADE_COIN = /^(?:[a-z0-9]{1,16}:)?[A-Za-z0-9]{1,32}$/;
+const PERPS_REBATE_TRADE_NOTIONAL_USD = /^\d{1,15}(\.\d{1,18})?$/;
+
+/**
+ * Whether the money service would accept this perps quote `trade`. The
+ * server refuses the whole quote with a `400` otherwise, even though it drops
+ * the trade.
+ *
+ * @param trade - The trade a caller passed.
+ * @returns True when every field passes the server's checks.
+ */
+function isSendablePerpsRebateTrade(trade: PerpsRebateTrade): boolean {
+  return (
+    PERPS_REBATE_TRADE_COIN.test(trade.coin) &&
+    PERPS_REBATE_TRADE_NOTIONAL_USD.test(trade.notionalUsd)
+  );
+}
+
 const MESSENGER_EXPOSED_METHODS = [
   'getReferralMe',
   'getReferralFunnel',
   'getReferralCodes',
   'validateReferralCode',
+  'registerReferee',
   'getEarningsSummary',
   'getEarningsLedger',
   'getClaimHistory',
   'getCommissions',
   'getClaimById',
+  'getSwapsRebateQuote',
+  'getPerpsRebateQuote',
+  'initiateClaim',
+  'getTaxMe',
+  'getTaxFormSubmitted',
+  'noteTaxFormSubmitted',
+  'clearTaxFormSubmitted',
+  'submitTaxAttestation',
+  'submitTaxUsActivity',
+  'mintTaxFormToken',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
   'getDefaultRewardsMoneyEnvUrl',
   'setRewardsMoneyEnvUrl',
 ] as const;
+
+/**
+ * Bookkeeping for one cached read. The caller owns the maps and the state
+ * field. A later start wins the cache even when an earlier read finishes last.
+ * A normal read joins one already running. `forceFresh` does not.
+ */
+interface LatestReadTrackers<T> {
+  generation: Map<string, number>;
+  inFlight: Map<string, Promise<T>>;
+}
+
+function createLatestReadTrackers<T>(): LatestReadTrackers<T> {
+  return {
+    generation: new Map(),
+    inFlight: new Map(),
+  };
+}
+
+function bumpLatestReadGeneration<T>(
+  trackers: LatestReadTrackers<T>,
+  key: string,
+): number {
+  const generation = (trackers.generation.get(key) ?? 0) + 1;
+  trackers.generation.set(key, generation);
+  return generation;
+}
+
+/**
+ * Forget one cache entry. The generation moves first so a read that already
+ * started cannot write the entry back. The in-flight promise is dropped so a
+ * later read does not join it.
+ */
+function invalidateLatestRead<T>(
+  trackers: LatestReadTrackers<T>,
+  key: string,
+  dropCache: (key: string) => void,
+): void {
+  bumpLatestReadGeneration(trackers, key);
+  trackers.inFlight.delete(key);
+  dropCache(key);
+}
+
+function writeLatestReadIfCurrent<T>(
+  trackers: LatestReadTrackers<T>,
+  key: string,
+  requestGeneration: number,
+  write: () => void,
+): void {
+  if (trackers.generation.get(key) !== requestGeneration) {
+    return;
+  }
+  write();
+}
+
+/**
+ * Read through `wrapWithCache`, or past it when `forceFresh` is set.
+ * The fetch writes the payload itself. `wrapWithCache` must not write again,
+ * or an older shared read could replace a newer one that finished first.
+ */
+async function readLatest<T>({
+  trackers,
+  key,
+  forceFresh,
+  ttl,
+  readCache,
+  load,
+  write,
+}: {
+  trackers: LatestReadTrackers<T>;
+  key: string;
+  forceFresh: boolean;
+  ttl: number;
+  readCache: (key: string) => { payload: T; lastFetched?: number } | undefined;
+  load: () => Promise<T>;
+  write: (key: string, payload: T) => void;
+}): Promise<T> {
+  const fetchTracked = (): Promise<T> => {
+    if (!forceFresh) {
+      const inFlight = trackers.inFlight.get(key);
+      if (inFlight) {
+        return inFlight;
+      }
+    }
+
+    const requestGeneration = bumpLatestReadGeneration(trackers, key);
+    const pending = load()
+      .then((payload) => {
+        writeLatestReadIfCurrent(trackers, key, requestGeneration, () =>
+          write(key, payload),
+        );
+        return payload;
+      })
+      .finally(() => {
+        if (trackers.inFlight.get(key) === pending) {
+          trackers.inFlight.delete(key);
+        }
+      });
+
+    if (!forceFresh) {
+      trackers.inFlight.set(key, pending);
+    }
+    return pending;
+  };
+
+  if (forceFresh) {
+    return fetchTracked();
+  }
+
+  return wrapWithCache<T>({
+    key,
+    ttl,
+    readCache,
+    fetchFresh: fetchTracked,
+    writeCache: () => undefined,
+  });
+}
 
 /**
  * Controller for the Rewards Money consumer surface: bootstrap referral reads,
@@ -177,6 +387,13 @@ export class RewardsMoneyController extends BaseController<
   RewardsMoneyControllerMessenger
 > {
   readonly #isDisabled: () => boolean;
+  readonly #referralMeReads = createLatestReadTrackers<ReferralMeDto>();
+  readonly #claimHistoryReads = createLatestReadTrackers<ClaimHistoryPageDto>();
+  readonly #taxMeReads = createLatestReadTrackers<TaxMeDto>();
+  readonly #earningsSummaryInFlight = new Map<
+    string,
+    Promise<EarningsSummaryDto>
+  >();
 
   constructor({
     messenger,
@@ -208,6 +425,9 @@ export class RewardsMoneyController extends BaseController<
   /**
    * Hydra profile id for the primary session — same identity the bearer token
    * authenticates as. Throws when no session profile is available.
+   *
+   * `getSessionProfile` returns the authentication controller's cached session
+   * and only logs in when none exists, so this call is not wrapped again.
    */
   async #getProfileId(): Promise<string> {
     const profile = await this.messenger.call(
@@ -260,21 +480,15 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const profileId = await this.#getProfileId();
-    const fetchFresh = () =>
-      this.messenger.call('RewardsMoneyDataService:getReferralMe');
 
-    if (params.forceFresh) {
-      const fresh = await fetchFresh();
-      this.#writeReferralMe(profileId, fresh);
-      return fresh;
-    }
-
-    return wrapWithCache<ReferralMeDto>({
+    return readLatest({
+      trackers: this.#referralMeReads,
       key: profileId,
+      forceFresh: params.forceFresh === true,
       ttl: REFERRAL_ME_CACHE_THRESHOLD_MS,
       readCache: (key) => this.state.referralMe[key],
-      fetchFresh,
-      writeCache: (key, payload) => this.#writeReferralMe(key, payload),
+      load: () => this.messenger.call('RewardsMoneyDataService:getReferralMe'),
+      write: (key, payload) => this.#writeReferralMe(key, payload),
     });
   }
 
@@ -282,7 +496,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetReferralFunnelDto = {},
   ): Promise<ReferralFunnelDto> {
     if (this.#isDisabled()) {
-      return { enrolled: 0, earning_generating: 0 };
+      throw new Error('Rewards Money is disabled');
     }
 
     const profileId = await this.#getProfileId();
@@ -308,7 +522,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetReferralCodesDto = {},
   ): Promise<OwnReferralCodesDto> {
     if (this.#isDisabled()) {
-      return { codes: [] };
+      throw new Error('Rewards Money is disabled');
     }
 
     const profileId = await this.#getProfileId();
@@ -341,6 +555,106 @@ export class RewardsMoneyController extends BaseController<
     );
   }
 
+  /**
+   * Rebate a swaps confirmation screen should show. The bridge quote decides
+   * fee-token eligibility. Not cached: the rate has to disappear the moment
+   * an operator ends the window, and a different quote can name a different
+   * fee token.
+   *
+   * Pass the `quote` of the bridge `QuoteResponse`, not the response. Only
+   * its `feeData.metabridge` is sent.
+   *
+   * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
+   * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
+   * with a plain `Error`. A `401` is not retried.
+   *
+   * A `503` or `429` whose `Retry-After` is at most 5 seconds is retried once
+   * inside the data service, after that delay plus up to a second of jitter.
+   * The promise includes that wait. Callers must not retry again. A `429`
+   * (`RATE_LIMITED`) shares the profile read budget, 60 requests per 30
+   * seconds, with the Earnings reads. A `503` (`UNAVAILABLE`) means the
+   * server is unavailable, whether the body reason is `SERVER_BUSY` or
+   * `JWKS_UNAVAILABLE`.
+   *
+   * @param quote - The bridge quote the confirmation screen holds.
+   * @returns The rebate to show; `eligible: false` means no rebate row.
+   */
+  getSwapsRebateQuote(
+    quote: SwapsRebateBridgeQuote,
+  ): Promise<RebateQuoteResponse> {
+    return this.#getRebateQuote({
+      product: 'swaps',
+      quote: { feeData: { metabridge: quote.feeData.metabridge } },
+    });
+  }
+
+  /**
+   * Rebate a perps confirmation screen should show. `trade` is optional and
+   * the server drops it today; the answer does not depend on it. A trade the
+   * server would refuse (see {@link PerpsRebateTrade}) is left out rather
+   * than sent, so it cannot turn the quote into a `400`.
+   *
+   * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
+   * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
+   * with a plain `Error`. A `401` is not retried.
+   *
+   * A `503` or `429` whose `Retry-After` is at most 5 seconds is retried once
+   * inside the data service, after that delay plus up to a second of jitter.
+   * The promise includes that wait. Callers must not retry again. A `429`
+   * (`RATE_LIMITED`) shares the profile read budget, 60 requests per 30
+   * seconds, with the Earnings reads. A `503` (`UNAVAILABLE`) means the
+   * server is unavailable, whether the body reason is `SERVER_BUSY` or
+   * `JWKS_UNAVAILABLE`.
+   *
+   * @param trade - What the user is about to trade, when known.
+   * @returns The rebate to show; `eligible: false` means no rebate row.
+   */
+  getPerpsRebateQuote(trade?: PerpsRebateTrade): Promise<RebateQuoteResponse> {
+    if (trade === undefined || !isSendablePerpsRebateTrade(trade)) {
+      return this.#getRebateQuote({ product: 'perps' });
+    }
+    return this.#getRebateQuote({
+      product: 'perps',
+      trade: {
+        coin: trade.coin,
+        side: trade.side,
+        notionalUsd: trade.notionalUsd,
+      },
+    });
+  }
+
+  async #getRebateQuote(body: RebateQuoteBody): Promise<RebateQuoteResponse> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call('RewardsMoneyDataService:getRebateQuote', body);
+  }
+
+  /**
+   * Enrols the session profile under a referrer's code. Drops that profile's
+   * cached referral me after the write succeeds, so a later read cannot
+   * return the pre-registration roles for the rest of the cache window. A
+   * read already in flight cannot write its payload back. The new role is
+   * read through `getReferralMe({ forceFresh: true })`.
+   */
+  async registerReferee(params: RegisterRefereeDto): Promise<void> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+    await this.messenger.call(
+      'RewardsMoneyDataService:registerReferee',
+      params,
+    );
+    invalidateLatestRead(this.#referralMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.referralMe[key];
+      });
+    });
+  }
+
   async getEarningsSummary(
     params: GetEarningsSummaryDto = {},
   ): Promise<EarningsSummaryDto> {
@@ -348,14 +662,12 @@ export class RewardsMoneyController extends BaseController<
       throw new Error('Rewards Money is disabled');
     }
 
-    const { originTypes, forceFresh } = params;
+    const { originTypes, forceFresh, from, to, includeClaimable } = params;
+    const query = { from, to, includeClaimable };
     const profileId = await this.#getProfileId();
-    const key = profileCacheKey(profileId, originTypeScopeKey(originTypes));
+    const key = profileCacheKey(profileId, summaryScopeKey(originTypes, query));
     const fetchFresh = () =>
-      this.messenger.call(
-        'RewardsMoneyDataService:getEarningsSummary',
-        originTypes,
-      );
+      this.#fetchEarningsSummary(key, originTypes, query);
 
     if (forceFresh) {
       const fresh = await fetchFresh();
@@ -377,7 +689,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetEarningsLedgerDto = {},
   ): Promise<EarningsLedgerPageDto> {
     if (this.#isDisabled()) {
-      return { results: [], has_more: false, cursor: null, window: null };
+      throw new Error('Rewards Money is disabled');
     }
 
     const { originTypes, cursor, forceFresh } = params;
@@ -427,7 +739,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetClaimHistoryDto = {},
   ): Promise<ClaimHistoryPageDto> {
     if (this.#isDisabled()) {
-      return { results: [], has_more: false, cursor: null };
+      throw new Error('Rewards Money is disabled');
     }
 
     const { cursor, forceFresh } = params;
@@ -440,22 +752,16 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const profileId = await this.#getProfileId();
-    const fetchFresh = () =>
-      this.messenger.call('RewardsMoneyDataService:getClaimHistory', null);
 
-    if (forceFresh) {
-      const fresh = await fetchFresh();
-      this.#writeClaimHistoryFirstPage(profileId, fresh);
-      return fresh;
-    }
-
-    return wrapWithCache<ClaimHistoryPageDto>({
+    return readLatest({
+      trackers: this.#claimHistoryReads,
       key: profileId,
+      forceFresh: forceFresh === true,
       ttl: CLAIM_HISTORY_CACHE_THRESHOLD_MS,
       readCache: (key) => this.state.claimHistoryFirstPage[key],
-      fetchFresh,
-      writeCache: (key, payload) =>
-        this.#writeClaimHistoryFirstPage(key, payload),
+      load: () =>
+        this.messenger.call('RewardsMoneyDataService:getClaimHistory', null),
+      write: (key, payload) => this.#writeClaimHistoryFirstPage(key, payload),
     });
   }
 
@@ -463,15 +769,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetCommissionsDto = {},
   ): Promise<CommissionsPageDto> {
     if (this.#isDisabled()) {
-      return {
-        results: [],
-        mechanisms: {
-          REFERRAL_REV_SHARE: { claim_open: false, reason: null },
-          SOCIAL_FOLLOW_TRADE: { claim_open: false, reason: null },
-        },
-        has_more: false,
-        cursor: null,
-      };
+      throw new Error('Rewards Money is disabled');
     }
 
     const { originType, cursor, fromDay, forceFresh } = params;
@@ -516,6 +814,157 @@ export class RewardsMoneyController extends BaseController<
     });
   }
 
+  async initiateClaim(
+    route: ClaimRouteSlug,
+    body: InitiateClaimBody,
+  ): Promise<InitiateClaimResult> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
+      'RewardsMoneyDataService:initiateClaim',
+      route,
+      body,
+    );
+    if (result.kind === 'authorized') {
+      invalidateLatestRead(this.#claimHistoryReads, profileId, (key) => {
+        this.update((draft) => {
+          delete draft.claimHistoryFirstPage[key];
+        });
+      });
+    }
+    return result;
+  }
+
+  /**
+   * `GET /tax/me`, cached for five minutes per profile.
+   *
+   * `forceFresh` does not join a read already running, and its result wins
+   * if that older read lands last. A tax POST drops the entry, so the next
+   * read cannot return the determination that POST replaced.
+   */
+  async getTaxMe(params: GetTaxMeDto = {}): Promise<TaxMeDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+
+    return readLatest({
+      trackers: this.#taxMeReads,
+      key: profileId,
+      forceFresh: params.forceFresh === true,
+      ttl: TAX_ME_CACHE_THRESHOLD_MS,
+      readCache: (key) => this.state.taxMe[key],
+      load: () => this.messenger.call('RewardsMoneyDataService:getTaxMe'),
+      write: (key, payload) => this.#writeTaxMe(key, payload),
+    });
+  }
+
+  /**
+   * The form-success snapshot for this profile, or null when none is stored.
+   * Claim force-reads `tax/me` while one is set.
+   */
+  async getTaxFormSubmitted(): Promise<TaxFormSubmittedSnapshot | null> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+    const profileId = await this.#getProfileId();
+    return this.state.taxFormSubmitted?.[profileId] ?? null;
+  }
+
+  /**
+   * Remember a form submission, or clear it when `snapshot` is null.
+   * The caller decides which reads still count as "checking".
+   */
+  async noteTaxFormSubmitted(
+    snapshot: TaxFormSubmittedSnapshot | null,
+  ): Promise<void> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+    const profileId = await this.#getProfileId();
+    this.update((draft) => {
+      if (!draft.taxFormSubmitted) {
+        draft.taxFormSubmitted = {};
+      }
+      if (snapshot) {
+        draft.taxFormSubmitted[profileId] = snapshot;
+        return;
+      }
+      delete draft.taxFormSubmitted[profileId];
+    });
+  }
+
+  /**
+   * Drop the form-success snapshot after `tax/me` has moved on.
+   */
+  async clearTaxFormSubmitted(): Promise<void> {
+    await this.noteTaxFormSubmitted(null);
+  }
+
+  async submitTaxAttestation(
+    usPersonOrActivity: boolean,
+  ): Promise<TaxAnswerResultDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
+      'RewardsMoneyDataService:submitTaxAttestation',
+      usPersonOrActivity,
+    );
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
+    return result;
+  }
+
+  async submitTaxUsActivity(usActivity: boolean): Promise<TaxAnswerResultDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
+      'RewardsMoneyDataService:submitTaxUsActivity',
+      usActivity,
+    );
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
+    return result;
+  }
+
+  /**
+   * Mints one form token. The token is returned to the caller and is not
+   * written into controller state. Minting closes `can_change_answer`, so
+   * the cached determination is dropped with the other tax writes.
+   */
+  async mintTaxFormToken(): Promise<TaxFormTokenDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
+      'RewardsMoneyDataService:mintTaxFormToken',
+    );
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
+    return result;
+  }
+
   async getClaimById(params: GetClaimByIdDto): Promise<ClaimDto> {
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
@@ -543,6 +992,31 @@ export class RewardsMoneyController extends BaseController<
     });
   }
 
+  /**
+   * One network read per cache key. A focus fetch and a delayed refetch of
+   * the same profile share the promise already in flight.
+   */
+  #fetchEarningsSummary(
+    key: string,
+    originTypes: EarningOriginType[] | undefined,
+    query?: EarningsSummaryQuery,
+  ): Promise<EarningsSummaryDto> {
+    const inFlight = this.#earningsSummaryInFlight.get(key);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const pending = this.messenger
+      .call('RewardsMoneyDataService:getEarningsSummary', originTypes, query)
+      .finally(() => {
+        if (this.#earningsSummaryInFlight.get(key) === pending) {
+          this.#earningsSummaryInFlight.delete(key);
+        }
+      });
+    this.#earningsSummaryInFlight.set(key, pending);
+    return pending;
+  }
+
   #writeReferralMe(profileId: string, payload: ReferralMeDto): void {
     try {
       this.update((draft) => {
@@ -554,6 +1028,12 @@ export class RewardsMoneyController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
     }
+  }
+
+  #writeTaxMe(profileId: string, payload: TaxMeDto): void {
+    this.update((draft) => {
+      draft.taxMe[profileId] = { payload, lastFetched: Date.now() };
+    });
   }
 
   #writeReferralFunnel(profileId: string, payload: ReferralFunnelDto): void {

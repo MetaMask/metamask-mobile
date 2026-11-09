@@ -2,7 +2,7 @@
 
 PredictNext is a Kalshi-first replacement architecture developed beside, not inside, the legacy Polymarket implementation. This document records stable boundaries and invariants. It does not prescribe modules that no active vertical slice needs.
 
-The Kalshi ADR set is currently proposed in [MetaMask/decisions PR #241](https://github.com/MetaMask/decisions/pull/241). Its topology and security recommendations are working direction until accepted. Jira owns delivery scope; [`../CONTEXT.md`](../CONTEXT.md) owns domain language.
+The Kalshi ADR set is currently proposed in [MetaMask/decisions PR #241](https://github.com/MetaMask/decisions/pull/241), which is unmerged although its files are marked `Accepted`. Its topology and security recommendations are working direction until accepted. Jira owns delivery scope; [`../CONTEXT.md`](../CONTEXT.md) owns domain language.
 
 ## Scope and delivery
 
@@ -19,7 +19,18 @@ Kalshi product surface
           -> Kalshi
 ```
 
-The lanes remain independent during Kalshi delivery. A Kalshi rollback must not alter Polymarket. Polymarket migration begins only through explicit later work and uses seams proven in production by Kalshi.
+The lanes remain independent during Kalshi delivery. A Kalshi rollback must not alter Polymarket. Polymarket migration begins only through explicit later work (PRED-1356). It moves the Polymarket Venue adapter to the Predict API service and uses seams proven in production by Kalshi.
+
+Code outside Predict reaches both lanes through one PredictNext public API ([ADR-0002](./adr/0002-permanent-public-api-private-legacy.md)):
+
+```text
+External wallet code (Homepage, Trending, Activity, wallet actions, ...)
+  -> PredictNext public API (Venue-neutral, consumer-shaped)
+    -> Kalshi: PredictNext lane above
+    -> Polymarket: legacy lane, passed through unchanged
+```
+
+The Polymarket branch is deleted by PRED-1356. Execution wiring (confirmations, transaction-pay, Engine) is not routed through this API before then. See [the public API contract](./public-api-contract.md).
 
 Development proceeds in end-to-end vertical slices. A slice introduces only the types, adapter capability, service behavior, React integration, and UI it requires. The first read-only slice does not need account, portfolio, trading, funding, live-data, or compatibility modules.
 
@@ -91,6 +102,17 @@ A service exists when a vertical slice needs a deep module for shared behavior. 
 Use repository controller and data-service primitives where they fit. Do not create the complete destination service inventory before concrete slices require it.
 
 A composition root may build the enabled graph and own initialization/teardown. It must remain stateless, expose no same-name workflow proxies, and stay off read/write hot paths.
+
+`PredictDeviceAuthService` is an Engine-owned stateless capability service. It
+owns the unlocked P-256 key and in-memory A2T lifecycle, delegates only the
+Authentication, Keyring, feature-flag, and message-signing Snap dependencies it
+needs, and exposes no generic signing action. PredictNext may ask it to prepare
+credentials without blocking rendering. Lock, identity replacement, flag
+disable, and wallet reset invalidate the appropriate credentials independently
+of React mount state. The service binds a bundled authentication profile to an
+allowlisted key implementation; configuration may select the bundled profile
+ID but cannot supply cryptographic instructions. Profile IDs version protocol
+behavior, while stable key slots define key rotation.
 
 ### 3. React integration
 
@@ -167,15 +189,16 @@ Rules:
 
 Choose state by lifetime and authority:
 
-| State                                               | Owner                                         |
-| --------------------------------------------------- | --------------------------------------------- |
-| Server read models                                  | Shared query/data-service cache               |
-| Cross-screen workflow projection                    | The service/controller that owns the workflow |
-| Durable remote setup/financial operation            | MetaMask Predict backend                      |
-| Transport, retry, in-flight, subscription internals | Private service fields                        |
-| Form input and visual interaction                   | React local state                             |
+| State                                               | Owner                                            |
+| --------------------------------------------------- | ------------------------------------------------ |
+| Server read models                                  | Shared query/data-service cache                  |
+| Cross-screen workflow projection                    | The service/controller that owns the workflow    |
+| Durable remote setup/financial operation            | MetaMask Predict backend                         |
+| Transport, retry, in-flight, subscription internals | Private service fields                           |
+| Form input and visual interaction                   | React local state                                |
+| Kalshi device P-256 key and its salt                | SecureKeychain ciphertext, memory while unlocked |
 
-Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transfer-authorization material are never Redux or persisted product state. Cache/query keys must contain no sensitive identity or payload data.
+Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transfer-authorization material are never Redux or persisted product state. The Kalshi device private key and salt are the exception stored as SecureKeychain ciphertext, and their plaintext exists only while the wallet is unlocked. Cache/query keys must contain no sensitive identity or payload data.
 
 ## Failure boundaries
 
@@ -202,4 +225,4 @@ Follow the repository's canonical unit, component-view, and E2E testing guides. 
 
 Meaningful feature and domain modules export only stable product-facing views, selected reusable UI, hooks, selectors, domain types, and errors through deliberate module-root `index.ts` files. Services, concrete adapters, backend DTOs, sessions, query descriptors, private UI parts, and future compatibility code remain internal to their owners.
 
-Do not add barrels at every directory level or create a full PredictNext entrypoint allowlist before stable external consumers exist. Code and tests define the implemented public surface; [`module-structure.md`](./module-structure.md) records placement and import conventions as owners emerge.
+Do not add barrels at every directory level or a catch-all PredictNext root barrel. Code outside PredictNext imports only the curated entry point `app/components/UI/PredictNext/index.ts`, apart from named composition wiring. External consumers and proposed public APIs are mapped in [the public API contract](./public-api-contract.md); each export is added by the ticket that migrates its first caller. Code and tests define the implemented public surface; [`module-structure.md`](./module-structure.md) records placement and import conventions as owners emerge.

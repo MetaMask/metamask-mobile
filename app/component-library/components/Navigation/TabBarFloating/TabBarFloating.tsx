@@ -20,7 +20,7 @@ import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMon
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { navigateToSocialTab } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
-import { TabBarProps } from '../TabBar/TabBar.types';
+import { TabBarIconKey, TabBarProps } from '../TabBar/TabBar.types';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
 import TabBarFloatingSurface from './TabBarFloatingSurface';
@@ -97,7 +97,7 @@ const TabBarFloating = ({
   const handleSearchPress = useCallback(() => {
     playImpact(ImpactMoment.TabChange);
     trackExploreSearchOpened('nav_bar');
-    navigation.navigate(Routes.EXPLORE_SEARCH);
+    navigation.navigate(Routes.EXPLORE_SEARCH, { entryPoint: 'nav_bar' });
   }, [navigation]);
 
   // Tabs that stay mounted on blur (Explore) can only clean up via `onLeave`,
@@ -171,6 +171,12 @@ const TabBarFloating = ({
           label={labelText}
           isActive={isSelected}
           onPress={onPress}
+          showNewBadge={options.showNewBadge}
+          newBadgeTestID={
+            tabBarIconKey === TabBarIconKey.Social
+              ? TAB_BAR_FLOATING_TEST_IDS.SOCIAL_NEW_BADGE
+              : undefined
+          }
         />
       );
     },

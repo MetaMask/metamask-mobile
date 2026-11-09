@@ -30,6 +30,7 @@ import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
+import { TopTradersSectionSelectorsIDs } from './TopTradersSection.testIds';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
 import {
   DEFAULT_LEADERBOARD_SORT,
@@ -42,6 +43,8 @@ import type { TopTrader } from './types';
 import { useFollowWithNotificationSetup } from '../../../SocialLeaderboard/hooks/useFollowWithNotificationSetup';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { navigateToSocialV1Profile } from '../../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { rankTradersByMetric } from '../../../SocialLeaderboard/TopTradersView/traderMetric';
 import {
@@ -252,6 +255,17 @@ const TopTradersSection = forwardRef<
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
       const trader = traders.find((t) => t.id === traderId);
+      if (bundleVariant.useSocialV1) {
+        navigateToSocialV1Profile(navigation, {
+          traderId,
+          traderName,
+          traderAddress: trader?.address,
+          traderAvatarUri: trader?.avatarUri,
+          source: 'home_carousel',
+          traderRank: trader?.rank,
+        });
+        return;
+      }
       navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
@@ -260,7 +274,7 @@ const TopTradersSection = forwardRef<
         traderRank: trader?.rank,
       });
     },
-    [navigation, traders],
+    [bundleVariant.useSocialV1, navigation, traders],
   );
 
   const handleFollowPress = useCallback(
@@ -305,7 +319,7 @@ const TopTradersSection = forwardRef<
           <ViewMoreCard
             onPress={handleViewAll}
             twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] self-stretch`}
-            testID="top-traders-view-more-card"
+            testID={TopTradersSectionSelectorsIDs.VIEW_MORE_CARD}
           />
         );
       }
@@ -336,7 +350,7 @@ const TopTradersSection = forwardRef<
       <View
         ref={sectionViewRef}
         onLayout={handleSectionLayout}
-        testID="homepage-top-traders-section-root"
+        testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
           <SectionDivider />
@@ -364,7 +378,7 @@ const TopTradersSection = forwardRef<
       <View
         ref={sectionViewRef}
         onLayout={handleSectionLayout}
-        testID="homepage-top-traders-section-root"
+        testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
           <SectionDivider />
@@ -382,7 +396,7 @@ const TopTradersSection = forwardRef<
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={tw.style('px-4 gap-3')}
-                testID="homepage-top-traders-carousel"
+                testID={TopTradersSectionSelectorsIDs.CAROUSEL}
               >
                 {SKELETON_KEYS.map((key) => (
                   <TopTraderCardSkeleton key={key} />
@@ -396,7 +410,7 @@ const TopTradersSection = forwardRef<
                 keyExtractor={keyExtractor}
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
-                testID="homepage-top-traders-carousel"
+                testID={TopTradersSectionSelectorsIDs.CAROUSEL}
                 viewabilityConfig={viewabilityConfig}
                 onViewableItemsChanged={onViewableItemsChanged}
               />

@@ -5,9 +5,14 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandardAnimated,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -28,10 +33,19 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, TouchableOpacity } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import {
+  TabsBar,
+  type TabItem,
+} from '../../../../component-library/components-temp/Tabs';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -43,18 +57,28 @@ import {
 } from '../../../../util/haptics';
 import {
   buildFollowTradingTokenContext,
+  SocialEvent,
   SocialLeaderboardEventProperties,
+  useSocialAnalytics,
   useSocialLeaderboardAnalytics,
   type TraderProfileScreenViewedSource,
 } from '../analytics';
 
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
+import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
+import ProfilePostsEmptyState from '../MyProfileView/components/ProfilePostsEmptyState';
+import { useMyProfilePosts } from '../MyProfileView/hooks/useMyProfilePosts';
+import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
+import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import {
   HYPERLIQUID_CHAIN_NAME,
   isPerpPosition,
@@ -74,6 +98,7 @@ import TraderStatsSheet from './components/TraderStatsSheet';
 import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
 import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
+import { getPositionFlagLabelKey } from './utils/positionFlags';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -104,31 +129,10 @@ const CLOSED_SORT_LABEL_KEYS: Record<ClosedSortKey, string> = {
 const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
 
-interface TabButtonProps {
-  label: string;
-  isActive: boolean;
-  onPress: () => void;
-  testID?: string;
-}
+const PROFILE_TABS = ['open', 'closed', 'posts'] as const;
+const END_REACHED_THRESHOLD_PX = 600;
 
-const TabButton: React.FC<TabButtonProps> = ({
-  label,
-  isActive,
-  onPress,
-  testID,
-}) => (
-  <TouchableOpacity onPress={onPress} testID={testID}>
-    <Box twClassName={`pb-2 ${isActive ? 'border-b-2 border-default' : ''}`}>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
-      >
-        {label}
-      </Text>
-    </Box>
-  </TouchableOpacity>
-);
+type TraderProfileTab = (typeof PROFILE_TABS)[number];
 
 // ---------------------------------------------------------------------------
 // Main screen
@@ -148,7 +152,9 @@ const TraderProfileView = () => {
   const source = (sourceParam ??
     'deep_link') as TraderProfileScreenViewedSource;
   const { track } = useSocialLeaderboardAnalytics();
+  const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
 
   const {
     profile,
@@ -165,6 +171,16 @@ const TraderProfileView = () => {
     isLoadingClosed,
     refetch: refetchPositions,
   } = useTraderPositions(traderId, { refetchInterval: 30_000 });
+  const [activeTab, setActiveTab] = useState<TraderProfileTab>('open');
+  const {
+    posts,
+    isLoading: isPostsLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error: postsError,
+    refresh: refreshPosts,
+  } = useMyProfilePosts(traderId, { isActive: activeTab === 'posts' });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
@@ -209,19 +225,50 @@ const TraderProfileView = () => {
   }, [profile, traderAddress, source, isFollowing, traderRank, track]);
 
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialProfile: isSocialV1Enabled,
+  });
   const handleMutePress = useCallback(
     () => onMutePress(traderId),
     [onMutePress, traderId],
   );
 
-  const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
+  const positionTabs = useMemo<TabItem[]>(
+    () =>
+      PROFILE_TABS.map((tab) => ({
+        key: tab,
+        label:
+          tab === 'posts'
+            ? strings('social_leaderboard.my_profile.posts')
+            : strings(`social_leaderboard.trader_profile.${tab}`),
+        content: null,
+        testID:
+          tab === 'open'
+            ? TraderProfileViewSelectorsIDs.TAB_OPEN
+            : tab === 'closed'
+              ? TraderProfileViewSelectorsIDs.TAB_CLOSED
+              : TraderProfileViewSelectorsIDs.TAB_POSTS,
+      })),
+    [],
+  );
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
   const [closedSort, setClosedSort] = useState<ClosedSortKey>('value');
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleShareProfile = useCallback(() => {
+    playSelection().catch(() => undefined);
+    shareSocialProfile(traderId, () => {
+      trackSocialPost({
+        interaction_type: SocialEvent.Interaction.POST_SHARED,
+        screen_name: SocialEvent.Screen.MY_PROFILE,
+        source: SocialEvent.Source.TRADER_PROFILE,
+        share_destination: SocialEvent.ShareDestination.EXTERNAL,
+      });
+    });
+  }, [trackSocialPost, traderId]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -230,11 +277,11 @@ const TraderProfileView = () => {
       // Both hooks rethrow after logging; allSettled keeps one failure from
       // taking down the other refetch and prevents an unhandled rejection
       // from surfacing in the UI.
-      await Promise.allSettled([refresh(), refetchPositions()]);
+      await Promise.allSettled([refresh(), refetchPositions(), refreshPosts()]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [refresh, refetchPositions]);
+  }, [refresh, refetchPositions, refreshPosts]);
 
   const handleFollowPress = useCallback(
     async () =>
@@ -252,10 +299,11 @@ const TraderProfileView = () => {
   );
 
   const handleTabChange = useCallback(
-    (tab: 'open' | 'closed') => {
+    (tab: TraderProfileTab) => {
       if (activeTab === tab) return;
+      playSelection().catch(() => undefined);
       setActiveTab(tab);
-      if (traderAddress) {
+      if (traderAddress && tab !== 'posts') {
         queueMicrotask(() => {
           track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_TAB_CHANGED, {
             [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
@@ -265,6 +313,15 @@ const TraderProfileView = () => {
       }
     },
     [activeTab, traderAddress, track],
+  );
+
+  const handlePositionTabPress = useCallback(
+    (index: number) => {
+      const tab = PROFILE_TABS[index];
+      if (!tab) return;
+      handleTabChange(tab);
+    },
+    [handleTabChange],
   );
 
   const activeTabRef = useRef(activeTab);
@@ -316,9 +373,14 @@ const TraderProfileView = () => {
 
   const currentSortKey: SortKey = activeTab === 'open' ? openSort : closedSort;
   const sortedPositions = useMemo(
-    () => sortPositions(positions, currentSortKey, activeTab),
-    [positions, currentSortKey, activeTab],
+    () =>
+      activeTab === 'posts'
+        ? []
+        : sortPositions(positions, currentSortKey, activeTab),
+    [activeTab, positions, currentSortKey],
   );
+  const showPostsEmptyState =
+    !isPostsLoading && posts.length === 0 && !postsError;
 
   const handleSortPress = useCallback(() => {
     // Fire-and-forget haptic; ignore rejection (unsupported platforms).
@@ -343,6 +405,22 @@ const TraderProfileView = () => {
     titleSectionHeightSv,
   } = useHeaderStandardAnimated();
 
+  const handlePostsScrollSettled = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (activeTab !== 'posts' || !hasNextPage) {
+        return;
+      }
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const distanceFromEnd =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
+        loadMore();
+      }
+    },
+    [activeTab, hasNextPage, loadMore],
+  );
+
   const headerTitle = profile?.profile.name;
 
   return (
@@ -364,6 +442,7 @@ const TraderProfileView = () => {
               traderName={headerTitle}
               traderImageUrl={profile.profile.imageUrl}
               traderAddress={profile.profile.address}
+              traderProfileId={profile.profile.profileId}
               variant="compact"
               testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
             />
@@ -378,6 +457,20 @@ const TraderProfileView = () => {
         backButtonProps={{
           testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
         }}
+        endAccessory={
+          <SocialHeaderGlassSurface twClassName="px-1">
+            <ButtonIcon
+              iconName={IconName.Share}
+              iconProps={{ color: IconColor.IconDefault }}
+              size={ButtonIconSize.Md}
+              onPress={handleShareProfile}
+              accessibilityLabel={strings(
+                'social_leaderboard.my_profile.share_profile',
+              )}
+              testID={TraderProfileViewSelectorsIDs.SHARE_BUTTON}
+            />
+          </SocialHeaderGlassSurface>
+        }
         testID={TraderProfileViewSelectorsIDs.HEADER}
       />
 
@@ -386,7 +479,10 @@ const TraderProfileView = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
           onScroll={onScroll}
+          onMomentumScrollEnd={handlePostsScrollSettled}
+          onScrollEndDrag={handlePostsScrollSettled}
           scrollEventThrottle={16}
+          testID={TraderProfileViewSelectorsIDs.SCROLL}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -475,70 +571,104 @@ const TraderProfileView = () => {
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Between}
-                    twClassName="px-4 mb-2"
+                    twClassName="mb-2"
                   >
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      gap={4}
-                    >
-                      <TabButton
-                        label={strings(
-                          'social_leaderboard.trader_profile.open',
-                        )}
-                        isActive={activeTab === 'open'}
-                        onPress={() => handleTabChange('open')}
-                        testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
-                      />
-                      <TabButton
-                        label={strings(
-                          'social_leaderboard.trader_profile.closed',
-                        )}
-                        isActive={activeTab === 'closed'}
-                        onPress={() => handleTabChange('closed')}
-                        testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
+                    <Box twClassName="flex-1">
+                      <TabsBar
+                        tabs={positionTabs}
+                        activeIndex={PROFILE_TABS.indexOf(activeTab)}
+                        onTabPress={handlePositionTabPress}
                       />
                     </Box>
-                    {positions.length > 0 && (
-                      <SortButton
-                        label={strings(
-                          activeTab === 'open'
-                            ? OPEN_SORT_LABEL_KEYS[openSort]
-                            : CLOSED_SORT_LABEL_KEYS[closedSort],
-                        )}
-                        onPress={handleSortPress}
-                        testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
-                      />
+                    {activeTab !== 'posts' && positions.length > 0 && (
+                      <Box twClassName="pr-4">
+                        <SortButton
+                          label={strings(
+                            activeTab === 'open'
+                              ? OPEN_SORT_LABEL_KEYS[openSort]
+                              : CLOSED_SORT_LABEL_KEYS[closedSort],
+                          )}
+                          onPress={handleSortPress}
+                          testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
+                        />
+                      </Box>
                     )}
                   </Box>
 
-                  {isLoadingPositions && positions.length === 0 ? (
+                  {activeTab === 'posts' ? (
+                    isPostsLoading && posts.length === 0 ? (
+                      <ProfilePostsLoadingState />
+                    ) : showPostsEmptyState ? (
+                      <ProfilePostsEmptyState />
+                    ) : postsError && posts.length === 0 ? (
+                      <Box
+                        alignItems={BoxAlignItems.Center}
+                        justifyContent={BoxJustifyContent.Center}
+                        twClassName="w-full px-4 py-16 gap-3"
+                      >
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          fontWeight={FontWeight.Medium}
+                          color={TextColor.TextDefault}
+                          twClassName="text-center"
+                        >
+                          {strings('social_leaderboard.feed.error.title')}
+                        </Text>
+                        <Button
+                          variant={ButtonVariant.Secondary}
+                          size={ButtonSize.Sm}
+                          onPress={() => {
+                            refreshPosts().catch(() => undefined);
+                          }}
+                          twClassName="self-center"
+                        >
+                          {strings('social_leaderboard.feed.error.retry')}
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Box paddingTop={4}>
+                        <SocialV1FeedPostList
+                          posts={posts}
+                          dividerKeyPrefix="trader-profile"
+                          renderPost={(post) => (
+                            <SocialFeedPostShell post={post} />
+                          )}
+                        />
+                        {isFetchingNextPage ? (
+                          <Box
+                            alignItems={BoxAlignItems.Center}
+                            twClassName="px-4"
+                          >
+                            <ActivityIndicator size="small" />
+                          </Box>
+                        ) : null}
+                      </Box>
+                    )
+                  ) : isLoadingPositions && positions.length === 0 ? (
                     POSITION_SKELETON_KEYS.map((key) => (
                       <PositionRowSkeleton key={key} />
                     ))
                   ) : sortedPositions.length === 0 ? (
-                    <Box
-                      twClassName="px-4 py-8"
-                      alignItems={BoxAlignItems.Center}
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings(
-                          'social_leaderboard.trader_profile.no_positions',
-                        )}
-                      </Text>
-                    </Box>
+                    <ProfilePostsEmptyState
+                      message={strings(
+                        activeTab === 'closed'
+                          ? 'social_leaderboard.my_profile.empty_closed'
+                          : 'social_leaderboard.my_profile.empty_open',
+                      )}
+                    />
                   ) : (
                     sortedPositions.map((position) => (
                       <PositionRow
                         key={getPositionListKey(position)}
                         position={position}
-                        onPress={handlePositionPress}
+                        onPress={
+                          getPositionFlagLabelKey(position)
+                            ? undefined
+                            : handlePositionPress
+                        }
                         isClosed={activeTab === 'closed'}
                         showTradeDate={currentSortKey === 'recent'}
+                        flaggedPresentation="excluded"
                       />
                     ))
                   )}

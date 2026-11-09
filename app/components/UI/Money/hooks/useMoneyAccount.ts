@@ -4,13 +4,13 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { bytesToHex, Hex } from '@metamask/utils';
-import { v4 as uuidv4, parse as uuidParse } from 'uuid';
+import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { createMoneyAccountBatchId } from '../utils/createMoneyAccountBatchId';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
@@ -32,6 +32,7 @@ import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmatio
 import { ensureError } from '../../../../util/errorUtils';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import useMoneyToasts from './useMoneyToasts';
+import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
 import {
   clearMoneyAccountDepositIntent,
   setMoneyAccountDepositIntent,
@@ -64,6 +65,11 @@ export interface InitiateDepositOptions {
    */
   launchedFrom?: ConfirmationLaunchSource;
   transactionType?: TransactionType;
+  /**
+   * Optional batch id so a caller can subscribe to transaction events before
+   * `addTransactionBatch` runs and avoid missing the confirmed/rejected race.
+   */
+  batchId?: Hex;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -94,6 +100,7 @@ function isMoneyConfirmationActive(forceBottomSheet = false): boolean {
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
   const isDepositPrefillEnabled = useMoneyAccountDepositPrefillEnabled();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
@@ -101,6 +108,8 @@ export function useMoneyAccountDeposit() {
 
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
+      assertMoneyAccountAccessible();
+
       const preferredPaymentToken = options?.preferredPaymentToken;
       const getDepositSetup = () => {
         if (!vaultConfig) {
@@ -150,7 +159,7 @@ export function useMoneyAccountDeposit() {
         throw error;
       }
 
-      const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
+      const batchId = options?.batchId ?? createMoneyAccountBatchId();
       // Only record an explicit funding intent (card / addMusd). Generic deposits
       // (e.g. the home "Add" button) are left unset so the toast derives the
       // intent from the transaction's actual payment method instead of a guess.
@@ -256,6 +265,7 @@ export function useMoneyAccountDeposit() {
     },
     [
       MoneyToastOptions.deposit,
+      assertMoneyAccountAccessible,
       isDepositPrefillEnabled,
       navigateToConfirmation,
       navigation,
@@ -271,12 +281,15 @@ export function useMoneyAccountDeposit() {
 export function useMoneyAccountWithdrawal() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
   const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
 
   const initiateWithdrawal = useCallback(async () => {
+    assertMoneyAccountAccessible();
+
     if (!vaultConfig) {
       throw new Error(`${LOG_TAG} Missing vault config`);
     }
@@ -350,6 +363,7 @@ export function useMoneyAccountWithdrawal() {
     }
   }, [
     MoneyToastOptions.withdraw,
+    assertMoneyAccountAccessible,
     navigateToConfirmation,
     navigation,
     primaryMoneyAccount,

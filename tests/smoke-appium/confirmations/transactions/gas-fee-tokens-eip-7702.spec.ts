@@ -156,7 +156,7 @@ appiumTest.describe.skip(
       await setupMockRequest(mockServer, {
         requestMethod: 'GET',
         url: `${LOCALHOST_SENTINEL_URL}/network`,
-        response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
+        response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response[1337],
         responseCode: 200,
       });
       await setupMockPostRequest(

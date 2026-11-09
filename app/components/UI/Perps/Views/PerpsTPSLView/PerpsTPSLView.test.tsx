@@ -24,6 +24,7 @@ jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
 
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
+  RectButton: 'RectButton',
   GestureDetector: 'View',
   Gesture: {
     Pan: jest.fn().mockReturnValue({
@@ -112,6 +113,10 @@ jest.mock('@react-navigation/native', () => ({
     name: 'PerpsTPSL',
   }),
   useIsFocused: () => true,
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

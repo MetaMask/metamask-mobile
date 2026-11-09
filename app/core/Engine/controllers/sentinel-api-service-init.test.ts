@@ -8,8 +8,15 @@ import {
   type SentinelApiServiceMessenger,
 } from '@metamask/sentinel-api-service';
 import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
+import { setSentinelApiMessenger } from '../../../util/transactions/sentinel-api';
 
 jest.mock('@metamask/sentinel-api-service');
+jest.mock('../../../util/transactions/sentinel-api');
+jest.mock('../../../util/version', () => ({
+  getBaseSemVerVersion: () => '1.2.3',
+}));
+
+const MOCK_BASE_VERSION = '1.2.3';
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<SentinelApiServiceMessenger>
@@ -35,7 +42,7 @@ describe('sentinelApiServiceInit', () => {
     expect(controller).toBeInstanceOf(SentinelApiService);
   });
 
-  it('passes fetch, messenger, and clientId to the service', () => {
+  it('passes fetch, messenger, clientId, and clientVersion to the service', () => {
     sentinelApiServiceInit(getInitRequestMock());
 
     const ServiceMock = jest.mocked(SentinelApiService);
@@ -44,7 +51,18 @@ describe('sentinelApiServiceInit', () => {
         messenger: expect.any(Object),
         fetch: expect.any(Function),
         clientId: 'mobile',
+        clientVersion: MOCK_BASE_VERSION,
       }),
+    );
+  });
+
+  it('sets messenger for legacy Sentinel utils', () => {
+    const request = getInitRequestMock();
+
+    sentinelApiServiceInit(request);
+
+    expect(setSentinelApiMessenger).toHaveBeenCalledWith(
+      request.controllerMessenger,
     );
   });
 });

@@ -1,10 +1,12 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 jest.mock('../../../BalanceEmptyState', () => {
   const { View: V } = jest.requireActual('react-native');
@@ -15,6 +17,18 @@ jest.mock('../../../WalletHomeOnboardingSteps', () => {
   const { View: V } = jest.requireActual('react-native');
   return ({ testID }: { testID?: string }) => <V testID={testID} />;
 });
+
+const mockFormatCurrency = jest.fn((value: number, currency: string) =>
+  currency.toUpperCase() === 'USD'
+    ? `$${value.toFixed(2)}`
+    : `${value.toFixed(2)} ${currency.toUpperCase()}`,
+);
+
+jest.mock('../../../../hooks/useFormatters', () => ({
+  useFormatters: () => ({
+    formatCurrency: mockFormatCurrency,
+  }),
+}));
 
 jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: jest.fn() }),
@@ -50,6 +64,10 @@ jest.mock('../../../../../selectors/onboarding', () => ({
     suppressedReason: null,
     stepIndex: 0,
   })),
+}));
+
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
 // This selector is used to determine if the current network is a testnet for BalanceEmptyState display logic
@@ -120,6 +138,7 @@ describe('AccountGroupBalance', () => {
       () => () => null,
     );
     jest.mocked(useAccountGroupBalanceFetchState).mockReturnValue(false);
+    jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
   });
 
   it('renders without crashing when balance is not ready', () => {
@@ -129,6 +148,28 @@ describe('AccountGroupBalance', () => {
 
     // Component should render the balance container even when loading
     expect(getByTestId('balance-container')).toBeOnTheScreen();
+    // Visible 16px to the action buttons after the font ink inset; the gap to
+    // the header is the header's to apply.
+    const style = StyleSheet.flatten(
+      getByTestId('balance-container').props.style,
+    );
+    expect(style.marginBottom).toBe(10);
+    expect(style.marginTop).toBeUndefined();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('$0.00');
+  });
+
+  it('uses the selected currency for the loading balance placeholder', () => {
+    jest.mocked(selectCurrentCurrency).mockReturnValue('eur');
+
+    const { getByTestId } = renderWithProvider(<AccountGroupBalance />, {
+      state: testState,
+    });
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('0.00 EUR');
   });
 
   it('renders formatted balance when balance data is fetched', () => {

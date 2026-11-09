@@ -61,6 +61,10 @@ jest.mock('../../hooks/useBridgeSession', () => ({
   useBridgeSession: jest.fn(),
 }));
 
+jest.mock('../../../Rewards/hooks/useVipTier', () => ({
+  useVipTier: () => null,
+}));
+
 function buildState(
   bridgeReducerOverrides: Record<string, unknown> = {},
 ): DeepPartial<RootState> {
@@ -135,6 +139,7 @@ function renderSheet({
     setRenderedTab: jest.fn(),
     latestSourceBalance,
     quoteParams: {},
+    setQuoteParams: jest.fn(),
   });
   return renderWithProvider(
     <RecurringConfirmOrderSheet
@@ -591,6 +596,49 @@ describe('RecurringConfirmOrderSheet', () => {
     );
   });
 
+  it('shows the Member badge and no-fee copy for a subscription discount', () => {
+    jest
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        destTokenAmount: '24.44',
+        formattedQuoteData: {
+          ...mockUseBridgeQuoteData.formattedQuoteData,
+          networkFee: '$1.23',
+        },
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            feeData: {
+              metabridge: [
+                {
+                  quoteBpsFee: 0.004156,
+                  baseBpsFee: 87.5,
+                  discountType: 'subscription',
+                },
+              ],
+            },
+          },
+        },
+      }));
+
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(getByTestId('rewards-member-badge')).toHaveTextContent(
+      strings('rewards.pro_member_badge_label'),
+    );
+    expect(queryByTestId('rewards-discount-badge')).not.toBeOnTheScreen();
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER),
+    ).toHaveTextContent(
+      `${strings('rewards.pro_member_badge_label')}${strings('bridge.fee_percentage', { feePercentage: 0.875 })}${strings('bridge.no_fees_with_orange')}`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER),
+    ).not.toHaveTextContent('MetaMask fee');
+  });
+
   it('shows the no MetaMask fee disclaimer when dest fee is zero', () => {
     jest
       .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
@@ -642,9 +690,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
-    ).toHaveTextContent(
-      `${strings('bridge.recurring.delegation_fee_one_time')}$1.23`,
-    );
+    ).toHaveTextContent('Account upgrade fee$1.23');
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN),
     ).toBeOnTheScreen();
@@ -717,9 +763,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
-    ).toHaveTextContent(
-      `${strings('bridge.recurring.delegation_fee_one_time')}--`,
-    );
+    ).toHaveTextContent('Account upgrade fee--');
     const confirmButton = getByTestId(
       RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
     );

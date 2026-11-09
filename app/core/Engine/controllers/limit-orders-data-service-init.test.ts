@@ -24,7 +24,7 @@ describe('limitOrdersDataServiceInit', () => {
   it('registers limit-orders actions and rehydrates the persisted cache on init', async () => {
     jest
       .mocked(getLimitOrders)
-      .mockResolvedValue({ orders: [MOCK_LIMIT_FAILED_ORDER] });
+      .mockResolvedValue({ orders: [MOCK_LIMIT_FAILED_ORDER], total: 1 });
     const rootMessenger = new Messenger<
       MockAnyNamespace,
       LimitOrdersDataServiceActions,

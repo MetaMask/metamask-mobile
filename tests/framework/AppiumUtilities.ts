@@ -146,6 +146,46 @@ export async function withImplicitWait<T>(
   }
 }
 
+/** Implicit wait for the lookup commands of an optional-element probe. */
+const OPTIONAL_PROBE_IMPLICIT_WAIT_MS = 300;
+/** Kept out of the budget for the round trip that restores the implicit wait. */
+const OPTIONAL_PROBE_RESTORE_RESERVE_MS = 300;
+/** A probe always gets this long to see an element that is already there. */
+const OPTIONAL_PROBE_MIN_POLL_MS = 300;
+
+/**
+ * Probes for UI that may legitimately be absent (optional sheets and modals).
+ *
+ * A locator resolves as soon as it is created, under the session's 3.5s
+ * implicit wait, and the XPath matcher looks twice when nothing matches. An
+ * absent element therefore used to cost about 7s no matter what timeout the
+ * caller passed to its visibility check. Here the locator is created under a
+ * short implicit wait and whatever is left of `maxAbsentMs` is spent polling,
+ * so an absent element costs about `maxAbsentMs` plus one round trip.
+ *
+ * Pass a factory, not an existing promise: a promise has already run its
+ * lookup by the time it is handed over.
+ *
+ * @param locator - Creates the locator, e.g. `() => Matchers.getElementByExactText('Not now')`.
+ * @param maxAbsentMs - Rough ceiling on how long an absent element may take.
+ * @returns Whether the element became visible within the budget.
+ */
+export async function isOptionalElementVisible(
+  locator: () => Promise<AppiumElement>,
+  maxAbsentMs = 2_000,
+): Promise<boolean> {
+  const start = Date.now();
+  return withImplicitWait(OPTIONAL_PROBE_IMPLICIT_WAIT_MS, async () => {
+    const located = await locator();
+    const remaining =
+      maxAbsentMs - (Date.now() - start) - OPTIONAL_PROBE_RESTORE_RESERVE_MS;
+    return Utilities.isElementVisible(
+      Promise.resolve(located),
+      Math.max(remaining, OPTIONAL_PROBE_MIN_POLL_MS),
+    );
+  });
+}
+
 export interface SnapshotSettings {
   snapshotMaxDepth?: number;
   snapshotMaxChildren?: number;
@@ -564,6 +604,26 @@ class AppiumUtilities {
     });
 
     return mapping;
+  }
+
+  /**
+   * Account a device uses, looked up by name without its brand. The matrix
+   * keeps the BrowserStack name ("Google Pixel 8 Pro") while cloud catalogs and
+   * TESTMU_DEVICE often use the short one ("Pixel 8 Pro").
+   * Returns `undefined` when the device is not in the matrix.
+   */
+  static resolveDeviceAccount(deviceName: string): string | null | undefined {
+    const withoutBrand = (name: string) =>
+      name
+        .replace(/^(google|samsung)\s+/i, '')
+        .trim()
+        .toLowerCase();
+    const wanted = withoutBrand(deviceName);
+
+    const match = Object.entries(this.buildDeviceAccountMapping()).find(
+      ([name]) => withoutBrand(name) === wanted,
+    );
+    return match?.[1];
   }
 
   /**

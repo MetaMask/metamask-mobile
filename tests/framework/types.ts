@@ -43,6 +43,7 @@ export enum ProviderName {
   EMULATOR = 'emulator',
   SIMULATOR = 'simulator',
   BROWSERSTACK = 'browserstack',
+  TESTMU = 'testmu',
 }
 
 export enum Platform {
@@ -85,6 +86,19 @@ export interface BrowserStackConfig {
   otherApps?: string[];
 }
 
+/**
+ * TestMu AI (LambdaTest) real-device profile.
+ * Session capability names are resolved from the BrowserStack matrix names.
+ */
+export interface TestMuConfig {
+  provider: ProviderName;
+  name: string;
+  osVersion: string;
+  orientation?: DeviceOrientation;
+  enableCameraImageInjection?: boolean;
+  otherApps?: string[];
+}
+
 export interface AppConfig {
   appId?: string;
   packageName?: string;
@@ -92,7 +106,7 @@ export interface AppConfig {
   buildPath?: string;
 }
 
-export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
+export type DeviceConfig = EmulatorConfig | BrowserStackConfig | TestMuConfig;
 
 export interface TimeoutOptions {
   /**
@@ -247,11 +261,26 @@ export enum LocalNodeType {
   bitcoin = 'bitcoin',
 }
 
+/**
+ * Body the app POSTs for the export-app-state command.
+ */
+export interface ExportedAppState {
+  /** The in-app state log document, parsed. */
+  stateLogs: Record<string, unknown>;
+  /**
+   * Fields, per controller, that controller metadata leaves out of state logs.
+   * Read from the running app, so it covers every Engine controller.
+   */
+  omittedFields: Record<string, string[]>;
+}
+
 export enum E2ECommandTypes {
   pushPrice = 'push-price',
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
   exportState = 'export-state',
+  /** State log export, sanitized the same way as the in-app state logs. */
+  exportAppState = 'export-app-state',
   /** Inject QR sync sync-ready SRP payload (HAS_TEST_OVERRIDES Appium/Detox). */
   applyQrSyncSyncReady = 'apply-qr-sync-sync-ready',
 }

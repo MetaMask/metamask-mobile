@@ -65,13 +65,20 @@ concurrency:
     }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
+permissions: {}
+
 jobs:
   get_requirements:
     name: Get workflow and job requirements
+    permissions:
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/get-requirements.yml
 
   check-diff:
     name: Check diff
+    permissions:
+      contents: read
     # Not an iOS job: setup.mjs skips CocoaPods off darwin, so this does not need
     # Xcode. Keep it off NAMESPACE_RUNNER_IOS so it does not consume reduced
     # macos/ios-build concurrency.
@@ -105,6 +112,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # clean-working-tree check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -119,6 +129,9 @@ jobs:
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/cache@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # clean-working-tree check.
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -181,6 +194,10 @@ jobs:
           ref: main
           fetch-depth: 1
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and statuses: write) and no secrets. The token can post any commit status in
+        # this repo, including passing required checks and the build-source-hash that picks which
+        # native build E2E tests and RC repacks reuse.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -206,6 +223,8 @@ jobs:
 
   dedupe:
     name: Dedupe
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -236,6 +255,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # duplicate-dependency check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -265,6 +287,8 @@ jobs:
 
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -295,6 +319,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the git-dependency
+        # safety check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -317,6 +344,8 @@ jobs:
 
   scripts:
     name: Run `${{ matrix.scripts }}`
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -333,15 +362,17 @@ jobs:
     needs:
       - get_requirements
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       # `include` with no base axis yields exactly these combinations, and `name`
       # already interpolates a matrix value, so the rendered job names stay
       # `Run <script>` and the required status checks keep reporting (MCWP-813).
       # `profile` is consumed by `runs-on` above. Shape follows peak RAM.
       matrix:
         include:
-          # Stay on 8x16: peak RAM above the 8 GB line.
-          - scripts: lint # 12.3 GB peak
-            profile: namespace-profile-metamask-ci-linux
+          # `lint` is not in this matrix. It runs as `lint-shards` below so the
+          # wall clock is one shard. The aggregate job name stays exactly
+          # Run `lint`, backticks included: the name the scripts job template
+          # renders for the lint script (MCWP-813).
           - scripts: lint:tsc # 8.9 GB peak
             profile: namespace-profile-metamask-ci-linux
           # Right-sized to 4x8: worst observed peak <= 5.6 GB.
@@ -350,6 +381,8 @@ jobs:
           - scripts: format:check
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:depcheck
+            profile: namespace-profile-metamask-ci-linux-small
+          - scripts: test:app-profiling
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:tgz-check
             profile: namespace-profile-metamask-ci-linux-small
@@ -374,6 +407,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the results of the lint, type,
+        # format, depcheck and other script checks.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -397,6 +433,119 @@ jobs:
             echo "No changes detected"
           fi
 
+  # Same files, rules, and exit semantics as `yarn lint`, split by file size.
+  # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
+  # file set and bin-packs by size. Per-file cache stays off the persisted
+  # paths: #33370 reverted it because cross-file and type-aware rules go stale.
+  # 8x16, not 16x32: ESLint 8 lints on one thread, and the heaviest shard
+  # peaks at 10.8 GB RSS.
+  lint-shards:
+    name: Run lint (${{ matrix.shard }})
+    permissions:
+      contents: read
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+    strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      # The "4" in this command is the total number of shards. It must be kept
+      # in sync with the length of matrix.shard.
+      # messenger-action-types:check runs only on shard 1. That leg is required,
+      # so a failure still fails the aggregate Run `lint` job and Check all jobs pass.
+      - name: Lint shard
+        run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
+        env:
+          # Namespace ci-linux is 8x16. 13312 leaves about 3 GB for the rest of
+          # the process and the runner; a higher heap trades the V8 heap error
+          # for the kernel OOM killer. ubuntu-latest matches the other test
+          # jobs at 20480. Local yarn lint stays at 12288.
+          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '13312' || '20480' }}
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  # Same check name the scripts matrix rendered for `lint`: backticks included.
+  # Shard jobs are `Run lint (N)` and do not use that name.
+  lint:
+    name: Run `lint`
+    permissions: {}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    needs:
+      - get_requirements
+      - lint-shards
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        needs.get_requirements.result == 'success' &&
+        needs.get_requirements.outputs.skip_everything != 'true'
+      }}
+    steps:
+      - name: Require every lint shard to pass
+        env:
+          LINT_SHARDS_RESULT: ${{ needs.lint-shards.result }}
+        run: |
+          if [ "$LINT_SHARDS_RESULT" != "success" ]; then
+            echo "lint shards result: $LINT_SHARDS_RESULT"
+            exit 1
+          fi
+          echo "lint shards passed"
+
   smart-e2e-contract-tests:
     name: Smart E2E contract tests
     runs-on: >-
@@ -408,9 +557,16 @@ jobs:
       ${{ needs.get_requirements.outputs.run_smart_e2e_contracts == 'true' && github.event.pull_request.head.repo.fork != true }}
     needs:
       - get_requirements
+    permissions:
+      contents: read
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and id-token: write), no secrets, and the contract test results. The token
+        # exchange grants any ci.yml job contents: read on MetaMask/ai-analyzer and contents: write on
+        # MetaMask/mobile_bundlesize_stats.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -425,13 +581,21 @@ jobs:
         id: analyzer-ref
         shell: bash
         run: echo "ref=$(<.github/actions/smart-e2e-selection/analyzer-ref.txt)" >> "$GITHUB_OUTPUT"
+      - name: Get AI Analyzer token
+        id: get-ai-analyzer-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/ai-analyzer
+          permissions: |
+            contents: read
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
           ref: ${{ steps.analyzer-ref.outputs.ref }}
           path: .ai-analyzer-action
-          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
       - name: Install AI Analyzer dependencies
         working-directory: .ai-analyzer-action
         run: npm ci
@@ -443,6 +607,8 @@ jobs:
   # needing to know anything about what (if anything) reacts to it.
   dependency-audit:
     name: Dependency audit (advisory)
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -475,6 +641,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the has-advisories output that
+        # decides if dependency-audit-escalation runs.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -562,9 +731,10 @@ jobs:
       - name: Pin bundle size baseline SHA
         if: github.event_name == 'pull_request'
         shell: bash
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           set -euo pipefail
-          BASE_REF='${{ github.event.pull_request.base.ref }}'
           # PR checkout is the merge ref (fetch-depth: 2); first parent is the base tip.
           MERGE_BASE_SHA="$(git rev-parse HEAD^1)"
           echo "Merge-base pinned (${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"
@@ -580,6 +750,11 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and statuses: write) and no secrets. The token can post any commit status in
+        # this repo, including passing required checks, the build-source-hash that picks which native
+        # build E2E tests and RC repacks reuse, and the ci/ios-js-bundle-size baseline that later PRs
+        # compare against.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -907,6 +1082,8 @@ jobs:
 
   check-workflows:
     name: Check workflows
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -932,7 +1109,10 @@ jobs:
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
         shell: bash
       - name: Check workflow files
-        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+        # actionlint 1.7.1 predates the `cache-mode` workflow key.
+        run: >-
+          ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+          -ignore 'unexpected key "cache-mode" for "(workflow|job)" section'
         shell: bash
 
   deploy-platform-api-docs:
@@ -948,6 +1128,8 @@ jobs:
   # runners uploads a ci-js-deps artifact so consumers can skip their own install.
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -992,6 +1174,8 @@ jobs:
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1009,6 +1193,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
@@ -1071,6 +1256,8 @@ jobs:
   # We need to merge unit, component view, and integration tests into a
   # single coverage report so the PR coverage threshold calculation is accurate.
   merge-unit-and-component-view-tests:
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1287,6 +1474,8 @@ jobs:
 
   component-view-tests:
     name: Component view tests (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1304,10 +1493,11 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
-        # Trying 4 shards: between the pre-#36684 count (3) and #36684 (6).
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
-        shard: [1, 2, 3, 4]
+        # The shard list length must match the denominator in --shard below.
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1333,7 +1523,7 @@ jobs:
         run: mkdir -p tests/results
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/4 \
+            --shard=${{ matrix.shard }}/6 \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
@@ -1358,6 +1548,8 @@ jobs:
   # Integration tests are optional for the PR gate — they feed coverage into
   # merge → Sonar but are not listed in check-all-jobs-pass needs.
   integration-tests:
+    permissions:
+      contents: read
     # Renders exactly as GitHub's own matrix suffix did for `name: Integration tests`
     # with a single `shard` axis, so the `Integration tests (1)` / `(2)` required
     # checks keep reporting. Spelling it out is load-bearing: the auto-suffix joins
@@ -1381,6 +1573,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         include:
           # Shard 1 peaks at 9.3 GB — above the 8 GB line, so it keeps 8x16.
@@ -1463,6 +1656,7 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
@@ -1501,38 +1695,29 @@ jobs:
           post-comment: true
           base-ref: ${{ github.event.pull_request.base.ref }}
           analyzer-ref: ${{ steps.analyzer-ref.outputs.ref }}
-          analyzer-token: ${{ secrets.AI_ANALYZER_TOKEN }}
           litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
           langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}
           langfuse-secret-key: ${{ secrets.AI_ANALYZER_LANGFUSE_SECRET_KEY }}
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # Run when:
-    # - run-performance-tests label is on the PR (forced run, all tests), OR
-    # - the PR targets main and Smart E2E Selection chose performance tags.
-    # PRs targeting release/* or stable only run performance tests via the label.
-    # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
-    # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
-    # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
+    # PR performance runs only from labels, on non-fork PRs whose base is
+    # not stable. run-performance-tests runs the full suite. Each
+    # run-performance-<area>-tests label runs that area. Smart E2E Selection
+    # does not start this job. Scheduled and manual runs use
+    # run-performance-e2e-manual.yml.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
         !cancelled() &&
-        (
-          needs.get_requirements.outputs.run_performance == 'true' ||
-          (
-            github.event.pull_request.base.ref == 'main' &&
-            needs.smart-e2e-selection.result == 'success' &&
-            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
-          )
-        )
+        needs.get_requirements.outputs.run_performance == 'true'
       }}
-    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
+    needs: [get_requirements, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
-      performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
-      performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
+      performance_tags: ${{ needs.get_requirements.outputs.performance_tags }}
+      performance_tags_reasoning: ${{ needs.get_requirements.outputs.performance_tags_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}
@@ -1579,6 +1764,10 @@ jobs:
 
   prepare-e2e-timings:
     name: 'Prepare E2E Timings'
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
     # Run in parallel with the build jobs — it is a lightweight API call (~30s).
     # Fetches qa-stats timings once (merge-base preferred, latest-main fallback)
     # and uploads them as a run-scoped artifact so every shard and every re-run
@@ -1601,6 +1790,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          package-manager-cache: false
 
       - name: Fetch and freeze E2E timings
         id: fetch
@@ -1830,6 +2020,8 @@ jobs:
 
   sonar-cloud:
     name: SonarCloud analysis
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1866,6 +2058,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          package-manager-cache: false
       - name: Download lcov.info (Namespace)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
@@ -2045,6 +2238,8 @@ jobs:
 
   check-all-jobs-pass:
     name: Check all jobs pass
+    permissions:
+      contents: read
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
     if: ${{ always() && !cancelled() }}
@@ -2065,6 +2260,8 @@ jobs:
       - check-diff
       - dedupe
       - scripts
+      - lint-shards
+      - lint
       - unit-tests
       - component-view-tests
       - merge-unit-and-component-view-tests
@@ -2102,6 +2299,7 @@ jobs:
 
   log-merge-group-failure:
     name: Log merge group failure
+    permissions: {}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&

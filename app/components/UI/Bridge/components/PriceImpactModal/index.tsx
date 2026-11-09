@@ -10,38 +10,27 @@ import { PriceImpactFooter } from './PriceImpactFooter';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 import {
-  exceedsPriceImpactErrorThreshold,
-  parsePriceImpact,
-} from '../../utils/getPriceImpactViewData';
-import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
-import { useSelector } from 'react-redux';
-import {
   BottomSheet,
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
 
 export const PriceImpactModal = () => {
   const { goBack } = useNavigation<AppNavigationProp>();
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const [loading, setLoading] = useState(false);
   const { type, location } = useParams<PriceImpactModalRouterParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteDataContext();
+  const {
+    formattedQuoteData,
+    activeQuote,
+    shouldShowPriceImpactError: isDangerousPriceImpact,
+  } = useBridgeQuoteDataContext();
   const confirmBridge = useBridgeConfirm({
     activeQuote,
     location,
   });
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote.priceData?.priceImpact?.amount,
-  );
-  const isDangerousPriceImpact = useMemo(
-    () =>
-      exceedsPriceImpactErrorThreshold(
-        parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount),
-        bridgeFeatureFlags?.priceImpactThreshold?.error,
-      ),
-    [activeQuote, bridgeFeatureFlags],
   );
 
   const handleClose = useCallback(() => {

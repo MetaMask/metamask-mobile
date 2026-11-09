@@ -250,11 +250,11 @@ export function useTraderPositionData(
       : positionParam?.pnlValueUsd;
   const pnlPercent = isPerp
     ? (positionParam?.pnlPercent ??
-      (positionParam?.boughtUsd
+      (positionParam?.boughtUsd && positionParam.realizedPnl != null
         ? (positionParam.realizedPnl / positionParam.boughtUsd) * 100
         : null))
     : isClosed
-      ? positionParam?.boughtUsd
+      ? positionParam?.boughtUsd && positionParam.realizedPnl != null
         ? (positionParam.realizedPnl / positionParam.boughtUsd) * 100
         : null
       : (positionParam?.pnlPercent ?? null);

@@ -1,8 +1,10 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -10,46 +12,70 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
+  ListItem,
+  ListItemVariant,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
+import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
+import { isPositiveNumberOrZero } from '../../../Money/utils/number';
+import MoonPayPoweredByLogo from '../../../../../images/moonpay-powered-by-logo.svg';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
+import { MOONPAY_PRIVACY_POLICY_URL } from './constants';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
+} from './vbaScreenPerformance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
-const BenefitRow = ({
+const VENDOR_TERMS_SCREEN_NAME = 'vba_vendor_terms';
+
+const trackVendorTerms = (
+  status: 'viewed' | 'accepted' | 'failed',
+  failureReason?: string,
+) =>
+  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_VENDOR_TERMS_UPDATED, () => ({
+    ...buildVbaBaseProperties({
+      screenName: VENDOR_TERMS_SCREEN_NAME,
+      failureReason,
+    }),
+    status,
+  }));
+
+const FeatureRow = ({
+  icon,
   title,
   description,
 }: {
+  icon: IconName;
   title: string;
   description: string;
 }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Start}
-    twClassName="gap-3"
-  >
-    <Icon
-      name={IconName.Gift}
-      size={IconSize.Md}
-      color={IconColor.IconDefault}
-      twClassName="mt-1 shrink-0"
-    />
-    <Box twClassName="flex-1">
-      <Text variant={TextVariant.BodyLg}>{title}</Text>
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {description}
-      </Text>
-    </Box>
-  </Box>
+  <ListItem
+    variant={ListItemVariant.TwoLines}
+    avatar={
+      <AvatarIcon iconName={icon} severity={AvatarIconSeverity.Neutral} />
+    }
+    title={title}
+    description={description}
+  />
 );
 
 interface CreateVirtualBankAccountProps {
@@ -59,6 +85,7 @@ interface CreateVirtualBankAccountProps {
 const CreateVirtualBankAccount = ({
   onSuccess,
 }: CreateVirtualBankAccountProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [isAdvancing, setIsAdvancing] = useState(false);
@@ -66,18 +93,48 @@ const CreateVirtualBankAccount = ({
     disclaimers,
     isLoading,
     isAccepting,
-    error,
+    error: disclaimersError,
     acceptDisclaimers,
     retry,
   } = useKycDisclaimers();
+  const { apyPercent } = useMoneyVaultApy();
+  const { arrivalTitle } = useVbaArrivalTime();
+
+  let vendorTermsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (disclaimersError) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (disclaimers?.length) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+    contentReady: !isLoading,
+    contentState: vendorTermsContentState,
+  });
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
     !isLoading &&
     !isAccepting &&
     !isAdvancing &&
-    !error &&
+    !disclaimersError &&
     Boolean(disclaimers?.length);
+
+  useEffect(() => {
+    trackVendorTerms('viewed');
+  }, []);
+
+  // Only the load and empty-catalog failures leave the screen without usable
+  // terms. A save failure keeps them on screen and is reported from the
+  // handler as terms_submission_failed.
+  useEffect(() => {
+    if (disclaimersError && !disclaimers?.length) {
+      trackVendorTerms('failed', 'terms_unavailable');
+    }
+  }, [disclaimersError, disclaimers]);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -87,14 +144,31 @@ const CreateVirtualBankAccount = ({
     }
 
     setIsAdvancing(true);
+    let didAdvance = false;
     try {
       // Persist vendor terms locally. Email creates the vendor session and
       // records these accepted ids before continuing.
       if (await acceptDisclaimers()) {
+        trackVendorTerms('accepted');
         await onSuccess();
+        didAdvance = true;
+      } else {
+        // The terms loaded but the accepted ids could not be stored.
+        trackVendorTerms('failed', 'terms_submission_failed');
       }
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: {
+          name: 'CreateVirtualBankAccount',
+          data: { step: 'agreeAndContinue' },
+        },
+      });
     } finally {
-      setIsAdvancing(false);
+      // A successful advance unmounts this screen, so keep the button busy.
+      if (!didAdvance) {
+        setIsAdvancing(false);
+      }
     }
   }, [acceptDisclaimers, isAdvancing, onSuccess]);
 
@@ -103,7 +177,9 @@ const CreateVirtualBankAccount = ({
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: CreateVirtualBankAccountSelectorsIDs.BACK_BUTTON,
@@ -111,81 +187,66 @@ const CreateVirtualBankAccount = ({
         includesTopInset
       />
       <ScrollView
-        contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
+        contentContainerStyle={tw.style('flex-grow pb-6')}
         testID={CreateVirtualBankAccountSelectorsIDs.CONTAINER}
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="mt-2">
-          <Box
-            alignItems={BoxAlignItems.Center}
-            twClassName="h-24 w-24 justify-center rounded-full bg-muted"
-          >
-            <Icon
-              name={IconName.Rocket}
-              size={IconSize.Xl}
-              color={IconColor.PrimaryDefault}
-            />
-          </Box>
-        </Box>
-        <Text
-          variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.Bold}
-          twClassName="mt-5 text-center"
-        >
-          {strings('virtual_bank_account.create_virtual_bank_account.title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mt-2 text-center"
-        >
-          {strings(
+        <TitleStandard
+          title={strings(
+            'virtual_bank_account.create_virtual_bank_account.title',
+          )}
+          bottomLabel={strings(
             'virtual_bank_account.create_virtual_bank_account.description',
           )}
-        </Text>
+          twClassName="px-4 pb-4"
+        />
 
-        <Box twClassName="mt-8 gap-6 rounded-3xl bg-muted p-5">
-          <BenefitRow
+        <Box>
+          <FeatureRow
+            icon={IconName.MoneyBag}
             title={strings(
-              'virtual_bank_account.create_virtual_bank_account.benefit_receive_title',
+              'virtual_bank_account.create_virtual_bank_account.feature_no_fees_title',
             )}
             description={strings(
-              'virtual_bank_account.create_virtual_bank_account.benefit_receive_description',
+              'virtual_bank_account.create_virtual_bank_account.feature_no_fees_description',
             )}
           />
-          <BenefitRow
-            title={strings(
-              'virtual_bank_account.create_virtual_bank_account.benefit_add_money_title',
-            )}
+          <FeatureRow
+            icon={IconName.Clock}
+            title={arrivalTitle}
             description={strings(
-              'virtual_bank_account.create_virtual_bank_account.benefit_add_money_description',
+              'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
             )}
           />
-          <BenefitRow
+          <FeatureRow
+            icon={IconName.Refresh}
             title={strings(
-              'virtual_bank_account.create_virtual_bank_account.benefit_currencies_title',
+              'virtual_bank_account.create_virtual_bank_account.feature_set_up_title',
             )}
             description={strings(
-              'virtual_bank_account.create_virtual_bank_account.benefit_currencies_description',
+              'virtual_bank_account.create_virtual_bank_account.feature_set_up_description',
             )}
+          />
+          <FeatureRow
+            icon={IconName.TrendUp}
+            title={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_earn_title',
+            )}
+            description={
+              isPositiveNumberOrZero(apyPercent)
+                ? strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_earn_description',
+                    { percentage: apyPercent },
+                  )
+                : strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_earn_description_no_apy',
+                  )
+            }
           />
         </Box>
       </ScrollView>
 
-      <Box twClassName="p-4 gap-3">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          isLoading={isAccepting || isAdvancing}
-          isDisabled={!canAgreeAndContinue}
-          onPress={handleAgreeAndContinue}
-          testID={
-            CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON
-          }
-        >
-          {strings('virtual_bank_account.create_virtual_bank_account.button')}
-        </Button>
-        {error ? (
+      <Box twClassName="gap-4 px-4 pt-4 pb-2">
+        {disclaimersError ? (
           <Box
             alignItems={BoxAlignItems.Center}
             testID={CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR}
@@ -195,22 +256,21 @@ const CreateVirtualBankAccount = ({
                 'virtual_bank_account.create_virtual_bank_account.disclaimers_error',
               )}
             </Text>
-            <Text
+            <TextButton
               variant={TextVariant.BodyXs}
-              color={TextColor.PrimaryDefault}
               onPress={retry}
               testID={CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_RETRY}
             >
               {strings(
                 'virtual_bank_account.create_virtual_bank_account.disclaimers_retry',
               )}
-            </Text>
+            </TextButton>
           </Box>
         ) : (
           <Text
             variant={TextVariant.BodyXs}
-            color={TextColor.TextMuted}
-            twClassName="px-2 text-center"
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
             testID={
               isLoading
                 ? CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING
@@ -220,25 +280,86 @@ const CreateVirtualBankAccount = ({
             {strings(
               'virtual_bank_account.create_virtual_bank_account.agreement_prefix',
             )}
-            {disclaimers?.map((disclaimer, index) => (
-              <React.Fragment key={disclaimer.id}>
-                {index > 0
-                  ? strings(
-                      'virtual_bank_account.create_virtual_bank_account.agreement_separator',
-                    )
-                  : ''}
-                <Text
+            {disclaimers?.length ? (
+              <>
+                {/* TRAM-4169: this URL ships with the app instead of coming from
+                    the vendor catalog. It renders with the catalog documents and
+                    waits for them, so loading and error states never show a
+                    partial legal line. */}
+                <TextButton
                   variant={TextVariant.BodyXs}
-                  color={TextColor.PrimaryDefault}
-                  onPress={() => Linking.openURL(disclaimer.url)}
-                  testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+                  onPress={() => Linking.openURL(MOONPAY_PRIVACY_POLICY_URL)}
+                  testID={
+                    CreateVirtualBankAccountSelectorsIDs.MOONPAY_PRIVACY_POLICY_LINK
+                  }
                 >
-                  {disclaimer.display_name}
-                </Text>
-              </React.Fragment>
-            ))}
+                  {strings(
+                    'virtual_bank_account.create_virtual_bank_account.moonpay_privacy_policy_link',
+                  )}
+                </TextButton>
+                {disclaimers.map((disclaimer) => (
+                  <React.Fragment key={disclaimer.id}>
+                    {strings(
+                      'virtual_bank_account.create_virtual_bank_account.agreement_separator',
+                    )}
+                    <TextButton
+                      variant={TextVariant.BodyXs}
+                      onPress={() => Linking.openURL(disclaimer.url)}
+                      testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+                    >
+                      {/* A single document carries the MoonPay label
+                          (TRAM-4169); with several, the vendor labels keep each
+                          link distinguishable. */}
+                      {disclaimers.length === 1
+                        ? strings(
+                            'virtual_bank_account.create_virtual_bank_account.moonpay_terms_link',
+                          )
+                        : disclaimer.display_name}
+                    </TextButton>
+                  </React.Fragment>
+                ))}
+                {strings(
+                  'virtual_bank_account.create_virtual_bank_account.agreement_suffix',
+                )}
+              </>
+            ) : null}
           </Text>
         )}
+
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          isLoading={isAccepting || isAdvancing}
+          // The loading state toggles whether Fabric flattens this row. If that
+          // lands in the same commit that removes the screen, Android crashes
+          // re-parenting the label ("The specified child already has a parent").
+          contentWrapperProps={{ collapsable: false }}
+          isDisabled={!canAgreeAndContinue}
+          onPress={handleAgreeAndContinue}
+          testID={
+            CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON
+          }
+        >
+          {strings('virtual_bank_account.create_virtual_bank_account.button')}
+        </Button>
+
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="h-10 justify-center gap-1 opacity-40"
+        >
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {strings(
+              'virtual_bank_account.create_virtual_bank_account.powered_by',
+            )}
+          </Text>
+          <MoonPayPoweredByLogo name="moonpay-powered-by-logo" />
+        </Box>
       </Box>
     </SafeAreaView>
   );

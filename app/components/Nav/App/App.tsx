@@ -42,6 +42,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
+  addDeviceToWalletPageOptions,
   slideFromRightNativeOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -56,8 +57,10 @@ import PerpsWebSocketHealthToast, {
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
+import { usePredictOrderToastRegistrations } from '../../UI/PredictNext/notifications';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
+import { PostTradeShareBottomSheet } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import AccountSelector from '../../Views/AccountSelector';
 import AddressSelector from '../../Views/AddressSelector';
 import AddWallet from '../../Views/AddWallet';
@@ -103,7 +106,6 @@ import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
-import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
@@ -139,13 +141,13 @@ import { Performance } from '../../../core/Performance';
 import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
 import { useTheme } from '../../../util/theme';
+import { getOnboardingCanvasColor } from './onboardingCanvasColor';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import { HardwareWalletsSwaps } from '../../UI/HardwareWallet/Swaps/HardwareWalletsSwaps';
 import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import AccountStatus from '../../Views/AccountStatus';
-import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
@@ -192,6 +194,7 @@ import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import DesignerModeOverlay from '../../UI/DesignerMode';
 import ProSubscription from '../../Views/ProSubscription';
+import { MfaFlowHost, MfaFlowLauncher } from '../../Views/Mfa';
 import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
 import Earned from '../../Views/ProHub/screens/Earned';
@@ -298,17 +301,17 @@ const OnboardingSuccessFlow = () => {
  * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => {
-  const { themeAppearance } = useTheme();
-  const onboardingCanvasColor =
-    themeAppearance === 'dark'
-      ? importedColors.gettingStartedTextColor
-      : importedColors.gettingStartedPageBackgroundColorLightMode;
+  const { colors, themeAppearance } = useTheme();
+  const onboardingCanvasColor = getOnboardingCanvasColor(
+    themeAppearance,
+    colors.background.default,
+  );
 
   return (
     <NativeStack.Navigator
       initialRouteName={'Onboarding'}
       screenOptions={{
-        contentStyle: { backgroundColor: onboardingCanvasColor },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
       <NativeStack.Screen
@@ -405,7 +408,10 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}
         component={OAuthRehydration}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: onboardingCanvasColor },
+        }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
@@ -425,25 +431,20 @@ const SimpleWebviewScreen = () => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
     />
   </NativeStack.Navigator>
 );
 
 const OnboardingRootNav = () => {
-  const { themeAppearance } = useTheme();
-  const onboardingCanvasColor =
-    themeAppearance === 'dark'
-      ? importedColors.gettingStartedTextColor
-      : importedColors.gettingStartedPageBackgroundColorLightMode;
+  const { colors } = useTheme();
 
   return (
     <NativeStack.Navigator
       initialRouteName={Routes.ONBOARDING.NAV}
       screenOptions={{
         headerShown: false,
-        // Keep stack chrome cream/purple so Android gesture inset never flashes
-        // the default white window background behind Onboarding.
-        contentStyle: { backgroundColor: onboardingCanvasColor },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
       <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
@@ -543,10 +544,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory as ScreenComponent}
-    />
-    <NativeStack.Screen
-      name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -788,6 +785,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
       options={{
         presentation: 'modal',
         animation: 'slide_from_bottom',
@@ -1127,10 +1125,10 @@ const ModalSwitchAccountType = () => (
 
 const AppFlow = () => {
   const { colors, themeAppearance } = useTheme();
-  const onboardingCanvasColor =
-    themeAppearance === 'dark'
-      ? importedColors.gettingStartedTextColor
-      : importedColors.gettingStartedPageBackgroundColorLightMode;
+  const onboardingCanvasColor = getOnboardingCanvasColor(
+    themeAppearance,
+    colors.background.default,
+  );
 
   return (
     <NativeStack.Navigator
@@ -1155,13 +1153,16 @@ const AppFlow = () => {
         name={Routes.ONBOARDING.LOGIN}
         component={Login}
         options={{
-          contentStyle: { backgroundColor: colors.background.default },
+          contentStyle: { backgroundColor: onboardingCanvasColor },
         }}
       />
       {/* Same screen as ONBOARDING_OAUTH_REHYDRATE but registered on root AppFlow for post-login unlock. */}
       <NativeStack.Screen
         name={Routes.ONBOARDING.REHYDRATE}
         component={OAuthRehydration}
+        options={{
+          contentStyle: { backgroundColor: onboardingCanvasColor },
+        }}
       />
       <NativeStack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
@@ -1175,7 +1176,7 @@ const AppFlow = () => {
           // activity window's white theme color show in the Android gesture
           // inset under the fox ("paper cut").
           presentation: 'card',
-          contentStyle: { backgroundColor: onboardingCanvasColor },
+          contentStyle: { backgroundColor: colors.background.default },
         }}
       />
       <NativeStack.Screen
@@ -1247,7 +1248,7 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
         component={AddDeviceToWalletWithMessenger}
-        options={{ headerShown: false }}
+        options={addDeviceToWalletPageOptions}
       />
       <NativeStack.Screen
         name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
@@ -1274,6 +1275,17 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={MultichainAddressList}
+        options={{
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+          contentStyle: { backgroundColor: colors.background.default },
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW}
+        component={SimpleWebview}
         options={{
           ...slideFromRightNativeOptions,
           presentation: 'card',
@@ -1337,11 +1349,6 @@ const AppFlow = () => {
         ) : null}
       </NativeStack.Group>
       <NativeStack.Screen
-        name={Routes.LOCK_SCREEN}
-        component={LockScreen}
-        options={{ gestureEnabled: false }}
-      />
-      <NativeStack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         options={{
           gestureEnabled: true,
@@ -1389,6 +1396,15 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
         component={PayWithBottomSheet}
+      />
+      <NativeStack.Screen
+        name={Routes.MFA.FLOW}
+        component={MfaFlowHost}
+        // A transparent modal, as the picker is a sheet over the app.
+        options={{
+          gestureEnabled: false,
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <NativeStack.Screen
         name={Routes.PRO_SUBSCRIPTION.ROOT}
@@ -1440,16 +1456,25 @@ const App: React.FC = () => {
   );
 
   useOTAUpdates();
+  // Both Predict lanes register unconditionally, whatever the Active Venue:
+  // an operation started on one Venue still notifies after a switch.
   const predictRegistrations = usePredictToastRegistrations();
+  const predictOrderRegistrations = usePredictOrderToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
   const quickBuyRegistrations = useQuickBuyToastRegistrations();
   const toastRegistrations = useMemo(
     () => [
       ...predictRegistrations,
+      ...predictOrderRegistrations,
       ...perpsWithdrawRegistrations,
       ...quickBuyRegistrations,
     ],
-    [predictRegistrations, perpsWithdrawRegistrations, quickBuyRegistrations],
+    [
+      predictRegistrations,
+      predictOrderRegistrations,
+      perpsWithdrawRegistrations,
+      quickBuyRegistrations,
+    ],
   );
 
   useEffect(() => {
@@ -1532,6 +1557,7 @@ const App: React.FC = () => {
         {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
         <RampsBootstrap />
         <AppFlow />
+        <MfaFlowLauncher />
         <Toast ref={toastRef} />
         {/*
           ToasterOverlay mounts FullWindowOverlay only while a toast is active
@@ -1542,6 +1568,7 @@ const App: React.FC = () => {
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
+        <PostTradeShareBottomSheet />
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />

@@ -7,6 +7,7 @@ import { ALL_BRAZE_BANNER_PLACEMENT_IDS } from './constants';
 import {
   BANNER_EVENT_DISMISSED,
   BANNER_EVENT_DISPLAY,
+  BANNER_EVENT_SELECT,
 } from '../../constants/engagement';
 import { hasPendingBrazePushUnregistrationSync } from './pushRegistrationState';
 import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
@@ -154,17 +155,27 @@ export function refreshBrazeBanners(
 }
 
 /**
- * Log the Braze banner dismissal event with the supplied properties and flush immediately.
+ * Dismiss the cached banner for a placement via the Braze SDK and log the
+ * `Banner Dismissed` custom event used for campaign targeting.
+ *
+ * Braze records the SDK dismissal and applies campaign re-eligibility on the
+ * backend. The custom event is skipped when `properties` is null (no
+ * `campaign_name`). Safe to call more than once for the same banner.
  */
-export function dismissBrazeBanner(properties: {
-  [key: string]: unknown;
-}): void {
+export function dismissBrazeBanner(
+  placementId: string,
+  properties: { [key: string]: unknown } | null,
+): void {
   try {
-    Logger.log('[Braze] Dismissing banner', properties);
-    Braze.logCustomEvent(BANNER_EVENT_DISMISSED, properties);
-    Braze.requestImmediateDataFlush();
+    Logger.log('[Braze] Dismissing banner', { placementId, properties });
+    Braze.dismissBanner(placementId);
+
+    if (properties) {
+      Braze.logCustomEvent(BANNER_EVENT_DISMISSED, properties);
+      Braze.requestImmediateDataFlush();
+    }
   } catch (error) {
-    Logger.error(error as Error, '[Braze] Failed to log banner dismissal');
+    Logger.error(error as Error, '[Braze] Failed to dismiss banner');
   }
 }
 
@@ -192,11 +203,31 @@ export function logBrazeBannerImpression(
 }
 
 /**
- * Log a Braze banner click
+ * Log a Braze banner click and, when `properties` is supplied, a `Banner
+ * Select` custom event used for campaign targeting and in-app message
+ * triggers.
+ *
+ * The SDK `logBannerClick` call always fires; `logCustomEvent` is skipped when
+ * `properties` is null (no `campaign_name`). Set `flushImmediately` from the
+ * campaign's `flush_immediately` property when the event must reach Braze
+ * before the next batch (for example, to trigger a full-screen in-app
+ * message); otherwise the event rides the next scheduled flush.
  */
-export function logBrazeBannerClick(placementId: string): void {
+export function logBrazeBannerClick(
+  placementId: string,
+  properties: { [key: string]: unknown } | null,
+  flushImmediately = false,
+): void {
   try {
     Braze.logBannerClick(placementId, null);
+
+    if (properties) {
+      Braze.logCustomEvent(BANNER_EVENT_SELECT, properties);
+
+      if (flushImmediately) {
+        Braze.requestImmediateDataFlush();
+      }
+    }
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to log banner click');
   }

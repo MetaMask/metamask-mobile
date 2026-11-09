@@ -32,8 +32,10 @@ runs:
     - name: Determine if install is needed
       id: check-deps
       shell: bash
+      env:
+        RUNNER_PROVIDER: ${{ inputs.runner_provider }}
       run: |
-        if [ "${{ inputs.runner_provider }}" != "namespace" ] && \
+        if [ "${RUNNER_PROVIDER}" != "namespace" ] && \
            [ -d node_modules ] && \
            [ -f app/util/termsOfUse/termsOfUseContent.ts ]; then
           echo "needs-install=false" >> "$GITHUB_OUTPUT"

@@ -14,7 +14,6 @@ import {
   ButtonSize,
   Text,
   TextVariant,
-  HeaderStandard,
   IconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
@@ -32,6 +31,9 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ImmersveKYCModalParams {
   url: string;
@@ -113,7 +115,7 @@ export const clearImmersveKycOnClose = () => {
   onCloseCallback = null;
 };
 
-const getMediaPermissions = (): Permission[] => [
+const ANDROID_MEDIA_PERMISSIONS: Permission[] = [
   PERMISSIONS.ANDROID.CAMERA,
   PERMISSIONS.ANDROID.RECORD_AUDIO,
 ];
@@ -136,15 +138,21 @@ const isAnyPermissionBlocked = (
  *
  * On Android, Sumsub's getUserMedia only works after the app already holds
  * CAMERA + RECORD_AUDIO; otherwise WebView silently denies PermissionRequest
- * and the page hangs on a black spinner (CARD-555).
+ * and the page hangs on a black spinner (CARD-555). That pre-grant, and the
+ * script that reports the resulting getUserMedia failure, stay on Android.
+ * iOS presents the hosted page with no injected script.
  */
 const ImmersveKYCModal: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
   const navigation = useNavigation();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [status, setStatus] = useState<WebViewStatus>('requesting-permissions');
+  const requestsAndroidMediaPermission = Platform.OS === 'android';
+  const [status, setStatus] = useState<WebViewStatus>(
+    requestsAndroidMediaPermission ? 'requesting-permissions' : 'loading',
+  );
   const [errorKind, setErrorKind] = useState<ErrorKind>('load');
   const [retryKey, setRetryKey] = useState(0);
   const hasClosed = useRef(false);
@@ -238,7 +246,7 @@ const ImmersveKYCModal: React.FC = () => {
       setStatus('requesting-permissions');
 
       try {
-        const statuses = await requestMultiple(getMediaPermissions());
+        const statuses = await requestMultiple(ANDROID_MEDIA_PERMISSIONS);
         if (areAllPermissionsGranted(statuses)) {
           setStatus('loading');
           return;
@@ -283,8 +291,11 @@ const ImmersveKYCModal: React.FC = () => {
   }, [trackEvent, createEventBuilder]);
 
   useEffect(() => {
+    if (!requestsAndroidMediaPermission) {
+      return;
+    }
     requestMediaPermissions(retryKey > 0).catch(() => undefined);
-  }, [retryKey, requestMediaPermissions]);
+  }, [requestsAndroidMediaPermission, retryKey, requestMediaPermissions]);
 
   // Fail fast if the Immersve document never finishes loading. Only the first
   // load is guarded — Sumsub liveness legitimately takes minutes and navigates
@@ -346,9 +357,11 @@ const ImmersveKYCModal: React.FC = () => {
     hasLoggedPageError.current = false;
     hasLoadedOnce.current = false;
     setErrorKind('load');
-    setStatus('requesting-permissions');
+    setStatus(
+      requestsAndroidMediaPermission ? 'requesting-permissions' : 'loading',
+    );
     setRetryKey((k) => k + 1);
-  }, [trackEvent, createEventBuilder]);
+  }, [requestsAndroidMediaPermission, trackEvent, createEventBuilder]);
 
   const handleLoadStart = useCallback(() => {
     // In-flow navigations after the first load must not drop an active
@@ -454,7 +467,9 @@ const ImmersveKYCModal: React.FC = () => {
       ]}
       testID="immersve-kyc-container"
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={() => closeModal('dismiss')}
         backButtonProps={{ testID: 'immersve-kyc-back-button' }}
         twClassName="bg-background-default"
@@ -492,7 +507,11 @@ const ImmersveKYCModal: React.FC = () => {
               onHttpError={handleError}
               onMessage={handleMessage}
               onNavigationStateChange={handleNavigationStateChange}
-              injectedJavaScript={IMMERSVE_KYC_ERROR_BRIDGE_JS}
+              injectedJavaScript={
+                requestsAndroidMediaPermission
+                  ? IMMERSVE_KYC_ERROR_BRIDGE_JS
+                  : undefined
+              }
               originWhitelist={['*']}
               allowsInlineMediaPlayback
               javaScriptEnabled

@@ -118,14 +118,12 @@ ignores:
   - 'react-native-crypto'
   - 'react-native-level-fs'
   - 'react-native-os'
-  - 'react-native-randombytes'
   - 'react-native-swipe-gestures'
   - 'socket.io-client'
   - 'stream-browserify'
   - 'url'
   - 'vm-browserify'
   - 'react-native-cli'
-  - 'babel-plugin-module-resolver'
 
   ## Missing dependencies to investigate
   - '@react-navigation/core'
@@ -140,6 +138,9 @@ ignores:
   - 'expo-font'
 
   ## react native
+  # Native core for @react-native-firebase/messaging. Autolinked as RNFBApp;
+  # app code only imports the messaging package.
+  - '@react-native-firebase/app'
   - '@react-native-community/cli'
   - '@react-native-community/cli-platform-android'
   - '@react-native-community/cli-platform-ios'

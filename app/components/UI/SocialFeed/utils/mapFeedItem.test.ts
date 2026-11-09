@@ -48,6 +48,22 @@ describe('mapFeedItem', () => {
     });
   });
 
+  it('ids a spot item by its feed item id when the feed sends one', () => {
+    const coreItem = { ...mockSpotFeedItem(), feedItemId: 'comment-1' };
+
+    const result = mapFeedItem(coreItem);
+
+    expect(result?.id).toBe('comment-1');
+  });
+
+  it('ids a perp item by its feed item id when the feed sends one', () => {
+    const coreItem = { ...mockPerpFeedItem(), feedItemId: 'comment-1' };
+
+    const result = mapFeedItem(coreItem);
+
+    expect(result?.id).toBe('comment-1');
+  });
+
   it('converts the Unix-seconds timestamp to milliseconds', () => {
     const result = mapFeedItem(mockSpotFeedItem());
 
@@ -531,6 +547,35 @@ describe('mapFeedItem', () => {
     expect(result?.hasPnlData).toBe(false);
   });
 
+  it('omits closed PnL percent when realizedPnl is null', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        positionAmount: 0,
+        soldUsd: 90_000,
+        pnlPercent: null,
+        pnlValueUsd: null,
+        realizedPnl: null,
+        boughtUsd: 100_000,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            action: 'closed',
+            tokenAmount: 1000,
+            usdCost: 90000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('closed');
+    expect(result?.pnlLabel).toBe('');
+    expect(result?.hasPnlData).toBe(false);
+  });
+
   it('hides value and PnL for an open perp feed row without mark-to-market fields', () => {
     const result = mapFeedItem(
       mockPerpFeedItem({
@@ -635,6 +680,22 @@ describe('mapFeedItem', () => {
     expect(result?.hasValueData).toBe(true);
     expect(result?.hasPnlData).toBe(true);
     expect(result?.valueLabel).toContain('12,500');
+  });
+
+  it('uses a closed USD PnL to determine the positive tone without a percent', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        isOpen: false,
+        pnlValueUsd: 12_500,
+        pnlPercent: undefined,
+        realizedPnl: 12_500,
+        boughtUsd: null,
+      }),
+    );
+
+    expect(result?.hasPnlData).toBe(false);
+    expect(result?.valueLabel).toContain('12,500');
+    expect(result?.isPnlPositive).toBe(true);
   });
 
   it('marks negative PnL as not positive', () => {

@@ -32,6 +32,13 @@ export const DEFAULT_REWARDS_MOCKS: MockEventsObject = {
   ],
   GET: [
     {
+      urlEndpoint: new RegExp(`^${REWARDS_HOST}\\/trading-fee-grants$`),
+      responseCode: 200,
+      response: {
+        grant: null,
+      },
+    },
+    {
       urlEndpoint: new RegExp(`^${REWARDS_HOST}\\/public\\/seasons\\/status$`),
       responseCode: 200,
       response: {

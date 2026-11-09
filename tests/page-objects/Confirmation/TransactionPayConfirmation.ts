@@ -79,6 +79,10 @@ class TransactionPayConfirmation {
     );
   }
 
+  get amountValue(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TransactionPayComponentIDs.AMOUNT_VALUE);
+  }
+
   get payWithRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.PAY_WITH);
   }
@@ -347,7 +351,7 @@ class TransactionPayConfirmation {
 
   async clearAmount(): Promise<void> {
     // Long-press can miss on Android after a percentage tap. Re-issue the
-    // gesture until custom-amount-input is '0' (Keys.Initial). Short
+    // gesture until the animated amount value is '0' (Keys.Initial). Short
     // per-attempt assertion timeout; executeWithRetry owns the budget.
     await Utilities.executeWithRetry(
       async () => {
@@ -356,8 +360,9 @@ class TransactionPayConfirmation {
           elemDescription: 'Keypad delete button (long-press clears amount)',
           timeout: 15000,
         });
-        await Assertions.expectElementToHaveText(this.keyboardContainer, '0', {
+        await Assertions.expectElementToHaveLabel(this.amountValue, '0', {
           description: 'Amount should be 0 after keypad long-press clear',
+          exact: true,
           timeout: 2000,
         });
       },
@@ -459,8 +464,11 @@ class TransactionPayConfirmation {
   }
 
   async verifyCustomAmount(amount: string, description: string): Promise<void> {
-    await Assertions.expectElementToHaveText(this.keyboardContainer, amount, {
+    // Exact matching so "50" does not pass when the screen shows "500" or "0.5".
+    // Joined accessibility + visible labels ("50, 50") still match "50".
+    await Assertions.expectElementToHaveLabel(this.amountValue, amount, {
       description,
+      exact: true,
     });
   }
 

@@ -28,8 +28,8 @@ import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useInsufficientPayTokenBalanceMessageKey } from './useInsufficientPayTokenBalanceMessageKey';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -71,6 +71,8 @@ export function useInsufficientPayTokenBalanceAlert({
   // on-chain units.
   const { balanceUsd: payBalanceUsd, balanceRaw } = useTransactionPayBalance();
   const balanceUsd = String(payBalanceUsd);
+  const insufficientBalanceMessageKey =
+    useInsufficientPayTokenBalanceMessageKey(balanceUsd);
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
@@ -139,12 +141,13 @@ export function useInsufficientPayTokenBalanceAlert({
     [balanceRaw, isMax, isPendingAlert, totalSourceAmountRaw],
   );
 
-  // Parent sponsorship does not cover hardware funding transactions.
+  // Quoted source-network fees are empty when the source is execute or
+  // sponsored, and a real amount when the payer covers native gas. Parent
+  // sponsorship does not change that. Hardware payers are never gasless.
   const isHardwarePayer = isHardwareAccount(payingAccount ?? '');
   const isGaslessSourceChain =
     !isHardwarePayer &&
     (sourceChainId === CHAIN_IDS.MONAD ||
-      isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
       (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount));
 
   // A plain ERC-20 send also yields a required token, but it is not funded
@@ -193,9 +196,7 @@ export function useInsufficientPayTokenBalanceAlert({
         {
           ...baseAlert,
           key: AlertKeys.InsufficientPayTokenBalance,
-          message: strings(
-            'alert_system.insufficient_pay_token_balance.message',
-          ),
+          message: strings(insufficientBalanceMessageKey),
         },
       ];
     }
@@ -237,6 +238,7 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
+    insufficientBalanceMessageKey,
     isPostQuote,
     selectedFiatPaymentMethod,
     ticker,

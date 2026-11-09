@@ -17,6 +17,14 @@ export type FeedCardActor = ProfileSummary & {
   tradeCount30d?: number | null;
   /** Profiles following this trader. */
   followerCount?: number | null;
+  /**
+   * Linked social accounts. Present on the wire when the trader connected X.
+   * `parseFeedResponse` keeps unknown actor keys, so this is readable before
+   * `@metamask/social-controllers` types the field.
+   */
+  socialHandles?: {
+    twitter?: string | null;
+  };
 };
 
 export type FeedCardItem = CoreFeedItem & {
@@ -33,11 +41,6 @@ export type FeedCardItem = CoreFeedItem & {
    * while it is still running, because that span grows every second.
    */
   holdTimeMs?: number | null;
-  /**
-   * Average entry in USD from remaining cost basis / remaining holding.
-   * Null when the position is flat.
-   */
-  entryPriceUsd?: number | null;
 };
 
 export const asFeedCardItem = (item: CoreFeedItem): FeedCardItem =>

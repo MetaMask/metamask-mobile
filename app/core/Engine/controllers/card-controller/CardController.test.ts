@@ -121,6 +121,11 @@ async function waitForCondition(
   }
 }
 
+const hostOptions = {
+  sha256: async () => new Uint8Array(32),
+  isBasicFunctionalityEnabled: () => true,
+};
+
 function buildMessenger() {
   return new Messenger<
     'CardController',
@@ -182,6 +187,7 @@ function buildController(
   cardService: CardService = buildMockCardService(),
 ) {
   return new CardController({
+    ...hostOptions,
     messenger: buildMessenger(),
     providers: { baanx: provider },
     cardService,
@@ -221,6 +227,7 @@ function buildControllerWithMockMessenger(
 ) {
   const messenger = buildMessengerWithEvmAccount(evmAddress);
   const controller = new CardController({
+    ...hostOptions,
     messenger,
     providers: { baanx: provider },
     cardService,
@@ -298,6 +305,7 @@ const mockRefreshRejectedError = new CardProviderError(
 describe('CardController', () => {
   it('initializes with default state when no state is provided', () => {
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: {},
@@ -310,6 +318,7 @@ describe('CardController', () => {
 
   it('initializes with provided state merged over defaults', () => {
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: {},
@@ -337,11 +346,16 @@ describe('CardController', () => {
       redeemWithdrawal: null,
       signInLink: null,
       accountLookupCache: {},
+      cardLinks: null,
+      cardLinksFetchedAt: null,
+      cardLinksSeeded: false,
+      cardLinkApiBlocked: false,
     });
   });
 
   it('preserves default values for fields not in partial state', () => {
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: {},
@@ -359,6 +373,7 @@ describe('CardController', () => {
 
   it('initializes with full persisted state including providerData', () => {
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: {},
@@ -395,6 +410,7 @@ describe('CardController — setSelectedCountry', () => {
       return undefined;
     });
     return new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: {
@@ -466,6 +482,7 @@ describe('CardController — auth methods', () => {
 
     it('throws CardProviderError when there is no active provider', async () => {
       const controller = new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger: buildMessenger(),
         providers: {},
@@ -838,6 +855,7 @@ describe('CardController — auth methods', () => {
       const baanx = buildMockProvider();
       const other = buildMockProvider({ id: CardProviderIds.Immersve });
       const controller = new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger: buildMessenger(),
         providers: { baanx, [CardProviderIds.Immersve]: other },
@@ -1000,6 +1018,7 @@ describe('CardController — auth methods', () => {
       provider.validateTokens.mockReturnValue('valid');
       const messenger = buildMessengerWithEvmAccount('0xotheraccount');
       const controller = new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger,
         providers: { immersve: provider },
@@ -1495,6 +1514,7 @@ describe('CardController — event subscriptions', () => {
   it('subscribes to KeyringController:unlock on construction', () => {
     const mockMessenger = buildMockMessenger();
     new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: {},
@@ -1509,6 +1529,7 @@ describe('CardController — event subscriptions', () => {
   it('subscribes to AccountTreeController:stateChange on construction', () => {
     const mockMessenger = buildMockMessenger();
     new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: {},
@@ -1524,6 +1545,7 @@ describe('CardController — event subscriptions', () => {
   it('includes selectedAccountGroup in the AccountTreeController subscription key', () => {
     const mockMessenger = buildMockMessenger();
     new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: {},
@@ -1553,6 +1575,7 @@ describe('CardController — event subscriptions', () => {
   it('subscribes to RemoteFeatureFlagController:stateChange on construction', () => {
     const mockMessenger = buildMockMessenger();
     new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: {},
@@ -1607,6 +1630,7 @@ describe('CardController — event subscriptions', () => {
     });
 
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: { baanx: provider },
@@ -1635,6 +1659,7 @@ describe('CardController — event subscriptions', () => {
     const provider = buildMockProvider();
     const mockMessenger = buildMessengerForUnlock();
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: { baanx: provider },
@@ -1679,6 +1704,7 @@ describe('CardController — event subscriptions', () => {
     mockTokenStore.get.mockResolvedValue(null);
     const mockMessenger = buildMessengerForUnlock();
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: { baanx: provider },
@@ -1733,6 +1759,7 @@ describe('CardController — event subscriptions', () => {
     mockTokenStore.get.mockResolvedValue(null);
     const mockMessenger = buildMessengerForUnlock();
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: { baanx: provider },
@@ -2179,6 +2206,7 @@ describe('CardController — fetchCardHomeData', () => {
       return undefined;
     });
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: { baanx: provider },
@@ -2236,6 +2264,7 @@ describe('CardController — fetchCardHomeData', () => {
       return undefined;
     });
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: { baanx: provider },
@@ -2300,6 +2329,7 @@ describe('CardController — fetchCardHomeData', () => {
       return undefined;
     });
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: { baanx: provider },
@@ -2358,6 +2388,7 @@ describe('CardController — fetchCardHomeData', () => {
       return undefined;
     });
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: { baanx: provider },
@@ -3112,6 +3143,8 @@ describe('CardController — getCapabilities', () => {
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
     supportsMoneyAccountLinking: true,
+    usesMoneyAccountDelegationSettings: true,
+    reportsVerificationStatus: true,
     supportsTransactionHistory: true,
     supportsContactDetails: false,
   };
@@ -3123,6 +3156,32 @@ describe('CardController — getCapabilities', () => {
     const caps = controller.getCapabilities();
     expect(caps.supportsPinView).toBe(false);
     expect(caps.supportsCashback).toBe(true);
+  });
+
+  it('returns capabilities for a provider that is not active', () => {
+    const baanx = buildMockProvider({
+      capabilities: { ...baseCapabilities, supportsMoneyAccountLinking: true },
+    });
+    const immersve = buildMockProvider({
+      id: CardProviderIds.Immersve,
+      capabilities: {
+        ...baseCapabilities,
+        supportsMoneyAccountLinking: false,
+      },
+    });
+    const controller = new CardController({
+      ...hostOptions,
+      cardService: buildMockCardService(),
+      messenger: buildMessenger(),
+      providers: { baanx, [CardProviderIds.Immersve]: immersve },
+      state: { activeProviderId: 'baanx' },
+    });
+
+    expect(controller.getCapabilities().supportsMoneyAccountLinking).toBe(true);
+    expect(
+      controller.getCapabilities(CardProviderIds.Immersve)
+        .supportsMoneyAccountLinking,
+    ).toBe(false);
   });
 });
 
@@ -3534,27 +3593,60 @@ describe('CardController — data pass-throughs', () => {
       };
     }
 
+    const defaultLinkPreparation = {
+      tokenAddress: TOKEN_ADDRESS,
+      spender: DELEGATION_CONTRACT,
+      decimals: 6,
+      caipChainId: 'eip155:143' as const,
+      context: { signatureMessage: 'siwe-message-from-baanx' },
+    };
+
     function buildLinkController({
       provider,
       messenger,
       withDelegationSettings = true,
+      installLinkHooks = true,
+      cardHomeData,
     }: {
       provider: jest.Mocked<ICardProvider>;
       messenger: jest.Mocked<CardControllerMessenger>;
       withDelegationSettings?: boolean;
+      installLinkHooks?: boolean;
+      cardHomeData?: Record<string, unknown>;
     }) {
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       provider.validateTokens.mockReturnValue('valid');
+      Object.assign(provider, {
+        capabilities: {
+          ...provider.capabilities,
+          usesMoneyAccountDelegationSettings: true,
+        },
+      });
+      if (installLinkHooks && !provider.prepareMoneyAccountLink) {
+        provider.prepareMoneyAccountLink = jest
+          .fn()
+          .mockResolvedValue(defaultLinkPreparation);
+      }
+      if (installLinkHooks && !provider.completeMoneyAccountLink) {
+        provider.completeMoneyAccountLink = jest
+          .fn()
+          .mockResolvedValue(undefined);
+      }
+      const initialCardHomeData =
+        cardHomeData ??
+        (withDelegationSettings ? cardHomeDataWithMonadUsdc : null);
       return new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger,
         providers: { baanx: provider },
         state: {
           activeProviderId: 'baanx',
           isAuthenticated: true,
-          cardHomeData: withDelegationSettings
-            ? (cardHomeDataWithMonadUsdc as unknown as Record<string, Json>)
-            : null,
+          cardHomeData: initialCardHomeData as unknown as Record<
+            string,
+            Json
+          > | null,
         },
       });
     }
@@ -3610,8 +3702,11 @@ describe('CardController — data pass-throughs', () => {
 
       await linkPromise;
 
-      expect(mockChallenge).toHaveBeenCalledWith(
-        { network: 'monad', address: MONEY_ACCOUNT_ADDRESS },
+      expect(provider.prepareMoneyAccountLink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          amountHuman: '2199023255551',
+        }),
         mockTokenSet,
       );
       expect(handle.signPersonalMessageCalls).toHaveLength(1);
@@ -3636,23 +3731,15 @@ describe('CardController — data pass-throughs', () => {
       expect(batchTransactions[0]).toMatchObject({
         params: { to: TOKEN_ADDRESS, value: '0x0' },
       });
-      expect(mockGenerateSiwe).toHaveBeenCalledWith(
+      expect(provider.completeMoneyAccountLink).toHaveBeenCalledWith(
         expect.objectContaining({
-          network: 'monad',
-          address: MONEY_ACCOUNT_ADDRESS,
-          nonce: 'nonce-1',
-        }),
-      );
-      expect(mockApproveFunding).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: MONEY_ACCOUNT_ADDRESS,
-          network: 'monad',
-          currency: 'veda',
-          amount: '2199023255551',
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          amountHuman: '2199023255551',
           txHash: TX_HASH,
           sigHash: '0xsig',
-          sigMessage: 'siwe-message-from-baanx',
-          token: 'jwt-1',
+          context: expect.objectContaining({
+            signatureMessage: 'siwe-message-from-baanx',
+          }),
         }),
         mockTokenSet,
       );
@@ -3690,7 +3777,7 @@ describe('CardController — data pass-throughs', () => {
       handle.emitConfirmed();
 
       await expect(linkPromise).resolves.toBeUndefined();
-      expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+      expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
     });
 
     it('subscribes to transactionConfirmed BEFORE submitting the transaction (closes the race)', async () => {
@@ -3726,12 +3813,12 @@ describe('CardController — data pass-throughs', () => {
           handle.subscribedHandlers.length > 0 &&
           handle.addTransactionBatchCalls.length > 0,
       );
-      expect(mockApproveFunding).not.toHaveBeenCalled();
+      expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
 
       handle.emitConfirmed();
       await linkPromise;
 
-      expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+      expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
     });
 
     it('rejects when the approval transaction fails on-chain', async () => {
@@ -3765,17 +3852,109 @@ describe('CardController — data pass-throughs', () => {
       handle.emitFailed('out of gas');
 
       await expect(linkPromise).rejects.toThrow('out of gas');
-      expect(mockApproveFunding).not.toHaveBeenCalled();
+      expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
       // Refresh is only triggered on the success path — failed transactions
       // must NOT refresh card home data.
       expect(fetchCardHomeDataSpy).not.toHaveBeenCalled();
     });
 
+    it('refetches home data when persisted delegation settings have no Veda token', async () => {
+      const staleSettings = {
+        count: 0,
+        _links: { self: '/v1/delegation/chain/config' },
+        networks: [],
+      };
+      const provider = buildMockProvider({
+        prepareMoneyAccountLink: jest
+          .fn()
+          .mockResolvedValue(defaultLinkPreparation),
+        completeMoneyAccountLink: jest.fn().mockResolvedValue(undefined),
+        getCardHomeData: jest.fn().mockResolvedValue(cardHomeDataWithMonadUsdc),
+      });
+
+      const handle = buildLinkMessenger();
+      const controller = buildLinkController({
+        provider,
+        messenger: handle.messenger,
+        cardHomeData: {
+          ...cardHomeDataWithMonadUsdc,
+          delegationSettings: staleSettings,
+        },
+      });
+
+      const linkPromise = controller.linkMoneyAccountCard({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '2199023255551',
+      });
+
+      await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+      handle.emitConfirmed();
+      await linkPromise;
+
+      expect(provider.getCardHomeData).toHaveBeenCalled();
+      expect(provider.prepareMoneyAccountLink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          delegationSettings: cardHomeDataWithMonadUsdc.delegationSettings,
+        }),
+        mockTokenSet,
+      );
+    });
+
+    it('does not block an Immersve link when home data has no delegation settings', async () => {
+      const provider = buildMockProvider({
+        id: CardProviderIds.Immersve,
+        prepareMoneyAccountLink: jest.fn().mockResolvedValue({
+          ...defaultLinkPreparation,
+          context: { fundingSourceId: 'fs-1' },
+        }),
+        completeMoneyAccountLink: jest.fn().mockResolvedValue(undefined),
+        getCardHomeData: jest
+          .fn()
+          .mockRejectedValue(new Error('home data down')),
+      });
+
+      const handle = buildLinkMessenger();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('valid');
+      const controller = new CardController({
+        ...hostOptions,
+        cardService: buildMockCardService(),
+        messenger: handle.messenger,
+        providers: { [CardProviderIds.Immersve]: provider },
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+          cardHomeData: null,
+        },
+      });
+
+      const linkPromise = controller.linkMoneyAccountCard({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '2199023255551',
+      });
+
+      await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+      expect(provider.getCardHomeData).not.toHaveBeenCalled();
+      expect(provider.prepareMoneyAccountLink).toHaveBeenCalledWith(
+        expect.objectContaining({ delegationSettings: null }),
+        mockTokenSet,
+      );
+
+      handle.emitConfirmed();
+      await linkPromise;
+    });
+
     it('fails closed when Monad USDC is missing from delegation settings (after refetch)', async () => {
       const provider = buildMockProvider({
-        fetchDelegationChallenge: jest.fn(),
-        approveFunding: jest.fn(),
-        generateCardDelegationSignatureMessage: mockGenerateSiwe,
+        prepareMoneyAccountLink: jest
+          .fn()
+          .mockRejectedValue(
+            new CardProviderError(
+              CardProviderErrorCode.Unknown,
+              'Money Account Card spending token unavailable',
+            ),
+          ),
+        completeMoneyAccountLink: jest.fn(),
         getCardHomeData: jest.fn().mockResolvedValue({
           ...cardHomeDataWithMonadUsdc,
           delegationSettings: null,
@@ -3797,16 +3976,16 @@ describe('CardController — data pass-throughs', () => {
       ).rejects.toThrow('Money Account Card spending token unavailable');
     });
 
-    it('throws when provider lacks fetchDelegationChallenge, approveFunding, or generateCardDelegationSignatureMessage', async () => {
+    it('throws when provider lacks prepareMoneyAccountLink or completeMoneyAccountLink', async () => {
       const provider = buildMockProvider({
-        fetchDelegationChallenge: undefined,
-        approveFunding: undefined,
-        generateCardDelegationSignatureMessage: undefined,
+        prepareMoneyAccountLink: undefined,
+        completeMoneyAccountLink: undefined,
       });
       const handle = buildLinkMessenger();
       const controller = buildLinkController({
         provider,
         messenger: handle.messenger,
+        installLinkHooks: false,
       });
 
       await expect(
@@ -3887,14 +4066,52 @@ describe('CardController — data pass-throughs', () => {
               moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
               delegationAmountHuman: '2199023255551',
             }),
-          ).rejects.toThrow('Monad gas sponsorship unavailable');
+          ).rejects.toThrow('Gas sponsorship unavailable for chain 143');
         } finally {
           mockGasFeesSponsoredMap['0x8f'] = original;
         }
 
+        expect(provider.prepareMoneyAccountLink).toHaveBeenCalled();
         expect(handle.addTransactionBatchCalls).toHaveLength(0);
         expect(mockChallenge).not.toHaveBeenCalled();
-        expect(mockApproveFunding).not.toHaveBeenCalled();
+        expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
+      });
+
+      it('submits the approve on the prepared chain when that chain is sponsored', async () => {
+        const provider = buildMockProvider({
+          prepareMoneyAccountLink: jest.fn().mockResolvedValue({
+            ...defaultLinkPreparation,
+            caipChainId: 'eip155:8453',
+          }),
+          completeMoneyAccountLink: jest.fn().mockResolvedValue(undefined),
+        });
+        const handle = buildLinkMessenger();
+        const controller = buildLinkController({
+          provider,
+          messenger: handle.messenger,
+        });
+
+        const originalMonad = mockGasFeesSponsoredMap['0x8f'];
+        mockGasFeesSponsoredMap['0x8f'] = false;
+        mockGasFeesSponsoredMap['0x2105'] = true;
+        try {
+          const linkPromise = controller.linkMoneyAccountCard({
+            moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+            delegationAmountHuman: '2199023255551',
+          });
+          await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+          handle.emitConfirmed();
+          await linkPromise;
+        } finally {
+          mockGasFeesSponsoredMap['0x8f'] = originalMonad;
+          delete mockGasFeesSponsoredMap['0x2105'];
+        }
+
+        expect(handle.addTransactionBatchCalls).toHaveLength(1);
+        expect(handle.messenger.call).toHaveBeenCalledWith(
+          'NetworkController:findNetworkClientIdByChainId',
+          '0x2105',
+        );
       });
 
       it('submits the approve via addTransactionBatch and lets Delegation7702PublishHook attach the upgrade authorization', async () => {
@@ -3935,7 +4152,7 @@ describe('CardController — data pass-throughs', () => {
           disableHook: true,
           disableSequential: true,
         });
-        expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+        expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -3969,7 +4186,7 @@ describe('CardController — data pass-throughs', () => {
         await waitFor(() => handle.addTransactionBatchCalls.length > 0);
         handle.emitConfirmed();
         await expect(linkPromise).resolves.toBeUndefined();
-        expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+        expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
       });
 
       it('retries the state read until the inner tx appears', async () => {
@@ -4021,15 +4238,12 @@ describe('CardController — data pass-throughs', () => {
         const mockApproveFunding = jest
           .fn()
           .mockImplementation(() => approveFundingGate);
-        const mockChallenge = jest.fn().mockResolvedValue({
-          delegationToken: 'jwt-1',
-          nonce: 'nonce-1',
-          expiresAt: '2099-01-01',
-        });
+        const mockChallenge = jest
+          .fn()
+          .mockResolvedValue(defaultLinkPreparation);
         const provider = buildMockProvider({
-          fetchDelegationChallenge: mockChallenge,
-          approveFunding: mockApproveFunding,
-          generateCardDelegationSignatureMessage: mockGenerateSiwe,
+          prepareMoneyAccountLink: mockChallenge,
+          completeMoneyAccountLink: mockApproveFunding,
         });
 
         const handle = buildLinkMessenger();
@@ -5615,6 +5829,7 @@ describe('CardController — data pass-throughs', () => {
 
       const messenger = buildMessengerWithEvmAccount();
       const controller = new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger,
         providers: { immersve, baanx },
@@ -5643,6 +5858,37 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
     const controller = buildController(provider);
     return { controller, provider };
   };
+
+  it('resolveMoneyAccountFundingSourceId delegates to the active provider with valid tokens', async () => {
+    const resolveMoneyAccountFundingSource = jest
+      .fn()
+      .mockResolvedValue({ id: 'fs-money' });
+    const { controller } = withValidSession({
+      resolveMoneyAccountFundingSource,
+    });
+
+    const result = await controller.resolveMoneyAccountFundingSourceId(
+      '0x000000000000000000000000000000000000dEaD',
+    );
+
+    expect(resolveMoneyAccountFundingSource).toHaveBeenCalledWith(
+      '0x000000000000000000000000000000000000dEaD',
+      mockTokenSet,
+    );
+    expect(result).toBe('fs-money');
+  });
+
+  it('resolveMoneyAccountFundingSourceId throws when the provider does not support it', async () => {
+    const { controller } = withValidSession({
+      resolveMoneyAccountFundingSource: undefined,
+    });
+
+    await expect(
+      controller.resolveMoneyAccountFundingSourceId(
+        '0x000000000000000000000000000000000000dEaD',
+      ),
+    ).rejects.toThrow('Money account funding source resolution not supported');
+  });
 
   it('createFundingSource delegates to the active provider with valid tokens', async () => {
     const createFundingSource = jest.fn().mockResolvedValue({ id: 'fs-1' });
@@ -5690,6 +5936,7 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
     baanx.validateTokens.mockReturnValue('valid');
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: { baanx, immersve },
@@ -5928,6 +6175,7 @@ describe('CardController — sign-in resolution and migration', () => {
     });
 
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: {
@@ -6418,6 +6666,253 @@ describe('CardController — sign-in resolution and migration', () => {
       expect(controller.getSignInLink()?.status).toBe('completed');
       expect(baanx.logout).toHaveBeenCalled();
       expect(mockTokenStore.remove).toHaveBeenCalledWith(CardProviderIds.Baanx);
+    });
+
+    it('keeps the session on an MFA step and links the wallet after the code', async () => {
+      const { controller, immersve } = buildSignInController();
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+      (immersve.submitCredentials as jest.Mock)
+        .mockResolvedValueOnce({
+          done: false,
+          nextStep: {
+            type: 'mfa_select',
+            options: [
+              { method: 'email', maskedDestination: 'j***@example.com' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          done: true,
+          tokenSet: {
+            ...mockTokenSet,
+            providerUserId: 'imv-user',
+            accountAddress: ADDR_A,
+          },
+        });
+
+      const pending = await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      expect(pending.nextStep).toMatchObject({ type: 'mfa_select' });
+      expect(controller.getCurrentAuthStep()).toMatchObject({
+        type: 'mfa_select',
+      });
+      expect(controller.getSignInLink()).toBeNull();
+
+      await controller.submitCredentials({ type: 'mfa_code', code: '123456' });
+
+      expect(controller.getSignInLink()).toMatchObject({
+        status: 'linked',
+        address: ADDR_A,
+        providerId: CardProviderIds.Immersve,
+        providerUserId: 'imv-user',
+      });
+      expect(controller.getCurrentAuthStep()).toBeNull();
+    });
+
+    it('clears the session when MFA requires a restart and keeps it for a bad code', async () => {
+      const { controller, immersve } = buildSignInController();
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [{ method: 'phone', maskedDestination: '+64 *****1234' }],
+        },
+      });
+
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      (immersve.submitCredentials as jest.Mock).mockRejectedValueOnce(
+        new CardProviderError(
+          CardProviderErrorCode.InvalidOtp,
+          'Invalid MFA code',
+          403,
+          'MFA_CODE_INVALID',
+        ),
+      );
+      await expect(
+        controller.submitCredentials({ type: 'mfa_code', code: '000000' }),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.InvalidOtp });
+      expect(controller.getCurrentAuthStep()).toMatchObject({
+        type: 'mfa_select',
+      });
+
+      (immersve.submitCredentials as jest.Mock).mockRejectedValueOnce(
+        new CardProviderError(
+          CardProviderErrorCode.AuthRestartRequired,
+          'Login must be restarted (MFA_CODE_EXPIRED)',
+          403,
+          'MFA_CODE_EXPIRED',
+        ),
+      );
+      await expect(
+        controller.submitCredentials({ type: 'mfa_code', code: '000000' }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.AuthRestartRequired,
+      });
+      expect(controller.getCurrentAuthStep()).toBeNull();
+    });
+
+    it('abandonAuth drops the in-progress MFA session', async () => {
+      const { controller, immersve } = buildSignInController();
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
+        },
+      });
+
+      await controller.authenticateWithWallet({
+        option: {
+          providerId: CardProviderIds.Immersve,
+          method: 'siwe',
+        },
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      controller.abandonAuth();
+
+      expect(controller.getCurrentAuthStep()).toBeNull();
+      await expect(
+        controller.submitCredentials({ type: 'mfa_code', code: '123456' }),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
+    });
+
+    it('abandonAuth clears a migration so the next sign-in links the wallet', async () => {
+      const { controller, immersve } = buildSignInController();
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
+        },
+      });
+
+      controller.beginMigration();
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+      controller.abandonAuth();
+
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: true,
+        tokenSet: {
+          ...mockTokenSet,
+          providerUserId: 'imv-user',
+          accountAddress: ADDR_A,
+        },
+      });
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      expect(controller.getSignInLink()?.status).toBe('linked');
+    });
+
+    it('uses nextSessionId for the following MFA post', async () => {
+      const { controller, immersve } = buildSignInController();
+      (immersve.submitCredentials as jest.Mock)
+        .mockResolvedValueOnce({
+          done: false,
+          nextSessionId: 'login-req-2',
+          nextStep: {
+            type: 'mfa_select',
+            options: [
+              { method: 'email', maskedDestination: 'j***@example.com' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          done: false,
+          nextStep: {
+            type: 'mfa_code',
+            method: 'email',
+            maskedDestination: 'j***@example.com',
+            expiresAt: null,
+          },
+        });
+
+      await controller.authenticateWithWallet({
+        option: {
+          providerId: CardProviderIds.Immersve,
+          method: 'siwe',
+        },
+        address: ADDR_A,
+        country: 'GB',
+      });
+      await controller.submitCredentials({
+        type: 'mfa_method',
+        method: 'email',
+        destination: 'jane@example.com',
+      });
+
+      expect(immersve.submitCredentials).toHaveBeenLastCalledWith(
+        expect.objectContaining({ id: 'login-req-2' }),
+        expect.objectContaining({ type: 'mfa_method' }),
+      );
+    });
+
+    it('records a started link when migration finishes on the MFA code', async () => {
+      const { controller, immersve } = buildSignInController();
+      (immersve.submitCredentials as jest.Mock)
+        .mockResolvedValueOnce({
+          done: false,
+          nextStep: {
+            type: 'mfa_select',
+            options: [
+              { method: 'email', maskedDestination: 'j***@example.com' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          done: true,
+          tokenSet: {
+            ...mockTokenSet,
+            providerUserId: 'imv-user',
+            accountAddress: ADDR_A,
+          },
+        });
+
+      controller.beginMigration();
+      await controller.authenticateWithWallet({
+        option: {
+          providerId: CardProviderIds.Immersve,
+          method: 'siwe',
+        },
+        address: ADDR_A,
+        country: 'GB',
+      });
+      await controller.submitCredentials({ type: 'mfa_code', code: '123456' });
+
+      expect(controller.getSignInLink()).toMatchObject({
+        status: 'started',
+        stage: 'identity',
+        address: ADDR_A,
+      });
     });
 
     it('logoutProvider clears tokens without touching the active session', async () => {

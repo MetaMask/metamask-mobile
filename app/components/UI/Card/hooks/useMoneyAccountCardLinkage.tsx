@@ -40,6 +40,9 @@ import {
   selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardSignInLink,
+  selectImmersveFundingChannelForSelectedCountry,
+  selectImmersveMoneyAccountMode,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -50,10 +53,17 @@ import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
-import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CardLinkageInProgressError,
+  type CardProviderId,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
-import { isMoneyAccountCardTokenAllowlisted } from '../util/vedaToken';
-import { CardFundingToken } from '../types';
+import {
+  isMoneyAccountCardTokenAllowlisted,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+  MONEY_ACCOUNT_DISPLAY_SYMBOL,
+} from '../util/vedaToken';
+import { CardFundingToken, FundingStatus } from '../types';
 import { useCardCapabilities } from './useCardCapabilities';
 import { UserCancelledError } from './useCardDelegation';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -112,6 +122,30 @@ export interface LinkFlowOrigin {
   entrypoint?: CardEntryPoint;
 }
 
+const supportsMoneyAccountLinking = (
+  capabilities: { supportsMoneyAccountLinking?: boolean } | null,
+  whenUnknown: boolean,
+): boolean => capabilities?.supportsMoneyAccountLinking ?? whenUnknown;
+
+const signInProviderSupportsLinking = (
+  providerId?: CardProviderId,
+): boolean => {
+  if (!providerId) return true;
+
+  try {
+    return supportsMoneyAccountLinking(
+      Engine.context?.CardController?.getCapabilities(providerId) ?? null,
+      true,
+    );
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'Failed to read sign-in provider capabilities',
+    );
+    return true;
+  }
+};
+
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
   hasMoneyAccountBaseRequirements: boolean;
@@ -123,6 +157,9 @@ export interface UseMoneyAccountCardLinkageReturn {
   canLink: boolean;
   isResidencyBlocked: boolean;
   isMoneyAccountLinkingSupported: boolean;
+  isMoneyCardSectionAvailable: boolean;
+  /** False when the active provider has no Baanx-style verification status. */
+  reportsVerificationStatus: boolean;
 
   status: LinkageStatus;
   isLinking: boolean;
@@ -166,6 +203,12 @@ export const useMoneyAccountCardLinkage =
     const isCardholder = useSelector(selectIsCardholder);
     const delegationSettings = useSelector(selectCardDelegationSettings);
     const vedaConfig = useSelector(selectMoneyAccountVedaTokenConfig);
+    const fundingChannel = useSelector(
+      selectImmersveFundingChannelForSelectedCountry,
+    );
+    const isImmersveMoneyAccountMode = useSelector(
+      selectImmersveMoneyAccountMode,
+    );
     const cardFeatureFlag = useSelector(selectCardFeatureFlag);
     const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
     const isAlreadyDelegated = useSelector(
@@ -177,9 +220,23 @@ export const useMoneyAccountCardLinkage =
     const linkInProgress = useSelector(selectIsMoneyAccountCardLinkInProgress);
     const isResidencyBlocked = useSelector(selectIsCardResidencyBlocked);
     const capabilities = useCardCapabilities();
+    const signInLink = useSelector(selectCardSignInLink);
     const isMoneyAccountLinkingSupported =
-      !isCardAuthenticated ||
-      (capabilities?.supportsMoneyAccountLinking ?? false);
+      !isCardAuthenticated || supportsMoneyAccountLinking(capabilities, false);
+    const reportsVerificationStatus =
+      capabilities?.reportsVerificationStatus ?? true;
+    const isSignInInProgress =
+      !isCardAuthenticated && signInLink?.status === 'started';
+    const signInProviderCanLink = useMemo(
+      () =>
+        isSignInInProgress
+          ? signInProviderSupportsLinking(signInLink?.providerId)
+          : true,
+      [isSignInInProgress, signInLink?.providerId],
+    );
+    const isMoneyCardSectionAvailable = isCardAuthenticated
+      ? isMoneyAccountLinkingSupported
+      : signInProviderCanLink;
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
@@ -187,16 +244,40 @@ export const useMoneyAccountCardLinkage =
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
 
-    const rawMoneyAccountCardToken = useMemo(
-      () => resolveMoneyAccountCardToken(delegationSettings),
-      [delegationSettings],
-    );
+    const rawMoneyAccountCardToken = useMemo(() => {
+      if (isImmersveMoneyAccountMode && fundingChannel) {
+        return {
+          address: fundingChannel.tokenAddress,
+          symbol: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+          name: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+          decimals: fundingChannel.decimals,
+          caipChainId: fundingChannel.caipChainId,
+          walletAddress: undefined,
+          fundingStatus: FundingStatus.NotEnabled,
+          spendableBalance: '0',
+          delegationContract: fundingChannel.spenderAddress,
+          priority: undefined,
+          stagingTokenAddress: undefined,
+          displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+        };
+      }
+      return resolveMoneyAccountCardToken(delegationSettings);
+    }, [delegationSettings, fundingChannel, isImmersveMoneyAccountMode]);
 
-    const isMoneyAccountCardSupported = useMemo(
-      () =>
-        isMoneyAccountCardTokenAllowlisted(cardFeatureFlag?.chains, vedaConfig),
-      [cardFeatureFlag, vedaConfig],
-    );
+    const isMoneyAccountCardSupported = useMemo(() => {
+      if (isImmersveMoneyAccountMode && rawMoneyAccountCardToken) {
+        return true;
+      }
+      return isMoneyAccountCardTokenAllowlisted(
+        cardFeatureFlag?.chains,
+        vedaConfig,
+      );
+    }, [
+      cardFeatureFlag,
+      vedaConfig,
+      isImmersveMoneyAccountMode,
+      rawMoneyAccountCardToken,
+    ]);
 
     const moneyAccountCardToken = isMoneyAccountCardSupported
       ? rawMoneyAccountCardToken
@@ -211,10 +292,11 @@ export const useMoneyAccountCardLinkage =
     const hasRequirements =
       hasMoneyAccountBaseRequirements && Boolean(moneyAccountCardToken);
 
+    const isVerifiedForLinking = isCardVerified || !reportsVerificationStatus;
     const canSubmitDelegation = Boolean(
       hasRequirements &&
         isCardAuthenticated &&
-        isCardVerified &&
+        isVerifiedForLinking &&
         moneyAccountCardToken &&
         isMonadSponsorshipEnabled &&
         isMoneyAccountLinkingSupported,
@@ -401,7 +483,7 @@ export const useMoneyAccountCardLinkage =
         }
 
         if (isCardAuthenticated) {
-          if (!isCardVerified) {
+          if (!isVerifiedForLinking) {
             return;
           }
 
@@ -449,7 +531,7 @@ export const useMoneyAccountCardLinkage =
         moneyAccountCardToken,
         primaryMoneyAccount?.address,
         isCardAuthenticated,
-        isCardVerified,
+        isVerifiedForLinking,
         isAlreadyDelegated,
         isCardholder,
         isResidencyBlocked,
@@ -470,7 +552,7 @@ export const useMoneyAccountCardLinkage =
         return;
       }
 
-      if (!isCardVerified) {
+      if (!isVerifiedForLinking) {
         if (
           cardHomeDataStatus === 'success' ||
           cardHomeDataStatus === 'error'
@@ -530,7 +612,7 @@ export const useMoneyAccountCardLinkage =
       pendingMoneyAccountCardLinkEntryPoint,
       isCardAuthenticated,
       isMoneyAccountLinkingSupported,
-      isCardVerified,
+      isVerifiedForLinking,
       hasMoneyAccountBaseRequirements,
       isMoneyAccountCardSupported,
       moneyAccountCardToken,
@@ -695,6 +777,8 @@ export const useMoneyAccountCardLinkage =
       canLink,
       isResidencyBlocked,
       isMoneyAccountLinkingSupported,
+      isMoneyCardSectionAvailable,
+      reportsVerificationStatus,
 
       status,
       isLinking: linkInProgress,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import QuickAmounts from './QuickAmounts';
+import { QUICK_AMOUNTS_TEST_IDS } from './QuickAmounts.testIds';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const renderWithTheme = (component: React.ReactElement) =>
@@ -64,6 +65,16 @@ describe('QuickAmounts', () => {
 
     expect(mockOnAmountPress).toHaveBeenCalledTimes(1);
     expect(mockOnAmountPress).toHaveBeenCalledWith(100);
+  });
+
+  it('renders each amount button with a 12px corner radius', () => {
+    const { getByTestId } = renderWithTheme(
+      <QuickAmounts amounts={[50]} onAmountPress={mockOnAmountPress} />,
+    );
+
+    expect(
+      getByTestId(`${QUICK_AMOUNTS_TEST_IDS.BUTTON_PREFIX}50`),
+    ).toHaveStyle({ borderRadius: 12 });
   });
 
   it('renders with custom testID', () => {

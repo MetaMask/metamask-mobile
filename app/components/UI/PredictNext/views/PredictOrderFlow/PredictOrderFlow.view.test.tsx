@@ -11,11 +11,15 @@ import { Linking } from 'react-native';
 import { Text, Button } from '@metamask/design-system-react-native';
 
 import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import {
   composePredictNextOrderService,
+  configurePredictNextCatalog,
   makePredictNextSellPreview,
   makePredictNextSellReceipt,
   messengerCall,
+  mockPredictNextMessenger,
+  resetPredictNextCatalog,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
 /** An unresolved sell receipt: the venue has not reported fills yet. */
@@ -30,16 +34,15 @@ const makeUnresolvedSellReceipt = (status: string) =>
     netProceeds: null,
   });
 import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
+import type { PredictOrderService } from '../../services/PredictOrderService';
 import { PredictOrderFlowTestIds } from './internal/PredictOrderFlow.testIds';
 import {
   usePredictOrderFlow,
   type PredictOrderFlowIntent,
 } from './PredictOrderFlowProvider';
-import {
-  KALSHI_VENUE_ID,
-  type PredictDecimal,
-  type PredictEntityId,
-} from '../../types';
+import { type PredictDecimal, type PredictEntityId } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 
 // The provider resolves the Order workflow service from Engine.context, the
 // way the real Engine init composes it: the shared composer binds the
@@ -133,7 +136,7 @@ const previewCalls = (): { url: string; body: unknown }[] =>
     }));
 
 const stubBalance = (venueStatus?: { termsUrl?: string }) =>
-  messengerCall.mockImplementation((action: string) => {
+  mockPredictNextMessenger((action: string) => {
     if (action === 'PredictPortfolioService:getBalance') {
       return Promise.resolve({
         venueId: 'kalshi',
@@ -156,6 +159,7 @@ const stubBalance = (venueStatus?: { termsUrl?: string }) =>
 
 const buyIntent: PredictOrderFlowIntent = {
   action: 'buy',
+  eventId: 'event-1' as PredictEntityId,
   venueId: KALSHI_VENUE_ID,
   marketId: 'KXTEST-26-A' as PredictEntityId,
   side: 'yes',
@@ -167,6 +171,7 @@ const buyIntent: PredictOrderFlowIntent = {
 
 const sellIntent: PredictOrderFlowIntent = {
   action: 'sell',
+  eventId: 'event-1' as PredictEntityId,
   venueId: KALSHI_VENUE_ID,
   marketId: 'KXTEST-26-A' as PredictEntityId,
   side: 'yes',
@@ -248,6 +253,7 @@ const stubEchoingPreview = () =>
 describe('PredictOrderFlow', () => {
   beforeEach(() => {
     fetchMock.mockClear();
+    resetPredictNextCatalog();
     stubBalance();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     (Engine.context as Record<string, unknown>).PredictOrderService =
@@ -255,21 +261,83 @@ describe('PredictOrderFlow', () => {
   });
 
   afterEach(() => {
+    // Background observation must not outlive its test.
+    (
+      Engine.context as unknown as { PredictOrderService: PredictOrderService }
+    ).PredictOrderService.destroy();
     jest.restoreAllMocks();
   });
 
-  const openSheet = (Component: React.ComponentType = BuyProbe) => {
+  /** Opens the sheet and waits for the Venue's capabilities to admit it. */
+  const openSheet = async (Component: React.ComponentType = BuyProbe) => {
     renderProbe(Component);
     fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+    await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
   };
 
   const flushDebounce = () =>
     act(() => new Promise((resolve) => setTimeout(resolve, 600)));
 
+  /** Presses the probe and lets the Venue catalog read settle. */
+  const pressProbeAndSettle = async (Component: React.ComponentType) => {
+    renderProbe(Component);
+    fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getVenueCatalog',
+        'kalshi',
+      ),
+    );
+    await act(async () => undefined);
+  };
+
+  describe('Venue capability gate', () => {
+    it('opens a buy only when the Venue supports buy', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        actions: ['sell'],
+      });
+
+      await pressProbeAndSettle(BuyProbe);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.SHEET),
+      ).not.toBeOnTheScreen();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('opens a Cash Out only when the Venue supports sell', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        actions: ['buy'],
+      });
+
+      await pressProbeAndSettle(SellProbe);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.SHEET),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ['malformed', { venueId: 'kalshi', actions: ['buy'] }],
+      ['failing', new Error('Catalog unavailable')],
+    ])('opens nothing when the catalog is %s', async (_name, catalog) => {
+      configurePredictNextCatalog(catalog);
+
+      await pressProbeAndSettle(BuyProbe);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.SHEET),
+      ).not.toBeOnTheScreen();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
   /** Drives the flow to the approval step: type the amount, wait for the
    * quote, and open the review. */
   const reviewOrder = async () => {
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
@@ -292,7 +360,7 @@ describe('PredictOrderFlow', () => {
   it('renders the event snapshot with the outcome priced in cents', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     expect(
       screen.getByText('Buffalo Bills vs. Kansas City Chiefs'),
     ).toBeOnTheScreen();
@@ -312,7 +380,7 @@ describe('PredictOrderFlow', () => {
   it('shows the Predict balance on the Pay with row', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     await flushDebounce();
 
     await waitFor(() =>
@@ -325,7 +393,7 @@ describe('PredictOrderFlow', () => {
   it('requests a quote for the entered amount and renders the distinct canonical values in the breakdown', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
@@ -351,7 +419,7 @@ describe('PredictOrderFlow', () => {
   it('sends the exact intent with the authenticated request', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
@@ -370,7 +438,7 @@ describe('PredictOrderFlow', () => {
   it('keeps the Review control disabled until a live quote arrives', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
 
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
@@ -384,7 +452,7 @@ describe('PredictOrderFlow', () => {
   it('re-quotes and discards the old preview when the amount changes', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
@@ -407,7 +475,7 @@ describe('PredictOrderFlow', () => {
   it('keeps Review disabled while a fresh quote loads for the changed amount', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
@@ -438,7 +506,7 @@ describe('PredictOrderFlow', () => {
         }),
     );
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     replaceAmount('20', '0.50');
@@ -457,7 +525,7 @@ describe('PredictOrderFlow', () => {
   it('canonicalizes the amount before quoting: no leading zeros reach the API', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     typeAmount('05');
     await flushDebounce();
 
@@ -474,7 +542,7 @@ describe('PredictOrderFlow', () => {
   it('treats partial input as typing, not as a minimum error', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     typeAmount('1.');
 
     expect(screen.queryByText(/Enter at least \$1/)).toBeNull();
@@ -484,7 +552,7 @@ describe('PredictOrderFlow', () => {
   it('adds quick amounts to the entered amount and quotes the sum', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     fireEvent.press(
       screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('5')),
     );
@@ -512,7 +580,7 @@ describe('PredictOrderFlow', () => {
   it('enters the amount on the in-sheet keypad', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.KEYPAD),
@@ -526,7 +594,7 @@ describe('PredictOrderFlow', () => {
   it('refuses to quote below the minimum amount', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('0.50');
     await flushDebounce();
     await flushDebounce();
@@ -536,28 +604,29 @@ describe('PredictOrderFlow', () => {
   });
 
   it('marks an expired preview, refuses approval, and refreshes', async () => {
+    // The first quote is already expired when it is served, so the sheet
+    // reaches the expired state on the quote's own resolution rather than
+    // on a wall-clock expiry timer. The refresh returns a valid quote.
     stubFetch(() => ({
       body: makePreview({
-        expiresAt: new Date(Date.now() + 500).toISOString(),
+        expiresAt: new Date(
+          previewCalls().length === 1 ? Date.now() - 1000 : Date.now() + 60_000,
+        ).toISOString(),
       }),
     }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
-    await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
-    );
 
-    await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
-      ).toBeOnTheScreen(),
-    );
+    expect(
+      await screen.findByTestId(PredictOrderFlowTestIds.EXPIRED),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
     await flushDebounce();
@@ -573,7 +642,7 @@ describe('PredictOrderFlow', () => {
       },
     }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
 
@@ -866,6 +935,147 @@ describe('PredictOrderFlow', () => {
     expect(commitCalls()[0]?.body).toEqual(commitCalls()[1]?.body);
   }, 30000);
 
+  describe('Active Venue change', () => {
+    const engine = Engine as unknown as { state: Record<string, unknown> };
+    let originalEngineState: Record<string, unknown>;
+    beforeEach(() => {
+      originalEngineState = engine.state;
+    });
+    afterEach(() => {
+      engine.state = originalEngineState;
+    });
+
+    /** A rollout change that turns Kalshi off: Polymarket becomes active
+     * while this sheet, mounted outside the implementation switch, stays. */
+    const moveActiveVenueToPolymarket = (
+      view: ReturnType<typeof renderProbe>,
+    ) =>
+      act(() => {
+        const current = view.store.getState().engine.backgroundState
+          .RemoteFeatureFlagController as Record<string, unknown>;
+        engine.state = {
+          ...engine.state,
+          RemoteFeatureFlagController: {
+            ...current,
+            remoteFeatureFlags: {
+              ...(current.remoteFeatureFlags as Record<string, unknown>),
+              predictConfig: {
+                enabled: true,
+                venues: {
+                  polymarket: { enabled: true },
+                  kalshi: { enabled: false },
+                },
+                venueSelection: { enabled: false },
+              },
+            },
+          },
+        };
+        view.store.dispatch(
+          updateBgState({ key: 'RemoteFeatureFlagController' }),
+        );
+      });
+
+    it('drops an uncommitted quote and disables every action except closing', async () => {
+      stubFetch(() => ({ body: makePreview() }));
+      const view = renderProbe();
+      fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+      await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+      typeAmount('20');
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+
+      moveActiveVenueToPolymarket(view);
+
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.VENUE_CHANGED),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.APPROVAL),
+      ).not.toBeOnTheScreen();
+      // The amount can no longer be edited, so nothing re-quotes the stale
+      // intent, and nothing was committed.
+      const quotes = previewCalls().length;
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.KEYPAD),
+      ).not.toBeOnTheScreen();
+      await flushDebounce();
+      expect(previewCalls()).toHaveLength(quotes);
+      expect(commitCalls()).toHaveLength(0);
+    });
+
+    it('drops an approval that was never committed', async () => {
+      stubFetch(() => ({ body: makePreview() }));
+      const view = renderProbe();
+      fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+      await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+      typeAmount('20');
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      await screen.findByTestId(PredictOrderFlowTestIds.APPROVAL);
+
+      moveActiveVenueToPolymarket(view);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.APPROVE),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.VENUE_CHANGED),
+      ).toBeOnTheScreen();
+      expect(commitCalls()).toHaveLength(0);
+    });
+
+    it('keeps showing a committed operation but never re-approves it from a stale sheet', async () => {
+      stubFetch(() => ({ body: makePreview() }), {
+        commit: () => ({ status: 502, body: {} }),
+      });
+      const view = await (async () => {
+        const rendered = renderProbe();
+        fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+        await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+        typeAmount('20');
+        await flushDebounce();
+        await waitFor(() =>
+          expect(
+            screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+          ).toBeEnabled(),
+        );
+        fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+        fireEvent.press(
+          await screen.findByTestId(PredictOrderFlowTestIds.APPROVE),
+        );
+        return rendered;
+      })();
+      // The response was lost: the Commit is ambiguous.
+      await screen.findByTestId(PredictOrderFlowTestIds.ERROR);
+      expect(commitCalls()).toHaveLength(1);
+
+      moveActiveVenueToPolymarket(view);
+
+      // Still shown, never cancelled, but the stale sheet cannot re-POST it.
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.APPROVAL),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+      ).toBeDisabled();
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+      await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+      expect(commitCalls()).toHaveLength(1);
+    });
+  });
+
   it('keeps the original previewId after a failed commit even when the quote later expires', async () => {
     stubFetch(
       () => ({
@@ -912,7 +1122,7 @@ describe('PredictOrderFlow', () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
 
@@ -927,7 +1137,7 @@ describe('PredictOrderFlow', () => {
     stubBalance({ termsUrl: undefined });
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
 
@@ -940,7 +1150,7 @@ describe('PredictOrderFlow', () => {
     jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('cannot open'));
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
 
@@ -978,7 +1188,7 @@ describe('PredictOrderFlow', () => {
      * the quote, and open the review. The count matches the stubbed
      * Preview's echoed `requestedContracts`. */
     const reviewSellOrder = async (count = '75') => {
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts(count);
       await flushDebounce();
       await waitFor(() =>
@@ -1002,7 +1212,7 @@ describe('PredictOrderFlow', () => {
     it('renders the held-quantity context with the bid priced in cents', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
 
       expect(
         screen.getByText('Buffalo Bills vs. Kansas City Chiefs'),
@@ -1019,10 +1229,10 @@ describe('PredictOrderFlow', () => {
       expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
     });
 
-    it('enters whole contracts only: no decimal key and no leading zeros', () => {
+    it('enters whole contracts only: no decimal key and no leading zeros', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
 
       expect(
@@ -1039,7 +1249,7 @@ describe('PredictOrderFlow', () => {
     it('sends the sell intent with whole contracts to the preview route', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts('70');
       await flushDebounce();
       await waitFor(() =>
@@ -1061,7 +1271,7 @@ describe('PredictOrderFlow', () => {
     it('sets quick-sell chips to floored whole contracts: 25%, 50%, and Max', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       pressQuickContract('quarter');
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
@@ -1092,12 +1302,12 @@ describe('PredictOrderFlow', () => {
       });
     });
 
-    it('disables fraction chips that floor below one contract, keeping Max', () => {
+    it('disables fraction chips that floor below one contract, keeping Max', async () => {
       stubEchoingSellPreview();
 
       // 3 contracts: 25% floors to 0, which would only trigger the
       // minimum-count error, so it is disabled; Max always stays available.
-      openSheet(sellProbeWithMax(3));
+      await openSheet(sellProbeWithMax(3));
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('quarter')),
       ).toBeDisabled();
@@ -1106,10 +1316,10 @@ describe('PredictOrderFlow', () => {
       ).toBeEnabled();
     });
 
-    it('enables the 25% chip once its floored count reaches one contract', () => {
+    it('enables the 25% chip once its floored count reaches one contract', async () => {
       stubEchoingSellPreview();
 
-      openSheet(sellProbeWithMax(4));
+      await openSheet(sellProbeWithMax(4));
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('quarter')),
       ).toBeEnabled();
@@ -1159,7 +1369,7 @@ describe('PredictOrderFlow', () => {
     it('prevents an over-sell locally before any quote', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts('80');
       await flushDebounce();
 
@@ -1183,7 +1393,7 @@ describe('PredictOrderFlow', () => {
     it('rejects a zero count with an inline message', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts('0');
       await flushDebounce();
 
@@ -1203,7 +1413,7 @@ describe('PredictOrderFlow', () => {
         },
       }));
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts('70');
       await flushDebounce();
 

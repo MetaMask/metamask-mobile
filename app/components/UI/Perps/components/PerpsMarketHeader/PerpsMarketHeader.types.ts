@@ -54,8 +54,8 @@ export interface PerpsMarketHeaderProps {
    */
   scrollY?: SharedValue<number>;
   /**
-   * Height of the scrollable price section above the header's threshold
-   * (e.g. `PRICE_SECTION_HEIGHT` from `PerpsMarketSummary`).
+   * Height of the scrollable price section above the header's threshold,
+   * measured from the market summary row.
    */
   priceSectionHeight?: SharedValue<number>;
   /**
@@ -65,4 +65,6 @@ export interface PerpsMarketHeaderProps {
    * falls back to the live mid-price stream.
    */
   currentPrice?: number;
+  /** Status bar space the floating header pads, when the screen runs under it. */
+  topInset?: number;
 }

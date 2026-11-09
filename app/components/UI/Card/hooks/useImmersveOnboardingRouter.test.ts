@@ -33,6 +33,7 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const mockSetSignInLinkStage = jest.fn();
 const mockMarkMigrationCompleted = jest.fn();
+const mockRecordCardActivated = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -41,6 +42,8 @@ jest.mock('../../../../core/Engine', () => ({
         mockSetSignInLinkStage(...args),
       markMigrationCompleted: (...args: unknown[]) =>
         mockMarkMigrationCompleted(...args),
+      recordCardActivated: (...args: unknown[]) =>
+        mockRecordCardActivated(...args),
     },
   },
 }));
@@ -57,6 +60,7 @@ const getRoute = () => {
 describe('useImmersveOnboardingRouter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRecordCardActivated.mockResolvedValue(undefined);
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,
@@ -175,6 +179,22 @@ describe('useImmersveOnboardingRouter', () => {
       index: 0,
       routes: [{ name: Routes.CARD.HOME }],
     });
+  });
+
+  it('records the card as activated for the funding account when active', () => {
+    getRoute()({ type: 'active' }, { fundingAddress: '0xabc' });
+
+    expect(mockRecordCardActivated).toHaveBeenCalledTimes(1);
+    expect(mockRecordCardActivated).toHaveBeenCalledWith({
+      provider: 'immersve',
+      address: '0xabc',
+    });
+  });
+
+  it('does not record a card activation for a non-active action', () => {
+    getRoute()({ type: 'pending' });
+
+    expect(mockRecordCardActivated).not.toHaveBeenCalled();
   });
 
   it('suppresses the toast when active but showAccountExistsToast is false', () => {

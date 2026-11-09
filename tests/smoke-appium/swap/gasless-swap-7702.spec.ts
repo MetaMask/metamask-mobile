@@ -55,8 +55,9 @@ appiumTest.describe(SmokeSwap('Gasless Swap - 7702 ETH to MUSD'), () => {
           await QuoteView.tapToken('0x1', 'MUSD');
 
           // QuoteDetailsCard (Network fee / Included) only renders after the SSE
-          // quote arrives. dismissKeypad taps the Rate label so the keypad does
-          // not occlude Confirm — avoid tapping scroll/rate-value (opens providers).
+          // quote arrives. dismissKeypad taps the quote timer, which is plain
+          // text. Rate opens a tooltip, the rate value opens providers, and
+          // the scroll view can open the quote selector.
           await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
             timeout: 60000,
             description: 'Network fee label visible',

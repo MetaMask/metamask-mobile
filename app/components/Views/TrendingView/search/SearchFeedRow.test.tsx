@@ -3,7 +3,6 @@ import { Pressable, Text } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import SearchFeedRow, {
@@ -15,9 +14,19 @@ import SearchFeedRow, {
 } from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH } from '../../../UI/Perps/constants/perpsAnalytics';
 
 const MockPressable = Pressable;
 const MockText = Text;
+
+// Explore sees an opaque Predict market; these are the fields Predict's
+// search analytics reads from it.
+interface PredictMarketType {
+  id: string;
+  slug?: string;
+  title?: string;
+  tags?: string[];
+}
 
 jest.mock('./TapView', () => ({
   __esModule: true,
@@ -32,6 +41,13 @@ jest.mock('./TapView', () => ({
       {children}
     </MockPressable>
   ),
+}));
+
+// The PredictNext entry point's PredictRoot loads the whole Predict stack,
+// which this suite's navigation mocks cannot satisfy.
+jest.mock('../../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -93,13 +109,21 @@ jest.mock('../feeds/tokens/TokenRowItem', () => ({
 
 jest.mock('../feeds/perps/PerpsRowItem', () => ({
   __esModule: true,
-  default: ({ market }: { market: PerpsMarketData }) => (
-    <MockText testID="stub-perps-row">{market.symbol}</MockText>
+  default: ({
+    market,
+    source,
+  }: {
+    market: PerpsMarketData;
+    source?: string;
+  }) => (
+    <MockText testID="stub-perps-row" accessibilityLabel={source}>
+      {market.symbol}
+    </MockText>
   ),
 }));
 
-jest.mock('../feeds/predictions/PredictionRowItem', () => ({
-  PredictionSearchRowItem: ({ market }: { market: PredictMarketType }) => (
+jest.mock('../../../UI/PredictNext/trending/PredictTrendingSearchRow', () => ({
+  PredictTrendingSearchRow: ({ market }: { market: PredictMarketType }) => (
     <MockText testID="stub-predict-row">{market.id}</MockText>
   ),
 }));
@@ -221,6 +245,24 @@ describe('SearchFeedRow', () => {
       );
     },
   );
+
+  it('passes explore_search source for perps feed', () => {
+    const perpsMarket = { symbol: 'ETH' } as PerpsMarketData;
+
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="perps"
+        item={perpsMarket}
+        index={0}
+        searchQuery="q"
+        tabName="all"
+      />,
+    );
+
+    expect(getByTestId('stub-perps-row').props.accessibilityLabel).toBe(
+      PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH,
+    );
+  });
 
   it('omits section_name on result_clicked when not on the All tab', () => {
     const token = { assetId: 'asset-1' } as TrendingAsset;

@@ -1,30 +1,45 @@
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
+  ButtonBase,
+  ButtonBaseSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useEffect, useRef } from 'react';
+import { View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
   LinearTransition,
-  useAnimatedStyle,
   useReducedMotion,
-  useSharedValue,
-  withSequence,
-  withSpring,
-  withTiming,
   ZoomIn,
   ZoomOut,
 } from 'react-native-reanimated';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+
+/**
+ * Hairline outline for the add-reaction control and chips that are not the
+ * viewer's own reaction. The viewer's chip adds a muted fill on top.
+ */
+export const REACTION_PILL_TW_CLASS = 'bg-transparent border';
+
+export interface EmojiWindowFrame {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 export interface ReactionChipProps {
   emotion: string;
   count: number;
+  /** The viewer's own reaction: muted fill and a stronger outline. */
+  isSelected?: boolean;
+  onPress?: () => void;
   testID?: string;
+  /** Set when this emoji should throw a burst. Measures the glyph, not the chip. */
+  burstNonce?: number;
+  onBurstAnchor?: (nonce: number, frame: EmojiWindowFrame) => void;
 }
 
 const POP_IN = ZoomIn.springify().damping(14).stiffness(240).duration(280);
@@ -32,55 +47,61 @@ const POP_OUT = ZoomOut.duration(140);
 const SHIFT = LinearTransition.springify().damping(18).stiffness(220);
 
 /**
- * One emoji + count in the engagement row. New chips pop in; count changes
- * bounce; removal shrinks out.
+ * One emoji + count in the engagement row. Tapping it toggles the viewer's
+ * reaction to that emoji. New chips pop in and removal shrinks out. The
+ * emoji itself does not scale on tap.
  */
 const ReactionChip: React.FC<ReactionChipProps> = ({
   emotion,
   count,
+  isSelected = false,
+  onPress,
   testID,
+  burstNonce,
+  onBurstAnchor,
 }) => {
   const prefersReducedMotion = useReducedMotion();
-  const scale = useSharedValue(1);
-  const skipCountBounce = useRef(true);
+  // A pop per chip is cheap, but it is still motion a LOW device pays for on
+  // every reaction in a scrolling list. Unknown hardware keeps the default.
+  const isAnimated = !prefersReducedMotion && getHardwareTier() !== 'LOW';
+  const emojiRef = useRef<View>(null);
 
   useEffect(() => {
-    if (skipCountBounce.current) {
-      skipCountBounce.current = false;
+    if (burstNonce == null) {
       return;
     }
-    if (prefersReducedMotion) {
-      return;
-    }
-    scale.value = withSequence(
-      withTiming(1.2, { duration: 90 }),
-      withSpring(1, { damping: 12, stiffness: 240 }),
-    );
-  }, [count, prefersReducedMotion, scale]);
-
-  const bounceStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+    const nonce = burstNonce;
+    emojiRef.current?.measureInWindow((x, y, width, height) => {
+      onBurstAnchor?.(nonce, { x, y, width, height });
+    });
+  }, [burstNonce, onBurstAnchor]);
 
   return (
     <Animated.View
-      entering={prefersReducedMotion ? FadeIn.duration(0) : POP_IN}
-      exiting={prefersReducedMotion ? FadeOut.duration(0) : POP_OUT}
-      layout={prefersReducedMotion ? undefined : SHIFT}
-      style={bounceStyle}
-      testID={testID}
+      entering={isAnimated ? POP_IN : FadeIn.duration(0)}
+      exiting={isAnimated ? POP_OUT : FadeOut.duration(0)}
+      layout={isAnimated ? SHIFT : undefined}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-        twClassName="pl-2"
+      <ButtonBase
+        size={ButtonBaseSize.Sm}
+        startAccessory={
+          <View ref={emojiRef} collapsable={false}>
+            <Text variant={TextVariant.BodySm}>{emotion}</Text>
+          </View>
+        }
+        textProps={{
+          variant: TextVariant.BodySm,
+          color: TextColor.TextAlternative,
+        }}
+        twClassName={`border px-2 ${
+          isSelected ? 'bg-muted border-default' : 'bg-transparent border-muted'
+        }`}
+        accessibilityState={{ selected: isSelected }}
+        onPress={onPress}
+        testID={testID}
       >
-        <Text variant={TextVariant.BodySm}>{emotion}</Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
-          {count}
-        </Text>
-      </Box>
+        {String(count)}
+      </ButtonBase>
     </Animated.View>
   );
 };

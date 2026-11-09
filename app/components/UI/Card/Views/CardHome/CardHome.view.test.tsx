@@ -5,6 +5,7 @@ import Engine from '../../../../../core/Engine';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderCardHomeView } from '../../../../../../tests/component-view/renderers/cardViewRenderer';
+import { itForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   createRouteParamsProbe,
   getRouteParamsProbeTestId,
@@ -24,6 +25,15 @@ const mockGetCapabilities = jest.mocked(
   Engine.context.CardController.getCapabilities,
 );
 const defaultCapabilities = mockGetCapabilities();
+
+const provisionedCardHomeData = {
+  walletProvisioning: {
+    eligible: true,
+    cardholderName: 'Test User',
+    lastFour: '1234',
+    network: 'MASTERCARD',
+  },
+};
 
 const LINKABLE_MONEY_ACCOUNT_ADDRESS =
   '0x1234567890123456789012345678901234567890';
@@ -112,6 +122,46 @@ const linkableCardHomeOverrides = {
   },
 } satisfies DeepPartial<RootState>;
 
+const immersveApplePayEnabled = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          cardImmersveProvisioning: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            countries: {
+              NZ: {
+                enabled: true,
+                ios: {
+                  apple_wallet: { enabled: true, minimumVersion: '0.0.0' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+} satisfies DeepPartial<RootState>;
+
+/**
+ * Immersve Apple Pay resolves only when the card's country matches an enabled
+ * leaf. The instructions row is the fallback when that leaf is on and the
+ * card still cannot be added.
+ */
+const immersveProvisioningCountry = {
+  cardHomeData: {
+    walletProvisioning: {
+      eligible: true,
+      cardholderName: 'Test User',
+      lastFour: '1234',
+      network: 'MASTERCARD' as const,
+      countryCode: 'NZ',
+    },
+  },
+};
+
 describe('CardHome', () => {
   afterEach(() => {
     mockGetCapabilities.mockReturnValue(defaultCapabilities);
@@ -160,12 +210,15 @@ describe('CardHome', () => {
         expect(params.screen).toBe(Routes.CARD.MODALS.ASSET_SELECTION);
       });
 
-      it('opens digital wallet instructions for an Immersve cardholder', async () => {
+      it('opens digital wallet instructions when the platform wallet is unsupported', async () => {
         const { findByTestId } = renderCardHomeView({
           overrides: {
+            ...immersveApplePayEnabled,
             engine: {
               backgroundState: {
+                ...immersveApplePayEnabled.engine.backgroundState,
                 CardController: {
+                  ...immersveProvisioningCountry,
                   activeProviderId: 'immersve',
                   providerData: {
                     immersve: { location: 'international' },
@@ -197,7 +250,7 @@ describe('CardHome', () => {
         );
       });
 
-      it('opens digital wallet instructions for a Baanx international cardholder', async () => {
+      it('opens digital wallet instructions for Baanx when Apple Pay is unsupported', async () => {
         const { findByTestId } = renderCardHomeView({
           overrides: {
             engine: {
@@ -234,15 +287,23 @@ describe('CardHome', () => {
         );
       });
 
-      it('hides digital wallet instructions for a Baanx US cardholder', async () => {
-        const { queryByTestId } = renderCardHomeView({
+      it('keeps digital wallet instructions when Apple Pay is supported but the card cannot be added', async () => {
+        mockGetCapabilities.mockReturnValue({
+          ...defaultCapabilities,
+          pushProvisioning: { applePay: true, googlePay: true },
+        });
+
+        const { findByTestId } = renderCardHomeView({
           overrides: {
+            ...immersveApplePayEnabled,
             engine: {
               backgroundState: {
+                ...immersveApplePayEnabled.engine.backgroundState,
                 CardController: {
-                  activeProviderId: 'baanx',
+                  ...immersveProvisioningCountry,
+                  activeProviderId: 'immersve',
                   providerData: {
-                    baanx: { location: 'us' },
+                    immersve: { location: 'international' },
                   },
                 },
               },
@@ -250,11 +311,63 @@ describe('CardHome', () => {
           },
         });
 
-        await waitFor(() => {
+        expect(
+          await findByTestId(
+            CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      itForPlatforms(
+        'hides digital wallet instructions for Immersve when Apple Pay provisioning is off',
+        async () => {
+          const { findByTestId, queryByTestId } = renderCardHomeView({
+            overrides: {
+              engine: {
+                backgroundState: {
+                  CardController: {
+                    activeProviderId: 'immersve',
+                    providerData: {
+                      immersve: { location: 'international' },
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          await findByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM);
+
           expect(
             queryByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
           ).not.toBeOnTheScreen();
+        },
+        'ios',
+      );
+
+      it('shows digital wallet instructions when the wallet does not report the card as provisioned', async () => {
+        mockGetCapabilities.mockReturnValue({
+          ...defaultCapabilities,
+          pushProvisioning: { applePay: true, googlePay: true },
         });
+
+        const { findByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  cardHomeData: provisionedCardHomeData,
+                },
+              },
+            },
+          },
+        });
+
+        expect(
+          await findByTestId(
+            CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+          ),
+        ).toBeOnTheScreen();
       });
 
       it('opens Spending Limit screen with flow=manage when Manage Spending Limit button is pressed', async () => {

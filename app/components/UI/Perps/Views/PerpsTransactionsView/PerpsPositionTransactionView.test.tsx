@@ -1,3 +1,4 @@
+import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import PerpsPositionTransactionView from './PerpsPositionTransactionView';
@@ -301,6 +302,32 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('-$125.75')).toBeOnTheScreen();
   });
 
+  it('displays Unknown for an unreported closing PnL', () => {
+    const transaction = {
+      ...mockTransaction,
+      fill: {
+        ...mockTransaction.fill,
+        action: 'Closed',
+        pnl: undefined,
+        amountNumber: undefined,
+        isPositive: undefined,
+        amount: '--',
+      },
+    };
+    mockUseRoute.mockReturnValue({ params: { transaction } });
+
+    const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      getByText(strings('perps.transactions.position.pnl')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('perps.transactions.unknown_pnl')),
+    ).toBeOnTheScreen();
+  });
+
   it('should handle zero P&L correctly', () => {
     // Given a closed position with zero P&L
     const zeroPnLTransaction = {
@@ -323,7 +350,9 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     // Then P&L should be displayed with success color (>= 0)
-    expect(getByText('Net P&L')).toBeOnTheScreen();
+    expect(
+      getByText(strings('perps.transactions.position.pnl')),
+    ).toBeOnTheScreen();
     expect(getByText('+$0')).toBeOnTheScreen();
   });
 

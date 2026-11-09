@@ -70,18 +70,6 @@ const mockTrace = jest.mocked(trace);
 const mockEndTrace = jest.mocked(endTrace);
 
 // ---------------------------------------------------------------------------
-// Mock: react-redux
-// ---------------------------------------------------------------------------
-const mockDispatch = jest.fn();
-let mockLastDismissed: string | null = null;
-
-jest.mock('react-redux', () => ({
-  useDispatch: () => mockDispatch,
-  useSelector: (selector: (s: unknown) => unknown) =>
-    selector({ banners: { lastDismissedBrazeBanner: mockLastDismissed } }),
-}));
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -94,6 +82,8 @@ jest.mock('react-redux', () => ({
  */
 function makeRawProperties(props: {
   bannerName?: string;
+  variantName?: string;
+  flushImmediately?: boolean;
   deeplink?: string;
   title?: string;
   body?: string;
@@ -103,6 +93,13 @@ function makeRawProperties(props: {
   const result: Record<string, { type: string; value: unknown }> = {};
   if (props.bannerName !== undefined)
     result.campaign_name = { type: 'string', value: props.bannerName };
+  if (props.variantName !== undefined)
+    result.variant_name = { type: 'string', value: props.variantName };
+  if (props.flushImmediately !== undefined)
+    result.flush_immediately = {
+      type: 'boolean',
+      value: props.flushImmediately,
+    };
   if (props.deeplink !== undefined)
     result.deeplink = { type: 'string', value: props.deeplink };
   if (props.title !== undefined)
@@ -121,21 +118,26 @@ function makeBanner(
     trackingId: string;
     placementId: string;
     bannerName: string;
+    variantName: string;
+    flushImmediately: boolean;
     deeplink: string;
     title: string;
     body: string;
     imageUrl: string;
     ctaLabel: string;
+    isTestSend: boolean;
   }> = {},
 ) {
   return {
     trackingId: overrides.trackingId ?? 'tracking-abc',
     placementId: overrides.placementId ?? TEST_PLACEMENT_ID,
     isControl: false,
-    isTestSend: false,
+    isTestSend: overrides.isTestSend ?? false,
     expiresAt: -1,
     properties: makeRawProperties({
       bannerName: overrides.bannerName,
+      variantName: overrides.variantName,
+      flushImmediately: overrides.flushImmediately,
       deeplink: overrides.deeplink,
       title: overrides.title,
       body: overrides.body ?? 'Default body',
@@ -157,7 +159,6 @@ const fireBannerEvent = (banners: object[]) => {
 describe('useBrazeBanner', () => {
   beforeEach(() => {
     capturedBannerListener = undefined;
-    mockLastDismissed = null;
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockGetBannerForPlacement.mockResolvedValue(null);
@@ -258,24 +259,6 @@ describe('useBrazeBanner', () => {
     clearTimeoutSpy.mockRestore();
   });
 
-  it('stays in loading when event banner_name matches lastDismissedBrazeBanner', () => {
-    mockLastDismissed = 'campaign-xyz';
-    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-    fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
-
-    expect(result.current.status).toBe('loading');
-  });
-
-  it('shows banner when lastDismissedBrazeBanner does not match', () => {
-    mockLastDismissed = 'old-campaign';
-    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-    fireBannerEvent([makeBanner({ bannerName: 'new-campaign' })]);
-
-    expect(result.current.status).toBe('visible');
-  });
-
   it('ignores subsequent events once a banner is visible when trackingId is unchanged', () => {
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
@@ -353,22 +336,8 @@ describe('useBrazeBanner', () => {
     expect(result.current.status).toBe('dismissed');
   });
 
-  describe('dismiss — persistence', () => {
-    it('dispatches setLastDismissedBrazeBanner when banner_name is set', () => {
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
-
-      act(() => {
-        result.current.dismiss();
-      });
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ payload: 'campaign-xyz' }),
-      );
-    });
-
-    it('does not dispatch when banner has no banner_name', () => {
+  describe('dismiss — Braze SDK', () => {
+    it('calls dismissBrazeBanner with the placement ID', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
       fireBannerEvent([makeBanner()]);
@@ -377,10 +346,13 @@ describe('useBrazeBanner', () => {
         result.current.dismiss();
       });
 
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockDismissBrazeBanner).toHaveBeenCalledWith(
+        TEST_PLACEMENT_ID,
+        null,
+      );
     });
 
-    it('calls dismissBrazeBanner when banner_name is set', () => {
+    it('calls dismissBrazeBanner with campaign properties when campaign_name is set', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
       fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
@@ -389,21 +361,35 @@ describe('useBrazeBanner', () => {
         result.current.dismiss();
       });
 
-      expect(mockDismissBrazeBanner).toHaveBeenCalledWith({
+      expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
         campaign_name: 'campaign-xyz',
       });
     });
 
-    it('does not call dismissBrazeBanner when banner has no banner_name', () => {
+    it('does not call dismissBrazeBanner for a test send', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([makeBanner({ isTestSend: true })]);
+
+      act(() => {
+        result.current.dismiss();
+      });
+
+      expect(result.current.status).toBe('dismissed');
+      expect(mockDismissBrazeBanner).not.toHaveBeenCalled();
+    });
+
+    it('does not call dismissBrazeBanner again after the banner is already dismissed', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
       fireBannerEvent([makeBanner()]);
 
       act(() => {
         result.current.dismiss();
+        result.current.dismiss();
       });
 
-      expect(mockDismissBrazeBanner).not.toHaveBeenCalled();
+      expect(mockDismissBrazeBanner).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -464,77 +450,6 @@ describe('useBrazeBanner', () => {
     unmount();
 
     expect(mockRemove).toHaveBeenCalledTimes(1);
-  });
-
-  // ---------------------------------------------------------------------------
-  // lastDismissedBrazeBanner clearing
-  // ---------------------------------------------------------------------------
-  describe('lastDismissedBrazeBanner clearing', () => {
-    it('dispatches setLastDismissedBrazeBanner(null) when a new banner replaces a previously dismissed one', () => {
-      mockLastDismissed = 'old-campaign';
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      fireBannerEvent([makeBanner({ bannerName: 'new-campaign' })]);
-
-      expect(result.current.status).toBe('visible');
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ payload: null }),
-      );
-    });
-
-    it('does not dispatch null when lastDismissedBrazeBanner is already null', () => {
-      mockLastDismissed = null;
-      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      fireBannerEvent([makeBanner({ bannerName: 'new-campaign' })]);
-
-      expect(mockDispatch).not.toHaveBeenCalled();
-    });
-
-    it('dispatches null when a banner with no banner_name arrives and lastDismissed was set', () => {
-      mockLastDismissed = 'old-campaign';
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      // Banner without bannerName passes the dismissed filter (null !== 'old-campaign')
-      fireBannerEvent([makeBanner()]);
-
-      expect(result.current.status).toBe('visible');
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ payload: null }),
-      );
-    });
-
-    it('dispatches null only once across multiple events for the same new banner', () => {
-      mockLastDismissed = 'old-campaign';
-      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      fireBannerEvent([makeBanner({ bannerName: 'new-campaign' })]);
-
-      // A later event can replace the visible banner, but the null dispatch
-      // should still only happen once on first accept.
-      fireBannerEvent([
-        makeBanner({ trackingId: 'tracking-2', bannerName: 'new-campaign' }),
-      ]);
-
-      const nullPayloadCalls = mockDispatch.mock.calls.filter(
-        ([action]) => action?.payload === null,
-      );
-      expect(nullPayloadCalls).toHaveLength(1);
-    });
-
-    it('dispatches null on mount and still blocks the dismissed banner', () => {
-      mockLastDismissed = 'campaign-xyz';
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-
-      // Storage is cleared on mount so the next session has no guard.
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ payload: null }),
-      );
-
-      // The in-memory ref still guards this session — the same banner is blocked.
-      fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
-      expect(result.current.status).not.toBe('visible');
-    });
   });
 
   describe('banner replacement', () => {
@@ -655,6 +570,58 @@ describe('useBrazeBanner', () => {
     it('returns null deeplink when no banner is loaded', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
       expect(result.current.deeplink).toBeNull();
+    });
+  });
+
+  describe('analytics properties', () => {
+    it('returns null event properties when campaign_name is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner()]);
+      expect(result.current.eventProperties).toBeNull();
+    });
+
+    it('builds event properties from campaign_name and variant_name', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([
+        makeBanner({ bannerName: 'campaign-abc', variantName: 'variant-1' }),
+      ]);
+      expect(result.current.eventProperties).toEqual({
+        campaign_name: 'campaign-abc',
+        variant_name: 'variant-1',
+      });
+    });
+
+    it('omits variant_name when the property is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ bannerName: 'campaign-abc' })]);
+      expect(result.current.eventProperties).toEqual({
+        campaign_name: 'campaign-abc',
+      });
+    });
+  });
+
+  describe('flush_immediately property', () => {
+    it('defaults to false when no banner is loaded', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      expect(result.current.flushImmediately).toBe(false);
+    });
+
+    it('defaults to false when the property is absent', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner()]);
+      expect(result.current.flushImmediately).toBe(false);
+    });
+
+    it('is true when the campaign sets flush_immediately to true', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ flushImmediately: true })]);
+      expect(result.current.flushImmediately).toBe(true);
+    });
+
+    it('is false when the campaign sets flush_immediately to false', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      fireBannerEvent([makeBanner({ flushImmediately: false })]);
+      expect(result.current.flushImmediately).toBe(false);
     });
   });
 

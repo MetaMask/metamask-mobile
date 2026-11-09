@@ -50,6 +50,8 @@ export interface TokenDetailsActionsProps {
   /** Optional ref to receive a callback that resets the navigation lock. Used when Long/Short show a modal instead of navigating (e.g. geo block). */
   resetNavigationLockRef?: React.MutableRefObject<(() => void) | null>;
   onActionTapped?: (action: TokenDetailsAction) => void;
+  /** Draws the tiles on brand refresh glass. */
+  isGlass?: boolean;
 }
 
 /**
@@ -87,6 +89,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   isLoading = false,
   resetNavigationLockRef,
   onActionTapped,
+  isGlass = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -313,6 +316,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           isDisabled={button.isDisabled}
           testID={button.testID}
           containerStyle={styles.buttonContainer}
+          isGlass={isGlass}
         />
       ))}
     </View>

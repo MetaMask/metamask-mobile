@@ -39,6 +39,13 @@ const newOverrides = [
       'app/components/UI/Money/selectors/featureFlags.test.ts',
       'app/lib/Money/feature-flags.ts',
       'app/lib/Money/feature-flags.test.ts',
+      // Money MPC keyring stub: the build gate and static address are read at
+      // runtime so tests can flip them per-case.
+      'app/constants/featureFlags.ts',
+      'app/core/MpcMoneyKeyring/MpcMoneyKeyring.ts',
+      'app/core/MpcMoneyKeyring/MpcMoneyKeyring.test.ts',
+      'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.test.ts',
+      'app/core/Engine/wallet-init/keyrings.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/utils/lighterFeatureFlags.ts',
       'app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx',
@@ -94,6 +101,8 @@ const newOverrides = [
       'app/constants/bridge.ts',
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
       'tests/llm-workflow/metamask-provider.ts',
+      // iOS Hermes liveness probe reads HERMES_CDP_ORIGIN at runtime
+      'tests/llm-workflow/ios/hermes-health.ts',
       'app/core/apiEnv.ts',
       'app/core/coreBackendApiUrls.ts',
       'app/core/coreBackendApiUrls.test.ts',
@@ -120,6 +129,8 @@ const newOverrides = [
       'tests/framework/fixtures/FixtureHelper.ts',
       'tests/framework/fixtures/playwright/sessionReuse.ts',
       'tests/framework/fixtures/playwright/sessionReuse.test.ts',
+      'tests/performance/helpers/appProfiling.ts',
+      'tests/performance/helpers/appProfiling.test.ts',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
       'tests/framework/services/appium/ScreenRecording.ts',
       'tests/framework/services/appium/AppiumServer.ts',

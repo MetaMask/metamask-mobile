@@ -119,6 +119,40 @@ if (ReactNativeView.Platform.Version == null) {
 // 3. Are not the focus of view tests and add unnecessary complexity.
 // --------------------------------------------------------------------------------
 
+// react-native-screens only emits onAppear from native code. Jest never does,
+// so @react-navigation/native-stack never emits transitionEnd. Screens that
+// gate their content on useScreenTransitionComplete (Explore search) then stay
+// on the loading skeleton until a 450ms fallback, and that fallback loses to
+// findBy/waitFor on a busy CI runner.
+//
+// native-stack 7 passes onAppear to ScreenStackItem, which forwards it to an
+// internal Screen. Wrapping the package Screen export does not intercept that.
+jest.mock('react-native-screens', () => {
+  const React = require('react');
+  const actual = jest.requireActual('react-native-screens');
+
+  const ScreenStackItem = React.forwardRef((props, ref) => {
+    const onAppearRef = React.useRef(props.onAppear);
+    onAppearRef.current = props.onAppear;
+
+    React.useEffect(() => {
+      const appearTimeout = setTimeout(() => {
+        onAppearRef.current?.({ nativeEvent: { target: null } });
+      }, 0);
+
+      return () => clearTimeout(appearTimeout);
+    }, []);
+
+    return React.createElement(actual.ScreenStackItem, { ...props, ref });
+  });
+  ScreenStackItem.displayName = 'ScreenStackItem';
+
+  return {
+    ...actual,
+    ScreenStackItem,
+  };
+});
+
 // Mock redux-devtools-expo-dev-plugin
 // eslint-disable-next-line no-empty-function
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
@@ -578,7 +612,17 @@ jest.mock('@react-native-cookies/cookies', () => ({
 jest.mock('@metamask/react-native-webview', () => {
   const React = require('react');
   const { View } = require('react-native');
-  return { WebView: (props) => <View {...props} /> };
+  const postMessage = jest.fn();
+  const WebView = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      postMessage,
+      injectJavaScript: jest.fn(),
+      reload: jest.fn(),
+    }));
+    return <View {...props} />;
+  });
+  WebView.postMessage = postMessage;
+  return { WebView };
 });
 
 // Mock @metamask/react-native-search-api
@@ -651,6 +695,11 @@ jest.mock('@sentry/react-native', () => ({
   setMeasurement: jest.fn(),
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
+  startInactiveSpan: jest.fn(() => ({ end: jest.fn() })),
+  extendAppStart: jest.fn(),
+  getExtendedAppStartSpan: jest.fn(),
+  finishExtendedAppStart: jest.fn(() => Promise.resolve()),
+  spanIsSampled: jest.fn(() => true),
   startTransaction: jest.fn(),
   lastEventId: jest.fn(),
   getGlobalScope: jest.fn(() => ({
@@ -875,8 +924,11 @@ jest.mock('../../components/Base/RemoteImage', () => {
 jest.mock('@metamask/design-system-react-native', () => {
   const React = require('react');
   const PropTypes = require('prop-types');
-  const { View } = require('react-native');
+  const { Pressable, View } = require('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
+  const {
+    DesignSystemBottomSheetMockSelectorsIDs,
+  } = require('../../../tests/component-view/designSystemBottomSheetMock.testIds');
 
   const BottomSheet = React.forwardRef(
     (
@@ -885,6 +937,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         onClose,
         onOpen,
         goBack,
+        isInteractable = true,
         style,
         twClassName: _twClassName,
         testID,
@@ -898,17 +951,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       React.useEffect(() => {
         onOpenRef.current?.();
       }, []);
+      // Backdrop press and onCloseBottomSheet share this dismiss sequence.
+      const closeSheet = (callback) => {
+        const hasCallback = Boolean(callback);
+        onClose?.(hasCallback);
+        goBack?.();
+        callback?.();
+      };
       React.useImperativeHandle(ref, () => ({
         onOpenBottomSheet: (callback) => {
           onOpen?.();
           callback?.();
         },
-        onCloseBottomSheet: (callback) => {
-          const hasCallback = Boolean(callback);
-          onClose?.(hasCallback);
-          goBack?.();
-          callback?.();
-        },
+        onCloseBottomSheet: closeSheet,
       }));
       return React.createElement(
         View,
@@ -918,6 +973,10 @@ jest.mock('@metamask/design-system-react-native', () => {
           accessibilityLabel,
         },
         children,
+        React.createElement(Pressable, {
+          testID: DesignSystemBottomSheetMockSelectorsIDs.CLOSE,
+          onPress: isInteractable ? () => closeSheet() : undefined,
+        }),
       );
     },
   );
@@ -927,6 +986,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     onClose: PropTypes.func,
     onOpen: PropTypes.func,
     goBack: PropTypes.func,
+    isInteractable: PropTypes.bool,
     style: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.array,
@@ -1016,5 +1076,6 @@ jest.mock('@braze/react-native-sdk', () => ({
     addListener: jest.fn(() => ({
       remove: jest.fn(),
     })),
+    dismissBanner: jest.fn(),
   },
 }));

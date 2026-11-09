@@ -1,11 +1,10 @@
-import { AppState } from 'react-native';
-import { take, fork, cancel } from 'redux-saga/effects';
+import { runSaga, type Task } from 'redux-saga';
+import { call, cancel, delay, fork, take } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import { UserActionType, checkForDeeplink } from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
 import {
   authStateMachine,
-  appLockStateMachine,
   startAppServices,
   initializeSDKServices,
   initializeSDKServicesSaga,
@@ -13,11 +12,14 @@ import {
   handleSnapsRegistry,
   parseDeeplink,
   parseDeeplinkAfterNavReady,
+  parseDeeplinkAfterOnboarding,
+  parseReferralDeeplink,
   mainNavigatorReadyStateMachine,
   __setMainNavigatorReadyForTesting,
+  __resetDeeplinkOpenedBeforeWalletForTesting,
+  __resetReferralLinkParseForTesting,
   __resetSDKServicesInitializationForTesting,
   requestAuthOnAppStart,
-  appStateListenerTask,
 } from './';
 import {
   NavigationActionType,
@@ -32,18 +34,24 @@ import {
 import { resetUnlockAppStartTypeForTesting } from '../../core/Performance/unlockTraces';
 import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 import Engine from '../../core/Engine';
-import LockManagerService from '../../core/LockManagerService';
+import AppLockService from '../../core/AppLock/AppLockService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  CLEAR_ONBOARDING,
+  setCompletedOnboarding,
+} from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
-import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { providerErrors } from '@metamask/rpc-errors';
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
+import {
+  setPendingReferralCode,
+  setReferralLinkPending,
+} from '../../reducers/rewardsMoney';
+import { hydrateSocialTermsAcceptance } from '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 jest.mock('../../util/analytics/persistAttributionFromPendingDeeplink', () => ({
   getUtmAttributesFromDeeplinkUrl: jest.fn(),
   persistUtmAttributes: jest.fn(),
@@ -74,6 +82,13 @@ jest.mock('../../core/NavigationService', () => ({
 jest.mock('../../core/EngineService', () => ({
   start: jest.fn(),
 }));
+
+jest.mock(
+  '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
+  () => ({
+    hydrateSocialTermsAcceptance: jest.fn(() => Promise.resolve()),
+  }),
+);
 
 jest.mock('../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
@@ -171,6 +186,7 @@ jest.mock('../../core/Authentication', () => ({
   __esModule: true,
   default: {
     unlockWallet: jest.fn().mockResolvedValue(undefined),
+    tryBiometricUnlock: jest.fn().mockResolvedValue(undefined),
     lockApp: jest.fn().mockResolvedValue(undefined),
     checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
   },
@@ -180,19 +196,15 @@ jest.mock('../../util/environment', () => ({
   getDevAutoUnlockPassword: jest.fn(),
 }));
 
-jest.mock('../../core/LockManagerService', () => ({
+jest.mock('../../core/AppLock/AppLockService', () => ({
   __esModule: true,
   default: {
-    startListening: jest.fn(),
-    stopListening: jest.fn(),
+    initialize: jest.fn(),
+    start: jest.fn(),
+    stop: jest.fn(),
     isAutoLockPending: jest.fn(() => false),
   },
 }));
-
-// Add this mock with the other mocks (around line 151)
-jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
-  jest.fn(),
-);
 
 const defaultMockState = {
   onboarding: {
@@ -230,35 +242,13 @@ describe('requestAuthOnAppStart', () => {
     jest.clearAllMocks();
   });
 
-  it('calls Authentication.unlockWallet', async () => {
+  it('calls Authentication.tryBiometricUnlock', async () => {
     await expectSaga(requestAuthOnAppStart).run();
-    expect(Authentication.unlockWallet).toHaveBeenCalled();
+    expect(Authentication.tryBiometricUnlock).toHaveBeenCalled();
   });
 
-  it('navigates to rehydrate when seedless password is outdated', async () => {
-    // Arrange
-    (
-      Authentication.checkIsSeedlessPasswordOutdated as jest.Mock
-    ).mockResolvedValueOnce(true);
-
-    // Act
-    await expectSaga(requestAuthOnAppStart).run();
-
-    // Assert
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.REHYDRATE,
-          params: { isSeedlessPasswordOutdated: true },
-        },
-      ],
-    });
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
-  });
-
-  it('navigates to Login when Authentication.unlockWallet throws', async () => {
-    // Mock Authentication.unlockWallet to throw an error
-    (Authentication.unlockWallet as jest.Mock).mockRejectedValueOnce(
+  it('navigates to Login when Authentication.tryBiometricUnlock throws', async () => {
+    (Authentication.tryBiometricUnlock as jest.Mock).mockRejectedValueOnce(
       new Error('fail'),
     );
     await expectSaga(requestAuthOnAppStart).run();
@@ -280,9 +270,7 @@ describe('requestAuthOnAppStart', () => {
     expect(Authentication.unlockWallet).toHaveBeenCalledWith({
       password: 'test-password',
     });
-    expect(
-      Authentication.checkIsSeedlessPasswordOutdated,
-    ).not.toHaveBeenCalled();
+    expect(Authentication.tryBiometricUnlock).not.toHaveBeenCalled();
   });
 
   it('falls back to normal app-start authentication when dev auto-unlock is not configured', async () => {
@@ -294,10 +282,8 @@ describe('requestAuthOnAppStart', () => {
 
     await expectSaga(requestAuthOnAppStart).run();
 
-    expect(Authentication.unlockWallet).toHaveBeenCalledWith();
-    expect(Authentication.unlockWallet).not.toHaveBeenCalledWith({
-      password: 'test-password',
-    });
+    expect(Authentication.tryBiometricUnlock).toHaveBeenCalled();
+    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
   });
 
   it('falls back to normal app-start authentication when no vault exists', async () => {
@@ -305,210 +291,39 @@ describe('requestAuthOnAppStart', () => {
 
     await expectSaga(requestAuthOnAppStart).run();
 
-    expect(Authentication.unlockWallet).toHaveBeenCalledWith();
-    expect(Authentication.unlockWallet).not.toHaveBeenCalledWith({
-      password: 'test-password',
-    });
+    expect(Authentication.tryBiometricUnlock).toHaveBeenCalled();
+    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
   });
 });
 
 describe('authStateMachine', () => {
   beforeEach(() => {
-    mockNavigate.mockClear();
-    mockReset.mockClear();
-  });
-
-  it('forks appLockStateMachine when logged in', async () => {
-    const generator = authStateMachine();
-    expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
-    expect(generator.next().value).toEqual(fork(appLockStateMachine));
-  });
-
-  it('cancels appLockStateMachine when logged out', async () => {
-    const generator = authStateMachine();
-    // Logged in
-    generator.next();
-    // Fork appLockStateMachine
-    generator.next();
-    expect(generator.next().value).toEqual(take(UserActionType.LOGOUT));
-    expect(generator.next().value).toEqual(cancel());
-  });
-});
-
-// Add these tests (after the appLockStateMachine describe block)
-describe('appStateListenerTask', () => {
-  let appStateCallback: (state: string) => void;
-
-  beforeEach(() => {
     jest.clearAllMocks();
-
-    // Capture the AppState callback when addEventListener is called
-    (AppState.addEventListener as jest.Mock).mockImplementation(
-      (_, callback) => {
-        appStateCallback = callback;
-        return { remove: jest.fn() };
-      },
-    );
   });
 
-  it('creates event channel to listen to app state changes', async () => {
-    await expectSaga(appStateListenerTask).silentRun(50);
+  it('waits for login before starting AppLockService', () => {
+    const generator = authStateMachine();
 
-    expect(AppState.addEventListener).toHaveBeenCalledWith(
-      'change',
-      expect.any(Function),
-    );
+    expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
+    expect(AppLockService.start).not.toHaveBeenCalled();
   });
 
-  it('calls unlockWallet when app becomes active', async () => {
-    // Simulate app state change to 'active' after saga starts
-    setTimeout(() => {
-      appStateCallback('active');
-    }, 10);
+  it('starts AppLockService when logged in and waits for logout', () => {
+    const generator = authStateMachine();
+    generator.next();
 
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    expect(Authentication.unlockWallet).toHaveBeenCalled();
+    expect(generator.next().value).toEqual(take(UserActionType.LOGOUT));
+    expect(AppLockService.start).toHaveBeenCalledTimes(1);
+    expect(AppLockService.stop).not.toHaveBeenCalled();
   });
 
-  it('navigates to rehydrate when seedless password is outdated', async () => {
-    // Arrange
-    (
-      Authentication.checkIsSeedlessPasswordOutdated as jest.Mock
-    ).mockResolvedValueOnce(true);
+  it('stops AppLockService when logged out and waits for the next login', () => {
+    const generator = authStateMachine();
+    generator.next();
+    generator.next();
 
-    // Act
-    setTimeout(() => {
-      appStateCallback('active');
-    }, 10);
-
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    // Assert
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.REHYDRATE,
-          params: { isSeedlessPasswordOutdated: true },
-        },
-      ],
-    });
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
-  });
-
-  describe('when the app is already active', () => {
-    const originalCurrentState = AppState.currentState;
-
-    afterEach(() => {
-      Object.defineProperty(AppState, 'currentState', {
-        value: originalCurrentState,
-        configurable: true,
-        writable: true,
-      });
-    });
-
-    it('calls unlockWallet without waiting for another app state change', async () => {
-      // A lock applied after the resume leaves no `active` event to wait for,
-      // which would otherwise strand the user on the lock screen.
-      Object.defineProperty(AppState, 'currentState', {
-        value: 'active',
-        configurable: true,
-        writable: true,
-      });
-
-      await expectSaga(appStateListenerTask).silentRun(50);
-
-      expect(Authentication.unlockWallet).toHaveBeenCalled();
-      expect(AppState.addEventListener).not.toHaveBeenCalled();
-    });
-  });
-
-  it('does not call unlockWallet when app is in background', async () => {
-    // Simulate app state change to 'background'
-    setTimeout(() => {
-      appStateCallback('background');
-    }, 10);
-
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
-  });
-
-  it('does not call unlockWallet when app is inactive', async () => {
-    // Simulate app state change to 'inactive'
-    setTimeout(() => {
-      appStateCallback('inactive');
-    }, 10);
-
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    expect(Authentication.unlockWallet).not.toHaveBeenCalled();
-  });
-
-  it('calls lockApp, navigates to login, and tracks error when unlockWallet fails', async () => {
-    const mockError = new Error('Authentication failed');
-    (Authentication.unlockWallet as jest.Mock).mockRejectedValueOnce(mockError);
-
-    // Simulate app becoming active
-    setTimeout(() => {
-      appStateCallback('active');
-    }, 10);
-
-    await expectSaga(appStateListenerTask).silentRun(100);
-
-    expect(Authentication.unlockWallet).toHaveBeenCalled();
-    expect(mockReset).toHaveBeenCalledWith({
-      routes: [{ name: Routes.ONBOARDING.LOGIN }],
-    });
-    expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
-      'Lockscreen: Authentication failed',
-      'Authentication failed',
-    );
-  });
-});
-
-describe('appLockStateMachine', () => {
-  const mockApprovalControllerClear = Engine.context.ApprovalController
-    .clearRequests as jest.Mock;
-
-  beforeEach(() => {
-    mockNavigate.mockClear();
-    mockReset.mockClear();
-    mockApprovalControllerClear.mockClear();
-  });
-
-  it('forks appStateListenerTask and navigates to LockScreen when app is locked', async () => {
-    await expectSaga(appLockStateMachine)
-      .dispatch({ type: UserActionType.LOCKED_APP })
-      // Verify appStateListenerTask is called
-      .call(appStateListenerTask)
-      .run();
-
-    // Verify navigation to LockScreen
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
-  });
-
-  it('clears pending approvals via ApprovalController.clearRequests when app is locked', async () => {
-    await expectSaga(appLockStateMachine)
-      .dispatch({ type: UserActionType.LOCKED_APP })
-      .run();
-
-    expect(mockApprovalControllerClear).toHaveBeenCalledWith(
-      providerErrors.userRejectedRequest(),
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
-  });
-
-  it('navigates to LockScreen even when ApprovalController.clearRequests throws', async () => {
-    mockApprovalControllerClear.mockImplementationOnce(() => {
-      throw new Error('clear failed');
-    });
-
-    await expectSaga(appLockStateMachine)
-      .dispatch({ type: UserActionType.LOCKED_APP })
-      .run();
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.LOCK_SCREEN);
+    expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
+    expect(AppLockService.stop).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -533,6 +348,7 @@ describe('startAppServices', () => {
     // Verify startup services are started without locked keychain-dependent work.
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
+    expect(hydrateSocialTermsAcceptance).toHaveBeenCalled();
     expect(WC2Manager.init).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
   });
@@ -562,7 +378,7 @@ describe('startAppServices', () => {
       .run();
 
     // Verify authentication is requested
-    expect(Authentication.unlockWallet).toHaveBeenCalled();
+    expect(Authentication.tryBiometricUnlock).toHaveBeenCalled();
   });
 
   // SDKConnect/WC2 initialization starts from the unlocked deeplink saga path.
@@ -713,6 +529,8 @@ describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __setMainNavigatorReadyForTesting(true);
+    __resetDeeplinkOpenedBeforeWalletForTesting();
+    __resetReferralLinkParseForTesting();
     __resetSDKServicesInitializationForTesting();
     resetNextParseAppStartTypeForTesting();
     resetUnlockAppStartTypeForTesting();
@@ -721,7 +539,7 @@ describe('handleDeeplinkSaga', () => {
     AppStateEventProcessor.pendingDeeplinkSource = null;
     mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);
     mockGetCurrentRoute.mockReturnValue(undefined);
-    (LockManagerService.isAutoLockPending as jest.Mock).mockReturnValue(false);
+    (AppLockService.isAutoLockPending as jest.Mock).mockReturnValue(false);
   });
 
   describe('without deeplink', () => {
@@ -858,7 +676,7 @@ describe('handleDeeplinkSaga', () => {
           expect(SDKConnect.init).not.toHaveBeenCalled();
         });
 
-        it.each([Routes.ONBOARDING.LOGIN, Routes.LOCK_SCREEN])(
+        it.each([Routes.ONBOARDING.LOGIN])(
           'leaves a pending deeplink in place when onboarding completes on %s',
           async (routeName) => {
             AppStateEventProcessor.pendingDeeplink =
@@ -882,15 +700,35 @@ describe('handleDeeplinkSaga', () => {
           },
         );
 
+        it('leaves a pending deeplink in place while resume unlock is in progress', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          (AppLockService.isAutoLockPending as jest.Mock).mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              onboarding: { completedOnboarding: true },
+              user: { existingUser: true },
+            })
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).not.toHaveBeenCalled();
+        });
+
         it('leaves a pending deeplink in place while auto-lock is still pending', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://link.metamask.io/privacy';
           Engine.context.KeyringController.isUnlocked = jest
             .fn()
             .mockReturnValue(true);
-          (LockManagerService.isAutoLockPending as jest.Mock).mockReturnValue(
-            true,
-          );
+          (AppLockService.isAutoLockPending as jest.Mock).mockReturnValue(true);
 
           await expectSaga(handleDeeplinkSaga)
             .withState({
@@ -942,6 +780,50 @@ describe('handleDeeplinkSaga', () => {
           ).toHaveBeenCalled();
           expect(WC2Manager.init).not.toHaveBeenCalled();
           expect(SDKConnect.init).not.toHaveBeenCalled();
+        });
+
+        it('marks a link carrying a referral code as pending while it is parsed', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap?ref=WEYRTZ';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { completedOnboarding: true },
+            })
+            .put(setReferralLinkPending(true))
+            .fork.fn(parseReferralDeeplink)
+            .put(setReferralLinkPending(false))
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            'https://link.metamask.io/swap?ref=WEYRTZ',
+            expect.objectContaining({
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            }),
+          );
+        });
+
+        it('does not mark a link without a referral code as pending', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap?ref=a';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { completedOnboarding: true },
+            })
+            .not.put.actionType(setReferralLinkPending.type)
+            .fork.fn(parseDeeplinkAfterNavReady)
+            .dispatch(checkForDeeplink())
+            .silentRun();
         });
 
         it('parses non-SDK deeplinks without starting SDK services', async () => {
@@ -1051,6 +933,85 @@ describe('handleDeeplinkSaga', () => {
           expect(mockGetUtmAttributesFromDeeplinkUrl).toHaveBeenCalledWith(
             onboardingLink,
           );
+        });
+
+        it('holds a link opened before the wallet until onboarding hands over to MainNavigator', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          // Wallet creation: the user exists and onboarding is marked complete.
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: true },
+            })
+            .fork.fn(parseDeeplinkAfterOnboarding)
+            .not.fork.fn(parseDeeplinkAfterNavReady)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+        });
+
+        it('does not hold an SDK connection link opened before the wallet', async () => {
+          const connectLink =
+            'https://link.metamask.io/connect?channelId=test-channel-id';
+          AppStateEventProcessor.pendingDeeplink = connectLink;
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: true },
+            })
+            .fork.fn(parseDeeplinkAfterNavReady)
+            .not.fork.fn(parseDeeplinkAfterOnboarding)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+        });
+
+        it('keeps the ready timeout for a link opened once the wallet exists', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap?ref=WEYRTZ';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/buy';
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: true },
+            })
+            .fork.fn(parseDeeplinkAfterNavReady)
+            .not.fork.fn(parseDeeplinkAfterOnboarding)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
         });
 
         it('handle onboarding deeplink when completed onboarding is false', async () => {
@@ -1220,6 +1181,37 @@ describe('parseDeeplink', () => {
       appStartType: 'cold',
     });
   });
+
+  it('forwards onHandled to parse', async () => {
+    const onHandled = jest.fn();
+
+    await expectSaga(
+      parseDeeplink,
+      TEST_URL,
+      TEST_ORIGIN,
+      undefined,
+      onHandled,
+    ).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+      onHandled,
+    });
+  });
+
+  it('returns false when parse throws', async () => {
+    jest
+      .mocked(SharedDeeplinkManager.parse)
+      .mockRejectedValueOnce(new Error('boom'));
+
+    const { returnValue } = await expectSaga(
+      parseDeeplink,
+      TEST_URL,
+      TEST_ORIGIN,
+    ).run();
+
+    expect(returnValue).toBe(false);
+  });
 });
 
 describe('parseDeeplinkAfterNavReady', () => {
@@ -1294,6 +1286,233 @@ describe('parseDeeplinkAfterNavReady', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+});
+
+describe('parseReferralDeeplink', () => {
+  const TEST_URL = 'https://link.metamask.io/swap?ref=WEYRTZ';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+  const CURRENT_PARSE_ID = 0;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetReferralLinkParseForTesting();
+  });
+
+  it('keeps the pending mark until an accepted link is handled', async () => {
+    const acceptedNotYetHandled = function* (): Generator {
+      yield delay(0);
+      return true;
+    };
+    const dispatched: unknown[] = [];
+
+    const task = runSaga(
+      { dispatch: (action) => dispatched.push(action), getState: () => ({}) },
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      acceptedNotYetHandled,
+      TEST_URL,
+      TEST_ORIGIN,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const isWaiting = task.isRunning();
+    const dispatchedBeforeCancel = [...dispatched];
+    task.cancel();
+
+    expect(isWaiting).toBe(true);
+    expect(dispatchedBeforeCancel).not.toContainEqual(
+      setReferralLinkPending(false),
+    );
+  });
+
+  it('releases the pending mark once an accepted link is handled', async () => {
+    const acceptedThenHandled = function* (
+      _deeplink: string,
+      _origin: string,
+      _appStartType?: 'cold' | 'warm',
+      onHandled?: () => void,
+    ): Generator {
+      yield delay(0);
+      onHandled?.();
+      return true;
+    };
+
+    await expectSaga(
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      acceptedThenHandled,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .put(setReferralLinkPending(false))
+      .run();
+  });
+
+  it('passes the handled signal through the real parse to the deeplink manager', async () => {
+    __setMainNavigatorReadyForTesting(true);
+    jest
+      .mocked(SharedDeeplinkManager.parse)
+      .mockImplementationOnce(async (_url, { onHandled }) => {
+        onHandled?.();
+        return true;
+      });
+
+    await expectSaga(
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      parseDeeplinkAfterNavReady,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .put(setReferralLinkPending(false))
+      .run();
+  });
+
+  it('releases the pending mark once a parse that rejects the link ends', async () => {
+    const parse = function* (): Generator {
+      yield delay(0);
+      return false;
+    };
+
+    await expectSaga(
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      parse,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .put(setReferralLinkPending(false))
+      .run();
+  });
+
+  it('releases the pending mark when the parse throws', async () => {
+    const failingParse = function* (): Generator {
+      yield call(() => Promise.reject(new Error('parse failed')));
+    };
+
+    function* parseAndSwallow() {
+      try {
+        yield call(
+          parseReferralDeeplink,
+          CURRENT_PARSE_ID,
+          failingParse,
+          TEST_URL,
+          TEST_ORIGIN,
+        );
+      } catch {
+        // The failure itself is not under test.
+      }
+    }
+
+    await expectSaga(parseAndSwallow).put(setReferralLinkPending(false)).run();
+  });
+
+  it('releases the pending mark when the parse is cancelled', async () => {
+    const waitingParse = function* (): Generator {
+      yield take('NEVER_DISPATCHED');
+    };
+
+    function* forkThenCancel() {
+      const task: Task = yield fork(
+        parseReferralDeeplink,
+        CURRENT_PARSE_ID,
+        waitingParse,
+        TEST_URL,
+        TEST_ORIGIN,
+      );
+      yield cancel(task);
+    }
+
+    await expectSaga(forkThenCancel).put(setReferralLinkPending(false)).run();
+  });
+
+  it('keeps the pending mark when a newer referral link took over', async () => {
+    const parse = function* (): Generator {
+      yield delay(0);
+    };
+    const olderParseId = CURRENT_PARSE_ID - 1;
+
+    await expectSaga(
+      parseReferralDeeplink,
+      olderParseId,
+      parse,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .not.put(setReferralLinkPending(false))
+      .run();
+  });
+});
+
+describe('parseDeeplinkAfterOnboarding', () => {
+  const TEST_URL = 'https://link.metamask.io/swap?ref=WEYRTZ';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __setMainNavigatorReadyForTesting(false);
+  });
+
+  it('parses immediately when MainNavigator is already mounted', async () => {
+    __setMainNavigatorReadyForTesting(true);
+
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('parses once MainNavigator mounts', async () => {
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
+      .dispatch(mainNavigatorReady())
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('keeps waiting past the MainNavigator ready timeout', async () => {
+    jest.useFakeTimers();
+    try {
+      const sagaPromise = expectSaga(
+        parseDeeplinkAfterOnboarding,
+        TEST_URL,
+        TEST_ORIGIN,
+      ).run({ timeout: 10000, silenceTimeout: true });
+
+      jest.advanceTimersByTime(9000);
+
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1100);
+      await sagaPromise;
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('still parses once the post-unlock Home mounts after an auto-lock', async () => {
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
+      .dispatch({ type: UserActionType.LOGOUT })
+      .dispatch(mainNavigatorReady())
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('drops the destination but keeps the referral code when the wallet is reset before MainNavigator mounts', async () => {
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
+      .dispatch({ type: CLEAR_ONBOARDING })
+      .put(setPendingReferralCode('WEYRTZ'))
+      .run();
+
+    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
   });
 });
 

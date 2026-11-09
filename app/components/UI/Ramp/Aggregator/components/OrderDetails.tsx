@@ -53,7 +53,7 @@ const createStyles = (colors: any) =>
     },
     seperationBottom: {
       paddingVertical: 4,
-      paddingBottom: 18,
+      paddingBottom: 16,
     },
     transactionIdFlex: {
       textAlign: 'right',
