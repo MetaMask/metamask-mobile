@@ -6,7 +6,7 @@ import SentenceWithLinks from './SentenceWithLinks';
 
 // A real sentence key with two placeholders, so the component is exercised
 // against the i18n catalog rather than a fixture that could drift from it.
-const AGREEMENT_KEY = 'virtual_bank_account.verify_identity.agreement';
+const AGREEMENT_KEY = 'kyc.verify_identity.agreement';
 
 describe('SentenceWithLinks', () => {
   afterEach(() => {
