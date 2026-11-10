@@ -184,6 +184,11 @@ describe('formatSignedFullUsdNoDecimals', () => {
     expect(formatSignedFullUsdNoDecimals(0)).toBe('$0');
   });
 
+  it('renders values that round to zero dollars without a sign', () => {
+    expect(formatSignedFullUsdNoDecimals(-0.4)).toBe('$0');
+    expect(formatSignedFullUsdNoDecimals(0.4)).toBe('$0');
+  });
+
   it('returns an em dash for null and undefined', () => {
     expect(formatSignedFullUsdNoDecimals(null)).toBe('\u2014');
     expect(formatSignedFullUsdNoDecimals(undefined)).toBe('\u2014');

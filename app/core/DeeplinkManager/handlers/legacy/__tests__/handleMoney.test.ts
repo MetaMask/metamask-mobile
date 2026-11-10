@@ -8,12 +8,23 @@ import Logger from '../../../../../util/Logger';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
 import { selectIsMoneyAccountGeoEligible } from '../../../../../components/UI/Money/selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../../../components/UI/Money/selectors/featureFlags';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import {
+  isVbaGeoBypassEnabled,
+  type MoneyMovementNeobankRollout,
+  selectMoneyMovementNeobank,
+  selectMoneyOnboardingStepperAnimationEnabled,
+  selectNeobankMarkets,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+} from '../../../../../selectors/geolocationController';
 import {
   selectRawRemoteFeatureFlags,
   selectRemoteFeatureFlags,
 } from '../../../../../selectors/featureFlagController';
 import { MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME } from '../../../../../lib/Money/feature-flags';
+import { VbaOnboardingRoutes } from '../../../../../components/UI/Ramp/Views/VirtualBankAccount/routes';
 
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
@@ -48,8 +59,16 @@ jest.mock(
   '../../../../../selectors/featureFlagController/moneyAccount',
   () => ({
     selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
+    selectMoneyMovementNeobank: jest.fn(),
+    selectNeobankMarkets: jest.fn(),
+    isVbaGeoBypassEnabled: jest.fn(),
   }),
 );
+
+jest.mock('../../../../../selectors/geolocationController', () => ({
+  selectGeolocationLocation: jest.fn(),
+  selectGeolocationStatus: jest.fn(),
+}));
 
 jest.mock('../../../../../selectors/featureFlagController', () => ({
   selectRawRemoteFeatureFlags: jest.fn(),
@@ -101,6 +120,13 @@ const disabledRolloutFlag: GradualRolloutFlag = {
   value: disabledFlag,
 };
 
+const enabledNeobankRollout: MoneyMovementNeobankRollout = {
+  chooseCurrency: false,
+  regionOverride: undefined,
+};
+
+const brlMarket = { currency: 'BRL', regions: ['BR'] } as const;
+
 describe('handleMoney', () => {
   let mockNavigate: jest.Mock;
   const mockState = {} as ReturnType<typeof ReduxService.store.getState>;
@@ -149,6 +175,13 @@ describe('handleMoney', () => {
     jest
       .mocked(selectMoneyOnboardingStepperAnimationEnabled)
       .mockReturnValue(true);
+    jest
+      .mocked(selectMoneyMovementNeobank)
+      .mockReturnValue(enabledNeobankRollout);
+    jest.mocked(selectNeobankMarkets).mockReturnValue([brlMarket]);
+    jest.mocked(selectGeolocationLocation).mockReturnValue('BR-SP');
+    jest.mocked(selectGeolocationStatus).mockReturnValue('complete');
+    jest.mocked(isVbaGeoBypassEnabled).mockReturnValue(false);
   });
 
   it('navigates to disabled deeplink modal when type 1 flag is disabled', () => {
@@ -275,6 +308,123 @@ describe('handleMoney', () => {
       },
       { pop: true },
     );
+  });
+
+  describe('screen=account', () => {
+    const expectMoneyHomeNavigation = () =>
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+
+    it('opens the money account flow on top of MONEY.HOME when VBA eligible', () => {
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expectMoneyHomeNavigation();
+      expect(mockNavigate).toHaveBeenLastCalledWith(
+        Routes.RAMP.VBA_ONBOARDING,
+        { screen: VbaOnboardingRoutes.LOADING },
+      );
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+    });
+
+    it('opens the money account flow when the dev geo bypass is set', () => {
+      jest.mocked(selectGeolocationLocation).mockReturnValue('US-CA');
+      jest.mocked(isVbaGeoBypassEnabled).mockReturnValue(true);
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expect(mockNavigate).toHaveBeenLastCalledWith(
+        Routes.RAMP.VBA_ONBOARDING,
+        { screen: VbaOnboardingRoutes.LOADING },
+      );
+    });
+
+    it('uses the flag region override ahead of the IP location', () => {
+      jest.mocked(selectGeolocationLocation).mockReturnValue('US-CA');
+      jest.mocked(selectMoneyMovementNeobank).mockReturnValue({
+        ...enabledNeobankRollout,
+        regionOverride: 'BR',
+      });
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expect(mockNavigate).toHaveBeenLastCalledWith(
+        Routes.RAMP.VBA_ONBOARDING,
+        { screen: VbaOnboardingRoutes.LOADING },
+      );
+    });
+
+    it('stays on MONEY.HOME when the VBA flag is disabled', () => {
+      jest.mocked(selectNeobankMarkets).mockReturnValue([]);
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expectMoneyHomeNavigation();
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays on MONEY.HOME when the region is not VBA eligible', () => {
+      jest.mocked(selectGeolocationLocation).mockReturnValue('US-CA');
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expectMoneyHomeNavigation();
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays on MONEY.HOME while geolocation is still loading', () => {
+      jest.mocked(selectGeolocationLocation).mockReturnValue('');
+      jest.mocked(selectGeolocationStatus).mockReturnValue('loading');
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expectMoneyHomeNavigation();
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the money onboarding first when the user has not seen it', () => {
+      jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(false);
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the disabled modal instead when the money account flag is disabled', () => {
+      jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(false);
+      setMoneyAccountFlags({
+        rawFlag: disabledFlag,
+        resolvedFlag: disabledFlag,
+      });
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expectDeeplinkModalNavigation(
+        'money.deeplink_modal.money_account_disabled.title',
+        'money.deeplink_modal.money_account_disabled.description',
+      );
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('navigates to MONEY.HOME for an unknown screen value', () => {
+    handleMoney({ moneyPath: '?screen=unknown' });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('logs error and navigates to WALLET.HOME when selector throws', () => {

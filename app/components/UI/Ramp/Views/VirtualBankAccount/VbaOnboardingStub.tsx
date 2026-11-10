@@ -14,7 +14,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import VbaOnboardingError from '../../../KYC/components/OnboardingError';
+import KycOnboardingError from '../../../KYC/components/OnboardingError';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -63,7 +63,7 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
 
   if (variant === 'error') {
     return (
-      <VbaOnboardingError
+      <KycOnboardingError
         testID={`${VbaOnboardingStubSelectorsIDs.CONTAINER}-${variant}`}
         backButtonTestID={VbaOnboardingStubSelectorsIDs.BACK_BUTTON}
         title={strings('virtual_bank_account.error.title')}

@@ -20,8 +20,6 @@ import {
   Box,
   Button,
   ButtonBaseSize,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
   TextVariant,
@@ -106,6 +104,7 @@ import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
   calculatePositionSize,
+  calculateRoEForPrice,
   getPerpsDisplaySymbol,
   type InputMethod,
   type OrderParams,
@@ -156,7 +155,6 @@ import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
-import { useABTest } from '../../../../../hooks/useABTest';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -180,10 +178,7 @@ import {
   getCachedPerpsHeaderQuote,
   type CachedPerpsHeaderQuote,
 } from '../../utils/cachedPerpsHeaderQuote';
-import {
-  BUTTON_COLOR_VARIANTS,
-  PERPS_BUTTON_COLOR_AB_TEST_KEY,
-} from '../../abTestConfig';
+import PerpsDirectionButton from '../../components/PerpsDirectionButton';
 import {
   formatLiquidationDistance,
   formatPerpsFiat,
@@ -199,10 +194,7 @@ import { willFlipPosition } from '../../utils/orderUtils';
 import { getStandardOrderManagementToastKey as getOrderManagementToastKey } from '../../utils/orderToasts';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
-import {
-  calculateRoEForPrice,
-  getPerpsOrderTpSlWarnings,
-} from '../../utils/tpslValidation';
+import { getPerpsOrderTpSlWarnings } from '../../utils/tpslValidation';
 import {
   deriveOrderSizing,
   getPayWithTokenDepositAmount,
@@ -249,6 +241,7 @@ import {
 } from '../../utils/perpsPostTradeShare';
 import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
 import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { getSocialEventSource } from '../../../../Views/SocialLeaderboard/analytics/socialEvents';
 import type { PostTradePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import {
   buildPerpsPostTradeComposerParams,
@@ -357,6 +350,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ? 'trending'
       : undefined);
   const sourceSection = route.params?.source_section;
+  const shareAnalyticsSource = getSocialEventSource(source);
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
@@ -658,15 +652,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
   const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
-
-  // A/B Testing: Button color test
-  const {
-    variantName: buttonColorVariant,
-    isActive: isButtonColorTestEnabled,
-  } = useABTest(PERPS_BUTTON_COLOR_AB_TEST_KEY, BUTTON_COLOR_VARIANTS, {
-    experimentName: 'Long/Short Button Color Test',
-    variationNames: { control: 'White/White', colors: 'Green/Red' },
-  });
 
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
@@ -1208,9 +1193,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // covers both a fresh false→true transition and a quote already loading
       // when this effect first runs (custom token pre-selected), so a
       // completing quote is never missed for lack of a recorded start.
-      if (payQuoteStartRef.current === null) {
-        payQuoteStartRef.current = Date.now();
-      }
+      payQuoteStartRef.current ??= Date.now();
       return;
     }
 
@@ -1431,17 +1414,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : price; // fallback to current price for market orders or when no limit price set
 
     if (orderForm.takeProfitPrice && price > 0 && orderForm.leverage) {
-      const tpRoE = calculateRoEForPrice(
-        orderForm.takeProfitPrice,
-        true,
-        false,
-        {
-          currentPrice: price,
-          direction: orderForm.direction,
-          leverage: orderForm.leverage,
-          entryPrice,
-        },
-      );
+      const tpRoE = calculateRoEForPrice(orderForm.takeProfitPrice, true, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
       const absRoE = Math.abs(parseFloat(tpRoE || '0'));
       tpDisplay =
         absRoE > 0
@@ -1452,17 +1430,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     }
 
     if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
-      const slRoE = calculateRoEForPrice(
-        orderForm.stopLossPrice,
-        false,
-        false,
-        {
-          currentPrice: price,
-          direction: orderForm.direction,
-          leverage: orderForm.leverage,
-          entryPrice,
-        },
-      );
+      const slRoE = calculateRoEForPrice(orderForm.stopLossPrice, false, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
       const absRoE = Math.abs(parseFloat(slRoE || '0'));
       slDisplay =
         absRoE > 0
@@ -1718,7 +1691,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           // eslint-disable-next-line @typescript-eslint/no-deprecated -- Keep parity with the existing limit-price analytics contract.
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED,
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED, // NOSONAR
         [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'limit_price',
         [PERPS_EVENT_PROPERTY.INPUT_METHOD]: inputMethod,
         [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
@@ -2109,6 +2082,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               direction: orderForm.direction,
               leverage: orderForm.leverage,
               amountUsd: orderForm.amount,
+              analyticsSource: shareAnalyticsSource,
             });
         const resolvedPerpsPostTradePrompt =
           !perpsShareSessionIdRef.current &&
@@ -2119,14 +2093,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           })
             ? resolvePostTradePrompt('perps')
             : undefined;
-        perpsPostTradePromptRef.current =
-          resolvedPerpsPostTradePrompt?.kind === 'claim_sheet' ||
-          isPerpsPostTradeShareEligible({
-            amountUsd: orderForm.amount,
-            leverage: orderForm.leverage,
-          })
-            ? resolvedPerpsPostTradePrompt
-            : undefined;
+        perpsPostTradePromptRef.current = isPerpsPostTradeShareEligible({
+          amountUsd: orderForm.amount,
+          leverage: orderForm.leverage,
+        })
+          ? resolvedPerpsPostTradePrompt
+          : undefined;
         const promptKind = perpsPostTradePromptRef.current?.kind;
         if (promptKind === 'share_sheet' || promptKind === 'claim_sheet') {
           perpsShareSessionIdRef.current = openPerpsPostTradeShareSession({
@@ -2135,6 +2107,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             leverage: orderForm.leverage,
             amountUsd: orderForm.amount,
             variant: promptKind === 'claim_sheet' ? 'create_profile' : 'share',
+            analyticsSource: shareAnalyticsSource,
           });
         }
         navigateToMarketAfterOrder();
@@ -2290,6 +2263,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       marginRequired,
       feeResults,
       source,
+      shareAnalyticsSource,
       sourceSection,
       chartLibrary,
       isTradeWithAnyTokenEnabled,
@@ -3343,35 +3317,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
           />
 
-          {buttonColorVariant === 'colors' ? (
-            <ButtonSemantic
-              severity={
-                orderForm.direction === 'long'
-                  ? ButtonSemanticSeverity.Success
-                  : ButtonSemanticSeverity.Danger
-              }
-              onPress={() => handlePlaceOrder()}
-              isFullWidth
-              size={ButtonBaseSize.Lg}
-              isDisabled={isOrderSubmissionBlocked}
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </ButtonSemantic>
-          ) : (
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSizeRNDesignSystem.Lg}
-              isFullWidth
-              onPress={() => handlePlaceOrder()}
-              isDisabled={isOrderSubmissionBlocked}
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </Button>
-          )}
+          <PerpsDirectionButton
+            direction={orderForm.direction}
+            onPress={() => handlePlaceOrder()}
+            isFullWidth
+            size={ButtonBaseSize.Lg}
+            isDisabled={isOrderSubmissionBlocked}
+            isLoading={isPlacingOrder}
+            testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+          >
+            {placeOrderLabel}
+          </PerpsDirectionButton>
         </View>
       )}
       {/* Leverage Selector */}

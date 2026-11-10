@@ -271,6 +271,7 @@ export interface PerpsStreamControls {
   getAccountReconnectCount: () => number;
   emitPositions: (positions: Position[] | null) => void;
   emitPrices: (prices: Record<string, PriceUpdate> | null) => void;
+  emitOICaps: (symbols: string[]) => void;
 }
 
 /** Channel that calls callback once with initial value so hooks leave loading state. */
@@ -550,6 +551,11 @@ export interface PerpsStreamOverrides {
   liveCandles?: CandleData | null;
   /** `focusedPrice.getSnapshot()` only. The live focused subscription stays empty. */
   cachedFocusedPrice?: PriceUpdate | null;
+  /**
+   * Symbols at their open-interest cap. Delivered on subscribe and through
+   * `emitOICaps`.
+   */
+  oiCaps?: string[];
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
@@ -572,6 +578,9 @@ function createTestStreamManager(
     streamOverrides?.prices,
     streamOverrides?.cachedPrices,
   );
+  const oiCaps = mutableChannelWithInitialValue<string[]>(
+    streamOverrides?.oiCaps ?? [],
+  );
   const cachedCandles = streamOverrides?.cachedCandles ?? null;
   const chartCacheFresh =
     streamOverrides?.chartCacheFresh ?? cachedCandles != null;
@@ -583,7 +592,7 @@ function createTestStreamManager(
     fills,
     account,
     marketData,
-    oiCaps: noopChannel(),
+    oiCaps,
     topOfBook: topOfBookChannel(),
     focusedPrice: focusedPriceChannel(
       streamOverrides?.cachedFocusedPrice ?? null,
@@ -625,6 +634,7 @@ function createTestStreamManager(
         handlePerpsCufPositionsDelivered(nextPositions ?? []);
       },
       emitPrices: prices.emit,
+      emitOICaps: oiCaps.emit,
     },
   };
 }
@@ -928,6 +938,7 @@ export function renderPerpsMarketDetailsView(
     streamOverrides?: PerpsStreamOverrides;
     extraRoutes?: PerpsExtraRoute[];
     socialEnabled?: boolean;
+    includeToasts?: boolean;
   } = {},
 ) {
   const {
@@ -936,11 +947,19 @@ export function renderPerpsMarketDetailsView(
     streamOverrides = { positions: [defaultSelectModifyActionPosition] },
     extraRoutes,
     socialEnabled,
+    includeToasts,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
     'PerpsMarketDetails',
-    { overrides, initialParams, streamOverrides, extraRoutes, socialEnabled },
+    {
+      overrides,
+      initialParams,
+      streamOverrides,
+      extraRoutes,
+      socialEnabled,
+      includeToasts,
+    },
   );
 }
 
@@ -1064,6 +1083,7 @@ export function renderPerpsClosePositionView(
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    includeToasts?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;

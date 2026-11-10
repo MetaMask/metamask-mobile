@@ -484,13 +484,17 @@ describe('fixture-validation', () => {
       const fixture = readFixtureFile('default-fixture.json');
 
       expect((fixture.state as Record<string, unknown>).rewardsMoney).toEqual({
+        answeredReferralCode: null,
         cashbackLedger: {},
         claimLocks: {},
         claimWaitingUntil: {},
+        commissionMechanisms: {},
         commissions: {},
         earningsHistory: {},
         earningsSummary: {},
         inFlightClaims: {},
+        isReferralLinkPending: false,
+        pendingReferralCode: null,
         referralFunnel: {},
         referralMe: {},
       });
