@@ -6,10 +6,11 @@ import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
 import {
+  formatPercentageNumber,
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PERPS_FEE_RATE_DISPLAY_DECIMALS } from '../../constants/perpsConfig';
+import { PERPS_DISPLAY_PRECISION } from '@metamask/perps-controller';
 import {
   Text,
   TextVariant,
@@ -61,7 +62,9 @@ interface PerpsFeesDisplayProps {
 const formatRateValue = (rate: number | undefined): string | undefined =>
   rate === undefined || Number.isNaN(rate)
     ? undefined
-    : (rate * 100).toFixed(PERPS_FEE_RATE_DISPLAY_DECIMALS);
+    : formatPercentageNumber(rate * 100, {
+        decimals: PERPS_DISPLAY_PRECISION.FeeRatePercent,
+      });
 
 const strikethroughStyle = { textDecorationLine: 'line-through' as const };
 

@@ -21,7 +21,7 @@ import {
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
-import { formatPerpsFiat } from './formatUtils';
+import { formatPerpsFiat, formatPerpsUsdCents, formatPnl } from './formatUtils';
 import {
   formatOrderLabel,
   getInlineOrderLabelDirection,
@@ -666,21 +666,14 @@ export function transformFillsToTransactions(
       // For closing positions: reported PnL net of the fee, from Core
       amountBN = BigNumber(netClosedPnl);
       const netPnL = netClosedPnl;
-      // For display, show + for positive, - for negative, nothing for 0
-      if (netPnL > 0) {
-        displayAmount = `+$${Math.abs(netPnL).toFixed(2)}`;
-        isPositive = true;
-      } else if (netPnL < 0) {
-        displayAmount = `-$${Math.abs(netPnL).toFixed(2)}`;
-        isPositive = false;
-      } else {
-        displayAmount = `$${Math.abs(netPnL).toFixed(2)}`;
-        isPositive = true; // Treat break-even as positive (green)
-      }
+      // + for positive, - for negative, nothing for 0
+      displayAmount = formatPnl(netPnL, { sign: 'exceptZero' });
+      // Treat break-even as positive (green)
+      isPositive = netPnL >= 0;
     } else {
       // Fallback: show order size value
       amountBN = BigNumber(fill.size).times(fill.price);
-      displayAmount = `$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
+      displayAmount = formatPerpsUsdCents(amountBN.absoluteValue());
       isPositive = false; // Default to false for unknown cases
     }
 
@@ -1020,7 +1013,10 @@ export function transformUserHistoryToTransactions(
 
       // Format amount with appropriate sign
       const amountBN = BigNumber(amount);
-      const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
+      const displayAmount = formatPerpsUsdCents(
+        isDeposit ? amountBN : amountBN.negated(),
+        'always',
+      );
 
       // For completed transactions, status is always positive (green)
       const statusText = strings(
@@ -1095,7 +1091,7 @@ export function transformWalletPerpsDepositsToTransactions(
           )
         : new BigNumber(0);
 
-    const displayAmount = `+$${amountBN.toFixed(2)}`;
+    const displayAmount = formatPerpsUsdCents(amountBN, 'always');
     const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
     const statusText =
       status === 'completed'
@@ -1145,7 +1141,7 @@ export function transformWithdrawalRequestsToTransactions(
     const { id, timestamp, amount, asset, txHash, status } = request;
 
     const amountBN = BigNumber(amount);
-    const displayAmount = `-$${amountBN.toFixed(2)}`;
+    const displayAmount = formatPerpsUsdCents(amountBN.negated(), 'always');
 
     const statusText =
       status === 'completed'
@@ -1231,7 +1227,7 @@ export function transformDepositRequestsToTransactions(
 
       // Format amount with positive sign for deposits
       const amountBN = BigNumber(amount);
-      const displayAmount = `+$${amountBN.toFixed(2)}`;
+      const displayAmount = formatPerpsUsdCents(amountBN, 'always');
 
       // For completed deposits, status is always positive (green)
       const statusText = strings(

@@ -57,13 +57,6 @@ export const PERPS_MIN_BALANCE_THRESHOLD = 0.01;
 export const PERPS_MIN_AGGREGATORS_FOR_TRUST = 2;
 
 /**
- * Decimal places shown for a taker/maker fee rate percentage (e.g.
- * `0.00143` → `"0.143"`). Used by `PerpsFeesDisplay`'s percentage mode
- * (Perps Fee Display Format A/B test).
- */
-export const PERPS_FEE_RATE_DISPLAY_DECIMALS = 3;
-
-/**
  * Checks if an asset is trustworthy for displaying the Perps Discovery Banner.
  * An asset is considered trustworthy if:
  * - It is a native asset (ETH, BNB, SOL, etc.), OR
@@ -225,6 +218,20 @@ export const CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS = 5000;
  * 12pt on each side restores a 44pt target without growing the icon.
  */
 export const PERPS_INFO_BUTTON_HIT_SLOP = 12;
+
+/**
+ * Decimal places for the estimated and max slippage percentages in the order
+ * forms. Mobile keeps its current 2 decimals while product decides whether it
+ * moves to perps-controller's `PERPS_DISPLAY_PRECISION.SlippageEstimatePercent`
+ * (4). Pending product answer (TAT-4571).
+ */
+export const PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS = 2;
+
+/**
+ * Decimal places for the take profit / stop loss percentages summarised on
+ * order forms, position rows and the stop-loss prompt (e.g. `TP 25%`).
+ */
+export const PERPS_TPSL_PERCENT_DISPLAY_DECIMALS = 0;
 
 /**
  * Share of position notional kept back from the removable-margin maximum.

@@ -31,7 +31,6 @@ import {
 } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
-  formatPositiveFiat,
   formatTransactionDate,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -124,7 +123,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     },
     transaction.fill?.amount && {
       label: strings('perps.transactions.position.size'),
-      value: `${formatPositiveFiat(
+      value: `${formatPerpsFiat(
         Math.abs(
           BigNumber(transaction.fill?.size || '0')
             .times(transaction.fill?.entryPrice || '0')
@@ -156,7 +155,7 @@ const PerpsPositionTransactionView: React.FC = () => {
   if (transaction.fill?.fee) {
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.fees'),
-      value: formatPositiveFiat(transaction.fill.fee),
+      value: formatPerpsFiat(transaction.fill.fee),
       textColor: TextColor.TextDefault,
     });
   }
