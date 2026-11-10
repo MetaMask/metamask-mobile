@@ -43,7 +43,7 @@ describe('CarouselPaginationDots', () => {
     ).toMatchObject({ width: 4, height: 4 });
   });
 
-  it('colours the active bar and the dots from theme tokens', () => {
+  it('colours the active bar icon-default and the dots icon-alternative', () => {
     render(<CarouselPaginationDots totalPages={2} activePage={0} />);
 
     const active = StyleSheet.flatten(
@@ -52,18 +52,57 @@ describe('CarouselPaginationDots', () => {
     const inactive = StyleSheet.flatten(
       byTestId(`${TEST_ID}-dot-1`).props.style,
     );
-    expect(active.backgroundColor).toBe(lightTheme.colors.icon.alternative);
-    expect(inactive.backgroundColor).toBe(lightTheme.colors.icon.muted);
+    expect(active.backgroundColor).toBe(lightTheme.colors.icon.default);
+    expect(inactive.backgroundColor).toBe(lightTheme.colors.icon.alternative);
   });
 
-  it('fits a 20pt-tall row: 4pt indicators with 8pt above and below', () => {
+  it('spaces the indicators 4pt apart with 8pt padding on every side', () => {
     render(<CarouselPaginationDots totalPages={5} activePage={0} />);
 
     expect(StyleSheet.flatten(byTestId(TEST_ID).props.style)).toMatchObject({
       paddingTop: 8,
       paddingBottom: 8,
-      gap: 8,
+      paddingLeft: 8,
+      paddingRight: 8,
+      gap: 4,
     });
+  });
+
+  // Figma frame 760:14656 is 72x20 for five pages. Jest has no layout engine,
+  // so add the row up from its own styles.
+  const rowSize = () => {
+    const rowStyle = StyleSheet.flatten(byTestId(TEST_ID).props.style);
+    const items = screen
+      .getAllByTestId(new RegExp(`^${TEST_ID}-(active|dot-\\d+)$`), HIDDEN)
+      .map((item) => StyleSheet.flatten(item.props.style));
+    expect(items).toHaveLength(5);
+    const width =
+      rowStyle.paddingLeft +
+      rowStyle.paddingRight +
+      items.reduce((sum, item) => sum + item.width, 0) +
+      rowStyle.gap * (items.length - 1);
+    const height =
+      rowStyle.paddingTop +
+      rowStyle.paddingBottom +
+      Math.max(...items.map((item) => item.height));
+    return { width, height };
+  };
+
+  it('is 72pt wide and 20pt tall for five pages, as in the design', () => {
+    render(<CarouselPaginationDots totalPages={5} activePage={0} />);
+
+    expect(rowSize()).toEqual({ width: 72, height: 20 });
+  });
+
+  it('keeps the same size whichever page is active', () => {
+    const { rerender } = render(
+      <CarouselPaginationDots totalPages={5} activePage={0} />,
+    );
+    const first = rowSize();
+
+    rerender(<CarouselPaginationDots totalPages={5} activePage={3} />);
+
+    expect(rowSize()).toEqual(first);
   });
 
   it('hides itself from screen readers and touches', () => {
