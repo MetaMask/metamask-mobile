@@ -15,6 +15,9 @@ const scenario = parseScenario(fs.readFileSync(SCENARIO_PATH, 'utf8'));
 const HINTS = [
   ...Object.values(WalletViewSelectorsIDs),
   ...Object.values(QuoteViewSelectorIDs),
+  // In-app amount keypad keys (QuoteView.getKeypadKey on Android).
+  ...[...'0123456789'].map((digit) => `keypad-key-${digit}`),
+  'keypad-key-dot',
 ].filter((value): value is string => typeof value === 'string');
 
 test.describe(scenario.tags.join(' '), () => {

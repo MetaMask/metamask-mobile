@@ -8,11 +8,11 @@ Platforms: Android
 
 1. Secret: Log in to the wallet
 2. Tap the Swap button on the wallet home
-3. Expect: the swap screen with the source amount input is visible
+3. Expect: the swap screen with the source amount input is visible [check: testID=source-token-area-input]
 4. Select USDC on Ethereum as the destination token
 5. Enter 0.01 as the source amount
 6. Dismiss the amount keypad
-7. Expect: a quote with a positive destination amount is displayed
+7. Expect: a quote with a positive destination amount is displayed [check: testID=dest-token-area-input text=/^\s*\+?(?:\d*[1-9]|\d*\.\d*[1-9])/]
 
 ## Timers
 

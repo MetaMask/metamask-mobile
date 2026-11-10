@@ -1,0 +1,107 @@
+{
+  "Tap the Swap button on the wallet home": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "wallet-swap-button"
+      }
+    }
+  ],
+  "Select USDC on Ethereum as the destination token": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "dest-token-area"
+      }
+    },
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "asset-0x1-USDC"
+      }
+    },
+    {
+      "type": "expect",
+      "locator": {
+        "strategy": "text",
+        "value": "USDC"
+      },
+      "proof": true
+    }
+  ],
+  "Enter 0.01 as the source amount": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "source-token-area-input"
+      }
+    },
+    {
+      "type": "type",
+      "locator": {
+        "strategy": "testID",
+        "value": "source-token-area-input"
+      },
+      "text": "0.01",
+      "method": {
+        "input": "keypad",
+        "pace": "burst",
+        "keys": {
+          "0": {
+            "locator": {
+              "strategy": "testID",
+              "value": "keypad-key-0"
+            },
+            "center": {
+              "x": 504,
+              "y": 2046
+            }
+          },
+          "1": {
+            "locator": {
+              "strategy": "testID",
+              "value": "keypad-key-1"
+            },
+            "center": {
+              "x": 185,
+              "y": 1641
+            }
+          },
+          ".": {
+            "locator": {
+              "strategy": "testID",
+              "value": "keypad-key-dot"
+            },
+            "center": {
+              "x": 185,
+              "y": 2046
+            }
+          }
+        },
+        "deleteKey": {
+          "locator": {
+            "strategy": "testID",
+            "value": "keypad-delete-button"
+          },
+          "center": {
+            "x": 824,
+            "y": 2046
+          }
+        }
+      }
+    }
+  ],
+  "Dismiss the amount keypad": [
+    {
+      "type": "dismissKeyboard",
+      "locator": {
+        "strategy": "testID",
+        "value": "quote-keypad-dismiss-target"
+      }
+    }
+  ]
+}

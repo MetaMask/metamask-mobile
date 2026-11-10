@@ -2,12 +2,12 @@ import { ProviderName, Platform } from './framework/types';
 import { defineConfig } from './framework/config';
 
 /**
- * Opt-in config for step-based scenario PoCs (`*.scenario.spec.ts`).
+ * Config for agent-driven Markdown scenarios (`*.scenario.spec.ts`).
  *
- * No workflow or HyperExecute script references this file, and the other
- * performance configs grep `/@Performance\b/`, which `@PerformanceShadow`
- * does not match. Scenario specs therefore only run when this config is
- * passed explicitly. See tests/performance/login/scenarios/README.md.
+ * The other performance configs grep `/@Performance\b/`, which
+ * `@PerformanceShadow` does not match, so scenarios only run through this
+ * config. CI reaches it through hyperexecute-run-performance-test.sh when a
+ * run selects @PerformanceShadow. See tests/performance/login/scenarios/README.md.
  */
 export default defineConfig({
   testDir: './',
@@ -47,6 +47,7 @@ export default defineConfig({
     },
     {
       name: 'scenario-shadow-testmu-android',
+      testMatch: '**/performance/login/scenarios/*.scenario.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -58,6 +59,49 @@ export default defineConfig({
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
           buildPath: process.env.TESTMU_ANDROID_APP_URL,
+        },
+      },
+    },
+    // Same app and env fallbacks as testmu-android-onboarding(-seedless) in
+    // playwright.testmu.config.ts.
+    {
+      name: 'scenario-shadow-testmu-android-onboarding',
+      testMatch: '**/performance/onboarding/scenarios/*.scenario.spec.ts',
+      testIgnore:
+        '**/performance/onboarding/scenarios/seedless-*.scenario.spec.ts',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.TESTMU,
+          name: process.env.TESTMU_DEVICE || 'Pixel 8 Pro',
+          osVersion: process.env.TESTMU_OS_VERSION || '14',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath:
+            process.env.TESTMU_ANDROID_ONBOARDING_PERF_APP_URL ??
+            process.env.TESTMU_ANDROID_CLEAN_APP_URL,
+        },
+      },
+    },
+    {
+      name: 'scenario-shadow-testmu-android-onboarding-seedless',
+      testMatch:
+        '**/performance/onboarding/scenarios/seedless-*.scenario.spec.ts',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.TESTMU,
+          name: process.env.TESTMU_DEVICE || 'Pixel 8 Pro',
+          osVersion: process.env.TESTMU_OS_VERSION || '14',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath:
+            process.env.TESTMU_ANDROID_SEEDLESS_PERF_APP_URL ??
+            process.env.TESTMU_ANDROID_CLEAN_APP_URL,
         },
       },
     },

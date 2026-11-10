@@ -1,0 +1,42 @@
+{
+  "Tap the Predictions section header on the wallet home (testID homepage-section-title-predictions; scroll down to find it)": [
+    {
+      "type": "swipe",
+      "direction": "up"
+    },
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "homepage-section-title-predictions"
+      }
+    }
+  ],
+  "Tap the Politics category tile on the Predict home (testID predict-home-categories-tile-politics; scroll down to find it)": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "predict-home-categories-tile-politics"
+      }
+    }
+  ],
+  "Tap market card 1 in the feed (testID predict-feed-view-market-card-1)": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "predict-feed-view-market-card-1"
+      }
+    }
+  ],
+  "Tap the About tab (testID predict-market-details-tab-bar-tab-about)": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "predict-market-details-tab-bar-tab-about"
+      }
+    }
+  ]
+}
