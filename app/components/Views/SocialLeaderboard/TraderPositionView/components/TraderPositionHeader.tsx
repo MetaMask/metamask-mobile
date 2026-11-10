@@ -9,6 +9,8 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import ShareButtonSpinner from '../../components/ShareButtonSpinner';
+import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 
 export interface TraderPositionHeaderProps {
@@ -19,6 +21,8 @@ export interface TraderPositionHeaderProps {
   onBack: () => void;
   onTraderPress: () => void;
   onShare?: () => void;
+  /** Shows a spinner in place of the share button while the link is made. */
+  isSharing?: boolean;
   backButtonTestID: string;
   shareButtonTestID?: string;
   traderNameTestID: string;
@@ -32,6 +36,7 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
   onBack,
   onTraderPress,
   onShare,
+  isSharing = false,
   backButtonTestID,
   shareButtonTestID,
   traderNameTestID,
@@ -60,7 +65,11 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
       testID={traderNameTestID}
     />
     <Box twClassName="w-10" alignItems={BoxAlignItems.End}>
-      {onShare ? (
+      {onShare && isSharing ? (
+        <ShareButtonSpinner
+          testID={TraderPositionViewSelectorsIDs.SHARE_SPINNER}
+        />
+      ) : onShare ? (
         <ButtonIcon
           iconName={IconName.Share}
           size={ButtonIconSize.Md}
