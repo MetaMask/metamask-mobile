@@ -418,7 +418,7 @@ function trimTrailingSlashes(url: string): string {
  */
 const BUSY_READ_RETRY_MAX_SECONDS = 5;
 
-/** Least jitter, and all of it when `Retry-After` is missing or 0. */
+/** Jitter for a `429`, and the least for a `503` or a missing `Retry-After`. */
 const BUSY_RETRY_JITTER_MS = 1000;
 
 /** 0..maxMs inclusive. Jitter only, not a secret. */
@@ -429,14 +429,23 @@ function busyRetryJitterMs(maxMs: number): number {
 }
 
 /**
- * Wait for a busy refusal: the `Retry-After`, plus up to that much again as
- * jitter, so a shed wave comes back spread over a whole window. `undefined`
- * means the header was missing: jitter alone, so a registration the server
- * shed with no `Retry-After` still waits before its one retry.
+ * Wait for a busy refusal: the `Retry-After` plus jitter. A `503` shed hits
+ * many users at once, so its jitter is up to the `Retry-After` again (at
+ * least 1 second) to spread the wave. A `429` budget is per profile, so its
+ * jitter stays at up to 1 second. `undefined` means the header was missing:
+ * up to 1 second alone, so a registration the server shed with no
+ * `Retry-After` still waits before its one retry.
  */
-export function busyRetryDelayMs(waitSeconds: number | undefined): number {
+export function busyRetryDelayMs(
+  waitSeconds: number | undefined,
+  status: number,
+): number {
   const baseMs = waitSeconds === undefined ? 0 : waitSeconds * 1000;
-  return baseMs + busyRetryJitterMs(Math.max(baseMs, BUSY_RETRY_JITTER_MS));
+  const maxJitterMs =
+    status === 503
+      ? Math.max(baseMs, BUSY_RETRY_JITTER_MS)
+      : BUSY_RETRY_JITTER_MS;
+  return baseMs + busyRetryJitterMs(maxJitterMs);
 }
 
 function delay(ms: number): Promise<void> {
@@ -807,7 +816,7 @@ export class RewardsMoneyDataService {
       const withinCap =
         waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
       if (isServerBusyBody(bodyText) && withinCap) {
-        await delay(busyRetryDelayMs(waitSeconds));
+        await delay(busyRetryDelayMs(waitSeconds, response.status));
         response = await send();
       } else {
         throw new RewardsMoneyHttpError(
@@ -1008,7 +1017,7 @@ export class RewardsMoneyDataService {
       const withinCap =
         waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
       if (isServerBusyBody(busyBody) && withinCap) {
-        await delay(busyRetryDelayMs(waitSeconds));
+        await delay(busyRetryDelayMs(waitSeconds, response.status));
         response = await send();
       } else {
         throw new RewardsMoneyClaimRefusalError(
@@ -1117,7 +1126,7 @@ export class RewardsMoneyDataService {
       const withinCap =
         waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
       if (taxErrorCode(busyBody) === 'SERVER_BUSY' && withinCap) {
-        await delay(busyRetryDelayMs(waitSeconds));
+        await delay(busyRetryDelayMs(waitSeconds, response.status));
         response = await send();
       } else {
         throw new RewardsMoneyTaxError(
@@ -1179,7 +1188,7 @@ export class RewardsMoneyDataService {
     if (waitSeconds === undefined) {
       return response;
     }
-    await delay(busyRetryDelayMs(waitSeconds));
+    await delay(busyRetryDelayMs(waitSeconds, response.status));
     const retried = await request();
     this.#retriedResponses.add(retried);
     return retried;

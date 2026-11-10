@@ -89,7 +89,38 @@ describe('useOneShotBusyRefetch', () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('spreads the wait over up to one more Retry-After of jitter', () => {
+  it('keeps a 429 refetch within Retry-After plus 1 second', () => {
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 2000;
+        }
+        return array;
+      });
+    const refetch = jest.fn();
+    const { result } = renderHook(() => useOneShotBusyRefetch());
+
+    act(() => {
+      result.current.arm(
+        new RewardsMoneyHttpError('limited', 429, undefined, 2),
+        refetch,
+      );
+    });
+    act(() => {
+      jest.advanceTimersByTime(2998);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('spreads a 503 wait over up to one more Retry-After of jitter', () => {
     jest
       .spyOn(globalThis.crypto, 'getRandomValues')
       .mockImplementation((array) => {

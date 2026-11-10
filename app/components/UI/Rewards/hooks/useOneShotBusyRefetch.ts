@@ -33,9 +33,9 @@ export function willBusyRefetch(
 
 /**
  * Schedules one refetch for a busy read that {@link willBusyRefetch} accepts.
- * The wait is the `Retry-After` plus up to that much again as jitter. A newer
- * fetch, a blur, or unmount cancels it, and the follow-up itself must not arm
- * another.
+ * The wait is the `Retry-After` plus jitter: up to that much again for a
+ * `503`, up to 1 second for a `429`. A newer fetch, a blur, or unmount
+ * cancels it, and the follow-up itself must not arm another.
  *
  * `arm` also refuses while the screen is not focused. Blur alone only clears a
  * timer that already exists; a read that fails after the user left would
@@ -78,10 +78,13 @@ export function useOneShotBusyRefetch(): {
       if (!willBusyRefetch(error)) {
         return;
       }
-      timerRef.current = setTimeout(() => {
-        timerRef.current = null;
-        refetch();
-      }, busyRetryDelayMs(error.retryAfterSeconds));
+      timerRef.current = setTimeout(
+        () => {
+          timerRef.current = null;
+          refetch();
+        },
+        busyRetryDelayMs(error.retryAfterSeconds, error.status),
+      );
     },
     [cancel],
   );

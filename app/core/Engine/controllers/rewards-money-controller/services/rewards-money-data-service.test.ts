@@ -545,7 +545,7 @@ describe('RewardsMoneyDataService', () => {
       }
     });
 
-    it('waits Retry-After plus up to that much again before the busy retry', async () => {
+    it('waits a 503 Retry-After plus up to that much again before the busy retry', async () => {
       jest.useFakeTimers();
       const randomSpy = jest
         .spyOn(globalThis.crypto, 'getRandomValues')
@@ -841,6 +841,63 @@ describe('RewardsMoneyDataService', () => {
       await expect(service.getClaimById('missing')).rejects.toThrow(
         'Get claim by id failed: 404',
       );
+    });
+
+    describe('busy retry jitter', () => {
+      let randomSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        jest.useFakeTimers();
+        randomSpy = jest
+          .spyOn(globalThis.crypto, 'getRandomValues')
+          .mockImplementation((array) => {
+            if (array instanceof Uint32Array) {
+              array[0] = 2000;
+            }
+            return array;
+          });
+      });
+
+      afterEach(() => {
+        randomSpy.mockRestore();
+        jest.useRealTimers();
+      });
+
+      it('keeps a 429 retry within Retry-After plus 1 second', async () => {
+        mockFetch
+          .mockResolvedValueOnce(
+            httpError(
+              429,
+              { statusCode: 429, reason: 'RATE_LIMITED' },
+              { 'retry-after': '2' },
+            ),
+          )
+          .mockResolvedValueOnce(okJson({ success: true }));
+
+        const pending = service.getReferralMe();
+        await jest.advanceTimersByTimeAsync(2998);
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        await jest.advanceTimersByTimeAsync(1);
+        await expect(pending).resolves.toEqual({ success: true });
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      });
+
+      it('waits at most 1 second for a 503 with no Retry-After', async () => {
+        mockFetch
+          .mockResolvedValueOnce(
+            httpError(503, { statusCode: 503, reason: 'SERVER_BUSY' }),
+          )
+          .mockResolvedValueOnce(okJson({}));
+
+        const pending = service.registerReferee({ code: 'ABC123' });
+        await jest.advanceTimersByTimeAsync(998);
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        await jest.advanceTimersByTimeAsync(1);
+        await expect(pending).resolves.toBeUndefined();
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      });
     });
   });
 
