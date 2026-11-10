@@ -118,7 +118,7 @@ describe('usePositionSheetData', () => {
         baseData({
           historicalPrices: prices,
           currentPrice: 120,
-          tradeActions: ['sold'],
+          tradeActions: ['closed'],
         }),
       );
 
@@ -127,7 +127,7 @@ describe('usePositionSheetData', () => {
           trades: [
             buildTrade({
               intent: 'exit',
-              action: 'sold',
+              action: 'closed',
               timestamp: NOW_MS - 2 * HOUR_MS,
             }),
           ],
@@ -262,7 +262,7 @@ describe('usePositionSheetData', () => {
       expect(result.current.perpTradeSymbol).toBe('BTC');
       expect(result.current.summaryTitle).toBe('2 BTC');
       expect(result.current.summaryTagLabel).toBe('40x Short');
-      expect(result.current.summarySubtitle).toBe('Opened · 2 hr ago');
+      expect(result.current.summarySubtitle).toBe('2 hr ago');
       expect(result.current.markers[0].actionLabel).toBe('Opened');
       expect(result.current.markers[0].valueLabel).toBe('+$107,469.00');
       expect(result.current.markers[0].isValuePositive).toBe(true);
