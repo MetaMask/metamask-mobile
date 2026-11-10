@@ -198,7 +198,10 @@ const OnboardingNavigator: React.FC = () => {
     isDeeplinkToComplete,
   ]);
 
-  if ((isLoading || isFetchingUserData) && !user) {
+  // Only a Baanx resume has user data to wait for. Holding the stack back on a
+  // fresh Card mount (Immersve from Money home) lets the navigator's own mount
+  // effect overwrite the KYC webview push.
+  if (onboardingId && !user && (isLoading || isFetchingUserData)) {
     return (
       <Box twClassName="flex-1 items-center justify-center">
         <ActivityIndicator testID="activity-indicator" size="large" />
