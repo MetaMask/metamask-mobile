@@ -3,7 +3,7 @@ import { buildTraderFeedQueryKey } from '../../../Views/SocialLeaderboard/FeedVi
 import { FEED_CAIP2_CHAINS } from './feed-constants';
 import {
   FEED_PAGE_LIMIT,
-  FOLLOWING_FEED_QUERY_KEY_PREFIX,
+  FOLLOWING_FEED_QUERY_KEY_PREFIXES,
   SOCIAL_FEED_INFINITE_QUERY_KIND,
   buildSocialFeedQueryKey,
   fetchSocialFeedPage,
@@ -78,24 +78,27 @@ describe('socialFeedQueries', () => {
     });
   });
 
-  describe('FOLLOWING_FEED_QUERY_KEY_PREFIX', () => {
-    it('matches the following feed at every page size', () => {
-      const keys = [
-        feedQueryKeyFor('following'),
-        feedQueryKeyFor('following', 3),
-      ];
-
-      const matches = keys.map((key) =>
-        partialMatchKey(key, FOLLOWING_FEED_QUERY_KEY_PREFIX),
+  describe('FOLLOWING_FEED_QUERY_KEY_PREFIXES', () => {
+    const matchesAnyPrefix = (key: readonly unknown[]) =>
+      FOLLOWING_FEED_QUERY_KEY_PREFIXES.some((prefix) =>
+        partialMatchKey(key, prefix),
       );
 
-      expect(matches).toStrictEqual([true, true]);
-    });
+    it.each(['following', 'following_v1'] as const)(
+      'matches the %s feed at every page size',
+      (scope) => {
+        const keys = [feedQueryKeyFor(scope), feedQueryKeyFor(scope, 3)];
+
+        const matches = keys.map(matchesAnyPrefix);
+
+        expect(matches).toStrictEqual([true, true]);
+      },
+    );
 
     it("matches V0's following feed key", () => {
       const key = buildTraderFeedQueryKey('following');
 
-      const matches = partialMatchKey(key, FOLLOWING_FEED_QUERY_KEY_PREFIX);
+      const matches = matchesAnyPrefix(key);
 
       expect(matches).toBe(true);
     });
@@ -105,7 +108,7 @@ describe('socialFeedQueries', () => {
       (scope) => {
         const key = feedQueryKeyFor(scope);
 
-        const matches = partialMatchKey(key, FOLLOWING_FEED_QUERY_KEY_PREFIX);
+        const matches = matchesAnyPrefix(key);
 
         expect(matches).toBe(false);
       },
@@ -114,18 +117,22 @@ describe('socialFeedQueries', () => {
     it('does not match a trader feed', () => {
       const key = buildSocialFeedQueryKey(traderRequest, FEED_PAGE_LIMIT);
 
-      const matches = partialMatchKey(key, FOLLOWING_FEED_QUERY_KEY_PREFIX);
+      const matches = matchesAnyPrefix(key);
 
       expect(matches).toBe(false);
     });
   });
 
   describe('invalidateFollowingFeed', () => {
-    it('invalidates every following feed query', async () => {
+    it('invalidates both following feeds', async () => {
       await invalidateFollowingFeed();
 
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: FOLLOWING_FEED_QUERY_KEY_PREFIX,
+        queryKey: ['SocialService:fetchFeed', { scope: 'following' }],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFeed', { scope: 'following_v1' }],
       });
     });
   });
@@ -167,6 +174,22 @@ describe('socialFeedQueries', () => {
         limit: FEED_PAGE_LIMIT,
       });
       expect(options.chains).not.toBe(FEED_CAIP2_CHAINS);
+    });
+
+    it('forwards the following_v1 scope as given', async () => {
+      const request = toSocialFeedRequest({ scope: 'following_v1' });
+      if (!request) {
+        throw new Error('expected a request');
+      }
+
+      await fetchSocialFeedPage(request, FEED_PAGE_LIMIT, 'cursor-1');
+
+      expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
+        scope: 'following_v1',
+        chains: [...FEED_CAIP2_CHAINS],
+        limit: FEED_PAGE_LIMIT,
+        olderThan: 'cursor-1',
+      });
     });
   });
 
