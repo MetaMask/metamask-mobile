@@ -64,6 +64,35 @@ function copy(
 }
 
 /**
+ * Whether the Claim press opens `sheet`, and whether it keeps follow-trade
+ * out of the claim. An uncleared determination blocks income. A cleared
+ * renewal only nudges.
+ */
+function claimSheetDecision(
+  taxMe: TaxMeDto,
+  sheet: TaxDocumentationSheet,
+): { open: boolean; blocksClaim: boolean } {
+  const hasSheet = sheet.kind !== 'none';
+  const blocksClaim = hasSheet && taxMe.cleared === false;
+  const renewalNudge =
+    hasSheet && taxMe.state === 'RENEWAL_REQUIRED' && taxMe.cleared === true;
+  return { open: blocksClaim || renewalNudge, blocksClaim };
+}
+
+function buildClaimOptions(
+  omitFollowTrade: boolean,
+  summary: EarningsSummaryDto | undefined,
+): ClaimEarningsOptions | undefined {
+  if (!omitFollowTrade && !summary) {
+    return undefined;
+  }
+  return {
+    ...(omitFollowTrade ? { omitFollowTrade: true } : {}),
+    ...(summary ? { summary } : {}),
+  };
+}
+
+/**
  * Reads `GET /tax/me`, answers the two questions, and mints the form token.
  * Sheets and the Claim press share it. The controller caches the read for
  * five minutes. A read after an answer, the form, or a claim refusal asks
@@ -255,6 +284,21 @@ export function useTaxDocumentation(profileId: string) {
     }
     return Engine.controllerMessenger.call('RewardsMoneyController:getTaxMe');
   }, []);
+
+  /** Clears the submit marker once `tax/me` has moved off its snapshot. */
+  const dropStaleSubmitted = useCallback(
+    async (
+      submitted: TaxFormSubmittedSnapshot | null,
+      taxMe: TaxMeDto,
+    ): Promise<TaxFormSubmittedSnapshot | null> => {
+      if (submitted && !taxFormSubmissionStillWaiting(submitted, taxMe)) {
+        await noteSubmitted(null);
+        return null;
+      }
+      return submitted;
+    },
+    [noteSubmitted],
+  );
 
   const prefetchTaxMe = useCallback(() => {
     void readTaxMe().catch(() => undefined);
@@ -539,6 +583,41 @@ export function useTaxDocumentation(profileId: string) {
     })();
   }, [noteSubmitted, openInfo, readTaxMe, refreshSummary, showTaxMe]);
 
+  const readTaxMeForPress = useCallback(
+    async (force: boolean): Promise<TaxMeDto | null> => {
+      try {
+        return await readTaxMe(force);
+      } catch (error) {
+        if (!(error instanceof RewardsMoneyAuthorizationError)) {
+          showError(copy(localizedText, 'taxErrorToast'));
+        }
+        return null;
+      }
+    },
+    [localizedText, readTaxMe, showError],
+  );
+
+  /**
+   * Opens the sheet this press owes, and returns true when it blocks income.
+   * Income cannot clear while that sheet is up. Submitting follow-trade on
+   * its own comes back tax-required and navigates here again from Earnings,
+   * stacking a second sheet.
+   */
+  const openClaimSheet = useCallback(
+    (taxMe: TaxMeDto, submitted: TaxFormSubmittedSnapshot | null): boolean => {
+      const sheet = taxSheetForClaim(taxMe, submitted);
+      const decision = claimSheetDecision(taxMe, sheet);
+      if (decision.open) {
+        openSheet(sheet);
+      }
+      if (decision.blocksClaim) {
+        blockingSheetOpen.current = true;
+      }
+      return decision.blocksClaim;
+    },
+    [openSheet],
+  );
+
   const onClaimPress = useCallback(
     async (
       summary: EarningsSummaryDto,
@@ -553,27 +632,15 @@ export function useTaxDocumentation(profileId: string) {
           await claim();
           return;
         }
-        let submitted = await readSubmitted();
-        let taxMe: TaxMeDto | null = null;
+        const readBack = await readSubmitted();
         // A tax hold means the cached tax/me may be stale. Taxbit can change
         // the determination without an app POST, and this press has no claim
         // route, so the sheet has to come from a fresh read.
         const heldForTax = incomeHeldForTax(summary);
-        try {
-          taxMe = await readTaxMe(submitted != null || heldForTax);
-        } catch (error) {
-          if (!(error instanceof RewardsMoneyAuthorizationError)) {
-            showError(copy(localizedText, 'taxErrorToast'));
-          }
-        }
-        if (
-          taxMe &&
-          submitted &&
-          !taxFormSubmissionStillWaiting(submitted, taxMe)
-        ) {
-          await noteSubmitted(null);
-          submitted = null;
-        }
+        const taxMe = await readTaxMeForPress(readBack != null || heldForTax);
+        const submitted = taxMe
+          ? await dropStaleSubmitted(readBack, taxMe)
+          : readBack;
         if (taxMe?.reason === 'GATE_OFF') {
           refreshSummary();
         }
@@ -583,33 +650,11 @@ export function useTaxDocumentation(profileId: string) {
           heldForTax && taxMe?.cleared === true
             ? await readFreshSummary()
             : undefined;
-        let omitFollowTrade = false;
-        if (taxMe) {
-          const sheet = taxSheetForClaim(taxMe, submitted);
-          const blocksClaim = sheet.kind !== 'none' && taxMe.cleared === false;
-          const renewalNudge =
-            taxMe.state === 'RENEWAL_REQUIRED' &&
-            taxMe.cleared === true &&
-            sheet.kind !== 'none';
-          if (blocksClaim || renewalNudge) {
-            openSheet(sheet);
-          }
-          // Income cannot clear while this sheet is up. Submitting
-          // follow-trade on its own comes back tax-required and navigates
-          // here again from Earnings, stacking a second sheet.
-          if (blocksClaim) {
-            omitFollowTrade = true;
-            blockingSheetOpen.current = true;
-          }
-        }
-        const claimOptions: ClaimEarningsOptions = {};
-        if (omitFollowTrade) {
-          claimOptions.omitFollowTrade = true;
-        }
-        if (freshSummary) {
-          claimOptions.summary = freshSummary;
-        }
-        if (claimOptions.omitFollowTrade || claimOptions.summary) {
+        const omitFollowTrade = taxMe
+          ? openClaimSheet(taxMe, submitted)
+          : false;
+        const claimOptions = buildClaimOptions(omitFollowTrade, freshSummary);
+        if (claimOptions) {
           await claim(claimOptions);
         } else {
           await claim();
@@ -620,14 +665,12 @@ export function useTaxDocumentation(profileId: string) {
       }
     },
     [
-      localizedText,
-      noteSubmitted,
-      openSheet,
+      dropStaleSubmitted,
+      openClaimSheet,
       readFreshSummary,
       readSubmitted,
-      readTaxMe,
+      readTaxMeForPress,
       refreshSummary,
-      showError,
       taxFlowEnabled,
     ],
   );
@@ -639,16 +682,13 @@ export function useTaxDocumentation(profileId: string) {
     if (!taxFlowEnabled) {
       throw new Error('Tax flow is disabled');
     }
-    let submitted = await readSubmitted();
+    const readBack = await readSubmitted();
     const taxMe = await readTaxMe(true);
-    if (submitted && !taxFormSubmissionStillWaiting(submitted, taxMe)) {
-      await noteSubmitted(null);
-      submitted = null;
-    }
+    const submitted = await dropStaleSubmitted(readBack, taxMe);
     if (!showTaxMe(taxMe, submitted)) {
       throw new Error('Tax determination did not open a sheet');
     }
-  }, [noteSubmitted, readSubmitted, readTaxMe, showTaxMe, taxFlowEnabled]);
+  }, [dropStaleSubmitted, readSubmitted, readTaxMe, showTaxMe, taxFlowEnabled]);
 
   return {
     prefetchTaxMe,
