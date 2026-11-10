@@ -2,12 +2,14 @@ import {
   array,
   boolean,
   is,
+  optional,
   record,
   refine,
   string,
   type,
   unknown,
 } from '@metamask/superstruct';
+import Logger from '../../../../../util/Logger';
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   PREDICT_FEED_KEYS,
@@ -27,11 +29,13 @@ const nonEmptyString = refine(
 
 // Unknown fields are ignored, and unknown actions and Feed keys are dropped
 // below, so the schema accepts any string there. A known field with the wrong
-// shape still rejects the catalog.
+// shape still rejects the catalog, except `categories`: it only drives Home's
+// chip row, so `parseCategories` drops what it can't use instead.
 const venueCatalogSchema = type({
   venueId: nonEmptyString,
   actions: array(string()),
   feeds: record(string(), unknown()),
+  categories: optional(unknown()),
   searchSupported: boolean(),
 });
 
@@ -44,8 +48,48 @@ const invalidCatalog = (reason: string) =>
   });
 
 /**
+ * The Categories whose entry is a Feed key in the parsed `feeds`, in catalog
+ * order, without repeats. Anything else is dropped and logged, never thrown:
+ * a non-string entry, a key that is unknown or not in `feeds`, a repeat, or a
+ * `categories` that is not an array. A missing field is a catalog from before
+ * PRED-1485 and means no Categories.
+ */
+const parseCategories = (
+  value: unknown,
+  feeds: Partial<Record<PredictFeedKey, PredictFeedId>>,
+  venueId: PredictVenueId,
+): PredictFeedKey[] => {
+  if (value === undefined) {
+    return [];
+  }
+  const categories: PredictFeedKey[] = [];
+  const dropped: unknown[] = Array.isArray(value) ? [] : [value];
+  const entries: unknown[] = Array.isArray(value) ? value : [];
+  for (const entry of entries) {
+    const isUsable =
+      typeof entry === 'string' &&
+      Object.prototype.hasOwnProperty.call(feeds, entry) &&
+      !categories.includes(entry as PredictFeedKey);
+    if (isUsable) {
+      categories.push(entry as PredictFeedKey);
+    } else {
+      dropped.push(entry);
+    }
+  }
+  if (dropped.length > 0) {
+    Logger.log(
+      `[PredictNext] Dropped ${dropped.length} Venue catalog ${
+        dropped.length === 1 ? 'Category' : 'Categories'
+      } for ${venueId}`,
+      { dropped },
+    );
+  }
+  return categories;
+};
+
+/**
  * Parses a Venue catalog for `expectedVenueId`. Unknown actions and Feed keys
- * are dropped. Anything structurally wrong, a known Feed key without a Feed
+ * are dropped, and so is a Category whose Feed key was dropped or is absent. Anything structurally wrong, a known Feed key without a Feed
  * ID, or a catalog for another Venue throws `INVALID_RESPONSE`, so a caller
  * that fails closed enables nothing.
  */
@@ -79,6 +123,7 @@ export const parsePredictVenueCatalog = (
     venueId: expectedVenueId,
     actions,
     feeds,
+    categories: parseCategories(value.categories, feeds, expectedVenueId),
     searchSupported: value.searchSupported,
   };
 };

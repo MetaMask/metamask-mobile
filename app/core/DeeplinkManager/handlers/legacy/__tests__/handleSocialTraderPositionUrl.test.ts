@@ -4,7 +4,10 @@ import NavigationService from '../../../../NavigationService';
 import ReactQueryService from '../../../../ReactQueryService';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
-import { isSocialV1Treatment } from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  isSocialV1Treatment,
+  popToSocialTab,
+} from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { ensureSocialTermsAccepted } from '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
 jest.mock(
@@ -41,6 +44,7 @@ jest.mock(
   () => ({
     getFollowTradingHomeRoute: () => 'SocialV0View',
     isSocialV1Treatment: jest.fn(() => false),
+    popToSocialTab: jest.fn(),
   }),
 );
 
@@ -351,5 +355,24 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(mockNavigate).toHaveBeenLastCalledWith(Routes.SOCIAL.V0, undefined, {
       pop: true,
     });
+  });
+
+  it('falls back to social leaderboard on the Social tab for the Social V1 treatment', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+
+    handleSocialTraderPositionUrl({ actionPath: '' });
+
+    expect(popToSocialTab).toHaveBeenCalledWith(NavigationService.navigation);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not fall back to the Social tab when the Social V1 terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
+
+    handleSocialTraderPositionUrl({ actionPath: '' });
+
+    expect(popToSocialTab).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

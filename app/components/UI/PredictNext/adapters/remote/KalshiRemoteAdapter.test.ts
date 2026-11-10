@@ -99,10 +99,12 @@ describe('KalshiRemoteAdapter', () => {
         'nfl-props': 'sports-football-nfl-win-totals',
         'college-football-games': 'sports-football-ncaa-games',
         'college-football-props': 'sports-football-ncaa-win-totals',
+        politics: 'politics-trump',
         'politics-trump': 'politics-trump',
         'politics-congress': 'politics-congress',
         'politics-iran': 'politics-iran',
       },
+      categories: ['sports', 'politics'],
       searchSupported: true,
     });
     expect(Object.values(client).some((fn) => fn.mock.calls.length)).toBe(

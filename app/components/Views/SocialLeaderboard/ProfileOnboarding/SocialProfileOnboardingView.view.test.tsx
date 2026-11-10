@@ -1288,11 +1288,13 @@ describe('SocialProfileOnboardingView', () => {
       ),
     ).toBeOnTheScreen();
 
-    const activitySwitch = within(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH,
-      ),
-    ).getByRole('switch');
+    const activitySwitch = screen.getByRole('switch', {
+      name: strings('social_leaderboard.manage_profile.show_trading_activity'),
+    });
+    expect(activitySwitch).toHaveProp(
+      'testID',
+      SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH,
+    );
     expect(activitySwitch).toHaveProp('value', true);
 
     fireEvent(activitySwitch, 'valueChange', false);

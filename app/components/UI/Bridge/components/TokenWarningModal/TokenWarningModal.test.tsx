@@ -242,6 +242,10 @@ describe('TokenWarningModal', () => {
       mockUseParams.mockReturnValue({
         ...defaultWarningParams,
         warningType: SecurityDataType.Malicious,
+        features: mockFeatures.map((feature) => ({
+          ...feature,
+          type: SecurityDataType.Malicious,
+        })),
       });
     });
 
@@ -321,6 +325,18 @@ describe('TokenWarningModal', () => {
       expect(getByText(strings('bridge.got_it'))).toBeOnTheScreen();
       expect(queryByText(strings('bridge.proceed'))).toBeNull();
       expect(queryByText(strings('bridge.cancel'))).toBeNull();
+    });
+
+    it('does not read quote data, so it can open outside the Bridge providers', () => {
+      mockUseParams.mockReturnValue({
+        ...defaultWarningParams,
+        mode: TokenWarningModalMode.Info,
+      });
+
+      renderModal();
+
+      expect(mockUseBridgeQuoteData).not.toHaveBeenCalled();
+      expect(mockUseBridgeConfirm).not.toHaveBeenCalled();
     });
   });
 

@@ -290,6 +290,9 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
 
 // Mock OnboardingStep
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
@@ -297,7 +300,9 @@ jest.mock('./OnboardingStep', () => {
     title?: unknown;
     description?: unknown;
     formFields?: unknown;
-    actions?: unknown;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     ReactActual.createElement(
       View,
@@ -320,7 +325,7 @@ jest.mock('./OnboardingStep', () => {
       ReactActual.createElement(
         View,
         { testID: 'onboarding-step-actions' },
-        props.actions,
+        mockRenderFooterButtons(props),
       ),
     );
 });
