@@ -17,6 +17,17 @@ const KYC_API_KALSHI_SEGMENTS = ['vendors', 'kalshi', 'enrollment'] as const;
 const DEFAULT_KYC_API_BASE_URL = 'https://kyc-api.uat-api.cx.metamask.io';
 
 /**
+ * POC: opt-in. When set, the A2T comes from MetaMask Auth in one call
+ * (MM JWT + device key + salt), e.g.
+ * https://authentication.uat-api.cx.metamask.io/api/v2/kalshi/token.
+ * When unset, Predict's existing A2T (the one Kalshi demo accepts today).
+ */
+const KALSHI_A2T_URL = process.env.KALSHI_A2T_URL;
+
+/** Refresh the A2T this long before it expires. */
+const A2T_REFRESH_MARGIN_MS = 60_000;
+
+/**
  * Engine imports this module through the KycController init, so it is
  * resolved when a call runs, not when the module loads.
  */
@@ -33,6 +44,47 @@ const getEngine = () => require('../../../../core/Engine').default;
  */
 export const createKalshiAccountAdapter = (): KycVendorAccountAdapter => {
   let client: KalshiOnboardingClient | undefined;
+  let a2t: { token: string; expiresAt: number } | undefined;
+
+  const getA2t = async (): Promise<string> => {
+    const engine = getEngine();
+    if (!KALSHI_A2T_URL) {
+      return engine.controllerMessenger.call('PredictDeviceAuthService:getA2t');
+    }
+    if (a2t && Date.now() < a2t.expiresAt - A2T_REFRESH_MARGIN_MS) {
+      return a2t.token;
+    }
+    const [bearer, deviceKey] = await Promise.all([
+      engine.context.AuthenticationController.getBearerToken(),
+      engine.controllerMessenger.call(
+        'PredictDeviceAuthService:ensureDeviceKey',
+      ),
+    ]);
+    const response = await fetch(KALSHI_A2T_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${bearer}`,
+      },
+      body: JSON.stringify({
+        device_public_key: deviceKey.publicKey,
+        salt: deviceKey.salt,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Kalshi A2T request failed: ${response.status}`);
+    }
+    const body = (await response.json()) as {
+      access_token: string;
+      expires_in: number;
+    };
+    a2t = {
+      token: body.access_token,
+      expiresAt: Date.now() + body.expires_in * 1000,
+    };
+    return a2t.token;
+  };
+
   const getClient = () => {
     client ??= new KalshiOnboardingClient({
       baseUrl: process.env.KYC_API_URL || DEFAULT_KYC_API_BASE_URL,
@@ -40,8 +92,7 @@ export const createKalshiAccountAdapter = (): KycVendorAccountAdapter => {
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         getEngine().context.AuthenticationController.getBearerToken(),
-      getA2t: () =>
-        getEngine().controllerMessenger.call('PredictDeviceAuthService:getA2t'),
+      getA2t,
       getDeviceKey: () =>
         getEngine().controllerMessenger.call(
           'PredictDeviceAuthService:ensureDeviceKey',
@@ -51,7 +102,10 @@ export const createKalshiAccountAdapter = (): KycVendorAccountAdapter => {
           message,
         ),
       invalidateA2t: () => {
-        getEngine().controllerMessenger.call('PredictDeviceAuthService:clear');
+        a2t = undefined;
+        if (!KALSHI_A2T_URL) {
+          getEngine().controllerMessenger.call('PredictDeviceAuthService:clear');
+        }
       },
     });
     return client;
