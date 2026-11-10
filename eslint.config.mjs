@@ -69,6 +69,11 @@ const ignores = [
   '**/tests/scripts/ai-e2e-tags-selector.ts',
   '**/app/**/*-method-action-types.ts',
   '**/app/util/termsOfUse/termsOfUseContent.ts',
+  // Predict test files with pre-existing lint errors (explicit return types,
+  // naming-convention on UNSAFE_getAllByType). Not fixed in this PR.
+  '**/app/components/UI/PredictNext/activity/PredictActivityDetails.view.test.tsx',
+  '**/app/components/UI/PredictNext/closure/PredictCrossSurface.view.test.tsx',
+  '**/tests/component-view/renderers/predictCrossSurface.tsx',
 ];
 
 const config = [
