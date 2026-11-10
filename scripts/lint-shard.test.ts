@@ -180,8 +180,6 @@ function lintFixture(cwd: string): {
   files: string[];
   errorCount: number;
 } {
-  const env = { ...process.env, LINT_FIXTURE: cwd };
-  delete env.NODE_OPTIONS;
   const result = spawnSync(
     process.execPath,
     [
@@ -193,7 +191,11 @@ const files = await listLintFiles(cwd);
 const errorCount = await lintPaths(cwd, files);
 process.stdout.write(JSON.stringify({ files, errorCount }));`,
     ],
-    { env, encoding: 'utf8' },
+    {
+      // Clear Jest's NODE_OPTIONS so the child is a plain Node process.
+      env: { ...process.env, LINT_FIXTURE: cwd, NODE_OPTIONS: '' },
+      encoding: 'utf8',
+    },
   );
   if (result.status !== 0) {
     throw new Error(
