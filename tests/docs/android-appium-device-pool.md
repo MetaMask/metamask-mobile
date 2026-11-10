@@ -1,29 +1,25 @@
 # Android Appium device pool
 
-Android Appium smoke shards boot two emulators in one job (`N=2`) by default
-and run two Playwright workers, matching iOS. The Android matrix uses the same
-per-suite shard counts as iOS (`run-appium-smoke-tests-ios.yml`). Shards and the
-golden snapshot prime job run on the 8 vCPU / 16 GB
-`namespace-profile-metamask-android-e2e-small` runner; the prime job still
-boots one emulator.
+Android Appium smoke shards boot three emulators in one job (`N=3`) by default
+and run three Playwright workers. iOS defaults to `N=2`; matrix shard counts,
+Namespace runner sizes, and the golden snapshot prime job's one-emulator
+topology are unchanged.
 
 `run-appium-e2e-workflow.yml` / `run-appium-smoke-tests-android.yml` default
-`android-device-pool-size` to `2`, so `ci.yml` does not need to override it.
-Every Android smoke suite forwards that input. Set the input to `1` via
-`workflow_dispatch` or a caller `with:` to shrink a suite or all smoke jobs.
-Do not raise it above `2` on the 8x16 runner: a third 5120 MB guest leaves
-too little RAM for the host processes.
+`android-device-pool-size` to `3`, so `ci.yml` does not need to override it.
+Every Android smoke suite forwards that input. Fixture validation stays at one
+emulator and a cold boot. Set the input to `1` (or `2`) via `workflow_dispatch`
+or a caller `with:` to shrink a suite or all smoke jobs.
 
 ## Golden fingerprint strategy
 
-The prime job and all Android Appium shard jobs use the same 4-core, 5120 MB,
-1440x3120 emulator shape. The fingerprint hashes the complete prime argument
-list, including cores, memory, and skin, so changing any of them invalidates
-the golden cache once and prime and shard workflows then agree on the
-replacement cache key. Two guests reserve all 8 vCPUs and 10 GB, which leaves
-about 6 GB for Appium, the Playwright workers, Anvil, and the dapp servers.
-`update-e2e-fixtures.yml` cold-boots one 8-core, 5120 MB guest on the
-16 vCPU / 32 GB `android-e2e` profile.
+The prime job and all Android Appium shard jobs use the same 4-core, 10240 MB,
+1440x3120 emulator shape. The fingerprint already hashes the complete prime
+argument list, including cores, memory, and skin. Moving from 8 cores / 12288 MB
+to 4 cores / 10240 MB intentionally invalidates the golden cache once so N=2
+fits a 16 vCPU / 32 GB runner; prime and shard workflows then agree on the
+replacement cache key. N=3 uses the same per-emulator shape (12 cores reserved
+for emulators alone) — watch RAM/CPU and preemptions if runners stay at 16×32.
 
 Each pooled emulator resumes `e2e_golden` with `-read-only`. Console ports are
 fixed so adb serials and Appium auxiliary ports never overlap:
@@ -68,8 +64,8 @@ There is no golden snapshot on a laptop. Set `ANDROID_EMULATOR_BOOT_MODE=cold`
 (or leave `auto` with no `e2e_golden`) plus:
 
 ```bash
-ANDROID_DEVICE_POOL_SIZE=2 \
-E2E_WORKERS=2 \
+ANDROID_DEVICE_POOL_SIZE=3 \
+E2E_WORKERS=3 \
 ANDROID_EMULATOR_BOOT_MODE=cold \
 ANDROID_AVD_NAME=Pixel_5_Pro_API_34 \
 ANDROID_APK_PATH=build/ci-main-e2e/app-prod-release.apk \
@@ -93,11 +89,11 @@ breaks single-emulator runs too.
 Expected logs include:
 
 1. Golden AVD cache restore and validation.
-2. `Android device pool size=2 workers=2`.
-3. Two `resumed from golden snapshot` messages (or `cold-booted for pool` if
+2. `Android device pool size=3 workers=3`.
+3. Three `resumed from golden snapshot` messages (or `cold-booted for pool` if
    the cache missed).
 4. `Android emulator pool ready in <milliseconds>`.
-5. `Android pool worker 0` / `worker 1` with distinct serials and systemPorts.
+5. `Android pool worker 0` / `worker 1` / `worker 2` with distinct serials and systemPorts.
 
 The APK is installed concurrently on both serials before workers start.
 
@@ -147,15 +143,18 @@ that one server.
 
 ## Measuring impact
 
-For each Android smoke job on the PR vs the same job on `main`:
+Do not reduce shard counts until this data exists for the suites that matter.
+
+For each Android smoke job on the PR vs the same job on `main` (historical N=1):
 
 1. Job wall clock (Actions UI) and Playwright `duration_ms` in the job
    summary.
 2. `Android emulator pool ready in <milliseconds>` — golden resume vs cold.
-3. Namespace peak CPU and RAM. Two 4-core / 5120 MB guests reserve every vCPU
-   on the 8 vCPU / 16 GB profile; exit 137 means the host ran out of RAM.
+3. Namespace peak CPU and RAM. Three 4-core / 10240 MB guests stress a
+   16 vCPU / 32 GB profile more than N=2 did.
 4. Flake rate and retries vs `main`.
 
-N=2 is not 2× throughput: workers share one runner, so overlap is
-partial. CI critical path is still `prime + max(shard)`. Use those numbers
-before collapsing any `total_splits` matrix.
+N=3 is not 3× throughput: workers share one runner, so overlap is
+partial. Expect **wall-clock improvement** on each shard as independent
+specs run in parallel. CI critical path is still `prime + max(shard)`.
+Use those numbers before collapsing any `total_splits` matrix.

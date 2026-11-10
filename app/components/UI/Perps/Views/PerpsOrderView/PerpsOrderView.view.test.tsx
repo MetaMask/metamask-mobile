@@ -125,6 +125,9 @@ const waitForDeferredOrderData = async () => {
   });
 };
 
+// A price or form change after the first validation keeps the CTA disabled
+// for the real ValidationDebounceMs (300ms) plus protocol validation, which a
+// loaded CV shard can stretch past waitFor's 1s default.
 const waitForEnabledPlaceOrderButton = async (
   testId: string = PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
 ) => {
@@ -496,12 +499,9 @@ describe('PerpsOrderView', () => {
       });
       await waitForDeferredOrderData();
       emitEthPrice(stream);
-      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON);
-      await waitFor(() => {
-        expect(
-          screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
-        ).not.toBeDisabled();
-      });
+      await waitForEnabledPlaceOrderButton(
+        PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
       // The separate TP/SL update runs only after pending take-profit is on
       // the form. The place button can enable first; pressing then leaves the
       // in-progress "Order submitted" toast up and never shows the error.
@@ -998,20 +998,10 @@ describe('PerpsOrderView', () => {
         extraRoutes: [marketDetailsRoute],
       });
 
-    const findEnabledSubmitButton = async () => {
-      const submitButton = await screen.findByTestId(
+    const findEnabledSubmitButton = () =>
+      waitForEnabledPlaceOrderButton(
         PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
-      await waitFor(
-        () => {
-          expect(submitButton).not.toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
-      return submitButton;
-    };
 
     it('shows promotional pricing when Core returns a grant fee quote', async () => {
       const calculateFees = Engine.context.PerpsController
@@ -1567,13 +1557,7 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
     emitEthPrice(stream);
 
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-    await waitFor(() => {
-      expect(placeOrderButton).not.toBeDisabled();
-    });
-    fireEvent.press(placeOrderButton);
+    fireEvent.press(await waitForEnabledPlaceOrderButton());
 
     expect(
       await screen.findByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
@@ -1768,11 +1752,7 @@ describe('PerpsOrderView', () => {
         await screen.findByTestId(PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW),
       ).toBeOnTheScreen();
 
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
-        ).not.toBeDisabled(),
-      );
+      await waitForEnabledPlaceOrderButton();
       expect(screen.queryByText(message)).not.toBeOnTheScreen();
       await act(async () => {
         fireEvent.press(
@@ -1916,13 +1896,11 @@ describe('PerpsOrderView', () => {
         }),
       ).toBeOnTheScreen();
 
-      const placeOrderButton = await screen.findByTestId(
-        PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+      fireEvent.press(
+        await waitForEnabledPlaceOrderButton(
+          PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+        ),
       );
-      await waitFor(() => {
-        expect(placeOrderButton).not.toBeDisabled();
-      });
-      fireEvent.press(placeOrderButton);
 
       await waitFor(() => {
         const placeOrders = sizeUnitEvents(
@@ -2132,13 +2110,7 @@ describe('PerpsOrderView', () => {
       await waitForDeferredOrderData();
       emitEthPrice(stream);
 
-      const placeOrderButton = await screen.findByTestId(
-        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-      );
-      await waitFor(() => {
-        expect(placeOrderButton).not.toBeDisabled();
-      });
-      fireEvent.press(placeOrderButton);
+      fireEvent.press(await waitForEnabledPlaceOrderButton());
 
       await waitFor(() => {
         const placeOrders = sizeUnitEvents(
