@@ -65,6 +65,46 @@ describe('useCampaignLeaderboardEntries', () => {
     expect(result.current.visibleEntries).toEqual(entries.slice(0, 20));
   });
 
+  it('shows the configured board when it is wider than the default', () => {
+    const { result } = renderHook(() =>
+      useCampaignLeaderboardEntries({
+        entries,
+        boardSize: 30,
+        userPosition: { rank: 25, neighbors: [{ rank: 24 }, { rank: 25 }] },
+      }),
+    );
+
+    expect(result.current.showSplitView).toBe(false);
+    expect(result.current.visibleEntries).toEqual(entries);
+  });
+
+  it('shortens the top strip for the two ranks just past a wider board', () => {
+    const { result } = renderHook(() =>
+      useCampaignLeaderboardEntries({
+        entries,
+        boardSize: 30,
+        userPosition: { rank: 31, neighbors: [{ rank: 30 }, { rank: 31 }] },
+      }),
+    );
+
+    expect(result.current.showSplitView).toBe(true);
+    expect(result.current.splitViewTopCount).toBe(28);
+    expect(result.current.visibleEntries).toEqual(entries.slice(0, 28));
+  });
+
+  it('keeps a preview limit when the full board is wider', () => {
+    const { result } = renderHook(() =>
+      useCampaignLeaderboardEntries({
+        entries,
+        maxEntries: 5,
+        boardSize: 30,
+      }),
+    );
+
+    expect(result.current.isPreview).toBe(true);
+    expect(result.current.visibleEntries).toEqual(entries.slice(0, 5));
+  });
+
   it('can disable split view with a campaign-specific guard', () => {
     const { result } = renderHook(() =>
       useCampaignLeaderboardEntries({

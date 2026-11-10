@@ -1,10 +1,9 @@
 import { renderHook } from '@testing-library/react-native';
-import { trackVbaEvent } from '../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
+import { trackKycEvent } from '../utils/trackKycEvent';
 import { useTrackKycResultViewed } from './useTrackKycResultViewed';
 
-jest.mock('../../Ramp/Views/VirtualBankAccount/vbaAnalytics', () => ({
-  ...jest.requireActual('../../Ramp/Views/VirtualBankAccount/vbaAnalytics'),
-  trackVbaEvent: jest.fn(),
+jest.mock('../utils/trackKycEvent', () => ({
+  trackKycEvent: jest.fn(),
 }));
 
 describe('useTrackKycResultViewed', () => {
@@ -17,8 +16,8 @@ describe('useTrackKycResultViewed', () => {
     (kycStatus) => {
       renderHook(() => useTrackKycResultViewed(kycStatus));
 
-      expect(trackVbaEvent).toHaveBeenCalledTimes(1);
-      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(trackKycEvent).toHaveBeenCalledTimes(1);
+      const [event, buildProperties] = jest.mocked(trackKycEvent).mock.calls[0];
       expect(event).toMatchObject({ category: 'KYC Result Viewed' });
       expect(buildProperties()).toMatchObject({
         kyc_status: kycStatus,
@@ -32,6 +31,6 @@ describe('useTrackKycResultViewed', () => {
 
     rerender({});
 
-    expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+    expect(trackKycEvent).toHaveBeenCalledTimes(1);
   });
 });
