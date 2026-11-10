@@ -411,7 +411,7 @@ const MyProfileView: React.FC = () => {
     posts: fetchedPosts,
     isLoading: isPostsLoading,
     isFetchingNextPage,
-    hasNextPage,
+    hasNextPage: hasNextFetchedPage,
     loadMore,
     error: postsError,
     refresh: refreshPosts,
@@ -433,6 +433,7 @@ const MyProfileView: React.FC = () => {
   });
   // Disabled queries still return cached data, e.g. from an earlier visit.
   const posts = isContentHidden ? NO_POSTS : fetchedPosts;
+  const hasNextPage = !isContentHidden && hasNextFetchedPage;
   const openPositions = isContentHidden ? NO_POSITIONS : fetchedOpenPositions;
   const closedPositions = isContentHidden
     ? NO_POSITIONS

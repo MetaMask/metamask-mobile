@@ -1438,6 +1438,35 @@ describe('MyProfileView', () => {
       expect(screen.queryByTestId('position-row-ETH')).not.toBeOnTheScreen();
     });
 
+    it('does not page through posts for a filter while the trader privacy loads', () => {
+      const loadMore = jest.fn();
+      mockUseTraderProfile.mockReturnValue({
+        ...foreignTraderProfileResult(),
+        profile: null,
+        isLoading: true,
+      });
+      mockUseMyProfilePosts.mockReturnValue({
+        posts: [mockMyProfilePost()],
+        rows: [],
+        isLoading: false,
+        isFetchingNextPage: false,
+        hasNextPage: true,
+        loadMore,
+        error: null,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+      );
+
+      expect(loadMore).not.toHaveBeenCalled();
+    });
+
     it('refreshes a private trader without refetching their positions or posts', async () => {
       jest.useFakeTimers();
       const refreshLiveProfile = jest.fn().mockResolvedValue(undefined);
