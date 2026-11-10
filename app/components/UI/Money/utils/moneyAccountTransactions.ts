@@ -4,9 +4,11 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { UpdateTransactionPayAmountCall } from '../../../Views/confirmations/types/transactions';
+import { isMatchingPayToken } from '../../../Views/confirmations/utils/transaction-pay';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -18,8 +20,15 @@ import { RootState } from '../../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
+import {
+  selectAccountOverrideByTransactionId,
+  selectTransactionPaymentTokenByTransactionId,
+} from '../../../../selectors/transactionPayController';
+import Logger from '../../../../util/Logger';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { calcTokenValue } from '../../../../util/transactions';
+import { decodeErc20Transfer } from '../../../../util/transactions/erc20-transfer';
 
 const LENS_ABI = [
   'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
@@ -284,6 +293,66 @@ export async function updateMoneyAccountDepositTokenAmount(
 }
 
 /**
+ * Same-chain mUSD is not quoted, so the withdrawn mUSD goes to the recipient.
+ * Other receive tokens are quoted from the money account, so it stays there.
+ */
+function getWithdrawTransferTarget(
+  transactionMeta: TransactionMeta,
+  recipient: Hex,
+  paymentToken?: { address: string; chainId: string },
+): Hex {
+  const { chainId, txParams } = transactionMeta;
+  const isDirect =
+    !paymentToken ||
+    isMatchingPayToken(paymentToken, {
+      address: getMoneyAccountDepositAssetAddress(chainId),
+      chainId,
+    });
+
+  return isDirect ? recipient : (txParams.from as Hex);
+}
+
+/**
+ * Re-points the mUSD transfer of a withdrawal when its receive token changes.
+ * Skips the zero-amount placeholder, since the amount commit sets its target.
+ */
+export function syncMoneyAccountWithdrawTransfer(
+  transactionMeta: TransactionMeta | undefined,
+  paymentToken: { address: string; chainId: string },
+): void {
+  if (
+    !transactionMeta ||
+    !hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    return;
+  }
+
+  const recipient = selectAccountOverrideByTransactionId(
+    ReduxService.store.getState() as RootState,
+    transactionMeta.id,
+  );
+  const transfer = decodeErc20Transfer(
+    transactionMeta.nestedTransactions?.[1]?.data,
+    TransactionType.tokenMethodTransfer,
+  );
+
+  if (!recipient || !transfer || transfer.amount === '0') {
+    return;
+  }
+
+  updateAtomicBatchData({
+    transactionId: transactionMeta.id,
+    transactionIndex: 1,
+    transactionData: buildErc20TransferData(
+      getWithdrawTransferTarget(transactionMeta, recipient, paymentToken),
+      BigInt(transfer.amount),
+    ),
+  }).catch((error) => {
+    Logger.error(error, 'Failed to update Money Account withdraw transfer');
+  });
+}
+
+/**
  * Returns the per-nested-call data updates required when the user changes
  * the withdrawal amount on a Money Account withdraw confirmation.
  *
@@ -311,7 +380,7 @@ export async function updateMoneyAccountWithdrawTokenAmount(
       .toFixed(0),
   );
 
-  const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+  const { withdrawTx } = await buildMoneyAccountWithdrawBatch({
     amount,
     chainId: chainIdHex,
     tellerAddress: vaultConfig.tellerAddress as Hex,
@@ -322,8 +391,17 @@ export async function updateMoneyAccountWithdrawTokenAmount(
   });
 
   const withdrawData = withdrawTx.params.data;
-  const transferData = transferTx.params.data;
-  if (!withdrawData || !transferData) return [];
+  if (!withdrawData) return [];
+
+  // Read after the rate await, since the receive token can change meanwhile.
+  const paymentToken = selectTransactionPaymentTokenByTransactionId(
+    ReduxService.store.getState() as RootState,
+    transactionMeta.id,
+  );
+  const transferData = buildErc20TransferData(
+    getWithdrawTransferTarget(transactionMeta, recipient as Hex, paymentToken),
+    amount,
+  );
 
   return [
     { nestedTransactionIndex: 0, transactionData: withdrawData },
@@ -469,7 +547,7 @@ export type MoneyAccountWithdrawBatchResult = MoneyAccountBatchResult<
  * 1. Calls `getRate` on the accountant contract to get the current vault rate.
  * 2. Converts the asset amount to vault shares.
  * 3. Encodes `withdraw(mUSD, shareAmount, minimumAssets, moneyAccountAddress)` on the teller contract — USDC lands on the money account.
- * 4. Encodes `transfer(recipient, amount)` on the USDC contract — moves the exact requested USDC from the money account to the user's selected EVM account.
+ * 4. Encodes `transfer(recipient, amount)` on the USDC contract — moves the exact requested USDC from the money account to `recipient`.
  *
  * When `amount === 0n` the rate fetch is skipped: the caller is encoding a
  * placeholder batch that MM Pay will re-encode via
@@ -490,7 +568,7 @@ export async function buildMoneyAccountWithdrawBatch({
   accountantAddress: Hex;
   /** Address of the money account — vault sends USDC here first. */
   moneyAccountAddress: Hex;
-  /** Address of the user's selected EVM account — receives the USDC transfer. */
+  /** Receives the USDC transfer. */
   recipient: Hex;
   provider: ethers.providers.Provider;
 }): Promise<MoneyAccountWithdrawBatchResult> {

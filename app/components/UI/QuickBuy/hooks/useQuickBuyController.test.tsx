@@ -115,6 +115,10 @@ jest.mock('../../../../util/theme', () => ({
   useTheme: jest.fn(() => ({ colors: {} })),
 }));
 
+jest.mock('../../Bridge/hooks/useInsufficientNativeReserveError', () => ({
+  useInsufficientNativeReserveError: jest.fn(),
+}));
+
 jest.mock('../../Bridge/hooks/useHasSufficientGas', () => ({
   useHasSufficientGas: jest.fn(),
 }));
