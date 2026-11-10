@@ -21,6 +21,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
@@ -49,13 +50,12 @@ import useEarnOpportunityNavigation, {
 } from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
-import { useMoneyCtaFtueNavigation } from '../../../Money/hooks/useMoneyCtaFtueNavigation';
+import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BUTTON_TYPES,
   EARN_MODULE_ENTRY_POINTS,
   EARN_MODULE_BOTTOM_SHEET_NAMES,
-  EARN_MODULE_REDIRECT_TARGETS,
   EARN_MODULE_STRATEGY_TYPES,
   EARN_MODULE_COMPONENT_NAMES,
 } from '../../constants/earnModuleEvents';
@@ -186,13 +186,7 @@ const EarnStrategySelectionModal = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionModalRoute>();
   const { earnAsset } = params;
-  const { isSplashRedirectNeeded, isOnboardingRedirectNeeded } =
-    useMoneyCtaFtueNavigation();
-  const moneyFtueRedirectTarget = isSplashRedirectNeeded
-    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH
-    : isOnboardingRedirectNeeded
-      ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
-      : undefined;
+  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
   const { navigateToDepositForExperience, resolveEarnDepositNavigationRoute } =
@@ -330,7 +324,7 @@ const EarnStrategySelectionModal = () => {
       is_fee_subsidized: selectedStrategy.isFeeSubsidized,
       redirect_target: getSelectedEarnStrategyRedirectTarget(
         selectedStrategy,
-        moneyFtueRedirectTarget,
+        moneyEntryContext,
         pendingEarnDepositRouteRef.current,
       ),
     });
@@ -341,7 +335,7 @@ const EarnStrategySelectionModal = () => {
     earnAsset,
     handleGetStartedAfterClose,
     handleNavigationError,
-    moneyFtueRedirectTarget,
+    moneyEntryContext,
     params.analyticsContext?.asset_position,
     params.analyticsContext?.assets_in_list,
     resolveEarnDepositNavigationRoute,

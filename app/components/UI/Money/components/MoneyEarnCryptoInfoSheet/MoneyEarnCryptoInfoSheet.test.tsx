@@ -7,7 +7,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+import {
+  BOTTOM_SHEET_NAMES,
+  MONEY_BUTTON_INTENTS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 
 const mockTrackBottomSheetViewed = jest.fn();
@@ -115,8 +119,14 @@ describe('MoneyEarnCryptoInfoSheet', () => {
       trackButtonClicked: mockTrackButtonClicked,
     });
     jest.mocked(useMoneyNavigation).mockReturnValue({
-      isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: mockNavigateToMoneyHome,
+      navigateToMoneyHomeFromCta: mockNavigateToMoneyHome,
+    });
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      track?.({
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
     });
     (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: 4,

@@ -10,12 +10,10 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
-import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyCtaFtueNavigation } from './useMoneyCtaFtueNavigation';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
+import { useMoneyCtaDepositNavigation } from './useMoneyNavigation';
 import { useMoneyTokenListCta } from './useMoneyTokenListCta';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -26,18 +24,17 @@ jest.mock('./useMoneyAccount');
 jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
-jest.mock('./useMoneyCtaFtueNavigation');
+jest.mock('./useMoneyNavigation');
 
 const mockInitiateDeposit = jest.fn();
-const mockRedirectToCtaFtueIfNeeded = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockShouldShowMoneyTokenListItemCta = jest.fn();
 
-const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
-const mockUseMoneyCtaFtueNavigation = jest.mocked(useMoneyCtaFtueNavigation);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
 
 const asset = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -55,11 +52,19 @@ describe('useMoneyTokenListCta', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockRedirectToCtaFtueIfNeeded.mockReturnValue(false);
     mockShouldShowMoneyTokenListItemCta.mockReturnValue(true);
-    mockUseMoneyAccountDeposit.mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
+    mockUseMoneyDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
+    mockNavigateToMoneyDeposit.mockImplementation(
+      async ({ track, ...options }) => {
+        track?.({
+          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        });
+        await mockInitiateDeposit(options);
+      },
+    );
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4,
     } as ReturnType<typeof useMoneyVaultApy>);
@@ -71,15 +76,6 @@ describe('useMoneyTokenListCta', () => {
       shouldShowMoneyAssetOverviewFooterCta: jest.fn(),
       shouldShowMoneyTokenListItemCta: mockShouldShowMoneyTokenListItemCta,
       shouldShowMoneyEarnBanner: jest.fn(),
-    });
-    mockUseMoneyCtaFtueNavigation.mockReturnValue({
-      isSplashRedirectNeeded: true,
-      isOnboardingRedirectNeeded: false,
-      isCtaFtueRedirectNeeded: true,
-      ctaFtueRedirectTarget: SCREEN_NAMES.MONEY_SPLASH,
-      ctaFtueButtonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
-      redirectToCtaFtueIfNeeded: mockRedirectToCtaFtueIfNeeded,
-      navigateToMoneyDepositWithCtaFtue: jest.fn(),
     });
   });
 
@@ -169,35 +165,30 @@ describe('useMoneyTokenListCta', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('redirects new users to the splash without starting deposit', async () => {
-    mockRedirectToCtaFtueIfNeeded.mockReturnValue(true);
+  it('redirects new users to onboarding without starting deposit', async () => {
+    mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+      track?.({
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+    });
     const { result } = renderHook(() =>
       useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
     );
-    const preferredPaymentToken = {
-      address: toHex(asset.address),
-      chainId: asset.chainId,
-    };
 
     await act(async () => {
       await result.current.tokenListItemCta?.onPress(asset, tokenContext);
     });
 
-    expect(mockRedirectToCtaFtueIfNeeded).toHaveBeenCalledWith({
-      postOnboardingRedirect: {
-        type: MoneyPostOnboardingRedirectType.DEPOSIT,
-        preferredPaymentToken,
-      },
-    });
     expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
       label_en: strings('money.token_list_cta.get_apy', {
         apy: 4,
         locale: 'en',
       }),
       label_localized: strings('money.token_list_cta.get_apy', { apy: 4 }),
-      redirect_target: SCREEN_NAMES.MONEY_SPLASH,
+      redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
       token_symbol: asset.symbol,
       token_position_in_list: tokenContext.tokenPositionInList,
       token_chain_id: asset.chainId,
@@ -235,7 +226,10 @@ describe('useMoneyTokenListCta', () => {
       tokens_in_list: tokenContext.tokensInList,
       token_has_balance: true,
     });
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({ preferredPaymentToken });
+    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+      preferredPaymentToken,
+      track: expect.any(Function),
+    });
   });
 
   it('tracks zero raw balance for the token-list CTA', async () => {

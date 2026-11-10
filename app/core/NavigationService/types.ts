@@ -96,7 +96,10 @@ import type {
   MoneyModalsNavigationParamList,
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
-import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
+import type {
+  VbaOnboardingParamList,
+  VbaOnboardingRootParams,
+} from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -579,7 +582,10 @@ export type RootStackParamList = {
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-  RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
+  RampVbaOnboarding:
+    | (NavigatorScreenParams<VbaOnboardingParamList> & VbaOnboardingRootParams)
+    | VbaOnboardingRootParams
+    | undefined;
   RampVbaDetails: undefined;
 
   // Deposit routes

@@ -8,16 +8,13 @@ import type { TokenListItemCta } from '../../Tokens/TokenList/TokenListItem/Toke
 import { strings } from '../../../../../locales/i18n';
 import {
   COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
-import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyCtaFtueNavigation } from './useMoneyCtaFtueNavigation';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
+import { useMoneyCtaDepositNavigation } from './useMoneyNavigation';
 
 const TOKEN_LIST_CTA_LABEL_KEY = 'money.token_list_cta.get_apy';
 
@@ -29,12 +26,7 @@ const TOKEN_LIST_CTA_LABEL_KEY = 'money.token_list_cta.get_apy';
  */
 export const useMoneyTokenListCta = (screenName: SCREEN_NAMES) => {
   const { shouldShowMoneyTokenListItemCta } = useMoneyCtaVisibility();
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const {
-    redirectToCtaFtueIfNeeded,
-    ctaFtueButtonIntent,
-    ctaFtueRedirectTarget,
-  } = useMoneyCtaFtueNavigation();
+  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const { apyPercent } = useMoneyVaultApy();
   const { trackTokenButtonClicked } = useMoneyAnalytics({
     screen_name: screenName,
@@ -76,41 +68,28 @@ export const useMoneyTokenListCta = (screenName: SCREEN_NAMES) => {
         return;
       }
 
+      const tokenChainId = asset.chainId;
       const preferredPaymentToken = {
         address: toHex(asset.address),
-        chainId: toHex(asset.chainId),
+        chainId: toHex(tokenChainId),
       };
-      const redirectedToFtue = redirectToCtaFtueIfNeeded({
-        postOnboardingRedirect: {
-          type: MoneyPostOnboardingRedirectType.DEPOSIT,
-          preferredPaymentToken,
-        },
-      });
-
-      trackTokenButtonClicked({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: redirectedToFtue
-          ? ctaFtueButtonIntent
-          : MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_en: englishLabel,
-        label_localized: localizedLabel,
-        redirect_target: redirectedToFtue
-          ? (ctaFtueRedirectTarget ?? SCREEN_NAMES.MONEY_DEPOSIT)
-          : SCREEN_NAMES.MONEY_DEPOSIT,
-        token_symbol: asset.symbol,
-        token_position_in_list: context.tokenPositionInList,
-        token_chain_id: asset.chainId,
-        tokens_in_list: context.tokensInList,
-        token_has_balance: new BigNumber(asset.balance).gt(0),
-      });
-
-      if (redirectedToFtue) {
-        return;
-      }
-
       try {
-        await initiateDeposit({
+        await navigateToMoneyDeposit({
           preferredPaymentToken,
+          track: ({ redirect_target, button_intent }) => {
+            trackTokenButtonClicked({
+              button_type: MONEY_BUTTON_TYPES.TEXT,
+              button_intent,
+              label_en: englishLabel,
+              label_localized: localizedLabel,
+              redirect_target,
+              token_symbol: asset.symbol,
+              token_position_in_list: context.tokenPositionInList,
+              token_chain_id: tokenChainId,
+              tokens_in_list: context.tokensInList,
+              token_has_balance: new BigNumber(asset.balance).gt(0),
+            });
+          },
         });
       } catch (error) {
         Logger.error(
@@ -120,12 +99,9 @@ export const useMoneyTokenListCta = (screenName: SCREEN_NAMES) => {
       }
     },
     [
-      ctaFtueButtonIntent,
-      ctaFtueRedirectTarget,
       englishLabel,
-      initiateDeposit,
       localizedLabel,
-      redirectToCtaFtueIfNeeded,
+      navigateToMoneyDeposit,
       trackTokenButtonClicked,
     ],
   );

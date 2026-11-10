@@ -4,7 +4,6 @@ import {
   getAccountTreeControllerMessenger,
 } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
-import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
 import {
   getDeFiPositionsControllerInitMessenger,
@@ -291,10 +290,6 @@ export const MESSENGER_FACTORIES = {
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: getSmartTransactionsControllerInitMessenger,
-  },
-  NetworkEnablementController: {
-    getMessenger: getNetworkEnablementControllerMessenger,
-    getInitMessenger: noop,
   },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,

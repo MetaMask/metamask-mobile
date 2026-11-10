@@ -789,8 +789,8 @@ describe('PredictFeedScreen', () => {
         PredictHomeTestIds.outcome(propsEvent.id, 'yes'),
       ),
     ).toBeOnTheScreen();
-    expect(within(propsCard).getByText('Sports')).toBeOnTheScreen();
-    expect(within(propsCard).getByText('$1.5M Vol')).toBeOnTheScreen();
+    expect(within(propsCard).queryByText('Sports')).not.toBeOnTheScreen();
+    expect(within(propsCard).getByText('$1.5M')).toBeOnTheScreen();
   });
 
   it('opens the Order flow from a tradeable Outcome row', async () => {

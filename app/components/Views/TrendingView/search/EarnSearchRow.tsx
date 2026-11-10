@@ -3,22 +3,20 @@ import { useSelector } from 'react-redux';
 import EarnMoneyAccountRow from '../feeds/earn/EarnMoneyAccountRow';
 import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
-import { useMoneyCtaFtueNavigation } from '../../../UI/Money/hooks/useMoneyCtaFtueNavigation';
+import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
 import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { useMoneyAnalytics } from '../../../UI/Money/hooks/useMoneyAnalytics';
-import {
-  COMPONENT_NAMES as MONEY_COMPONENT_NAMES,
-  SCREEN_NAMES as MONEY_SCREEN_NAMES,
-} from '../../../UI/Money/constants/moneyEvents';
+import { COMPONENT_NAMES as MONEY_COMPONENT_NAMES } from '../../../UI/Money/constants/moneyEvents';
+import { selectMoneyCtaEntryContext } from '../../../UI/Money/selectors/entry';
+import { getMoneyEntryDecision } from '../../../UI/Money/navigation/moneyEntryDecision';
 import { useEarnAnalytics } from '../../../UI/Earn/hooks/useEarnAnalytics';
 import {
   EARN_MODULE_COMPONENT_NAMES,
   EARN_MODULE_ENTRY_POINTS,
-  EARN_MODULE_REDIRECT_TARGETS,
   EARN_MODULE_SCREEN_NAMES,
 } from '../../../UI/Earn/constants/earnModuleEvents';
 import type { EarnModuleSurfaceLocation } from '../../../UI/Earn/types/earnModuleEvents.types';
@@ -47,18 +45,15 @@ const EarnSearchRow = ({
   position: number;
   resultCount?: number;
 }) => {
-  const {
-    isSplashRedirectNeeded,
-    isOnboardingRedirectNeeded,
-    isCtaFtueRedirectNeeded,
-    navigateToMoneyDepositWithCtaFtue,
-  } = useMoneyCtaFtueNavigation();
+  const { navigateToMoneyHomeFromCta } = useMoneyNavigation();
+  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
+  const { destination: moneyHomeDestination } = getMoneyEntryDecision(
+    'home',
+    moneyEntryContext,
+  );
+  const isMoneyOnboardingRedirectNeeded =
+    moneyHomeDestination === 'onboarding' || moneyHomeDestination === 'splash';
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
-  const moneyFtueRedirectTarget = isSplashRedirectNeeded
-    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH
-    : isOnboardingRedirectNeeded
-      ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
-      : undefined;
   const { trackSurfaceClicked: trackMoneySurfaceClicked } = useMoneyAnalytics({
     component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,
     screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_SEARCH,
@@ -71,14 +66,14 @@ const EarnSearchRow = ({
 
   const handlePress = useCallback(() => {
     if (item.kind === 'money-account') {
-      trackMoneySurfaceClicked({
-        redirect_target: isSplashRedirectNeeded
-          ? MONEY_SCREEN_NAMES.MONEY_SPLASH
-          : isOnboardingRedirectNeeded
-            ? MONEY_SCREEN_NAMES.MONEY_ONBOARDING
-            : MONEY_SCREEN_NAMES.MONEY_DEPOSIT,
+      navigateToMoneyHomeFromCta({
+        pop: false,
+        track: ({ redirect_target }) => {
+          trackMoneySurfaceClicked({
+            redirect_target,
+          });
+        },
       });
-      void navigateToMoneyDepositWithCtaFtue();
       return;
     }
 
@@ -87,7 +82,7 @@ const EarnSearchRow = ({
       ...getEarnModuleAssetProperties(item.asset, position, resultCount),
       redirect_target: getEarnAssetSelectionRedirectTarget(
         item.asset,
-        moneyFtueRedirectTarget,
+        moneyEntryContext,
       ),
     });
     navigateFromEarnAsset(
@@ -101,12 +96,10 @@ const EarnSearchRow = ({
     );
   }, [
     resultCount,
-    isOnboardingRedirectNeeded,
-    isSplashRedirectNeeded,
+    moneyEntryContext,
     item,
-    moneyFtueRedirectTarget,
     navigateFromEarnAsset,
-    navigateToMoneyDepositWithCtaFtue,
+    navigateToMoneyHomeFromCta,
     position,
     trackMoneySurfaceClicked,
     trackSurfaceClicked,
@@ -116,7 +109,7 @@ const EarnSearchRow = ({
     <EarnMoneyAccountRow
       item={item}
       onPress={handlePress}
-      isOnboardingRedirectNeeded={isCtaFtueRedirectNeeded}
+      isOnboardingRedirectNeeded={isMoneyOnboardingRedirectNeeded}
       privacyMode={privacyMode}
     />
   ) : (

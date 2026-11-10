@@ -11,18 +11,15 @@ import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import {
   COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../utils/projections';
-import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyCtaFtueNavigation } from './useMoneyCtaFtueNavigation';
+import { useMoneyCtaDepositNavigation } from './useMoneyNavigation';
 import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -93,12 +90,7 @@ export const useMoneyAssetOverviewCtas = ({
       chainId: asset.chainId,
     });
 
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const {
-    redirectToCtaFtueIfNeeded,
-    ctaFtueButtonIntent,
-    ctaFtueRedirectTarget,
-  } = useMoneyCtaFtueNavigation();
+  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({
     enabled: isBalanceCtaEnabled || isFooterCtaEligible,
   });
@@ -162,50 +154,39 @@ export const useMoneyAssetOverviewCtas = ({
         address: toHex(asset.address),
         chainId: toHex(asset.chainId),
       };
-      const redirectedToFtue = redirectToCtaFtueIfNeeded({
-        postOnboardingRedirect: {
-          type: MoneyPostOnboardingRedirectType.DEPOSIT,
-          preferredPaymentToken,
-        },
-      });
-      const trackingProperties = {
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: redirectedToFtue
-          ? ctaFtueButtonIntent
-          : MONEY_BUTTON_INTENTS.ADD_MONEY,
-        component_name:
-          component === 'footer'
-            ? COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA
-            : COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
-        redirect_target: redirectedToFtue
-          ? (ctaFtueRedirectTarget ?? SCREEN_NAMES.MONEY_DEPOSIT)
-          : SCREEN_NAMES.MONEY_DEPOSIT,
-        token_symbol: asset.symbol ?? '',
-        token_position_in_list: 1,
-        token_chain_id: asset.chainId ?? '',
-        tokens_in_list: 1,
-        token_has_balance: hasBalance,
-      } as const;
-
-      if (component === 'footer') {
-        trackTokenButtonClicked({
-          ...trackingProperties,
-          label_en: footerEnglishLabel ?? label,
-          label_localized: label,
-        });
-      } else {
-        trackTokenButtonClicked({
-          ...trackingProperties,
-          label_key: labelKey,
-        });
-      }
-
-      if (redirectedToFtue) {
-        return;
-      }
-
       try {
-        await initiateDeposit({ preferredPaymentToken });
+        await navigateToMoneyDeposit({
+          preferredPaymentToken,
+          track: ({ redirect_target, button_intent }) => {
+            const trackingProperties = {
+              button_type: MONEY_BUTTON_TYPES.TEXT,
+              button_intent,
+              component_name:
+                component === 'footer'
+                  ? COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA
+                  : COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
+              redirect_target,
+              token_symbol: asset.symbol ?? '',
+              token_position_in_list: 1,
+              token_chain_id: asset.chainId ?? '',
+              tokens_in_list: 1,
+              token_has_balance: hasBalance,
+            } as const;
+
+            if (component === 'footer') {
+              trackTokenButtonClicked({
+                ...trackingProperties,
+                label_en: footerEnglishLabel ?? label,
+                label_localized: label,
+              });
+            } else {
+              trackTokenButtonClicked({
+                ...trackingProperties,
+                label_key: labelKey,
+              });
+            }
+          },
+        });
       } catch (error) {
         Logger.error(
           error as Error,
@@ -217,12 +198,9 @@ export const useMoneyAssetOverviewCtas = ({
       asset.address,
       asset.chainId,
       asset.symbol,
-      ctaFtueButtonIntent,
-      ctaFtueRedirectTarget,
       footerEnglishLabel,
       hasBalance,
-      initiateDeposit,
-      redirectToCtaFtueIfNeeded,
+      navigateToMoneyDeposit,
       trackTokenButtonClicked,
     ],
   );

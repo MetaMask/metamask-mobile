@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Image,
   ImageSourcePropType,
@@ -50,14 +50,12 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
-import { useMoneyCtaFtueNavigation } from '../../hooks/useMoneyCtaFtueNavigation';
+import { useMoneyCtaDepositNavigation } from '../../hooks/useMoneyNavigation';
 import { isPositiveNumber } from '../../utils/number';
 import { MoneyEarnBannerTestIds } from './MoneyEarnBanner.testIds';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   iconContainer: {
@@ -175,12 +173,7 @@ const MoneyEarnBannerContent = ({
 }: MoneyEarnBannerContentProps) => {
   const dispatch = useDispatch();
   const { apyPercent } = useMoneyVaultApy();
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const {
-    redirectToCtaFtueIfNeeded,
-    ctaFtueButtonIntent,
-    ctaFtueRedirectTarget,
-  } = useMoneyCtaFtueNavigation();
+  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const { trackTokenButtonClicked, trackTokenSurfaceClicked } =
     useMoneyAnalytics({
       screen_name: SCREEN_NAMES.ASSET_DETAIL,
@@ -192,83 +185,69 @@ const MoneyEarnBannerContent = ({
   const ctaLabel = strings('money.earn_banner.cta', { symbol });
   const hasBalance = new BigNumber(asset.balance).gt(0);
 
-  const beginAddFunds = useCallback((): boolean => {
-    const preferredPaymentToken = {
+  const preferredPaymentToken = useMemo(
+    () => ({
       address: asset.address as Hex,
       chainId: safeFormatChainIdToHex(asset.chainId as string) as Hex,
-    };
+    }),
+    [asset.address, asset.chainId],
+  );
 
-    const redirectedToFtue = redirectToCtaFtueIfNeeded({
-      postOnboardingRedirect: {
-        type: MoneyPostOnboardingRedirectType.DEPOSIT,
+  const beginAddFunds = useCallback(
+    (
+      track: NonNullable<Parameters<typeof navigateToMoneyDeposit>[0]>['track'],
+    ): void => {
+      navigateToMoneyDeposit({
         preferredPaymentToken,
-      },
-    });
-
-    if (!redirectedToFtue) {
-      initiateDeposit({ preferredPaymentToken }).catch((error) => {
+        track,
+      }).catch((error) => {
         Logger.error(
           error as Error,
           '[MoneyEarnBanner] Failed to initiate Money account deposit',
         );
       });
-    }
-
-    return redirectedToFtue;
-  }, [
-    asset.address,
-    asset.chainId,
-    initiateDeposit,
-    redirectToCtaFtueIfNeeded,
-  ]);
+    },
+    [navigateToMoneyDeposit, preferredPaymentToken],
+  );
 
   const handleBannerPress = useCallback(() => {
-    const redirectedToFtue = beginAddFunds();
-
-    trackTokenSurfaceClicked({
-      redirect_target: redirectedToFtue
-        ? (ctaFtueRedirectTarget ?? SCREEN_NAMES.MONEY_DEPOSIT)
-        : SCREEN_NAMES.MONEY_DEPOSIT,
-      token_symbol: asset.symbol,
-      token_position_in_list: 1,
-      token_chain_id: asset.chainId ?? '',
-      tokens_in_list: 1,
-      token_has_balance: hasBalance,
+    beginAddFunds(({ redirect_target }) => {
+      trackTokenSurfaceClicked({
+        redirect_target,
+        token_symbol: asset.symbol,
+        token_position_in_list: 1,
+        token_chain_id: asset.chainId ?? '',
+        tokens_in_list: 1,
+        token_has_balance: hasBalance,
+      });
     });
   }, [
     asset.chainId,
     asset.symbol,
     beginAddFunds,
-    ctaFtueRedirectTarget,
     hasBalance,
     trackTokenSurfaceClicked,
   ]);
 
   const handleCtaPress = useCallback(() => {
-    const redirectedToFtue = beginAddFunds();
-
-    trackTokenButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: redirectedToFtue
-        ? ctaFtueButtonIntent
-        : MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_en: ctaLabel,
-      label_localized: ctaLabel,
-      redirect_target: redirectedToFtue
-        ? (ctaFtueRedirectTarget ?? SCREEN_NAMES.MONEY_DEPOSIT)
-        : SCREEN_NAMES.MONEY_DEPOSIT,
-      token_symbol: asset.symbol,
-      token_position_in_list: 1,
-      token_chain_id: asset.chainId ?? '',
-      tokens_in_list: 1,
-      token_has_balance: hasBalance,
+    beginAddFunds(({ redirect_target, button_intent }) => {
+      trackTokenButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent,
+        label_en: ctaLabel,
+        label_localized: ctaLabel,
+        redirect_target,
+        token_symbol: asset.symbol,
+        token_position_in_list: 1,
+        token_chain_id: asset.chainId ?? '',
+        tokens_in_list: 1,
+        token_has_balance: hasBalance,
+      });
     });
   }, [
     asset.chainId,
     asset.symbol,
     beginAddFunds,
-    ctaFtueButtonIntent,
-    ctaFtueRedirectTarget,
     ctaLabel,
     hasBalance,
     trackTokenButtonClicked,
