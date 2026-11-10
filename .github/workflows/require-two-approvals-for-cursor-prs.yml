@@ -38,6 +38,7 @@ jobs:
         with:
           script: |
             const requiredAuthorLogin = 'cursor[bot]';
+            const requiredAuthorType = 'Bot';
             const requiredApprovalCount = 2;
 
             if (context.eventName === 'merge_group') {
@@ -51,7 +52,11 @@ jobs:
               return;
             }
 
-            if (pullRequest.user.login.toLowerCase() !== requiredAuthorLogin) {
+            const isRequiredAuthor =
+              pullRequest.user.type === requiredAuthorType &&
+              pullRequest.user.login.toLowerCase() === requiredAuthorLogin;
+
+            if (!isRequiredAuthor) {
               core.info(`Approval gate does not apply to ${pullRequest.user.login}.`);
               return;
             }
