@@ -60,6 +60,7 @@ import { getSocialEventSource } from '../../../Views/SocialLeaderboard/analytics
 import { resolveQuickBuySubmittedTxHash } from '../resolveQuickBuySubmittedTxHash';
 import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { isSpotPostTradeShareEligible } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
@@ -1731,13 +1732,11 @@ export function useQuickBuyController(
       rate: formattedRate,
       isNonEvmSwap,
     };
-    const tradeInFlightChain = caipChainIdToTradeInFlightChain(
-      sourceToken?.chainId
-        ? formatChainIdToCaip(sourceToken.chainId)
-        : target.chain,
-    );
-    const previewChain =
-      caipChainIdToTradeInFlightChain(target.chain) ?? target.chain;
+    // The comment is about the position token: the token bought, or the token
+    // sold. The pay token and the receive token (native or USDC) are not part
+    // of this slug.
+    const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
+    const previewChain = tradeInFlightChain ?? target.chain;
     const sharePreview: SocialPostTradePreview = {
       tokenSymbol: target.tokenSymbol,
       tokenAddress: target.tokenAddress,
@@ -1749,7 +1748,9 @@ export function useQuickBuyController(
     // Public copy-trades always share. Private profiles use the normal
     // Quick Buy toasts instead. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
-    const canPostTradeShare = isSpotPostTradeShareEligible(amountUsdValue);
+    const canPostTradeShare =
+      isSpotPostTradeShareEligible(amountUsdValue) &&
+      !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
     const isForcedPostTradeShare =
       postTradeShare && !isProfileTradingActivityPrivate;
     const shouldForcePostTradeShare =
@@ -1758,7 +1759,7 @@ export function useQuickBuyController(
       ? undefined
       : resolvePostTradePrompt('swap');
     let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
-    if (prompt?.kind === 'claim_sheet') {
+    if (prompt?.kind === 'claim_sheet' && canPostTradeShare) {
       trackedPostTradePrompt = prompt;
     } else if (
       prompt?.kind === 'share_sheet' &&

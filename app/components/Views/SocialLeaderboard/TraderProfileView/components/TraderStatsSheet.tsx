@@ -188,6 +188,7 @@ const TraderStatsSheet: React.FC<TraderStatsSheetProps> = ({
             <TraderAvatar
               imageUrl={profile.profile.imageUrl}
               address={profile.profile.address}
+              profileId={profile.profile.profileId}
               size={SHEET_AVATAR_SIZE}
               recyclingKey={profile.profile.profileId}
               testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}

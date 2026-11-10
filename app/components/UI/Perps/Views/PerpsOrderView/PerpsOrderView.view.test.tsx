@@ -47,6 +47,7 @@ import {
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
+  createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import {
   formatPercentage,
@@ -208,6 +209,21 @@ describe('PerpsOrderView', () => {
         marketData: [ethMarket],
       },
       extraRoutes: [marketDetailsRoute],
+    });
+    // The view clears the pending trade config only after the CUF confirm race
+    // settles. Deliver the fill on the next macrotask so the race resolves from
+    // the positions stream instead of its 1s wall-clock timeout.
+    const filledLong = createLongPositionForViews({
+      size: '0.048',
+      marginUsed: '30',
+      positionValue: '120',
+      leverage: { value: 4, type: 'isolated' },
+    });
+    placeOrder.mockImplementation(async () => {
+      setTimeout(() => {
+        stream.emitPositions([filledLong]);
+      }, 0);
+      return { success: true, orderId: 'component-view-order' };
     });
 
     expect(
@@ -527,6 +543,65 @@ describe('PerpsOrderView', () => {
       ).toBeOnTheScreen();
     },
   );
+
+  it('keeps a long order disabled when take profit is below the current price', async () => {
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    const { stream } = renderPerpsOrderView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              ...eligibleOverrides.engine.backgroundState.PerpsController,
+              tradeConfigurations: {
+                mainnet: {
+                  ETH: {
+                    pendingConfig: {
+                      takeProfitPrice: '2000',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByText(
+        strings('perps.tpsl.take_profit_wrong_side_warning', {
+          direction: strings('perps.tpsl.above'),
+          priceType: 'current',
+        }),
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toBeDisabled();
+
+    fireEvent.press(placeOrderButton);
+
+    expect(placeOrder).not.toHaveBeenCalled();
+  });
 
   it('explains the post-only network-upgrade window when a market order is rejected', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
@@ -1731,11 +1806,9 @@ describe('PerpsOrderView', () => {
       await waitForDeferredOrderData();
       emitEthPrice(stream);
 
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
-        ).not.toBeDisabled(),
-      );
+      // The price re-runs order validation behind its real 300ms debounce, so
+      // the CTA needs the file's async budget rather than waitFor's 1s default.
+      await waitForEnabledPlaceOrderButton();
       expect(
         Engine.context.PerpsController.subscribeToOrderBook,
       ).toHaveBeenCalled();

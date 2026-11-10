@@ -21,11 +21,11 @@ const DEFAULT_OPTIONS = {
  *
  * The live value is the close of the in-progress candle, i.e. the most recent
  * traded price, refreshed every 5s. {@link useOHLCVRealtime} owns the socket:
- * it subscribes to the `market-data.v1` channel, polls the `/latest` REST
+ * it subscribes to the `ohlcv.v1` channel, polls the `/latest` REST
  * endpoint while the stream is stale or the chain is down, and ref-counts the
  * subscription so pricing the same asset twice costs one channel. The Redux
  * rate is only used when neither source can price the token, e.g. an asset the
- * market-data channel does not serve.
+ * OHLCV channel does not serve.
  *
  * `isLoading` is true only while there is no rate yet and the stream's first
  * lookup for the token has not answered. An undefined rate that is not loading
@@ -57,7 +57,7 @@ export const useLiveTokenFiatRateState = (
       );
     } catch {
       // Throws for chains outside XChain Swaps/Bridge support, which have no
-      // market-data channel anyway.
+      // OHLCV channel anyway.
       return '';
     }
   }, [token?.address, token?.chainId]);

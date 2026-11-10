@@ -12,7 +12,6 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 # Patches
 patches/@react-native-clipboard+clipboard+1.16.1.patch      @MetaMask/mobile-platform
 patches/micro-ftch+0.3.1.patch                              @MetaMask/mobile-platform
-patches/react-native-crypto+2.2.1.patch                     @MetaMask/mobile-platform
 patches/react-native-gzip+1.1.0.patch                       @MetaMask/mobile-platform
 patches/react-native-i18n+2.0.15.patch                      @MetaMask/mobile-platform
 patches/react-native-material-textfield+0.16.1.patch        @MetaMask/mobile-platform
@@ -25,6 +24,7 @@ patches/unicode-confusables+0.1.1.patch                     @MetaMask/mobile-pla
 .yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch   @MetaMask/mobile-platform
 .yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch        @MetaMask/mobile-platform
 .yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch           @MetaMask/mobile-platform
+.yarn/patches/react-native-crypto-npm-2.2.1-2210e7481d.patch               @MetaMask/mobile-platform
 .yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch          @MetaMask/mobile-platform
 .yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch     @MetaMask/mobile-platform
 .yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch          @MetaMask/mobile-platform
@@ -88,9 +88,6 @@ scripts/set-secrets-from-config.js                          @MetaMask/mobile-adm
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 .github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
 .github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
-
-# Platform & Snaps Code Fencing File
-metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
 
 # Money Movement Team (formerly Ramps)
 app/components/UI/Ramp/                                @MetaMask/money-movement
@@ -175,6 +172,8 @@ app/components/UI/QuickBuy/                              @MetaMask/swaps-enginee
 **/QuickBuy/**                                           @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
+.github/scripts/swaps/performance-budgets/               @MetaMask/swaps-engineers
+.github/workflows/swaps-performance-budgets.yml          @MetaMask/swaps-engineers
 
 # Engagement Team
 # Braze
@@ -460,6 +459,7 @@ tests/websocket/                                                @MetaMask/qa
 # QA Team - CI
 .github/guidelines/E2E_DECISION_TREE.md                         @MetaMask/qa
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
+.ai-pr-analyzer/modes/smart-e2e/                                @MetaMask/qa
 .github/actions/download-e2e-artifact/                          @MetaMask/qa
 .github/actions/dual-upload-e2e-artifact/                       @MetaMask/qa
 .github/actions/setup-e2e-env/                                  @MetaMask/qa
@@ -492,6 +492,10 @@ app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask
 # Wallet Library initialization
 app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/analytics-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/geolocation-api-service* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/listeners/ @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/messengers/analytics-controller-messenger* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
 app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/gas-fee-controller* @MetaMask/confirmations

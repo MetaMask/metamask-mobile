@@ -1130,6 +1130,7 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Loading",
     "create_virtual_bank_account": {
       "navbar_title": "Bank account",
       "title": "Add funds right from your bank",
@@ -1138,6 +1139,7 @@
       "feature_no_fees_description": "We don’t charge to deposit. Your bank may.",
       "feature_arrives_title": "Arrives in {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Arrives in a few business days",
+      "feature_arrives_title_pix": "Arrives in seconds",
       "feature_arrives_description": "Funds land as soon as your transfer clears.",
       "feature_set_up_title": "Set up once, use anytime",
       "feature_set_up_description": "Save it as a payee in your banking app.",
@@ -1154,66 +1156,10 @@
       "powered_by": "Powered by",
       "button": "Get account details"
     },
-    "verify_identity": {
-      "title": "Verify your identity",
-      "description": "This usually only takes a few minutes. You'll need a valid, government-issued photo ID on hand.",
-      "step_photograph_id": "Photograph your ID",
-      "step_take_selfie": "Take a selfie",
-      "step_confirm_details": "Confirm your details",
-      "step_answer_questions": "Answer a few questions",
-      "footer": "Your information is encrypted and shared securely with our verification providers. You'll review the details before continuing.",
-      "powered_by": "Powered by",
-      "disclaimers_error": "Couldn't load the terms and conditions.",
-      "disclaimers_retry": "Try again",
-      "button": "Continue",
-      "terms_sheet_title": "Data and privacy",
-      "terms_sheet_description": "To verify your identity, your information will be shared securely with the providers below. Review their policies and terms before continuing.",
-      "metamask_privacy_policy": "MetaMask Privacy Policy",
-      "metamask_terms": "MetaMask Terms and Conditions",
-      "terms_sheet_button": "Agree and start verification"
-    },
-    "kyc_email": {
-      "error_title": "Couldn't start verification",
-      "error_description": "Something went wrong opening email verification. Please try again."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "We need a little more info",
-      "more_info_description": "Sometimes we need additional information to complete verification. Review what's needed below to continue.",
-      "more_info_item_title": "Proof of address",
-      "more_info_item_description": "Upload a recent document showing your name and current home address",
-      "more_info_button": "Continue",
-      "more_info_help": "Need help verifying?",
-      "error_title": "Couldn't start verification",
-      "error_description": "Something went wrong opening identity verification. Please try again.",
-      "retry": "Try again"
-    },
-    "kyc_taking_longer": {
-      "title": "Verifying your identity",
-      "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
-      "button": "Come back later"
-    },
-    "identity_verified": {
-      "title": "Identity verified",
-      "description": "Your identity check is complete.",
-      "button": "Continue"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "Waiting for MoonPay to approve your account"
-    },
-    "kyc_rejected": {
-      "title": "We couldn’t verify your identity",
-      "description": "A few details need your attention. Review each item below, then contact support.",
-      "retry_description": "A few details need your attention. Review each item below, then try again.",
-      "identity_document_title": "Check your identity document",
-      "identity_document_description": "Make sure it is valid, clear, and fully visible",
-      "selfie_title": "Retake your selfie",
-      "selfie_description": "Use good lighting and show your face clearly",
-      "details_title": "Review your details",
-      "details_description": "Make sure your information matches your documents",
-      "button": "Contact support",
-      "retry_button": "Try again"
     },
     "account_provisioning_error": {
       "title": "Couldn't create your account",
@@ -1246,8 +1192,7 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Brazilian real",
-        "usd": "US dollar",
-        "eur": "Euro"
+        "usd": "US dollar"
       }
     },
     "vba_details": {
@@ -1271,6 +1216,90 @@
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
       "retry": "Try again"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "Verify your identity",
+      "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
+      "step_indicator": "Step {{current}} of {{total}}",
+      "step_photograph_id": "Photograph your ID",
+      "step_take_selfie": "Take a selfie",
+      "step_confirm_details": "Confirm your details",
+      "step_answer_questions": "Answer a few questions",
+      "partner_title": "We partner with idOS to verify your identity.",
+      "benefit_reuse_title": "Verify once, reuse later.",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.",
+      "benefit_control_title": "You control your data.",
+      "benefit_control_description": "We share your verified identity with a partner only when you agree.",
+      "benefit_delete_title": "Delete anytime.",
+      "benefit_delete_description": "Delete your verified identity any time in Settings.",
+      "agreement": "By continuing, I agree to the MetaMask {{termsOfUse}}, acknowledge the MetaMask {{privacyNotice}} and consent to MetaMask storing and transferring my information to idOS.",
+      "agreement_terms_of_use": "Terms of Use",
+      "agreement_privacy_notice": "Privacy Notice",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
+      "agree_and_continue_button": "Agree and Continue",
+      "learn_more": "Learn more"
+    },
+    "partner_terms": {
+      "title": "Our verification partners",
+      "description": "idOS verifies your identity. idOS engages Sumsub to complete verification.",
+      "section_title": "Terms and privacy",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "I acknowledge that my personal data will be processed as described in the {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Applicable to US residents only: I confirm that I have read the {{privacyNotice}} and give my consent to the processing of my biometric information and biometric identifiers as described in the {{biometricsConsent}}.",
+      "sumsub_notice": "Sumsub Notice of Personal Data Processing",
+      "sumsub_privacy_notice": "Privacy Notice",
+      "sumsub_biometrics_consent": "Sumsub Biometrics Processing Consent",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "idOS Privacy Notice",
+      "agreement": "By tapping Agree and continue, I agree to {{termsAndConditions}}.",
+      "agreement_terms": "idOS Terms and Conditions",
+      "scroll_to_continue_button": "Scroll to continue",
+      "agree_to_consent_above_button": "Agree to consent above",
+      "button": "Agree and continue"
+    },
+    "kyc_email": {
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening email verification. Please try again."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "We need a little more info",
+      "more_info_description": "Sometimes we need additional information to complete verification. Review what's needed below to continue.",
+      "more_info_item_title": "Proof of address",
+      "more_info_item_description": "Upload a recent document showing your name and current home address",
+      "more_info_button": "Continue",
+      "more_info_help": "Need help verifying?",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening identity verification. Please try again.",
+      "retry": "Try again"
+    },
+    "kyc_taking_longer": {
+      "title": "Verifying your identity",
+      "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
+      "button": "Come back later",
+      "description_few_minutes": "Most checks finish in a few minutes. You can come back later. We'll let you know when it's complete.",
+      "done_button": "Done"
+    },
+    "identity_verified": {
+      "title": "Identity verified",
+      "description": "Your identity check is complete.",
+      "button": "Continue"
+    },
+    "kyc_rejected": {
+      "title": "We couldn’t verify your identity",
+      "description": "A few details need your attention. Review each item below, then contact support.",
+      "retry_description": "A few details need your attention. Review each item below, then try again.",
+      "identity_document_title": "Check your identity document",
+      "identity_document_description": "Make sure it is valid, clear, and fully visible",
+      "selfie_title": "Retake your selfie",
+      "selfie_description": "Use good lighting and show your face clearly",
+      "details_title": "Review your details",
+      "details_description": "Make sure your information matches your documents",
+      "button": "Contact support",
+      "retry_button": "Try again"
     }
   },
   "social": {
@@ -1446,6 +1475,8 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
+        "closed": "Closed",
+        "sold": "Sold",
         "opened_ago": "Opened · {{age}}",
         "closed_ago": "Closed · {{age}}",
         "sold_ago": "Sold · {{age}}"
@@ -1453,6 +1484,8 @@
     },
     "translation": {
       "see_translation": "See translation",
+      "see_more": "See more",
+      "see_less": "See less",
       "translating": "Translating...",
       "translated_to_english": "Translated to English",
       "failed": "Couldn't translate.",
@@ -1709,6 +1742,8 @@
       "mutuals_tab": "{{count}} mutuals",
       "win_rate": "Win rate",
       "pnl": "P&L",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Hold time",
       "avg_hold_time": "Avg. hold time",
       "volume": "Volume",
@@ -1725,6 +1760,18 @@
       "section_tokens": "Tokens",
       "section_perpetuals": "Perpetuals",
       "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_section_a11y_one": "Not counted in P&L, 1 position. Learn why",
+      "not_counted_section_a11y_other": "Not counted in P&L, {{count}} positions. Learn why",
+      "not_counted_sheet_title": "Why some positions aren't counted",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "This trader got the token from an allocation before it was public.",
+      "not_counted_sheet_insider_body_owner": "You got the token from an allocation before it was public.",
+      "not_counted_sheet_developer_label": "Contract creator",
+      "not_counted_sheet_developer_body": "This trader deployed the token's contract.",
+      "not_counted_sheet_developer_body_owner": "You deployed the token's contract.",
+      "not_counted_sheet_unsupported_label": "Unsupported token",
+      "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
+      "not_counted_sheet_dismiss": "Got it",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
       "empty_open_tokens": "No open tokens",
@@ -1732,7 +1779,7 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "empty_title": "No posts yet",
-      "joined": "Joined {{time}}",
+      "joined": "Joined {{time}} ago",
       "x_link": "X",
       "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
@@ -1823,6 +1870,7 @@
       "save_error": "Couldn't save changes. Check your connection and try again.",
       "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
       "display_name_unavailable": "This name isn’t available. Try something different.",
+      "linked_account_cooldown": "You can only change your linked account once every {{days}} days.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_too_short": "Use at least {{min}} characters.",
       "username_too_long": "Use at most {{max}} characters.",
@@ -1841,6 +1889,9 @@
       "following": "Following",
       "today": "Today",
       "market_cap_suffix": "(MC)",
+      "price_toggle": "Price",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
       "open_asset_accessibility_hint": "Opens the asset page",
       "open_market_accessibility_hint": "Opens market details",
       "posts_tab": "Posts ({{count}})",
@@ -3769,7 +3820,9 @@
       "game_lines": "Game Lines",
       "outcomes": "Outcomes",
       "view_all_markets": "View all {{count}} markets",
+      "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
       "market_layout": {
+        "markets": "Markets",
         "moneyline": "Moneyline",
         "spread": "Spread",
         "total_points": "Total points",
@@ -3795,6 +3848,9 @@
         "holding": "{{shares}} shares at {{price}}",
         "holding_shares": "{{shares}} shares"
       }
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "Search markets",
@@ -7132,8 +7188,8 @@
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
     "smart_contract_interaction": "Contract interaction",
-    "money_account_deposit": "Deposit to Money Account",
-    "money_account_withdraw": "Transfer from Money Account",
+    "money_account_deposit": "Deposit to Money account",
+    "money_account_withdraw": "Transfer from Money account",
     "swaps_transaction": "Swaps transaction",
     "bridge_transaction": "Bridge",
     "approve": "Approve",
@@ -9728,7 +9784,8 @@
       "add_musd": "Add mUSD",
       "receive_external": "External address",
       "coming_soon": "Coming soon",
-      "new_badge": "New"
+      "new_badge": "New",
+      "no_fees": "No fees"
     },
     "more_sheet": {
       "title": "More",
@@ -10567,7 +10624,7 @@
       "date_created": "Date created",
       "order_type": "Order type",
       "order_type_limit": "Limit",
-      "create_new_order": "Create new order"
+      "duplicate_order": "Duplicate order"
     },
     "recurring": {
       "you_get": "You get",
@@ -11467,6 +11524,7 @@
       "immersve_funding_approval": {
         "title": "Set up card funding",
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "money_account_description": "Approve MetaMask Card to use your Money account for purchases.",
         "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "Approve funding",
         "retry_button": "Try again",
@@ -11860,9 +11918,9 @@
         "confirm_button_label": "Set up funding"
       },
       "money_account_required": {
-        "title": "Set up Money Account",
-        "description": "You need a linked Money Account before redeeming mUSD back.",
-        "confirm_button_label": "Set up Money Account"
+        "title": "Set up Money account",
+        "description": "You need a linked Money account before redeeming mUSD back.",
+        "confirm_button_label": "Set up Money account"
       }
     },
     "credit_screen": {
@@ -11883,9 +11941,9 @@
         "confirm_button_label": "Set up funding"
       },
       "money_account_required": {
-        "title": "Set up Money Account",
-        "description": "You need a linked Money Account before redeeming your credit.",
-        "confirm_button_label": "Set up Money Account"
+        "title": "Set up Money account",
+        "description": "You need a linked Money account before redeeming your credit.",
+        "confirm_button_label": "Set up Money account"
       },
       "refund_info": {
         "title": "Refund balance",
@@ -11945,7 +12003,11 @@
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Sign in",
-      "siwe_button": "Sign in with Ethereum",
+      "money_account_required": {
+        "title": "Set up Money account",
+        "description": "A Money account is required to get the card in your country.",
+        "confirm_button_label": "Set up Money account"
+      },
       "continue_button": "Continue",
       "uk_login_button": "Sign in with this account",
       "signup_button": "Sign up",
@@ -12821,8 +12883,8 @@
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
-      "money_account_deposit": "Deposit to Money Account",
-      "money_account_withdraw": "Transfer from Money Account",
+      "money_account_deposit": "Deposit to Money account",
+      "money_account_withdraw": "Transfer from Money account",
       "default": "Transaction details"
     },
     "label": {

@@ -43,6 +43,7 @@ describe('SelectedHotTokenChip', () => {
       getSocialV1HotTokenSelectedChipTestId(TOKEN.id),
     );
     expect(chip).toHaveTextContent('NVIDIA');
+    expect(chip).toHaveStyle({ paddingLeft: 8, paddingRight: 12 });
     expect(chip.props.accessibilityState).toEqual(
       expect.objectContaining({ selected: true }),
     );

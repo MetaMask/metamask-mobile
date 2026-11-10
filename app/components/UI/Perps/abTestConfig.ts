@@ -3,50 +3,6 @@ import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 
 /**
- * TAT-1937: Long/Short Button Color Test
- *
- * Tests the impact of button colors on trading behavior:
- * - Control (default/fallback): White buttons for both, reduces risk anxiety and promotes balanced participation
- * - Colors: Traditional green (long) / red (short), familiar and intuitive
- *
- * `control` is the required fallback key for `useABTest` (see `app/hooks/useABTest.ts`),
- * so it is always what's shown when the flag is absent, invalid, or the test is inactive —
- * white is therefore the default experience, and `colors` is the active-experiment variant.
- *
- * Migrated to the canonical A/B testing standard (see `docs/ab-testing.md`) under TAT-3308.
- *
- * LaunchDarkly flag setup: version-gated to app version 8.3.0+ using the
- * `versions` + `thresholdVersion: 2` composition (resolved entirely by
- * RemoteFeatureFlagController — no app-side version check needed). See
- * `docs/perps/perps-feature-flags.md` for the exact flag JSON.
- */
-export const PERPS_BUTTON_COLOR_AB_TEST_KEY = 'perpsTAT1937AbtestButtonColor';
-
-export enum ButtonColorVariant {
-  Control = 'control',
-  Colors = 'colors',
-}
-
-export interface ButtonColorVariantConfig {
-  long: string;
-  short: string;
-}
-
-export const BUTTON_COLOR_VARIANTS: Record<
-  ButtonColorVariant,
-  ButtonColorVariantConfig
-> = {
-  [ButtonColorVariant.Control]: { long: 'white', short: 'white' },
-  [ButtonColorVariant.Colors]: { long: 'green', short: 'red' },
-};
-
-export const BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
-  flagKey: PERPS_BUTTON_COLOR_AB_TEST_KEY,
-  validVariants: Object.values(ButtonColorVariant),
-  eventNames: [EVENT_NAME.PERPS_SCREEN_VIEWED, EVENT_NAME.PERPS_UI_INTERACTION],
-};
-
-/**
  * Shared Perps screen vs bottom-sheet experiment.
  *
  * Assignment is independent of Lite/Pro mode: bottom-sheet users get that
@@ -260,3 +216,55 @@ export const FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
     EVENT_NAME.PERPS_TRADE_TRANSACTION,
   ],
 };
+
+/**
+ * TAT-4267: Perps home Live trades.
+ *
+ * Control keeps the Social section as it is (Trending first and default).
+ * Treatment adds a Live trades tab as the first and default tab.
+ *
+ * Dark-launch the LaunchDarkly JSON flag at 100% control (control threshold
+ * `1`, treatment threshold `0`), then move to 50/50. Missing, invalid, or
+ * unresolved assignments fall back to `control` inside `useABTest`.
+ *
+ * Consume via `usePerpsLiveTradesAbTest()` — do not read the raw flag.
+ */
+export const PERPS_LIVE_TRADES_AB_TEST_KEY = 'perpsTAT4267AbtestLiveTrades';
+
+export enum PerpsLiveTradesVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface PerpsLiveTradesVariantConfig {
+  showLiveTrades: boolean;
+}
+
+export const PERPS_LIVE_TRADES_VARIANTS: Record<
+  PerpsLiveTradesVariant,
+  PerpsLiveTradesVariantConfig
+> = {
+  [PerpsLiveTradesVariant.Control]: { showLiveTrades: false },
+  [PerpsLiveTradesVariant.Treatment]: { showLiveTrades: true },
+};
+
+export const PERPS_LIVE_TRADES_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Home Live Trades',
+  variationNames: {
+    control: 'Trending first',
+    treatment: 'Live trades first',
+  },
+} as const;
+
+export const PERPS_LIVE_TRADES_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_LIVE_TRADES_AB_TEST_KEY,
+    validVariants: Object.values(PerpsLiveTradesVariant),
+    eventNames: [
+      EVENT_NAME.PERPS_SCREEN_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.PERPS_ERROR,
+    ],
+  };

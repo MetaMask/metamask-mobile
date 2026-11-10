@@ -291,6 +291,11 @@ jest.mock(
   () => ({ usePostTradePromptResolver: jest.fn() }),
 );
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens',
+  () => ({ isUnsupportedPostTradeAsset: jest.fn(() => false) }),
+);
+
 jest.mock('../../../../util/haptics', () => ({
   playImpact: jest.fn(),
   playErrorNotification: jest.fn(),
