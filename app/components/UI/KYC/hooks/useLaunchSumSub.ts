@@ -8,7 +8,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import I18n from '../../../../../locales/i18n';
 import { IRON_KYC_VENDOR } from '../vendors/iron';
-import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
+import type { KycIdentityVerificationCompletion } from '../Views/SumSub/types';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
@@ -77,7 +77,7 @@ async function recordSessionConsents(): Promise<void> {
  */
 export const useLaunchSumSub = (
   onSubmitted: (
-    result: VbaIdentityVerificationCompletion,
+    result: KycIdentityVerificationCompletion,
   ) => void | Promise<void>,
   onAbandoned: () => void | Promise<void>,
 ): UseLaunchSumSubResult => {

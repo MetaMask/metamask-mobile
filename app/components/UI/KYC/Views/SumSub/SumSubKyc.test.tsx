@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './SumSubKyc';
+import KycSumSub, { KycSumSubSelectorsIDs } from './SumSubKyc';
 import Engine from '../../../../../core/Engine';
 import I18n from '../../../../../../locales/i18n';
 import { toSumSubLocale } from '../../utils/toSumSubLocale';
@@ -66,7 +66,7 @@ const catalog = {
   kycProvider: [{ key: 'sumsub-terms', version: '2' }],
 };
 
-describe('VbaSumSubKyc', () => {
+describe('KycSumSub', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
@@ -79,14 +79,14 @@ describe('VbaSumSubKyc', () => {
 
   it('renders the container', () => {
     const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} />,
     );
 
-    expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(KycSumSubSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
   it('launches SumSub on mount then reports submission', async () => {
-    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
+    renderWithProvider(<KycSumSub onSubmitted={mockOnSubmitted} />);
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
@@ -108,7 +108,7 @@ describe('VbaSumSubKyc', () => {
     mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
     const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} />,
     );
 
     await waitFor(() => {
@@ -117,12 +117,12 @@ describe('VbaSumSubKyc', () => {
     expect(mockParentGoBack).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockOnSubmitted).not.toHaveBeenCalled();
-    expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(KycSumSubSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
   it('launches SumSub on mount without the more-info interstitial', async () => {
     const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} />,
     );
 
     await waitFor(() => {
@@ -131,18 +131,18 @@ describe('VbaSumSubKyc', () => {
         locale: toSumSubLocale(I18n.locale),
       });
     });
-    expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(KycSumSubSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
   it('shows a retryable error when the provider flow fails', async () => {
     mockKycController.launchProviderFlow.mockResolvedValue('failed');
 
     const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} />,
     );
 
     await waitFor(() => {
-      expect(getByTestId(VbaSumSubKycSelectorsIDs.ERROR)).toBeOnTheScreen();
+      expect(getByTestId(KycSumSubSelectorsIDs.ERROR)).toBeOnTheScreen();
     });
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
@@ -153,15 +153,13 @@ describe('VbaSumSubKyc', () => {
     );
 
     const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} />,
     );
 
     await waitFor(() => {
-      expect(getByTestId(VbaSumSubKycSelectorsIDs.ERROR)).toBeOnTheScreen();
+      expect(getByTestId(KycSumSubSelectorsIDs.ERROR)).toBeOnTheScreen();
     });
-    expect(
-      getByTestId(VbaSumSubKycSelectorsIDs.RETRY_BUTTON),
-    ).toBeOnTheScreen();
+    expect(getByTestId(KycSumSubSelectorsIDs.RETRY_BUTTON)).toBeOnTheScreen();
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 
@@ -175,15 +173,15 @@ describe('VbaSumSubKyc', () => {
     );
 
     const { getByTestId, queryByTestId, unmount } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} />,
     );
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledTimes(1);
     });
-    expect(getByTestId(VbaSumSubKycSelectorsIDs.LOADER)).toBeOnTheScreen();
+    expect(getByTestId(KycSumSubSelectorsIDs.LOADER)).toBeOnTheScreen();
     expect(
-      queryByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON),
+      queryByTestId(KycSumSubSelectorsIDs.BACK_BUTTON),
     ).not.toBeOnTheScreen();
 
     unmount();
@@ -199,7 +197,7 @@ describe('VbaSumSubKyc', () => {
     mockParentCanGoBack.mockReturnValue(false);
     mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
-    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
+    renderWithProvider(<KycSumSub onSubmitted={mockOnSubmitted} />);
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
@@ -216,7 +214,7 @@ describe('VbaSumSubKyc', () => {
     mockParentCanGoBack.mockReturnValue(true);
     mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
-    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
+    renderWithProvider(<KycSumSub onSubmitted={mockOnSubmitted} />);
 
     await waitFor(() => {
       expect(mockParentGoBack).toHaveBeenCalledTimes(1);
@@ -230,18 +228,16 @@ describe('VbaSumSubKyc', () => {
     );
 
     const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+      <KycSumSub onSubmitted={mockOnSubmitted} />,
     );
 
     await waitFor(() => {
-      expect(
-        getByTestId(VbaSumSubKycSelectorsIDs.RETRY_BUTTON),
-      ).toBeOnTheScreen();
+      expect(getByTestId(KycSumSubSelectorsIDs.RETRY_BUTTON)).toBeOnTheScreen();
     });
 
     const callsBeforeRetry =
       mockKycController.launchProviderFlow.mock.calls.length;
-    fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.RETRY_BUTTON));
+    fireEvent.press(getByTestId(KycSumSubSelectorsIDs.RETRY_BUTTON));
 
     await waitFor(() => {
       expect(

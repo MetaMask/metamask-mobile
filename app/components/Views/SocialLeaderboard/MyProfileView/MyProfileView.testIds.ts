@@ -10,6 +10,7 @@ export const MyProfileViewSelectorsIDs = {
   BACK_BUTTON: 'my-profile-view-back-button',
   HEADER_ACTIONS_CAPSULE: 'my-profile-view-header-actions-capsule',
   SHARE_TRADER_BUTTON: 'my-profile-view-share-trader-button',
+  SHARE_SPINNER: 'my-profile-view-share-spinner',
   MORE_BUTTON: 'my-profile-view-more-button',
   CREATE_POST_BUTTON: 'my-profile-view-create-post-button',
   INSIGHTS_BUTTON: 'my-profile-view-insights-button',
