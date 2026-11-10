@@ -64,7 +64,10 @@ import { OrderQuickContracts } from './OrderQuickContracts';
 import { OrderPreviewRows } from './OrderPreviewRows';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
 import { OrderSummaryRows } from './OrderSummaryRows';
-import { amountToCents } from '../../../auth/signing/orderCommit';
+import {
+  amountToCents,
+  venueOrderValues,
+} from '../../../auth/signing/orderCommit';
 import type { TemplateInputs } from '../../../auth/signing/profileTemplates';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
@@ -486,14 +489,21 @@ export const PredictOrderFlowSheet = ({
       setPhase('approval');
       return;
     }
+    // The template's `value` sources validate but do not normalize: the
+    // wire contract is count at 2 and price at 4 decimal places, both from
+    // the quoted Preview — a buy Preview carries no `count`/`price` wire
+    // fields, so the signed figures come from its quote columns.
+    const values = venueOrderValues(intent.action, intent.side, preview);
+    if (!values) {
+      // The preview lacks the figures the venue order needs: nothing safe
+      // to sign. Same surface as an unparseable pinned amount.
+      setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
+      setPhase('approval');
+      return;
+    }
     const signing: PredictOrderCommitSigning = {
       inputs: signingInputs,
-      // The template's `value` sources validate but do not normalize: the
-      // wire contract is count at 2 and price at 4 decimal places.
-      values: {
-        count: Number(preview.count).toFixed(2),
-        price: Number(preview.price).toFixed(4),
-      },
+      values,
       confirmed: true,
     };
     setCommitError(null);

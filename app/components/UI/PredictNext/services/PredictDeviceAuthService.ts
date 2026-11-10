@@ -17,16 +17,17 @@ import {
   listBundledAuthenticationProfiles,
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
-import { loadVenueProfile, VENUE_AUTHORIZATION_HEADER } from '../auth/venueSigningProfiles';
+import {
+  loadVenueProfile,
+  VENUE_AUTHORIZATION_HEADER,
+} from '../auth/venueSigningProfiles';
 import {
   renderRequest,
   TemplateError,
   type InvariantDisplay,
   type RequestTemplate,
 } from '../auth/signing/profileTemplates';
-import {
-  buildVenueAuthorization,
-} from '../auth/signing/venueAuthorization';
+import { buildVenueAuthorization } from '../auth/signing/venueAuthorization';
 import {
   signDeviceRequest,
   type DeviceSigningContext,
@@ -56,7 +57,7 @@ export interface PredictDeviceAuthServiceSignOperationAction {
   handler: (
     intent: string,
     input?: SignOperationInput,
-  ) => Promise<DeviceAuthHeader | undefined>;
+  ) => Promise<SignedOperation | undefined>;
 }
 
 export interface PredictDeviceAuthServicePreviewOperationAction {
@@ -268,9 +269,7 @@ export class PredictDeviceAuthService {
     const enabled = this.#deps.isEnabled();
     const unlocked = this.#deps.isUnlocked();
     const binding = this.#resolveBinding();
-    const profile = binding
-      ? await loadVenueProfile()
-      : undefined;
+    const profile = binding ? await loadVenueProfile() : undefined;
     if (!binding || !profile) {
       return undefined;
     }
@@ -384,7 +383,7 @@ export class PredictDeviceAuthService {
       body: '',
     };
     const { maxSignatures } = profile.implementation.params;
-    if (1 > maxSignatures) {
+    if (maxSignatures < 1) {
       throw new TemplateError('max_signatures', 'read');
     }
     const key = await this.#ensureDeviceKey(binding, enabled, unlocked);

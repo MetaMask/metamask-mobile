@@ -10,6 +10,7 @@ import {
   type PredictOrderServiceEvents,
   type PredictOrderServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictOrderService';
+import type { PredictDeviceAuthServiceActions } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import type { RootMessenger } from '../types';
 
 /**
@@ -42,7 +43,15 @@ export const getPredictOrderServiceMessenger = (
 
 export type PredictOrderServiceInitMessenger = Messenger<
   'PredictOrderServiceInit',
-  AuthenticationController.AuthenticationControllerGetBearerTokenAction,
+  | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | Extract<
+      PredictDeviceAuthServiceActions,
+      {
+        type:
+          | 'PredictDeviceAuthService:signOperation'
+          | 'PredictDeviceAuthService:invalidateA2t';
+      }
+    >,
   never
 >;
 
@@ -57,7 +66,11 @@ export const getPredictOrderServiceInitMessenger = (
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AuthenticationController:getBearerToken'],
+    actions: [
+      'AuthenticationController:getBearerToken',
+      'PredictDeviceAuthService:signOperation',
+      'PredictDeviceAuthService:invalidateA2t',
+    ],
     events: [],
     messenger,
   });

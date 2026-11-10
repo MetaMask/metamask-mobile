@@ -357,14 +357,13 @@ interface PredictOrderPreviewBase {
   side: PredictOutcomeSide;
   estimatedContracts: number;
   averagePrice: PredictDecimal;
+  /** The worst per-contract price the quote walked — the worst ask on a
+   * buy, the worst bid on a sell. The commit signs its yes-leg form. */
+  limitPrice: PredictDecimal;
   fee: PredictAmount;
   /** Backend-owned breakdown of the fee; present when the backend reports it. */
   feeBreakdown: readonly PredictOrderPreviewFeeComponent[];
   expiresAt: PredictTimestamp;
-  /** Yes-leg limit the commit signs. Absent until predict-api quotes it. */
-  price?: PredictDecimal;
-  /** Contract count the commit signs, fixed to 2 decimals. */
-  count?: PredictAmount;
 }
 
 /** A buy Order Preview: estimated cost, fees, and potential return. */
@@ -386,10 +385,6 @@ export interface PredictSellOrderPreview extends PredictOrderPreviewBase {
   action: 'sell';
   /** The requested whole-contract count. */
   requestedContracts: number;
-  /** The worst Bid the sale would consume: the Immediate Order price floor.
-   * Shared wire field — buy Previews report the worst ask, which the mobile
-   * buy schema masks rather than rejects. */
-  limitPrice: PredictDecimal;
   /** Gross Proceeds the quoted contracts sell for, before fees. */
   estimatedProceeds: PredictAmount;
   /** Proceeds minus the fee: the amount credited to the Venue Account. */

@@ -10,6 +10,7 @@ const validPreview = {
   orderAmount: '4.00',
   estimatedContracts: 10,
   averagePrice: '0.4000',
+  limitPrice: '0.4100',
   fee: '0.20',
   feeBreakdown: [
     { source: 'venue', amount: '0.10' },
@@ -96,8 +97,9 @@ describe('parsePredictOrderPreview', () => {
 
   it('parses the deployed PRED-1194 buy shape: absent action with limitPrice', () => {
     // The deployed backend has included limitPrice on buy Previews since
-    // PRED-1194 (worst ask); the pre-branch parser masked it as unknown.
-    // It is a shared field, so its presence must not reject a buy.
+    // PRED-1194 (worst ask). It is a shared field — the quote walked it on
+    // the buy leg too — so the parsed buy variant carries it: the commit
+    // signs its yes-leg form.
     const { action: _action, ...withoutAction } = validPreview;
 
     const preview = parsePredictOrderPreview({
@@ -105,9 +107,12 @@ describe('parsePredictOrderPreview', () => {
       limitPrice: '0.4000',
     });
 
-    expect(preview).toMatchObject({ action: 'buy', ...withoutAction });
-    // The shared field is masked, not carried, on the parsed buy variant.
-    expect(Object.hasOwn(preview, 'limitPrice')).toBe(false);
+    expect(preview).toMatchObject({
+      action: 'buy',
+      ...withoutAction,
+      limitPrice: '0.4000',
+    });
+    expect(preview.limitPrice).toBe('0.4000');
   });
 
   it('rejects an unknown action', () => {

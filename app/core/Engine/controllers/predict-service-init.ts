@@ -119,6 +119,17 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),
+      // The Commit is a device-signed call: without signOperation the client
+      // refuses to send it (PredictRequestNotSentError) and Approve & Submit
+      // always fails with the generic invalid-response error.
+      signOperation: (operation, input) =>
+        initMessenger.call(
+          'PredictDeviceAuthService:signOperation',
+          operation,
+          input,
+        ),
+      invalidateSigningSession: () =>
+        initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
     }),
   );
   const controller = new PredictOrderService({

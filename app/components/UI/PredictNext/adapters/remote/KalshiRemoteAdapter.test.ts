@@ -730,6 +730,7 @@ describe('KalshiRemoteAdapter', () => {
       orderAmount: '20.00',
       estimatedContracts: 43,
       averagePrice: '0.4651',
+      limitPrice: '0.4700',
       fee: '0.86',
       feeBreakdown: [
         { source: 'venue', amount: '0.43' },
@@ -1048,7 +1049,10 @@ describe('KalshiRemoteAdapter', () => {
       client.commitOrder.mockResolvedValue(receiptPayload);
 
       await expect(
-        adapter.trading.commitOrder('b3c2a1d0-1111-4222-8333-444455559999', SIGN_SIGNING),
+        adapter.trading.commitOrder(
+          'b3c2a1d0-1111-4222-8333-444455559999',
+          SIGN_SIGNING,
+        ),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
       );

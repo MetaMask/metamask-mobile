@@ -49,7 +49,9 @@ const feeComponentSchema = object({
   amount,
 });
 
-/** Shared Preview header quoted for either action. */
+/** Shared Preview header quoted for either action. `limitPrice` rides both:
+ * the worst per-contract price the quote walked (the worst ask on a buy,
+ * the worst bid on a sell) — the commit signs its yes-leg form. */
 const previewHeader = {
   previewId: entityId,
   venueId,
@@ -57,11 +59,10 @@ const previewHeader = {
   side,
   estimatedContracts: positiveInteger,
   averagePrice: decimal,
+  limitPrice: decimal,
   fee: amount,
   feeBreakdown: size(array(feeComponentSchema), 1, Infinity),
   expiresAt: timestamp,
-  price: optional(decimal),
-  count: optional(amount),
 };
 
 const buyPreviewSchema = object({
@@ -78,7 +79,6 @@ const sellPreviewSchema = object({
   ...previewHeader,
   action: literal('sell'),
   requestedContracts: positiveInteger,
-  limitPrice: decimal,
   estimatedProceeds: amount,
   estimatedNetProceeds: amount,
 });
