@@ -4,8 +4,8 @@ import { CommonActions } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
-import VbaIdentityVerified, {
-  VbaIdentityVerifiedSelectorsIDs,
+import KycIdentityVerified, {
+  KycIdentityVerifiedSelectorsIDs,
 } from './IdentityVerified';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 
@@ -46,25 +46,23 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-describe('VbaIdentityVerified', () => {
+describe('KycIdentityVerified', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders copy and opens details from Continue without creating an account', () => {
     const { getByTestId, getByText } = renderWithProvider(
-      <VbaIdentityVerified />,
+      <KycIdentityVerified />,
     );
 
+    expect(getByText(strings('kyc.identity_verified.title'))).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.identity_verified.title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('virtual_bank_account.identity_verified.description')),
+      getByText(strings('kyc.identity_verified.description')),
     ).toBeOnTheScreen();
 
     fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
 
     expect(mockParentDispatch).toHaveBeenCalledWith(
@@ -76,9 +74,9 @@ describe('VbaIdentityVerified', () => {
   });
 
   it('returns to Money home from Back', () => {
-    const { getByTestId } = renderWithProvider(<VbaIdentityVerified />);
+    const { getByTestId } = renderWithProvider(<KycIdentityVerified />);
 
-    fireEvent.press(getByTestId(VbaIdentityVerifiedSelectorsIDs.BACK_BUTTON));
+    fireEvent.press(getByTestId(KycIdentityVerifiedSelectorsIDs.BACK_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
@@ -87,7 +85,7 @@ describe('VbaIdentityVerified', () => {
   });
 
   it('reports the approved result as viewed', () => {
-    renderWithProvider(<VbaIdentityVerified />);
+    renderWithProvider(<KycIdentityVerified />);
 
     expect(useTrackKycResultViewed).toHaveBeenCalledWith('approved');
   });

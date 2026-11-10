@@ -17,6 +17,7 @@ import type { SocialShellTab } from '../shell/types';
 import {
   ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
+  recordSocialTermsAcceptanceForExistingProfile,
 } from '../terms/socialTermsAcceptance';
 
 /**
@@ -116,10 +117,14 @@ const ensureSocialProfileCreated = (
  * Whether `navigateToSocialTab` would open the tab itself rather than
  * redirecting to terms, profile setup, or onboarding.
  */
-export const canOpenSocialTabDirectly = (): boolean =>
-  (!isSocialV1Treatment() ||
-    (hasAcceptedSocialTerms() && hasCreatedSocialProfile())) &&
-  !shouldShowSocialLeaderboardOnboarding();
+export const canOpenSocialTabDirectly = (): boolean => {
+  recordSocialTermsAcceptanceForExistingProfile();
+  return (
+    (!isSocialV1Treatment() ||
+      (hasAcceptedSocialTerms() && hasCreatedSocialProfile())) &&
+    !shouldShowSocialLeaderboardOnboarding()
+  );
+};
 
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,
@@ -139,8 +144,8 @@ const toHomeRouteParams = (
 
 /**
  * Opens Follow Trading home (legacy or Social V1) as a pushed screen on top of
- * the current flow, after the first-time onboarding gate. Perps uses this so
- * Social stays inside the Perps flow.
+ * the current flow, after the first-time onboarding gate. The control arm of
+ * `navigateToSocialLeaderboard` uses this.
  *
  * @param navigate - The caller's navigate function.
  * @param params - Params forwarded to the home route when onboarding is skipped.
@@ -227,6 +232,9 @@ export const navigateToSocialTab = (
  * Leaves profile onboarding after **Let's go** on the manual path. Pops the
  * onboarding screen off the stack and selects the Social tab under Home, so the
  * bottom tab bar stays visible and Back returns to the previous screen.
+ *
+ * The pop uses the onboarding screen's animation. The ready step sets that to
+ * `slide_from_left` before Let's go, so the ready screen leaves to the left.
  *
  * @param navigation - The onboarding screen's navigation object.
  */
