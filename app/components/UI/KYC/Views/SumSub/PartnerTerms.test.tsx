@@ -2,19 +2,18 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import VbaPartnerTerms from './PartnerTerms';
-import { VbaPartnerTermsSelectorsIDs } from './VerifyIdentity.testIds';
+import KycPartnerTerms from './PartnerTerms';
+import { KycPartnerTermsSelectorsIDs } from './VerifyIdentity.testIds';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
-import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
+import { trackKycEvent } from '../../utils/trackKycEvent';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_ID,
   KYC_SCREEN_PERFORMANCE_CONFIG,
 } from '../../kycScreenPerformance';
 
-jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaAnalytics', () => ({
-  ...jest.requireActual('../../../Ramp/Views/VirtualBankAccount/vbaAnalytics'),
-  trackVbaEvent: jest.fn(),
+jest.mock('../../utils/trackKycEvent', () => ({
+  trackKycEvent: jest.fn(),
 }));
 
 jest.mock('../../../../../hooks/useScreenPerformance');
@@ -72,7 +71,7 @@ const renderScreen = (
   location?: string,
 ) =>
   renderWithProvider(
-    <VbaPartnerTerms
+    <KycPartnerTerms
       disclaimers={disclaimers}
       onAgree={mockOnAgree}
       onBack={mockOnBack}
@@ -92,7 +91,7 @@ const renderScreen = (
 
 const consent = (getByTestId: ReturnType<typeof renderScreen>['getByTestId']) =>
   fireEvent(
-    getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX),
+    getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX),
     'change',
     true,
   );
@@ -100,15 +99,15 @@ const consent = (getByTestId: ReturnType<typeof renderScreen>['getByTestId']) =>
 const scrollConsentIntoView = (
   getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
 ) => {
-  fireEvent(getByTestId(VbaPartnerTermsSelectorsIDs.CONTAINER), 'layout', {
+  fireEvent(getByTestId(KycPartnerTermsSelectorsIDs.CONTAINER), 'layout', {
     nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 200 } },
   });
   fireEvent(
-    getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_ROW),
+    getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_ROW),
     'layout',
     { nativeEvent: { layout: { x: 0, y: 800, width: 300, height: 80 } } },
   );
-  fireEvent.scroll(getByTestId(VbaPartnerTermsSelectorsIDs.CONTAINER), {
+  fireEvent.scroll(getByTestId(KycPartnerTermsSelectorsIDs.CONTAINER), {
     nativeEvent: {
       contentOffset: { y: 700 },
       layoutMeasurement: { height: 200, width: 300 },
@@ -117,7 +116,7 @@ const scrollConsentIntoView = (
   });
 };
 
-describe('VbaPartnerTerms', () => {
+describe('KycPartnerTerms', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -148,7 +147,7 @@ describe('VbaPartnerTerms', () => {
   it('shows the second page of two above the title', () => {
     const { getByTestId } = renderScreen();
 
-    const indicator = getByTestId(VbaPartnerTermsSelectorsIDs.STEP_INDICATOR);
+    const indicator = getByTestId(KycPartnerTermsSelectorsIDs.STEP_INDICATOR);
     expect(indicator).toHaveTextContent('Step 2 of 2');
     expect(indicator.props.accessibilityLabel).toBe('Step 2 of 2');
   });
@@ -158,7 +157,7 @@ describe('VbaPartnerTerms', () => {
 
     const rowFor = (disclaimer: KycCatalogDisclaimerLink) =>
       getByTestId(
-        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+        `${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
       );
 
     expect(rowFor(IDOS_PRIVACY)).toHaveTextContent('idOS Privacy Policy');
@@ -167,12 +166,12 @@ describe('VbaPartnerTerms', () => {
     );
     expect(
       queryByTestId(
-        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${IDOS_TERMS.id}`,
+        `${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${IDOS_TERMS.id}`,
       ),
     ).not.toBeOnTheScreen();
     expect(
       queryByTestId(
-        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${IDOS_PRIVACY_NOTICE.id}`,
+        `${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${IDOS_PRIVACY_NOTICE.id}`,
       ),
     ).not.toBeOnTheScreen();
   });
@@ -185,7 +184,7 @@ describe('VbaPartnerTerms', () => {
 
     fireEvent.press(
       getByTestId(
-        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-idOS:idos-privacy`,
+        `${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-idOS:idos-privacy`,
       ),
     );
 
@@ -199,14 +198,14 @@ describe('VbaPartnerTerms', () => {
     const { getByTestId, queryByText } = renderScreen();
 
     expect(
-      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
+      getByTestId(KycPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
     ).toHaveTextContent(
       'I acknowledge that my personal data will be processed as described in the Sumsub Notice of Personal Data Processing.',
     );
     expect(queryByText(/Applicable to US residents only/)).toBeNull();
 
     fireEvent.press(
-      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK),
+      getByTestId(KycPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK),
     );
     expect(openUrlSpy).toHaveBeenCalledWith('https://sumsub.example/notice');
   });
@@ -222,7 +221,7 @@ describe('VbaPartnerTerms', () => {
     ]);
 
     fireEvent.press(
-      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK),
+      getByTestId(KycPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK),
     );
 
     expect(openUrlSpy).toHaveBeenCalledWith(
@@ -234,7 +233,7 @@ describe('VbaPartnerTerms', () => {
     const { getByTestId } = renderScreen(DISCLAIMERS, 'US-NY');
 
     expect(
-      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
+      getByTestId(KycPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
     ).toHaveTextContent(
       'I acknowledge that my personal data will be processed as described in the Sumsub Notice of Personal Data Processing. Applicable to US residents only: I confirm that I have read the Privacy Notice and give my consent to the processing of my biometric information and biometric identifiers as described in the Sumsub Biometrics Processing Consent.',
     );
@@ -247,7 +246,7 @@ describe('VbaPartnerTerms', () => {
     const { getByTestId } = renderScreen(DISCLAIMERS, 'US-NY');
 
     fireEvent.press(
-      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK),
+      getByTestId(KycPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK),
     );
 
     expect(openUrlSpy).toHaveBeenCalledWith(
@@ -291,19 +290,19 @@ describe('VbaPartnerTerms', () => {
 
     expect(
       getByTestId(
-        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubPrivacy.id}`,
+        `${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubPrivacy.id}`,
       ),
     ).toBeOnTheScreen();
     expect(
       getByTestId(
-        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubBiometrics.id}`,
+        `${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubBiometrics.id}`,
       ),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK),
+      queryByTestId(KycPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_BIOMETRICS_LINK),
+      queryByTestId(KycPartnerTermsSelectorsIDs.SUMSUB_BIOMETRICS_LINK),
     ).not.toBeOnTheScreen();
   });
 
@@ -328,19 +327,19 @@ describe('VbaPartnerTerms', () => {
     );
 
     expect(
-      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK),
+      getByTestId(KycPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_BIOMETRICS_LINK),
+      getByTestId(KycPartnerTermsSelectorsIDs.SUMSUB_BIOMETRICS_LINK),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(
-        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubPrivacy.id}`,
+        `${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubPrivacy.id}`,
       ),
     ).not.toBeOnTheScreen();
     expect(
       queryByTestId(
-        `${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubBiometrics.id}`,
+        `${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${sumsubBiometrics.id}`,
       ),
     ).not.toBeOnTheScreen();
   });
@@ -352,7 +351,7 @@ describe('VbaPartnerTerms', () => {
     const { getByTestId, getByText } = renderScreen();
 
     expect(
-      getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT),
+      getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT),
     ).toHaveTextContent(
       'I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in idOS Privacy Notice.',
     );
@@ -360,22 +359,22 @@ describe('VbaPartnerTerms', () => {
     expect(getByText('idOS Privacy Policy')).toBeOnTheScreen();
 
     fireEvent.press(
-      getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK),
+      getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK),
     );
     expect(openUrlSpy).toHaveBeenCalledWith(
       'https://idos.example/privacy-notice',
     );
     expect(
-      getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON),
+      getByTestId(KycPartnerTermsSelectorsIDs.AGREE_BUTTON),
     ).toBeDisabled();
   });
 
   it('toggles the consent when the sentence is pressed', () => {
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT));
+    fireEvent.press(getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT));
 
-    expect(getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON)).toBeEnabled();
+    expect(getByTestId(KycPartnerTermsSelectorsIDs.AGREE_BUTTON)).toBeEnabled();
   });
 
   it('keeps the consent sentence readable when no idOS privacy document matches', () => {
@@ -385,12 +384,12 @@ describe('VbaPartnerTerms', () => {
     ]);
 
     expect(
-      getByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT),
+      getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT),
     ).toHaveTextContent(
       'I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in idOS Privacy Notice.',
     );
     expect(
-      queryByTestId(VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK),
+      queryByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK),
     ).not.toBeOnTheScreen();
   });
 
@@ -401,20 +400,20 @@ describe('VbaPartnerTerms', () => {
     const { getByTestId } = renderScreen();
 
     expect(
-      getByTestId(VbaPartnerTermsSelectorsIDs.AGREEMENT),
+      getByTestId(KycPartnerTermsSelectorsIDs.AGREEMENT),
     ).toHaveTextContent(
       'By tapping Agree and continue, I agree to idOS Terms and Conditions.',
     );
 
     fireEvent.press(
-      getByTestId(VbaPartnerTermsSelectorsIDs.AGREEMENT_TERMS_LINK),
+      getByTestId(KycPartnerTermsSelectorsIDs.AGREEMENT_TERMS_LINK),
     );
     expect(openUrlSpy).toHaveBeenCalledWith('https://idos.example/terms');
   });
 
   it('names the next step from whether the consent is on screen', () => {
     const { getByTestId } = renderScreen();
-    const button = () => getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON);
+    const button = () => getByTestId(KycPartnerTermsSelectorsIDs.AGREE_BUTTON);
 
     expect(button()).toHaveProp('accessibilityLabel', 'Scroll to continue');
     expect(button()).toBeDisabled();
@@ -431,7 +430,7 @@ describe('VbaPartnerTerms', () => {
   it('does not advance while the consent is unchecked', () => {
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON));
+    fireEvent.press(getByTestId(KycPartnerTermsSelectorsIDs.AGREE_BUTTON));
 
     expect(mockOnAgree).not.toHaveBeenCalled();
   });
@@ -440,7 +439,7 @@ describe('VbaPartnerTerms', () => {
     const { getByTestId } = renderScreen();
 
     consent(getByTestId);
-    fireEvent.press(getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON));
+    fireEvent.press(getByTestId(KycPartnerTermsSelectorsIDs.AGREE_BUTTON));
 
     expect(mockOnAgree).toHaveBeenCalledTimes(1);
   });
@@ -448,7 +447,7 @@ describe('VbaPartnerTerms', () => {
   it('goes back when the header back button is pressed', () => {
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(VbaPartnerTermsSelectorsIDs.BACK_BUTTON));
+    fireEvent.press(getByTestId(KycPartnerTermsSelectorsIDs.BACK_BUTTON));
 
     expect(mockOnBack).toHaveBeenCalledTimes(1);
   });
@@ -456,7 +455,7 @@ describe('VbaPartnerTerms', () => {
   describe('analytics', () => {
     const identityTermsStatuses = () =>
       jest
-        .mocked(trackVbaEvent)
+        .mocked(trackKycEvent)
         .mock.calls.filter(
           ([event]) => event.category === 'KYC Identity Terms Updated',
         )
@@ -472,21 +471,21 @@ describe('VbaPartnerTerms', () => {
       const { getByTestId } = renderScreen();
 
       consent(getByTestId);
-      fireEvent.press(getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON));
+      fireEvent.press(getByTestId(KycPartnerTermsSelectorsIDs.AGREE_BUTTON));
 
       expect(identityTermsStatuses()).toStrictEqual([
         'page2_viewed',
         'page2_accepted',
       ]);
       expect(
-        jest.mocked(trackVbaEvent).mock.invocationCallOrder.at(-1),
+        jest.mocked(trackKycEvent).mock.invocationCallOrder.at(-1),
       ).toBeLessThan(mockOnAgree.mock.invocationCallOrder[0]);
     });
 
     it('does not track acceptance when the consent is never given', () => {
       const { getByTestId } = renderScreen();
 
-      fireEvent.press(getByTestId(VbaPartnerTermsSelectorsIDs.AGREE_BUTTON));
+      fireEvent.press(getByTestId(KycPartnerTermsSelectorsIDs.AGREE_BUTTON));
 
       expect(identityTermsStatuses()).toStrictEqual(['page2_viewed']);
     });
