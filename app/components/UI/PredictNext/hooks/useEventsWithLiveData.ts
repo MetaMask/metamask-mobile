@@ -180,10 +180,23 @@ const useLiveEventWatches = (
 };
 
 /**
+ * Minimum gap between two live-data state updates on one surface. Frames that
+ * arrive inside the gap are applied together when it ends.
+ */
+export const LIVE_UPDATE_THROTTLE_MS = 250;
+
+/**
  * Collects one topic's accumulated value per id for everything rendered
  * (`presentIds`), so a frame for a row that scrolled out of the viewport still
  * lands when it scrolls back. Game frames fold as patches; quotes replace as
  * snapshots.
+ *
+ * Each frame arrives as its own socket message, so applying them one by one
+ * re-renders the whole list per frame. After a quiet period, every frame in the
+ * current JS turn applies at once, so a replay from `watchEvents` (one frame
+ * per cached id, published synchronously) shows without delay. The cooldown
+ * starts when that turn ends; later frames are held and applied in one update
+ * at most every `LIVE_UPDATE_THROTTLE_MS`.
  */
 const useLiveTopicUpdates = <TLive extends { venueId: PredictVenueId }>(
   topic: LiveTopic<TLive>,
@@ -197,31 +210,72 @@ const useLiveTopicUpdates = <TLive extends { venueId: PredictVenueId }>(
 
   useEffect(() => {
     const present = new Set(JSON.parse(presentKey) as PredictEntityId[]);
+    let pending: TLive[] = [];
+    let cooldown: ReturnType<typeof setTimeout> | undefined;
+    let turnOpen = false;
+    let disposed = false;
 
-    const onUpdate = (live: TLive) => {
-      const key = topic.keyOf(live);
-      if (live.venueId !== venueId || !present.has(key)) {
+    const flush = () => {
+      if (pending.length === 0) {
         return;
       }
+      const frames = pending;
+      pending = [];
       setUpdates((current) => {
-        const previous = current.get(key);
-        if (previous === live) {
-          return current;
-        }
-        const merged = topic.merge(previous, live);
-        if (!merged || merged === previous) {
-          return current;
-        }
-
-        const next = new Map(current);
-        next.set(key, merged);
-        return next;
+        let next: Map<PredictEntityId, TLive> | undefined;
+        frames.forEach((live) => {
+          const key = topic.keyOf(live);
+          const previous = (next ?? current).get(key);
+          if (previous === live) {
+            return;
+          }
+          const merged = topic.merge(previous, live);
+          if (!merged || merged === previous) {
+            return;
+          }
+          next ??= new Map(current);
+          next.set(key, merged);
+        });
+        return next ?? current;
       });
+    };
+
+    const endCooldown = () => {
+      if (pending.length === 0) {
+        cooldown = undefined;
+        return;
+      }
+      flush();
+      cooldown = setTimeout(endCooldown, LIVE_UPDATE_THROTTLE_MS);
+    };
+
+    const onUpdate = (live: TLive) => {
+      if (live.venueId !== venueId || !present.has(topic.keyOf(live))) {
+        return;
+      }
+      pending.push(live);
+      if (cooldown !== undefined) {
+        return;
+      }
+      flush();
+      if (!turnOpen) {
+        turnOpen = true;
+        queueMicrotask(() => {
+          turnOpen = false;
+          if (!disposed) {
+            cooldown = setTimeout(endCooldown, LIVE_UPDATE_THROTTLE_MS);
+          }
+        });
+      }
     };
 
     topic.subscribe(onUpdate);
     return () => {
+      disposed = true;
       topic.unsubscribe(onUpdate);
+      clearTimeout(cooldown);
+      // The Venue does not resend a held frame, so apply it rather than drop it.
+      flush();
     };
   }, [presentKey, venueId, topic]);
 
