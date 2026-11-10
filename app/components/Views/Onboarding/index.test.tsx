@@ -2322,7 +2322,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('navigates to OAuth rehydrate for existing user in create wallet flow (MFA-882)', async () => {
+    it('navigates to OAuth rehydrate for existing user in create wallet flow', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -2351,7 +2351,7 @@ describe('Onboarding', () => {
         );
       });
 
-      // Skip AccountAlreadyExists — passkey opens on rehydration (MFA-882).
+      // Skip AccountAlreadyExists — passkey opens on rehydration.
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
         expect.objectContaining({

@@ -1548,7 +1548,7 @@ describe('OAuthRehydration', () => {
     });
   });
 
-  describe('MFA wallet recovery (MFA-882)', () => {
+  describe('MFA wallet recovery', () => {
     const mfaState = {
       engine: {
         backgroundState: {

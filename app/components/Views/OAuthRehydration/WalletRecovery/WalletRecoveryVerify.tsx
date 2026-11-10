@@ -35,7 +35,7 @@ export interface WalletRecoveryVerifyProps {
   showPassword?: boolean;
   /**
    * When false, hides the email recovery row.
-   * MFA-882: only Telegram may show email; Google/Apple sign-in email is filtered out.
+   * Only Telegram may show email; Google/Apple sign-in email is filtered out.
    */
   showEmail?: boolean;
   /**
@@ -44,16 +44,16 @@ export interface WalletRecoveryVerifyProps {
   showTotp?: boolean;
   isBusy?: boolean;
   /**
-   * MFA methods need network; password stays available offline (MFA-882).
+   * MFA methods need network; password stays available offline.
    */
   isOffline?: boolean;
   /**
-   * Short line after a factor verify failure (MFA-882).
+   * Short line after a factor verify failure.
    */
   error?: string | null;
   onBack: () => void;
   /**
-   * "Can't use any of these?" → return to social login (MFA-882).
+   * "Can't use any of these?" → return to social login.
    */
   onCantUseThese: () => void;
   onSelectMethod: (method: WalletRecoveryMethod) => void;
@@ -68,7 +68,7 @@ interface MethodRowProps {
 }
 
 /**
- * Figma Social login users — full-screen "Verify it's you" fallback (MFA-882).
+ * Figma Social login users — full-screen "Verify it's you" fallback.
  * Shown when passkey is cancelled/fails or the user has no passkey.
  */
 const MethodRow = ({
@@ -125,7 +125,7 @@ const WalletRecoveryVerify = ({
   onSelectMethod,
 }: WalletRecoveryVerifyProps) => {
   const insets = useSafeAreaInsets();
-  // Password works offline; MFA factors need network (MFA-882).
+  // Password works offline; MFA factors need network.
   const mfaDisabled = isBusy || isOffline;
   const passwordDisabled = isBusy;
 

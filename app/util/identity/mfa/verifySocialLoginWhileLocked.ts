@@ -46,7 +46,7 @@ const EVENTS: Record<MfaEvent, IMetaMetricsEvent> = {
 export type VerifySocialLoginWhileLockedResult =
   | { status: 'skipped'; reason: 'no_methods' | 'list_failed' }
   | { status: 'verified'; result: MfaFlowResult }
-  /** Passkey/primary dismissed — host should show full-screen method picker (MFA-882). */
+  /** Passkey/primary dismissed — host should show full-screen method picker. */
   | { status: 'fallback'; methods: MfaMethod[] }
   | { status: 'cancelled' }
   | { status: 'failed'; error: unknown };
@@ -142,7 +142,7 @@ const listLockedSocialMethods = async (
  *
  * Lists factors with `refreshSocialLoginCredentials`, then opens the highest-
  * priority factor (usually passkey). On dismiss/cancel, returns `fallback`
- * so the host can show the full-screen recovery picker (MFA-882) — not the
+ * so the host can show the full-screen recovery picker — not the
  * accounts-kit bottomsheet. Call only while the vault is still locked.
  *
  * @param reason - Feature reason for Auth traces / analytics.
@@ -157,7 +157,7 @@ export const verifySocialLoginWhileLocked = async (
   }
   const { methods } = listed;
 
-  // MFA-882: only auto-open OS passkey. No passkey → full-screen fallback
+  // Only auto-open OS passkey. No passkey → full-screen fallback
   // (methods + Use password). Never auto-launch totp/email.
   if (!methods.includes('passkey')) {
     Logger.log(
@@ -182,7 +182,7 @@ export const verifySocialLoginWhileLocked = async (
   } catch (primaryError) {
     const code = getMfaErrorCode(primaryError);
     if (code === 'flow_cancelled') {
-      // MFA-882: host shows full-screen Verify it's you (not kit bottomsheet).
+      // Host shows full-screen Verify it's you (not kit bottomsheet).
       Logger.log('verifySocialLoginWhileLocked: passkey cancelled → fallback', {
         methods,
       });
