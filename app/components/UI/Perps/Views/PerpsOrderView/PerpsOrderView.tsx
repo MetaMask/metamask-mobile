@@ -334,6 +334,21 @@ const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
 ];
 
 /**
+ * Returns a callback with a stable identity that always invokes the latest
+ * committed `handler`, so the memoized Trade screen does not re-render when a
+ * handler's dependencies (e.g. live prices) change.
+ */
+const useStableTradeSheetHandler = <Args extends unknown[], Result>(
+  handler: (...args: Args) => Result,
+) => {
+  const handlerRef = useRef(handler);
+  useLayoutEffect(() => {
+    handlerRef.current = handler;
+  }, [handler]);
+  return useCallback((...args: Args) => handlerRef.current(...args), []);
+};
+
+/**
  * PerpsOrderViewContentBase
  * Main content component for the Perps order view
  *
@@ -2449,6 +2464,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     resetPerpsPaymentTokenSelection();
   }, [isPayWithDisabled, payTokenIdentity, setConfirmationMetric, track]);
 
+  const stablePayWithPress = useStableTradeSheetHandler(handlePayWithPress);
+  const stableLimitPricePresetPress = useStableTradeSheetHandler(
+    handleTradeSheetLimitPricePreset,
+  );
+  const stableSubmit = useStableTradeSheetHandler(() => handlePlaceOrder());
+
   const handleSlippageSave = useCallback(
     (valueBps: number) => {
       setMaxSlippage(valueBps);
@@ -2903,10 +2924,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onOrderTypeToggle={handleTradeSheetOrderTypeToggle}
                 onLimitPricePress={handleTradeSheetLimitPricePress}
                 onLimitPriceKeypadChange={handleTradeSheetLimitPriceChange}
-                onLimitPricePresetPress={handleTradeSheetLimitPricePreset}
+                onLimitPricePresetPress={stableLimitPricePresetPress}
                 onLimitPriceDonePress={handleTradeSheetLimitPriceDone}
-                onPayWithPress={handlePayWithPress}
-                onSubmit={() => handlePlaceOrder()}
+                onPayWithPress={stablePayWithPress}
+                onSubmit={stableSubmit}
               />
             ),
             leverage: (

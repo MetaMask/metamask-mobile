@@ -959,4 +959,33 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   );
 };
 
-export default PerpsTradeScreen;
+const areErrorMessagesEqual = (
+  prev: readonly PerpsTradeError[],
+  next: readonly PerpsTradeError[],
+) =>
+  prev === next ||
+  (prev.length === next.length &&
+    prev.every(
+      (error, index) =>
+        error.key === next[index].key &&
+        Object.is(error.message, next[index].message),
+    ));
+
+// The parent rebuilds `errorMessages` every render, so compare it by contents
+// and every other prop by identity.
+const arePerpsTradeScreenPropsEqual = (
+  prev: PerpsTradeScreenProps,
+  next: PerpsTradeScreenProps,
+) => {
+  const keys = Object.keys(next) as (keyof PerpsTradeScreenProps)[];
+  if (keys.length !== Object.keys(prev).length) {
+    return false;
+  }
+  return keys.every((key) =>
+    key === 'errorMessages'
+      ? areErrorMessagesEqual(prev.errorMessages, next.errorMessages)
+      : Object.is(prev[key], next[key]),
+  );
+};
+
+export default React.memo(PerpsTradeScreen, arePerpsTradeScreenPropsEqual);

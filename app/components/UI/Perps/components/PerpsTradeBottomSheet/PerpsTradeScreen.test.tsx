@@ -108,6 +108,7 @@ let mockLivePriceHeaderProps:
   | undefined;
 let mockPerpsTokenLogoProps: { symbol: string; size: number } | undefined;
 let mockPerpsSliderProps: React.ComponentProps<typeof PerpsSlider> | undefined;
+let mockPerpsSliderRenderCount = 0;
 
 jest.mock('./PerpsTradeBottomSheet', () => ({
   PerpsTradeSheetTitleBanner: () => null,
@@ -122,6 +123,7 @@ jest.mock('../PerpsSlider', () => ({
   __esModule: true,
   default: (props: React.ComponentProps<typeof PerpsSlider>) => {
     mockPerpsSliderProps = props;
+    mockPerpsSliderRenderCount += 1;
     return null;
   },
 }));
@@ -231,6 +233,7 @@ describe('PerpsTradeScreen errors', () => {
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;
     mockPerpsSliderProps = undefined;
+    mockPerpsSliderRenderCount = 0;
   });
 
   it('propagates every form error to an accessible alert', () => {
@@ -1037,5 +1040,96 @@ describe('PerpsTradeScreen errors', () => {
       expect(style).toMatchObject({ flexGrow: 1 });
       expect(style.paddingLeft ?? style.paddingHorizontal).toBe(4);
     });
+  });
+});
+
+describe('PerpsTradeScreen memoization', () => {
+  beforeEach(() => {
+    store = configureStore({});
+    resetTestOrderBookCurrency();
+    jest.clearAllMocks();
+    mockPerpsSliderRenderCount = 0;
+  });
+
+  it('does not re-render when errorMessages is a new array with the same contents', () => {
+    const { rerender } = render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        errorMessages={[{ key: 'minimum', message: 'Minimum order is $10' }]}
+      />,
+    );
+    const rendersAfterMount = mockPerpsSliderRenderCount;
+
+    rerender(
+      <Provider store={store}>
+        <PerpsTradeScreen
+          {...defaultProps}
+          errorMessages={[{ key: 'minimum', message: 'Minimum order is $10' }]}
+        />
+      </Provider>,
+    );
+
+    expect(mockPerpsSliderRenderCount).toBe(rendersAfterMount);
+  });
+
+  it('re-renders and shows the new message when an error message changes', () => {
+    const { rerender } = render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        errorMessages={[{ key: 'minimum', message: 'Minimum order is $10' }]}
+      />,
+    );
+
+    rerender(
+      <Provider store={store}>
+        <PerpsTradeScreen
+          {...defaultProps}
+          errorMessages={[{ key: 'minimum', message: 'Minimum order is $20' }]}
+        />
+      </Provider>,
+    );
+
+    expect(
+      screen.getByRole('alert', { name: 'Minimum order is $20' }),
+    ).toBeOnTheScreen();
+  });
+
+  it('re-renders when an error is added or removed', () => {
+    const { rerender } = render(
+      <PerpsTradeScreen {...defaultProps} errorMessages={[]} />,
+    );
+
+    rerender(
+      <Provider store={store}>
+        <PerpsTradeScreen
+          {...defaultProps}
+          errorMessages={[{ key: 'quote', message: 'No payment quote' }]}
+        />
+      </Provider>,
+    );
+    expect(
+      screen.getByRole('alert', { name: 'No payment quote' }),
+    ).toBeOnTheScreen();
+
+    rerender(
+      <Provider store={store}>
+        <PerpsTradeScreen {...defaultProps} errorMessages={[]} />
+      </Provider>,
+    );
+    expect(screen.queryByRole('alert')).not.toBeOnTheScreen();
+  });
+
+  it('re-renders when any other prop changes', () => {
+    const { rerender } = render(<PerpsTradeScreen {...defaultProps} />);
+    const rendersAfterMount = mockPerpsSliderRenderCount;
+
+    rerender(
+      <Provider store={store}>
+        <PerpsTradeScreen {...defaultProps} margin="$9.99" />
+      </Provider>,
+    );
+
+    expect(mockPerpsSliderRenderCount).toBeGreaterThan(rendersAfterMount);
+    expect(screen.getByText('$9.99')).toBeOnTheScreen();
   });
 });
