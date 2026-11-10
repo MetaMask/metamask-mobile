@@ -28,17 +28,36 @@ describeForPlatforms('MoneySplashView', () => {
     netInfoMock.__resetMockNetInfo();
   });
 
-  it('renders the title, CTA, and benefit rows', () => {
-    const { getByText, getByTestId } = renderMoneySplashView();
+  it('shows the hero, title and benefits, then opens the confirmation with the preferred payment token on CTA press', async () => {
+    const { getByTestId, getByText, findByTestId } = renderMoneySplashView({
+      params: {
+        postOnboardingRedirect: {
+          type: 'deposit',
+          preferredPaymentToken: PREFERRED_PAYMENT_TOKEN,
+        },
+      },
+    });
 
+    expect(getByTestId(MoneySplashViewTestIds.HERO)).toBeOnTheScreen();
     expect(getByText(strings('money.splash.title'))).toBeOnTheScreen();
-    expect(getByText(strings('money.splash.cta'))).toBeOnTheScreen();
     expect(
       getByTestId(MoneySplashViewTestIds.BENEFIT_ROW(1)),
     ).toBeOnTheScreen();
     expect(
       getByTestId(MoneySplashViewTestIds.BENEFIT_ROW(5)),
     ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MoneySplashViewTestIds.CTA));
+
+    const confirmationParams = await findByTestId(
+      getRouteParamsProbeTestId(Routes.MONEY.CONFIRMATIONS_ROOT),
+    );
+    const params = JSON.parse(confirmationParams.props.children as string) as {
+      params: { preferredPaymentToken: typeof PREFERRED_PAYMENT_TOKEN };
+    };
+    expect(params.params.preferredPaymentToken).toEqual(
+      PREFERRED_PAYMENT_TOKEN,
+    );
   });
 
   it('renders the live APY in the body', async () => {
@@ -59,31 +78,23 @@ describeForPlatforms('MoneySplashView', () => {
     });
   });
 
-  it('skips the APY fetch when the network is offline', async () => {
-    netInfoMock.__setMockNetInfo({
-      type: 'none',
-      isInternetReachable: false,
-    });
-
-    const { getByTestId } = renderMoneySplashView({ apy: 0.062 });
-
-    await waitFor(() => {
-      expect(getByTestId(MoneySplashViewTestIds.BODY)).toHaveTextContent(
-        strings('money.splash.body_no_apy'),
-      );
-    });
-  });
-
-  it('hides the hero on a low-end offline device', () => {
+  it('skips the APY fetch and the hero on a low-end offline device', async () => {
     mockGetTotalMemorySync.mockReturnValue(1 * 1024 ** 3);
     netInfoMock.__setMockNetInfo({
       type: 'none',
       isInternetReachable: false,
     });
 
-    const { queryByTestId } = renderMoneySplashView();
+    const { getByTestId, queryByTestId } = renderMoneySplashView({
+      apy: 0.062,
+    });
 
-    expect(queryByTestId(MoneySplashViewTestIds.HERO)).toBeNull();
+    await waitFor(() => {
+      expect(getByTestId(MoneySplashViewTestIds.BODY)).toHaveTextContent(
+        strings('money.splash.body_no_apy'),
+      );
+    });
+    expect(queryByTestId(MoneySplashViewTestIds.HERO)).not.toBeOnTheScreen();
   });
 
   it('marks the splash as seen on mount', async () => {
@@ -92,29 +103,6 @@ describeForPlatforms('MoneySplashView', () => {
     await waitFor(() => {
       expect(store.getState().user.moneySplashSeen).toBe(true);
     });
-  });
-
-  it('opens the confirmation with the preferred payment token', async () => {
-    const { getByTestId, findByTestId } = renderMoneySplashView({
-      params: {
-        postOnboardingRedirect: {
-          type: 'deposit',
-          preferredPaymentToken: PREFERRED_PAYMENT_TOKEN,
-        },
-      },
-    });
-
-    fireEvent.press(getByTestId(MoneySplashViewTestIds.CTA));
-
-    const confirmationParams = await findByTestId(
-      getRouteParamsProbeTestId(Routes.MONEY.CONFIRMATIONS_ROOT),
-    );
-    const params = JSON.parse(confirmationParams.props.children as string) as {
-      params: { preferredPaymentToken: typeof PREFERRED_PAYMENT_TOKEN };
-    };
-    expect(params.params.preferredPaymentToken).toEqual(
-      PREFERRED_PAYMENT_TOKEN,
-    );
   });
 
   it('expands a FAQ answer', async () => {
@@ -129,9 +117,15 @@ describeForPlatforms('MoneySplashView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the close button', () => {
-    const { getByTestId } = renderMoneySplashView();
+  it('dismisses the splash when the close control is pressed', async () => {
+    const { findByTestId, queryByTestId } = renderMoneySplashView({
+      pushedOverHost: true,
+    });
 
-    expect(getByTestId(MoneySplashViewTestIds.CLOSE_BUTTON)).toBeOnTheScreen();
+    fireEvent.press(await findByTestId(MoneySplashViewTestIds.CLOSE_BUTTON));
+
+    await waitFor(() => {
+      expect(queryByTestId(MoneySplashViewTestIds.CTA)).not.toBeOnTheScreen();
+    });
   });
 });
