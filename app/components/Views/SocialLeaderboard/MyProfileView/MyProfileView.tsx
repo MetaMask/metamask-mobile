@@ -24,7 +24,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
-  CommonActions,
   useFocusEffect,
   useNavigation,
   useRoute,
@@ -129,7 +128,6 @@ import {
   getPositionsRefreshIntervalMs,
   POSITIONS_REFRESH_INTERVAL_MS,
 } from './utils/positionsRefreshInterval';
-import { dropProfileDrawerFromStack } from './utils/dropProfileDrawerFromStack';
 import {
   SocialEvent,
   useSocialAnalytics,
@@ -301,18 +299,6 @@ const MyProfileView: React.FC = () => {
   const traderName = route.params?.traderName;
   const traderAddress = route.params?.traderAddress;
   const traderAvatarUri = route.params?.traderAvatarUri;
-
-  // The Profile drawer opens this screen with `navigate`, so the drawer stays
-  // beneath it and every back affordance (header, iOS swipe, Android hardware
-  // back) would reveal it again. Drop the drawer from the stack so back returns
-  // to the tab it was opened from. A no-op when opened from Social.
-  useEffect(() => {
-    const nextState = dropProfileDrawerFromStack(navigation.getState());
-    if (!nextState) {
-      return;
-    }
-    navigation.dispatch(CommonActions.reset(nextState));
-  }, [navigation]);
 
   const tw = useTailwind();
   const { colors } = useTheme();
