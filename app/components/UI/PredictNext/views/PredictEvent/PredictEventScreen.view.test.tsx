@@ -1248,17 +1248,32 @@ describe('PredictEventScreen', () => {
     const dodgersCard = within(
       view.getByTestId(MarketStandardCardTestIds.card('dodgers')),
     );
-    expect(dodgersCard.getByText('$3.2M Vol.')).toBeOnTheScreen();
-    expect(dodgersCard.getByText('38%')).toBeOnTheScreen();
-    expect(dodgersCard.getByText('Yes · 38¢')).toBeOnTheScreen();
-    expect(dodgersCard.getByText('No · 62¢')).toBeOnTheScreen();
+    expect(dodgersCard.getByText('Yes')).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('dodgers')),
+      ).getByText('38¢'),
+    ).toBeOnTheScreen();
+    expect(dodgersCard.getByText('No')).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.noButton('dodgers')),
+      ).getByText('62¢'),
+    ).toBeOnTheScreen();
 
     const fieldCard = within(
       view.getByTestId(MarketStandardCardTestIds.card('field')),
     );
-    expect(fieldCard.queryByText(/ Vol\.$/)).not.toBeOnTheScreen();
-    expect(fieldCard.getByText('0%')).toBeOnTheScreen();
-    expect(fieldCard.getByText('Yes · 0¢')).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('field')),
+      ).getByText('0¢'),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.noButton('field')),
+      ).getByText('—'),
+    ).toBeOnTheScreen();
     expect(fieldCard.getByText('No')).toBeOnTheScreen();
   });
 

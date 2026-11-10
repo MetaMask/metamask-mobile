@@ -547,6 +547,12 @@ export default class Gestures {
     await AppiumGestures.activateApp(currentDeviceDetails, packageId);
   }
 
+  static async relaunchApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+  ): Promise<void> {
+    await AppiumGestures.relaunchApp(currentDeviceDetails);
+  }
+
   /**
    * Terminate the app identified by device details.
    */

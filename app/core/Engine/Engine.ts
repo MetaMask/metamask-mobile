@@ -113,7 +113,6 @@ import { appMetadataControllerInit } from './controllers/app-metadata-controller
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
-import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
@@ -147,9 +146,7 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
 import { moneyAccountApiDataServiceInit } from './controllers/money-account-api-data-service-init';
-import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
-import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
@@ -321,13 +318,10 @@ export class Engine {
         MoneyAccountController: moneyAccountControllerInit,
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
         MoneyAccountApiDataService: moneyAccountApiDataServiceInit,
-        GeolocationApiService: geolocationApiServiceInit,
         SentinelApiService: sentinelApiServiceInit,
-        GeolocationController: geolocationControllerInit,
         PredictVenueController: predictVenueControllerInit,
         TokensController: tokensControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
-        NetworkEnablementController: networkEnablementControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
@@ -424,7 +418,9 @@ export class Engine {
     const seedlessOnboardingController = this.#wallet.getInstance(
       'SeedlessOnboardingController',
     );
-    const geolocationController = messengerClientsByName.GeolocationController;
+    const geolocationController = this.#wallet.getInstance(
+      'GeolocationController',
+    );
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
@@ -546,9 +542,14 @@ export class Engine {
       messengerClientsByName.MultichainAccountService;
     const snapAccountService = messengerClientsByName.SnapAccountService;
 
-    const networkEnablementController =
-      messengerClientsByName.NetworkEnablementController;
-    networkEnablementController.init();
+    const networkEnablementController = this.#wallet.getInstance(
+      'NetworkEnablementController',
+    );
+    // Re-run now that MultichainNetworkController is registered; the call
+    // made by `wallet.init()` cannot read it yet.
+    networkEnablementController.init().catch((error) => {
+      captureException(error);
+    });
 
     const moneyAccountUpgradeController =
       messengerClientsByName.MoneyAccountUpgradeController;

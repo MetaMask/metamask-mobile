@@ -1156,82 +1156,10 @@
       "powered_by": "Com tecnologia da",
       "button": "Obter dados da conta"
     },
-    "verify_identity": {
-      "title": "Confirme sua identidade",
-      "subtitle": "Isso geralmente leva alguns minutos. Você precisará de um documento de identidade emitido pelo governo.",
-      "step_indicator": "{{current}} de {{total}}",
-      "step_photograph_id": "Fotografe seu documento de identidade",
-      "step_take_selfie": "Tirar uma selfie",
-      "step_confirm_details": "Confirme seus dados",
-      "step_answer_questions": "Responda a algumas perguntas",
-      "partner_title": "Temos parceria com a idOS para verificar sua identidade.",
-      "benefit_reuse_title": "Verifique uma vez, reutilize depois.",
-      "benefit_reuse_description": "A MetaMask armazena com segurança uma cópia criptografada da sua identidade verificada, para que você possa se cadastrar mais rápido com outros parceiros.",
-      "benefit_control_title": "Você controla seus dados.",
-      "benefit_control_description": "Só compartilhamos sua identidade verificada com um parceiro quando você concorda.",
-      "agreement": "Ao tocar em Concordar e continuar, eu concordo com os {{termsOfUse}} da MetaMask, reconheço o {{privacyNotice}} da MetaMask e consinto que a MetaMask transfira minhas informações para a idOS.",
-      "agreement_terms_of_use": "Termos de uso",
-      "agreement_privacy_notice": "Aviso de privacidade",
-      "disclaimers_error": "Não foi possível carregar os termos e condições.",
-      "disclaimers_retry": "Tentar novamente",
-      "agree_and_continue_button": "Concordar e continuar"
-    },
-    "partner_terms": {
-      "title": "Nossos parceiros de verificação",
-      "description": "A idOS verifica sua identidade. A idOS contrata a Sumsub para concluir a verificação.",
-      "section_title": "Termos e privacidade",
-      "idos_group_title": "idOS",
-      "sumsub_group_title": "Sumsub",
-      "sumsub_acknowledgement": "Reconheço que meus dados pessoais serão tratados conforme descrito no {{notice}}.",
-      "sumsub_notice": "Aviso de Tratamento de Dados Pessoais da Sumsub",
-      "biometric_consent": "Consinto expressamente que a idOS Association trate minhas imagens faciais e os dados biométricos delas derivados para verificar minha identidade, conforme descrito no {{privacyNotice}}.",
-      "biometric_consent_privacy_notice": "Aviso de Privacidade da idOS",
-      "agreement": "Ao tocar em Concordar, eu concordo com os {{termsAndConditions}}.",
-      "agreement_terms": "Termos e Condições da idOS",
-      "button": "Concordar"
-    },
-    "kyc_email": {
-      "error_title": "Não foi possível iniciar a verificação",
-      "error_description": "Ocorreu um erro ao abrir a verificação de e-mail. Tente novamente."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Precisamos de mais algumas informações",
-      "more_info_description": "Às vezes, precisamos de informações adicionais para concluir a verificação. Confira abaixo o que é necessário para continuar.",
-      "more_info_item_title": "Comprovante de residência",
-      "more_info_item_description": "Faça upload de um documento recente que mostre seu nome e seu endereço residencial atual",
-      "more_info_button": "Continuar",
-      "more_info_help": "Precisa de ajuda com a verificação?",
-      "error_title": "Não foi possível iniciar a verificação",
-      "error_description": "Ocorreu um erro ao abrir a verificação de identidade. Tente novamente.",
-      "retry": "Tentar novamente"
-    },
-    "kyc_taking_longer": {
-      "title": "Verificando sua identidade",
-      "description": "A maioria das verificações termina em cerca de 10 segundos. Você pode voltar mais tarde; avisaremos quando sua verificação estiver concluída.",
-      "button": "Volte mais tarde"
-    },
-    "identity_verified": {
-      "title": "Identidade verificada",
-      "description": "A verificação da sua identidade foi concluída.",
-      "button": "Continuar"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "Aguardando a aprovação da sua conta pela MoonPay"
-    },
-    "kyc_rejected": {
-      "title": "Não foi possível verificar sua identidade",
-      "description": "Alguns detalhes precisam da sua atenção. Confira cada item abaixo e depois entre em contato com o suporte.",
-      "retry_description": "Alguns detalhes precisam da sua atenção. Confira cada item abaixo e depois tente novamente.",
-      "identity_document_title": "Confira seu documento de identidade",
-      "identity_document_description": "Certifique-se de que seja válido, legível e totalmente visível",
-      "selfie_title": "Tire a selfie novamente",
-      "selfie_description": "Use uma boa iluminação e mostre seu rosto claramente",
-      "details_title": "Revise os seus dados",
-      "details_description": "Certifique-se de que suas informações coincidam com seus documentos",
-      "button": "Falar com o suporte",
-      "retry_button": "Tentar novamente"
     },
     "account_provisioning_error": {
       "title": "Não foi possível criar sua conta",
@@ -1291,6 +1219,80 @@
       "load_error": "Não foi possível atualizar o depósito. Vamos tentar novamente.",
       "setup_error": "Não foi possível criar sua conta.",
       "retry": "Tentar novamente"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "Confirme sua identidade",
+      "subtitle": "Isso geralmente leva alguns minutos. Você precisará de um documento de identidade emitido pelo governo.",
+      "step_indicator": "{{current}} de {{total}}",
+      "step_photograph_id": "Fotografe seu documento de identidade",
+      "step_take_selfie": "Tirar uma selfie",
+      "step_confirm_details": "Confirme seus dados",
+      "step_answer_questions": "Responda a algumas perguntas",
+      "partner_title": "Temos parceria com a idOS para verificar sua identidade.",
+      "benefit_reuse_title": "Verifique uma vez, reutilize depois.",
+      "benefit_reuse_description": "A MetaMask armazena com segurança uma cópia criptografada da sua identidade verificada, para que você possa se cadastrar mais rápido com outros parceiros.",
+      "benefit_control_title": "Você controla seus dados.",
+      "benefit_control_description": "Só compartilhamos sua identidade verificada com um parceiro quando você concorda.",
+      "agreement": "Ao tocar em Concordar e continuar, eu concordo com os {{termsOfUse}} da MetaMask, reconheço o {{privacyNotice}} da MetaMask e consinto que a MetaMask transfira minhas informações para a idOS.",
+      "agreement_terms_of_use": "Termos de uso",
+      "agreement_privacy_notice": "Aviso de privacidade",
+      "disclaimers_error": "Não foi possível carregar os termos e condições.",
+      "disclaimers_retry": "Tentar novamente",
+      "agree_and_continue_button": "Concordar e continuar"
+    },
+    "partner_terms": {
+      "title": "Nossos parceiros de verificação",
+      "description": "A idOS verifica sua identidade. A idOS contrata a Sumsub para concluir a verificação.",
+      "section_title": "Termos e privacidade",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "Reconheço que meus dados pessoais serão tratados conforme descrito no {{notice}}.",
+      "sumsub_notice": "Aviso de Tratamento de Dados Pessoais da Sumsub",
+      "biometric_consent": "Consinto expressamente que a idOS Association trate minhas imagens faciais e os dados biométricos delas derivados para verificar minha identidade, conforme descrito no {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "Aviso de Privacidade da idOS",
+      "agreement": "Ao tocar em Concordar, eu concordo com os {{termsAndConditions}}.",
+      "agreement_terms": "Termos e Condições da idOS",
+      "button": "Concordar"
+    },
+    "kyc_email": {
+      "error_title": "Não foi possível iniciar a verificação",
+      "error_description": "Ocorreu um erro ao abrir a verificação de e-mail. Tente novamente."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Precisamos de mais algumas informações",
+      "more_info_description": "Às vezes, precisamos de informações adicionais para concluir a verificação. Confira abaixo o que é necessário para continuar.",
+      "more_info_item_title": "Comprovante de residência",
+      "more_info_item_description": "Faça upload de um documento recente que mostre seu nome e seu endereço residencial atual",
+      "more_info_button": "Continuar",
+      "more_info_help": "Precisa de ajuda com a verificação?",
+      "error_title": "Não foi possível iniciar a verificação",
+      "error_description": "Ocorreu um erro ao abrir a verificação de identidade. Tente novamente.",
+      "retry": "Tentar novamente"
+    },
+    "kyc_taking_longer": {
+      "title": "Verificando sua identidade",
+      "description": "A maioria das verificações termina em cerca de 10 segundos. Você pode voltar mais tarde; avisaremos quando sua verificação estiver concluída.",
+      "button": "Volte mais tarde"
+    },
+    "identity_verified": {
+      "title": "Identidade verificada",
+      "description": "A verificação da sua identidade foi concluída.",
+      "button": "Continuar"
+    },
+    "kyc_rejected": {
+      "title": "Não foi possível verificar sua identidade",
+      "description": "Alguns detalhes precisam da sua atenção. Confira cada item abaixo e depois entre em contato com o suporte.",
+      "retry_description": "Alguns detalhes precisam da sua atenção. Confira cada item abaixo e depois tente novamente.",
+      "identity_document_title": "Confira seu documento de identidade",
+      "identity_document_description": "Certifique-se de que seja válido, legível e totalmente visível",
+      "selfie_title": "Tire a selfie novamente",
+      "selfie_description": "Use uma boa iluminação e mostre seu rosto claramente",
+      "details_title": "Revise os seus dados",
+      "details_description": "Certifique-se de que suas informações coincidam com seus documentos",
+      "button": "Falar com o suporte",
+      "retry_button": "Tentar novamente"
     }
   },
   "social": {

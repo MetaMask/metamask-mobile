@@ -43,6 +43,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   SHARE_ACTIVITY_SWITCH: 'social-profile-onboarding-share-activity-switch',
   ACCOUNT_BENEFITS: 'social-profile-onboarding-account-benefits',
   READY_STEP: 'social-profile-onboarding-ready-step',
+  READY_CARD_SLOT: 'social-profile-onboarding-ready-card-slot',
   READY_HANDLE: 'social-profile-onboarding-ready-handle',
   READY_ANIMATION: 'social-profile-onboarding-ready-animation',
   READY_AVATAR: 'social-profile-onboarding-ready-avatar',
