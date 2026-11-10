@@ -26,7 +26,10 @@ import {
   messengerCall,
   mockPredictNextMessenger,
 } from '../../../../tests/component-view/fixtures/predictNext';
-import { setupAccountsTransactionsApiMock } from '../../../../tests/component-view/api-mocking/accounts-transactions';
+import {
+  clearAccountsTransactionsApiMocks,
+  setupAccountsTransactionsApiMock,
+} from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import { ActivityTypeFilter } from './types';
 
 // Details testIDs mirrored locally so this route suite does not import from
@@ -208,6 +211,9 @@ describeForPlatforms('ActivityScreen — PredictNext (Kalshi) Activity', () => {
   });
 
   afterEach(() => {
+    // Setup disables net connect; without teardown a later suite in the same
+    // Jest worker has its axios requests refused by this file's nock.
+    clearAccountsTransactionsApiMocks();
     messengerCall.mockImplementation(defaultMessengerCall);
     legacyGetActivity()
       .mockReset()

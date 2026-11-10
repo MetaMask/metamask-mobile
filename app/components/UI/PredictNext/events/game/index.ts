@@ -28,4 +28,4 @@ export {
   shouldMirrorTeamLogo,
   type MatchupSlot,
 } from './shouldMirrorTeamLogo';
-export { useGameTeamColors } from './useGameTeamColors';
+export { getReadableQuoteColors, useGameTeamColors } from './useGameTeamColors';

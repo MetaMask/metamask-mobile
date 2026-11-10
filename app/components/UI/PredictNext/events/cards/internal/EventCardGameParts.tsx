@@ -21,6 +21,7 @@ import type {
 } from '../../../types';
 import {
   getMatchupSlot,
+  getReadableQuoteColors,
   shouldMirrorTeamLogo,
   useGameTeamColors,
 } from '../../game';
@@ -320,9 +321,10 @@ const ProbabilityBar = () => {
 };
 
 const Quote = ({ selection }: { selection: GameSelection }) => {
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, brandColors } = useTheme();
   const {
     event,
+    game,
     team,
     quote,
     abbreviation,
@@ -335,6 +337,18 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
   if (!quote) {
     return null;
   }
+
+  // The fill keeps the Team's own color. `teamColor` is the contrast-checked
+  // color for text on the card, which can be a light theme color.
+  const fillTeam = selection === 'home' ? game.homeTeam : game.awayTeam;
+  // The label is white when it reaches 4.5:1 on the fill, otherwise near-black.
+  // The dark ink is the fixed brand grey, not a themed text token, because the
+  // fill is the Team color in both themes and a themed token flips to white in
+  // dark mode.
+  const { fill: fillColor, label: labelColor } = getReadableQuoteColors(
+    fillTeam.primaryColor ?? teamColor,
+    { light: themeColors.overlay.inverse, dark: brandColors.grey1000 },
+  );
 
   const label = formattedPrice
     ? `${abbreviation} · ${formattedPrice}`
@@ -379,7 +393,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
       variant={ButtonVariant.Secondary}
       onPress={() => actions.order?.(event, quote.market, quote.outcome)}
       accessibilityLabel={`${team.name}, ${formattedPrice}, buy`}
-      style={{ backgroundColor: teamColor }}
+      style={{ backgroundColor: fillColor }}
       size={ButtonSize.Lg}
       twClassName="w-full px-3"
     >
@@ -387,7 +401,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         numberOfLines={1}
-        style={{ color: themeColors.overlay.inverse }}
+        style={{ color: labelColor }}
       >
         {label}
       </Text>

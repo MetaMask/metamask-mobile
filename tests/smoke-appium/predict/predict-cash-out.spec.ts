@@ -31,6 +31,7 @@ import {
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
+import { openPredictHomeFromWallet } from '../../flows/predict.flow.js';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -130,8 +131,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           // fails with getElementRect(elementId=undefined) if wallet-scroll-view
           // is not yet in the hierarchy after market-details pop.
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-          await WalletView.scrollAndTapPredictionsSection();
-          await PredictHome.waitForScreenToDisplay({
+          await openPredictHomeFromWallet({
             description: 'Predict home should be visible after cash out',
           });
           await PredictHome.tapPositions();
