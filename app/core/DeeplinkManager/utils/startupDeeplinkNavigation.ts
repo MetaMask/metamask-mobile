@@ -126,14 +126,15 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
 
 export const navigateToPostUnlockHome = async (): Promise<void> => {
   // Take first so time spent resolving a deeplink does not count against the
-  // resume window. A handled deeplink wins and drops the resume uncommitted.
+  // resume window. A deeplink wins and drops the resume uncommitted, both when
+  // handled here and when still pending for the parse after Home.
   const resume = await takePostUnlockResume();
   const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
   if (handledStartupDeeplink) {
     return;
   }
 
-  if (resume) {
+  if (resume && !AppStateEventProcessor.pendingDeeplink) {
     await resume.commit();
     resetToHomeNav(resume.state);
   } else {

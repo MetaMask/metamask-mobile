@@ -317,4 +317,39 @@ describe('startupDeeplinkNavigation', () => {
     expect(mockCommitPostUnlockResume).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
   });
+
+  it('lets a deeplink left for the legacy flow win without committing the post-unlock resume', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
+    mockResolve.mockResolvedValueOnce(null);
+    mockTakePostUnlockResume.mockResolvedValueOnce({
+      state: { index: 0, routes: [{ name: 'Home' }] },
+      commit: mockCommitPostUnlockResume,
+    });
+
+    await navigateToPostUnlockHome();
+
+    expect(mockCommitPostUnlockResume).not.toHaveBeenCalled();
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
+    expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
+  });
+
+  it('opens the post-unlock resume when the user rejected the startup deeplink', async () => {
+    const resumeState = { index: 0, routes: [{ name: 'Home' }] };
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockResolve.mockResolvedValueOnce(false);
+    mockTakePostUnlockResume.mockResolvedValueOnce({
+      state: resumeState,
+      commit: mockCommitPostUnlockResume,
+    });
+
+    await navigateToPostUnlockHome();
+
+    expect(mockCommitPostUnlockResume).toHaveBeenCalledTimes(1);
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV, state: resumeState }],
+    });
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
 });
