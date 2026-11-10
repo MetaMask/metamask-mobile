@@ -233,6 +233,10 @@ export const navigateToSocialTab = (
  * Home. Use it instead of opening the root-stack `Routes.SOCIAL.V1` screen,
  * which has no bottom tab bar and no back button, so the user gets stuck there.
  *
+ * Unlike `navigateToSocialTab` (the navbar entry), it skips the terms, profile
+ * and onboarding gates and pops root-stack screens. Call it only once the user
+ * is already through those gates, e.g. after posting or from a fallback.
+ *
  * @param navigation - The caller's navigation object.
  */
 export const popToSocialTab = (

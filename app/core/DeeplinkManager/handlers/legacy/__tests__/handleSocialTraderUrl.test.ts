@@ -139,4 +139,14 @@ describe('handleSocialTraderUrl', () => {
     expect(popToSocialTab).toHaveBeenCalledWith(NavigationService.navigation);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it('does not fall back to Social home when the Social V1 terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    mockEnsureSocialTermsAccepted.mockReturnValue(false);
+
+    handleSocialTraderUrl({ actionPath: '' });
+
+    expect(popToSocialTab).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
 });

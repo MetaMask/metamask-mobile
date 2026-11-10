@@ -365,4 +365,14 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(popToSocialTab).toHaveBeenCalledWith(NavigationService.navigation);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it('does not fall back to the Social tab when the Social V1 terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
+
+    handleSocialTraderPositionUrl({ actionPath: '' });
+
+    expect(popToSocialTab).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
 });
