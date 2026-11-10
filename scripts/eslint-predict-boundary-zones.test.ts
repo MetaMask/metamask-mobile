@@ -136,7 +136,7 @@ const BURNDOWN_BASELINE = [
   'app/selectors/featureFlagController/mocks.ts',
 ];
 
-type RuleEntry = [Linter.RuleLevel, { zones: Zone[] }];
+type RuleEntry = [Linter.RuleSeverity, { zones: Zone[] }];
 
 interface Zone {
   target: string | string[];
