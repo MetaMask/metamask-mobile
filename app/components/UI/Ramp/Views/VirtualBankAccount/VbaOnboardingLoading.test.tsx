@@ -56,6 +56,16 @@ const pending = () =>
     () => undefined,
   );
 
+const renderLoading = (
+  screen: React.ReactElement = <VbaOnboardingLoading />,
+  { isUnlocked = true }: { isUnlocked?: boolean } = {},
+) =>
+  renderWithProvider(screen, {
+    state: {
+      engine: { backgroundState: { KeyringController: { isUnlocked } } },
+    },
+  });
+
 describe('VbaOnboardingLoading', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -63,7 +73,7 @@ describe('VbaOnboardingLoading', () => {
   });
 
   it('shows the fox loader and back button while status is loading', () => {
-    const { getByTestId } = renderWithProvider(<VbaOnboardingLoading />);
+    const { getByTestId } = renderLoading();
 
     expect(
       getByTestId(VbaOnboardingLoadingSelectorsIDs.SPINNER),
@@ -79,13 +89,24 @@ describe('VbaOnboardingLoading', () => {
   });
 
   it('hydrates with the caller-provided source', () => {
-    renderWithProvider(
+    renderLoading(
       <VbaOnboardingLoading
         route={{ params: { source: 'vba-home-card-get-started' } }}
       />,
     );
 
     expect(mockResolve).toHaveBeenCalledWith('vba-home-card-get-started');
+  });
+
+  it('waits for the store to show the unlocked keyring before hydrating', () => {
+    const { getByTestId } = renderLoading(<VbaOnboardingLoading />, {
+      isUnlocked: false,
+    });
+
+    expect(
+      getByTestId(VbaOnboardingLoadingSelectorsIDs.SPINNER),
+    ).toBeOnTheScreen();
+    expect(mockResolve).not.toHaveBeenCalled();
   });
 
   it('opens vendor terms when hydrate returns an empty snapshot', async () => {
@@ -96,7 +117,7 @@ describe('VbaOnboardingLoading', () => {
       snapshot,
     });
 
-    renderWithProvider(<VbaOnboardingLoading />);
+    renderLoading();
 
     await waitFor(() => {
       expect(mockNavigateToDestination).toHaveBeenCalledWith(
@@ -120,7 +141,7 @@ describe('VbaOnboardingLoading', () => {
       snapshot,
     });
 
-    renderWithProvider(<VbaOnboardingLoading />);
+    renderLoading();
 
     await waitFor(() => {
       expect(mockNavigateToDestination).toHaveBeenCalledWith(
@@ -147,7 +168,7 @@ describe('VbaOnboardingLoading', () => {
       };
     });
 
-    const { getByTestId } = renderWithProvider(<VbaOnboardingLoading />);
+    const { getByTestId } = renderLoading();
 
     await waitFor(() => {
       expect(
@@ -172,7 +193,7 @@ describe('VbaOnboardingLoading', () => {
   it('shows the error stub when hydrate rejects', async () => {
     mockResolve.mockRejectedValue(new Error('hydrate failed'));
 
-    const { getByTestId } = renderWithProvider(<VbaOnboardingLoading />);
+    const { getByTestId } = renderLoading();
 
     await waitFor(() => {
       expect(
@@ -194,7 +215,7 @@ describe('VbaOnboardingLoading', () => {
       ),
     );
 
-    const { unmount } = renderWithProvider(<VbaOnboardingLoading />);
+    const { unmount } = renderLoading();
     unmount();
 
     finish({
