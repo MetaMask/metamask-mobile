@@ -1898,7 +1898,7 @@ describe('MainNavigator', () => {
 
     expect(manageProfileScreen).toBeDefined();
     expect(manageProfileScreen?.component.displayName).toBe(
-      'withSocialAccountGate(ManageProfileView)',
+      'withSocialAccountGate(withPortfolioBalanceProviders(ManageProfileView))',
     );
   });
 
