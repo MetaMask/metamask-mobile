@@ -5,7 +5,9 @@ import { playSelection } from '../../../../util/haptics';
 import AvatarBackgroundCarousel, {
   AVATAR_FLICKER_IN_MS,
   AVATAR_FLICKER_OUT_MS,
+  GLOW_FADE_MS,
   hapticBackgroundIndex,
+  INTRO_GLIDE_MS,
 } from './AvatarBackgroundCarousel';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 
@@ -122,14 +124,28 @@ describe('AvatarBackgroundCarousel', () => {
     expect(playSelection).not.toHaveBeenCalled();
   });
 
-  it('draws the blurred glow on capable devices', () => {
-    renderCarousel();
-
-    expect(
-      screen.getByTestId(
+  it('draws the blurred glow on capable devices and fades it out after the strip rests', () => {
+    jest.useFakeTimers();
+    try {
+      renderCarousel();
+      const glow = screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_GLOW,
-      ),
-    ).toBeOnTheScreen();
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(glow).toHaveAnimatedStyle({ opacity: 1 });
+
+      act(() => {
+        jest.advanceTimersByTime(INTRO_GLIDE_MS + GLOW_FADE_MS);
+      });
+
+      expect(glow).toHaveAnimatedStyle({ opacity: 0 });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('leaves out the blurred glow on low-tier devices', () => {
