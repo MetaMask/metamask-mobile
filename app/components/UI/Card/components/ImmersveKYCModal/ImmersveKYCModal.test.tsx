@@ -3,7 +3,6 @@ import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Alert, Linking, Platform } from 'react-native';
 import { RESULTS } from 'react-native-permissions';
 import Logger from '../../../../../util/Logger';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
 import ImmersveKYCModal, {
@@ -14,6 +13,7 @@ import ImmersveKYCModal, {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitCardFlow = jest.fn();
 const mockAddListener = jest.fn(
   (
     _eventName: string,
@@ -38,6 +38,10 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     addListener: mockAddListener,
   }),
+}));
+
+jest.mock('../../hooks/useExitCardFlow', () => ({
+  useExitCardFlow: () => mockExitCardFlow,
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -557,7 +561,7 @@ describe('ImmersveKYCModal', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('navigates to wallet home when exit is confirmed', async () => {
+  it('returns through the card exit when exit is confirmed', async () => {
     const onClose = jest.fn();
     setImmersveKycOnClose(onClose);
     const { getByTestId } = render(<ImmersveKYCModal />);
@@ -569,7 +573,8 @@ describe('ImmersveKYCModal', () => {
     fireEvent.press(getByTestId('immersve-kyc-close-button'));
     pressExitConfirmationButton(1);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
     expect(getTrackedProperties()).toEqual(
@@ -604,6 +609,27 @@ describe('ImmersveKYCModal', () => {
       'card.card_onboarding.exit_confirmation.title',
       'card.card_onboarding.exit_confirmation.message',
       expect.any(Array),
+    );
+  });
+
+  it('returns through the card exit when removal is confirmed', () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    render(<ImmersveKYCModal />);
+    const preventDefault = jest.fn();
+
+    getBeforeRemoveListener()({ preventDefault });
+    pressExitConfirmationButton(1);
+
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(getTrackedProperties()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
+      ]),
     );
   });
 
