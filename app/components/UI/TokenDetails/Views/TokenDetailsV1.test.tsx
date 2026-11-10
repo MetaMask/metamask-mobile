@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, type LayoutChangeEvent } from 'react-native';
+import { ScrollView, StyleSheet, type LayoutChangeEvent } from 'react-native';
 import { act, fireEvent, render, within } from '@testing-library/react-native';
 
 import { TokenDetailsV1, resolveSwipeTargetTab } from './TokenDetailsV1';
@@ -212,7 +212,13 @@ jest.mock('../components/tabs/TokenDetailsFeed', () => {
   };
 });
 
-const mockQuickBuyRoot = jest.fn((_props: Record<string, unknown>) => null);
+const { View: MockQuickBuySheetView } = jest.requireActual('react-native');
+
+const mockQuickBuyRoot = jest.fn((props: Record<string, unknown>) =>
+  props.isVisible ? (
+    <MockQuickBuySheetView testID="mock-copy-trade-quick-buy-sheet" />
+  ) : null,
+);
 jest.mock('../../QuickBuy', () => ({
   QuickBuy: {
     Root: (props: Record<string, unknown>) => mockQuickBuyRoot(props),
@@ -442,13 +448,16 @@ jest.mock('../components/sections/TokenDetailsActionsSection', () => {
   };
 });
 
-jest.mock('../hooks/useStickyQuickBuy', () => ({
-  useStickyQuickBuy: () => ({
-    onQuickBuyPress: jest.fn(),
-    openQuickBuy: jest.fn(),
-    quickBuySheet: null,
-  }),
-}));
+jest.mock('../hooks/useStickyQuickBuy', () => {
+  const { View: MockSheetView } = jest.requireActual('react-native');
+  return {
+    useStickyQuickBuy: () => ({
+      onQuickBuyPress: jest.fn(),
+      openQuickBuy: jest.fn(),
+      quickBuySheet: <MockSheetView testID="mock-sticky-quick-buy-sheet" />,
+    }),
+  };
+});
 
 const mockUseTokenBalance = jest.fn();
 jest.mock('../hooks/useTokenBalance', () => ({
@@ -651,6 +660,39 @@ describe('TokenDetailsV1', () => {
       });
 
       expect(headerProps.scrollY?.value).toBe(80);
+    });
+
+    it('mounts the Quick Buy sheets outside the isolated content so they stack above the glass header', () => {
+      mockSelectors({ brandRefreshEnabled: true, socialEnabled: true });
+
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      // The glass header floats at z-10; the isolated wrapper keeps that
+      // stacking context from swallowing the fullscreen sheets.
+      const isolatedContent = getByTestId(TokenDetailsIds.content);
+      expect(StyleSheet.flatten(isolatedContent.props.style).isolation).toBe(
+        'isolate',
+      );
+      expect(within(isolatedContent).getByTestId('mock-back')).toBeTruthy();
+
+      expect(
+        within(isolatedContent).queryByTestId('mock-sticky-quick-buy-sheet'),
+      ).toBeNull();
+      expect(getByTestId('mock-sticky-quick-buy-sheet')).toBeTruthy();
+
+      fireEvent.press(getByTestId('mock-feed-copy-trade'));
+
+      expect(
+        within(isolatedContent).queryByTestId(
+          'mock-copy-trade-quick-buy-sheet',
+        ),
+      ).toBeNull();
+      expect(getByTestId('mock-copy-trade-quick-buy-sheet')).toBeTruthy();
     });
   });
 

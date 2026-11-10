@@ -10,6 +10,7 @@ export const TokenDetailsIds = {
     copyAddressButton: 'copy-contract-address-button',
   },
   v1: 'token-details-v1',
+  content: 'token-details-v1-content',
   scrollView: 'token-details-v1-scroll-view',
   tabPanelPrefix: 'token-details-v1-tab-panel',
   tabContent: TAB_CONTENT,
