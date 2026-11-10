@@ -1074,6 +1074,10 @@ describe('MainNavigator', () => {
       );
 
       expect(bridgeScreen).toBeDefined();
+      expect(bridgeScreen?.options).toMatchObject({
+        fullScreenGestureEnabled: true,
+      });
+      expect(bridgeScreen?.options).not.toHaveProperty('gestureEnabled');
     });
 
     it('includes Earn routes', () => {

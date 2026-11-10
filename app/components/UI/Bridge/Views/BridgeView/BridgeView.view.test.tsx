@@ -123,6 +123,20 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   });
 };
 
+// The native pager never reports that it stopped scrolling in Jest, and the
+// previous tab stays mounted until it does.
+const settlePager = async (
+  getByTestId: ReturnType<typeof renderBridgeView>['getByTestId'],
+) => {
+  await act(async () => {
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.TABS_CONTENT),
+      'pageScrollStateChanged',
+      { nativeEvent: { pageScrollState: 'idle' } },
+    );
+  });
+};
+
 describeForPlatforms('BridgeView', () => {
   beforeEach(() => {
     setupRecurringOrdersDataServiceMock();
@@ -265,6 +279,7 @@ describeForPlatforms('BridgeView', () => {
       ).not.toBeOnTheScreen();
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await settlePager(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -478,6 +493,7 @@ describeForPlatforms('BridgeView', () => {
       ).toHaveTextContent(strings('bridge.tabs.recurring'));
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await settlePager(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -500,6 +516,7 @@ describeForPlatforms('BridgeView', () => {
       });
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+      await settlePager(getByTestId);
 
       await waitFor(() => {
         expect(

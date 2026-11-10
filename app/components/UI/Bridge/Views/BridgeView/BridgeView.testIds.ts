@@ -23,7 +23,7 @@ export const BridgeViewSelectorsIDs = {
   MARKET_CLOSED_BANNER: 'bridge-market-closed-banner',
   TABS_BAR: 'bridge-tabs-bar',
   TABS_CONTENT: 'bridge-tabs-content',
-  TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
+  FIRST_PAGE_SWIPE_GESTURE: 'bridge-first-page-swipe-gesture',
   TAB_PAGE_SKELETON: 'bridge-tab-page-skeleton',
   MARKET_TAB: 'bridge-market-tab',
   LIMIT_TAB: 'bridge-limit-tab',

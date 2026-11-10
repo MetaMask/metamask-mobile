@@ -1,10 +1,8 @@
 import React, {
-  startTransition,
   useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { View } from 'react-native';
@@ -14,10 +12,8 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import PagerView, {
-  type PagerViewOnPageSelectedEvent,
-  type PageScrollStateChangedNativeEvent,
-} from 'react-native-pager-view';
+import PagerView from 'react-native-pager-view';
+import { GestureDetector } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, IconName } from '@metamask/design-system-react-native';
 import {
@@ -54,10 +50,7 @@ import {
 } from '../../../../../selectors/bridge/featureFlags';
 import { BridgeTabKey } from './BridgeView.constants';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
-import BridgeMarketView from './BridgeMarketView';
-import BridgeLimitOrderView from './BridgeLimitOrderView';
-import BridgeRecurringBuyView from './BridgeRecurringBuyView';
-import BridgeTabPageSkeleton from './BridgeTabPageSkeleton';
+import BridgeTabPage from './BridgeTabPage';
 import type { QuoteParams } from '../../providers/SwapQuotesProvider/utils';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
@@ -66,6 +59,8 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileInputsForNonMarketSwapTab';
 import { OrdersTabKey } from '../../components/OrdersTabs';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
+import { useTabPager } from '../../hooks/useTabPager';
+import { useFirstPageSwipeGesture } from '../../hooks/useFirstPageSwipeGesture';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -77,17 +72,6 @@ const BridgeView = () => {
   // Low-RAM devices only ever mount the rendered tab, so the incoming page
   // fills in once the pager settles instead of while it slides.
   const [isLowHardware] = useState(() => getHardwareTier() === 'LOW');
-  const pagerRef = useRef<PagerView>(null);
-  // Set when a tab press or a pager swipe already moved the pager, so the
-  // sync effect below only snaps it for external tab changes (deep links,
-  // feature flag fallback).
-  const isPagerDrivenChangeRef = useRef(false);
-  const settledPageRef = useRef<number | null>(null);
-  // Pages besides `renderedTab` that stay mounted until the pager is idle:
-  // the outgoing page while a tab press slides it away, and the neighbours
-  // a drag can reveal.
-  const [outgoingTab, setOutgoingTab] = useState<BridgeTabKey | null>(null);
-  const [previewTabs, setPreviewTabs] = useState<BridgeTabKey[]>([]);
   const {
     selectedTab,
     renderedTab,
@@ -306,156 +290,43 @@ const BridgeView = () => {
 
   const showTabsBar = tabs.length > 1;
 
-  const activeIndex = useMemo(
-    () =>
-      Math.max(
-        tabs.findIndex((tab) => tab.key === selectedTab),
-        0,
-      ),
-    [tabs, selectedTab],
+  const tabKeys = useMemo(
+    () => tabs.map((tab) => tab.key as BridgeTabKey),
+    [tabs],
   );
 
-  const renderedIndex = useMemo(
-    () =>
-      Math.max(
-        tabs.findIndex((tab) => tab.key === renderedTab),
-        0,
-      ),
-    [tabs, renderedTab],
+  const {
+    pagerRef,
+    pagerKey,
+    activeIndex,
+    renderedIndex,
+    mountedTabs,
+    handleTabPress,
+    handlePageSelected,
+    handlePageScrollStateChanged,
+  } = useTabPager({
+    tabKeys,
+    selectedTab,
+    renderedTab,
+    setSelectedTab,
+    setRenderedTab,
+    pendingTab: initialTab,
+    mountTransitionPages: !isLowHardware,
+  });
+
+  const handleSwipeToNextPage = useCallback(
+    () => handleTabPress(1),
+    [handleTabPress],
   );
 
-  const moveTabsBarTo = useCallback(
-    (nextTab: BridgeTabKey) => {
-      if (nextTab === selectedTab) {
-        return;
-      }
-      isPagerDrivenChangeRef.current = true;
-      setSelectedTab(nextTab);
-    },
-    [selectedTab, setSelectedTab],
-  );
-
-  const handleTabPress = useCallback(
-    (index: number) => {
-      const nextTab = (tabs[index]?.key as BridgeTabKey) ?? BridgeTabKey.Market;
-      if (nextTab === selectedTab) {
-        return;
-      }
-      settledPageRef.current = index;
-      if (!isLowHardware) {
-        setOutgoingTab(renderedTab);
-      }
-      moveTabsBarTo(nextTab);
-      pagerRef.current?.setPage(index);
-      startTransition(() => setRenderedTab(nextTab));
-    },
-    [
-      tabs,
-      selectedTab,
-      isLowHardware,
-      renderedTab,
-      moveTabsBarTo,
-      setRenderedTab,
-    ],
-  );
-
-  // iOS reports the page as soon as a drag crosses the halfway point, while
-  // the finger is still down, so only the tabs bar follows it here. The page
-  // content is committed once the pager is idle.
-  const handlePageSelected = useCallback(
-    (event: PagerViewOnPageSelectedEvent) => {
-      const { position } = event.nativeEvent;
-      settledPageRef.current = position;
-      const nextTab = tabs[position]?.key as BridgeTabKey | undefined;
-      if (nextTab) {
-        moveTabsBarTo(nextTab);
-      }
-    },
-    [tabs, moveTabsBarTo],
-  );
-
-  const handlePageScrollStateChanged = useCallback(
-    (event: PageScrollStateChangedNativeEvent) => {
-      const { pageScrollState } = event.nativeEvent;
-
-      if (pageScrollState === 'dragging') {
-        // Mount both neighbours up front so the page sliding in is already
-        // filled in, and stays mounted if the drag changes direction.
-        if (!isLowHardware) {
-          setPreviewTabs(
-            [tabs[renderedIndex - 1]?.key, tabs[renderedIndex + 1]?.key].filter(
-              (tab): tab is BridgeTabKey => tab !== undefined,
-            ),
-          );
-        }
-        return;
-      }
-
-      if (pageScrollState !== 'idle') {
-        return;
-      }
-
-      setOutgoingTab(null);
-      const settledTab =
-        settledPageRef.current === null
-          ? undefined
-          : (tabs[settledPageRef.current]?.key as BridgeTabKey | undefined);
-      if (settledTab && settledTab !== renderedTab) {
-        moveTabsBarTo(settledTab);
-        // Keeps the settled page mounted until the deferred `renderedTab`
-        // catches up.
-        setPreviewTabs([settledTab]);
-        startTransition(() => setRenderedTab(settledTab));
-      } else {
-        setPreviewTabs([]);
-      }
-    },
-    [
-      isLowHardware,
-      tabs,
-      renderedIndex,
-      renderedTab,
-      moveTabsBarTo,
-      setRenderedTab,
-    ],
-  );
-
-  useEffect(() => {
-    setPreviewTabs((previewed) =>
-      previewed.includes(renderedTab)
-        ? previewed.filter((tab) => tab !== renderedTab)
-        : previewed,
-    );
-  }, [renderedTab]);
-
-  useEffect(() => {
-    if (isPagerDrivenChangeRef.current) {
-      isPagerDrivenChangeRef.current = false;
-      return;
-    }
-    pagerRef.current?.setPageWithoutAnimation(activeIndex);
-  }, [activeIndex]);
-
-  const mountedTabs = useMemo(
-    () =>
-      new Set<BridgeTabKey>(
-        [renderedTab, outgoingTab, ...previewTabs].filter(
-          (tab): tab is BridgeTabKey => tab !== null,
-        ),
-      ),
-    [renderedTab, outgoingTab, previewTabs],
-  );
-
-  const renderTabPage = (tab: BridgeTabKey) => {
-    switch (tab) {
-      case BridgeTabKey.Limit:
-        return <BridgeLimitOrderView location={location} />;
-      case BridgeTabKey.Recurring:
-        return <BridgeRecurringBuyView location={location} />;
-      default:
-        return <BridgeMarketView location={location} />;
-    }
-  };
+  const { gesture: firstPageSwipeGesture, isPagerScrollEnabled } =
+    useFirstPageSwipeGesture({
+      isOnFirstPage: renderedIndex === 0,
+      hasMultiplePages: showTabsBar,
+      onSwipeBack: handleBack,
+      onSwipeToNextPage: handleSwipeToNextPage,
+      testID: BridgeViewSelectorsIDs.FIRST_PAGE_SWIPE_GESTURE,
+    });
 
   // A tab can disappear if its feature flag flips off while it's active
   // (e.g. remote flag update). Fall back to Market rather than rendering
@@ -517,34 +388,29 @@ const BridgeView = () => {
           testID={BridgeViewSelectorsIDs.TABS_BAR}
         />
       ) : null}
-      <PagerView
-        ref={pagerRef}
-        style={tw.style('flex-1 bg-default')}
-        initialPage={activeIndex}
-        scrollEnabled={showTabsBar}
-        onPageSelected={handlePageSelected}
-        onPageScrollStateChanged={handlePageScrollStateChanged}
-        testID={BridgeViewSelectorsIDs.TABS_CONTENT}
-      >
-        {tabs.map((tab) => {
-          const tabKey = tab.key as BridgeTabKey;
-          return (
-            // The background covers the native page cell (white on iOS) while
-            // a page is empty or still mounting.
-            <View
-              key={tabKey}
-              style={tw.style('flex-1 bg-default')}
-              collapsable={false}
-            >
-              {mountedTabs.has(tabKey) ? (
-                renderTabPage(tabKey)
-              ) : (
-                <BridgeTabPageSkeleton tab={tabKey} />
-              )}
-            </View>
-          );
-        })}
-      </PagerView>
+      <GestureDetector gesture={firstPageSwipeGesture}>
+        <View style={tw.style('flex-1')} collapsable={false}>
+          <PagerView
+            key={pagerKey}
+            ref={pagerRef}
+            style={tw.style('flex-1 bg-default')}
+            initialPage={activeIndex}
+            scrollEnabled={isPagerScrollEnabled}
+            onPageSelected={handlePageSelected}
+            onPageScrollStateChanged={handlePageScrollStateChanged}
+            testID={BridgeViewSelectorsIDs.TABS_CONTENT}
+          >
+            {tabKeys.map((tabKey) => (
+              <BridgeTabPage
+                key={tabKey}
+                tab={tabKey}
+                isMounted={mountedTabs.has(tabKey)}
+                location={location}
+              />
+            ))}
+          </PagerView>
+        </View>
+      </GestureDetector>
     </Box>
   );
 };

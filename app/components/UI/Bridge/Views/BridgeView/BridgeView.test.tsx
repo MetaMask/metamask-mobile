@@ -10,6 +10,9 @@ import {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { Platform } from 'react-native';
+import PagerView from 'react-native-pager-view';
+import type { ReactTestInstance } from 'react-test-renderer';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
@@ -2721,12 +2724,131 @@ describe('BridgeView', () => {
     const swipe = async (translationX: number, velocityX = 0) => {
       await act(async () => {
         fireGestureHandler(
-          getByGestureTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE),
+          getByGestureTestId(BridgeViewSelectorsIDs.FIRST_PAGE_SWIPE_GESTURE),
           [{ translationX, velocityX }],
         );
         await Promise.resolve();
       });
     };
+
+    // The native pager never reports scrolling in Jest, so tests drive its
+    // events directly.
+    const firePagerEvent = async (
+      getByTestId: (testID: string) => ReactTestInstance,
+      eventName: 'pageScroll' | 'pageSelected' | 'pageScrollStateChanged',
+      nativeEvent: Record<string, unknown>,
+    ) => {
+      await act(async () => {
+        fireEvent(getByTestId(BridgeViewSelectorsIDs.TABS_CONTENT), eventName, {
+          nativeEvent,
+        });
+      });
+    };
+
+    const settlePager = (getByTestId: (testID: string) => ReactTestInstance) =>
+      firePagerEvent(getByTestId, 'pageScrollStateChanged', {
+        pageScrollState: 'idle',
+      });
+
+    // Records every pager render, since the native pager only reads
+    // `initialPage` when it mounts.
+    const spyOnPagerRenders = () => {
+      const renders: { pager: PagerView; initialPage?: number }[] = [];
+      const originalRender = PagerView.prototype.render;
+      jest
+        .spyOn(PagerView.prototype, 'render')
+        .mockImplementation(function (this: PagerView) {
+          renders.push({ pager: this, initialPage: this.props.initialPage });
+          return originalRender.call(this);
+        });
+      return renders;
+    };
+
+    const setTabFlags = async (
+      store: ReturnType<typeof renderScreen>['store'],
+      { limit, recurring }: { limit: boolean; recurring: boolean },
+    ) => {
+      const { RemoteFeatureFlagController } =
+        store.getState().engine.backgroundState;
+      Object.assign(Engine, {
+        state: {
+          RemoteFeatureFlagController: {
+            ...RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...RemoteFeatureFlagController.remoteFeatureFlags,
+              swapsLimitOrder: { enabled: limit },
+              swapsRecurringBuy: { enabled: recurring },
+            },
+          },
+        },
+      });
+      await act(async () => {
+        store.dispatch({
+          type: 'UPDATE_BG_STATE',
+          payload: { key: 'RemoteFeatureFlagController' },
+        });
+      });
+    };
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+      delete (Engine as { state?: unknown }).state;
+    });
+
+    it('remounts the pager on the selected tab when a tab is inserted before it', async () => {
+      const recurringOnlyState = merge({}, mockState, {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: { swapsRecurringBuy: { enabled: true } },
+            },
+          },
+        },
+      }) as DeepPartial<RootState>;
+      const renders = spyOnPagerRenders();
+      const { getByTestId, store } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: recurringOnlyState },
+      );
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await settlePager(getByTestId);
+      const pagerBeforeInsert = renders[renders.length - 1].pager;
+
+      await setTabFlags(store, { limit: true, recurring: true });
+
+      const lastRender = renders[renders.length - 1];
+      expect(lastRender.pager === pagerBeforeInsert).toBe(false);
+      expect(lastRender.initialPage).toBe(2);
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the selected tab when a tab before it is removed', async () => {
+      const renders = spyOnPagerRenders();
+      const { getByTestId, queryByTestId, store } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await settlePager(getByTestId);
+      const pagerBeforeRemoval = renders[renders.length - 1].pager;
+
+      await setTabFlags(store, { limit: false, recurring: true });
+      // The remounted pager reports the page it mounted on.
+      await firePagerEvent(getByTestId, 'pageSelected', { position: 1 });
+      await settlePager(getByTestId);
+
+      const lastRender = renders[renders.length - 1];
+      expect(lastRender.pager === pagerBeforeRemoval).toBe(false);
+      expect(lastRender.initialPage).toBe(1);
+      expect(queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeNull();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+      ).toBeOnTheScreen();
+    });
 
     it('opens the initial tab requested by the route', async () => {
       mockRoute.params = {
@@ -2777,6 +2899,48 @@ describe('BridgeView', () => {
       expect(mockSetParams).toHaveBeenCalledWith({
         initialTab: undefined,
       });
+    });
+
+    it('mounts the pager on the Limit tab requested by the route', async () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        initialTab: BridgeTabKey.Limit,
+      };
+      // The native pager only reads `initialPage` from its first render.
+      const renderedInitialPages: (number | undefined)[] = [];
+      const originalRender = PagerView.prototype.render;
+      jest
+        .spyOn(PagerView.prototype, 'render')
+        .mockImplementation(function (this: PagerView) {
+          renderedInitialPages.push(this.props.initialPage);
+          return originalRender.call(this);
+        });
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+      mockRoute.params.initialTab = undefined;
+
+      const [initialPage] = renderedInitialPages;
+      expect(initialPage).toBe(1);
+
+      // Android reports the page it mounted on once the pager is attached.
+      await firePagerEvent(getByTestId, 'pageSelected', {
+        position: initialPage,
+      });
+      await firePagerEvent(getByTestId, 'pageScrollStateChanged', {
+        pageScrollState: 'dragging',
+      });
+      await settlePager(getByTestId);
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('applies the limit order deep link presets over the session values once per deep link', () => {
@@ -2865,6 +3029,7 @@ describe('BridgeView', () => {
       mockRoute.params.initialTab = undefined;
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+      await settlePager(getByTestId);
       await waitFor(() => {
         expect(
           queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
@@ -2918,7 +3083,8 @@ describe('BridgeView', () => {
       ).toBeNull();
     });
 
-    it('navigates to the next tab on a left swipe', async () => {
+    it('shows the next tab once a left swipe settles on Android', async () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
       const { getByTestId, queryByTestId } = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
@@ -2929,7 +3095,11 @@ describe('BridgeView', () => {
         queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
       ).toBeNull();
 
-      await swipe(-80, -600);
+      await firePagerEvent(getByTestId, 'pageScrollStateChanged', {
+        pageScrollState: 'dragging',
+      });
+      await firePagerEvent(getByTestId, 'pageSelected', { position: 1 });
+      await settlePager(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -2938,7 +3108,7 @@ describe('BridgeView', () => {
       });
     });
 
-    it('navigates to the previous tab on a right swipe', async () => {
+    it('shows the previous tab once a right swipe settles', async () => {
       const { getByTestId, queryByTestId } = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
@@ -2946,13 +3116,22 @@ describe('BridgeView', () => {
       );
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await settlePager(getByTestId);
       await waitFor(() => {
         expect(
           getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
         ).toBeOnTheScreen();
       });
 
-      await swipe(80, 600);
+      await firePagerEvent(getByTestId, 'pageScrollStateChanged', {
+        pageScrollState: 'dragging',
+      });
+      await firePagerEvent(getByTestId, 'pageScroll', {
+        position: 0,
+        offset: 0.4,
+      });
+      await firePagerEvent(getByTestId, 'pageSelected', { position: 0 });
+      await settlePager(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -2962,7 +3141,56 @@ describe('BridgeView', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('navigates back when swiping right on the first tab', async () => {
+    it('leaves right swipes on the Market tab to the native back gesture on iOS', async () => {
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await swipe(80, 600);
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.TABS_CONTENT).props.scrollEnabled,
+      ).toBe(false);
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('shows the Limit tab on a left swipe on the Market tab on iOS', async () => {
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await swipe(-80, -600);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.TABS_CONTENT).props.scrollEnabled,
+      ).toBe(true);
+    });
+
+    it('stays on the Market tab after a short left swipe on iOS', async () => {
+      const { queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await swipe(-30, -100);
+
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeNull();
+    });
+
+    it('navigates back on a right swipe on the Market tab on Android', async () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
       renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
@@ -2971,35 +3199,24 @@ describe('BridgeView', () => {
 
       await swipe(80, 600);
 
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
-      });
+      expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('does not swipe past the last tab', async () => {
-      const { getByTestId, queryByTestId } = renderScreen(
+    it('stays on the screen on a left swipe on the Market tab on Android', async () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+      renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
         { state: stateWithTabsEnabled() },
       );
 
-      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
-      await waitFor(() => {
-        expect(
-          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
       await swipe(-80, -600);
 
-      await waitFor(() => {
-        expect(
-          queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
-        ).toBeOnTheScreen();
-      });
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('navigates back on a right swipe over the tab content when the tabs bar is hidden', async () => {
+    it('navigates back on a right swipe over the tab content when the tabs bar is hidden on Android', async () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
       renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
