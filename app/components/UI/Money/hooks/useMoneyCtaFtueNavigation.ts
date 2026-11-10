@@ -13,7 +13,10 @@ import {
   type MoneySplashParams,
 } from '../types/navigation';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
-import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
+import {
+  useMoneyNavigation,
+  useMoneyOnboardingNavigation,
+} from './useMoneyNavigation';
 
 interface NavigateToMoneyDepositWithCtaFtueOptions {
   analyticsContext?: NavigationAnalyticsContext;
@@ -24,6 +27,7 @@ export const useMoneyCtaFtueNavigation = () => {
   const isSplashEnabled = useSelector(selectMoneySplashEnabled);
   const { isOnboardingRedirectNeeded, redirectToOnboardingIfNeeded } =
     useMoneyOnboardingNavigation();
+  const { navigateToMoneyHome } = useMoneyNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
 
   const isSplashRedirectNeeded = isSplashEnabled && !hasSeenSplash;
@@ -84,7 +88,9 @@ export const useMoneyCtaFtueNavigation = () => {
       }
 
       try {
-        await initiateDeposit();
+        await initiateDeposit({
+          onDepositSetupFailure: () => navigateToMoneyHome(),
+        });
       } catch (error) {
         Logger.error(
           ensureError(error, '[Money CTA FTUE] Deposit setup failed'),
@@ -92,7 +98,7 @@ export const useMoneyCtaFtueNavigation = () => {
         );
       }
     },
-    [initiateDeposit, redirectToCtaFtueIfNeeded],
+    [initiateDeposit, navigateToMoneyHome, redirectToCtaFtueIfNeeded],
   );
 
   return {

@@ -11,10 +11,14 @@ import {
 } from '../types/navigation';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
 import { useMoneyCtaFtueNavigation } from './useMoneyCtaFtueNavigation';
-import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
+import {
+  useMoneyNavigation,
+  useMoneyOnboardingNavigation,
+} from './useMoneyNavigation';
 
 const mockNavigate = jest.fn();
 const mockRedirectToOnboardingIfNeeded = jest.fn();
+const mockNavigateToMoneyHome = jest.fn();
 const mockInitiateDeposit = jest.fn();
 
 jest.mock('react-redux', () => ({
@@ -45,6 +49,7 @@ const { useSelector } = jest.requireMock('react-redux');
 const mockUseMoneyOnboardingNavigation = jest.mocked(
   useMoneyOnboardingNavigation,
 );
+const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
 const setup = ({
@@ -67,6 +72,10 @@ const setup = ({
     redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
   });
   mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
+  mockUseMoneyNavigation.mockReturnValue({
+    isOnboardingRedirectNeeded,
+    navigateToMoneyHome: mockNavigateToMoneyHome,
+  });
   mockUseMoneyAccountDeposit.mockReturnValue({
     initiateDeposit: mockInitiateDeposit,
   });
@@ -221,7 +230,24 @@ describe('useMoneyCtaFtueNavigation', () => {
     });
 
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      onDepositSetupFailure: expect.any(Function),
+    });
+  });
+
+  it('sends the user to money home when the deposit setup fails', async () => {
+    setup({ hasSeenSplash: true, isSplashEnabled: false });
+
+    const { result } = renderHook(() => useMoneyCtaFtueNavigation());
+
+    await act(async () => {
+      await result.current.navigateToMoneyDepositWithCtaFtue();
+    });
+
+    const [options] = mockInitiateDeposit.mock.calls[0];
+    options.onDepositSetupFailure(new Error('missing vault config'));
+
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
   });
 
   it('logs a failed deposit instead of rejecting', async () => {
