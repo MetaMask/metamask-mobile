@@ -1,8 +1,11 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
+import { darkTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../locales/i18n';
+import { mockTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import socialTermsOfUseContent from '../../../../../util/termsOfUse/socialTermsOfUseContent';
 import SocialTermsSheet from './SocialTermsSheet';
@@ -81,36 +84,42 @@ describe('SocialTermsSheet', () => {
     mockInjectJavaScript.mockClear();
   });
 
-  it('scrolls to the end on the first agreement tap and checks it on the second', () => {
-    const { getByTestId, queryByTestId, onAgree, UNSAFE_getByType } =
-      renderSheet();
-    const scrollToEndSpy = jest.fn();
-    UNSAFE_getByType(ScrollView).instance.scrollToEnd = scrollToEndSpy;
-    const checkbox = getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX);
+  it('pads the footer 16px on the top and sides with an 8px gap and no extra bottom padding', () => {
+    const { getByTestId } = renderSheet();
+    const style = StyleSheet.flatten(
+      getByTestId(SocialTermsSheetSelectorsIDs.FOOTER).props.style,
+    );
 
-    fireEvent.press(checkbox);
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
+    expect(style).toEqual(
+      expect.objectContaining({
+        paddingTop: 16,
+        paddingLeft: 16,
+        paddingRight: 16,
+        gap: 8,
+      }),
+    );
+    expect(style.paddingBottom).toBeUndefined();
+  });
 
-    expect(scrollToEndSpy).toHaveBeenCalledWith({ animated: true });
-    expect(onAgree).not.toHaveBeenCalled();
-    expect(
-      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).toBeOnTheScreen();
+  it('keeps Agree disabled and shows the scroll helper before the end is reached', () => {
+    const { getByTestId, queryByText, onAgree } = renderSheet();
 
     fireEvent.scroll(
       getByTestId(SocialTermsSheetSelectorsIDs.BODY),
-      scrollToEnd,
+      scrollToMiddle,
     );
-    fireEvent.press(checkbox);
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+      queryByText(strings('social_leaderboard.terms.checkbox')),
     ).not.toBeOnTheScreen();
-    expect(onAgree).toHaveBeenCalledTimes(1);
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+    expect(onAgree).not.toHaveBeenCalled();
   });
 
-  it('scrolls hosted terms on the first agreement tap', () => {
+  it('keeps Agree disabled before hosted terms reach the end', () => {
     const onAgree = jest.fn();
     const { getByTestId } = renderWithProvider(
       <SocialTermsSheet
@@ -120,72 +129,42 @@ describe('SocialTermsSheet', () => {
       />,
     );
 
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
-    expect(mockInjectJavaScript).toHaveBeenCalledWith(
-      expect.stringContaining("behavior: 'smooth'"),
-    );
+    expect(mockInjectJavaScript).not.toHaveBeenCalled();
     expect(onAgree).not.toHaveBeenCalled();
     expect(
       getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
     ).toBeOnTheScreen();
   });
 
-  it('keeps Agree disabled and shows the scroll helper before the end is reached', () => {
+  it('calls onAgree after scrolling to the end and keeps the helper visible', () => {
     const { getByTestId, onAgree } = renderSheet();
-
-    fireEvent.scroll(
-      getByTestId(SocialTermsSheetSelectorsIDs.BODY),
-      scrollToMiddle,
-    );
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
-
-    expect(
-      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).toBeOnTheScreen();
-    expect(onAgree).not.toHaveBeenCalled();
-  });
-
-  it('calls onAgree after scrolling to the end and checking the box', () => {
-    const { getByTestId, queryByTestId, onAgree } = renderSheet();
 
     fireEvent.scroll(
       getByTestId(SocialTermsSheetSelectorsIDs.BODY),
       scrollToEnd,
     );
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
     expect(onAgree).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps Agree disabled when the end is reached but the box is not checked', () => {
+  it('enables Agree when the terms fit in the viewport and keeps the helper visible', () => {
     const { getByTestId, onAgree } = renderSheet();
-
-    fireEvent.scroll(
-      getByTestId(SocialTermsSheetSelectorsIDs.BODY),
-      scrollToEnd,
-    );
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
-
-    expect(onAgree).not.toHaveBeenCalled();
-  });
-
-  it('treats content that fits the viewport as read', () => {
-    const { getByTestId, queryByTestId } = renderSheet();
     const body = getByTestId(SocialTermsSheetSelectorsIDs.BODY);
 
     fireEvent(body, 'layout', { nativeEvent: { layout: { height: 400 } } });
     fireEvent(body, 'contentSizeChange', 300, 380);
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+    expect(onAgree).toHaveBeenCalledTimes(1);
   });
 
   it('calls onClose from the header close button', () => {
@@ -271,10 +250,11 @@ describe('SocialTermsSheet', () => {
   });
 
   it('marks the WebView terms as read from native scroll events', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const onAgree = jest.fn();
+    const { getByTestId } = renderWithProvider(
       <SocialTermsSheet
         html="<html><body>Terms</body></html>"
-        onAgree={jest.fn()}
+        onAgree={onAgree}
         onClose={jest.fn()}
       />,
     );
@@ -283,10 +263,12 @@ describe('SocialTermsSheet', () => {
       getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW),
       scrollToEnd,
     );
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+    expect(onAgree).toHaveBeenCalledTimes(1);
   });
 
   it('ignores a WebView scroll event that reports a viewport-sized document', () => {
@@ -422,7 +404,6 @@ describe('SocialTermsSheet', () => {
       getByTestId(SocialTermsSheetSelectorsIDs.BODY),
       scrollToEnd,
     );
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(scrollToEndSpy).toHaveBeenCalledTimes(1);
@@ -434,20 +415,19 @@ describe('SocialTermsSheet', () => {
   });
 
   it('shows the scroll-to-bottom button again after leaving the end', () => {
-    const { getByTestId, queryByTestId, onAgree } = renderSheet();
+    const { getByTestId, onAgree } = renderSheet();
     const body = getByTestId(SocialTermsSheetSelectorsIDs.BODY);
 
     fireEvent.scroll(body, scrollToEnd);
     fireEvent.scroll(body, scrollToMiddle);
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
       getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
     expect(onAgree).toHaveBeenCalledTimes(1);
   });
 
@@ -486,13 +466,13 @@ describe('SocialTermsSheet', () => {
       queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
   });
 
   it('shows the scroll-to-bottom button again when hosted terms leave the end', () => {
     const onAgree = jest.fn();
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <SocialTermsSheet
         uri="https://metamask.com/social-tos"
         onAgree={onAgree}
@@ -507,15 +487,14 @@ describe('SocialTermsSheet', () => {
     fireEvent(webView, 'message', {
       nativeEvent: { data: 'social-terms-scroll-not-end' },
     });
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
       getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
     expect(onAgree).toHaveBeenCalledTimes(1);
   });
 });

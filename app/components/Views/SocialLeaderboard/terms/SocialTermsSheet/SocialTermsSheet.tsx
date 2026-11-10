@@ -8,7 +8,6 @@ import {
   ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
-  Checkbox,
   IconName,
   Text,
   TextColor,
@@ -110,10 +109,11 @@ const isAtEnd = ({
     contentSize.height - SCROLL_END_THRESHOLD;
 
 /**
- * Social Supplemental Terms consent sheet. The first tap on the agreement
- * checkbox scrolls the terms to the end. Once that end has been reached, the
- * next tap checks it, and Agree stays disabled until it is checked. A circular
- * button jumps to that end and hides while the end is already on screen.
+ * Social Supplemental Terms consent sheet. Agree stays disabled until the
+ * terms have been scrolled to the end. The scroll helper stays visible after
+ * that. A circular button jumps to the end and hides while the end is on
+ * screen. The sheet already insets the home indicator, so the footer adds no
+ * extra bottom padding.
  */
 const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   uri,
@@ -128,7 +128,6 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const webViewRef = useRef<WebView>(null);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
   const allowedOrigin = getUrlOrigin(html ? TERMS_BASE_URL : (uri ?? ''));
   const showsHostedTerms = Boolean(uri || html);
@@ -193,17 +192,6 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
       }
     },
     [markReachedEnd, viewportHeight],
-  );
-
-  const handleCheckboxChange = useCallback(
-    (next: boolean) => {
-      if (!hasReachedEnd) {
-        scrollToBottom();
-        return;
-      }
-      setIsChecked(next);
-    },
-    [hasReachedEnd, scrollToBottom],
   );
 
   const handleWebViewMessage = useCallback(
@@ -294,34 +282,28 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
           />
         )}
       </Box>
-      <Box twClassName="px-4 pt-4 pb-6 gap-4">
-        <Checkbox
-          isSelected={isChecked}
-          onChange={handleCheckboxChange}
-          label={strings('social_leaderboard.terms.checkbox')}
-          labelProps={{ style: { flex: 1 } }}
-          testID={SocialTermsSheetSelectorsIDs.CHECKBOX}
-        />
+      <Box
+        twClassName="px-4 pt-4 gap-2"
+        testID={SocialTermsSheetSelectorsIDs.FOOTER}
+      >
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isDisabled={!isChecked}
+          isDisabled={!hasReachedEnd}
           onPress={onAgree}
           testID={SocialTermsSheetSelectorsIDs.AGREE_BUTTON}
         >
           {strings('social_leaderboard.terms.agree')}
         </Button>
-        {hasReachedEnd ? null : (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-            testID={SocialTermsSheetSelectorsIDs.SCROLL_HELPER}
-          >
-            {strings('social_leaderboard.terms.scroll_helper')}
-          </Text>
-        )}
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID={SocialTermsSheetSelectorsIDs.SCROLL_HELPER}
+        >
+          {strings('social_leaderboard.terms.scroll_helper')}
+        </Text>
       </Box>
     </BottomSheet>
   );
