@@ -1,13 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextButton,
   TextColor,
@@ -16,8 +16,17 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { KycVendor } from '@metamask/kyc-controller';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import Engine from '../../../../../core/Engine';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  KYC_SCREEN_CONTENT_STATE,
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+} from '../../kycScreenPerformance';
 import { useVendorDisclaimers } from '../../hooks/useVendorDisclaimers';
 import { VendorTermsSelectorsIDs } from './VendorTerms.testIds';
 
@@ -64,8 +73,10 @@ const VendorTerms = ({
   onBack,
   onEvent,
 }: VendorTermsProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const hasEnsuredLocalUserSecretRef = useRef(false);
   const {
     disclaimers,
     isLoading,
@@ -75,11 +86,46 @@ const VendorTerms = ({
     retry,
   } = useVendorDisclaimers(vendor);
 
+  const contentState = error
+    ? KYC_SCREEN_CONTENT_STATE.ERROR
+    : disclaimers?.length
+      ? KYC_SCREEN_CONTENT_STATE.POPULATED
+      : KYC_SCREEN_CONTENT_STATE.EMPTY;
+
+  useScreenPerformance({
+    config: KYC_SCREEN_PERFORMANCE_CONFIG,
+    screenId: KYC_SCREEN_ID.VENDOR_TERMS,
+    contentReady: !isLoading,
+    contentState,
+  });
+
   useEffect(() => {
     onEvent?.({ status: 'viewed' });
     // Viewed once per mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Pre-creates the UKYC local user secret once the catalog request settles,
+  // so a later startSession does not pay for secret generation. A failure
+  // does not block onboarding: startSession creates the secret if it is
+  // still missing. Guarded so a retry cannot fire it again.
+  useEffect(() => {
+    if (isLoading || hasEnsuredLocalUserSecretRef.current) {
+      return;
+    }
+    hasEnsuredLocalUserSecretRef.current = true;
+    Engine.context.KycController.ensureLocalUserSecret().catch(
+      (secretError: unknown) => {
+        Logger.error(secretError as Error, {
+          tags: { feature: 'kyc', provider: vendor },
+          context: {
+            name: 'VendorTerms',
+            data: { step: 'ensureLocalUserSecret' },
+          },
+        });
+      },
+    );
+  }, [isLoading, vendor]);
 
   useEffect(() => {
     if (error && !disclaimers?.length) {
@@ -138,7 +184,9 @@ const VendorTerms = ({
       style={tw.style('flex-1 bg-default')}
       testID={VendorTermsSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={onBack}
         backButtonProps={{ testID: VendorTermsSelectorsIDs.BACK_BUTTON }}
         includesTopInset

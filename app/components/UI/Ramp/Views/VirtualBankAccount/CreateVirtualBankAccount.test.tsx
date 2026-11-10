@@ -1,14 +1,10 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import Logger from '../../../../../util/Logger';
 import CreateVirtualBankAccount from './CreateVirtualBankAccount';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
-import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
-import { trackVbaEvent } from './vbaAnalytics';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -18,7 +14,6 @@ import {
 
 const mockOnSuccess = jest.fn();
 const mockGoBack = jest.fn();
-const mockEnsureLocalUserSecret = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -26,29 +21,6 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
   }),
 }));
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    KycController: {
-      ensureLocalUserSecret: (...args: unknown[]) =>
-        mockEnsureLocalUserSecret(...args),
-    },
-  },
-}));
-
-jest.mock('../../../../../util/Logger', () => ({
-  error: jest.fn(),
-}));
-
-jest.mock('./vbaAnalytics', () => ({
-  ...jest.requireActual('./vbaAnalytics'),
-  trackVbaEvent: jest.fn(),
-}));
-
-jest.mock('./hooks/useKycDisclaimers');
-const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
-const mockRetry = jest.fn();
-const mockAcceptDisclaimers = jest.fn();
 
 jest.mock('../../../Money/hooks/useMoneyVaultApy', () => ({
   __esModule: true,
@@ -62,33 +34,14 @@ const mockUseVbaArrivalTime = jest.mocked(useVbaArrivalTime);
 jest.mock('../../../../../hooks/useScreenPerformance');
 const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
 
-// Iron sends only the MoonPay Enterprise T&C, and its `display_name` does not
-// say "MoonPay" — the screen rewords the label client-side.
-const termsDisclaimer = {
-  id: 'd-2',
-  url: 'https://moonpay.example/terms',
-  display_name: 'Terms and Conditions',
-};
-
 describe('CreateVirtualBankAccount', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     jest.resetAllMocks();
-    mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [termsDisclaimer],
-      isLoading: false,
-      isAccepting: false,
-      error: null,
-      acceptDisclaimers: mockAcceptDisclaimers,
-      retry: mockRetry,
-    });
-    mockAcceptDisclaimers.mockResolvedValue(true);
-    mockEnsureLocalUserSecret.mockResolvedValue(undefined);
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4.2,
     } as unknown as ReturnType<typeof useMoneyVaultApy>);
     // Arrival-row behavior is covered by CreateVirtualBankAccount.view.test.tsx
-    // (real hooks); the stub keeps KYC/CTA/APY tests off the payment-methods query.
+    // (real hooks); the stub keeps the product-pitch tests off the catalog query.
     mockUseVbaArrivalTime.mockReturnValue({
       arrivalTitle: 'Arrives in a few business days',
     });
@@ -145,25 +98,20 @@ describe('CreateVirtualBankAccount', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('stores vendor terms locally before advancing to email', async () => {
+  it('continues into the KYC terms screen', async () => {
     const { getByTestId } = renderWithProvider(
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
-
     const button = getByTestId(
       CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
     );
-    expect(button).toBeEnabled();
 
     fireEvent.press(button);
 
-    await waitFor(() => {
-      expect(mockAcceptDisclaimers).toHaveBeenCalled();
-      expect(mockOnSuccess).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
   });
 
-  it('keeps the CTA disabled while advancing', async () => {
+  it('keeps the CTA disabled while advancing and after it succeeds', async () => {
     let resolveSuccess: (() => void) | undefined;
     mockOnSuccess.mockImplementation(
       () =>
@@ -192,9 +140,8 @@ describe('CreateVirtualBankAccount', () => {
       resolveSuccess?.();
     });
 
-    // Component-view and integration tests cannot observe Fabric's Android
-    // removal transition. Success leaves the CTA busy so a second tap cannot
-    // start another advance while this screen is leaving.
+    // Success leaves the CTA busy so a second tap cannot start another
+    // advance while this screen is leaving.
     await waitFor(() => {
       expect(button).toBeDisabled();
     });
@@ -205,31 +152,11 @@ describe('CreateVirtualBankAccount', () => {
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
-    // Loading toggles whether Fabric flattens the button content row. Pinning
-    // that row stops the label moving during the Android removal transition.
     expect(
       getByTestId(
         CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
       ).findAllByProps({ collapsable: false }),
     ).not.toHaveLength(0);
-  });
-
-  it('reenables the CTA when vendor terms are not accepted', async () => {
-    mockAcceptDisclaimers.mockResolvedValue(false);
-    const { getByTestId } = renderWithProvider(
-      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-    );
-    const button = getByTestId(
-      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
-    );
-
-    fireEvent.press(button);
-
-    await waitFor(() => {
-      expect(mockAcceptDisclaimers).toHaveBeenCalledTimes(1);
-      expect(button).toBeEnabled();
-    });
-    expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 
   it('reenables the CTA when advancing throws', async () => {
@@ -246,337 +173,6 @@ describe('CreateVirtualBankAccount', () => {
     await waitFor(() => {
       expect(mockOnSuccess).toHaveBeenCalledTimes(1);
       expect(button).toBeEnabled();
-    });
-  });
-
-  it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
-    mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: null,
-      isLoading: true,
-      isAccepting: false,
-      error: null,
-      acceptDisclaimers: mockAcceptDisclaimers,
-      retry: mockRetry,
-    });
-
-    const { getByTestId, queryByText } = renderWithProvider(
-      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-    );
-
-    expect(
-      getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
-    ).toBeOnTheScreen();
-    // The hardcoded Privacy Policy waits for the Iron catalog too.
-    expect(queryByText("MoonPay's Privacy Policy")).toBeNull();
-    expect(
-      getByTestId(
-        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
-      ),
-    ).toBeDisabled();
-  });
-
-  it('renders no disclaimer links and disables the CTA when the fetch comes back empty and is not loading', () => {
-    mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: null,
-      isLoading: false,
-      isAccepting: false,
-      error: null,
-      acceptDisclaimers: mockAcceptDisclaimers,
-      retry: mockRetry,
-    });
-
-    const { queryByTestId, queryByText, getByTestId } = renderWithProvider(
-      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-    );
-
-    expect(
-      queryByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_LOADING),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(
-        `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-d-1`,
-      ),
-    ).not.toBeOnTheScreen();
-    expect(queryByText("MoonPay's Privacy Policy")).toBeNull();
-    expect(
-      getByTestId(
-        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
-      ),
-    ).toBeDisabled();
-    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
-      config: VBA_SCREEN_PERFORMANCE_CONFIG,
-      screenId: VBA_SCREEN_ID.VENDOR_TERMS,
-      contentReady: true,
-      contentState: VBA_SCREEN_CONTENT_STATE.EMPTY,
-    });
-  });
-
-  it('renders the hardcoded MoonPay Privacy Policy link and opens the MoonPay privacy URL when pressed', () => {
-    const spy = jest.spyOn(Linking, 'openURL');
-    const { getByText, queryByText } = renderWithProvider(
-      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-    );
-
-    expect(getByText("MoonPay's Privacy Policy")).toBeOnTheScreen();
-    // The Iron T&C comes reworded, so the raw vendor name must not leak through.
-    expect(queryByText('Terms and Conditions')).toBeNull();
-
-    fireEvent.press(getByText("MoonPay's Privacy Policy"));
-
-    expect(spy).toHaveBeenCalledWith(
-      'https://www.moonpay.com/legal/privacy_policy',
-    );
-  });
-
-  it('renders the Iron T&C link with the MoonPay label and opens the Iron URL when pressed', () => {
-    const spy = jest.spyOn(Linking, 'openURL');
-    const { getByText } = renderWithProvider(
-      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-    );
-
-    expect(getByText("MoonPay's Terms and Conditions")).toBeOnTheScreen();
-
-    fireEvent.press(getByText("MoonPay's Terms and Conditions"));
-
-    expect(spy).toHaveBeenCalledWith('https://moonpay.example/terms');
-  });
-
-  it('labels multiple Iron links by their vendor display name instead of the single-T&C rewording', () => {
-    mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [
-        termsDisclaimer,
-        {
-          id: 'd-3',
-          url: 'https://moonpay.example/other',
-          display_name: 'Other Document',
-        },
-      ],
-      isLoading: false,
-      isAccepting: false,
-      error: null,
-      acceptDisclaimers: mockAcceptDisclaimers,
-      retry: mockRetry,
-    });
-
-    const { getByText } = renderWithProvider(
-      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-    );
-
-    expect(getByText('Terms and Conditions')).toBeOnTheScreen();
-    expect(getByText('Other Document')).toBeOnTheScreen();
-  });
-
-  it('renders the full agreement sentence with a closing period', () => {
-    const { getByText } = renderWithProvider(
-      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-    );
-
-    expect(
-      getByText(
-        "By continuing, you are acknowledging that you have read and agreed to MoonPay's Privacy Policy and MoonPay's Terms and Conditions.",
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
-    mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: null,
-      isLoading: false,
-      isAccepting: false,
-      error: 'Request timed out',
-      acceptDisclaimers: mockAcceptDisclaimers,
-      retry: mockRetry,
-    });
-
-    const { getByTestId, getByText, queryByText } = renderWithProvider(
-      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-    );
-
-    expect(
-      getByTestId(CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR),
-    ).toBeOnTheScreen();
-    expect(queryByText("MoonPay's Privacy Policy")).toBeNull();
-    expect(
-      getByTestId(
-        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
-      ),
-    ).toBeDisabled();
-    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
-      config: VBA_SCREEN_PERFORMANCE_CONFIG,
-      screenId: VBA_SCREEN_ID.VENDOR_TERMS,
-      contentReady: true,
-      contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
-    });
-
-    fireEvent.press(getByText('Try again'));
-    expect(mockRetry).toHaveBeenCalledTimes(1);
-  });
-
-  describe('ensureLocalUserSecret', () => {
-    it('calls KycController.ensureLocalUserSecret once the disclaimers request has settled', async () => {
-      renderWithProvider(
-        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-      );
-
-      await waitFor(() =>
-        expect(mockEnsureLocalUserSecret).toHaveBeenCalledTimes(1),
-      );
-    });
-
-    it('does not call ensureLocalUserSecret while the disclaimers request is still loading', () => {
-      mockUseKycDisclaimers.mockReturnValue({
-        disclaimers: null,
-        isLoading: true,
-        isAccepting: false,
-        error: null,
-        acceptDisclaimers: mockAcceptDisclaimers,
-        retry: mockRetry,
-      });
-
-      renderWithProvider(
-        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-      );
-
-      expect(mockEnsureLocalUserSecret).not.toHaveBeenCalled();
-    });
-
-    it('still calls ensureLocalUserSecret when the disclaimers request fails', async () => {
-      mockUseKycDisclaimers.mockReturnValue({
-        disclaimers: null,
-        isLoading: false,
-        isAccepting: false,
-        error: 'Request timed out',
-        acceptDisclaimers: mockAcceptDisclaimers,
-        retry: mockRetry,
-      });
-
-      renderWithProvider(
-        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-      );
-
-      await waitFor(() =>
-        expect(mockEnsureLocalUserSecret).toHaveBeenCalledTimes(1),
-      );
-    });
-
-    it('logs and swallows a rejection instead of blocking the screen', async () => {
-      const secretError = new Error('user storage unavailable');
-      mockEnsureLocalUserSecret.mockRejectedValue(secretError);
-
-      const { getByTestId } = renderWithProvider(
-        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-      );
-
-      await waitFor(() =>
-        expect(Logger.error).toHaveBeenCalledWith(secretError, {
-          tags: { feature: 'vba-onboarding' },
-          context: {
-            name: 'CreateVirtualBankAccount',
-            data: { step: 'ensureLocalUserSecret' },
-          },
-        }),
-      );
-
-      expect(
-        getByTestId(
-          CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
-        ),
-      ).toBeEnabled();
-    });
-
-    it('does not call ensureLocalUserSecret more than once when the disclaimers hook re-renders after loading settles', () => {
-      const { rerender } = renderWithProvider(
-        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-      );
-
-      rerender(<CreateVirtualBankAccount onSuccess={mockOnSuccess} />);
-
-      expect(mockEnsureLocalUserSecret).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('analytics', () => {
-    const vendorTermsProperties = () =>
-      jest
-        .mocked(trackVbaEvent)
-        .mock.calls.filter(
-          ([event]) => event.category === 'Money VBA Vendor Terms Updated',
-        )
-        .map(([, buildProperties]) => buildProperties());
-    const vendorTermsStatuses = () =>
-      vendorTermsProperties().map((properties) => properties.status);
-
-    it('tracks viewed once when the screen opens', () => {
-      renderWithProvider(
-        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-      );
-
-      expect(vendorTermsStatuses()).toStrictEqual(['viewed']);
-    });
-
-    it('tracks failed with a failure reason when the terms are unavailable', () => {
-      mockUseKycDisclaimers.mockReturnValue({
-        disclaimers: null,
-        isLoading: false,
-        isAccepting: false,
-        error: 'No KYC disclaimers returned',
-        acceptDisclaimers: mockAcceptDisclaimers,
-        retry: mockRetry,
-      });
-
-      renderWithProvider(
-        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-      );
-
-      expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'failed']);
-      expect(vendorTermsProperties().at(-1)).toMatchObject({
-        failure_reason: 'terms_unavailable',
-      });
-    });
-
-    it('tracks accepted after the terms are saved and before advancing', async () => {
-      const { getByTestId } = renderWithProvider(
-        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-      );
-
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(
-            CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
-          ),
-        );
-      });
-
-      await waitFor(() =>
-        expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'accepted']),
-      );
-      const acceptedCall = jest
-        .mocked(trackVbaEvent)
-        .mock.invocationCallOrder.at(-1) as number;
-      expect(acceptedCall).toBeLessThan(
-        mockOnSuccess.mock.invocationCallOrder[0],
-      );
-    });
-
-    it('tracks a submission failure when the terms loaded but were not saved', async () => {
-      mockAcceptDisclaimers.mockResolvedValue(false);
-      const { getByTestId } = renderWithProvider(
-        <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-      );
-
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(
-            CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
-          ),
-        );
-      });
-
-      expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'failed']);
-      expect(vendorTermsProperties().at(-1)).toMatchObject({
-        failure_reason: 'terms_submission_failed',
-      });
-      expect(mockOnSuccess).not.toHaveBeenCalled();
     });
   });
 });

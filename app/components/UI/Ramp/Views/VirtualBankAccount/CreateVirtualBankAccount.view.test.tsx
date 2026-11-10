@@ -16,6 +16,7 @@ import {
   MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
 } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
+import { VendorTermsSelectorsIDs } from '../../../KYC/Views/VendorTerms/VendorTerms.testIds';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { VbaOnboardingRoutes } from './routes';
 
@@ -246,11 +247,23 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
     expect(queryByText(/timeframe by region/)).toBeNull();
   });
 
-  it('renders the vendor policy link without an underline', async () => {
-    const { findByTestId } = renderVbaVendorTerms();
+  const openKycTerms = async (
+    screen: ReturnType<typeof renderVbaVendorTerms>,
+  ) => {
+    fireEvent.press(
+      screen.getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ),
+    );
+    return screen.findByTestId(VendorTermsSelectorsIDs.CONTAINER);
+  };
 
-    const link = await findByTestId(
-      `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+  it('renders the vendor policy link without an underline', async () => {
+    const screen = renderVbaVendorTerms();
+    await openKycTerms(screen);
+
+    const link = await screen.findByTestId(
+      `${VendorTermsSelectorsIDs.DOCUMENT_LINK}-${disclaimer.id}`,
     );
 
     expect(StyleSheet.flatten(link.props.style)?.textDecorationLine).not.toBe(
@@ -259,16 +272,17 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
   });
 
   it('accepts vendor terms and advances to email', async () => {
-    const { findByTestId, getByTestId } = renderVbaVendorTerms();
-    const continueButton = getByTestId(
-      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    const screen = renderVbaVendorTerms();
+    await openKycTerms(screen);
+    const agreeButton = screen.getByTestId(
+      VendorTermsSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
     );
-    await waitFor(() => expect(continueButton).toBeEnabled());
+    await waitFor(() => expect(agreeButton).toBeEnabled());
 
-    fireEvent.press(continueButton);
+    fireEvent.press(agreeButton);
 
     expect(
-      await findByTestId(
+      await screen.findByTestId(
         getRouteProbeTestId(VbaOnboardingRoutes.EMAIL),
         {},
         { timeout: 3000 },
@@ -284,23 +298,24 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
 
   it('opens the generic error route when continuing vendor terms fails', async () => {
     mockHydrateVbaOnboarding.mockRejectedValue(new Error('hydrate failed'));
-    const { findByTestId, getByTestId, queryByTestId } = renderVbaVendorTerms();
-    const continueButton = getByTestId(
-      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    const screen = renderVbaVendorTerms();
+    await openKycTerms(screen);
+    const agreeButton = screen.getByTestId(
+      VendorTermsSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
     );
-    await waitFor(() => expect(continueButton).toBeEnabled());
+    await waitFor(() => expect(agreeButton).toBeEnabled());
 
-    fireEvent.press(continueButton);
+    fireEvent.press(agreeButton);
 
     expect(
-      await findByTestId(
+      await screen.findByTestId(
         getRouteProbeTestId(VbaOnboardingRoutes.ERROR),
         {},
         { timeout: 3000 },
       ),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER),
+      screen.queryByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER),
     ).not.toBeOnTheScreen();
   });
 
@@ -308,16 +323,15 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
     mockFetchVendorDisclaimers
       .mockRejectedValueOnce(new Error('catalog unavailable'))
       .mockResolvedValueOnce([disclaimer]);
-    const { findByTestId } = renderVbaVendorTerms();
+    const screen = renderVbaVendorTerms();
+    await openKycTerms(screen);
     fireEvent.press(
-      await findByTestId(
-        CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_RETRY,
-      ),
+      await screen.findByTestId(VendorTermsSelectorsIDs.DISCLAIMERS_RETRY),
     );
 
     expect(
-      await findByTestId(
-        `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+      await screen.findByTestId(
+        `${VendorTermsSelectorsIDs.DOCUMENT_LINK}-${disclaimer.id}`,
       ),
     ).toBeOnTheScreen();
     expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(2);

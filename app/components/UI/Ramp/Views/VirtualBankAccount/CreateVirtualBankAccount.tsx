@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native';
+import Logger from '../../../../../util/Logger';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -89,7 +90,16 @@ const CreateVirtualBankAccount = ({
     setIsAdvancing(true);
     try {
       await onSuccess();
-    } finally {
+      // Success removes this screen. Leave the button busy so Fabric does not
+      // flatten its label in the same commit that unmounts it.
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: {
+          name: 'CreateVirtualBankAccount',
+          data: { step: 'continue' },
+        },
+      });
       setIsAdvancing(false);
     }
   }, [isAdvancing, onSuccess]);
