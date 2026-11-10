@@ -16,7 +16,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyCtaFtueNavigation } from '../../../Money/hooks/useMoneyCtaFtueNavigation';
+import { MONEY_BUTTON_INTENTS } from '../../../Money/constants/moneyButtonEvents';
+import { SCREEN_NAMES } from '../../../Money/constants/moneyEventLocations';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
@@ -37,7 +39,7 @@ const mockEarnTrackButtonClicked = jest.fn();
 const mockEarnTrackComponentViewed = jest.fn();
 const mockEarnTrackSurfaceClicked = jest.fn();
 const mockMoneyTrackSurfaceClicked = jest.fn();
-const mockNavigateToMoneyHome = jest.fn();
+const mockNavigateToMoneyDepositWithCtaFtue = jest.fn();
 
 jest.mock('@react-navigation/native');
 jest.mock('react-redux', () => ({
@@ -59,6 +61,9 @@ jest.mock('../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
   })),
 }));
 jest.mock('../../../../UI/Money/hooks/useMoneyNavigation');
+jest.mock('../../../../UI/Money/hooks/useMoneyCtaFtueNavigation', () => ({
+  useMoneyCtaFtueNavigation: jest.fn(),
+}));
 jest.mock('../../../../UI/Earn/hooks/useEarnAnalytics', () => ({
   useEarnAnalytics: jest.fn(() => ({
     trackButtonClicked: mockEarnTrackButtonClicked,
@@ -87,9 +92,7 @@ const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseMoneyNavigation = useMoneyNavigation as jest.MockedFunction<
-  typeof useMoneyNavigation
->;
+const mockUseMoneyCtaFtueNavigation = jest.mocked(useMoneyCtaFtueNavigation);
 const mockLoggerError = jest.mocked(Logger.error);
 type Tailwind = ReturnType<typeof useTailwind>;
 
@@ -278,10 +281,15 @@ describe('EarnSection', () => {
       isBalanceLoading: false,
       refetchBalance: mockRefetchBalance,
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
-    mockUseMoneyNavigation.mockReturnValue({
+    mockUseMoneyCtaFtueNavigation.mockReturnValue({
+      isSplashRedirectNeeded: false,
       isOnboardingRedirectNeeded: false,
-      navigateToMoneyHome: mockNavigateToMoneyHome,
-    } as ReturnType<typeof useMoneyNavigation>);
+      isCtaFtueRedirectNeeded: false,
+      ctaFtueRedirectTarget: undefined,
+      ctaFtueButtonIntent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      redirectToCtaFtueIfNeeded: jest.fn(),
+      navigateToMoneyDepositWithCtaFtue: mockNavigateToMoneyDepositWithCtaFtue,
+    });
     mockEarnOpportunityNavigation();
     mockSectionResult();
   });
@@ -601,21 +609,43 @@ describe('EarnSection', () => {
 
   it.each([
     {
+      isSplashRedirectNeeded: true,
+      isOnboardingRedirectNeeded: false,
+      redirectTarget: 'money_splash',
+    },
+    {
+      isSplashRedirectNeeded: false,
       isOnboardingRedirectNeeded: true,
       redirectTarget: 'money_onboarding',
     },
     {
+      isSplashRedirectNeeded: false,
       isOnboardingRedirectNeeded: false,
       redirectTarget: 'money_home',
     },
   ] as const)(
     'tracks Money account card presses with the $redirectTarget destination',
-    ({ isOnboardingRedirectNeeded, redirectTarget }) => {
+    ({
+      isSplashRedirectNeeded,
+      isOnboardingRedirectNeeded,
+      redirectTarget,
+    }) => {
       mockMoneyAccountVisible = true;
-      mockUseMoneyNavigation.mockReturnValue({
+      mockUseMoneyCtaFtueNavigation.mockReturnValue({
+        isSplashRedirectNeeded,
         isOnboardingRedirectNeeded,
-        navigateToMoneyHome: mockNavigateToMoneyHome,
-      } as ReturnType<typeof useMoneyNavigation>);
+        isCtaFtueRedirectNeeded:
+          isSplashRedirectNeeded || isOnboardingRedirectNeeded,
+        ctaFtueRedirectTarget: isSplashRedirectNeeded
+          ? SCREEN_NAMES.MONEY_SPLASH
+          : isOnboardingRedirectNeeded
+            ? SCREEN_NAMES.MONEY_ONBOARDING
+            : undefined,
+        ctaFtueButtonIntent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        redirectToCtaFtueIfNeeded: jest.fn(),
+        navigateToMoneyDepositWithCtaFtue:
+          mockNavigateToMoneyDepositWithCtaFtue,
+      });
       mockSectionResult({ assetSlots: [] });
 
       renderEarnSection();
@@ -628,7 +658,7 @@ describe('EarnSection', () => {
         component_name: 'earn_section_money_card',
         redirect_target: redirectTarget,
       });
-      expect(mockNavigateToMoneyHome).toHaveBeenCalledWith();
+      expect(mockNavigateToMoneyDepositWithCtaFtue).toHaveBeenCalledWith();
     },
   );
 

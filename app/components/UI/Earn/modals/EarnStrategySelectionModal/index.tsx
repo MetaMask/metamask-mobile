@@ -49,12 +49,13 @@ import useEarnOpportunityNavigation, {
 } from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyCtaFtueNavigation } from '../../../Money/hooks/useMoneyCtaFtueNavigation';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BUTTON_TYPES,
   EARN_MODULE_ENTRY_POINTS,
   EARN_MODULE_BOTTOM_SHEET_NAMES,
+  EARN_MODULE_REDIRECT_TARGETS,
   EARN_MODULE_STRATEGY_TYPES,
   EARN_MODULE_COMPONENT_NAMES,
 } from '../../constants/earnModuleEvents';
@@ -185,7 +186,13 @@ const EarnStrategySelectionModal = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionModalRoute>();
   const { earnAsset } = params;
-  const { isOnboardingRedirectNeeded } = useMoneyNavigation();
+  const { isSplashRedirectNeeded, isOnboardingRedirectNeeded } =
+    useMoneyCtaFtueNavigation();
+  const moneyFtueRedirectTarget = isSplashRedirectNeeded
+    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH
+    : isOnboardingRedirectNeeded
+      ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+      : undefined;
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
   const { navigateToDepositForExperience, resolveEarnDepositNavigationRoute } =
@@ -323,7 +330,7 @@ const EarnStrategySelectionModal = () => {
       is_fee_subsidized: selectedStrategy.isFeeSubsidized,
       redirect_target: getSelectedEarnStrategyRedirectTarget(
         selectedStrategy,
-        isOnboardingRedirectNeeded,
+        moneyFtueRedirectTarget,
         pendingEarnDepositRouteRef.current,
       ),
     });
@@ -334,7 +341,7 @@ const EarnStrategySelectionModal = () => {
     earnAsset,
     handleGetStartedAfterClose,
     handleNavigationError,
-    isOnboardingRedirectNeeded,
+    moneyFtueRedirectTarget,
     params.analyticsContext?.asset_position,
     params.analyticsContext?.assets_in_list,
     resolveEarnDepositNavigationRoute,

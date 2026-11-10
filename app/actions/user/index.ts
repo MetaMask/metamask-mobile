@@ -26,6 +26,7 @@ import {
   type SetMusdConversionAssetDetailCtaSeenAction,
   type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
+  type SetMoneySplashSeenAction,
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
   type SetTokenOverviewChartTypeAction,

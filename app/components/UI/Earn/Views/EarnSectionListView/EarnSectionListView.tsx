@@ -43,10 +43,7 @@ import useMountEffect from '../../../Money/hooks/useMountEffect';
 import { useProjectedEarnings } from '../../../Money/hooks/useProjectedEarnings';
 import type { MoneyDepositAsset } from '../../../Money/selectors/depositTokens';
 import PotentialEarningsTokenRow from '../../../Money/components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
-import {
-  useMoneyNavigation,
-  useMoneyOnboardingNavigation,
-} from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyCtaFtueNavigation } from '../../../Money/hooks/useMoneyCtaFtueNavigation';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import { isPositiveNumber } from '../../../Money/utils/number';
 import useEarnOpportunityNavigation, {
@@ -77,6 +74,7 @@ import {
   EARN_MODULE_BUTTON_TYPES,
   EARN_MODULE_COMPONENT_NAMES,
   EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_REDIRECT_TARGETS,
   EARN_MODULE_SCREEN_NAMES,
 } from '../../constants/earnModuleEvents';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
@@ -262,9 +260,19 @@ const EarnSectionListView = () => {
     isBalanceLoading: isMoneyAccountBalanceLoading,
     refetchBalance: refetchMoneyAccountBalance,
   } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
-  const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
-    useMoneyNavigation();
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const {
+    isSplashRedirectNeeded,
+    isOnboardingRedirectNeeded,
+    isCtaFtueRedirectNeeded,
+    ctaFtueRedirectTarget,
+    redirectToCtaFtueIfNeeded,
+    navigateToMoneyDepositWithCtaFtue,
+  } = useMoneyCtaFtueNavigation();
+  const moneyFtueRedirectTarget = isSplashRedirectNeeded
+    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH
+    : isOnboardingRedirectNeeded
+      ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+      : undefined;
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const {
@@ -367,8 +375,8 @@ const EarnSectionListView = () => {
         ),
         redirect_target: getEarnAssetSelectionRedirectTarget(
           item.asset,
-          // isMoneyOnboardingRedirectNeeded is always false here since this handler is for non-Money deposit experiences.
-          false,
+          // This handler only covers non-Money deposit experiences.
+          undefined,
         ),
       });
       navigateFromEarnAsset(item.asset, TokenDetailsSource.ExploreEarn, {
@@ -396,14 +404,14 @@ const EarnSectionListView = () => {
           chainId: token.chainId,
         };
 
-        const redirectedToOnboarding = redirectToOnboardingIfNeeded({
+        const redirectedToFtue = redirectToCtaFtueIfNeeded({
           postOnboardingRedirect: {
             type: MoneyPostOnboardingRedirectType.DEPOSIT,
             preferredPaymentToken,
           },
         });
 
-        if (redirectedToOnboarding) {
+        if (redirectedToFtue) {
           return;
         }
 
@@ -417,20 +425,23 @@ const EarnSectionListView = () => {
         );
       }
     },
-    [initiateDeposit, redirectToOnboardingIfNeeded],
+    [initiateDeposit, redirectToCtaFtueIfNeeded],
   );
 
   const handleMoneyAccountPress = useCallback(() => {
     trackMoneySurfaceClicked({
       component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,
-      redirect_target: isOnboardingRedirectNeeded
-        ? SCREEN_NAMES.MONEY_ONBOARDING
-        : SCREEN_NAMES.MONEY_HOME,
+      redirect_target: isSplashRedirectNeeded
+        ? SCREEN_NAMES.MONEY_SPLASH
+        : isOnboardingRedirectNeeded
+          ? SCREEN_NAMES.MONEY_ONBOARDING
+          : SCREEN_NAMES.MONEY_HOME,
     });
-    navigateToMoneyHome({ pop: false });
+    navigateToMoneyDepositWithCtaFtue();
   }, [
     isOnboardingRedirectNeeded,
-    navigateToMoneyHome,
+    isSplashRedirectNeeded,
+    navigateToMoneyDepositWithCtaFtue,
     trackMoneySurfaceClicked,
   ]);
 
@@ -439,9 +450,7 @@ const EarnSectionListView = () => {
       trackTokenSurfaceClicked({
         component_name:
           MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
-        redirect_target: isOnboardingRedirectNeeded
-          ? SCREEN_NAMES.MONEY_ONBOARDING
-          : SCREEN_NAMES.MONEY_DEPOSIT,
+        redirect_target: ctaFtueRedirectTarget ?? SCREEN_NAMES.MONEY_DEPOSIT,
         token_symbol: token.symbol,
         token_position_in_list: tokenIndex + 1,
         token_chain_id: token.chainId ?? '',
@@ -451,8 +460,8 @@ const EarnSectionListView = () => {
       await handleDeposit(token);
     },
     [
+      ctaFtueRedirectTarget,
       handleDeposit,
-      isOnboardingRedirectNeeded,
       moneyAssets.length,
       trackTokenSurfaceClicked,
     ],
@@ -466,9 +475,7 @@ const EarnSectionListView = () => {
         component_name:
           MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
         label_key: 'money.potential_earnings.add',
-        redirect_target: isOnboardingRedirectNeeded
-          ? SCREEN_NAMES.MONEY_ONBOARDING
-          : SCREEN_NAMES.MONEY_DEPOSIT,
+        redirect_target: ctaFtueRedirectTarget ?? SCREEN_NAMES.MONEY_DEPOSIT,
         token_symbol: token.symbol,
         token_position_in_list: tokenIndex + 1,
         token_chain_id: token.chainId ?? '',
@@ -478,8 +485,8 @@ const EarnSectionListView = () => {
       await handleDeposit(token);
     },
     [
+      ctaFtueRedirectTarget,
       handleDeposit,
-      isOnboardingRedirectNeeded,
       moneyAssets.length,
       trackTokenButtonClicked,
     ],
@@ -586,7 +593,7 @@ const EarnSectionListView = () => {
         <EarnMoneyAccountRow
           item={moneyAccountItem}
           onPress={handleMoneyAccountPress}
-          isOnboardingRedirectNeeded={isOnboardingRedirectNeeded}
+          isOnboardingRedirectNeeded={isCtaFtueRedirectNeeded}
           privacyMode={privacyMode}
         />
         {visibleMoneyAssets.map((token, index) => (
@@ -630,7 +637,7 @@ const EarnSectionListView = () => {
     handleTokenButtonPress,
     hasError,
     isLoading,
-    isOnboardingRedirectNeeded,
+    isCtaFtueRedirectNeeded,
     isMoneyAccountVisible,
     isNoFeeToken,
     isRetrying,

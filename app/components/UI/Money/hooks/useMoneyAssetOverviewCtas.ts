@@ -22,7 +22,7 @@ import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
+import { useMoneyCtaFtueNavigation } from './useMoneyCtaFtueNavigation';
 import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -94,7 +94,11 @@ export const useMoneyAssetOverviewCtas = ({
     });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const {
+    redirectToCtaFtueIfNeeded,
+    ctaFtueButtonIntent,
+    ctaFtueRedirectTarget,
+  } = useMoneyCtaFtueNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({
     enabled: isBalanceCtaEnabled || isFooterCtaEligible,
   });
@@ -158,7 +162,7 @@ export const useMoneyAssetOverviewCtas = ({
         address: toHex(asset.address),
         chainId: toHex(asset.chainId),
       };
-      const redirectedToOnboarding = redirectToOnboardingIfNeeded({
+      const redirectedToFtue = redirectToCtaFtueIfNeeded({
         postOnboardingRedirect: {
           type: MoneyPostOnboardingRedirectType.DEPOSIT,
           preferredPaymentToken,
@@ -166,15 +170,15 @@ export const useMoneyAssetOverviewCtas = ({
       });
       const trackingProperties = {
         button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: redirectedToOnboarding
-          ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
+        button_intent: redirectedToFtue
+          ? ctaFtueButtonIntent
           : MONEY_BUTTON_INTENTS.ADD_MONEY,
         component_name:
           component === 'footer'
             ? COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA
             : COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
-        redirect_target: redirectedToOnboarding
-          ? SCREEN_NAMES.MONEY_ONBOARDING
+        redirect_target: redirectedToFtue
+          ? (ctaFtueRedirectTarget ?? SCREEN_NAMES.MONEY_DEPOSIT)
           : SCREEN_NAMES.MONEY_DEPOSIT,
         token_symbol: asset.symbol ?? '',
         token_position_in_list: 1,
@@ -196,7 +200,7 @@ export const useMoneyAssetOverviewCtas = ({
         });
       }
 
-      if (redirectedToOnboarding) {
+      if (redirectedToFtue) {
         return;
       }
 
@@ -213,10 +217,12 @@ export const useMoneyAssetOverviewCtas = ({
       asset.address,
       asset.chainId,
       asset.symbol,
+      ctaFtueButtonIntent,
+      ctaFtueRedirectTarget,
       footerEnglishLabel,
       hasBalance,
       initiateDeposit,
-      redirectToOnboardingIfNeeded,
+      redirectToCtaFtueIfNeeded,
       trackTokenButtonClicked,
     ],
   );

@@ -15,7 +15,7 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
-import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyCtaFtueNavigation } from '../../hooks/useMoneyCtaFtueNavigation';
 import { TokenI } from '../../../Tokens/types';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
@@ -27,7 +27,7 @@ jest.mock('react-redux', () => ({
 const mockDispatch = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockUseMoneyVaultApy = jest.fn();
-const mockRedirectToOnboardingIfNeeded = jest.fn();
+const mockRedirectToCtaFtueIfNeeded = jest.fn();
 const mockShouldShowMoneyEarnBanner = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
 const mockTrackTokenSurfaceClicked = jest.fn();
@@ -45,7 +45,7 @@ jest.mock('../../hooks/useMoneyVaultApy', () => ({
 
 jest.mock('../../hooks/useMoneyAnalytics');
 jest.mock('../../hooks/useMoneyCtaVisibility');
-jest.mock('../../hooks/useMoneyNavigation');
+jest.mock('../../hooks/useMoneyCtaFtueNavigation');
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -55,9 +55,7 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockUseDispatch = jest.mocked(useDispatch);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
-const mockUseMoneyOnboardingNavigation = jest.mocked(
-  useMoneyOnboardingNavigation,
-);
+const mockUseMoneyCtaFtueNavigation = jest.mocked(useMoneyCtaFtueNavigation);
 
 const MOCK_USDC = {
   name: 'USD Coin',
@@ -80,7 +78,7 @@ describe('MoneyEarnBanner', () => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
+    mockRedirectToCtaFtueIfNeeded.mockReturnValue(false);
     mockShouldShowMoneyEarnBanner.mockReturnValue(true);
     mockUseMoneyVaultApy.mockReturnValue({ apyPercent: undefined });
     mockUseMoneyAnalytics.mockReturnValue({
@@ -93,9 +91,14 @@ describe('MoneyEarnBanner', () => {
       shouldShowMoneyTokenListItemCta: jest.fn(),
       shouldShowMoneyEarnBanner: mockShouldShowMoneyEarnBanner,
     });
-    mockUseMoneyOnboardingNavigation.mockReturnValue({
+    mockUseMoneyCtaFtueNavigation.mockReturnValue({
+      isSplashRedirectNeeded: true,
       isOnboardingRedirectNeeded: false,
-      redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
+      isCtaFtueRedirectNeeded: true,
+      ctaFtueRedirectTarget: SCREEN_NAMES.MONEY_SPLASH,
+      ctaFtueButtonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+      redirectToCtaFtueIfNeeded: mockRedirectToCtaFtueIfNeeded,
+      navigateToMoneyDepositWithCtaFtue: jest.fn(),
     });
   });
 
@@ -227,12 +230,12 @@ describe('MoneyEarnBanner', () => {
   });
 
   describe('card press', () => {
-    it('initiates a deposit with the asset as preferred payment token when onboarding is not needed', () => {
+    it('initiates a deposit with the asset as preferred payment token when no FTUE is needed', () => {
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
 
       fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CONTAINER));
 
-      expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
+      expect(mockRedirectToCtaFtueIfNeeded).toHaveBeenCalledWith({
         postOnboardingRedirect: {
           type: MoneyPostOnboardingRedirectType.DEPOSIT,
           preferredPaymentToken: MOCK_PREFERRED_PAYMENT_TOKEN,
@@ -252,8 +255,8 @@ describe('MoneyEarnBanner', () => {
       });
     });
 
-    it('redirects first-time users to Money onboarding instead of the deposit flow', () => {
-      mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+    it('redirects first-time users to the splash instead of the deposit flow', () => {
+      mockRedirectToCtaFtueIfNeeded.mockReturnValue(true);
 
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
 
@@ -261,7 +264,7 @@ describe('MoneyEarnBanner', () => {
 
       expect(mockInitiateDeposit).not.toHaveBeenCalled();
       expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith({
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
         token_symbol: MOCK_USDC.symbol,
         token_position_in_list: 1,
         token_chain_id: MOCK_USDC.chainId,
@@ -323,8 +326,17 @@ describe('MoneyEarnBanner', () => {
       );
     });
 
-    it('tracks an onboarding button click without depositing when onboarding is needed', () => {
-      mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+    it('tracks an onboarding button click when the hook falls back to onboarding', () => {
+      mockUseMoneyCtaFtueNavigation.mockReturnValue({
+        isSplashRedirectNeeded: false,
+        isOnboardingRedirectNeeded: true,
+        isCtaFtueRedirectNeeded: true,
+        ctaFtueRedirectTarget: SCREEN_NAMES.MONEY_ONBOARDING,
+        ctaFtueButtonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        redirectToCtaFtueIfNeeded: mockRedirectToCtaFtueIfNeeded,
+        navigateToMoneyDepositWithCtaFtue: jest.fn(),
+      });
+      mockRedirectToCtaFtueIfNeeded.mockReturnValue(true);
       const ctaLabel = strings('money.earn_banner.cta', { symbol: 'USDC' });
 
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);

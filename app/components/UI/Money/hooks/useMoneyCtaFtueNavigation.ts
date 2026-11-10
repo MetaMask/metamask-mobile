@@ -78,6 +78,7 @@ export const useMoneyCtaFtueNavigation = () => {
 
   return {
     isSplashRedirectNeeded,
+    isOnboardingRedirectNeeded,
     isCtaFtueRedirectNeeded,
     ctaFtueRedirectTarget,
     ctaFtueButtonIntent,

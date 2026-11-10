@@ -54,7 +54,7 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
-import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyCtaFtueNavigation } from '../../hooks/useMoneyCtaFtueNavigation';
 import { isPositiveNumber } from '../../utils/number';
 import { MoneyEarnBannerTestIds } from './MoneyEarnBanner.testIds';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
@@ -176,7 +176,11 @@ const MoneyEarnBannerContent = ({
   const dispatch = useDispatch();
   const { apyPercent } = useMoneyVaultApy();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const {
+    redirectToCtaFtueIfNeeded,
+    ctaFtueButtonIntent,
+    ctaFtueRedirectTarget,
+  } = useMoneyCtaFtueNavigation();
   const { trackTokenButtonClicked, trackTokenSurfaceClicked } =
     useMoneyAnalytics({
       screen_name: SCREEN_NAMES.ASSET_DETAIL,
@@ -194,14 +198,14 @@ const MoneyEarnBannerContent = ({
       chainId: safeFormatChainIdToHex(asset.chainId as string) as Hex,
     };
 
-    const redirectedToOnboarding = redirectToOnboardingIfNeeded({
+    const redirectedToFtue = redirectToCtaFtueIfNeeded({
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.DEPOSIT,
         preferredPaymentToken,
       },
     });
 
-    if (!redirectedToOnboarding) {
+    if (!redirectedToFtue) {
       initiateDeposit({ preferredPaymentToken }).catch((error) => {
         Logger.error(
           error as Error,
@@ -210,20 +214,20 @@ const MoneyEarnBannerContent = ({
       });
     }
 
-    return redirectedToOnboarding;
+    return redirectedToFtue;
   }, [
     asset.address,
     asset.chainId,
     initiateDeposit,
-    redirectToOnboardingIfNeeded,
+    redirectToCtaFtueIfNeeded,
   ]);
 
   const handleBannerPress = useCallback(() => {
-    const redirectedToOnboarding = beginAddFunds();
+    const redirectedToFtue = beginAddFunds();
 
     trackTokenSurfaceClicked({
-      redirect_target: redirectedToOnboarding
-        ? SCREEN_NAMES.MONEY_ONBOARDING
+      redirect_target: redirectedToFtue
+        ? (ctaFtueRedirectTarget ?? SCREEN_NAMES.MONEY_DEPOSIT)
         : SCREEN_NAMES.MONEY_DEPOSIT,
       token_symbol: asset.symbol,
       token_position_in_list: 1,
@@ -235,22 +239,23 @@ const MoneyEarnBannerContent = ({
     asset.chainId,
     asset.symbol,
     beginAddFunds,
+    ctaFtueRedirectTarget,
     hasBalance,
     trackTokenSurfaceClicked,
   ]);
 
   const handleCtaPress = useCallback(() => {
-    const redirectedToOnboarding = beginAddFunds();
+    const redirectedToFtue = beginAddFunds();
 
     trackTokenButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: redirectedToOnboarding
-        ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
+      button_intent: redirectedToFtue
+        ? ctaFtueButtonIntent
         : MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_en: ctaLabel,
       label_localized: ctaLabel,
-      redirect_target: redirectedToOnboarding
-        ? SCREEN_NAMES.MONEY_ONBOARDING
+      redirect_target: redirectedToFtue
+        ? (ctaFtueRedirectTarget ?? SCREEN_NAMES.MONEY_DEPOSIT)
         : SCREEN_NAMES.MONEY_DEPOSIT,
       token_symbol: asset.symbol,
       token_position_in_list: 1,
@@ -262,6 +267,8 @@ const MoneyEarnBannerContent = ({
     asset.chainId,
     asset.symbol,
     beginAddFunds,
+    ctaFtueButtonIntent,
+    ctaFtueRedirectTarget,
     ctaLabel,
     hasBalance,
     trackTokenButtonClicked,

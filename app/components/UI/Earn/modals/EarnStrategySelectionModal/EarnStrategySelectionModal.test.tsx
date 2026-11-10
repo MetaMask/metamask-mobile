@@ -37,10 +37,12 @@ import type {
 } from '../../types/earnAssets';
 import Logger from '../../../../../util/Logger';
 
+let mockIsSplashRedirectNeeded = false;
 let mockIsOnboardingRedirectNeeded = false;
 const mockEarnRedirectTargets = {
   TOKEN_DETAILS: 'token_details',
   MONEY_ONBOARDING: 'money_onboarding',
+  MONEY_SPLASH: 'money_splash',
   MONEY_DEPOSIT: 'money_deposit',
   POOLED_STAKING_DEPOSIT: 'pooled_staking_deposit',
   STABLECOIN_LENDING_DEPOSIT: 'stablecoin_lending_deposit',
@@ -49,13 +51,11 @@ const mockEarnRedirectTargets = {
 const mockGetEarnExperienceDepositRedirectTarget = jest.fn(
   (
     experience: EarnExperience,
-    isOnboardingRedirectNeeded: boolean,
+    moneyFtueRedirectTarget: string | undefined,
   ): string | undefined => {
     try {
       if (experience.type === 'MONEY_ACCOUNT_DEPOSIT') {
-        return isOnboardingRedirectNeeded
-          ? mockEarnRedirectTargets.MONEY_ONBOARDING
-          : mockEarnRedirectTargets.MONEY_DEPOSIT;
+        return moneyFtueRedirectTarget ?? mockEarnRedirectTargets.MONEY_DEPOSIT;
       }
 
       if (experience.type === 'POOLED_STAKING') {
@@ -99,7 +99,7 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   getSelectedEarnStrategyRedirectTarget: jest.fn(
     (
       experience: EarnExperience,
-      isOnboardingRedirectNeeded: boolean,
+      moneyFtueRedirectTarget: string | undefined,
       depositNavigationRoute?: EarnDepositNavigationRoute,
     ) => {
       if (depositNavigationRoute) {
@@ -112,7 +112,7 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
 
       return mockGetEarnExperienceDepositRedirectTarget(
         experience,
-        isOnboardingRedirectNeeded,
+        moneyFtueRedirectTarget,
       );
     },
   ),
@@ -121,8 +121,9 @@ jest.mock('../../hooks/useEarnToasts');
 jest.mock('../../hooks/useEarnAnalytics', () => ({
   useEarnAnalytics: jest.fn(),
 }));
-jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(() => ({
+jest.mock('../../../Money/hooks/useMoneyCtaFtueNavigation', () => ({
+  useMoneyCtaFtueNavigation: jest.fn(() => ({
+    isSplashRedirectNeeded: mockIsSplashRedirectNeeded,
     isOnboardingRedirectNeeded: mockIsOnboardingRedirectNeeded,
   })),
 }));
@@ -727,11 +728,13 @@ describe('EarnStrategySelectionModal', () => {
   });
 
   it.each([
-    [false, EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT],
-    [true, EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING],
+    [false, false, EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT],
+    [true, false, EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH],
+    [false, true, EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING],
   ])(
-    'tracks final Money strategy and %s onboarding destination',
-    async (isOnboardingNeeded, expectedRedirectTarget) => {
+    'tracks final Money strategy and %s splash/onboarding destination',
+    async (isSplashNeeded, isOnboardingNeeded, expectedRedirectTarget) => {
+      mockIsSplashRedirectNeeded = isSplashNeeded;
       mockIsOnboardingRedirectNeeded = isOnboardingNeeded;
       const earnAsset = createEarnAsset([
         createExperience('MONEY_ACCOUNT_DEPOSIT', 'money:usdc'),

@@ -42,7 +42,8 @@ const mockNavigateToEarnAssetAcquisitionRoute = jest.fn<
   Promise<void>,
   [EarnAssetAcquisitionRoute]
 >();
-const mockRedirectToOnboardingIfNeeded = jest.fn();
+const mockRedirectToCtaFtueIfNeeded = jest.fn();
+let mockIsSplashRedirectNeeded = false;
 let mockIsOnboardingRedirectNeeded = false;
 
 jest.mock('@react-navigation/native', () => ({
@@ -69,13 +70,16 @@ jest.mock('../../Money/hooks/useMoneyAccount', () => ({
   __esModule: true,
   useMoneyAccountDeposit: jest.fn(),
 }));
-jest.mock('../../Money/hooks/useMoneyNavigation', () => ({
+jest.mock('../../Money/hooks/useMoneyCtaFtueNavigation', () => ({
   __esModule: true,
-  useMoneyOnboardingNavigation: jest.fn(() => ({
+  useMoneyCtaFtueNavigation: jest.fn(() => ({
+    get isSplashRedirectNeeded() {
+      return mockIsSplashRedirectNeeded;
+    },
     get isOnboardingRedirectNeeded() {
       return mockIsOnboardingRedirectNeeded;
     },
-    redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
+    redirectToCtaFtueIfNeeded: mockRedirectToCtaFtueIfNeeded,
   })),
 }));
 jest.mock('./useEarnAssetAcquisitionNavigation', () => ({
@@ -317,8 +321,9 @@ describe('useEarnOpportunityNavigation', () => {
     mockEngineSetActiveNetwork.mockResolvedValue(undefined);
     mockEngineSetMultichainActiveNetwork.mockResolvedValue(undefined);
     mockInitiateDeposit.mockResolvedValue(undefined);
+    mockIsSplashRedirectNeeded = false;
     mockIsOnboardingRedirectNeeded = false;
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
+    mockRedirectToCtaFtueIfNeeded.mockReturnValue(false);
   });
 
   it('resolves destinations for Money account deposit strategy', () => {
@@ -329,10 +334,19 @@ describe('useEarnOpportunityNavigation', () => {
     expect(getEarnOpportunityDestination(earnAsset)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
     );
-    expect(getEarnAssetSelectionRedirectTarget(earnAsset, true)).toBe(
-      EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING,
-    );
-    expect(getEarnAssetSelectionRedirectTarget(earnAsset, false)).toBe(
+    expect(
+      getEarnAssetSelectionRedirectTarget(
+        earnAsset,
+        EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING,
+      ),
+    ).toBe(EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING);
+    expect(
+      getEarnAssetSelectionRedirectTarget(
+        earnAsset,
+        EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH,
+      ),
+    ).toBe(EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH);
+    expect(getEarnAssetSelectionRedirectTarget(earnAsset, undefined)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
     );
   });
@@ -341,7 +355,7 @@ describe('useEarnOpportunityNavigation', () => {
     expect(
       getEarnExperienceDepositRedirectTarget(
         createExperience(EARN_EXPERIENCES.POOLED_STAKING),
-        false,
+        undefined,
       ),
     ).toBe(EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT);
   });
@@ -385,7 +399,7 @@ describe('useEarnOpportunityNavigation', () => {
     const earnAsset = createEarnAsset(1, []);
 
     expect(
-      getEarnAssetSelectionRedirectTarget(earnAsset, false),
+      getEarnAssetSelectionRedirectTarget(earnAsset, undefined),
     ).toBeUndefined();
     expect(mockLoggerError).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -402,7 +416,7 @@ describe('useEarnOpportunityNavigation', () => {
     );
 
     expect(
-      getEarnExperienceDepositRedirectTarget(experience, false),
+      getEarnExperienceDepositRedirectTarget(experience, undefined),
     ).toBeUndefined();
     expect(mockLoggerError).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -427,7 +441,7 @@ describe('useEarnOpportunityNavigation', () => {
     (experienceType, expectedDestination) => {
       const result = getEarnExperienceDepositRedirectTarget(
         createExperience(experienceType),
-        false,
+        undefined,
       );
 
       expect(result).toBe(expectedDestination);
@@ -675,11 +689,12 @@ describe('useEarnOpportunityNavigation', () => {
     });
   });
 
-  it('redirects a tracked Money deposit to onboarding', async () => {
+  it('redirects a tracked Money deposit to the splash', async () => {
     const earnAsset = createEarnAsset(1, [
       createExperience('MONEY_ACCOUNT_DEPOSIT'),
     ]);
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+    mockIsSplashRedirectNeeded = true;
+    mockRedirectToCtaFtueIfNeeded.mockReturnValue(true);
     const { result } = renderHook(() => useEarnOpportunityNavigation());
 
     await act(async () => {
@@ -689,7 +704,7 @@ describe('useEarnOpportunityNavigation', () => {
       );
     });
 
-    expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
+    expect(mockRedirectToCtaFtueIfNeeded).toHaveBeenCalledWith({
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.DEPOSIT,
         preferredPaymentToken: {
@@ -728,7 +743,7 @@ describe('useEarnOpportunityNavigation', () => {
 
   it('redirects an untracked Money experience to onboarding before fiat deposit', async () => {
     mockIsOnboardingRedirectNeeded = true;
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+    mockRedirectToCtaFtueIfNeeded.mockReturnValue(true);
     const earnAsset = createUntrackedEarnAsset();
     const experience = {
       ...createExperience('MONEY_ACCOUNT_DEPOSIT'),
@@ -746,7 +761,7 @@ describe('useEarnOpportunityNavigation', () => {
       );
     });
 
-    expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
+    expect(mockRedirectToCtaFtueIfNeeded).toHaveBeenCalledWith({
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.DEPOSIT,
         autoSelectFiatPayment: true,
@@ -757,11 +772,13 @@ describe('useEarnOpportunityNavigation', () => {
   });
 
   it.each([
-    [false, EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT],
-    [true, EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING],
+    [false, false, EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT],
+    [true, false, EARN_MODULE_REDIRECT_TARGETS.MONEY_SPLASH],
+    [false, true, EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING],
   ])(
-    'tracks the %s redirect target for an untracked Money experience',
-    (isOnboardingNeeded, expectedRedirectTarget) => {
+    'tracks the expected redirect target for an untracked Money experience',
+    (isSplashNeeded, isOnboardingNeeded, expectedRedirectTarget) => {
+      mockIsSplashRedirectNeeded = isSplashNeeded;
       mockIsOnboardingRedirectNeeded = isOnboardingNeeded;
       const earnAsset = createUntrackedEarnAsset();
       const experience = {

@@ -167,7 +167,7 @@ describe('useMoneyCtaFtueNavigation', () => {
     const { result } = renderHook(() => useMoneyCtaFtueNavigation());
     const analyticsContext = {
       id: 'explore-earn',
-      attribution: 'explore' as const,
+      attribution: 'homescreen_balance_breakdown' as const,
     };
 
     await act(async () => {

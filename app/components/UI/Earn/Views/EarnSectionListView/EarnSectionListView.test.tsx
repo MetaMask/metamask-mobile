@@ -47,9 +47,10 @@ import EarnSectionListView from './EarnSectionListView';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockNavigateToMoneyHome = jest.fn();
+const mockNavigateToMoneyDepositWithCtaFtue = jest.fn();
+let mockIsSplashRedirectNeeded = false;
 let mockIsOnboardingRedirectNeeded = false;
-const mockRedirectToOnboardingIfNeeded = jest.fn();
+const mockRedirectToCtaFtueIfNeeded = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockLoggerError = jest.fn();
 const mockTrackMoneySurfaceClicked = jest.fn();
@@ -161,17 +162,24 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   ),
 }));
 
-jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(() => ({
+jest.mock('../../../Money/hooks/useMoneyCtaFtueNavigation', () => ({
+  useMoneyCtaFtueNavigation: jest.fn(() => ({
+    isSplashRedirectNeeded: mockIsSplashRedirectNeeded,
     isOnboardingRedirectNeeded: mockIsOnboardingRedirectNeeded,
-    navigateToMoneyHome: (
-      ...args: Parameters<typeof mockNavigateToMoneyHome>
-    ) => mockNavigateToMoneyHome(...args),
-  })),
-  useMoneyOnboardingNavigation: jest.fn(() => ({
-    redirectToOnboardingIfNeeded: (
-      ...args: Parameters<typeof mockRedirectToOnboardingIfNeeded>
-    ) => mockRedirectToOnboardingIfNeeded(...args),
+    isCtaFtueRedirectNeeded:
+      mockIsSplashRedirectNeeded || mockIsOnboardingRedirectNeeded,
+    ctaFtueRedirectTarget: mockIsSplashRedirectNeeded
+      ? 'money_splash'
+      : mockIsOnboardingRedirectNeeded
+        ? 'money_onboarding'
+        : undefined,
+    ctaFtueButtonIntent: 'add_money',
+    redirectToCtaFtueIfNeeded: (
+      ...args: Parameters<typeof mockRedirectToCtaFtueIfNeeded>
+    ) => mockRedirectToCtaFtueIfNeeded(...args),
+    navigateToMoneyDepositWithCtaFtue: (
+      ...args: Parameters<typeof mockNavigateToMoneyDepositWithCtaFtue>
+    ) => mockNavigateToMoneyDepositWithCtaFtue(...args),
   })),
 }));
 
@@ -401,6 +409,7 @@ describe('EarnSectionListView', () => {
     isMoneyAccountVisible = true;
     privacyMode = false;
     mockIsOnboardingRedirectNeeded = false;
+    mockIsSplashRedirectNeeded = false;
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsMoneyAccountVisible) {
         return isMoneyAccountVisible;
@@ -421,7 +430,7 @@ describe('EarnSectionListView', () => {
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceResult());
     mockUseProjectedEarnings.mockReturnValue(createProjectionResult());
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
+    mockRedirectToCtaFtueIfNeeded.mockReturnValue(false);
   });
 
   it('renders the header and shared subtitle in Money-hidden mode', () => {
@@ -773,7 +782,7 @@ describe('EarnSectionListView', () => {
     fireEvent.press(screen.getByTestId('mock-earn-money-account-row'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({ pop: false });
+    expect(mockNavigateToMoneyDepositWithCtaFtue).toHaveBeenCalledTimes(1);
     expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith(
       expect.objectContaining({
         redirect_target: 'money_home',
@@ -827,13 +836,13 @@ describe('EarnSectionListView', () => {
     );
   });
 
-  it('redirects to Money onboarding without initiating a deposit', async () => {
+  it('redirects to the Money splash without initiating a deposit', async () => {
     const [moneyAsset] = createMoneyAssets(1);
     mockUseEarnAssetCatalogue.mockReturnValue(
       createCatalogueResult({ assets: [moneyAsset] }),
     );
-    mockIsOnboardingRedirectNeeded = true;
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+    mockIsSplashRedirectNeeded = true;
+    mockRedirectToCtaFtueIfNeeded.mockReturnValue(true);
 
     render(<EarnSectionListView />);
 
@@ -845,7 +854,7 @@ describe('EarnSectionListView', () => {
       );
     });
 
-    expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
+    expect(mockRedirectToCtaFtueIfNeeded).toHaveBeenCalledWith({
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.DEPOSIT,
         preferredPaymentToken: expect.objectContaining({
@@ -855,7 +864,7 @@ describe('EarnSectionListView', () => {
     });
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
     expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
-      expect.objectContaining({ redirect_target: 'money_onboarding' }),
+      expect.objectContaining({ redirect_target: 'money_splash' }),
     );
   });
 
