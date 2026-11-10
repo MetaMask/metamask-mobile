@@ -326,12 +326,17 @@ const MoneyHomeView = () => {
   );
   const { data: cardHomeData, primaryToken: cardPrimaryToken } =
     useCardHomeData();
-  const { enableCard, provisioningView, setupStep, isEnableCardPending } =
-    useCardEnableCard(cardHomeData, {
-      pollIntervalMs: cardSetupPollIntervalMs,
-      navigateFromOutsideCard: true,
-      recheckOnFocus: true,
-    });
+  const {
+    enableCard,
+    provisioningView,
+    setupStep,
+    isEnableCardPending,
+    markCardFlowOpened,
+  } = useCardEnableCard(cardHomeData, {
+    pollIntervalMs: cardSetupPollIntervalMs,
+    navigateFromOutsideCard: true,
+    recheckOnFocus: true,
+  });
   const cardSetupView = deriveMoneyCardSetupView({
     hasProvisioningAlert: (cardHomeData?.alerts ?? []).some(
       (cardAlert) => cardAlert.type === 'card_provisioning',
@@ -620,6 +625,7 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked, actionButtonRowCount]);
 
   const navigateToCardHome = useCallback(() => {
+    markCardFlowOpened();
     const isUpsell = metamaskCardMode === 'upsell';
 
     // Cross-navigator jump into the Card stack + top-level `animation` option.
@@ -631,7 +637,7 @@ const MoneyHomeView = () => {
         ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
       },
     ]);
-  }, [navigation, metamaskCardMode]);
+  }, [markCardFlowOpened, navigation, metamaskCardMode]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({

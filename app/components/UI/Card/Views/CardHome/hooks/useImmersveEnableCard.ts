@@ -67,8 +67,13 @@ export function useImmersveEnableCard(
   const { approveFunding, isApproving } =
     useImmersveMoneyAccountFundingApproval();
 
-  const { isReconciling, pendingAction, resumePendingAction, isProvisioning } =
-    useImmersveCardProvisioning(data, options);
+  const {
+    isReconciling,
+    pendingAction,
+    resumePendingAction,
+    isProvisioning,
+    markCardFlowOpened,
+  } = useImmersveCardProvisioning(data, options);
 
   const isAllowanceRevoked =
     isImmersve &&
@@ -179,5 +184,6 @@ export function useImmersveEnableCard(
         (isApproving ||
           (isFundingSettling && pendingAction?.type === 'funding')),
     ),
+    markCardFlowOpened,
   };
 }

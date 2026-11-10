@@ -80,6 +80,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
   });
 
@@ -89,6 +90,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -130,6 +132,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -166,6 +169,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -239,6 +243,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -268,6 +273,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'pending' },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -419,6 +425,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: true,
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -437,6 +444,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>

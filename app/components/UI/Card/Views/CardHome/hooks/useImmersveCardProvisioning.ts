@@ -105,6 +105,12 @@ export function useImmersveCardProvisioning(
   const recheckOnFocus = options?.recheckOnFocus === true;
   const [focusRecheckCount, setFocusRecheckCount] = useState(0);
   const wasFocusedRef = useRef(isFocused);
+  // Set only when this screen opens a Card flow. Bottom sheets and other
+  // Money screens also blur Money home, and those returns must not recheck.
+  const hasOpenedCardFlowRef = useRef(false);
+  const markCardFlowOpened = useCallback(() => {
+    hasOpenedCardFlowRef.current = true;
+  }, []);
 
   useEffect(() => {
     if (!isProvisioning) {
@@ -156,12 +162,14 @@ export function useImmersveCardProvisioning(
   useEffect(() => {
     const regainedFocus = isFocused && !wasFocusedRef.current;
     wasFocusedRef.current = isFocused;
-    if (
-      !regainedFocus ||
-      !recheckOnFocus ||
-      !isProvisioning ||
-      !hasResolvedStatus
-    ) {
+    if (!regainedFocus || !recheckOnFocus) {
+      return;
+    }
+    // Sheets and other Money screens also blur Money home. Only a Card screen
+    // this view opened should recheck the left-off step.
+    const openedCardFlow = hasOpenedCardFlowRef.current;
+    hasOpenedCardFlowRef.current = false;
+    if (!openedCardFlow || !isProvisioning || !hasResolvedStatus) {
       return;
     }
     // Drop the resolved flag before the recheck so Continue stays disabled
@@ -406,6 +414,7 @@ export function useImmersveCardProvisioning(
         )
         .build(),
     );
+    hasOpenedCardFlowRef.current = true;
     route(pendingAction, {
       navigateFromRoot: true,
       countryKey: kycRegion,
@@ -426,5 +435,6 @@ export function useImmersveCardProvisioning(
     isReconciling,
     pendingAction,
     resumePendingAction,
+    markCardFlowOpened,
   };
 }

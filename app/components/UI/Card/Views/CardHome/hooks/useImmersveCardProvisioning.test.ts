@@ -597,6 +597,9 @@ describe('useImmersveCardProvisioning', () => {
         }),
       );
 
+      act(() => {
+        result.current.resumePendingAction();
+      });
       mockIsFocused = false;
       rerender(undefined);
       mockIsFocused = true;
@@ -649,6 +652,9 @@ describe('useImmersveCardProvisioning', () => {
         expect(result.current.isReconciling).toBe(false);
       });
 
+      act(() => {
+        result.current.markCardFlowOpened();
+      });
       mockIsFocused = false;
       rerender(undefined);
       mockIsFocused = true;
@@ -714,6 +720,98 @@ describe('useImmersveCardProvisioning', () => {
         url: 'https://kyc',
         ctaHint: undefined,
       });
+    });
+
+    it('does not re-read the left-off step when focus returns without opening a Card screen', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: kycPrerequisites,
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({
+          type: 'kyc',
+          url: 'https://kyc',
+          ctaHint: undefined,
+        }),
+      );
+
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+      expect(result.current.isReconciling).toBe(false);
+      expect(result.current.pendingAction).toEqual({
+        type: 'kyc',
+        url: 'https://kyc',
+        ctaHint: undefined,
+      });
+    });
+
+    it('rechecks once for each Card screen that was opened', async () => {
+      controller.getSpendingPrerequisites
+        .mockResolvedValueOnce({ prerequisites: kycPrerequisites })
+        .mockResolvedValue({
+          prerequisites: [
+            {
+              stage: 'expected_spend',
+              status: 'action-required',
+              actionType: 'set_expected_spend_amount',
+            },
+          ],
+        });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({
+          type: 'kyc',
+          url: 'https://kyc',
+          ctaHint: undefined,
+        }),
+      );
+
+      act(() => {
+        result.current.markCardFlowOpened();
+      });
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({
+          type: 'expected_spend',
+        }),
+      );
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+      expect(result.current.isReconciling).toBe(false);
     });
 
     it('hides the funding action and rechecks while the approval is settling', async () => {
