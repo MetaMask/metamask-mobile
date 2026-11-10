@@ -1653,6 +1653,13 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "share_link": {
+      "profile_title": "{{trader}} on MetaMask",
+      "profile_description": "See {{trader}}'s trades on MetaMask",
+      "position_title": "{{trader}}'s {{asset}} trade",
+      "position_description": "{{trader}} is trading {{asset}}",
+      "position_title_no_asset": "{{trader}}'s trade"
+    },
     "popular_traders": "Popular traders",
     "profiles_to_follow": {
       "title": "Profiles to follow",
@@ -1999,7 +2006,8 @@
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
       "toast_failed_sell": "Couldn't sell {{symbol}}"
-    }
+    },
+    "share_preparing": "Preparing link"
   },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
