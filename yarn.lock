@@ -4214,7 +4214,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.39.5, @eslint/js@npm:^9.11.0":
+"@eslint/js@npm:9.39.5, @eslint/js@npm:^9.11.0, @eslint/js@npm:^9.39.5":
   version: 9.39.5
   resolution: "@eslint/js@npm:9.39.5"
   checksum: 10/042d522f28da10ab205f368a94b620334418eb13a5226e50f7edd03dbe26809eb477d0b7a4dc3968b43a98f6ce594f6c03731214c3e0386fd5bcb74fdb9df64c
@@ -30893,7 +30893,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.11.0":
+"eslint@npm:^9.39.5":
   version: 9.39.5
   resolution: "eslint@npm:9.39.5"
   dependencies:
@@ -38615,7 +38615,7 @@ __metadata:
     "@consensys/on-ramp-sdk": "npm:2.1.12"
     "@craftzdog/react-native-buffer": "npm:^6.1.2"
     "@eslint/eslintrc": "npm:^3"
-    "@eslint/js": "npm:^9.11.0"
+    "@eslint/js": "npm:^9.39.5"
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -38944,7 +38944,7 @@ __metadata:
     eciesjs: "npm:0.4.17"
     esbuild: "npm:^0.25.10"
     esbuild-register: "npm:^3.6.0"
-    eslint: "npm:^9.11.0"
+    eslint: "npm:^9.39.5"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-import-resolver-typescript: "npm:^3.6.3"
     eslint-plugin-ft-flow: "npm:3.0.11"
