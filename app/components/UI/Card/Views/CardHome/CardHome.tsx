@@ -271,6 +271,7 @@ const CardHome = () => {
     data,
     { recheckOnFocus: true },
   );
+  const isSetupReconciling = provisioningView === 'reconciling';
 
   const effectiveActions = useMemo<CardAction[]>(() => {
     const providerActions = data?.actions ?? [];
@@ -803,7 +804,7 @@ const CardHome = () => {
               />
             ) : (
               <CardImageSection
-                isLoading={isLoading}
+                isLoading={isLoading || isSetupReconciling}
                 isCardDetailsLoading={
                   actions.isCardDetailsLoading ||
                   actions.isSensitiveDetailsLoading
@@ -867,6 +868,7 @@ const CardHome = () => {
                   isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
                   onAddFunds={actions.addFundsAction}
                   onEnableCard={enableCard ?? actions.enableCardAction}
+                  isEnableCardDisabled={isSetupReconciling}
                 />
               </Box>
             )}

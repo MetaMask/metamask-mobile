@@ -2632,6 +2632,28 @@ describe('CardHome Component', () => {
     expect(mockEnableCard).toHaveBeenCalledTimes(1);
   });
 
+  it('shimmers the card image and disables Enable card while setup is being checked', () => {
+    mockCanEnableCard = true;
+    mockProvisioningView = 'reconciling';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.CARD_IMAGE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+    ).toBeDisabled();
+    expect(screen.queryByTestId('card-provisioning-alert-skeleton')).toBeNull();
+  });
+
   it('shows the KYC under review banner without Enable card when KYC is pending', () => {
     mockCanEnableCard = false;
     mockProvisioningView = 'kyc_under_review';
