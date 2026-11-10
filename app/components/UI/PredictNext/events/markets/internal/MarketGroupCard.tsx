@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../../types';
 import {
@@ -27,11 +21,16 @@ export interface MarketGroupOutcomeAppearance {
 
 export interface MarketGroupCardProps {
   groupKey: string;
-  title: string;
+  /** Omitted when a section header already names the card. */
+  title?: string;
   markets: readonly PredictMarket[];
   selectedMarket: PredictMarket;
   onSelectMarket: (marketId: PredictMarket['id']) => void;
-  onRulesPress: (market: PredictMarket) => void;
+  /**
+   * Opens the selected line's rules from the title, when it has rules. The
+   * title is the only entry point, so without a `title` this never fires.
+   */
+  onRulesPress?: (market: PredictMarket) => void;
   onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
   /** Supplied by the spread or total composition. */
   describeOutcome: (
@@ -132,6 +131,8 @@ export function MarketGroupCard({
   orderSides,
 }: MarketGroupCardProps): React.JSX.Element | null {
   const rules = selectedMarket.rules?.trim();
+  const handleRulesPress =
+    rules && onRulesPress ? () => onRulesPress(selectedMarket) : undefined;
   const yesOutcome = findOutcome(selectedMarket, 'yes');
   const noOutcome = findOutcome(selectedMarket, 'no');
 
@@ -141,26 +142,17 @@ export function MarketGroupCard({
 
   return (
     <MarketCard.Root testID={MarketGroupCardTestIds.card(groupKey)}>
-      <Box twClassName="flex-row items-center gap-2">
-        <Box twClassName="min-w-0 flex-1">
-          <MarketCard.Title testID={MarketGroupCardTestIds.title(groupKey)}>
-            {title}
-          </MarketCard.Title>
-        </Box>
-        {rules ? (
-          <ButtonIcon
-            iconName={IconName.Question}
-            size={ButtonIconSize.Sm}
-            iconProps={{ color: IconColor.IconAlternative }}
-            onPress={() => onRulesPress(selectedMarket)}
-            testID={MarketGroupCardTestIds.rulesButton(groupKey)}
-            accessibilityLabel={strings(
-              'predict.rules.market_accessibility_label',
-            )}
-            accessibilityRole="button"
-          />
-        ) : null}
-      </Box>
+      {title ? (
+        <MarketCard.Title
+          testID={MarketGroupCardTestIds.title(groupKey)}
+          onPress={handleRulesPress}
+          accessibilityHint={strings(
+            'predict.rules.market_accessibility_label',
+          )}
+        >
+          {title}
+        </MarketCard.Title>
+      ) : null}
       <Box twClassName="gap-3">
         {orderSides(selectedMarket).map((side) => {
           const outcome = side === 'yes' ? yesOutcome : noOutcome;

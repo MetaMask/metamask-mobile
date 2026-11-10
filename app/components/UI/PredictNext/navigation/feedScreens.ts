@@ -7,6 +7,7 @@ import type { PredictFeedId } from '../types';
 
 export const NFL_FEED_SCREEN_ID = 'sports-football-nfl';
 export const NCAA_FEED_SCREEN_ID = 'sports-football-ncaa';
+export const POLITICS_FEED_SCREEN_ID = 'politics';
 
 type FeedScreenTabKeys = typeof PREDICT_SURFACE_FEED_KEYS.nextFeedScreenTabs;
 
@@ -43,6 +44,14 @@ export const FEED_SCREENS = {
     tabs: [
       { id: 'games', label: 'Games' },
       { id: 'props', label: 'Props' },
+    ],
+  },
+  [POLITICS_FEED_SCREEN_ID]: {
+    title: 'Politics',
+    tabs: [
+      { id: 'trump', label: 'Trump' },
+      { id: 'congress', label: 'Congress' },
+      { id: 'iran', label: 'Iran' },
     ],
   },
 } as const satisfies {

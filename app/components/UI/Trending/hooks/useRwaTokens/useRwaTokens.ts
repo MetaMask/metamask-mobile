@@ -7,6 +7,10 @@ import {
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
 import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
+import type {
+  SearchRequestOutcome,
+  SearchRequestPerformance,
+} from '../../../../../util/searchPerformance';
 
 const RWA_PAGE_SIZE = 100;
 const DEFAULT_SORT_OPTION = PriceChangeOption.PriceChange;
@@ -72,6 +76,7 @@ export const useRwaTokens = (opts?: {
   chainIds?: CaipChainId[] | null;
   pageSize?: number;
   includeTokenSecurityData?: boolean;
+  performance?: SearchRequestPerformance;
   sortTrendingTokensOptions?: {
     option: PriceChangeOption;
     direction: SortDirection;
@@ -82,6 +87,7 @@ export const useRwaTokens = (opts?: {
     chainIds,
     pageSize = RWA_PAGE_SIZE,
     includeTokenSecurityData = false,
+    performance,
     sortTrendingTokensOptions,
   } = opts ?? {};
   const { option = DEFAULT_SORT_OPTION, direction = DEFAULT_SORT_DIRECTION } =
@@ -101,6 +107,8 @@ export const useRwaTokens = (opts?: {
   // Ref-based guard prevents duplicate loadMore calls when FlashList fires
   // onEndReached multiple times before the state update lands.
   const isLoadingMoreRef = useRef(false);
+  const performanceRef = useRef(performance);
+  performanceRef.current = performance;
 
   const sortBy = buildSortBy(option, direction);
 
@@ -121,6 +129,10 @@ export const useRwaTokens = (opts?: {
     const requestId = ++requestIdRef.current;
     isLoadingRef.current = true;
     setIsLoading(true);
+    const requestHandle = performanceRef.current?.startRequest(
+      searchQuery ?? '',
+    );
+    let outcome: SearchRequestOutcome = 'success';
     try {
       const response = await fetchPage();
       if (requestId === requestIdRef.current) {
@@ -130,6 +142,7 @@ export const useRwaTokens = (opts?: {
         setTotalCount(response.totalCount);
       }
     } catch {
+      outcome = 'error';
       if (requestId === requestIdRef.current) {
         setData([]);
         setNextCursor(undefined);
@@ -141,8 +154,9 @@ export const useRwaTokens = (opts?: {
         isLoadingRef.current = false;
         setIsLoading(false);
       }
+      requestHandle?.end(outcome);
     }
-  }, [fetchPage]);
+  }, [fetchPage, searchQuery]);
 
   const loadMore = useCallback(async () => {
     if (

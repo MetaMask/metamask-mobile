@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useImmersveResumeOnboarding } from './useImmersveResumeOnboarding';
 import type { CardSpendingPrerequisite } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import Logger from '../../../../util/Logger';
 
 const mockSetSelectedCountry = jest.fn();
 const mockCreateFundingSource = jest.fn();
@@ -10,6 +11,7 @@ const mockGetSpendingPrerequisites = jest.fn();
 const mockPatchContactDetails = jest.fn();
 const mockRecordProviderOnboardingStarted = jest.fn();
 const mockRecordCardActivated = jest.fn();
+const mockResolveMoneyAccountFundingSourceId = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -17,6 +19,8 @@ jest.mock('../../../../core/Engine', () => ({
         mockSetSelectedCountry(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
+      resolveMoneyAccountFundingSourceId: (...args: unknown[]) =>
+        mockResolveMoneyAccountFundingSourceId(...args),
       getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
       getResumeCardInfo: (...args: unknown[]) => mockGetResumeCardInfo(...args),
       getSpendingPrerequisites: (...args: unknown[]) =>
@@ -53,9 +57,31 @@ jest.mock('./useImmersveMfaHandoff', () => ({
 
 const mockDispatch = jest.fn();
 let mockImmersveConfig: unknown = { fundingChannelId: 'base-channel' };
+let mockCountryFunding: Record<string, unknown> = {};
+let mockPrimaryMoneyAccount: { address: string } | null = null;
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: () => mockImmersveConfig,
+  useSelector: (selector: unknown) => {
+    const {
+      selectCardImmersveConfig: configSelector,
+      selectCardImmersveCountryFunding: countryFundingSelector,
+    } = jest.requireActual('../../../../selectors/featureFlagController/card');
+    const { selectPrimaryMoneyAccount: moneyAccountSelector } =
+      jest.requireActual('../../../../selectors/moneyAccountController');
+    if (selector === configSelector) {
+      return mockImmersveConfig;
+    }
+    if (selector === countryFundingSelector) {
+      return mockCountryFunding;
+    }
+    if (selector === moneyAccountSelector) {
+      return mockPrimaryMoneyAccount;
+    }
+    return undefined;
+  },
+}));
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({
@@ -96,6 +122,8 @@ describe('useImmersveResumeOnboarding', () => {
     mockRecordProviderOnboardingStarted.mockResolvedValue(undefined);
     mockRecordCardActivated.mockResolvedValue(undefined);
     mockImmersveConfig = { fundingChannelId: 'base-channel' };
+    mockCountryFunding = {};
+    mockPrimaryMoneyAccount = null;
     mockSignIn.mockResolvedValue({ done: true });
     mockGetResumeCardInfo.mockResolvedValue(null);
     mockGetFundingSources.mockResolvedValue([]);
@@ -118,14 +146,17 @@ describe('useImmersveResumeOnboarding', () => {
       });
     });
 
-    it('does not record onboarding started when the user is already authenticated', async () => {
+    it('records onboarding started when the user is already authenticated and has no card', async () => {
       const { result } = renderHook(() => useImmersveResumeOnboarding());
 
       await act(async () => {
         await result.current({ ...PARAMS, alreadyAuthenticated: true });
       });
 
-      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+      expect(mockRecordProviderOnboardingStarted).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
     });
 
     it('records active, not onboarding, when a fresh SIWE finds an existing card', async () => {
@@ -293,6 +324,55 @@ describe('useImmersveResumeOnboarding', () => {
       'fs-base',
       expect.any(Object),
     );
+  });
+
+  it('resolves a Money account source by address instead of the stored wallet source', async () => {
+    mockCountryFunding = {
+      GB: { source: 'moneyAccount', fundingChannelId: 'money-channel' },
+    };
+    mockPrimaryMoneyAccount = {
+      address: '0x000000000000000000000000000000000000dead',
+    };
+    mockResolveMoneyAccountFundingSourceId.mockResolvedValue('fs-money');
+    mockGetResumeCardInfo.mockResolvedValue({ fundingSourceIds: ['fs-base'] });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockResolveMoneyAccountFundingSourceId).toHaveBeenCalledWith(
+      '0x000000000000000000000000000000000000dEaD',
+    );
+    expect(mockGetFundingSources).not.toHaveBeenCalled();
+    expect(mockCreateFundingSource).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'card/setImmersveFundingSourceId',
+      payload: 'fs-money',
+    });
+  });
+
+  it('does not create a wallet source when the Money account address is missing', async () => {
+    mockCountryFunding = {
+      GB: { source: 'moneyAccount', fundingChannelId: 'money-channel' },
+    };
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          'useImmersveResumeOnboarding: Money account address is missing',
+      }),
+      expect.any(Object),
+    );
+    expect(mockResolveMoneyAccountFundingSourceId).not.toHaveBeenCalled();
+    expect(mockGetFundingSources).not.toHaveBeenCalled();
+    expect(mockCreateFundingSource).not.toHaveBeenCalled();
+    expect(mockRoute).not.toHaveBeenCalled();
   });
 
   it('creates a funding source when none matches the configured channel', async () => {

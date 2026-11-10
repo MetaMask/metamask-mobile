@@ -17,7 +17,7 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       paddingBottom: Device.isIphoneX() ? 20 : 0,
     },
     accountCardWrapper: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     intro: {
       ...typography.sHeadingMD,
@@ -48,7 +48,7 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       ...typography.sBodyMD,
       fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.text.default,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
       marginBottom: 16,
       width: '100%',
       textAlign: 'center',
@@ -57,7 +57,7 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       flex: 0,
       flexDirection: 'row',
       paddingVertical: 16,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     button: {
       flex: 1,
@@ -66,7 +66,7 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       backgroundColor: colors.error.default,
     },
     bottom: {
-      marginHorizontal: 24,
+      marginHorizontal: 16,
     },
     cancel: {
       marginRight: 8,
@@ -90,7 +90,7 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       marginBottom: 10,
       flexDirection: 'row',
       justifyContent: 'flex-start',
-      marginLeft: 20,
+      marginLeft: 16,
       alignItems: 'center',
     },
     rememberCheckbox: {
@@ -109,8 +109,8 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       borderColor: colors.border.muted,
       borderRadius: 8,
       padding: 16,
-      marginLeft: 20,
-      marginRight: 20,
+      marginLeft: 16,
+      marginRight: 16,
       marginTop: 16,
     },
     selectedOption: {

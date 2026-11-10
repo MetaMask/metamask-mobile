@@ -1,29 +1,39 @@
 import React from 'react';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import {
   KeyValueRow,
   KeyValueRowVariant,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
+import { formatPercentage } from '../../../utils/formatUtils';
 import {
-  formatPercentage,
-  formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../../utils/formatUtils';
+  formatCloseSummaryFiat,
+  formatSignedCloseSummaryFiat,
+  getCloseSummaryPnlColor,
+} from '../../../components/PerpsCloseSummary/closeSummaryFormat';
 
-const formatSummaryFiat = (value: number) =>
-  formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+// `formatPercentage` renders -0 as "+0.00%"; a limit RoE that rounds to
+// zero from below (a limit just under the entry price) must keep its minus
+// sign so the percentage agrees with the $P&L rendered beside it. The $P&L
+// must also be negative, so a market RoE of exactly -0 beside a non-negative
+// P&L keeps the plain formatted value.
+const formatSummaryPercentage = (value: number, pnl: number) =>
+  Object.is(value, -0) && pnl < 0 ? '-0.00%' : formatPercentage(value);
 
 export interface PerpsCloseTotalsProps {
-  pnl: number;
+  /** P&L realized by the close; undefined while unavailable. */
+  pnl: number | undefined;
   /**
-   * Percentage return on the margin being closed (e.g. 20.22 for +20.22%).
-   * Undefined when margin is exactly zero, since the percentage is
-   * mathematically undefined (division by zero) rather than actually 0.
+   * The %RoE shown beside the $PnL: the position's actual %RoE
+   * (`returnOnEquity × 100`) for market closes, or the RoE at the effective
+   * (limit) price for limit closes — the same value the position component
+   * renders for a market close. Omitted when nothing is being closed or the
+   * value is unavailable.
    */
-  pnlPercentage?: number;
-  receiveAmount: number;
+  roePercentage?: number;
+  /** Cash the close returns; undefined while unavailable. */
+  receiveAmount: number | undefined;
 }
 
 /**
@@ -33,14 +43,14 @@ export interface PerpsCloseTotalsProps {
  */
 const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   pnl,
-  pnlPercentage,
+  roePercentage,
   receiveAmount,
 }) => (
   <>
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
       keyLabel={strings('perps.close_position.total_receive')}
-      value={formatSummaryFiat(receiveAmount)}
+      value={formatCloseSummaryFiat(receiveAmount)}
       valueTextProps={{
         testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
       }}
@@ -49,14 +59,21 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
       twClassName="mt-0.5"
+      // One native element carries the label with its value for automation.
+      accessible
+      testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
       keyLabel={strings('perps.close_position.included_pnl')}
-      value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))}${
-        pnlPercentage !== undefined
-          ? ` (${formatPercentage(pnlPercentage)})`
-          : ''
-      }`}
+      value={
+        pnl === undefined
+          ? PERPS_CONSTANTS.FallbackDataDisplay
+          : `${formatSignedCloseSummaryFiat(pnl)}${
+              roePercentage !== undefined
+                ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
+                : ''
+            }`
+      }
       valueTextProps={{
-        color: pnl < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault,
+        color: getCloseSummaryPnlColor(pnl),
         testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
       }}
     />

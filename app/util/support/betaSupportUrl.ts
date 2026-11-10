@@ -1,9 +1,4 @@
-export const getBetaSupportUrl = (): string => {
-  let betaSupportUrl = '';
+import { isBetaBuild } from '../environment';
 
-  ///: BEGIN:ONLY_INCLUDE_IF(beta)
-  betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
-  ///: END:ONLY_INCLUDE_IF
-
-  return betaSupportUrl;
-};
+export const getBetaSupportUrl = (): string =>
+  isBetaBuild ? 'https://intercom.help/internal-beta-testing/en/' : '';
