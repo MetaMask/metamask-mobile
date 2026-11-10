@@ -317,6 +317,20 @@ describe('MoneyVbaHomeCard', () => {
     },
   );
 
+  it('names the market currency in the get_started description', () => {
+    const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.get_started;
+
+    const { getByTestId } = render(
+      <MoneyVbaHomeCard variant="get_started" sourceCurrency="EUR" />,
+    );
+
+    expect(getByTestId(testIds.DESCRIPTION)).toHaveTextContent(
+      strings('money.vba_home_card.get_started.description_with_currency', {
+        currency: 'EUR',
+      }),
+    );
+  });
+
   it('renders the identity_verified copy from Connor', () => {
     const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified;
 
@@ -343,7 +357,7 @@ describe('MoneyVbaHomeCard', () => {
         snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT, kycStatus: 'approved' },
       });
       const { getByTestId } = render(
-        <MoneyVbaHomeCard variant="identity_verified" />,
+        <MoneyVbaHomeCard variant="identity_verified" sourceCurrency="EUR" />,
       );
 
       fireEvent.press(
@@ -354,6 +368,7 @@ describe('MoneyVbaHomeCard', () => {
         expect(mockOpenVbaAccountSetup).toHaveBeenCalledWith(
           mockNavigation,
           chooseCurrency,
+          'EUR',
         );
       });
       expect(mockNavigateToDestination).not.toHaveBeenCalled();

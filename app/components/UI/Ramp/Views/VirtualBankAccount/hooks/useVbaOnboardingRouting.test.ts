@@ -1570,4 +1570,23 @@ describe('openVbaAccountSetup', () => {
       { name: Routes.RAMP.VBA_DETAILS },
     ]);
   });
+
+  it('skips Choose Currency and opens account details when the market has one currency', () => {
+    openVbaAccountSetup(rootNavigation, true, 'EUR');
+
+    expect(lastRootResetRoutes()).toEqual([
+      { name: Routes.HOME_TABS },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ]);
+  });
+
+  it('skips Choose Currency from inside onboarding when the market has one currency', () => {
+    openVbaAccountSetup(onboardingNavigation, true, 'EUR');
+
+    expect(onboardingDispatch).not.toHaveBeenCalled();
+    expect(lastRootResetRoutes()).toEqual([
+      { name: Routes.HOME_TABS },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ]);
+  });
 });

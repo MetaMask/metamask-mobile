@@ -58,6 +58,11 @@ interface MoneyVbaHomeCardConfig {
   source: string;
   /** Card reads `${i18nPrefix}.title`, `.description` and `.cta`. */
   i18nPrefix: string;
+  /**
+   * Optional description key that takes a `{{currency}}` parameter. Rendered
+   * instead of `.description` when the host knows the user's market currency.
+   */
+  currencyDescriptionI18nKey?: string;
   /** Hero illustration shown above the copy. */
   heroArt: MoneyVbaHomeCardHeroArt;
   /**
@@ -103,6 +108,8 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
     componentName: COMPONENT_NAMES.MONEY_VBA_GET_STARTED_CARD,
     source: 'vba-home-card-get-started',
     i18nPrefix: 'money.vba_home_card.get_started',
+    currencyDescriptionI18nKey:
+      'money.vba_home_card.get_started.description_with_currency',
     // Fox-and-coins art from the Money Home card (Figma node 2267-17522).
     heroArt: {
       source: moneyVbaGetStartedArt,

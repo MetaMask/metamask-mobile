@@ -125,6 +125,7 @@ const makeEligibility = (
   isRegionEligible: true,
   isDevBypassEnabled: false,
   location: 'BR',
+  market: undefined,
   ...overrides,
 });
 

@@ -21,6 +21,7 @@ import {
   openVbaAccountSetup,
   useOpenVbaOnboarding,
 } from '../hooks/useVbaOnboardingRouting';
+import { useVbaEligibility } from '../hooks/useVbaEligibility';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
 import { trackKycVerificationUpdated } from '../../../../KYC/utils/kycVerificationAnalytics';
@@ -77,12 +78,13 @@ export const VbaKycPendingAdapter = () => {
 export const VbaIdentityVerifiedAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
+  const { market } = useVbaEligibility();
   const handleExit = useCallback(() => {
     exitVbaOnboardingToMoneyHome(navigation);
   }, [navigation]);
   const handleContinue = useCallback(() => {
-    openVbaAccountSetup(navigation, chooseCurrency);
-  }, [chooseCurrency, navigation]);
+    openVbaAccountSetup(navigation, chooseCurrency, market?.currency);
+  }, [chooseCurrency, market, navigation]);
 
   return (
     <KycIdentityVerified onExit={handleExit} onContinue={handleContinue} />

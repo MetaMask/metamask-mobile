@@ -220,8 +220,11 @@ const MoneyHomeView = () => {
   // session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
-  const { isEligible: isVbaEligible, isLoading: isVbaEligibilityLoading } =
-    useVbaEligibility();
+  const {
+    isEligible: isVbaEligible,
+    isLoading: isVbaEligibilityLoading,
+    market: vbaMarket,
+  } = useVbaEligibility();
   const { hasCrypto, isLoading: isCryptoBalanceLoading } =
     useActiveGroupCryptoPresence();
   const devOverride = useMoneyHomeCardDevOverride();
@@ -1199,6 +1202,7 @@ const MoneyHomeView = () => {
           <MoneyVbaHomeCard
             key={devOverride?.id ?? moneyHomeCard.variant}
             variant={moneyHomeCard.variant}
+            sourceCurrency={vbaMarket?.currency}
             onDismiss={() => {
               if (devOverride?.card.type === 'vba') {
                 if (devOverride.card.variant === 'kyc_decision') {

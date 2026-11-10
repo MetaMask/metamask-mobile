@@ -127,30 +127,19 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
     },
   );
 
-  it('does not promise Pix timing before the user picks a currency', async () => {
-    const { getByText, queryByText } = renderVbaVendorTerms({
+  it('promises Pix timing when chooseCurrency is on, because the picker is skipped', async () => {
+    const { findByText } = renderVbaVendorTerms({
       location: 'BR',
       overrides: buildRolloutOverrides({ chooseCurrency: true }),
     });
 
-    await waitFor(() => {
-      expect(
-        getByText(
-          strings(
-            'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
-            { timeframe: '2 - 3 business days' },
-          ),
-        ),
-      ).toBeOnTheScreen();
-    });
-
     expect(
-      queryByText(
+      await findByText(
         strings(
           'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
         ),
       ),
-    ).toBeNull();
+    ).toBeOnTheScreen();
   });
 
   it('shows the live arrival timeframe and queries the catalog for a non-Pix VBA region', async () => {

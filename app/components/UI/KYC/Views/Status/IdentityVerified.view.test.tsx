@@ -219,74 +219,21 @@ describeForPlatforms('KycIdentityVerified view', () => {
     );
   });
 
-  it('opens Choose Currency from Continue when chooseCurrency is on', async () => {
-    const { findByTestId, getByTestId } = render(VbaDetails, {
-      chooseCurrency: true,
-    });
-
-    await pressContinue({ getByTestId });
-
-    expect(
-      await findByTestId(VbaChooseCurrencySelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-BRL`),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
-    ).toBeOnTheScreen();
-    expect(ramps.createAutoramp).not.toHaveBeenCalled();
-  });
-
-  it('ignores the currency picked on Choose Currency and creates the country market currency', async () => {
-    ramps.createAutoramp?.mockImplementation(
-      async (request: { recipient_account: { address: string } }) => {
-        const autoramp = {
-          id: 'ar-new',
-          walletAddress: request.recipient_account.address,
-          status: 'Created',
-        };
-        ramps.state = { autoramps: [autoramp] };
-        return autoramp;
-      },
-    );
-    ramps.refreshAutoramp?.mockResolvedValue({ status: 'Created' });
-    const { findByTestId, findByText, getByTestId } = render(VbaDetails, {
-      chooseCurrency: true,
-    });
-
-    await pressContinue({ getByTestId });
-    fireEvent.press(
-      await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
-    );
-
-    expect(
-      await findByText(strings('virtual_bank_account.creating_account.title')),
-    ).toBeOnTheScreen();
-    expect(ramps.createAutoramp).toHaveBeenCalledWith(
-      expect.objectContaining({
-        source_currencies: [{ type: 'Fiat', code: 'BRL' }],
-      }),
-    );
-  });
-
-  it('returns to Identity verified from the Choose Currency back button', async () => {
-    const { findByTestId, getByTestId } = render(
+  it('skips Choose Currency and opens account details when chooseCurrency is on', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = render(
       Probe(Routes.RAMP.VBA_DETAILS),
       { chooseCurrency: true },
     );
 
     await pressContinue({ getByTestId });
-    fireEvent.press(
-      await findByTestId(VbaChooseCurrencySelectorsIDs.BACK_BUTTON),
-    );
 
     expect(
-      await findByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      await findByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(VbaChooseCurrencySelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+    expect(ramps.createAutoramp).not.toHaveBeenCalled();
   });
 
   it('returns to Money home from Back', async () => {
