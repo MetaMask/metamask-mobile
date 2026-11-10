@@ -769,7 +769,7 @@ const MyProfileView: React.FC = () => {
             ) : undefined
           }
           subtitle={
-            overlayedStats && !isBlocked ? (
+            overlayedStats && !isContentHidden ? (
               <MyProfileCompactStats
                 winRateLabel={overlayedStats.winRateLabel}
                 isWinRatePositive={overlayedStats.isWinRatePositive}
@@ -1010,7 +1010,7 @@ const MyProfileView: React.FC = () => {
                       >
                         {strings(
                           'social_leaderboard.trader_profile.blocked_title',
-                          { name: displayProfile.displayName },
+                          { name: displayProfile.handle },
                         )}
                       </Text>
                     </>
@@ -1204,7 +1204,7 @@ const MyProfileView: React.FC = () => {
         ) : null}
         {isProfileOptionsOpen && displayProfile && blockProfileId ? (
           <ProfileOptionsSheet
-            traderName={displayProfile.displayName}
+            traderName={displayProfile.handle}
             onBlock={handleBlock}
             onClose={handleCloseProfileOptions}
           />

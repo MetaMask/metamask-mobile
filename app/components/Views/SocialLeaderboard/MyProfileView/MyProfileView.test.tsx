@@ -1323,6 +1323,44 @@ describe('MyProfileView', () => {
     expect(mockUnblock).toHaveBeenCalledTimes(1);
   });
 
+  describe('trader with a display name', () => {
+    beforeEach(() => {
+      mockProfileRouteParams = {
+        traderId: 'trader-1',
+        traderName: 'alpha.eth',
+        traderAddress: '0xabc',
+      };
+      mockUseTraderProfile.mockReturnValue({
+        ...foreignTraderProfileResult(),
+        profile: {
+          ...foreignTraderProfile,
+          profile: { ...foreignTraderProfile.profile, displayName: 'Alpha' },
+        },
+      });
+    });
+
+    it('addresses the blocked trader by handle', () => {
+      mockUseTraderBlock.mockReturnValue({
+        isBlocked: true,
+        block: mockBlock,
+        unblock: mockUnblock,
+      });
+
+      renderWithProvider(<MyProfileView />);
+
+      expect(screen.getByText('You blocked @alpha.eth')).toBeOnTheScreen();
+    });
+
+    it('offers to block the trader by handle', () => {
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON),
+      );
+
+      expect(screen.getByText('Block @alpha.eth')).toBeOnTheScreen();
+    });
+  });
+
   describe('private profile', () => {
     const privateTraderProfileResult = (
       isFollowing = false,
@@ -1361,6 +1399,9 @@ describe('MyProfileView', () => {
       ).not.toBeOnTheScreen();
       expect(
         screen.queryByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.COMPACT_STATS),
       ).not.toBeOnTheScreen();
       expect(
         screen.queryByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
