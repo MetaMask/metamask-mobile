@@ -42,6 +42,16 @@ jest.mock('react-native-share', () => ({
   },
 }));
 
+jest.mock('../navigation/socialOgImageService', () => ({
+  createSocialOgImage: jest
+    .fn()
+    .mockResolvedValue(
+      'https://social.dev-api.cx.metamask.io/api/v1/og-images/card.png?v=1',
+    ),
+  getSocialOgDefaultImageUrl: () =>
+    'https://social.dev-api.cx.metamask.io/api/v1/og-images/default.jpg',
+}));
+
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
 const mockNavigationGetState = jest.fn();
@@ -141,8 +151,30 @@ jest.mock('@metamask/design-system-react-native', () => {
       endAccessory,
     );
 
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+        onClose?: () => void;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: () => undefined,
+        onCloseBottomSheet: () => props.onClose?.(),
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID: props.testID },
+        props.children,
+      );
+    },
+  );
+
   return {
     ...actual,
+    BottomSheet: MockBottomSheet,
     HeaderStandardAnimated: MockHeaderStandardAnimated,
     useHeaderStandardAnimated: () => ({
       scrollY: { value: 0 },
@@ -587,19 +619,96 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('42%');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
-    ).toHaveTextContent('+$1,200');
+    ).toHaveTextContent('+$1,200.00');
+    expect(
+      screen.queryByTestId(
+        MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL,
+      ),
+    ).toBeNull();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_HOLD_TIME),
     ).toHaveTextContent('3h');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_VOLUME),
-    ).toHaveTextContent('$50,000');
+    ).toHaveTextContent('$50,000.00');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_COUNT),
     ).toHaveTextContent('88');
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
     ).toBeNull();
+  });
+
+  it('fills unrealized P&L from priced open positions', () => {
+    mockUseTraderProfile.mockReturnValue({
+      profile: {
+        profile: {
+          profileId: 'live-id',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'Onchain Name',
+          imageUrl: null,
+        },
+        stats: {
+          pnl30d: 1200,
+          winRate30d: 0.42,
+          medianHoldMinutes: 180,
+          tradeCount30d: 12,
+          volumeUsd30d: 50000,
+        },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 88,
+        followingCount: 3,
+        copytradedAllTime: {
+          count: 44,
+          volumeUSD: 1000,
+          distinctActors: 2,
+        },
+        rankingTag: 'dolphin',
+      } as TraderProfileResponse,
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [
+        {
+          positionId: 'eth-spot',
+          tokenSymbol: 'ETH',
+          tokenName: 'Ethereum',
+          tokenAddress: '0xeth',
+          chain: 'ethereum',
+          positionAmount: 1,
+          boughtUsd: 100,
+          soldUsd: 0,
+          realizedPnl: 50,
+          costBasis: 100,
+          trades: [],
+          lastTradeAt: 1,
+          pnlValueUsd: 150,
+        },
+      ],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL),
+    ).toHaveTextContent('+$100.00');
   });
 
   it('opens followers connections on the followers tab', () => {
@@ -734,14 +843,12 @@ describe('MyProfileView', () => {
     expect(createPostButton).toHaveProp('accessibilityLabel', 'Create post');
   });
 
-  it('shares the owner profile deeplink from the share profile button', () => {
+  it('shares the owner profile deeplink from the share profile button', async () => {
     renderWithProvider(<MyProfileView />);
 
     const shareProfileButton = screen.getByTestId(
       MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON,
     );
-
-    fireEvent.press(shareProfileButton);
 
     expect(
       within(shareProfileButton).UNSAFE_getByProps({ name: IconName.Share }),
@@ -752,12 +859,24 @@ describe('MyProfileView', () => {
       left: 12,
       right: 12,
     });
-    expect(Share.open).toHaveBeenCalledWith({
-      message: 'https://link.metamask.io/social/profile?traderId=current-user',
-      url: 'https://link.metamask.io/social/profile?traderId=current-user',
-      failOnCancel: false,
+
+    fireEvent.press(shareProfileButton);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_SPINNER),
+    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message:
+          'https://link.metamask.io/social/profile?traderId=current-user&share=1',
+        url: 'https://link.metamask.io/social/profile?traderId=current-user&share=1',
+        failOnCancel: false,
+      });
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByTestId(MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('does not render a reset profile button on the owner profile header', () => {
@@ -1096,7 +1215,7 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('shares the profile deeplink from another profile header', () => {
+  it('shares the profile deeplink from another profile header', async () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
       traderName: 'alpha.eth',
@@ -1108,10 +1227,13 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON),
     );
 
-    expect(Share.open).toHaveBeenCalledWith({
-      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
-      url: 'https://link.metamask.io/social/profile?traderId=trader-1',
-      failOnCancel: false,
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message:
+          'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
+        url: 'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
+        failOnCancel: false,
+      });
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
@@ -1755,16 +1877,132 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
     fireEvent.press(screen.getByTestId('position-row-ETH'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
-      traderId: 'current-user',
-      traderName: 'Giga Whale',
-      traderImageUrl: undefined,
-      traderAddress: undefined,
-      tokenSymbol: 'ETH',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'eth-spot',
       position: openSpot,
-      source: 'profile_position',
+      author: {
+        id: 'current-user',
+        username: 'Giga Whale',
+        address: undefined,
+        avatarUri: null,
+        winRatePercent: 60,
+        pnl30d: 7100,
+        followerCount: 4,
+        xHandle: 'giga-whale',
+      },
       isClosed: false,
     });
+  });
+
+  it('opens the position sheet from a Closed row', () => {
+    const closedSpot: Position = {
+      positionId: 'doge-closed',
+      tokenSymbol: 'DOGE',
+      tokenName: 'Doge',
+      tokenAddress: '0xdoge',
+      chain: 'base',
+      positionAmount: 0,
+      boughtUsd: 100,
+      soldUsd: 150,
+      realizedPnl: 50,
+      costBasis: 100,
+      trades: [],
+      lastTradeAt: 1,
+    };
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [closedSpot],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
+    fireEvent.press(screen.getByTestId('position-row-DOGE'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'doge-closed',
+      position: closedSpot,
+      author: {
+        id: 'current-user',
+        username: 'Giga Whale',
+        address: undefined,
+        avatarUri: null,
+        winRatePercent: 60,
+        pnl30d: 7100,
+        followerCount: 4,
+        xHandle: 'giga-whale',
+      },
+      isClosed: true,
+    });
+  });
+
+  it('opens and closes the uncounted-positions sheet over the profile', () => {
+    const flagged: Position = {
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      tokenName: 'Nigel',
+      tokenAddress: '0xnigel',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['insider'],
+    };
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+    };
+    mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [flagged],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER),
+    );
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("Why some positions aren't counted"),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'This trader got the token from an allocation before it was public.',
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_DISMISS),
+    );
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SHEET),
+    ).toBeNull();
   });
 
   it('pins the owner flagged positions and opens history from that row', () => {
@@ -1807,16 +2045,39 @@ describe('MyProfileView', () => {
 
     fireEvent.press(screen.getByTestId('position-row-Nigel'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
-      traderId: 'current-user',
-      traderName: 'Giga Whale',
-      traderImageUrl: undefined,
-      traderAddress: undefined,
-      tokenSymbol: 'Nigel',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'nigel',
       position: flagged,
-      source: 'profile_position',
+      author: {
+        id: 'current-user',
+        username: 'Giga Whale',
+        address: undefined,
+        avatarUri: null,
+        winRatePercent: 60,
+        pnl30d: 7100,
+        followerCount: 4,
+        xHandle: 'giga-whale',
+      },
       isClosed: false,
     });
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION_HEADER),
+    );
+
+    expect(
+      screen.getByText(
+        'You got the token from an allocation before it was public.',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText("You deployed the token's contract."),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        'This trader got the token from an allocation before it was public.',
+      ),
+    ).toBeNull();
   });
 
   it('opens position history from a flagged row on another trader profile', () => {
@@ -1861,14 +2122,19 @@ describe('MyProfileView', () => {
 
     fireEvent.press(screen.getByTestId('position-row-Nigel'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
-      traderId: 'trader-1',
-      traderName: 'shittymike.sol',
-      traderImageUrl: undefined,
-      traderAddress: '0xabc',
-      tokenSymbol: 'Nigel',
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: 'd11488e1-89d8-4010-b772-a8ec23fe2589',
       position: nigel,
-      source: 'profile_position',
+      author: {
+        id: 'trader-1',
+        username: 'shittymike.sol',
+        address: '0xabc',
+        avatarUri: undefined,
+        winRatePercent: null,
+        pnl30d: null,
+        followerCount: null,
+        xHandle: null,
+      },
       isClosed: false,
     });
   });

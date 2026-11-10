@@ -1,12 +1,17 @@
 import React from 'react';
-import { waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
-import VbaIdentityVerificationModule, {
+import KycIdentityVerificationModule, {
   getVbaIdentityVerificationInitialRoute,
-  replaceProviderTermsWithProvider,
+  openPartnerTerms,
+  resetToProvider,
 } from './IdentityVerification';
-import { VbaSumSubKycSelectorsIDs } from './SumSubKyc';
+import { KycSumSubSelectorsIDs } from './SumSubKyc';
+import {
+  KycPartnerTermsSelectorsIDs,
+  KycVerifyIdentitySelectorsIDs,
+} from './VerifyIdentity.testIds';
 import { VbaIdentityVerificationRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import Engine from '../../../../../core/Engine';
 import I18n from '../../../../../../locales/i18n';
@@ -35,6 +40,7 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../../../../hooks/useScreenPerformance', () => ({
+  ...jest.requireActual('../../../../../hooks/useScreenPerformance'),
   useScreenPerformance: jest.fn(),
   withScreenPerformance: (Component: React.ComponentType) => Component,
 }));
@@ -57,7 +63,7 @@ const abandonedSnapshot = {
 const abandonedRoute = {
   key: 'VbaIdentityVerificationKey',
   params: { snapshot: abandonedSnapshot },
-} as React.ComponentProps<typeof VbaIdentityVerificationModule>['route'];
+} as React.ComponentProps<typeof KycIdentityVerificationModule>['route'];
 
 // Terms were accepted earlier, on Verify Identity; re-entry lands on the
 // provider screen without an abandoned flow behind it.
@@ -69,10 +75,15 @@ const termsAcceptedSnapshot = {
 const termsAcceptedRoute = {
   key: 'VbaIdentityVerificationKey',
   params: { snapshot: termsAcceptedSnapshot },
-} as React.ComponentProps<typeof VbaIdentityVerificationModule>['route'];
+} as React.ComponentProps<typeof KycIdentityVerificationModule>['route'];
+
+const newSessionRoute = {
+  key: 'VbaIdentityVerificationKey',
+  params: { snapshot: EMPTY_VBA_ONBOARDING_SNAPSHOT },
+} as React.ComponentProps<typeof KycIdentityVerificationModule>['route'];
 
 const moduleNavigation = {} as React.ComponentProps<
-  typeof VbaIdentityVerificationModule
+  typeof KycIdentityVerificationModule
 >['navigation'];
 
 describe('getVbaIdentityVerificationInitialRoute', () => {
@@ -100,10 +111,30 @@ describe('getVbaIdentityVerificationInitialRoute', () => {
   });
 });
 
-describe('VbaIdentityVerificationModule', () => {
+describe('KycIdentityVerificationModule', () => {
+  // Mounting the navigator pulls in the whole identity-verification module
+  // graph, which takes several seconds on a cold worker — more than Jest's
+  // 5s default for the first test to render it. Measured at 13s against a
+  // cold cache locally, so this leaves real headroom for slower CI machines.
+  const NAVIGATOR_RENDER_TIMEOUT_MS = 60_000;
+
   const catalog = {
-    idOS: [{ key: 'idos-privacy', version: '1' }],
-    kycProvider: [{ key: 'sumsub-terms', version: '2' }],
+    idOS: [
+      {
+        key: 'idos-privacy',
+        version: '1',
+        title: 'idOS Privacy Policy',
+        url: 'https://idos.example/privacy',
+      },
+    ],
+    kycProvider: [
+      {
+        key: 'sumsub-terms',
+        version: '2',
+        title: 'Sumsub Notice of Personal Data Processing',
+        url: 'https://sumsub.example/notice',
+      },
+    ],
   };
 
   beforeEach(() => {
@@ -118,49 +149,126 @@ describe('VbaIdentityVerificationModule', () => {
     );
   });
 
-  it('launches SumSub directly on re-entry with an abandoned provider flow', async () => {
-    const { queryByTestId } = renderWithProvider(
-      <VbaIdentityVerificationModule
-        route={abandonedRoute}
-        navigation={moduleNavigation}
-      />,
+  it(
+    'launches SumSub directly on re-entry with an abandoned provider flow',
+    async () => {
+      const { queryByTestId } = renderWithProvider(
+        <KycIdentityVerificationModule
+          route={abandonedRoute}
+          navigation={moduleNavigation}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+          locale: toSumSubLocale(I18n.locale),
+        });
+      });
+      expect(queryByTestId(KycSumSubSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    },
+    NAVIGATOR_RENDER_TIMEOUT_MS,
+  );
+
+  it(
+    'launches SumSub through the same provider screen when terms are accepted',
+    async () => {
+      const { getByTestId } = renderWithProvider(
+        <KycIdentityVerificationModule
+          route={termsAcceptedRoute}
+          navigation={moduleNavigation}
+        />,
+      );
+
+      await waitFor(() => {
+        expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+          locale: toSumSubLocale(I18n.locale),
+        });
+      });
+      expect(getByTestId(KycSumSubSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    },
+    NAVIGATOR_RENDER_TIMEOUT_MS,
+  );
+
+  it(
+    'walks a new session from the introduction through the partners page to the provider',
+    async () => {
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <KycIdentityVerificationModule
+          route={newSessionRoute}
+          navigation={moduleNavigation}
+        />,
+      );
+
+      // Page 1 enables its CTA once the catalog lands.
+      await waitFor(() => {
+        expect(
+          getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+        ).toBeEnabled();
+      });
+      fireEvent.press(
+        getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+      );
+
+      // Page 2 renders the catalog it was handed, with no fetch of its own.
+      const agreeButton = await findByTestId(
+        KycPartnerTermsSelectorsIDs.AGREE_BUTTON,
+      );
+      expect(agreeButton).toBeDisabled();
+      expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledTimes(
+        1,
+      );
+
+      fireEvent(
+        getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX),
+        'change',
+        true,
+      );
+      fireEvent.press(agreeButton);
+
+      await waitFor(() => {
+        expect(mockKycController.launchProviderFlow).toHaveBeenCalled();
+      });
+    },
+    NAVIGATOR_RENDER_TIMEOUT_MS,
+  );
+});
+
+describe('openPartnerTerms', () => {
+  it('carries the loaded catalog to the partners page', () => {
+    const navigate = jest.fn();
+    const disclaimers = [
+      {
+        id: 'idOS:idos-privacy',
+        key: 'idos-privacy',
+        version: '1',
+        title: 'idOS Privacy Policy',
+        url: 'https://idos.example/privacy',
+      },
+    ];
+
+    openPartnerTerms(
+      { navigate } as unknown as Parameters<typeof openPartnerTerms>[0],
+      disclaimers,
     );
 
-    await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
-        locale: toSumSubLocale(I18n.locale),
-      });
-    });
-    expect(queryByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
-  });
-
-  it('launches SumSub through the same provider screen when terms are accepted', async () => {
-    const { getByTestId } = renderWithProvider(
-      <VbaIdentityVerificationModule
-        route={termsAcceptedRoute}
-        navigation={moduleNavigation}
-      />,
+    expect(navigate).toHaveBeenCalledWith(
+      VbaIdentityVerificationRoutes.PARTNER_TERMS,
+      { disclaimers },
     );
-
-    await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
-        locale: toSumSubLocale(I18n.locale),
-      });
-    });
-    expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 });
 
-describe('replaceProviderTermsWithProvider', () => {
-  it('replaces provider terms instead of adding another back route', () => {
-    const replace = jest.fn();
+describe('resetToProvider', () => {
+  it('leaves the provider as the only route, so closing it exits the module', () => {
+    const reset = jest.fn();
 
-    replaceProviderTermsWithProvider({
-      replace,
-    } as unknown as Parameters<typeof replaceProviderTermsWithProvider>[0]);
+    resetToProvider({
+      reset,
+    } as unknown as Parameters<typeof resetToProvider>[0]);
 
-    expect(replace).toHaveBeenCalledWith(
-      VbaIdentityVerificationRoutes.PROVIDER,
-    );
+    expect(reset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: VbaIdentityVerificationRoutes.PROVIDER }],
+    });
   });
 });

@@ -1,9 +1,4 @@
-import {
-  BtcScope,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TrxScope,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/keyring-api';
+import { BtcScope, TrxScope } from '@metamask/keyring-api';
 import type { CaipChainId } from '@metamask/utils';
 import { ProcessedNetwork } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -25,7 +20,6 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.ETHEREUM,
     }),
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   {
     id: NetworkToCaipChainId.SOLANA,
     name: 'Solana',
@@ -35,7 +29,6 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.SOLANA,
     }),
   },
-  ///: END:ONLY_INCLUDE_IF
   {
     id: NetworkToCaipChainId.BNB,
     name: 'BNB Chain',
@@ -52,7 +45,6 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.BASE,
     }),
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   {
     id: TrxScope.Mainnet,
     name: 'Tron',
@@ -60,7 +52,6 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
     isSelected: false,
     imageSource: getNetworkImageSource({ chainId: TrxScope.Mainnet }),
   },
-  ///: END:ONLY_INCLUDE_IF
   {
     id: NetworkToCaipChainId.ARBITRUM,
     name: 'Arbitrum',

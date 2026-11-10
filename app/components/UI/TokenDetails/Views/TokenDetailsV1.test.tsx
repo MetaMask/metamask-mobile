@@ -35,6 +35,7 @@ import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialS
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
+import type { QuickBuyTarget } from '../../QuickBuy';
 import { useSocialFeed } from '../../SocialFeed';
 import { mapFeedItem } from '../../SocialFeed/utils/mapFeedItem';
 import { TOKEN_HOLDERS_FIXTURE } from '../components/tabs/holders/tokenHolders.fixture';
@@ -43,6 +44,12 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import {
+  beginPostTradeShareSession,
+  clearPostTradeShareSession,
+  PostTradeShareOwner,
+  requestPostTradeShareReopen,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
@@ -555,6 +562,10 @@ describe('TokenDetailsV1', () => {
     mockInlineHeaderProps.length = 0;
     mockTabBarProps.length = 0;
     mockActionsSectionProps.length = 0;
+  });
+
+  afterEach(() => {
+    clearPostTradeShareSession();
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
@@ -1561,6 +1572,53 @@ describe('TokenDetailsV1', () => {
         copyTradeOrigin: { commentId: 'comment-1' },
         initialTradeMode: 'buy',
         analyticsContext: { source: 'trader_feed' },
+        postTradeShare: true,
+        postTradeShareOwner: PostTradeShareOwner.tokenDetails,
+      }),
+    );
+  });
+
+  it('reopens Quick Buy with the original copy-trade after a failed share', () => {
+    mockSelectors({ socialEnabled: true });
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    const target: QuickBuyTarget = {
+      tokenAddress: '0xretry',
+      tokenSymbol: 'RETRY',
+      tokenName: 'Retry',
+      chain: 'eip155:1',
+    };
+    const copyTradeOrigin = { commentId: 'comment-retry' };
+
+    act(() => {
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'sell',
+        copyTradeOrigin,
+        owner: PostTradeShareOwner.tokenDetails,
+        preview: {
+          tokenSymbol: 'RETRY',
+          tokenAddress: '0xretry',
+          chain: 'ethereum',
+          side: 'buy',
+        },
+      });
+      requestPostTradeShareReopen();
+    });
+
+    expect(lastQuickBuyProps()).toEqual(
+      expect.objectContaining({
+        isVisible: true,
+        target,
+        copyTradeOrigin,
+        initialTradeMode: 'sell',
+        postTradeShare: true,
+        postTradeShareOwner: PostTradeShareOwner.tokenDetails,
       }),
     );
   });

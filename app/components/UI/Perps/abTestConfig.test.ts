@@ -2,15 +2,11 @@ import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { PerpsMode } from '@metamask/perps-controller';
 import { AB_TEST_ANALYTICS_MAPPINGS } from '../../../util/analytics/abTestAnalyticsRegistry';
 import {
-  BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
-  BUTTON_COLOR_VARIANTS,
-  ButtonColorVariant,
   FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING,
   FEE_DISPLAY_AB_TEST_EXPOSURE_OPTIONS,
   FEE_DISPLAY_AB_TEST_KEY,
   FEE_DISPLAY_VARIANTS,
   FeeDisplayVariant,
-  PERPS_BUTTON_COLOR_AB_TEST_KEY,
   PERPS_HEADER_AB_TEST_ANALYTICS_MAPPING,
   PERPS_HEADER_AB_TEST_KEY,
   PERPS_HEADER_NAV_VARIANTS,
@@ -23,62 +19,13 @@ import {
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
   SCREEN_VS_BOTTOM_SHEET_VARIANTS,
   ScreenVsBottomSheetVariant,
+  PERPS_LIVE_TRADES_AB_TEST_ANALYTICS_MAPPING,
+  PERPS_LIVE_TRADES_AB_TEST_KEY,
+  PERPS_LIVE_TRADES_VARIANTS,
+  PerpsLiveTradesVariant,
 } from './abTestConfig';
 
 describe('Perps abTestConfig', () => {
-  describe('PERPS_BUTTON_COLOR_AB_TEST_KEY', () => {
-    it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
-      expect(PERPS_BUTTON_COLOR_AB_TEST_KEY).toBe(
-        'perpsTAT1937AbtestButtonColor',
-      );
-      expect(PERPS_BUTTON_COLOR_AB_TEST_KEY).toMatch(
-        /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,
-      );
-    });
-  });
-
-  describe('BUTTON_COLOR_VARIANTS', () => {
-    it('includes a control variant', () => {
-      expect(BUTTON_COLOR_VARIANTS).toHaveProperty(ButtonColorVariant.Control);
-    });
-
-    it('maps control (default/fallback) to white/white', () => {
-      expect(BUTTON_COLOR_VARIANTS[ButtonColorVariant.Control]).toEqual({
-        long: 'white',
-        short: 'white',
-      });
-    });
-
-    it('maps colors to green/red', () => {
-      expect(BUTTON_COLOR_VARIANTS[ButtonColorVariant.Colors]).toEqual({
-        long: 'green',
-        short: 'red',
-      });
-    });
-  });
-
-  describe('BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING', () => {
-    it('references the button color flag key', () => {
-      expect(BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING.flagKey).toBe(
-        PERPS_BUTTON_COLOR_AB_TEST_KEY,
-      );
-    });
-
-    it('declares control and colors as valid variants', () => {
-      expect(BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING.validVariants).toEqual([
-        ButtonColorVariant.Control,
-        ButtonColorVariant.Colors,
-      ]);
-    });
-
-    it('registers the screen viewed and UI interaction events', () => {
-      expect(BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING.eventNames).toEqual([
-        EVENT_NAME.PERPS_SCREEN_VIEWED,
-        EVENT_NAME.PERPS_UI_INTERACTION,
-      ]);
-    });
-  });
-
   describe('PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY', () => {
     it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
       expect(PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY).toBe(
@@ -319,6 +266,61 @@ describe('Perps abTestConfig', () => {
     it('is registered for shared-path active_ab_tests enrichment', () => {
       expect(AB_TEST_ANALYTICS_MAPPINGS).toContain(
         FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING,
+      );
+    });
+  });
+
+  describe('PERPS_LIVE_TRADES_AB_TEST_KEY', () => {
+    it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
+      expect(PERPS_LIVE_TRADES_AB_TEST_KEY).toBe(
+        'perpsTAT4267AbtestLiveTrades',
+      );
+      expect(PERPS_LIVE_TRADES_AB_TEST_KEY).toMatch(
+        /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,
+      );
+    });
+  });
+
+  describe('PERPS_LIVE_TRADES_VARIANTS', () => {
+    it('maps control to the section without Live trades', () => {
+      expect(
+        PERPS_LIVE_TRADES_VARIANTS[PerpsLiveTradesVariant.Control],
+      ).toEqual({ showLiveTrades: false });
+    });
+
+    it('maps treatment to Live trades', () => {
+      expect(
+        PERPS_LIVE_TRADES_VARIANTS[PerpsLiveTradesVariant.Treatment],
+      ).toEqual({ showLiveTrades: true });
+    });
+  });
+
+  describe('PERPS_LIVE_TRADES_AB_TEST_ANALYTICS_MAPPING', () => {
+    it('references the live trades flag key', () => {
+      expect(PERPS_LIVE_TRADES_AB_TEST_ANALYTICS_MAPPING.flagKey).toBe(
+        PERPS_LIVE_TRADES_AB_TEST_KEY,
+      );
+    });
+
+    it('declares control and treatment as valid variants', () => {
+      expect(PERPS_LIVE_TRADES_AB_TEST_ANALYTICS_MAPPING.validVariants).toEqual(
+        [PerpsLiveTradesVariant.Control, PerpsLiveTradesVariant.Treatment],
+      );
+    });
+
+    it('registers the home, trade, and error events', () => {
+      expect(PERPS_LIVE_TRADES_AB_TEST_ANALYTICS_MAPPING.eventNames).toEqual([
+        EVENT_NAME.PERPS_SCREEN_VIEWED,
+        EVENT_NAME.PERPS_UI_INTERACTION,
+        EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+        EVENT_NAME.PERPS_TRADE_TRANSACTION,
+        EVENT_NAME.PERPS_ERROR,
+      ]);
+    });
+
+    it('is registered for shared-path active_ab_tests enrichment', () => {
+      expect(AB_TEST_ANALYTICS_MAPPINGS).toContain(
+        PERPS_LIVE_TRADES_AB_TEST_ANALYTICS_MAPPING,
       );
     });
   });
