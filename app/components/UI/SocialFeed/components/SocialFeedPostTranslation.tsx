@@ -29,16 +29,13 @@ const FeedCommentBody = ({ text }: { text: string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
 
-  const onMeasureLayout = useCallback(
-    (event: TextLayoutEvent) => {
-      const nextTruncated =
-        event.nativeEvent.lines.length > FEED_COMMENT_PREVIEW_LINES;
-      setIsTruncated((current) =>
-        current === nextTruncated ? current : nextTruncated,
-      );
-    },
-    [],
-  );
+  const onMeasureLayout = useCallback((event: TextLayoutEvent) => {
+    const nextTruncated =
+      event.nativeEvent.lines.length > FEED_COMMENT_PREVIEW_LINES;
+    setIsTruncated((current) =>
+      current === nextTruncated ? current : nextTruncated,
+    );
+  }, []);
 
   const showToggle = isTruncated || isExpanded;
 
