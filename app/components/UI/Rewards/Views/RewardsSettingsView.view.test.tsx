@@ -5,7 +5,10 @@
  */
 import '../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
+import { REWARDS_SETTINGS_SAFE_AREA_TEST_ID } from './RewardsSettingsView';
 import { OPT_OUT_SECTION_TEST_IDS } from '../components/Settings/OptOutSection.testIds';
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from '../components/Settings/ReferredByCodeSection.testIds';
 import { REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS } from '../components/Settings/RewardSettingsAccountGroupList.testIds';
@@ -15,6 +18,34 @@ import {
   referralMeFixture,
   REFERRAL_LOCALIZED_TEXT,
 } from '../../../../../tests/component-view/presets/rewardsMoney';
+
+const ACCEPTED_SPLASH = getRouteProbeTestId(
+  Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+);
+
+async function typeCode(
+  view: ReturnType<typeof renderRewardsSettingsView>,
+  code: string,
+): Promise<void> {
+  fireEvent.changeText(
+    await view.findByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.INPUT),
+    code,
+  );
+}
+
+async function waitUntilApplyEnabled(
+  view: ReturnType<typeof renderRewardsSettingsView>,
+): Promise<void> {
+  // Referral code validation resolves before Apply enables.
+  await waitFor(
+    () => {
+      expect(
+        view.getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY),
+      ).not.toBeDisabled();
+    },
+    { timeout: 3000 },
+  );
+}
 
 describe('RewardsSettingsView', () => {
   it('shows only the referral section when the user has no subscription', async () => {
@@ -107,5 +138,122 @@ describe('RewardsSettingsView', () => {
       'RewardsMoneyController:registerReferee',
       { code: 'AB12CD' },
     );
+  });
+
+  it('shows the invalid code error when validation rejects the code (B3)', async () => {
+    const view = renderRewardsSettingsView({
+      persona: 'plain',
+      handlers: {
+        'RewardsMoneyController:validateReferralCode': () =>
+          Promise.resolve({ success: false }),
+      },
+    });
+
+    await typeCode(view, 'BADBAD');
+
+    // validateReferralCode resolves before the invalid-code error renders.
+    expect(
+      await view.findByText(
+        strings('rewards.error_messages.invalid_referral_code'),
+        {},
+        { timeout: 3000 },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY),
+    ).toBeDisabled();
+    expect(view.engine).not.toHaveBeenCalledWith(
+      'RewardsMoneyController:registerReferee',
+      expect.anything(),
+    );
+  });
+
+  it.each([
+    {
+      caseId: 'B3',
+      refusal: 'own code',
+      status: 403,
+      bodyText: 'Cannot use your own referral code',
+      message: () =>
+        strings('rewards.error_messages.cannot_use_own_referral_code'),
+    },
+    {
+      caseId: 'B4',
+      refusal: '409 ALREADY_REFERRED',
+      status: 409,
+      bodyText: 'User is already referred',
+      message: () => strings('rewards.error_messages.already_referred'),
+    },
+  ])(
+    'shows the $refusal error when apply is refused ($caseId)',
+    async ({ status, bodyText, message }) => {
+      const view = renderRewardsSettingsView({
+        persona: 'plain',
+        handlers: {
+          'RewardsMoneyController:registerReferee': () =>
+            Promise.reject(
+              new RewardsMoneyHttpError(
+                `Register referee failed: ${status}`,
+                status,
+                bodyText,
+              ),
+            ),
+        },
+      });
+
+      await typeCode(view, 'AB12CD');
+      await waitUntilApplyEnabled(view);
+      fireEvent.press(
+        view.getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY),
+      );
+
+      // registerReferee rejects before the refusal error renders.
+      expect(
+        await view.findByText(message(), {}, { timeout: 3000 }),
+      ).toBeOnTheScreen();
+      expect(view.queryByTestId(ACCEPTED_SPLASH)).not.toBeOnTheScreen();
+      expect(view.engine).toHaveBeenCalledWith(
+        'RewardsMoneyController:registerReferee',
+        { code: 'AB12CD' },
+      );
+    },
+  );
+
+  it('hides the referral section when Rewards Money is disabled', async () => {
+    const { findByTestId, queryByTestId } = renderRewardsSettingsView({
+      persona: 'plain',
+      moneyControllerEnabled: false,
+    });
+
+    expect(
+      await findByTestId(REWARDS_SETTINGS_SAFE_AREA_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.SECTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the generic error when registration reports Rewards Money is disabled', async () => {
+    const view = renderRewardsSettingsView({
+      persona: 'plain',
+      handlers: {
+        'RewardsMoneyController:registerReferee': () =>
+          Promise.reject(new Error('Rewards Money is disabled')),
+      },
+    });
+
+    await typeCode(view, 'AB12CD');
+    await waitUntilApplyEnabled(view);
+    fireEvent.press(view.getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.APPLY));
+
+    // registerReferee rejects before the generic error renders.
+    expect(
+      await view.findByText(
+        strings('rewards.error_messages.something_went_wrong'),
+        {},
+        { timeout: 3000 },
+      ),
+    ).toBeOnTheScreen();
+    expect(view.queryByTestId(ACCEPTED_SPLASH)).not.toBeOnTheScreen();
   });
 });
