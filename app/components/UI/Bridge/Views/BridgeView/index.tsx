@@ -53,7 +53,6 @@ import {
 } from '../../../../../selectors/bridge/featureFlags';
 import { BridgeTabKey } from './BridgeView.constants';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
-import { useLimitTabNewDot } from './useLimitTabNewDot';
 import BridgeMarketView from './BridgeMarketView';
 import BridgeLimitOrderView from './BridgeLimitOrderView';
 import BridgeRecurringBuyView from './BridgeRecurringBuyView';
@@ -68,6 +67,8 @@ import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { selectBridgeLimitTabSeen } from '../../../../../reducers/user/selectors';
+import { setBridgeLimitTabSeen } from '../../../../../actions/user';
 
 const BridgeView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -95,10 +96,8 @@ const BridgeView = () => {
   const isLimitOrderTabEnabled = useSelector(
     selectBridgeLimitOrderTabEnabledFlag,
   );
-  const showLimitTabNewDot = useLimitTabNewDot({
-    isLimitTabEnabled: isLimitOrderTabEnabled,
-    isLimitTabOpen: renderedTab === BridgeTabKey.Limit,
-  });
+  const hasSeenLimitTab = useSelector(selectBridgeLimitTabSeen);
+  const showLimitTabNewDot = isLimitOrderTabEnabled && !hasSeenLimitTab;
   const isRecurringBuyTabEnabled = useSelector(
     selectBridgeRecurringBuyTabEnabledFlag,
   );
@@ -268,6 +267,16 @@ const BridgeView = () => {
         : undefined,
     [renderedTab, handleSlippageSettingsPress],
   );
+
+  useEffect(() => {
+    if (
+      isLimitOrderTabEnabled &&
+      renderedTab === BridgeTabKey.Limit &&
+      !hasSeenLimitTab
+    ) {
+      dispatch(setBridgeLimitTabSeen());
+    }
+  }, [dispatch, hasSeenLimitTab, isLimitOrderTabEnabled, renderedTab]);
 
   // Limit and Recurring are still work-in-progress, so each is only added to
   // the tab list once its own feature flag is enabled. When both are
