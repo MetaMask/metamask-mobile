@@ -1,7 +1,27 @@
+import { deriveStateFromMetadata } from '@metamask/base-controller';
 import { ConstantBackoff } from '@metamask/controller-utils';
-import { Messenger } from '@metamask/messenger';
+import {
+  GeolocationApiService,
+  GeolocationController,
+  type GeolocationApiServiceMessenger,
+  type GeolocationControllerMessenger,
+} from '@metamask/geolocation-controller';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { AppStateStatus } from 'react-native';
+
+// The native module is an I/O boundary. Its package mock forwards P-256
+// operations to node:crypto so DeviceAuth integration tests use real keys.
+jest.mock('react-native-quick-crypto', () =>
+  jest.requireActual('react-native-quick-crypto/jest'),
+);
+
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
 import {
@@ -27,20 +47,37 @@ import {
   type PredictPortfolioServiceMessenger,
 } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import {
+  PredictDeviceAuthService,
+  type PredictDeviceAuthServiceActions,
+  type PredictDeviceAuthServiceMessenger,
+} from '../../../app/components/UI/PredictNext/services/PredictDeviceAuthService';
+import { KALSHI_AUTHENTICATION_PROFILE } from '../../../app/components/UI/PredictNext/auth/venueAuthProfiles';
+import {
   getPredictLiveDataServiceInitMessenger,
   getPredictLiveDataServiceMessenger,
 } from '../../../app/core/Engine/messengers/predict-live-data-service-messenger';
 import { getPredictMarketDataServiceMessenger } from '../../../app/core/Engine/messengers/predict-market-data-service-messenger';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
+import {
+  PredictVenueController,
+  type PredictVenueControllerMessenger,
+  type PredictVenueControllerState,
+} from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
+import { fetchInitialGeolocation } from '../../../app/core/Engine/wallet-init/listeners/geolocation-controller';
+import { getPredictDeviceAuthServiceMessenger } from '../../../app/core/Engine/messengers/predict-device-auth-service-messenger';
+import { getPredictVenueControllerMessenger } from '../../../app/core/Engine/messengers/predict-venue-controller-messenger';
 
 /**
- * PredictNext integration-test harness.
+ * PredictNext integration-test harnesses. `buildPredictDeviceAuthIntegrationHarness`
+ * covers device authentication and `buildPredictVenueIntegrationHarness`
+ * covers Active Venue resolution; the rest covers the data services.
  *
  * REAL: Engine-root messenger topology, PredictMarketDataService,
  * PredictPortfolioService, PredictLiveDataService, PredictLiveDataClient,
  * KalshiRemoteAdapter, and PredictApiReadClient.
  * MOCKED: HTTP fetch, WebSocket, AppState, bearer token provider, base URL,
- * and client version.
+ * client version, and the native QuickCrypto module through its Node-backed
+ * package Jest mock.
  */
 
 export interface PredictFetchResult {
@@ -297,6 +334,271 @@ export const buildPredictNextIntegrationHarness = (
       liveDataService.destroy();
       marketDataService.destroy();
       portfolioService.destroy();
+    },
+  };
+};
+
+type PredictDeviceAuthRootMessenger = Messenger<
+  MockAnyNamespace,
+  PredictDeviceAuthServiceActions,
+  never
+>;
+
+type PredictDeviceAuthLifecycleEvent =
+  | 'KeyringController:lock'
+  | 'AuthenticationController:profileSignIn'
+  | 'AuthenticationController:stateChange'
+  | 'RemoteFeatureFlagController:stateChange';
+
+export interface PredictDeviceAuthIntegrationHarness {
+  messenger: PredictDeviceAuthRootMessenger;
+  service: PredictDeviceAuthService;
+  authenticationState: {
+    isSignedIn: boolean;
+    srpSessionData: Record<string, { profile: { canonicalProfileId: string } }>;
+  };
+  featureFlagState: {
+    remoteFeatureFlags: {
+      predictConfig: {
+        enabled: boolean;
+        venues: {
+          kalshi: { enabled: boolean };
+          polymarket: { enabled: boolean };
+        };
+        venueSelection: { enabled: boolean };
+      };
+    };
+  };
+  keyringState: {
+    isUnlocked: boolean;
+    keyrings: {
+      type: string;
+      metadata: { id: string };
+    }[];
+  };
+  emit: (event: PredictDeviceAuthLifecycleEvent) => void;
+}
+
+interface PredictDeviceAuthIntegrationHarnessOptions {
+  now?: () => number;
+  nowMs?: () => number;
+}
+
+/**
+ * Real Predict device-auth service and root messenger. Only controller state,
+ * Snap, network, clock, and SecureKeychain boundaries are mocked by callers.
+ */
+export const buildPredictDeviceAuthIntegrationHarness = (
+  options: PredictDeviceAuthIntegrationHarnessOptions = {},
+): PredictDeviceAuthIntegrationHarness => {
+  const messenger: PredictDeviceAuthRootMessenger = new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const controllerMessenger: PredictDeviceAuthServiceMessenger =
+    getPredictDeviceAuthServiceMessenger(messenger);
+  const authenticationState = {
+    isSignedIn: true,
+    srpSessionData: {
+      'entropy-source-id': {
+        profile: { canonicalProfileId: 'canonical-profile-id' },
+      },
+    },
+  };
+  const keyringState = {
+    isUnlocked: true,
+    keyrings: [
+      {
+        type: 'HD Key Tree',
+        metadata: { id: 'entropy-source-id' },
+      },
+    ],
+  };
+  const featureFlagState = {
+    remoteFeatureFlags: {
+      predictConfig: {
+        enabled: true,
+        venues: {
+          kalshi: { enabled: true },
+          polymarket: { enabled: false },
+        },
+        venueSelection: { enabled: false },
+      },
+    },
+  };
+  const subscribers = new Map<PredictDeviceAuthLifecycleEvent, () => void>();
+  let canonicalProfileId: string | undefined =
+    authenticationState.srpSessionData['entropy-source-id']?.profile
+      .canonicalProfileId;
+  const controller = new PredictDeviceAuthService(controllerMessenger, {
+    getProfile: () => KALSHI_AUTHENTICATION_PROFILE,
+    getIssuerUrl: () => 'https://issuer.example',
+    getAccessToken: async () => {
+      canonicalProfileId =
+        authenticationState.srpSessionData['entropy-source-id']?.profile
+          .canonicalProfileId;
+      return 'access-token';
+    },
+    getCanonicalProfileId: () => canonicalProfileId,
+    getSrpIdentifier: async () => '0xabc',
+    signSrpMessage: async () => 'srp-signature',
+    isEnabled: () => {
+      const config = featureFlagState.remoteFeatureFlags.predictConfig;
+      return config.enabled && config.venues.kalshi.enabled;
+    },
+    isUnlocked: () => keyringState.isUnlocked,
+    isSignedIn: () => authenticationState.isSignedIn,
+    fetch: (input, init) => global.fetch(input, init),
+    now: options.now ?? (() => Math.floor(Date.now() / 1000)),
+    nowMs: options.nowMs ?? Date.now,
+    sleep: async (ms) => {
+      await new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+    },
+  });
+  subscribers.set('KeyringController:lock', () => controller.clear());
+  let wasSignedIn = authenticationState.isSignedIn;
+  subscribers.set('AuthenticationController:stateChange', () => {
+    if (wasSignedIn && !authenticationState.isSignedIn) {
+      canonicalProfileId = undefined;
+      controller.clear();
+    }
+    wasSignedIn = authenticationState.isSignedIn;
+  });
+  subscribers.set('AuthenticationController:profileSignIn', () => {
+    const nextCanonicalProfileId =
+      authenticationState.srpSessionData['entropy-source-id']?.profile
+        .canonicalProfileId;
+    if (nextCanonicalProfileId !== canonicalProfileId) {
+      controller.clear();
+    }
+    canonicalProfileId = nextCanonicalProfileId;
+  });
+  subscribers.set('RemoteFeatureFlagController:stateChange', () => {
+    if (!featureFlagState.remoteFeatureFlags.predictConfig.enabled) {
+      controller.clear();
+    }
+  });
+
+  return {
+    messenger,
+    service: controller,
+    authenticationState,
+    featureFlagState,
+    keyringState,
+    emit: (event) => subscribers.get(event)?.(),
+  };
+};
+
+export interface PredictVenueIntegrationHarness {
+  venueController: PredictVenueController;
+  geolocationController: GeolocationController;
+  /** Every request the geolocation API received this session. */
+  geolocationFetchMock: jest.MockedFunction<typeof fetch>;
+  /** Answers the pending geolocation request with an ISO country code. */
+  respondWithCountry: (country: string) => Promise<void>;
+  /** Fails the pending geolocation request. */
+  failGeolocation: () => Promise<void>;
+  /** What this session would persist for the next one. */
+  persistedVenueState: () => Partial<PredictVenueControllerState>;
+  destroy: () => void;
+}
+
+/**
+ * Active Venue harness: one app session of Engine-start geolocation and the
+ * Venue controller.
+ *
+ * REAL: GeolocationApiService (parsing, policy), GeolocationController with
+ * its Engine-start init, PredictVenueController and the Engine messengers.
+ * MOCKED: the geolocation HTTP fetch, which stays pending until answered.
+ */
+export const buildPredictVenueIntegrationHarness = ({
+  persisted,
+  geolocationWaitMs,
+}: {
+  persisted?: Partial<PredictVenueControllerState>;
+  geolocationWaitMs: number;
+}): PredictVenueIntegrationHarness => {
+  // One root, as in Engine. Each Engine messenger getter types the root by
+  // its own slice, so the shared root is cast once per getter.
+  const messenger = new Messenger<
+    'Root',
+    | MessengerActions<PredictVenueControllerMessenger>
+    | MessengerActions<GeolocationControllerMessenger>
+    | MessengerActions<GeolocationApiServiceMessenger>,
+    | MessengerEvents<PredictVenueControllerMessenger>
+    | MessengerEvents<GeolocationControllerMessenger>
+  >({ namespace: 'Root' });
+  const rootFor = <Getter extends (root: never) => unknown>() =>
+    messenger as unknown as Parameters<Getter>[0];
+
+  let settle: (response: Response) => void = () => undefined;
+  const geolocationFetchMock = jest.fn(
+    () =>
+      new Promise<Response>((resolve) => {
+        settle = resolve;
+      }),
+  ) as unknown as jest.MockedFunction<typeof fetch>;
+  // Mirrors the GeolocationApiService and GeolocationController messengers
+  // that @metamask/wallet builds.
+  const geolocationApiServiceMessenger: GeolocationApiServiceMessenger =
+    new Messenger({ namespace: 'GeolocationApiService', parent: messenger });
+  // Registers the fetch action the controller calls; nothing else holds it.
+  // eslint-disable-next-line no-new
+  new GeolocationApiService({
+    messenger: geolocationApiServiceMessenger,
+    fetch: geolocationFetchMock,
+    policyOptions: { maxRetries: 0 },
+  });
+  const geolocationControllerMessenger: GeolocationControllerMessenger =
+    new Messenger({ namespace: 'GeolocationController', parent: messenger });
+  messenger.delegate({
+    messenger: geolocationControllerMessenger,
+    actions: ['GeolocationApiService:fetchGeolocationData'],
+  });
+  const geolocationController = new GeolocationController({
+    messenger: geolocationControllerMessenger,
+  });
+  // Mirrors the eager Engine-start fetch in initializeWallet.
+  fetchInitialGeolocation(geolocationController);
+
+  // Mirrors predictVenueControllerInit, minus its Redux subscription.
+  const venueController = new PredictVenueController({
+    messenger:
+      getPredictVenueControllerMessenger(
+        rootFor<typeof getPredictVenueControllerMessenger>(),
+      ),
+    state: persisted,
+    geolocationWaitMs,
+  });
+  venueController.init();
+
+  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  return {
+    venueController,
+    geolocationController,
+    geolocationFetchMock,
+    respondWithCountry: async (country) => {
+      settle({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ country }),
+      } as Response);
+      await flush();
+    },
+    failGeolocation: async () => {
+      settle({ ok: false, status: 503, text: async () => '' } as Response);
+      await flush();
+    },
+    persistedVenueState: () =>
+      deriveStateFromMetadata(
+        venueController.state,
+        venueController.metadata,
+        'persist',
+      ) as Partial<PredictVenueControllerState>,
+    destroy: () => {
+      venueController.destroy();
     },
   };
 };

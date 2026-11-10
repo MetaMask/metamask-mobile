@@ -3,6 +3,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   Tag,
   TagSeverity,
@@ -13,6 +14,7 @@ import {
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import AnimatedSlotText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedSlotText';
+import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import PositionTokenAvatar, {
   type PositionTokenAvatarData,
 } from './PositionTokenAvatar';
@@ -30,9 +32,8 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
 
 /**
  * Both layouts share this header. The symbol sits beside a side tag, a caption
- * sits under it, and the P&L sits on the right. Closed cards use the caption
- * for when the position settled (`Closed · 2 hr ago`, `Sold · 2 hr ago`) and
- * omit the spot side tag.
+ * sits under it, and the P&L sits on the right. A closed card uses a neutral
+ * tag (`Closed 15x Short`, `Sold`) and keeps the relative age under the symbol.
  */
 export type PositionCardHeaderLayout = 'open' | 'closed';
 
@@ -83,6 +84,22 @@ const sideTagLabel = ({
   return side ? strings(SIDE_I18N[side]) : '';
 };
 
+/** `Closed 15x Short` for a perp, `Sold` for a spot. */
+const closedTagLabel = ({
+  direction,
+  leverageLabel,
+}: Pick<PositionCardHeaderProps, 'direction' | 'leverageLabel'>): string => {
+  if (!direction) {
+    return strings('social_leaderboard.feed.position_card.sold');
+  }
+  const detail = [leverageLabel, strings(DIRECTION_I18N[direction])]
+    .filter(Boolean)
+    .join(' ');
+  return [strings('social_leaderboard.feed.position_card.closed'), detail]
+    .filter(Boolean)
+    .join(' ');
+};
+
 const isBullish = ({
   direction,
   side,
@@ -99,7 +116,14 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     subtitleLabel,
     live,
   } = props;
-  const tagLabel = sideTagLabel(props);
+  const tagLabel =
+    props.layout === 'closed' ? closedTagLabel(props) : sideTagLabel(props);
+  const tagSeverity =
+    props.layout === 'closed'
+      ? TagSeverity.Neutral
+      : isBullish(props)
+        ? TagSeverity.Success
+        : TagSeverity.Danger;
 
   return (
     <Box
@@ -127,12 +151,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {symbol}
           </Text>
           {tagLabel ? (
-            <Tag
-              severity={
-                isBullish(props) ? TagSeverity.Success : TagSeverity.Danger
-              }
-              twClassName="shrink-0"
-            >
+            <Tag severity={tagSeverity} twClassName="shrink-0">
               {tagLabel}
             </Tag>
           ) : null}
@@ -164,10 +183,16 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
         alignItems={BoxAlignItems.End}
         twClassName="shrink-0 max-w-[45%] min-w-0"
       >
+        {/* Glyph row, not the slot reel: AnimatedSlotText sizes each digit to a
+            `0` but measures the real glyphs. Inter digits are proportional, so a
+            `1` leaves the reel wider than its measured box and the K or % overruns
+            the column. The glyph row's default face is condensed, so these
+            numbers stay on the default face and match the static card. */}
         {pnlValueLabel && live ? (
-          <AnimatedSlotText
+          <AnimatedNumericText
             animated={!live.reduceMotion}
             color={pnlColor(isPnlPositive)}
+            fontFamily={FontFamily.Default}
             fontWeight={FontWeight.Medium}
             testID={props.testID && `${props.testID}-pnl-value`}
             value={pnlValueLabel}
@@ -185,9 +210,10 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
           </Text>
         ) : null}
         {pnlLabel && live ? (
-          <AnimatedSlotText
+          <AnimatedNumericText
             animated={!live.reduceMotion}
             color={pnlColor(isPnlPositive)}
+            fontFamily={FontFamily.Default}
             fontWeight={FontWeight.Medium}
             testID={props.testID && `${props.testID}-pnl`}
             value={pnlLabel}

@@ -26,13 +26,13 @@ Legacy Polymarket is the parity target. PredictNext surfaces are listed where th
 
 | Surface                                | Code                                                                                                                                                                | Needs                                                                                                                                                        |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Home position rows                     | `Views/Homepage/Sections/Predictions/components/PredictPositionRow.tsx`                                                                                             | Title, outcome label, image, shares, cost basis (`initialValue`), current value, PnL percent, navigation target. The top Positions by value, not a page.     |
-| Home PnL row                           | `Views/Homepage/Sections/Predictions/PredictionsSection.tsx`, `utils/getPredictHomepageUnrealizedPnlRowState.ts`                                                    | Unrealized PnL amount and percent over all open Positions                                                                                                    |
+| Home position rows                     | `Predict/homeSection/components/PredictPositionRow.tsx`                                                                                                             | Title, outcome label, image, shares, cost basis (`initialValue`), current value, PnL percent, navigation target. The top Positions by value, not a page.     |
+| Home PnL row                           | `Predict/homeSection/PredictionsSection.tsx`, `utils/getPredictHomepageUnrealizedPnlRowState.ts`                                                                    | Unrealized PnL amount and percent over all open Positions                                                                                                    |
 | BalanceBreakdown slice                 | `Views/Homepage/BalanceBreakdown/hooks/slices/usePredictSlice.ts` via `UI/Predict/hooks/usePredictPortfolio.ts`                                                     | Portfolio value: available Balance + open Positions value + claimable value                                                                                  |
 | Legacy positions header and rows       | `UI/Predict/components/PredictPositionsViewHeader/`, `PredictPosition/`, `PredictPositionResolved/`, `PredictCryptoUpDownPositions/PredictCryptoUpDownPosition.tsx` | Available Balance, unrealized PnL amount and percent, open and resolved rows (current value, cost basis, PnL percent, won or lost), average price, Claim CTA |
 | PredictNext Portfolio screen           | `PredictNext/views/PredictPortfolio/internal/PortfolioSummaryCard.tsx`, `PortfolioPositionRow.tsx`, `PortfolioActivityRow.tsx`                                      | Balance, Position rows with Cash Out, Activity rows                                                                                                          |
-| Activity list rows                     | `Views/ActivityList/hooks/usePredictActivityItems.ts`, `util/activity-adapters/adapters/predict-activity.ts`                                                        | Shared kind, timestamp, USD amount and direction, Event title, image, stable identity                                                                        |
-| Activity details                       | `Views/ActivityDetails/templates/PredictDetails/PredictProviderActivityDetails.tsx`                                                                                 | Title, outcome, image, amount, shares, price per share, net PnL on sells, payout and PnL on Settlements                                                      |
+| Activity list rows                     | `PredictNext/activity/internal/legacy/usePredictActivityItems.ts`, `mapPredictActivity.ts`                                                                          | Shared kind, timestamp, USD amount and direction, Event title, image, stable identity                                                                        |
+| Activity details                       | `PredictNext/activity/internal/legacy/details/PredictProviderActivityDetails.tsx`                                                                                   | Title, outcome, image, amount, shares, price per share, net PnL on sells, payout and PnL on Settlements                                                      |
 | Rewards campaign rows                  | `UI/Rewards/components/Campaigns/PredictThePitchPositionRows.tsx`                                                                                                   | Data comes from the Rewards backend (`PredictThePitchPositionDto`). Only navigation to an Event couples to Predict.                                          |
 | Venue sections, tabs, and entry points | `PredictNext/navigation/feedScreens.ts`, `PredictNext/views/PredictHome/internal/PortfolioActions.tsx`, PRED-1376 mapping table                                     | Supported actions, discovery Feeds by semantic key, search support                                                                                           |
 
@@ -479,7 +479,7 @@ The Polymarket backend adapter supplies every field from upstream records, not f
 - `hash` carries the canonical `id`, not a transaction hash.
 - `predictionSettled` items also carry `outcomeLabel`, `marketQuestion`, `side`, `result`, `shares` and `realizedPnl` (when present) as plain decimal strings, so the details screen renders a Settlement without a lookup.
 - Shared `ActivityItem` requires a CAIP-2 `chainId`. Kalshi has no chain, and a Polygon ID must not be fabricated. Kalshi items use the venue constant `KALSHI_VENUE_CHAIN_ID` (`kalshi:mainnet`) from `app/util/activity-adapters`, which only keys the details source. Rows hide the network badge for `prediction*` kinds, and only `eip155:` chains get a hex chain ID or a transaction fetch.
-- Mobile declares `predictionSettled` locally in `app/util/activity-adapters/types.ts` (PRED-1405) and upstreams it to `@metamask/client-utils` in parallel. The local entry is deleted when a client-utils bump brings the kind in.
+- `predictionSettled` comes from `@metamask/client-utils` (added in `3.1.0`, MetaMask/core#11169) with the same item shape as the other prediction kinds. Mobile declared it locally from PRED-1405 until PRED-1420 bumped client-utils and deleted the local entry. The settlement fields above (`PredictSettlementExtras`) and `KALSHI_VENUE_CHAIN_ID` stay mobile-only in `app/util/activity-adapters/types.ts`.
 
 ## Open decisions for product
 
@@ -763,7 +763,7 @@ The Predict User bought 50 contracts at 0.55 with a 0.78 fee, so the cost basis 
 
 ### Venue catalog
 
-The Kalshi V1 catalog PRED-1376 ships as static client config. `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
+The Kalshi V1 catalog PRED-1376 ships as static client config, now with the Politics topic Feeds (PRED-1454). `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
 
 ```json
 {
@@ -774,7 +774,10 @@ The Kalshi V1 catalog PRED-1376 ships as static client config. `sports` is the V
     "nfl-games": "sports-football-nfl-games",
     "nfl-props": "sports-football-nfl-win-totals",
     "college-football-games": "sports-football-ncaa-games",
-    "college-football-props": "sports-football-ncaa-win-totals"
+    "college-football-props": "sports-football-ncaa-win-totals",
+    "politics-trump": "politics-trump",
+    "politics-congress": "politics-congress",
+    "politics-iran": "politics-iran"
   },
   "searchSupported": true
 }

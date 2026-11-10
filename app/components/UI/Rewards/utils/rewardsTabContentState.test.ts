@@ -75,7 +75,7 @@ describe('getRewardsTabContentState', () => {
     });
   });
 
-  it('treats resolved candidate error as onboarding content ready', () => {
+  it('treats resolved candidate error as the points dashboard', () => {
     const result = getRewardsTabContentState(
       buildInput({
         subscriptionId: null,
@@ -83,10 +83,10 @@ describe('getRewardsTabContentState', () => {
       }),
     );
 
-    expect(result).toEqual({ status: 'ready', variant: 'onboarding' });
+    expect(result).toEqual({ status: 'ready', variant: 'dashboard' });
   });
 
-  it('treats null candidate (post-resolve clear) as onboarding content ready', () => {
+  it('treats null candidate (post-resolve clear) as the points dashboard', () => {
     const result = getRewardsTabContentState(
       buildInput({
         subscriptionId: null,
@@ -94,7 +94,7 @@ describe('getRewardsTabContentState', () => {
       }),
     );
 
-    expect(result).toEqual({ status: 'ready', variant: 'onboarding' });
+    expect(result).toEqual({ status: 'ready', variant: 'dashboard' });
   });
 
   describe('rewards money referral', () => {
@@ -194,7 +194,7 @@ describe('getRewardsTabContentState', () => {
       expect(result).toEqual({ status: 'ready', variant: 'dashboard' });
     });
 
-    it('routes a plain user without a subscription to onboarding', () => {
+    it('routes a plain user without a subscription to the points dashboard', () => {
       const result = getRewardsTabContentState(
         buildInput({
           subscriptionId: null,
@@ -205,7 +205,7 @@ describe('getRewardsTabContentState', () => {
         }),
       );
 
-      expect(result).toEqual({ status: 'ready', variant: 'onboarding' });
+      expect(result).toEqual({ status: 'ready', variant: 'dashboard' });
     });
 
     it('routes a resolved fetch error (no variant) to the points path', () => {
@@ -246,7 +246,7 @@ describe('getRewardsTabContentState', () => {
         }),
       );
 
-      expect(result).toEqual({ status: 'ready', variant: 'onboarding' });
+      expect(result).toEqual({ status: 'ready', variant: 'dashboard' });
     });
   });
 });

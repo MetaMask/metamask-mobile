@@ -151,6 +151,9 @@ export type ReferralLocalizedTextKey =
   | 'funnelFeeGenerating'
   | 'funnelFeeGeneratingDescription'
   | 'tradingCommissionsSection'
+  | 'copyTradingEmptyDescription'
+  | 'copyTradingEmptyAction'
+  | 'copyTradingInfoDescription'
   | 'tradingActivityEmptyDescription'
   | 'tradingActivityEmptyAction'
   | 'copiedOnce'
@@ -194,11 +197,125 @@ export type ReferralLocalizedTextKey =
   | 'rewardsPausedTitle'
   | 'rewardsPausedDescription'
   | 'rewardsPausedBanner'
-  | 'rewardsPausedLearnMore';
+  | 'rewardsPausedLearnMore'
+  | 'settingsReferralTitle'
+  | 'settingsReferralLinkedDescription'
+  | 'settingsReferralNotLinkedDescription'
+  | 'settingsReferralPlaceholder'
+  | 'settingsReferralApply'
+  | 'taxAttestationTitle'
+  | 'taxAttestationDescription'
+  | 'taxRenewalAttestationDescription'
+  | 'taxAttestationExpiredDescription'
+  | 'taxUsActivityTitle'
+  | 'taxUsActivityDescription'
+  | 'taxAnswerYes'
+  | 'taxAnswerNo'
+  | 'taxOpenFormTitle'
+  | 'taxFormRequiredDescription'
+  | 'taxFormFixDescription'
+  | 'taxFormUnsupportedDescription'
+  | 'taxTinMismatchDescription'
+  | 'taxFormExpiredDescription'
+  | 'taxRenewalFormDescription'
+  | 'taxOpenFormButton'
+  | 'taxNotNowButton'
+  | 'taxChangeAnswerButton'
+  | 'taxContactUsTitle'
+  | 'taxUsActivityBlockedDescription'
+  | 'taxContactSupportButton'
+  | 'taxFormPendingTitle'
+  | 'taxFormPendingDescription'
+  | 'taxDeterminationTitle'
+  | 'taxDeterminationDescription'
+  | 'taxAnswerSavedToast'
+  | 'taxNotNeededToast'
+  | 'taxFormRateLimitedToast'
+  | 'taxErrorToast'
+  | 'taxFormUrl';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {
   [key in ReferralLocalizedTextKey]: string;
+};
+
+/**
+ * `GET /tax/me` state. A string the client does not know yet still arrives;
+ * the sheet map treats that as the determination info sheet.
+ */
+export type TaxDocumentationState =
+  | 'COMPLETE_OR_VERIFIED'
+  | 'RENEWAL_REQUIRED'
+  | 'ACTION_REQUIRED'
+  | 'UNDER_REVIEW'
+  | (string & {});
+
+/** What the payee can do next. An unknown action uses the same fallback. */
+export type TaxNextAction =
+  | 'NONE'
+  | 'ANSWER_ATTESTATION'
+  | 'ANSWER_US_ACTIVITY'
+  | 'OPEN_FORM'
+  | (string & {});
+
+/** Why that action is next. Null when the state carries no reason. */
+export type TaxDocumentationReason =
+  | 'NO_ATTESTATION'
+  | 'ATTESTATION_EXPIRED'
+  | 'US_ACTIVITY_ANSWER_REQUIRED'
+  | 'NO_FORM'
+  | 'FORM_INVALID'
+  | 'NEEDS_RESUBMISSION'
+  | 'OPEN_ISSUE'
+  | 'UNSUPPORTED_FORM'
+  | 'TIN_NOT_MATCHED'
+  | 'FORM_EXPIRED'
+  | 'FORM_PENDING'
+  | 'REVIEW_PENDING'
+  | 'EXPIRY_UNKNOWN'
+  | 'FORM_NOT_AVAILABLE'
+  | 'US_ACTIVITY_BLOCKED'
+  | 'GATE_OFF'
+  | (string & {});
+
+/**
+ * `GET /tax/me`. The controller keeps this for five minutes per profile.
+ * A tax POST drops that entry. A read after the form, or after a claim
+ * refusal, passes `forceFresh`.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TaxMeDto = {
+  state: TaxDocumentationState;
+  next_action: TaxNextAction;
+  reason: TaxDocumentationReason | null;
+  clears_until: string | null;
+  cleared: boolean;
+  can_change_answer: boolean;
+};
+
+/**
+ * The `GET /tax/me` snapshot remembered when the form page reports success.
+ * Claim keeps showing "submitted, checking" while a later read still matches
+ * it. A webhook that changes the snapshot drops the marker.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TaxFormSubmittedSnapshot = {
+  state: TaxDocumentationState;
+  next_action: TaxNextAction;
+  reason: TaxDocumentationReason | null;
+};
+
+/** `POST /wr/tax/attestation` and `POST /wr/tax/w8-us-activity`. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TaxAnswerResultDto = {
+  review: 'NONE' | 'PENDING' | (string & {});
+};
+
+/** `POST /wr/tax/form-token`. Held in memory for the WebView, never in state. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TaxFormTokenDto = {
+  token: string;
+  expires_at: string;
 };
 
 /** Light/dark Contentful asset URLs. Type alias (not interface) for Json/StateConstraint. */
@@ -497,7 +614,8 @@ export type ClaimHistoryPageDto = {
 /** Last path segment of `POST /wr/earnings/claim/<slug>`. */
 export type ClaimRouteSlug =
   | 'referral-trade-fee-cashback'
-  | 'referral-rev-share';
+  | 'referral-rev-share'
+  | 'social-follow-trade';
 
 export interface ClaimVoucherDto {
   claim_id: string;
@@ -612,6 +730,10 @@ export type CommissionsPageDto = {
 // ─── Request DTOs ─────────────────────────────────────────────────────────────
 
 export interface GetReferralMeDto {
+  forceFresh?: boolean;
+}
+
+export interface GetTaxMeDto {
   forceFresh?: boolean;
 }
 
@@ -797,6 +919,13 @@ export type RewardsMoneyControllerState = {
   commissionsFirstPage: { [scopeKey: string]: CacheEntry<CommissionsPageDto> };
   /** Keyed by `${profileId}:${claimId}`. */
   claimById: { [scopeKey: string]: CacheEntry<ClaimDto> };
+  /** Keyed by Hydra profileId. */
+  taxMe: { [profileId: string]: CacheEntry<TaxMeDto> };
+  /**
+   * Keyed by Hydra profileId. Set when the form page reports success and the
+   * stored determination is still the pre-webhook open-form read.
+   */
+  taxFormSubmitted: { [profileId: string]: TaxFormSubmittedSnapshot };
   /** Persisted env URL override (non-production builds only). */
   rewardsMoneyEnvUrl: string | null;
 };

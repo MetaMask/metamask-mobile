@@ -289,7 +289,7 @@ describe('Rewards Utils', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to the rewards tab when there is no back route', () => {
+    it('opens rewards home when there is no back route', () => {
       const mockGoBack = jest.fn();
       const mockNavigate = jest.fn();
       const navigation = {
@@ -301,18 +301,14 @@ describe('Rewards Utils', () => {
       exitRewardsFlow(navigation as never);
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.REWARDS_VIEW,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
   });
 
   describe('getBetaSupportUrl', () => {
     it('returns a string', () => {
-      // The `///: ONLY_INCLUDE_IF(beta)` fence is stripped by Metro at build
-      // time only, so under Jest this always resolves to the beta URL; the
-      // empty-string (non-beta) branch is exercised via call-site mocking in
-      // the components that consume this helper.
+      // The non-beta (empty-string) branch is exercised via call-site
+      // mocking in the components that consume this helper.
       expect(typeof getBetaSupportUrl()).toBe('string');
     });
   });

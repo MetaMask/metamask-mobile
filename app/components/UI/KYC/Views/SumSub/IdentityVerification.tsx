@@ -4,9 +4,14 @@ import {
   type NativeStackNavigationProp,
   type NativeStackScreenProps,
 } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import VerifyIdentity from './VerifyIdentity';
-import VbaSumSubKyc from './SumSubKyc';
+import PartnerTerms from './PartnerTerms';
+import KycSumSub from './SumSubKyc';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
   VbaIdentityVerificationRoutes,
@@ -16,6 +21,7 @@ import {
   VbaOnboardingRoutes,
 } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import type { VbaOnboardingSnapshot } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
+import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { withScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_ID,
@@ -27,27 +33,69 @@ const Stack = createNativeStackNavigator<VbaIdentityVerificationParamList>();
 type IdentityVerificationNavigation =
   NativeStackNavigationProp<VbaIdentityVerificationParamList>;
 
-export const replaceProviderTermsWithProvider = (
+export const openPartnerTerms = (
+  navigation: IdentityVerificationNavigation,
+  disclaimers: KycCatalogDisclaimerLink[],
+): void => {
+  navigation.navigate(VbaIdentityVerificationRoutes.PARTNER_TERMS, {
+    disclaimers,
+  });
+};
+
+/**
+ * Leaves the provider as the only route, so closing it returns to the caller
+ * (money home) rather than stepping back through the terms pages the user has
+ * already agreed to.
+ */
+export const resetToProvider = (
   navigation: IdentityVerificationNavigation,
 ): void => {
-  navigation.replace(VbaIdentityVerificationRoutes.PROVIDER);
+  navigation.reset({
+    index: 0,
+    routes: [{ name: VbaIdentityVerificationRoutes.PROVIDER }],
+  });
 };
 
 const ProviderTermsStep = () => {
   const navigation = useNavigation<IdentityVerificationNavigation>();
-  const handleSuccess = useCallback(
-    () => replaceProviderTermsWithProvider(navigation),
+  const handleContinue = useCallback(
+    (disclaimers: KycCatalogDisclaimerLink[]) =>
+      openPartnerTerms(navigation, disclaimers),
     [navigation],
   );
 
-  return <VerifyIdentity onSuccess={handleSuccess} />;
+  return <VerifyIdentity onContinue={handleContinue} />;
+};
+
+const PartnerTermsStep = () => {
+  const navigation = useNavigation<IdentityVerificationNavigation>();
+  const { params } =
+    useRoute<
+      RouteProp<
+        VbaIdentityVerificationParamList,
+        typeof VbaIdentityVerificationRoutes.PARTNER_TERMS
+      >
+    >();
+  const handleAgree = useCallback(
+    () => resetToProvider(navigation),
+    [navigation],
+  );
+  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+
+  return (
+    <PartnerTerms
+      disclaimers={params.disclaimers}
+      onAgree={handleAgree}
+      onBack={handleBack}
+    />
+  );
 };
 
 const ProviderStep = () => {
   const advance = useOpenVbaOnboarding('identity-verification-submitted');
   const handleSubmitted = useCallback(() => advance(), [advance]);
 
-  return <VbaSumSubKyc onSubmitted={handleSubmitted} />;
+  return <KycSumSub onSubmitted={handleSubmitted} />;
 };
 
 const InstrumentedProviderStep = withScreenPerformance(
@@ -68,7 +116,7 @@ export const getVbaIdentityVerificationInitialRoute = (
     ? VbaIdentityVerificationRoutes.PROVIDER
     : VbaIdentityVerificationRoutes.PROVIDER_TERMS;
 
-const VbaIdentityVerificationModule = ({ route }: Props) => {
+const KycIdentityVerificationModule = ({ route }: Props) => {
   const initialRouteName = getVbaIdentityVerificationInitialRoute(
     route.params.snapshot,
   );
@@ -83,6 +131,10 @@ const VbaIdentityVerificationModule = ({ route }: Props) => {
         component={ProviderTermsStep}
       />
       <Stack.Screen
+        name={VbaIdentityVerificationRoutes.PARTNER_TERMS}
+        component={PartnerTermsStep}
+      />
+      <Stack.Screen
         name={VbaIdentityVerificationRoutes.PROVIDER}
         component={InstrumentedProviderStep}
       />
@@ -90,4 +142,4 @@ const VbaIdentityVerificationModule = ({ route }: Props) => {
   );
 };
 
-export default VbaIdentityVerificationModule;
+export default KycIdentityVerificationModule;

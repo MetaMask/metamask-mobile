@@ -2,6 +2,9 @@ import '../../../../../../../tests/component-view/mocks';
 import {
   configurePredictNextFeeds,
   makePredictNextCompositeGameEvent,
+  makePredictNextLaidOutGameEvent,
+  makePredictNextLaidOutStandardEvent,
+  makePredictNextPlayerPropsEvent,
   makePredictNextMultiMarketEvent,
   makePredictNextPosition,
   makePredictNextTotalsEvent,
@@ -20,16 +23,23 @@ import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../../__mocks__/@react-native-community/netinfo';
 import { strings } from '../../../../../../../locales/i18n';
 import { MarketStandardCardTestIds } from '../../../events/markets/MarketStandardCard.testIds';
+import { MarketListTestIds } from '../../../events/markets/MarketList.testIds';
 import { MarketGroupCardTestIds } from '../../../events/markets/MarketGroupCard.testIds';
+import { MoneylineMarketGroupCardTestIds } from '../../../events/markets/MoneylineMarketGroupCard.testIds';
 import { portfolioQueries } from '../../../queries/portfolioQueries';
 import type {
+  PredictDecimal,
   PredictEvent,
   PredictMarket,
   PredictPosition,
   PredictPositionsPage,
 } from '../../../types';
 import { EventMarketListTestIds } from './EventMarketList.testIds';
+import { EventMarketLayoutSectionTestIds } from './EventMarketLayoutSection.testIds';
+import { EventMarketPeriodChipsTestIds } from './EventMarketPeriodChips.testIds';
+import { EventMarketSectionTestIds } from './EventMarketSection.testIds';
 import { formatSharesAmount } from '../../../utils/formatShares';
+import { lightTheme } from '@metamask/design-tokens';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 const createPositionsCache = (
@@ -46,6 +56,13 @@ const createPositionsCache = (
   });
   return { queryClient, key };
 };
+
+/** "Yes · Lakers": a Position card's title. */
+const positionTitle = (position: PredictPosition, name?: string) =>
+  strings('predict_next.event.position.title', {
+    side: strings(`predict_next.portfolio.outcome_side.${position.side}`),
+    name,
+  });
 
 describe('EventMarketList', () => {
   beforeEach(() => {
@@ -902,21 +919,19 @@ describe('EventMarketList', () => {
           EventMarketListTestIds.positionRow(position.marketId, position.side),
         ),
       );
-      const outcome = position.context?.outcomeLabel ?? position.side;
-      expect(row.getByText(outcome)).toBeOnTheScreen();
-      expect(
-        row.getByText(
-          strings('predict_next.portfolio.outcome_shares', {
-            outcome,
-            shares: formatSharesAmount(position.shares),
-          }),
-        ),
-      ).toBeOnTheScreen();
-      if (position.context?.marketQuestion) {
+      if (position.context?.outcomeLabel) {
         expect(
-          row.getByText(position.context.marketQuestion),
+          row.getByText(positionTitle(position, position.context.outcomeLabel)),
         ).toBeOnTheScreen();
       }
+      expect(
+        row.getByTestId(
+          EventMarketListTestIds.positionValue(
+            position.marketId,
+            position.side,
+          ),
+        ),
+      ).toHaveTextContent('$45.00');
       fireEvent.press(
         row.getByTestId(
           EventMarketListTestIds.positionCashOut(
@@ -948,7 +963,7 @@ describe('EventMarketList', () => {
     );
   });
 
-  it('masks and restores shares when the Redux privacy preference changes', async () => {
+  it('masks and restores Position amounts when the Redux privacy preference changes', async () => {
     const event = makePredictNextMultiMarketEvent();
     const position = makePredictNextPosition({ marketId: event.markets[0].id });
     configurePredictNextFeeds({ positions: [position] });
@@ -958,13 +973,17 @@ describe('EventMarketList', () => {
       onRulesPress: jest.fn(),
       onCashOut: jest.fn(),
     });
-    const sharesText = strings('predict_next.portfolio.outcome_shares', {
-      outcome: position.context?.outcomeLabel,
-      shares: formatSharesAmount(position.shares),
-    });
+    // The value and PnL, and the holding read out to screen readers.
+    const amounts = ['$45.00', '+$3.75 (+9.09%)'];
+    const holding = new RegExp(
+      `${formatSharesAmount(position.shares)} shares at`,
+    );
     await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB);
     fireEvent.press(view.getByTestId(EventMarketListTestIds.POSITIONS_TAB));
-    expect(view.getByText(sharesText)).toBeOnTheScreen();
+    for (const amount of amounts) {
+      expect(view.getByText(amount)).toBeOnTheScreen();
+    }
+    expect(view.getByLabelText(holding)).toBeOnTheScreen();
     const engine = Engine as unknown as { state: Record<string, unknown> };
     const originalState = engine.state;
     const setPrivacy = (privacyMode: boolean) => {
@@ -981,13 +1000,15 @@ describe('EventMarketList', () => {
     try {
       act(() => setPrivacy(true));
 
+      for (const amount of amounts) {
+        expect(
+          view.queryByText(amount, { includeHiddenElements: true }),
+        ).not.toBeOnTheScreen();
+      }
       expect(
-        view.queryByText(sharesText, { includeHiddenElements: true }),
+        view.queryByLabelText(holding, { includeHiddenElements: true }),
       ).not.toBeOnTheScreen();
-      expect(
-        view.queryByLabelText(sharesText, { includeHiddenElements: true }),
-      ).not.toBeOnTheScreen();
-      expect(view.getByText(/^•+$/)).toBeOnTheScreen();
+      expect(view.getAllByText(/^•+$/)).toHaveLength(amounts.length);
       expect(
         within(
           view.getByTestId(EventMarketListTestIds.POSITIONS_TAB),
@@ -996,7 +1017,9 @@ describe('EventMarketList', () => {
 
       act(() => setPrivacy(false));
 
-      expect(view.getByText(sharesText)).toBeOnTheScreen();
+      for (const amount of amounts) {
+        expect(view.getByText(amount)).toBeOnTheScreen();
+      }
       expect(view.queryByText(/^•+$/)).not.toBeOnTheScreen();
       expect(messengerCall).toHaveBeenCalledTimes(1);
     } finally {
@@ -1023,6 +1046,7 @@ describe('EventMarketList', () => {
     const refreshed = makePredictNextPosition({
       marketId: position.marketId,
       shares: '18.5',
+      currentValue: '11.10',
     });
     const added = makePredictNextPosition({
       marketId: event.markets[1].id,
@@ -1050,13 +1074,13 @@ describe('EventMarketList', () => {
         ),
       );
       expect(
-        row.getByText(
-          strings('predict_next.portfolio.outcome_shares', {
-            outcome: current.context?.outcomeLabel,
-            shares: formatSharesAmount(current.shares),
-          }),
-        ),
+        row.getByText(positionTitle(current, current.context?.outcomeLabel)),
       ).toBeOnTheScreen();
+      expect(
+        row.getByTestId(
+          EventMarketListTestIds.positionValue(current.marketId, current.side),
+        ),
+      ).toHaveTextContent(`$${current.currentValue}`);
       fireEvent.press(
         row.getByTestId(
           EventMarketListTestIds.positionCashOut(
@@ -1140,9 +1164,7 @@ describe('EventMarketList', () => {
 
     for (const market of [updated, spread]) {
       const key = market.group?.key ?? '';
-      fireEvent.press(
-        view.getByTestId(MarketGroupCardTestIds.rulesButton(key)),
-      );
+      fireEvent.press(view.getByTestId(MarketGroupCardTestIds.title(key)));
       fireEvent.press(
         view.getByTestId(
           MarketGroupCardTestIds.outcomeButton(key, market.id, 'yes'),
@@ -1374,7 +1396,7 @@ describe('EventMarketList', () => {
       expect(
         within(
           view.getByTestId(EventMarketListTestIds.MARKETS_TAB),
-        ).getAllByText(strings('predict_next.event.outcome'))[0],
+        ).getAllByText(strings('predict_next.event.outcomes'))[0],
       ).toBeOnTheScreen();
       expect(onOrder).toHaveBeenCalledWith(
         event.markets[0],
@@ -1414,7 +1436,7 @@ describe('EventMarketList', () => {
       });
     });
     fireEvent.press(
-      view.getByTestId(MarketGroupCardTestIds.rulesButton('nfl-total-points')),
+      view.getByTestId(MarketGroupCardTestIds.title('nfl-total-points')),
     );
     fireEvent.press(
       view.getByTestId(
@@ -1466,5 +1488,932 @@ describe('EventMarketList', () => {
         ),
       ),
     ).not.toBeOnTheScreen();
+  });
+  describe('with a laid-out standard Event', () => {
+    const renderStandard = async () => {
+      const event = makePredictNextLaidOutStandardEvent();
+      const props = {
+        event,
+        onOrder: jest.fn(),
+        onRulesPress: jest.fn(),
+        onCashOut: jest.fn(),
+      };
+      const view = renderEventMarketList(props);
+      await view.findByTestId(
+        EventMarketLayoutSectionTestIds.section('markets'),
+      );
+      return { event, props, view };
+    };
+    const cardIds = (view: ReturnType<typeof renderEventMarketList>) =>
+      view
+        .getAllByTestId(MarketStandardCardTestIds.TITLE_PATTERN)
+        .map(({ props }) => props.children);
+
+    it('shows the Outcomes tab with a Markets section and its volume', async () => {
+      const { view } = await renderStandard();
+
+      expect(
+        within(
+          view.getByTestId(EventMarketListTestIds.layoutTab('outcomes')),
+        ).getAllByText(strings('predict_next.event.outcomes'))[0],
+      ).toBeOnTheScreen();
+      const section = within(
+        view.getByTestId(EventMarketLayoutSectionTestIds.section('markets')),
+      );
+      expect(
+        section.getByText(strings('predict_next.event.market_layout.markets')),
+      ).toBeOnTheScreen();
+      expect(
+        section.getByTestId(EventMarketSectionTestIds.VOLUME),
+      ).toHaveTextContent('$2M');
+    });
+
+    it('shows the first three cards in backend order, then expands the rest in place with View all', async () => {
+      const { view } = await renderStandard();
+      const viewAll = EventMarketLayoutSectionTestIds.viewAll('markets');
+
+      expect(cardIds(view)).toEqual([
+        'Mike Johnson',
+        'Hakeem Jeffries',
+        'Jim Jordan',
+      ]);
+      expect(view.getByTestId(viewAll)).toHaveTextContent(
+        strings('predict_next.event.view_all_markets', { count: 5 }),
+      );
+
+      fireEvent.press(view.getByTestId(viewAll));
+
+      expect(cardIds(view)).toEqual([
+        'Mike Johnson',
+        'Hakeem Jeffries',
+        'Jim Jordan',
+        'Steve Scalise',
+        'Tom Emmer',
+      ]);
+      expect(view.queryByTestId(viewAll)).not.toBeOnTheScreen();
+    });
+
+    it('shows each card as a Yes and a No row with their prices', async () => {
+      const { view } = await renderStandard();
+      const yesRow = within(
+        view.getByTestId(MarketStandardCardTestIds.row('johnson', 'yes')),
+      );
+      const noRow = within(
+        view.getByTestId(MarketStandardCardTestIds.row('johnson', 'no')),
+      );
+
+      expect(
+        yesRow.getByText(strings('predict_next.portfolio.outcome_side.yes')),
+      ).toBeOnTheScreen();
+      expect(yesRow.getByText('41¢')).toBeOnTheScreen();
+      expect(
+        noRow.getByText(strings('predict_next.portfolio.outcome_side.no')),
+      ).toBeOnTheScreen();
+      expect(noRow.getByText('59¢')).toBeOnTheScreen();
+    });
+
+    it('orders the Outcome of the pressed Yes or No row', async () => {
+      const { event, props, view } = await renderStandard();
+      const market = event.markets[1];
+
+      fireEvent.press(
+        view.getByTestId(MarketStandardCardTestIds.yesButton(market.id)),
+      );
+      fireEvent.press(
+        view.getByTestId(MarketStandardCardTestIds.noButton(market.id)),
+      );
+
+      expect(props.onOrder).toHaveBeenNthCalledWith(
+        1,
+        market,
+        market.outcomes[0],
+      );
+      expect(props.onOrder).toHaveBeenNthCalledWith(
+        2,
+        market,
+        market.outcomes[1],
+      );
+    });
+  });
+
+  describe('with a laid-out Game', () => {
+    const FULL_GAME_MONEYLINE = 'nfl-composite:moneyline';
+    const FIRST_HALF_MONEYLINE = 'nfl-composite-1h:moneyline';
+    const SECTION_IDS = new RegExp(
+      `^${EventMarketLayoutSectionTestIds.section('')}`,
+    );
+
+    const renderLaidOut = (
+      event: PredictEvent = makePredictNextLaidOutGameEvent(),
+      options?: Parameters<typeof renderEventMarketList>[1],
+    ) => {
+      const props = {
+        event,
+        onOrder: jest.fn(),
+        onRulesPress: jest.fn(),
+        onCashOut: jest.fn(),
+      };
+      return { props, view: renderEventMarketList(props, options) };
+    };
+    const sectionOf = (
+      view: ReturnType<typeof renderEventMarketList>,
+      key: string,
+    ) => within(view.getByTestId(EventMarketLayoutSectionTestIds.section(key)));
+    const withSection = (
+      market: PredictMarket,
+      section: { key: string; order: number },
+    ): PredictMarket => ({
+      ...market,
+      id: `${market.id}-${section.key}` as PredictMarket['id'],
+      group: market.group && {
+        ...market.group,
+        key: `${market.group.key}-${section.key}`,
+      },
+      layout: market.layout && { ...market.layout, section },
+    });
+
+    it('shows the Game lines sections in order, open, with chips only where a section has periods', async () => {
+      const { view } = renderLaidOut();
+
+      const tab = await view.findByTestId(
+        EventMarketListTestIds.layoutTab('game_lines'),
+      );
+
+      expect(
+        within(tab).getAllByText(strings('predict_next.event.game_lines'))[0],
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(EventMarketListTestIds.MARKETS_TAB),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getAllByTestId(SECTION_IDS).map((section) => section.props.testID),
+      ).toEqual([
+        EventMarketLayoutSectionTestIds.section('moneyline'),
+        EventMarketLayoutSectionTestIds.section('spread'),
+        EventMarketLayoutSectionTestIds.section('total_points'),
+      ]);
+      expect(
+        sectionOf(view, 'moneyline').getByText(
+          strings('predict_next.event.market_layout.moneyline'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        sectionOf(view, 'moneyline').getByTestId(
+          EventMarketPeriodChipsTestIds.LIST,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        sectionOf(view, 'spread').queryByTestId(
+          EventMarketPeriodChipsTestIds.LIST,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          MoneylineMarketGroupCardTestIds.card(FULL_GAME_MONEYLINE),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(MarketGroupCardTestIds.card('nfl-spreads')),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(MarketGroupCardTestIds.card('nfl-total-points')),
+      ).toBeOnTheScreen();
+    });
+
+    it('swaps the cards when a period chip is selected', async () => {
+      const { view } = renderLaidOut();
+
+      fireEvent.press(
+        await view.findByTestId(
+          EventMarketPeriodChipsTestIds.CHIP('first_half'),
+        ),
+      );
+
+      expect(
+        view.getByTestId(
+          MoneylineMarketGroupCardTestIds.card(FIRST_HALF_MONEYLINE),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(
+          MoneylineMarketGroupCardTestIds.card(FULL_GAME_MONEYLINE),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('collapses and expands a section, and keeps its state across remounts', async () => {
+      const event = makePredictNextLaidOutGameEvent();
+      const position = makePredictNextPosition({
+        marketId: event.markets[0].id,
+      });
+      const { queryClient } = createPositionsCache(event, [position]);
+      configurePredictNextFeeds({ positions: [position] });
+      const { view } = renderLaidOut(event, { queryClient });
+
+      fireEvent.press(
+        await view.findByTestId(EventMarketListTestIds.layoutTab('game_lines')),
+      );
+      fireEvent.press(
+        sectionOf(view, 'spread').getByTestId(EventMarketSectionTestIds.HEADER),
+      );
+      expect(
+        view.queryByTestId(MarketGroupCardTestIds.card('nfl-spreads')),
+      ).not.toBeOnTheScreen();
+      fireEvent.press(
+        view.getByTestId(EventMarketPeriodChipsTestIds.CHIP('first_half')),
+      );
+
+      // The Positions panel unmounts every section row.
+      fireEvent.press(view.getByTestId(EventMarketListTestIds.POSITIONS_TAB));
+      expect(view.queryAllByTestId(SECTION_IDS)).toHaveLength(0);
+      fireEvent.press(
+        view.getByTestId(EventMarketListTestIds.layoutTab('game_lines')),
+      );
+
+      expect(
+        view.queryByTestId(MarketGroupCardTestIds.card('nfl-spreads')),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          MoneylineMarketGroupCardTestIds.card(FIRST_HALF_MONEYLINE),
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        sectionOf(view, 'spread').getByTestId(EventMarketSectionTestIds.HEADER),
+      );
+      expect(
+        view.getByTestId(MarketGroupCardTestIds.card('nfl-spreads')),
+      ).toBeOnTheScreen();
+    });
+
+    it('orders from the moneyline, spread and total cards', async () => {
+      const event = makePredictNextLaidOutGameEvent();
+      const { props, view } = renderLaidOut(event);
+      const find = (id: string) =>
+        event.markets.find((market) => market.id === id) as PredictMarket;
+      const awayWinner = find('nfl-composite-away-market');
+      const spread = find('nfl-spread-new-england-2-5');
+      const total = find('nfl-total-220-5');
+
+      fireEvent.press(
+        await view.findByTestId(
+          MoneylineMarketGroupCardTestIds.price(
+            FULL_GAME_MONEYLINE,
+            awayWinner.id,
+          ),
+        ),
+      );
+      fireEvent.press(
+        view.getByTestId(
+          MarketGroupCardTestIds.outcomeButton('nfl-spreads', spread.id, 'yes'),
+        ),
+      );
+      // A section's line picker keeps the chosen line for its order button.
+      fireEvent.press(
+        view.getByTestId(
+          MarketGroupCardTestIds.option('nfl-total-points', total.id),
+        ),
+      );
+      fireEvent.press(
+        view.getByTestId(
+          MarketGroupCardTestIds.outcomeButton(
+            'nfl-total-points',
+            total.id,
+            'no',
+          ),
+        ),
+      );
+
+      expect(props.onOrder.mock.calls).toEqual([
+        [awayWinner, awayWinner.outcomes[0]],
+        [spread, spread.outcomes[0]],
+        [total, total.outcomes[1]],
+      ]);
+    });
+
+    it('opens only the first three sections and titles unknown sections from their key', async () => {
+      const event = makePredictNextLaidOutGameEvent();
+      const spreads = event.markets.filter(
+        (market) => market.group?.key === 'nfl-spreads',
+      );
+      const totals = event.markets.filter(
+        (market) => market.group?.key === 'nfl-total-points',
+      );
+      const { view } = renderLaidOut({
+        ...event,
+        markets: [
+          ...event.markets,
+          ...totals.map(
+            (market): PredictMarket => ({
+              ...withSection(market, { key: 'team_total', order: 3 }),
+              group: market.group && {
+                ...market.group,
+                key: 'team-total-ne',
+                marketType: 'team_total',
+              },
+              outcomes: [
+                { ...market.outcomes[0], gameSelection: 'away' },
+                market.outcomes[1],
+              ],
+            }),
+          ),
+          ...spreads.map((market) =>
+            withSection(market, { key: 'alt_spread', order: 4 }),
+          ),
+        ],
+      });
+
+      await view.findByTestId(
+        EventMarketLayoutSectionTestIds.section('alt_spread'),
+      );
+
+      expect(
+        sectionOf(view, 'team_total').getByText(
+          strings('predict_next.event.market_layout.team_total'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        sectionOf(view, 'alt_spread').getByText('Alt spread'),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(MarketGroupCardTestIds.card('team-total-ne')),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        sectionOf(view, 'team_total').getByTestId(
+          EventMarketSectionTestIds.HEADER,
+        ),
+      );
+
+      expect(
+        view.getByTestId(MarketGroupCardTestIds.title('team-total-ne')),
+      ).toHaveTextContent('New England');
+      expect(
+        view.queryByTestId(MarketGroupCardTestIds.title('nfl-total-points')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the summed section volume in dollars and hides a missing one', async () => {
+      const event = makePredictNextLaidOutGameEvent();
+      const { view } = renderLaidOut({
+        ...event,
+        markets: event.markets.map((market) =>
+          market.group?.key === 'nfl-spreads'
+            ? { ...market, volume: '16100' }
+            : market,
+        ),
+      });
+
+      await view.findByTestId(
+        EventMarketLayoutSectionTestIds.section('spread'),
+      );
+
+      expect(
+        sectionOf(view, 'spread').getByTestId(EventMarketSectionTestIds.VOLUME),
+      ).toHaveTextContent('$64.4k');
+      expect(
+        sectionOf(view, 'moneyline').queryByTestId(
+          EventMarketSectionTestIds.VOLUME,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('lists each section as a header row and a row per card, flush, then Markets without layout after a gap', async () => {
+      const event = makePredictNextLaidOutGameEvent();
+      const [flat] = makePredictNextMultiMarketEvent().markets;
+      const { view } = renderLaidOut({
+        ...event,
+        markets: [flat, ...event.markets],
+      });
+
+      await view.findByTestId(MarketStandardCardTestIds.card(flat.id));
+      const list = view.UNSAFE_getByType(FlatList);
+      const keys = list.props.data.map(list.props.keyExtractor);
+
+      const section = (key: string) =>
+        `markets:section:${JSON.stringify(['game_lines', key])}`;
+      const card = (sectionKey: string, cardKey: string) =>
+        `markets:card:${JSON.stringify(['game_lines', sectionKey])}:${cardKey}`;
+
+      expect(keys).toEqual([
+        section('moneyline'),
+        card('moneyline', FULL_GAME_MONEYLINE),
+        section('spread'),
+        card('spread', 'nfl-spreads'),
+        section('total_points'),
+        card('total_points', 'nfl-total-points'),
+        `markets:market:${flat.id}`,
+      ]);
+      // The first card sits under the header, or 12px under period chips.
+      expect(
+        view.getByTestId(
+          EventMarketLayoutSectionTestIds.card(
+            'moneyline',
+            FULL_GAME_MONEYLINE,
+          ),
+        ),
+      ).toHaveStyle({ paddingTop: 12 });
+      expect(
+        view.getByTestId(
+          EventMarketLayoutSectionTestIds.card('spread', 'nfl-spreads'),
+        ),
+      ).not.toHaveStyle({ paddingTop: 12 });
+      expect(view.getAllByTestId(MarketListTestIds.SEPARATOR)).toHaveLength(1);
+    });
+
+    it('spaces the standard cards of a card with no group card 12px apart', async () => {
+      const event = makePredictNextLaidOutGameEvent();
+      const { view } = renderLaidOut({
+        ...event,
+        markets: event.markets.map(
+          (market): PredictMarket =>
+            market.group?.key === 'nfl-spreads'
+              ? {
+                  ...market,
+                  group: { ...market.group, marketType: 'unknown_line' },
+                }
+              : market,
+        ),
+      });
+
+      const cardRow = await view.findByTestId(
+        EventMarketLayoutSectionTestIds.card('spread', 'nfl-spreads'),
+      );
+
+      expect(
+        within(cardRow).getAllByTestId(MarketStandardCardTestIds.TITLE_PATTERN)
+          .length,
+      ).toBeGreaterThan(1);
+      expect(cardRow).toHaveStyle({ gap: 12 });
+    });
+  });
+
+  describe('with player props', () => {
+    const event = makePredictNextPlayerPropsEvent();
+    const playerKey = (stat: string, player: string) =>
+      `${event.id}:${stat}:${player}`;
+    const rushing = (player: string) => playerKey('rushing_yards', player);
+
+    const renderPlayerProps = async () => {
+      const props = {
+        event,
+        onOrder: jest.fn(),
+        onRulesPress: jest.fn(),
+        onCashOut: jest.fn(),
+      };
+      const view = renderEventMarketList(props);
+      fireEvent.press(
+        await view.findByTestId(
+          EventMarketListTestIds.layoutTab('player_props'),
+        ),
+      );
+      return { props, view };
+    };
+    const titles = (view: ReturnType<typeof renderEventMarketList>) =>
+      view
+        .queryAllByTestId(/^predict-next-market-group-.*_yards:.*-title$/)
+        .map((title) => title.props.children);
+    const lineId = (stat: string, player: string, threshold: number) =>
+      `${event.id}-${stat}-${player}-${threshold}`;
+
+    it('shows the Player props tab with one line picker per Player, lines ascending', async () => {
+      const { view } = await renderPlayerProps();
+
+      expect(
+        within(
+          view.getByTestId(EventMarketListTestIds.layoutTab('player_props')),
+        ).getAllByText(
+          strings('predict_next.event.market_layout.player_props'),
+        )[0],
+      ).toBeOnTheScreen();
+      expect(
+        view
+          .getAllByTestId(
+            new RegExp(`^${EventMarketLayoutSectionTestIds.section('')}`),
+          )
+          .map((section) => section.props.testID),
+      ).toEqual([
+        EventMarketLayoutSectionTestIds.section('rushing_yards'),
+        EventMarketLayoutSectionTestIds.section('passing_yards'),
+      ]);
+      // Each card starts on its lowest line.
+      expect(titles(view)).toEqual([
+        'Rhamondre Stevenson: 40+',
+        'Kenneth Walker: 50+',
+        'Drake Maye: 20+',
+        'Drake Maye: 200+',
+      ]);
+      const stevenson = rushing('Rhamondre Stevenson');
+      [40, 60, 80].forEach((threshold) =>
+        expect(
+          view.getByTestId(
+            MarketGroupCardTestIds.option(
+              stevenson,
+              lineId('rushing_yards', 'Rhamondre Stevenson', threshold),
+            ),
+          ),
+        ).toHaveTextContent(`${threshold}+`),
+      );
+      // A Player with a single line still gets a card, without a picker.
+      const maye = rushing('Drake Maye');
+      expect(
+        view.getByTestId(MarketGroupCardTestIds.card(maye)),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(MarketGroupCardTestIds.selector(maye)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the first three Players and expands the rest with View all, until the section closes', async () => {
+      const { view } = await renderPlayerProps();
+      const viewAll = EventMarketLayoutSectionTestIds.viewAll('rushing_yards');
+      const charbonnet = MarketGroupCardTestIds.card(
+        rushing('Zach Charbonnet'),
+      );
+
+      expect(view.queryByTestId(charbonnet)).not.toBeOnTheScreen();
+      expect(view.getByTestId(viewAll)).toHaveTextContent(
+        strings('predict_next.event.view_all_markets', { count: 7 }),
+      );
+      expect(
+        view.queryByTestId(
+          EventMarketLayoutSectionTestIds.viewAll('passing_yards'),
+        ),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(view.getByTestId(viewAll));
+
+      expect(view.getByTestId(charbonnet)).toBeOnTheScreen();
+      expect(view.queryByTestId(viewAll)).not.toBeOnTheScreen();
+
+      const header = () =>
+        within(
+          view.getByTestId(
+            EventMarketLayoutSectionTestIds.section('rushing_yards'),
+          ),
+        ).getByTestId(EventMarketSectionTestIds.HEADER);
+      fireEvent.press(header());
+      fireEvent.press(header());
+
+      expect(view.queryByTestId(charbonnet)).not.toBeOnTheScreen();
+      expect(view.getByTestId(viewAll)).toBeOnTheScreen();
+    });
+
+    it('switches a Player to another line and orders its Yes and No', async () => {
+      const { props, view } = await renderPlayerProps();
+      const walker = rushing('Kenneth Walker');
+      const marketId = lineId('rushing_yards', 'Kenneth Walker', 70);
+      const market = event.markets.find(({ id }) => id === marketId);
+
+      fireEvent.press(
+        view.getByTestId(MarketGroupCardTestIds.option(walker, marketId)),
+      );
+
+      expect(
+        view.getByTestId(MarketGroupCardTestIds.title(walker)),
+      ).toHaveTextContent('Kenneth Walker: 70+');
+      fireEvent.press(
+        view.getByTestId(
+          MarketGroupCardTestIds.outcomeButton(walker, marketId, 'yes'),
+        ),
+      );
+      fireEvent.press(
+        view.getByTestId(
+          MarketGroupCardTestIds.outcomeButton(walker, marketId, 'no'),
+        ),
+      );
+
+      expect(props.onOrder).toHaveBeenNthCalledWith(
+        1,
+        market,
+        market?.outcomes[0],
+      );
+      expect(props.onOrder).toHaveBeenNthCalledWith(
+        2,
+        market,
+        market?.outcomes[1],
+      );
+    });
+
+    it('keeps the Game lines moneyline on its own card', async () => {
+      const { view } = await renderPlayerProps();
+
+      fireEvent.press(
+        view.getByTestId(EventMarketListTestIds.layoutTab('game_lines')),
+      );
+
+      expect(
+        view.getByTestId(
+          MoneylineMarketGroupCardTestIds.card(`${event.id}:moneyline`),
+        ),
+      ).toBeOnTheScreen();
+      expect(titles(view)).toEqual([]);
+    });
+  });
+
+  describe('Position card', () => {
+    const renderPositions = async (
+      event: PredictEvent,
+      positions: readonly PredictPosition[],
+    ) => {
+      configurePredictNextFeeds({ positions: [...positions] });
+      const callbacks = {
+        onOrder: jest.fn(),
+        onRulesPress: jest.fn(),
+        onCashOut: jest.fn(),
+      };
+      const view = renderEventMarketList({ event, ...callbacks });
+      await waitFor(() =>
+        expect(
+          within(
+            view.getByTestId(EventMarketListTestIds.POSITIONS_TAB),
+          ).getByText(String(positions.length), {
+            includeHiddenElements: true,
+          }),
+        ).toBeOnTheScreen(),
+      );
+      fireEvent.press(view.getByTestId(EventMarketListTestIds.POSITIONS_TAB));
+      for (const { marketId, side } of positions) {
+        await view.findByTestId(
+          EventMarketListTestIds.positionRow(marketId, side),
+        );
+      }
+      return { view, callbacks };
+    };
+    const cardOf = (
+      view: ReturnType<typeof renderEventMarketList>,
+      { marketId, side }: PredictPosition,
+    ) =>
+      within(
+        view.getByTestId(EventMarketListTestIds.positionRow(marketId, side)),
+      );
+
+    it('shows a winning Position with its Team, chance, value and PnL, and buys more of the held side', async () => {
+      const event = makePredictNextCompositeGameEvent();
+      const [market] = event.markets;
+      const position = makePredictNextPosition({
+        marketId: market.id,
+        context: {
+          ...makePredictNextPosition().context,
+          outcomeLabel: 'New England',
+        },
+      });
+      const { view, callbacks } = await renderPositions(event, [position]);
+      const card = cardOf(view, position);
+      const ids = (id: (marketId: string, side: string) => string) =>
+        id(position.marketId, position.side);
+
+      expect(
+        card.getByText(positionTitle(position, 'New England')),
+      ).toBeOnTheScreen();
+      // The Team's logo, here its abbreviation fallback.
+      expect(
+        card.getByText('NEW', { includeHiddenElements: true }),
+      ).toBeOnTheScreen();
+      expect(
+        card.getByTestId(ids(EventMarketListTestIds.positionChance)),
+      ).toHaveTextContent('42% to win');
+      // Screen readers hear the chance as part of the title's label.
+      expect(
+        card.getByLabelText(
+          new RegExp(
+            `^${positionTitle(position, 'New England')}, 42% to win, `,
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        card.getByTestId(ids(EventMarketListTestIds.positionValue)),
+      ).toHaveTextContent('$45.00');
+      const pnl = card.getByTestId(ids(EventMarketListTestIds.positionPnl));
+      expect(pnl).toHaveTextContent('+$3.75 (+9.09%)');
+      expect(pnl).toHaveStyle({ color: lightTheme.colors.success.default });
+
+      fireEvent.press(
+        card.getByTestId(ids(EventMarketListTestIds.positionBuy)),
+      );
+
+      expect(
+        card.getByTestId(ids(EventMarketListTestIds.positionBuy)),
+      ).toHaveTextContent('Buy 42¢');
+      expect(callbacks.onOrder).toHaveBeenCalledWith(
+        market,
+        market.outcomes[0],
+      );
+      expect(callbacks.onCashOut).not.toHaveBeenCalled();
+    });
+
+    it('rounds a sub-cent ask to the same whole number in the chance and Buy', async () => {
+      const event = makePredictNextCompositeGameEvent();
+      const [market] = event.markets;
+      const subCent: PredictEvent = {
+        ...event,
+        markets: [
+          {
+            ...market,
+            outcomes: [
+              { ...market.outcomes[0], askPrice: '0.425' as PredictDecimal },
+              market.outcomes[1],
+            ],
+          },
+          ...event.markets.slice(1),
+        ],
+      };
+      const position = makePredictNextPosition({ marketId: market.id });
+      const { view } = await renderPositions(subCent, [position]);
+      const card = cardOf(view, position);
+
+      expect(
+        card.getByTestId(
+          EventMarketListTestIds.positionChance(position.marketId, 'yes'),
+        ),
+      ).toHaveTextContent('43% to win');
+      expect(
+        card.getByTestId(
+          EventMarketListTestIds.positionBuy(position.marketId, 'yes'),
+        ),
+      ).toHaveTextContent('Buy 43¢');
+    });
+
+    it('shows a losing No Position in red and buys its No side', async () => {
+      const event = makePredictNextCompositeGameEvent();
+      const [market] = event.markets;
+      const position = makePredictNextPosition({
+        marketId: market.id,
+        side: 'no',
+        context: {
+          ...makePredictNextPosition().context,
+          outcomeLabel: 'New England',
+        },
+        currentValue: '36.25',
+        unrealizedPnl: '-5.00',
+        unrealizedPnlPercent: '-5.9',
+      });
+      const { view, callbacks } = await renderPositions(event, [position]);
+      const card = cardOf(view, position);
+      const pnl = card.getByTestId(
+        EventMarketListTestIds.positionPnl(position.marketId, 'no'),
+      );
+
+      expect(
+        card.getByText(positionTitle(position, 'New England')),
+      ).toBeOnTheScreen();
+      expect(pnl).toHaveTextContent('-$5.00 (-5.90%)');
+      expect(pnl).toHaveStyle({ color: lightTheme.colors.error.default });
+
+      fireEvent.press(
+        card.getByTestId(
+          EventMarketListTestIds.positionBuy(position.marketId, 'no'),
+        ),
+      );
+
+      expect(callbacks.onOrder).toHaveBeenCalledWith(
+        market,
+        market.outcomes[1],
+      );
+    });
+
+    // A `choice` card whose outcomes each name a line, titled with its
+    // label (or not). Player prop thresholds are now `threshold` lines;
+    // titling their Positions is PRED-1471.
+    const makeChoiceCardEvent = (label?: string): PredictEvent => {
+      const event = makePredictNextPlayerPropsEvent();
+      return {
+        ...event,
+        markets: event.markets.map((candidate) =>
+          candidate.group?.marketType === 'threshold'
+            ? {
+                ...candidate,
+                outcomes: [
+                  {
+                    ...candidate.outcomes[0],
+                    label: `${candidate.group.option?.value}+`,
+                  },
+                  candidate.outcomes[1],
+                ],
+                group: {
+                  key: candidate.group.key,
+                  groupType: 'choice',
+                  displayOrder: candidate.group.displayOrder,
+                  label,
+                },
+              }
+            : candidate,
+        ),
+      };
+    };
+
+    it('titles a Position on a titled choice card with its label and outcome', async () => {
+      const event = makeChoiceCardEvent('Rhamondre Stevenson');
+      const market = event.markets.find((candidate) => candidate.group?.label);
+      const position = makePredictNextPosition({
+        marketId: market?.id,
+        context: undefined,
+      });
+      const { view } = await renderPositions(event, [position]);
+
+      expect(
+        cardOf(view, position).getByText(
+          positionTitle(position, 'Rhamondre Stevenson 60+'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('titles a Position on an untitled choice card with its outcome alone', async () => {
+      const event = makeChoiceCardEvent();
+      const market = event.markets.find(
+        (candidate) => candidate.outcomes[0].label === '60+',
+      );
+      const position = makePredictNextPosition({
+        marketId: market?.id,
+        context: undefined,
+      });
+      const { view } = await renderPositions(event, [position]);
+
+      expect(
+        cardOf(view, position).getByText(positionTitle(position, '60+')),
+      ).toBeOnTheScreen();
+    });
+
+    it('leaves a label off a Market that is not a choice card', async () => {
+      const event = makePredictNextCompositeGameEvent();
+      const markets = event.markets.map((candidate) =>
+        candidate.group?.groupType === 'marketSelector'
+          ? {
+              ...candidate,
+              group: { ...candidate.group, label: 'Total points' },
+            }
+          : candidate,
+      );
+      const market = markets.find((candidate) => candidate.group?.label);
+      const position = makePredictNextPosition({
+        marketId: market?.id,
+        context: undefined,
+      });
+      const { view } = await renderPositions({ ...event, markets }, [position]);
+
+      expect(
+        cardOf(view, position).getByText(
+          positionTitle(position, market?.outcomes[0].label),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back without a current value, PnL, average price or ask, and disables Buy', async () => {
+      const event = makePredictNextCompositeGameEvent();
+      const [market] = event.markets;
+      const unpriced: PredictEvent = {
+        ...event,
+        markets: [
+          {
+            ...market,
+            outcomes: [
+              { ...market.outcomes[0], askPrice: undefined },
+              { ...market.outcomes[1], askPrice: undefined },
+            ],
+          },
+          ...event.markets.slice(1),
+        ],
+      };
+      const position = makePredictNextPosition({
+        marketId: market.id,
+        averagePrice: undefined,
+        currentValue: undefined,
+        unrealizedPnl: undefined,
+        unrealizedPnlPercent: undefined,
+      });
+      const { view, callbacks } = await renderPositions(unpriced, [position]);
+      const card = cardOf(view, position);
+      const ids = (id: (marketId: string, side: string) => string) =>
+        id(position.marketId, position.side);
+
+      expect(
+        card.getByTestId(ids(EventMarketListTestIds.positionValue)),
+      ).toHaveTextContent('–');
+      expect(
+        card.queryByTestId(ids(EventMarketListTestIds.positionPnl)),
+      ).not.toBeOnTheScreen();
+      expect(
+        card.queryByTestId(ids(EventMarketListTestIds.positionChance)),
+      ).not.toBeOnTheScreen();
+      // Without an average price, screen readers still hear the shares.
+      expect(
+        card.getByLabelText(
+          new RegExp(`, ${formatSharesAmount(position.shares)} shares$`),
+        ),
+      ).toBeOnTheScreen();
+      const buy = card.getByTestId(ids(EventMarketListTestIds.positionBuy));
+      expect(buy).toHaveTextContent('Buy –');
+      expect(buy).toHaveProp('accessibilityLabel', 'Buy, price unavailable');
+      expect(buy).toBeDisabled();
+
+      fireEvent.press(buy);
+      fireEvent.press(
+        card.getByTestId(ids(EventMarketListTestIds.positionCashOut)),
+      );
+
+      expect(callbacks.onOrder).not.toHaveBeenCalled();
+      expect(callbacks.onCashOut).toHaveBeenCalledWith(position);
+    });
   });
 });

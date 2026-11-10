@@ -1,6 +1,7 @@
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
@@ -104,6 +105,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
+  requireSocialProfile,
   testID,
 }) => {
   const query = useMemo(
@@ -125,6 +127,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     error,
     refresh,
   } = useSocialFeed(query, { filterPost });
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const state = getSocialFeedListState({
     postCount: posts.length,
     isLoading,
@@ -141,12 +144,21 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
         post={post}
+        requireSocialTerms
+        requireSocialProfile={requireSocialProfile}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={post.position ? onPositionPress : undefined}
+        showCopyTrade={post.item.author.id !== viewerProfileId}
       />
     ),
-    [onAuthorPress, onCopyTrade, onPositionPress],
+    [
+      onAuthorPress,
+      onCopyTrade,
+      onPositionPress,
+      requireSocialProfile,
+      viewerProfileId,
+    ],
   );
 
   return (

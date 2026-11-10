@@ -3,8 +3,14 @@ import type {
   Position,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
-import { act, fireEvent, screen, within } from '@testing-library/react-native';
-import { Share } from 'react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
+import Share from 'react-native-share';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { ImpactMoment } from '../../../../util/haptics';
@@ -17,6 +23,14 @@ import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { createSocialOgImage } from '../navigation/socialOgImageService';
+
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn(() => Promise.resolve({ success: true, message: '' })),
+  },
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -27,6 +41,7 @@ const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockPlayErrorNotification = jest.fn().mockResolvedValue(undefined);
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playImpact: (...args: unknown[]) => mockPlayImpact(...args),
@@ -94,6 +109,16 @@ jest.mock(
       mockSelectSocialLeaderboardPerpsEnabled(),
   }),
 );
+
+jest.mock('../navigation/socialOgImageService', () => ({
+  createSocialOgImage: jest
+    .fn()
+    .mockResolvedValue(
+      'https://social.dev-api.cx.metamask.io/api/v1/og-images/card.png?v=1',
+    ),
+  getSocialOgDefaultImageUrl: () =>
+    'https://social.dev-api.cx.metamask.io/api/v1/og-images/default.jpg',
+}));
 
 let mockNotificationPreferences: SocialAIPreference = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -483,22 +508,60 @@ describe('TraderProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shares the trader profile deeplink from the header', () => {
-    const shareSpy = jest
-      .spyOn(Share, 'share')
-      .mockResolvedValue({ action: Share.sharedAction });
+  it('shares the trader profile deeplink from the header', async () => {
     renderWithProvider(<TraderProfileView />);
 
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
     );
 
-    expect(shareSpy).toHaveBeenCalledWith({
-      url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message:
+          'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
+        url: 'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
+        failOnCancel: false,
+      });
     });
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
     ).toHaveProp('accessibilityLabel', 'Share profile');
+  });
+
+  it('shows a spinner in place of the share button until the share sheet opens', async () => {
+    let finishCard: (url: string) => void = () => undefined;
+    (createSocialOgImage as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          finishCard = resolve;
+        }),
+    );
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(TraderProfileViewSelectorsIDs.SHARE_SPINNER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(Share.open).not.toHaveBeenCalled();
+
+    finishCard(
+      'https://social.dev-api.cx.metamask.io/api/v1/og-images/card.png?v=3',
+    );
+
+    expect(
+      await screen.findByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(Share.open).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.SHARE_SPINNER),
+    ).not.toBeOnTheScreen();
   });
 
   describe('safe area layout', () => {
@@ -783,6 +846,26 @@ describe('TraderProfileView', () => {
 
     expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
     expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+  });
+
+  it('does not navigate when a flagged position is pressed', () => {
+    const flaggedPosition = {
+      ...fixtureOpenPositions[0],
+      flags: ['insider'],
+    };
+    mockPositionsResult.openPositions = [flaggedPosition];
+
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId('position-row-flag-label-STARKBOT'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
+    ).toBeUndefined();
   });
 
   it('navigates to the trader position view when a position is pressed', () => {
@@ -1205,6 +1288,7 @@ describe('TraderProfileView', () => {
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
       expect(screen.getByText('P&L %')).toBeOnTheScreen();
+      expect(mockPlaySelection).toHaveBeenCalledTimes(5);
     });
 
     it('triggers a haptic on each sort tap', () => {

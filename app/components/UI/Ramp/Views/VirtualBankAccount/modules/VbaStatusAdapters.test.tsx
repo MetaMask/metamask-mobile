@@ -1,14 +1,15 @@
 import React, { type ComponentType } from 'react';
 import { Linking } from 'react-native';
 import { act, render } from '@testing-library/react-native';
-import VbaKycPending from '../../../../KYC/Views/Status/KycPending';
-import VbaKycRejected from '../../../../KYC/Views/Status/KycRejected';
+import KycPending from '../../../../KYC/Views/Status/KycPending';
+import KycRejected from '../../../../KYC/Views/Status/KycRejected';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
 import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
+import { trackKycVerificationUpdated } from '../../../../KYC/utils/kycVerificationAnalytics';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
@@ -34,10 +35,13 @@ jest.mock('../../../../KYC/Views/Status/KycPending');
 jest.mock('../../../../KYC/Views/Status/KycRejected');
 jest.mock('../hooks/useVbaOnboardingRouting');
 jest.mock('../../../../KYC/hooks/useKycStatusRedirect');
+jest.mock('../../../../KYC/utils/kycVerificationAnalytics', () => ({
+  trackKycVerificationUpdated: jest.fn(),
+}));
 
 const mockVbaOnboardingStub = jest.mocked(VbaOnboardingStub);
-const mockVbaKycPending = jest.mocked(VbaKycPending);
-const mockVbaKycRejected = jest.mocked(VbaKycRejected);
+const mockKycPending = jest.mocked(KycPending);
+const mockKycRejected = jest.mocked(KycRejected);
 const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
 const mockUseVbaKycStatusRedirect = jest.mocked(useVbaKycStatusRedirect);
 const mockAdvance = jest.fn<Promise<void>, [unknown?]>();
@@ -72,8 +76,8 @@ describe('VbaStatusAdapters', () => {
       kycStatus: 'rejected',
     });
     mockVbaOnboardingStub.mockImplementation(() => <></>);
-    mockVbaKycPending.mockImplementation(() => <></>);
-    mockVbaKycRejected.mockImplementation(() => <></>);
+    mockKycPending.mockImplementation(() => <></>);
+    mockKycRejected.mockImplementation(() => <></>);
   });
 
   it.each(adapterCases)(
@@ -93,7 +97,7 @@ describe('VbaStatusAdapters', () => {
   it('renders the KYC pending screen with the status watcher instead of a stub', () => {
     render(<VbaKycPendingAdapter />);
 
-    expect(mockVbaKycPending).toHaveBeenCalledTimes(1);
+    expect(mockKycPending).toHaveBeenCalledTimes(1);
     expect(mockUseVbaKycStatusRedirect).toHaveBeenCalledTimes(1);
     expect(mockVbaOnboardingStub).not.toHaveBeenCalled();
     expect(mockUseOpenVbaOnboarding).not.toHaveBeenCalled();
@@ -101,7 +105,7 @@ describe('VbaStatusAdapters', () => {
 
   it('opens support from a rejected KYC session', async () => {
     render(<VbaKycRejectedAdapter />);
-    const rejectedProps = mockVbaKycRejected.mock.calls[0][0];
+    const rejectedProps = mockKycRejected.mock.calls[0][0];
 
     rejectedProps.onAction();
 
@@ -117,13 +121,14 @@ describe('VbaStatusAdapters', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://support.example/path',
     );
+    expect(trackKycVerificationUpdated).not.toHaveBeenCalled();
   });
 
   it('opens support when no KYC session is stored', () => {
     mockUseSelector.mockReturnValue(null);
 
     render(<VbaKycRejectedAdapter />);
-    const rejectedProps = mockVbaKycRejected.mock.calls[0][0];
+    const rejectedProps = mockKycRejected.mock.calls[0][0];
 
     expect(rejectedProps.action).toBe('contactSupport');
     expect(mockUseOpenVbaOnboarding).not.toHaveBeenCalled();
@@ -136,7 +141,7 @@ describe('VbaStatusAdapters', () => {
     });
 
     render(<VbaKycRejectedAdapter />);
-    const rejectedProps = mockVbaKycRejected.mock.calls[0][0];
+    const rejectedProps = mockKycRejected.mock.calls[0][0];
 
     expect(rejectedProps.action).toBe('contactSupport');
     expect(mockUseOpenVbaOnboarding).not.toHaveBeenCalled();
@@ -150,7 +155,7 @@ describe('VbaStatusAdapters', () => {
     });
 
     render(<VbaKycRejectedAdapter />);
-    const rejectedProps = mockVbaKycRejected.mock.calls[0][0];
+    const rejectedProps = mockKycRejected.mock.calls[0][0];
 
     await act(rejectedProps.onAction);
 
@@ -158,5 +163,25 @@ describe('VbaStatusAdapters', () => {
     expect(mockUseOpenVbaOnboarding).toHaveBeenCalledWith('kyc_rejected-retry');
     expect(mockAdvance).toHaveBeenCalledWith({ retryRejectedKyc: true });
     expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+  });
+
+  it('tracks retry_started with the kyc_rejected source before reopening a retryable session', async () => {
+    mockUseSelector.mockReturnValue({
+      finalStatus: 'pending',
+      kycStatus: 'retry',
+    });
+
+    render(<VbaKycRejectedAdapter />);
+    const rejectedProps = mockKycRejected.mock.calls[0][0];
+
+    await act(rejectedProps.onAction);
+
+    expect(trackKycVerificationUpdated).toHaveBeenCalledWith({
+      status: 'retry_started',
+      retrySource: 'kyc_rejected',
+    });
+    expect(
+      jest.mocked(trackKycVerificationUpdated).mock.invocationCallOrder[0],
+    ).toBeLessThan(mockAdvance.mock.invocationCallOrder[0]);
   });
 });

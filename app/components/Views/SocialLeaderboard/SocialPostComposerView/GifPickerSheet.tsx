@@ -20,10 +20,19 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
+import { selectAiSocialGifApiEnabled } from '../../../../selectors/featureFlagController/socialGifApi';
 import { GifPickerSheetSelectorsIDs } from './GifPickerSheet.testIds';
-import type { KlipyGif } from './klipyClient';
+import { useGifs } from './useGifs';
 import { useKlipyGifs } from './useKlipyGifs';
+
+interface PickerGif {
+  id: string;
+  title: string;
+  previewUrl: string;
+  gifUrl: string;
+}
 
 export interface GifPickerSheetProps {
   onSelect: (gifUrl: string) => void;
@@ -39,17 +48,22 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
   const tw = useTailwind();
   const { height } = useWindowDimensions();
   const [query, setQuery] = useState('');
-  const { gifs, isLoading, error, loadMore, retry } = useKlipyGifs(query, true);
+  const gifApiEnabled = useSelector(selectAiSocialGifApiEnabled);
+  const klipyGifs = useKlipyGifs(query, !gifApiEnabled);
+  const socialGifs = useGifs(query, gifApiEnabled);
+  const activeGifs = gifApiEnabled ? socialGifs : klipyGifs;
+  const gifs: PickerGif[] = gifApiEnabled ? socialGifs.gifs : klipyGifs.gifs;
+  const { isLoading, error, loadMore, retry } = activeGifs;
   const panelHeight = Math.max(280, Math.round(height * 0.42));
 
   const handleSelect = useCallback(
-    (gif: KlipyGif) => {
+    (gif: PickerGif) => {
       onSelect(gif.gifUrl);
     },
     [onSelect],
   );
 
-  const renderItem = useCallback<ListRenderItem<KlipyGif>>(
+  const renderItem = useCallback<ListRenderItem<PickerGif>>(
     ({ item }) => (
       <Pressable
         onPress={() => handleSelect(item)}
@@ -112,12 +126,12 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
                   placeholder={strings(
                     'social_leaderboard.composer.gifs_search_placeholder',
                   )}
+                  inputAccessibilityLabel={strings(
+                    'social_leaderboard.composer.gifs_search_placeholder',
+                  )}
                   autoFocus={false}
                   inputProps={{
                     testID: GifPickerSheetSelectorsIDs.SEARCH_INPUT,
-                    accessibilityLabel: strings(
-                      'social_leaderboard.composer.gifs_search_placeholder',
-                    ),
                   }}
                 />
               </Box>

@@ -2,9 +2,11 @@ import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
-import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
+import { KalshiDebugTestIds } from '../../onboarding/KalshiDebugPanel';
 import { PredictHomeTestIds } from './PredictHome.testIds';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
+import { EventMarketListTestIds } from '../PredictEvent/internal/EventMarketList.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
@@ -23,6 +25,7 @@ import type {
 import {
   NCAA_FEED_SCREEN_ID,
   NFL_FEED_SCREEN_ID,
+  POLITICS_FEED_SCREEN_ID,
 } from '../../navigation/feedScreens';
 import {
   answerPredictNextCatalog,
@@ -34,12 +37,16 @@ import {
   mockPredictNextMessenger,
   ncaaEvents,
   nflEvents,
+  politicsEvents,
   PREDICT_NEXT_FEED_IDS,
   publishPredictNextGameLiveUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
-const { nflGames: NFL_GAMES_FEED_ID, ncaaGames: NCAA_GAMES_FEED_ID } =
-  PREDICT_NEXT_FEED_IDS;
+const {
+  nflGames: NFL_GAMES_FEED_ID,
+  ncaaGames: NCAA_GAMES_FEED_ID,
+  politicsTrump: POLITICS_TRUMP_FEED_ID,
+} = PREDICT_NEXT_FEED_IDS;
 
 describe('PredictHome', () => {
   beforeEach(() => {
@@ -78,6 +85,79 @@ describe('PredictHome', () => {
       view.getByTestId(PredictHomeTestIds.TITLE_SECTION),
     ).toBeOnTheScreen();
     expect(view.getAllByText('Predictions').length).toBeGreaterThan(1);
+  });
+
+  it('shows the user debug control on a development build with Kalshi on', async () => {
+    const view = renderPredictNext();
+
+    expect(await view.findByTestId(KalshiDebugTestIds.OPEN)).toBeOnTheScreen();
+  });
+
+  it('hides the user debug control when Kalshi authentication is off', async () => {
+    const view = renderPredictNext(false, {
+      remoteFeatureFlags: {
+        predictConfig: {
+          enabled: true,
+          venues: {
+            polymarket: { enabled: false },
+            kalshi: { enabled: false },
+          },
+          venueSelection: { enabled: false },
+        },
+      },
+    });
+
+    await view.findByTestId(PredictHomeTestIds.HOME);
+
+    expect(view.queryByTestId(KalshiDebugTestIds.OPEN)).not.toBeOnTheScreen();
+  });
+
+  it('hides the user debug control on a release build', async () => {
+    const devGlobal = globalThis as { __DEV__?: boolean };
+    const originalDev = devGlobal.__DEV__;
+    devGlobal.__DEV__ = false;
+
+    try {
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.HOME);
+
+      expect(view.queryByTestId(KalshiDebugTestIds.OPEN)).not.toBeOnTheScreen();
+    } finally {
+      devGlobal.__DEV__ = originalDev;
+    }
+  });
+
+  it('floats the header over the content when the Predict brand refresh is on', async () => {
+    const view = renderPredictNext(false, {
+      remoteFeatureFlags: {
+        predictBrandRefresh: { enabled: true, minimumVersion: '0.0.0' },
+      },
+    });
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(view.getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
+        .paddingTop,
+    ).toBeGreaterThan(0);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.SEARCH));
+
+    expect(
+      await view.findByTestId(PredictSearchScreenTestIds.VIEW),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the solid header when the Predict brand refresh is off', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(view.queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+    expect(
+      view.getByTestId(PredictHomeTestIds.SCROLL).props.contentContainerStyle
+        .paddingTop,
+    ).toBe(0);
   });
 
   it('keeps the compact header title and feed mounted after scrolling past the title section', async () => {
@@ -411,7 +491,11 @@ describe('PredictHome', () => {
       // the two watches in either order. The ids are the contract, not the
       // arrival order; sorting keeps extra or duplicate watches failing.
       expect(watchedEventIds().sort()).toEqual(
-        [...eventIds(nflEvents), ...eventIds(ncaaEvents)].sort(),
+        [
+          ...eventIds(nflEvents),
+          ...eventIds(ncaaEvents),
+          ...eventIds(politicsEvents),
+        ].sort(),
       );
       expect(
         liveDataCalls().filter(
@@ -482,7 +566,11 @@ describe('PredictHome', () => {
       expect(messengerCall).toHaveBeenCalledWith(
         'PredictLiveDataService:unwatchEvents',
         'kalshi',
-        [...eventIds(nflEvents), ...eventIds(ncaaEvents)],
+        [
+          ...eventIds(nflEvents),
+          ...eventIds(ncaaEvents),
+          ...eventIds(politicsEvents),
+        ],
         CARD_SCOPE,
       );
 
@@ -492,7 +580,11 @@ describe('PredictHome', () => {
         expect(messengerCall).toHaveBeenCalledWith(
           'PredictLiveDataService:watchEvents',
           'kalshi',
-          [...eventIds(nflEvents), ...eventIds(ncaaEvents)],
+          [
+            ...eventIds(nflEvents),
+            ...eventIds(ncaaEvents),
+            ...eventIds(politicsEvents),
+          ],
           CARD_SCOPE,
         ),
       );
@@ -563,7 +655,7 @@ describe('PredictHome', () => {
           venueId: 'kalshi',
           id: feedId,
           title: 'NCAAF Games',
-          events: ncaaEvents,
+          events: feedId === NCAA_GAMES_FEED_ID ? ncaaEvents : politicsEvents,
         });
       },
     );
@@ -684,7 +776,7 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
     expect(
-      await view.findByTestId(MarketFooterCardTestIds.ROOT),
+      await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
     ).toBeOnTheScreen();
     expect(messengerCall.mock.calls).toEqual(
       expect.arrayContaining([
@@ -857,6 +949,100 @@ describe('PredictHome', () => {
       expect(
         view.queryByTestId(PredictHomeTestIds.SEARCH),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Politics section', () => {
+    it('shows the Politics section with its Trump preview Events', async () => {
+      const view = renderPredictNext();
+
+      const section = await waitFor(() =>
+        view.getByTestId(PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID)),
+      );
+      expect(section).toBeOnTheScreen();
+      expect(
+        within(
+          view.getByTestId(
+            PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+          ),
+        ).getByText('Politics'),
+      ).toBeOnTheScreen();
+      expect(
+        await view.findByTestId(
+          PredictHomeTestIds.event('kalshi', 'politics-1'),
+        ),
+      ).toBeOnTheScreen();
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getFeed',
+        'kalshi',
+        POLITICS_TRUMP_FEED_ID,
+        { limit: 2 },
+      );
+    });
+
+    it('opens the Politics Feed Screen from the section header', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      fireEvent.press(
+        view.getByTestId(
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+        ),
+      );
+
+      // Loaded Politics rows also show a "Politics" category label, so the
+      // screen title is read from the header only.
+      expect(
+        await view.findByTestId(PredictFeedScreenTestIds.HEADER),
+      ).toBeOnTheScreen();
+      expect(
+        within(view.getByTestId(PredictFeedScreenTestIds.HEADER)).getByText(
+          'Politics',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the Event screen from a Politics card', async () => {
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(
+          PredictHomeTestIds.eventContent('kalshi', 'politics-1'),
+        ),
+      );
+
+      // The screen's root is replaced when the Event read settles, so wait
+      // for the loaded header rather than the loading chrome.
+      expect(
+        await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the Politics section and reads no Politics Feed when the Venue lacks the Trump key', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          'nfl-games': KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'],
+          'politics-congress':
+            KALSHI_STATIC_VENUE_CATALOG.feeds['politics-congress'],
+          'politics-iran': KALSHI_STATIC_VENUE_CATALOG.feeds['politics-iran'],
+        },
+      });
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(
+        messengerCall.mock.calls.filter(
+          ([action, , feedId]) =>
+            action === 'PredictMarketDataService:getFeed' &&
+            feedId === POLITICS_TRUMP_FEED_ID,
+        ),
+      ).toHaveLength(0);
     });
   });
 

@@ -5,6 +5,10 @@ import { act } from '@testing-library/react-native';
 import { BigNumber } from 'ethers';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
+import { BridgeEntryPoint } from '../../HardwareWallet/Swaps/flowStrategy';
+import { notifyHwSubmissionOutcome } from '../../HardwareWallet/Swaps/hwSubmissionOutcome';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { useDisplayCurrencyValue } from '../../Bridge/hooks/useDisplayCurrencyValue';
 import { useFormattedNetworkFee } from '../../Bridge/hooks/useFormattedNetworkFee';
 import {
@@ -18,6 +22,8 @@ import {
   selectIsSlippageUserOverride,
   selectIsSubmittingTx,
   selectSlippage,
+  resetHardwareWalletsSwaps,
+  updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
@@ -37,6 +43,7 @@ import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
 import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance';
+import { useInsufficientNativeReserveError } from '../../Bridge/hooks/useInsufficientNativeReserveError';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { usePriceImpactViewData } from '../../Bridge/hooks/usePriceImpactViewData';
@@ -73,6 +80,7 @@ import {
   getPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
@@ -119,12 +127,21 @@ const mockRecordSocialTrade = recordSocialTrade as jest.MockedFunction<
   typeof recordSocialTrade
 >;
 const mockResolvePostTradePrompt = jest.fn();
+const mockIsUnsupportedPostTradeAsset = jest.mocked(
+  isUnsupportedPostTradeAsset,
+);
 
 const mockAddPopularNetwork = jest.fn();
 const mockTrackAmountSelected = jest.fn();
 const mockGoToBuy = jest.fn().mockResolvedValue(undefined);
 const mockTrackTradeSubmitted = jest.fn();
 const mockTrackTradeCompleted = jest.fn();
+const mockPreserveBridgeStateOnUnmount = jest.fn();
+const mockNavigate = (
+  jest.requireMock('@react-navigation/native') as {
+    useNavigation: () => { navigate: jest.Mock };
+  }
+).useNavigation().navigate;
 const mockTrackQuoteSelected = jest.fn();
 const mockTrackPayWithSelected = jest.fn();
 const mockTrackReceiveTokenSelected = jest.fn();
@@ -240,6 +257,7 @@ export const setupDefaultMocks = () => {
     trackTradeSubmitted: mockTrackTradeSubmitted,
     trackTradeCompleted: mockTrackTradeCompleted,
     markTradeSubmitted: jest.fn(),
+    preserveBridgeStateOnUnmount: mockPreserveBridgeStateOnUnmount,
   } as ReturnType<typeof useQuickBuyAnalytics>);
 
   // Each useSelector call is dispatched to the corresponding mocked selector.
@@ -311,6 +329,7 @@ export const setupDefaultMocks = () => {
   });
 
   mockUseIsInsufficientBalance.mockReturnValue(false);
+  (useInsufficientNativeReserveError as jest.Mock).mockReturnValue(undefined);
   mockUseHasSufficientGas.mockReturnValue(true);
   (
     selectIsGasIncludedSTXSendBundleSupported as unknown as jest.Mock
@@ -335,6 +354,7 @@ export const setupDefaultMocks = () => {
   });
   (getTokenExchangeRate as jest.Mock).mockResolvedValue(undefined);
   mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+  mockIsUnsupportedPostTradeAsset.mockReturnValue(false);
   (usePostTradePromptResolver as jest.Mock).mockReturnValue(
     mockResolvePostTradePrompt,
   );
@@ -1178,6 +1198,23 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.getButtonLabel()).toBe(
           'bridge.insufficient_funds',
         );
+      });
+
+      it('returns the native-reserve label and disables confirm when the amount eats the reserve', () => {
+        const { result, rerender, props } = settleQuote();
+        expect(result.current.isConfirmDisabled).toBe(false);
+
+        (useInsufficientNativeReserveError as jest.Mock).mockReturnValue({
+          minimumNativeBalanceToBeKeptInAccount: '3',
+          maxSwappableNativeBalance: '1',
+        });
+        rerender(props);
+
+        expect(result.current.buttonError).toBe('insufficient_native_reserve');
+        expect(result.current.getButtonLabel()).toBe(
+          'social_leaderboard.quick_buy.insufficient_native_reserve',
+        );
+        expect(result.current.isConfirmDisabled).toBe(true);
       });
 
       it('returns the insufficient-gas label when gas is short', () => {
@@ -3136,6 +3173,199 @@ export const runQuickBuyControllerCases = ({
           inputPrimaryDenomination: 'token_amount',
           migrationPhase: '1.5',
         });
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockPreserveBridgeStateOnUnmount).not.toHaveBeenCalled();
+      });
+
+      describe('hardware wallet accounts', () => {
+        const startHardwareWalletConfirm = async (
+          copyTradeOrigin?: CopyTradeOrigin,
+        ) => {
+          const { isHardwareAccount } = jest.requireMock(
+            '../../../../util/address',
+          );
+          isHardwareAccount.mockReturnValue(true);
+          const activeQuote = createActiveQuote({
+            quoteId: 'quote-request-1',
+            quote: { dest: { normalizedAmount: '5' } },
+          });
+          setupQuoteSourceMock(
+            createQuoteState({ activeQuote, destTokenAmount: '5' }),
+          );
+          const onClose = jest.fn();
+          const { result } = renderHook(
+            createTarget(),
+            onClose,
+            { source: 'profile_position' },
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
+          act(() => {
+            result.current.handleAmountChange('20');
+          });
+
+          let confirmPromise: Promise<void> = Promise.resolve();
+          await act(async () => {
+            confirmPromise = result.current.handleConfirm();
+          });
+          const [, params] = mockNavigate.mock.calls[0];
+          return {
+            activeQuote,
+            onClose,
+            confirmPromise,
+            outcomeListenerId: params.submissionParams
+              .outcomeListenerId as string,
+          };
+        };
+
+        it('signs on the HW screen instead of submitting directly', async () => {
+          const { activeQuote, onClose } = await startHardwareWalletConfirm();
+
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).not.toHaveBeenCalled();
+          expect(
+            Engine.context.BridgeStatusController.submitIntent,
+          ).not.toHaveBeenCalled();
+          expect(mockPreserveBridgeStateOnUnmount).toHaveBeenCalledTimes(1);
+          expect(resetHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+          expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith(
+            expect.objectContaining({
+              payload: expect.objectContaining({ totalSteps: 1 }),
+            }),
+          );
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+            {
+              bridgeEntryPoint: BridgeEntryPoint.QuickBuy,
+              submissionParams: {
+                quoteResponse: activeQuote,
+                postTradeModalParams: expect.objectContaining({
+                  destAmount: '5',
+                  destToken: expect.objectContaining({ symbol: 'TARGET' }),
+                }),
+                outcomeListenerId: expect.any(String),
+              },
+            },
+          );
+          expect(onClose).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(mockTrackTradeCompleted).not.toHaveBeenCalled();
+        });
+
+        it('runs the regular post-submit handling once the HW session submits', async () => {
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, {
+              status: 'submitted',
+              transaction: { id: 'tx-1', hash: '0xhash' } as TransactionMeta,
+            });
+            await confirmPromise;
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockRecordSocialTrade).toHaveBeenCalledTimes(1);
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ status: 'success', tx_hash: '0xhash' }),
+          );
+        });
+
+        it('treats a HW session that ends without submitting as a failed trade', async () => {
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, { status: 'failed' });
+            await confirmPromise;
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockRecordSocialTrade).not.toHaveBeenCalled();
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ status: 'failed' }),
+          );
+        });
+
+        it('opens the share sheet only after the HW session submits', async () => {
+          mockResolvePostTradePrompt.mockReturnValue({
+            kind: 'share_sheet',
+            countKey: { address: '0xlinked', product: 'swap' },
+          });
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          expect(getPostTradeShareSession()).toBeNull();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, {
+              status: 'submitted',
+              transaction: { id: 'tx-1', hash: '0xhash' } as TransactionMeta,
+            });
+            await confirmPromise;
+          });
+
+          expect(getPostTradeShareSession()).toEqual(
+            expect.objectContaining({
+              status: 'pending',
+              variant: 'share',
+              transactionHash: '0xhash',
+            }),
+          );
+          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+        });
+
+        it('never opens the share sheet when the HW session ends without submitting', async () => {
+          mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, { status: 'failed' });
+            await confirmPromise;
+          });
+
+          expect(getPostTradeShareSession()).toBeNull();
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+        });
+
+        it('never opens the share sheet after signing a quote token trade', async () => {
+          mockIsUnsupportedPostTradeAsset.mockReturnValue(true);
+          mockResolvePostTradePrompt.mockReturnValue({
+            kind: 'share_sheet',
+            countKey: { address: '0xlinked', product: 'swap' },
+          });
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, {
+              status: 'submitted',
+              transaction: { id: 'tx-1', hash: '0xhash' } as TransactionMeta,
+            });
+            await confirmPromise;
+          });
+
+          expect(getPostTradeShareSession()).toBeNull();
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        });
+
+        it('posts the copy-trade intent before signing', async () => {
+          await startHardwareWalletConfirm({
+            commentId: '7f1a9c2e-5b8d-4e3f-9a6c-1d2e3f4a5b6c',
+          });
+
+          expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+            'SocialService:createCopyTradeIntent',
+            expect.objectContaining({
+              execution: { product: 'swaps', quoteId: 'quote-request-1' },
+            }),
+          );
+        });
       });
 
       it('records social activity after a resolved social Quick Buy', async () => {
@@ -3563,6 +3793,7 @@ export const runQuickBuyControllerCases = ({
             expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
               expect.objectContaining({
                 execution_time_ms: 250,
+                tx_hash: '0xabc',
               }),
             );
           } finally {
@@ -3632,6 +3863,88 @@ export const runQuickBuyControllerCases = ({
 
           expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
             expect.objectContaining({ amount_usd: 20 }),
+          );
+        });
+
+        it('omits tx_hash when an intent history item has no chain hash', async () => {
+          mockSuccessfulSubmit();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-intent' });
+          (
+            Engine.context.BridgeStatusController as {
+              state?: {
+                txHistory: Record<string, { originalTransactionId?: string }>;
+              };
+            }
+          ).state = {
+            txHistory: {
+              'order-uid-1': { originalTransactionId: 'tx-intent' },
+            },
+          };
+
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ status: 'success' }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.not.objectContaining({ tx_hash: expect.anything() }),
+          );
+        });
+
+        it('includes tx_hash from bridge history when the submit result has none', async () => {
+          mockSuccessfulSubmit();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-stx' });
+          (
+            Engine.context.BridgeStatusController as {
+              state?: {
+                txHistory: Record<
+                  string,
+                  { status?: { srcChain?: { txHash?: string } } }
+                >;
+              };
+            }
+          ).state = {
+            txHistory: {
+              'tx-stx': { status: { srcChain: { txHash: '0xsrc' } } },
+            },
+          };
+
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({
+              status: 'success',
+              tx_hash: '0xsrc',
+            }),
+          );
+        });
+
+        it('omits tx_hash on success when no hash can be resolved', async () => {
+          mockSuccessfulSubmit();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-missing' });
+
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.not.objectContaining({ tx_hash: expect.anything() }),
           );
         });
 
@@ -3741,10 +4054,18 @@ export const runQuickBuyControllerCases = ({
       });
 
       describe('stay-on-screen swap toasts', () => {
-        const mockUsableQuote = () => {
+        const mockUsableQuote = (amount = '20') => {
           setupQuoteSourceMock(
             createQuoteState({
-              activeQuote: createActiveQuote(),
+              activeQuote: createActiveQuote({
+                quote: {
+                  src: {
+                    amount: BigNumber.from(amount)
+                      .mul('1000000000000000')
+                      .toString(),
+                  },
+                },
+              }),
               destTokenAmount: '1',
             }),
           );
@@ -3802,7 +4123,7 @@ export const runQuickBuyControllerCases = ({
           });
         });
 
-        it('uses the source chain for the in-flight trade hash', async () => {
+        it('labels the in-flight trade with the bought token chain when the pay token is on another chain', async () => {
           mockUsableQuote();
           (
             Engine.context.BridgeStatusController.submitTx as jest.Mock
@@ -3817,6 +4138,9 @@ export const runQuickBuyControllerCases = ({
             true,
           );
 
+          act(() => {
+            result.current.handleAmountChange('20');
+          });
           await act(async () => {
             await result.current.handleConfirm();
           });
@@ -3824,7 +4148,7 @@ export const runQuickBuyControllerCases = ({
           expect(getPostTradeShareSession()).toEqual(
             expect.objectContaining({
               status: 'pending',
-              tradeInFlightChain: 'ethereum',
+              tradeInFlightChain: 'base',
               preview: expect.objectContaining({
                 chain: 'base',
               }),
@@ -3833,6 +4157,36 @@ export const runQuickBuyControllerCases = ({
           expect(buildQuickBuyToastOptions).not.toHaveBeenCalledWith(
             'pending',
             expect.anything(),
+          );
+        });
+
+        it('labels a Robinhood buy paid in ETH with the Robinhood chain', async () => {
+          mockUsableQuote();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+          const { result } = renderHook(
+            createTarget({ chain: 'robinhood' }),
+            jest.fn(),
+            undefined,
+            undefined,
+            'buy',
+            true,
+          );
+
+          act(() => {
+            result.current.handleAmountChange('20');
+          });
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(getPostTradeShareSession()).toEqual(
+            expect.objectContaining({
+              tradeInFlightChain: 'robinhood',
+              preview: expect.objectContaining({ chain: 'robinhood' }),
+            }),
           );
         });
 
@@ -3856,6 +4210,9 @@ export const runQuickBuyControllerCases = ({
             'social-v1-feed',
           );
 
+          act(() => {
+            result.current.handleAmountChange('20');
+          });
           await act(async () => {
             await result.current.handleConfirm();
           });
@@ -3869,10 +4226,6 @@ export const runQuickBuyControllerCases = ({
         });
 
         it('uses normal Quick Buy feedback for unsupported trade-in-flight chains', async () => {
-          mockUsePayWithTokens.mockReturnValue({
-            options: [createSourceToken({ chainId: '0xa4b1' })],
-            isLoading: false,
-          });
           mockUsableQuote();
           (
             Engine.context.BridgeStatusController.submitTx as jest.Mock
@@ -3927,8 +4280,8 @@ export const runQuickBuyControllerCases = ({
         });
 
         describe('post-trade prompt', () => {
-          const submit = async (postTradeShare?: boolean) => {
-            mockUsableQuote();
+          const submit = async (postTradeShare?: boolean, amount = '20') => {
+            mockUsableQuote(amount);
             (
               Engine.context.BridgeStatusController.submitTx as jest.Mock
             ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
@@ -3940,19 +4293,44 @@ export const runQuickBuyControllerCases = ({
               'buy',
               postTradeShare,
             );
+            act(() => {
+              result.current.handleAmountChange(amount);
+            });
             await act(async () => {
               await result.current.handleConfirm();
             });
           };
 
-          it('opens a pending share sheet that counts toward the limit', async () => {
+          const mockShareSheetPrompt = () => {
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'share_sheet',
+              countKey: { address: '0xlinked', product: 'swap' },
+            });
+          };
+
+          const expectNormalQuickBuyFeedback = () => {
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: false,
+                postTradePrompt: undefined,
+              }),
+            );
+          };
+
+          it.each([
+            ['the minimum amount', '10'],
+            ['an amount above the minimum', '20'],
+          ])('opens a pending share sheet for %s', async (_, amount) => {
             const countKey = { address: '0xlinked', product: 'swap' };
             mockResolvePostTradePrompt.mockReturnValue({
               kind: 'share_sheet',
               countKey,
             });
 
-            await submit();
+            await submit(false, amount);
 
             expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('swap');
             expect(getPostTradeShareSession()).toEqual(
@@ -4010,11 +4388,44 @@ export const runQuickBuyControllerCases = ({
               expect.objectContaining({
                 postTradePrompt: expect.objectContaining({
                   kind: 'post_to_feed_toast',
-                  tradeInFlightChain: 'ethereum',
+                  tradeInFlightChain: 'base',
                   preview: expect.objectContaining({ side: 'buy' }),
                 }),
               }),
             );
+          });
+
+          it('uses normal toasts for share trades below the minimum amount', async () => {
+            mockShareSheetPrompt();
+
+            await submit(false, '5');
+
+            expectNormalQuickBuyFeedback();
+          });
+
+          it('uses normal toasts for create profile below the minimum amount', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+            await submit(false, '5');
+
+            expectNormalQuickBuyFeedback();
+          });
+
+          it('uses normal toasts for copy-trades below the minimum amount', async () => {
+            await submit(true, '5');
+
+            expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+            expectNormalQuickBuyFeedback();
+          });
+
+          it('uses normal toasts without the post-to-feed link below the minimum amount', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'post_to_feed_toast',
+            });
+
+            await submit(false, '5');
+
+            expectNormalQuickBuyFeedback();
           });
 
           it('skips the prompt for copy-trades', async () => {
@@ -4045,6 +4456,89 @@ export const runQuickBuyControllerCases = ({
                 postTradeShare: false,
                 postTradePrompt: undefined,
               }),
+            );
+          });
+
+          describe('quote token positions', () => {
+            beforeEach(() => {
+              mockIsUnsupportedPostTradeAsset.mockReturnValue(true);
+            });
+
+            it('checks the position token on its own chain', async () => {
+              mockShareSheetPrompt();
+
+              await submit();
+
+              const target = createTarget();
+              expect(mockIsUnsupportedPostTradeAsset).toHaveBeenCalledWith(
+                target.tokenAddress,
+                target.chain,
+              );
+            });
+
+            it('uses normal toasts for a share prompt', async () => {
+              mockShareSheetPrompt();
+
+              await submit();
+
+              expectNormalQuickBuyFeedback();
+            });
+
+            it('uses normal toasts for a create profile prompt', async () => {
+              mockResolvePostTradePrompt.mockReturnValue({
+                kind: 'claim_sheet',
+              });
+
+              await submit();
+
+              expectNormalQuickBuyFeedback();
+            });
+
+            it('uses normal toasts for copy-trades', async () => {
+              await submit(true);
+
+              expectNormalQuickBuyFeedback();
+            });
+
+            it('drops the post-to-feed link', async () => {
+              mockResolvePostTradePrompt.mockReturnValue({
+                kind: 'post_to_feed_toast',
+              });
+
+              await submit();
+
+              expectNormalQuickBuyFeedback();
+            });
+          });
+
+          it('shares a bridged trade when its position token is not a quote token', async () => {
+            mockUsableQuote();
+            (
+              Engine.context.BridgeStatusController.submitTx as jest.Mock
+            ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+            const target = createTarget({ chain: 'robinhood' });
+
+            const { result } = renderHook(
+              target,
+              jest.fn(),
+              undefined,
+              undefined,
+              'buy',
+              true,
+            );
+            act(() => {
+              result.current.handleAmountChange('20');
+            });
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
+
+            expect(mockIsUnsupportedPostTradeAsset).toHaveBeenCalledWith(
+              target.tokenAddress,
+              target.chain,
+            );
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({ tradeInFlightChain: 'robinhood' }),
             );
           });
         });

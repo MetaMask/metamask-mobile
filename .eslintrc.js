@@ -3,6 +3,16 @@
 const {
   routeIsolationZones,
 } = require('./scripts/eslint-route-isolation-zones');
+// Predict boundary fence (PRED-1399): outside Predict, import only
+// `app/components/UI/PredictNext/index.ts`. The zones carry both allowlists
+// (permanent composition wiring and the shrink-only burn-down list) in their
+// `target`, so every override below that sets `import-x/no-restricted-paths`
+// spreads `predictBoundaryZones` verbatim. PRED-1340 migration PRs delete
+// their files from `predictImportBurndownFiles` in
+// scripts/eslint-predict-boundary-zones.js.
+const {
+  predictBoundaryZones,
+} = require('./scripts/eslint-predict-boundary-zones');
 
 // Existing BN.js migration zone, kept in a named const so it can be
 // re-declared by the route-isolation overrides below without duplicating
@@ -56,7 +66,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Money/constants/activityStyles.ts',
   'app/components/UI/Money/hooks/useMoneyAccountBalance.ts',
   'app/components/UI/Money/utils/moneyActivityFiat.ts',
-  'app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx',
   'app/components/UI/Notification/TransactionNotification/index.js',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
@@ -85,7 +94,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/hooks/useGetFormattedTokensPerChain.tsx',
   'app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx',
   'app/core/Engine/Engine.ts',
-  'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
   'app/selectors/earnController/earn/index.ts',
   'app/selectors/multichain/evm.ts',
@@ -100,6 +108,16 @@ const utilNumberImportBurndownFiles = [
   'app/util/transactions/index.js',
   'app/util/transactions/index.test.ts',
 ];
+
+// Shared by the *.view.test.* and tests/component-view/** overrides so the
+// fake-timer ban cannot drift. Covers the whole jest fake-timer API, `*Async`
+// variants included.
+const cvFakeTimerBan = {
+  selector:
+    "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime(Async)?|advanceTimersToNextTimer(Async)?|runAllTimers(Async)?|runOnlyPendingTimers(Async)?|runAllTicks|setSystemTime|clearAllTimers)$/]",
+  message:
+    'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+};
 
 module.exports = {
   root: true,
@@ -178,32 +196,37 @@ module.exports = {
           },
         ],
 
-        // These rule modifications are removing changes to our shared ESLint config made after
-        // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-        // at which point we can restore the intended rules and use error suppression instead.
+        // These rules are off because the shared ESLint config turned them on
+        // after v9, and ESLint 8 cannot save the existing hits. Every rule
+        // below stays off in this change.
         //
-        // TODO: Remove these modifications after the ESLint v9 update
-        '@typescript-eslint/await-thenable': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
-        '@typescript-eslint/consistent-type-exports': 'off',
+        // Fast checks. These do not need type information. Restore them in
+        // the ESLint 9 upgrade and park existing hits in ESLint's
+        // suppressions file.
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/naming-convention': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/prefer-enum-initializers': 'off',
+        // Slow type checks. Leave these off through the ESLint 9 upgrade.
+        // Turn them on in Oxlint and park existing hits in
+        // oxlint-suppressions.json.
+        '@typescript-eslint/await-thenable': 'off',
+        '@typescript-eslint/consistent-type-exports': 'off',
+        '@typescript-eslint/consistent-type-imports': 'off',
         '@typescript-eslint/no-base-to-string': 'off',
         '@typescript-eslint/no-duplicate-type-constituents': 'off',
-        '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-redundant-type-constituents': 'off',
         '@typescript-eslint/no-throw-literal': 'off',
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/only-throw-error': 'off',
-        '@typescript-eslint/prefer-enum-initializers': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
         '@typescript-eslint/prefer-optional-chain': 'off',
@@ -421,6 +444,27 @@ module.exports = {
             message:
               'Only Engine and react-native-device-info can be mocked in component-view tests.',
           },
+          cvFakeTimerBan,
+        ],
+      },
+    },
+    {
+      // Shared component-view helpers keep the base no-restricted-syntax bans
+      // and add the fake-timer ban. The jest.mock ban above does not apply
+      // here (mocks.ts mocks Engine).
+      files: ['tests/component-view/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          cvFakeTimerBan,
         ],
       },
     },
@@ -708,9 +752,13 @@ module.exports = {
         // burn-down allowlist from this override's `excludedFiles`; the
         // burn-down override below intentionally does not re-declare this
         // rule, so allow-listed files remain exempt.
+        //
+        // ESLint replaces this rule per override instead of merging it, so
+        // every override that sets it must spread `predictBoundaryZones`
+        // (scripts/eslint-predict-boundary-zones.test.ts checks that).
         'import-x/no-restricted-paths': [
           'error',
-          { zones: [utilNumberDeprecationZone] },
+          { zones: [utilNumberDeprecationZone, ...predictBoundaryZones] },
         ],
       },
     },
@@ -757,7 +805,11 @@ module.exports = {
         'import-x/no-restricted-paths': [
           'error',
           {
-            zones: [utilNumberDeprecationZone, ...routeIsolationZones],
+            zones: [
+              utilNumberDeprecationZone,
+              ...routeIsolationZones,
+              ...predictBoundaryZones,
+            ],
           },
         ],
       },
@@ -768,12 +820,29 @@ module.exports = {
       // those files complete their BigInt migration; route isolation must
       // still apply so new cross-route imports added to a burn-down file
       // are caught. Route-isolation zones target only `Views/<route>`
-      // paths, so this override is a no-op for non-Views burn-down files.
+      // paths, so they are a no-op for non-Views burn-down files; the
+      // Predict boundary zones apply to every burn-down file.
       files: utilNumberImportBurndownFiles,
       rules: {
         'import-x/no-restricted-paths': [
           'error',
-          { zones: routeIsolationZones },
+          { zones: [...routeIsolationZones, ...predictBoundaryZones] },
+        ],
+      },
+    },
+    {
+      // The default import-fence override excludes these trees (for
+      // expo-haptics and the legacy number utils), which also drops its
+      // `import-x/no-restricted-paths` zones. Give them the Predict boundary
+      // so no file under `app/` falls outside it.
+      files: [
+        'app/util/haptics/**/*.{ts,tsx,js,jsx}',
+        'app/util/number/**/*.{ts,tsx,js,jsx}',
+      ],
+      rules: {
+        'import-x/no-restricted-paths': [
+          'error',
+          { zones: predictBoundaryZones },
         ],
       },
     },
@@ -811,6 +880,17 @@ module.exports = {
     'react-compiler/react-compiler': 'warn',
     'no-catch-shadow': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
+    // Code fencing was removed: nothing strips fence-marker blocks any more, so
+    // fenced code would ship in every build. Gate features at runtime instead.
+    // scripts/check-no-code-fences.sh backs this up in CI for files ESLint
+    // doesn't lint.
+    'no-warning-comments': [
+      'error',
+      {
+        terms: ['BEGIN:ONLY_INCLUDE_IF', 'END:ONLY_INCLUDE_IF'],
+        location: 'anywhere',
+      },
+    ],
     quotes: [
       'error',
       'single',
@@ -919,11 +999,9 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // These rule modifications are removing changes to our shared ESLint config made after
-    // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-    // at which point we can restore the intended rules and use error suppression instead.
-    //
-    // TODO: Remove these modifications after the ESLint v9 update
+    // Fast checks, off for the same reason as the block above. These do not
+    // need type information. Restore them in the ESLint 9 upgrade and park
+    // existing hits in ESLint's suppressions file.
     'react-hooks/rules-of-hooks': 'off',
     'no-loss-of-precision': 'off',
   },

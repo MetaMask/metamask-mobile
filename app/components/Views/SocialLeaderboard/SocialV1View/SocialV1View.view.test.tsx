@@ -59,6 +59,10 @@ import {
 } from '../PostTradeShareBottomSheet/postTradeShareSession';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../terms/socialTermsAcceptance';
 
 const OPEN_PERP_POSITION_ID = 'cv-open-perp';
 const OPEN_PERP_TIMESTAMP = 1_700_000_000;
@@ -70,6 +74,12 @@ const openPerpFeedItem = mockPerpFeedItem({
   isOpen: true,
   timestamp: OPEN_PERP_TIMESTAMP,
   lastTradeAt: OPEN_PERP_TIMESTAMP,
+  authorComment: {
+    uid: `${OPEN_PERP_POSITION_ID}-comment`,
+    text: 'Riding the trend',
+    timestamp: OPEN_PERP_TIMESTAMP,
+    engagement: { reactions: [], userReaction: null },
+  },
   currentValueUSD: 60000,
   realizedPnl: 0,
   trades: [
@@ -93,6 +103,32 @@ const copyTradeButtonTestId =
 
 const perpsModalsRoute = {
   name: Routes.PERPS.MODALS.ROOT,
+};
+
+const profileOnboardingRoute = {
+  name: Routes.SOCIAL.PROFILE_ONBOARDING,
+};
+
+const noLinkedWalletOverrides: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      PerpsController: { isEligible: true },
+      ProfileController: {
+        profile: {
+          profileId: '',
+          username: '',
+          displayName: '',
+          bio: '',
+          linkedAddresses: [],
+          avatarUrl: '',
+          tradingPrivacy: 'public' as const,
+          connectedToX: false,
+          createdAt: '',
+          updatedAt: '',
+        },
+      },
+    },
+  },
 };
 
 const eligibleOverrides = {
@@ -151,6 +187,14 @@ const pressCopyTrade = async () => {
   fireEvent.press(await findTrendingCopyTradeButton());
 };
 
+beforeEach(async () => {
+  await acceptSocialTerms();
+});
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
+
 describe('SocialV1View copy trade', () => {
   beforeEach(() => {
     setupLeaderboardApiMock({ feedItems: [openPerpFeedItem] });
@@ -188,6 +232,23 @@ describe('SocialV1View copy trade', () => {
 
     expect(
       await screen.findByTestId(SocialV1ViewSelectorsIDs.COPY_TRADE_GEO_BLOCK),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.MODALS.ROOT)),
+    ).toBeNull();
+  });
+
+  it('opens profile onboarding instead of the perps order when there is no linked wallet', async () => {
+    renderSocialV1ViewWithRoutes([perpsModalsRoute, profileOnboardingRoute], {
+      overrides: noLinkedWalletOverrides,
+    });
+
+    await pressCopyTrade();
+
+    expect(
+      await screen.findByTestId(
+        getRouteProbeTestId(Routes.SOCIAL.PROFILE_ONBOARDING),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.PERPS.MODALS.ROOT)),
