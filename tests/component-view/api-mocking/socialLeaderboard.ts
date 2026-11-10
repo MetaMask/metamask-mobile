@@ -212,8 +212,14 @@ export function setupLeaderboardApiMock(
 
   clearLeaderboardApiMock();
 
+  // The CV Engine mock's `controllerMessenger.call` is already a `jest.fn`, so
+  // `spyOn` returns that shared mock rather than a fresh spy. A previous
+  // test's tree can still call it after that test's `mockRestore` (for example
+  // an idle tab prefetch firing before unmount), so drop that history here or
+  // call assertions in this test read the other test's requests.
   messengerSpy = jest
     .spyOn(Engine.controllerMessenger, 'call')
+    .mockClear()
     .mockImplementation((...messengerArgs: [string, ...unknown[]]) => {
       const [action, fetchOpts] = messengerArgs as [
         string,
