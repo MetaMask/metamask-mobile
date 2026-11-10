@@ -236,6 +236,8 @@ export const navigateToSocialTab = (
  * Unlike `navigateToSocialTab` (the navbar entry), it skips the terms, profile
  * and onboarding gates and pops root-stack screens. Call it only once the user
  * is already through those gates, e.g. after posting or from a fallback.
+ * Social V1 treatment only: the Social tab is always registered under
+ * HOME_TABS there (see `useHomeTabDefinitions`).
  *
  * @param navigation - The caller's navigation object.
  */
