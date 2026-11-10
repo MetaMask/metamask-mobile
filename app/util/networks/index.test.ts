@@ -5,6 +5,7 @@ import NetworkList, {
   isTestNet,
   getAllNetworks,
   getNetworkTypeById,
+  getNetworkImageSource,
   findBlockExplorerForRpc,
   findBlockExplorerUrlForChain,
   getHexEvmChainId,
@@ -59,6 +60,21 @@ import {
   selectMultichainNetworkControllerState,
   selectSelectedNonEvmNetworkChainId,
 } from '../../selectors/multichainNetworkController';
+
+jest.mock('../../images/citizenchain.png', () => 'citizenchain-network-icon');
+
+describe('getNetworkImageSource', () => {
+  it.each(['0x7eb', 'eip155:2027'])(
+    'returns the CitizenChain image for custom network %s',
+    (chainId) => {
+      const networkType = RPC;
+
+      const image = getNetworkImageSource({ networkType, chainId });
+
+      expect(image).toBe('citizenchain-network-icon');
+    },
+  );
+});
 
 jest.mock('./../../core/Engine', () => ({
   controllerMessenger: {
