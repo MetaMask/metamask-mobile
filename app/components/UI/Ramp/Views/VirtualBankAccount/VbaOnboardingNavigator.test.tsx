@@ -5,6 +5,7 @@ import {
 } from '@react-navigation/native';
 import { render } from '@testing-library/react-native';
 import VbaOnboardingNavigator from './VbaOnboardingNavigator';
+import { useFocusMoneyTabBelow } from './hooks/useFocusMoneyTabBelow';
 import {
   VbaIdentityVerificationRoutes,
   VbaOnboardingRoutes,
@@ -35,6 +36,49 @@ jest.mock('../../../../../hooks/useScreenPerformance', () => ({
   ...jest.requireActual('../../../../../hooks/useScreenPerformance'),
   withScreenPerformance: (Component: React.ComponentType) => Component,
 }));
+jest.mock('./hooks/useFocusMoneyTabBelow', () => ({
+  useFocusMoneyTabBelow: jest.fn(),
+}));
+
+describe('VbaOnboardingNavigator Money tab focus', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('keeps focusing Money after a reset clears the route params', () => {
+    const { rerender } = render(
+      <NavigationContainer>
+        <VbaOnboardingNavigator
+          route={{ params: { focusMoneyTabBelow: true } }}
+        />
+      </NavigationContainer>,
+    );
+    jest.mocked(useFocusMoneyTabBelow).mockClear();
+
+    rerender(
+      <NavigationContainer>
+        <VbaOnboardingNavigator route={{ params: {} }} />
+      </NavigationContainer>,
+    );
+
+    expect(useFocusMoneyTabBelow).toHaveBeenCalled();
+  });
+
+  it('does not focus Money when onboarding was not opened by a resume', () => {
+    render(
+      <NavigationContainer>
+        <VbaOnboardingNavigator />
+      </NavigationContainer>,
+    );
+
+    expect(useFocusMoneyTabBelow).not.toHaveBeenCalled();
+  });
+});
 
 describe('VBA screen performance coverage', () => {
   beforeEach(() => {
