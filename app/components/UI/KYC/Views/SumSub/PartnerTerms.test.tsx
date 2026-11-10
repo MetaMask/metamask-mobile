@@ -70,6 +70,10 @@ const DISCLAIMERS = [
 const renderScreen = (
   disclaimers: KycCatalogDisclaimerLink[] = DISCLAIMERS,
   location?: string,
+  kycState?: {
+    geoCountry: string | null;
+    sessionStatus: { id: string; finalStatus: string } | null;
+  },
 ) =>
   renderWithProvider(
     <VbaPartnerTerms
@@ -77,12 +81,13 @@ const renderScreen = (
       onAgree={mockOnAgree}
       onBack={mockOnBack}
     />,
-    location
+    location || kycState
       ? {
           state: {
             engine: {
               backgroundState: {
-                GeolocationController: { location },
+                ...(location ? { GeolocationController: { location } } : {}),
+                ...(kycState ? { KycController: kycState } : {}),
               },
             },
           },
@@ -238,6 +243,39 @@ describe('VbaPartnerTerms', () => {
     ).toHaveTextContent(
       'I acknowledge that my personal data will be processed as described in the Sumsub Notice of Personal Data Processing. Applicable to US residents only: I confirm that I have read the Privacy Notice and give my consent to the processing of my biometric information and biometric identifiers as described in the Sumsub Biometrics Processing Consent.',
     );
+  });
+
+  it('keeps the US acknowledgement for a stored USA session on a Swedish IP', () => {
+    const { getByTestId } = renderScreen(DISCLAIMERS, 'SE', {
+      geoCountry: 'USA',
+      sessionStatus: { id: 'session-1', finalStatus: 'pending' },
+    });
+
+    expect(
+      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
+    ).toHaveTextContent(/Applicable to US residents only/u);
+  });
+
+  it('hides the US acknowledgement for a stored non-US session on a US IP', () => {
+    const { getByTestId } = renderScreen(DISCLAIMERS, 'US-NY', {
+      geoCountry: 'BRA',
+      sessionStatus: { id: 'session-1', finalStatus: 'pending' },
+    });
+
+    expect(
+      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
+    ).not.toHaveTextContent(/Applicable to US residents only/u);
+  });
+
+  it('follows the IP when geoCountry is set without a stored session', () => {
+    const { getByTestId } = renderScreen(DISCLAIMERS, 'SE', {
+      geoCountry: 'USA',
+      sessionStatus: null,
+    });
+
+    expect(
+      getByTestId(VbaPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT),
+    ).not.toHaveTextContent(/Applicable to US residents only/u);
   });
 
   it('links the US privacy notice even when the catalog has no Sumsub privacy document', () => {

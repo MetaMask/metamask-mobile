@@ -1,6 +1,7 @@
 import { getDefaultKycVendorDisclaimersAccepted } from '@metamask/kyc-controller';
 import { RootState } from '../../reducers';
 import {
+  getKycPinnedGeoCountry,
   selectKycControllerState,
   selectKycPinnedCountryAlpha2,
   selectKycPinnedGeoCountry,
@@ -64,6 +65,32 @@ describe('kycController selectors', () => {
       } as unknown as RootState;
 
       expect(selectKycSessionStatus(state)).toBeNull();
+    });
+  });
+
+  describe('getKycPinnedGeoCountry', () => {
+    it('returns the geoCountry when a session is stored', () => {
+      const result = getKycPinnedGeoCountry({
+        sessionStatus: MOCK_SESSION_STATUS,
+        geoCountry: 'USA',
+      } as never);
+
+      expect(result).toBe('USA');
+    });
+
+    it('returns null when only geoCountry is set', () => {
+      const result = getKycPinnedGeoCountry({
+        sessionStatus: null,
+        geoCountry: 'USA',
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it.each([undefined, null])('returns null for %s state', (kycState) => {
+      const result = getKycPinnedGeoCountry(kycState);
+
+      expect(result).toBeNull();
     });
   });
 

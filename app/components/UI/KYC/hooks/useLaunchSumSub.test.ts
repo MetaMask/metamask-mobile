@@ -9,7 +9,10 @@ const originalLocale = I18n.locale;
 jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
-      state: { geoCountry: null as string | null },
+      state: {
+        geoCountry: null as string | null,
+        sessionStatus: null as unknown,
+      },
       fetchSessionDisclaimers: jest.fn(),
       recordSessionDisclaimers: jest.fn(),
       launchProviderFlow: jest.fn(),
@@ -28,7 +31,7 @@ jest.mock('../utils/kycVerificationAnalytics', () => ({
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
-  state: { geoCountry: string | null };
+  state: { geoCountry: string | null; sessionStatus: unknown };
   fetchSessionDisclaimers: jest.Mock;
   recordSessionDisclaimers: jest.Mock;
   launchProviderFlow: jest.Mock;
@@ -49,6 +52,7 @@ describe('useLaunchSumSub analytics', () => {
     });
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
     mockKycController.state.geoCountry = null;
+    mockKycController.state.sessionStatus = null;
   });
 
   afterEach(() => {
@@ -57,6 +61,10 @@ describe('useLaunchSumSub analytics', () => {
 
   it('records consents from the catalog for the stored KYC geoCountry', async () => {
     mockKycController.state.geoCountry = 'ARG';
+    mockKycController.state.sessionStatus = {
+      id: 'session-1',
+      finalStatus: 'pending',
+    };
     mockKycController.launchProviderFlow.mockResolvedValue('submitted');
     const onSubmitted = jest.fn();
 
@@ -66,6 +74,19 @@ describe('useLaunchSumSub analytics', () => {
     expect(mockKycService.getGeoCountry).not.toHaveBeenCalled();
     expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
       country: 'ARG',
+    });
+  });
+
+  it('ignores a geoCountry that has no stored session behind it', async () => {
+    mockKycController.state.geoCountry = 'ARG';
+    mockKycController.launchProviderFlow.mockResolvedValue('submitted');
+    const onSubmitted = jest.fn();
+
+    renderHook(() => useLaunchSumSub(onSubmitted, jest.fn()));
+
+    await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+    expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
+      country: 'BRA',
     });
   });
 

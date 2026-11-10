@@ -54,7 +54,6 @@ const mockRefreshCustomerAbilities = jest.fn();
 const mockNavigateToVbaOnboardingDestination = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
-let mockPinnedCountry: string | undefined;
 let mockChooseCurrency = false;
 const DEFAULT_NEOBANK_MARKETS = [
   { currency: 'BRL', regions: ['BR'] },
@@ -120,10 +119,6 @@ jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
 
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: () => mockLocation,
-}));
-
-jest.mock('../../../../../selectors/kycController', () => ({
-  selectKycPinnedCountryAlpha2: () => mockPinnedCountry,
 }));
 
 jest.mock('../../../../../util/deviceCapability', () => ({
@@ -247,6 +242,23 @@ const restoreNeoBankService = () => {
   };
 };
 
+// Real KycController state, so the alpha-3 conversion and the stored-session
+// rule run through the real selectors.
+const kycProviderState = (
+  geoCountry: string | null,
+  sessionStatus: { id: string; finalStatus: string } | null,
+): ProviderValues => ({
+  state: {
+    engine: {
+      backgroundState: {
+        KycController: { geoCountry, sessionStatus },
+      },
+    },
+  },
+});
+
+const storedKycSession = { id: 'session-1', finalStatus: 'pending' };
+
 describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -267,7 +279,6 @@ describe('VbaDetails', () => {
     clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
-    mockPinnedCountry = undefined;
     mockChooseCurrency = false;
     mockRegionOverride = undefined;
     mockNeobankFlagOn = true;
@@ -1109,7 +1120,6 @@ describe('VbaDetails', () => {
   it('creates a USD autoramp for a stored USA KYC session on a Swedish IP', async () => {
     setAutoramps([]);
     mockLocation = 'SE';
-    mockPinnedCountry = 'US';
     mockHydrate.mockResolvedValue({
       autorampStatus: 'needs_wallet_registration',
     });
@@ -1120,7 +1130,10 @@ describe('VbaDetails', () => {
       return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
     });
 
-    renderWithProvider(<VbaDetails />);
+    renderWithProvider(
+      <VbaDetails />,
+      kycProviderState('USA', storedKycSession),
+    );
 
     await waitFor(() => {
       expect(mockCreateAutoramp).toHaveBeenCalledWith(
@@ -1135,10 +1148,24 @@ describe('VbaDetails', () => {
     );
   });
 
+  it('uses the IP country when geoCountry is set but no KYC session is stored', async () => {
+    setAutoramps([]);
+    mockLocation = 'SE';
+
+    renderWithProvider(<VbaDetails />, kycProviderState('USA', null));
+
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+      );
+    });
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+  });
+
   it('keeps the flag region override ahead of the stored KYC country', async () => {
     setAutoramps([]);
     mockLocation = 'SE';
-    mockPinnedCountry = 'US';
     mockRegionOverride = 'BR';
     mockHydrate.mockResolvedValue({
       autorampStatus: 'needs_wallet_registration',
@@ -1150,7 +1177,10 @@ describe('VbaDetails', () => {
       return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
     });
 
-    renderWithProvider(<VbaDetails />);
+    renderWithProvider(
+      <VbaDetails />,
+      kycProviderState('USA', storedKycSession),
+    );
 
     await waitFor(() => {
       expect(mockCreateAutoramp).toHaveBeenCalledWith(

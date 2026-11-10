@@ -50,6 +50,7 @@ import {
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
+import { selectKycPinnedCountryAlpha2 } from '../../../../../selectors/kycController';
 import CrossfadeButton from './CrossfadeButton';
 import SentenceWithLinks, {
   type SentenceLink,
@@ -135,9 +136,11 @@ const VbaPartnerTerms = ({
   onBack,
 }: VbaPartnerTermsProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const isUsResident = isUnitedStatesLocation(
-    useSelector(selectGeolocationLocation),
-  );
+  // The catalog follows the country the KYC session was started under, so the
+  // US-only rows must too. Without a stored session it is the IP country.
+  const pinnedCountry = useSelector(selectKycPinnedCountryAlpha2);
+  const ipLocation = useSelector(selectGeolocationLocation);
+  const isUsResident = isUnitedStatesLocation(pinnedCountry ?? ipLocation);
   const tw = useTailwind();
   const [hasBiometricConsent, setHasBiometricConsent] = useState(false);
   const checkboxRef = useRef<{ toggle: () => void }>(null);

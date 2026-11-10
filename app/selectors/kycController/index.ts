@@ -37,16 +37,35 @@ export const selectKycSessionStatus = createSelector(
 );
 
 /**
- * Selects the alpha-3 `geoCountry` the stored KYC session was started under,
+ * Returns the alpha-3 `geoCountry` the stored KYC session was started under,
  * or `null` when no session is stored. `startSession` writes `geoCountry`
  * before the server session exists, so `geoCountry` alone does not pin it.
+ *
+ * Single rule for every reader (selectors and imperative code such as the KYC
+ * disclaimer hooks), so they all agree on which country the session is in.
+ *
+ * @param kycControllerState - KycController state, or undefined when the
+ * controller is unavailable.
+ * @returns The alpha-3 country, or `null` when the session is not pinned.
+ */
+export const getKycPinnedGeoCountry = (
+  kycControllerState:
+    | Pick<KycControllerState, 'geoCountry' | 'sessionStatus'>
+    | null
+    | undefined,
+): string | null =>
+  kycControllerState?.sessionStatus && kycControllerState.geoCountry
+    ? kycControllerState.geoCountry
+    : null;
+
+/**
+ * Selects the alpha-3 `geoCountry` the stored KYC session was started under,
+ * or `null` when no session is stored. See {@link getKycPinnedGeoCountry}.
  */
 export const selectKycPinnedGeoCountry = createSelector(
   selectKycControllerState,
   (kycControllerState): string | null =>
-    kycControllerState?.sessionStatus && kycControllerState.geoCountry
-      ? kycControllerState.geoCountry
-      : null,
+    getKycPinnedGeoCountry(kycControllerState),
 );
 
 /**

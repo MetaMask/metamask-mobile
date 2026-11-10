@@ -6,6 +6,7 @@ import type {
 } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { getKycPinnedGeoCountry } from '../../../../selectors/kycController';
 import I18n from '../../../../../locales/i18n';
 import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
@@ -43,7 +44,8 @@ async function recordSessionConsents(): Promise<void> {
   }
 
   const country =
-    KycController.state?.geoCountry ?? (await KycService.getGeoCountry());
+    getKycPinnedGeoCountry(KycController.state) ??
+    (await KycService.getGeoCountry());
   const catalog = await KycController.fetchSessionDisclaimers({
     country,
   });
