@@ -55,6 +55,7 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
 > = ({ isVisible = true, onClose, onConfirm, sheetRef: externalSheetRef }) => {
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
+  const closeIntentRef = useRef<'dismiss' | 'confirm'>('dismiss');
   const [acknowledged, setAcknowledged] = useState(INITIAL_ACKNOWLEDGEMENTS);
 
   const resetAcknowledgements = useCallback(() => {
@@ -74,19 +75,27 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
   }, [isVisible, externalSheetRef, sheetRef, resetAcknowledgements]);
 
   const handleDismissed = useCallback(() => {
+    const confirmed = closeIntentRef.current === 'confirm';
+    closeIntentRef.current = 'dismiss';
     resetAcknowledgements();
-    onClose();
+    // Confirm closes the sheet too, but onClose means the user cancelled.
+    if (!confirmed) {
+      onClose();
+    }
   }, [onClose, resetAcknowledgements]);
 
   const handleClose = useCallback(() => {
+    closeIntentRef.current = 'dismiss';
     resetAcknowledgements();
     sheetRef.current?.onCloseBottomSheet();
   }, [sheetRef, resetAcknowledgements]);
 
   const handleConfirm = useCallback(() => {
+    closeIntentRef.current = 'confirm';
     onConfirm();
-    handleClose();
-  }, [onConfirm, handleClose]);
+    resetAcknowledgements();
+    sheetRef.current?.onCloseBottomSheet();
+  }, [onConfirm, resetAcknowledgements, sheetRef]);
 
   const toggleItem = useCallback((key: AcknowledgementKey) => {
     setAcknowledged((previous) => ({ ...previous, [key]: !previous[key] }));

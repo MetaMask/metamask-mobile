@@ -7,7 +7,8 @@ export interface PerpsCrossMarginConfirmBottomSheetProps {
    */
   isVisible?: boolean;
   /**
-   * Called when the sheet is dismissed (close button, "Go back" or swipe).
+   * Called when the sheet is dismissed without confirming (close button,
+   * "Go back" or swipe). Not called after a successful confirm.
    */
   onClose: () => void;
   /**

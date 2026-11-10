@@ -87,6 +87,7 @@ describe('PerpsCrossMarginConfirmBottomSheet', () => {
     fireEvent.press(screen.getByTestId(ids.CONFIRM_BUTTON));
 
     expect(defaultProps.onConfirm).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
   it('does not call onConfirm when Confirm is pressed while disabled', () => {
@@ -132,5 +133,6 @@ describe('PerpsCrossMarginConfirmBottomSheet', () => {
     fireEvent.press(screen.getByTestId(ids.GO_BACK_BUTTON));
 
     expect(defaultProps.onConfirm).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
 });
