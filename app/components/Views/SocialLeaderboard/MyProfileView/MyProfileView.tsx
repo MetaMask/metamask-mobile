@@ -66,7 +66,9 @@ import { useTheme } from '../../../../util/theme';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
-import TraderMuteChip from '../components/TraderMuteChip';
+import TraderMuteChip, {
+  PROFILE_MUTE_CHIP_DIAMETER,
+} from '../components/TraderMuteChip';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
@@ -987,6 +989,7 @@ const MyProfileView: React.FC = () => {
                       visible={isFollowing}
                       onPress={handleMutePress}
                       traderName={displayProfile?.displayName}
+                      diameter={PROFILE_MUTE_CHIP_DIAMETER}
                       testID={MyProfileViewSelectorsIDs.MUTE_CHIP}
                     />
                   ) : null}

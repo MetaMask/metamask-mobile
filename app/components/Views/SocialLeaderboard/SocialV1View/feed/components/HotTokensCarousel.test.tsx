@@ -183,8 +183,12 @@ describe('HotTokensCarousel', () => {
     expect(chip).toHaveTextContent('Bitcoin perps');
     expect(chip).toHaveStyle({
       height: 40,
-      paddingLeft: 12,
+      paddingLeft: 8,
       paddingRight: 16,
+    });
+    expect(screen.getByTestId(SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID)).toHaveStyle({
+      paddingLeft: 8,
+      gap: 8,
     });
     expect(
       screen.UNSAFE_getByProps({
