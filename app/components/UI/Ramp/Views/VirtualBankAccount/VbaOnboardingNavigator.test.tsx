@@ -30,6 +30,7 @@ jest.mock('./modules/VbaStatusAdapters', () => ({
 }));
 jest.mock('./modules/AccountCreateErrorAdapter', () => () => null);
 jest.mock('./modules/VbaVendorTermsAdapter', () => () => null);
+jest.mock('./modules/VbaKycVendorTermsAdapter', () => () => null);
 jest.mock('./VbaOnboardingLoading', () => () => null);
 jest.mock('./VbaChooseCurrency', () => () => null);
 jest.mock('../../../../../hooks/useScreenPerformance', () => ({

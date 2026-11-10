@@ -14,6 +14,7 @@ import Routes from '../../../app/constants/navigation/Routes';
 import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
+import VbaKycVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaKycVendorTermsAdapter';
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
 import { VbaOnboardingRoutes } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/routes';
 import { renderScreenWithRoutes } from '../render';
@@ -104,7 +105,14 @@ export const renderVbaVendorTerms = (options: RenderVbaOptions = {}) => {
   const result = renderScreenWithRoutes(
     VbaVendorTermsAdapter as unknown as React.ComponentType,
     { name: VbaOnboardingRoutes.VENDOR_TERMS },
-    [{ name: VbaOnboardingRoutes.EMAIL }, { name: VbaOnboardingRoutes.ERROR }],
+    [
+      {
+        name: VbaOnboardingRoutes.KYC_VENDOR_TERMS,
+        Component: VbaKycVendorTermsAdapter as unknown as React.ComponentType,
+      },
+      { name: VbaOnboardingRoutes.EMAIL },
+      { name: VbaOnboardingRoutes.ERROR },
+    ],
     { state: buildVbaState(options) },
   );
   bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
@@ -121,6 +129,10 @@ export const renderVbaVendorTermsWithCaller = (
       {
         name: VbaOnboardingRoutes.VENDOR_TERMS,
         Component: VbaVendorTermsAdapter as unknown as React.ComponentType,
+      },
+      {
+        name: VbaOnboardingRoutes.KYC_VENDOR_TERMS,
+        Component: VbaKycVendorTermsAdapter as unknown as React.ComponentType,
       },
       { name: VbaOnboardingRoutes.EMAIL },
       { name: VbaOnboardingRoutes.ERROR },

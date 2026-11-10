@@ -7,6 +7,7 @@ export {
 } from '../../../hooks/useScreenPerformance';
 
 export const KYC_SCREEN_ID = {
+  VENDOR_TERMS: 'kyc_vendor_terms',
   IDENTITY_VERIFICATION_TERMS: 'identity_verification_terms',
   IDENTITY_VERIFICATION_PROVIDER: 'identity_verification_provider',
   PROVIDER_TERMS_MODAL: 'provider_terms_modal',
