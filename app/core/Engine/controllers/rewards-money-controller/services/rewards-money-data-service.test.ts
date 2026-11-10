@@ -517,8 +517,60 @@ describe('RewardsMoneyDataService', () => {
         name: 'RewardsMoneyHttpError',
         status: 429,
         retryAfterSeconds: 6,
+        alreadyRetried: false,
       });
       expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks the error from the busy retry as already retried', async () => {
+      jest.useFakeTimers();
+      try {
+        const busy = busyReferralMe('2');
+        mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
+
+        const pending = service
+          .getEarningsLedger()
+          .catch((error: unknown) => error);
+        await jest.advanceTimersByTimeAsync(4000);
+
+        await expect(pending).resolves.toMatchObject({
+          name: 'RewardsMoneyHttpError',
+          status: 503,
+          retryAfterSeconds: 2,
+          alreadyRetried: true,
+        });
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('waits Retry-After plus up to that much again before the busy retry', async () => {
+      jest.useFakeTimers();
+      const randomSpy = jest
+        .spyOn(globalThis.crypto, 'getRandomValues')
+        .mockImplementation((array) => {
+          if (array instanceof Uint32Array) {
+            array[0] = 2000;
+          }
+          return array;
+        });
+      try {
+        mockFetch
+          .mockResolvedValueOnce(busyReferralMe('2'))
+          .mockResolvedValueOnce(okJson({ success: true }));
+
+        const pending = service.getReferralMe();
+        await jest.advanceTimersByTimeAsync(3999);
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        await jest.advanceTimersByTimeAsync(1);
+        await expect(pending).resolves.toEqual({ success: true });
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        randomSpy.mockRestore();
+        jest.useRealTimers();
+      }
     });
 
     it('does not retry a 503 whose Retry-After is over 5 seconds', async () => {

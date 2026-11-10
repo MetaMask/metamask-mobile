@@ -150,17 +150,25 @@ export class RewardsMoneyHttpError extends Error {
   /** Seconds from a `Retry-After` header, when the refusal carried one. */
   readonly retryAfterSeconds: number | undefined;
 
+  /**
+   * True when this refusal is the answer to the service's own busy retry, so
+   * callers must not ask again.
+   */
+  readonly alreadyRetried: boolean;
+
   constructor(
     message: string,
     status: number,
     bodyText?: string,
     retryAfterSeconds?: number,
+    alreadyRetried = false,
   ) {
     super(message);
     this.name = 'RewardsMoneyHttpError';
     this.status = status;
     this.bodyText = bodyText;
     this.retryAfterSeconds = retryAfterSeconds;
+    this.alreadyRetried = alreadyRetried;
   }
 }
 
@@ -410,24 +418,25 @@ function trimTrailingSlashes(url: string): string {
  */
 const BUSY_READ_RETRY_MAX_SECONDS = 5;
 
-/** Spread retries so a shed wave does not return in the same instant. */
+/** Least jitter, and all of it when `Retry-After` is missing or 0. */
 const BUSY_RETRY_JITTER_MS = 1000;
 
+/** 0..maxMs inclusive. Jitter only, not a secret. */
+function busyRetryJitterMs(maxMs: number): number {
+  const values = new Uint32Array(1);
+  globalThis.crypto.getRandomValues(values);
+  return values[0] % (maxMs + 1);
+}
+
 /**
- * Wait for a short busy refusal, plus up to a second of jitter. `undefined`
+ * Wait for a busy refusal: the `Retry-After`, plus up to that much again as
+ * jitter, so a shed wave comes back spread over a whole window. `undefined`
  * means the header was missing: jitter alone, so a registration the server
  * shed with no `Retry-After` still waits before its one retry.
  */
-/** 0..BUSY_RETRY_JITTER_MS inclusive. Jitter only, not a secret. */
-function busyRetryJitterMs(): number {
-  const values = new Uint32Array(1);
-  globalThis.crypto.getRandomValues(values);
-  return values[0] % (BUSY_RETRY_JITTER_MS + 1);
-}
-
-function busyRetryDelayMs(waitSeconds: number | undefined): number {
+export function busyRetryDelayMs(waitSeconds: number | undefined): number {
   const baseMs = waitSeconds === undefined ? 0 : waitSeconds * 1000;
-  return baseMs + busyRetryJitterMs();
+  return baseMs + busyRetryJitterMs(Math.max(baseMs, BUSY_RETRY_JITTER_MS));
 }
 
 function delay(ms: number): Promise<void> {
@@ -570,6 +579,9 @@ export class RewardsMoneyDataService {
   readonly #getBearerToken: () => Promise<string | undefined>;
 
   #rewardsMoneyApiUrl: string | null = null;
+
+  /** Answers to a busy retry. Their errors carry `alreadyRetried`. */
+  readonly #retriedResponses = new WeakSet<Response>();
 
   constructor({
     messenger,
@@ -1168,7 +1180,9 @@ export class RewardsMoneyDataService {
       return response;
     }
     await delay(busyRetryDelayMs(waitSeconds));
-    return request();
+    const retried = await request();
+    this.#retriedResponses.add(retried);
+    return retried;
   }
 
   async #throwHttp(response: Response, label: string): Promise<never> {
@@ -1178,6 +1192,7 @@ export class RewardsMoneyDataService {
       response.status,
       bodyText,
       retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      this.#retriedResponses.has(response),
     );
   }
 
