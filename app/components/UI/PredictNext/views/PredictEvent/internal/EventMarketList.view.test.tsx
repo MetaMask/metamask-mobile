@@ -3,6 +3,7 @@ import {
   configurePredictNextFeeds,
   makePredictNextCompositeGameEvent,
   makePredictNextLaidOutGameEvent,
+  makePredictNextLaidOutStandardEvent,
   makePredictNextPlayerPropsEvent,
   makePredictNextMultiMarketEvent,
   makePredictNextPosition,
@@ -1488,6 +1489,113 @@ describe('EventMarketList', () => {
       ),
     ).not.toBeOnTheScreen();
   });
+  describe('with a laid-out standard Event', () => {
+    const renderStandard = async () => {
+      const event = makePredictNextLaidOutStandardEvent();
+      const props = {
+        event,
+        onOrder: jest.fn(),
+        onRulesPress: jest.fn(),
+        onCashOut: jest.fn(),
+      };
+      const view = renderEventMarketList(props);
+      await view.findByTestId(
+        EventMarketLayoutSectionTestIds.section('markets'),
+      );
+      return { event, props, view };
+    };
+    const cardIds = (view: ReturnType<typeof renderEventMarketList>) =>
+      view
+        .getAllByTestId(MarketStandardCardTestIds.TITLE_PATTERN)
+        .map(({ props }) => props.children);
+
+    it('shows the Outcomes tab with a Markets section and its volume', async () => {
+      const { view } = await renderStandard();
+
+      expect(
+        within(
+          view.getByTestId(EventMarketListTestIds.layoutTab('outcomes')),
+        ).getAllByText(strings('predict_next.event.outcomes'))[0],
+      ).toBeOnTheScreen();
+      const section = within(
+        view.getByTestId(EventMarketLayoutSectionTestIds.section('markets')),
+      );
+      expect(
+        section.getByText(strings('predict_next.event.market_layout.markets')),
+      ).toBeOnTheScreen();
+      expect(
+        section.getByTestId(EventMarketSectionTestIds.VOLUME),
+      ).toHaveTextContent('$2M');
+    });
+
+    it('shows the first three cards in backend order, then expands the rest in place with View all', async () => {
+      const { view } = await renderStandard();
+      const viewAll = EventMarketLayoutSectionTestIds.viewAll('markets');
+
+      expect(cardIds(view)).toEqual([
+        'Mike Johnson',
+        'Hakeem Jeffries',
+        'Jim Jordan',
+      ]);
+      expect(view.getByTestId(viewAll)).toHaveTextContent(
+        strings('predict_next.event.view_all_markets', { count: 5 }),
+      );
+
+      fireEvent.press(view.getByTestId(viewAll));
+
+      expect(cardIds(view)).toEqual([
+        'Mike Johnson',
+        'Hakeem Jeffries',
+        'Jim Jordan',
+        'Steve Scalise',
+        'Tom Emmer',
+      ]);
+      expect(view.queryByTestId(viewAll)).not.toBeOnTheScreen();
+    });
+
+    it('shows each card as a Yes and a No row with their prices', async () => {
+      const { view } = await renderStandard();
+      const yesRow = within(
+        view.getByTestId(MarketStandardCardTestIds.row('johnson', 'yes')),
+      );
+      const noRow = within(
+        view.getByTestId(MarketStandardCardTestIds.row('johnson', 'no')),
+      );
+
+      expect(
+        yesRow.getByText(strings('predict_next.portfolio.outcome_side.yes')),
+      ).toBeOnTheScreen();
+      expect(yesRow.getByText('41¢')).toBeOnTheScreen();
+      expect(
+        noRow.getByText(strings('predict_next.portfolio.outcome_side.no')),
+      ).toBeOnTheScreen();
+      expect(noRow.getByText('59¢')).toBeOnTheScreen();
+    });
+
+    it('orders the Outcome of the pressed Yes or No row', async () => {
+      const { event, props, view } = await renderStandard();
+      const market = event.markets[1];
+
+      fireEvent.press(
+        view.getByTestId(MarketStandardCardTestIds.yesButton(market.id)),
+      );
+      fireEvent.press(
+        view.getByTestId(MarketStandardCardTestIds.noButton(market.id)),
+      );
+
+      expect(props.onOrder).toHaveBeenNthCalledWith(
+        1,
+        market,
+        market.outcomes[0],
+      );
+      expect(props.onOrder).toHaveBeenNthCalledWith(
+        2,
+        market,
+        market.outcomes[1],
+      );
+    });
+  });
+
   describe('with a laid-out Game', () => {
     const FULL_GAME_MONEYLINE = 'nfl-composite:moneyline';
     const FIRST_HALF_MONEYLINE = 'nfl-composite-1h:moneyline';

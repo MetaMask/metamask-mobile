@@ -9732,7 +9732,7 @@
   },
   "app/components/UI/KYC/Views/EmailAdapter.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 6
+      "count": 7
     }
   },
   "app/components/UI/KYC/Views/EmailAdapter.tsx": {
@@ -9813,7 +9813,7 @@
   },
   "app/components/UI/KYC/Views/SumSub/SumSubKyc.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 3
     }
   },
   "app/components/UI/KYC/Views/SumSub/SumSubKyc.tsx": {
@@ -11896,7 +11896,7 @@
   },
   "app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 61
+      "count": 62
     },
     "@typescript-eslint/naming-convention": {
       "count": 4
@@ -17213,6 +17213,19 @@
       "count": 2
     }
   },
+  "app/components/UI/PredictNext/adapters/remote/KalshiOnboardingClient.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 14
+    },
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/adapters/remote/KalshiOnboardingClient.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 3
+    }
+  },
   "app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 2
@@ -17288,7 +17301,7 @@
   },
   "app/components/UI/PredictNext/contracts/v1/marketData.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 4
+      "count": 5
     }
   },
   "app/components/UI/PredictNext/contracts/v1/marketData.ts": {
@@ -17297,6 +17310,11 @@
     },
     "@typescript-eslint/naming-convention": {
       "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/contracts/v1/onboarding.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 2
     }
   },
   "app/components/UI/PredictNext/contracts/v1/portfolio.test.ts": {
@@ -17398,14 +17416,11 @@
   "app/components/UI/PredictNext/events/markets/MarketStandardCard.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "app/components/UI/PredictNext/events/markets/MarketStandardCard.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
+      "count": 2
     }
   },
   "app/components/UI/PredictNext/events/markets/MoneylineMarketGroupCard.test.tsx": {
@@ -17674,8 +17689,36 @@
       "count": 3
     }
   },
+  "app/components/UI/PredictNext/navigation/entry/intents.ts": {
+    "@typescript-eslint/naming-convention": {
+      "count": 1
+    }
+  },
   "app/components/UI/PredictNext/navigation/entry/internal/legacy/resolveLegacyIntent.ts": {
     "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/navigation/entry/link/PredictLinks.view.test.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 4
+    }
+  },
+  "app/components/UI/PredictNext/navigation/entry/link/parsePredictLink.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 3
+    }
+  },
+  "app/components/UI/PredictNext/navigation/entry/link/resolvePredictLink.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 10
+    }
+  },
+  "app/components/UI/PredictNext/navigation/entry/link/resolvePredictLink.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 2
+    },
+    "@typescript-eslint/naming-convention": {
       "count": 1
     }
   },
@@ -17714,6 +17757,59 @@
       "count": 11
     }
   },
+  "app/components/UI/PredictNext/onboarding/KalshiDebugPanel.test.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 5
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/onboarding/KalshiDebugPanel.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 2
+    }
+  },
+  "app/components/UI/PredictNext/onboarding/KalshiDemoOnboardingGate.test.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 12
+    }
+  },
+  "app/components/UI/PredictNext/onboarding/KalshiDemoOnboardingGate.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 3
+    }
+  },
+  "app/components/UI/PredictNext/onboarding/internal/KalshiDemoOnboardingModal.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 3
+    }
+  },
+  "app/components/UI/PredictNext/onboarding/internal/createKalshiOnboardingClient.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/onboarding/internal/kalshiDebugInfo.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/onboarding/internal/kalshiDemoOnboardingMachine.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/onboarding/internal/useKalshiDemoOnboarding.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 5
+    }
+  },
+  "app/components/UI/PredictNext/onboarding/internal/useKalshiDemoOnboarding.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 14
+    }
+  },
   "app/components/UI/PredictNext/portfolio/internal/legacy/usePredictPortfolioValue.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
@@ -17741,7 +17837,7 @@
   },
   "app/components/UI/PredictNext/searchResults/PredictSearchResults.view.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
+      "count": 10
     }
   },
   "app/components/UI/PredictNext/searchResults/internal/legacy/toPredictSearchResult.test.ts": {
@@ -17749,9 +17845,14 @@
       "count": 1
     }
   },
+  "app/components/UI/PredictNext/searchResults/internal/next/toNextPredictSearchResult.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/components/UI/PredictNext/searchResults/usePredictSearchResults.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 4
+      "count": 6
     }
   },
   "app/components/UI/PredictNext/searchResults/usePredictSearchResults.ts": {
@@ -18002,7 +18103,7 @@
   },
   "app/components/UI/PredictNext/views/PredictEvent/internal/EventMarketList.view.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 18
+      "count": 20
     }
   },
   "app/components/UI/PredictNext/views/PredictEvent/internal/EventMarketPeriodChips.test.tsx": {
@@ -18072,7 +18173,7 @@
   },
   "app/components/UI/PredictNext/views/PredictEvent/internal/createMarketLayoutProjection.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 5
+      "count": 6
     }
   },
   "app/components/UI/PredictNext/views/PredictEvent/internal/liveQuoteTrail.test.ts": {
@@ -18123,6 +18224,9 @@
   "app/components/UI/PredictNext/views/PredictHome/PredictHome.view.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 8
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 1
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -19981,9 +20085,19 @@
       "count": 1
     }
   },
+  "app/components/UI/Ramp/Views/VirtualBankAccount/VbaFoxLoader.test.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 3
+    }
+  },
+  "app/components/UI/Ramp/Views/VirtualBankAccount/VbaFoxLoader.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingLoading.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 3
     }
   },
   "app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingLoading.tsx": {
@@ -21643,7 +21757,7 @@
       "count": 6
     },
     "@typescript-eslint/naming-convention": {
-      "count": 5
+      "count": 7
     }
   },
   "app/components/UI/Rewards/components/Campaigns/PerpsTradingCampaignStatsHeader.test.tsx": {
@@ -23302,7 +23416,7 @@
   },
   "app/components/UI/SocialFeed/components/SocialFeed.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 3
     }
   },
   "app/components/UI/SocialFeed/components/SocialFeedContent.tsx": {
@@ -23360,12 +23474,12 @@
   },
   "app/components/UI/SocialFeed/components/SocialFeedPostTranslation.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
+      "count": 2
     }
   },
   "app/components/UI/SocialFeed/components/SocialFeedPostTranslation.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 4
+      "count": 5
     }
   },
   "app/components/UI/SocialFeed/components/SocialFeedRealtime/PendingPostsButton.tsx": {
@@ -23395,7 +23509,7 @@
   },
   "app/components/UI/SocialFeed/components/SocialFeedVirtualized.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 17
+      "count": 18
     }
   },
   "app/components/UI/SocialFeed/components/SocialFeedVirtualized.tsx": {
@@ -31913,7 +32027,7 @@
   },
   "app/components/Views/SocialLeaderboard/shared/withSocialAccountGate.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 3
+      "count": 5
     }
   },
   "app/components/Views/SocialLeaderboard/shared/withSocialAccountGate.tsx": {
@@ -31923,7 +32037,7 @@
   },
   "app/components/Views/SocialLeaderboard/shell/EmptyShellTabPage.pagination.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 10
+      "count": 11
     }
   },
   "app/components/Views/SocialLeaderboard/shell/EmptyShellTabPage.profileNav.test.tsx": {
@@ -31933,7 +32047,7 @@
   },
   "app/components/Views/SocialLeaderboard/shell/EmptyShellTabPage.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 12
+      "count": 13
     }
   },
   "app/components/Views/SocialLeaderboard/shell/EmptyShellTabPage.tsx": {
@@ -32037,7 +32151,7 @@
   },
   "app/components/Views/SocialLeaderboard/terms/__mocks__/socialTermsAcceptance.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 5
+      "count": 6
     }
   },
   "app/components/Views/SocialLeaderboard/terms/useSocialTermsGate.test.ts": {
@@ -37838,6 +37952,11 @@
       "count": 1
     }
   },
+  "app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 7
+    }
+  },
   "app/core/DeeplinkManager/handlers/intent/__tests__/handleSwapUrl.test.ts": {
     "@typescript-eslint/naming-convention": {
       "count": 4
@@ -37875,7 +37994,7 @@
   },
   "app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 1
     }
   },
   "app/core/DeeplinkManager/handlers/intent/handleRewardsUrl.ts": {
@@ -41742,6 +41861,16 @@
       "count": 1
     }
   },
+  "app/shims/walletconnect-relay-auth.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 7
+    }
+  },
+  "app/shims/walletconnect-relay-auth.ts": {
+    "@typescript-eslint/naming-convention": {
+      "count": 1
+    }
+  },
   "app/store/getPersistentState/getPersistentState.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 3
@@ -43988,6 +44117,11 @@
       "count": 1
     }
   },
+  "scripts/metro-transform.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "scripts/slack-audit-notification.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
@@ -45651,6 +45785,11 @@
   "tests/scripts/check-ab-testing-compliance.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
+    }
+  },
+  "tests/scripts/check-no-code-fences.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 2
     }
   },
   "tests/seeder/anvil-clients.ts": {

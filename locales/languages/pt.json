@@ -1130,6 +1130,7 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Carregando",
     "create_virtual_bank_account": {
       "navbar_title": "Conta bancária",
       "title": "Adicione fundos diretamente do seu banco",
