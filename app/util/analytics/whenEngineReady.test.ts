@@ -16,9 +16,10 @@ jest.mock('../../core/Engine/Engine', () => ({
  */
 const advanceThroughAllRetries = async () => {
   for (let attempt = 0; attempt < 5; attempt++) {
-    jest.advanceTimersByTime(1000 * Math.pow(2, attempt));
-    // Let the awaited promise resolve so the next iteration can schedule its timer
-    await Promise.resolve();
+    // Native async functions can require more than one microtask turn before
+    // scheduling the next retry. The async timer API drains those continuations
+    // before returning, unlike advanceTimersByTime + one Promise.resolve().
+    await jest.advanceTimersByTimeAsync(1000 * Math.pow(2, attempt));
   }
 };
 
@@ -54,11 +55,13 @@ describe('whenEngineReady', () => {
   it('throws after max retries when Engine never becomes ready', async () => {
     mockEngine.context = null;
 
-    const promise = whenEngineReady();
+    // Attach the rejection handler before advancing async timers; otherwise
+    // the native async function can reject before the assertion is registered.
+    const rejection = whenEngineReady().catch((error: unknown) => error);
     await advanceThroughAllRetries();
 
-    await expect(promise).rejects.toThrow(
-      'Engine did not become ready after 5 retries',
+    await expect(rejection).resolves.toEqual(
+      new Error('Engine did not become ready after 5 retries'),
     );
   });
 
@@ -70,11 +73,11 @@ describe('whenEngineReady', () => {
       configurable: true,
     });
 
-    const promise = whenEngineReady();
+    const rejection = whenEngineReady().catch((error: unknown) => error);
     await advanceThroughAllRetries();
 
-    await expect(promise).rejects.toThrow(
-      'Engine did not become ready after 5 retries',
+    await expect(rejection).resolves.toEqual(
+      new Error('Engine did not become ready after 5 retries'),
     );
 
     // Restore data property for subsequent tests

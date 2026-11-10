@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  IconColor,
   IconSize,
   Spinner,
   ToastSeverity,
@@ -10,6 +11,18 @@ import type { TrackedQuickBuyTrade } from './quickBuyTradeTracker';
 
 export type QuickBuyToastKind = 'pending' | 'complete' | 'failed';
 
+/** Action rendered on the complete toast, such as Post to feed. */
+export interface QuickBuyToastLinkButtonOptions {
+  label: string;
+  onPress: () => void;
+}
+
+interface BuildQuickBuyToastParams {
+  trade: TrackedQuickBuyTrade;
+  /** Only rendered on the complete toast. */
+  linkButtonOptions?: QuickBuyToastLinkButtonOptions;
+}
+
 /**
  * Pure builder for the QuickBuy swap-lifecycle toasts. Renders an action title
  * (line 1) plus the exchange-rate quote as a description (line 2), matching the
@@ -18,7 +31,7 @@ export type QuickBuyToastKind = 'pending' | 'complete' | 'failed';
  */
 export function buildQuickBuyToastOptions(
   kind: QuickBuyToastKind,
-  trade: TrackedQuickBuyTrade,
+  { trade, linkButtonOptions }: BuildQuickBuyToastParams,
 ): ToastOptions {
   const title = strings(
     `social_leaderboard.quick_buy.toast_${kind}_${trade.tradeMode}`,
@@ -30,6 +43,12 @@ export function buildQuickBuyToastOptions(
   );
 
   const description = trade.rate || undefined;
+  const actionButton = linkButtonOptions
+    ? {
+        actionButtonLabel: linkButtonOptions.label,
+        actionButtonOnPress: linkButtonOptions.onPress,
+      }
+    : {};
 
   switch (kind) {
     case 'complete':
@@ -38,6 +57,7 @@ export function buildQuickBuyToastOptions(
         hasNoTimeout: false,
         title,
         description,
+        ...actionButton,
       };
     case 'failed':
       return {
@@ -52,7 +72,12 @@ export function buildQuickBuyToastOptions(
         hasNoTimeout: false,
         title,
         description,
-        startAccessory: <Spinner spinnerIconProps={{ size: IconSize.Lg }} />,
+        startAccessory: (
+          <Spinner
+            color={IconColor.IconDefault}
+            spinnerIconProps={{ size: IconSize.Lg }}
+          />
+        ),
       };
   }
 }

@@ -1,15 +1,13 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { Source } from '@metamask/assets-controllers';
 import AddCustomCollectible from './AddCustomCollectible';
 import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import-x/no-namespace
 import * as utilsTransactions from '../../../../../util/transactions';
-
-// --- Mock variables (hoisted by Jest) ---
-
-const mockShowToast = jest.fn();
 
 // --- Module mocks ---
 
@@ -35,31 +33,15 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
-jest.mock('../../../../../component-library/components/Toast', () => {
-  const actualReact = jest.requireActual('react');
-  const MockToastContext = actualReact.createContext({});
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    ...jest.requireActual('../../../../../component-library/components/Toast'),
-    ToastContext: MockToastContext,
-    ToastVariants: { Plain: 'Plain' },
+    ...actual,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
   };
 });
-
-// --- Helpers ---
-
-const ToastWrapper = ({ children }: { children: React.ReactNode }) => {
-  const {
-    ToastContext,
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  } = require('../../../../../component-library/components/Toast');
-  return (
-    <ToastContext.Provider
-      value={{ toastRef: { current: { showToast: mockShowToast } } }}
-    >
-      {children}
-    </ToastContext.Provider>
-  );
-};
 
 const VALID_ADDRESS = '0x1a92f7381b9f03921564a437210bb9396471050c';
 
@@ -78,7 +60,6 @@ const renderComponent = (
     selectedNetwork?: string | null;
     networkClientId?: string | null;
     collectibleContract?: { address: string };
-    withToast?: boolean;
   } = {},
 ) => {
   const component = (
@@ -94,10 +75,7 @@ const renderComponent = (
     />
   );
 
-  return renderWithProvider(
-    overrides.withToast ? <ToastWrapper>{component}</ToastWrapper> : component,
-    { state: mockInitialState },
-  );
+  return renderWithProvider(component, { state: mockInitialState });
 };
 
 /**
@@ -156,6 +134,12 @@ describe('AddCustomCollectible', () => {
     });
 
     expect(Engine.context.NftController.addNft).toHaveBeenCalledTimes(1);
+    expect(Engine.context.NftController.addNft).toHaveBeenCalledWith(
+      VALID_ADDRESS,
+      '55',
+      'mainnet',
+      { source: Source.Custom },
+    );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
@@ -266,7 +250,6 @@ describe('AddCustomCollectible', () => {
 
       const utils = renderComponent({
         navigation: { navigate: jest.fn(), goBack: jest.fn() },
-        withToast: true,
       });
 
       await fillFormAndWait(utils);
@@ -275,14 +258,12 @@ describe('AddCustomCollectible', () => {
         fireEvent.press(utils.getByTestId('add-collectible-button'));
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelOptions: [{ label: 'collectible.not_owner_error_title' }],
-          descriptionOptions: {
-            description: 'collectible.not_owner_error',
-          },
-        }),
-      );
+      expect(toast).toHaveBeenCalledWith({
+        title: 'collectible.not_owner_error_title',
+        description: 'collectible.not_owner_error',
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+      });
     });
 
     it('shows toast when ownership verification fails', async () => {
@@ -292,7 +273,6 @@ describe('AddCustomCollectible', () => {
 
       const utils = renderComponent({
         navigation: { navigate: jest.fn(), goBack: jest.fn() },
-        withToast: true,
       });
 
       await fillFormAndWait(utils);
@@ -301,16 +281,12 @@ describe('AddCustomCollectible', () => {
         fireEvent.press(utils.getByTestId('add-collectible-button'));
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelOptions: [
-            { label: 'collectible.ownership_verification_error_title' },
-          ],
-          descriptionOptions: {
-            description: 'collectible.ownership_verification_error',
-          },
-        }),
-      );
+      expect(toast).toHaveBeenCalledWith({
+        title: 'collectible.ownership_verification_error_title',
+        description: 'collectible.ownership_verification_error',
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+      });
     });
   });
 

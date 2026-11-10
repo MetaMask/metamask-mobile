@@ -1,0 +1,54 @@
+diff --git a/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp b/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp
+index 6a08e59e39e3f25c241551f367b56efbf270b234..b4cbb866a864d7cf365cb02de211d6d4afec668d 100644
+--- a/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp
++++ b/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp
+@@ -142,9 +142,13 @@ int InspectorImpl::addPage(
+       pageId,
+       Page{pageId, description, vm, std::move(connectFunc), capabilities});
+ 
+-  for (const auto& listenerWeak : listeners_) {
+-    if (auto listener = listenerWeak.lock()) {
+-      listener->unstable_onHostTargetAdded();
++  // Legacy Hermes runtimes also register pages, but only Fusebox pages
++  // represent React Native hosts.
++  if (capabilities.prefersFuseboxFrontend) {
++    for (const auto& listenerWeak : listeners_) {
++      if (auto listener = listenerWeak.lock()) {
++        listener->unstable_onHostTargetAdded();
++      }
+     }
+   }
+ 
+diff --git a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+index fdabd7bab1f03966dc04ba9a462465daeccf8ae3..1ac9364a1517eba9cd1f51fff3525ea3aa84135a 100644
+--- a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
++++ b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+@@ -29,5 +29,15 @@ class ReactNativeFeatureFlagsOverridesOSSStable : public ReactNativeFeatureFlags
+   {
+     return true;
+   }
++  bool fuseboxFrameRecordingEnabled() override
++  {
++#if defined(DEBUG) && defined(__APPLE__)
++    // React Native DevTools uses this flag to emit native frame events only
++    // while an explicit CDP Tracing session is active.
++    return true;
++#else
++    return false;
++#endif
++  }
+ };
+ } // namespace facebook::react
+diff --git a/scripts/cocoapods/autolinking.rb b/scripts/cocoapods/autolinking.rb
+index d8e9c7cec2f57c124cc2b2fc52b69de8940d3eb5..b297501dfc3f8d22bc87f22e86ad6e3e9d0fc5d4 100644
+--- a/scripts/cocoapods/autolinking.rb
++++ b/scripts/cocoapods/autolinking.rb
+@@ -107,8 +107,6 @@ end
+ #   - :ios_project_root_path - Absolute path to the react_native project's ios folder, e.g. /Users/foobar/project/rn_project/ios
+ #   - :react_native_path - Relative path to the react_native from the project, e.g. ./node_modules/react-native
+ def link_native_modules!(config)
+-  Pod::UI.puts "link_native_modules! #{config}"
+-
+   if !(
+     config[:ios_packages].is_a? Array and
+     config[:ios_project_root_path].is_a? String and

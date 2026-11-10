@@ -58,15 +58,23 @@ import {
 } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
+import {
+  isTokenInOffHoursAt,
+  isTokenTradableAt,
+} from '../../../../components/UI/Bridge/hooks/useRWAToken';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
 import {
   DEFAULT_RECURRING_EVERY_VALUE,
   initialRecurringState,
   validateRecurringSchedule,
   type RecurringIntervalUnit,
+  type RecurringPriceRange,
   type RecurringState,
 } from '../../../../components/UI/Bridge/utils/recurringSchedule';
+import type { LimitOrderConfirmationMarketComparison } from '../../../../components/UI/Bridge/components/LimitOrderConfirmationModal/types';
+import type { SwapsLimitOrderExpirationMinutes } from '../../../../components/UI/Bridge/constants/limitOrders';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -88,6 +96,7 @@ export interface BridgeState {
   isSelectingToken: boolean;
   isGasIncludedSTXSendBundleSupported: boolean;
   isGasIncluded7702Supported: boolean;
+  isNativeGasIncludedSupported: boolean;
   /**
    * Tracks whether the user has manually selected a destination token.
    * When true, changing the source token to a different network won't auto-update the dest token.
@@ -127,6 +136,25 @@ export interface BridgeState {
   // Recurring
   recurring: RecurringState;
 
+  // Limit orders
+  /**
+   * Cost tolerance in % applied to limit orders.
+   * `undefined` means the Auto option is in effect.
+   */
+  limitOrderCostTolerance: string | undefined;
+  /**
+   * Expiration preset (in minutes) chosen for limit orders.
+   * `undefined` means the default preset (1 hour) is in effect.
+   */
+  limitOrderExpirationMinutes: SwapsLimitOrderExpirationMinutes | undefined;
+  /**
+   * Live market-comparison label for the in-progress limit order (e.g.
+   * "(-5% from market)"). `undefined` while at market or before a price is available.
+   */
+  limitOrderMarketComparison:
+    | LimitOrderConfirmationMarketComparison
+    | undefined;
+
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: CaipChainId | undefined;
 }
@@ -148,6 +176,7 @@ export const initialState: BridgeState = {
   isSelectingToken: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
+  isNativeGasIncludedSupported: false,
   isDestTokenManuallySet: false,
   abTestContext: undefined,
   tokenSelectorNetworkFilter: undefined,
@@ -164,6 +193,11 @@ export const initialState: BridgeState = {
 
   // Recurring
   recurring: initialRecurringState,
+
+  // Limit orders
+  limitOrderCostTolerance: undefined,
+  limitOrderExpirationMinutes: undefined,
+  limitOrderMarketComparison: undefined,
 
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: undefined,
@@ -239,6 +273,12 @@ const slice = createSlice({
       state.recurring.everyUnit = action.payload;
       state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
     },
+    setRecurringPriceRange: (
+      state,
+      action: PayloadAction<RecurringPriceRange | undefined>,
+    ) => {
+      state.recurring.priceRange = action.payload;
+    },
     setSelectedSourceChainIds: (
       state,
       action: PayloadAction<(Hex | CaipChainId)[]>,
@@ -251,8 +291,13 @@ const slice = createSlice({
     ) => {
       state.selectedDestChainId = action.payload;
     },
-    resetBridgeState: () => ({
+    // Limit-order settings (Expires after, Price tolerance) persist for the
+    // whole app session — they reset only on a fresh launch, not when the
+    // user leaves and re-enters the Bridge flow.
+    resetBridgeState: (state) => ({
       ...initialState,
+      limitOrderCostTolerance: state.limitOrderCostTolerance,
+      limitOrderExpirationMinutes: state.limitOrderExpirationMinutes,
     }),
     resetBridgeTokenInputs: (state) => {
       state.sourceAmount = undefined;
@@ -273,6 +318,7 @@ const slice = createSlice({
       const sourceToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.sourceToken, sourceToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       state.sourceToken = sourceToken;
     },
@@ -280,6 +326,7 @@ const slice = createSlice({
       const destToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.destToken, destToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       // Update selectedDestChainId to match the destination token's chain ID
       state.destToken = destToken;
@@ -305,6 +352,24 @@ const slice = createSlice({
       state.slippage = action.payload;
       state.isSlippageUserOverride = true;
     },
+    setLimitOrderCostTolerance: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.limitOrderCostTolerance = action.payload;
+    },
+    setLimitOrderExpirationMinutes: (
+      state,
+      action: PayloadAction<SwapsLimitOrderExpirationMinutes>,
+    ) => {
+      state.limitOrderExpirationMinutes = action.payload;
+    },
+    setLimitOrderMarketComparison: (
+      state,
+      action: PayloadAction<LimitOrderConfirmationMarketComparison | undefined>,
+    ) => {
+      state.limitOrderMarketComparison = action.payload;
+    },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
     },
@@ -322,6 +387,12 @@ const slice = createSlice({
     },
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
+    },
+    setIsNativeGasIncludedSupported: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.isNativeGasIncludedSupported = action.payload;
     },
     setAbTestContext: (
       state,
@@ -457,6 +528,9 @@ export default reducer;
 const selectBridgeState = (state: RootState) => state[name];
 
 // Derived selectors using createSelector
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectSourceAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.sourceAmount,
@@ -485,6 +559,11 @@ export const selectRecurringEveryUnit = createSelector(
 export const selectRecurringRepeatCount = createSelector(
   selectRecurring,
   (recurring) => recurring.repeatCount,
+);
+
+export const selectRecurringPriceRange = createSelector(
+  selectRecurring,
+  (recurring) => recurring.priceRange,
 );
 
 export const selectRecurringScheduleValidation = createSelector(
@@ -736,11 +815,18 @@ export const selectEnabledSourceChains = createSelector(
 );
 
 // Combined selectors for related state
+
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectSourceToken = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.sourceToken,
 );
 
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectDestToken = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destToken,
@@ -770,6 +856,9 @@ export const selectSelectedDestChainId = createSelector(
   },
 );
 
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectSlippage = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.slippage,
@@ -780,6 +869,24 @@ export const selectIsSlippageUserOverride = createSelector(
   (bridgeState) => bridgeState.isSlippageUserOverride,
 );
 
+export const selectLimitOrderCostTolerance = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.limitOrderCostTolerance,
+);
+
+export const selectLimitOrderExpirationMinutes = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.limitOrderExpirationMinutes,
+);
+
+export const selectLimitOrderMarketComparison = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.limitOrderMarketComparison,
+);
+
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
@@ -822,6 +929,9 @@ export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
 // Selector for 7702 gas included support
 export const selectIsGasIncluded7702Supported = (state: RootState) =>
   state.bridge.isGasIncluded7702Supported;
+
+export const selectIsNativeGasIncludedSupported = (state: RootState) =>
+  state.bridge.isNativeGasIncludedSupported;
 
 const EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID = {};
 const EMPTY_HISTORICAL_PRICES = {};
@@ -883,6 +993,7 @@ export const selectBridgeQuotes = createSelector(
     const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
 
     // If no selectedQuoteRequestId, return the default result
@@ -900,6 +1011,7 @@ export const selectBridgeQuotes = createSelector(
       return selectBridgeQuotesBase(requiredControllerFields, {
         sortOrder: SortOrder.COST_ASC,
         selectedQuote,
+        migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
       });
     }
 
@@ -915,6 +1027,7 @@ export const selectBatchSellQuotes = createSelector(
       sortOrder: SortOrder.COST_ASC,
       requestCount: requiredControllerFields.quoteRequest.length,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     }),
 );
 
@@ -1029,6 +1142,59 @@ export const selectIsRwaSwap = createSelector(
     (isStockRwaBridgeToken(sourceToken, isRwaEnabled) ||
       isStockRwaBridgeToken(destToken, isRwaEnabled)),
 );
+
+/**
+ * True when at least one stock-RWA leg is fully closed — i.e. neither in regular market
+ * hours nor in an off-hours window — at the given timestamp.
+ *
+ * Accepts an optional `nowMs` parameter so callers can inject the current time
+ * (useful for testing without mocking `Date`). Defaults to `Date.now()`.
+ *
+ * NOTE: Because this selector calls `nowMs` at evaluation time it is NOT memoised
+ * via `createSelector` — market status changes continuously and must be re-checked
+ * on each render cycle that cares about it.
+ */
+export const selectIsStockMarketClosed = (
+  state: RootState,
+  nowMs: number = Date.now(),
+): boolean => {
+  const sourceToken = selectSourceToken(state);
+  const destToken = selectDestToken(state);
+  const isRwaEnabled = selectRWAEnabledFlag(state);
+
+  const isFullyClosed = (token: ReturnType<typeof selectSourceToken>) =>
+    isStockRwaBridgeToken(token, isRwaEnabled) &&
+    !isTokenTradableAt(token, isRwaEnabled, nowMs);
+
+  return isFullyClosed(sourceToken) || isFullyClosed(destToken);
+};
+
+/**
+ * True when the current swap is tradable only via an off-hours window — meaning at least
+ * one leg is a stock RWA token that is in off-hours but NOT in regular market hours, AND
+ * no leg is fully closed.
+ *
+ * Off-hours and market-closed are mutually exclusive: if any leg is fully closed this
+ * returns `false`.
+ *
+ * Accepts an optional `nowMs` parameter (same rationale as `selectIsStockMarketClosed`).
+ */
+export const selectIsInOffHoursTrading = (
+  state: RootState,
+  nowMs: number = Date.now(),
+): boolean => {
+  if (selectIsStockMarketClosed(state, nowMs)) return false;
+
+  const sourceToken = selectSourceToken(state);
+  const destToken = selectDestToken(state);
+  const isRwaEnabled = selectRWAEnabledFlag(state);
+
+  const inOffHours = (token: ReturnType<typeof selectSourceToken>) =>
+    isStockRwaBridgeToken(token, isRwaEnabled) &&
+    isTokenInOffHoursAt(token, isRwaEnabled, nowMs);
+
+  return inOffHours(sourceToken) || inOffHours(destToken);
+};
 
 export const selectIsSubmittingTx = createSelector(
   selectBridgeState,
@@ -1146,6 +1312,7 @@ export const {
   setRecurringEveryValue,
   setRecurringRepeatCount,
   setRecurringEveryUnit,
+  setRecurringPriceRange,
   resetBridgeState,
   resetBridgeTokenInputs,
   resetBridgeDestToken,
@@ -1157,6 +1324,9 @@ export const {
   setSelectedDestChainId,
   setSlippage,
   setSlippageUserOverride,
+  setLimitOrderCostTolerance,
+  setLimitOrderExpirationMinutes,
+  setLimitOrderMarketComparison,
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,
@@ -1164,6 +1334,7 @@ export const {
   setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
+  setIsNativeGasIncludedSupported,
   setAbTestContext,
   setTokenSelectorNetworkFilter,
   setOrdersNetworkFilter,

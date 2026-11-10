@@ -6,6 +6,7 @@ import {
   toMarketRateLookupToken,
 } from './fiat';
 import { NATIVE_TOKEN_ADDRESS } from './adapters/shims';
+import type { TokenAmount } from './types';
 
 const ethToken: MarketRateLookupToken = {
   address: NATIVE_TOKEN_ADDRESS,
@@ -13,6 +14,9 @@ const ethToken: MarketRateLookupToken = {
   decimals: 18,
   chainId: '0x1',
 };
+
+// Parsed rather than typed so the API's off-contract values (null, strings) reach the helper as they do at runtime.
+const parseApiTokenAmount = (json: string): TokenAmount => JSON.parse(json);
 
 describe('activity adapter fiat helpers', () => {
   it('returns an unsigned human-readable token amount', () => {
@@ -24,6 +28,29 @@ describe('activity adapter fiat helpers', () => {
         symbol: 'ETH',
       }),
     ).toBe('1');
+  });
+
+  it('does not apply metadata decimals when the amount is already human-readable', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1',
+        decimals: 9,
+        direction: 'out',
+        symbol: 'SOL',
+        amountIsHumanReadable: true,
+      }),
+    ).toBe('1');
+  });
+
+  it('treats an integer amount as atomic units when decimals are set and the amount is not marked human-readable', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1',
+        decimals: 9,
+        direction: 'out',
+        symbol: 'SOL',
+      }),
+    ).toBe('0.000000001');
   });
 
   it('treats a missing amount with symbol/assetId as zero for client-utils natives', () => {
@@ -39,6 +66,105 @@ describe('activity adapter fiat helpers', () => {
         direction: 'out',
       }),
     ).toBeUndefined();
+  });
+
+  it('does not invent 0 when an EVM mapper omitted the amount (fail-closed)', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        direction: 'out',
+        symbol: 'USDT',
+        assetId:
+          'eip155:42161/erc20:0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+        assetType: 'erc20',
+      }),
+    ).toBeUndefined();
+    expect(
+      getHumanReadableTokenAmount({
+        direction: 'out',
+        symbol: 'ETH',
+        assetId: 'eip155:1/slip44:60',
+        assetType: 'native',
+      }),
+    ).toBeUndefined();
+  });
+
+  it.each(['erc721', 'erc1155'] as const)(
+    'does not invent 0 for an NFT with no fungible amount (%s)',
+    (assetType) => {
+      expect(
+        getHumanReadableTokenAmount({
+          direction: 'out',
+          symbol: 'I Love FLUF',
+          assetType,
+        }),
+      ).toBeUndefined();
+    },
+  );
+
+  it('omits an EVM mapper amount whose decimals are unknown rather than treating it as atomic', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '167121100',
+        direction: 'out',
+        symbol: 'USDT',
+        assetType: 'erc20',
+      }),
+    ).toBeUndefined();
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1000000000000000',
+        direction: 'out',
+        assetType: 'native',
+      }),
+    ).toBeUndefined();
+  });
+
+  it.each([
+    ['null', 'null'],
+    ['a numeric string', '"6"'],
+    ['a fraction', '6.5'],
+  ])(
+    'omits an EVM mapper amount whose decimals arrive from the API as %s',
+    (_label, decimalsJson) => {
+      const token = parseApiTokenAmount(
+        `{"amount":"111929862","decimals":${decimalsJson},"direction":"out","assetType":"erc20"}`,
+      );
+
+      const result = getHumanReadableTokenAmount(token);
+
+      expect(result).toBeUndefined();
+    },
+  );
+
+  it('scales an EVM mapper amount by zero decimals for zero-decimal tokens', () => {
+    const token: TokenAmount = {
+      amount: '42',
+      decimals: 0,
+      direction: 'in',
+      assetType: 'erc20',
+    };
+
+    const result = getHumanReadableTokenAmount(token);
+
+    expect(result).toBe('42');
+  });
+
+  it('keeps amounts from sources that omit decimals on already-human values', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '30',
+        direction: 'in',
+        symbol: 'USDC',
+        assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      }),
+    ).toBe('30');
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1.5',
+        direction: 'out',
+        symbol: 'SOL',
+      }),
+    ).toBe('1.5');
   });
 
   it('returns no prefix for incoming amounts when plus is disabled', () => {

@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TextColor } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import {
@@ -17,6 +17,13 @@ const TYPE_LABEL_KEY: Record<CardTransactionType, string> = {
   [CardTransactionType.Deposit]: 'money.transaction.deposited',
   [CardTransactionType.Transfer]: 'money.transaction.sent',
   [CardTransactionType.Adjustment]: 'money.transaction.card_transaction',
+};
+
+const HERO_COPY_KEY: Partial<Record<CardTransactionType, string>> = {
+  [CardTransactionType.Purchase]: 'money.api_activity_details.you_spent',
+  [CardTransactionType.Refund]: 'money.api_activity_details.you_were_refunded',
+  [CardTransactionType.Withdrawal]: 'card.transactions.you_withdrew',
+  [CardTransactionType.Deposit]: 'card.transactions.you_deposited',
 };
 
 function startOfDayMs(date: Date): number {
@@ -39,9 +46,12 @@ export function formatCardTransactionDate(timestamp: number): string {
     return strings('card.transactions.yesterday');
   }
 
+  const isCurrentYear = date.getFullYear() === now.getFullYear();
+
   return getIntlDateTimeFormatter(I18n.locale, {
     day: 'numeric',
     month: 'short',
+    ...(isCurrentYear ? {} : { year: 'numeric' as const }),
   }).format(date);
 }
 
@@ -58,6 +68,22 @@ function mapCardTransactionStatus(
   }
 }
 
+/**
+ * True when the card provider's outcome for a transaction is not a successful
+ * spend. A declined or reversed transaction can still have settled on-chain,
+ * in which case its Accounts-API activity row looks like any other successful
+ * purchase — only the provider knows otherwise. See
+ * `accountsApiActivityDisplayInfo`.
+ */
+export function isUnsuccessfulCardTransactionStatus(
+  status: CardTransactionStatus,
+): boolean {
+  return (
+    status === CardTransactionStatus.Failed ||
+    status === CardTransactionStatus.Reversed
+  );
+}
+
 function getTransactionLabel(tx: CardTransaction): string {
   return strings(TYPE_LABEL_KEY[tx.type]);
 }
@@ -72,28 +98,34 @@ function getTransactionDescription(tx: CardTransaction): string | undefined {
   return formatCardTransactionDate(tx.timestamp);
 }
 
-function getSecondaryAmount(tx: CardTransaction): string {
+function getLocalAmount(tx: CardTransaction) {
   const original = tx.originalAmount;
   if (
     !original ||
     original.currency.toUpperCase() === tx.billingAmount.currency.toUpperCase()
   ) {
-    return '';
+    return undefined;
   }
-  return formatCardAmount(original, tx.isDebit);
+  return original;
 }
 
 export function cardTransactionDisplayInfo(
   tx: CardTransaction,
 ): MoneyTransactionDisplayInfo {
+  const localAmount = getLocalAmount(tx);
+  const primary = localAmount ?? tx.billingAmount;
+  const secondary = localAmount ? tx.billingAmount : undefined;
+
   return {
     label: getTransactionLabel(tx),
     description: getTransactionDescription(tx),
-    primaryAmount: formatCardAmount(tx.billingAmount, tx.isDebit),
-    fiatAmount: getSecondaryAmount(tx),
+    primaryAmount: formatCardAmount(primary, tx.isDebit),
+    fiatAmount: secondary ? formatCardAmount(secondary, tx.isDebit) : '',
     isIncoming: !tx.isDebit,
     icon: IconName.Card,
     status: mapCardTransactionStatus(tx.status),
+    // Activity rows only render this line when asked. Card charges live here.
+    showPrimaryAmount: true,
   };
 }
 
@@ -114,5 +146,30 @@ export function formatCardTransactionStatus(
     case CardTransactionStatus.Completed:
     default:
       return strings('card.transactions.completed');
+  }
+}
+
+export function getCardTransactionHeroCopy(tx: CardTransaction): string {
+  const key =
+    HERO_COPY_KEY[tx.type] ??
+    (tx.isDebit
+      ? 'money.api_activity_details.you_spent'
+      : 'card.transactions.you_received');
+  return strings(key);
+}
+
+export function getCardTransactionStatusColor(
+  status: CardTransactionStatus,
+): TextColor {
+  switch (status) {
+    case CardTransactionStatus.Pending:
+      return TextColor.WarningDefault;
+    case CardTransactionStatus.Failed:
+      return TextColor.ErrorDefault;
+    case CardTransactionStatus.Reversed:
+      return TextColor.TextAlternative;
+    case CardTransactionStatus.Completed:
+    default:
+      return TextColor.SuccessDefault;
   }
 }

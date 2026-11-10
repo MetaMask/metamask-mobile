@@ -12,17 +12,25 @@ import {
   PredictEventValues,
   PredictFailureCategoryValue,
   PredictFailureStageValue,
+  PredictOneTickDecisionValue,
   PredictPaymentMethodValue,
+  PredictPresubmitOutcomeValue,
+  PredictRetryOutcomeValue,
+  PredictRetryReasonValue,
   PredictShareStatusValue,
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
-import { PlaceOrderParams, PredictOrderType } from '../types';
+import {
+  PlaceOrderParams,
+  PredictEligibility,
+  PredictOrderType,
+} from '../types';
 import { PREDICT_ANALYTICS_EVENTS } from './utils/predictAnalyticsEvents';
 
 export interface PredictAnalyticsContext {
-  getEligibility(): { eligible: boolean; country?: string };
+  getEligibility(): PredictEligibility;
 }
 
 export interface TrackPredictOrderEventArgs {
@@ -41,6 +49,24 @@ export interface TrackPredictOrderEventArgs {
   paymentMethod?: PredictPaymentMethodValue;
   failureStage?: PredictFailureStageValue;
   failureCategory?: PredictFailureCategoryValue;
+  /** Why the retry exists — always the not-filled failure for now. */
+  retryReason?: PredictRetryReasonValue;
+  /** User-initiated retry submission number within this not-filled episode. */
+  retryCount?: number;
+  /** How the 1-tick rule classified the fresh quote. */
+  oneTickDecision?: PredictOneTickDecisionValue;
+  /** Applied band as a percentage string, e.g. '5%' (sell) / '3%' (buy). */
+  slippageBand?: string;
+  /** Terminal outcome of a retry submission. */
+  retryOutcome?: PredictRetryOutcomeValue;
+  /** What the Cash Out price check decided before submitting. */
+  presubmitOutcome?: PredictPresubmitOutcomeValue;
+  /** Price the Cash Out price check compared the fresh book against. */
+  approvedPrice?: number;
+  /** Lowest bid used to fill the full size in the fresh book. */
+  worstFillPrice?: number;
+  /** True when the check follows a confirmation of a moved price. */
+  reconfirmed?: boolean;
   activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -234,6 +260,15 @@ export class PredictAnalytics {
     paymentMethod,
     failureStage,
     failureCategory,
+    retryReason,
+    retryCount,
+    oneTickDecision,
+    slippageBand,
+    retryOutcome,
+    presubmitOutcome,
+    approvedPrice,
+    worstFillPrice,
+    reconfirmed,
     activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
@@ -290,6 +325,10 @@ export class PredictAnalytics {
       ...(analyticsProperties.outcome && {
         [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
       }),
+      ...(analyticsProperties.outcomeVersion && {
+        [PredictEventProperties.OUTCOME_VERSION]:
+          analyticsProperties.outcomeVersion,
+      }),
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
       }),
@@ -338,6 +377,33 @@ export class PredictAnalytics {
       }),
       ...(failureCategory && {
         [PredictEventProperties.FAILURE_CATEGORY]: failureCategory,
+      }),
+      ...(retryReason && {
+        [PredictEventProperties.RETRY_REASON]: retryReason,
+      }),
+      ...(retryCount !== undefined && {
+        [PredictEventProperties.RETRY_COUNT]: retryCount,
+      }),
+      ...(oneTickDecision && {
+        [PredictEventProperties.ONE_TICK_DECISION]: oneTickDecision,
+      }),
+      ...(slippageBand && {
+        [PredictEventProperties.SLIPPAGE_BAND]: slippageBand,
+      }),
+      ...(retryOutcome && {
+        [PredictEventProperties.RETRY_OUTCOME]: retryOutcome,
+      }),
+      ...(presubmitOutcome && {
+        [PredictEventProperties.PRESUBMIT_OUTCOME]: presubmitOutcome,
+      }),
+      ...(approvedPrice !== undefined && {
+        [PredictEventProperties.APPROVED_PRICE]: approvedPrice,
+      }),
+      ...(worstFillPrice !== undefined && {
+        [PredictEventProperties.WORST_FILL_PRICE]: worstFillPrice,
+      }),
+      ...(reconfirmed !== undefined && {
+        [PredictEventProperties.RECONFIRMED]: reconfirmed,
       }),
       ...(activeAbTests &&
         activeAbTests.length > 0 && {
@@ -541,7 +607,11 @@ export class PredictAnalytics {
     const eligibilityData = this.context.getEligibility();
 
     this.trackConfiguredEvent('geoBlockTriggered', {
-      country: eligibilityData?.country,
+      country:
+        eligibilityData.status === 'eligible' ||
+        eligibilityData.status === 'ineligible'
+          ? eligibilityData.country
+          : undefined,
       attemptedAction,
     });
   }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { type PriceUpdate } from '@metamask/perps-controller';
+import { usePerpsMarketContext } from '../usePerpsMarketContext';
 
 export interface UsePerpsLiveFocusedPriceOptions {
   /**
@@ -52,9 +53,11 @@ export function usePerpsLiveFocusedPrice(
 ): PriceUpdate | undefined {
   const { symbol, enabled = true } = options;
   const stream = usePerpsStream();
-  const [priceUpdate, setPriceUpdate] = useState<PriceUpdate | undefined>(
-    undefined,
-  );
+  const { key: marketContextKey, isReady: isMarketContextReady } =
+    usePerpsMarketContext();
+  const [priceState, setPriceState] = useState<
+    { contextKey: string; symbol: string; update: PriceUpdate } | undefined
+  >(undefined);
 
   // Track the symbol that produced the current cached value so we can clear
   // stale data only when the symbol changes, not on every effect re-run
@@ -63,9 +66,9 @@ export function usePerpsLiveFocusedPrice(
   const activeSymbolRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!symbol || !enabled) {
+    if (!symbol || !enabled || !isMarketContextReady) {
       activeSymbolRef.current = null;
-      setPriceUpdate(undefined);
+      setPriceState(undefined);
       return;
     }
 
@@ -74,21 +77,26 @@ export function usePerpsLiveFocusedPrice(
       activeSymbolRef.current !== null &&
       activeSymbolRef.current !== symbol
     ) {
-      setPriceUpdate(undefined);
+      setPriceState(undefined);
     }
     activeSymbolRef.current = symbol;
 
     const unsubscribe = stream.focusedPrice.subscribeToSymbol({
       symbol,
       callback: (update) => {
-        setPriceUpdate(update);
+        setPriceState(
+          update ? { contextKey: marketContextKey, symbol, update } : undefined,
+        );
       },
     });
 
     return () => {
       unsubscribe();
     };
-  }, [stream, symbol, enabled]);
+  }, [stream, symbol, enabled, isMarketContextReady, marketContextKey]);
 
-  return priceUpdate;
+  return priceState?.symbol === symbol &&
+    priceState.contextKey === marketContextKey
+    ? priceState.update
+    : undefined;
 }

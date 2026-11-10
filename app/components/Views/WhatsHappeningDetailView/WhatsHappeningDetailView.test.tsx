@@ -18,6 +18,7 @@ import {
 const GAP = 12;
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
 
+const mockEndTrace = jest.fn();
 const mockGoBack = jest.fn();
 const mockRefresh = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -28,11 +29,56 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
   build: jest.fn(() => ({ category: eventName })),
 }));
 
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
 }));
+
+const mockHeaderGlassProps = jest.fn();
+let mockPerpsBrandRefresh = false;
+let mockExploreBrandRefresh = false;
+let mockHomeBrandRefresh = false;
+
+jest.mock(
+  '../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const { createElement } = jest.requireActual('react');
+    const ActualHeader = jest.requireActual(
+      '../../../component-library/components-temp/HeaderStandardGlass',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: { isGlass?: boolean }) => {
+        mockHeaderGlassProps(props);
+        return createElement(ActualHeader, props);
+      },
+    };
+  },
+);
+
+jest.mock('../../../selectors/featureFlagController/perpsBrandRefresh', () => ({
+  selectPerpsBrandRefreshEnabled: () => mockPerpsBrandRefresh,
+}));
+
+jest.mock(
+  '../../../selectors/featureFlagController/exploreBrandRefresh',
+  () => ({
+    selectExploreBrandRefreshEnabled: () => mockExploreBrandRefresh,
+  }),
+);
+
+jest.mock(
+  '../../../selectors/featureFlagController/homeBrandRefreshSurfaces',
+  () => ({
+    selectHomeBrandRefreshSurfacesEnabled: () => mockHomeBrandRefresh,
+  }),
+);
 
 jest.mock('./components/WhatsHappeningExpandedCard', () => ({
   __esModule: true,
@@ -108,6 +154,9 @@ const mockItem = {
 describe('WhatsHappeningDetailView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPerpsBrandRefresh = false;
+    mockExploreBrandRefresh = false;
+    mockHomeBrandRefresh = false;
     mockUseRoute.mockReturnValue({
       params: { source: 'homepage' },
     });
@@ -212,6 +261,15 @@ describe('WhatsHappeningDetailView', () => {
       nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
     });
     expect(screen.getByTestId('mock-expanded-card')).toBeOnTheScreen();
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening View Load",
+      id: 'homepage:expanded',
+      data: {
+        result: 'success',
+        success: true,
+        content_state: 'filled',
+      },
+    });
   });
 
   it('does not show the skeleton or error when items are loaded', () => {
@@ -662,6 +720,59 @@ describe('WhatsHappeningDetailView', () => {
       expect(openedCall).toBeDefined();
       expect(openedCall?.[0].properties).not.toHaveProperty('trend_id');
       expect(openedCall?.[0].properties).not.toHaveProperty('asset_symbols');
+    });
+  });
+
+  describe('glass header', () => {
+    beforeEach(() => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+    });
+
+    it('follows the Perps flag when opened from Perps', () => {
+      mockUseRoute.mockReturnValue({
+        params: { source: WhatsHappeningSource.Perps },
+      });
+      mockPerpsBrandRefresh = true;
+
+      renderWithProvider(<WhatsHappeningDetailView />);
+
+      expect(mockHeaderGlassProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isGlass: true, isFloating: false }),
+      );
+    });
+
+    it('ignores other surfaces flags when opened from Explore', () => {
+      mockUseRoute.mockReturnValue({
+        params: { source: WhatsHappeningSource.Explore },
+      });
+      mockPerpsBrandRefresh = true;
+      mockHomeBrandRefresh = true;
+
+      renderWithProvider(<WhatsHappeningDetailView />);
+
+      expect(mockHeaderGlassProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isGlass: false }),
+      );
+    });
+
+    it('keeps the plain header when opened from a deeplink', () => {
+      mockUseRoute.mockReturnValue({
+        params: { source: WhatsHappeningSource.Deeplink },
+      });
+      mockPerpsBrandRefresh = true;
+      mockExploreBrandRefresh = true;
+      mockHomeBrandRefresh = true;
+
+      renderWithProvider(<WhatsHappeningDetailView />);
+
+      expect(mockHeaderGlassProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isGlass: false }),
+      );
     });
   });
 });

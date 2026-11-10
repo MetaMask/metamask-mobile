@@ -1,7 +1,10 @@
+import { AppState, type AppStateStatus } from 'react-native';
 import {
   trace,
   endTrace,
+  getPerformanceTimestamp,
   getTraceContext,
+  setTraceMeasurement,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
@@ -12,41 +15,71 @@ import {
   endOpenRampsBuyCufChildrenByName,
   startRampsBuyQuoteFetchTrace,
   endRampsBuyQuoteFetchTrace,
+  buildRampsBuyQuoteFetchStartTags,
+  buildRampsBuyQuoteFetchCufCompletion,
   getRampsBuyCufParentContext,
   hasActiveRampsBuyCufTrace,
   surfaceFromBuyFlowOrigin,
   resetRampsBuyCufTraceForTests,
 } from './rampsBuyCufTrace';
+import { resetRampsBuyLifecycleContextForTests } from './rampsBuyLifecycleContext';
 import {
   RAMPS_BUY_CUF_FEATURE,
   RAMPS_BUY_CUF_SURFACE,
+  RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_TAG,
   RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
   RAMPS_BUY_CUF_TIMEOUT_MS,
+  RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
+  RAMPS_BUY_LIFECYCLE_CONTEXT,
 } from '../constants/rampsBuyCufTags';
 
 jest.mock('../../../../util/trace', () => ({
   ...jest.requireActual('../../../../util/trace'),
   trace: jest.fn(() => ({ mocked: 'parent-span' })),
   endTrace: jest.fn(),
+  getPerformanceTimestamp: jest.fn(() => 0),
   getTraceContext: jest.fn(() => ({ mocked: 'parent-span' })),
+  setTraceMeasurement: jest.fn(),
 }));
 
 const mockTrace = trace as jest.Mock;
 const mockEndTrace = endTrace as jest.Mock;
 const mockGetTraceContext = getTraceContext as jest.Mock;
+const mockGetPerformanceTimestamp = getPerformanceTimestamp as jest.Mock;
+const mockSetTraceMeasurement = setTraceMeasurement as jest.Mock;
 
 describe('rampsBuyCufTrace', () => {
+  let appState: AppStateStatus;
+  let appStateListener: (state: AppStateStatus) => void;
+  let now: number;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     resetRampsBuyCufTraceForTests();
+    resetRampsBuyLifecycleContextForTests();
     mockTrace.mockReturnValue({ mocked: 'parent-span' });
     mockGetTraceContext.mockReturnValue({ mocked: 'parent-span' });
+    now = 0;
+    mockGetPerformanceTimestamp.mockImplementation(() => now);
+    appState = 'active';
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      get: () => appState,
+    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_, listener) => {
+        appStateListener = listener;
+        return { remove: jest.fn() };
+      });
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it.each([
@@ -61,6 +94,8 @@ describe('rampsBuyCufTrace', () => {
     const fields = {
       [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
       [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
+      [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]:
+        RAMPS_BUY_LIFECYCLE_CONTEXT.COLD_PROCESS,
       [RAMPS_BUY_CUF_TAG.SURFACE]: RAMPS_BUY_CUF_SURFACE.FUND_MENU,
     };
 
@@ -77,6 +112,7 @@ describe('rampsBuyCufTrace', () => {
         id: opId,
         op: TraceOperation.RampOperation,
         forceTransaction: true,
+        maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
         tags: fields,
         data: fields,
       }),
@@ -137,7 +173,9 @@ describe('rampsBuyCufTrace', () => {
       expect.objectContaining({
         name: TraceName.RampBuyToOrderDetails,
         id: opId,
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+        data: expect.objectContaining({
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        }),
       }),
     );
     expect(hasActiveRampsBuyCufTrace()).toBe(false);
@@ -192,12 +230,127 @@ describe('rampsBuyCufTrace', () => {
       expect.objectContaining({
         name: TraceName.RampBuyToOrderDetails,
         id: timedOutId,
-        data: {
+        data: expect.objectContaining({
           [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
           [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.TIMEOUT,
-        },
+        }),
       }),
     );
+  });
+
+  it('accumulates only foreground-active time across a background resume', () => {
+    const opId = startRampsBuyCufTrace({ startTime: 0 });
+    now = 1_000;
+    appState = 'background';
+    appStateListener('background');
+    now = 6_000;
+    appState = 'active';
+    appStateListener('active');
+    now = 8_000;
+
+    endRampsBuyCufTrace();
+
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: TraceName.RampBuyToOrderDetails, id: opId },
+      RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+      3_000,
+      'millisecond',
+    );
+    expect(mockEndTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: 3_000,
+          [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: 1,
+          [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: 1,
+        }),
+      }),
+    );
+  });
+
+  it('does not count the first active event as a resume when the journey starts inactive', () => {
+    appState = 'inactive';
+    const opId = startRampsBuyCufTrace({ startTime: 0 });
+    now = 1_000;
+    appState = 'active';
+    appStateListener('active');
+    now = 2_000;
+
+    endRampsBuyCufTrace();
+
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: TraceName.RampBuyToOrderDetails, id: opId },
+      RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+      2_000,
+      'millisecond',
+    );
+    expect(mockEndTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: 0,
+          [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: 0,
+        }),
+      }),
+    );
+  });
+
+  it('does not treat iOS inactive as a backgrounded quote fetch', () => {
+    startRampsBuyCufTrace();
+    const quoteId = startRampsBuyQuoteFetchTrace();
+    mockEndTrace.mockClear();
+    now = 1_000;
+    appState = 'inactive';
+
+    appStateListener('inactive');
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(hasActiveRampsBuyCufTrace()).toBe(true);
+
+    now = 2_000;
+    appState = 'active';
+    appStateListener('active');
+    endRampsBuyQuoteFetchTrace({
+      id: quoteId,
+      data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.RampBuyQuoteFetch,
+        id: quoteId,
+        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      }),
+    );
+  });
+
+  it('keeps the Buy parent open when the app backgrounds', () => {
+    startRampsBuyCufTrace();
+    now = 1_000;
+    appState = 'background';
+
+    appStateListener('background');
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(hasActiveRampsBuyCufTrace()).toBe(true);
+  });
+
+  it('cancels an open quote fetch when the app backgrounds', () => {
+    startRampsBuyCufTrace();
+    const quoteId = startRampsBuyQuoteFetchTrace();
+    mockEndTrace.mockClear();
+    now = 1_000;
+    appState = 'background';
+
+    appStateListener('background');
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.RampBuyQuoteFetch,
+      id: quoteId,
+      data: {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.APP_BACKGROUNDED,
+      },
+      timestamp: undefined,
+    });
   });
 
   it('does not end a parent from a stale timeout after a successful end', () => {
@@ -229,6 +382,7 @@ describe('rampsBuyCufTrace', () => {
         name: TraceName.RampBuyContinueToCheckout,
         id: childId,
         parentContext: { mocked: 'parent-span' },
+        maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
       }),
     );
   });
@@ -294,7 +448,7 @@ describe('rampsBuyCufTrace', () => {
       );
     });
 
-    it('nests under the active Buy E2E parent when one is open', () => {
+    it('stays its own transaction while linking to an open Buy parent', () => {
       startRampsBuyCufTrace();
       mockTrace.mockClear();
 
@@ -305,7 +459,7 @@ describe('rampsBuyCufTrace', () => {
           name: TraceName.RampBuyQuoteFetch,
           id: opId,
           parentContext: { mocked: 'parent-span' },
-          forceTransaction: false,
+          forceTransaction: true,
         }),
       );
     });
@@ -363,6 +517,107 @@ describe('rampsBuyCufTrace', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('Buy Quote Fetch provider attribution (TRAM-3805)', () => {
+    it('tags a single-provider start with the provider id', () => {
+      const result = buildRampsBuyQuoteFetchStartTags(['/providers/paypal']);
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+      });
+    });
+
+    it.each([
+      ['no providers', undefined],
+      ['an empty provider list', []],
+      ['multiple providers', ['/providers/paypal', '/providers/transak']],
+    ])('omits provider tags for %s', (_label, providers) => {
+      const result = buildRampsBuyQuoteFetchStartTags(providers);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('marks a PayPal custom-action quote as a custom-action success', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: false,
+        requestedProviders: ['/providers/paypal'],
+        response: {
+          success: [
+            {
+              provider: '/providers/paypal',
+              quote: { isCustomAction: true },
+            },
+          ],
+        },
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+        [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.CUSTOM_ACTION,
+        [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: true,
+      });
+    });
+
+    it('marks an HTTP-ok PayPal miss as a no-quote failure', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: false,
+        requestedProviders: ['/providers/paypal'],
+        response: { success: [] },
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.NO_QUOTE,
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+      });
+    });
+
+    it('reports no_quote when the only quote belongs to a provider that was not requested', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: false,
+        requestedProviders: ['/providers/paypal'],
+        response: {
+          success: [{ provider: '/providers/transak', quote: {} }],
+        },
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.NO_QUOTE,
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+      });
+    });
+
+    it('omits the provider tag when a multi-provider request succeeds', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: false,
+        requestedProviders: ['/providers/paypal', '/providers/transak'],
+        response: {
+          success: [{ provider: '/providers/transak', quote: {} }],
+        },
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false,
+      });
+    });
+
+    it('keeps transport errors separate from provider-level misses', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: true,
+        requestedProviders: ['/providers/paypal'],
+        response: null,
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+      });
     });
   });
 });

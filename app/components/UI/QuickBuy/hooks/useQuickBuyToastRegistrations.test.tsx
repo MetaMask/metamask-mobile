@@ -148,10 +148,9 @@ describe('useQuickBuyToastRegistrations', () => {
     );
     renderHandler().handler({}, jest.fn());
 
-    expect(buildQuickBuyToastOptions).toHaveBeenCalledWith(
-      'complete',
-      buyTrade,
-    );
+    expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('complete', {
+      trade: buyTrade,
+    });
     expect(toast).toHaveBeenCalledWith({ kind: 'complete' });
     expect(playSuccessNotification).toHaveBeenCalledTimes(1);
     expect(playErrorNotification).not.toHaveBeenCalled();
@@ -165,7 +164,9 @@ describe('useQuickBuyToastRegistrations', () => {
     );
     renderHandler().handler({}, jest.fn());
 
-    expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('failed', sellTrade);
+    expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('failed', {
+      trade: sellTrade,
+    });
     expect(toast).toHaveBeenCalledWith({ kind: 'failed' });
     expect(playErrorNotification).toHaveBeenCalledTimes(1);
     expect(playSuccessNotification).not.toHaveBeenCalled();

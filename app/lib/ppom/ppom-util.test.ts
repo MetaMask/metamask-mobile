@@ -1,6 +1,6 @@
 import {
   normalizeTransactionParams,
-  TransactionMeta,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import * as SecurityAlertsActions from '../../reducers/security-alerts'; // eslint-disable-line import-x/no-namespace
 import Engine from '../../core/Engine';
@@ -88,7 +88,6 @@ jest.mock('../../core/Engine', () => ({
 const MockEngine = jest.mocked(Engine);
 
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
   normalizeTransactionParams: jest.fn(),
 }));
 

@@ -24,6 +24,7 @@ import { withImplicitWait } from '../../framework/AppiumUtilities.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const dismissProtectWalletModalIfPresent = async (
   timeoutMs = 1_000,
@@ -71,12 +72,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await OnboardingView.tapCreateNewWalletButton();
       await AppiumAssertions.expectElementToBeVisible(
-        OnboardingSheet.importSeedButton,
+        await OnboardingSheet.importSeedButton,
       );
       test.setTimeout(10 * 60 * 1000);
       await OnboardingSheet.tapImportSeedButton();
       await AppiumAssertions.expectElementToBeVisible(
-        CreatePasswordView.newPasswordInput,
+        await CreatePasswordView.newPasswordInput,
       );
       await CreatePasswordView.enterPassword(
         getPasswordForScenario('onboarding') ?? '',
@@ -86,8 +87,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       await AppiumGestures.hideKeyboard();
 
-      await CreatePasswordView.tapIUnderstandCheckBox();
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
       await ProtectYourWalletView.tapRemindMeLater();
       await AppiumAssertions.expectElementToBeVisible(
         MetaMetricsOptInView.screenTitle,
@@ -122,6 +123,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         },
       );
 
+      await enableHermesAppProfiling();
       await WalletView.tapIdenticon();
       await screen1Timer.measure(
         async () =>
@@ -141,10 +143,13 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
 
       await AccountListBottomSheet.tapAccountByName('Account 2');
       await screen3Timer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(WalletView.headerRoot, {
-          description:
-            'token list should be visible after selecting the new account',
-        });
+        await AppiumAssertions.expectElementToBeVisible(
+          WalletView.accountIcon,
+          {
+            description:
+              'token list should be visible after selecting the new account',
+          },
+        );
       });
 
       performanceTracker.addTimers(screen1Timer, screen2Timer, screen3Timer);

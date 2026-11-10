@@ -13,6 +13,7 @@ import {
   navigateToDapp,
   switchToMobileBrowser,
 } from '../../flows/native-browser.flow';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const UNISWAP_URL = 'https://app.uniswap.org';
 
@@ -57,6 +58,7 @@ perfTest.describe(`${PerformanceLogin}`, () => {
         });
       }
 
+      await enableHermesAppProfiling();
       // Android comes from a webAction so needs to be in native context
       if (platform === 'android') {
         await AppiumContextHelpers.withNativeAction(async () => {

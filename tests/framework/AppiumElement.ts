@@ -70,7 +70,7 @@ export class AppiumElement {
   }
 
   /**
-   * Detox-compatible alias for textContent (used by WebView page objects).
+   * Alias for textContent (used by WebView page objects).
    */
   @boxedStep
   async getText(): Promise<string> {
@@ -78,7 +78,7 @@ export class AppiumElement {
   }
 
   /**
-   * Scroll element into view inside a WebView (Detox scrollToView equivalent).
+   * Scroll element into view inside a WebView.
    */
   @boxedStep
   async scrollToView(): Promise<void> {

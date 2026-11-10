@@ -4,6 +4,8 @@ import PerpsProMarketStatsBar from './PerpsProMarketStatsBar';
 import type { PerpsProMarketStatsBarProps } from './PerpsProMarketStatsBar.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import type { UsePerpsMarketStatsReturn } from '../../hooks/usePerpsMarketStats';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -22,7 +24,7 @@ jest.mock('@metamask/perps-controller', () => ({
   calculateFundingCountdown: jest.fn(() => '39:24'),
 }));
 
-const mockMarketStats = {
+const mockMarketStats: UsePerpsMarketStatsReturn = {
   high24h: '$50,000.00',
   low24h: '$45,000.00',
   volume24h: '$1.37B',
@@ -30,6 +32,9 @@ const mockMarketStats = {
   fundingRate: '0.0100%',
   currentPrice: 64639,
   isLoading: false,
+  dataSymbol: 'BTC',
+  hasLiveData: true,
+  hasError: false,
   refresh: jest.fn(),
 };
 const mockUsePerpsMarketStats = jest.fn((_symbol?: string) => mockMarketStats);
@@ -69,7 +74,7 @@ describe('PerpsProMarketStatsBar', () => {
 
   it('renders every Figma stat item label and value inline', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { markPrice: '64639.00', funding: 0.0001 },
+      BTC: { price: '64620.00', markPrice: '64639.00', funding: 0.0001 },
     });
 
     const { getByText } = renderComponent();
@@ -108,6 +113,33 @@ describe('PerpsProMarketStatsBar', () => {
     expect(mockUsePerpsMarketStats).toHaveBeenCalledWith('ETH');
   });
 
+  it('keeps readiness loading until live volume or open interest arrives', () => {
+    const onResolvedStateChange = jest.fn();
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      dataSymbol: 'BTC',
+      hasLiveData: false,
+    });
+
+    const view = renderComponent({ onResolvedStateChange });
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
+
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      dataSymbol: 'BTC',
+      hasLiveData: true,
+    });
+    view.rerender(
+      <PerpsProMarketStatsBar
+        {...defaultProps}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'content');
+  });
+
   it('prefers the live WebSocket funding rate when available', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       BTC: { funding: 0.0005 },
@@ -141,6 +173,34 @@ describe('PerpsProMarketStatsBar', () => {
     ).toBeOnTheScreen();
   });
 
+  it('displays a positive threshold funding rate in success color', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: '<0.0001%',
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '<0.0001% / 39:24',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('displays a negative threshold funding rate in error color', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: '-<0.0001%',
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '-<0.0001% / 39:24',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.ErrorDefault);
+  });
+
   it('reflects live volume updates on re-render', () => {
     const { getByText, queryByText, rerender } = renderComponent();
 
@@ -156,12 +216,12 @@ describe('PerpsProMarketStatsBar', () => {
     expect(queryByText('$1.37B')).not.toBeOnTheScreen();
   });
 
-  it('renders mark and oracle prices from the live markPrice field', () => {
+  it('renders mark price from the live price field and oracle price from the live markPrice field', () => {
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { markPrice: '64639' },
+      BTC: { price: '83908', markPrice: '83947' },
     });
 
-    const { getByTestId, getAllByText } = renderComponent();
+    const { getByTestId } = renderComponent();
 
     const markItem = getByTestId(
       PerpsProMarketViewSelectorsIDs.STATS_BAR_MARK_PRICE,
@@ -170,10 +230,49 @@ describe('PerpsProMarketStatsBar', () => {
       PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE,
     );
 
-    // PriceUpdate has no separate oracle field yet, so both items read
-    // markPrice — each container must still render its own formatted value.
-    expect(within(markItem).getByText(/\$64,639/)).toBeOnTheScreen();
-    expect(within(oracleItem).getByText(/\$64,639/)).toBeOnTheScreen();
-    expect(getAllByText(/\$64,639/)).toHaveLength(2);
+    // Mark and oracle are distinct values sourced from distinct fields:
+    // `price` is the live mark, `markPrice` carries the exchange oracle price.
+    expect(within(markItem).getByText(/\$83,908/)).toBeOnTheScreen();
+    expect(within(markItem).queryByText(/\$83,947/)).toBeNull();
+    expect(within(oracleItem).getByText(/\$83,947/)).toBeOnTheScreen();
+    expect(within(oracleItem).queryByText(/\$83,908/)).toBeNull();
+  });
+
+  it('renders a fallback for mark price when only the oracle price is available', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: { markPrice: '83947' },
+    });
+
+    const { getByTestId } = renderComponent();
+
+    const markItem = getByTestId(
+      PerpsProMarketViewSelectorsIDs.STATS_BAR_MARK_PRICE,
+    );
+    const oracleItem = getByTestId(
+      PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE,
+    );
+
+    // Mark must not silently fall back to the oracle value.
+    expect(within(markItem).getByText('-')).toBeOnTheScreen();
+    expect(within(oracleItem).getByText(/\$83,947/)).toBeOnTheScreen();
+  });
+
+  it('renders a fallback for oracle price when only the mark price is available', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: { price: '83908' },
+    });
+
+    const { getByTestId } = renderComponent();
+
+    const markItem = getByTestId(
+      PerpsProMarketViewSelectorsIDs.STATS_BAR_MARK_PRICE,
+    );
+    const oracleItem = getByTestId(
+      PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE,
+    );
+
+    // Oracle must not silently fall back to the mark value.
+    expect(within(markItem).getByText(/\$83,908/)).toBeOnTheScreen();
+    expect(within(oracleItem).getByText('-')).toBeOnTheScreen();
   });
 });

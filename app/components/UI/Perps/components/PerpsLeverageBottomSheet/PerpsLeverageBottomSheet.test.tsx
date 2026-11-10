@@ -1,22 +1,37 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
-import { playSelection } from '../../../../../util/haptics';
+import { IconName } from '@metamask/design-system-react-native';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsLeverageBottomSheet from './PerpsLeverageBottomSheet';
-
-const flushSliderPromoteFrames = async () => {
-  await act(async () => {
-    await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => resolve());
-      });
-    });
-  });
-};
 
 jest.mock('react-native-reanimated', () =>
   jest.requireActual('react-native-reanimated/mock'),
 );
+
+jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+const mockScrollTo = jest.fn();
+jest.mock('react-native-gesture-handler', () => {
+  const ReactActual = jest.requireActual('react');
+  const { ScrollView: RNScrollView } = jest.requireActual('react-native');
+
+  return {
+    ScrollView: ReactActual.forwardRef(
+      (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          scrollTo: mockScrollTo,
+        }));
+        return ReactActual.createElement(RNScrollView, props);
+      },
+    ),
+  };
+});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const actual = jest.requireActual('@metamask/design-system-twrnc-preset');
@@ -29,22 +44,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
-    if (key === 'perps.order.leverage_modal.set_leverage' && params?.leverage) {
-      return `Set ${params.leverage}x`;
-    }
-    if (
-      key === 'perps.order.leverage_modal.liquidation_warning' &&
-      params?.direction &&
-      params?.percentage
-    ) {
-      return `You will be liquidated if price ${params.direction} by ${params.percentage}`;
-    }
-    if (key === 'perps.order.leverage_modal.drops') {
-      return 'drops';
-    }
-    if (key === 'perps.order.leverage_modal.rises') {
-      return 'rises';
+  strings: jest.fn((key: string) => {
+    if (key === 'perps.order.leverage_modal.set') {
+      return 'Set';
     }
     if (key === 'perps.order.leverage_modal.price_unavailable') {
       return 'Price information unavailable';
@@ -64,12 +66,11 @@ const mockUsePerpsLiquidationPrice = jest.fn(
     const { entryPrice, leverage, direction } = params;
     let liquidationPrice = '0.00';
 
-    if (entryPrice > 0 && leverage > 0) {
-      if (direction === 'long') {
-        liquidationPrice = (entryPrice * (1 - 1 / leverage)).toFixed(2);
-      } else {
-        liquidationPrice = (entryPrice * (1 + 1 / leverage)).toFixed(2);
-      }
+    if (entryPrice > 0 && leverage > 1) {
+      liquidationPrice =
+        direction === 'long'
+          ? (entryPrice * (1 - 1 / leverage)).toFixed(2)
+          : (entryPrice * (1 + 1 / leverage)).toFixed(2);
     }
 
     return {
@@ -96,38 +97,36 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 
 jest.mock('../../../../../util/haptics');
 
+// Mirrors LEVERAGE_ITEM_WIDTH in the component.
+const ITEM_WIDTH = 56;
+
 const mockUsePerpsLivePrices = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsLivePrices: (options: { symbols: string[] }) =>
     mockUsePerpsLivePrices(options),
 }));
 
-// Mock only Slider — gesture/reanimated pan is unusable in Jest.
-// Keep real MMDS (BottomSheet, Button, HelpText, KeyValueRow, etc.) so
-// testIDs pass through without stubbing those components.
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    Slider: 'Slider',
-  };
-});
-
 describe('PerpsLeverageBottomSheet', () => {
-  const defaultProps = {
-    isVisible: true,
-    onClose: jest.fn(),
-    onConfirm: jest.fn(),
-    leverage: 5,
-    minLeverage: 1,
-    maxLeverage: 20,
-    currentPrice: 3000,
-    direction: 'long' as const,
-    asset: 'BTC-USD',
+  let defaultProps: React.ComponentProps<typeof PerpsLeverageBottomSheet> & {
+    onClose: jest.Mock;
+    onConfirm: jest.Mock;
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Rebuilt per test so call history can never leak between tests that
+    // spread these props without overriding them.
+    defaultProps = {
+      isVisible: true,
+      onClose: jest.fn(),
+      onConfirm: jest.fn(),
+      leverage: 5,
+      minLeverage: 1,
+      maxLeverage: 20,
+      currentPrice: 3000,
+      direction: 'long' as const,
+      asset: 'BTC-USD',
+    };
     mockUsePerpsLivePrices.mockReturnValue({
       'BTC-USD': { price: '3000' },
     });
@@ -136,12 +135,11 @@ describe('PerpsLeverageBottomSheet', () => {
         const { entryPrice, leverage, direction } = params;
         let liquidationPrice = '0.00';
 
-        if (entryPrice > 0 && leverage > 0) {
-          if (direction === 'long') {
-            liquidationPrice = (entryPrice * (1 - 1 / leverage)).toFixed(2);
-          } else {
-            liquidationPrice = (entryPrice * (1 + 1 / leverage)).toFixed(2);
-          }
+        if (entryPrice > 0 && leverage > 1) {
+          liquidationPrice =
+            direction === 'long'
+              ? (entryPrice * (1 - 1 / leverage)).toFixed(2)
+              : (entryPrice * (1 + 1 / leverage)).toFixed(2);
         }
 
         return {
@@ -153,17 +151,67 @@ describe('PerpsLeverageBottomSheet', () => {
     );
   });
 
-  describe('Component Rendering', () => {
-    it('renders when visible', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  describe('layout', () => {
+    it('renders the redesigned content when visible', () => {
       render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
       expect(
         screen.getByText('perps.order.leverage_modal.title'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.order.leverage_modal.current_price'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.order.leverage_modal.liquidation_price'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.PICKER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      ).toHaveTextContent('Set');
     });
 
-    it('returns null when not visible', () => {
+    it('keeps the close button and hides the inline explainer as a standalone sheet', () => {
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // The MMDS header renders one ButtonIcon per action; standalone it is
+      // the close button only.
+      const headerButtons = screen.getAllByTestId('button-icon');
+      expect(headerButtons).toHaveLength(1);
+      fireEvent.press(headerButtons[0]);
+      expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows only a back button and the inline explainer as a nested Trade sheet screen', () => {
+      const onBack = jest.fn();
+
+      render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          presentation="screen"
+          onBack={onBack}
+        />,
+      );
+
+      const headerButtons = screen.getAllByTestId('button-icon');
+      expect(headerButtons).toHaveLength(1);
+      fireEvent.press(headerButtons[0]);
+      expect(onBack).toHaveBeenCalledTimes(1);
+      expect(defaultProps.onClose).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION),
+      ).toHaveTextContent('perps.order.leverage_modal.description');
+    });
+
+    it('returns null when hidden', () => {
       const { toJSON } = render(
         <PerpsLeverageBottomSheet {...defaultProps} isVisible={false} />,
       );
@@ -171,576 +219,156 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(toJSON()).toBeNull();
     });
 
-    it('displays current leverage value', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={10} />);
+    it('waits for a fresh layout before centering the picker on reopen', () => {
+      const fireLayout = () =>
+        fireEvent(
+          screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.PICKER),
+          'layout',
+          { nativeEvent: { layout: { width: 320 } } },
+        );
 
-      expect(screen.getAllByText('10x').length).toBeGreaterThan(0);
-      expect(screen.getByText('Set 10x')).toBeOnTheScreen();
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} />,
+      );
+      fireLayout();
+      mockScrollTo.mockClear();
+
+      rerender(
+        <PerpsLeverageBottomSheet {...defaultProps} isVisible={false} />,
+      );
+      rerender(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // Scrolling before the remounted picker reports its size leaves it
+      // stranded on the lowest leverage.
+      expect(mockScrollTo).not.toHaveBeenCalled();
+
+      fireLayout();
+
+      expect(mockScrollTo).toHaveBeenCalledWith({
+        x: (defaultProps.leverage - defaultProps.minLeverage) * ITEM_WIDTH,
+        animated: false,
+      });
     });
   });
 
-  describe('Liquidation Calculations', () => {
-    it('calculates liquidation percentage correctly for short position', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} direction="short" />);
-
-      expect(
-        screen.getByText(/You will be liquidated if price rises by/),
-      ).toBeOnTheScreen();
-    });
-
-    it('handles zero prices gracefully', () => {
-      mockUsePerpsLivePrices.mockReturnValue({
-        'BTC-USD': { price: '0' },
-      });
-
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-      expect(
-        screen.getByText('Price information unavailable'),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows 100% liquidation distance for 1x leverage special case', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={1} />);
-
-      expect(
-        screen.getByText('You will be liquidated if price drops by 100.0%'),
-      ).toBeOnTheScreen();
-    });
-
-    it('caps actual liquidation percentage at 100% for very high values', () => {
-      mockUsePerpsLivePrices.mockReturnValue({
-        'BTC-USD': { price: '100' },
-      });
-      mockUsePerpsLiquidationPrice.mockReturnValue({
-        liquidationPrice: '0.01',
-        isCalculating: false,
-        error: null,
-      });
-
-      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
-
-      expect(
-        screen.getByText('You will be liquidated if price drops by 100.0%'),
-      ).toBeOnTheScreen();
-    });
-
-    it('uses limit price for liquidation calculation when orderType is limit', () => {
+  describe('leverage picker', () => {
+    it('renders each integer within the supplied bounds', () => {
       render(
         <PerpsLeverageBottomSheet
           {...defaultProps}
-          orderType="limit"
-          limitPrice="2500"
+          minLeverage={2}
+          maxLeverage={6}
         />,
       );
 
-      expect(mockUsePerpsLiquidationPrice).toHaveBeenCalledWith(
-        expect.objectContaining({
-          entryPrice: 2500,
-        }),
-      );
-    });
-
-    it('uses current price for liquidation calculation when orderType is market', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} orderType="market" />);
-
-      expect(mockUsePerpsLiquidationPrice).toHaveBeenCalledWith(
-        expect.objectContaining({
-          entryPrice: 3000,
-        }),
-      );
-    });
-
-    it('formats liquidation price with PRICE_RANGES_UNIVERSAL', () => {
-      mockUsePerpsLiquidationPrice.mockReturnValue({
-        liquidationPrice: '1234.3552435',
-        isCalculating: false,
-        error: null,
-      });
-
-      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
-
-      // $1k–$10k: 5 sig figs, max 1 decimal via PRICE_RANGES_UNIVERSAL
-      expect(screen.getByText('$1,234.4')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Price Information Display', () => {
-    it('displays unavailable message when currentPrice is missing', () => {
-      mockUsePerpsLivePrices.mockReturnValue({});
-
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
       expect(
-        screen.getByText('Price information unavailable'),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Quick Select Buttons', () => {
-    it('filters quick select buttons for lower maxLeverage', () => {
-      const props = { ...defaultProps, maxLeverage: 10 };
-
-      render(<PerpsLeverageBottomSheet {...props} />);
-
-      expect(screen.getByText('2x')).toBeOnTheScreen();
-      expect(screen.queryByText('20x')).toBeNull();
-      expect(screen.queryByText('40x')).toBeNull();
-    });
-
-    it('updates leverage when quick select button is pressed', () => {
-      const mockOnConfirm = jest.fn();
-      const { getByTestId } = render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          leverage={5}
-          onConfirm={mockOnConfirm}
-        />,
-      );
-
-      fireEvent.press(
-        screen.getByTestId(
-          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-10`,
+        screen.queryByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-1`,
         ),
-      );
-
-      expect(
-        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER).props.value,
-      ).toBe(10);
-      expect(screen.getByText('Set 10x')).toBeOnTheScreen();
-
-      fireEvent.press(screen.getByText(/Set \d+x/));
-
-      expect(mockOnConfirm).toHaveBeenCalledWith(10, 'preset');
-    });
-
-    it('syncs slider value to preset after a prior slider drag', async () => {
-      const { getByTestId } = render(
-        <PerpsLeverageBottomSheet {...defaultProps} leverage={5} />,
-      );
-
-      const slider = () =>
-        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER);
-
-      fireEvent(slider(), 'valueChange', 10);
-      fireEvent(slider(), 'valueChange', 20);
-      fireEvent(slider(), 'valueChange', 8);
-      fireEvent(slider(), 'dragEnd', 15);
-
-      fireEvent.press(
-        screen.getByTestId(
-          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-10`,
-        ),
-      );
-      // Incoming slider lays out offscreen, then is promoted in place.
-      fireEvent(
-        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP),
-        'layout',
-      );
-      await flushSliderPromoteFrames();
-
-      expect(slider().props.value).toBe(10);
-      expect(screen.getByText('Set 10x')).toBeOnTheScreen();
-
-      // Subsequent chips after remount should update without another remount
-      fireEvent.press(
-        screen.getByTestId(
-          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-20`,
-        ),
-      );
-
-      expect(slider().props.value).toBe(20);
-      expect(screen.getByText('Set 20x')).toBeOnTheScreen();
-    });
-
-    it('keeps the latest chip value when pressed during slider remount promote', async () => {
-      const { getByTestId, queryByTestId } = render(
-        <PerpsLeverageBottomSheet {...defaultProps} leverage={5} />,
-      );
-
-      const slider = () =>
-        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER);
-
-      fireEvent(slider(), 'valueChange', 8);
-      fireEvent(slider(), 'dragEnd', 8);
-
-      fireEvent.press(
-        screen.getByTestId(
-          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-10`,
-        ),
-      );
-      fireEvent(
-        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP),
-        'layout',
-      );
-
-      // Second chip during the promote window — must not let the first
-      // incoming value win after promotion.
-      fireEvent.press(
-        screen.getByTestId(
-          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-20`,
-        ),
-      );
-      fireEvent(
-        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP),
-        'layout',
-      );
-      await flushSliderPromoteFrames();
-
-      expect(
-        queryByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING),
       ).toBeNull();
-      expect(slider().props.value).toBe(20);
-      expect(screen.getByText('Set 20x')).toBeOnTheScreen();
-    });
-
-    it('ignores late slider drag during preset remount so confirm matches chip', async () => {
-      const mockOnConfirm = jest.fn();
-      const { getByTestId } = render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          leverage={5}
-          onConfirm={mockOnConfirm}
-        />,
-      );
-
-      const slider = () =>
-        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER);
-
-      fireEvent(slider(), 'valueChange', 8);
-      fireEvent(slider(), 'dragEnd', 8);
-
-      fireEvent.press(
+      expect(
         screen.getByTestId(
-          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-10`,
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-2`,
         ),
-      );
-
-      // Late events from the outgoing active slider in the remount window
-      // must not overwrite the chip's committed leverage.
-      fireEvent(slider(), 'valueChange', 15);
-      fireEvent(slider(), 'dragEnd', 15);
-
-      fireEvent(
-        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP),
-        'layout',
-      );
-      await flushSliderPromoteFrames();
-
-      expect(slider().props.value).toBe(10);
-      expect(screen.getByText('Set 10x')).toBeOnTheScreen();
-
-      fireEvent.press(screen.getByText(/Set \d+x/));
-
-      expect(mockOnConfirm).toHaveBeenCalledWith(10, 'preset');
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-6`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-7`,
+        ),
+      ).toBeNull();
     });
 
-    it('shows all available quick select options for maxLeverage 40', () => {
-      const props = { ...defaultProps, maxLeverage: 40 };
-
-      render(<PerpsLeverageBottomSheet {...props} />);
-
-      expect(screen.getAllByText('2x').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('5x').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('10x').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('20x').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('40x').length).toBeGreaterThan(0);
-    });
-
-    it('shows both 2x and 3x buttons when maxLeverage is 3', () => {
-      const props = { ...defaultProps, maxLeverage: 3, leverage: 2 };
-
-      render(<PerpsLeverageBottomSheet {...props} />);
-
-      expect(screen.getAllByText('2x').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('3x').length).toBeGreaterThan(0);
-    });
-
-    it('keeps displaying values when pressing already active quick select button', () => {
+    it('emphasizes the selected value', () => {
       render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
 
+      const selectedItem = screen.getByTestId(
+        `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-5`,
+      );
+
+      expect(selectedItem.props.accessibilityState).toEqual({ selected: true });
+      expect(selectedItem.props.accessibilityLabel).toBe('5x');
+    });
+
+    it('selects a leverage value by pressing an item', () => {
+      const onConfirm = jest.fn();
+      render(
+        <PerpsLeverageBottomSheet {...defaultProps} onConfirm={onConfirm} />,
+      );
+      const picker = screen.getByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.PICKER,
+      );
+
       fireEvent.press(
         screen.getByTestId(
-          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-5`,
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
         ),
       );
-
-      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Leverage Display', () => {
-    it('displays low leverage value', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={2} />);
-
-      expect(screen.getAllByText('2x').length).toBeGreaterThan(0);
-      expect(screen.getByText('Set 2x')).toBeOnTheScreen();
-    });
-
-    it('displays minimum leverage value', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={1} />);
-
-      expect(screen.getAllByText('1x').length).toBeGreaterThan(0);
-      expect(screen.getByText('Set 1x')).toBeOnTheScreen();
-    });
-
-    it('displays medium leverage value', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={10} />);
-
-      expect(screen.getAllByText('10x').length).toBeGreaterThan(0);
-      expect(screen.getByText('Set 10x')).toBeOnTheScreen();
-    });
-
-    it('displays high leverage value', () => {
-      render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          leverage={18}
-          maxLeverage={20}
-        />,
+      fireEvent.scroll(picker, {
+        nativeEvent: { contentOffset: { x: 9 * ITEM_WIDTH, y: 0 } },
+      });
+      fireEvent(picker, 'momentumScrollEnd', {
+        nativeEvent: { contentOffset: { x: 9 * ITEM_WIDTH, y: 0 } },
+      });
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
       );
 
-      expect(screen.getByText('18x')).toBeOnTheScreen();
-      expect(screen.getByText('Set 18x')).toBeOnTheScreen();
-    });
-
-    it('displays max leverage value', () => {
-      const props = { ...defaultProps, leverage: 20, maxLeverage: 20 };
-
-      render(<PerpsLeverageBottomSheet {...props} />);
-
-      expect(screen.getAllByText('20x').length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Slider Component', () => {
-    it('renders MMDS slider with min and max marks', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-      const slider = screen.getByTestId(
-        PerpsLeverageBottomSheetSelectorsIDs.SLIDER,
-      );
-
-      expect(slider).toBeOnTheScreen();
-      expect(slider.props.marks).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ label: '1x', value: 1 }),
-          expect.objectContaining({ label: '20x', value: 20 }),
-        ]),
-      );
-    });
-
-    it('updates leverage when slider drag ends', () => {
-      const mockOnConfirm = jest.fn();
-      render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          onConfirm={mockOnConfirm}
-        />,
-      );
-
-      fireEvent(
-        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER),
-        'dragEnd',
-        12,
-      );
-
-      fireEvent.press(screen.getByText(/Set \d+x/));
-
-      expect(mockOnConfirm).toHaveBeenCalledWith(12, 'slider');
-    });
-
-    it('refreshes liquidation UI when drag is cancelled mid-gesture', () => {
-      const { getByTestId, queryByTestId, UNSAFE_getAllByType } = render(
-        <PerpsLeverageBottomSheet {...defaultProps} leverage={5} />,
-      );
-      const { Skeleton: SkeletonComponent } = jest.requireActual(
-        '@metamask/design-system-react-native',
-      );
-
-      const slider = getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER);
-      const sliderContainer = slider.parent;
-      if (!sliderContainer) {
-        throw new Error('Expected slider container for touchCancel');
-      }
-
-      fireEvent(slider, 'valueChange', 12);
-      expect(screen.getByText('12x')).toBeOnTheScreen();
-
-      fireEvent(sliderContainer, 'touchCancel');
-
-      expect(screen.getByText('Set 12x')).toBeOnTheScreen();
-      expect(
-        queryByTestId(PerpsLeverageBottomSheetSelectorsIDs.HELP_TEXT),
-      ).toBeNull();
-      expect(UNSAFE_getAllByType(SkeletonComponent).length).toBeGreaterThan(0);
-    });
-
-    it('passes labeled max mark for high max leverage', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} maxLeverage={50} />);
-
-      expect(
-        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER).props
-          .marks,
-      ).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ label: '50x', value: 50 }),
-        ]),
-      );
-    });
-  });
-
-  describe('Confirm and Close Actions', () => {
-    it('confirms without new haptics by default', () => {
-      const mockOnConfirm = jest.fn();
-      render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          onConfirm={mockOnConfirm}
-        />,
-      );
-
-      fireEvent.press(screen.getByText('Set 5x'));
-
-      expect(mockOnConfirm).toHaveBeenCalledWith(5, 'slider');
-      expect(playSelection).not.toHaveBeenCalled();
-    });
-
-    it('plays selection when confirm haptics are enabled', () => {
-      const mockOnConfirm = jest.fn();
-      render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          onConfirm={mockOnConfirm}
-          enableConfirmHaptics
-        />,
-      );
-
-      fireEvent.press(screen.getByText('Set 5x'));
-
-      expect(mockOnConfirm).toHaveBeenCalledWith(5, 'slider');
+      expect(onConfirm).toHaveBeenCalledWith(10, 'preset');
       expect(playSelection).toHaveBeenCalledTimes(1);
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
-    it('does not play a haptic when confirm only flushes a stuck drag', () => {
-      const mockOnConfirm = jest.fn();
+    it('selects the centered value after scrolling', () => {
+      const onConfirm = jest.fn();
+      render(
+        <PerpsLeverageBottomSheet {...defaultProps} onConfirm={onConfirm} />,
+      );
+      const picker = screen.getByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.PICKER,
+      );
+      const scrollEvent = {
+        nativeEvent: {
+          contentOffset: { x: 11 * 56, y: 0 },
+          targetContentOffset: { x: 11 * 56, y: 0 },
+          velocity: { x: 1, y: 0 },
+        },
+      };
+
+      fireEvent(picker, 'scrollBeginDrag');
+      fireEvent.scroll(picker, scrollEvent);
+      fireEvent(picker, 'momentumScrollEnd', scrollEvent);
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      );
+
+      expect(onConfirm).toHaveBeenCalledWith(12, 'slider');
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderTick);
+    });
+
+    it('clamps an initial value to the maximum leverage', () => {
+      const onConfirm = jest.fn();
       render(
         <PerpsLeverageBottomSheet
           {...defaultProps}
-          onConfirm={mockOnConfirm}
+          leverage={50}
+          maxLeverage={40}
+          onConfirm={onConfirm}
         />,
       );
 
-      const slider = screen.getByTestId(
-        PerpsLeverageBottomSheetSelectorsIDs.SLIDER,
-      );
-      fireEvent(slider, 'valueChange', 12);
-      jest.mocked(playSelection).mockClear();
-
-      fireEvent.press(screen.getByText('Set 12x'));
-
-      expect(mockOnConfirm).not.toHaveBeenCalled();
-      expect(playSelection).not.toHaveBeenCalled();
-    });
-
-    it('flushes a stuck live drag value instead of confirming a stale leverage', () => {
-      const mockOnConfirm = jest.fn();
-      render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          onConfirm={mockOnConfirm}
-        />,
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
       );
 
-      const slider = screen.getByTestId(
-        PerpsLeverageBottomSheetSelectorsIDs.SLIDER,
-      );
-      fireEvent(slider, 'valueChange', 12);
-
-      expect(screen.getByText('12x')).toBeOnTheScreen();
-      expect(screen.getByText('Set 12x')).toBeOnTheScreen();
-
-      // Stuck mid-drag (no dragEnd / touchCancel): first confirm only flushes.
-      fireEvent.press(screen.getByText('Set 12x'));
-
-      expect(mockOnConfirm).not.toHaveBeenCalled();
-      expect(screen.getByText('Set 12x')).toBeOnTheScreen();
-
-      // Second tap confirms the flushed live value, not the pre-drag temp.
-      fireEvent.press(screen.getByText('Set 12x'));
-
-      expect(mockOnConfirm).toHaveBeenCalledWith(12, 'slider');
+      expect(onConfirm).toHaveBeenCalledWith(40, 'slider');
     });
 
-    it('calls onClose after confirm', () => {
-      const mockOnClose = jest.fn();
-      render(
-        <PerpsLeverageBottomSheet {...defaultProps} onClose={mockOnClose} />,
-      );
-
-      fireEvent.press(screen.getByText('Set 5x'));
-
-      expect(mockOnClose).toHaveBeenCalled();
-    });
-
-    it('logs leverage confirmation', () => {
-      const { DevLogger } = jest.requireMock(
-        '../../../../../core/SDKConnect/utils/DevLogger',
-      );
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
-
-      fireEvent.press(screen.getByText('Set 5x'));
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'Confirming leverage: 5, method: slider',
-      );
-    });
-  });
-
-  describe('Direction-based Logic', () => {
-    it('shows correct liquidation text for long positions', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} direction="long" />);
-
-      expect(
-        screen.getByText(/You will be liquidated if price drops by/),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows correct liquidation text for short positions', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} direction="short" />);
-
-      expect(
-        screen.getByText(/You will be liquidated if price rises by/),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('handles extreme leverage values', () => {
-      render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          leverage={100}
-          maxLeverage={100}
-        />,
-      );
-
-      expect(screen.getByText('Set 100x')).toBeOnTheScreen();
-    });
-
-    it('handles minimum leverage correctly', () => {
-      render(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          leverage={1}
-          minLeverage={1}
-        />,
-      );
-
-      expect(screen.getByText('Set 1x')).toBeOnTheScreen();
-    });
-
-    it('handles equal min and max leverage', () => {
+    it('supports equal minimum and maximum leverage', () => {
       render(
         <PerpsLeverageBottomSheet
           {...defaultProps}
@@ -750,60 +378,283 @@ describe('PerpsLeverageBottomSheet', () => {
         />,
       );
 
-      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-5`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-4`,
+        ),
+      ).toBeNull();
     });
   });
 
-  describe('Component Memoization', () => {
-    it('does not re-render when unrelated props change', () => {
-      const { rerender } = render(
-        <PerpsLeverageBottomSheet {...defaultProps} />,
-      );
-
-      rerender(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          currentPrice={3100}
-          asset="ETH-USD"
-        />,
-      );
-
-      expect(screen.getByText('Set 5x')).toBeOnTheScreen();
-    });
-
-    it('re-renders when visibility changes', () => {
-      const { rerender } = render(
-        <PerpsLeverageBottomSheet {...defaultProps} />,
-      );
-
-      expect(
-        screen.getByText('perps.order.leverage_modal.title'),
-      ).toBeOnTheScreen();
-
-      rerender(
-        <PerpsLeverageBottomSheet {...defaultProps} isVisible={false} />,
-      );
-
-      expect(screen.queryByText('perps.order.leverage_modal.title')).toBeNull();
-    });
-  });
-
-  describe('HelpText', () => {
-    it('renders liquidation HelpText without severity', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={1} />);
-
-      expect(
-        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.HELP_TEXT),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders centered liquidation HelpText without requiring icon', () => {
+  describe('price information', () => {
+    it('displays the live current price', () => {
       render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
       expect(
-        screen.getByText(/You will be liquidated if price drops by/),
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.CURRENT_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('$3,000');
+    });
+
+    it('uses the supplied current price while the live price is unavailable', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+      render(
+        <PerpsLeverageBottomSheet {...defaultProps} currentPrice={2500} />,
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.CURRENT_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('$2,500');
+    });
+
+    it('displays an unavailable message without a current price', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+      render(<PerpsLeverageBottomSheet {...defaultProps} currentPrice={0} />);
+
+      expect(
+        screen.getByText('Price information unavailable'),
       ).toBeOnTheScreen();
-      expect(screen.queryByTestId('help-text-icon')).toBeNull();
+    });
+
+    it('formats the liquidation price and distance like a position card', () => {
+      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
+
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('$2,400');
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent('20.00%');
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON,
+        ).props.name,
+      ).toBe(IconName.TrendDown);
+    });
+
+    it('uses the upward trend icon for a short position', () => {
+      render(<PerpsLeverageBottomSheet {...defaultProps} direction="short" />);
+
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON,
+        ).props.name,
+      ).toBe(IconName.TrendUp);
+    });
+
+    it('displays 100.00% liquidation distance at 1x leverage', () => {
+      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={1} />);
+
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent('100.00%');
+    });
+
+    it('caps liquidation distance at 100.00%', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        'BTC-USD': { price: '100' },
+      });
+      mockUsePerpsLiquidationPrice.mockReturnValue({
+        liquidationPrice: '0.01',
+        isCalculating: false,
+        error: null,
+      });
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent('100.00%');
+    });
+
+    it('hides the distance when the API price is unavailable', () => {
+      mockUsePerpsLiquidationPrice.mockReturnValue({
+        liquidationPrice: '0',
+        isCalculating: false,
+        error: null,
+      });
+      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
+
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('--');
+      expect(
+        screen.queryByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows a skeleton until recalculation finishes', () => {
+      jest.useFakeTimers();
+      let isCalculating = true;
+      mockUsePerpsLiquidationPrice.mockImplementation(
+        (params: { entryPrice: number; leverage: number }) => ({
+          liquidationPrice: (
+            params.entryPrice *
+            (1 - 1 / params.leverage)
+          ).toFixed(2),
+          isCalculating,
+          error: null,
+        }),
+      );
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).not.toBeOnTheScreen();
+
+      isCalculating = false;
+      rerender(<PerpsLeverageBottomSheet {...defaultProps} />);
+      act(() => {
+        jest.advanceTimersByTime(
+          PERFORMANCE_CONFIG.LiquidationPriceDebounceMs + 200,
+        );
+      });
+
+      expect(
+        screen.queryByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('$2,700');
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent('10.00%');
+    });
+
+    it('uses the limit price as the liquidation calculation entry price', () => {
+      render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          orderType="limit"
+          limitPrice="2500"
+        />,
+      );
+
+      expect(mockUsePerpsLiquidationPrice).toHaveBeenCalledWith(
+        expect.objectContaining({ entryPrice: 2500 }),
+      );
+    });
+
+    it('uses the current price as the market order entry price', () => {
+      render(<PerpsLeverageBottomSheet {...defaultProps} orderType="market" />);
+
+      expect(mockUsePerpsLiquidationPrice).toHaveBeenCalledWith(
+        expect.objectContaining({ entryPrice: 3000 }),
+      );
+    });
+  });
+
+  describe('confirmation', () => {
+    it('confirms without haptics by default', () => {
+      const onConfirm = jest.fn();
+      render(
+        <PerpsLeverageBottomSheet {...defaultProps} onConfirm={onConfirm} />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      );
+
+      expect(onConfirm).toHaveBeenCalledWith(5, 'slider');
+      expect(playSelection).not.toHaveBeenCalled();
+    });
+
+    it('plays selection haptics when enabled', () => {
+      render(
+        <PerpsLeverageBottomSheet {...defaultProps} enableConfirmHaptics />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      );
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes after confirming leverage', () => {
+      const onClose = jest.fn();
+      render(<PerpsLeverageBottomSheet {...defaultProps} onClose={onClose} />);
+
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      );
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs the confirmed leverage and input method', () => {
+      const { DevLogger } = jest.requireMock(
+        '../../../../../core/SDKConnect/utils/DevLogger',
+      );
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      );
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Confirming leverage: 5, method: slider',
+      );
+    });
+
+    it('logs preset input after tapping a leverage', () => {
+      const { DevLogger } = jest.requireMock(
+        '../../../../../core/SDKConnect/utils/DevLogger',
+      );
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      );
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Confirming leverage: 10, method: preset',
+      );
     });
   });
 });

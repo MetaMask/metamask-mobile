@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 
 import { useBridgeQuoteData } from '.';
 import { runQuoteDataCases } from './runQuoteDataCases';
+import { FeatureId } from '@metamask/bridge-controller';
 
 const mockDispatch = jest.fn();
 
@@ -37,14 +38,25 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
+
 jest.mock('../../../../../util/notifications/methods/common', () => ({
   getProviderByChainId: jest.fn(() => ({
     getBalance: jest.fn().mockResolvedValue('1000000000000000000'),
   })),
 }));
 
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
 runQuoteDataCases({
   name: 'useBridgeQuoteData',
   mockDispatch,
   renderHook: (options) => renderHook(() => useBridgeQuoteData(options)),
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
 });

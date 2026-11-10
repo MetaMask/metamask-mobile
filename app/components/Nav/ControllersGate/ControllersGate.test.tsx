@@ -1,6 +1,6 @@
 import React from 'react';
 // Jest accepts prefixing out-of-scope variables with `mock`
-import { View as MockView } from 'react-native';
+import { Animated, View as MockView } from 'react-native';
 import { render, act, screen } from '@testing-library/react-native';
 import ControllersGate from './ControllersGate';
 import { useSelector } from 'react-redux';
@@ -79,11 +79,11 @@ describe('ControllersGate', () => {
 
     render(<ControllersGate>{mockChildren}</ControllersGate>);
 
-    // First act: fire onAnimationComplete → setAnimationDone(true) → useEffect schedules setTimeout
+    // First act: fire onAnimationComplete → setAnimationDone(true) → useEffect starts the fade
     act(() => {
       capturedOnAnimationComplete?.();
     });
-    // Second act: advance past the setTimeout so fadeOutLoader runs
+    // Second act: let the opacity animation run to completion
     act(() => {
       jest.runAllTimers();
     });
@@ -107,6 +107,32 @@ describe('ControllersGate', () => {
 
     // Overlay must remain — removing it now would show a blank screen
     expect(screen.getByTestId(MOCK_FOX_LOADER_ID)).toBeOnTheScreen();
+    jest.useRealTimers();
+  });
+
+  it('starts the fade immediately, with no delay before it', () => {
+    // Guards a removed 250ms `setTimeout`. A frame-by-frame capture showed that
+    // window to be a frozen, pixel-identical blank screen — the Rive exit has
+    // already faded the fox out, so there is nothing to settle. Re-introducing
+    // a delay here would silently add latency to every cold start.
+    jest.useFakeTimers();
+    (useSelector as jest.Mock).mockReturnValue(true);
+    const timingSpy = jest.spyOn(Animated, 'timing');
+
+    render(<ControllersGate>{mockChildren}</ControllersGate>);
+
+    act(() => {
+      capturedOnAnimationComplete?.();
+    });
+
+    // The fade must already be running, before any timer is advanced.
+    expect(timingSpy).toHaveBeenCalledTimes(1);
+    expect(timingSpy.mock.calls[0][1]).toMatchObject({
+      toValue: 0,
+      duration: 300,
+    });
+
+    timingSpy.mockRestore();
     jest.useRealTimers();
   });
 });

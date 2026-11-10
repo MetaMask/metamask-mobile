@@ -29,5 +29,5 @@ export const getFontFamily = (
   const fontSuffix = weightToFontSuffix[resolvedWeight as FontWeight];
   const italicSuffix = resolvedStyle === 'italic' ? 'Italic' : '';
 
-  return `Geist-${fontSuffix}${italicSuffix}`;
+  return `Inter-${fontSuffix}${italicSuffix}`;
 };

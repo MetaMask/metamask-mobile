@@ -5,10 +5,6 @@ import {
   ButtonIconVariant,
 } from '../../../../../../component-library/components/Toast';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import {
@@ -19,8 +15,6 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-
-const IGNORED_TRANSACTION_TYPES = [TransactionType.musdConversion];
 
 export function GasFeeTokenToast() {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -41,13 +35,8 @@ export function GasFeeTokenToast() {
     chainId: chainId ?? '0x1',
   });
 
-  const isIgnoredType = hasTransactionType(
-    transactionMetadata,
-    IGNORED_TRANSACTION_TYPES,
-  );
-
   useEffect(() => {
-    if (!toast || !gasFeeToken || !transactionMetadata || isIgnoredType) return;
+    if (!toast || !gasFeeToken || !transactionMetadata) return;
     if (gasFeeToken.tokenAddress === prevRef.current) return;
 
     prevRef.current = gasFeeToken.tokenAddress;
@@ -78,7 +67,6 @@ export function GasFeeTokenToast() {
     toast,
     networkImageSource,
     transactionMetadata,
-    isIgnoredType,
   ]);
 
   return null;

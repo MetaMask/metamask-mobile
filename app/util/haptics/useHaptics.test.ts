@@ -43,6 +43,7 @@ describe('useHaptics', () => {
     expect(first.playErrorNotification).toBe(second.playErrorNotification);
     expect(first.playImpact).toBe(second.playImpact);
     expect(first.playSelection).toBe(second.playSelection);
+    expect(first.fireImpact).toBe(second.fireImpact);
   });
 
   it('plays success notification when enabled', async () => {
@@ -91,6 +92,34 @@ describe('useHaptics', () => {
     });
 
     expect(selectionAsync).toHaveBeenCalled();
+  });
+
+  it('fires impact without awaiting, same as playImpact', async () => {
+    setupSelectors(true, false);
+    const { result } = renderHook(() => useHaptics());
+
+    act(() => {
+      result.current.fireImpact(ImpactMoment.TabChange);
+    });
+    await Promise.resolve();
+
+    expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
+  });
+
+  it('swallows a rejected playImpact instead of throwing', async () => {
+    setupSelectors(true, false);
+    (impactAsync as jest.Mock).mockRejectedValueOnce(new Error('boom'));
+    const { result } = renderHook(() => useHaptics());
+
+    expect(() => {
+      act(() => {
+        result.current.fireImpact(ImpactMoment.TabChange);
+      });
+    }).not.toThrow();
+
+    await act(async () => {
+      await Promise.resolve();
+    });
   });
 
   it('does not play when haptics disabled', async () => {

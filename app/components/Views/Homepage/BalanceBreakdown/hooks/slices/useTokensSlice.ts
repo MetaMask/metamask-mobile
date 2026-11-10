@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import {
-  selectAccountGroupBalanceForEmptyState,
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
 } from '../../../../../../selectors/assets/balances';
@@ -29,13 +28,7 @@ export function useTokensSlice(): BalanceSlice {
 
   const groupBalance = useSelector(balanceSelector);
   const balanceChange1d = useSelector(balanceChangeSelector);
-  const accountGroupBalance = useSelector(
-    selectAccountGroupBalanceForEmptyState,
-  );
-  const hasBalanceFetched = useAccountGroupBalanceFetchState({
-    groupBalance,
-    accountGroupBalance,
-  });
+  const hasBalanceFetched = useAccountGroupBalanceFetchState();
 
   const status = !groupBalance || !hasBalanceFetched ? 'loading' : 'ready';
   const valueFiat =

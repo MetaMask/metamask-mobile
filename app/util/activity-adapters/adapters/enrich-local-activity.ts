@@ -1,25 +1,38 @@
-import { TransactionType } from '@metamask/transaction-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { KnownCaipNamespace, toCaipChainId, type Hex } from '@metamask/utils';
 import { getClaimPayoutFromReceipt } from '../../../components/UI/Earn/utils/musd';
 import {
+  isMusdOnMoneyAccountChain,
   MUSD_DECIMALS,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../components/UI/Earn/constants/musd';
-import type { ActivityListItem, TokenAmount } from '../types';
+import {
+  isNftAssetType,
+  type ActivityListItem,
+  type TokenAmount,
+} from '../types';
 import type { TransactionGroup } from './transaction-group';
 import {
   getKnownTokenMetadata,
   getLocalActivityFees,
   getLocalTransactionStatus,
   getTokenApprovalAmountFromData,
-  isUnlimitedApprovalAmount,
+  isSpendingCapUnlimited,
 } from './helpers';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
 } from './environment';
+import { decodeErc20Transfer } from '../../transactions/erc20-transfer';
 
 const tokenTransferTypes = new Set<TransactionType>([
   TransactionType.tokenMethodTransfer,
@@ -27,15 +40,44 @@ const tokenTransferTypes = new Set<TransactionType>([
   TransactionType.tokenMethodSafeTransferFrom,
 ]);
 
+function getNftTokenId(
+  args: Record<string, unknown> | undefined,
+  assetType: string | undefined,
+): string | undefined {
+  if (!args || !isNftAssetType(assetType)) {
+    return undefined;
+  }
+
+  const tokenId =
+    assetType === 'erc721'
+      ? (args._tokenId ??
+        args.tokenId ??
+        args.id ??
+        args._id ??
+        args._value ??
+        args.value ??
+        args[2])
+      : (args._id ?? args.id ?? args.tokenId ?? args._tokenId ?? args[2]);
+
+  return tokenId === undefined || tokenId === null
+    ? undefined
+    : tokenId.toString();
+}
+
 const evmNativeDecimals = 18;
 const predictCollateralDecimals = 6;
 const predictCollateralSymbol = 'USDC';
-const erc20TransferSelector = '0xa9059cbb';
 const perpsDepositTypes: TransactionType[] = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
 ];
 const perpsWithdrawTypes: TransactionType[] = [TransactionType.perpsWithdraw];
+const moneyDepositTypes: TransactionType[] = [
+  TransactionType.moneyAccountDeposit,
+];
+const moneyWithdrawTypes: TransactionType[] = [
+  TransactionType.moneyAccountWithdraw,
+];
 
 function getNativeTokenAmount(
   transactionGroup: TransactionGroup,
@@ -90,22 +132,6 @@ function hasTransactionType(
   );
 }
 
-function getNestedTransferAmount(data: string | undefined): string | undefined {
-  if (
-    !data ||
-    !data.toLowerCase().startsWith(erc20TransferSelector) ||
-    data.length < 138
-  ) {
-    return undefined;
-  }
-
-  try {
-    return BigInt(`0x${data.slice(74, 138)}`).toString();
-  } catch {
-    return undefined;
-  }
-}
-
 function getPredictFundsToken(
   fundsTx: { to?: string; data?: string },
   direction: TokenAmount['direction'],
@@ -119,7 +145,10 @@ function getPredictFundsToken(
   const assetId = contractAddress
     ? environment.toAssetId(contractAddress, chainId)
     : undefined;
-  const amount = getNestedTransferAmount(fundsTx.data);
+  const amount = decodeErc20Transfer(
+    fundsTx.data,
+    TransactionType.tokenMethodTransfer,
+  )?.amount;
 
   return {
     direction,
@@ -127,6 +156,186 @@ function getPredictFundsToken(
     decimals: tokenMetadata?.decimals ?? predictCollateralDecimals,
     ...(assetId ? { assetId } : {}),
     ...(amount ? { amount } : {}),
+  };
+}
+
+function resolveMoneyMovementType(
+  transactionGroup: TransactionGroup,
+): 'deposit' | 'withdraw' | undefined {
+  const { initialTransaction, primaryTransaction } = transactionGroup;
+  const nested = initialTransaction.nestedTransactions ?? [];
+  if (
+    hasTransactionType(initialTransaction, moneyDepositTypes) ||
+    hasTransactionType(primaryTransaction, moneyDepositTypes) ||
+    nested.some((transaction) =>
+      hasTransactionType(transaction, moneyDepositTypes),
+    )
+  ) {
+    return 'deposit';
+  }
+  if (
+    hasTransactionType(initialTransaction, moneyWithdrawTypes) ||
+    hasTransactionType(primaryTransaction, moneyWithdrawTypes) ||
+    nested.some((transaction) =>
+      hasTransactionType(transaction, moneyWithdrawTypes),
+    )
+  ) {
+    return 'withdraw';
+  }
+  return undefined;
+}
+
+function getEoaFacingMoneyToken(
+  transactionGroup: TransactionGroup,
+  direction: TokenAmount['direction'],
+  environment: ActivityAdapterEnvironment,
+): TokenAmount | undefined {
+  const transaction = transactionGroup.initialTransaction;
+  const paymentToken = transactionGroup.transactionPayData?.paymentToken;
+  const tokenAddress =
+    paymentToken?.address ?? transaction.metamaskPay?.tokenAddress;
+  const tokenChainId =
+    paymentToken?.chainId ?? transaction.metamaskPay?.chainId;
+  if (
+    !tokenAddress ||
+    !tokenChainId ||
+    isMusdOnMoneyAccountChain(tokenAddress, tokenChainId)
+  ) {
+    return undefined;
+  }
+
+  const isPostQuote =
+    transactionGroup.transactionPayData?.isPostQuote ??
+    transaction.metamaskPay?.isPostQuote;
+  if (isPostQuote) {
+    // The Pay source amount is not the amount of the token received by the EOA.
+    // Keep the transfer direction, but omit all token metadata so Activity does
+    // not interpret a metadata-only token as zero or backfill it from Pay legs.
+    return { direction };
+  }
+
+  const caipChainId = toCaipChainId(
+    KnownCaipNamespace.Eip155,
+    Number.parseInt(tokenChainId, 16).toString(),
+  );
+  const isNative =
+    tokenAddress.toLowerCase() === environment.nativeTokenAddress.toLowerCase();
+  let amount =
+    transactionGroup.transactionPayData?.sourceAmounts?.[0]?.sourceAmountRaw;
+  let symbol = paymentToken?.symbol;
+  let decimals = paymentToken?.decimals;
+
+  for (const relatedTransaction of transactionGroup.relatedTransactions ?? []) {
+    if (
+      relatedTransaction.chainId.toLowerCase() !== tokenChainId.toLowerCase()
+    ) {
+      continue;
+    }
+
+    const transferInformation = relatedTransaction.transferInformation;
+    if (
+      transferInformation?.contractAddress.toLowerCase() ===
+      tokenAddress.toLowerCase()
+    ) {
+      amount ??= transferInformation.amount;
+      symbol ??= transferInformation.symbol;
+      decimals ??= transferInformation.decimals;
+    }
+
+    const transferCalls = [
+      {
+        data: relatedTransaction.txParams.data,
+        to: relatedTransaction.txParams.to,
+        type: relatedTransaction.type,
+      },
+      ...(relatedTransaction.nestedTransactions ?? []),
+    ];
+    const tokenTransfer = transferCalls.find(
+      (call) => call.to?.toLowerCase() === tokenAddress.toLowerCase(),
+    );
+    const decodedTransfer = decodeErc20Transfer(
+      tokenTransfer?.data,
+      tokenTransfer?.type,
+    );
+    if (decodedTransfer) {
+      amount ??= decodedTransfer.amount;
+      break;
+    }
+
+    if (isNative && relatedTransaction.txParams.value) {
+      amount ??= relatedTransaction.txParams.value;
+      break;
+    }
+  }
+
+  const knownMetadata = isNative
+    ? environment.getNativeAssetForChainId(tokenChainId)
+    : getKnownTokenMetadata(caipChainId, tokenAddress, environment);
+  const assetId =
+    knownMetadata?.assetId ?? environment.toAssetId(tokenAddress, caipChainId);
+  const resolvedSymbol = symbol ?? knownMetadata?.symbol;
+  const resolvedDecimals = decimals ?? knownMetadata?.decimals;
+
+  return {
+    direction,
+    ...(resolvedSymbol ? { symbol: resolvedSymbol } : {}),
+    ...(resolvedDecimals === undefined ? {} : { decimals: resolvedDecimals }),
+    ...(amount ? { amount } : {}),
+    ...(assetId ? { assetId } : {}),
+  };
+}
+
+function getMoneyMovementToken(
+  transactionGroup: TransactionGroup,
+  direction: TokenAmount['direction'],
+  chainId: ActivityListItem['chainId'],
+  environment: ActivityAdapterEnvironment,
+): TokenAmount {
+  const transaction = transactionGroup.initialTransaction;
+  const eoaFacingToken = getEoaFacingMoneyToken(
+    transactionGroup,
+    direction,
+    environment,
+  );
+  if (eoaFacingToken) {
+    return eoaFacingToken;
+  }
+
+  const transferInformation = isMusdOnMoneyAccountChain(
+    transaction.transferInformation?.contractAddress,
+    transaction.chainId,
+  )
+    ? transaction.transferInformation
+    : undefined;
+  const nestedTransfer = transaction.nestedTransactions?.find(
+    (nested) =>
+      (nested.type === TransactionType.tokenMethodTransfer ||
+        nested.type === TransactionType.tokenMethodTransferFrom) &&
+      isMusdOnMoneyAccountChain(nested.to, transaction.chainId),
+  );
+  const requiredAsset = transaction.requiredAssets?.find((asset) =>
+    isMusdOnMoneyAccountChain(asset.address, transaction.chainId),
+  );
+  const tokenAddress =
+    transferInformation?.contractAddress ??
+    nestedTransfer?.to ??
+    requiredAsset?.address ??
+    MUSD_TOKEN_ADDRESS_BY_CHAIN[transaction.chainId as Hex] ??
+    MUSD_TOKEN_ADDRESS;
+  const amount =
+    transferInformation?.amount ??
+    decodeErc20Transfer(nestedTransfer?.data, nestedTransfer?.type)?.amount ??
+    requiredAsset?.amount;
+  const assetId =
+    MUSD_TOKEN_ASSET_ID_BY_CHAIN[transaction.chainId as Hex] ??
+    environment.toAssetId(tokenAddress, chainId);
+
+  return {
+    direction,
+    symbol: MUSD_TOKEN.symbol,
+    decimals: MUSD_DECIMALS,
+    ...(amount ? { amount } : {}),
+    ...(assetId ? { assetId } : {}),
   };
 }
 
@@ -147,6 +356,7 @@ function enrichLocalActivityKind(
         ...activity,
         type: 'claim',
         data: {
+          from,
           ...(fees ? { fees } : {}),
         },
       };
@@ -155,6 +365,8 @@ function enrichLocalActivityKind(
         ...activity,
         type: 'unstake',
         data: {
+          from,
+          to,
           ...(fees ? { fees } : {}),
         },
       };
@@ -173,11 +385,36 @@ function enrichLocalActivityKind(
         ...activity,
         type: 'lendingWithdrawal',
         data: {
+          from,
           ...(fees ? { fees } : {}),
         },
       };
     default:
       break;
+  }
+
+  const nested = initialTransaction.nestedTransactions ?? [];
+  const moneyMovementType = resolveMoneyMovementType(transactionGroup);
+  if (moneyMovementType) {
+    const isDeposit = moneyMovementType === 'deposit';
+    const moneyAccountAddress = initialTransaction.txParams.from ?? '';
+    const activityAccountAddress =
+      transactionGroup.activityAccountAddress ?? '';
+    return {
+      ...activity,
+      type: isDeposit ? 'send' : 'receive',
+      data: {
+        from: isDeposit ? activityAccountAddress : moneyAccountAddress,
+        to: isDeposit ? moneyAccountAddress : activityAccountAddress,
+        token: getMoneyMovementToken(
+          transactionGroup,
+          isDeposit ? 'out' : 'in',
+          activity.chainId,
+          environment,
+        ),
+        ...(fees ? { fees } : {}),
+      },
+    };
   }
 
   if (initialTransaction.txParams.authorizationList?.length) {
@@ -192,7 +429,6 @@ function enrichLocalActivityKind(
     };
   }
 
-  const nested = initialTransaction.nestedTransactions ?? [];
   const hasPredictDeposit = nested.some(
     (call) =>
       call.type === TransactionType.predictDeposit ||
@@ -215,6 +451,8 @@ function enrichLocalActivityKind(
         ? 'predictionsAddFunds'
         : 'predictionsWithdrawFunds',
       data: {
+        from,
+        to,
         token: fundsTx
           ? getPredictFundsToken(
               fundsTx,
@@ -273,6 +511,8 @@ function enrichStakingDeposit(
     ...activity,
     type: 'stake',
     data: {
+      from: transactionGroup.initialTransaction.txParams.from ?? '',
+      to: transactionGroup.initialTransaction.txParams.to ?? '',
       token: getNativeTokenAmount(
         transactionGroup,
         'out',
@@ -345,11 +585,33 @@ function enrichTokenTransferActivity(
   }
 
   const transactionData = environment.parseStandardTokenTransactionData(data);
-  const recipient = transactionData?.args?._to ?? transactionData?.args?.to;
-  const parsedAmount =
-    transactionData?.args?._value ?? transactionData?.args?.value;
+  const args = transactionData?.args;
+  const recipient = args?._to ?? args?.to;
+  const isSafeTransfer = transactionData?.name === 'safeTransferFrom';
+  const isMetaMaskErc721Transfer =
+    type === TransactionType.tokenMethodTransferFrom &&
+    transactionGroup.initialTransaction.origin === ORIGIN_METAMASK;
+  const parsedAmount = args?._value ?? args?.value ?? args?.amount;
+  const assetType =
+    isSafeTransfer && parsedAmount !== undefined && parsedAmount !== null
+      ? 'erc1155'
+      : isSafeTransfer || isMetaMaskErc721Transfer
+        ? 'erc721'
+        : activity.data.token?.assetType;
+  const nftTokenId = getNftTokenId(args, assetType);
+  const nftAssetId =
+    isNftAssetType(assetType) &&
+    typeof txParams.to === 'string' &&
+    nftTokenId !== undefined
+      ? `${activity.chainId}/${assetType}:${txParams.to}/${nftTokenId}`
+      : undefined;
+  const assetId = isNftAssetType(assetType)
+    ? nftAssetId
+    : activity.data.token?.assetId;
   let amount: string | undefined;
-  if (
+  if (assetType === 'erc721') {
+    amount = '1';
+  } else if (
     transferInformation?.amount !== undefined &&
     transferInformation.amount !== null
   ) {
@@ -376,7 +638,9 @@ function enrichTokenTransferActivity(
     nextTo === activity.data.to &&
     amount === activity.data.token?.amount &&
     symbol === activity.data.token?.symbol &&
-    decimals === activity.data.token?.decimals
+    decimals === activity.data.token?.decimals &&
+    assetType === activity.data.token?.assetType &&
+    assetId === activity.data.token?.assetId
   ) {
     return activity;
   }
@@ -388,12 +652,11 @@ function enrichTokenTransferActivity(
       to: nextTo,
       token: {
         direction: activity.data.token?.direction ?? 'out',
-        ...(activity.data.token?.assetId
-          ? { assetId: activity.data.token.assetId }
-          : {}),
+        ...(assetId ? { assetId } : {}),
         ...(symbol ? { symbol } : {}),
         ...(decimals === undefined ? {} : { decimals }),
-        ...(amount ? { amount } : {}),
+        ...(amount !== undefined ? { amount } : {}),
+        ...(assetType ? { assetType } : {}),
       },
     },
   };
@@ -413,7 +676,7 @@ function enrichApprovalActivity(
 
   const data = transactionGroup.initialTransaction.txParams?.data;
   const token = activity.data.token;
-  const isUnlimited = isUnlimitedApprovalAmount(token?.amount, token?.decimals);
+  const isUnlimited = isSpendingCapUnlimited(token?.amount, token?.decimals);
   let next: ActivityListItem = activity;
 
   if (activity.type === 'approveSpendingCap' && data) {
@@ -426,19 +689,11 @@ function enrichApprovalActivity(
     }
   }
 
-  if (!isUnlimited || next.data.token?.isUnlimitedApproval) {
+  if (!isUnlimited) {
     return next;
   }
 
-  return {
-    ...next,
-    data: {
-      ...next.data,
-      token: next.data.token
-        ? { ...next.data.token, isUnlimitedApproval: true }
-        : next.data.token,
-    },
-  };
+  return next;
 }
 
 function enrichPreparedFees(
@@ -514,4 +769,95 @@ export function prepareLocalTransactionGroup(
   );
 
   return fees ? { ...transactionGroup, fees } : transactionGroup;
+}
+
+const bridgeFailStatuses = [
+  TransactionStatus.failed,
+  TransactionStatus.dropped,
+  TransactionStatus.rejected,
+] as string[];
+
+// A bridge is two txs: this one (source) and one on the dest chain.
+// Success when the dest tx hash is set; failed if this source tx failed.
+export function getBridgeActivityStatus(
+  tx: TransactionMeta,
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
+) {
+  if (tx.type !== TransactionType.bridge || !bridgeHistoryItem) {
+    return undefined;
+  }
+
+  if (bridgeHistoryItem.status?.destChain?.txHash) {
+    return 'success';
+  }
+
+  if (bridgeFailStatuses.includes(tx.status)) {
+    return 'failed';
+  }
+
+  return undefined;
+}
+
+function tokenFromQuoteAsset(
+  direction: TokenAmount['direction'],
+  asset: { symbol?: string; decimals?: number; assetId?: string } | undefined,
+  amount: string | undefined,
+) {
+  if (!asset?.symbol) {
+    return undefined;
+  }
+  return {
+    direction,
+    symbol: asset.symbol,
+    ...(amount ? { amount } : {}),
+    ...(asset.decimals === undefined ? {} : { decimals: asset.decimals }),
+    ...(asset.assetId ? { assetId: asset.assetId } : {}),
+  };
+}
+
+// Quote first (has amounts). If none, use symbols from pre-unified-swap txs.
+export function getSwapTokenEnrichment(
+  tx: TransactionMeta,
+  nativeSymbol: string | undefined,
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
+) {
+  const quote = bridgeHistoryItem?.quote;
+  const quoteSourceToken = tokenFromQuoteAsset(
+    'out',
+    quote?.srcAsset,
+    quote?.srcTokenAmount,
+  );
+  const quoteDestinationToken = tokenFromQuoteAsset(
+    'in',
+    quote?.destAsset,
+    quote?.destTokenAmount ?? quote?.minDestTokenAmount,
+  );
+
+  const {
+    sourceTokenSymbol,
+    destinationTokenSymbol,
+    destinationTokenAddress,
+    swapMetaData,
+  } = tx as TransactionMeta & {
+    sourceTokenSymbol?: string;
+    destinationTokenSymbol?: string;
+    destinationTokenAddress?: string;
+    swapMetaData?: { token_from?: string; token_to?: string };
+  };
+  const srcSymbol = sourceTokenSymbol ?? swapMetaData?.token_from;
+  const dstSymbol = destinationTokenSymbol ?? swapMetaData?.token_to;
+  const effectiveSrcSymbol =
+    srcSymbol ??
+    (destinationTokenAddress && nativeSymbol ? nativeSymbol : undefined);
+
+  return {
+    sourceToken:
+      quoteSourceToken ??
+      (effectiveSrcSymbol
+        ? { direction: 'out' as const, symbol: effectiveSrcSymbol }
+        : undefined),
+    destinationToken:
+      quoteDestinationToken ??
+      (dstSymbol ? { direction: 'in' as const, symbol: dstSymbol } : undefined),
+  };
 }
