@@ -166,7 +166,7 @@ describe('usePositionSheetData', () => {
       );
 
       expect(result.current.summaryTitle).toBe('7 PEPE');
-      expect(result.current.summarySubtitle).toBe('Sold · 2 d ago');
+      expect(result.current.summarySubtitle).toBe('Sold · 2d ago');
       expect(result.current.summaryTagLabel).toBeUndefined();
     });
 
@@ -273,7 +273,7 @@ describe('usePositionSheetData', () => {
         true,
       );
 
-      expect(result.current.summarySubtitle).toBe('Closed · 3 d ago');
+      expect(result.current.summarySubtitle).toBe('Closed · 3d ago');
       expect(result.current.summaryTagLabel).toBe('40x Short');
     });
 
