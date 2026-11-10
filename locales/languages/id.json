@@ -1154,66 +1154,10 @@
       "powered_by": "Didukung oleh",
       "button": "Dapatkan detail akun"
     },
-    "verify_identity": {
-      "title": "Verifikasikan identitas Anda",
-      "description": "Proses ini biasanya hanya memakan waktu beberapa menit. Anda perlu menyiapkan ID berfoto yang sah dan diterbitkan oleh pemerintah.",
-      "step_photograph_id": "Foto ID Anda",
-      "step_take_selfie": "Ambil selfie",
-      "step_confirm_details": "Konfirmasikan detail Anda",
-      "step_answer_questions": "Jawablah beberapa pertanyaan",
-      "footer": "Informasi Anda dienkripsi dan dibagikan secara aman kepada penyedia verifikasi kami. Anda akan meninjau detailnya sebelum melanjutkan.",
-      "powered_by": "Didukung oleh",
-      "disclaimers_error": "Tidak dapat memuat syarat dan ketentuan.",
-      "disclaimers_retry": "Coba lagi",
-      "button": "Lanjutkan",
-      "terms_sheet_title": "Data dan privasi",
-      "terms_sheet_description": "Untuk memverifikasi identitas Anda, informasi Anda akan dibagikan secara aman kepada penyedia di bawah ini. Tinjau kebijakan dan persyaratannya sebelum melanjutkan.",
-      "metamask_privacy_policy": "Kebijakan Privasi MetaMask",
-      "metamask_terms": "Syarat dan Ketentuan MetaMask",
-      "terms_sheet_button": "Setuju dan mulai verifikasi"
-    },
-    "kyc_email": {
-      "error_title": "Tidak dapat memulai verifikasi",
-      "error_description": "Terjadi kesalahan saat membuka verifikasi email. Coba lagi."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Kami butuh sedikit informasi tambahan",
-      "more_info_description": "Terkadang kami memerlukan informasi tambahan untuk menyelesaikan verifikasi. Periksa apa saja yang dibutuhkan di bawah ini untuk melanjutkan.",
-      "more_info_item_title": "Bukti alamat",
-      "more_info_item_description": "Unggah dokumen terbaru yang menunjukkan nama Anda dan alamat rumah saat ini",
-      "more_info_button": "Lanjutkan",
-      "more_info_help": "Butuh bantuan untuk memverifikasi?",
-      "error_title": "Tidak dapat memulai verifikasi",
-      "error_description": "Terjadi kesalahan saat membuka verifikasi identitas. Coba lagi.",
-      "retry": "Coba lagi"
-    },
-    "kyc_taking_longer": {
-      "title": "Memverifikasi identitas Anda",
-      "description": "Sebagian besar pemeriksaan selesai dalam waktu sekitar 10 detik. Anda bisa kembali lagi nanti; kami akan memberi tahu Anda jika pemeriksaan sudah selesai.",
-      "button": "Kembali lagi nanti"
-    },
-    "identity_verified": {
-      "title": "Identitas diverifikasi",
-      "description": "Pemeriksaan identitas Anda telah selesai.",
-      "button": "Lanjutkan"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "Menunggu MoonPay menyetujui akun Anda"
-    },
-    "kyc_rejected": {
-      "title": "Kami tidak dapat memverifikasi identitas Anda",
-      "description": "Ada beberapa detail yang memerlukan perhatian Anda. Tinjau setiap poin di bawah ini, lalu hubungi dukungan.",
-      "retry_description": "Ada beberapa detail yang memerlukan perhatian Anda. Tinjau setiap poin di bawah ini, lalu coba lagi.",
-      "identity_document_title": "Periksa dokumen identitas Anda",
-      "identity_document_description": "Pastikan dokumen tersebut sah, jelas, dan terlihat sepenuhnya",
-      "selfie_title": "Ambil ulang swafoto Anda",
-      "selfie_description": "Gunakan pencahayaan yang baik dan perlihatkan wajah Anda dengan jelas",
-      "details_title": "Tinjau detail Anda",
-      "details_description": "Pastikan informasi Anda sesuai dengan dokumen Anda",
-      "button": "Hubungi dukungan",
-      "retry_button": "Coba lagi"
     },
     "account_provisioning_error": {
       "title": "Tidak dapat membuat akun Anda",
@@ -1271,6 +1215,64 @@
       "load_error": "Tidak dapat menyegarkan deposit. Kami akan mencoba lagi.",
       "setup_error": "Tidak dapat membuat akun Anda.",
       "retry": "Coba lagi"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "Verifikasikan identitas Anda",
+      "description": "Proses ini biasanya hanya memakan waktu beberapa menit. Anda perlu menyiapkan ID berfoto yang sah dan diterbitkan oleh pemerintah.",
+      "step_photograph_id": "Foto ID Anda",
+      "step_take_selfie": "Ambil selfie",
+      "step_confirm_details": "Konfirmasikan detail Anda",
+      "step_answer_questions": "Jawablah beberapa pertanyaan",
+      "footer": "Informasi Anda dienkripsi dan dibagikan secara aman kepada penyedia verifikasi kami. Anda akan meninjau detailnya sebelum melanjutkan.",
+      "powered_by": "Didukung oleh",
+      "disclaimers_error": "Tidak dapat memuat syarat dan ketentuan.",
+      "disclaimers_retry": "Coba lagi",
+      "button": "Lanjutkan",
+      "terms_sheet_title": "Data dan privasi",
+      "terms_sheet_description": "Untuk memverifikasi identitas Anda, informasi Anda akan dibagikan secara aman kepada penyedia di bawah ini. Tinjau kebijakan dan persyaratannya sebelum melanjutkan.",
+      "metamask_privacy_policy": "Kebijakan Privasi MetaMask",
+      "metamask_terms": "Syarat dan Ketentuan MetaMask",
+      "terms_sheet_button": "Setuju dan mulai verifikasi"
+    },
+    "kyc_email": {
+      "error_title": "Tidak dapat memulai verifikasi",
+      "error_description": "Terjadi kesalahan saat membuka verifikasi email. Coba lagi."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Kami butuh sedikit informasi tambahan",
+      "more_info_description": "Terkadang kami memerlukan informasi tambahan untuk menyelesaikan verifikasi. Periksa apa saja yang dibutuhkan di bawah ini untuk melanjutkan.",
+      "more_info_item_title": "Bukti alamat",
+      "more_info_item_description": "Unggah dokumen terbaru yang menunjukkan nama Anda dan alamat rumah saat ini",
+      "more_info_button": "Lanjutkan",
+      "more_info_help": "Butuh bantuan untuk memverifikasi?",
+      "error_title": "Tidak dapat memulai verifikasi",
+      "error_description": "Terjadi kesalahan saat membuka verifikasi identitas. Coba lagi.",
+      "retry": "Coba lagi"
+    },
+    "kyc_taking_longer": {
+      "title": "Memverifikasi identitas Anda",
+      "description": "Sebagian besar pemeriksaan selesai dalam waktu sekitar 10 detik. Anda bisa kembali lagi nanti; kami akan memberi tahu Anda jika pemeriksaan sudah selesai.",
+      "button": "Kembali lagi nanti"
+    },
+    "identity_verified": {
+      "title": "Identitas diverifikasi",
+      "description": "Pemeriksaan identitas Anda telah selesai.",
+      "button": "Lanjutkan"
+    },
+    "kyc_rejected": {
+      "title": "Kami tidak dapat memverifikasi identitas Anda",
+      "description": "Ada beberapa detail yang memerlukan perhatian Anda. Tinjau setiap poin di bawah ini, lalu hubungi dukungan.",
+      "retry_description": "Ada beberapa detail yang memerlukan perhatian Anda. Tinjau setiap poin di bawah ini, lalu coba lagi.",
+      "identity_document_title": "Periksa dokumen identitas Anda",
+      "identity_document_description": "Pastikan dokumen tersebut sah, jelas, dan terlihat sepenuhnya",
+      "selfie_title": "Ambil ulang swafoto Anda",
+      "selfie_description": "Gunakan pencahayaan yang baik dan perlihatkan wajah Anda dengan jelas",
+      "details_title": "Tinjau detail Anda",
+      "details_description": "Pastikan informasi Anda sesuai dengan dokumen Anda",
+      "button": "Hubungi dukungan",
+      "retry_button": "Coba lagi"
     }
   },
   "social": {
@@ -11909,7 +11911,6 @@
       "email_label": "Email",
       "password_label": "Kata sandi",
       "login_button": "Masuk",
-      "siwe_button": "Masuk dengan Ethereum",
       "continue_button": "Lanjutkan",
       "uk_login_button": "Masuk dengan akun ini",
       "signup_button": "Daftar",

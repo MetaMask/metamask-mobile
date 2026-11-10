@@ -427,6 +427,7 @@ const createDefaultMoneyAccountCardLinkageMock =
     canLink: false,
     isMoneyAccountLinkingSupported: true,
     isMoneyCardSectionAvailable: true,
+    reportsVerificationStatus: true,
     status: 'idle' as const,
     isLinking: false,
     error: null,
@@ -708,6 +709,7 @@ const BAANX_CAPABILITIES = {
   supportsTransactionHistory: true,
   supportsContactDetails: false,
   supportsMoneyAccountLinking: true,
+  reportsVerificationStatus: true,
 };
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
@@ -7648,6 +7650,7 @@ describe('CardHome Component', () => {
         canLink: true,
         isMoneyAccountLinkingSupported: true,
         isMoneyCardSectionAvailable: true,
+        reportsVerificationStatus: true,
         status: 'idle' as const,
         isLinking: false,
         error: null,

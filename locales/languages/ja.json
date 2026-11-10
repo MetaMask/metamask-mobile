@@ -1154,66 +1154,10 @@
       "powered_by": "提供元:",
       "button": "口座情報を取得する"
     },
-    "verify_identity": {
-      "title": "本人確認を行う",
-      "description": "これには通常数分かかります。有効な顔写真付き公的身分証明書をお手元にご用意いただく必要があります。",
-      "step_photograph_id": "身分証明書の写真を撮る",
-      "step_take_selfie": "自撮り写真を撮影する",
-      "step_confirm_details": "詳細を確認する",
-      "step_answer_questions": "いくつかの質問に回答する",
-      "footer": "お客様の情報は暗号化され、認証サービス事業者と安全な形で共有されます。続行する前に詳細をご確認いただけます。",
-      "powered_by": "提供元:",
-      "disclaimers_error": "諸条件を読み込めませんでした。",
-      "disclaimers_retry": "もう一度お試しください",
-      "button": "続行",
-      "terms_sheet_title": "データとプライバシー",
-      "terms_sheet_description": "本人確認を実施するため、お客様の情報は以下の事業者と安全な形で共有されます。続行する前に、事業者側のポリシーと規約をご確認ください。",
-      "metamask_privacy_policy": "MetaMaskプライバシーポリシー",
-      "metamask_terms": "MetaMask利用規約",
-      "terms_sheet_button": "同意して認証を開始する"
-    },
-    "kyc_email": {
-      "error_title": "認証を開始できませんでした",
-      "error_description": "メール認証を開く際に問題が発生しました。もう一度お試しください。"
-    },
-    "sumsub_kyc": {
-      "more_info_title": "もう少しだけ情報が必要です",
-      "more_info_description": "認証を完了するために追加の情報が必要になる場合があります。以下で必要な情報を確認して、次へお進みください。",
-      "more_info_item_title": "住所確認書類",
-      "more_info_item_description": "お客様のお名前とご住所が記載された最近の書類をアップロードしてください",
-      "more_info_button": "続行",
-      "more_info_help": "認証でサポートが必要ですか？",
-      "error_title": "認証を開始できませんでした",
-      "error_description": "本人確認を開く際に問題が発生しました。もう一度お試しください。",
-      "retry": "もう一度お試しください"
-    },
-    "kyc_taking_longer": {
-      "title": "本人確認を行っています",
-      "description": "本人確認は通常、約10秒で完了します。後でもう一度ご確認ください。本人確認が完了しましたら、お知らせいたします。",
-      "button": "また後で確認する"
-    },
-    "identity_verified": {
-      "title": "本人確認済み",
-      "description": "本人確認が完了しました。",
-      "button": "続行"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "MoonPayによる口座の承認を待っています"
-    },
-    "kyc_rejected": {
-      "title": "本人確認ができませんでした",
-      "description": "いくつか確認が必要な点があります。以下の各項目をご確認のうえ、サポートまでご連絡ください。",
-      "retry_description": "いくつか確認が必要な点があります。以下の各項目をご確認のうえ、もう一度お試しください。",
-      "identity_document_title": "本人確認書類をご確認ください",
-      "identity_document_description": "書類が有効かつ鮮明で、全体が見えることを確認してください",
-      "selfie_title": "自撮り写真を再撮影してください",
-      "selfie_description": "明るい場所で、顔が鮮明に写るようにしてください",
-      "details_title": "詳細をご確認ください",
-      "details_description": "情報が書類の内容と一致していることを確認してください",
-      "button": "サポートへのお問い合わせ",
-      "retry_button": "もう一度お試しください"
     },
     "account_provisioning_error": {
       "title": "口座を作成できませんでした",
@@ -1271,6 +1215,64 @@
       "load_error": "デポジットを更新できませんでした。再試行します。",
       "setup_error": "口座を作成できませんでした。",
       "retry": "もう一度お試しください"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "本人確認を行う",
+      "description": "これには通常数分かかります。有効な顔写真付き公的身分証明書をお手元にご用意いただく必要があります。",
+      "step_photograph_id": "身分証明書の写真を撮る",
+      "step_take_selfie": "自撮り写真を撮影する",
+      "step_confirm_details": "詳細を確認する",
+      "step_answer_questions": "いくつかの質問に回答する",
+      "footer": "お客様の情報は暗号化され、認証サービス事業者と安全な形で共有されます。続行する前に詳細をご確認いただけます。",
+      "powered_by": "提供元:",
+      "disclaimers_error": "諸条件を読み込めませんでした。",
+      "disclaimers_retry": "もう一度お試しください",
+      "button": "続行",
+      "terms_sheet_title": "データとプライバシー",
+      "terms_sheet_description": "本人確認を実施するため、お客様の情報は以下の事業者と安全な形で共有されます。続行する前に、事業者側のポリシーと規約をご確認ください。",
+      "metamask_privacy_policy": "MetaMaskプライバシーポリシー",
+      "metamask_terms": "MetaMask利用規約",
+      "terms_sheet_button": "同意して認証を開始する"
+    },
+    "kyc_email": {
+      "error_title": "認証を開始できませんでした",
+      "error_description": "メール認証を開く際に問題が発生しました。もう一度お試しください。"
+    },
+    "sumsub_kyc": {
+      "more_info_title": "もう少しだけ情報が必要です",
+      "more_info_description": "認証を完了するために追加の情報が必要になる場合があります。以下で必要な情報を確認して、次へお進みください。",
+      "more_info_item_title": "住所確認書類",
+      "more_info_item_description": "お客様のお名前とご住所が記載された最近の書類をアップロードしてください",
+      "more_info_button": "続行",
+      "more_info_help": "認証でサポートが必要ですか？",
+      "error_title": "認証を開始できませんでした",
+      "error_description": "本人確認を開く際に問題が発生しました。もう一度お試しください。",
+      "retry": "もう一度お試しください"
+    },
+    "kyc_taking_longer": {
+      "title": "本人確認を行っています",
+      "description": "本人確認は通常、約10秒で完了します。後でもう一度ご確認ください。本人確認が完了しましたら、お知らせいたします。",
+      "button": "また後で確認する"
+    },
+    "identity_verified": {
+      "title": "本人確認済み",
+      "description": "本人確認が完了しました。",
+      "button": "続行"
+    },
+    "kyc_rejected": {
+      "title": "本人確認ができませんでした",
+      "description": "いくつか確認が必要な点があります。以下の各項目をご確認のうえ、サポートまでご連絡ください。",
+      "retry_description": "いくつか確認が必要な点があります。以下の各項目をご確認のうえ、もう一度お試しください。",
+      "identity_document_title": "本人確認書類をご確認ください",
+      "identity_document_description": "書類が有効かつ鮮明で、全体が見えることを確認してください",
+      "selfie_title": "自撮り写真を再撮影してください",
+      "selfie_description": "明るい場所で、顔が鮮明に写るようにしてください",
+      "details_title": "詳細をご確認ください",
+      "details_description": "情報が書類の内容と一致していることを確認してください",
+      "button": "サポートへのお問い合わせ",
+      "retry_button": "もう一度お試しください"
     }
   },
   "social": {
@@ -11909,7 +11911,6 @@
       "email_label": "メールアドレス",
       "password_label": "パスワード",
       "login_button": "サインイン",
-      "siwe_button": "イーサリアムでサインイン",
       "continue_button": "続行",
       "uk_login_button": "このアカウントでサインインする",
       "signup_button": "サインアップ",

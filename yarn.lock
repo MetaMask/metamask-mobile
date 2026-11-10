@@ -9694,16 +9694,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/build-utils@npm:^3.0.0":
-  version: 3.0.4
-  resolution: "@metamask/build-utils@npm:3.0.4"
-  dependencies:
-    "@metamask/utils": "npm:^11.8.1"
-    "@types/eslint": "npm:^8.44.7"
-  checksum: 10/980790dded88edf00fe9df0a6cb940a62269d0731cc542b02c18b193d3219d23f3bd0c7375b53f954e4f300fd4ad67e3837e0968e0c633379b03e06a1e240c64
-  languageName: node
-  linkType: hard
-
 "@metamask/chain-agnostic-permission@npm:^1.2.1, @metamask/chain-agnostic-permission@npm:^1.7.0":
   version: 1.7.0
   resolution: "@metamask/chain-agnostic-permission@npm:1.7.0"
@@ -11502,11 +11492,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^22.1.2":
-  version: 22.1.2
-  resolution: "@metamask/perps-controller@npm:22.1.2"
+"@metamask/perps-controller@npm:^22.3.0":
+  version: 22.3.0
+  resolution: "@metamask/perps-controller@npm:22.3.0"
   dependencies:
-    "@metamask/abi-utils": "npm:^2.0.4"
+    "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
@@ -11516,7 +11506,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.3.0"
     uuid: "npm:^14.0.2"
-  checksum: 10/020d1d538e911f2c78473b9dc3eac99120d5b7454090465205e8f3482232951632a087ce82f81cc16d8fc6fa9ec224bf22fffce247cc343e7dc0cc8f6713ee80
+  checksum: 10/5f786a08f50dc992deb42c6c5d459b3729f13feea48e351f6667c57f90afa190ebdb0f5394f489b16c0cd4c1431c3784ab3dbbe6eaa442e762d2035b9d3224e4
   languageName: node
   linkType: hard
 
@@ -12626,13 +12616,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/wallet@npm:^19.1.0":
-  version: 19.1.0
-  resolution: "@metamask/wallet@npm:19.1.0"
+"@metamask/wallet@npm:^20.0.0":
+  version: 20.0.0
+  resolution: "@metamask/wallet@npm:20.0.0"
   dependencies:
     "@metamask/accounts-controller": "npm:^40.1.0"
     "@metamask/address-book-controller": "npm:^8.0.0"
-    "@metamask/analytics-controller": "npm:^4.0.0"
+    "@metamask/analytics-controller": "npm:^4.1.0"
     "@metamask/approval-controller": "npm:^10.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
@@ -12642,6 +12632,7 @@ __metadata:
     "@metamask/connectivity-controller": "npm:^1.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/gas-fee-controller": "npm:^27.0.0"
+    "@metamask/geolocation-controller": "npm:^2.0.0"
     "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/logging-controller": "npm:^10.0.0"
     "@metamask/messenger": "npm:^3.0.0"
@@ -12657,7 +12648,7 @@ __metadata:
     "@metamask/subscription-controller": "npm:^15.0.0"
     "@metamask/transaction-controller": "npm:^72.2.1"
     "@metamask/utils": "npm:^12.0.0"
-  checksum: 10/5b5647b3992c563eccac7249f93fb368174e04725dddd8267f28925dc19aec1cf898dd35049f09ccc201a852ae51be2183afef9bac843281614ee310f3273ad1
+  checksum: 10/1e45709cfa32901d0d4f9ac950f4cde8733cd0d25b9fbca2e89e72113916adcd314e5768402fa45776efde7dea57106f2a2815696e398d6411916e44a4cae9bd
   languageName: node
   linkType: hard
 
@@ -38276,7 +38267,6 @@ __metadata:
     "@metamask/bridge-status-controller": "npm:^78.0.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/browser-playground": "npm:0.8.1"
-    "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^2.1.0"
     "@metamask/chomp-api-service": "npm:^6.0.1"
     "@metamask/claims-controller": "npm:^1.0.4"
@@ -38356,7 +38346,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.3"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^14.0.0"
-    "@metamask/perps-controller": "npm:^22.1.2"
+    "@metamask/perps-controller": "npm:^22.3.0"
     "@metamask/phishing-controller": "npm:^18.2.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
@@ -38411,7 +38401,7 @@ __metadata:
     "@metamask/transaction-pay-controller": "npm:^30.4.3"
     "@metamask/tron-wallet-snap": "npm:^4.4.0"
     "@metamask/utils": "npm:^12.0.0"
-    "@metamask/wallet": "npm:^19.1.0"
+    "@metamask/wallet": "npm:^20.0.0"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.33.3"
     "@noble/curves": "npm:1.9.7"
@@ -38473,6 +38463,7 @@ __metadata:
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6"
     "@types/bnjs5": "npm:@types/bn.js@^5.2.0"
     "@types/d3-shape": "npm:^3.2.0"
+    "@types/eslint": "npm:^8.44.7"
     "@types/eth-url-parser": "npm:^1.0.0"
     "@types/he": "npm:^1.2.3"
     "@types/i18n-js": "npm:^3.8.4"

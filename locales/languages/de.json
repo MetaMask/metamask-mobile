@@ -1154,66 +1154,10 @@
       "powered_by": "Unterstützt durch",
       "button": "Kontodetails erhalten"
     },
-    "verify_identity": {
-      "title": "Verifizieren Sie Ihre Identität",
-      "description": "Dies dauert in der Regel nur wenige Minuten. Halten Sie einen gültigen, behördlich ausgestellten Lichtbildausweis bereit.",
-      "step_photograph_id": "Fotografieren Sie Ihren Ausweis",
-      "step_take_selfie": "Machen Sie ein Selfie",
-      "step_confirm_details": "Bestätigen Sie Ihre Angaben",
-      "step_answer_questions": "Beantworten Sie einige Fragen",
-      "footer": "Ihre Daten werden verschlüsselt und sicher an unsere Verifizierungsanbieter übermittelt. Sie können die Angaben überprüfen, bevor Sie fortfahren.",
-      "powered_by": "Unterstützt durch",
-      "disclaimers_error": "Nutzungsbedingungen konnten nicht geladen werden.",
-      "disclaimers_retry": "Erneut versuchen",
-      "button": "Fortfahren",
-      "terms_sheet_title": "Daten und Datenschutz",
-      "terms_sheet_description": "Zur Überprüfung Ihrer Identität werden Ihre Daten sicher an die nachstehenden Anbieter übermittelt. Bitte lesen Sie sich deren Richtlinien und Bedingungen durch, bevor Sie fortfahren.",
-      "metamask_privacy_policy": "Datenschutzerklärung von MetaMask",
-      "metamask_terms": "Allgemeine Geschäftsbedingungen von MetaMask",
-      "terms_sheet_button": "Zustimmen und Verifizierung starten"
-    },
-    "kyc_email": {
-      "error_title": "Verifizierung konnte nicht gestartet werden",
-      "error_description": "Beim Öffnen der E-Mail-Verifizierung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Wir benötigen weitere Angaben",
-      "more_info_description": "Manchmal sind zusätzliche Informationen erforderlich, um die Verifizierung abschließen zu können. Bitte lesen Sie weiter unten, was Sie benötigen, um fortzufahren.",
-      "more_info_item_title": "Adressnachweis",
-      "more_info_item_description": "Laden Sie ein aktuelles Dokument hoch, aus dem Ihr Name und Ihre aktuelle Wohnanschrift hervorgehen.",
-      "more_info_button": "Fortfahren",
-      "more_info_help": "Brauchen Sie Hilfe beim Verifizieren?",
-      "error_title": "Verifizierung konnte nicht gestartet werden",
-      "error_description": "Beim Öffnen der Identitätsprüfung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
-      "retry": "Erneut versuchen"
-    },
-    "kyc_taking_longer": {
-      "title": "Verifizieren Ihrer Identität",
-      "description": "Die meisten Überprüfungen sind in etwa 10 Sekunden abgeschlossen. Sie können es später erneut versuchen. Wir geben Ihnen Bescheid, sobald die Überprüfung abgeschlossen ist.",
-      "button": "Später erneut versuchen"
-    },
-    "identity_verified": {
-      "title": "Identität überprüft",
-      "description": "Ihre Identitätsprüfung ist abgeschlossen.",
-      "button": "Fortfahren"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "Warten auf die Freischaltung Ihres Kontos durch MoonPay"
-    },
-    "kyc_rejected": {
-      "title": "Ihre Identität konnte nicht verifiziert werden",
-      "description": "Einige Angaben erfordern Ihre Aufmerksamkeit. Bitte gehen Sie die unten aufgeführten Punkte durch und wenden Sie sich anschließend an den Support.",
-      "retry_description": "Einige Angaben erfordern Ihre Aufmerksamkeit. Bitte gehen Sie die unten aufgeführten Punkte durch und versuchen Sie es dann erneut.",
-      "identity_document_title": "Überprüfen Sie Ihr Ausweisdokument",
-      "identity_document_description": "Stellen Sie sicher, dass es gültig sowie deutlich und vollständig sichtbar ist.",
-      "selfie_title": "Selfie erneut aufnehmen",
-      "selfie_description": "Sorgen Sie dafür, dass die Beleuchtung gut und Ihr Gesicht deutlich sichtbar ist.",
-      "details_title": "Überprüfen Sie Ihre Angaben",
-      "details_description": "Stellen Sie sicher, dass Ihre Angaben denen in Ihren Dokumenten entsprechen.",
-      "button": "Support kontaktieren",
-      "retry_button": "Erneut versuchen"
     },
     "account_provisioning_error": {
       "title": "Ihr Konto konnte nicht erstellt werden",
@@ -1271,6 +1215,64 @@
       "load_error": "Die Einzahlung konnte nicht aktualisiert werden. Es wird ein neuer Versuch unternommen.",
       "setup_error": "Ihr Konto konnte nicht erstellt werden.",
       "retry": "Erneut versuchen"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "Verifizieren Sie Ihre Identität",
+      "description": "Dies dauert in der Regel nur wenige Minuten. Halten Sie einen gültigen, behördlich ausgestellten Lichtbildausweis bereit.",
+      "step_photograph_id": "Fotografieren Sie Ihren Ausweis",
+      "step_take_selfie": "Machen Sie ein Selfie",
+      "step_confirm_details": "Bestätigen Sie Ihre Angaben",
+      "step_answer_questions": "Beantworten Sie einige Fragen",
+      "footer": "Ihre Daten werden verschlüsselt und sicher an unsere Verifizierungsanbieter übermittelt. Sie können die Angaben überprüfen, bevor Sie fortfahren.",
+      "powered_by": "Unterstützt durch",
+      "disclaimers_error": "Nutzungsbedingungen konnten nicht geladen werden.",
+      "disclaimers_retry": "Erneut versuchen",
+      "button": "Fortfahren",
+      "terms_sheet_title": "Daten und Datenschutz",
+      "terms_sheet_description": "Zur Überprüfung Ihrer Identität werden Ihre Daten sicher an die nachstehenden Anbieter übermittelt. Bitte lesen Sie sich deren Richtlinien und Bedingungen durch, bevor Sie fortfahren.",
+      "metamask_privacy_policy": "Datenschutzerklärung von MetaMask",
+      "metamask_terms": "Allgemeine Geschäftsbedingungen von MetaMask",
+      "terms_sheet_button": "Zustimmen und Verifizierung starten"
+    },
+    "kyc_email": {
+      "error_title": "Verifizierung konnte nicht gestartet werden",
+      "error_description": "Beim Öffnen der E-Mail-Verifizierung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Wir benötigen weitere Angaben",
+      "more_info_description": "Manchmal sind zusätzliche Informationen erforderlich, um die Verifizierung abschließen zu können. Bitte lesen Sie weiter unten, was Sie benötigen, um fortzufahren.",
+      "more_info_item_title": "Adressnachweis",
+      "more_info_item_description": "Laden Sie ein aktuelles Dokument hoch, aus dem Ihr Name und Ihre aktuelle Wohnanschrift hervorgehen.",
+      "more_info_button": "Fortfahren",
+      "more_info_help": "Brauchen Sie Hilfe beim Verifizieren?",
+      "error_title": "Verifizierung konnte nicht gestartet werden",
+      "error_description": "Beim Öffnen der Identitätsprüfung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+      "retry": "Erneut versuchen"
+    },
+    "kyc_taking_longer": {
+      "title": "Verifizieren Ihrer Identität",
+      "description": "Die meisten Überprüfungen sind in etwa 10 Sekunden abgeschlossen. Sie können es später erneut versuchen. Wir geben Ihnen Bescheid, sobald die Überprüfung abgeschlossen ist.",
+      "button": "Später erneut versuchen"
+    },
+    "identity_verified": {
+      "title": "Identität überprüft",
+      "description": "Ihre Identitätsprüfung ist abgeschlossen.",
+      "button": "Fortfahren"
+    },
+    "kyc_rejected": {
+      "title": "Ihre Identität konnte nicht verifiziert werden",
+      "description": "Einige Angaben erfordern Ihre Aufmerksamkeit. Bitte gehen Sie die unten aufgeführten Punkte durch und wenden Sie sich anschließend an den Support.",
+      "retry_description": "Einige Angaben erfordern Ihre Aufmerksamkeit. Bitte gehen Sie die unten aufgeführten Punkte durch und versuchen Sie es dann erneut.",
+      "identity_document_title": "Überprüfen Sie Ihr Ausweisdokument",
+      "identity_document_description": "Stellen Sie sicher, dass es gültig sowie deutlich und vollständig sichtbar ist.",
+      "selfie_title": "Selfie erneut aufnehmen",
+      "selfie_description": "Sorgen Sie dafür, dass die Beleuchtung gut und Ihr Gesicht deutlich sichtbar ist.",
+      "details_title": "Überprüfen Sie Ihre Angaben",
+      "details_description": "Stellen Sie sicher, dass Ihre Angaben denen in Ihren Dokumenten entsprechen.",
+      "button": "Support kontaktieren",
+      "retry_button": "Erneut versuchen"
     }
   },
   "social": {
@@ -11909,7 +11911,6 @@
       "email_label": "E-Mail",
       "password_label": "Passwort",
       "login_button": "Anmelden",
-      "siwe_button": "Mit Ethereum anmelden",
       "continue_button": "Fortfahren",
       "uk_login_button": "Mit diesem Konto anmelden",
       "signup_button": "Anmelden",

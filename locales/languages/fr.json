@@ -1154,66 +1154,10 @@
       "powered_by": "Fourni par",
       "button": "Obtenir les coordonnées du compte"
     },
-    "verify_identity": {
-      "title": "Vérifier votre identité",
-      "description": "Cela ne prend généralement que quelques minutes. Vous devrez avoir à portée de main une pièce d’identité avec photo valide, délivrée par les autorités publiques.",
-      "step_photograph_id": "Photographiez votre pièce d’identité",
-      "step_take_selfie": "Prendre un selfie",
-      "step_confirm_details": "Confirmez vos informations",
-      "step_answer_questions": "Répondez à quelques questions",
-      "footer": "Vos informations sont cryptées et partagées en toute sécurité avec nos prestataires de services de vérification. Vous pourrez vérifier les informations avant de continuer.",
-      "powered_by": "Fourni par",
-      "disclaimers_error": "Impossible de charger les conditions générales.",
-      "disclaimers_retry": "Réessayez",
-      "button": "Continuer",
-      "terms_sheet_title": "Données et confidentialité",
-      "terms_sheet_description": "Afin de vérifier votre identité, vos informations seront transmises en toute sécurité aux prestataires ci-dessous. Veuillez consulter leurs politiques et conditions générales avant de continuer.",
-      "metamask_privacy_policy": "Politique de confidentialité de MetaMask",
-      "metamask_terms": "Conditions générales de MetaMask",
-      "terms_sheet_button": "Acceptez et lancez le processus de vérification"
-    },
-    "kyc_email": {
-      "error_title": "Impossible de lancer le processus de vérification",
-      "error_description": "Une erreur s'est produite lors du lancement du processus de vérification de l'adresse e-mail. Veuillez réessayer."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Nous avons besoin d'un peu plus d'informations",
-      "more_info_description": "Nous avons parfois besoin d'informations supplémentaires pour finaliser la vérification. Consultez ci-dessous les éléments requis pour continuer.",
-      "more_info_item_title": "Justificatif de domicile",
-      "more_info_item_description": "Téléchargez un document récent indiquant votre nom et votre adresse actuelle",
-      "more_info_button": "Continuer",
-      "more_info_help": "Besoin d'aide pour la vérification ?",
-      "error_title": "Impossible de lancer le processus de vérification",
-      "error_description": "Une erreur s’est produite lors du lancement du processus de vérification de l’identité. Veuillez réessayer.",
-      "retry": "Réessayez"
-    },
-    "kyc_taking_longer": {
-      "title": "Vérification de votre identité",
-      "description": "La plupart des vérifications s'effectuent en une dizaine de secondes. Vous pouvez revenir plus tard ; nous vous informerons lorsque le processus de vérification sera terminé.",
-      "button": "Revenir plus tard"
-    },
-    "identity_verified": {
-      "title": "Identité vérifiée",
-      "description": "La vérification de votre identité est terminée.",
-      "button": "Continuer"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "En attente de la validation de votre compte par MoonPay"
-    },
-    "kyc_rejected": {
-      "title": "Nous n’avons pas pu vérifier votre identité",
-      "description": "Quelques détails nécessitent votre attention. Vérifiez chaque point ci-dessous, puis contactez le service d'assistance.",
-      "retry_description": "Quelques détails nécessitent votre attention. Vérifiez chaque point ci-dessous, puis réessayez.",
-      "identity_document_title": "Vérifiez votre pièce d'identité",
-      "identity_document_description": "Assurez-vous qu'elle est valide, lisible et entièrement visible",
-      "selfie_title": "Prenez à nouveau un selfie",
-      "selfie_description": "Utilisez un bon éclairage et montrez clairement votre visage",
-      "details_title": "Vérifiez vos informations",
-      "details_description": "Assurez-vous que vos informations correspondent à celles figurant sur vos documents",
-      "button": "Contacter le service d’assistance",
-      "retry_button": "Réessayer"
     },
     "account_provisioning_error": {
       "title": "Impossible de créer votre compte",
@@ -1271,6 +1215,64 @@
       "load_error": "Impossible d'actualiser le dépôt. Nous allons réessayer.",
       "setup_error": "Impossible de créer votre compte.",
       "retry": "Réessayer"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "Vérifier votre identité",
+      "description": "Cela ne prend généralement que quelques minutes. Vous devrez avoir à portée de main une pièce d’identité avec photo valide, délivrée par les autorités publiques.",
+      "step_photograph_id": "Photographiez votre pièce d’identité",
+      "step_take_selfie": "Prendre un selfie",
+      "step_confirm_details": "Confirmez vos informations",
+      "step_answer_questions": "Répondez à quelques questions",
+      "footer": "Vos informations sont cryptées et partagées en toute sécurité avec nos prestataires de services de vérification. Vous pourrez vérifier les informations avant de continuer.",
+      "powered_by": "Fourni par",
+      "disclaimers_error": "Impossible de charger les conditions générales.",
+      "disclaimers_retry": "Réessayez",
+      "button": "Continuer",
+      "terms_sheet_title": "Données et confidentialité",
+      "terms_sheet_description": "Afin de vérifier votre identité, vos informations seront transmises en toute sécurité aux prestataires ci-dessous. Veuillez consulter leurs politiques et conditions générales avant de continuer.",
+      "metamask_privacy_policy": "Politique de confidentialité de MetaMask",
+      "metamask_terms": "Conditions générales de MetaMask",
+      "terms_sheet_button": "Acceptez et lancez le processus de vérification"
+    },
+    "kyc_email": {
+      "error_title": "Impossible de lancer le processus de vérification",
+      "error_description": "Une erreur s'est produite lors du lancement du processus de vérification de l'adresse e-mail. Veuillez réessayer."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Nous avons besoin d'un peu plus d'informations",
+      "more_info_description": "Nous avons parfois besoin d'informations supplémentaires pour finaliser la vérification. Consultez ci-dessous les éléments requis pour continuer.",
+      "more_info_item_title": "Justificatif de domicile",
+      "more_info_item_description": "Téléchargez un document récent indiquant votre nom et votre adresse actuelle",
+      "more_info_button": "Continuer",
+      "more_info_help": "Besoin d'aide pour la vérification ?",
+      "error_title": "Impossible de lancer le processus de vérification",
+      "error_description": "Une erreur s’est produite lors du lancement du processus de vérification de l’identité. Veuillez réessayer.",
+      "retry": "Réessayez"
+    },
+    "kyc_taking_longer": {
+      "title": "Vérification de votre identité",
+      "description": "La plupart des vérifications s'effectuent en une dizaine de secondes. Vous pouvez revenir plus tard ; nous vous informerons lorsque le processus de vérification sera terminé.",
+      "button": "Revenir plus tard"
+    },
+    "identity_verified": {
+      "title": "Identité vérifiée",
+      "description": "La vérification de votre identité est terminée.",
+      "button": "Continuer"
+    },
+    "kyc_rejected": {
+      "title": "Nous n’avons pas pu vérifier votre identité",
+      "description": "Quelques détails nécessitent votre attention. Vérifiez chaque point ci-dessous, puis contactez le service d'assistance.",
+      "retry_description": "Quelques détails nécessitent votre attention. Vérifiez chaque point ci-dessous, puis réessayez.",
+      "identity_document_title": "Vérifiez votre pièce d'identité",
+      "identity_document_description": "Assurez-vous qu'elle est valide, lisible et entièrement visible",
+      "selfie_title": "Prenez à nouveau un selfie",
+      "selfie_description": "Utilisez un bon éclairage et montrez clairement votre visage",
+      "details_title": "Vérifiez vos informations",
+      "details_description": "Assurez-vous que vos informations correspondent à celles figurant sur vos documents",
+      "button": "Contacter le service d’assistance",
+      "retry_button": "Réessayer"
     }
   },
   "social": {
@@ -11909,7 +11911,6 @@
       "email_label": "Adresse e-mail",
       "password_label": "Mot de passe",
       "login_button": "Se connecter",
-      "siwe_button": "Connectez-vous avec Ethereum",
       "continue_button": "Continuer",
       "uk_login_button": "Se connecter avec ce compte",
       "signup_button": "Inscription",

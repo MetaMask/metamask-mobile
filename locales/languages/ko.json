@@ -1154,66 +1154,10 @@
       "powered_by": "제공자:",
       "button": "계정 정보 확인"
     },
-    "verify_identity": {
-      "title": "본인 인증",
-      "description": "보통 몇 분이면 완료됩니다. 정부에서 발급한 유효한 사진 부착 신분증을 준비하세요.",
-      "step_photograph_id": "신분증을 촬영하세요",
-      "step_take_selfie": "본인 사진 촬영",
-      "step_confirm_details": "입력한 정보를 확인하세요",
-      "step_answer_questions": "몇 가지 질문에 답변해 주세요",
-      "footer": "입력하신 정보는 암호화되어 인증 서비스 제공업체에 안전하게 공유됩니다. 계속 진행하기 전에 정보를 검토하게 됩니다.",
-      "powered_by": "제공자:",
-      "disclaimers_error": "이용 약관을 불러올 수 없습니다.",
-      "disclaimers_retry": "다시 시도",
-      "button": "계속",
-      "terms_sheet_title": "데이터 및 개인 정보 보호",
-      "terms_sheet_description": "본인 인증을 위해 입력하신 정보가 아래 서비스 제공업체에 안전하게 공유됩니다. 계속 진행하기 전에 해당 업체의 정책과 약관을 확인하세요.",
-      "metamask_privacy_policy": "MetaMask 개인정보 처리방법",
-      "metamask_terms": "MetaMask 이용약관",
-      "terms_sheet_button": "동의하고 인증 시작"
-    },
-    "kyc_email": {
-      "error_title": "인증을 시작하지 못했습니다",
-      "error_description": "이메일 인증을 시작하는 중 문제가 발생했습니다. 다시 시도해 주세요."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "추가 정보가 필요합니다",
-      "more_info_description": "인증을 완료하려면 추가 정보가 필요할 수 있습니다. 계속 진행하려면 아래의 필수 정보를 확인하세요.",
-      "more_info_item_title": "주소 증빙 서류",
-      "more_info_item_description": "이름과 현재 거주지 주소가 기재된 최근 서류를 업로드하세요",
-      "more_info_button": "계속",
-      "more_info_help": "인증에 도움이 필요하신가요?",
-      "error_title": "인증을 시작하지 못했습니다",
-      "error_description": "본인 인증을 시작하는 중 문제가 발생했습니다. 다시 시도해 주세요.",
-      "retry": "다시 시도"
-    },
-    "kyc_taking_longer": {
-      "title": "본인 인증 중",
-      "description": "대부분의 인증은 약 10초 내에 완료됩니다. 나중에 다시 확인하셔도 됩니다. 인증이 완료되면 알려드리겠습니다.",
-      "button": "나중에 다시 확인"
-    },
-    "identity_verified": {
-      "title": "본인 인증 완료",
-      "description": "신원 확인이 완료되었습니다.",
-      "button": "계속"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "MoonPay의 계정 승인을 기다리는 중"
-    },
-    "kyc_rejected": {
-      "title": "본인 인증에 실패했습니다",
-      "description": "확인이 필요한 사항이 있습니다. 아래 항목을 검토한 후 고객 지원팀에 문의하세요.",
-      "retry_description": "확인이 필요한 사항이 있습니다. 아래 항목을 검토한 후 다시 시도하세요.",
-      "identity_document_title": "신분증을 확인하세요",
-      "identity_document_description": "신분증이 유효하고 전체 내용이 선명하게 보이는지 확인하세요",
-      "selfie_title": "본인 사진을 다시 촬영하세요",
-      "selfie_description": "밝은 곳에서 얼굴이 선명하게 보이도록 촬영하세요",
-      "details_title": "정보를 확인하세요",
-      "details_description": "입력한 정보가 서류의 정보와 일치하는지 확인하세요",
-      "button": "지원팀에 문의",
-      "retry_button": "다시 시도"
     },
     "account_provisioning_error": {
       "title": "계좌 개설에 실패했습니다",
@@ -1271,6 +1215,64 @@
       "load_error": "예치 정보를 새로고침하지 못했습니다. 다시 시도하겠습니다.",
       "setup_error": "계정을 생성할 수 없습니다.",
       "retry": "다시 시도"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "본인 인증",
+      "description": "보통 몇 분이면 완료됩니다. 정부에서 발급한 유효한 사진 부착 신분증을 준비하세요.",
+      "step_photograph_id": "신분증을 촬영하세요",
+      "step_take_selfie": "본인 사진 촬영",
+      "step_confirm_details": "입력한 정보를 확인하세요",
+      "step_answer_questions": "몇 가지 질문에 답변해 주세요",
+      "footer": "입력하신 정보는 암호화되어 인증 서비스 제공업체에 안전하게 공유됩니다. 계속 진행하기 전에 정보를 검토하게 됩니다.",
+      "powered_by": "제공자:",
+      "disclaimers_error": "이용 약관을 불러올 수 없습니다.",
+      "disclaimers_retry": "다시 시도",
+      "button": "계속",
+      "terms_sheet_title": "데이터 및 개인 정보 보호",
+      "terms_sheet_description": "본인 인증을 위해 입력하신 정보가 아래 서비스 제공업체에 안전하게 공유됩니다. 계속 진행하기 전에 해당 업체의 정책과 약관을 확인하세요.",
+      "metamask_privacy_policy": "MetaMask 개인정보 처리방법",
+      "metamask_terms": "MetaMask 이용약관",
+      "terms_sheet_button": "동의하고 인증 시작"
+    },
+    "kyc_email": {
+      "error_title": "인증을 시작하지 못했습니다",
+      "error_description": "이메일 인증을 시작하는 중 문제가 발생했습니다. 다시 시도해 주세요."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "추가 정보가 필요합니다",
+      "more_info_description": "인증을 완료하려면 추가 정보가 필요할 수 있습니다. 계속 진행하려면 아래의 필수 정보를 확인하세요.",
+      "more_info_item_title": "주소 증빙 서류",
+      "more_info_item_description": "이름과 현재 거주지 주소가 기재된 최근 서류를 업로드하세요",
+      "more_info_button": "계속",
+      "more_info_help": "인증에 도움이 필요하신가요?",
+      "error_title": "인증을 시작하지 못했습니다",
+      "error_description": "본인 인증을 시작하는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      "retry": "다시 시도"
+    },
+    "kyc_taking_longer": {
+      "title": "본인 인증 중",
+      "description": "대부분의 인증은 약 10초 내에 완료됩니다. 나중에 다시 확인하셔도 됩니다. 인증이 완료되면 알려드리겠습니다.",
+      "button": "나중에 다시 확인"
+    },
+    "identity_verified": {
+      "title": "본인 인증 완료",
+      "description": "신원 확인이 완료되었습니다.",
+      "button": "계속"
+    },
+    "kyc_rejected": {
+      "title": "본인 인증에 실패했습니다",
+      "description": "확인이 필요한 사항이 있습니다. 아래 항목을 검토한 후 고객 지원팀에 문의하세요.",
+      "retry_description": "확인이 필요한 사항이 있습니다. 아래 항목을 검토한 후 다시 시도하세요.",
+      "identity_document_title": "신분증을 확인하세요",
+      "identity_document_description": "신분증이 유효하고 전체 내용이 선명하게 보이는지 확인하세요",
+      "selfie_title": "본인 사진을 다시 촬영하세요",
+      "selfie_description": "밝은 곳에서 얼굴이 선명하게 보이도록 촬영하세요",
+      "details_title": "정보를 확인하세요",
+      "details_description": "입력한 정보가 서류의 정보와 일치하는지 확인하세요",
+      "button": "지원팀에 문의",
+      "retry_button": "다시 시도"
     }
   },
   "social": {
@@ -11909,7 +11911,6 @@
       "email_label": "이메일",
       "password_label": "비밀번호",
       "login_button": "로그인",
-      "siwe_button": "이더리움으로 로그인하기",
       "continue_button": "계속",
       "uk_login_button": "이 계정으로 로그인",
       "signup_button": "가입",
