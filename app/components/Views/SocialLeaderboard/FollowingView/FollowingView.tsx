@@ -12,7 +12,6 @@ import {
   SOCIAL_TRACE_TABS,
   type SocialPerformanceContext,
 } from '../../../../util/social/socialPerformance';
-import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import SocialFeed, {
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
@@ -21,7 +20,6 @@ import type {
   SocialFeedPageHandle,
   SocialV1FeedPost,
 } from '../../../UI/SocialFeed/types';
-import { isViewerSocialAuthor } from '../../../UI/SocialFeed/utils/isViewerSocialAuthor';
 import {
   SocialEvent,
   type SocialEventSource,
@@ -45,7 +43,7 @@ import type { SocialShellFilters } from '../shell/filters/types';
 
 const { Filter, Interaction, Screen, Tab } = SocialEvent;
 
-/** The viewer's follow graph and own items, in the shape of the all feed. */
+/** The viewer's follow graph, in the shape of the all feed. */
 export const FOLLOWING_FEED_QUERY: SocialFeedQuery = { scope: 'following_v1' };
 
 const totalReactions = (post: SocialV1FeedPost): number =>
@@ -82,8 +80,8 @@ export interface FollowingViewProps {
 
 /**
  * Social V1 Following: the posts of the traders the viewer follows, newest
- * first or by reactions. The viewer's own posts stay on their Posts tab. There
- * is no socket channel for this feed, so it refreshes on pull and after a
+ * first or by reactions. The server leaves the viewer's own posts out; they
+ * stay on their Posts tab. There is no socket channel for this feed, so it refreshes on pull and after a
  * follow or unfollow.
  */
 const FollowingView: React.FC<FollowingViewProps> = ({
@@ -102,7 +100,6 @@ const FollowingView: React.FC<FollowingViewProps> = ({
 }) => {
   const { onAuthorPress, onPositionPress } =
     useSocialFeedPostNavigation('social_following');
-  const { profileId: viewerProfileId } = useSocialProfileId();
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
   // The pager mounts every page up front: hold the feed back until Following
   // is first opened.
@@ -128,9 +125,8 @@ const FollowingView: React.FC<FollowingViewProps> = ({
 
   const filterPost = useCallback(
     (post: SocialV1FeedPost) =>
-      !isViewerSocialAuthor(post.item.author.id, viewerProfileId) &&
       filterSocialV1FeedPosts([post], appliedFilters).length > 0,
-    [appliedFilters, viewerProfileId],
+    [appliedFilters],
   );
   const previousFiltersRef = useRef(appliedFilters);
   useEffect(() => {

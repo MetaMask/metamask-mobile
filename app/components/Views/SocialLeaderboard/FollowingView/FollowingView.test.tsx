@@ -85,10 +85,9 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-const VIEWER_PROFILE_ID = 'viewer-profile';
 jest.mock('../../../../util/social/useSocialProfileId', () => ({
   useSocialProfileId: () => ({
-    profileId: VIEWER_PROFILE_ID,
+    profileId: 'viewer-profile',
     isLoading: false,
   }),
 }));
@@ -183,18 +182,6 @@ describe('FollowingView', () => {
 
     expect(mountedWhileClosed).toBe(0);
     expect(lastFeedProps().isActive).toBe(true);
-  });
-
-  it("leaves the viewer's own posts out of the feed", () => {
-    renderWithProvider(<FollowingView />);
-    const ownItem = mockOpenPerpsFeedItem({
-      author: { ...mockOpenPerpsFeedItem().author, id: VIEWER_PROFILE_ID },
-    });
-
-    const filterPost = lastFeedProps().filterPost;
-
-    expect(filterPost?.(toPost(ownItem))).toBe(false);
-    expect(filterPost?.(toPost(mockOpenPerpsFeedItem()))).toBe(true);
   });
 
   it('applies the Custom filters to each post', () => {
