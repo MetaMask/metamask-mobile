@@ -65,7 +65,6 @@ The org Namespace Linux pool is capped (about 2,000 vCPUs). Android Appium and G
 | Lint shards                     | `ci.yml` `lint-shards`                                                 | `max-parallel: 2`                                            |
 | Scripts matrix                  | `ci.yml` `scripts`                                                     | `max-parallel: 4`; light legs on `ubuntu-latest`             |
 | Scheduled Android serialization | `run-performance-e2e-manual.yml` + `build-android-arm64-scheduled.yml` | shared concurrency group `namespace-linux-android-scheduled` |
-| Arm64 build schedule            | `build-android-arm64-scheduled.yml`                                    | `0 9 * * 1-5`, between ci.yml's 08:00 and 10:00 runs         |
 
 **How to measure before/after a capacity change**
 

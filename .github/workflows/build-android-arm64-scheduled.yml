@@ -5,9 +5,7 @@ name: Build Android arm64 E2E (scheduled)
 
 on:
   schedule:
-    # 09:00 UTC sits between ci.yml's 08:00 and 10:00 even-hour schedules so
-    # this android-build job does not start on the same minute as CI E2E.
-    - cron: '0 9 * * 1-5'
+    - cron: '0 8 * * 1-5' # 08:00 UTC, Monday-Friday
   workflow_dispatch: {}
 
 permissions:
