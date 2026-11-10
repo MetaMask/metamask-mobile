@@ -1,26 +1,23 @@
 import { extractPublicKey } from '@metamask/eth-sig-util';
-import type {
-  RecoveryStatus,
-  SeedlessOnboardingController,
-} from '@metamask/seedless-onboarding-controller';
 import { bytesToHex, hexToBytes, sha256, stringToBytes } from '@metamask/utils';
-import Logger from '../../../../../util/Logger';
 import {
   TOPRF_RECOVERY_AUTH_CONNECTION_ID,
   TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
 import { MfaRecoveryControllerError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
 import type { SignPersonalMessage } from '../../../../../core/Engine/controllers/mfa-recovery-controller/identifiers';
+import {
+  getMfaRecoveryStatus,
+  type MfaRecoverySeedless,
+  type MfaRecoveryStatus,
+} from './runMfaRecoverySetup';
 
 const PUBLIC_KEY_MESSAGE = 'MetaMask TOPRF recovery secret test v1';
 
 export interface ToprfRecoverySecretTestDependencies {
   address: string;
   signPersonalMessage: SignPersonalMessage;
-  seedless: Pick<
-    SeedlessOnboardingController,
-    'getRecoveryStatus' | 'authenticateForRecovery' | 'storeRecoveryKeys'
-  >;
+  seedless: MfaRecoverySeedless;
   mintAal2Token: () => Promise<string>;
 }
 
@@ -29,15 +26,14 @@ export type ToprfRecoverySecretTestStep =
   | 'checking_recovery_status'
   | 'minting_aal2_token'
   | 'authenticating_aal2'
-  | 'storing_recovery_keys'
-  | 'evaluating_recovery_keys'
+  | 'running_data_type_migration'
+  | 'migrating_vault_to_envelope'
   | 'completed';
 
 export interface ToprfRecoverySecretTestResult {
-  before: RecoveryStatus;
-  after: RecoveryStatus;
+  before: MfaRecoveryStatus;
+  after: MfaRecoveryStatus;
   shareExisted: boolean;
-  liveKeyMatches: boolean;
   fingerprint: string;
 }
 
@@ -63,68 +59,56 @@ export async function deriveTestRecoverySecret(
 }
 
 /**
- * Runs the TOPRF half of ADR flow 1 without Cubist: stores the recovery
- * secret key share and recovery keys, then evaluates the share again with the
- * same secret.
+ * Runs the TOPRF half of ADR flow 1 without Cubist: authenticates at aal2,
+ * then migrates the vault to envelope encryption with a constant test
+ * recovery secret, which writes the recovery envelope to the TOPRF nodes.
+ * Migration is a no-op once the vault is envelope-managed, so re-running only
+ * re-checks the status.
  */
 export async function runToprfRecoverySecretTest(
   dependencies: ToprfRecoverySecretTestDependencies,
   onStepCallback: (step: ToprfRecoverySecretTestStep) => void = () => undefined,
 ): Promise<ToprfRecoverySecretTestResult> {
   const { seedless } = dependencies;
-  const debug = (message: string, data?: Record<string, unknown>) =>
-    Logger.log('[TOPRF recovery test]', message, data ?? {});
-  const onStep = (step: ToprfRecoverySecretTestStep) => {
-    debug('step', { step });
-    onStepCallback(step);
-  };
 
-  onStep('deriving_recovery_secret');
+  onStepCallback('deriving_recovery_secret');
   const recoverySecret = await deriveTestRecoverySecret(
     dependencies.address,
     dependencies.signPersonalMessage,
   );
 
-  onStep('minting_aal2_token');
+  onStepCallback('minting_aal2_token');
   const aal2Token = await dependencies.mintAal2Token();
 
-  onStep('authenticating_aal2');
+  onStepCallback('authenticating_aal2');
   await seedless.authenticateForRecovery({
     aal2Token,
     authConnectionId: TOPRF_RECOVERY_AUTH_CONNECTION_ID,
     groupedAuthConnectionId: TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID,
   });
-  debug('aal2 node auth tokens stored');
 
   // hasRecoveryShare is only reported once an aal2 session exists.
-  onStep('checking_recovery_status');
-  const before = await seedless.getRecoveryStatus();
-  debug('status before', { ...before });
-  const shareExisted = before.hasRecoveryShare === true;
+  onStepCallback('checking_recovery_status');
+  const before = getMfaRecoveryStatus(seedless.state);
+  const shareExisted =
+    seedless.state.recoverySession?.hasRecoveryShare === true;
 
-  let liveKeyMatches = true;
-  if (!shareExisted) {
-    onStep('storing_recovery_keys');
-    const stored = await seedless.storeRecoveryKeys({ recoverySecret });
-    debug('store result', { liveKeyMatches: stored.liveKeyMatches });
-    liveKeyMatches = stored.liveKeyMatches;
-  }
+  // migrateToEnvelope rejects vaults whose data types are not migrated yet.
+  // runMigrations is a no-op once they are.
+  onStepCallback('running_data_type_migration');
+  await seedless.runMigrations();
 
-  onStep('evaluating_recovery_keys');
-  const evaluated = await seedless.storeRecoveryKeys({ recoverySecret });
-  debug('evaluate result', { liveKeyMatches: evaluated.liveKeyMatches });
-  liveKeyMatches = liveKeyMatches && evaluated.liveKeyMatches;
+  onStepCallback('migrating_vault_to_envelope');
+  await seedless.migrateToEnvelope({ recoverySecret });
 
-  onStep('checking_recovery_status');
-  const after = await seedless.getRecoveryStatus();
-  debug('status after', { ...after });
+  onStepCallback('checking_recovery_status');
+  const after = getMfaRecoveryStatus(seedless.state);
 
-  onStep('completed');
+  onStepCallback('completed');
   return {
-    before: before.status,
-    after: after.status,
+    before,
+    after,
     shareExisted,
-    liveKeyMatches,
     fingerprint: bytesToHex(await sha256(recoverySecret)).slice(2, 10),
   };
 }

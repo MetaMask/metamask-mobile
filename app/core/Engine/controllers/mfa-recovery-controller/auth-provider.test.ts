@@ -3,13 +3,6 @@ import {
   createCubistSessionTokenProvider,
 } from './auth-provider';
 
-jest.mock('react-native-quick-crypto', () => ({
-  __esModule: true,
-  default: {
-    randomBytes: jest.fn(() => new Uint8Array(32).fill(0xab)),
-  },
-}));
-
 describe('AuthenticationRecoveryAuthProvider', () => {
   it('resolves the canonical profile id through AuthenticationController', async () => {
     const call = jest.fn().mockResolvedValue('canonical-profile');
@@ -77,42 +70,38 @@ describe('createCubistSessionTokenProvider', () => {
       getAuthenticatedProfileId: jest.fn().mockResolvedValue('profile-1'),
       authorizeRecoveryRequest: jest.fn(),
     };
-    const provider = createCubistSessionTokenProvider(authProvider);
+    const provider = createCubistSessionTokenProvider(authProvider, jest.fn());
 
     await expect(provider.getAuthenticatedProfileId()).resolves.toBe(
       'profile-1',
     );
   });
 
-  it('returns the requestMfaApproval token bound to the Cubist audience with verification', async () => {
+  it('returns the profile bearer token without requesting an MFA approval', async () => {
     const authProvider = {
       getAuthenticatedProfileId: jest.fn(),
-      authorizeRecoveryRequest: jest.fn().mockResolvedValue({
-        approval: 'cubist-approval-jwt',
-        identifiers: [],
-      }),
+      authorizeRecoveryRequest: jest.fn(),
     };
-    const provider = createCubistSessionTokenProvider(authProvider);
-
-    await expect(provider.getAccessToken()).resolves.toBe(
-      'cubist-approval-jwt',
+    const getBearerToken = jest.fn().mockResolvedValue('profile-jwt');
+    const provider = createCubistSessionTokenProvider(
+      authProvider,
+      getBearerToken,
     );
-    expect(authProvider.authorizeRecoveryRequest).toHaveBeenCalledWith({
-      requestHash: `0x${'ab'.repeat(32)}`,
-      audiences: ['cubist'],
-      requireTwoFactor: true,
-    });
+
+    await expect(provider.getAccessToken()).resolves.toBe('profile-jwt');
+    expect(authProvider.authorizeRecoveryRequest).not.toHaveBeenCalled();
   });
 
-  it('propagates approval failures', async () => {
+  it('propagates bearer token failures', async () => {
     const authProvider = {
       getAuthenticatedProfileId: jest.fn(),
-      authorizeRecoveryRequest: jest
-        .fn()
-        .mockRejectedValue(new Error('aal2_required')),
+      authorizeRecoveryRequest: jest.fn(),
     };
-    const provider = createCubistSessionTokenProvider(authProvider);
+    const provider = createCubistSessionTokenProvider(
+      authProvider,
+      jest.fn().mockRejectedValue(new Error('not signed in')),
+    );
 
-    await expect(provider.getAccessToken()).rejects.toThrow('aal2_required');
+    await expect(provider.getAccessToken()).rejects.toThrow('not signed in');
   });
 });

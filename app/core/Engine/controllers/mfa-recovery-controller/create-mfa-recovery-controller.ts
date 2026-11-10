@@ -19,6 +19,7 @@ export interface CreateMfaRecoveryControllerOptions {
   messenger: MfaRecoveryControllerMessenger;
   state?: Partial<MfaRecoveryControllerState>;
   authProvider: RecoveryAuthProvider;
+  getBearerToken: () => Promise<string>;
   getAddress: () => string;
   signPersonalMessage: SignPersonalMessage;
   exportEncryptionKey?: () => Promise<string>;
@@ -34,19 +35,24 @@ export function createMfaRecoveryController({
   messenger,
   state,
   authProvider,
+  getBearerToken,
   getAddress,
   signPersonalMessage,
   exportEncryptionKey,
   pendingOperationEncryptor,
   isEnabled = () => true,
 }: CreateMfaRecoveryControllerOptions) {
-  const tokenProvider = createCubistSessionTokenProvider(authProvider);
+  const tokenProvider = createCubistSessionTokenProvider(
+    authProvider,
+    getBearerToken,
+  );
   const identifierRouter = new RecoveryIdentifierRouter({
     getAddress,
     signPersonalMessage,
   });
+  const getClient = createCubistClientGetter({ tokenProvider, isEnabled });
   const escrow = new CubistEscrowProvider({
-    getClient: createCubistClientGetter({ tokenProvider, isEnabled }),
+    getClient,
     authAudience: CUBIST_AUTH_AUDIENCE,
     ...tryGetCubistKeys(),
   });

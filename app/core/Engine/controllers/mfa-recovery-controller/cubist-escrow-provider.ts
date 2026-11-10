@@ -2,7 +2,6 @@ import { CubeSignerClient, envs } from '@cubist-labs/cubesigner-sdk';
 import { DEFAULT_REGISTRATION_URL } from './constants';
 import { getCubistConfig, type CubistConfig } from './config';
 import { MfaRecoveryControllerError } from './errors';
-
 /** Source of the registration-service access token used to open a session. */
 export interface CubistSessionTokenProvider {
   getAccessToken: () => Promise<string>;

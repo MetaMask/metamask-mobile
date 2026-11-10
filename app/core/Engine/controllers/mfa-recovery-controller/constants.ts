@@ -28,4 +28,4 @@ export const TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID = 'mm-recovery-aal2-dev';
 
 /** Audience of the aal2 token accepted by the dev TOPRF nodes. */
 export const TOPRF_AAL2_AUDIENCE = 'dev-node.web3auth.io';
-export const CUBIST_AUTH_AUDIENCE = 'cubist';
+export const CUBIST_AUTH_AUDIENCE = 'gamma.signer.cubist.dev';

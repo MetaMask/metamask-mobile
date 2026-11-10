@@ -16,9 +16,9 @@ export function createKeyringPendingOperationEncryptor({
   exportEncryptionKey,
 }: KeyringPendingOperationEncryptorOptions): PendingOperationEncryptor {
   const encryptorPromise = import('../../../Encryptor').then(
-    ({ Encryptor, LEGACY_DERIVATION_OPTIONS }) =>
+    ({ Encryptor, DERIVATION_OPTIONS_DEFAULT_OWASP2023 }) =>
       new Encryptor({
-        keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
+        keyDerivationOptions: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
       }),
   );
 

@@ -19,7 +19,10 @@ import {
   getMfaRecoveryIdentifierRouter,
   isMfaRecoveryConfigured,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller';
-import { TOPRF_AAL2_AUDIENCE } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
+import {
+  CUBIST_AUTH_AUDIENCE,
+  TOPRF_AAL2_AUDIENCE,
+} from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
 import { selectMfaRecoveryEnabled } from '../../../../../selectors/featureFlagController/mfaRecovery';
 import { useMfa } from '../../../../../util/identity/mfa/useMfa';
 import { clearPendingOperationForDev } from '../../../../../core/Engine/controllers/mfa-recovery-controller/clear-pending-operation';
@@ -42,7 +45,6 @@ import {
   type ToprfRecoverySecretTestResult,
   type ToprfRecoverySecretTestStep,
 } from './runToprfRecoverySecretTest';
-
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
 const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button';
 const SETUP_BUTTON_TEST_ID = 'mfa-recovery-dev-setup-recovery-button';
@@ -101,6 +103,18 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     return approval;
   }, []);
 
+  const getAuthIdentifiers = useCallback(async () => {
+    const { identifiers = [] } =
+      await Engine.context.AuthenticationController.requestMfaApproval({
+        requestHash: bytesToHex(new Uint8Array(QuickCrypto.randomBytes(32))),
+        audiences: [CUBIST_AUTH_AUDIENCE],
+        requireVerification: true,
+        includeIdentifiers: true,
+        reason: { operation: AAL2_APPROVAL_OPERATION },
+      });
+    return identifiers;
+  }, []);
+
   const refreshPhase = useCallback(async () => {
     try {
       setPhase(await Engine.context.MfaRecoveryController.getPhase());
@@ -141,6 +155,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
               new Uint8Array(QuickCrypto.randomBytes(length)),
             verifyMfa,
             mintAal2Token,
+            getAuthIdentifiers,
             seedless: Engine.context.SeedlessOnboardingController,
           },
           (nextStep) => {
@@ -167,7 +182,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         refreshPhase();
       }
     },
-    [isRunning, mintAal2Token, refreshPhase, verifyMfa],
+    [getAuthIdentifiers, isRunning, mintAal2Token, refreshPhase, verifyMfa],
   );
 
   const handlePendingOperation = useCallback(
@@ -202,6 +217,13 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     clearPendingOperationForDev(Engine.context.MfaRecoveryController);
     await refreshPhase();
   }, [refreshPhase]);
+
+  const handleEnableFlagOverride = useCallback(() => {
+    Engine.context.RemoteFeatureFlagController.setFlagOverride('mfaRecovery', {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    });
+  }, []);
 
   const handleRunCubistTest = useCallback(() => {
     handleRun(runMfaRecoveryCubistTest, (recoveryResult) => {
@@ -253,7 +275,6 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             before: recoveryResult.before,
             after: recoveryResult.after,
             shareExisted: recoveryResult.shareExisted ? 'yes' : 'no',
-            liveKeyMatches: recoveryResult.liveKeyMatches ? 'yes' : 'no',
             fingerprint: recoveryResult.fingerprint,
           },
         );
@@ -377,6 +398,20 @@ const MfaRecoveryDeveloperOptionsSection = () => {
           'app_settings.developer_options.mfa_recovery.reset_pending_button',
         )}
       </Button>
+      {__DEV__ && !isMfaRecoveryEnabled && (
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          onPress={handleEnableFlagOverride}
+          isDisabled={isRunning}
+          isFullWidth
+          style={styles.accessory}
+        >
+          {strings(
+            'app_settings.developer_options.mfa_recovery.enable_flag_override_button',
+          )}
+        </Button>
+      )}
       {phase !== null && phase !== 'idle' && (
         <>
           <Button

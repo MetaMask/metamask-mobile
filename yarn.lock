@@ -10996,7 +10996,7 @@ __metadata:
 
 "@metamask/mfa-recovery-controller@file:/Users/cw/.cursor/worktrees/core/1b76/packages/mfa-recovery-controller/metamask-mfa-recovery-controller-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-recovery-controller@file:/Users/cw/.cursor/worktrees/core/1b76/packages/mfa-recovery-controller/metamask-mfa-recovery-controller-0.0.0.tgz#/Users/cw/.cursor/worktrees/core/1b76/packages/mfa-recovery-controller/metamask-mfa-recovery-controller-0.0.0.tgz::hash=99321d&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mfa-recovery-controller@file:/Users/cw/.cursor/worktrees/core/1b76/packages/mfa-recovery-controller/metamask-mfa-recovery-controller-0.0.0.tgz#/Users/cw/.cursor/worktrees/core/1b76/packages/mfa-recovery-controller/metamask-mfa-recovery-controller-0.0.0.tgz::hash=a79c11&locator=metamask%40workspace%3A."
   dependencies:
     "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -11006,7 +11006,7 @@ __metadata:
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.1"
     json-stable-stringify: "npm:^1.3.0"
-  checksum: 10/f119a7966cce8c22721a20a0b7e331246abbe6fdb9c81eb59632ad90528d31d5db61753239d9b39743876ab8626ba339fad9850e43193c1b4eb2d5e0ae921efa
+  checksum: 10/2082878aa205a0ca085c4d4a4db395e68fe1073f0b82d2757eb4da46b64a1e2a45ec9e0e9a5329f195769cb5941a2665563403f1c78e56a1a3992a68fa4f1620
   languageName: node
   linkType: hard
 
@@ -12016,7 +12016,7 @@ __metadata:
 
 "@metamask/seedless-onboarding-controller@file:/Users/cw/Documents/GitHub/core/packages/seedless-onboarding-controller/metamask-seedless-onboarding-controller-12.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 12.0.0
-  resolution: "@metamask/seedless-onboarding-controller@file:/Users/cw/Documents/GitHub/core/packages/seedless-onboarding-controller/metamask-seedless-onboarding-controller-12.0.0.tgz#/Users/cw/Documents/GitHub/core/packages/seedless-onboarding-controller/metamask-seedless-onboarding-controller-12.0.0.tgz::hash=16c4cc&locator=metamask%40workspace%3A."
+  resolution: "@metamask/seedless-onboarding-controller@file:/Users/cw/Documents/GitHub/core/packages/seedless-onboarding-controller/metamask-seedless-onboarding-controller-12.0.0.tgz#/Users/cw/Documents/GitHub/core/packages/seedless-onboarding-controller/metamask-seedless-onboarding-controller-12.0.0.tgz::hash=091441&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/analytics-controller": "npm:^4.1.0"
     "@metamask/auth-network-utils": "npm:^0.4.0"
@@ -12025,12 +12025,12 @@ __metadata:
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/toprf-secure-backup": "npm:^1.1.0"
+    "@metamask/toprf-secure-backup": ./metamask-toprf-secure-backup-1.1.0.tgz
     "@metamask/utils": "npm:^12.0.1"
     "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/a794bc40c2b4f22cdc1458a7fdc8522c073d0641711040c409099f246be385c6fbeea8c633669f955a8ebe749b267f6af620efe6a44fda862e4337ac66f3d9da
+  checksum: 10/620587334a7c6611e98d6a2cd4babd465a2c92d72a75b271959904e41b701f2adbada876a7cc25b038c7440bbd5dbd55da03f1e9fe15a4ecac821bf2d5e9111c
   languageName: node
   linkType: hard
 

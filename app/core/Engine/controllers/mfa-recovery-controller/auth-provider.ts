@@ -1,4 +1,3 @@
-import QuickCrypto from 'react-native-quick-crypto';
 import type { Messenger } from '@metamask/messenger';
 import type {
   RecoveryApproval,
@@ -8,8 +7,6 @@ import type {
   AuthenticationControllerRefreshCanonicalProfileIdAction,
   AuthenticationControllerRequestMfaApprovalAction,
 } from '@metamask/profile-sync-controller/auth';
-import { bytesToHex } from '@metamask/utils';
-import { CUBIST_AUTH_AUDIENCE } from './constants';
 import type { CubistSessionTokenProvider } from './cubist-escrow-provider';
 
 export type AuthenticationRecoveryAuthProviderMessenger = Messenger<
@@ -42,9 +39,10 @@ export class AuthenticationRecoveryAuthProvider
    * @returns The canonical profile id, which approvals use as `sub`.
    */
   async getAuthenticatedProfileId(): Promise<string> {
-    return await this.#messenger.call(
+    const profileId = await this.#messenger.call(
       'AuthenticationController:refreshCanonicalProfileId',
     );
+    return profileId;
   }
 
   /**
@@ -68,23 +66,17 @@ export class AuthenticationRecoveryAuthProvider
 }
 
 /**
- * Builds the Cubist session token source from the same approval flow as
- * recovery requests. The Cubist approval is requested with a fresh random
- * request hash and requires a live verification session.
+ * Builds the Cubist session token source. The registration service accepts
+ * the profile JWT, not an MFA approval, so the access token is the bearer
+ * token.
  */
 export function createCubistSessionTokenProvider(
   authProvider: RecoveryAuthProvider,
+  getBearerToken: () => Promise<string>,
 ): CubistSessionTokenProvider {
   return {
     getAuthenticatedProfileId: async () =>
       await authProvider.getAuthenticatedProfileId(),
-    getAccessToken: async () => {
-      const { approval } = await authProvider.authorizeRecoveryRequest({
-        requestHash: bytesToHex(new Uint8Array(QuickCrypto.randomBytes(32))),
-        audiences: [CUBIST_AUTH_AUDIENCE],
-        requireTwoFactor: true,
-      });
-      return approval;
-    },
+    getAccessToken: async () => await getBearerToken(),
   };
 }

@@ -1,0 +1,27 @@
+[
+  {
+    "type": "passkey",
+    "namespace": "authentication.dev-api.cx.metamask.io",
+    "value": "KeknDZhs8cycvFyugchb6a04UbM",
+    "verifier": {
+      "credentialId": "KeknDZhs8cycvFyugchb6a04UbM",
+      "publicKey": {
+        "cose": "pQECAyYgASFYIDZsqg/8KQBeNufey7GInfrVmnmkKxRtOqf1ipzfR9oWIlgg9IjTBfoFLbTaVseDuIBajtDym2bL1kTj6ClELmUeO+M="
+      },
+      "rpId": "authentication.dev-api.cx.metamask.io",
+      "origins": [
+        "https://authentication.dev-api.cx.metamask.io",
+        "android:apk-key-hash:VeBIfahzKhFacGT01-WOP3zxxoScmrRKIVg9OugfISU",
+        "android:apk-key-hash:ighvfmCHPBRPN8Gh82U6cHwY0fD5UQB_aMjU6H-0yzA",
+        "android:apk-key-hash:lCPuF9NlCb4ia0b1kStHYOp_R6g4Mj666w3sROHwfVI",
+        "android:apk-key-hash:-sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w",
+        "android:apk-key-hash:b59ESvHLH_fA13ka8ud1_d9NSJAGQmR2QOIleDVU7Pk",
+        "android:apk-key-hash:ZBgF6NzYO5LHNpEPIt4txUp-kpGTrci8xV2J35rDI8E",
+        "android:apk-key-hash:fWsv-SBgSkQhYHdtWKY0KE4Sbc37i00p3L5PiiIv7M4",
+        "android:apk-key-hash:9m18QEJhfG8b5bosiPASWaHFE6Ea6xJGBB6Zl0L3zLw",
+        "android:apk-key-hash:iWbp1fEVf1f-GMwmM-cepyFiyPSErMdVsqnNBsK9Wxg",
+        "android:apk-key-hash:kJsKFSGkNe8fFL0FCMtirDZ2v033T2SD2oypotAC7fc"
+      ]
+    }
+  }
+]

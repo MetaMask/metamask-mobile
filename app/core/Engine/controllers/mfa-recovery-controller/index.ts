@@ -50,11 +50,13 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
     await initMessenger.call('KeyringController:signPersonalMessage', params);
   const exportEncryptionKey = async () =>
     await initMessenger.call('KeyringController:exportEncryptionKey');
-  const isEnabled = () =>
-    selectMfaRecoveryEnabled.resultFunc(
-      initMessenger.call('RemoteFeatureFlagController:getState')
-        .remoteFeatureFlags,
-    ) && isMfaRecoveryConfigured();
+  const isEnabled = () => {
+    const rffState = initMessenger.call('RemoteFeatureFlagController:getState');
+    const flagEnabled = selectMfaRecoveryEnabled.resultFunc(
+      rffState.remoteFeatureFlags,
+    );
+    return flagEnabled && isMfaRecoveryConfigured();
+  };
 
   const authProviderMessenger: AuthenticationRecoveryAuthProviderMessenger =
     new Messenger({
@@ -77,6 +79,8 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
     authProvider: new AuthenticationRecoveryAuthProvider({
       messenger: authProviderMessenger,
     }),
+    getBearerToken: async () =>
+      await initMessenger.call('AuthenticationController:getBearerToken'),
     getAddress,
     signPersonalMessage,
     exportEncryptionKey,

@@ -35,22 +35,26 @@ async function computeExpectedSecret(): Promise<Uint8Array> {
   return await sha256(uncompressedPublicKeyWithoutPrefix);
 }
 
+/**
+ * Starts not envelope-managed with no recovery share. `authenticateForRecovery`
+ * sets `recoverySession`, and `migrateToEnvelope` sets the envelope.
+ */
 function createSeedless(hasRecoveryShare: boolean) {
+  const state: {
+    envelope?: { v: 1; vaultAuthPubKey: string };
+    recoverySession?: { hasRecoveryShare: boolean };
+  } = {};
   return {
-    getRecoveryStatus: jest
-      .fn()
-      .mockResolvedValueOnce({
-        status: 'NotEnabled',
-        verified: true,
-        hasRecoveryShare,
-      })
-      .mockResolvedValueOnce({
-        status: 'Enabled',
-        verified: true,
-        hasRecoveryShare: true,
-      }),
-    authenticateForRecovery: jest.fn().mockResolvedValue(undefined),
-    storeRecoveryKeys: jest.fn().mockResolvedValue({ liveKeyMatches: true }),
+    state,
+    authenticateForRecovery: jest.fn(async () => {
+      state.recoverySession = { hasRecoveryShare };
+    }),
+    runMigrations: jest.fn(async () => false),
+    migrateToEnvelope: jest.fn<Promise<void>, [{ recoverySecret: Uint8Array }]>(
+      async () => {
+        state.envelope = { v: 1, vaultAuthPubKey: 'pk' };
+      },
+    ),
   };
 }
 
@@ -115,165 +119,97 @@ describe('deriveTestRecoverySecret', () => {
 });
 
 describe('runToprfRecoverySecretTest', () => {
-  describe('when no recovery share exists yet', () => {
-    it('mints an aal2 token and authenticates it before reading status and storing recovery keys', async () => {
-      const order: string[] = [];
-      const seedless = createSeedless(false);
-      seedless.authenticateForRecovery.mockImplementation(async () => {
-        order.push('authenticate');
-      });
-      const getRecoveryStatus = seedless.getRecoveryStatus;
-      seedless.getRecoveryStatus = jest.fn(async () => {
-        order.push('status');
-        return getRecoveryStatus();
-      });
-      seedless.storeRecoveryKeys.mockImplementation(async () => {
-        order.push('store');
-        return { liveKeyMatches: true };
-      });
-      const dependencies = createDependencies(seedless, {
-        mintAal2Token: jest.fn(async () => {
-          order.push('mint');
-          return 'aal2-token';
-        }),
-      });
-
-      await runToprfRecoverySecretTest(dependencies);
-
-      expect(dependencies.mintAal2Token).toHaveBeenCalledTimes(1);
-      expect(seedless.authenticateForRecovery).toHaveBeenCalledWith({
-        aal2Token: 'aal2-token',
-        authConnectionId: 'mm-recovery-dev-aal2-common',
-        groupedAuthConnectionId: 'mm-recovery-aal2-dev',
-      });
-      expect(order).toStrictEqual([
-        'mint',
-        'authenticate',
-        'status',
-        'store',
-        'store',
-        'status',
-      ]);
+  it('mints an aal2 token and authenticates it before migrating the vault', async () => {
+    const order: string[] = [];
+    const seedless = createSeedless(false);
+    seedless.authenticateForRecovery.mockImplementation(async () => {
+      order.push('authenticate');
+    });
+    seedless.migrateToEnvelope.mockImplementation(async () => {
+      order.push('migrate');
+    });
+    const dependencies = createDependencies(seedless, {
+      mintAal2Token: jest.fn(async () => {
+        order.push('mint');
+        return 'aal2-token';
+      }),
     });
 
-    it('stores recovery keys twice with the same constant secret', async () => {
-      const seedless = createSeedless(false);
-      const expectedSecret = await computeExpectedSecret();
+    await runToprfRecoverySecretTest(dependencies);
 
-      await runToprfRecoverySecretTest(createDependencies(seedless));
-
-      expect(seedless.storeRecoveryKeys).toHaveBeenCalledTimes(2);
-      const [storeCall, evaluateCall] = seedless.storeRecoveryKeys.mock.calls;
-      expect(bytesToHex(storeCall[0].recoverySecret)).toBe(
-        bytesToHex(expectedSecret),
-      );
-      expect(bytesToHex(evaluateCall[0].recoverySecret)).toBe(
-        bytesToHex(expectedSecret),
-      );
+    expect(dependencies.mintAal2Token).toHaveBeenCalledTimes(1);
+    expect(seedless.authenticateForRecovery).toHaveBeenCalledWith({
+      aal2Token: 'aal2-token',
+      authConnectionId: 'mm-recovery-dev-aal2-common',
+      groupedAuthConnectionId: 'mm-recovery-aal2-dev',
     });
-
-    it('reports every step in order', async () => {
-      const onStep = jest.fn<void, [ToprfRecoverySecretTestStep]>();
-
-      await runToprfRecoverySecretTest(
-        createDependencies(createSeedless(false)),
-        onStep,
-      );
-
-      expect(onStep.mock.calls.map(([step]) => step)).toStrictEqual([
-        'deriving_recovery_secret',
-        'minting_aal2_token',
-        'authenticating_aal2',
-        'checking_recovery_status',
-        'storing_recovery_keys',
-        'evaluating_recovery_keys',
-        'checking_recovery_status',
-        'completed',
-      ]);
-    });
-
-    it('returns the statuses, share state, live key match and an 8-char lowercase hex fingerprint', async () => {
-      const result = await runToprfRecoverySecretTest(
-        createDependencies(createSeedless(false)),
-      );
-
-      const expectedFingerprint = bytesToHex(
-        await sha256(await computeExpectedSecret()),
-      ).slice(2, 10);
-      expect(result).toStrictEqual({
-        before: 'NotEnabled',
-        after: 'Enabled',
-        shareExisted: false,
-        liveKeyMatches: true,
-        fingerprint: expectedFingerprint,
-      });
-      expect(result.fingerprint).toMatch(/^[0-9a-f]{8}$/u);
-    });
+    expect(order).toStrictEqual(['mint', 'authenticate', 'migrate']);
+    expect(seedless.runMigrations).toHaveBeenCalledTimes(1);
   });
 
-  describe('when a recovery share already exists', () => {
-    it('only evaluates the recovery keys and skips the store step', async () => {
-      const seedless = createSeedless(true);
-      const onStep = jest.fn<void, [ToprfRecoverySecretTestStep]>();
+  it('migrates the vault with the constant test recovery secret', async () => {
+    const seedless = createSeedless(false);
+    const expectedSecret = await computeExpectedSecret();
 
-      await runToprfRecoverySecretTest(createDependencies(seedless), onStep);
+    await runToprfRecoverySecretTest(createDependencies(seedless));
 
-      expect(seedless.storeRecoveryKeys).toHaveBeenCalledTimes(1);
-      expect(onStep.mock.calls.map(([step]) => step)).not.toContain(
-        'storing_recovery_keys',
-      );
-    });
-
-    it('reports shareExisted as true', async () => {
-      const result = await runToprfRecoverySecretTest(
-        createDependencies(createSeedless(true)),
-      );
-
-      expect(result.shareExisted).toBe(true);
-      expect(result.liveKeyMatches).toBe(true);
-    });
+    expect(seedless.migrateToEnvelope).toHaveBeenCalledTimes(1);
+    const [call] = seedless.migrateToEnvelope.mock.calls;
+    expect(bytesToHex(call[0].recoverySecret)).toBe(bytesToHex(expectedSecret));
   });
 
-  describe('liveKeyMatches', () => {
-    it('is false when the store call reports no live key match', async () => {
-      const seedless = createSeedless(false);
-      seedless.storeRecoveryKeys
-        .mockReset()
-        .mockResolvedValueOnce({ liveKeyMatches: false })
-        .mockResolvedValueOnce({ liveKeyMatches: true });
+  it('reports each step in order', async () => {
+    const onStep = jest.fn<void, [ToprfRecoverySecretTestStep]>();
 
-      const result = await runToprfRecoverySecretTest(
-        createDependencies(seedless),
-      );
+    await runToprfRecoverySecretTest(
+      createDependencies(createSeedless(false)),
+      onStep,
+    );
 
-      expect(result.liveKeyMatches).toBe(false);
-    });
-
-    it('is false when the evaluate call reports no live key match', async () => {
-      const seedless = createSeedless(false);
-      seedless.storeRecoveryKeys
-        .mockReset()
-        .mockResolvedValueOnce({ liveKeyMatches: true })
-        .mockResolvedValueOnce({ liveKeyMatches: false });
-
-      const result = await runToprfRecoverySecretTest(
-        createDependencies(seedless),
-      );
-
-      expect(result.liveKeyMatches).toBe(false);
-    });
+    expect(onStep.mock.calls.map(([step]) => step)).toStrictEqual([
+      'deriving_recovery_secret',
+      'minting_aal2_token',
+      'authenticating_aal2',
+      'checking_recovery_status',
+      'running_data_type_migration',
+      'migrating_vault_to_envelope',
+      'checking_recovery_status',
+      'completed',
+    ]);
   });
 
-  describe('when storing recovery keys fails', () => {
-    it('rethrows the error without reading the final status', async () => {
-      const seedless = createSeedless(false);
-      const error = new Error('recovery_key_share_conflict');
-      seedless.storeRecoveryKeys.mockReset().mockRejectedValueOnce(error);
+  it('reports the status before and after, whether a share existed, and an 8-char fingerprint', async () => {
+    const result = await runToprfRecoverySecretTest(
+      createDependencies(createSeedless(false)),
+    );
 
-      await expect(
-        runToprfRecoverySecretTest(createDependencies(seedless)),
-      ).rejects.toBe(error);
-      expect(seedless.getRecoveryStatus).toHaveBeenCalledTimes(1);
+    const expectedFingerprint = bytesToHex(
+      await sha256(await computeExpectedSecret()),
+    ).slice(2, 10);
+    expect(result).toStrictEqual({
+      before: 'NotEnabled',
+      after: 'Enabled',
+      shareExisted: false,
+      fingerprint: expectedFingerprint,
     });
+    expect(result.fingerprint).toMatch(/^[0-9a-f]{8}$/u);
+  });
+
+  it('reports shareExisted as true when the nodes already hold a recovery share', async () => {
+    const result = await runToprfRecoverySecretTest(
+      createDependencies(createSeedless(true)),
+    );
+
+    expect(result.shareExisted).toBe(true);
+  });
+
+  it('rethrows the error when the migration fails', async () => {
+    const seedless = createSeedless(false);
+    const error = new Error('migration failed');
+    seedless.migrateToEnvelope.mockRejectedValueOnce(error);
+
+    await expect(
+      runToprfRecoverySecretTest(createDependencies(seedless)),
+    ).rejects.toBe(error);
   });
 });

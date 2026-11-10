@@ -14,7 +14,10 @@ const RECEIPT_PUBLIC_KEY = new Uint8Array(32).fill(2);
 
 jest.mock('@metamask/mfa-recovery-controller', () => ({
   MfaRecoveryController: jest.fn(),
-  CubistEscrowProvider: jest.fn(() => ({ id: 'cubist' })),
+  CubistEscrowProvider: jest.fn(() => ({
+    id: 'cubist',
+    isAvailable: jest.fn(),
+  })),
 }));
 
 jest.mock('./config', () => ({
@@ -59,6 +62,7 @@ describe('createMfaRecoveryController', () => {
       messenger,
       state: { pendingOperation: null },
       authProvider,
+      getBearerToken: jest.fn(),
       getAddress,
       signPersonalMessage,
       pendingOperationEncryptor,
@@ -67,7 +71,7 @@ describe('createMfaRecoveryController', () => {
 
     expect(mockCubistEscrowProvider).toHaveBeenCalledWith({
       getClient: expect.any(Function),
-      authAudience: 'cubist',
+      authAudience: 'gamma.signer.cubist.dev',
       wrapPublicKey: WRAP_PUBLIC_KEY,
       receiptPublicKey: RECEIPT_PUBLIC_KEY,
     });

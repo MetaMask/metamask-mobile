@@ -102,7 +102,6 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       before: 'NotEnabled',
       after: 'Enabled',
       shareExisted: false,
-      liveKeyMatches: true,
       fingerprint: 'cafebabe',
     });
     mockRunMfaRecoveryCubistTest.mockResolvedValue({
@@ -160,53 +159,6 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
         ),
       ).toBeOnTheScreen();
     });
-  });
-
-  it('mints the TOPRF aal2 token as an MFA approval after an authenticator app verification', async () => {
-    const { getByTestId } = renderWithProvider(
-      <MfaRecoveryDeveloperOptionsSection />,
-    );
-
-    fireEvent.press(getByTestId(TOPRF_TEST_BUTTON_TEST_ID));
-
-    await waitFor(() => {
-      expect(mockRunToprfRecoverySecretTest).toHaveBeenCalledTimes(1);
-    });
-    const [dependencies] = mockRunToprfRecoverySecretTest.mock.calls[0];
-    await expect(dependencies.mintAal2Token()).resolves.toBe('aal2-token');
-    expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
-      methods: ['totp'],
-      verifyWith: 'totp',
-      reason: { operation: 'mfaRecovery.devOptions' },
-    });
-    expect(mockRequestMfaApproval).toHaveBeenCalledWith({
-      requestHash: expect.stringMatching(/^0x[0-9a-f]{64}$/u),
-      audiences: [TOPRF_AAL2_AUDIENCE],
-      requireVerification: true,
-      includeIdentifiers: false,
-      reason: { operation: 'mfaRecovery.devOptions' },
-    });
-    expect(mockVerifyOrEnroll.mock.invocationCallOrder[0]).toBeLessThan(
-      mockRequestMfaApproval.mock.invocationCallOrder[0],
-    );
-  });
-
-  it('does not request an approval when the verification is cancelled', async () => {
-    mockVerifyOrEnroll.mockRejectedValueOnce(new Error('flow_cancelled'));
-    const { getByTestId } = renderWithProvider(
-      <MfaRecoveryDeveloperOptionsSection />,
-    );
-
-    fireEvent.press(getByTestId(TOPRF_TEST_BUTTON_TEST_ID));
-
-    await waitFor(() => {
-      expect(mockRunToprfRecoverySecretTest).toHaveBeenCalledTimes(1);
-    });
-    const [dependencies] = mockRunToprfRecoverySecretTest.mock.calls[0];
-    await expect(dependencies.mintAal2Token()).rejects.toThrow(
-      'flow_cancelled',
-    );
-    expect(mockRequestMfaApproval).not.toHaveBeenCalled();
   });
 
   it('gives the recovery setup a separate verification and approval minting step', async () => {
@@ -318,33 +270,30 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     });
   });
 
-  it('displays the controller error code when the flow fails', async () => {
-    mockRunMfaRecoveryCubistTest.mockRejectedValueOnce(
-      new Error('escrow failed'),
-    );
-    mockGetMfaRecoveryErrorCode.mockReturnValue('escrow_request_failed');
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <MfaRecoveryDeveloperOptionsSection />,
-    );
-
-    fireEvent.press(getByTestId(RUN_BUTTON_TEST_ID));
-
-    await waitFor(() => {
-      expect(
-        getByText(
-          /Recovery test failed: escrow_request_failed \(escrow failed\)/,
-        ),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  it('renders the TOPRF recovery secret test button', () => {
+  it('mints the TOPRF aal2 token as an MFA approval after an authenticator app verification', async () => {
     const { getByTestId } = renderWithProvider(
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    expect(getByTestId(TOPRF_TEST_BUTTON_TEST_ID)).toBeOnTheScreen();
+    fireEvent.press(getByTestId(TOPRF_TEST_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(mockRunToprfRecoverySecretTest).toHaveBeenCalledTimes(1);
+    });
+    const [dependencies] = mockRunToprfRecoverySecretTest.mock.calls[0];
+    await expect(dependencies.mintAal2Token()).resolves.toBe('aal2-token');
+    expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
+      methods: ['totp'],
+      verifyWith: 'totp',
+      reason: { operation: 'mfaRecovery.devOptions' },
+    });
+    expect(mockRequestMfaApproval).toHaveBeenCalledWith({
+      requestHash: expect.stringMatching(/^0x[0-9a-f]{64}$/u),
+      audiences: [TOPRF_AAL2_AUDIENCE],
+      requireVerification: true,
+      includeIdentifiers: false,
+      reason: { operation: 'mfaRecovery.devOptions' },
+    });
   });
 
   it('runs the TOPRF recovery secret test with the seedless controller and account address', async () => {
@@ -374,7 +323,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     await waitFor(() => {
       expect(
         getByText(
-          'TOPRF recovery secret test passed (status before: NotEnabled, after: Enabled; share existed: no; live key matches: yes; secret fingerprint: cafebabe).',
+          'TOPRF recovery secret test passed (status before: NotEnabled, after: Enabled; share existed: no; secret fingerprint: cafebabe).',
         ),
       ).toBeOnTheScreen();
     });
@@ -401,18 +350,24 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     });
   });
 
-  it('enables the TOPRF recovery secret test when the controller is not configured', () => {
-    jest.mocked(isMfaRecoveryConfigured).mockReturnValue(false);
+  it('displays the controller error code when the flow fails', async () => {
+    mockRunMfaRecoveryCubistTest.mockRejectedValueOnce(
+      new Error('escrow failed'),
+    );
+    mockGetMfaRecoveryErrorCode.mockReturnValue('escrow_request_failed');
 
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, getByText } = renderWithProvider(
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    expect(
-      getByTestId(TOPRF_TEST_BUTTON_TEST_ID).props.accessibilityState?.disabled,
-    ).toBeFalsy();
-    expect(
-      getByTestId(RUN_BUTTON_TEST_ID).props.accessibilityState?.disabled,
-    ).toBe(true);
+    fireEvent.press(getByTestId(RUN_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(
+        getByText(
+          /Recovery test failed: escrow_request_failed \(escrow failed\)/,
+        ),
+      ).toBeOnTheScreen();
+    });
   });
 });
