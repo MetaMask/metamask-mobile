@@ -15,7 +15,7 @@ import type { PredictAmount } from '../../../types';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 /** Quick-buy fractions of the available Predictions balance. Max is kept
- * apart: the sheet clamps it so the fee on top still fits the balance. */
+ * apart: it is enabled whenever the whole balance meets the minimum. */
 const QUICK_AMOUNT_FRACTIONS = [
   { key: '25', label: '25%', fraction: 0.25 },
   { key: '50', label: '50%', fraction: 0.5 },
@@ -38,7 +38,8 @@ interface OrderQuickAmountsProps {
   minimumAmount: number;
   /** Sets the entered amount to the pressed fraction chip's value. */
   onSetAmount: (amount: BigNumber) => void;
-  /** Sets the entered amount to the whole balance, clamped by the sheet. */
+  /** Sets the entered amount to the whole balance. The amount is the
+   * maximum spend fees included, so the quote's debit fits within it. */
   onMax: () => void;
   /** Disables chips while a quote is being submitted. */
   isDisabled?: boolean;

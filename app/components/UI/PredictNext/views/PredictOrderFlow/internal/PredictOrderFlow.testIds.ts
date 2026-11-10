@@ -30,6 +30,7 @@ export const PredictOrderFlowTestIds = {
   DETAILS_CONTRACTS: 'predict-order-flow-details-contracts',
   DETAILS_FEES: 'predict-order-flow-details-fees',
   DETAILS_RECEIVE: 'predict-order-flow-details-receive',
+  DETAILS_TOTAL: 'predict-order-flow-details-total',
   DETAILS_PAYOUT: 'predict-order-flow-details-payout',
   EXPIRED: 'predict-order-flow-expired',
   REFRESH: 'predict-order-flow-refresh',

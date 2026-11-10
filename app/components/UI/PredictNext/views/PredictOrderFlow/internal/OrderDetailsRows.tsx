@@ -55,15 +55,21 @@ const DetailsRow = ({
 );
 
 /**
- * The buy details sheet's five rows, read verbatim from the quoted Preview.
- * Deliberately separate from OrderPreviewRows, which the approval step also
- * renders with the full breakdown and the total debit.
+ * The buy details sheet's rows, read verbatim from the quoted Preview.
+ * Deliberately separate from OrderPreviewRows, which the approval step
+ * renders with the full fee breakdown.
+ *
+ * The entered amount is the maximum spend, fees included, and the backend
+ * quotes a debit within it. These rows split that debit: Fees plus You'll
+ * receive is exactly Total debit, the same figure the approval step shows.
+ * Whole contracts usually leave the debit a few cents under the entered
+ * amount, so the total is shown rather than left for the user to add up.
  *
  * - Odds: the quoted average price as a percentage.
  * - Contracts: the quoted contract estimate.
  * - Fees: the quoted fee.
- * - You'll receive: the quoted order amount with the average price. It is
- * the spend that buys contracts; the fee is charged on top of it.
+ * - You'll receive: the quoted contract cost with the average price.
+ * - Total debit: the quoted total debit, contract cost plus fee.
  * - Est. payout: the quoted potential payout.
  */
 export const OrderDetailsRows = ({
@@ -94,6 +100,11 @@ export const OrderDetailsRows = ({
         price: formatCents(preview.averagePrice),
       })}
       testID={PredictOrderFlowTestIds.DETAILS_RECEIVE}
+    />
+    <DetailsRow
+      label={strings('predict_next.order_preview.total_debit')}
+      value={formatUsd(preview.totalDebit)}
+      testID={PredictOrderFlowTestIds.DETAILS_TOTAL}
     />
     <DetailsRow
       label={strings('predict_next.order_preview.estimated_payout')}

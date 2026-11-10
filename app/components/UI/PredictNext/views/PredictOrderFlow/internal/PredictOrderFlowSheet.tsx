@@ -163,11 +163,6 @@ export const PredictOrderFlowSheet = ({
   const [venueExpired, setVenueExpired] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const requestIdRef = useRef(0);
-  // The balance a Max press asked for, until its first quote lands. The fee
-  // is charged on top of the amount, so when that quote's total debit
-  // exceeds this balance the amount drops to the balance minus the quoted
-  // fee and re-quotes once. Any other amount edit clears it.
-  const maxBalanceRef = useRef<PredictAmount | null>(null);
   // Unregisters this sheet as the surface showing a committed operation.
   // While registered, the operation's resolution lands here instead of in
   // the completion notification.
@@ -250,7 +245,6 @@ export const PredictOrderFlowSheet = ({
     setCommitError(null);
     setVenueExpired(false);
     requestIdRef.current += 1;
-    maxBalanceRef.current = null;
     releasePresentation();
   }, [intent, releasePresentation]);
 
@@ -327,6 +321,8 @@ export const PredictOrderFlowSheet = ({
     setQuoteError(null);
     setCommitError(null);
     const timeout = setTimeout(() => {
+      // A buy amount is the maximum spend, fees included: the backend sizes
+      // the quote so its total debit never exceeds it.
       const params: PredictOrderPreviewParams =
         intent.action === 'buy'
           ? {
@@ -347,25 +343,6 @@ export const PredictOrderFlowSheet = ({
           if (requestIdRef.current !== requestId) {
             return;
           }
-          const maxBalance = maxBalanceRef.current;
-          maxBalanceRef.current = null;
-          if (
-            maxBalance !== null &&
-            quote.action === 'buy' &&
-            new BigNumber(quote.totalDebit).gt(maxBalance)
-          ) {
-            const affordable = toAmountInput(
-              new BigNumber(maxBalance)
-                .minus(quote.fee)
-                .decimalPlaces(2, BigNumber.ROUND_DOWN),
-            );
-            if (affordable !== amount) {
-              // Never shown: the clamped amount re-quotes in its place.
-              requestIdRef.current += 1;
-              setAmount(affordable);
-              return;
-            }
-          }
           setPreview(quote);
           setVenueExpired(false);
           setNow(Date.now());
@@ -374,6 +351,9 @@ export const PredictOrderFlowSheet = ({
           if (requestIdRef.current !== requestId) {
             return;
           }
+          // Every rejection, `insufficient_balance` included, is a product
+          // state with a Refresh. Nothing re-requests on its own, so a
+          // rejected amount (Max included) never loops.
           setPreview(null);
           setQuoteError(error);
         })
@@ -559,7 +539,6 @@ export const PredictOrderFlowSheet = ({
         setContracts((current) => sanitizeContracts(`${current}${key}`));
         return;
       }
-      maxBalanceRef.current = null;
       setAmount((current) => {
         const next = sanitizeAmount(`${current}${key}`);
         const digitCount = next.match(/\d/gu)?.length ?? 0;
@@ -576,7 +555,6 @@ export const PredictOrderFlowSheet = ({
       setContracts((current) => current.slice(0, -1));
       return;
     }
-    maxBalanceRef.current = null;
     setAmount((current) => sanitizeAmount(current.slice(0, -1)));
   }, [intent.action, isAmountEditable, sanitizeAmount]);
   /** Sets a quick-amount chip's fraction of the balance, in whole cents. */
@@ -585,12 +563,13 @@ export const PredictOrderFlowSheet = ({
       if (!isAmountEditable) {
         return;
       }
-      maxBalanceRef.current = null;
       setAmount(sanitizeAmount(toAmountInput(next)));
     },
     [isAmountEditable, sanitizeAmount],
   );
-  /** Sets the whole available balance; the quote clamps it for the fee. */
+  /** Sets the whole available balance, floored to cents. The amount is the
+   * maximum spend fees included, so the backend quotes a debit within it.
+   * The chip is disabled below the minimum, so this never sets less. */
   const handleMaxAmount = useCallback(() => {
     if (!isAmountEditable || !availableBalance) {
       return;
@@ -599,11 +578,7 @@ export const PredictOrderFlowSheet = ({
       2,
       BigNumber.ROUND_DOWN,
     );
-    maxBalanceRef.current = balance.toFixed(2) as PredictAmount;
     setAmount(sanitizeAmount(toAmountInput(balance)));
-    // Re-quote even when the amount already equals the balance, so the
-    // clamp always sees a quote for this press.
-    setQuoteNonce((nonce) => nonce + 1);
   }, [availableBalance, isAmountEditable, sanitizeAmount]);
   /** Sets a quick-contract chip's whole-contract count. */
   const handleSetContracts = useCallback(
