@@ -56,6 +56,8 @@ import {
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import Routes from '../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { popToSocialTab } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
 import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight/useKeyboardHeight';
 import { useTheme } from '../../../../util/theme';
@@ -427,7 +429,7 @@ const SocialPostComposerView: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const routeParams = route.params as SocialPostComposerViewParams | undefined;
   const tradeInFlightParams = routeParams?.tradeInFlight;
@@ -687,8 +689,7 @@ const SocialPostComposerView: React.FC = () => {
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
       });
       if (openFeedAfterPost) {
-        // Replace so Back from the feed skips this already-posted composer.
-        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
+        popToSocialTab(navigation);
         return;
       }
       // Every other post lands on the viewer's Posts tab, where it is pinned.
