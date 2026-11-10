@@ -1069,7 +1069,8 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // Fast checks. Warn, rather than error, so new hits from main do not fail CI.
+    // Fast checks. rules-of-hooks is an error; existing hits are in
+    // eslint-suppressions.json. no-loss-of-precision warns for now.
     'react-hooks/rules-of-hooks': 'error',
     'no-loss-of-precision': 'warn',
   },
