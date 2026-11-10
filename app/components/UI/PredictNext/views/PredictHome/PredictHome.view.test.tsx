@@ -990,11 +990,13 @@ describe('PredictHome', () => {
         ),
       );
 
+      // Loaded Politics rows also show a "Politics" category label, so the
+      // screen title is read from the header only.
       expect(
-        await view.findByTestId(PredictFeedScreenTestIds.VIEW),
+        await view.findByTestId(PredictFeedScreenTestIds.HEADER),
       ).toBeOnTheScreen();
       expect(
-        within(view.getByTestId(PredictFeedScreenTestIds.VIEW)).getByText(
+        within(view.getByTestId(PredictFeedScreenTestIds.HEADER)).getByText(
           'Politics',
         ),
       ).toBeOnTheScreen();

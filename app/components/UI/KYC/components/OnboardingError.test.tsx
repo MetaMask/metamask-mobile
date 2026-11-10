@@ -2,9 +2,9 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import VbaOnboardingError, {
-  type VbaOnboardingErrorItem,
-  VbaOnboardingErrorSelectorsIDs,
+import KycOnboardingError, {
+  type KycOnboardingErrorItem,
+  KycOnboardingErrorSelectorsIDs,
 } from './OnboardingError';
 
 const mockGoBack = jest.fn();
@@ -18,7 +18,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const checklistItems: VbaOnboardingErrorItem[] = [
+const checklistItems: KycOnboardingErrorItem[] = [
   {
     id: 'document',
     icon: IconName.Info,
@@ -39,7 +39,7 @@ const checklistItems: VbaOnboardingErrorItem[] = [
   },
 ];
 
-const singleItem: VbaOnboardingErrorItem[] = [
+const singleItem: KycOnboardingErrorItem[] = [
   {
     id: 'address',
     icon: IconName.Info,
@@ -48,7 +48,7 @@ const singleItem: VbaOnboardingErrorItem[] = [
   },
 ];
 
-describe('VbaOnboardingError', () => {
+describe('KycOnboardingError', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPrimaryPress.mockResolvedValue(undefined);
@@ -57,7 +57,7 @@ describe('VbaOnboardingError', () => {
 
   it('renders a checklist with a primary and secondary button', () => {
     const { getByTestId, getByText } = renderWithProvider(
-      <VbaOnboardingError
+      <KycOnboardingError
         title="We couldn't verify your identity"
         description="A few details need your attention."
         items={checklistItems}
@@ -70,14 +70,14 @@ describe('VbaOnboardingError', () => {
     );
 
     expect(
-      getByTestId(VbaOnboardingErrorSelectorsIDs.CONTAINER),
+      getByTestId(KycOnboardingErrorSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText("We couldn't verify your identity")).toBeOnTheScreen();
     expect(getByText('A few details need your attention.')).toBeOnTheScreen();
-    expect(getByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeOnTheScreen();
+    expect(getByTestId(KycOnboardingErrorSelectorsIDs.LIST)).toBeOnTheScreen();
     checklistItems.forEach((item) => {
       expect(
-        getByTestId(`${VbaOnboardingErrorSelectorsIDs.ITEM}-${item.id}`),
+        getByTestId(`${KycOnboardingErrorSelectorsIDs.ITEM}-${item.id}`),
       ).toBeOnTheScreen();
       expect(getByText(item.title)).toBeOnTheScreen();
       expect(getByText(item.description)).toBeOnTheScreen();
@@ -88,7 +88,7 @@ describe('VbaOnboardingError', () => {
 
   it('renders one list item and only the primary button', () => {
     const { getByText, queryByTestId } = renderWithProvider(
-      <VbaOnboardingError
+      <KycOnboardingError
         title="We need a little more info"
         description="Review what's needed below to continue."
         items={singleItem}
@@ -100,22 +100,22 @@ describe('VbaOnboardingError', () => {
     expect(getByText('Proof of address')).toBeOnTheScreen();
     expect(getByText('Continue')).toBeOnTheScreen();
     expect(
-      queryByTestId(VbaOnboardingErrorSelectorsIDs.SECONDARY_BUTTON),
+      queryByTestId(KycOnboardingErrorSelectorsIDs.SECONDARY_BUTTON),
     ).toBeNull();
   });
 
   it('hides the list and keeps the header top-aligned when no items are provided', () => {
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-      <VbaOnboardingError
+      <KycOnboardingError
         title="Couldn't continue"
         description="Something went wrong."
         primaryAction={{ label: 'Try again', onPress: mockPrimaryPress }}
       />,
     );
 
-    expect(queryByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeNull();
+    expect(queryByTestId(KycOnboardingErrorSelectorsIDs.LIST)).toBeNull();
     expect(
-      getByTestId(VbaOnboardingErrorSelectorsIDs.CONTAINER).props
+      getByTestId(KycOnboardingErrorSelectorsIDs.CONTAINER).props
         .contentContainerStyle,
     ).not.toHaveProperty('justifyContent');
     expect(getByText("Couldn't continue")).toBeOnTheScreen();
@@ -124,14 +124,14 @@ describe('VbaOnboardingError', () => {
 
   it('calls the primary action when its button is pressed', async () => {
     const { getByTestId } = renderWithProvider(
-      <VbaOnboardingError
+      <KycOnboardingError
         title="Couldn't continue"
         description="Something went wrong."
         primaryAction={{ label: 'Try again', onPress: mockPrimaryPress }}
       />,
     );
 
-    fireEvent.press(getByTestId(VbaOnboardingErrorSelectorsIDs.PRIMARY_BUTTON));
+    fireEvent.press(getByTestId(KycOnboardingErrorSelectorsIDs.PRIMARY_BUTTON));
 
     await waitFor(() => {
       expect(mockPrimaryPress).toHaveBeenCalledTimes(1);
@@ -140,7 +140,7 @@ describe('VbaOnboardingError', () => {
 
   it('calls the secondary action when its button is pressed', async () => {
     const { getByTestId } = renderWithProvider(
-      <VbaOnboardingError
+      <KycOnboardingError
         title="Couldn't continue"
         description="Something went wrong."
         primaryAction={{ label: 'Try again', onPress: mockPrimaryPress }}
@@ -152,7 +152,7 @@ describe('VbaOnboardingError', () => {
     );
 
     fireEvent.press(
-      getByTestId(VbaOnboardingErrorSelectorsIDs.SECONDARY_BUTTON),
+      getByTestId(KycOnboardingErrorSelectorsIDs.SECONDARY_BUTTON),
     );
 
     await waitFor(() => {
@@ -162,14 +162,14 @@ describe('VbaOnboardingError', () => {
 
   it('navigates back from the header', () => {
     const { getByTestId } = renderWithProvider(
-      <VbaOnboardingError
+      <KycOnboardingError
         title="Couldn't continue"
         description="Something went wrong."
         primaryAction={{ label: 'Try again', onPress: mockPrimaryPress }}
       />,
     );
 
-    fireEvent.press(getByTestId(VbaOnboardingErrorSelectorsIDs.BACK_BUTTON));
+    fireEvent.press(getByTestId(KycOnboardingErrorSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });

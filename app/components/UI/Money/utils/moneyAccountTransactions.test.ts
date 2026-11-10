@@ -18,11 +18,17 @@ import {
   getMoneyAccountDepositTransactionsData,
   getMoneyAccountWithdrawTransactionsData,
   getMoneyAccountDepositAssetId,
+  syncMoneyAccountWithdrawTransfer,
 } from './moneyAccountTransactions';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
+import {
+  selectAccountOverrideByTransactionId,
+  selectTransactionPaymentTokenByTransactionId,
+} from '../../../../selectors/transactionPayController';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import {
   type MoneyAccountVaultConfig,
   selectMoneyAccountVaultConfig,
@@ -62,6 +68,15 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
 
 jest.mock('../../../../selectors/accountsController', () => ({
   selectEvmAddress: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/transactionPayController', () => ({
+  selectAccountOverrideByTransactionId: jest.fn(),
+  selectTransactionPaymentTokenByTransactionId: jest.fn(),
+}));
+
+jest.mock('../../../../util/transaction-controller', () => ({
+  updateAtomicBatchData: jest.fn(),
 }));
 
 jest.mock('../../../../util/notifications/methods/common', () => ({
@@ -106,6 +121,8 @@ const MOCK_BORING_VAULT = '0xB5F07d769dD60fE54c97dd53101181073DDf21b2' as Hex;
 const MOCK_TELLER = '0x86821F179eaD9F0b3C79b2f8deF0227eEBFDc9f9' as Hex;
 const MOCK_ACCOUNTANT = '0x800ebc3B74F67EaC27C9CCE4E4FF28b17CdCA173' as Hex;
 const MOCK_LENS = '0x846a7832022350434B5cC006d07cc9c782469660' as Hex;
+const MOCK_OTHER_TOKEN_ADDRESS =
+  '0x4444444444444444444444444444444444444444' as Hex;
 const MOCK_PROVIDER = {} as ethers.providers.Provider;
 
 const MOCK_VAULT_CONFIG: MoneyAccountVaultConfig = {
@@ -115,6 +132,11 @@ const MOCK_VAULT_CONFIG: MoneyAccountVaultConfig = {
   accountantAddress: MOCK_ACCOUNTANT,
   lensAddress: MOCK_LENS,
 };
+
+const encodeTransfer = (to: Hex, amount: bigint) =>
+  new ethers.utils.Interface([
+    'function transfer(address to, uint256 amount)',
+  ]).encodeFunctionData('transfer', [to, amount.toString()]);
 
 describe('moneyAccountTransactions', () => {
   beforeEach(() => {
@@ -479,6 +501,9 @@ describe('moneyAccountTransactions', () => {
     );
     const mockSelectEvmAddress = jest.mocked(selectEvmAddress);
     const mockGetProviderByChainId = jest.mocked(getProviderByChainId);
+    const mockSelectPaymentToken = jest.mocked(
+      selectTransactionPaymentTokenByTransactionId,
+    );
 
     const MOCK_VAULT_CONFIG = {
       chainId: MOCK_CHAIN_ID,
@@ -488,12 +513,13 @@ describe('moneyAccountTransactions', () => {
       lensAddress: MOCK_LENS,
     };
     const MOCK_MONEY_ACCOUNT_ADDRESS =
-      '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
+      '0x2222222222222222222222222222222222222222' as Hex;
     const MOCK_RECIPIENT = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
 
     const MOCK_TX_META = {
       id: 'tx-1',
       chainId: MOCK_CHAIN_ID,
+      txParams: { from: MOCK_MONEY_ACCOUNT_ADDRESS },
     } as unknown as TransactionMeta;
 
     beforeEach(() => {
@@ -503,6 +529,7 @@ describe('moneyAccountTransactions', () => {
         address: MOCK_MONEY_ACCOUNT_ADDRESS,
       } as ReturnType<typeof selectPrimaryMoneyAccount>);
       mockSelectEvmAddress.mockReturnValue(MOCK_RECIPIENT);
+      mockSelectPaymentToken.mockReturnValue(undefined);
       mockGetProviderByChainId.mockReturnValue(
         MOCK_PROVIDER as ReturnType<typeof getProviderByChainId>,
       );
@@ -612,6 +639,135 @@ describe('moneyAccountTransactions', () => {
       expect(result[1].transactionData.toLowerCase()).toContain(
         encodedRecipient,
       );
+    });
+
+    it.each([
+      ['another token', MOCK_OTHER_TOKEN_ADDRESS, MOCK_CHAIN_ID],
+      ['mUSD on another chain', MOCK_MUSD_ADDRESS, '0x1'],
+    ])(
+      'transfers the mUSD to the money account when receiving %s',
+      async (_, address, chainId) => {
+        mockSelectPaymentToken.mockReturnValue({
+          address,
+          chainId,
+        } as ReturnType<typeof selectTransactionPaymentTokenByTransactionId>);
+
+        const result = await updateMoneyAccountWithdrawTokenAmount(
+          MOCK_TX_META,
+          '1',
+        );
+
+        expect(result[1].transactionData).toBe(
+          encodeTransfer(MOCK_MONEY_ACCOUNT_ADDRESS, 1000000n),
+        );
+      },
+    );
+
+    it('transfers the mUSD to the recipient when receiving mUSD on the same chain', async () => {
+      mockSelectPaymentToken.mockReturnValue({
+        address: MOCK_MUSD_ADDRESS,
+        chainId: MOCK_CHAIN_ID,
+      } as ReturnType<typeof selectTransactionPaymentTokenByTransactionId>);
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result[1].transactionData).toBe(
+        encodeTransfer(MOCK_RECIPIENT, 1000000n),
+      );
+    });
+
+    it('uses the receive token selected while the rate loads', async () => {
+      mockGetRate.mockImplementation(async () => {
+        mockSelectPaymentToken.mockReturnValue({
+          address: MOCK_OTHER_TOKEN_ADDRESS,
+          chainId: MOCK_CHAIN_ID,
+        } as ReturnType<typeof selectTransactionPaymentTokenByTransactionId>);
+        return ethers.BigNumber.from('1000000');
+      });
+
+      const result = await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TX_META,
+        '1',
+      );
+
+      expect(result[1].transactionData).toBe(
+        encodeTransfer(MOCK_MONEY_ACCOUNT_ADDRESS, 1000000n),
+      );
+    });
+  });
+
+  describe('syncMoneyAccountWithdrawTransfer', () => {
+    const mockSelectAccountOverride = jest.mocked(
+      selectAccountOverrideByTransactionId,
+    );
+    const mockUpdateAtomicBatchData = jest.mocked(updateAtomicBatchData);
+
+    const MONEY_ACCOUNT = '0x2222222222222222222222222222222222222222' as Hex;
+    const RECIPIENT = '0x3333333333333333333333333333333333333333' as Hex;
+    const OTHER_TOKEN = {
+      address: MOCK_OTHER_TOKEN_ADDRESS,
+      chainId: MOCK_CHAIN_ID,
+    };
+    const MUSD_TOKEN = { address: MOCK_MUSD_ADDRESS, chainId: MOCK_CHAIN_ID };
+
+    const buildWithdrawMeta = (transferTo: Hex, amount: bigint) =>
+      ({
+        id: 'tx-1',
+        type: TransactionType.moneyAccountWithdraw,
+        chainId: MOCK_CHAIN_ID,
+        txParams: { from: MONEY_ACCOUNT },
+        nestedTransactions: [
+          { to: MOCK_TELLER, data: '0x' },
+          { to: MOCK_MUSD_ADDRESS, data: encodeTransfer(transferTo, amount) },
+        ],
+      }) as unknown as TransactionMeta;
+
+    beforeEach(() => {
+      mockSelectAccountOverride.mockReturnValue(RECIPIENT);
+      mockUpdateAtomicBatchData.mockResolvedValue('0x');
+    });
+
+    it.each([
+      ['a quoted token', OTHER_TOKEN, RECIPIENT, MONEY_ACCOUNT],
+      ['same-chain mUSD', MUSD_TOKEN, MONEY_ACCOUNT, RECIPIENT],
+    ])(
+      'moves the transfer when the receive token changes to %s',
+      (_, token, currentTarget, expectedTarget) => {
+        syncMoneyAccountWithdrawTransfer(
+          buildWithdrawMeta(currentTarget, 5n),
+          token,
+        );
+
+        expect(mockUpdateAtomicBatchData).toHaveBeenCalledWith({
+          transactionId: 'tx-1',
+          transactionIndex: 1,
+          transactionData: encodeTransfer(expectedTarget, 5n),
+        });
+      },
+    );
+
+    it('leaves the zero-amount placeholder alone', () => {
+      syncMoneyAccountWithdrawTransfer(
+        buildWithdrawMeta(RECIPIENT, 0n),
+        OTHER_TOKEN,
+      );
+
+      expect(mockUpdateAtomicBatchData).not.toHaveBeenCalled();
+    });
+
+    it('ignores other transaction types', () => {
+      syncMoneyAccountWithdrawTransfer(
+        {
+          ...buildWithdrawMeta(RECIPIENT, 5n),
+          type: TransactionType.moneyAccountDeposit,
+        },
+        OTHER_TOKEN,
+      );
+
+      expect(mockUpdateAtomicBatchData).not.toHaveBeenCalled();
     });
   });
 
