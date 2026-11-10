@@ -2,6 +2,7 @@ import '../mocks';
 import React, { useCallback, useRef } from 'react';
 import { TextInput } from 'react-native';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
+import type { QueryClient } from '@tanstack/react-query';
 import type { RootState } from '../../../app/reducers';
 import {
   createRouteParamsProbe,
@@ -63,6 +64,8 @@ const UrlAutocompleteScreen = () => {
 
 interface RenderUrlAutocompleteOptions {
   overrides?: DeepPartial<RootState>;
+  /** A caller-owned query client, for tests that read the query cache. */
+  queryClient?: QueryClient;
 }
 
 /**
@@ -71,6 +74,7 @@ interface RenderUrlAutocompleteOptions {
  */
 export function renderUrlAutocompleteWithRoutes({
   overrides,
+  queryClient,
 }: RenderUrlAutocompleteOptions = {}): ReturnType<
   typeof renderScreenWithRoutes
 > {
@@ -89,5 +93,7 @@ export function renderUrlAutocompleteWithRoutes({
       },
     ],
     { state: builder.build() },
+    undefined,
+    queryClient,
   );
 }

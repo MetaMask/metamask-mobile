@@ -1,12 +1,11 @@
 import React, { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  BoxJustifyContent,
-  HeaderStandard,
-} from '@metamask/design-system-react-native';
+import { Box, BoxJustifyContent } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import SocialAccountDisabledBanner from '../../../UI/SocialFeed/components/SocialAccountDisabledBanner';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from './scrollableScreenSafeArea';
 
@@ -25,6 +24,7 @@ const SocialAccountDisabledView: React.FC = () => {
   const navigation = useNavigation();
   const canGoBack = navigation.canGoBack();
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   return (
     <SafeAreaView
@@ -32,7 +32,9 @@ const SocialAccountDisabledView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={SocialAccountDisabledViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title=""
         {...(canGoBack && {
