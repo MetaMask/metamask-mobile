@@ -122,6 +122,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
             ),
             icon: (
               <CrossMarginIcon
+                name="cross-margin"
                 width={24}
                 height={24}
                 color={tw.color('icon-default')}
