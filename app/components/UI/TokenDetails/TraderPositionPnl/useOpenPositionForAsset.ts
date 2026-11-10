@@ -18,6 +18,8 @@ export interface UseOpenPositionForAssetResult {
   position: OpenPositionPnl | null;
   /** Full list row, used to attach the position card in the post composer. */
   sharePosition: TraderPosition | null;
+  /** Set only when the open route never answered. */
+  earliestTradeAt?: number;
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -41,10 +43,11 @@ const isMissingTrader = (error: unknown): boolean =>
   (error.status === 404 || error.status === 403);
 
 /**
- * One token's row from `GET /api/v2/traders/{id}/positions/open`.
+ * One wallet's open position from `GET /api/v2/traders/{wallet}/{assetId}/open`.
+ * `{assetId}` is the CAIP-19 id of the token on screen.
  * Polled on the same interval as `useTraderPosition` while the screen is focused.
- * A missing profile is retried with the wallet. 404 and 403 after that are
- * "no ready position" (`null`), not an error.
+ * 404 and 403 are "no ready position" (`null`), not an error. A different
+ * wallet is tried once when the first address is not the one the caller holds.
  */
 export const useOpenPositionForAsset = (
   traderId: string | undefined,
@@ -112,6 +115,7 @@ export const useOpenPositionForAsset = (
   return {
     position: data?.pnl ?? null,
     sharePosition: data?.position ?? null,
+    earliestTradeAt: data?.earliestTradeAt,
     isLoading: enabled && isLoading,
     error: formatSocialQueryErrorMessage(error),
     refetch: refetchPosition,

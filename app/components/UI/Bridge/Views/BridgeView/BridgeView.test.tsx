@@ -12,6 +12,7 @@ import {
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
+  resetBridgeState,
   setDestToken,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -49,6 +50,7 @@ import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagControlle
 import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
 import { BridgeTabKey } from './BridgeView.constants';
 import BridgeViewContent from '.';
+import { OrdersTabsSelectorsIDs } from '../../components/OrdersTabs/OrdersTabs.testIds';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -436,6 +438,21 @@ jest.mock(
   }),
 );
 
+const mockUseSwapsRebate = jest.fn();
+jest.mock('../../hooks/useSwapsRebate', () => ({
+  useSwapsRebate: (...args: unknown[]) => mockUseSwapsRebate(...args),
+}));
+
+jest.mock('../../../shared/RebateBanner', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'mock-swaps-rebate-banner' }),
+  };
+});
+
 const mockUseIsGasIncluded7702Supported = jest.fn();
 jest.mock('../../hooks/useIsGasIncluded7702Supported/index.ts', () => ({
   useIsGasIncluded7702Supported: (chainId?: string) =>
@@ -453,6 +470,7 @@ describe('BridgeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSwapsRebate.mockReturnValue(null);
     mockFocusEffects.length = 0;
     mockRoute.params = {
       sourcePage: 'test',
@@ -1377,6 +1395,132 @@ describe('BridgeView', () => {
       ).toBeNull();
     });
 
+    it('renders the rebate banner above the keypad confirm button', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        autoFocusSourceAmountInput: true,
+      } as BridgeRouteParams;
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuoteWithMetadata],
+          quotesLastFetched: Date.now(),
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: mockQuoteWithMetadata,
+        }));
+      mockUseSwapsRebate.mockReturnValue(5);
+
+      const { getByTestId, getAllByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+      act(() => {
+        mockFocusEffects.forEach((focusEffect) => {
+          focusEffect();
+        });
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+        ).toBeTruthy();
+      });
+      // The footer copy stays mounted under the sheet so its layout never shifts.
+      expect(getAllByTestId('mock-swaps-rebate-banner')).toHaveLength(2);
+      expect(mockUseSwapsRebate).toHaveBeenCalledWith(
+        mockQuoteWithMetadata.quote,
+      );
+    });
+
+    it('hides the keypad rebate banner when a new quote is needed', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        autoFocusSourceAmountInput: true,
+      } as BridgeRouteParams;
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuoteWithMetadata],
+          quotesLastFetched: Date.now(),
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: mockQuoteWithMetadata,
+          needsNewQuote: true,
+        }));
+      mockUseSwapsRebate.mockReturnValue(5);
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+      act(() => {
+        mockFocusEffects.forEach((focusEffect) => {
+          focusEffect();
+        });
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+        ).toBeTruthy();
+      });
+      expect(queryByTestId('mock-swaps-rebate-banner')).toBeNull();
+    });
+
+    it('renders the rebate banner in the footer when the keypad is closed', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuoteWithMetadata],
+          quotesLastFetched: Date.now(),
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: mockQuoteWithMetadata,
+        }));
+      mockUseSwapsRebate.mockReturnValue(5);
+
+      const { getByTestId, getAllByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeTruthy();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+      ).toBeNull();
+      expect(getAllByTestId('mock-swaps-rebate-banner')).toHaveLength(1);
+    });
+
     it('shows zero mode with trending section and without quote content', () => {
       const { getByTestId, queryByTestId } = renderZeroStateBridgeView();
 
@@ -1660,6 +1804,36 @@ describe('BridgeView', () => {
       symbol: 'USDT',
     };
 
+    const mockSecondDeepLinkSourceToken = {
+      address: '0x0000000000000000000000000000000000000003',
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      name: 'Second Source',
+      symbol: 'SECOND_SOURCE',
+    };
+
+    const mockSecondDeepLinkDestToken = {
+      address: '0x0000000000000000000000000000000000000004',
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      name: 'Second Destination',
+      symbol: 'SECOND_DEST',
+    };
+
+    const stateWithSwapTabsEnabled = () =>
+      merge({}, mockState, {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                swapsLimitOrder: { enabled: true },
+                swapsRecurringBuy: { enabled: true },
+              },
+            },
+          },
+        },
+      }) as DeepPartial<RootState>;
+
     beforeEach(() => {
       jest.clearAllMocks();
       // Reset route params to default for deep link testing
@@ -1792,6 +1966,144 @@ describe('BridgeView', () => {
 
       // Should display default ETH token from Redux state
       expect(getByText('ETH')).toBeTruthy();
+    });
+
+    it.each([
+      {
+        name: 'Market from Limit',
+        startingTab: BridgeTabKey.Limit,
+        targetTab: BridgeTabKey.Market,
+        startingTokenAreaTestId: BridgeViewSelectorsIDs.LIMIT_SOURCE_TOKEN_AREA,
+        sourceTokenAreaTestId: BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,
+      },
+      {
+        name: 'Market from Recurring',
+        startingTab: BridgeTabKey.Recurring,
+        targetTab: BridgeTabKey.Market,
+        startingTokenAreaTestId:
+          BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA,
+        sourceTokenAreaTestId: BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,
+      },
+      {
+        name: 'Limit',
+        startingTab: BridgeTabKey.Limit,
+        targetTab: BridgeTabKey.Limit,
+        startingTokenAreaTestId: BridgeViewSelectorsIDs.LIMIT_SOURCE_TOKEN_AREA,
+        sourceTokenAreaTestId: BridgeViewSelectorsIDs.LIMIT_SOURCE_TOKEN_AREA,
+      },
+      {
+        name: 'Recurring',
+        startingTab: BridgeTabKey.Recurring,
+        targetTab: BridgeTabKey.Recurring,
+        startingTokenAreaTestId:
+          BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA,
+        sourceTokenAreaTestId:
+          BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA,
+      },
+    ])(
+      'rehydrates explicit tokens for a warm $name deeplink',
+      async ({
+        startingTab,
+        targetTab,
+        startingTokenAreaTestId,
+        sourceTokenAreaTestId,
+      }) => {
+        mockRoute.params = {
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: MetaMetricsSwapsEventSource.MainView,
+          sourceToken: mockDeepLinkSourceToken,
+          destToken: mockDeepLinkDestToken,
+          swapViewTraceId: 'trace-1',
+          initialTab: startingTab,
+        };
+        const rendered = renderScreen(
+          BridgeView,
+          { name: Routes.BRIDGE.ROOT },
+          { state: stateWithSwapTabsEnabled() },
+        );
+        await waitFor(() => {
+          expect(rendered.store.getState().bridge.sourceToken).toEqual(
+            mockDeepLinkSourceToken,
+          );
+          expect(rendered.store.getState().bridge.destToken).toEqual(
+            mockDeepLinkDestToken,
+          );
+          expect(
+            rendered.getByTestId(startingTokenAreaTestId),
+          ).toBeOnTheScreen();
+        });
+
+        act(() => {
+          rendered.store.dispatch(resetBridgeState());
+        });
+        mockRoute.params = {
+          sourcePage: 'deeplink',
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: MetaMetricsSwapsEventSource.MainView,
+          sourceToken: mockSecondDeepLinkSourceToken,
+          destToken: mockSecondDeepLinkDestToken,
+          swapViewTraceId: 'trace-2',
+          initialTab: targetTab,
+        };
+        rendered.rerender(<BridgeView />);
+
+        await waitFor(() => {
+          expect(rendered.store.getState().bridge.sourceToken).toEqual(
+            mockSecondDeepLinkSourceToken,
+          );
+          expect(rendered.store.getState().bridge.destToken).toEqual(
+            mockSecondDeepLinkDestToken,
+          );
+          expect(rendered.getByTestId(sourceTokenAreaTestId)).toBeOnTheScreen();
+        });
+      },
+    );
+
+    it('restores default tokens for a warm deeplink without token params', async () => {
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        sourceToken: mockDeepLinkSourceToken,
+        destToken: mockDeepLinkDestToken,
+        swapViewTraceId: 'trace-1',
+      };
+      const rendered = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithSwapTabsEnabled() },
+      );
+      await waitFor(() => {
+        expect(rendered.store.getState().bridge.sourceToken).toEqual(
+          mockDeepLinkSourceToken,
+        );
+        expect(rendered.store.getState().bridge.destToken).toEqual(
+          mockDeepLinkDestToken,
+        );
+      });
+
+      act(() => {
+        rendered.store.dispatch(resetBridgeState());
+      });
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        swapViewTraceId: 'trace-2',
+      };
+      rendered.rerender(<BridgeView />);
+
+      await waitFor(() => {
+        expect(rendered.store.getState().bridge.sourceToken).toBeDefined();
+        expect(rendered.store.getState().bridge.destToken).toBeDefined();
+      });
+      expect(
+        rendered.queryByText(strings('bridge.swap_from')),
+      ).not.toBeOnTheScreen();
+      expect(
+        rendered.queryByText(strings('bridge.swap_to')),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -2607,6 +2919,172 @@ describe('BridgeView', () => {
       expect(mockSetParams).toHaveBeenCalledWith({
         initialTab: undefined,
       });
+    });
+
+    it('opens the Limit tab requested by the route', async () => {
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        initialTab: BridgeTabKey.Limit,
+        initialLimitOrderExpirationMinutes: 10080,
+        initialLimitOrderPriceTolerance: '0.5',
+        swapViewTraceId: 'trace-1',
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: undefined,
+      });
+    });
+
+    it('applies the limit order deep link presets over the session values once per deep link', () => {
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        initialTab: BridgeTabKey.Limit,
+        initialLimitOrderExpirationMinutes: 10080,
+        initialLimitOrderPriceTolerance: '0.5',
+      };
+
+      const testState = merge({}, stateWithTabsEnabled(), {
+        bridge: {
+          limitOrderExpirationMinutes: 1440,
+          limitOrderCostTolerance: '3',
+        },
+      }) as DeepPartial<RootState>;
+
+      const { store } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
+      expect(store.getState().bridge.limitOrderCostTolerance).toBe('0.5');
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialLimitOrderExpirationMinutes: undefined,
+        initialLimitOrderPriceTolerance: undefined,
+      });
+    });
+
+    it('keeps the session limit order settings when the deep link omits presets', () => {
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        initialTab: BridgeTabKey.Limit,
+      };
+
+      const testState = merge({}, stateWithTabsEnabled(), {
+        bridge: {
+          limitOrderExpirationMinutes: 10080,
+          limitOrderCostTolerance: '3',
+        },
+      }) as DeepPartial<RootState>;
+
+      const { store } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
+      expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+    });
+
+    it('keeps the limit order settings when switching tabs away and back', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        initialTab: BridgeTabKey.Limit,
+      } as BridgeRouteParams;
+
+      const testState = merge({}, stateWithTabsEnabled(), {
+        bridge: {
+          limitOrderExpirationMinutes: 10080,
+          limitOrderCostTolerance: '3',
+        },
+      }) as DeepPartial<RootState>;
+
+      const { getByTestId, queryByTestId, store } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      // The mocked setParams leaves params in place; the real one clears
+      // initialTab once consumed. Mirror that before switching tabs.
+      mockRoute.params.initialTab = undefined;
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeNull();
+      });
+      expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
+      expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
+      expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+    });
+
+    it('resets a reused Limit tab from History to Open orders', async () => {
+      const rendered = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+      fireEvent.press(rendered.getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          rendered.getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      fireEvent.press(rendered.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB));
+      expect(
+        rendered.getByText(strings('bridge.orders.empty.history')),
+      ).toBeOnTheScreen();
+
+      mockRoute.params = {
+        sourcePage: 'TokenDetails',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.TokenView,
+        initialTab: BridgeTabKey.Limit,
+      };
+      rendered.rerender(<BridgeView />);
+
+      await waitFor(() => {
+        expect(
+          rendered.getByText(strings('bridge.orders.empty.open_orders')),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        rendered.queryByText(strings('bridge.orders.empty.history')),
+      ).toBeNull();
     });
 
     it('navigates to the next tab on a left swipe', async () => {

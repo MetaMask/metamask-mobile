@@ -56,9 +56,24 @@ export interface InputSectionProps {
    */
   value: string;
   /**
+   * When true a skeleton replaces the amount input while its price is fetched.
+   */
+  isLoading?: boolean;
+  /**
+   * When false the loading skeleton is static instead of shimmering.
+   *
+   * @default true
+   */
+  isLoadingAnimated?: boolean;
+  /**
    * Fired when the amount input is pressed or focused. Parent owns the keypad.
    */
   onInputPress?: () => void;
+  /**
+   * When true the amount input ignores touches, so a press on it reaches the
+   * parent and only dismisses the keypad instead of focusing the input.
+   */
+  isInputPressDisabled?: boolean;
   /**
    * Controlled caret selection, matching the swaps source amount input.
    */

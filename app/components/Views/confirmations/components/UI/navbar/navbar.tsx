@@ -1,9 +1,60 @@
 import React, { ReactNode } from 'react';
-import { Platform, ViewStyle } from 'react-native';
+import { Platform, View, ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass, {
+  type HeaderStandardGlassProps,
+} from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useTheme } from '../../../../../../util/theme';
 
 export const NAVBAR_SHEET_HANDLE_TEST_ID = 'navbar-sheet-handle';
+
+type ConfirmationHeaderProps = Omit<
+  HeaderStandardGlassProps,
+  'isGlass' | 'isFloating'
+> & {
+  isSheetPresentation?: boolean;
+};
+
+/** In-flow confirmation header with glass buttons behind `glassHeaders`. */
+export function ConfirmationHeader({
+  isSheetPresentation = false,
+  ...props
+}: ConfirmationHeaderProps) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+
+  // Sheets stay plain app-wide, so sheet-presented confirmations do too.
+  return (
+    <HeaderStandardGlass
+      {...props}
+      isGlass={isGlassHeader && !isSheetPresentation}
+      isFloating={false}
+    />
+  );
+}
+
+/**
+ * HeaderBase's top inset is a margin, so the header background starts below
+ * it and the screen behind shows through. Padding keeps the title below the
+ * notch and paints that band with the screen background.
+ */
+function FullScreenNavbarBackground({ children }: { children: ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+
+  return (
+    <View
+      style={{
+        backgroundColor: colors.background.default,
+        paddingTop: insets.top,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
 
 /**
  * Optional overrides for navbar customization.
@@ -67,7 +118,8 @@ export function getNavbar({
   return {
     header: () => {
       const header = (
-        <HeaderCompactStandard
+        <ConfirmationHeader
+          isSheetPresentation={isSheetPresentation}
           title={title}
           onBack={addBackButton ? handleBackPress : undefined}
           backButtonProps={
@@ -78,15 +130,17 @@ export function getNavbar({
           startAccessory={customLeft}
           endAccessory={customRight}
           style={overrides?.headerStyle}
-          includesTopInset={!isSheetPresentation}
+          includesTopInset={false}
           twClassName="bg-default"
         >
           {customTitle}
-        </HeaderCompactStandard>
+        </ConfirmationHeader>
       );
 
       if (!isSheetPresentation) {
-        return header;
+        return (
+          <FullScreenNavbarBackground>{header}</FullScreenNavbarBackground>
+        );
       }
 
       return (

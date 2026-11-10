@@ -1,7 +1,11 @@
-import type { TraderProfileResponse } from '@metamask/social-controllers';
+import type {
+  Position,
+  TraderProfileResponse,
+} from '@metamask/social-controllers';
 import type { MySocialProfile } from '../hooks/useMyProfile';
 import {
   FAKE_STATS_PREFIX,
+  buildPerformanceCells,
   overlayMyProfileLiveStats,
 } from './overlayMyProfileLiveStats';
 
@@ -9,14 +13,8 @@ const localProfile: MySocialProfile = {
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  timesCopied: 981,
-  volumeUsd30d: 386_260,
-  tradeCount30d: 39,
-  profileAgeLabel: '2y',
-  copySuccessRatePercent: 72,
   followerCount: 4,
   rankingTag: 'whale',
 };
@@ -55,23 +53,34 @@ const liveProfile = (
   ...overrides,
 });
 
+const openPosition = (
+  positionId: string,
+  overrides: Partial<Position> = {},
+): Position => ({
+  positionId,
+  tokenSymbol: positionId,
+  tokenName: positionId,
+  tokenAddress: `0x${positionId}`,
+  chain: 'ethereum',
+  positionAmount: 1,
+  boughtUsd: 100,
+  soldUsd: 0,
+  realizedPnl: 0,
+  costBasis: 100,
+  trades: [],
+  lastTradeAt: 1,
+  ...overrides,
+});
+
 describe('overlayMyProfileLiveStats', () => {
   it('prefixes local mock stats when the live profile is missing', () => {
     const result = overlayMyProfileLiveStats(localProfile, null);
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.timesCopiedLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.fallbackFields.winRate).toBe(true);
-    expect(result.fallbackFields.holdTime).toBe(false);
-    expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
+    expect(result.performanceCells).toEqual([]);
     expect(result.rankingTag).toBe('whale');
     expect(result.followerCount).toBe(4);
-    expect(result.sheetProfile.profile.name).toBe('Giga Whale');
-    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
-    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
-    expect(result.profileAgeLabel).toBe('*2y');
-    expect(result.copySuccessRateLabel).toBe('*72%');
   });
 
   it('uses live stats without a fake prefix when the profile fetch succeeds', () => {
@@ -79,17 +88,17 @@ describe('overlayMyProfileLiveStats', () => {
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.fallbackFields.winRate).toBe(false);
-    expect(result.fallbackFields.pnl).toBe(false);
     expect(result.rankingTag).toBe('dolphin');
     expect(result.followerCount).toBe(88);
-    expect(result.sheetProfile.profile.name).toBe('Giga Whale');
-    expect(result.sheetProfile.stats.pnl30d).toBe(1200);
-    expect(result.sheetProfile.stats.medianHoldMinutes).toBe(180);
-    expect(result.sheetProfile.copytradedAllTime?.count).toBe(44);
+    expect(result.performanceCells.map((cell) => cell.id)).toEqual([
+      'pnl',
+      'winRate',
+      'holdTime',
+      'volume',
+    ]);
   });
 
-  it('keeps a fake prefix on fields the live profile omits', () => {
+  it('keeps a fake prefix on headline stats the live profile omits', () => {
     const result = overlayMyProfileLiveStats(
       localProfile,
       liveProfile({
@@ -100,44 +109,146 @@ describe('overlayMyProfileLiveStats', () => {
           tradeCount30d: null,
           volumeUsd30d: null,
         },
-        copytradedAllTime: {
-          count: 0,
-          volumeUSD: 0,
-          distinctActors: 0,
+      }),
+    );
+
+    expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
+    expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
+    expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
+  });
+
+  it('uses the non-negative tone when a live P&L loss rounds to zero', () => {
+    const result = overlayMyProfileLiveStats(
+      localProfile,
+      liveProfile({ stats: { pnl30d: -0.4 } }),
+    );
+
+    expect(result.pnlLabel).toBe('$0');
+    expect(result.isPnlPositive).toBe(true);
+  });
+});
+
+describe('buildPerformanceCells', () => {
+  it('returns no cells without a live profile', () => {
+    expect(buildPerformanceCells(null)).toEqual([]);
+  });
+
+  it('returns the live cells in grid order and omits unpriced unrealized', () => {
+    expect(buildPerformanceCells(liveProfile())).toEqual([
+      { id: 'pnl', value: '+$1,200.00', tone: 'success' },
+      { id: 'winRate', value: '42%', tone: 'default' },
+      { id: 'holdTime', value: '3h', tone: 'default' },
+      { id: 'volume', value: '$50,000.00', tone: 'default' },
+    ]);
+  });
+
+  it('fills unrealized from priced counted open positions', () => {
+    const cells = buildPerformanceCells(liveProfile(), [
+      openPosition('eth', { pnlValueUsd: 150, realizedPnl: 50 }),
+      openPosition('insider', {
+        flags: ['insider'],
+        pnlValueUsd: 999,
+        realizedPnl: 1,
+      }),
+    ]);
+
+    expect(cells[1]).toEqual({
+      id: 'unrealizedPnl',
+      value: '+$100.00',
+      tone: 'success',
+    });
+  });
+
+  it('shows $0.00 unrealized when priced positions net to zero', () => {
+    const cells = buildPerformanceCells(liveProfile(), [
+      openPosition('flat', { pnlValueUsd: 10, realizedPnl: 10 }),
+    ]);
+
+    expect(cells[1]).toEqual({
+      id: 'unrealizedPnl',
+      value: '$0.00',
+      tone: 'default',
+    });
+  });
+
+  it('shows unsigned $0.00 unrealized when a loss rounds to zero cents', () => {
+    const cells = buildPerformanceCells(liveProfile(), [
+      openPosition('dust', { pnlValueUsd: 9.996, realizedPnl: 10 }),
+    ]);
+
+    expect(cells[1]).toEqual({
+      id: 'unrealizedPnl',
+      value: '$0.00',
+      tone: 'default',
+    });
+  });
+
+  it('keeps two decimal places on a sub-dollar unrealized loss', () => {
+    const cells = buildPerformanceCells(liveProfile(), [
+      openPosition('cents', { pnlValueUsd: 9.6, realizedPnl: 10 }),
+    ]);
+
+    expect(cells[1]).toEqual({
+      id: 'unrealizedPnl',
+      value: '-$0.40',
+      tone: 'error',
+    });
+  });
+
+  it('marks negative P&L with the error tone', () => {
+    const [pnlCell] = buildPerformanceCells(
+      liveProfile({ stats: { pnl30d: -450 } }),
+    );
+
+    expect(pnlCell).toEqual({ id: 'pnl', value: '-$450.00', tone: 'error' });
+  });
+
+  it('shows two decimal places for P&L and volume', () => {
+    const cells = buildPerformanceCells(
+      liveProfile({
+        stats: {
+          pnl30d: -6.38,
+          winRate30d: null,
+          medianHoldMinutes: null,
+          volumeUsd30d: 319.2,
         },
       }),
     );
 
-    expect(result.fallbackFields.winRate).toBe(true);
-    expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.fallbackFields.pnl).toBe(false);
-    expect(result.fallbackFields.holdTime).toBe(false);
-    expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
-    expect(result.timesCopiedLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.fallbackFields.volume).toBe(true);
-    expect(result.fallbackFields.tradeCount).toBe(true);
-    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
-    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
-    expect(result.profileAgeLabel).toBe('*2y');
-    expect(result.copySuccessRateLabel).toBe('*72%');
+    expect(cells).toEqual([
+      { id: 'pnl', value: '-$6.38', tone: 'error' },
+      { id: 'volume', value: '$319.20', tone: 'default' },
+    ]);
   });
 
-  it('backfills sheet mocks on legacy profiles that omit the new fields', () => {
-    const legacyOnly: MySocialProfile = {
-      profileId: 'current-user',
-      displayName: 'Giga Whale',
-      handle: 'giga-whale',
-      shareUrl: 'https://metamask.io/social/giga-whale',
-      winRatePercent: 60,
-      pnlUsd: 7100,
-      timesCopied: 981,
-    };
+  it('returns no cells when live stats and priced opens are both missing', () => {
+    const cells = buildPerformanceCells(
+      liveProfile({
+        stats: {
+          pnl30d: null,
+          winRate30d: null,
+          medianHoldMinutes: null,
+          volumeUsd30d: null,
+        },
+      }),
+      [openPosition('unpriced')],
+    );
 
-    const result = overlayMyProfileLiveStats(legacyOnly, null);
+    expect(cells).toEqual([]);
+  });
 
-    expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
-    expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
-    expect(result.profileAgeLabel).toBe('*2y');
-    expect(result.copySuccessRateLabel).toBe('*72%');
+  it('omits cells whose live value is missing', () => {
+    const cells = buildPerformanceCells(
+      liveProfile({
+        stats: {
+          pnl30d: null,
+          winRate30d: 0.5,
+          medianHoldMinutes: null,
+          volumeUsd30d: 1000,
+        },
+      }),
+    );
+
+    expect(cells.map((cell) => cell.id)).toEqual(['winRate', 'volume']);
   });
 });

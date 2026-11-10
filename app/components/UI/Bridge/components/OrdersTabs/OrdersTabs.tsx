@@ -301,7 +301,9 @@ function OrdersTabs<TOpen, THistory>({
     history.getItemChainId,
     selectedChainId,
   );
-  const openOrdersCount = openOrders.renderItem ? filteredOpenOrders.length : 0;
+  const openOrdersCount =
+    openOrders.totalCount ??
+    (openOrders.renderItem ? filteredOpenOrders.length : 0);
 
   const tabs = useMemo<TabItem[]>(
     () => [

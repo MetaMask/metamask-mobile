@@ -7,6 +7,7 @@ import { APP_PACKAGE_IDS } from './Constants.ts';
 import { getDriver, executeMobileDeepLink } from './AppiumUtilities';
 import { PlatformDetector } from './PlatformLocator';
 import AppiumContextHelpers from './AppiumContextHelpers';
+import { tapWebIdFallingBackToDomClick } from './IosWebViewTap.ts';
 import { createAppiumLogger } from './appiumLogger.ts';
 import {
   adbDeviceArgs,
@@ -973,7 +974,8 @@ export default class ChromeCdpHelpers {
    * Click an element by HTML `id` in the MetaMask in-app WebView.
    * Waits until the control exists and is not disabled (test-dapp buttons start
    * disabled until connect / contract deploy), then clicks.
-   * Android: CDP trusted click. iOS: Appium WebView context + element.click().
+   * Android: CDP trusted click. iOS: Appium WebView context, with a page-script
+   * click when LavaMoat scuttling blocks the remote-debugger element click.
    */
   static async clickByIdInWebView(
     dappUrl: string,
@@ -1007,7 +1009,9 @@ export default class ChromeCdpHelpers {
       await el.waitForExist({ timeout: timeoutMs });
       await el.waitForEnabled({ timeout: timeoutMs });
       await el.scrollIntoView();
-      await el.click();
+      await tapWebIdFallingBackToDomClick(elementId, async () => {
+        await el.click();
+      });
       await AppiumContextHelpers.switchToNativeContext();
       return true;
     } catch {

@@ -1,6 +1,9 @@
 import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
-import type { ImmersveProgramConfig } from '../../../../../selectors/featureFlagController/card';
+import type {
+  ImmersveFundingChannel,
+  ImmersveProgramConfig,
+} from '../../../../../selectors/featureFlagController/card';
 import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
@@ -58,8 +61,42 @@ function makeJwt(expMs: number): string {
   return `h.${payload}.s`;
 }
 
+const MONEY_ACCOUNT_CHANNEL: ImmersveFundingChannel = {
+  source: 'moneyAccount',
+  fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+  assetId: 'eip155:143/erc20:0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+  spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+  caipChainId: 'eip155:143',
+  network: 'monad-mainnet',
+  tokenAddress: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+  decimals: 6,
+  symbol: 'vmUSD',
+};
+
+const LINEA_USDC_CHANNEL: ImmersveFundingChannel = {
+  source: 'wallet',
+  fundingChannelId: 'usdc-linea-channel',
+  assetId: 'eip155:59144/erc20:0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+  spenderAddress: '0x3333333333333333333333333333333333333333',
+  caipChainId: 'eip155:59144',
+  network: 'linea-mainnet',
+  tokenAddress: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+  decimals: 6,
+  symbol: 'USDC',
+  rpcUrl: 'https://linea.example',
+  fallbackRpcUrl: 'https://rpc.linea.build',
+};
+
 function createProvider(
   programConfig: ImmersveProgramConfig | null = PROGRAM_CONFIG,
+  extras?: {
+    getFundingChannel?: () => ImmersveFundingChannel | null;
+    findFundingChannelById?: (
+      channelId: string,
+    ) => ImmersveFundingChannel | null;
+    getSelectedCountry?: () => string | null;
+    isMfaEnabled?: () => boolean;
+  },
 ) {
   const service = {
     get: jest.fn(),
@@ -76,6 +113,10 @@ function createProvider(
     service,
     config: CONFIG,
     getProgramConfig: () => programConfig,
+    getFundingChannel: extras?.getFundingChannel,
+    findFundingChannelById: extras?.findFundingChannelById,
+    getSelectedCountry: extras?.getSelectedCountry,
+    isMfaEnabled: extras?.isMfaEnabled,
   });
   return { provider, service };
 }
@@ -139,6 +180,26 @@ describe('ImmersveProvider', () => {
         applePay: true,
         googlePay: false,
       });
+    });
+
+    it('enables Money account linking only when the funding channel spends from it', () => {
+      const { provider } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        getSelectedCountry: () => 'NZ',
+      });
+
+      expect(provider.capabilities.supportsMoneyAccountLinking).toBe(true);
+      expect(provider.capabilities.fundingChains).toContain('eip155:143');
+    });
+
+    it('adds a wallet channel chain without enabling Money account linking', () => {
+      const { provider } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => LINEA_USDC_CHANNEL,
+        getSelectedCountry: () => 'TH',
+      });
+
+      expect(provider.capabilities.supportsMoneyAccountLinking).toBe(false);
+      expect(provider.capabilities.fundingChains).toContain('eip155:59144');
     });
   });
 
@@ -424,7 +485,9 @@ describe('ImmersveProvider', () => {
     });
 
     it('completes login and binds cardholderAccountId + address', async () => {
-      const { provider, service } = createProvider();
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        isMfaEnabled: () => true,
+      });
       const accessJwt = makeJwt(FIXED_NOW + 60 * 60 * 1000);
       const refreshJwt = makeJwt(FIXED_NOW + 30 * 24 * 60 * 60 * 1000);
       service.post.mockResolvedValue({
@@ -438,10 +501,13 @@ describe('ImmersveProvider', () => {
         signature: '0xsig',
       });
 
-      expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
-        loginRequestId: 'login-req-1',
-        signature: '0xsig',
-      });
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-complete?mfa=true',
+        {
+          loginRequestId: 'login-req-1',
+          signature: '0xsig',
+        },
+      );
       expect(result.done).toBe(true);
       expect(result.tokenSet?.accessToken).toBe(accessJwt);
       expect(result.tokenSet?.providerUserId).toBe('cardholder-1');
@@ -451,6 +517,37 @@ describe('ImmersveProvider', () => {
       expect(result.tokenSet?.accessTokenExpiresAt).toBeGreaterThan(FIXED_NOW);
       expect(result.tokenSet?.refreshTokenExpiresAt).toBeGreaterThan(FIXED_NOW);
     });
+
+    it.each([
+      ['by default', undefined],
+      ['when MFA is disabled', () => false],
+    ] as const)(
+      'completes SIWE login without MFA %s',
+      async (_label, isMfaEnabled) => {
+        const { provider, service } = createProvider(PROGRAM_CONFIG, {
+          isMfaEnabled,
+        });
+        const accessJwt = makeJwt(FIXED_NOW + 60 * 60 * 1000);
+        service.post.mockResolvedValue({
+          accessToken: accessJwt,
+          refreshToken: makeJwt(FIXED_NOW + 30 * 24 * 60 * 60 * 1000),
+          cardholderAccountId: 'cardholder-1',
+        });
+
+        const result = await provider.submitCredentials(session, {
+          type: 'siwe',
+          signature: '0xsig',
+        });
+
+        expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
+          loginRequestId: 'login-req-1',
+          signature: '0xsig',
+        });
+        expect(result.done).toBe(true);
+        expect(result.tokenSet?.accessToken).toBe(accessJwt);
+        expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
+      },
+    );
 
     it('omits refreshTokenExpiresAt when login response has no refresh token', async () => {
       const { provider, service } = createProvider();
@@ -498,6 +595,174 @@ describe('ImmersveProvider', () => {
         }),
       ).rejects.toMatchObject({ code: CardProviderErrorCode.ServerError });
     });
+
+    it('returns a method-selection step from the signature call', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        loginRequestId: 'login-req-1',
+        nextStep: {
+          type: 'select-mfa-method',
+          expiresAt: '2024-06-01T12:05:00.000Z',
+          mfaOptions: [
+            { method: 'phone', maskedDestination: '+64 *****1234' },
+            { method: 'email', maskedDestination: 'j***@example.com' },
+            { method: 'sms', maskedDestination: 'ignored' },
+          ],
+        },
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(result).toStrictEqual({
+        done: false,
+        nextSessionId: 'login-req-1',
+        nextStep: {
+          type: 'mfa_select',
+          options: [
+            { method: 'phone', maskedDestination: '+64 *****1234' },
+            { method: 'email', maskedDestination: 'j***@example.com' },
+          ],
+        },
+      });
+    });
+
+    it('accepts a flat method-selection step', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        nextStep: 'select-mfa-method',
+        mfaOptions: [
+          { method: 'phone', maskedDestination: '+64 *****1234' },
+          { method: 'email', maskedDestination: 'j***@example.com' },
+        ],
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(result).toStrictEqual({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [
+            { method: 'phone', maskedDestination: '+64 *****1234' },
+            { method: 'email', maskedDestination: 'j***@example.com' },
+          ],
+        },
+      });
+    });
+
+    it('throws AuthRestartRequired when no verified contact is returned', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        nextStep: { type: 'select-mfa-method', mfaOptions: [] },
+      });
+
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'siwe',
+          signature: '0xsig',
+        }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.AuthRestartRequired,
+        errorCode: 'NO_VERIFIED_CONTACT',
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('posts the chosen method and returns the code step', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        loginRequestId: 'login-req-2',
+        nextStep: {
+          type: 'submit-mfa-code',
+          mfaOption: {
+            method: 'email',
+            maskedDestination: 'j***@example.com',
+          },
+          expiresAt: '2024-06-01T12:05:00.000Z',
+        },
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'mfa_method',
+        method: 'email',
+        destination: 'jane@example.com',
+      });
+
+      expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
+        loginRequestId: 'login-req-1',
+        mfaMethod: 'email',
+        mfaDestination: 'jane@example.com',
+      });
+      expect(result).toStrictEqual({
+        done: false,
+        nextSessionId: 'login-req-2',
+        nextStep: {
+          type: 'mfa_code',
+          method: 'email',
+          maskedDestination: 'j***@example.com',
+          expiresAt: Date.parse('2024-06-01T12:05:00.000Z'),
+        },
+      });
+    });
+
+    it('posts the MFA code', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        accessToken: makeJwt(FIXED_NOW + 60 * 60 * 1000),
+        cardholderAccountId: 'cardholder-1',
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'mfa_code',
+        code: '123456',
+      });
+
+      expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
+        loginRequestId: 'login-req-1',
+        mfaCode: '123456',
+      });
+      expect(result.done).toBe(true);
+      expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
+    });
+
+    it.each([
+      ['MFA_CODE_INVALID', CardProviderErrorCode.InvalidOtp],
+      ['MFA_METHOD_MISMATCH', CardProviderErrorCode.MfaDestinationMismatch],
+      ['MFA_CODE_EXPIRED', CardProviderErrorCode.AuthRestartRequired],
+      ['MFA_ATTEMPTS_EXCEEDED', CardProviderErrorCode.AuthRestartRequired],
+      ['CHALLENGE_EXPIRED', CardProviderErrorCode.AuthRestartRequired],
+      ['LOGIN_STEP_INVALID', CardProviderErrorCode.AuthRestartRequired],
+    ] as const)(
+      'maps %s without reporting to Sentry',
+      async (errorCode, expectedCode) => {
+        const { provider, service } = createProvider();
+        service.post.mockRejectedValue(
+          new CardApiError(
+            403,
+            '/auth/login-complete',
+            JSON.stringify({ errorCode }),
+          ),
+        );
+
+        await expect(
+          provider.submitCredentials(session, {
+            type: 'mfa_code',
+            code: '000000',
+          }),
+        ).rejects.toMatchObject({
+          code: expectedCode,
+          statusCode: 403,
+          errorCode,
+        });
+        expect(Logger.error).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('refreshTokens', () => {
@@ -693,6 +958,7 @@ describe('ImmersveProvider', () => {
         network: 'base-sepolia',
         balance: '10',
         balanceCurrency: 'USD',
+        fundingChannelId: 'base-channel',
       });
     });
 
@@ -737,6 +1003,24 @@ describe('ImmersveProvider', () => {
         statusCode: 403,
         errorCode: 'FUNDING_SOURCE_EXISTS',
       });
+    });
+
+    it('maps an MFA 403 on a non-login call to Forbidden and reports it', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/api/funding-sources',
+          JSON.stringify({ errorCode: 'MFA_CODE_INVALID' }),
+        ),
+      );
+
+      await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        statusCode: 403,
+        errorCode: 'MFA_CODE_INVALID',
+      });
+      expect(Logger.error).toHaveBeenCalled();
     });
 
     it('createFundingSource maps API failures', async () => {
@@ -1244,6 +1528,508 @@ describe('ImmersveProvider', () => {
       );
     });
 
+    it('maps a Money account funding source to vmUSD on Monad', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        findFundingChannelById: (channelId: string) =>
+          channelId === MONEY_ACCOUNT_CHANNEL.fundingChannelId
+            ? MONEY_ACCOUNT_CHANNEL
+            : null,
+      });
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            network: 'monad-mainnet',
+            fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+            fundingAddress: moneyAccountAddress,
+            balanceCurrency: 'USDC',
+          },
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '30.0',
+        allowance: '15.0',
+        spendableBalance: '15',
+      });
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        MONEY_ACCOUNT_CHANNEL.tokenAddress,
+        moneyAccountAddress,
+        MONEY_ACCOUNT_CHANNEL.spenderAddress,
+        6,
+      );
+      expect(data.primaryFundingAsset).toMatchObject({
+        symbol: 'vmUSD',
+        address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+        walletAddress: moneyAccountAddress,
+        chainId: 'eip155:143',
+        decimals: 6,
+        spendableBalance: '15',
+        spendingCap: '15.0',
+        status: FundingAssetStatus.Active,
+      });
+    });
+
+    it('reads a Money account allowance from externalId when fundingAddress is absent', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        findFundingChannelById: (channelId: string) =>
+          channelId === MONEY_ACCOUNT_CHANNEL.fundingChannelId
+            ? MONEY_ACCOUNT_CHANNEL
+            : null,
+      });
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            network: 'monad-mainnet',
+            fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+            fundingAddress: undefined,
+            externalId: moneyAccountAddress,
+            balanceCurrency: 'USDC',
+          },
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '30.0',
+        allowance: '15.0',
+        spendableBalance: '15',
+      });
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        MONEY_ACCOUNT_CHANNEL.tokenAddress,
+        moneyAccountAddress,
+        MONEY_ACCOUNT_CHANNEL.spenderAddress,
+        6,
+      );
+      expect(data.primaryFundingAsset).toMatchObject({
+        walletAddress: moneyAccountAddress,
+      });
+    });
+
+    it('logs when a Money account funding source has no address', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        findFundingChannelById: (channelId: string) =>
+          channelId === MONEY_ACCOUNT_CHANNEL.fundingChannelId
+            ? MONEY_ACCOUNT_CHANNEL
+            : null,
+      });
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            network: 'monad-mainnet',
+            fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+            fundingAddress: undefined,
+            externalId: undefined,
+          },
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({ method: 'mapFundingSource' }),
+          }),
+        }),
+      );
+      expect(data.primaryFundingAsset).toMatchObject({ walletAddress: '' });
+    });
+
+    it('prepareMoneyAccountLink rejects a prerequisite spender that is not the channel spender', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        findFundingChannelById: (channelId: string) =>
+          channelId === MONEY_ACCOUNT_CHANNEL.fundingChannelId
+            ? MONEY_ACCOUNT_CHANNEL
+            : null,
+        getSelectedCountry: () => 'NZ',
+      });
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockImplementation((path: string) => {
+        if (path === '/api/funding-sources') {
+          return Promise.resolve({
+            id: 'fs-money',
+            network: 'monad-mainnet',
+          });
+        }
+        if (path === '/api/spending-prerequisites') {
+          return Promise.resolve({
+            prerequisites: [
+              {
+                status: 'action-required',
+                actionType: 'smart_contract_write',
+                params: {
+                  params: {
+                    _spender: '0x1111111111111111111111111111111111111111',
+                  },
+                },
+              },
+            ],
+          });
+        }
+        return Promise.resolve({});
+      });
+
+      await expect(
+        provider.prepareMoneyAccountLink(
+          {
+            moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+            amountHuman: '1',
+          },
+          TOKENS,
+        ),
+      ).rejects.toThrow(
+        'Money account approve spender does not match the funding channel',
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/funding-sources',
+        expect.objectContaining({
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          fundingAddress: '0x000000000000000000000000000000000000dEaD',
+        }),
+        TOKENS,
+      );
+    });
+
+    it('prepareMoneyAccountLink keeps the channel spender when the prerequisite matches in another case', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        getSelectedCountry: () => 'NZ',
+      });
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockImplementation((path: string) => {
+        if (path === '/api/funding-sources') {
+          return Promise.resolve({
+            id: 'fs-money',
+            network: 'monad-mainnet',
+          });
+        }
+        if (path === '/api/spending-prerequisites') {
+          return Promise.resolve({
+            prerequisites: [
+              {
+                status: 'action-required',
+                actionType: 'smart_contract_write',
+                params: {
+                  params: {
+                    _spender:
+                      MONEY_ACCOUNT_CHANNEL.spenderAddress.toLowerCase(),
+                  },
+                },
+              },
+            ],
+          });
+        }
+        return Promise.resolve({});
+      });
+
+      const preparation = await provider.prepareMoneyAccountLink(
+        {
+          moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+          amountHuman: '1',
+        },
+        TOKENS,
+      );
+
+      expect(preparation.spender).toBe(MONEY_ACCOUNT_CHANNEL.spenderAddress);
+    });
+
+    it('prepareMoneyAccountLink reuses a source only when its funding address matches', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        getSelectedCountry: () => 'NZ',
+      });
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-siwe',
+            fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+            fundingAddress: '0x1111111111111111111111111111111111111111',
+          },
+          {
+            id: 'fs-money',
+            fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+            fundingAddress: moneyAccountAddress.toLowerCase(),
+          },
+        ],
+      });
+      service.post.mockResolvedValue({ prerequisites: [] });
+
+      const preparation = await provider.prepareMoneyAccountLink(
+        { moneyAccountAddress, amountHuman: '1' },
+        TOKENS,
+      );
+
+      expect(service.post).not.toHaveBeenCalledWith(
+        '/api/funding-sources',
+        expect.anything(),
+        expect.anything(),
+      );
+      expect(preparation.context).toEqual({ fundingSourceId: 'fs-money' });
+    });
+
+    it('prepareMoneyAccountLink reuses a source listed with externalId', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        getSelectedCountry: () => 'NZ',
+      });
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-money',
+            fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+            externalId: moneyAccountAddress.toLowerCase(),
+          },
+        ],
+      });
+      service.post.mockResolvedValue({ prerequisites: [] });
+
+      const preparation = await provider.prepareMoneyAccountLink(
+        { moneyAccountAddress, amountHuman: '1' },
+        TOKENS,
+      );
+
+      expect(service.post).not.toHaveBeenCalledWith(
+        '/api/funding-sources',
+        expect.anything(),
+        expect.anything(),
+      );
+      expect(preparation.context).toEqual({ fundingSourceId: 'fs-money' });
+    });
+
+    it('prepareMoneyAccountLink creates a funding source only once across a retry', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        getSelectedCountry: () => 'NZ',
+      });
+      let listCalls = 0;
+      service.get.mockImplementation(() => {
+        listCalls += 1;
+        if (listCalls === 1) {
+          return Promise.resolve({ items: [] });
+        }
+        return Promise.resolve({
+          items: [
+            {
+              id: 'fs-money',
+              fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+              externalId: moneyAccountAddress,
+            },
+          ],
+        });
+      });
+      service.post.mockImplementation((path: string) => {
+        if (path === '/api/funding-sources') {
+          return Promise.resolve({ id: 'fs-money', network: 'monad-mainnet' });
+        }
+        return Promise.resolve({ prerequisites: [] });
+      });
+
+      const params = { moneyAccountAddress, amountHuman: '1' };
+      await provider.prepareMoneyAccountLink(params, TOKENS);
+      const second = await provider.prepareMoneyAccountLink(params, TOKENS);
+
+      const fundingPosts = service.post.mock.calls.filter(
+        (call) => call[0] === '/api/funding-sources',
+      );
+      expect(fundingPosts).toHaveLength(1);
+      expect(second.context).toEqual({ fundingSourceId: 'fs-money' });
+    });
+
+    it('resolveMoneyAccountFundingSource reuses a source whose address matches in another case', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+      });
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-other',
+            fundingChannelId: 'other-channel',
+            fundingAddress: moneyAccountAddress,
+          },
+          {
+            id: 'fs-money',
+            fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+            fundingAddress: moneyAccountAddress.toLowerCase(),
+          },
+        ],
+      });
+
+      const source = await provider.resolveMoneyAccountFundingSource(
+        moneyAccountAddress,
+        TOKENS,
+      );
+
+      expect(service.post).not.toHaveBeenCalled();
+      expect(source.id).toBe('fs-money');
+    });
+
+    it('resolveMoneyAccountFundingSource creates a source with the Money account address', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+      });
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockResolvedValue({
+        id: 'fs-new',
+        network: 'monad-mainnet',
+      });
+
+      const source = await provider.resolveMoneyAccountFundingSource(
+        moneyAccountAddress,
+        TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/funding-sources',
+        expect.objectContaining({ fundingAddress: moneyAccountAddress }),
+        TOKENS,
+      );
+      expect(source.id).toBe('fs-new');
+    });
+
+    it('resolveMoneyAccountFundingSource throws when the channel is not a Money account channel', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => LINEA_USDC_CHANNEL,
+      });
+
+      await expect(
+        provider.resolveMoneyAccountFundingSource(
+          '0x000000000000000000000000000000000000dEaD',
+          TOKENS,
+        ),
+      ).rejects.toThrow(
+        'Money account card delegation is not supported for this provider',
+      );
+      expect(service.get).not.toHaveBeenCalled();
+    });
+
+    it('prepareMoneyAccountLink creates a source when the existing one funds another address', async () => {
+      const moneyAccountAddress = '0x000000000000000000000000000000000000dEaD';
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        getSelectedCountry: () => 'NZ',
+      });
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-siwe',
+            fundingChannelId: MONEY_ACCOUNT_CHANNEL.fundingChannelId,
+            fundingAddress: '0x1111111111111111111111111111111111111111',
+          },
+        ],
+      });
+      service.post.mockImplementation((path: string) => {
+        if (path === '/api/funding-sources') {
+          return Promise.resolve({ id: 'fs-new', network: 'monad-mainnet' });
+        }
+        return Promise.resolve({ prerequisites: [] });
+      });
+
+      const preparation = await provider.prepareMoneyAccountLink(
+        { moneyAccountAddress, amountHuman: '1' },
+        TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/funding-sources',
+        expect.objectContaining({ fundingAddress: moneyAccountAddress }),
+        TOKENS,
+      );
+      expect(preparation.context).toEqual({ fundingSourceId: 'fs-new' });
+    });
+
+    it('completeMoneyAccountLink creates a card when prerequisites are active', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+        findFundingChannelById: (channelId: string) =>
+          channelId === MONEY_ACCOUNT_CHANNEL.fundingChannelId
+            ? MONEY_ACCOUNT_CHANNEL
+            : null,
+      });
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockImplementation((path: string) => {
+        if (path === '/api/spending-prerequisites') {
+          return Promise.resolve({
+            prerequisites: [{ status: 'ok', actionType: 'noop' }],
+          });
+        }
+        if (path === '/api/cards') {
+          return Promise.resolve({ cardId: 'card-new' });
+        }
+        return Promise.resolve({});
+      });
+
+      await provider.completeMoneyAccountLink(
+        {
+          moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+          amountHuman: '1',
+          txHash: '0xtx',
+          context: { fundingSourceId: 'fs-money' },
+        },
+        TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards',
+        expect.objectContaining({ fundingSourceId: 'fs-money' }),
+        TOKENS,
+      );
+    });
+
+    it('completeMoneyAccountLink logs and skips card creation when the funding source id is missing', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getFundingChannel: () => MONEY_ACCOUNT_CHANNEL,
+      });
+
+      await provider.completeMoneyAccountLink(
+        {
+          moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+          amountHuman: '1',
+          txHash: '0xtx',
+          context: {},
+        },
+        TOKENS,
+      );
+
+      expect(service.post).not.toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'completeMoneyAccountLink',
+            }),
+          }),
+        }),
+      );
+    });
+
     it('maps missing cardholder fields to empty strings for an active card', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(
@@ -1315,6 +2101,42 @@ describe('ImmersveProvider', () => {
       const data = await provider.getCardHomeData('0xabc', TOKENS);
 
       expect(data.walletProvisioning?.cardholderName).toBe("José O'Brien");
+    });
+
+    it('copies regionCode onto the provisioning country', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'nz' }] },
+          cardDetail: { ...activeCardDetail, regionCode: 'nz' },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.walletProvisioning).toEqual(
+        expect.objectContaining({ countryCode: 'NZ' }),
+      );
+      expect(data.walletProvisioning).not.toHaveProperty('cardProcessor');
+    });
+
+    it('uses the list regionCode when card detail omits it', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'AU' }] },
+          cardDetail: { ...activeCardDetail, regionCode: undefined },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card?.regionCode).toBe('AU');
+      expect(data.walletProvisioning).toEqual(
+        expect.objectContaining({ countryCode: 'AU' }),
+      );
     });
 
     it('maps regionCode from Immersve card detail onto CardHomeData.card', async () => {
@@ -1582,6 +2404,57 @@ describe('ImmersveProvider', () => {
         chainId: 'eip155:421614',
       });
     });
+
+    it('reads on-chain allowance through the channel RPC for a network without a built-in RPC', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const { provider, service } = createProvider(
+        PROGRAM_CONFIG_WITH_SPENDER,
+        {
+          getFundingChannel: () => LINEA_USDC_CHANNEL,
+          findFundingChannelById: (channelId) =>
+            channelId === LINEA_USDC_CHANNEL.fundingChannelId
+              ? LINEA_USDC_CHANNEL
+              : null,
+        },
+      );
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            network: 'linea-mainnet',
+            fundingChannelId: LINEA_USDC_CHANNEL.fundingChannelId,
+          },
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '20.0',
+        allowance: '8.0',
+        spendableBalance: '8',
+      });
+
+      const data = await provider.getCardHomeData(fundingAddress, {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      });
+
+      expect(ethers.providers.StaticJsonRpcProvider).toHaveBeenCalledWith(
+        { url: 'https://linea.example', skipFetchSetup: true },
+        { name: 'linea-mainnet', chainId: 59144 },
+      );
+      expect(mockReadErc20AllowanceAndBalance).toHaveBeenCalledWith(
+        expect.anything(),
+        LINEA_USDC_CHANNEL.tokenAddress,
+        fundingAddress,
+        LINEA_USDC_CHANNEL.spenderAddress,
+        6,
+      );
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendableBalance: '8',
+        chainId: 'eip155:59144',
+      });
+    });
   });
 
   describe('getCardDetails', () => {
@@ -1828,6 +2701,7 @@ describe('ImmersveProvider', () => {
         status: 'completed',
         type: 'purchase',
         billingAmount: { value: '314.12', currency: 'USD' },
+        originalAmount: { value: '314.12', currency: 'NZD' },
         feeAmount: { value: '0.12', currency: 'USDC' },
         merchant: {
           name: 'Air NZ Online',
@@ -1863,6 +2737,70 @@ describe('ImmersveProvider', () => {
       const page = await provider.listTransactions({}, TOKENS);
 
       expect(page.items[0].status).toBe('completed');
+    });
+
+    it('omits the merchant amount when the acquirer amount is zero', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'tx-reversed-brl',
+            description: 'FIME BRAZIL LTDA SAO PAULO BRA',
+            accountId: 'cardholder-1',
+            cardId: 'card-1',
+            amount: '0',
+            currency: 'USD',
+            feeAmount: '0',
+            status: 'reversed' as const,
+            transactionDate: '2026-10-21T16:24:18.523Z',
+            cardAcceptor: {
+              name: 'FIME BRAZIL LTDA',
+              city: 'SAO PAULO',
+              countryCode: 'BRA',
+            },
+            reference: '1000298208517',
+            acquirerAmount: '0',
+            acquirerCurrency: 'BRL',
+            creditDebitIndicator: 'debit' as const,
+            paymentType: 'purchase' as const,
+          },
+        ],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0]).toMatchObject({
+        status: 'reversed',
+        billingAmount: { value: '0', currency: 'USD' },
+      });
+      expect(page.items[0].originalAmount).toBeUndefined();
+      expect(page.items[0].feeAmount).toBeUndefined();
+    });
+
+    it('maps a holding purchase from minor units without a second currency line', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            ...rawTx,
+            id: 'tx-holding-usd',
+            status: 'holding' as const,
+            amount: '50',
+            currency: 'USD',
+            acquirerAmount: '50',
+            acquirerCurrency: 'USD',
+            feeAmount: '0',
+          },
+        ],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0]).toMatchObject({
+        status: 'completed',
+        billingAmount: { value: '0.5', currency: 'USD' },
+      });
+      expect(page.items[0].originalAmount).toBeUndefined();
     });
 
     it('throws when cardholderAccountId is missing', async () => {

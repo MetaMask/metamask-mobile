@@ -1,16 +1,22 @@
 import React, { useCallback, useMemo } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { ButtonBase } from '@metamask/design-system-react-native';
 import {
   useNavigation,
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
 import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
 import PickerAccount from '../../../../../component-library/components/Pickers/PickerAccount';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createProfileDrawerNavDetails } from '../../../SocialProfile/ProfileDrawer';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import WalletHeaderInterimActions from './WalletHeaderInterimActions';
+import WalletHeaderProfileAvatar from './WalletHeaderProfileAvatar';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 
 const INTERIM_ACCOUNT_NAME_MAX_CHARS = 12;
@@ -44,7 +50,7 @@ export interface WalletHeaderNativeHeaderParams {
 
 /**
  * The interim wallet header as a native iOS 26 bar: the account picker on the
- * left, Activity, Search and Menu grouped on the right. Returns whether the
+ * left, Search, Activity and Menu grouped on the right. Returns whether the
  * native bar is on, so the caller skips the JS `WalletHeader`.
  */
 export const useWalletHeaderNativeHeader = ({
@@ -64,15 +70,38 @@ export const useWalletHeaderNativeHeader = ({
     [tw],
   );
 
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+
   const handleAccountPickerPress = useCallback(() => {
+    if (isSocialV1Enabled) {
+      navigation.navigate(...createProfileDrawerNavDetails({}));
+      return;
+    }
     navigation.navigate(...createAccountSelectorNavDetails({}));
-  }, [navigation]);
+  }, [navigation, isSocialV1Enabled]);
+
+  const socialV1AccountButton = useMemo(
+    () =>
+      isSocialV1Enabled ? (
+        <ButtonBase
+          onPress={handleAccountPickerPress}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          accessibilityRole="button"
+          accessibilityLabel={displayName}
+          hitSlop={touchAreaSlop}
+          twClassName="h-10 w-10 rounded-full bg-transparent p-0"
+        >
+          <WalletHeaderProfileAvatar />
+        </ButtonBase>
+      ) : null,
+    [displayName, handleAccountPickerPress, isSocialV1Enabled, touchAreaSlop],
+  );
 
   const leftItems = useCallback(
     (): NativeStackHeaderItem[] => [
       {
         type: 'custom',
-        element: (
+        element: socialV1AccountButton ?? (
           <PickerAccount
             accountName={formatInterimAccountName(displayName)}
             onPress={handleAccountPickerPress}
@@ -83,7 +112,13 @@ export const useWalletHeaderNativeHeader = ({
         ),
       },
     ],
-    [accountPickerStyle, displayName, handleAccountPickerPress, touchAreaSlop],
+    [
+      accountPickerStyle,
+      displayName,
+      handleAccountPickerPress,
+      socialV1AccountButton,
+      touchAreaSlop,
+    ],
   );
 
   // One custom item, so our spacing applies; UIKit still draws the glass

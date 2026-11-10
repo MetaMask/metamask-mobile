@@ -24,6 +24,7 @@ const mockFollowWithSetup = jest.fn(
 );
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 
+jest.mock('../../../terms/socialTermsAcceptance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -72,6 +73,14 @@ describe('PopularTradersCarousel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePopularTraders.mockReturnValue(loadedResult());
+  });
+
+  it('starts the title flush with the header so the section reads as 12px', () => {
+    renderWithProvider(<PopularTradersCarousel />);
+
+    expect(
+      screen.getByTestId(PopularTradersCarouselSelectorsIDs.HEADER),
+    ).toHaveStyle({ paddingTop: 0, paddingBottom: 0 });
   });
 
   it('renders a card for each trader plus View more', () => {

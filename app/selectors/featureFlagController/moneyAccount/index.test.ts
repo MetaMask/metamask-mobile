@@ -2,17 +2,22 @@ import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
+  selectMoneyAccountPremiumVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
-  selectMoneyMovementBrazilNeobankEnabled,
+  selectMoneyMovementNeobank,
+  selectNeobankMarkets,
   isVbaGeoBypassEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
   selectProSubscriptionEnabled,
   SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY,
   MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
-  MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
+import type { Json } from '@metamask/utils';
 import { getVersion } from 'react-native-device-info';
 
 jest.mock('react-native-device-info', () => ({
@@ -108,61 +113,229 @@ describe('Money Account feature flag selectors', () => {
     });
   });
 
-  describe('selectMoneyMovementBrazilNeobankEnabled', () => {
-    it('uses the camelCased key as served by client-config-api-mobile', () => {
-      expect(MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY).toBe(
-        'moneyMovementBrazilNeobank',
-      );
+  describe('selectMoneyMovementNeobank', () => {
+    const defaults = {
+      chooseCurrency: false,
+      regionOverride: undefined,
+    };
+    const versionedFlag = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    };
+
+    it('reads the camelCase key Client Config stores for money-movement-neobank', () => {
+      expect(MONEY_MOVEMENT_NEOBANK_FLAG_KEY).toBe('moneyMovementNeobank');
     });
 
-    it('returns true when enabled and the minimum version passes', () => {
-      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
-          enabled: true,
-          minimumVersion: '0.0.0',
+    it('reads chooseCurrency and regionOverride from a progressive-rollout wrapper', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          name: 'treatment',
+          value: {
+            ...versionedFlag,
+            chooseCurrency: true,
+            regionOverride: 'br',
+          },
         },
       });
 
-      expect(result).toBe(true);
+      expect(result).toEqual({
+        chooseCurrency: true,
+        regionOverride: 'BR',
+      });
     });
 
-    it('returns false when the flag serves enabled: false', () => {
-      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
+    it('does not read enabled, regions, regionCurrencies, or defaultCurrency', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...versionedFlag,
+          regions: ['BR', 'US'],
+          regionCurrencies: { BR: 'BRL' },
+          defaultCurrency: 'USD',
+        },
+      });
+
+      expect(result).toEqual(defaults);
+      expect(result).not.toHaveProperty('isEnabled');
+    });
+
+    it('reads chooseCurrency only when it is literally true', () => {
+      const readChooseCurrency = (chooseCurrency: boolean | string) =>
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...versionedFlag,
+            chooseCurrency,
+          },
+        }).chooseCurrency;
+
+      expect(readChooseCurrency(true)).toBe(true);
+      expect(readChooseCurrency(false)).toBe(false);
+      expect(readChooseCurrency('true')).toBe(false);
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: versionedFlag,
+        }).chooseCurrency,
+      ).toBe(false);
+    });
+
+    it('reads chooseCurrency and regionOverride even when enabled is false', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...versionedFlag,
           enabled: false,
-          minimumVersion: '0.0.0',
+          chooseCurrency: true,
+          regionOverride: 'US',
         },
       });
 
-      expect(result).toBe(false);
+      expect(result).toEqual({
+        chooseCurrency: true,
+        regionOverride: 'US',
+      });
     });
 
-    it('returns false when the minimum version requirement fails', () => {
-      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
-          enabled: true,
+    it('reads chooseCurrency and regionOverride even when the minimum version fails', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...versionedFlag,
           minimumVersion: '999.0.0',
+          chooseCurrency: true,
+          regionOverride: 'BR',
         },
       });
 
-      expect(result).toBe(false);
+      expect(result).toEqual({
+        chooseCurrency: true,
+        regionOverride: 'BR',
+      });
     });
 
-    it('returns false when the flag is absent or malformed', () => {
-      expect(selectMoneyMovementBrazilNeobankEnabled.resultFunc({})).toBe(
-        false,
-      );
+    it('uppercases and trims regionOverride without limiting it to a currency', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...versionedFlag,
+          regionOverride: ' de ',
+        },
+      });
+
+      expect(result.regionOverride).toBe('DE');
+    });
+
+    it('ignores a blank, missing, or non-string regionOverride', () => {
+      const readOverride = (regionOverride: Json) =>
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...versionedFlag,
+            regionOverride,
+          },
+        }).regionOverride;
+
+      expect(readOverride('')).toBeUndefined();
+      expect(readOverride('   ')).toBeUndefined();
+      expect(readOverride(null)).toBeUndefined();
+      expect(readOverride(1)).toBeUndefined();
+      expect(readOverride(true)).toBeUndefined();
+      expect(readOverride(['BR'])).toBeUndefined();
       expect(
-        selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-          [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: 'not-an-object',
-        }),
-      ).toBe(false);
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: versionedFlag,
+        }).regionOverride,
+      ).toBeUndefined();
+    });
+
+    it('returns defaults when the flag is absent or malformed', () => {
+      expect(selectMoneyMovementNeobank.resultFunc({})).toEqual(defaults);
       expect(
-        selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-          // Missing minimumVersion — no longer a valid version-gated shape.
-          [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: { enabled: true },
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: 'not-an-object',
         }),
-      ).toBe(false);
+      ).toEqual(defaults);
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: { chooseCurrency: true },
+        }),
+      ).toEqual(defaults);
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: true,
+        }),
+      ).toEqual(defaults);
+    });
+  });
+
+  describe('selectNeobankMarkets', () => {
+    const brlFlagOn = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+      currency: 'BRL',
+      regions: ['br', ' BR ', 1],
+    };
+    const usdFlagOn = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+      currency: 'USD',
+      regions: ['US'],
+    };
+
+    it('returns each open market with normalized regions', () => {
+      const result = selectNeobankMarkets.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: brlFlagOn,
+        [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: { name: 'on', value: usdFlagOn },
+      });
+
+      expect(result).toEqual([
+        { currency: 'BRL', regions: ['BR'] },
+        { currency: 'USD', regions: ['US'] },
+      ]);
+    });
+
+    it('puts BRL before USD even when both open markets list the same country', () => {
+      const sharedCountry = 'BR';
+      const result = selectNeobankMarkets.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: {
+          ...brlFlagOn,
+          regions: [sharedCountry],
+        },
+        [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: {
+          ...usdFlagOn,
+          regions: [sharedCountry],
+        },
+      });
+
+      expect(result).toEqual([
+        { currency: 'BRL', regions: [sharedCountry] },
+        { currency: 'USD', regions: [sharedCountry] },
+      ]);
+    });
+
+    it.each([
+      ['missing', undefined],
+      ['disabled', { ...brlFlagOn, enabled: false }],
+      ['too old', { ...brlFlagOn, minimumVersion: '999.0.0' }],
+      ['for another currency', { ...brlFlagOn, currency: 'USD' }],
+      [
+        'an invalid minimumVersion placeholder',
+        { ...brlFlagOn, minimumVersion: '<release>' },
+      ],
+      ['without regions', { ...brlFlagOn, regions: [] }],
+      ['with only invalid regions', { ...brlFlagOn, regions: [' ', 1] }],
+      ['with no regions field', { ...brlFlagOn, regions: undefined }],
+      [
+        'an unresolved threshold array',
+        [
+          {
+            name: 'on',
+            scope: { type: 'threshold', value: 1 },
+            value: brlFlagOn,
+          },
+        ],
+      ],
+    ])('leaves out a flag that is %s', (_label, flag) => {
+      expect(
+        selectNeobankMarkets.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: flag as Json,
+        }),
+      ).toEqual([]);
     });
   });
 
@@ -476,6 +649,42 @@ describe('Money Account feature flag selectors', () => {
       });
 
       expect(result).toEqual(remoteConfig);
+    });
+  });
+
+  describe('selectMoneyAccountPremiumVaultConfig', () => {
+    const premiumConfig = {
+      chainId: '0x8f',
+      boringVault: '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7',
+      tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
+      accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
+      lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
+      underlyingToken: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    };
+
+    it('returns the parsed premium vault config when the flag is valid', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({
+        moneyAccountPremiumVaultConfig: premiumConfig,
+      });
+
+      expect(result).toEqual(premiumConfig);
+    });
+
+    it('returns undefined when the premium vault flag is missing', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({});
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the premium vault flag is malformed', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({
+        moneyAccountPremiumVaultConfig: {
+          ...premiumConfig,
+          lensAddress: '0x0',
+        },
+      });
+
+      expect(result).toBeUndefined();
     });
   });
 });

@@ -1,20 +1,43 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import type { PaymentMethod } from '@metamask/ramps-controller';
+import { strings } from '../../../../../../../locales/i18n';
+import {
+  selectMoneyMovementNeobank,
+  selectNeobankMarkets,
+} from '../../../../../../selectors/featureFlagController/moneyAccount';
+import { getVbaMarketForCountry } from '../../../../../../util/region/getVbaSourceCurrency';
 import { formatDelayFromArray } from '../../../Aggregator/utils';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
 import { useRampsPaymentMethodsForContext } from '../../../hooks/useRampsPaymentMethods';
 import { useVbaEligibility } from './useVbaEligibility';
-import { isVbaRegionSupported } from '../../../../../../util/region/isVbaRegionSupported';
 
 export interface VbaArrivalTime {
   /**
-   * Human-readable arrival window for a bank-transfer deposit in the user's
-   * region (e.g. "2 - 3 business days"), or `undefined` when the ramps
-   * catalog has no bank-transfer delay for this context. Callers fall back to
-   * static copy while `undefined` (loading, error, or no data).
+   * Localized title for the arrival row: Pix copy, the catalog's arrival window
+   * for the region, or static copy while there is none (loading, error, no data).
    */
-  arrivalTimeframe: string | undefined;
+  arrivalTitle: string;
 }
+
+const getVbaArrivalTitle = (
+  isPixDeposit: boolean,
+  arrivalTimeframe: string | undefined,
+): string => {
+  if (isPixDeposit) {
+    return strings(
+      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
+    );
+  }
+  return arrivalTimeframe
+    ? strings(
+        'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
+        { timeframe: arrivalTimeframe },
+      )
+    : strings(
+        'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
+      );
+};
 
 /**
  * Pure arrival-window resolution so the rule can be unit tested without hooks.
@@ -42,27 +65,38 @@ export function getVbaArrivalTimeframe(
 }
 
 /**
- * Per-region bank-transfer arrival window for the VBA intro screen, from the
- * ramps payment-methods catalog (`PaymentMethod.delay`, in minutes).
+ * Arrival row title for the VBA intro screen. Pix regions use static copy; other
+ * regions use the ramps payment-methods catalog (`PaymentMethod.delay`, in
+ * minutes).
  *
  * Region comes from the same GeolocationController IP lookup that gates VBA
  * entry (`useVbaEligibility`), scoped to the Money Account deposit asset so
  * the controller resolves the providers that serve it. Read-only: the shared
  * catalog is never re-scoped by this screen.
  *
- * @returns The formatted arrival window, `undefined` until a fetch succeeds.
+ * @returns The localized arrival title.
  */
 export function useVbaArrivalTime(): VbaArrivalTime {
-  const { location } = useVbaEligibility();
+  const { location, isRegionEligible } = useVbaEligibility();
+  const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
+  const markets = useSelector(selectNeobankMarkets);
   const depositAssetId = useMoneyAccountDepositAssetId();
 
-  // Only fetch for regions VBA actually serves (same gate as entry): under
-  // the dev geo bypass the IP lookup can be unknown or non-BR, and the ramps
-  // API has no catalog for it. The geolocation API returns "BR" or "BR-SP";
-  // the ramps API indexes country-level regions by lowercase ISO code ("br").
-  const regionCode = isVbaRegionSupported(location)
-    ? (location?.split('-')[0].toLowerCase() ?? '')
-    : '';
+  // With chooseCurrency on, the rail is unknown until the user picks a currency.
+  const isPixDeposit =
+    !chooseCurrency &&
+    getVbaMarketForCountry(markets, location)?.currency === 'BRL';
+
+  // Only fetch for countries an open currency flag lists (same gate as
+  // entry). Under the dev geo bypass the IP lookup can be unknown or outside
+  // that list, and the ramps API has no catalog for it. Geolocation returns
+  // "US" or "US-CA"; the ramps API indexes country-level regions by lowercase
+  // ISO code ("us"). Pix skips the fetch: its copy is static, because no Brazil
+  // provider lists the deposit asset and the catalog delay would read "instant".
+  const regionCode =
+    isRegionEligible && !isPixDeposit
+      ? (location?.split('-')[0].toLowerCase() ?? '')
+      : '';
 
   const context = useMemo(
     () => ({
@@ -77,8 +111,13 @@ export function useVbaArrivalTime(): VbaArrivalTime {
   const { paymentMethods } = useRampsPaymentMethodsForContext(context);
 
   return useMemo(
-    () => ({ arrivalTimeframe: getVbaArrivalTimeframe(paymentMethods) }),
-    [paymentMethods],
+    () => ({
+      arrivalTitle: getVbaArrivalTitle(
+        isPixDeposit,
+        getVbaArrivalTimeframe(paymentMethods),
+      ),
+    }),
+    [paymentMethods, isPixDeposit],
   );
 }
 

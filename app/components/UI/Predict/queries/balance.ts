@@ -27,4 +27,6 @@ export const predictBalanceOptions = ({ address = '' }: GetBalanceParams) =>
       return balance;
     },
     staleTime: 10_000,
+    retry: (failureCount, error) =>
+      !error.message.includes('timed out') && failureCount < 2,
   });

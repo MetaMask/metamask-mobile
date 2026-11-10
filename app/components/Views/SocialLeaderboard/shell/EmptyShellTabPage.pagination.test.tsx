@@ -19,6 +19,19 @@ jest.mock('../../../../../locales/i18n', () => ({
 // pagination and error surface, and none of them touch the composer store.
 jest.mock('../SocialV1View/feed/hooks/useSocialV1Feed');
 
+// The real hook needs a QueryClient via useSocialProfileId. This suite covers
+// pagination and the refetch spinner, not profile hydration.
+jest.mock('../MyProfileView/hooks', () => ({
+  useMyProfile: () => ({ profile: null }),
+}));
+
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(() => ({
     posts: [],
@@ -55,8 +68,7 @@ const mockRefresh = jest.fn();
 const arrangeFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) => {
   mockUseSocialV1Feed.mockReturnValue({
     posts: [],
-    pendingPost: null,
-    pendingStartedAtMs: null,
+    pinnedPosts: [],
     isLoading: false,
     isFetchingNextPage: false,
     hasNextPage: false,
@@ -76,6 +88,7 @@ const populatedFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) =>
         timestampMs: Date.now(),
         reactions: [],
         item: {
+          variant: 'spotOpen',
           author: { id: 'author-1' },
         } as UseSocialV1FeedResult['posts'][number]['item'],
       },

@@ -4,6 +4,14 @@ export const ProHubTestIds = {
   HEADER_ROOT: 'pro-hub-header-root',
   MANAGE_PLANS_BUTTON: 'pro-hub-manage-plans-button',
   MEMBERSHIP_BANNER: 'pro-hub-membership-banner',
+  MEMBERSHIP_STATUS_LABEL: 'pro-hub-membership-status-label',
+  MEMBERSHIP_STATUS_ICON: 'pro-hub-membership-status-icon',
+  MEMBERSHIP_STATUS_TAG: 'pro-hub-membership-status-tag',
+  MEMBERSHIP_STATUS_DETAIL: 'pro-hub-membership-status-detail',
+  MEMBERSHIP_ALERT_BANNER: (kind: string) =>
+    `pro-hub-membership-alert-banner-${kind}`,
+  MEMBERSHIP_ALERT_ACTION: (kind: string) =>
+    `pro-hub-membership-alert-action-${kind}`,
   LIFETIME_EARNINGS_SECTION: 'pro-hub-lifetime-earnings-section',
   MONEY_BALANCE_ROW: 'pro-hub-money-balance-row',
   MUSD_BACK_ROW: 'pro-hub-musd-back-row',

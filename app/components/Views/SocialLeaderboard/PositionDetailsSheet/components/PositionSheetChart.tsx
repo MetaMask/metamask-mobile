@@ -23,28 +23,22 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
-import type { ChartLevelKind } from '../utils/chartLevels';
 import {
   buildChartScale,
   buildLinePath,
   buildLinePoints,
   findNearestMarkerIndex,
-  layoutLevelPills,
   measurePolylineLength,
 } from '../utils/chartGeometry';
 import { formatChartTimestamp } from '../utils/chartWindow';
-import type {
-  PositionSheetLevel,
-  PositionSheetMarker,
-} from '../hooks/usePositionSheetData';
+import type { PositionSheetMarker } from '../hooks/usePositionSheetData';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 
 export const POSITION_SHEET_CHART_HEIGHT = 280;
 const CHART_INSET_TOP = 24;
 const CHART_INSET_BOTTOM = 24;
 const LINE_WIDTH = 2;
-const PILL_HEIGHT = 27;
-const PILL_EDGE_INSET = 16;
+const CHART_HORIZONTAL_INSET = 16;
 const MARKER_SIZE = 16;
 const MARKER_HIT_SLOP = 16;
 const TOOLTIP_OFFSET = 64;
@@ -56,60 +50,11 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const rectPath = (fromX: number, toX: number): string =>
   `M${fromX},0 H${Math.max(toX, fromX)} V${POSITION_SHEET_CHART_HEIGHT} H${fromX} Z`;
 
-const PILL_TW: Record<ChartLevelKind, { border: string; text: TextColor }> = {
-  entry: { border: 'border-icon-alternative', text: TextColor.TextAlternative },
-  exit: { border: 'border-icon-alternative', text: TextColor.TextAlternative },
-  current: { border: 'border-icon-default', text: TextColor.TextDefault },
-  takeProfit: {
-    border: 'border-success-default',
-    text: TextColor.SuccessDefault,
-  },
-  stopLoss: { border: 'border-error-default', text: TextColor.ErrorDefault },
-};
-
-interface LevelPillProps {
-  label: string;
-  kind: ChartLevelKind;
-  centerY: number;
-  side: 'left' | 'right';
-  testID: string;
-}
-
-const LevelPill = ({ label, kind, centerY, side, testID }: LevelPillProps) => {
-  const tw = useTailwind();
-  return (
-    <View
-      testID={testID}
-      pointerEvents="none"
-      style={[
-        tw.style(
-          'absolute justify-center rounded px-2 bg-default border-[1.5px]',
-          PILL_TW[kind].border,
-        ),
-        {
-          height: PILL_HEIGHT,
-          top: centerY - PILL_HEIGHT / 2,
-          [side]: PILL_EDGE_INSET,
-        },
-      ]}
-    >
-      <Text
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        color={PILL_TW[kind].text}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-};
-
 export interface PositionSheetChartProps {
   prices: TokenPrice[];
   isLoading: boolean;
   isTrendPositive: boolean;
   markers: PositionSheetMarker[];
-  levels: PositionSheetLevel[];
   timeAxisLabels: string[];
   lineProgress: SharedValue<number>;
   overlayStyle: React.ComponentProps<typeof Animated.View>['style'];
@@ -118,17 +63,14 @@ export interface PositionSheetChartProps {
 }
 
 /**
- * The sheet's price line. Draws itself on open, then shows the position's
- * reference levels (entry, exit, current and — once the API serves them —
- * TP/SL) and a marker per fill. Scrubbing greys out the line past the finger
- * and labels the nearest fill.
+ * The sheet's price line. Draws itself on open, then shows a marker per fill.
+ * Scrubbing greys out the line past the finger and labels the nearest fill.
  */
 const PositionSheetChart = ({
   prices,
   isLoading,
   isTrendPositive,
   markers,
-  levels,
   timeAxisLabels,
   lineProgress,
   overlayStyle,
@@ -145,7 +87,6 @@ const PositionSheetChart = ({
     () =>
       buildChartScale({
         values,
-        extraValues: levels.map((level) => level.price),
         frame: {
           width,
           height: POSITION_SHEET_CHART_HEIGHT,
@@ -153,7 +94,7 @@ const PositionSheetChart = ({
           insetBottom: CHART_INSET_BOTTOM,
         },
       }),
-    [values, levels, width],
+    [values, width],
   );
 
   const points = useMemo(
@@ -167,14 +108,6 @@ const PositionSheetChart = ({
     strokeDashoffset: lineLength * (1 - lineProgress.value),
   }));
 
-  const levelYs = useMemo(
-    () => (scale ? levels.map((level) => scale.toY(level.price)) : []),
-    [levels, scale],
-  );
-  const pillYs = useMemo(
-    () => layoutLevelPills(levelYs, PILL_HEIGHT, POSITION_SHEET_CHART_HEIGHT),
-    [levelYs],
-  );
   const markerXs = useMemo(
     () => (scale ? markers.map((marker) => scale.toX(marker.index)) : []),
     [markers, scale],
@@ -271,9 +204,9 @@ const PositionSheetChart = ({
             highlightColor={colors.background.subsection}
           >
             <SkeletonPlaceholder.Item
-              width={Math.max(width - PILL_EDGE_INSET * 2, 0)}
+              width={Math.max(width - CHART_HORIZONTAL_INSET * 2, 0)}
               height={POSITION_SHEET_CHART_HEIGHT}
-              marginLeft={PILL_EDGE_INSET}
+              marginLeft={CHART_HORIZONTAL_INSET}
               borderRadius={6}
             />
           </SkeletonPlaceholder>
@@ -344,42 +277,6 @@ const PositionSheetChart = ({
           style={[tw.style('absolute inset-0'), overlayStyle]}
           pointerEvents="none"
         >
-          <Svg
-            width={width}
-            height={POSITION_SHEET_CHART_HEIGHT}
-            style={tw.style('absolute inset-0')}
-          >
-            {levels.map((level, index) => (
-              <Line
-                key={`line-${level.kind}`}
-                x1={0}
-                x2={width}
-                y1={levelYs[index]}
-                y2={levelYs[index]}
-                stroke={colors.icon.alternative}
-                strokeWidth={1}
-                strokeDasharray="2 3"
-              />
-            ))}
-          </Svg>
-          {levels.map((level, index) => (
-            <React.Fragment key={level.kind}>
-              <LevelPill
-                testID={`${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-${level.kind}`}
-                label={level.label}
-                kind={level.kind}
-                centerY={pillYs[index]}
-                side="left"
-              />
-              <LevelPill
-                testID={`${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-${level.kind}-value`}
-                label={level.valueLabel}
-                kind={level.kind}
-                centerY={pillYs[index]}
-                side="right"
-              />
-            </React.Fragment>
-          ))}
           {markers.map((marker, index) => {
             const point = points[marker.index];
             if (!point) return null;
@@ -431,7 +328,7 @@ const PositionSheetChart = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 py-2"
+          twClassName="px-4 pb-2"
         >
           {timeAxisLabels.map((label, index) => (
             <Text

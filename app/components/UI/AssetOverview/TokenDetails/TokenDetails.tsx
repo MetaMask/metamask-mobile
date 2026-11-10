@@ -1,7 +1,5 @@
 import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetId,
-  ///: END:ONLY_INCLUDE_IF
   Hex,
   isCaipAssetType,
   parseCaipAssetType,
@@ -9,10 +7,9 @@ import {
 import { RootState } from '../../../../reducers';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
-import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './TokenDetails.styles';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   selectConversionRateBySymbol,
@@ -28,9 +25,7 @@ import {
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { formatMarketDetails } from '../utils/marketDetails';
@@ -80,7 +75,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -98,14 +93,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
   const multichainAssetRates =
     allMultichainAssetsRates[asset.address as CaipAssetId];
 
   const nonEvmMarketData = multichainAssetRates?.marketData;
-  ///: END:ONLY_INCLUDE_IF
 
   const evmMarketData = useSelector((state: RootState) =>
     !isNonEvmAsset && tokenContractAddress
@@ -248,16 +241,27 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
 
   const hasAddressAndDecimals =
     tokenDetails.contractAddress !== null && tokenDetails.tokenDecimal !== null;
+  const showTokenDetails =
+    asset.isETH || isNonEvmAsset || hasAddressAndDecimals;
+  const showMarketDetails = Boolean(marketData && marketDetails);
   return (
-    <View style={styles.tokenDetailsContainer}>
-      {(asset.isETH || isNonEvmAsset || hasAddressAndDecimals) && (
+    <View>
+      {showTokenDetails && (
         <TokenDetailsList
           tokenDetails={tokenDetails}
           onCopyAddress={onCopyAddress}
         />
       )}
-      {marketData && marketDetails && (
-        <MarketDetailsList marketDetails={marketDetails} />
+      {showMarketDetails && marketDetails && (
+        <View
+          style={
+            showTokenDetails
+              ? tw`-mx-4 mt-6 border-t border-muted px-4 pt-6`
+              : undefined
+          }
+        >
+          <MarketDetailsList marketDetails={marketDetails} />
+        </View>
       )}
     </View>
   );

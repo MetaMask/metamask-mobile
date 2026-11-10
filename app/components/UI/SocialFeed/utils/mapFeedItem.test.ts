@@ -48,6 +48,22 @@ describe('mapFeedItem', () => {
     });
   });
 
+  it('ids a spot item by its feed item id when the feed sends one', () => {
+    const coreItem = { ...mockSpotFeedItem(), feedItemId: 'comment-1' };
+
+    const result = mapFeedItem(coreItem);
+
+    expect(result?.id).toBe('comment-1');
+  });
+
+  it('ids a perp item by its feed item id when the feed sends one', () => {
+    const coreItem = { ...mockPerpFeedItem(), feedItemId: 'comment-1' };
+
+    const result = mapFeedItem(coreItem);
+
+    expect(result?.id).toBe('comment-1');
+  });
+
   it('converts the Unix-seconds timestamp to milliseconds', () => {
     const result = mapFeedItem(mockSpotFeedItem());
 
@@ -664,6 +680,22 @@ describe('mapFeedItem', () => {
     expect(result?.hasValueData).toBe(true);
     expect(result?.hasPnlData).toBe(true);
     expect(result?.valueLabel).toContain('12,500');
+  });
+
+  it('uses a closed USD PnL to determine the positive tone without a percent', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        isOpen: false,
+        pnlValueUsd: 12_500,
+        pnlPercent: undefined,
+        realizedPnl: 12_500,
+        boughtUsd: null,
+      }),
+    );
+
+    expect(result?.hasPnlData).toBe(false);
+    expect(result?.valueLabel).toContain('12,500');
+    expect(result?.isPnlPositive).toBe(true);
   });
 
   it('marks negative PnL as not positive', () => {

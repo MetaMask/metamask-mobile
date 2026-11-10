@@ -373,6 +373,48 @@ describe('OrdersTabs', () => {
     ).toHaveTextContent(/^Open orders \(2\)/);
   });
 
+  it('renders the total number of open orders in the tab title, including unloaded pages', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: {
+        ...chainOrdersTab([ETH_ORDER, ETH_ORDER_2]),
+        totalCount: 57,
+      },
+      history: chainOrdersTab([]),
+    });
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).toHaveTextContent(/^Open orders \(57\)/);
+  });
+
+  it('renders the open orders tab title without a count when the total is zero', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: { ...chainOrdersTab([ETH_ORDER]), totalCount: 0 },
+      history: chainOrdersTab([]),
+    });
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).not.toHaveTextContent('(');
+  });
+
+  it('renders the total as given while a network is selected', () => {
+    const { getByTestId } = renderOrdersTabs(
+      {
+        openOrders: {
+          ...chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER]),
+          totalCount: 9,
+        },
+        history: chainOrdersTab([]),
+      },
+      stateWithOrdersNetworkFilter(OPTIMISM_ORDER.chainId),
+    );
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).toHaveTextContent(/^Open orders \(9\)/);
+  });
+
   it('hides open orders that are not on the selected network', () => {
     const { getByTestId, queryByTestId } = renderOrdersTabs(
       {

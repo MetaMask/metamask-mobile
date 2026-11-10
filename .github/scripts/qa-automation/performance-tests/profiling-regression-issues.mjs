@@ -4,7 +4,7 @@
 /**
  * GitHub issues for scheduled Hermes CPU-profile findings.
  *
- * One finding (a scenario over 1.5× its recent median) becomes one issue that
+ * One finding (a scenario over 1.5× its recent average) becomes one issue that
  * follows `.github/ISSUE_TEMPLATE/bug-report.yml`, labelled for the owning
  * team. A finding that recurs while its issue is still open is recorded as a
  * comment on that issue instead of a new one. Several scenarios crossing in
@@ -328,7 +328,7 @@ function evidenceBlock({ exception, finding, frames }) {
   const lines = [
     `Run: ${exception.meta.runId}`,
     `Scenario: ${displayName(finding.scenario)} (${finding.projectName})`,
-    `JS work: ${formatMs(finding.jsWorkMs)} (${current}) vs ${formatMs(finding.baselineMedianJsWorkMs)} (${baseline}) recent median`,
+    `JS work: ${formatMs(finding.jsWorkMs)} (${current}) vs ${formatMs(finding.baselineMedianJsWorkMs)} (${baseline}) recent average`,
     `Ratio: ${finding.ratio}× across ${finding.baselineRuns} baseline runs (threshold ${exception.meta.thresholdRatio}×)`,
   ];
   const top = topFramesForScenario(frames, finding.scenario);
@@ -373,10 +373,10 @@ function proposalForFinding(aiText, finding, findingCount) {
   );
 }
 
-function additionalContextLines({ exception, currentReport, aiText }) {
+function additionalContextLines({ exception, currentReport, aiText, team }) {
   const lines = [
     `- Performance run: ${exception.meta.runUrl}`,
-    `- Baseline: median of the previous ${exception.meta.baselinePreviousRuns} scheduled runs (~6h and ~12h before), ${exception.meta.baselineRunCount} collected`,
+    `- Baseline: average of the complete, non-spiking runs among the previous ${exception.meta.baselinePreviousRuns} scheduled runs (~36h), ${exception.meta.baselineRunCount} collected; flagged only after two consecutive runs over the threshold`,
     `- Profiles in the run: ${exception.meta.profileCount} (${exception.meta.symbolicatedProfileCount} symbolicated)`,
   ];
   if (currentReport?.meta?.headSha) {
@@ -391,6 +391,11 @@ function additionalContextLines({ exception, currentReport, aiText }) {
     '- Source: Hermes CPU sampling only. "JS work" is sampled JS self time attributed from those samples (GC, idle and native waits excluded), not the wall-clock duration of the test.',
     '- Opened automatically by the `Analyze App Profiling` workflow after a scheduled performance run. Recurrences while this issue is open are added as comments instead of new issues.',
   );
+  if (team?.githubLabel) {
+    lines.push(
+      `- Team tag: \`${team.githubLabel}\`. That label routes this bug to the owning team's Jira project.`,
+    );
+  }
   if (aiText) {
     lines.push(
       '',
@@ -429,13 +434,13 @@ export function buildRegressionIssue({
   const body = [
     '### Describe the bug',
     '',
-    `The scheduled Hermes CPU-profile check flagged **${scenario}** in performance run [${exception.meta.runId}](${exception.meta.runUrl}): sampled JS work was **${current}** against a **${baseline}** median of the previous ${finding.baselineRuns} scheduled runs (**${finding.ratio}×**, threshold ${exception.meta.thresholdRatio}×).`,
+    `The scheduled Hermes CPU-profile check flagged **${scenario}** in performance run [${exception.meta.runId}](${exception.meta.runUrl}): sampled JS work was **${current}** against a **${baseline}** average of the previous ${finding.baselineRuns} clean scheduled runs (**${finding.ratio}×**, threshold ${exception.meta.thresholdRatio}×).`,
     '',
     ownerLine(team),
     '',
     '### Expected behavior',
     '',
-    `JS work for **${scenario}** stays within ${exception.meta.thresholdRatio}× of its recent median across scheduled runs on \`main\`.`,
+    `JS work for **${scenario}** stays within ${exception.meta.thresholdRatio}× of its recent average across scheduled runs on \`main\`.`,
     '',
     '### Screenshots/Recordings',
     '',
@@ -445,7 +450,7 @@ export function buildRegressionIssue({
     '',
     `1. Open the performance run [${exception.meta.runId}](${exception.meta.runUrl}) and download the Hermes CPU profiles for **${scenario}**.`,
     '2. Run Actions → Analyze App Profiling with `run_id` set to that run to rebuild the per-scenario report.',
-    `3. Compare the scenario's JS work with the previous two scheduled runs; it exceeds ${exception.meta.thresholdRatio}× their median.`,
+    `3. Compare the scenario's JS work with the average of the previous clean scheduled runs; it exceeds ${exception.meta.thresholdRatio}× that average in this run and the one before it.`,
     ...(top.length > 0
       ? [
           '4. Hot frames to start from:',
@@ -477,7 +482,7 @@ export function buildRegressionIssue({
     '',
     '### Device',
     '',
-    `BrowserStack device of the scheduled performance suite (project \`${finding.projectName}\`)`,
+    `TestMu device of the scheduled performance suite (project \`${finding.projectName}\`)`,
     '',
     '### Operating system',
     '',
@@ -485,7 +490,7 @@ export function buildRegressionIssue({
     '',
     '### Additional context',
     '',
-    ...additionalContextLines({ exception, currentReport, aiText }),
+    ...additionalContextLines({ exception, currentReport, aiText, team }),
     '',
     '### Severity',
     '',
@@ -526,7 +531,7 @@ export function buildRecurrenceComment({
     finding.baselineMedianJsWorkMs,
   ]);
   return [
-    `Flagged again in performance run [${exception.meta.runId}](${exception.meta.runUrl}): JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs).`,
+    `Flagged again in performance run [${exception.meta.runId}](${exception.meta.runUrl}): JS work ${current} vs ${baseline} recent average (${finding.ratio}× across ${finding.baselineRuns} baseline runs).`,
     ...(attached.length ? ['', ...attached] : []),
     '',
     encodeMarker(RECURRENCE_MARKER, {
@@ -956,5 +961,5 @@ export function weeklyIssueBrief(issue) {
     issue.jsWorkMs,
     issue.baselineMedianJsWorkMs,
   ]);
-  return `${issue.scenario} — JS work ${current} vs ${baseline} recent median (${issue.ratio}×) in run ${issue.runId} · owner ${issue.owner} · ${state}${recurrence}`;
+  return `${issue.scenario} — JS work ${current} vs ${baseline} recent baseline (${issue.ratio}×) in run ${issue.runId} · owner ${issue.owner} · ${state}${recurrence}`;
 }

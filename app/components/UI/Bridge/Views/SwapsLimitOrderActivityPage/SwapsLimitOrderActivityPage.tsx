@@ -7,18 +7,30 @@ import {
   parseCaipAssetType,
   type CaipAccountId,
   type CaipChainId,
+  type Hex,
 } from '@metamask/utils';
 import {
   Box,
   FontWeight,
-  HeaderStandard,
   SectionDivider,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  resetBridgeTokenInputs,
+  setDestToken,
+  setIsDestTokenManuallySet,
+  setLimitOrderCostTolerance,
+  setLimitOrderExpirationMinutes,
+  setSourceAmount,
+  setSourceToken,
+} from '../../../../../core/redux/slices/bridge';
+import { selectBridgeLimitOrderFeatureFlags } from '../../../../../selectors/bridge/featureFlags';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import type { TokenAmount } from '../../../../../util/activity-adapters';
 import { formatTimestampToDateTime } from '../../../../../util/date';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -44,8 +56,13 @@ import { TokenAmountValue } from '../../components/LimitOrderConfirmationModal/T
 import { getUsdTriggerPrice } from '../../components/OpenLimitOrderDetailsModal/utils';
 import { useLimitOrder } from '../../hooks/useLimitOrder';
 import { useTokenUsdRate } from '../../hooks/useTokenFiatRate';
+import {
+  LIMIT_ORDER_DIRECTION,
+  SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+} from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
 import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
+import { getLimitOrderDuplicateParams } from '../../utils/limitOrders/getLimitOrderDuplicateParams';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
 import { SwapsLimitOrderActivityPageSelectorsIDs } from './SwapsLimitOrderActivityPage.testIds';
 import type { SwapsLimitOrderActivityPageRouteParams } from './SwapsLimitOrderActivityPage.types';
@@ -56,6 +73,9 @@ import {
   getLimitOrderActivityTransaction,
   getLimitOrderActivityUsdValue,
 } from './SwapsLimitOrderActivityPage.utils';
+import { useDispatch, useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 function LimitOrderFeesAndTotal({
   chainId,
@@ -128,13 +148,14 @@ function LimitOrderFeesAndTotal({
 }
 
 function SwapsLimitOrderActivityPage() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<SwapsLimitOrderActivityPageRouteParams>();
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
   const chainId = parseCaipAssetType(order.src.asset.assetId).chainId;
   const networkName = useActivityNetworkName(chainId);
-  const { triggerPrice, triggerToken } = getUsdTriggerPrice(
+  const { triggerPrice, triggerToken, triggerDirection } = getUsdTriggerPrice(
     order,
     sourceToken,
     destinationToken,
@@ -175,6 +196,52 @@ function SwapsLimitOrderActivityPage() {
     navigation.goBack();
   }, [navigation]);
 
+  const dispatch = useDispatch();
+  const limitOrderFeatureFlags = useSelector(
+    selectBridgeLimitOrderFeatureFlags,
+  );
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+
+  // The Limit tab stays mounted under this page and only reconciles its
+  // inputs when it's first shown, so the order's pair is checked here and an
+  // unsupported one leaves the tab as it was.
+  const handleDuplicateOrder = useCallback(() => {
+    const duplicateParams = getLimitOrderDuplicateParams({
+      order,
+      enabledChainIds: limitOrderFeatureFlags?.enabledChainIds ?? [],
+    });
+    const isNetworkAdded = Boolean(
+      duplicateParams &&
+        evmNetworkConfigurations[duplicateParams.sourceToken.chainId as Hex],
+    );
+
+    if (duplicateParams && isNetworkAdded) {
+      Engine.context.BridgeController?.resetState?.();
+      dispatch(resetBridgeTokenInputs());
+      dispatch(setSourceToken(duplicateParams.sourceToken));
+      dispatch(setDestToken(duplicateParams.destToken));
+      dispatch(setIsDestTokenManuallySet(true));
+      dispatch(setSourceAmount(duplicateParams.sourceAmount));
+      dispatch(
+        setLimitOrderExpirationMinutes(
+          duplicateParams.expirationMinutes ??
+            SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+        ),
+      );
+      dispatch(setLimitOrderCostTolerance(duplicateParams.costTolerance));
+    }
+
+    navigation.goBack();
+  }, [
+    dispatch,
+    evmNetworkConfigurations,
+    limitOrderFeatureFlags?.enabledChainIds,
+    navigation,
+    order,
+  ]);
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -182,7 +249,9 @@ function SwapsLimitOrderActivityPage() {
       testID={SwapsLimitOrderActivityPageSelectorsIDs.SCREEN}
     >
       <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           title={getLimitOrderActivityTitle(
             order.state,
@@ -211,6 +280,7 @@ function SwapsLimitOrderActivityPage() {
                 // An order that never filled sent nothing, which reads as
                 // `0 ETH` rather than an outgoing `-0 ETH`.
                 signZeroAmounts={false}
+                useSubscriptNotation
               />
             }
             metadata={
@@ -263,6 +333,12 @@ function SwapsLimitOrderActivityPage() {
                     value={
                       <TokenAmountValue
                         amount={triggerPrice}
+                        prefix={
+                          triggerDirection &&
+                          strings(
+                            LIMIT_ORDER_DIRECTION[triggerDirection].signKey,
+                          )
+                        }
                         token={triggerToken}
                         fontWeight={FontWeight.Medium}
                       />
@@ -310,8 +386,8 @@ function SwapsLimitOrderActivityPage() {
                 />
               ) : (
                 <ActivityDetailsDoItAgainButton
-                  label={strings('bridge.limit.create_new_order')}
-                  onPress={handleBack}
+                  label={strings('bridge.limit.duplicate_order')}
+                  onPress={handleDuplicateOrder}
                 />
               )
             }

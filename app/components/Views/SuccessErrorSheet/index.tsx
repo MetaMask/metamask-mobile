@@ -90,7 +90,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       testID={SuccessErrorSheetSelectorsIDs.SHEET}
     >
       <HeaderStandard title="" {...headerCloseProps} />
-      <Box twClassName="px-4 pb-6 gap-2">
+      <Box twClassName="px-4 pb-6 gap-4">
         <TitleAlert
           severity={
             type === 'success'

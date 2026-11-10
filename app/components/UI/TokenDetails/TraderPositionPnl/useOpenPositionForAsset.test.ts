@@ -94,7 +94,21 @@ describe('useOpenPositionForAsset', () => {
   it('retries with the wallet when the profile id is not found', async () => {
     mockGetOpenPosition
       .mockRejectedValueOnce(new TraderPositionHttpError(404))
-      .mockResolvedValueOnce(null);
+      .mockResolvedValueOnce({
+        pnl: {
+          positionAmount: 1,
+          isOpen: true,
+          boughtUsd: 10,
+          soldUsd: 0,
+          realizedPnl: 0,
+          costBasis: 10,
+          currentValueUSD: 12,
+          pnlValueUsd: 2,
+          pnlPercent: 20,
+          pnlStatus: 'ready',
+        },
+        position: null,
+      });
     renderHook(() =>
       useOpenPositionForAsset(
         'dfab10bf-9412-40fe-b018-96d28376d4d7',

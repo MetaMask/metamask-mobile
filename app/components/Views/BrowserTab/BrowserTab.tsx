@@ -73,6 +73,7 @@ import {
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigateToPerpsHome } from '../../UI/Perps/utils/perpsModeSwitch';
+import { usePredictEntryActions } from '../../UI/PredictNext';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import {
@@ -138,6 +139,7 @@ import UrlAutocomplete, {
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import { RequestSourceFlow } from '@metamask/phishing-controller';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
 import {
@@ -178,6 +180,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     'use no memo';
     const navigation = useNavigation();
     const navigateToPerpsHome = useNavigateToPerpsHome();
+    const { openPredict } = usePredictEntryActions();
     const { styles } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);
     const [forwardEnabled, setForwardEnabled] = useState(false);
@@ -386,7 +389,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return true;
         }
 
-        const testResult = await getPhishingTestResultAsync(urlToCheck);
+        const testResult = await getPhishingTestResultAsync(
+          urlToCheck,
+          RequestSourceFlow.Browser,
+        );
         return !testResult?.result;
       },
       [whitelist],
@@ -1237,7 +1243,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             ) {
               return;
             }
-            backgroundBridgeRef.current?.onMessage(dataParsed);
+
+            // Provider messages use the frame URL from the WebView event.
+            const frameUrl = nativeEvent.url;
+            if (!isHttpPageUrl(frameUrl)) {
+              return;
+            }
+
+            backgroundBridgeRef.current?.onMessage({
+              ...dataParsed,
+              origin: frameUrl,
+            });
             return;
           }
         } catch (e: unknown) {
@@ -1528,13 +1544,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           case UrlAutocompleteCategory.Predictions:
             // Set flag to prevent onBlur from hiding autocomplete
             isNavigatingToDetailRef.current = true;
-            navigation.navigate(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MARKET_DETAILS,
-              params: {
-                marketId: item.id,
-                providerId: item.providerId,
-              },
-            });
+            if (!openPredict(item.intent)) {
+              // The Active Venue cannot open this market: nothing navigated.
+              isNavigatingToDetailRef.current = false;
+            }
             break;
 
           case UrlAutocompleteCategory.Sites:
@@ -1545,7 +1558,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             break;
         }
       },
-      [onSubmitEditing, navigation],
+      [onSubmitEditing, navigation, openPredict],
     );
 
     /**
@@ -1576,7 +1589,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const handleClosePress = useCallback(() => {
       if (fromExploreSearch) {
-        navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
+        // ExploreSearch is the previous screen on the root stack; goBack keeps
+        // the user on Search instead of dismissing it to Home or Explore.
+        navigation.goBack();
       } else if (fromPerps) {
         navigateToPerpsHome();
       } else if (fromBenefit) {
@@ -1755,12 +1770,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return;
         }
 
-        // JS `location.href` can skip onLoadEnd on both platforms. Commit when
-        // the load finishes at a new origin so the URL bar can catch up.
-        if (!loading && url) {
+        // Android reports History API path changes (pushState / replaceState)
+        // through onNavigationStateChange and does not fire onLoadEnd. Commit
+        // a finished navigation when the URL changed, including same-origin
+        // SPA routes. Cross-origin location.href updates that skip onLoadEnd
+        // still commit here.
+        if (!loading && url && url !== resolvedUrlRef.current) {
           const incomingOrigin = new URLParse(url).origin;
-          const activeOrigin = new URLParse(resolvedUrlRef.current).origin;
-          if (incomingOrigin && incomingOrigin !== activeOrigin) {
+          if (incomingOrigin) {
             handleSuccessfulPageResolution({
               title: title ?? titleRef.current,
               url,

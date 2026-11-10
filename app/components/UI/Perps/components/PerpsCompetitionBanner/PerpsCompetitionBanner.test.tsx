@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsCompetitionBanner from './PerpsCompetitionBanner';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 import { selectPerpsCompetitionBannerEnabledFlag } from '../../selectors/featureFlags';
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { perpsCompetitionBannerDismissedKey } from '../../../../../constants/storage';
@@ -25,6 +26,20 @@ const COMPETITION_BANNER_BUTTON = {
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockTrack = jest.fn();
+
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -445,6 +460,34 @@ describe('PerpsCompetitionBanner', () => {
 
     await waitFor(() => {
       expect(mockTrack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('glass', () => {
+    it('keeps the opaque card by default', async () => {
+      setupSelector(true, [buildCampaign()]);
+
+      const { getByTestId, queryByTestId } = render(<PerpsCompetitionBanner />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('perps-competition-banner-surface').props.isInteractive,
+        ).toBeUndefined();
+      });
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('draws the card on an interactive glass surface', async () => {
+      setupSelector(true, [buildCampaign()]);
+
+      const { getByTestId } = render(<PerpsCompetitionBanner isGlass />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('perps-competition-banner-surface').props.isInteractive,
+        ).toBe(true);
+      });
+      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
     });
   });
 });

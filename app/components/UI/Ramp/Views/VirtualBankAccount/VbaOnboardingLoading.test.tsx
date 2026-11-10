@@ -10,6 +10,8 @@ import {
   resolveVbaOnboarding,
 } from './hooks/useVbaOnboardingRouting';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from './vbaOnboardingSnapshot';
+import { endVbaCufJourney, startVbaCufJourney } from './vbaCufTrace';
+import { VBA_CUF_END_REASON } from './vbaCufTags';
 
 const mockGoBack = jest.fn();
 
@@ -24,6 +26,17 @@ jest.mock('./hooks/useVbaOnboardingRouting', () => ({
   resolveVbaOnboarding: jest.fn(),
   navigateToVbaOnboardingDestination: jest.fn(),
 }));
+jest.mock('../../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotion: () => false,
+}));
+
+jest.mock('./vbaCufTrace', () => ({
+  endVbaCufJourney: jest.fn(),
+  startVbaCufJourney: jest.fn(),
+}));
+
+const mockEndVbaCufJourney = jest.mocked(endVbaCufJourney);
+const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -49,7 +62,7 @@ describe('VbaOnboardingLoading', () => {
     mockResolve.mockReturnValue(pending());
   });
 
-  it('shows a spinner and back button while status is loading', () => {
+  it('shows the fox loader and back button while status is loading', () => {
     const { getByTestId } = renderWithProvider(<VbaOnboardingLoading />);
 
     expect(
@@ -59,6 +72,20 @@ describe('VbaOnboardingLoading', () => {
     fireEvent.press(getByTestId(VbaOnboardingLoadingSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
+  });
+
+  it('hydrates with the caller-provided source', () => {
+    renderWithProvider(
+      <VbaOnboardingLoading
+        route={{ params: { source: 'vba-home-card-get-started' } }}
+      />,
+    );
+
+    expect(mockResolve).toHaveBeenCalledWith('vba-home-card-get-started');
   });
 
   it('opens vendor terms when hydrate returns an empty snapshot', async () => {
@@ -132,6 +159,7 @@ describe('VbaOnboardingLoading', () => {
     shouldFail = false;
     fireEvent.press(getByTestId(VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON));
 
+    expect(mockStartVbaCufJourney).toHaveBeenCalledWith('add_money_sheet');
     await waitFor(() => {
       expect(mockNavigateToDestination).toHaveBeenCalledWith(
         expect.anything(),

@@ -10,11 +10,16 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import type { TabItem } from '../../../../component-library/components-temp/Tabs';
 import TokenDetailsV1TabBar, {
   TOKEN_DETAILS_V1_TABS,
-  TOKEN_DETAILS_V1_TAB_BAR_TEST_ID,
+  isTokenDetailsV1TabBarPinned,
   resolveSwipeTargetTab,
+  usePinnedTokenDetailsV1TabBar,
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
 } from './TokenDetailsV1TabBar';
+import { makeMutable } from 'react-native-reanimated';
+import { TokenDetailsIds } from '../testIds';
+
+const TOKEN_DETAILS_V1_TAB_BAR_TEST_ID = TokenDetailsIds.tabBar;
 
 jest.mock('../../../../component-library/components-temp/Tabs', () => ({
   __esModule: true,
@@ -60,17 +65,23 @@ const renderTabBar = (
   );
 
 describe('TokenDetailsV1TabBar', () => {
-  it('renders the Feed, Overview and Security tabs in order', () => {
+  it('renders the Feed, Holders, Overview and Security tabs in order', () => {
     const { getAllByText, getByTestId } = renderTabBar('overview');
 
     expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toBeTruthy();
     expect(
-      getAllByText(/^(active|inactive):(overview|security|feed)$/).map(
+      getAllByText(/^(active|inactive):(overview|security|feed|holders)$/).map(
         (node) => node.props.children,
       ),
-    ).toStrictEqual(['inactive:feed', 'active:overview', 'inactive:security']);
+    ).toStrictEqual([
+      'inactive:feed',
+      'inactive:holders',
+      'active:overview',
+      'inactive:security',
+    ]);
     expect(TOKEN_DETAILS_V1_TABS).toStrictEqual([
       'feed',
+      'holders',
       'overview',
       'security',
     ]);
@@ -123,6 +134,47 @@ describe('TokenDetailsV1TabBar', () => {
     expect(onTabPress).toHaveBeenCalledWith('security');
   });
 
+  it('reserves the floating header inset when provided', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1TabBar
+        activeTab="overview"
+        onTabPress={jest.fn()}
+        topInset={120}
+      />,
+    );
+
+    expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toHaveStyle({
+      paddingTop: 120,
+    });
+  });
+
+  it('reserves no inset by default', () => {
+    const { getByTestId } = renderTabBar('overview');
+
+    expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).not.toHaveStyle({
+      paddingTop: 120,
+    });
+  });
+
+  it('gives the docked copy its own test IDs so it never collides with the in-flow bar', () => {
+    const onTabPress = jest.fn();
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1TabBar
+        activeTab="overview"
+        onTabPress={onTabPress}
+        isPinnedCopy
+      />,
+    );
+
+    expect(getByTestId(TokenDetailsIds.pinnedTabBar)).toBeTruthy();
+    expect(queryByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toBeNull();
+    expect(queryByTestId(TokenDetailsIds.tab('security'))).toBeNull();
+
+    fireEvent.press(getByTestId(TokenDetailsIds.pinnedTab('security')));
+
+    expect(onTabPress).toHaveBeenCalledWith('security');
+  });
+
   it('forwards onLayout to the tab bar container', () => {
     const onLayout = jest.fn();
     const { getByTestId } = render(
@@ -143,6 +195,78 @@ describe('TokenDetailsV1TabBar', () => {
         nativeEvent: { layout: { y: 350 } },
       }),
     );
+  });
+});
+
+describe('isTokenDetailsV1TabBarPinned', () => {
+  it('is pinned once the scroll reaches the tab bar offset', () => {
+    expect(isTokenDetailsV1TabBarPinned(349, 350)).toBe(false);
+    expect(isTokenDetailsV1TabBarPinned(350, 350)).toBe(true);
+    expect(isTokenDetailsV1TabBarPinned(900, 350)).toBe(true);
+  });
+
+  it('is never pinned before the tab bar has laid out', () => {
+    expect(isTokenDetailsV1TabBarPinned(10_000, null)).toBe(false);
+  });
+});
+
+describe('usePinnedTokenDetailsV1TabBar', () => {
+  const renderPinnedHook = () =>
+    renderHook(() => usePinnedTokenDetailsV1TabBar(makeMutable(0)));
+
+  it('lets only the in-flow bar take taps and be announced before docking', () => {
+    const { result } = renderPinnedHook();
+
+    act(() => {
+      result.current.onTabBarOffsetY(400);
+      result.current.onScrollOffset(399);
+    });
+
+    expect(result.current.isPinned).toBe(false);
+    expect(result.current.inFlowProps).toStrictEqual({
+      pointerEvents: 'auto',
+      importantForAccessibility: 'auto',
+      accessibilityElementsHidden: false,
+    });
+    expect(result.current.pinnedProps).toStrictEqual({
+      pointerEvents: 'none',
+      importantForAccessibility: 'no-hide-descendants',
+      accessibilityElementsHidden: true,
+    });
+  });
+
+  it('hands taps and announcements to the docked copy once scrolled past the bar', () => {
+    const { result } = renderPinnedHook();
+
+    act(() => {
+      result.current.onTabBarOffsetY(400);
+      result.current.onScrollOffset(400);
+    });
+
+    expect(result.current.isPinned).toBe(true);
+    expect(result.current.inFlowProps.pointerEvents).toBe('none');
+    expect(result.current.inFlowProps.accessibilityElementsHidden).toBe(true);
+    expect(result.current.pinnedProps.pointerEvents).toBe('auto');
+    expect(result.current.pinnedProps.accessibilityElementsHidden).toBe(false);
+  });
+
+  it('re-evaluates when the tab bar moves under a fixed scroll offset', () => {
+    const { result } = renderPinnedHook();
+
+    act(() => {
+      result.current.onScrollOffset(500);
+    });
+    expect(result.current.isPinned).toBe(false);
+
+    act(() => {
+      result.current.onTabBarOffsetY(400);
+    });
+    expect(result.current.isPinned).toBe(true);
+
+    act(() => {
+      result.current.onTabBarOffsetY(600);
+    });
+    expect(result.current.isPinned).toBe(false);
   });
 });
 
@@ -311,32 +435,20 @@ describe('useTokenDetailsV1ScrollStabilization', () => {
 
     expect(onScroll).toHaveBeenCalledWith(scrollEvent);
   });
-
-  it('updates tab content minHeight based on the scroll view layout height', () => {
-    const { result } = renderHook(() => useTokenDetailsV1ScrollStabilization());
-
-    act(() => {
-      result.current.handleScrollViewLayout({
-        nativeEvent: { layout: { height: 900, y: 0, x: 0, width: 375 } },
-      } as LayoutChangeEvent);
-    });
-
-    expect(
-      result.current.tabContentContainerStyle.minHeight,
-    ).toBeGreaterThanOrEqual(900);
-  });
 });
 
 describe('resolveSwipeTargetTab', () => {
   it('swipes to the neighbouring tab when translation exceeds threshold', () => {
-    expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
+    expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('holders');
+    expect(resolveSwipeTargetTab('holders', -120, 0)).toBe('overview');
     expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
-    expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
+    expect(resolveSwipeTargetTab('holders', 120, 0)).toBe('feed');
+    expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('holders');
     expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
   });
 
   it('swipes to the neighbouring tab on a fast fling even with small travel', () => {
-    expect(resolveSwipeTargetTab('feed', -10, -600)).toBe('overview');
+    expect(resolveSwipeTargetTab('feed', -10, -600)).toBe('holders');
   });
 
   it('ignores indecisive gestures below the translation and velocity thresholds', () => {

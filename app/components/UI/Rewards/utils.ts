@@ -13,7 +13,11 @@ import type {
   NavigationProp,
   NavigatorScreenParams,
 } from '@react-navigation/native';
-import { isSolanaAccount } from '../../../core/Multichain/utils';
+import {
+  isBtcAccount,
+  isSolanaAccount,
+  isTronAccount,
+} from '../../../core/Multichain/utils';
 import { getAddressAccountType } from '../../../util/address';
 import Routes from '../../../constants/navigation/Routes';
 import type { RewardsStackParamList } from './types/navigation';
@@ -104,9 +108,6 @@ export const convertInternalAccountToCaipAccountId = (
 // Metrics related utils
 export enum RewardsMetricsButtons {
   WAYS_TO_EARN = 'ways_to_earn',
-  COPY_REFERRAL_CODE = 'copy_referral_code',
-  COPY_REFERRAL_LINK = 'copy_referral_link',
-  SHARE_REFERRAL_LINK = 'share_referral_link',
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
   VISIT_APP_STORE = 'visit_app_store',
@@ -121,11 +122,16 @@ export const deriveAccountMetricProps = (account?: InternalAccount) => {
     };
   }
 
-  const scope = isEvmAccountType(account.type)
-    ? 'evm'
-    : isSolanaAccount(account)
-      ? 'solana'
-      : account.type; // Fallback to account.type for other types
+  let scope: string = account.type;
+  if (isEvmAccountType(account.type)) {
+    scope = 'evm';
+  } else if (isSolanaAccount(account)) {
+    scope = 'solana';
+  } else if (isBtcAccount(account)) {
+    scope = 'bitcoin';
+  } else if (isTronAccount(account)) {
+    scope = 'tron';
+  }
   let type = account.metadata?.keyring?.type;
 
   try {
@@ -168,7 +174,8 @@ export const getActiveRouteNameFromNavigationState = (
  * Navigates into the rewards sub-pages stack (`RewardsNavigator`, registered at
  * the root `MainNavigator` level under `Routes.REWARDS_FLOW`).
  *
- * The rewards dashboard lives in the Rewards tab (`RewardsHome`), separate from
+ * The rewards dashboard lives in `RewardsHome` (`Routes.REWARDS_VIEW` on the
+ * root stack, and a Home tab only in the control nav arm), separate from
  * `RewardsNavigator`. A plain `navigation.navigate(<subPage>)` from the dashboard
  * cannot resolve those routes because they live in the not-yet-mounted
  * `RewardsNavigator`, so this uses React Navigation nested navigation to target
@@ -197,13 +204,14 @@ type RewardsFlowExitNavigation = Pick<
 >;
 
 /**
- * Leaves the pushed `REWARDS_FLOW` stack and returns the user to the Rewards
- * dashboard in the tab.
+ * Leaves the pushed `REWARDS_FLOW` stack and returns the user to Rewards home.
  *
  * VIP screens previously used `StackActions.replace(Routes.REWARDS_DASHBOARD)`,
- * but the dashboard lives in the Rewards tab — not inside `RewardsNavigator` —
- * so that replace could not be handled. Popping the flow (or falling back to the
- * Rewards tab) keeps navigation consistent with the native-stack migration.
+ * but that dashboard lives in `RewardsHome`, not inside `RewardsNavigator`, so
+ * that replace could not be handled. Pop the flow when something is under it.
+ * Otherwise open `Routes.REWARDS_VIEW` directly: the control nav arm still has
+ * a Rewards tab and handles that name, and the other arms only register it on
+ * the root stack.
  *
  * @param navigation - The navigation object from `useNavigation()`.
  */
@@ -215,21 +223,7 @@ export const exitRewardsFlow = (
     return;
   }
 
-  navigation.navigate(Routes.HOME_TABS, {
-    screen: Routes.REWARDS_VIEW,
-  });
+  navigation.navigate(Routes.REWARDS_VIEW);
 };
 
 export { getBetaSupportUrl } from '../../../util/support/betaSupportUrl';
-
-// Referral URL builder
-export const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';
-export const REFERRAL_BASE_URL = `https://${REFERRAL_LINK_PATH}`;
-
-/**
- * Builds a referral URL from a referral code
- * @param referralCode - The referral code to build the URL from
- * @returns The full referral URL
- */
-export const buildReferralUrl = (referralCode: string): string =>
-  `${REFERRAL_BASE_URL}${referralCode}`;

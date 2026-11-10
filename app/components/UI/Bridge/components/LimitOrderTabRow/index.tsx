@@ -1,10 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Tag,
-  TagSeverity,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -14,7 +10,9 @@ import {
 } from '../../api/limitOrders/getLimitOrders/types';
 import {
   HISTORY_LIMIT_ORDER_STATES,
+  LIMIT_ORDER_DIRECTION,
   OPEN_LIMIT_ORDER_STATES,
+  type LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
 import OpenOrderRow from '../OpenOrderRow';
 import { getUsdTriggerPrice } from '../OpenLimitOrderDetailsModal/utils';
@@ -27,6 +25,17 @@ import {
   formatLimitOrderTimeLeft,
 } from '../../utils/limitOrders/formatLimitOrderDuration';
 
+function withTriggerSign(
+  triggerPrice: string,
+  triggerDirection: LimitOrderPriceComparisonDirection | undefined,
+) {
+  if (!triggerDirection) {
+    return triggerPrice;
+  }
+
+  return `${strings(LIMIT_ORDER_DIRECTION[triggerDirection].signKey)} ${triggerPrice}`;
+}
+
 function getLimitOrderRowSlots(
   order: LimitOrder,
   sourceToken: BridgeToken,
@@ -36,11 +45,12 @@ function getLimitOrderRowSlots(
   const destSymbol = destinationToken.symbol;
   // `src_price` / `dest_price` were placed in fiat (USD). A `ratio` was placed
   // as an amount of the counter token. The row shows that same denomination.
-  const { triggerPrice, triggerToken } = getUsdTriggerPrice(
+  const { triggerPrice, triggerToken, triggerDirection } = getUsdTriggerPrice(
     order,
     sourceToken,
     destinationToken,
   );
+  const signedTriggerPrice = withTriggerSign(triggerPrice, triggerDirection);
   const limitPriceLabel = strings('bridge.limit.limit_price', {
     symbol: triggerToken.symbol,
   });
@@ -62,11 +72,6 @@ function getLimitOrderRowSlots(
           order.src.asset.decimals,
         )} ${sourceSymbol}`,
         primaryColor: TextColor.SuccessDefault,
-        titleEndAccessory: (
-          <Tag severity={TagSeverity.Success}>
-            {strings('bridge.limit.filled')}
-          </Tag>
-        ),
       };
     case LimitOrderState.Expired:
       return {
@@ -76,39 +81,34 @@ function getLimitOrderRowSlots(
             order.timingData.expiresAt,
           ),
         }),
-        primaryValue: triggerPrice,
+        primaryValue: signedTriggerPrice,
         secondaryValue: limitPriceLabel,
-        titleEndAccessory: (
-          <Tag severity={TagSeverity.Neutral}>
-            {strings('bridge.limit.expired')}
-          </Tag>
-        ),
+        titleColor: TextColor.TextAlternative,
+        primaryColor: TextColor.TextAlternative,
       };
     case LimitOrderState.Cancelled:
       return {
         subtitle: strings('bridge.limit.canceled_at', {
-          date: formatLimitOrderDate(order.timingData.closedAt),
+          // The API leaves `closedAt` unset on orders it cancels itself, e.g.
+          // for insufficient funds at execution.
+          date: formatLimitOrderDate(
+            order.timingData.closedAt ?? order.timingData.expiresAt,
+          ),
         }),
-        primaryValue: triggerPrice,
+        primaryValue: signedTriggerPrice,
         secondaryValue: limitPriceLabel,
-        titleEndAccessory: (
-          <Tag severity={TagSeverity.Neutral}>
-            {strings('bridge.limit.canceled')}
-          </Tag>
-        ),
+        titleColor: TextColor.TextAlternative,
+        primaryColor: TextColor.TextAlternative,
       };
     case LimitOrderState.Failed:
       return {
         subtitle: strings('bridge.limit.failed_at', {
           date: formatLimitOrderDate(order.timingData.closedAt),
         }),
-        primaryValue: triggerPrice,
+        primaryValue: signedTriggerPrice,
         secondaryValue: limitPriceLabel,
-        titleEndAccessory: (
-          <Tag severity={TagSeverity.Danger}>
-            {strings('bridge.limit.failed')}
-          </Tag>
-        ),
+        titleColor: TextColor.ErrorDefault,
+        primaryColor: TextColor.TextAlternative,
       };
     case LimitOrderState.Open:
     default:
@@ -116,7 +116,7 @@ function getLimitOrderRowSlots(
         subtitle: strings('bridge.limit.expiry', {
           timeLeft: formatLimitOrderTimeLeft(order.timingData.expiresAt),
         }),
-        primaryValue: triggerPrice,
+        primaryValue: signedTriggerPrice,
         secondaryValue: limitPriceLabel,
       };
   }
@@ -161,7 +161,10 @@ export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
   }, [navigation, order]);
 
   const handleHistoryOrderPress = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY, { order });
+    navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+      params: { order },
+    });
   }, [navigation, order]);
 
   return (

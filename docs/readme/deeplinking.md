@@ -173,9 +173,9 @@ Unless the action is whitelisted or bypassed, users see an interstitial:
 
 **Modal Bypass Conditions:**
 
-- Action is in `WHITELISTED_ACTIONS` (WC, enable-card-button)
-- URL starts with `interstitialWhitelistUrls` (e.g., perps-asset links)
-- Link is private AND originated from in-app sources (carousel, notification, qr-code, in-app-browser)
+- Action is in `WHITELISTED_ACTIONS` (see [Security Considerations](#4-action-whitelisting); includes `HOME`, `WC`, `SWAP`, and others)
+- URL starts with `interstitialWhitelistUrls` (currently empty; if configured, these bypass regardless of action)
+- Link is PUBLIC or PRIVATE AND originated from a trusted in-app source (carousel, notification, push notification, Braze, perps outreach). QR-code and in-app-browser origins are **not** trusted.
 
 ### 5. Action Routing
 
@@ -287,6 +287,120 @@ Contract:
 ```
 https://link.metamask.io/swap?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174&amount=1000000
 ```
+
+Missing or unsupported `tab` values open the Market tab.
+
+#### Limit Order Link
+
+Use the existing `swap` action with `tab=limit`:
+
+```
+https://link.metamask.io/swap?tab=limit&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000&expiresInMinutes=10080&priceTolerance=0.5
+```
+
+- `from`, `to`, and `amount` are optional and use the same CAIP-19 and atomic-unit formats as market swap links.
+- `expiresInMinutes` optionally selects an existing expiration preset: `10`, `60`, `1440`, `4320`, `10080`, or `43200`.
+- `priceTolerance` optionally sets a percentage greater than `0` and less than `100`, with at most two decimal places. Do not include the `%` sign.
+- Missing or invalid Limit Order settings use the existing defaults: 60 minutes and 2% price tolerance.
+- The limit price initializes from the live market price.
+- Limit Orders require an eligible same-chain pair. Unsupported or cross-chain inputs are replaced with a supported pair, and an amount that no longer applies is cleared.
+- If the Limit Orders tab is unavailable, the link falls back to the Market tab.
+
+#### Recurring Buy Link
+
+Use the existing `swap` action with `tab=recurring`:
+
+```
+https://link.metamask.io/swap?tab=recurring&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000&every=2&unit=week&repeatCount=8
+```
+
+- `from`, `to`, and `amount` are optional and use the same CAIP-19 and atomic-unit formats as market swap links.
+- `every` and `unit` form an optional interval pair. If either is missing or invalid, the interval uses the default of every 1 hour.
+- `unit` accepts `minute`, `hour`, `day`, `week`, or `month`.
+- `every` must be a positive integer. Its maximum is 60 minutes, 24 hours, 7 days, 4 weeks, or 6 months, depending on `unit`.
+- `repeatCount` is optional. A missing or invalid value uses the default of 10 repeats.
+- A valid `repeatCount` is preserved when the interval pair falls back to its default.
+- The complete schedule cannot exceed 180 days. A month is treated as 30 days for this validation.
+- If the schedule exceeds 180 days after applying the supplied or default repeat count, the complete default schedule is used: every 1 hour, repeated 10 times.
+- Recurring Buys require an eligible same-chain pair. Unsupported or cross-chain inputs are replaced with a supported pair, and an amount that no longer applies is cleared.
+- If the Recurring Buy tab is unavailable, the link falls back to the Market tab.
+
+#### Money account deposit link
+
+```
+https://link.metamask.io/money-account-deposit
+metamask://money-account-deposit
+https://link.metamask.io/money-account-deposit?tokenType=atoken
+metamask://money-account-deposit?tokenType=atoken
+```
+
+Both forms enter the same React bridge route. The bridge checks the Money
+feature flag and geo eligibility before entering the Money account deposit flow.
+The action bypasses the deeplink interstitial. When Money is unavailable or the
+user is geo-blocked, the existing Money deeplink messaging is shown. Eligible
+users who have not seen Money onboarding are sent through onboarding first,
+then continue to the deposit confirmation. Users who have already seen
+onboarding open the editable deposit confirmation directly.
+
+`tokenType` is optional. `tokenType=atoken` prefers pre-selecting positive-balance Aave
+output token with the highest fiat balance as the deposit payment token. If the
+user has no positive-balance aToken, the link opens the normal deposit flow
+without a preferred token. Missing and unsupported `tokenType` values also keep
+the normal deposit behavior, allowing new token types to be added without
+changing the route.
+
+#### Money referral code (`ref`)
+
+```
+https://link.metamask.io/home?ref=KOL123
+https://link.metamask.io/rewards?ref=KOL123
+```
+
+Any universal link can carry a Money referral code in `ref`. The link still
+opens its own destination; the code never changes routing.
+
+- The code is read only after the interstitial resolves in favor of the link
+  (or the action skips it). A rejected link stores nothing.
+- The code is trimmed and uppercased. Codes that are not 3–24 alphanumeric
+  characters are discarded, matching the invite sheet's validation.
+- The code is kept for the current app session only, in
+  `rewardsMoney.pendingReferralCode`. A newer link replaces it. A code the
+  user already answered this session (`answeredReferralCode`) is not stored
+  again, so the same link does not prompt twice.
+- New users keep the link pending through onboarding. It is parsed once
+  onboarding hands over to `MainNavigator` (`parseDeeplinkAfterOnboarding`),
+  however long the remaining onboarding steps take (including an auto-lock in
+  between), so main-stack destinations such as Swap still open. SDK and
+  WalletConnect links are excluded: they only need an unlocked keychain and
+  keep the usual ready timeout.
+- If the wallet is reset before `MainNavigator` mounts — including the
+  social-login or SRP creation retry buttons, which call `deleteWallet()` — the
+  stale destination is dropped, but the validated `ref` is kept so the invite
+  can still be offered for the new wallet. Only the acquisition code survives,
+  not the old swap/dapp/home destination.
+- The link's destination, the invite sheet, and the push notification
+  pre-prompt follow each other, never overlapping:
+  1. While `handleDeeplinkSaga` parses a link carrying `ref`, it sets
+     `rewardsMoney.isReferralLinkPending` (session only). The flag covers the
+     wait for `MainNavigator` and the interstitial: it is cleared once the
+     deeplink pipeline calls `onHandled`, right after the interstitial is
+     answered, or when the parse rejects the link, fails, or is cancelled.
+  2. Once the flag is off, `PendingMoneyReferralInvite` reads referral me and
+     opens the Money invite sheet (`RewardsMoneyInviteSheet`) over the
+     destination, prefilled with the code. Users who are already a referrer
+     or referee, users in an excluded region, failed reads, and reads slower
+     than 5 seconds drop the code without a prompt. With basic functionality
+     or Rewards Money off, the code is dropped.
+  3. The push notification pre-prompt waits while the flag is on or a code is
+     pending. Closing the sheet without accepting clears the code; after an
+     accept, the accepted splash clears it when it closes.
+- No referral is created from the link. Only accepting the invite registers
+  the user as a referee.
+- `DEEP_LINK_USED` reports the normalized code as `referral_code`.
+- Every `Rewards Money Referral Offer Interacted` event from an invite opened
+  by a link carries `entry_type`: `restored_context` in the first session after
+  installing from a Branch link (the same check as `was_app_installed` on
+  `DEEP_LINK_USED`), `deeplink` otherwise.
 
 #### Private Link (Signed)
 
@@ -589,26 +703,35 @@ if (!isSupportedDomain) {
 
 ### 4. Action Whitelisting
 
-```typescript
-// Some actions bypass interstitial for UX
-const WHITELISTED_ACTIONS = [
-  SUPPORTED_ACTIONS.WC, // WalletConnect needs immediate handling
-  SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
-];
+Actions in `WHITELISTED_ACTIONS` in
+`app/core/DeeplinkManager/handlers/handleUniversalLink.ts` skip the
+interstitial. That list is the source of truth and currently includes:
 
-// Some URLs bypass interstitial regardless of action
-const interstitialWhitelistUrls = [
-  `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/${SUPPORTED_ACTIONS.PERPS_ASSET}`,
-];
+- Navigation and trading: `HOME`, `DAPP`, `SWAP`, `BATCH_SELL`, `BUY`,
+  `BUY_CRYPTO`, `SELL`, `SELL_CRYPTO`, `ASSET`, `ON_RAMP`
+- Perps: `PERPS`, `PERPS_MARKETS`, `PERPS_ASSET`, `PERPS_OUTREACH`
+- Rewards and Money: `REWARDS`, `MONEY`, `MONEY_ACCOUNT_DEPOSIT`, `EARN_MUSD`
+- Trading and social: `PREDICT`, `TRENDING`, `WHATS_HAPPENING`, `TOP_TRADERS`,
+  `SOCIAL`, `SOCIAL_TRADER`, `SOCIAL_TRADER_POSITION`
+- Card: `CARD_ONBOARDING`, `CARD_HOME`, `CARD_KYC_NOTIFICATION`
+- Other: `WC`, `SHIELD`, `AGENTIC_CLI`, `NOTIFICATIONS_SETTINGS`
 
-// In-app sources can bypass modal when combined with valid signature
-const inAppLinkSources = [
-  'carousel',
-  'notifications',
-  'qr-code',
-  'in-app-browser',
-];
-```
+`HOME` is whitelisted. The Money referral share link uses it
+(`https://link.metamask.io/home?ref=...`). The home handler always navigates
+to `Routes.WALLET.HOME`; `homePath` is only read for `openNetworkSelector`.
+The legacy `previewToken` param is intentionally ignored and no longer enables
+Contentful preview mode from a deeplink. `ref` only stores a session-only
+pending referral code, and the user must accept the invite for a referral to be
+created.
+
+`interstitialWhitelistUrls` is currently empty. If you add an entry, prefer an
+exact URL match over `startsWith`; the current `startsWith` check can be
+widened by extra query parameters.
+
+Trusted in-app sources (`trustedInAppSources`) skip the modal only when the
+link is also PUBLIC or PRIVATE. They are the carousel, notification, push
+notification, Braze, and perps outreach origins. QR-code and in-app-browser
+origins are **not** trusted.
 
 ## Best Practices
 
@@ -973,30 +1096,33 @@ The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer op
 
 | Action                   | Purpose                     | Handler Function                 | Notes                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------ | --------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `swap`                   | Token swap/bridge (CAIP-19) | `handleSwapUrl`                  | Params: `from`, `to`, `amount` (CAIP-19)                                                                                                                                                                                                                                                                                                                                                                                           |
+| `swap`                   | Token swap/bridge (CAIP-19) | `handleSwapUrl`                  | Params: `from`, `to`, `amount` (CAIP-19); `tab=limit` opens the Limit Order form and accepts `expiresInMinutes` and `priceTolerance`; `tab=recurring` opens the Recurring Buy form and accepts the optional `every`/`unit` interval pair and optional `repeatCount`                                                                                                                                                                |
 | `buy` / `buy-crypto`     | Buy crypto                  | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `sell` / `sell-crypto`   | Sell crypto                 | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `send`                   | Send transaction            | Recursive `parse()` call         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `home`                   | Navigate home               | `navigateToHomeUrl`              | Params: `previewToken`, `openNetworkSelector`                                                                                                                                                                                                                                                                                                                                                                                      |
+| `home`                   | Navigate home               | `navigateToHomeUrl`              | Params: `openNetworkSelector` (legacy `previewToken` is ignored)                                                                                                                                                                                                                                                                                                                                                                   |
 | `asset`                  | Asset overview              | `handleAssetUrl`                 | Params: `assetId` (CAIP-19)                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `dapp`                   | Open dApp browser           | `handleBrowserUrl`               |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `create-account`         | Create new account          | `handleCreateAccountUrl`         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `perps`                  | Perpetuals trading          | `handlePerpsUrl`                 | Params: `screen` (tabs/markets/asset), `symbol`                                                                                                                                                                                                                                                                                                                                                                                    |
+| `perps`                  | Perpetuals trading          | `handlePerpsUrl`                 | Params: `screen` (tabs/markets/asset), `symbol`, `mode=pro` (persists Pro mode when the Pro flag is on; `symbol` defaults to BTC when omitted with `screen=asset&mode=pro`). Example: `https://link.metamask.io/perps?screen=asset&symbol=ETH&mode=pro`                                                                                                                                                                            |
 | `perps-markets`          | Perps markets list          | `handlePerpsUrl`                 |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `perps-asset`            | Perps specific asset        | ⚠️ NOT IMPLEMENTED               | Action defined but missing handler case                                                                                                                                                                                                                                                                                                                                                                                            |
-| `predict`                | Prediction markets          | `handlePredictUrl`               | Params: `market`/`marketId`, `feed` (generic ids), `tab`, `filter`, `q`/`query`, `utm_source`                                                                                                                                                                                                                                                                                                                                      |
-| `rewards`                | Rewards program             | `handleRewardsUrl`               | Params: `referral` (referral code)                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `perps-asset`            | Perps specific asset        | `handlePerpsUrl`                 | Params: `symbol` (defaults to the markets list when omitted), `mode=pro` (persists Pro mode when the Pro flag is on, then opens that market; `symbol` defaults to BTC when omitted with `mode=pro`; first-time users still see the tutorial). Examples: `https://link.metamask.io/perps-asset?symbol=ETH`, `https://link.metamask.io/perps-asset?mode=pro`, `https://link.metamask.io/perps-asset?symbol=ETH&mode=pro`             |
+| `predict`                | Prediction markets          | `handlePredictUrl`               | Params: `market`/`marketId`, `feed` (generic ids), `tab`, `filter`, `q`/`query`, `utm_source`, `venue` (`kalshi`: `event`, `feed`, `tab`). See `app/components/UI/PredictNext/docs/v1-deep-links.md`                                                                                                                                                                                                                               |
+| `rewards`                | Rewards program             | `handleRewardsUrl`               | Params: `page=campaigns\|musd\|benefits`, `campaign=ondo\|season1\|perps-comp\|predict-the-pitch\|money`                                                                                                                                                                                                                                                                                                                           |
 | `trending`               | Explore / Trending          | `handleTrendingUrl`              | Params: `tab=now\|macro\|rwas\|crypto\|sports\|sites`, `screen=stocks\|trending-tokens\|sites\|favorite-sites\|search`, `q`/`query` (prefills search when `screen=search`), `chainId` (CAIP, e.g. `eip155:4663`; chain-filters the trending tokens list when `screen=trending-tokens`; invalid values are dropped), `timeframe=5m\|1h\|6h\|24h` (preselects the trending tokens time filter) (unknown values fall back to Explore) |
+| `social`                 | Social                      | `handleSocialUrl`                | Canonical paths: `/social`, `/social/profile?traderId=`, `/social/profile/position?positionId=&traderId=`. Empty or unknown subpaths open Social home. `tab` on `/social` matches `top-traders`                                                                                                                                                                                                                                    |
+| `top-traders`            | Social home (legacy)        | `handleSocialLeaderboardUrl`     | Existing Social v0 link. Still opens Social home for V0 or V1 from `socialAiTSA1122AbtestSocialBundleV1`. Params: `tab=trending\|following\|leaderboard\|live-trades` (V1 only; missing or unknown values land on trending)                                                                                                                                                                                                        |
+| `social-trader`          | Trader profile (legacy)     | `handleSocialTraderUrl`          | Still accepted. Params: `traderId`. Treatment opens Social V1 profile; control opens the V0 profile. Missing `traderId` falls back to Social home                                                                                                                                                                                                                                                                                  |
+| `social-trader-position` | Trader position (legacy)    | `handleSocialTraderPositionUrl`  | Existing Social v0 notification link. Still accepted. Params: `positionId`, `traderId`. Same screen for V0 and V1; `isSocialV1` follows `socialAiTSA1122AbtestSocialBundleV1`                                                                                                                                                                                                                                                      |
 | `privacy`                | Security & Privacy settings | `handlePrivacyUrl`               | Params: `setting=metametrics\|data-collection` (scrolls to that section; unknown values fall back to `metametrics`)                                                                                                                                                                                                                                                                                                                |
 | `notifications-settings` | Notification settings       | `handleNotificationsSettingsUrl` | Params: `section=wallet-activity\|perps\|social-ai\|agentic-cli\|marketing\|price-alerts` (opens that preference section; unknown or missing values land on the main notification settings page)                                                                                                                                                                                                                                   |
+| `money-account-deposit`  | Money account deposit       | `handleMoneyDeposit`             | Rechecks Money account feature enablement and user geo eligibility in the MoneyDepositDeeplinkBridge; eligible users continue through onboarding when needed, then to the Money account deposit screen                                                                                                                                                                                                                             |
 | `wc`                     | WalletConnect               | Recursive `parse()` call         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `onboarding`             | Fast onboarding             | `handleFastOnboarding`           |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `enable-card-button`     | Enable card feature         | `handleEnableCardButton`         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `bind`                   | Android SDK binding         | `handleMetaMaskDeeplink`         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `connect`                | SDK connection              | `handleMetaMaskDeeplink`         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `mmsdk`                  | MetaMask SDK message        | `handleMetaMaskDeeplink`         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-
-> ⚠️ **Bug**: The `perps-asset` action is defined in `SUPPORTED_ACTIONS` and whitelisted, but **there is no case handler** for it in the switch statement. It will pass validation but silently do nothing.
 
 ## Custom URI Schemes Explained
 
@@ -1008,7 +1134,7 @@ The primary custom scheme for MetaMask-specific actions and features. Used for:
 
 - **App navigation**: `metamask://home`, `metamask://create-account`
 - **Financial operations**: `metamask://swap`, `metamask://send?to=0x123`
-- **Feature access**: `metamask://rewards`, `metamask://perps`
+- **Feature access**: `metamask://rewards`, `metamask://perps`, `metamask://perps-asset?symbol=BTC&mode=pro`
 - **SDK connections**: `metamask://connect?channelId=abc&pubkey=xyz` (dapp-to-wallet pairing)
 
 **Flow**: Converts to universal link format internally (`https://link.metamask.io/...`) → Routes through `handleUniversalLink` → Executes action

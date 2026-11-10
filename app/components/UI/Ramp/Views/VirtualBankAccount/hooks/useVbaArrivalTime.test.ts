@@ -1,14 +1,26 @@
 import type { PaymentMethod } from '@metamask/ramps-controller';
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../../locales/i18n';
+import {
+  selectMoneyMovementNeobank,
+  selectNeobankMarkets,
+} from '../../../../../../selectors/featureFlagController/moneyAccount';
+import type { VbaMarket } from '../../../../../../util/region/getVbaSourceCurrency';
 import { getVbaArrivalTimeframe, useVbaArrivalTime } from './useVbaArrivalTime';
 import { useVbaEligibility } from './useVbaEligibility';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
 import { useRampsPaymentMethodsForContext } from '../../../hooks/useRampsPaymentMethods';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('./useVbaEligibility');
 jest.mock('../../../../Money/hooks/useMoneyAccountDepositAssetId');
 jest.mock('../../../hooks/useRampsPaymentMethods');
 
+const mockUseSelector = jest.mocked(useSelector);
 const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
 const mockUseMoneyAccountDepositAssetId = jest.mocked(
   useMoneyAccountDepositAssetId,
@@ -117,19 +129,48 @@ describe('getVbaArrivalTimeframe', () => {
 
 describe('useVbaArrivalTime', () => {
   const DEPOSIT_ASSET_ID = 'eip155:133/erc20:0xmusd' as const;
+  const PIX_TITLE = strings(
+    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
+  );
+  const CATALOG_TITLE = strings(
+    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
+    { timeframe: '2 - 3 business days' },
+  );
+  const FALLBACK_TITLE = strings(
+    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
+  );
+  const markets: VbaMarket[] = [
+    { currency: 'BRL', regions: ['BR'] },
+    { currency: 'USD', regions: ['US'] },
+  ];
 
   const setup = ({
     eligibility,
+    chooseCurrency = false,
     paymentMethods = [
       buildMethod({ isManualBankTransfer: true, delay: [2880, 4320] }),
     ],
   }: {
     /** Overrides for the eligibility result; spread so `undefined` wins. */
-    eligibility?: { location?: string | undefined };
+    eligibility?: {
+      location?: string | undefined;
+      isRegionEligible?: boolean;
+    };
+    chooseCurrency?: boolean;
     paymentMethods?: PaymentMethod[];
   } = {}) => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectMoneyMovementNeobank) {
+        return { chooseCurrency, regionOverride: undefined };
+      }
+      if (selector === selectNeobankMarkets) {
+        return markets;
+      }
+      return undefined;
+    });
     mockUseVbaEligibility.mockReturnValue({
-      location: 'BR',
+      location: 'US',
+      isRegionEligible: true,
       ...eligibility,
     } as ReturnType<typeof useVbaEligibility>);
     mockUseMoneyAccountDepositAssetId.mockReturnValue(
@@ -145,31 +186,56 @@ describe('useVbaArrivalTime', () => {
     setup();
   });
 
-  it('queries the catalog for the VBA region and returns the formatted timeframe', () => {
+  it('queries the catalog for the VBA region and returns the timeframe title', () => {
     const { result } = renderHook(() => useVbaArrivalTime());
 
     expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith({
-      regionCode: 'br',
+      regionCode: 'us',
       assetId: DEPOSIT_ASSET_ID,
       autoSelectProvider: true,
       restrictToKnownOrNativeProviders: true,
       updateState: false,
     });
-    expect(result.current.arrivalTimeframe).toBe('2 - 3 business days');
+    expect(result.current.arrivalTitle).toBe(CATALOG_TITLE);
   });
 
   it('derives the country-level region code from a country-state geolocation', () => {
-    setup({ eligibility: { location: 'BR-SP' } });
+    setup({ eligibility: { location: 'US-NY' } });
 
     renderHook(() => useVbaArrivalTime());
 
+    expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
+      expect.objectContaining({ regionCode: 'us' }),
+    );
+  });
+
+  it.each(['BR', 'BR-SP'])(
+    'returns the Pix title and disables the query for %s',
+    (location) => {
+      setup({ eligibility: { location } });
+
+      const { result } = renderHook(() => useVbaArrivalTime());
+
+      expect(result.current.arrivalTitle).toBe(PIX_TITLE);
+      expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
+        expect.objectContaining({ regionCode: '' }),
+      );
+    },
+  );
+
+  it('does not return the Pix title before the user picks a currency', () => {
+    setup({ eligibility: { location: 'BR' }, chooseCurrency: true });
+
+    const { result } = renderHook(() => useVbaArrivalTime());
+
+    expect(result.current.arrivalTitle).toBe(CATALOG_TITLE);
     expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
       expect.objectContaining({ regionCode: 'br' }),
     );
   });
 
-  it('disables the query when the IP geolocation is not a VBA-served region', () => {
-    setup({ eligibility: { location: 'PT' } });
+  it('disables the query when the IP geolocation is not an allowed VBA region', () => {
+    setup({ eligibility: { location: 'PT', isRegionEligible: false } });
 
     renderHook(() => useVbaArrivalTime());
 
@@ -179,7 +245,7 @@ describe('useVbaArrivalTime', () => {
   });
 
   it('disables the query when the IP geolocation is unknown', () => {
-    setup({ eligibility: { location: undefined } });
+    setup({ eligibility: { location: undefined, isRegionEligible: false } });
 
     renderHook(() => useVbaArrivalTime());
 
@@ -188,11 +254,11 @@ describe('useVbaArrivalTime', () => {
     );
   });
 
-  it('is undefined while the catalog has no delay data', () => {
+  it('returns the static title while the catalog has no delay data', () => {
     setup({ paymentMethods: [] });
 
     const { result } = renderHook(() => useVbaArrivalTime());
 
-    expect(result.current.arrivalTimeframe).toBeUndefined();
+    expect(result.current.arrivalTitle).toBe(FALLBACK_TITLE);
   });
 });

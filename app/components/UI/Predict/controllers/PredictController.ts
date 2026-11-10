@@ -25,9 +25,11 @@ import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import type { SubscriptionControllerGetBenefitsAction } from '@metamask/subscription-controller';
 import { errorCodes } from '@metamask/rpc-errors';
 import {
   TransactionControllerEstimateGasAction,
+  TransactionControllerGetGasFeeTokensAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
@@ -64,8 +66,10 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { calculateFees } from '../providers/polymarket/utils';
 import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchWithTimeout';
 import {
+  COLLATERAL_ONRAMP_ADDRESS,
   COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
@@ -106,6 +110,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictEligibility,
+  PredictFeePolicy,
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarket,
@@ -137,9 +142,14 @@ import {
 } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
+import { getPredictClaimOutcomeVersion } from '../utils/marketVersion';
 import { generateOrderId } from '../utils/orders';
 import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
+import {
+  resolvePredictFeePolicy,
+  syncPreviewWithFeePolicy,
+} from '../utils/predictFeePolicy';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
   findLiveMarket,
@@ -150,6 +160,46 @@ import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PredictAnalytics } from './PredictAnalytics';
 import type { PredictControllerMethodActions } from './PredictController-method-action-types';
 import { withTrace, type TraceableController } from './utils/withTrace';
+
+export const PREDICT_BLOCK_TRACKER_TIMEOUT_MS = 10_000;
+/**
+ * The provider's HTTP requests time out after 35 seconds. This longer
+ * controller deadline also bounds non-HTTP provider work without allowing a
+ * request to remain pending indefinitely.
+ */
+export const PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS = 60_000;
+
+/**
+ * Rejects an operation that does not settle within its deadline.
+ *
+ * @param request - Promise returned by the underlying operation.
+ * @param timeoutMs - Maximum time to wait.
+ * @param timeoutMessage - Error message used when the deadline expires.
+ * @returns The operation result.
+ */
+async function withTimeout<T>(
+  request: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string,
+): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      request,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error(timeoutMessage)),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
+}
 
 /**
  * State shape for PredictController
@@ -352,6 +402,12 @@ const PAYOUT_REDEMPTION_INTERFACE = new Interface([
   'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
 ]);
 
+const TRANSFER_EVENT_INTERFACE = new Interface([
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
+]);
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
   MATIC_CONTRACTS_V2.collateral.toLowerCase(),
   USDC_E_ADDRESS.toLowerCase(),
@@ -384,9 +440,11 @@ type AllowedActions =
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
   | TransactionControllerEstimateGasAction
+  | TransactionControllerGetGasFeeTokensAction
   | KeyringControllerSignTypedMessageAction
   | KeyringControllerSignPersonalMessageAction
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | SubscriptionControllerGetBenefitsAction;
 
 /**
  * External events the PredictController can subscribe to
@@ -441,6 +499,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPrices',
   'getUnrealizedPnL',
   'initPayWithAnyToken',
+  'isWithdrawGasFeeTokenAvailable',
   'listFilterOptions',
   'listMarkets',
   'onPlaceOrderSuccess',
@@ -657,6 +716,92 @@ export class PredictController extends BaseController<
     return resolvePredictFeatureFlags(remoteFeatureFlagState);
   }
 
+  /**
+   * Resolves the current Predict membership fee hint through the scoped
+   * messenger. The waiver is skipped when
+   * `predictSubscriptionFeeWaiverEnabled` is off, unless
+   * `MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED` is `"true"`. Benefit lookup
+   * failures never grant a fee waiver.
+   *
+   * @returns The fail-closed Predict fee policy.
+   */
+  private async getPredictFeePolicy(): Promise<PredictFeePolicy | undefined> {
+    const skipFeatureFlagCheck =
+      process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED === 'true';
+
+    if (!skipFeatureFlagCheck) {
+      const { isMembershipFeeWaiverEnabled } = this.resolveFeatureFlags();
+
+      if (!isMembershipFeeWaiverEnabled) {
+        return undefined;
+      }
+    }
+
+    try {
+      const benefits = await this.messenger.call(
+        'SubscriptionController:getBenefits',
+      );
+
+      return resolvePredictFeePolicy({
+        benefits,
+      });
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Prices a submit preview with the same subscription fee assignment preview
+   * uses. Runs only when membership appears after the preview was priced at
+   * the standard rate, so the builder code and Permit2 amount match.
+   *
+   * @param preview - Order preview that may now carry a membership policy.
+   * @returns The preview with waived service fees when the policy is new.
+   */
+  private async priceSubmitPreviewWithFeePolicy(
+    preview: OrderPreview,
+  ): Promise<OrderPreview> {
+    const currentFees = preview.fees;
+    const feePolicy = preview.feePolicy;
+
+    if (!feePolicy || !currentFees || currentFees.metamaskFee <= 0) {
+      return preview;
+    }
+
+    const { feeCollection } = this.resolveFeatureFlags();
+    let userBetAmount = preview.minAmountReceived;
+
+    if (preview.side === Side.BUY) {
+      userBetAmount = preview.maxAmountSpent;
+    }
+
+    const subscriptionFees = await calculateFees({
+      feeCollection,
+      feePolicy,
+      marketId: preview.marketId,
+      userBetAmount,
+    });
+    const fees = { ...subscriptionFees.fees };
+    let originalFees = { ...fees };
+
+    if (subscriptionFees.originalFees) {
+      originalFees = { ...subscriptionFees.originalFees };
+    }
+
+    const { marketFee } = currentFees;
+
+    if (marketFee !== undefined) {
+      fees.marketFee = marketFee;
+      originalFees.marketFee = marketFee;
+    }
+
+    return {
+      ...preview,
+      fees,
+      originalFees,
+    };
+  }
+
   private getEvmAccountAddress(): string | undefined {
     const accounts = this.messenger.call(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -687,7 +832,11 @@ export class PredictController extends BaseController<
       networkClientId,
     );
     try {
-      await networkClient.blockTracker.checkForLatestBlock();
+      await withTimeout(
+        networkClient.blockTracker.checkForLatestBlock(),
+        PREDICT_BLOCK_TRACKER_TIMEOUT_MS,
+        `Block tracker update timed out after ${PREDICT_BLOCK_TRACKER_TIMEOUT_MS}ms`,
+      );
     } catch (error) {
       DevLogger.log('PredictController: Error invalidating query cache', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1248,10 +1397,14 @@ export class PredictController extends BaseController<
       },
       async () => {
         try {
-          return await this.provider.getPositions({
-            ...params,
-            address: selectedAddress,
-          });
+          return await withTimeout(
+            this.provider.getPositions({
+              ...params,
+              address: selectedAddress,
+            }),
+            PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
+            `Predict positions request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
+          );
         } catch (error) {
           this.update((state) => {
             state.lastError =
@@ -1781,8 +1934,13 @@ export class PredictController extends BaseController<
       const provider = this.provider;
 
       const signer = this.getSigner();
+      const feePolicy = await this.getPredictFeePolicy();
+      const paramsWithFeePolicy = syncPreviewWithFeePolicy(params, feePolicy);
 
-      return provider.previewOrder({ ...params, signer });
+      return provider.previewOrder({
+        ...paramsWithFeePolicy,
+        signer,
+      });
     } catch (error) {
       // Log to Sentry with preview context (no sensitive amounts)
       Logger.error(
@@ -1805,8 +1963,13 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
       const signer = this.getSigner();
+      const feePolicy = await this.getPredictFeePolicy();
+      const paramsWithFeePolicy = syncPreviewWithFeePolicy(params, feePolicy);
 
-      return provider.previewMaxBuyOrder({ ...params, signer });
+      return provider.previewMaxBuyOrder({
+        ...paramsWithFeePolicy,
+        signer,
+      });
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -1888,10 +2051,16 @@ export class PredictController extends BaseController<
       !!params.transactionId &&
       !!this.pendingOrderPreviews[params.transactionId];
 
+    let previewWithFeePolicy: OrderPreview;
+
     try {
+      const feePolicy = await this.getPredictFeePolicy();
+      const syncedPreview = syncPreviewWithFeePolicy(params.preview, feePolicy);
+      previewWithFeePolicy =
+        await this.priceSubmitPreviewWithFeePolicy(syncedPreview);
       await validateMarketBettable({
         provider: this.provider,
-        preview: params.preview,
+        preview: previewWithFeePolicy,
       });
     } catch (error) {
       const errorMessage =
@@ -1990,7 +2159,7 @@ export class PredictController extends BaseController<
       const transactionId = params.transactionId;
       if (transactionId) {
         this.pendingOrderPreviews[transactionId] = {
-          preview: params.preview,
+          preview: previewWithFeePolicy,
           signerAddress: activeOrderAddress,
           analyticsProperties: params.analyticsProperties,
           activeAbTests: params.activeAbTests,
@@ -2013,7 +2182,7 @@ export class PredictController extends BaseController<
       try {
         await this.provider.createOptimisticPositionFromPreview({
           address: activeOrderAddress,
-          preview: params.preview,
+          preview: previewWithFeePolicy,
         });
       } catch (error) {
         DevLogger.log(
@@ -2081,14 +2250,14 @@ export class PredictController extends BaseController<
       : undefined;
 
     const startTime = performance.now();
-    const { analyticsProperties, preview } = params;
+    const { analyticsProperties } = params;
 
-    const sharePrice = preview?.sharePrice;
+    const sharePrice = previewWithFeePolicy?.sharePrice;
     const amountUsd =
       params.attempt?.amountUsd ??
-      (preview.side === Side.BUY
-        ? preview?.maxAmountSpent
-        : preview?.minAmountReceived);
+      (previewWithFeePolicy.side === Side.BUY
+        ? previewWithFeePolicy?.maxAmountSpent
+        : previewWithFeePolicy?.minAmountReceived);
 
     // Start Sentry trace for place order operation
     const traceId = `place-order-${Date.now()}`;
@@ -2103,7 +2272,7 @@ export class PredictController extends BaseController<
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         providerId: POLYMARKET_PROVIDER_ID,
-        side: preview.side,
+        side: previewWithFeePolicy.side,
       },
       data: {
         ...(analyticsProperties?.marketId && {
@@ -2123,7 +2292,7 @@ export class PredictController extends BaseController<
         amountUsd,
         analyticsProperties,
         sharePrice,
-        orderType: preview.orderType,
+        orderType: previewWithFeePolicy.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
         attemptId: params.attempt?.attemptId,
@@ -2142,6 +2311,7 @@ export class PredictController extends BaseController<
           await this.invalidateQueryCache(provider.chainId);
           result = await provider.placeOrder({
             ...params,
+            preview: previewWithFeePolicy,
             signer,
           });
 
@@ -2188,8 +2358,8 @@ export class PredictController extends BaseController<
       let realAmountUsd = amountUsd;
       let realSharePrice = sharePrice;
       try {
-        if (preview.side === Side.BUY) {
-          const totalFee = params.preview.fees?.totalFee ?? 0;
+        if (previewWithFeePolicy.side === Side.BUY) {
+          const totalFee = previewWithFeePolicy.fees?.totalFee ?? 0;
           realAmountUsd = parseFloat(spentAmount);
           realSharePrice = parseFloat(spentAmount) / parseFloat(receivedAmount);
 
@@ -2208,8 +2378,8 @@ export class PredictController extends BaseController<
             });
           }
         } else {
-          const serviceFee = preview.fees?.totalFee ?? 0;
-          const marketFee = preview.fees?.marketFee ?? 0;
+          const serviceFee = previewWithFeePolicy.fees?.totalFee ?? 0;
+          const marketFee = previewWithFeePolicy.fees?.marketFee ?? 0;
           realAmountUsd = parseFloat(receivedAmount);
           realSharePrice = parseFloat(receivedAmount) / parseFloat(spentAmount);
           const netAmountUsd = Math.max(
@@ -2249,7 +2419,7 @@ export class PredictController extends BaseController<
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
-        orderType: preview.orderType,
+        orderType: previewWithFeePolicy.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
         tradeCompletedAmountUsd: realAmountUsd,
@@ -2267,7 +2437,7 @@ export class PredictController extends BaseController<
         this.trackPredictOrderEvent(successEvent);
       }
 
-      traceData = { success: true, side: preview.side };
+      traceData = { success: true, side: previewWithFeePolicy.side };
       return result as unknown as Result;
     } catch (error) {
       const completionDuration = performance.now() - startTime;
@@ -2281,7 +2451,7 @@ export class PredictController extends BaseController<
       const isPostDepositOrderFailure =
         isBuyWithAnyToken && pendingOrder !== undefined;
 
-      if (params.attempt && preview.side === Side.BUY) {
+      if (params.attempt && previewWithFeePolicy.side === Side.BUY) {
         const failure = classifyPredictBuyFailure(
           error,
           PredictEventValues.FAILURE_STAGE.ORDER,
@@ -2294,7 +2464,7 @@ export class PredictController extends BaseController<
           failureReason: failure.failureReason,
           failureStage: failure.failureStage,
           failureCategory: failure.failureCategory,
-          orderType: preview.orderType,
+          orderType: previewWithFeePolicy.orderType,
           paymentTokenAddress,
           paymentTokenSymbol,
           attemptId: params.attempt.attemptId,
@@ -2327,7 +2497,7 @@ export class PredictController extends BaseController<
           sharePrice,
           completionDuration,
           failureReason: errorMessage,
-          orderType: preview.orderType,
+          orderType: previewWithFeePolicy.orderType,
           paymentTokenAddress,
           paymentTokenSymbol,
           activeAbTests: params.activeAbTests,
@@ -2339,7 +2509,7 @@ export class PredictController extends BaseController<
           activeOrderAddress,
           errorMessage,
           pendingOrder,
-          preview,
+          preview: previewWithFeePolicy,
           marketId: analyticsProperties?.marketId,
         });
       } else {
@@ -2361,7 +2531,7 @@ export class PredictController extends BaseController<
         if (isBuyWithAnyToken) {
           this.provider.clearOptimisticPosition(
             activeOrderAddress,
-            preview.outcomeTokenId,
+            previewWithFeePolicy.outcomeTokenId,
           );
         }
       }
@@ -2395,6 +2565,7 @@ export class PredictController extends BaseController<
           marketTitle: analyticsProperties?.marketTitle,
           transactionType: analyticsProperties?.transactionType,
           entryPoint: analyticsProperties?.entryPoint,
+          outcomeVersion: previewWithFeePolicy.outcomeVersion,
           completionDuration,
         }),
       );
@@ -2540,6 +2711,33 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by claim preparation');
       }
 
+      // The provider can skip positions (Protocol V2 ones while the kill
+      // switch is on). Keep only the claimed ones, so the confirmation,
+      // beforeSign, publish, and confirmClaim leave the skipped positions
+      // claimable.
+      const claimedPositions = prepareClaimResult.positions;
+      if (
+        claimedPositions &&
+        claimedPositions.length < claimablePositions.length
+      ) {
+        claimablePositions = claimedPositions;
+        this.update((state) => {
+          const addressKey =
+            this.findClaimablePositionsAddress(signer.address) ??
+            signer.address;
+          state.claimablePositions[addressKey] = [...claimedPositions];
+        });
+      }
+
+      // Re-stash the claim analytics with the claimed positions and their
+      // market versions, which are only known after prepareClaim.
+      this.pendingClaimAnalytics[signer.address.toLowerCase()] =
+        this.buildClaimAnalyticsProperties(
+          analyticsContext,
+          claimablePositions,
+          prepareClaimResult.marketVersions,
+        );
+
       // Find network client - can fail if chain is not supported
       const networkClientId = this.messenger.call(
         'NetworkController:findNetworkClientIdByChainId',
@@ -2641,6 +2839,9 @@ export class PredictController extends BaseController<
         e,
         this.getErrorContext('claimWithConfirmation', {
           providerId: POLYMARKET_PROVIDER_ID,
+          outcomeVersion:
+            this.pendingClaimAnalytics[signer.address.toLowerCase()]
+              ?.outcomeVersion,
         }),
       );
 
@@ -2678,10 +2879,12 @@ export class PredictController extends BaseController<
    * event. Always sets `transaction_type: mm_predict_claim`. When a single
    * market is being claimed, `market_id`/`market_title` are populated; for
    * multi-market claims they are omitted in favor of `claimable_positions_count`.
+   * `outcome_version` is set when the positions' market versions are passed.
    */
   private buildClaimAnalyticsProperties(
     analyticsContext?: PredictTradeAnalyticsProperties,
     claimablePositions?: PredictPosition[],
+    marketVersions?: Record<string, string | undefined>,
   ): PredictTradeAnalyticsProperties {
     const properties: PredictTradeAnalyticsProperties = {
       entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
@@ -2700,6 +2903,14 @@ export class PredictController extends BaseController<
         properties.marketId = properties.marketId ?? singlePosition.marketId;
         properties.marketTitle = properties.marketTitle ?? singlePosition.title;
       }
+    }
+
+    const outcomeVersion = getPredictClaimOutcomeVersion(
+      claimablePositions,
+      marketVersions,
+    );
+    if (outcomeVersion) {
+      properties.outcomeVersion = outcomeVersion;
     }
 
     return properties;
@@ -4072,47 +4283,105 @@ export class PredictController extends BaseController<
       return undefined;
     }
 
-    let payoutRaw = 0n;
-    let hasPayoutRedemption = false;
+    let ctfPayoutRaw = 0n;
+    let pUsdMintRaw = 0n;
+    let legacySweepRaw = 0n;
+    let hasCtfPayout = false;
+    let hasPUsdMint = false;
 
     for (const log of logs) {
-      if (
-        log.address?.toLowerCase() !==
-        MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()
-      ) {
-        continue;
-      }
-
+      const logAddress = log.address?.toLowerCase();
       const topics = this.normalizeLogTopics(log.topics);
       if (!topics || !log.data) {
         continue;
       }
 
-      try {
-        const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
-          topics,
-          data: log.data,
-        });
-        const payout = parsedLog.args.payout?.toString();
+      if (logAddress === MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()) {
+        // CTF-protocol claims emit PayoutRedemption from the ConditionalTokens
+        // contract.
+        try {
+          const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const payout = parsedLog.args.payout?.toString();
 
-        if (payout === undefined) {
+          if (payout === undefined) {
+            continue;
+          }
+
+          ctfPayoutRaw += BigInt(payout);
+          hasCtfPayout = true;
+        } catch (_error) {
           continue;
         }
+      } else if (logAddress === MATIC_CONTRACTS_V2.collateral.toLowerCase()) {
+        // Positions-protocol (v2) redemption mints collateral and emits no
+        // CTF event, so read the payout from collateral ERC20 `Transfer`
+        // logs sourced by the zero address. The token filter keeps
+        // ERC721-shaped `Transfer` events (identical signature) from other
+        // contracts out of the sum.
+        try {
+          const parsedLog = TRANSFER_EVENT_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const from = parsedLog.args.from?.toString()?.toLowerCase();
+          const value = parsedLog.args.value?.toString();
 
-        payoutRaw += BigInt(payout);
-        hasPayoutRedemption = true;
-      } catch (_error) {
-        continue;
+          if (!from || value === undefined || from !== ZERO_ADDRESS) {
+            continue;
+          }
+
+          pUsdMintRaw += BigInt(value);
+          hasPUsdMint = true;
+        } catch (_error) {
+          continue;
+        }
+      } else if (logAddress === USDC_E_ADDRESS.toLowerCase()) {
+        try {
+          const parsedLog = TRANSFER_EVENT_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const to = parsedLog.args.to?.toString()?.toLowerCase();
+          const value = parsedLog.args.value?.toString();
+
+          if (
+            !to ||
+            value === undefined ||
+            to !== COLLATERAL_ONRAMP_ADDRESS.toLowerCase()
+          ) {
+            continue;
+          }
+
+          legacySweepRaw += BigInt(value);
+        } catch (_error) {
+          continue;
+        }
       }
     }
 
-    if (!hasPayoutRedemption) {
-      return undefined;
+    // Claim batches can wrap legacy USDC.e before redemption. Remove that
+    // maintenance mint before using the remaining pUSD mint as settlement.
+    const claimPUsdMintRaw =
+      pUsdMintRaw > legacySweepRaw ? pUsdMintRaw - legacySweepRaw : 0n;
+
+    // In a mixed claim, the settlement mint already includes the CTF
+    // redemption. Adding both event totals would count the CTF leg twice.
+    if (hasPUsdMint && claimPUsdMintRaw > 0n) {
+      return parseFloat(
+        formatUnits(claimPUsdMintRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+      );
     }
 
-    return parseFloat(
-      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
-    );
+    if (hasCtfPayout) {
+      return parseFloat(
+        formatUnits(ctfPayoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+      );
+    }
+
+    return undefined;
   }
 
   private getClaimAmountFromSimulation(
@@ -4349,8 +4618,53 @@ export class PredictController extends BaseController<
         }
 
         await this.invalidateQueryCache(this.provider.chainId);
-        return this.provider.getBalance({ ...params, address });
+        return withTimeout(
+          this.provider.getBalance({ ...params, address }),
+          PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
+          `Predict balance request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
+        );
       },
+    );
+  }
+
+  /**
+   * Checks whether the gas station can pay a withdraw of `amountRaw` in pUSD.
+   *
+   * The withdraw confirmation simulates an unsigned `pUSD.transfer` from the
+   * EOA, which holds no pUSD, so its gas fee token list is always empty before
+   * `beforeSign` swaps in the Safe call. This quotes gas fee tokens for the
+   * real Safe call instead. Deposit-wallet withdraws always return `true`
+   * because the relayer pays their gas.
+   *
+   * @param params - The parameters.
+   * @param params.address - The EOA that owns the Predict account.
+   * @param params.amountRaw - The pUSD amount to withdraw, in raw units.
+   * @returns `true` when pUSD can pay the withdraw gas.
+   */
+  public async isWithdrawGasFeeTokenAvailable({
+    address,
+    amountRaw,
+  }: {
+    address: string;
+    amountRaw: string;
+  }): Promise<boolean> {
+    const simulation = await this.provider.getWithdrawSimulation?.({
+      amountRaw: BigInt(amountRaw),
+      signer: this.getSigner(address),
+    });
+
+    if (!simulation) {
+      return true;
+    }
+
+    const gasFeeTokens = await this.messenger.call(
+      'TransactionController:getGasFeeTokens',
+      simulation,
+    );
+    const gasFeeToken = MATIC_CONTRACTS_V2.collateral.toLowerCase();
+
+    return gasFeeTokens.some(
+      (token) => token.tokenAddress.toLowerCase() === gasFeeToken,
     );
   }
 

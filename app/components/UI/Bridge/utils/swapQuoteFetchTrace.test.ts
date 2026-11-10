@@ -55,6 +55,9 @@ describe('swapQuoteFetchTrace', () => {
         src_chain_id: 'eip155:1',
         dest_chain_id: 'eip155:137',
       },
+      tags: {
+        feature: 'swap',
+      },
       startTime: expect.any(Number),
     });
   });

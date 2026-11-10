@@ -16,7 +16,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { BANNER_HEIGHT, BANNER_IMAGE_SIZE } from './BrazeBanner.constants';
-import GlassSurface from '../../../component-library/components-temp/GlassSurface';
+import BoxGlass from '../../../component-library/components-temp/BoxGlass';
 
 interface BrazeBannerCardProps {
   title: string | null;
@@ -151,7 +151,7 @@ const BrazeBannerCard = ({
 }: BrazeBannerCardProps) => {
   const tw = useTailwind();
   return (
-    <GlassSurface
+    <BoxGlass
       isGlass={isGlass}
       testID={BRAZE_BANNER_TEST_IDS.CARD}
       radiusClassName="rounded-xl"
@@ -181,7 +181,7 @@ const BrazeBannerCard = ({
       ) : (
         <BannerWithCta body={body} ctaLabel={ctaLabel} onDismiss={onDismiss} />
       )}
-    </GlassSurface>
+    </BoxGlass>
   );
 };
 

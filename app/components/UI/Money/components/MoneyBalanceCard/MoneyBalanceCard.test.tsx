@@ -2,7 +2,8 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
+import { mockTheme } from '../../../../../util/theme';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 import MoneyBalanceCard from './MoneyBalanceCard';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,6 +29,21 @@ import {
 } from '../../constants/moneyEvents';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
+
+let mockIsGlassEnabled = false;
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
 
 const mockTrackButtonClicked = jest.fn();
 const mockTrackComponentViewed = jest.fn();
@@ -117,6 +133,11 @@ jest.mock('../../selectors/eligibility', () => ({
   selectIsMoneyAccountGeoEligible: jest.fn(),
 }));
 
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
@@ -135,6 +156,9 @@ const mockSelectMoneyOnboardingStepperAnimationEnabled = jest.mocked(
 const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
 const mockSelectIsMoneyAccountGeoEligible = jest.mocked(
   selectIsMoneyAccountGeoEligible,
+);
+const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
+  selectMoneyEnableMoneyAccountFlag,
 );
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
@@ -204,6 +228,7 @@ describe('MoneyBalanceCard', () => {
     mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
     mockSelectPrivacyMode.mockReturnValue(false);
     mockSelectIsMoneyAccountGeoEligible.mockReturnValue(true);
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
     mockUseMoneyNavigation.mockReturnValue({
       isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: mockNavigateToMoneyHome,
@@ -669,6 +694,25 @@ describe('MoneyBalanceCard', () => {
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
       expect(mockInitiateDeposit).toHaveBeenCalled();
+    });
+
+    it('opens the feature-unavailable modal when Money is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        },
+      );
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
     });
 
     it('opens the geo-block sheet when Add is pressed by a geo-ineligible user', () => {
@@ -1220,19 +1264,33 @@ describe('MoneyBalanceCard', () => {
   });
 
   describe('glass', () => {
-    it('keeps the opaque card by default', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+    beforeEach(() => {
+      mockIsGlassEnabled = true;
+    });
 
+    afterEach(() => {
+      mockIsGlassEnabled = false;
+    });
+
+    it('keeps the opaque card by default', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyBalanceCard />,
+      );
+
+      expect(getByTestId(MoneyBalanceCardTestIds.SURFACE)).toHaveStyle({
+        backgroundColor: mockTheme.colors.background.muted,
+      });
       expect(
-        queryByTestId(MoneyBalanceCardTestIds.GLASS_SURFACE),
-      ).not.toBeOnTheScreen();
+        getByTestId(MoneyBalanceCardTestIds.SURFACE).props.isInteractive,
+      ).toBeUndefined();
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
     });
 
     it('draws the card on an interactive glass surface', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard isGlass />);
 
       expect(
-        getByTestId(MoneyBalanceCardTestIds.GLASS_SURFACE).props.isInteractive,
+        getByTestId(MoneyBalanceCardTestIds.SURFACE).props.isInteractive,
       ).toBe(true);
       expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
       expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();

@@ -23,17 +23,17 @@ import {
   IconName,
   IconSize,
   Input,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { typography } from '@metamask/design-tokens';
 import { InputSectionProps, InputSectionRef } from './types';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import {
+  LIMIT_ORDER_DIRECTION,
   LimitOrderExecutionType,
-  LimitOrderPriceComparisonDirection,
 } from '../../../constants/limitOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { getTokenImageSource } from '../../../utils';
@@ -52,7 +52,6 @@ const AMOUNT_TOP_INSET_RATIO = 0.3;
 // Leaves 12px of clear space under the price digits. The 8px row margin is
 // partly cancelled by this pull; the rest of the line box stays below the glyphs.
 const AMOUNT_BOTTOM_INSET_RATIO = 0.094;
-
 export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
   (
     {
@@ -63,7 +62,10 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
       unitSymbol,
       onQuoteUnitPress,
       value,
+      isLoading = false,
+      isLoadingAnimated = true,
       onInputPress,
+      isInputPressDisabled = false,
       onDismissKeypad,
       selection,
       onSelectionChange,
@@ -85,10 +87,9 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const comparisonDirection =
       priceComparisonDirection ??
       getSwapsLimitOrderDefaultPriceComparisonDirection(executionType);
-    const comparisonLabel =
-      comparisonDirection === LimitOrderPriceComparisonDirection.AT_OR_ABOVE
-        ? strings('bridge.limit.is_at_or_above')
-        : strings('bridge.limit.is_at_or_below');
+    const comparisonLabel = strings(
+      LIMIT_ORDER_DIRECTION[comparisonDirection].labelKey,
+    );
     const quoteUnitLabel = quotedSymbol
       ? strings('bridge.limit.quote_unit', {
           amount: 1,
@@ -157,25 +158,40 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     // the empty space around the digits so the row gaps are measured from the
     // glyphs.
     const amountLineHeight = Math.round(fontSize * 1.25);
+    const amountTopInset = Math.round(fontSize * AMOUNT_TOP_INSET_RATIO);
+    const amountBottomInset = Math.round(fontSize * AMOUNT_BOTTOM_INSET_RATIO);
     const amountTextStyle = tw.style({
       fontSize,
       lineHeight: amountLineHeight,
       height: amountLineHeight,
-      marginTop: -Math.round(fontSize * AMOUNT_TOP_INSET_RATIO),
-      marginBottom: -Math.round(fontSize * AMOUNT_BOTTOM_INSET_RATIO),
+      marginTop: -amountTopInset,
+      marginBottom: -amountBottomInset,
       paddingVertical: 0,
       includeFontPadding: false,
       textAlignVertical: 'center',
     });
+    // Matches the height the amount row takes once its insets are pulled in,
+    // so swapping the skeleton for the input does not shift the card.
+    const amountRowHeight =
+      amountLineHeight - amountTopInset - amountBottomInset;
     const marketComparisonColor =
       marketComparison?.isNegative === true
         ? TextColor.ErrorDefault
         : marketComparison?.isNegative === false
           ? TextColor.SuccessDefault
           : TextColor.TextAlternative;
-    const shouldShowSecondaryRow = Boolean(
-      secondaryValue || onAmountTypeTogglePress || marketComparison?.label,
+    const shouldShowAmountTypeToggle = Boolean(
+      secondaryValue || onAmountTypeTogglePress,
     );
+    const shouldShowSecondaryRow = Boolean(
+      shouldShowAmountTypeToggle || marketComparison?.label,
+    );
+    const handleAmountTypeTogglePress = onAmountTypeTogglePress
+      ? () => {
+          onDismissKeypad?.();
+          onAmountTypeTogglePress();
+        }
+      : undefined;
 
     useImperativeHandle(ref, () => ({
       blur: () => inputRef.current?.blur(),
@@ -249,60 +265,69 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           marginBottom={shouldShowSecondaryRow ? 2 : 3}
           onLayout={onContainerLayout}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="min-w-0"
-          >
-            {inputPrefix ? (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                style={amountTextStyle}
-                twClassName="p-0 leading-none"
-              >
-                {inputPrefix}
-              </Text>
-            ) : null}
-            <Input
-              ref={inputRef}
-              testID={LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT}
-              value={inputDisplayValue}
-              isStateStylesDisabled
-              showSoftInputOnFocus={false}
-              caretHidden={false}
-              autoFocus={false}
-              placeholder="0"
-              textVariant={TextVariant.BodyMd}
-              selection={clampedSelection}
-              onSelectionChange={handleInputSelectionChange}
-              onPressIn={onInputPress}
-              onFocus={onInputPress}
-              style={amountTextStyle}
-              twClassName="min-w-0 flex-1 border-0 bg-transparent p-0"
+          {isLoading ? (
+            <Skeleton
+              testID={LimitOrderPriceAdjustInputSectionSelectorsIDs.SKELETON}
+              width="50%"
+              height={amountRowHeight}
+              autoPlay={isLoadingAnimated}
             />
-          </Box>
+          ) : (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="min-w-0"
+              pointerEvents={isInputPressDisabled ? 'none' : 'auto'}
+              testID={LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW}
+            >
+              {inputPrefix ? (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  style={amountTextStyle}
+                  twClassName="p-0 leading-none"
+                >
+                  {inputPrefix}
+                </Text>
+              ) : null}
+              <Input
+                ref={inputRef}
+                testID={LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT}
+                value={inputDisplayValue}
+                isStateStylesDisabled
+                showSoftInputOnFocus={false}
+                caretHidden={false}
+                autoFocus={false}
+                placeholder="0"
+                textVariant={TextVariant.BodyMd}
+                selection={clampedSelection}
+                onSelectionChange={handleInputSelectionChange}
+                onPressIn={onInputPress}
+                onFocus={onInputPress}
+                style={amountTextStyle}
+                twClassName="min-w-0 flex-1 border-0 bg-transparent p-0"
+              />
+            </Box>
+          )}
         </Box>
         {shouldShowSecondaryRow ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-            marginBottom={3}
-            twClassName="mt-0.5 self-start"
+          // A single paragraph of nested spans, so a label that doesn't fit
+          // wraps back to the start of the row instead of under itself.
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="mt-0.5 mb-3 leading-[16px]"
           >
-            {secondaryValue || onAmountTypeTogglePress ? (
-              <TouchableOpacity
+            {shouldShowAmountTypeToggle ? (
+              <Text
                 testID={
                   LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE
                 }
-                onPress={() => {
-                  onDismissKeypad?.();
-                  onAmountTypeTogglePress?.();
-                }}
-                disabled={!onAmountTypeTogglePress}
-                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                style={tw.style('flex-row items-center self-start')}
+                onPress={handleAmountTypeTogglePress}
+                suppressHighlighting
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                twClassName="leading-[16px]"
               >
                 {secondaryValue ? (
                   <Text
@@ -311,20 +336,30 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                     }
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
-                    style={{ lineHeight: typography.sBodyMD.fontSize }}
+                    twClassName="leading-[16px]"
                   >
                     ≈ {secondaryValue}
                   </Text>
                 ) : null}
-                {onAmountTypeTogglePress ? (
-                  <Icon
-                    name={IconName.SwapVertical}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
+                {handleAmountTypeTogglePress ? (
+                  <TouchableOpacity
+                    testID={
+                      LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE_ICON
+                    }
+                    onPress={handleAmountTypeTogglePress}
+                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                    style={{ transform: [{ translateY: 2 }] }}
+                  >
+                    <Icon
+                      name={IconName.SwapVertical}
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
+                    />
+                  </TouchableOpacity>
                 ) : null}
-              </TouchableOpacity>
+              </Text>
             ) : null}
+            {shouldShowAmountTypeToggle && marketComparison?.label ? ' ' : null}
             {marketComparison?.label ? (
               <Text
                 testID={
@@ -333,12 +368,12 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 variant={TextVariant.BodySm}
                 color={marketComparisonColor}
                 fontWeight={FontWeight.Medium}
-                style={{ lineHeight: typography.sBodySM.fontSize }}
+                twClassName="leading-[16px]"
               >
                 {marketComparison.label}
               </Text>
             ) : null}
-          </Box>
+          </Text>
         ) : null}
       </Box>
     );

@@ -14,12 +14,36 @@ import {
   untrackQuickBuyTrade,
   type TrackedQuickBuyTrade,
 } from './quickBuyTradeTracker';
-import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
 import {
-  beginPostSwapShareSession,
-  clearPostSwapShareSession,
-  getPostSwapShareSession,
-} from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
+  clearAwaitingDestinationTxHashes,
+  QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS,
+  resolveQuickBuyTerminalToast,
+} from './resolveQuickBuyTerminalToast';
+import {
+  beginPostTradeShareSession,
+  clearPostTradeShareSession,
+  getPostTradeShareSession,
+} from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
+import NavigationService from '../../../core/NavigationService';
+import {
+  incrementShareSheetCount,
+  markClaimSheetSeen,
+} from '../../../util/social/postTradePromptStorage';
+
+jest.mock('../../../util/social/postTradePromptStorage', () => ({
+  incrementShareSheetCount: jest.fn(),
+  markClaimSheetSeen: jest.fn(),
+}));
+
+jest.mock('../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: { navigation: { navigate: jest.fn() } },
+}));
+
+jest.mock('../../../core/ToastService', () => ({
+  __esModule: true,
+  default: { toastRef: { current: { closeToast: jest.fn() } } },
+}));
 
 jest.mock('./quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
@@ -91,7 +115,8 @@ describe('resolveQuickBuyTerminalToast', () => {
     jest.clearAllMocks();
     getTrackedQuickBuyTradeIds().forEach(untrackQuickBuyTrade);
     clearSettledQuickBuyTrades();
-    clearPostSwapShareSession();
+    clearAwaitingDestinationTxHashes();
+    clearPostTradeShareSession();
     Engine.context.MultichainTransactionsController.state.nonEvmTransactions =
       {};
   });
@@ -258,7 +283,7 @@ describe('resolveQuickBuyTerminalToast', () => {
   });
 
   it('updates the post-swap share session instead of showing a toast', () => {
-    const sessionId = beginPostSwapShareSession({
+    const sessionId = beginPostTradeShareSession({
       target: {
         tokenAddress: '0xpepe',
         tokenSymbol: 'PEPE',
@@ -275,8 +300,8 @@ describe('resolveQuickBuyTerminalToast', () => {
     });
     trackQuickBuyTrade('tx-1', {
       ...buyTrade,
-      postSwapShare: true,
-      postSwapShareSessionId: sessionId,
+      postTradeShare: true,
+      postTradeShareSessionId: sessionId,
     });
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
@@ -289,11 +314,11 @@ describe('resolveQuickBuyTerminalToast', () => {
     expect(showToast).not.toHaveBeenCalled();
     expect(buildQuickBuyToastOptions).not.toHaveBeenCalled();
     expect(playSuccessNotification).toHaveBeenCalledTimes(1);
-    expect(getPostSwapShareSession()?.status).toBe('complete');
+    expect(getPostTradeShareSession()?.status).toBe('complete');
   });
 
   it('backfills the post-swap share transaction hash from bridge history', () => {
-    const sessionId = beginPostSwapShareSession({
+    const sessionId = beginPostTradeShareSession({
       target: {
         tokenAddress: '0xpepe',
         tokenSymbol: 'PEPE',
@@ -310,8 +335,8 @@ describe('resolveQuickBuyTerminalToast', () => {
     });
     trackQuickBuyTrade('tx-1', {
       ...buyTrade,
-      postSwapShare: true,
-      postSwapShareSessionId: sessionId,
+      postTradeShare: true,
+      postTradeShareSessionId: sessionId,
     });
     mockGetHistoryItem.mockReturnValue({
       ...historyItemWithStatus(StatusTypes.COMPLETE),
@@ -320,11 +345,15 @@ describe('resolveQuickBuyTerminalToast', () => {
 
     resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
 
-    expect(getPostSwapShareSession()?.transactionHash).toBe('0xbridge-hash');
+    const session = getPostTradeShareSession();
+    if (session?.product !== 'spot') {
+      throw new Error('post-trade share session is not a spot session');
+    }
+    expect(session.transactionHash).toBe('0xbridge-hash');
   });
 
   it('falls back to the source-chain hash in bridge status', () => {
-    const sessionId = beginPostSwapShareSession({
+    const sessionId = beginPostTradeShareSession({
       target: {
         tokenAddress: '0xpepe',
         tokenSymbol: 'PEPE',
@@ -341,8 +370,8 @@ describe('resolveQuickBuyTerminalToast', () => {
     });
     trackQuickBuyTrade('tx-1', {
       ...buyTrade,
-      postSwapShare: true,
-      postSwapShareSessionId: sessionId,
+      postTradeShare: true,
+      postTradeShareSessionId: sessionId,
     });
     mockGetHistoryItem.mockReturnValue({
       ...historyItemWithStatus(StatusTypes.COMPLETE),
@@ -354,11 +383,285 @@ describe('resolveQuickBuyTerminalToast', () => {
 
     resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
 
-    expect(getPostSwapShareSession()?.transactionHash).toBe('0xsource-hash');
+    const session = getPostTradeShareSession();
+    if (session?.product !== 'spot') {
+      throw new Error('post-trade share session is not a spot session');
+    }
+    expect(session.transactionHash).toBe('0xsource-hash');
+  });
+
+  describe('cross-chain bridges', () => {
+    const bridgeQuote = { srcChainId: 1, destChainId: 4663 };
+    const bridgeHistoryItem = (destinationTxHash?: string) => ({
+      quote: bridgeQuote,
+      reportedSubmittedTxHash: '0xsource-hash',
+      status: {
+        status: StatusTypes.COMPLETE,
+        srcChain: { chainId: 1, txHash: '0xsource-hash' },
+        ...(destinationTxHash
+          ? { destChain: { chainId: 4663, txHash: destinationTxHash } }
+          : {}),
+      },
+    });
+    const trackBridgeShare = () => {
+      const sessionId = beginPostTradeShareSession({
+        target: {
+          tokenAddress: '0xrobinhood-token',
+          tokenSymbol: 'HOOD',
+          tokenName: 'Hood',
+          chain: 'eip155:4663',
+        },
+        tradeMode: 'buy',
+        tradeInFlightChain: 'robinhood',
+        transactionHash: '0xsource-hash',
+        preview: {
+          tokenSymbol: 'HOOD',
+          tokenAddress: '0xrobinhood-token',
+          chain: 'robinhood',
+          side: 'buy',
+        },
+      });
+      trackQuickBuyTrade('tx-1', {
+        ...buyTrade,
+        txSignature: '0xsource-hash',
+        postTradeShare: true,
+        postTradeShareSessionId: sessionId,
+      });
+    };
+    const getSpotSession = () => {
+      const session = getPostTradeShareSession();
+      if (session?.product !== 'spot') {
+        throw new Error('post-trade share session is not a spot session');
+      }
+      return session;
+    };
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('shares the destination-chain hash instead of the source hash', () => {
+      trackBridgeShare();
+      mockGetHistoryItem.mockReturnValue(bridgeHistoryItem('0xdest-hash'));
+
+      const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+      expect(result).toBe(true);
+      expect(getSpotSession()).toEqual(
+        expect.objectContaining({
+          status: 'complete',
+          transactionHash: '0xdest-hash',
+        }),
+      );
+    });
+
+    it('stays pending while a completed bridge has no destination hash', () => {
+      jest.useFakeTimers();
+      trackBridgeShare();
+      mockGetHistoryItem.mockReturnValue(bridgeHistoryItem());
+
+      const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+      expect(result).toBe(false);
+      expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1']);
+      expect(getSpotSession().status).toBe('pending');
+    });
+
+    it('uses the destination hash when it arrives during the wait', () => {
+      jest.useFakeTimers();
+      trackBridgeShare();
+      mockGetHistoryItem.mockReturnValue(bridgeHistoryItem());
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      mockGetHistoryItem.mockReturnValue(bridgeHistoryItem('0xdest-hash'));
+
+      const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      jest.advanceTimersByTime(QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS);
+
+      expect(result).toBe(true);
+      expect(getSpotSession().transactionHash).toBe('0xdest-hash');
+      expect(playSuccessNotification).toHaveBeenCalledTimes(1);
+    });
+
+    it('completes without a shareable hash once the wait runs out', () => {
+      jest.useFakeTimers();
+      trackBridgeShare();
+      mockGetHistoryItem.mockReturnValue(bridgeHistoryItem());
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+      jest.advanceTimersByTime(QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS);
+
+      expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+      expect(getSpotSession()).toEqual(
+        expect.objectContaining({
+          status: 'complete',
+          transactionHash: undefined,
+        }),
+      );
+      expect(playSuccessNotification).toHaveBeenCalledTimes(1);
+    });
+
+    it('omits Post to feed when the wait runs out', () => {
+      jest.useFakeTimers();
+      trackQuickBuyTrade('tx-1', {
+        ...buyTrade,
+        txSignature: '0xsource-hash',
+        postTradePrompt: {
+          kind: 'post_to_feed_toast',
+          tradeInFlightChain: 'robinhood',
+          preview: {
+            tokenSymbol: 'HOOD',
+            tokenAddress: '0xrobinhood-token',
+            chain: 'robinhood',
+            side: 'buy',
+          },
+        },
+      });
+      mockGetHistoryItem.mockReturnValue(bridgeHistoryItem());
+      const showToast = jest.fn();
+      resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+
+      jest.advanceTimersByTime(QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS);
+
+      expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('complete', {
+        trade: expect.anything(),
+        theme,
+        linkButtonOptions: undefined,
+      });
+      expect(showToast).toHaveBeenCalledWith({ kind: 'complete' });
+    });
+
+    describe('bridged sells', () => {
+      const sellTrade: TrackedQuickBuyTrade = {
+        ...buyTrade,
+        tradeMode: 'sell',
+        tokenSymbol: 'HOOD',
+        counterTokenSymbol: 'ETH',
+        txSignature: '0xsource-hash',
+      };
+      const sellPreview = {
+        tokenSymbol: 'HOOD',
+        tokenAddress: '0xrobinhood-token',
+        chain: 'robinhood',
+        side: 'sell' as const,
+      };
+      const sellBridgeHistoryItem = (destinationTxHash?: string) => ({
+        ...bridgeHistoryItem(destinationTxHash),
+        quote: { srcChainId: 4663, destChainId: 1 },
+      });
+      const trackSellShare = () => {
+        const sessionId = beginPostTradeShareSession({
+          target: {
+            tokenAddress: '0xrobinhood-token',
+            tokenSymbol: 'HOOD',
+            tokenName: 'Hood',
+            chain: 'eip155:4663',
+          },
+          tradeMode: 'sell',
+          tradeInFlightChain: 'robinhood',
+          transactionHash: '0xsource-hash',
+          preview: sellPreview,
+        });
+        trackQuickBuyTrade('tx-1', {
+          ...sellTrade,
+          postTradeShare: true,
+          postTradeShareSessionId: sessionId,
+        });
+      };
+
+      it('shares the source-chain hash of the sold token', () => {
+        trackSellShare();
+        mockGetHistoryItem.mockReturnValue(
+          sellBridgeHistoryItem('0xdest-hash'),
+        );
+
+        const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+        expect(result).toBe(true);
+        expect(getSpotSession()).toEqual(
+          expect.objectContaining({
+            status: 'complete',
+            transactionHash: '0xsource-hash',
+          }),
+        );
+      });
+
+      it('settles without waiting for a destination hash', () => {
+        jest.useFakeTimers();
+        trackSellShare();
+        mockGetHistoryItem.mockReturnValue(sellBridgeHistoryItem());
+
+        const result = resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+        expect(result).toBe(true);
+        expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+        expect(getSpotSession()).toEqual(
+          expect.objectContaining({
+            status: 'complete',
+            transactionHash: '0xsource-hash',
+          }),
+        );
+        expect(jest.getTimerCount()).toBe(0);
+      });
+
+      it('opens the composer with the source-chain hash from Post to feed', () => {
+        trackQuickBuyTrade('tx-1', {
+          ...sellTrade,
+          postTradePrompt: {
+            kind: 'post_to_feed_toast',
+            tradeInFlightChain: 'robinhood',
+            preview: sellPreview,
+          },
+        });
+        mockGetHistoryItem.mockReturnValue(
+          sellBridgeHistoryItem('0xdest-hash'),
+        );
+
+        resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+        const [, params] = (buildQuickBuyToastOptions as jest.Mock).mock
+          .calls[0];
+        params.linkButtonOptions.onPress();
+
+        expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+          'SocialPostComposerView',
+          {
+            tradeInFlight: {
+              transactionHash: '0xsource-hash',
+              chain: 'robinhood',
+              tokenAddress: '0xrobinhood-token',
+            },
+            preview: sellPreview,
+          },
+        );
+      });
+    });
+  });
+
+  describe('destination hash wait isolation', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('schedules a fresh wait for a reused id after an unsettled wait', () => {
+      jest.useFakeTimers();
+      const bridgeItem = {
+        quote: { srcChainId: 1, destChainId: 4663 },
+        status: { status: StatusTypes.COMPLETE },
+      };
+      trackQuickBuyTrade('tx-1', buyTrade);
+      mockGetHistoryItem.mockReturnValue(bridgeItem);
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      jest.clearAllTimers();
+      clearAwaitingDestinationTxHashes();
+
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+      jest.advanceTimersByTime(QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS);
+
+      expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+    });
   });
 
   it('shows the normal terminal toast when the share session was dismissed', () => {
-    trackQuickBuyTrade('tx-1', { ...buyTrade, postSwapShare: true });
+    trackQuickBuyTrade('tx-1', { ...buyTrade, postTradeShare: true });
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
@@ -367,5 +670,153 @@ describe('resolveQuickBuyTerminalToast', () => {
     resolveQuickBuyTerminalToast('tx-1', showToast, theme);
 
     expect(showToast).toHaveBeenCalledWith({ kind: 'complete' });
+  });
+
+  describe('post-trade prompt', () => {
+    const countKey = { address: '0xlinked', product: 'swap' as const };
+    const preview = {
+      tokenSymbol: 'PEPE',
+      tokenAddress: '0xpepe',
+      chain: 'ethereum',
+      side: 'buy' as const,
+    };
+
+    it('counts a completed share sheet even if the user closed it', () => {
+      trackQuickBuyTrade('tx-1', {
+        ...buyTrade,
+        postTradeShare: true,
+        postTradePrompt: { kind: 'share_sheet', countKey },
+      });
+      mockGetHistoryItem.mockReturnValue(
+        historyItemWithStatus(StatusTypes.COMPLETE),
+      );
+
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+      expect(incrementShareSheetCount).toHaveBeenCalledWith('0xlinked', 'swap');
+    });
+
+    it('does not count a failed share sheet', () => {
+      trackQuickBuyTrade('tx-1', {
+        ...buyTrade,
+        postTradeShare: true,
+        postTradePrompt: { kind: 'share_sheet', countKey },
+      });
+      mockGetHistoryItem.mockReturnValue(
+        historyItemWithStatus(StatusTypes.FAILED),
+      );
+
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+    });
+
+    const trackCreateProfileTrade = () => {
+      const sessionId = beginPostTradeShareSession({
+        variant: 'create_profile',
+        target: {
+          tokenAddress: '0xpepe',
+          tokenSymbol: 'PEPE',
+          tokenName: 'Pepe',
+          chain: 'eip155:1',
+        },
+        tradeMode: 'buy',
+        preview,
+      });
+      trackQuickBuyTrade('tx-1', {
+        ...buyTrade,
+        postTradeShare: true,
+        postTradeShareSessionId: sessionId,
+        postTradePrompt: { kind: 'claim_sheet' },
+      });
+    };
+
+    it('completes the create profile sheet and marks it seen', () => {
+      trackCreateProfileTrade();
+      mockGetHistoryItem.mockReturnValue(
+        historyItemWithStatus(StatusTypes.COMPLETE),
+      );
+      const showToast = jest.fn();
+
+      resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+
+      expect(showToast).not.toHaveBeenCalled();
+      expect(markClaimSheetSeen).toHaveBeenCalledWith('swap');
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          variant: 'create_profile',
+          status: 'complete',
+        }),
+      );
+      expect(playSuccessNotification).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not mark the create profile sheet seen on failure', () => {
+      trackCreateProfileTrade();
+      mockGetHistoryItem.mockReturnValue(
+        historyItemWithStatus(StatusTypes.FAILED),
+      );
+
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+      expect(getPostTradeShareSession()?.status).toBe('failed');
+    });
+
+    it('adds Post to feed to the complete toast and opens the composer', () => {
+      trackQuickBuyTrade('tx-1', {
+        ...buyTrade,
+        postTradePrompt: {
+          kind: 'post_to_feed_toast',
+          tradeInFlightChain: 'ethereum',
+          preview,
+        },
+      });
+      mockGetHistoryItem.mockReturnValue({
+        ...historyItemWithStatus(StatusTypes.COMPLETE),
+        reportedSubmittedTxHash: '0xhash',
+      });
+
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+      const [, params] = (buildQuickBuyToastOptions as jest.Mock).mock.calls[0];
+      expect(params.linkButtonOptions.label).toBe('Post to feed');
+
+      params.linkButtonOptions.onPress();
+
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'SocialPostComposerView',
+        {
+          tradeInFlight: {
+            transactionHash: '0xhash',
+            chain: 'ethereum',
+            tokenAddress: '0xpepe',
+          },
+          preview,
+        },
+      );
+    });
+
+    it('omits Post to feed when the swap has no transaction hash', () => {
+      trackQuickBuyTrade('tx-1', {
+        ...buyTrade,
+        postTradePrompt: {
+          kind: 'post_to_feed_toast',
+          tradeInFlightChain: 'ethereum',
+          preview,
+        },
+      });
+      mockGetHistoryItem.mockReturnValue(
+        historyItemWithStatus(StatusTypes.COMPLETE),
+      );
+
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+      expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('complete', {
+        trade: expect.anything(),
+        theme,
+        linkButtonOptions: undefined,
+      });
+    });
   });
 });

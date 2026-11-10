@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image } from 'expo-image';
 import { fireEvent } from '@testing-library/react-native';
+import { Skeleton } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { initialState } from '../../../_mocks_/initialState';
@@ -157,6 +158,24 @@ describe('InputSection', () => {
     expect(onInputPress).toHaveBeenCalledTimes(1);
   });
 
+  it('lets presses reach the limit price input by default', () => {
+    const { getByTestId } = renderInputSection();
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW).props
+        .pointerEvents,
+    ).toBe('auto');
+  });
+
+  it('passes presses through the limit price input when input press is disabled', () => {
+    const { getByTestId } = renderInputSection({ isInputPressDisabled: true });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW).props
+        .pointerEvents,
+    ).toBe('none');
+  });
+
   it('appends the unit symbol as a non-editable suffix after the amount', () => {
     const { getByTestId } = renderInputSection({
       isLimitFiatMode: false,
@@ -257,5 +276,124 @@ describe('InputSection', () => {
 
     expect(onDismissKeypad).toHaveBeenCalledTimes(1);
     expect(onAmountTypeTogglePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls amount type toggle and dismiss handlers once when the swap icon is pressed', () => {
+    const onAmountTypeTogglePress = jest.fn();
+    const onDismissKeypad = jest.fn();
+    const { getByTestId } = renderInputSection({
+      secondaryValue: '0.05 ETH',
+      onAmountTypeTogglePress,
+      onDismissKeypad,
+    });
+
+    fireEvent.press(
+      getByTestId(
+        LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE_ICON,
+      ),
+    );
+
+    expect(onDismissKeypad).toHaveBeenCalledTimes(1);
+    expect(onAmountTypeTogglePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('suppresses the iOS press highlight on the amount type toggle', () => {
+    const { getByTestId } = renderInputSection({
+      secondaryValue: '0.05 ETH',
+      onAmountTypeTogglePress: jest.fn(),
+    });
+
+    expect(
+      getByTestId(
+        LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE,
+      ).props.suppressHighlighting,
+    ).toBe(true);
+  });
+
+  it('gives the swap icon its own hit slop', () => {
+    const { getByTestId } = renderInputSection({
+      secondaryValue: '0.05 ETH',
+      onAmountTypeTogglePress: jest.fn(),
+    });
+
+    expect(
+      getByTestId(
+        LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE_ICON,
+      ).props.hitSlop,
+    ).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
+  });
+
+  describe('while the limit price is loading', () => {
+    it('renders a skeleton in place of the limit price input', () => {
+      const { getByTestId, queryByTestId, getByText } = renderInputSection({
+        value: '',
+        isLoading: true,
+      });
+
+      expect(
+        getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+      ).toBeNull();
+      expect(getByText(strings('bridge.limit.buy_when'))).toBeOnTheScreen();
+    });
+
+    it('sizes the skeleton to the space the amount row takes', () => {
+      const { getByTestId } = renderInputSection({
+        value: '',
+        isLoading: true,
+      });
+
+      // A 24px font gives a 30px line box, pulled in by 7px above and 2px
+      // below the digits.
+      expect(
+        getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.SKELETON),
+      ).toHaveStyle({ height: 21 });
+    });
+
+    it('animates the skeleton by default', () => {
+      const { UNSAFE_getByType } = renderInputSection({
+        value: '',
+        isLoading: true,
+      });
+
+      expect(UNSAFE_getByType(Skeleton).props.autoPlay).toBe(true);
+    });
+
+    it('renders a static skeleton when the loading animation is off', () => {
+      const { UNSAFE_getByType } = renderInputSection({
+        value: '',
+        isLoading: true,
+        isLoadingAnimated: false,
+      });
+
+      expect(UNSAFE_getByType(Skeleton).props.autoPlay).toBe(false);
+    });
+
+    it('renders the limit price input once loading ends', () => {
+      const { getByTestId, queryByTestId } = renderInputSection({
+        isLoading: false,
+      });
+
+      expect(
+        getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+      ).toHaveProp('value', '100');
+      expect(
+        queryByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.SKELETON),
+      ).toBeNull();
+    });
+  });
+
+  it('does not render the swap icon without a toggle handler', () => {
+    const { queryByTestId } = renderInputSection({
+      secondaryValue: '0.05 ETH',
+    });
+
+    expect(
+      queryByTestId(
+        LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE_ICON,
+      ),
+    ).toBeNull();
   });
 });

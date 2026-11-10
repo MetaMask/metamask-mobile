@@ -1,6 +1,7 @@
 import type { MessengerClientInitFunction } from '../../types';
 import Logger from '../../../../util/Logger';
 import {
+  TransactionPayClientId,
   TransactionPayController,
   TransactionPayControllerMessenger,
 } from '@metamask/transaction-pay-controller';
@@ -21,6 +22,7 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
 
   try {
     const transactionPayController = new TransactionPayController({
+      clientId: TransactionPayClientId.Mobile,
       fiatOptions: getTransactionPayFiatTestOptions(),
       getAmountData,
       getBalance,

@@ -588,7 +588,7 @@ const AddCustomToken = ({
                   <Icon
                     style={tw.style('text-info-default')}
                     size={IconSize.Xss}
-                    name={IconName.Export}
+                    name={IconName.ArrowSquareOut}
                   />
                 </Text>{' '}
               </Text>

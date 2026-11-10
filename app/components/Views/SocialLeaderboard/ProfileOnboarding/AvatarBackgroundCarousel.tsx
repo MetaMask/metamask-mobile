@@ -13,6 +13,7 @@ import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
@@ -21,11 +22,16 @@ import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import { strings } from '../../../../../locales/i18n';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useHaptics } from '../../../../util/haptics';
+import Foxicon, {
+  type FoxiconVariant,
+} from '../../../../component-library/components-temp/Foxicon';
 import {
+  DEFAULT_PROFILE_AVATAR_PRESET_ID,
+  getProfileAvatarBackground,
   getProfileAvatarPreset,
   PROFILE_AVATAR_BACKGROUNDS,
+  PROFILE_AVATAR_PRESETS,
 } from '../MyProfileView/avatarPresets';
-import { ProfileAvatarArt } from '../MyProfileView/components/ProfileAvatar';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -58,15 +64,37 @@ const GLOW_SCALE = 1.2;
 const GLOW_BLUR = 14;
 const GLOW_CENTER = SELECTED_SIZE / 2;
 
-const GLIDE_EASING = Easing.inOut(Easing.cubic);
-const INTRO_GLIDE_MS = 660;
-const MIN_GLIDE_MS = 280;
-const MAX_GLIDE_MS = 520;
-const GLIDE_MS_PER_EXTRA_STEP = 120;
+const GLIDE_EASING = Easing.out(Easing.cubic);
+const INTRO_GLIDE_MS = 400;
+const MIN_GLIDE_MS = 180;
+const MAX_GLIDE_MS = 340;
+const GLIDE_MS_PER_EXTRA_STEP = 80;
+
+/**
+ * Fraction of a slot to travel before the next color counts as passed.
+ * Earlier than the snap, so the haptic lands while the color is still moving.
+ */
+const HAPTIC_CROSS_FRACTION = 0.35;
 
 const clampIndex = (index: number) => {
   'worklet';
   return Math.min(Math.max(index, 0), LAST_INDEX);
+};
+
+/**
+ * Index whose haptic should already have played. Moving forward, the next
+ * color counts once `HAPTIC_CROSS_FRACTION` of the slot is crossed.
+ */
+export const hapticBackgroundIndex = (
+  position: number,
+  previousPosition: number,
+): number => {
+  'worklet';
+  const lead = 1 - HAPTIC_CROSS_FRACTION;
+  if (position >= previousPosition) {
+    return clampIndex(Math.floor(position + lead));
+  }
+  return clampIndex(Math.ceil(position - lead));
 };
 
 /** Signed horizontal offset from the center for a slot distance. */
@@ -217,6 +245,108 @@ const AvatarGlow: React.FC<{ scrollX: SharedValue<number> }> = ({
   </Box>
 );
 
+/** Crossfade when the selected avatar changes. Low-tier devices swap instantly. */
+const AVATAR_DISSOLVE_MS = 200;
+const AVATAR_DISSOLVE_EASING = Easing.out(Easing.cubic);
+/** One blink of the preview, so a new face reads as a change. */
+export const AVATAR_FLICKER_OUT_MS = 50;
+export const AVATAR_FLICKER_IN_MS = 110;
+
+const AvatarArtLayer: React.FC<{
+  variant: FoxiconVariant;
+  isSelected: boolean;
+  sizePx: number;
+  animate: boolean;
+}> = ({ variant, isSelected, sizePx, animate }) => {
+  const tw = useTailwind();
+  const opacity = useSharedValue(isSelected ? 1 : 0);
+
+  useEffect(() => {
+    const target = isSelected ? 1 : 0;
+    opacity.value = animate
+      ? withTiming(target, {
+          duration: AVATAR_DISSOLVE_MS,
+          easing: AVATAR_DISSOLVE_EASING,
+        })
+      : target;
+  }, [animate, isSelected, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <Animated.View
+      style={[tw.style('absolute'), animatedStyle]}
+      testID={`${SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW_ART}-${variant}`}
+    >
+      <Foxicon variant={variant} size={sizePx} />
+    </Animated.View>
+  );
+};
+
+/**
+ * Every preset stays mounted as its own layer and only its opacity changes,
+ * so a switch never waits on the artwork to draw and an interrupted fade
+ * continues from its current opacity. Without the fade, only the selected
+ * layer is mounted.
+ */
+const DissolvingAvatarArt: React.FC<{
+  avatarPresetId: string;
+  sizePx: number;
+  animate: boolean;
+}> = ({ avatarPresetId, sizePx, animate }) => {
+  const selectedVariant = (
+    getProfileAvatarPreset(avatarPresetId) ??
+    getProfileAvatarPreset(DEFAULT_PROFILE_AVATAR_PRESET_ID)
+  )?.id;
+  const layers = animate
+    ? PROFILE_AVATAR_PRESETS
+    : PROFILE_AVATAR_PRESETS.filter((preset) => preset.id === selectedVariant);
+  const opacity = useSharedValue(1);
+  const hasMounted = useRef(false);
+
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    cancelAnimation(opacity);
+    opacity.value = withSequence(
+      withTiming(0, {
+        duration: AVATAR_FLICKER_OUT_MS,
+        easing: Easing.out(Easing.quad),
+      }),
+      withTiming(1, {
+        duration: AVATAR_FLICKER_IN_MS,
+        easing: Easing.out(Easing.cubic),
+      }),
+    );
+  }, [opacity, selectedVariant]);
+
+  const flickerStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <Animated.View
+      style={flickerStyle}
+      testID={SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW_FLICKER}
+    >
+      <Box
+        twClassName="items-center justify-center"
+        style={{ width: sizePx, height: sizePx }}
+      >
+        {layers.map((preset) => (
+          <AvatarArtLayer
+            key={preset.id}
+            variant={preset.id}
+            isSelected={preset.id === selectedVariant}
+            sizePx={sizePx}
+            animate={animate}
+          />
+        ))}
+      </Box>
+    </Animated.View>
+  );
+};
+
 /** Ring of small round dots around the selection. */
 const DottedRing: React.FC = () => {
   const tw = useTailwind();
@@ -244,6 +374,11 @@ interface AvatarBackgroundCarouselProps {
   avatarPresetId: string;
   selectedBackgroundId: string;
   onSelect: (backgroundId: string) => void;
+  /**
+   * Skips the entrance glide and glow when the device is LOW hardware.
+   * When omitted, the carousel reads the hardware tier itself.
+   */
+  isLowTier?: boolean;
 }
 
 /**
@@ -252,24 +387,27 @@ interface AvatarBackgroundCarouselProps {
  * the user swipes as well as when they tap a neighbor.
  *
  * Finger swipes use native scrolling and snapping. The entrance and taps glide
- * with an ease-in-out cubic curve driven from the UI thread. Low-tier devices
- * skip the entrance glide and the blurred glow.
+ * with an ease-out cubic curve driven from the UI thread. Low-tier devices skip
+ * the entrance glide and the blurred glow.
  */
 const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   avatarPresetId,
   selectedBackgroundId,
   onSelect,
+  isLowTier: isLowTierProp,
 }) => {
   const tw = useTailwind();
   const { playSelection } = useHaptics();
   const [width, setWidth] = useState(0);
-  const isLowTier = getHardwareTier() === 'LOW';
+  const isLowTier = isLowTierProp ?? getHardwareTier() === 'LOW';
+  const resolvedBackgroundId =
+    getProfileAvatarBackground(selectedBackgroundId)?.id;
   // Frozen at mount: a changing `contentOffset` re-positions the native
   // scroll view and cuts off an in-flight snap.
   const [targetIndex] = useState(() =>
     Math.max(
       PROFILE_AVATAR_BACKGROUNDS.findIndex(
-        (background) => background.id === selectedBackgroundId,
+        (background) => background.id === resolvedBackgroundId,
       ),
       0,
     ),
@@ -280,11 +418,12 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   const scrollX = useSharedValue(startIndex * SLOT_WIDTH);
   const glideX = useSharedValue(startIndex * SLOT_WIDTH);
   const isGliding = useSharedValue(false);
-  /** Last color a snap came to rest on; a haptic plays when it changes. */
-  const settledIndex = useSharedValue(targetIndex);
+  /** Last color that already played a pass haptic. */
+  const lastHapticIndex = useSharedValue(targetIndex);
+  /** Stays off during the entrance glide so that slide is silent. */
+  const hapticsArmed = useSharedValue(isLowTier);
   const hasPlayedIntro = useRef(isLowTier);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
-  const preset = getProfileAvatarPreset(avatarPresetId);
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     setWidth(event.nativeEvent.layout.width);
@@ -302,9 +441,15 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   }, [playSelection]);
 
   const glideTo = useCallback(
-    (index: number, duration: number) => {
+    (index: number, duration: number, armHaptics: boolean) => {
       scheduleOnUI(() => {
         'worklet';
+        if (armHaptics) {
+          hapticsArmed.value = true;
+          lastHapticIndex.value = clampIndex(
+            Math.round(scrollX.value / SLOT_WIDTH),
+          );
+        }
         cancelAnimation(glideX);
         glideX.value = scrollX.value;
         isGliding.value = true;
@@ -314,12 +459,16 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
           (finished) => {
             if (finished) {
               isGliding.value = false;
+              hapticsArmed.value = true;
+              lastHapticIndex.value = clampIndex(
+                Math.round(scrollX.value / SLOT_WIDTH),
+              );
             }
           },
         );
       });
     },
-    [glideX, isGliding, scrollX],
+    [glideX, hapticsArmed, isGliding, lastHapticIndex, scrollX],
   );
 
   useAnimatedReaction(
@@ -336,20 +485,17 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
       return;
     }
     hasPlayedIntro.current = true;
-    glideTo(targetIndex, INTRO_GLIDE_MS);
+    glideTo(targetIndex, INTRO_GLIDE_MS, false);
   }, [glideTo, targetIndex, width]);
 
   const handleSwatchPress = useCallback(
     (index: number) => {
-      const steps = Math.abs(index - settledIndex.value);
-      if (steps > 0) {
-        settledIndex.value = index;
-        playSnapHaptic();
-      }
+      const from = clampIndex(Math.round(scrollX.value / SLOT_WIDTH));
+      const steps = Math.abs(index - from);
       selectIndex(index);
-      glideTo(index, glideDuration(steps));
+      glideTo(index, glideDuration(steps), true);
     },
-    [glideTo, playSnapHaptic, selectIndex, settledIndex],
+    [glideTo, scrollX, selectIndex],
   );
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -359,15 +505,32 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
     onBeginDrag: () => {
       cancelAnimation(glideX);
       isGliding.value = false;
-    },
-    onMomentumEnd: (event) => {
-      const index = clampIndex(Math.round(event.contentOffset.x / SLOT_WIDTH));
-      if (index !== settledIndex.value) {
-        settledIndex.value = index;
-        scheduleOnRN(playSnapHaptic);
-      }
+      hapticsArmed.value = true;
+      lastHapticIndex.value = clampIndex(
+        Math.round(scrollX.value / SLOT_WIDTH),
+      );
     },
   });
+
+  useAnimatedReaction(
+    () => scrollX.value / SLOT_WIDTH,
+    (position, previousPosition) => {
+      if (!hapticsArmed.value || previousPosition === null) {
+        return;
+      }
+      const index = hapticBackgroundIndex(position, previousPosition);
+      if (index === lastHapticIndex.value) {
+        return;
+      }
+      const step = index > lastHapticIndex.value ? 1 : -1;
+      let cursor = lastHapticIndex.value;
+      while (cursor !== index) {
+        cursor += step;
+        scheduleOnRN(playSnapHaptic);
+      }
+      lastHapticIndex.value = index;
+    },
+  );
 
   useAnimatedReaction(
     () => clampIndex(Math.round(scrollX.value / SLOT_WIDTH)),
@@ -406,9 +569,9 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
               index={index}
               color={background.color}
               label={strings(
-                `social_leaderboard.profile_onboarding.avatar_background_${background.id}`,
+                `social_leaderboard.profile_onboarding.avatar_background_${background.labelKey}`,
               )}
-              isSelected={background.id === selectedBackgroundId}
+              isSelected={background.id === resolvedBackgroundId}
               scrollX={scrollX}
               onPress={handleSwatchPress}
             />
@@ -426,7 +589,11 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
           style={tw.style({ width: SOLID_RING_SIZE, height: SOLID_RING_SIZE })}
         />
         <DottedRing />
-        <ProfileAvatarArt preset={preset} sizePx={ART_SIZE} />
+        <DissolvingAvatarArt
+          avatarPresetId={avatarPresetId}
+          sizePx={ART_SIZE}
+          animate={!isLowTier}
+        />
       </Box>
     </Box>
   );

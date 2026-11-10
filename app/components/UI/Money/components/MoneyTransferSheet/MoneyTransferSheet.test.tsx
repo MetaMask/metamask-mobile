@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyTransferSheet from './MoneyTransferSheet';
@@ -11,13 +11,13 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
-import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
@@ -36,6 +36,11 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+jest.mock('../../selectors/visibility', () => ({
+  ...jest.requireActual('../../selectors/visibility'),
+  selectMoneyAccountAccessBlockReason: jest.fn(),
+}));
+
 const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
 const mockInitiatePerpsDeposit = jest.fn().mockResolvedValue(undefined);
 const mockInitiatePredictDeposit = jest.fn().mockResolvedValue(undefined);
@@ -43,7 +48,7 @@ const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
-// Default: liquid balance unavailable (row stays Coming soon).
+// Default: liquid balance unavailable (row is hidden).
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as unknown as jest.Mock;
 mockUseMoneyAccountBalance.mockReturnValue({
@@ -81,8 +86,14 @@ jest.mock('../../../Perps/selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
 }));
 
-jest.mock('../../../Predict/hooks/usePredictEligibility', () => ({
-  usePredictEligibility: jest.fn(() => ({ isEligible: true })),
+let mockIsPredictEligible = true;
+let mockIsPredictDepositAvailable = true;
+jest.mock('../../../PredictNext', () => ({
+  usePredictLegacyDepositEligibility: () => mockIsPredictEligible,
+  usePredictLegacyDeposit: () => ({
+    isAvailable: mockIsPredictDepositAvailable,
+    isAvailableNow: () => mockIsPredictDepositAvailable,
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -146,10 +157,48 @@ describe('MoneyTransferSheet', () => {
       initiatePredictDeposit: mockInitiatePredictDeposit,
     });
     (selectPerpsEligibility as unknown as jest.Mock).mockReturnValue(true);
-    (usePredictEligibility as jest.Mock).mockReturnValue({ isEligible: true });
+    mockIsPredictEligible = true;
+    mockIsPredictDepositAvailable = true;
+    (
+      selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+    ).mockReturnValue(undefined);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
+    });
+  });
+
+  describe('Money account availability', () => {
+    it('redirects to the feature-unavailable modal when Money is disabled', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('feature_disabled');
+
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(queryByTestId(MoneyTransferSheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        },
+      );
+    });
+
+    it('redirects to the geo-block sheet when Money is geo-ineligible', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('geo_blocked');
+
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(queryByTestId(MoneyTransferSheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      });
     });
   });
 
@@ -160,7 +209,9 @@ describe('MoneyTransferSheet', () => {
   });
 
   it('renders all five list items', () => {
-    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyTransferSheet />,
+    );
 
     expect(
       getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
@@ -172,20 +223,20 @@ describe('MoneyTransferSheet', () => {
       getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-    ).toBeOnTheScreen();
-    expect(
       getByTestId(MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW),
     ).toBeOnTheScreen();
   });
 
-  it('renders "Coming soon" tags on the last two items when liquid mUSD is unavailable', () => {
-    const { getAllByText } = renderWithProvider(<MoneyTransferSheet />);
-
-    const comingSoonTags = getAllByText(
-      strings('money.add_money_sheet.coming_soon'),
+  it('renders "Coming soon" for withdraw to bank option', () => {
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+    const withdrawOption = getByTestId(
+      MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW,
     );
-    expect(comingSoonTags).toHaveLength(2);
+    expect(
+      within(withdrawOption).getByText(
+        strings('money.add_money_sheet.coming_soon'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   describe('mUSD rescue send row', () => {
@@ -217,62 +268,62 @@ describe('MoneyTransferSheet', () => {
       ).toBeEnabled();
     });
 
-    it('keeps the row disabled when liquid mUSD is zero', () => {
+    it('hides the row when liquid mUSD is zero', () => {
       setupMoneyBalance({ liquidMusd: '0' });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
-    it('keeps the row disabled for a vmUSD-only balance (liquid zero)', () => {
+    it('hides the row for a vmUSD-only balance (liquid zero)', () => {
       setupMoneyBalance({ liquidMusd: '0', withdrawableMusd: '25' });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
-    it('keeps the row disabled when vmUSD-backed balance is nonzero', () => {
+    it('hides the row when vmUSD-backed balance is nonzero', () => {
       setupMoneyBalance({ liquidMusd: '99', withdrawableMusd: '0.01' });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
-    it('keeps the row disabled while the balance is loading', () => {
+    it('hides the row while the balance is loading', () => {
       setupMoneyBalance({
         liquidMusd: undefined,
         withdrawableMusd: undefined,
         isLoading: true,
       });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
-    it('keeps the row disabled on a balance fetch error', () => {
+    it('hides the row on a balance fetch error', () => {
       setupMoneyBalance({
         liquidMusd: undefined,
         withdrawableMusd: undefined,
         isError: true,
       });
 
-      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       expect(
-        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
-      ).toBeDisabled();
+        queryByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeNull();
     });
 
     it('navigates to the rescue review screen when enabled and pressed', () => {
@@ -377,6 +428,23 @@ describe('MoneyTransferSheet', () => {
     ).toBeNull();
   });
 
+  it('hides the "Predictions account" option while the legacy Predict deposit does not serve the Active Venue', () => {
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+    mockIsPredictDepositAvailable = false;
+
+    const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeNull();
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+    ).not.toBeNull();
+  });
+
   it('disables the "Predictions account" option when flag is disabled', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -430,7 +498,7 @@ describe('MoneyTransferSheet', () => {
       isEnabled: true,
       initiatePredictDeposit: mockInitiatePredictDeposit,
     });
-    (usePredictEligibility as jest.Mock).mockReturnValue({ isEligible: false });
+    mockIsPredictEligible = false;
 
     const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 

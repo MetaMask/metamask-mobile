@@ -17,6 +17,7 @@ import { BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY } from '../../../../component-libra
 import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
 import { navigateToSocialTab } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { SocialEvent } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { NATIVE_TAB_ICONS } from './homeTabs.icons';
 import { shouldHideRewardsTabBar } from './homeTabs.mappers';
 import type { HomeTabDefinition } from './homeTabs.types';
@@ -24,6 +25,9 @@ import type { HomeTabDefinition } from './homeTabs.types';
 export interface UseHomeTabDefinitionsParams {
   isMoneyAccountVisible: boolean;
   showSocialTab: boolean;
+  isSocialV1Enabled: boolean;
+  canOpenSocialTabDirectly: boolean;
+  showSocialTabNewBadge: boolean;
   trackMoneyTabPress: () => void;
 }
 
@@ -46,6 +50,9 @@ export interface UseHomeTabDefinitionsResult {
 export const useHomeTabDefinitions = ({
   isMoneyAccountVisible,
   showSocialTab,
+  isSocialV1Enabled,
+  canOpenSocialTabDirectly,
+  showSocialTabNewBadge,
   trackMoneyTabPress,
 }: UseHomeTabDefinitionsParams): UseHomeTabDefinitionsResult => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -155,21 +162,44 @@ export const useHomeTabDefinitions = ({
       rootScreenName: Routes.SOCIAL.TAB,
       nativeIcon: NATIVE_TAB_ICONS.social,
       freezeOnBlur: false,
+      showNewBadge: showSocialTabNewBadge,
+      // UIKit selects a native tab before `tabPress`. Social V1 refuses that
+      // selection only while a gate has to open instead, because a refused tap
+      // makes the Liquid Glass highlight slide there, back, and there again.
+      ...(isSocialV1Enabled && !canOpenSocialTabDirectly
+        ? { tabBarSelectionEnabled: false }
+        : null),
+      ...(isSocialV1Enabled
+        ? { initialParams: { source: SocialEvent.Source.NAV_TAB } }
+        : null),
     };
+
+    if (isSocialV1Enabled) {
+      return [
+        home,
+        explore,
+        browser,
+        isMoneyAccountVisible ? money : activity,
+        social,
+      ];
+    }
 
     return [
       home,
       explore,
       browser,
       isMoneyAccountVisible ? money : activity,
-      showSocialTab ? social : rewards,
+      ...(showSocialTab ? [social] : [rewards]),
     ];
   }, [
     accountsLength,
+    canOpenSocialTabDirectly,
     chainId,
     createEventBuilder,
     isMoneyAccountVisible,
+    isSocialV1Enabled,
     showSocialTab,
+    showSocialTabNewBadge,
     trackEvent,
     trackMoneyTabPress,
   ]);
@@ -185,7 +215,8 @@ export const useHomeTabDefinitions = ({
           playImpact(ImpactMoment.TabChange);
           trackBottomNavPress(tab.iconKey);
           tab.onPress?.();
-          // UIKit already selected the tab; this mirrors the JS bars' nested navigation.
+          // User taps on a selectable tab have already selected it. Social V1
+          // opts out, so this listener is what selects that tab after the gate.
           switch (tab.rootScreenName) {
             case Routes.WALLET_VIEW:
               navigation.navigate(Routes.WALLET.HOME, {
@@ -210,7 +241,23 @@ export const useHomeTabDefinitions = ({
               break;
           }
         },
-        ...(tab.onLeave ? { blur: tab.onLeave } : null),
+        ...(tab.onLeave || tab.initialParams
+          ? {
+              blur: () => {
+                tab.onLeave?.();
+                // A native tab tap re-sends the tab's current params after
+                // `tabPress`, so restore the tap defaults once another tab
+                // is selected.
+                if (!tab.initialParams) {
+                  return;
+                }
+                const state = navigation.getState();
+                if (state.routes[state.index]?.name !== tab.name) {
+                  navigation.setParams(tab.initialParams);
+                }
+              },
+            }
+          : null),
       }),
     [navigateToMoneyHome, trackBottomNavPress],
   );

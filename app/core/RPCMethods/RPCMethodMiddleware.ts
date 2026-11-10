@@ -6,7 +6,7 @@ import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { SetFlowLoadingTextOptions } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import { rejectOriginPendingApprovals } from '../../util/permissions';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
 import {
   getPermissionsHandler,
   requestPermissionsHandler,
@@ -55,14 +55,12 @@ const Engine = ImportedEngine as any;
 
 let appVersion = '';
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 export const SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES = {
   confirmAccountCreation: 'snap_manageAccounts:confirmAccountCreation',
   confirmAccountRemoval: 'snap_manageAccounts:confirmAccountRemoval',
   showSnapAccountRedirect: 'snap_manageAccounts:showSnapAccountRedirect',
   showNameSnapAccount: 'snap_manageAccounts:showNameSnapAccount',
 };
-///: END:ONLY_INCLUDE_IF
 
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
@@ -78,11 +76,9 @@ export enum ApprovalTypes {
   RESULT_SUCCESS = 'result_success',
   SMART_TRANSACTION_STATUS = 'smart_transaction_status',
   CONFIRM_MEMBERSHIP = 'confirm_membership',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   SNAP_DIALOG = 'snap_dialog',
-  ///: END:ONLY_INCLUDE_IF
 }
 
 export interface RPCMethodsMiddleParameters {
@@ -106,6 +102,37 @@ export interface RPCMethodsMiddleParameters {
   analytics: { [key: string]: string | boolean };
 }
 
+/**
+ * Determines the CAIP-2 scope of a request, used to narrow the permitted
+ * accounts that the request's address is validated against. Uses, in order of
+ * precedence: the explicit chain ID, the `scope` added to the request by the
+ * multichain middleware, and the chain ID of the request's network client.
+ *
+ * @param networkClientId - The ID of the network client the request was made on.
+ * @param chainId - An explicit chain ID (hex, decimal string or number), if the request specifies one.
+ * @param requestScope - The CAIP-2 scope of the request, if it was made through the multichain API.
+ * @returns The CAIP-2 scope.
+ */
+const getRequestScope = (
+  networkClientId: string,
+  chainId?: number | string,
+  requestScope?: CaipChainId,
+): CaipChainId | undefined => {
+  if (chainId) {
+    return `eip155:${BigInt(chainId).toString(10)}`;
+  }
+
+  if (requestScope) {
+    return requestScope;
+  }
+
+  const { chainId: networkChainId } =
+    Engine.context.NetworkController.getNetworkClientById(
+      networkClientId,
+    ).configuration;
+  return `eip155:${hexToBigInt(networkChainId).toString(10)}`;
+};
+
 // Also used by WalletConnect.js.
 export const checkActiveAccountAndChainId = async ({
   address,
@@ -114,13 +141,15 @@ export const checkActiveAccountAndChainId = async ({
   hostname,
   isWalletConnect,
   networkClientId,
+  scope,
 }: {
   address?: string;
   chainId?: number | string;
   channelId?: string;
   hostname: string;
   isWalletConnect: boolean;
-  networkClientId?: string;
+  networkClientId: string;
+  scope?: CaipChainId;
 }) => {
   let isInvalidAccount = false;
   const origin = channelId ?? hostname;
@@ -147,7 +176,9 @@ export const checkActiveAccountAndChainId = async ({
       permissionsController.state,
     );
 
-    const accounts = getPermittedAccounts(origin);
+    const accounts = getPermittedAccounts(origin, {
+      scope: getRequestScope(networkClientId, chainId, scope),
+    });
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
     if (!normalizedAccounts.includes(formattedAddress)) {
@@ -273,6 +304,7 @@ const generateRawSignature = async ({
     chainId,
     isWalletConnect,
     networkClientId: req.networkClientId,
+    scope: req.scope,
   });
 
   const rawSig = await signatureController.newUnsignedTypedMessage(
@@ -755,6 +787,7 @@ export const getRpcMethodMiddleware = ({
               chainId,
               isWalletConnect,
               networkClientId: req.networkClientId,
+              scope: req.scope,
             });
           },
           analytics: transactionAnalytics,
@@ -798,6 +831,8 @@ export const getRpcMethodMiddleware = ({
           channelId,
           address: params.from,
           isWalletConnect,
+          networkClientId: req.networkClientId,
+          scope: req.scope,
         });
 
         DevLogger.log(`personal_sign`, params, pageMeta, hostname);
@@ -863,6 +898,8 @@ export const getRpcMethodMiddleware = ({
           channelId,
           address: req.params[1],
           isWalletConnect,
+          networkClientId: req.networkClientId,
+          scope: req.scope,
         });
 
         trace(

@@ -196,6 +196,7 @@ const renderComponent = (
       error: previewOverrides.error ?? null,
       isCalculating: false,
       isLoading: false,
+      refetchPreview: jest.fn(),
     });
   }
 
@@ -236,6 +237,7 @@ describe('PredictPositionDetail', () => {
       error: null,
       isCalculating: false,
       isLoading: false,
+      refetchPreview: jest.fn(),
     });
   });
 
@@ -355,6 +357,7 @@ describe('PredictPositionDetail', () => {
         error: null,
         isCalculating: true,
         isLoading: true,
+        refetchPreview: jest.fn(),
       });
 
       renderComponent();
@@ -369,6 +372,7 @@ describe('PredictPositionDetail', () => {
         error: null,
         isCalculating: true,
         isLoading: true,
+        refetchPreview: jest.fn(),
       });
 
       renderComponent();
@@ -382,6 +386,7 @@ describe('PredictPositionDetail', () => {
         error: 'Failed to fetch preview',
         isCalculating: false,
         isLoading: false,
+        refetchPreview: jest.fn(),
       });
 
       renderComponent({ currentValue: 150, initialValue: 100 });
@@ -396,6 +401,7 @@ describe('PredictPositionDetail', () => {
         error: 'Network error',
         isCalculating: false,
         isLoading: false,
+        refetchPreview: jest.fn(),
       });
 
       renderComponent({

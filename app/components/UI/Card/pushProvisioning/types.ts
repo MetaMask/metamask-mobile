@@ -37,6 +37,9 @@ export enum ProvisioningErrorCode {
   CARD_PROVIDER_NOT_FOUND = 'CARD_PROVIDER_NOT_FOUND',
   CARD_NOT_ELIGIBLE = 'CARD_NOT_ELIGIBLE',
   ENCRYPTION_FAILED = 'ENCRYPTION_FAILED',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  TIMEOUT = 'TIMEOUT',
+  WALLET_DECLINED = 'WALLET_DECLINED',
   PROVIDER_UNAVAILABLE = 'PROVIDER_UNAVAILABLE',
   INVALID_CARD_DATA = 'INVALID_CARD_DATA',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
@@ -104,6 +107,7 @@ export interface ProvisionCardParams {
 export interface ProvisioningResult {
   status: 'success' | 'canceled' | 'error';
   tokenId?: string;
+  activationState?: CardTokenStatus;
   error?: ProvisioningError;
 }
 
@@ -188,4 +192,9 @@ export interface UsePushProvisioningReturn {
   canOpenInWallet: boolean;
   /** Open this card's iPhone pass in Apple Wallet. */
   openInWallet: () => Promise<void>;
+  /**
+   * True when Immersve Apple Pay is switched off. Callers hide every wallet
+   * entry, including manual instructions.
+   */
+  hideProvisioningUi: boolean;
 }

@@ -13,6 +13,7 @@ import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
+import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -23,6 +24,7 @@ import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
+import { useSuggestedGasFeeHighAlert } from './useSuggestedGasFeeHighAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -42,6 +44,10 @@ function useTransactionAlerts(): Alert[] {
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
   const fiatBuyLimitAlert = useFiatBuyLimitAlert();
+  // Reads the pending keypad amount from confirmation context, so the max
+  // deposit cap is captured in alert metrics even when the user backs out
+  // without ever committing the over-cap amount.
+  const depositLimitAlert = useTransactionDepositLimitAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
@@ -50,12 +56,14 @@ function useTransactionAlerts(): Alert[] {
   const tokenContractAlert = useTokenContractAlert();
   const accountNoFundsAlert = useAccountNoFundsAlert();
   const mmPayHardwareAccountAlert = useMMPayHardwareAccountAlert();
+  const suggestedGasFeeHighAlert = useSuggestedGasFeeHighAlert();
 
   return useMemo(
     () => [
       ...gasEstimateFailedAlert,
       ...gasLimitBelowMinimumAlert,
       ...gasSponsorshipWarningAlert,
+      ...suggestedGasFeeHighAlert,
       ...insufficientBalanceAlert,
       ...batchedUnusedApprovalsAlert,
       ...pendingTransactionAlert,
@@ -63,6 +71,7 @@ function useTransactionAlerts(): Alert[] {
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
       ...fiatBuyLimitAlert,
+      ...depositLimitAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
@@ -76,6 +85,7 @@ function useTransactionAlerts(): Alert[] {
       gasEstimateFailedAlert,
       gasLimitBelowMinimumAlert,
       gasSponsorshipWarningAlert,
+      suggestedGasFeeHighAlert,
       insufficientBalanceAlert,
       batchedUnusedApprovalsAlert,
       pendingTransactionAlert,
@@ -83,6 +93,7 @@ function useTransactionAlerts(): Alert[] {
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
       fiatBuyLimitAlert,
+      depositLimitAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,
       tokenTrustSignalAlerts,

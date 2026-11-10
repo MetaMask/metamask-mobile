@@ -305,7 +305,6 @@ describe('getAssetsControllerInitMessenger', () => {
         actions: expect.arrayContaining([
           'AuthenticationController:getBearerToken',
           'PreferencesController:getState',
-          'RemoteFeatureFlagController:getState',
           'AnalyticsController:trackEvent',
         ]),
       }),

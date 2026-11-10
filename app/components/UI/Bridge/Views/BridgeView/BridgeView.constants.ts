@@ -15,7 +15,7 @@ export enum BridgeTabKey {
 export const TAB_TO_FEATURE_ID = {
   [BridgeTabKey.Market]: FeatureId.UNIFIED_SWAP_BRIDGE,
   [BridgeTabKey.Limit]: FeatureId.LIMIT_ORDER,
-  [BridgeTabKey.Recurring]: FeatureId.RECURRING_BUY,
+  [BridgeTabKey.Recurring]: FeatureId.RECURRING_ORDER,
 };
 
 export const DEBOUNCE_WAIT = 300;

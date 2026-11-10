@@ -445,6 +445,30 @@ describe('QrScanner', () => {
     );
 
     expect(getByText('Camera not available')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('qr-scanner-camera-not-available-close-button'),
+    ).toBeOnTheScreen();
+  });
+
+  it('closes the scanner from the camera not available header', () => {
+    const mockOnScanError = jest.fn();
+    mockUseCameraDevice.mockReturnValue(undefined);
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: true,
+      requestPermission: jest.fn(),
+    });
+
+    renderWithProvider(
+      <QrScanner onScanSuccess={jest.fn()} onScanError={mockOnScanError} />,
+      { state: initialState },
+    );
+
+    fireEvent.press(
+      screen.getByTestId('qr-scanner-camera-not-available-close-button'),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockOnScanError).toHaveBeenCalledWith('USER_CANCELLED');
   });
 
   describe('QR Scanner Metrics', () => {
@@ -1558,7 +1582,6 @@ describe('QrScanner', () => {
       });
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     describe('Solana Address Scanning', () => {
       beforeEach(() => {
         const solanaModule = jest.requireMock('@solana/addresses');
@@ -1817,7 +1840,6 @@ describe('QrScanner', () => {
         });
       });
     });
-    ///: END:ONLY_INCLUDE_IF
 
     describe('Callback-based origin handling', () => {
       beforeEach(() => {

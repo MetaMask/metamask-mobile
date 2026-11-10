@@ -22,6 +22,7 @@ export interface ActivityTokenMetadata {
 }
 
 interface ParsedStandardTokenTransactionData {
+  name?: string;
   args?: Record<string, unknown>;
 }
 

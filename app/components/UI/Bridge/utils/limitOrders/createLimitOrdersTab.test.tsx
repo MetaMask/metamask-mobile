@@ -30,6 +30,20 @@ describe('createLimitOrdersTab', () => {
     );
     expect(tab.getItemDate).toBe(getOpenLimitOrderDate);
   });
+
+  it('forwards the total number of orders as the tab count', () => {
+    const tab = createLimitOrdersTab({
+      orders: [MOCK_LIMIT_OPEN_ORDER],
+      totalCount: 12,
+      isLoading: false,
+      isError: false,
+      isFetchingNextPage: false,
+      onRetry: jest.fn(),
+      getItemDate: getOpenLimitOrderDate,
+    });
+
+    expect(tab.totalCount).toBe(12);
+  });
 });
 
 describe('getOpenLimitOrderDate', () => {
