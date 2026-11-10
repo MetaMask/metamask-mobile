@@ -6,6 +6,8 @@ import {
   __getRivePropertySetter,
   __resetRiveMocks,
 } from '../../../../__mocks__/rive-app-react-native';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import {
@@ -56,16 +58,28 @@ const fallback = (
   </Text>
 );
 
-const renderReady = (avatarPresetId = 'visor') =>
-  render(
-    <ProfileReadyAnimation
-      displayName="Wen Cat"
-      handle="wen-cat"
-      avatarPresetId={avatarPresetId}
-      avatarBackgroundId="lime"
-      fallback={fallback}
-    />,
+const renderReady = (
+  avatarPresetId = 'visor',
+  themeAppearance: AppThemeKey.light | AppThemeKey.dark = AppThemeKey.light,
+) => {
+  const ui = (appearance: AppThemeKey.light | AppThemeKey.dark) => (
+    <ThemeContext.Provider value={{ ...mockTheme, themeAppearance: appearance }}>
+      <ProfileReadyAnimation
+        displayName="Wen Cat"
+        handle="wen-cat"
+        avatarPresetId={avatarPresetId}
+        avatarBackgroundId="lime"
+        fallback={fallback}
+      />
+    </ThemeContext.Provider>
   );
+  const view = render(ui(themeAppearance));
+  return {
+    ...view,
+    rerenderTheme: (appearance: AppThemeKey.light | AppThemeKey.dark) =>
+      view.rerender(ui(appearance)),
+  };
+};
 
 const lastBound = (path: string) =>
   __getRivePropertySetter(path).mock.calls.at(-1)?.[0];
@@ -77,6 +91,8 @@ describe('ProfileReadyAnimation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRiveFile.mockReset();
+    mockUseViewModelInstance.mockReset();
     __resetRiveMocks();
     mockRiveViewProps.current = undefined;
     mockUseRiveEnabled.mockReturnValue(true);
@@ -94,6 +110,16 @@ describe('ProfileReadyAnimation', () => {
         stateMachineName: PROFILE_READY_RIVE_STATE_MACHINE,
       }),
     );
+  });
+
+  it('sets lightMode from the app theme', () => {
+    const { rerenderTheme } = renderReady();
+
+    expect(lastBound(PROFILE_READY_RIVE_PATHS.LIGHT_MODE)).toBe(true);
+
+    rerenderTheme(AppThemeKey.dark);
+
+    expect(lastBound(PROFILE_READY_RIVE_PATHS.LIGHT_MODE)).toBe(false);
   });
 
   it('binds the display name, @handle and an unverified badge', () => {
