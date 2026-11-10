@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import type {
   TraderFeedRow,
   SocialV1FeedPost,
@@ -14,7 +14,7 @@ export interface UseMyProfilePostsOptions {
    * just-written posts show on top until the feed returns them.
    */
   ownerProfileId?: string;
-  /** Whether the Posts tab is on screen; gates the pending-post refetches. */
+  /** Whether the Posts tab is on screen; gates realtime and pending refetches. */
   isActive?: boolean;
 }
 
@@ -34,13 +34,18 @@ export interface UseMyProfilePostsResult {
  * comment time, so each card is dated by its comment rather than its trade.
  */
 export const useMyProfilePosts = (
-  addressOrId: string | undefined,
+  profileId: string | undefined,
   { ownerProfileId, isActive = true }: UseMyProfilePostsOptions = {},
 ): UseMyProfilePostsResult => {
   const source = useMemo(
     (): SocialFeedSource | null =>
-      addressOrId ? { kind: 'trader', addressOrId, commentedOnly: true } : null,
-    [addressOrId],
+      profileId ? { scope: 'all', profileId, commentedOnly: true } : null,
+    [profileId],
+  );
+  const filterPost = useCallback(
+    (post: SocialV1FeedPost) =>
+      post.item.author.id === profileId && Boolean(post.commentId),
+    [profileId],
   );
 
   const {
@@ -52,26 +57,25 @@ export const useMyProfilePosts = (
     loadMore,
     error,
     refresh: refetch,
-  } = useSocialFeed(source);
+  } = useSocialFeed(source, { realtime: isActive, filterPost });
 
-  const serverPosts = useMemo(
+  const commentDatedPosts = useMemo(
     () =>
-      feedPosts.map((post, index) => {
-        const row = rows[index];
-        const commentedAt = row
-          ? readAuthorComment(row.core)?.timestamp
+      feedPosts.map((post) => {
+        const commentedAt = post.position
+          ? readAuthorComment(post.position)?.timestamp
           : undefined;
         return commentedAt
           ? { ...post, timestampMs: commentedAt * 1000 }
           : post;
       }),
-    [feedPosts, rows],
+    [feedPosts],
   );
 
   const overlay = usePendingPostsOverlay({
     surface: 'posts',
     ownerProfileId,
-    serverPosts,
+    serverPosts: commentDatedPosts,
     refetch,
     isActive,
   });

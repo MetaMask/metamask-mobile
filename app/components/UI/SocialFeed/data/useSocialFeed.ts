@@ -81,11 +81,6 @@ export interface SocialFeedState {
   error: string | null;
   /** Reset to the first page and refetch -- also the recovery path after an error. */
   refresh: () => Promise<void>;
-  /**
-   * Reloads the newest page without dropping pages already loaded. Used while
-   * a just-written profile post waits for the server copy.
-   */
-  refetchNewestPage: () => Promise<void>;
   /** When the loaded pages were fetched, or `undefined` before the first success. */
   dataUpdatedAt: number | undefined;
   /** Present only while realtime streams this source. */
@@ -285,25 +280,6 @@ export const useSocialFeed = (
     await refetch();
   }, [queryClient, queryKey, refetch, request]);
 
-  // Replaces the newest page and leaves pages the reader already loaded.
-  // The full refresh drops those pages, which a socket-driven reload was doing
-  // on every trade and wiping the posts on screen.
-  const refetchNewestPage = useCallback(async () => {
-    if (!request) {
-      return;
-    }
-    const page = await fetchSocialFeedPage(request, pageSize);
-    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) => {
-      if (!old?.pages?.length) {
-        return { pages: [page], pageParams: [undefined] };
-      }
-      return {
-        pages: [page, ...old.pages.slice(1)],
-        pageParams: old.pageParams,
-      };
-    });
-  }, [pageSize, queryClient, queryKey, request]);
-
   const live = useSocialFeedRealtime(
     { rows, dataUpdatedAt, refresh },
     {
@@ -330,7 +306,6 @@ export const useSocialFeed = (
     loadMore,
     error: hasRequest ? formatSocialQueryErrorMessage(error) : null,
     refresh,
-    refetchNewestPage,
     dataUpdatedAt,
     ...(live ? { realtime: live.realtime } : {}),
   };

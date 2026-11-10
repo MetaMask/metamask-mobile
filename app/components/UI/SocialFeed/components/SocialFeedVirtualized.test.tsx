@@ -18,8 +18,6 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
-import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
-import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
@@ -44,27 +42,11 @@ jest.mock('../../../../util/haptics', () => ({
 }));
 
 jest.mock('../../../../util/social/useSocialProfileId', () => ({
-  useSocialProfileId: jest.fn(() => ({
+  useSocialProfileId: () => ({
     profileId: undefined,
     isLoading: false,
-  })),
-}));
-
-jest.mock(
-  '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay',
-  () => ({
-    usePendingPostsOverlay: jest.fn(
-      (options: {
-        serverPosts: SocialV1FeedPost[];
-        refetch: () => Promise<void>;
-      }) => ({
-        pinnedPosts: [],
-        posts: options.serverPosts,
-        refresh: options.refetch,
-      }),
-    ),
   }),
-);
+}));
 
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
@@ -160,8 +142,6 @@ type NearTopWorklet = (
 ) => void;
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
-const mockUseSocialProfileId = jest.mocked(useSocialProfileId);
-const mockUsePendingPostsOverlay = jest.mocked(usePendingPostsOverlay);
 const mockUseIsFocused = jest.mocked(useIsFocused);
 const mockUseNetworkTier = jest.mocked(useNetworkTier);
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
@@ -220,7 +200,6 @@ const feedState = (
   loadMore: jest.fn(),
   error: null,
   refresh: jest.fn(async () => undefined),
-  refetchNewestPage: jest.fn(async () => undefined),
   dataUpdatedAt: 1,
   ...overrides,
 });
@@ -256,15 +235,6 @@ describe('SocialFeedVirtualized', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSocialFeed.mockReturnValue(feedState());
-    mockUseSocialProfileId.mockReturnValue({
-      profileId: undefined,
-      isLoading: false,
-    });
-    mockUsePendingPostsOverlay.mockImplementation((options) => ({
-      pinnedPosts: [],
-      posts: options.serverPosts,
-      refresh: options.refetch,
-    }));
     mockUseIsFocused.mockReturnValue(true);
     mockUseNetworkTier.mockReturnValue(null);
     mockGetHardwareTier.mockReturnValue(null);
@@ -324,78 +294,6 @@ describe('SocialFeedVirtualized', () => {
     expect(
       screen.getByTestId(getSocialV1FeedEntryDividerTestId('social_live-new')),
     ).toBeOnTheScreen();
-  });
-
-  it('keeps live posts beside the viewer just-written post', () => {
-    mockUseSocialProfileId.mockReturnValue({
-      profileId: 'profile-1',
-      isLoading: false,
-    });
-    mockUseSocialFeed.mockReturnValue(
-      feedState({ posts: [post('live-comment'), post('older')] }),
-    );
-    mockUsePendingPostsOverlay.mockImplementation(() => ({
-      pinnedPosts: [post('pending')],
-      posts: [],
-      refresh: jest.fn(async () => undefined),
-    }));
-
-    renderFeed({ profileId: 'profile-1', location: 'my_profile' });
-
-    expect(renderedRowTexts(/pending|live-comment|older/)).toEqual([
-      'pending',
-      'live-comment',
-      'older',
-    ]);
-  });
-
-  it('shows the viewer just-written post on their own profile before the feed returns it', () => {
-    mockUseSocialProfileId.mockReturnValue({
-      profileId: 'profile-1',
-      isLoading: false,
-    });
-    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('server')] }));
-    mockUsePendingPostsOverlay.mockImplementation((options) => ({
-      pinnedPosts: options.ownerProfileId ? [post('pending')] : [],
-      posts: options.serverPosts,
-      refresh: options.refetch,
-    }));
-
-    renderFeed({ profileId: 'profile-1', location: 'my_profile' });
-
-    expect(renderedRowTexts(/pending|server/)).toEqual(['pending', 'server']);
-    expect(mockUsePendingPostsOverlay).toHaveBeenCalledWith(
-      expect.objectContaining({
-        surface: 'posts',
-        ownerProfileId: 'profile-1',
-        isActive: true,
-      }),
-    );
-  });
-
-  it('leaves another trader profile without the viewer pending post', () => {
-    mockUseSocialProfileId.mockReturnValue({
-      profileId: 'profile-1',
-      isLoading: false,
-    });
-    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('server')] }));
-    mockUsePendingPostsOverlay.mockImplementation((options) => ({
-      pinnedPosts: options.ownerProfileId ? [post('pending')] : [],
-      posts: options.serverPosts,
-      refresh: options.refetch,
-    }));
-
-    renderFeed({ profileId: 'trader-2', location: 'trader_profile' });
-
-    expect(screen.queryByText('pending')).toBeNull();
-    expect(screen.getByText('server')).toBeOnTheScreen();
-    expect(mockUsePendingPostsOverlay).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ownerProfileId: undefined,
-        serverPosts: [],
-        isActive: false,
-      }),
-    );
   });
 
   it('hides posts the viewer hid', () => {
@@ -536,39 +434,6 @@ describe('SocialFeedVirtualized', () => {
     await waitFor(() => expect(lastFeedOptions()?.nearTop).toBe(false));
   });
 
-  const layoutListHeader = (height: number) => {
-    const header = getList().props.ListHeaderComponent;
-    act(() => {
-      header.props.onLayout({
-        nativeEvent: { layout: { height, width: 10, x: 0, y: 0 } },
-      });
-    });
-  };
-
-  it('keeps the posts in view as the top while the profile header is on screen', async () => {
-    renderFeed({
-      renderHeader: () => <Text>profile header</Text>,
-    });
-    layoutListHeader(400);
-    const nearTopWorklet = (
-      mockUseAnimatedScrollHandler.mock.calls[0][0] as {
-        onScroll: NearTopWorklet;
-      }
-    ).onScroll;
-
-    act(() => {
-      nearTopWorklet({ contentOffset: { y: 120 } }, {});
-    });
-
-    await waitFor(() => expect(lastFeedOptions()?.nearTop).toBe(true));
-
-    act(() => {
-      nearTopWorklet({ contentOffset: { y: 420 } }, {});
-    });
-
-    await waitFor(() => expect(lastFeedOptions()?.nearTop).toBe(false));
-  });
-
   it('scrolls the list through the page ref', () => {
     const scrollToOffset = jest
       .spyOn(FlatList.prototype, 'scrollToOffset')
@@ -688,21 +553,6 @@ describe('SocialFeedVirtualized', () => {
     });
 
     expect(calls).toEqual(['reveal', 'scroll 0', 'refresh']);
-  });
-
-  it('reveals held posts at the posts, under a tall header', async () => {
-    const calls = trackRevealSteps(3);
-    renderFeed({
-      realtime: true,
-      renderHeader: () => <Text>profile header</Text>,
-    });
-    layoutListHeader(480);
-
-    await act(async () => {
-      fireEvent.press(screen.getByLabelText('3 new posts'));
-    });
-
-    expect(calls).toEqual(['reveal', 'scroll 480', 'refresh']);
   });
 
   it('scrolls to the top from the pill before the refresh settles', async () => {

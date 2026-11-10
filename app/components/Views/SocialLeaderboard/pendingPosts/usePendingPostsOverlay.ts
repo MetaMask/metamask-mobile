@@ -116,11 +116,6 @@ export interface UsePendingPostsOverlayOptions {
   serverPosts: SocialV1FeedPost[];
   /** Refetches the surface's first page. */
   refetch: () => Promise<void>;
-  /**
-   * Refetch for the confirmation schedule. Defaults to `refetch`. Profile Posts
-   * passes one that keeps pages the reader already loaded.
-   */
-  confirmRefetch?: () => Promise<void>;
   /** Whether the surface is on screen; confirmation refetches only run then. */
   isActive?: boolean;
 }
@@ -143,7 +138,6 @@ export const usePendingPostsOverlay = ({
   ownerProfileId,
   serverPosts,
   refetch,
-  confirmRefetch,
   isActive = true,
 }: UsePendingPostsOverlayOptions): UsePendingPostsOverlayResult => {
   const entries = useSyncExternalStore(
@@ -154,12 +148,10 @@ export const usePendingPostsOverlay = ({
   const isUnlocked = useSelector(selectIsUnlocked);
   const networkTier = useNetworkTier();
   const refetchRef = useRef(refetch);
-  const confirmRefetchRef = useRef(confirmRefetch ?? refetch);
 
   useEffect(() => {
     refetchRef.current = refetch;
-    confirmRefetchRef.current = confirmRefetch ?? refetch;
-  }, [confirmRefetch, refetch]);
+  }, [refetch]);
 
   useEffect(() => {
     if (!isUnlocked) {
@@ -211,7 +203,7 @@ export const usePendingPostsOverlay = ({
       }
       timer = setTimeout(() => {
         attempt += 1;
-        confirmRefetchRef
+        refetchRef
           .current()
           .catch(() => undefined)
           .finally(scheduleNext);

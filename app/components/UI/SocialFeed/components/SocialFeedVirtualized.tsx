@@ -14,11 +14,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, type LayoutChangeEvent } from 'react-native';
+import { RefreshControl } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useComposedEventHandler,
-  useSharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import useInterval from '../../../hooks/useInterval';
@@ -27,7 +26,6 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialContentState } from '../../../../util/social/socialPerformance';
 import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
-import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed } from '../data/useSocialFeed';
@@ -64,14 +62,8 @@ import {
 import SocialFeedRow from './SocialFeedRow';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';
 
-/**
- * Extra offset, past the list header, that still counts as the top.
- * A profile header is the avatar and stats, so the posts start further down.
- */
+/** Scroll offset under which the list counts as at the top. */
 const NEAR_TOP_OFFSET_PX = 4;
-
-/** Stable empty list for feeds that do not show the viewer's pending posts. */
-const NO_PENDING_SERVER_POSTS: SocialV1FeedPost[] = [];
 
 /** How often relative post ages ("3 min ago") are recomputed. */
 const AGE_TICK_MS = 60_000;
@@ -156,7 +148,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   onCopyTrade,
   onPositionPress,
   requireSocialProfile,
-  showCopyTrade,
   testID,
   scrollTestID,
 }) => {
@@ -169,10 +160,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const livePrices = useSocialLivePrices();
   const { isEntryHidden } = useSocialEntryModeration();
   const listRef = useRef<Animated.FlatList<SocialFeedListItem>>(null);
-  const headerHeightSv = useSharedValue(0);
-  const headerHeightRef = useRef(0);
-  const viewportHeightRef = useRef(0);
-  const scrollOffsetSv = useSharedValue(0);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [clock, setClock] = useState(() => Date.now());
@@ -211,7 +198,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     loadMore,
     error,
     refresh,
-    refetchNewestPage,
     dataUpdatedAt,
     realtime: live,
   } = useSocialFeed(query, {
@@ -223,54 +209,20 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     filterPost,
     performance: fetchPerformance,
   });
-  // The just-written card lives in the pending store. Only this viewer's own
-  // profile shows it, and the overlay refetches until the feed returns it.
-  // Live and every other feed keep the realtime posts untouched: the overlay
-  // also drops every comment on the pending post's position, which this list
-  // must keep.
-  const showsOwnPendingPosts = Boolean(
-    profileId && viewerProfileId && profileId === viewerProfileId,
-  );
-  const { pinnedPosts: pendingPinnedPosts, refresh: refreshPendingPosts } =
-    usePendingPostsOverlay({
-      surface: 'posts',
-      ownerProfileId: showsOwnPendingPosts ? viewerProfileId : undefined,
-      serverPosts: showsOwnPendingPosts ? posts : NO_PENDING_SERVER_POSTS,
-      refetch: refresh,
-      confirmRefetch: refetchNewestPage,
-      isActive: showsOwnPendingPosts && (isActive ?? true) && isFocused,
-    });
-  const listedPosts = useMemo(() => {
-    const pinned = showsOwnPendingPosts
-      ? filterPost
-        ? pendingPinnedPosts.filter(filterPost)
-        : pendingPinnedPosts
-      : NO_PENDING_SERVER_POSTS;
-    if (pinned.length === 0) {
-      return posts;
-    }
-    const pinnedCommentIds = new Set(
-      pinned.flatMap((post) => (post.commentId ? [post.commentId] : [])),
-    );
-    const rest = posts.filter(
-      (post) => !(post.commentId && pinnedCommentIds.has(post.commentId)),
-    );
-    return [...pinned, ...rest];
-  }, [filterPost, pendingPinnedPosts, posts, showsOwnPendingPosts]);
   // A disabled query (offline, locked) reports not loading and no error.
   // That is not an empty feed; wait until a fetch has settled.
   const awaitingResult =
-    dataUpdatedAt === undefined && !error && listedPosts.length === 0;
+    dataUpdatedAt === undefined && !error && posts.length === 0;
   useSocialFeedScreenView(
     location,
     analyticsSource,
-    [isLoading || awaitingResult, Boolean(error), listedPosts.length > 0],
+    [isLoading || awaitingResult, Boolean(error), posts.length > 0],
     isActive,
   );
 
   const visiblePosts = useMemo(
     () =>
-      listedPosts.filter(
+      posts.filter(
         (post) =>
           !isEntryHidden({
             postId: post.id,
@@ -279,39 +231,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
             commentId: post.commentId,
           }),
       ),
-    [isEntryHidden, listedPosts],
+    [isEntryHidden, posts],
   );
-  const firstPostId = visiblePosts[0]?.id;
-  const previousFirstPostIdRef = useRef<string | undefined>(undefined);
-  useEffect(() => {
-    const previousId = previousFirstPostIdRef.current;
-    previousFirstPostIdRef.current = firstPostId;
-    if (
-      !realtime ||
-      !nearTop ||
-      !previousId ||
-      !firstPostId ||
-      previousId === firstPostId ||
-      !visiblePosts.some((post) => post.id === previousId)
-    ) {
-      return;
-    }
-    const headerHeight = headerHeightRef.current;
-    const viewportHeight = viewportHeightRef.current;
-    const offset = scrollOffsetSv.value;
-    const firstPostIsInView =
-      headerHeight >= offset - NEAR_TOP_OFFSET_PX &&
-      headerHeight < offset + viewportHeight;
-    if (
-      headerHeight <= 0 ||
-      viewportHeight <= 0 ||
-      firstPostIsInView ||
-      offset > headerHeight + NEAR_TOP_OFFSET_PX
-    ) {
-      return;
-    }
-    listRef.current?.scrollToOffset({ offset: headerHeight, animated: true });
-  }, [firstPostId, nearTop, realtime, scrollOffsetSv, visiblePosts]);
   const { showSkeleton, showEmpty, showRetry } = getSocialFeedListState({
     postCount: visiblePosts.length,
     // Offline, the query is off: placeholders until a first page exists,
@@ -348,31 +269,17 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const setNearTopFromScroll = useCallback((value: boolean) => {
     setNearTop(value);
   }, []);
-  const handleHeaderLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const height = event.nativeEvent.layout.height;
-      headerHeightRef.current = height;
-      headerHeightSv.value = height;
-      setNearTop(scrollOffsetSv.value <= height + NEAR_TOP_OFFSET_PX);
-    },
-    [headerHeightSv, scrollOffsetSv],
-  );
-  const handleViewportLayout = useCallback((event: LayoutChangeEvent) => {
-    viewportHeightRef.current = event.nativeEvent.layout.height;
-  }, []);
   const nearTopHandler = useAnimatedScrollHandler<ScrollContext>(
     {
       onScroll: (event, context) => {
-        scrollOffsetSv.value = event.contentOffset.y;
-        const nextNearTop =
-          event.contentOffset.y <= headerHeightSv.value + NEAR_TOP_OFFSET_PX;
+        const nextNearTop = event.contentOffset.y <= NEAR_TOP_OFFSET_PX;
         if (context.nearTop !== nextNearTop) {
           context.nearTop = nextNearTop;
           scheduleOnRN(setNearTopFromScroll, nextNearTop);
         }
       },
     },
-    [headerHeightSv, scrollOffsetSv, setNearTopFromScroll],
+    [setNearTopFromScroll],
   );
   const scrollHandler = useComposedEventHandler([
     onScroll ?? null,
@@ -393,11 +300,11 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     setRefreshing(true);
     try {
       onRefresh?.();
-      await Promise.all([refreshPendingPosts(), waitForMinimumRefresh()]);
+      await Promise.all([refresh(), waitForMinimumRefresh()]);
     } finally {
       setRefreshing(false);
     }
-  }, [onRefresh, refreshPendingPosts]);
+  }, [onRefresh, refresh]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {
@@ -406,10 +313,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     }
     setNearTop(true);
     revealPending();
-    listRef.current?.scrollToOffset({
-      offset: headerHeightRef.current,
-      animated: true,
-    });
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
     await refresh();
   }, [refresh, revealPending]);
 
@@ -465,7 +369,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               post={item.post}
               requireSocialTerms
               requireSocialProfile={requireSocialProfile}
-              showCopyTrade={showCopyTrade}
               dividerTestID={dividerTestID}
               entrances={entrances}
               scheduleEntryDelay={scheduleEntryDelay}
@@ -503,7 +406,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       onCopyTrade,
       handlePositionPress,
       requireSocialProfile,
-      showCopyTrade,
       scheduleEntryDelay,
       state,
       viewerProfileId,
@@ -516,14 +418,14 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [paused, pendingNewCount],
   );
   const header = (
-    <Box onLayout={handleHeaderLayout}>
+    <>
       {title ? (
         <Box twClassName="px-4">
           <Text variant={TextVariant.HeadingSm}>{title}</Text>
         </Box>
       ) : null}
       {renderHeader?.()}
-    </Box>
+    </>
   );
 
   return (
@@ -533,11 +435,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       showMockedFields={showMockedFields}
     >
       <SocialFeedRealtimeContext.Provider value={realtimeState}>
-        <Box
-          twClassName="flex-1 bg-default"
-          testID={testID}
-          onLayout={handleViewportLayout}
-        >
+        <Box twClassName="flex-1 bg-default" testID={testID}>
           {performance ? (
             <SocialFeedFirstContentTrace
               tab={performance.tab}

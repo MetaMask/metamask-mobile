@@ -103,14 +103,7 @@ describe('useSocialFeedRealtime', () => {
       }: HookProps) =>
         useSocialFeedRealtime(
           { rows, dataUpdatedAt, refresh },
-          {
-            realtimeScope,
-            active,
-            paused,
-            nearTop,
-            holdNewPosts,
-            filterPost,
-          },
+          { realtimeScope, active, paused, nearTop, holdNewPosts, filterPost },
         ),
       { initialProps },
     );

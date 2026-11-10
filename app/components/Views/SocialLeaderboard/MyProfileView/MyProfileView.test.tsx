@@ -21,7 +21,10 @@ import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import { ProfileOptionsSheetSelectorsIDs } from '../TraderProfileView/components/ProfileOptionsSheet.testIds';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
-import type { UseMyProfilePostsResult } from './hooks/useMyProfilePosts';
+import type {
+  UseMyProfilePostsOptions,
+  UseMyProfilePostsResult,
+} from './hooks/useMyProfilePosts';
 import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import type {
@@ -108,7 +111,10 @@ const mockUseTraderPositions = jest.fn<
   UseTraderPositionsResult,
   [string, UseTraderPositionsOptions?]
 >();
-const mockUseMyProfilePosts = jest.fn<UseMyProfilePostsResult, []>();
+const mockUseMyProfilePosts = jest.fn<
+  UseMyProfilePostsResult,
+  [string | undefined, UseMyProfilePostsOptions?]
+>();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
 const mockSetTitleSectionHeight = jest.fn();
@@ -223,63 +229,13 @@ jest.mock('../hooks/useOpenSocialPostComposer', () => ({
   useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
 }));
 
-const mockSocialFeedProps: {
-  current: {
-    profileId?: string;
-    commentedOnly?: boolean;
-    realtime?: boolean;
-    scrollMode?: string;
-    showCopyTrade?: boolean;
-    scope?: string;
-    location?: string;
-    filterPost?: (post: SocialV1FeedPost) => boolean;
-  } | null;
-} = { current: null };
-
-jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: (props: {
-      renderHeader?: () => React.ReactNode;
-      emptyState?: React.ReactNode;
-      testID?: string;
-      scrollTestID?: string;
-      profileId?: string;
-      commentedOnly?: boolean;
-      realtime?: boolean;
-      scrollMode?: string;
-      showCopyTrade?: boolean;
-      scope?: string;
-      location?: string;
-      filterPost?: (post: SocialV1FeedPost) => boolean;
-    }) => {
-      mockSocialFeedProps.current = props;
-      return ReactActual.createElement(
-        View,
-        { testID: props.scrollTestID ?? props.testID },
-        props.renderHeader?.(),
-        props.emptyState ?? null,
-      );
-    },
-  };
-});
-
-jest.mock(
-  '../../../../selectors/featureFlagController/socialLeaderboard',
-  () => ({
-    ...jest.requireActual(
-      '../../../../selectors/featureFlagController/socialLeaderboard',
-    ),
-    selectSocialLeaderboardEnabled: () => true,
-  }),
-);
-
 jest.mock('./hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
   useMyProfileAddress: () => mockUseMyProfileAddress(),
-  useMyProfilePosts: () => mockUseMyProfilePosts(),
+  useMyProfilePosts: (
+    profileId: string | undefined,
+    options?: UseMyProfilePostsOptions,
+  ) => mockUseMyProfilePosts(profileId, options),
 }));
 
 jest.mock('../TraderProfileView/hooks', () => ({
@@ -473,7 +429,6 @@ const foreignTraderProfileResult = (
 describe('MyProfileView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSocialFeedProps.current = null;
     mockHasNotificationPreferences = true;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockProfileRouteParams = undefined;
@@ -944,27 +899,81 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('loads the viewer posts from the shared feed', () => {
+  it('requests the next posts page when a scroll settles near the end', () => {
+    const loadMore = jest.fn();
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: true,
+      loadMore,
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
     renderWithProvider(<MyProfileView />);
 
-    expect(mockSocialFeedProps.current).toMatchObject({
-      scope: 'all',
-      profileId: 'current-user',
-      commentedOnly: true,
-      scrollMode: 'virtualized',
-      realtime: true,
-      showCopyTrade: false,
-      location: 'my_profile',
-    });
+    fireEvent(
+      screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL),
+      'momentumScrollEnd',
+      {
+        nativeEvent: {
+          contentOffset: { y: 400, x: 0 },
+          contentSize: { height: 500, width: 400 },
+          layoutMeasurement: { height: 400, width: 400 },
+        },
+      },
+    );
+
+    expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
-  it('hides copy trade on the owner posts feed', () => {
-    renderWithProvider(<MyProfileView />);
+  it('shows a footer spinner while the next posts page loads', () => {
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: true,
+      hasNextPage: true,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
 
-    expect(mockSocialFeedProps.current?.showCopyTrade).toBe(false);
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_FOOTER_LOADING),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders owner posts under the Posts tab', () => {
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_LIST),
+    ).toHaveStyle({ paddingTop: 16 });
+    expect(screen.getByTestId('my-profile-post-post-1')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('my-profile-post-copy-trade-post-1'),
+    ).toBeNull();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps copy trade on another trader posts', () => {
@@ -974,15 +983,23 @@ describe('MyProfileView', () => {
       traderAddress: '0xabc',
     };
     mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
 
     renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
-    expect(mockSocialFeedProps.current).toMatchObject({
-      location: 'trader_profile',
-      showCopyTrade: true,
-      commentedOnly: true,
-      realtime: true,
-    });
+    expect(
+      screen.getByTestId('my-profile-post-copy-trade-post-1'),
+    ).toBeOnTheScreen();
   });
 
   it('renders a centered Posts empty line without a create action', () => {
@@ -1058,11 +1075,12 @@ describe('MyProfileView', () => {
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
-  it('still refreshes positions when live profile refresh rejects', async () => {
+  it('still refreshes posts when live profile refresh rejects', async () => {
     jest.useFakeTimers();
     const refreshLiveProfile = jest
       .fn()
       .mockRejectedValue(new Error('offline'));
+    const refreshPosts = jest.fn().mockResolvedValue(undefined);
     const refetchPositions = jest.fn().mockResolvedValue(undefined);
     mockUseTraderProfile.mockReturnValue({
       profile: null,
@@ -1080,7 +1098,7 @@ describe('MyProfileView', () => {
       hasNextPage: false,
       loadMore: jest.fn(),
       error: null,
-      refresh: jest.fn().mockResolvedValue(undefined),
+      refresh: refreshPosts,
     });
     mockUseTraderPositions.mockReturnValue({
       openPositions: [],
@@ -1095,7 +1113,6 @@ describe('MyProfileView', () => {
 
     try {
       renderWithProvider(<MyProfileView />);
-      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
       const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
 
       await act(async () => {
@@ -1105,6 +1122,7 @@ describe('MyProfileView', () => {
       });
 
       expect(refreshLiveProfile).toHaveBeenCalledTimes(1);
+      expect(refreshPosts).toHaveBeenCalledTimes(1);
       expect(refetchPositions).toHaveBeenCalledTimes(1);
       expect(mockRefresh).toHaveBeenCalledTimes(1);
     } finally {
@@ -1400,6 +1418,7 @@ describe('MyProfileView', () => {
       });
 
       renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
 
       expect(mockUseTraderPositions).toHaveBeenLastCalledWith(
         'trader-1',
@@ -1446,6 +1465,7 @@ describe('MyProfileView', () => {
       });
 
       renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
 
       expect(screen.queryByTestId('position-row-ETH')).not.toBeOnTheScreen();
     });
@@ -1538,6 +1558,7 @@ describe('MyProfileView', () => {
       });
 
       renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
       fireEvent.press(
         screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_RETRY_BUTTON),
       );
@@ -1715,6 +1736,12 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
     ).toBeOnTheScreen();
     expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(mockUseMyProfilePosts).toHaveBeenLastCalledWith(
+      'foreign-profile-id',
+      { ownerProfileId: undefined, isActive: true },
+    );
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
     expect(screen.queryByText('Your feed starts here')).toBeNull();
     expect(
       screen.queryByText('When they share a trade, it will show up here.'),
@@ -1839,13 +1866,13 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
-    ).toBeOnTheScreen();
-    expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
@@ -1853,7 +1880,7 @@ describe('MyProfileView', () => {
     expect(screen.getByText('No posts yet')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('returns to Posts when focused right after the viewer posts', () => {
@@ -1881,7 +1908,6 @@ describe('MyProfileView', () => {
 
   it('scrolls back to the top when focused right after the viewer posts', () => {
     renderWithProvider(<MyProfileView />);
-    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
 
     requestPostsTabFocus();
     act(() => {
@@ -2026,25 +2052,56 @@ describe('MyProfileView', () => {
       trades: [],
       lastTradeAt: 1,
     };
-    const ownerItem = mockOpenPerpsFeedItem({ id: 'spot-post' });
-    ownerItem.author = { ...ownerItem.author, id: 'current-user' };
-    const spotPost = mockMyProfilePost({
-      id: 'spot-post',
-      commentId: 'comment-1',
-      item: ownerItem,
-      position: spotPosition,
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [
+        mockMyProfilePost({ id: 'spot-post', position: spotPosition }),
+        mockMyProfilePost({
+          id: 'perp-post',
+          position: {
+            ...spotPosition,
+            positionId: 'btc-perp',
+            tokenSymbol: 'BTC',
+            chain: 'hyperliquid',
+            perpPositionType: 'long',
+          },
+        }),
+      ],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
     });
-    const perpPost = mockMyProfilePost({
-      id: 'perp-post',
-      commentId: 'comment-2',
-      item: ownerItem,
-      position: {
-        ...spotPosition,
-        positionId: 'btc-perp',
-        tokenSymbol: 'BTC',
-        chain: 'hyperliquid',
-        perpPositionType: 'long',
-      },
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(screen.getByTestId('my-profile-post-spot-post')).toBeOnTheScreen();
+    expect(screen.queryByTestId('my-profile-post-perp-post')).toBeNull();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('loads later pages when a filter hides every loaded post', () => {
+    const loadMore = jest.fn();
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: true,
+      loadMore,
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
     });
 
     renderWithProvider(<MyProfileView />);
@@ -2055,24 +2112,38 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
     );
 
-    expect(mockSocialFeedProps.current?.filterPost?.(spotPost)).toBe(true);
-    expect(mockSocialFeedProps.current?.filterPost?.(perpPost)).toBe(false);
+    expect(loadMore).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('No token activity')).toBeNull();
     expect(
-      mockSocialFeedProps.current?.filterPost?.({
-        ...spotPost,
-        item: {
-          ...ownerItem,
-          author: { ...ownerItem.author, id: 'someone-else' },
-        },
-      }),
-    ).toBe(false);
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeNull();
+  });
+
+  it('shows the posts error when a filter hides every loaded post', () => {
+    mockUseMyProfilePosts.mockReturnValue({
+      posts: [mockMyProfilePost()],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: 'failed',
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
     expect(
-      mockSocialFeedProps.current?.filterPost?.({
-        ...spotPost,
-        commentId: undefined,
-      }),
-    ).toBe(false);
-    expect(screen.getByText('No token activity')).toBeOnTheScreen();
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_ERROR),
+    ).toBeOnTheScreen();
+    expect(screen.getByText("The feed didn't load")).toBeOnTheScreen();
   });
 
   it('shows closed empty copy when only the open fetch failed', () => {

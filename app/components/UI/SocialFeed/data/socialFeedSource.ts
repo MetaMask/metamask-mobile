@@ -274,10 +274,10 @@ const coversEveryFeedChain = (chains: readonly CaipChainId[]): boolean =>
 /**
  * The socket channel that streams a request, or `null` when none does.
  *
- * An unnarrowed `all` or `trending` feed uses its own channel. A profile feed
- * has no channel, so it leases `all` and the reader drops every other trader.
- * Asset and chain filters stay off the socket: those events are not narrowed,
- * and there is no channel for `following` or `leaderboard`.
+ * An unnarrowed `all` or `trending` feed uses its own channel. A commented
+ * profile feed has no channel, so it leases `all` and the reader drops every
+ * other trader. Asset and chain filters stay off the socket: those events are
+ * not narrowed, and there is no channel for `following` or `leaderboard`.
  */
 export const toSocialFeedRealtimeScope = (
   request: SocialFeedRequest | null,
@@ -285,14 +285,14 @@ export const toSocialFeedRealtimeScope = (
   if (request?.action !== 'SocialService:fetchFeed') {
     return null;
   }
-  const { scope, chains, assetIds, profileId } = request.options;
+  const { scope, chains, assetIds, profileId, commentedOnly } = request.options;
   if (assetIds !== undefined || !coversEveryFeedChain(chains)) {
     return null;
   }
   if (profileId !== undefined) {
-    return scope === 'all' ? 'all' : null;
+    return scope === 'all' && commentedOnly === true ? 'all' : null;
   }
-  if (request.options.commentedOnly === true) {
+  if (commentedOnly === true) {
     return null;
   }
   return scope === 'all' || scope === 'trending' ? scope : null;
