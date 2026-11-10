@@ -174,13 +174,9 @@ describe('useExitCardFlow', () => {
         { name: Routes.CARD.ONBOARDING.ROOT },
       ],
     });
-    const onboarding = createNavigation({
+    mockScreenNavigation = createNavigation({
       routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
       parent: screens,
-    });
-    mockScreenNavigation = createNavigation({
-      routeName: Routes.CARD.ONBOARDING.IMMERSVE_KYC,
-      parent: onboarding,
     });
 
     const { result } = renderHook(() => useExitCardFlow());
@@ -211,13 +207,9 @@ describe('useExitCardFlow', () => {
         },
       ],
     });
-    const onboarding = createNavigation({
+    mockScreenNavigation = createNavigation({
       routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
       parent: screens,
-    });
-    mockScreenNavigation = createNavigation({
-      routeName: Routes.CARD.ONBOARDING.IMMERSVE_KYC,
-      parent: onboarding,
     });
 
     const { result } = renderHook(() => useExitCardFlow());
