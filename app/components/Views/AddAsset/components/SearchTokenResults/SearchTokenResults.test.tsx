@@ -110,6 +110,11 @@ describe('SearchTokenResults', () => {
     );
 
     expect(listItem).toBeDisabled();
+    expect(listItem).toHaveProp('accessibilityRole', 'checkbox');
+    expect(listItem).toHaveProp('accessibilityState', {
+      checked: true,
+      disabled: true,
+    });
 
     fireEvent.press(listItem);
     expect(mockHandleSelectAsset).not.toHaveBeenCalled();
@@ -146,15 +151,11 @@ describe('SearchTokenResults', () => {
       return row;
     };
 
-    expect(
-      within(findRowByTokenName('Token A')).getByRole('checkbox'),
-    ).toHaveProp(
+    expect(findRowByTokenName('Token A')).toHaveProp(
       'accessibilityState',
       expect.objectContaining({ checked: true }),
     );
-    expect(
-      within(findRowByTokenName('Token B')).getByRole('checkbox'),
-    ).toHaveProp(
+    expect(findRowByTokenName('Token B')).toHaveProp(
       'accessibilityState',
       expect.objectContaining({ checked: false }),
     );
@@ -168,15 +169,11 @@ describe('SearchTokenResults', () => {
       />,
     );
 
-    expect(
-      within(findRowByTokenName('Token A')).getByRole('checkbox'),
-    ).toHaveProp(
+    expect(findRowByTokenName('Token A')).toHaveProp(
       'accessibilityState',
       expect.objectContaining({ checked: true }),
     );
-    expect(
-      within(findRowByTokenName('Token B')).getByRole('checkbox'),
-    ).toHaveProp(
+    expect(findRowByTokenName('Token B')).toHaveProp(
       'accessibilityState',
       expect.objectContaining({ checked: false }),
     );

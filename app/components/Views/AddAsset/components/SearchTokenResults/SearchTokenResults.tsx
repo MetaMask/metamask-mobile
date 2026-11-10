@@ -86,13 +86,13 @@ const TokenAvatar = ({
       />
     }
   >
-    {asset.image && (
+    {asset.image ? (
       <AvatarToken
         name={asset.symbol}
         src={{ uri: asset.image }}
         size={AvatarTokenSize.Lg}
       />
-    )}
+    ) : null}
   </BadgeWrapper>
 );
 
@@ -104,14 +104,16 @@ const SearchTokenResultRow = React.memo(
     networkName,
     onSelect,
   }: SearchTokenResultRowProps) => {
-    const isDisabled = isAlreadyAdded;
+    const isChecked = isSelected || isAlreadyAdded;
 
     return (
       <ListItemMultiSelect
         variant={ContentVariant.TwoLines}
-        isSelected={isSelected || isAlreadyAdded}
-        disabled={isDisabled}
-        onPress={() => !isDisabled && onSelect(item)}
+        isSelected={isChecked}
+        disabled={isAlreadyAdded}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isChecked, disabled: isAlreadyAdded }}
+        onPress={() => onSelect(item)}
         testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
         avatar={<TokenAvatar asset={item} networkName={networkName} />}
         title={item.name}
@@ -137,11 +139,11 @@ const TokenSkeleton = () => (
     twClassName="w-full min-h-[72px] px-4 py-3"
   >
     <Box twClassName="relative">
-      <Skeleton width={40} height={40} twClassName="rounded-[20px]" />
+      <Skeleton width={40} height={40} twClassName="rounded-full" />
       <Skeleton
         width={20}
         height={20}
-        twClassName="absolute -bottom-1 -right-1 rounded-[10px]"
+        twClassName="absolute -bottom-1 -right-1 rounded-full"
       />
     </Box>
     <Box twClassName="flex-1 ml-4 justify-center">
