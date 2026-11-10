@@ -44107,11 +44107,6 @@
       "count": 1
     }
   },
-  "scripts/eslint-predict-boundary-zones.test.ts": {
-    "@typescript-eslint/explicit-function-return-type": {
-      "count": 4
-    }
-  },
   "scripts/lighter-wasm-wrapper.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 8
