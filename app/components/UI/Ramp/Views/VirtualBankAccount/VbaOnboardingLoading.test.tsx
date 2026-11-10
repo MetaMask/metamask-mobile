@@ -26,6 +26,10 @@ jest.mock('./hooks/useVbaOnboardingRouting', () => ({
   resolveVbaOnboarding: jest.fn(),
   navigateToVbaOnboardingDestination: jest.fn(),
 }));
+jest.mock('../../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotion: () => false,
+}));
+
 jest.mock('./vbaCufTrace', () => ({
   endVbaCufJourney: jest.fn(),
   startVbaCufJourney: jest.fn(),
@@ -68,7 +72,7 @@ describe('VbaOnboardingLoading', () => {
     mockResolve.mockReturnValue(pending());
   });
 
-  it('shows a spinner and back button while status is loading', () => {
+  it('shows the fox loader and back button while status is loading', () => {
     const { getByTestId } = renderLoading();
 
     expect(

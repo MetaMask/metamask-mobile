@@ -120,6 +120,7 @@ const OnboardingProgress: React.FC<{
       flexDirection={BoxFlexDirection.Row}
       gap={1}
       paddingHorizontal={4}
+      paddingBottom={2}
       style={{ paddingTop: topInset + 8 }}
       testID={SocialProfileOnboardingSelectorsIDs.PROGRESS}
     >

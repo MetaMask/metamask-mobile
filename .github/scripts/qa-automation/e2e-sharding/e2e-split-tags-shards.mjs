@@ -309,7 +309,7 @@ function resolveDeviceWorkers(platform) {
       : process.env.ANDROID_DEVICE_POOL_SIZE;
   const parsed = Number(raw);
   if (Number.isInteger(parsed) && parsed >= 1) return parsed;
-  return platform === 'ios' ? 2 : 3;
+  return 2;
 }
 
 function expandChangedSpecCopies(files) {
