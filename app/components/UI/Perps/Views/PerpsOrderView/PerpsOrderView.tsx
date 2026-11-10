@@ -168,6 +168,8 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
   MAX_PERPS_INPUT_DIGITS,
   PERPS_MIN_BALANCE_THRESHOLD,
+  PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+  PERPS_TPSL_PERCENT_DISPLAY_DECIMALS,
 } from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { translatePerpsError } from '../../utils/translatePerpsError';
@@ -189,6 +191,8 @@ import {
 import PerpsDirectionButton from '../../components/PerpsDirectionButton';
 import {
   formatLiquidationDistance,
+  formatPercentage,
+  formatPercentageNumber,
   formatPerpsFiat,
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -1020,7 +1024,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
   const estimatedSlippagePctDisplay: string | null = useMemo(
     () =>
-      estimatedSlippagePct === null ? null : estimatedSlippagePct.toFixed(2),
+      estimatedSlippagePct === null
+        ? null
+        : formatPercentageNumber(estimatedSlippagePct, {
+            decimals: PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+          }),
     [estimatedSlippagePct],
   );
   const exceedsMaxSlippage =
@@ -1540,7 +1548,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       const absRoE = Math.abs(parseFloat(tpRoE || '0'));
       tpDisplay =
         absRoE > 0
-          ? `${absRoE.toFixed(0)}%`
+          ? formatPercentage(absRoE, {
+              decimals: PERPS_TPSL_PERCENT_DISPLAY_DECIMALS,
+              sign: 'never',
+            })
           : formatPerpsFiat(orderForm.takeProfitPrice, {
               ranges: PRICE_RANGES_UNIVERSAL,
             });
@@ -1556,7 +1567,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       const absRoE = Math.abs(parseFloat(slRoE || '0'));
       slDisplay =
         absRoE > 0
-          ? `${absRoE.toFixed(0)}%`
+          ? formatPercentage(absRoE, {
+              decimals: PERPS_TPSL_PERCENT_DISPLAY_DECIMALS,
+              sign: 'never',
+            })
           : formatPerpsFiat(orderForm.stopLossPrice, {
               ranges: PRICE_RANGES_UNIVERSAL,
             });
@@ -1993,8 +2007,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 ? 'perps.slippage.exceeds_max_reduce_size'
                 : 'perps.slippage.exceeds_max',
               {
-                est: estPct.toFixed(2),
-                max: maxPct.toFixed(2),
+                est: formatPercentageNumber(estPct, {
+                  decimals: PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+                }),
+                max: formatPercentageNumber(maxPct, {
+                  decimals: PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+                }),
               },
             ),
           ),

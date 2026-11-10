@@ -182,6 +182,7 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
         : TextColor.ErrorDefault;
     }
 
+    // The unknown-rate placeholder starts with '-' but is not a negative rate.
     if (
       !marketStats.fundingRate ||
       marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay ||

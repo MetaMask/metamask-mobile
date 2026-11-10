@@ -45,11 +45,11 @@ import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import { getHyperliquidMainnetBuilderAddress } from '../../../../core/Engine/controllers/rewards-controller/utils/hyperliquid-builder-address';
 import {
+  formatPercentage,
   formatVolume,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
-import { getIntlNumberFormatter } from '../../../../util/intl';
 
 import {
   getTerminalApiUrl as buildTerminalMarketDataUrl,
@@ -469,24 +469,15 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
 
 /**
  * Creates mobile-specific market data formatters.
- * Wires up platform dependencies (intl, formatUtils) for portable market data transformation.
+ * Wires up the app-language perps formatters for portable market data transformation.
  */
 function createMobileMarketDataFormatters(): MarketDataFormatters {
   return {
     formatVolume,
     formatPerpsFiat,
-    formatPercentage: (percent: number): string => {
-      if (isNaN(percent) || !isFinite(percent)) return '0.00%';
-      if (percent === 0) return '0.00%';
-
-      const formatted = getIntlNumberFormatter('en-US', {
-        style: 'percent',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(percent / 100);
-
-      return percent > 0 ? `+${formatted}` : formatted;
-    },
+    // A flat market shows 0.00% without a sign.
+    formatPercentage: (percent: number): string =>
+      formatPercentage(percent, { sign: 'exceptZero' }),
     priceRangesUniversal: PRICE_RANGES_UNIVERSAL,
   };
 }
