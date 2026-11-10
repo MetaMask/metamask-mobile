@@ -1,4 +1,5 @@
 import React from 'react';
+import { StatusBar } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import ImmersveKYCProcessing from './ImmersveKYCProcessing';
@@ -13,6 +14,7 @@ import {
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useFocusEffect: (effect: () => void) => effect(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -272,9 +274,14 @@ describe('ImmersveKYCProcessing', () => {
   });
 
   it('polls on mount and renders the spinner', () => {
+    const setBarStyle = jest
+      .spyOn(StatusBar, 'setBarStyle')
+      .mockImplementation(() => undefined);
     const { getByTestId } = render(<ImmersveKYCProcessing />);
     expect(mockRefresh).toHaveBeenCalled();
     expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(setBarStyle).toHaveBeenCalledWith('dark-content', true);
+    setBarStyle.mockRestore();
   });
 
   it('opens the KYC webview modal once when action is kyc', () => {

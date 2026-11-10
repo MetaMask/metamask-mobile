@@ -1,4 +1,5 @@
 import React from 'react';
+import { StatusBar } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import KYCFailed from './KYCFailed';
@@ -8,6 +9,7 @@ import { useSelector } from 'react-redux';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useFocusEffect: (effect: () => void) => effect(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -230,6 +232,9 @@ describe('KYCFailed Component', () => {
 
   describe('Component Rendering', () => {
     it('renders the title text', () => {
+      const setBarStyle = jest
+        .spyOn(StatusBar, 'setBarStyle')
+        .mockImplementation(() => undefined);
       const { getByTestId } = render(<KYCFailed />);
 
       const title = getByTestId('kyc-failed-title');
@@ -238,6 +243,8 @@ describe('KYCFailed Component', () => {
       expect(title.props.children).toBe(
         "You're not eligible for MetaMask Card right now",
       );
+      expect(setBarStyle).toHaveBeenCalledWith('dark-content', true);
+      setBarStyle.mockRestore();
     });
 
     it('renders the description text', () => {

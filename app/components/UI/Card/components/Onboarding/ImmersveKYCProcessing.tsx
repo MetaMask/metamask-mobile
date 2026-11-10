@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { ScrollView, StatusBar } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -37,6 +37,8 @@ import OnboardingStep from './OnboardingStep';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import ImmersveVerifyingIdentityAnimation from './ImmersveVerifyingIdentityAnimation';
 
 // While the user waits on this screen, poll spending-prerequisites; give up after
@@ -60,6 +62,17 @@ const ImmersveKYCProcessing = () => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const headerHandlers = useCardHeaderHandlers('close-direct');
+  const isDarkTheme = useTheme().themeAppearance === AppThemeKey.dark;
+  // The reopen prompt does not use OnboardingStep, so it has to set the status
+  // bar itself. The spinner path's OnboardingStep sets the same style.
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(
+        isDarkTheme ? 'light-content' : 'dark-content',
+        true,
+      );
+    }, [isDarkTheme]),
+  );
   const { countryKey, kycUrl } = useParams<{
     countryKey?: string;
     kycUrl?: string;

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StatusBar } from 'react-native';
 import { render, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import VerifyingVeriffKYC from './VerifyingVeriffKYC';
@@ -7,6 +8,7 @@ import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useFocusEffect: (effect: () => void) => effect(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -167,6 +169,9 @@ describe('VerifyingVeriffKYC', () => {
 
   describe('Initial Render', () => {
     it('renders the centred terminal layout with illustration', () => {
+      const setBarStyle = jest
+        .spyOn(StatusBar, 'setBarStyle')
+        .mockImplementation(() => undefined);
       const { getByTestId } = render(<VerifyingVeriffKYC />);
 
       expect(getByTestId('verifying-veriff-kyc-container')).toBeTruthy();
@@ -175,6 +180,8 @@ describe('VerifyingVeriffKYC', () => {
       expect(getByTestId('immersve-verifying-identity-animation')).toBeTruthy();
       expect(getByTestId('verifying-veriff-kyc-title')).toBeTruthy();
       expect(getByTestId('verifying-veriff-kyc-description')).toBeTruthy();
+      expect(setBarStyle).toHaveBeenCalledWith('dark-content', true);
+      setBarStyle.mockRestore();
     });
 
     it('displays correct title text', () => {
