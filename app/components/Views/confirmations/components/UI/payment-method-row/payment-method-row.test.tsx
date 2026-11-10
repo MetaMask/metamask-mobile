@@ -205,4 +205,24 @@ describe('PaymentMethodRow', () => {
       JSON.stringify(unselectedStyle),
     );
   });
+
+  it('renders the icon slot with transparent background when hasIconBackground is false', () => {
+    const { getByTestId: getWithBackground } = render(
+      <PaymentMethodRow {...baseProps} />,
+    );
+    const { getByTestId: getWithoutBackground } = render(
+      <PaymentMethodRow {...baseProps} hasIconBackground={false} />,
+    );
+
+    const withBackgroundStyle = getWithBackground(
+      'payment-method-row-usdc-icon-slot',
+    ).props.style;
+    const withoutBackgroundStyle = getWithoutBackground(
+      'payment-method-row-usdc-icon-slot',
+    ).props.style;
+
+    expect(JSON.stringify(withoutBackgroundStyle)).not.toEqual(
+      JSON.stringify(withBackgroundStyle),
+    );
+  });
 });

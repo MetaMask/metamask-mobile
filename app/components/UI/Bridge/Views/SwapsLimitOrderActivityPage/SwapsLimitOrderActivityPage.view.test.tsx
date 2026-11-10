@@ -104,7 +104,25 @@ const MOCK_LIMIT_FILLED_BUY_ORDER: LimitOrder = {
 };
 
 const BLOCK_EXPLORER_LABEL = strings('activity_details.view_on_block_explorer');
-const CREATE_NEW_ORDER_LABEL = strings('bridge.limit.create_new_order');
+const DUPLICATE_ORDER_LABEL = strings('bridge.limit.duplicate_order');
+
+function withLimitOrderFlags(
+  enabledChainIds: string[],
+  bridge: DeepPartial<RootState['bridge']> = {},
+): DeepPartial<RootState> {
+  return {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            swapsLimitOrder: { enabled: true, enabledChainIds },
+          },
+        },
+      },
+    },
+    bridge,
+  } as DeepPartial<RootState>;
+}
 
 const titleParams = { source: 'ETH', dest: 'USDC' };
 
@@ -375,7 +393,7 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     });
   });
 
-  it('offers no new order for an order that filled', async () => {
+  it('offers no duplicate of an order that filled', async () => {
     const { findByText, queryByText } = await openActivityPage(
       MOCK_LIMIT_FILLED_ORDER,
       [FILL_TRANSACTION],
@@ -383,34 +401,146 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
 
     await findByText(BLOCK_EXPLORER_LABEL);
 
-    expect(queryByText(CREATE_NEW_ORDER_LABEL)).not.toBeOnTheScreen();
+    expect(queryByText(DUPLICATE_ORDER_LABEL)).not.toBeOnTheScreen();
   });
 
   it.each([
-    { name: 'expired', order: MOCK_LIMIT_EXPIRED_ORDER, transactions: [] },
-    { name: 'canceled', order: MOCK_LIMIT_CANCELLED_ORDER, transactions: [] },
+    {
+      name: 'expired',
+      order: MOCK_LIMIT_EXPIRED_ORDER,
+      transactions: [],
+      expirationMinutes: 4320,
+    },
+    {
+      name: 'canceled',
+      order: MOCK_LIMIT_CANCELLED_ORDER,
+      transactions: [],
+      expirationMinutes: 10080,
+    },
     {
       name: 'failed',
       order: MOCK_LIMIT_FAILED_ORDER,
       transactions: [REVERTED_TRANSACTION],
+      expirationMinutes: 10080,
     },
   ])(
-    'returns to the limit orders tab to create a new order after an $name order',
-    async ({ order, transactions }) => {
-      const { getByText, findByTestId } = await openActivityPage(
+    'returns to the limit orders tab with a duplicate of an $name order filled in',
+    async ({ order, transactions, expirationMinutes }) => {
+      const { getByText, findByTestId, store } = await openActivityPage(
         order,
         transactions,
+        {
+          overrides: withLimitOrderFlags(['eip155:1'], {
+            limitOrderCostTolerance: '2',
+          }),
+        },
       );
 
       await act(async () => {
-        fireEvent.press(getByText(CREATE_NEW_ORDER_LABEL));
+        fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
       });
 
       expect(
         await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
+      const { bridge } = store.getState();
+      expect(bridge.sourceToken).toMatchObject({
+        symbol: 'ETH',
+        chainId: '0x1',
+      });
+      expect(bridge.destToken).toMatchObject({
+        symbol: 'USDC',
+        chainId: '0x1',
+      });
+      expect(bridge.isDestTokenManuallySet).toBe(true);
+      expect(bridge.sourceAmount).toBe('0.1');
+      expect(bridge.limitOrderExpirationMinutes).toBe(expirationMinutes);
+      expect(bridge.limitOrderCostTolerance).toBe('0.5');
     },
   );
+
+  it('duplicates an order with the default cost tolerance when it carries none', async () => {
+    const { priceTolerance: _priceTolerance, ...order } =
+      MOCK_LIMIT_EXPIRED_ORDER;
+    const { getByText, findByTestId, store } = await openActivityPage(
+      order,
+      [],
+      {
+        overrides: withLimitOrderFlags(['eip155:1'], {
+          limitOrderCostTolerance: '2',
+        }),
+      },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
+    });
+
+    expect(
+      await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    const { bridge } = store.getState();
+    expect(bridge.sourceAmount).toBe('0.1');
+    expect(bridge.limitOrderCostTolerance).toBeUndefined();
+  });
+
+  it('duplicates an order with the default expiration when its lifetime matches no preset', async () => {
+    const { getByText, findByTestId, store } = await openActivityPage(
+      {
+        ...MOCK_LIMIT_EXPIRED_ORDER,
+        timingData: {
+          ...MOCK_LIMIT_EXPIRED_ORDER.timingData,
+          expiresAt: '2027-09-03T12:00:00.000Z',
+        },
+      },
+      [],
+      {
+        overrides: withLimitOrderFlags(['eip155:1'], {
+          limitOrderExpirationMinutes: 1440,
+          limitOrderCostTolerance: '2',
+        }),
+      },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
+    });
+
+    expect(
+      await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    const { bridge } = store.getState();
+    expect(bridge.sourceAmount).toBe('0.1');
+    expect(bridge.limitOrderExpirationMinutes).toBe(60);
+    expect(bridge.limitOrderCostTolerance).toBe('0.5');
+  });
+
+  it('leaves the limit orders tab as it was when it no longer supports the order network', async () => {
+    const { getByText, findByTestId, store } = await openActivityPage(
+      MOCK_LIMIT_EXPIRED_ORDER,
+      [],
+      {
+        overrides: withLimitOrderFlags(['eip155:10'], {
+          sourceAmount: '5',
+          limitOrderExpirationMinutes: 1440,
+          limitOrderCostTolerance: '2',
+        }),
+      },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
+    });
+
+    expect(
+      await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    const { bridge } = store.getState();
+    expect(bridge.sourceToken).toBeUndefined();
+    expect(bridge.sourceAmount).toBe('5');
+    expect(bridge.limitOrderExpirationMinutes).toBe(1440);
+    expect(bridge.limitOrderCostTolerance).toBe('2');
+  });
 
   it('returns to the orders list from the back button', async () => {
     const { getByTestId, findByTestId } = await openActivityPage(
