@@ -16,7 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
     listContainer: {
       flex: 1,
       paddingHorizontal: 16,
-      paddingTop: 8,
     },
     listContainerEditMode: {
       paddingRight: 8,
