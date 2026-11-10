@@ -1100,6 +1100,7 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsTradeSheetSelectorsIDs = {
   SHEET: 'perps-trade-sheet',
   CONTENT: 'perps-trade-sheet-content',
+  PLACEHOLDER: 'perps-trade-sheet-placeholder',
   HEADER_PRICE: 'perps-trade-sheet-header-price',
   HEADER_CHANGE: 'perps-trade-sheet-header-change',
   HEADER_SKELETON: 'perps-trade-sheet-header-skeleton',

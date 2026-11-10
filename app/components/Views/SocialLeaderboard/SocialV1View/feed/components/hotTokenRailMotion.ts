@@ -1,7 +1,7 @@
 import { Easing, type WithSpringConfig } from 'react-native-reanimated';
 
-/** The rail's left inset. A selected chip docks here. */
-export const DOCK_LEFT = 16;
+/** The rail's left inset, matching the 8px gap between chips. A selected chip docks here. */
+export const DOCK_LEFT = 8;
 
 /** The close icon's slot: a 4px lead plus the 16px icon. */
 export const CLOSE_SLOT_WIDTH = 20;
