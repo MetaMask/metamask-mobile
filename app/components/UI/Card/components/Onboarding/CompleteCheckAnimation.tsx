@@ -11,8 +11,8 @@ import { createProjectLogger } from '@metamask/utils';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import CardVerifiedCheckAnimation from '../../../../../animations/card_verified_check.riv';
-import VbaIllustration, {
-  VbaIllustrationSource,
+import KycIllustration, {
+  KycIllustrationSource,
 } from '../../../KYC/components/Illustration';
 import { CompleteSelectors } from './Complete.testIds';
 
@@ -108,8 +108,8 @@ const CompleteCheckAnimation = ({
         twClassName="h-[107px] w-[140px]"
         testID={CompleteSelectors.CHECK_IMAGE}
       >
-        <VbaIllustration
-          source={VbaIllustrationSource.checkmark}
+        <KycIllustration
+          source={KycIllustrationSource.checkmark}
           twClassName="h-[107px] w-[140px]"
         />
       </Box>

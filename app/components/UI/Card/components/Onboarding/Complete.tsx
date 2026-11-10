@@ -109,7 +109,7 @@ const useCascadeStyle = (step: number, state: CascadeState) => {
 
 /**
  * Card onboarding success ("You're in!"). Visual layout mirrors VBA's
- * IdentityVerified success pattern (VbaIllustration checkmark + centred
+ * IdentityVerified success pattern (KycIllustration checkmark + centred
  * TitleStandard + pinned primary button). No Not now / header back — Continue
  * is the only exit (Connor). Replaces MarketingMoment and the old success PNG.
  */

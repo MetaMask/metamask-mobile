@@ -91,7 +91,7 @@ jest.mock('../../../KYC/components/Illustration', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    VbaIllustrationSource: {
+    KycIllustrationSource: {
       scanner: 'scanner',
       checkmark: 'checkmark',
       hazard: 'hazard',
