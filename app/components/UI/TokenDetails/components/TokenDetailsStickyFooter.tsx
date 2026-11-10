@@ -615,7 +615,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   ) : null;
 
   const handleFooterLayout = (event: LayoutChangeEvent) => {
-    if (!isTraderPositionExpanded) {
+    if (expandedDetailsProgress.value === 0) {
       onFooterLayout?.(event.nativeEvent.layout.height);
     }
   };

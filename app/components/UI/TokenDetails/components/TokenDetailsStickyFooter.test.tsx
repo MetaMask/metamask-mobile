@@ -258,6 +258,43 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onFooterLayout).not.toHaveBeenCalled();
     });
 
+    it('reports the collapsed height again once the trader position sheet collapses', async () => {
+      const onFooterLayout = jest.fn();
+      const traderPositionPnl = { positionValue: '$103.31', isExpanded: true };
+      const { getByTestId, rerender } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={traderPositionPnl}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      rerender(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ ...traderPositionPnl, isExpanded: false }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 392 } },
+        persist: jest.fn(),
+      });
+      await new Promise(process.nextTick);
+      expect(onFooterLayout).not.toHaveBeenCalled();
+
+      await waitFor(
+        () => {
+          fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+            nativeEvent: { layout: { height: 163 } },
+            persist: jest.fn(),
+          });
+          expect(onFooterLayout).toHaveBeenLastCalledWith(163);
+        },
+        { timeout: 1000 },
+      );
+    });
+
     it('reports no overlay height when the footer renders in flow', () => {
       const onFooterLayout = jest.fn();
       render(
