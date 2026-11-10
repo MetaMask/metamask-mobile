@@ -1117,7 +1117,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   gap={4}
                   testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STEP}
                 >
-                  <OnboardingTitle twClassName="pt-2">
+                  <OnboardingTitle twClassName="pt-4 pb-5">
                     {strings(
                       'social_leaderboard.profile_onboarding.claim_username',
                     )}
@@ -1197,7 +1197,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'avatar' ? (
                 <Box alignItems={BoxAlignItems.Center}>
-                  <OnboardingTitle twClassName="pt-2 pb-14">
+                  <OnboardingTitle twClassName="m-0.5 pt-3 pb-8">
                     {strings(
                       'social_leaderboard.profile_onboarding.customize_avatar',
                     )}
@@ -1218,7 +1218,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
                   <OnboardingTitle
-                    twClassName="pt-2"
+                    twClassName="m-0.5 pt-3 px-3 pb-3"
                     textStyle={DISPLAY_LG_LINE_STYLE}
                   >
                     {strings(

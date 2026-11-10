@@ -72,18 +72,23 @@ jest.mock('../../util/metrics', () => ({
 }));
 
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return ({
     title,
     description,
     formFields,
-    actions,
+    ...footerProps
   }: {
     title?: string;
     description?: string;
     formFields: React.ReactNode;
-    actions: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     ReactActual.createElement(
       View,
@@ -95,7 +100,7 @@ jest.mock('./OnboardingStep', () => {
         description,
       ),
       formFields,
-      actions,
+      mockRenderFooterButtons(footerProps),
     );
 });
 
@@ -103,6 +108,42 @@ jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    // Added for the CARD-682 layout pass (CardFormField / HelpText / TextButton).
+    HelpText: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    TextButton: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    HelpTextSeverity: { Danger: 'danger' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+      ErrorDefault: 'ErrorDefault',
+    },
+    FontWeight: { Medium: '500', Regular: '400' },
     Box: ({ children, ...p }: React.PropsWithChildren<object>) =>
       ReactActual.createElement(View, p, children),
     Text: ({ children, ...p }: React.PropsWithChildren<object>) =>
