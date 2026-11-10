@@ -376,7 +376,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
-  const isReadyProfileVerified =
+  const isProfileCreatedAndVerified =
     profileCreated && controllerProfile?.verified === true;
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
   const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
@@ -1297,14 +1297,14 @@ const SocialProfileOnboardingView: React.FC = () => {
                       avatarPresetId={draft.avatarPresetId}
                       avatarBackgroundId={draft.avatarBackgroundId}
                       imageUrl={readyImageUrl}
-                      isVerified={isReadyProfileVerified}
+                      isVerified={isProfileCreatedAndVerified}
                       fallback={
                         <ReadyCardFallback
                           avatarPresetId={draft.avatarPresetId}
                           avatarBackgroundId={draft.avatarBackgroundId}
                           imageUrl={readyImageUrl}
                           handle={username}
-                          isVerified={isReadyProfileVerified}
+                          isVerified={isProfileCreatedAndVerified}
                         />
                       }
                     />
