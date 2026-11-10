@@ -1,4 +1,3 @@
-import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import Logger from '../../../util/Logger';
@@ -57,23 +56,10 @@ export const moneyAccountMigration = {
     const startedIn = generation;
     setStatus('migrating');
     try {
-      const { MoneyAccountController } = Engine.context;
-      // A resumed migration reuses the account an earlier run created.
-      const existing = Object.values(
-        MoneyAccountController.state.moneyAccounts,
-      ).find(
-        ({ options }) =>
-          options.entropy.type === KeyringAccountEntropyTypeOption.Mpc,
-      );
-      const account =
-        existing ??
-        (await MoneyAccountController.createMoneyAccount({
-          type: KeyringAccountEntropyTypeOption.Mpc,
-        }));
+      await Engine.context.MoneyAccountLifecycleController.startMigration();
       if (startedIn !== generation) {
         throw new Error('Money account migration was cancelled');
       }
-      MoneyAccountController.setDefaultMoneyAccount(account.id);
     } catch (error) {
       if (startedIn === generation) {
         lastError = describeError(error);
