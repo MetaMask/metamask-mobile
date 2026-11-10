@@ -974,6 +974,14 @@ describe('PositionDetailsSheet', () => {
       expect(screen.getByTestId('trade-row-0xadd')).toBeOnTheScreen();
       expect(screen.getByTestId('trade-row-0xopen')).toBeOnTheScreen();
       expect(
+        screen.getByTestId('trade-row-value-avatar-0xopen'),
+      ).toBeOnTheScreen();
+      expect(
+        within(screen.getByTestId('trade-row-0xopen')).UNSAFE_getByProps({
+          name: IconName.Add,
+        }),
+      ).toBeTruthy();
+      expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_EMPTY),
       ).toBeNull();
     });
