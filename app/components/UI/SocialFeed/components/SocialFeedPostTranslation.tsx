@@ -194,7 +194,7 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
   };
 
   return (
-    <Box twClassName="mt-1">
+    <Box twClassName="mt-2">
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Regular}
