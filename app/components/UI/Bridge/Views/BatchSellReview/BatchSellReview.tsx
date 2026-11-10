@@ -373,7 +373,7 @@ export function BatchSellReview() {
           onBack={handleBackPress}
           includesTopInset
         />
-        <Box twClassName="gap-1 px-4 pb-6">
+        <Box twClassName="gap-1 px-4 pt-4 pb-3">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}

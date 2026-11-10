@@ -1,44 +1,56 @@
 import metroTransformer from '../metro.transform';
 
 jest.mock('@expo/metro-config/babel-transformer', () => ({
-  transform: jest.fn((input: { src: string }) => input),
+  transform: jest.fn(),
 }));
 jest.mock('react-native-svg-transformer/expo', () => ({
   transform: jest.fn(),
 }));
 
-const { getBuildTypeFeatures } = metroTransformer;
+interface MockTransformer {
+  transform: jest.Mock;
+}
+const defaultTransformer = jest.requireMock<MockTransformer>(
+  '@expo/metro-config/babel-transformer',
+);
+const svgTransformer = jest.requireMock<MockTransformer>(
+  'react-native-svg-transformer/expo',
+);
 
-describe('Lighter signer code fencing', () => {
-  it('excludes the Lighter fence from production without an override', () => {
-    const features = getBuildTypeFeatures({
-      NODE_ENV: 'test',
-      METAMASK_BUILD_TYPE: 'main',
-      METAMASK_ENVIRONMENT: 'production',
-    });
+const options = { dev: false, platform: 'ios' };
 
-    expect(features).not.toContain('lighter');
+// Metro calls the transformer with its own Babel plugins as well.
+const metroArgs = (src: string, filename: string) => ({
+  src,
+  filename,
+  options,
+  plugins: [jest.fn(), jest.fn()],
+});
+
+describe('metro.transform', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('excludes the Lighter fence in development without an opt-in', () => {
-    const features = getBuildTypeFeatures({
-      NODE_ENV: 'test',
-      METAMASK_BUILD_TYPE: 'main',
-      METAMASK_ENVIRONMENT: 'dev',
-      MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'false',
-    });
+  it('sends non-SVG files to the Expo transformer without Metro plugins', () => {
+    metroTransformer.transform(metroArgs('export const a = 1;', 'app/a.ts'));
 
-    expect(features).not.toContain('lighter');
+    expect(defaultTransformer.transform).toHaveBeenCalledWith({
+      src: 'export const a = 1;',
+      filename: 'app/a.ts',
+      options,
+    });
+    expect(svgTransformer.transform).not.toHaveBeenCalled();
   });
 
-  it('includes the Lighter fence for an explicit production override', () => {
-    const features = getBuildTypeFeatures({
-      NODE_ENV: 'test',
-      METAMASK_BUILD_TYPE: 'main',
-      METAMASK_ENVIRONMENT: 'production',
-      MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'true',
-    });
+  it('sends SVG files to the SVG transformer without Metro plugins', () => {
+    metroTransformer.transform(metroArgs('<svg />', 'app/images/icon.svg'));
 
-    expect(features).toContain('lighter');
+    expect(svgTransformer.transform).toHaveBeenCalledWith({
+      src: '<svg />',
+      filename: 'app/images/icon.svg',
+      options,
+    });
+    expect(defaultTransformer.transform).not.toHaveBeenCalled();
   });
 });

@@ -23,7 +23,7 @@ import {
   selectMultichainAssetsRates,
 } from '../../../../selectors/multichain/multichain';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { formatCurrency } from '../../Bridge/utils/currencyUtils';
+import { getFormatters } from '../../../hooks/useFormatters';
 import { calcTokenFiatRate } from '../../Bridge/utils/exchange-rates';
 import { EVM_SCOPE } from '../../Earn/constants/networks';
 import type { QuickBuyTarget } from '../types';
@@ -94,7 +94,7 @@ export const usePositionTokenBalance = (
     // the entire hook for production users.
     const caipChainId = target.chain as CaipChainId;
 
-    const zeroFiat = formatCurrency(0, currentCurrency);
+    const zeroFiat = getFormatters().formatCurrency(0, currentCurrency);
 
     // `calcTokenFiatRate` looks up `tokenMarketData` by the raw `token.address`
     // (keyed by checksummed addresses).
@@ -136,7 +136,7 @@ export const usePositionTokenBalance = (
         ...destToken,
         balance: balanceStr,
         balanceFiat: hasRate
-          ? formatCurrency(fiatValue, currentCurrency)
+          ? getFormatters().formatCurrency(fiatValue, currentCurrency)
           : zeroFiat,
         tokenFiatAmount: fiatValue,
         currencyExchangeRate: hasRate ? exchangeRate : undefined,

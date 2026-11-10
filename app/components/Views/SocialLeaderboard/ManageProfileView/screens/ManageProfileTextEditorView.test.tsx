@@ -362,6 +362,36 @@ describe('ManageProfileTextEditorView', () => {
     ).toBe(160);
   });
 
+  // TextField puts its testID on the wrapper, so its input is found by value.
+  it('focuses the display name input when the editor opens', () => {
+    mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    expect(screen.getByDisplayValue('Giga Whale').props.autoFocus).toBe(true);
+  });
+
+  it('focuses the bio input when the editor opens', () => {
+    mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    expect(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT).props
+        .autoFocus,
+    ).toBe(true);
+  });
+
+  it('does not focus the handle input when the editor opens', () => {
+    mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    expect(
+      screen.getByDisplayValue('giga-whale.metamask').props.autoFocus,
+    ).toBe(false);
+  });
+
   it('names refused content when the server rejects a display name', async () => {
     const updateProfile = jest.fn().mockRejectedValue(
       Object.assign(new Error('failed to update profile: 400'), {
