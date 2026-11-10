@@ -1041,6 +1041,7 @@
       "loadingSet": false,
       "moneyEarnBannerDismissedTokens": {},
       "moneyOnboardingSeen": false,
+      "moneySplashSeen": false,
       "multichainAccountsIntroModalSeen": true,
       "musdConversionAssetDetailCtasSeen": {},
       "musdConversionEducationSeen": false,

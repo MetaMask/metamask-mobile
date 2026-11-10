@@ -376,7 +376,7 @@ const EarnSection = ({
           ? MONEY_SCREEN_NAMES.MONEY_ONBOARDING
           : MONEY_SCREEN_NAMES.MONEY_DEPOSIT,
     });
-    navigateToMoneyDepositWithCtaFtue();
+    void navigateToMoneyDepositWithCtaFtue();
   }, [
     isOnboardingRedirectNeeded,
     isSplashRedirectNeeded,

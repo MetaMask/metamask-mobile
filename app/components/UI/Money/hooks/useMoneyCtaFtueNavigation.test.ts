@@ -5,7 +5,10 @@ import { selectMoneySplashSeen } from '../../../../reducers/user/selectors';
 import { selectMoneySplashEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import Logger from '../../../../util/Logger';
 import { MONEY_BUTTON_INTENTS, SCREEN_NAMES } from '../constants/moneyEvents';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
+import {
+  MoneyPostOnboardingRedirectType,
+  type MoneyOnboardingParams,
+} from '../types/navigation';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
 import { useMoneyCtaFtueNavigation } from './useMoneyCtaFtueNavigation';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
@@ -150,7 +153,7 @@ describe('useMoneyCtaFtueNavigation', () => {
 
   it('navigates to the splash and forwards the params', () => {
     const { result } = renderHook(() => useMoneyCtaFtueNavigation());
-    const params = {
+    const params: MoneyOnboardingParams = {
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.DEPOSIT,
       },
@@ -170,7 +173,7 @@ describe('useMoneyCtaFtueNavigation', () => {
     mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
 
     const { result } = renderHook(() => useMoneyCtaFtueNavigation());
-    const params = {
+    const params: MoneyOnboardingParams = {
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.DEPOSIT,
       },
