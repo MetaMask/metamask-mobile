@@ -241,6 +241,13 @@ export function setMoneyOnboardingSeen(
   };
 }
 
+export function setMoneySplashSeen(seen: boolean): SetMoneySplashSeenAction {
+  return {
+    type: UserActionType.SET_MONEY_SPLASH_SEEN,
+    payload: { seen },
+  };
+}
+
 export function setMoneyEarnBannerDismissed(
   key: string,
 ): SetMoneyEarnBannerDismissedAction {

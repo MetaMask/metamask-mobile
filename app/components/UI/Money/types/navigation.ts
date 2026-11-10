@@ -38,6 +38,8 @@ export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
   };
 }
 
+export type MoneySplashParams = MoneyOnboardingParams;
+
 export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
   /**
    * Renders a back button on Money home. Set when the Money stack is pushed
@@ -125,6 +127,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
     MoneyOnboarding: MoneyOnboardingParams | undefined;
+    MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;

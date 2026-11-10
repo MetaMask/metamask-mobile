@@ -5,6 +5,7 @@ import {
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
   type SetMoneyOnboardingSeenAction,
+  type SetMoneySplashSeenAction,
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
   type SetOnboardingStepperStepAction,
@@ -20,6 +21,10 @@ describe('user reducer', () => {
 
     it('has moneyOnboardingSeen as false', () => {
       expect(userInitialState.moneyOnboardingSeen).toBe(false);
+    });
+
+    it('has moneySplashSeen as false', () => {
+      expect(userInitialState.moneySplashSeen).toBe(false);
     });
 
     it('has onboardingStepperProgress as empty object', () => {
@@ -82,6 +87,34 @@ describe('user reducer', () => {
 
       expect(newState.moneyOnboardingSeen).toBe(true);
       expect(newState.userLoggedIn).toBe(true);
+    });
+  });
+
+  describe('SET_MONEY_SPLASH_SEEN', () => {
+    it('sets moneySplashSeen to true', () => {
+      const action: SetMoneySplashSeenAction = {
+        type: UserActionType.SET_MONEY_SPLASH_SEEN,
+        payload: { seen: true },
+      };
+
+      const newState = userReducer(userInitialState, action);
+
+      expect(newState.moneySplashSeen).toBe(true);
+    });
+
+    it('sets moneySplashSeen back to false', () => {
+      const currentState = {
+        ...userInitialState,
+        moneySplashSeen: true,
+      };
+      const action: SetMoneySplashSeenAction = {
+        type: UserActionType.SET_MONEY_SPLASH_SEEN,
+        payload: { seen: false },
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.moneySplashSeen).toBe(false);
     });
   });
 
