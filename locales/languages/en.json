@@ -8883,7 +8883,9 @@
       "support_title": "We couldn't verify your details",
       "support_description": "Contact support to continue.",
       "contact_support": "Contact support",
-      "done": "Done"
+      "done": "Done",
+      "passkey_exists_title": "Can't create passkey",
+      "passkey_exists_description": "A passkey already exists on this device. Try using a different password manager."
     },
     "errors": {
       "invalid_code": "This code isn’t correct. Try again",
@@ -8919,6 +8921,10 @@
       "passkey_name": "Passkey #{{number}}",
       "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
       "added_on": "Added {{date}}",
+      "created": "Created",
+      "last_used": "Last used",
+      "last_used_on": "Last used {{date}}",
+      "not_used_yet": "Not used yet",
       "used_for": "Used for",
       "used_for_money": "Verifying Money transactions",
       "remove_passkey": "Remove passkey",

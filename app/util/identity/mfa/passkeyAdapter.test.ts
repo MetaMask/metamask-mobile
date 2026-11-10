@@ -86,6 +86,27 @@ describe('mobilePasskeyAdapter', () => {
     },
   );
 
+  it.each([
+    ['iOS', { code: 'ERR_MATCHED_EXCLUDED_CREDENTIAL' }],
+    [
+      'Android',
+      {
+        code: 'Passkey Create',
+        message: 'DomError: InvalidStateError - credential already exists',
+      },
+    ],
+  ])(
+    'reports a passkey already in the password manager on %s',
+    async (_platform, error) => {
+      mockCreate.mockRejectedValue(error);
+
+      expect(await codeOf(mobilePasskeyAdapter.create(creationOptions))).toBe(
+        'passkey_already_exists',
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+    },
+  );
+
   it('reports any other failure or an empty response as an unusable passkey', async () => {
     const nativeError = new Error('NotConfigured');
     mockCreate.mockRejectedValue(nativeError);

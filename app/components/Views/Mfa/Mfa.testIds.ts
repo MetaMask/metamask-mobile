@@ -42,4 +42,6 @@ export const MfaMethodDetailsSelectorsIDs = {
   CONFIRM_SHEET: 'mfa-method-details-confirm-sheet',
   CONFIRM_BUTTON: 'mfa-method-details-confirm-button',
   LAST_METHOD_SHEET: 'mfa-method-details-last-method-sheet',
+  CREATED: 'mfa-method-details-created',
+  LAST_USED: 'mfa-method-details-last-used',
 } as const;

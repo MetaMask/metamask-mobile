@@ -38647,7 +38647,7 @@ __metadata:
     react-native-nitro-websockets: "patch:react-native-nitro-websockets@npm%3A1.0.3#~/.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
     react-native-pager-view: "npm:8.0.4"
-    react-native-passkeys: "npm:0.4.2"
+    react-native-passkeys: "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch"
     react-native-performance: "patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch"
     react-native-permissions: "npm:^5.6.0"
     react-native-progress: "npm:3.5.0"
@@ -44787,6 +44787,17 @@ __metadata:
     react: "*"
     react-native: ">=0.71.0"
   checksum: 10/fd36ffca0c961d35fea703faf19652276a311e74e095a19c5047f2809e5d89b65ca098d1bc59d9ed848c1eca01a111d4fdd40c91f44dd7e884f22d72e3108cd8
+  languageName: node
+  linkType: hard
+
+"react-native-passkeys@patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch":
+  version: 0.4.2
+  resolution: "react-native-passkeys@patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch::version=0.4.2&hash=d8dbf1"
+  peerDependencies:
+    expo: ">=53.0.0"
+    react: "*"
+    react-native: ">=0.71.0"
+  checksum: 10/2867ebc07cb81404eb474b29ae57f9a1e5c9e70e10b8dac715b9de026995ef42dfa4d805de1e4b06edd6098b83dcd87ea88e260d380a80cf7e299e2bf4508468
   languageName: node
   linkType: hard
 

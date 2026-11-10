@@ -791,6 +791,30 @@ describe('FailureStep', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
   });
 
+  it('explains a passkey already in the password manager and offers to try again', () => {
+    const onAction = jest.fn();
+    const { getByTestId, getByText } = render(
+      <FailureStep
+        {...buildState({
+          name: 'failure',
+          code: 'passkey_already_exists',
+          canRetry: true,
+        })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText("Can't create passkey")).toBeOnTheScreen();
+    expect(
+      getByText(
+        'A passkey already exists on this device. Try using a different password manager.',
+      ),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
+  });
+
   it('only offers to close for a final error', () => {
     const onAction = jest.fn();
     const { queryByTestId, getByTestId, getByText } = render(

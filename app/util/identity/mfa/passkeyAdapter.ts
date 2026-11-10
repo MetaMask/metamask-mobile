@@ -19,6 +19,27 @@ const isCancellation = (error: unknown): boolean => {
 };
 
 /**
+ * Whether the password manager already holds a passkey for this account: the
+ * request's `excludeCredentials` matched. iOS 18+ reports it with the code
+ * `ERR_MATCHED_EXCLUDED_CREDENTIAL` (our patch of the library), Android with
+ * the `InvalidStateError` DOM error.
+ *
+ * @param error - The error the passkey library rejected with.
+ * @returns `true` when a passkey for this account is already there.
+ */
+const isExcludedCredential = (error: unknown): boolean => {
+  const { code, message } = (error ?? {}) as {
+    code?: unknown;
+    message?: unknown;
+  };
+  return (
+    code === 'ERR_MATCHED_EXCLUDED_CREDENTIAL' ||
+    (typeof message === 'string' &&
+      message.startsWith('DomError: InvalidStateError'))
+  );
+};
+
+/**
  * Drops `null` fields: Expo returns the WebAuthn fields iOS does not provide
  * (`transports`, `publicKeyAlgorithm`, ...) as `null`, while the SDK expects
  * them absent.
@@ -35,8 +56,9 @@ const withoutNulls = <Response>(response: Response): Response =>
 
 /**
  * Runs one passkey ceremony, turning its failures into MFA errors the flow
- * knows: a dismissed sheet can be retried in place, anything else shows
- * "Couldn't use your passkey".
+ * knows: a dismissed sheet can be retried in place, a passkey already in
+ * the password manager has its own screen, anything else shows "Couldn't use
+ * your passkey".
  *
  * @param ceremony - The library call.
  * @param failure - The code for a failed ceremony.
@@ -52,6 +74,9 @@ const runCeremony = async <Response>(
   } catch (error) {
     if (isCancellation(error)) {
       throw new MfaFlowError('passkey_ceremony_cancelled');
+    }
+    if (isExcludedCredential(error)) {
+      throw new MfaFlowError('passkey_already_exists');
     }
     // The flow only shows "Couldn't use your passkey"; keep the cause (for
     // example a misconfigured association) for debugging and Sentry.

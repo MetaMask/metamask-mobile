@@ -73,13 +73,14 @@ describe('MfaPasskeys', () => {
         id: 'passkey',
         type: 'passkey',
         status: 'active',
-        enrolledAt: new Date(2026, 8, 17, 11, 23).getTime(),
+        lastUsedAt: new Date(2026, 8, 17, 11, 23).getTime(),
       },
     ]);
 
     expect(getByText('Passkey #1 - 1Password')).toBeOnTheScreen();
+    expect(getByText('Not used yet')).toBeOnTheScreen();
     expect(getByText('Passkey #2')).toBeOnTheScreen();
-    expect(getByText('Added Sep 17, 2026 at 11:23 AM')).toBeOnTheScreen();
+    expect(getByText('Last used Sep 17, 2026')).toBeOnTheScreen();
     expect(queryByTestId(`${MfaPasskeysSelectorsIDs.ROW}-2`)).toBeNull();
 
     fireEvent.press(getByTestId(`${MfaPasskeysSelectorsIDs.ROW}-1`));
