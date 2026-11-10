@@ -7,7 +7,7 @@
     // Jobs not matching any pattern use this category. Unmatched jobs trigger
     // a warning in the report and a ci.retry.unmatchedJobCount Sentry
     // attribute — add explicit patterns to avoid this.
-    "unmatchedCategory": "retryableOnTransientError"
+    "unmatchedCategory": "retryableOnTransientError",
   },
 
   // Blockers (blockerPatterns) control cascade logic — if one fails
@@ -17,7 +17,7 @@
   "blockerPatterns": [
     "^Get workflow",
     "^Prepare CI JS dependencies",
-    "^Compute native build fingerprint"
+    "^Compute native build fingerprint",
   ],
 
   "jobClassification": {
@@ -30,8 +30,8 @@
         "appium-.*-smoke",
         "^E2E",
         "^e2e-",
-        "^Detox"
-      ]
+        "^Detox",
+      ],
     },
 
     // Jobs that are normally deterministic but can fail due to infrastructure
@@ -64,8 +64,8 @@
         "^Smart E2E",
         "^SonarCloud",
         "^Unit tests",
-        "^Validate E2E"
-      ]
+        "^Validate E2E",
+      ],
     },
 
     // Optional jobs — their failure does not influence the retry decision.
@@ -76,9 +76,9 @@
         "^Check all jobs pass",
         "^ci-status-gate",
         // Advisory dependency check. Its failure should not drive a retry.
-        "^Run `@lavamoat/git-safe-dependencies`"
-      ]
-    }
+        "^Run `@lavamoat/git-safe-dependencies`",
+      ],
+    },
   },
 
   // Patterns to detect transient errors in job logs. If a
@@ -172,6 +172,9 @@
     "Exceeded timeout of \\d+ ms for a test",
     "worker process has failed to exit gracefully",
     "Jest worker encountered",
+    // Node fetch network failure. Kept out of deterministic TypeError matching
+    // below so this can still win.
+    "TypeError:\\s*(?:fetch failed|failed to fetch)\\b",
 
     // === GitHub Actions infrastructure ===
     "Failed to FinalizeArtifact",
@@ -181,15 +184,19 @@
 
     // === SonarCloud ===
     "Fail to request.*sonarcloud\\.io",
-    "Could not find the pullrequest with key"
+    "Could not find the pullrequest with key",
   ],
 
   // Patterns that indicate deterministic failures — errors that will never
   // self-heal on retry (code errors, policy mismatches, snapshot drift).
   // Checked against annotations + log tail BEFORE transient patterns, so a
-  // deterministic match wins even if a transient pattern also appears. Summary
-  // lines such as "Build failed" and "Test Suites: N failed" are broad and can
-  // mark infrastructure failures non-retryable (see the Phase 1 tradeoff).
+  // deterministic match wins even if a transient pattern also appears.
+  //
+  // Gradle `BUILD FAILED in …`, Xcode `** BUILD FAILED **`, and Jest
+  // `Test Suites:` / `Tests:` summaries are not in this list. They appear on
+  // every failed build or Jest run, including daemon crashes and timeouts.
+  // A log that contains only those summaries stays non-retryable, because no
+  // transient pattern matches it.
   "deterministicErrorPatterns": [
     // === Lint/Format errors ===
     "✖ \\d+ problems? \\(",
@@ -206,18 +213,16 @@
     // === JavaScript errors ===
     "SyntaxError:",
     "ReferenceError:",
-    "TypeError:",
+    // Excludes Node's `TypeError: fetch failed` and `TypeError: Failed to fetch`.
+    "TypeError:(?!\\s*(?:fetch failed|failed to fetch)\\b)",
 
     // === Test assertion failures ===
     "expect\\(received\\)\\.toEqual\\(expected\\)",
     "expect\\(received\\)\\.toBe\\(expected\\)",
-    "Test Suites:.*failed",
-    "Tests:.*\\d+ failed",
     "snapshots? failed",
 
     // === Build errors ===
     "compiled with \\d+ errors?",
-    "Build failed",
 
     // === iOS/Xcode deterministic errors ===
     "Provisioning profile.*expired",
@@ -240,6 +245,6 @@
     // stays retryable (transient Sonar API issue).
     "Quality Gate failed",
     // JS bundle size budget exceeded
-    "JS bundle exceeds baseline"
-  ]
+    "JS bundle exceeds baseline",
+  ],
 }

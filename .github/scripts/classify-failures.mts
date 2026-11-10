@@ -63,6 +63,8 @@ import {
   type RetryBudgetDecision,
 } from './shared/retry-budget.mts';
 import { partitionRetryableBlockerCascadeJobs } from './shared/failure-classification.mts';
+import { matchFailurePattern } from './shared/classify-failure-text.mts';
+import { hasRetryLabel, labelsPath } from './shared/retry-label.mts';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -240,12 +242,6 @@ const compiledPatterns = Object.fromEntries(
     config.jobClassification[cat].patterns.map((p) => new RegExp(p, 'i')),
   ]),
 ) as Record<Category, RegExp[]>;
-const transientErrorRegexes = config.transientErrorPatterns.map(
-  (p) => new RegExp(p, 'i'),
-);
-const deterministicErrorRegexes = config.deterministicErrorPatterns.map(
-  (p) => new RegExp(p, 'i'),
-);
 
 const blockerRegexes = config.blockerPatterns.map((p) => new RegExp(p, 'i'));
 
@@ -375,11 +371,7 @@ function matchCategory(jobName: string): {
 }
 
 function findTransientError(text: string): string | undefined {
-  for (const re of transientErrorRegexes) {
-    const match = re.exec(text);
-    if (match) return match[0];
-  }
-  return undefined;
+  return matchFailurePattern(text, config.transientErrorPatterns);
 }
 
 function classifyJob(job: Job): JobClassification {
@@ -462,20 +454,21 @@ function classifyJob(job: Job): JobClassification {
   // Log-only deterministic signals (no source-file annotation).
   // Patterns live in retry-config.jsonc → deterministicErrorPatterns.
   const combinedText = [annotationText, logs ?? ''].join('\n');
-  for (const re of deterministicErrorRegexes) {
-    const deterministicMatch = re.exec(combinedText);
-    if (deterministicMatch) {
-      return {
-        jobName,
-        jobId,
-        category,
-        jobRetryable: false,
-        reason: `Deterministic: ${deterministicMatch[0]}`,
-        errorSnippet: deterministicMatch[0],
-        unmatched,
-        deterministic: true,
-      };
-    }
+  const deterministicMatch = matchFailurePattern(
+    combinedText,
+    config.deterministicErrorPatterns,
+  );
+  if (deterministicMatch) {
+    return {
+      jobName,
+      jobId,
+      category,
+      jobRetryable: false,
+      reason: `Deterministic: ${deterministicMatch}`,
+      errorSnippet: deterministicMatch,
+      unmatched,
+      deterministic: true,
+    };
   }
 
   // No deterministic error found — check for transient errors.
@@ -753,10 +746,13 @@ console.log(`\nDecision: is-retryable=${isRetryable}`);
 function checkRetryLabel(prNum: string): boolean {
   if (!prNum) return false;
   try {
-    const labels = ghApi(`${repoApi}/issues/${prNum}/labels`);
-    return (JSON.parse(labels) as Array<{ name: string }>).some(
-      (l) => l.name === 'retry-ci',
-    );
+    // --paginate reads every page. Without it, a PR with more than one page of
+    // labels could hide retry-ci on a later page.
+    const labelNames = ghApi(labelsPath(repoApi, prNum), {
+      paginate: true,
+      jq: '.[].name',
+    });
+    return hasRetryLabel(labelNames);
   } catch {
     console.warn(`Could not check labels on PR #${prNum}`);
     return false;
@@ -824,7 +820,7 @@ function resolveDecision(
     if (hasPr && !hasLabel)
       return {
         key: 'retryable-no-label',
-        label: `⏸️ Retryable — add the retry-ci label to PR #${pr} to retry`,
+        label: `⏸️ Retryable — add the retry-ci label to PR #${pr} before the next run to retry`,
       };
     // PR with automatic retry (Phase 2 — not used in Phase 1)
     if (hasPr && budget.willRetry && budget.retryMode === 'automatic')

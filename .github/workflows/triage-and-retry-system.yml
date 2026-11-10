@@ -146,6 +146,24 @@ jobs:
           PR="${{ steps.classify.outputs.pr-number }}"
           CONSUME_RETRY_LABEL="${{ steps.classify.outputs.consume-retry-label }}"
 
+          # Every retry path first confirms the run we classified is still the
+          # completed failure for this attempt and SHA. Another rerun, such as
+          # rerun-ci-on-skipped-e2e-labels.yml, can start or finish a new attempt
+          # between classification and this step. Rerunning --failed then would
+          # retry an attempt triage never classified and could spend retry-ci on it.
+          if ! RUN_STATE=$(gh api "repos/$REPO/actions/runs/$MAIN_RUN_ID" --jq '[.status, .conclusion, .run_attempt, .head_sha] | @tsv' 2>/dev/null); then
+            echo "::warning::Could not verify run $MAIN_RUN_ID — skipping retry"
+            exit 0
+          fi
+
+          IFS=$'\t' read -r CURRENT_STATUS CURRENT_CONCLUSION CURRENT_ATTEMPT CURRENT_SHA <<< "$RUN_STATE"
+          if [[ "$CURRENT_STATUS" != 'completed' || "$CURRENT_CONCLUSION" != 'failure' || "$CURRENT_ATTEMPT" != "$RUN_ATTEMPT" || "$CURRENT_SHA" != "$HEAD_SHA" ]]; then
+            echo "Run $MAIN_RUN_ID changed since classification (status=$CURRENT_STATUS conclusion=$CURRENT_CONCLUSION attempt=$CURRENT_ATTEMPT sha=$CURRENT_SHA) — skipping stale retry"
+            exit 0
+          fi
+
+          echo "Run $MAIN_RUN_ID attempt $RUN_ATTEMPT on $HEAD_SHA is still the classified failure"
+
           # A pushed commit can supersede this failed PR run before triage
           # starts. Rerunning the old run would reuse its concurrency group and
           # can cancel the current commit's CI, so only retry an exact head.
@@ -165,20 +183,8 @@ jobs:
 
           # Release branches use branch-scoped concurrency with cancellation
           # enabled. Only rerun while this failed SHA remains the branch head,
-          # and this is still the current failed attempt, otherwise the retry
-          # could cancel CI for a newer release commit or attempt.
+          # otherwise the retry could cancel CI for a newer release commit.
           if [[ "$WORKFLOW_EVENT" == 'push' && "$HEAD_BRANCH" == release/* ]]; then
-            if ! RUN_STATE=$(gh api "repos/$REPO/actions/runs/$MAIN_RUN_ID" --jq '[.status, .conclusion, .run_attempt, .head_sha] | @tsv' 2>/dev/null); then
-              echo "::warning::Could not verify release run $MAIN_RUN_ID — skipping retry"
-              exit 0
-            fi
-
-            IFS=$'\t' read -r CURRENT_STATUS CURRENT_CONCLUSION CURRENT_ATTEMPT CURRENT_SHA <<< "$RUN_STATE"
-            if [[ "$CURRENT_STATUS" != 'completed' || "$CURRENT_CONCLUSION" != 'failure' || "$CURRENT_ATTEMPT" != "$RUN_ATTEMPT" || "$CURRENT_SHA" != "$HEAD_SHA" ]]; then
-              echo "Release run $MAIN_RUN_ID changed since classification (status=$CURRENT_STATUS conclusion=$CURRENT_CONCLUSION attempt=$CURRENT_ATTEMPT sha=$CURRENT_SHA) — skipping stale retry"
-              exit 0
-            fi
-
             if ! CURRENT_HEAD=$(gh api "repos/$REPO/git/ref/heads/$HEAD_BRANCH" --jq '.object.sha' 2>/dev/null); then
               echo "::warning::Could not verify release branch $HEAD_BRANCH head — skipping retry"
               exit 0
