@@ -1210,6 +1210,8 @@
       "bank_name_label": "Bank name",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
+      "copy_all_button": "Copy all details",
+      "copied_all_label": "Copied bank details",
       "button": "Done",
       "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
@@ -5373,16 +5375,6 @@
     "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
     "x_account_disconnect_success": "X account has been disconnected"
-  },
-  "profile_drawer": {
-    "close": "Close",
-    "scan": "Scan QR code",
-    "create_profile": "Create profile",
-    "notifications": "Notifications",
-    "activity": "Activity",
-    "subscriptions": "Subscriptions",
-    "settings": "Settings",
-    "help_and_support": "Help and support"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
