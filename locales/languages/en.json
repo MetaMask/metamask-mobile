@@ -3817,6 +3817,8 @@
       "outcomes": "Outcomes",
       "view_all_markets": "View all {{count}} markets",
       "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
+      "card_closes": "Closes {{date}}",
+      "card_volume": "${{volume}}",
       "market_layout": {
         "markets": "Markets",
         "moneyline": "Moneyline",
