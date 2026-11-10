@@ -192,26 +192,28 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
 
-  it('wraps a highlighted row in the muted viewer card', () => {
+  it('wraps a highlighted row in the muted wash with a left bar', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={{ ...baseTrader, rank: 59, overallRank: 59 }}
         onFollowPress={mockOnFollowPress}
         highlighted
+        showLeaderboardDetails
       />,
     );
 
     const card = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT);
+    const bar = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT_BAR);
 
     expect(card).toBeOnTheScreen();
     expect(card).toHaveStyle({
       backgroundColor: lightTheme.colors.background.muted,
-      borderWidth: 1,
-      borderRadius: 16,
-      paddingLeft: 8,
-      paddingRight: 8,
-      paddingTop: 12,
-      paddingBottom: 12,
+      height: 72,
+    });
+    expect(card).not.toHaveStyle({ borderRadius: 16, borderWidth: 1 });
+    expect(bar).toHaveStyle({
+      backgroundColor: lightTheme.colors.success.default,
+      width: 2,
     });
     expect(screen.queryByTestId('social-gradient-card-gradient')).toBeNull();
     expect(screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toHaveStyle({

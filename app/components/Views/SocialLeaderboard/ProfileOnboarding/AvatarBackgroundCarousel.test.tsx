@@ -5,7 +5,9 @@ import { playSelection } from '../../../../util/haptics';
 import AvatarBackgroundCarousel, {
   AVATAR_FLICKER_IN_MS,
   AVATAR_FLICKER_OUT_MS,
+  GLOW_FADE_MS,
   hapticBackgroundIndex,
+  INTRO_GLIDE_MS,
 } from './AvatarBackgroundCarousel';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 
@@ -122,14 +124,76 @@ describe('AvatarBackgroundCarousel', () => {
     expect(playSelection).not.toHaveBeenCalled();
   });
 
-  it('draws the blurred glow on capable devices', () => {
-    renderCarousel();
-
-    expect(
-      screen.getByTestId(
+  it('draws the blurred glow on capable devices and fades it out after the strip rests', () => {
+    jest.useFakeTimers();
+    try {
+      renderCarousel();
+      const glow = screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_GLOW,
-      ),
-    ).toBeOnTheScreen();
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(glow).toHaveAnimatedStyle({ opacity: 1 });
+
+      act(() => {
+        jest.advanceTimersByTime(INTRO_GLIDE_MS + GLOW_FADE_MS);
+      });
+
+      expect(glow).toHaveAnimatedStyle({ opacity: 0 });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('reveals the glow while the strip is dragged and fades it when the drag ends', () => {
+    jest.useFakeTimers();
+    try {
+      renderCarousel();
+      act(() => {
+        jest.advanceTimersByTime(INTRO_GLIDE_MS + GLOW_FADE_MS);
+      });
+      const glow = screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_GLOW,
+      );
+      const scroller = screen
+        .getByTestId(
+          SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_CAROUSEL,
+        )
+        .findAll((node) => typeof node.props.onScroll === 'function')[0];
+      const nativeEvent = (velocityX = 0) => ({
+        nativeEvent: {
+          contentOffset: { x: 80, y: 0 },
+          velocity: { x: velocityX, y: 0 },
+        },
+      });
+
+      fireEvent(scroller, 'scrollBeginDrag', nativeEvent());
+      expect(glow).toHaveAnimatedStyle({ opacity: 1 });
+
+      fireEvent(scroller, 'scrollEndDrag', nativeEvent(12));
+      expect(glow).toHaveAnimatedStyle({ opacity: 1 });
+
+      fireEvent(scroller, 'scrollEndDrag', nativeEvent(0));
+      act(() => {
+        jest.advanceTimersByTime(GLOW_FADE_MS);
+      });
+      expect(glow).toHaveAnimatedStyle({ opacity: 0 });
+
+      fireEvent(scroller, 'momentumScrollBegin', nativeEvent());
+      expect(glow).toHaveAnimatedStyle({ opacity: 1 });
+      fireEvent(scroller, 'momentumScrollEnd', nativeEvent());
+      act(() => {
+        jest.advanceTimersByTime(GLOW_FADE_MS);
+      });
+      expect(glow).toHaveAnimatedStyle({ opacity: 0 });
+
+      fireEvent.scroll(scroller, nativeEvent());
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('leaves out the blurred glow on low-tier devices', () => {

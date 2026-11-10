@@ -7,7 +7,8 @@ import type {
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import I18n from '../../../../../locales/i18n';
-import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
+import { IRON_KYC_VENDOR } from '../vendors/iron';
+import type { KycIdentityVerificationCompletion } from '../Views/SumSub/types';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
 
@@ -74,7 +75,7 @@ async function recordSessionConsents(): Promise<void> {
  */
 export const useLaunchSumSub = (
   onSubmitted: (
-    result: VbaIdentityVerificationCompletion,
+    result: KycIdentityVerificationCompletion,
   ) => void | Promise<void>,
   onAbandoned: () => void | Promise<void>,
 ): UseLaunchSumSubResult => {
@@ -135,7 +136,10 @@ export const useLaunchSumSub = (
           return;
         }
         Logger.error(error as Error, {
-          tags: { feature: 'vba-kyc', provider: 'sumsub' },
+          tags: {
+            feature: IRON_KYC_VENDOR.loggerFeature,
+            provider: IRON_KYC_VENDOR.analytics.provider,
+          },
         });
         setHasError(true);
         setIsLaunching(false);

@@ -1,0 +1,230 @@
+import React, { useCallback, useState } from 'react';
+import { Modal, ScrollView } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+import { useSelector } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonSize,
+  ButtonVariant,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+
+import Engine from '../../../../core/Engine';
+import { selectPredictConfig } from '../selectors/predictConfig';
+import { createKalshiOnboardingClient } from './internal/createKalshiOnboardingClient';
+import { isKalshiDebugPanelEnabled } from './internal/isKalshiDebugPanelEnabled';
+import { summarizeA2t, type A2tSummary } from './internal/kalshiDebugInfo';
+
+interface DebugSnapshot {
+  status?: {
+    state: string;
+    intentStatus?: string;
+    expireTs?: string | number;
+    balanceDollars?: string;
+  };
+  statusError?: string;
+  a2t: A2tSummary;
+}
+
+export const KalshiDebugTestIds = {
+  OPEN: 'user-debug-open',
+  COPY_PROFILE_ID: 'user-debug-copy-profile-id',
+} as const;
+
+const Row = ({
+  label,
+  value,
+  onCopy,
+  copyTestID,
+}: {
+  label: string;
+  value?: string;
+  onCopy?: () => void;
+  copyTestID?: string;
+}) => (
+  <Box twClassName="gap-0.5">
+    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+      {label}
+    </Text>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={1}
+    >
+      <Text variant={TextVariant.BodySm} selectable twClassName="flex-1">
+        {value ?? '—'}
+      </Text>
+      {onCopy && value ? (
+        <ButtonIcon
+          iconName={IconName.Copy}
+          size={ButtonIconSize.Sm}
+          onPress={onCopy}
+          accessibilityLabel={`Copy ${label}`}
+          testID={copyTestID}
+        />
+      ) : null}
+    </Box>
+  </Box>
+);
+
+const describeError = (error: unknown): string => {
+  if (error && typeof error === 'object') {
+    const { status, code, message } = error as {
+      status?: number;
+      code?: string;
+      message?: string;
+    };
+    return [status, code, message].filter(Boolean).join(' ') || 'error';
+  }
+  return String(error);
+};
+
+/** `active · balance $10.00`, or `link_pending · intent pending · expires 1793…`. */
+const describeServerStatus = (snapshot?: DebugSnapshot): string => {
+  if (!snapshot) {
+    return 'reading…';
+  }
+  if (snapshot.statusError) {
+    return `error: ${snapshot.statusError}`;
+  }
+  const status = snapshot.status;
+  if (!status) {
+    return 'unknown';
+  }
+  const parts = [status.state];
+  if (status.intentStatus) {
+    parts.push(`intent ${status.intentStatus}`);
+  }
+  if (status.expireTs !== undefined) {
+    parts.push(`expires ${status.expireTs}`);
+  }
+  if (status.balanceDollars !== undefined) {
+    parts.push(`balance $${status.balanceDollars}`);
+  }
+  return parts.join(' · ');
+};
+
+/**
+ * TEMPORARY. Shows where this profile stands in the Kalshi demo onboarding.
+ * Renders nothing outside a development build with Kalshi authentication on.
+ * Delete with the demo onboarding.
+ */
+export const KalshiDebugPanel = ({
+  renderTrigger,
+}: {
+  /** Renders the trigger elsewhere, e.g. the screen header. */
+  renderTrigger?: (open: () => void) => React.ReactNode;
+}) => {
+  const config = useSelector(selectPredictConfig);
+  const enabled = isKalshiDebugPanelEnabled(__DEV__, config);
+  const tw = useTailwind();
+  const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [snapshot, setSnapshot] = useState<DebugSnapshot>();
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    const next: DebugSnapshot = { a2t: {} };
+    try {
+      next.a2t = summarizeA2t(
+        await Engine.controllerMessenger.call(
+          'PredictDeviceAuthService:getA2t',
+        ),
+      );
+      try {
+        const status = await createKalshiOnboardingClient().getStatus();
+        next.status = {
+          state: status.state,
+          intentStatus: status.intentStatus,
+          expireTs: status.expireTs,
+          balanceDollars: status.balanceDollars,
+        };
+      } catch (error) {
+        next.statusError = `status: ${describeError(error)}`;
+      }
+    } catch (error) {
+      next.statusError = describeError(error);
+    }
+    setSnapshot(next);
+    setLoading(false);
+  }, []);
+
+  const open = useCallback(() => {
+    setVisible(true);
+    refresh().catch(() => undefined);
+  }, [refresh]);
+
+  const copyProfileId = useCallback(() => {
+    const profileId = snapshot?.a2t.sub;
+    if (profileId) {
+      Clipboard.setString(profileId);
+    }
+  }, [snapshot?.a2t.sub]);
+
+  if (!enabled) {
+    return null;
+  }
+
+  return (
+    <Box>
+      {renderTrigger ? (
+        renderTrigger(open)
+      ) : (
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          onPress={open}
+          testID={KalshiDebugTestIds.OPEN}
+        >
+          User debug
+        </Button>
+      )}
+      <Modal
+        visible={visible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setVisible(false)}
+      >
+        <ScrollView contentContainerStyle={tw.style('p-4 gap-3')}>
+          <Text variant={TextVariant.HeadingMd}>User demo debug</Text>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            Temporary. Where this profile stands in the Kalshi demo onboarding.
+          </Text>
+
+          <Row label="Server status" value={describeServerStatus(snapshot)} />
+          <Row
+            label="Profile ID (A2T sub)"
+            value={snapshot?.a2t.sub}
+            onCopy={copyProfileId}
+            copyTestID={KalshiDebugTestIds.COPY_PROFILE_ID}
+          />
+
+          <Box twClassName="flex-row gap-2">
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={refresh}
+              isLoading={loading}
+            >
+              Refresh
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              onPress={() => setVisible(false)}
+            >
+              Close
+            </Button>
+          </Box>
+        </ScrollView>
+      </Modal>
+    </Box>
+  );
+};
