@@ -951,16 +951,16 @@ const SocialProfileOnboardingView: React.FC = () => {
     if (!profileCreatedRef.current) {
       return;
     }
-    const openPendingEntry = takePendingSocialEntry();
-    if (openPendingEntry) {
-      navigation.goBack();
-      openPendingEntry();
-      return;
-    }
     if (draft.path === 'x') {
       // Replace drops onboarding from the stack. navigate() would leave it under
       // the profile, so a later back swipe could reopen it.
       navigation.dispatch(StackActions.replace(Routes.SOCIAL.MY_PROFILE));
+      return;
+    }
+    const openPendingEntry = takePendingSocialEntry();
+    if (openPendingEntry) {
+      navigation.goBack();
+      openPendingEntry();
       return;
     }
     finishProfileOnboardingToSocialTab(navigation);

@@ -518,6 +518,40 @@ describe('SocialProfileOnboardingView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('opens My Profile after the X path even with a blocked Social entry', async () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      await acceptSocialTerms();
+      signIn();
+      renderSocialProfileOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      await leaveReadyStep();
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE),
+        ),
+      ).toBeOnTheScreen();
+      expect(openBlockedEntry).not.toHaveBeenCalled();
+    });
+
     it('skips the sheet when the current terms were already accepted', async () => {
       await acceptSocialTerms();
       renderSocialProfileOnboarding();
