@@ -35,6 +35,8 @@ import { Skeleton } from '../../../../../../component-library/components-temp/Sk
 import ModalSafeAreaProvider from '../../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
+import { useTheme } from '../../../../../../util/theme';
+import DottedUnderline from '../../../../DottedUnderline';
 import { useBalance } from '../../../hooks/useBalance';
 import { useVenueStatus } from '../../../hooks/useVenueStatus';
 import { usePredictImplementation } from '../../../implementation';
@@ -122,11 +124,6 @@ type SubmitPhase = 'input' | 'approval' | 'submitting' | 'receipt';
 
 const styles = StyleSheet.create({
   modalHost: { ...StyleSheet.absoluteFill },
-  // Android draws any underline solid; iOS honours the dotted style.
-  dottedUnderline: {
-    textDecorationLine: 'underline',
-    textDecorationStyle: 'dotted',
-  },
 });
 
 /** An amount as keypad input: whole cents, no trailing '.00'. */
@@ -139,6 +136,7 @@ export const PredictOrderFlowSheet = ({
   onClose,
 }: PredictOrderFlowSheetProps) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
   const sheetRef = useRef<React.ComponentRef<typeof BottomSheet>>(null);
   const breakdownSheetRef =
     useRef<React.ComponentRef<typeof BottomSheet>>(null);
@@ -969,23 +967,26 @@ export const PredictOrderFlowSheet = ({
                       // The only entry point to the details sheet: live
                       // once a quote exists, inert while quoting or without
                       // one.
-                      <Text
-                        variant={TextVariant.BodyLg}
-                        fontWeight={FontWeight.Medium}
-                        color={TextColor.SuccessDefault}
-                        style={styles.dottedUnderline}
-                        onPress={
-                          canShowDetails ? handleBreakdownPress : undefined
-                        }
-                        suppressHighlighting
-                        accessibilityRole={canShowDetails ? 'button' : 'text'}
-                        accessibilityState={{ disabled: !canShowDetails }}
-                        testID={PredictOrderFlowTestIds.TO_WIN}
-                      >
-                        {strings('predict_next.order_preview.to_win', {
-                          amount: toWinLabel,
-                        })}
-                      </Text>
+                      // The same dotted underline as Money's APY, so it renders
+                      // on Android.
+                      <DottedUnderline color={colors.success.default}>
+                        <Text
+                          variant={TextVariant.BodyLg}
+                          fontWeight={FontWeight.Medium}
+                          color={TextColor.SuccessDefault}
+                          onPress={
+                            canShowDetails ? handleBreakdownPress : undefined
+                          }
+                          suppressHighlighting
+                          accessibilityRole={canShowDetails ? 'button' : 'text'}
+                          accessibilityState={{ disabled: !canShowDetails }}
+                          testID={PredictOrderFlowTestIds.TO_WIN}
+                        >
+                          {strings('predict_next.order_preview.to_win', {
+                            amount: toWinLabel,
+                          })}
+                        </Text>
+                      </DottedUnderline>
                     )}
                     {intent.action === 'sell' ? (
                       <Text
