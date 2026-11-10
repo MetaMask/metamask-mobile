@@ -135,6 +135,10 @@ export function useImmersveCardProvisioning(
     ) {
       return;
     }
+    // Drop the resolved flag before the recheck so Continue stays disabled
+    // until the new prerequisites land. The previous action is kept so a
+    // failed recheck can still resume it.
+    setHasResolvedStatus(false);
     setFocusRecheckCount((count) => count + 1);
   }, [isFocused, recheckOnFocus, isProvisioning, hasResolvedStatus]);
 
@@ -327,7 +331,7 @@ export function useImmersveCardProvisioning(
   ]);
 
   const resumePendingAction = useCallback(() => {
-    if (!pendingAction) return;
+    if (!pendingAction || isReconciling) return;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties(
@@ -345,6 +349,7 @@ export function useImmersveCardProvisioning(
     });
   }, [
     pendingAction,
+    isReconciling,
     route,
     kycRegion,
     trackEvent,

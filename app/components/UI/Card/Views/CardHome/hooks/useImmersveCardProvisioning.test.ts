@@ -589,6 +589,78 @@ describe('useImmersveCardProvisioning', () => {
       expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
     });
 
+    it('ignores resume while a focus recheck is still in flight', async () => {
+      // The in-flight window is hook state between two prerequisites calls.
+      // The Money home skeleton only shows that a recheck started; it cannot
+      // assert that the previous step is not routed.
+      let resolveRecheck: (value: {
+        prerequisites: {
+          stage: string;
+          status: string;
+          actionType: string;
+        }[];
+      }) => void = () => undefined;
+      const recheck = new Promise<{
+        prerequisites: {
+          stage: string;
+          status: string;
+          actionType: string;
+        }[];
+      }>((resolve) => {
+        resolveRecheck = resolve;
+      });
+      controller.getSpendingPrerequisites
+        .mockResolvedValueOnce({ prerequisites: kycPrerequisites })
+        .mockReturnValueOnce(recheck);
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.pendingAction).toEqual({
+          type: 'kyc',
+          url: 'https://kyc',
+          ctaHint: undefined,
+        });
+        expect(result.current.isReconciling).toBe(false);
+      });
+
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+
+      await waitFor(() => expect(result.current.isReconciling).toBe(true));
+
+      act(() => {
+        result.current.resumePendingAction();
+      });
+
+      expect(mockRoute).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveRecheck({
+          prerequisites: [
+            {
+              stage: 'expected_spend',
+              status: 'action-required',
+              actionType: 'set_expected_spend_amount',
+            },
+          ],
+        });
+      });
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({
+          type: 'expected_spend',
+        }),
+      );
+      expect(result.current.isReconciling).toBe(false);
+    });
+
     it('does not re-read the left-off step on focus without the option', async () => {
       controller.getSpendingPrerequisites.mockResolvedValue({
         prerequisites: kycPrerequisites,

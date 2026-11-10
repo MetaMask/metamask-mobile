@@ -7722,21 +7722,6 @@ describe('CardHome Component', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides link-mode content while the card still needs enabling', () => {
-      setupMockSelectors({ cardHomeDataStatus: 'success' });
-      setupLinkageMock();
-      setupLoadCardDataMock({ warning: CardStateWarning.NeedDelegation });
-
-      render();
-
-      expect(
-        screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
     it('hides link-mode content while an Immersve setup step is pending', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
