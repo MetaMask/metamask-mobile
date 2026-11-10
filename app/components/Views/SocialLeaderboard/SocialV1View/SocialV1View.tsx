@@ -469,6 +469,15 @@ const SocialV1ViewContent: React.FC = () => {
   // *downward*, so it re-tracks the bounce through this derived value while the
   // list content springs back natively — the two desync and the return motion
   // looks erratic. Pinning the block lets only the content bounce.
+  // A hairline along the bottom of the pinned tabs, shown only once the
+  // active page has scrolled. It is absolutely positioned so it does not
+  // change the pager height — an in-flow line left the feed unable to return
+  // to offset 0, which kept this border on. It sits 1px up so the active tab
+  // underline paints on top of it.
+  const tabsScrollDividerStyle = useAnimatedStyle(() => ({
+    opacity: scrollY.value > 0 ? 1 : 0,
+  }));
+
   const collapsingBlockStyle = useAnimatedStyle(() => {
     const maxShift = titleHeightSv.value;
     const shift =
@@ -793,12 +802,23 @@ const SocialV1ViewContent: React.FC = () => {
               collapsingBlockStyle,
             ]}
           >
-            <Box twClassName="bg-default mt-4">
+            <Box twClassName="relative bg-default mt-4">
+              <Animated.View
+                pointerEvents="none"
+                testID={SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER}
+                style={[
+                  tw.style(
+                    'absolute bottom-0 left-0 right-0 z-0 h-px bg-border-muted',
+                  ),
+                  tabsScrollDividerStyle,
+                ]}
+              />
               <TabsBar
                 tabs={tabs}
                 activeIndex={activeIndex}
                 onTabPress={handleTabPress}
                 testID={SocialV1ViewSelectorsIDs.TABS}
+                twClassName="z-10"
               />
             </Box>
 

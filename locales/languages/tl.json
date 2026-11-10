@@ -1154,66 +1154,10 @@
       "powered_by": "Pinapagana ng",
       "button": "Kunin ang mga detalye ng account"
     },
-    "verify_identity": {
-      "title": "I-verify ang pagkakakilanlan mo",
-      "description": "Tumatagal lang ito nang ilang minuto. Kakailanganin mo ng valid na ID na may litrato na inisyu ng gobyerno.",
-      "step_photograph_id": "Kunan ng litrato ang ID mo",
-      "step_take_selfie": "Mag-selfie",
-      "step_confirm_details": "Kumpirmahin ang mga detalye mo",
-      "step_answer_questions": "Sumagot ng ilang tanong",
-      "footer": "Naka-encrypt ang impormasyon mo at ibinabahagi ito nang ligtas sa aming mga tagapag-verify. Masusuri mo ang mga detalye bago magpatuloy.",
-      "powered_by": "Pinapagana ng",
-      "disclaimers_error": "Hindi mai-load ang mga tuntunin at kundisyon.",
-      "disclaimers_retry": "Subukang muli",
-      "button": "Magpatuloy",
-      "terms_sheet_title": "Data at pagkapribado",
-      "terms_sheet_description": "Para i-verify ang pagkakakilanlan mo, ibabahagi nang ligtas ang impormasyon mo sa mga tagapag-verify sa ibaba. Suriin ang mga patakaran at tuntunin nila bago magpatuloy.",
-      "metamask_privacy_policy": "Patakaran sa Pagkapribado ng MetaMask",
-      "metamask_terms": "Mga Tuntunin at Kundisyon ng MetaMask",
-      "terms_sheet_button": "Sumang-ayon at simulan ang pag-verify"
-    },
-    "kyc_email": {
-      "error_title": "Hindi masimulan ang pag-verify",
-      "error_description": "Nagkaproblema sa pagbubukas ng pag-verify sa email. Subukan ulit."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Kailangan namin ng kaunti pang impormasyon",
-      "more_info_description": "Kung minsan, kailangan namin ng dagdag na impormasyon para kumpletuhin ang pag-verify. Suriin kung ano ang kailangan sa ibaba para magpatuloy.",
-      "more_info_item_title": "Patunay ng address",
-      "more_info_item_description": "Mag-upload ng kamakailang dokumento na nagpapakita ng pangalan at kasalukuyang address ng tirahan mo",
-      "more_info_button": "Magpatuloy",
-      "more_info_help": "Kailangan ng tulong sa pag-verify?",
-      "error_title": "Hindi masimulan ang pag-verify",
-      "error_description": "Nagkaproblema sa pagbubukas ng pag-verify sa pagkakakilanlan. Subukan ulit.",
-      "retry": "Subukang muli"
-    },
-    "kyc_taking_longer": {
-      "title": "Bini-verify ang iyong pagkakakilanlan",
-      "description": "Natatapos ang karamihan ng mga pag-check nang humigit-kumulang 10 segundo. Puwede kang bumalik sa ibang pagkakataon, ipapaalam namin sa iyo kapag natapos na ang pag-check.",
-      "button": "Bumalik sa ibang pagkakataon"
-    },
-    "identity_verified": {
-      "title": "Na-verify ang pagkakakilanlan",
-      "description": "Kumpleto na ang pagsusuri sa iyong pagkakakilanlan.",
-      "button": "Magpatuloy"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "Naghihintay na aprubahan ng MoonPay ang iyong account"
-    },
-    "kyc_rejected": {
-      "title": "Hindi namin ma-verify ang pagkakakilanlan mo",
-      "description": "Kailangan ang atensyon mo sa ilang detalye. Suriin ang bawat item sa ibaba, at makipag-ugnayan sa Suporta.",
-      "retry_description": "Kailangan ang atensyon mo sa ilang detalye. Suriin ang bawat item sa ibaba, at subukan ulit.",
-      "identity_document_title": "Suriin ang dokumento ng pagkakakilanlan mo",
-      "identity_document_description": "Siguraduhing valid, malinaw, at nababasa ang lahat ng bahagi nito",
-      "selfie_title": "Kumuha ulit ng selfie",
-      "selfie_description": "Siguraduhing may sapat na liwanag at ipakita nang malinaw ang mukha mo",
-      "details_title": "Suriin ang mga detalye mo",
-      "details_description": "Siguraduhing tumutugma ang impormasyon mo sa mga nasa dokumento mo",
-      "button": "Kontakin ang suporta",
-      "retry_button": "Subukang muli"
     },
     "account_provisioning_error": {
       "title": "Hindi makagawa ng account mo",
@@ -1271,6 +1215,64 @@
       "load_error": "Hindi ma-refresh ang deposito. Subukan ulit.",
       "setup_error": "Hindi makagawa ng iyong account.",
       "retry": "Subukang muli"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "I-verify ang pagkakakilanlan mo",
+      "description": "Tumatagal lang ito nang ilang minuto. Kakailanganin mo ng valid na ID na may litrato na inisyu ng gobyerno.",
+      "step_photograph_id": "Kunan ng litrato ang ID mo",
+      "step_take_selfie": "Mag-selfie",
+      "step_confirm_details": "Kumpirmahin ang mga detalye mo",
+      "step_answer_questions": "Sumagot ng ilang tanong",
+      "footer": "Naka-encrypt ang impormasyon mo at ibinabahagi ito nang ligtas sa aming mga tagapag-verify. Masusuri mo ang mga detalye bago magpatuloy.",
+      "powered_by": "Pinapagana ng",
+      "disclaimers_error": "Hindi mai-load ang mga tuntunin at kundisyon.",
+      "disclaimers_retry": "Subukang muli",
+      "button": "Magpatuloy",
+      "terms_sheet_title": "Data at pagkapribado",
+      "terms_sheet_description": "Para i-verify ang pagkakakilanlan mo, ibabahagi nang ligtas ang impormasyon mo sa mga tagapag-verify sa ibaba. Suriin ang mga patakaran at tuntunin nila bago magpatuloy.",
+      "metamask_privacy_policy": "Patakaran sa Pagkapribado ng MetaMask",
+      "metamask_terms": "Mga Tuntunin at Kundisyon ng MetaMask",
+      "terms_sheet_button": "Sumang-ayon at simulan ang pag-verify"
+    },
+    "kyc_email": {
+      "error_title": "Hindi masimulan ang pag-verify",
+      "error_description": "Nagkaproblema sa pagbubukas ng pag-verify sa email. Subukan ulit."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Kailangan namin ng kaunti pang impormasyon",
+      "more_info_description": "Kung minsan, kailangan namin ng dagdag na impormasyon para kumpletuhin ang pag-verify. Suriin kung ano ang kailangan sa ibaba para magpatuloy.",
+      "more_info_item_title": "Patunay ng address",
+      "more_info_item_description": "Mag-upload ng kamakailang dokumento na nagpapakita ng pangalan at kasalukuyang address ng tirahan mo",
+      "more_info_button": "Magpatuloy",
+      "more_info_help": "Kailangan ng tulong sa pag-verify?",
+      "error_title": "Hindi masimulan ang pag-verify",
+      "error_description": "Nagkaproblema sa pagbubukas ng pag-verify sa pagkakakilanlan. Subukan ulit.",
+      "retry": "Subukang muli"
+    },
+    "kyc_taking_longer": {
+      "title": "Bini-verify ang iyong pagkakakilanlan",
+      "description": "Natatapos ang karamihan ng mga pag-check nang humigit-kumulang 10 segundo. Puwede kang bumalik sa ibang pagkakataon, ipapaalam namin sa iyo kapag natapos na ang pag-check.",
+      "button": "Bumalik sa ibang pagkakataon"
+    },
+    "identity_verified": {
+      "title": "Na-verify ang pagkakakilanlan",
+      "description": "Kumpleto na ang pagsusuri sa iyong pagkakakilanlan.",
+      "button": "Magpatuloy"
+    },
+    "kyc_rejected": {
+      "title": "Hindi namin ma-verify ang pagkakakilanlan mo",
+      "description": "Kailangan ang atensyon mo sa ilang detalye. Suriin ang bawat item sa ibaba, at makipag-ugnayan sa Suporta.",
+      "retry_description": "Kailangan ang atensyon mo sa ilang detalye. Suriin ang bawat item sa ibaba, at subukan ulit.",
+      "identity_document_title": "Suriin ang dokumento ng pagkakakilanlan mo",
+      "identity_document_description": "Siguraduhing valid, malinaw, at nababasa ang lahat ng bahagi nito",
+      "selfie_title": "Kumuha ulit ng selfie",
+      "selfie_description": "Siguraduhing may sapat na liwanag at ipakita nang malinaw ang mukha mo",
+      "details_title": "Suriin ang mga detalye mo",
+      "details_description": "Siguraduhing tumutugma ang impormasyon mo sa mga nasa dokumento mo",
+      "button": "Kontakin ang suporta",
+      "retry_button": "Subukang muli"
     }
   },
   "social": {
@@ -11910,7 +11912,6 @@
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Mag-sign in",
-      "siwe_button": "Mag-sign in gamit ang Ethereum",
       "continue_button": "Magpatuloy",
       "uk_login_button": "Mag-sign in gamit ang account na ito",
       "signup_button": "Mag-sign up",
