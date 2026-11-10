@@ -283,7 +283,7 @@ describe('KycEmailAdapter', () => {
       .mockResolvedValueOnce({ id: 'session-1', finalStatus: 'new' });
     mockKycController.reset.mockResolvedValue(undefined);
 
-    renderWithProvider(<VbaEmailAdapter />);
+    renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(mockAdvance).toHaveBeenCalled();
@@ -304,11 +304,11 @@ describe('KycEmailAdapter', () => {
       new Error('KycController already initialized with a different email'),
     );
 
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(
-        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+        screen.getByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
       ).toHaveTextContent(
         'KycController already initialized with a different email',
       );
