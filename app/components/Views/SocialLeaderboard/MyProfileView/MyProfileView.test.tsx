@@ -222,7 +222,7 @@ const mockSocialFeedProps: {
     showCopyTrade?: boolean;
     scope?: string;
     location?: string;
-    filterPost?: (post: { position?: Position }) => boolean;
+    filterPost?: (post: SocialV1FeedPost) => boolean;
   } | null;
 } = { current: null };
 
@@ -243,7 +243,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
       showCopyTrade?: boolean;
       scope?: string;
       location?: string;
-      filterPost?: (post: { position?: Position }) => boolean;
+      filterPost?: (post: SocialV1FeedPost) => boolean;
     }) => {
       mockSocialFeedProps.current = props;
       return ReactActual.createElement(
