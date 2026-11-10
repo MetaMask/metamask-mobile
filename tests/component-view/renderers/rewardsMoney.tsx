@@ -332,6 +332,10 @@ function rewardsFlowRoutes() {
       name: Routes.WEBVIEW.MAIN,
       Component: SupportWebviewStack,
     },
+    {
+      name: Routes.MODAL.ROOT_MODAL_FLOW,
+      Component: createRouteParamsProbe(Routes.MODAL.ROOT_MODAL_FLOW),
+    },
   ];
 }
 
@@ -498,7 +502,13 @@ export function renderRewardsSettingsView(
     ...renderScreenWithRoutes(
       RewardsSettingsView as unknown as React.ComponentType,
       { name: Routes.REWARDS_SETTINGS_VIEW },
-      [{ name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW }],
+      [
+        { name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW },
+        {
+          name: Routes.MODAL.ROOT_MODAL_FLOW,
+          Component: createRouteParamsProbe(Routes.MODAL.ROOT_MODAL_FLOW),
+        },
+      ],
       { state },
     ),
     engine,

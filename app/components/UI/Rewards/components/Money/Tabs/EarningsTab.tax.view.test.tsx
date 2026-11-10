@@ -9,6 +9,8 @@ import { ButtonVariant } from '@metamask/design-system-react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { WebView } from '@metamask/react-native-webview';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
+import { strings } from '../../../../../../../locales/i18n';
 import ReduxService from '../../../../../../core/redux';
 import {
   RewardsMoneyClaimRefusalError,
@@ -1070,8 +1072,19 @@ describe('EarningsTab tax documentation', () => {
     );
 
     expect(
-      await view.findByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
-    ).toBeOnTheScreen();
+      await view.findByTestId(
+        getRouteParamsProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW),
+      ),
+    ).toHaveTextContent(
+      JSON.stringify({
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url: METAMASK_SUPPORT_URL,
+          title: strings('app_settings.contact_support'),
+          isModal: false,
+        },
+      }),
+    );
   });
 
   it('claims and shows the renewal question when the answer is about to expire', async () => {
