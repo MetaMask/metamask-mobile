@@ -16,6 +16,7 @@ import Animated from 'react-native-reanimated';
 import { useRankChangeAnimation } from './useRankChangeAnimation';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
+import XTrustMark from '../../../../UI/SocialFeed/components/XTrustMark';
 import {
   RankMedal,
   isTopRank,
@@ -135,7 +136,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={3}
-      style={highlighted ? undefined : { height: rowHeight }}
+      style={{ height: rowHeight }}
     >
       {showRankColumn ? (
         <Box
@@ -183,6 +184,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
           >
             {trader.username}
           </Text>
+          {trader.xHandle ? <XTrustMark /> : null}
           {nameTag ? (
             <Tag
               severity={
@@ -256,18 +258,21 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
         disabled={!onTraderPress}
         testID={testID ?? getTraderRowTestId(trader.id)}
       >
-        <Box twClassName={highlighted ? 'px-2 py-1' : 'px-4'}>
-          {highlighted ? (
+        {highlighted ? (
+          <Box
+            testID={SocialV1TraderRowSelectorsIDs.HIGHLIGHT}
+            twClassName="bg-muted"
+            style={{ height: rowHeight }}
+          >
             <Box
-              testID={SocialV1TraderRowSelectorsIDs.HIGHLIGHT}
-              twClassName="rounded-2xl border border-muted bg-muted px-2 py-3"
-            >
-              {rowBody}
-            </Box>
-          ) : (
-            rowBody
-          )}
-        </Box>
+              testID={SocialV1TraderRowSelectorsIDs.HIGHLIGHT_BAR}
+              twClassName="absolute bottom-0 left-0 top-0 w-0.5 bg-success-default"
+            />
+            <Box twClassName="px-4">{rowBody}</Box>
+          </Box>
+        ) : (
+          <Box twClassName="px-4">{rowBody}</Box>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );

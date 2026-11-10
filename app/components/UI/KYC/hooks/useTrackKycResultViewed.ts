@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { KycAnalyticsStatus } from '@metamask/kyc-controller';
-import { trackVbaEvent } from '../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
 import { buildKycBaseProperties } from '../utils/kycBaseProperties';
+import { trackKycEvent } from '../utils/trackKycEvent';
 
 /**
  * Tracks `KYC Result Viewed` once when a KYC result page mounts. `kycStatus`
@@ -15,7 +15,7 @@ export const useTrackKycResultViewed = (
   kycStatus: Extract<KycAnalyticsStatus, 'pending' | 'rejected' | 'approved'>,
 ): void => {
   useEffect(() => {
-    trackVbaEvent(MetaMetricsEvents.KYC_RESULT_VIEWED, () =>
+    trackKycEvent(MetaMetricsEvents.KYC_RESULT_VIEWED, () =>
       buildKycBaseProperties({ kycStatus }),
     );
   }, [kycStatus]);

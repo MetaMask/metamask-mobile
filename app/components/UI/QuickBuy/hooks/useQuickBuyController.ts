@@ -60,6 +60,7 @@ import { getSocialEventSource } from '../../../Views/SocialLeaderboard/analytics
 import { resolveQuickBuySubmittedTxHash } from '../resolveQuickBuySubmittedTxHash';
 import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { isSpotPostTradeShareEligible } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
@@ -134,6 +135,7 @@ import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
 import { useInitialSlippage } from '../../Bridge/hooks/useInitialSlippage';
 import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance';
+import { useInsufficientNativeReserveError } from '../../Bridge/hooks/useInsufficientNativeReserveError';
 import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useIsNetworkFeeUnavailable } from '../../Bridge/hooks/useIsNetworkFeeUnavailable';
@@ -161,11 +163,14 @@ import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
+  | 'insufficient_native_reserve'
   | 'insufficient_gas'
   | 'no_quotes';
 
 const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
   insufficient_balance: 'bridge.insufficient_funds',
+  insufficient_native_reserve:
+    'social_leaderboard.quick_buy.insufficient_native_reserve',
   insufficient_gas: 'bridge.insufficient_gas',
   no_quotes: 'social_leaderboard.quick_buy.no_quotes',
 };
@@ -1071,6 +1076,16 @@ export function useQuickBuyController(
     quoteOverride: activeQuote ?? null,
   });
 
+  const hasInsufficientNativeReserve = Boolean(
+    useInsufficientNativeReserveError({
+      amount: sourceTokenAmount,
+      token: sourceToken,
+      latestAtomicBalance: latestSourceBalance?.atomicBalance,
+      walletAddress,
+      activeQuote,
+    }),
+  );
+
   const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientGas =
@@ -1731,13 +1746,11 @@ export function useQuickBuyController(
       rate: formattedRate,
       isNonEvmSwap,
     };
-    const tradeInFlightChain = caipChainIdToTradeInFlightChain(
-      sourceToken?.chainId
-        ? formatChainIdToCaip(sourceToken.chainId)
-        : target.chain,
-    );
-    const previewChain =
-      caipChainIdToTradeInFlightChain(target.chain) ?? target.chain;
+    // The comment is about the position token: the token bought, or the token
+    // sold. The pay token and the receive token (native or USDC) are not part
+    // of this slug.
+    const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
+    const previewChain = tradeInFlightChain ?? target.chain;
     const sharePreview: SocialPostTradePreview = {
       tokenSymbol: target.tokenSymbol,
       tokenAddress: target.tokenAddress,
@@ -1749,7 +1762,9 @@ export function useQuickBuyController(
     // Public copy-trades always share. Private profiles use the normal
     // Quick Buy toasts instead. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
-    const canPostTradeShare = isSpotPostTradeShareEligible(amountUsdValue);
+    const canPostTradeShare =
+      isSpotPostTradeShareEligible(amountUsdValue) &&
+      !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
     const isForcedPostTradeShare =
       postTradeShare && !isProfileTradingActivityPrivate;
     const shouldForcePostTradeShare =
@@ -2140,6 +2155,7 @@ export function useQuickBuyController(
         isQuoteRequestStale ||
         isBlockingQuoteLoad ||
         hasInsufficientBalance ||
+        hasInsufficientNativeReserve ||
         isNetworkFeeUnavailable ||
         hasInsufficientGas ||
         isSubmittingTx ||
@@ -2159,6 +2175,8 @@ export function useQuickBuyController(
   if (!isPresetAddFundsMode && !hasNoPayWithFunds && !isOverBalanceSell) {
     if (hasInsufficientBalance || isNetworkFeeUnavailable) {
       buttonError = 'insufficient_balance';
+    } else if (hasInsufficientNativeReserve) {
+      buttonError = 'insufficient_native_reserve';
     } else if (hasInsufficientGas) {
       buttonError = 'insufficient_gas';
     } else if (hasError) {
@@ -2182,13 +2200,18 @@ export function useQuickBuyController(
     if (isPresetAddFundsMode || hasNoPayWithFunds) {
       return strings('social_leaderboard.quick_buy.add_funds');
     }
-    if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
+    if (buttonError) {
+      return strings(BUTTON_ERROR_LABELS[buttonError], {
+        ticker: sourceToken?.symbol,
+      });
+    }
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     return tradeMode === 'sell'
       ? strings('social_leaderboard.trader_position.sell')
       : strings('social_leaderboard.trader_position.buy');
   }, [
     buttonError,
+    sourceToken?.symbol,
     isPresetAddFundsMode,
     hasNoPayWithFunds,
     isSubmittingTx,

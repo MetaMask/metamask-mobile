@@ -47,14 +47,18 @@ const TEMPLATE_PATH = path.join(__dirname, '../../pull-request-template.md');
 // the base branch, not the PR head — see check-template-and-add-labels.yml).
 const templateTokens = tokenize(fs.readFileSync(TEMPLATE_PATH, 'utf8'));
 
-// Every level-2 heading in the template (including the reviewer checklist) —
-// used by template.ts for structural presence checking.
+// Every level-2 heading in the template, including optional sections and the
+// reviewer checklist. Structural matching uses PR_TEMPLATE_SECTIONS instead.
 export const PR_TEMPLATE_SECTION_TITLES: string[] = templateTokens
   .filter((t) => t.kind === 'heading' && t.level === 2)
   .map((t) => t.raw);
 
-// Backward-compatible alias (template.ts consumes this directly as an array).
-export const PR_TEMPLATE_SECTIONS = PR_TEMPLATE_SECTION_TITLES;
+// Headings template.ts requires for the structural match. Sections marked
+// required=false are excluded so a PR body that omits them is not treated as
+// the wrong template. buildRequiredSectionTitles is a function declaration
+// (hoisted), so calling it here before its definition below is safe.
+export const PR_TEMPLATE_SECTIONS: string[] =
+  buildRequiredSectionTitles(templateTokens);
 
 // ─── Directive parsing ───────────────────────────────────────────────────────
 
@@ -111,6 +115,23 @@ export function buildValidationPlan(tokens: Token[]): ValidationPlanEntry[] {
   }
 
   return plan;
+}
+
+/**
+ * Level-2 headings a PR body must contain to match the template structurally.
+ * Sections whose directive sets required=false are left out: a body without
+ * them is still the right template, and their content is not validated.
+ */
+export function buildRequiredSectionTitles(tokens: Token[]): string[] {
+  const optionalTitles = new Set(
+    buildValidationPlan(tokens)
+      .filter((entry) => !entry.required)
+      .map((entry) => entry.title),
+  );
+  return tokens
+    .filter((t) => t.kind === 'heading' && t.level === 2)
+    .map((t) => t.raw)
+    .filter((title) => !optionalTitles.has(title));
 }
 
 const VALIDATION_PLAN = buildValidationPlan(templateTokens);
