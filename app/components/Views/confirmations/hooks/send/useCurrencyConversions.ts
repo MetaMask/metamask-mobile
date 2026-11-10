@@ -45,6 +45,10 @@ export const getFiatValueFn = ({
 
 const BIDI_MARKS = /[\u200e\u200f\u061c]/gu;
 
+// `\d` is ASCII-only. Arabic, Persian, Bengali, and other locales format zero
+// with native decimal digits (Unicode category Nd).
+const DECIMAL_DIGIT = /\p{Nd}/u;
+
 /**
  * Places the ADR narrow currency symbol before or after an amount input.
  * The keypad keeps the typed digits separate from the symbol, so the symbol
@@ -55,7 +59,8 @@ const BIDI_MARKS = /[\u200e\u200f\u061c]/gu;
  * returned.
  *
  * Hermes has no reliable `Intl.NumberFormat.formatToParts`, so this relies on
- * `format()` only, which every runtime supports.
+ * `format()` only, which every runtime supports. The amount is located with
+ * Unicode decimal digits so native numerals still split off the symbol.
  */
 export function getNarrowCurrencyAffix(
   currency: string | undefined,
@@ -79,14 +84,14 @@ export function getNarrowCurrencyAffix(
     return { prefix: '', suffix: code };
   }
 
-  const firstDigit = sample.search(/\d/u);
+  const firstDigit = sample.search(DECIMAL_DIGIT);
   if (firstDigit === -1) {
     return { prefix: '', suffix: code };
   }
 
   let lastDigit = firstDigit;
   for (let index = firstDigit; index < sample.length; index += 1) {
-    if (/\d/u.test(sample[index])) {
+    if (DECIMAL_DIGIT.test(sample[index])) {
       lastDigit = index;
     }
   }

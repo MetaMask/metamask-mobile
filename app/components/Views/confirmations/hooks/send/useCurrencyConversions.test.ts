@@ -117,6 +117,27 @@ describe('getNarrowCurrencyAffix', () => {
     expect(affix.prefix).toBe('');
     expect(affix.suffix).toMatch(/^\s€$/u);
   });
+
+  it('puts the dollar symbol before the amount for Persian native digits', () => {
+    expect(getNarrowCurrencyAffix('usd', 'fa')).toEqual({
+      prefix: '$',
+      suffix: '',
+    });
+  });
+
+  it('puts the dollar symbol after the amount for Bengali native digits', () => {
+    expect(getNarrowCurrencyAffix('usd', 'bn')).toEqual({
+      prefix: '',
+      suffix: '$',
+    });
+  });
+
+  it('puts the narrow dollar symbol after Arabic-Indic digits', () => {
+    const affix = getNarrowCurrencyAffix('usd', 'ar-EG');
+
+    expect(affix.prefix).toBe('');
+    expect(affix.suffix).toMatch(/^\sUS\$$/u);
+  });
 });
 
 describe('getFiatDisplayValueFn', () => {
