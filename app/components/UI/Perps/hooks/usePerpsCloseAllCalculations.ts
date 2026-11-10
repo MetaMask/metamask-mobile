@@ -410,8 +410,9 @@ export function usePerpsCloseAllCalculations({
         grantContribution += discountBips * weight;
       }
     });
-    // Subscription retains the existing tie priority. A rewards/grant tie has
-    // no dominant source and uses generic discount presentation.
+    // Rewards wins a tie with subscription. A rewards/grant tie has no
+    // dominant source and uses generic discount presentation. Subscription
+    // still wins a tie with grant, and any strictly larger contribution wins.
     const largestContribution = Math.max(
       subscriptionContribution,
       rewardsContribution,
@@ -419,17 +420,20 @@ export function usePerpsCloseAllCalculations({
     );
     let feeSource: PerpsFeeSource | undefined;
     if (
-      subscriptionContribution > 0 &&
-      subscriptionContribution === largestContribution
-    ) {
-      feeSource = 'subscription';
-    } else if (
-      rewardsContribution > grantContribution &&
-      rewardsContribution > 0
+      rewardsContribution > 0 &&
+      rewardsContribution === largestContribution &&
+      rewardsContribution > grantContribution
     ) {
       feeSource = 'rewards';
     } else if (
+      subscriptionContribution > 0 &&
+      subscriptionContribution === largestContribution &&
+      subscriptionContribution > rewardsContribution
+    ) {
+      feeSource = 'subscription';
+    } else if (
       grantContribution > rewardsContribution &&
+      grantContribution > subscriptionContribution &&
       grantContribution > 0
     ) {
       feeSource = 'grant';
