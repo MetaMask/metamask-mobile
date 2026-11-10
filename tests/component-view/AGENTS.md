@@ -97,7 +97,9 @@ For run-by-name, watch mode, or other options, see [docs/testing/component-view-
 
 ## Enforcement {#enforcement}
 
-- ESLint override in `.eslintrc.js` blocks forbidden `jest.mock` in `*.view.test.*`
+- ESLint override in `.eslintrc.js` for `**/*.view.test.*` and `tests/component-view/**`:
+  - **error** — arbitrary `jest.mock` (view tests: Engine and `react-native-device-info` only; helpers may also use the modules already mocked in `mocks.ts`) and the fake-timer API
+  - **warn** (flip to error once the tree is clean) — `findBy*` / `findAllBy*` nested in `waitFor`, fixed sleeps (`setTimeout` other than literal `0`, `sleep()`), a bare `{ timeout }` on `waitFor` / `findBy*`, and `jest.clearAllMocks()` with no `mockReset` / `resetAllMocks` / `mockRestore` / `restoreAllMocks` in the file
 - Runtime guard: `app/util/test/testSetupView.js`
 
 ## Implementation reference {#implementation-reference}

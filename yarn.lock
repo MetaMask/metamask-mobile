@@ -30212,6 +30212,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-component-view@portal:./scripts/eslint::locator=metamask%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "eslint-plugin-component-view@portal:./scripts/eslint::locator=metamask%40workspace%3A."
+  languageName: node
+  linkType: soft
+
 "eslint-plugin-eslint-comments@npm:^3.2.0":
   version: 3.2.0
   resolution: "eslint-plugin-eslint-comments@npm:3.2.0"
@@ -38525,6 +38531,7 @@ __metadata:
     eslint: "npm:^8.44.0"
     eslint-config-prettier: "npm:^8.1.0"
     eslint-import-resolver-typescript: "npm:^3.6.3"
+    eslint-plugin-component-view: "portal:./scripts/eslint"
     eslint-plugin-import-x: "npm:^0.5.1"
     eslint-plugin-jest: "npm:^29.14.0"
     eslint-plugin-jsdoc: "npm:43.0.7"

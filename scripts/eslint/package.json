@@ -1,0 +1,7 @@
+{
+  "name": "eslint-plugin-component-view",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local ESLint rules for MetaMask Mobile component-view tests.",
+  "main": "component-view-plugin.js"
+}

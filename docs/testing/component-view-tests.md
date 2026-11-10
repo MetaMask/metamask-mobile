@@ -12,7 +12,7 @@ Use this when you need to:
 
 Component view tests are **integration-level** tests that test views through real Redux state — no mocked hooks or selectors. They live alongside the component as `ComponentName.view.test.tsx` and use a dedicated framework in `tests/component-view/`.
 
-Key constraint: **only Engine and allowed native modules may be mocked** (enforced at runtime by `app/util/test/testSetupView.js` and by ESLint override in `.eslintrc.js` for `**/*.view.test.*`).
+Key constraint: **only Engine and allowed native modules may be mocked** (enforced at runtime by `app/util/test/testSetupView.js` and by ESLint for `**/*.view.test.*` and `tests/component-view/**`). ESLint errors on arbitrary `jest.mock` and on fake timers. It warns on nested `findBy*` inside `waitFor`, fixed sleeps, a bare `{ timeout }` on `waitFor`/`findBy*`, and `jest.clearAllMocks()` with no `mockReset()` / `resetAllMocks()` in the file. Warning severity is temporary so existing violations do not fail CI.
 
 ## The Framework at a Glance
 
@@ -66,7 +66,7 @@ yarn eslint <path/to/test.tsx>
 
 3. **Reuse presets and renderers** — never rebuild the full state manually from scratch.
 
-4. **No fake timers, no real sleeps** — never use the jest fake-timer API (`jest.useFakeTimers()`, `jest.useRealTimers()`, `jest.advanceTimersByTime()`, `jest.runAllTimers()`, `jest.setSystemTime()`, their `*Async` variants, and the rest). ESLint enforces this in `*.view.test.*` files and in `tests/component-view/**`. Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state (an expired quote, an ended game). Never widen a budget to cover a timer.
+4. **No fake timers, no real sleeps** — never use the jest fake-timer API (`jest.useFakeTimers()`, `jest.useRealTimers()`, `jest.advanceTimersByTime()`, `jest.runAllTimers()`, `jest.setSystemTime()`, their `*Async` variants, and the rest). ESLint errors on that API in `*.view.test.*` files and in `tests/component-view/**`. It warns on fixed sleeps (`sleep()`, and `setTimeout` with any delay other than a literal `0`). Test countdowns, debounces, and expiry in a unit test, where fake timers are allowed, or serve fixtures already in the target state (an expired quote, an ended game). Never widen a budget to cover a timer.
    - **Real sleeps race the clock too.** `await new Promise((r) => setTimeout(r, 50))` to let time pass is the same race as a widened `waitFor`. Await the observable outcome with `waitFor` / `findBy*` instead. A zero-delay flush (`setTimeout(r, 0)`) before asserting that something did _not_ happen is fine. Existing sleeps are cleaned up when their test is next modified.
    - `Date.now` is real in component-view tests. `testSetupView.js` does not load `testSetup.js`, which freezes `Date.now` for unit tests.
    - `jest.spyOn(Date, 'now')` is allowed when the test reads that clock and leaves timers real. PredictHome and PredictPortfolioScreen return a time inside the 60-second Balance focus window, then a time past it. Restore the spy in the same test.
@@ -84,13 +84,13 @@ yarn eslint <path/to/test.tsx>
 
 10. **Filter / segmentation tests must assert both sides** — after selecting a filter, assert both what appears (positive `findByTestId`) and what disappears (negative `queryByTestId(...).not.toBeOnTheScreen()`).
 
-11. **Clear call history before asserting call counts** — `toHaveBeenCalledTimes` on a shared Engine or `controllerMessenger.call` mock also counts calls made by earlier tests. Call `mockClear()` on that mock in `beforeEach` (`mockReset()` when a test changes implementations). Signature: `Expected number of calls: N, Received: M`; passes alone, fails after another test.
+11. **Clear call history before asserting call counts** — `toHaveBeenCalledTimes` on a shared Engine or `controllerMessenger.call` mock also counts calls made by earlier tests. Call `mockClear()` on that mock in `beforeEach` (`mockReset()` when a test changes implementations). Signature: `Expected number of calls: N, Received: M`; passes alone, fails after another test. ESLint warns when a file calls `jest.clearAllMocks()` and never `mockReset()`, `jest.resetAllMocks()`, `mockRestore()`, or `jest.restoreAllMocks()`: `clearAllMocks()` keeps the last implementation.
 
 12. **A `findBy*` result is valid only until the next state change** — if the component can remount between the `await` and the assertion (a query resolving, a loading branch swapping for the loaded one), the held node detaches. Await a marker that only the loaded tree renders, then re-query with `getBy*`. Signatures: `Unable to find node on an unmounted component` or `element could not be found in the element tree` right after an `await`.
     - Remount signals: a skeleton or loading view that reuses the loaded view's testID (as in #38949), a loading → loaded branch switch, or a `key` change on the component or a parent.
     - `expect(await findBy*(...))` carries the same risk: the node resolves before the next render commits. Prefer `await waitFor(() => expect(getBy*(...)).toBeOnTheScreen())`.
 
-13. **An explicit `{ timeout }` names its async boundary** — pass `{ timeout }` to `waitFor` or `findBy*` only with a comment that names the async boundary needing it (a debounce, a chained query). A raised budget alone is not a fix. This applies to new and modified waits. When a file shares one budget constant (for example `TIMEOUT_MS`), one comment where the constant is defined is enough if it names the boundary.
+13. **An explicit `{ timeout }` names its async boundary** — pass `{ timeout }` to `waitFor` or `findBy*` only with a comment that names the async boundary needing it (a debounce, a chained query). A raised budget alone is not a fix. This applies to new and modified waits. When a file shares one budget constant (for example `TIMEOUT_MS`), one comment where the constant is defined is enough if it names the boundary. ESLint warns when that comment is missing. Do not nest `findBy*` / `findAllBy*` inside `waitFor` (`findBy*` already polls, and the two share one budget). Use `await findBy*` or `waitFor(() => { getBy*; expect(...) })`. ESLint warns on the nested query.
 
 14. **Fix a flake at its cause** — name the cause, reproduce it locally first (a `--randomize --seed` or CPU load), and show the fix passes under the same condition. A change whose only change is a longer timeout is not a fix. See [Fixing a flake](#fixing-a-flake).
 
