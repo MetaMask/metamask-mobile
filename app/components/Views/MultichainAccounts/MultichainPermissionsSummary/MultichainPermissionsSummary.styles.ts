@@ -104,9 +104,6 @@ const createStyles = (params: { theme: Theme }) => {
     tabsContainer: {
       flex: 1,
     },
-    tabBarContainer: {
-      paddingHorizontal: 16,
-    },
     // Header
     connectionTitle: {
       textAlign: 'center',
