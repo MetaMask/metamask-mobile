@@ -1401,6 +1401,92 @@ describe('MyProfileView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('hides cached positions while the trader privacy loads', () => {
+      mockUseTraderProfile.mockReturnValue({
+        ...foreignTraderProfileResult(),
+        profile: null,
+        isLoading: true,
+      });
+      mockUseTraderPositions.mockReturnValue({
+        openPositions: [
+          {
+            positionId: 'eth-spot',
+            tokenSymbol: 'ETH',
+            tokenName: 'Ethereum',
+            tokenAddress: '0xeth',
+            chain: 'ethereum',
+            positionAmount: 1,
+            boughtUsd: 100,
+            soldUsd: 0,
+            realizedPnl: 0,
+            costBasis: 100,
+            trades: [],
+            lastTradeAt: 1,
+          },
+        ],
+        closedPositions: [],
+        isLoadingOpen: false,
+        isLoadingClosed: false,
+        error: null,
+        openError: null,
+        closedError: null,
+        refetch: jest.fn().mockResolvedValue(undefined),
+      });
+
+      renderWithProvider(<MyProfileView />);
+
+      expect(screen.queryByTestId('position-row-ETH')).not.toBeOnTheScreen();
+    });
+
+    it('refreshes a private trader without refetching their positions or posts', async () => {
+      jest.useFakeTimers();
+      const refreshLiveProfile = jest.fn().mockResolvedValue(undefined);
+      const refreshPosts = jest.fn().mockResolvedValue(undefined);
+      const refetchPositions = jest.fn().mockResolvedValue(undefined);
+      mockUseTraderProfile.mockReturnValue({
+        ...privateTraderProfileResult(),
+        refresh: refreshLiveProfile,
+      });
+      mockUseMyProfilePosts.mockReturnValue({
+        posts: [],
+        rows: [],
+        isLoading: false,
+        isFetchingNextPage: false,
+        hasNextPage: false,
+        loadMore: jest.fn(),
+        error: null,
+        refresh: refreshPosts,
+      });
+      mockUseTraderPositions.mockReturnValue({
+        openPositions: [],
+        closedPositions: [],
+        isLoadingOpen: false,
+        isLoadingClosed: false,
+        error: null,
+        openError: null,
+        closedError: null,
+        refetch: refetchPositions,
+      });
+
+      try {
+        renderWithProvider(<MyProfileView />);
+        const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
+
+        await act(async () => {
+          const refreshPromise = scroll.props.refreshControl.props.onRefresh();
+          jest.advanceTimersByTime(1000);
+          await refreshPromise;
+        });
+
+        expect(refreshLiveProfile).toHaveBeenCalledTimes(1);
+        expect(refreshPosts).not.toHaveBeenCalled();
+        expect(refetchPositions).not.toHaveBeenCalled();
+      } finally {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
+    });
+
     it('retries the trader profile when it fails to load', () => {
       const refresh = jest.fn().mockResolvedValue(undefined);
       mockUseTraderProfile.mockReturnValue({
@@ -2270,6 +2356,17 @@ describe('MyProfileView', () => {
       traderName: 'shittymike.sol',
       traderAddress: '0xabc',
     };
+    mockUseTraderProfile.mockReturnValue({
+      ...foreignTraderProfileResult(),
+      profile: {
+        ...foreignTraderProfile,
+        profile: {
+          ...foreignTraderProfile.profile,
+          profileId: 'trader-1',
+          name: 'shittymike.sol',
+        },
+      },
+    });
     mockUseTraderPositions.mockReturnValue({
       openPositions: [nigel],
       closedPositions: [],
@@ -2299,9 +2396,9 @@ describe('MyProfileView', () => {
         username: 'shittymike.sol',
         address: '0xabc',
         avatarUri: undefined,
-        winRatePercent: null,
-        pnl30d: null,
-        followerCount: null,
+        winRatePercent: 0,
+        pnl30d: 0,
+        followerCount: 0,
         xHandle: null,
       },
       isClosed: false,

@@ -128,6 +128,8 @@ type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
+const NO_POSITIONS: Position[] = [];
+const NO_POSTS: SocialV1FeedPost[] = [];
 
 const linkedAddressesMatch = (
   traderAddress: string | null | undefined,
@@ -406,7 +408,7 @@ const MyProfileView: React.FC = () => {
     }, [isOwner]),
   );
   const {
-    posts,
+    posts: fetchedPosts,
     isLoading: isPostsLoading,
     isFetchingNextPage,
     hasNextPage,
@@ -418,8 +420,8 @@ const MyProfileView: React.FC = () => {
     isActive: activeTab === 'posts' && !isContentHidden,
   });
   const {
-    openPositions,
-    closedPositions,
+    openPositions: fetchedOpenPositions,
+    closedPositions: fetchedClosedPositions,
     isLoadingOpen,
     isLoadingClosed,
     openError: openPositionsError,
@@ -429,6 +431,12 @@ const MyProfileView: React.FC = () => {
     enabled: !isContentHidden,
     refetchInterval: 30_000,
   });
+  // Disabled queries still return cached data, e.g. from an earlier visit.
+  const posts = isContentHidden ? NO_POSTS : fetchedPosts;
+  const openPositions = isContentHidden ? NO_POSITIONS : fetchedOpenPositions;
+  const closedPositions = isContentHidden
+    ? NO_POSITIONS
+    : fetchedClosedPositions;
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
   const isAssetFilterActive = assetFilter !== 'all';
@@ -592,17 +600,18 @@ const MyProfileView: React.FC = () => {
       );
       // refreshLiveProfile rethrows after logging; allSettled keeps one
       // failure from aborting the others and from becoming unhandled.
+      // refetch() ignores `enabled`, so hidden content must not be refetched.
       await Promise.allSettled([
         refresh(),
         refreshLiveProfile(),
-        refreshPosts(),
-        refetchPositions(),
+        ...(isContentHidden ? [] : [refreshPosts(), refetchPositions()]),
         minDuration,
       ]);
     } finally {
       setRefreshing(false);
     }
   }, [
+    isContentHidden,
     refresh,
     refreshLiveProfile,
     refreshPosts,
