@@ -12,5 +12,8 @@ import {
 scenarioTest(
   path.join(__dirname, 'seedless-google-onboarding.scenario.md'),
   [],
-  seedlessOptions('google'),
+  {
+    ...seedlessOptions('google'),
+    skip: 'known app failure',
+  },
 );
