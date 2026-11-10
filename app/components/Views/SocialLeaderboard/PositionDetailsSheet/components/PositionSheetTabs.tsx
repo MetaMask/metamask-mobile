@@ -126,8 +126,7 @@ const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
         key={`${trade.transactionHash}-${trade.timestamp}-${index}`}
         trade={trade}
         action={trade.action}
-        traderImageUrl={author.avatarUri ?? undefined}
-        traderAddress={author.id}
+        showValueAvatar
       />
     ));
 
