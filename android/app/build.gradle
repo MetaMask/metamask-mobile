@@ -205,7 +205,7 @@ def perfSessionConfig() {
     if (!enabled) {
         return [url: '', key: '', env: "${buildType}-${environment}"]
     }
-    if (environment != 'exp' || buildType != 'main') {
+    if (!(environment in ['exp', 'rc']) || buildType != 'main') { // TEMP: Social perf run on main-rc, do not merge
         throw new GradleException("MM_PERF_SESSION_ENABLED is only allowed for main-exp builds, not ${buildType}-${environment}")
     }
     def url = System.getenv('MM_PERF_SESSION_URL') ?: ''

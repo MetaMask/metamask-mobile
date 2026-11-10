@@ -255,7 +255,9 @@ builds:
     github_environment: build-rc
     signing: *signing_rc
     env:
-      <<: *public_envs
+      <<: [*public_envs, *perf_session]
+      # TEMP: Social perf run on main-rc, do not merge
+      MM_PERF_SESSION_ENABLED: 'true'
       METAMASK_ENVIRONMENT: 'rc'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
