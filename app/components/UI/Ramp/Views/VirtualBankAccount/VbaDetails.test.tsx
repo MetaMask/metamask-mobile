@@ -716,7 +716,9 @@ describe('VbaDetails', () => {
         ).toBeOnTheScreen();
       });
 
-      fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
+      await act(async () => {
+        fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
+      });
 
       const bankDetails = [
         'Account holder',
