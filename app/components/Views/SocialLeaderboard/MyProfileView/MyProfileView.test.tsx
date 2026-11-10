@@ -496,7 +496,7 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('*60%');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_PNL),
-    ).toHaveTextContent('*+$7,100');
+    ).toHaveTextContent('*+$7,100.00');
   });
 
   it('renders the owner avatar preset in the compact header', () => {
@@ -617,6 +617,9 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_WIN_RATE),
     ).toHaveTextContent('42%');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_PNL),
+    ).toHaveTextContent('+$1,200.00');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
     ).toHaveTextContent('+$1,200.00');
