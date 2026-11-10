@@ -36,6 +36,12 @@ const FAQ_KEYS = [
   'faq_q10',
 ] as const;
 
+// Answers that quote the live rate need copy without a number when it is unavailable.
+const NO_APY_ANSWER_KEYS: Partial<Record<(typeof FAQ_KEYS)[number], string>> = {
+  faq_q1: 'faq_a1_no_apy',
+  faq_q5: 'faq_a5_no_apy',
+};
+
 const ANIMATION_DURATION = 200;
 
 const FaqDivider = () => <Box twClassName="h-px bg-border-muted" />;
@@ -128,6 +134,10 @@ export const MoneyFaqList = ({
   <>
     {FAQ_KEYS.map((key, index) => {
       const itemNumber = index + 1;
+      const answerKey =
+        apyPercent === undefined
+          ? (NO_APY_ANSWER_KEYS[key] ?? `faq_a${itemNumber}`)
+          : `faq_a${itemNumber}`;
       return (
         <React.Fragment key={key}>
           {index > 0 && <FaqDivider />}
@@ -135,7 +145,7 @@ export const MoneyFaqList = ({
             question={strings(`money.how_it_works_page.${key}`, {
               percentage: apyPercent,
             })}
-            answer={strings(`money.how_it_works_page.faq_a${itemNumber}`, {
+            answer={strings(`money.how_it_works_page.${answerKey}`, {
               percentage: apyPercent,
               tokenBullets,
             })}

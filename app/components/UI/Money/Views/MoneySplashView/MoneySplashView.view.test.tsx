@@ -78,6 +78,16 @@ describeForPlatforms('MoneySplashView', () => {
     });
   });
 
+  it('uses the no-APY FAQ answer when the service has no APY', async () => {
+    const { getByText, findByText } = renderMoneySplashView({ apy: null });
+
+    fireEvent.press(getByText(strings('money.how_it_works_page.faq_q1')));
+
+    expect(
+      await findByText(strings('money.how_it_works_page.faq_a1_no_apy')),
+    ).toBeOnTheScreen();
+  });
+
   it('skips the APY fetch and the hero on a low-end offline device', async () => {
     mockGetTotalMemorySync.mockReturnValue(1 * 1024 ** 3);
     netInfoMock.__setMockNetInfo({
