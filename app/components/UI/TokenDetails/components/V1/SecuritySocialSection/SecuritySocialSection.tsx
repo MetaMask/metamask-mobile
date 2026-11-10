@@ -4,11 +4,12 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonBase,
-  ButtonBaseSize,
+  Button,
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   IconName,
 } from '@metamask/design-system-react-native';
@@ -121,17 +122,15 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
       />
 
       {/* `ButtonIconSize.Xs` is picked for its 16px icon, then widened to the
-          28px circle the row uses; the size scale has no 28px step. The
-          background is restated because `Filled` resolves to the translucent
-          `bg-muted`, while the design calls for the solid alternative surface
-          the chip below also sits on. */}
+          28px circle the row uses; the size scale has no 28px step. `Filled`
+          is the icon-button counterpart of the secondary button below. */}
       {socialLinks.map(({ testID, iconName, accessibilityLabel, url }) => (
         <ButtonIcon
           key={testID}
           iconName={iconName}
           size={ButtonIconSize.Xs}
           variant={ButtonIconVariant.Filled}
-          twClassName="h-7 w-7 bg-alternative"
+          twClassName="h-7 w-7"
           onPress={() => openUrl(url)}
           accessibilityLabel={accessibilityLabel}
           testID={testID}
@@ -139,15 +138,14 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
       ))}
 
       {contractAddress ? (
-        <ButtonBase
-          size={ButtonBaseSize.Sm}
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
           startIconName={IconName.Copy}
           // An address is data, not a label, so it keeps the regular weight
-          // rather than the medium weight ButtonBase gives button text.
+          // rather than the medium weight buttons give their text.
           textProps={{ fontWeight: FontWeight.Regular }}
-          twClassName={(pressed) =>
-            `h-7 px-2 ${pressed ? 'bg-alternative-pressed' : 'bg-alternative'}`
-          }
+          twClassName="h-7 px-2"
           onPress={handleCopyAddress}
           accessibilityLabel={strings('token_details_v1.social.copy_address', {
             address: contractAddress,
@@ -155,7 +153,7 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
           testID={SecuritySocialSectionSelectors.COPY_ADDRESS}
         >
           {formatAddress(contractAddress, 'short')}
-        </ButtonBase>
+        </Button>
       ) : null}
     </Box>
   );

@@ -37,45 +37,6 @@ export const AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMappi
     ],
   };
 
-// --- Earn Money Deposit Footer CTA Visibility A/B Test ---
-
-export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY =
-  'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton';
-
-export enum EarnMoneyDepositFooterCtaVisibilityVariant {
-  Control = 'control',
-  Treatment = 'treatment',
-}
-
-export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS: Record<
-  EarnMoneyDepositFooterCtaVisibilityVariant,
-  { showMoneyDepositFooterCta: boolean }
-> = {
-  [EarnMoneyDepositFooterCtaVisibilityVariant.Control]: {
-    showMoneyDepositFooterCta: false,
-  },
-  [EarnMoneyDepositFooterCtaVisibilityVariant.Treatment]: {
-    showMoneyDepositFooterCta: true,
-  },
-};
-
-export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
-  {
-    flagKey: EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-    validVariants: Object.values(EarnMoneyDepositFooterCtaVisibilityVariant),
-    eventNames: [
-      EVENT_NAME.TOKEN_DETAILS_OPENED,
-      EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED,
-      EVENT_NAME.MONEY_BUTTON_CLICKED,
-    ],
-    eventPropertyRequirements: {
-      // Prevent attaching active_ab_test property to unrelated Money Button Clicked events.
-      [EVENT_NAME.MONEY_BUTTON_CLICKED]: {
-        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
-      },
-    },
-  };
-
 // --- Earn Money Deposit Balance CTA Visibility A/B Test ---
 
 export const EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY =

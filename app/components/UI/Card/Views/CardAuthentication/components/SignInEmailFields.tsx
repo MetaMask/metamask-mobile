@@ -2,9 +2,11 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
+  ButtonIcon,
+  ButtonIconSize,
   FontWeight,
-  Label,
   Text,
+  TextColor,
   TextVariant,
   Icon,
   IconName,
@@ -14,6 +16,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { CardAuthenticationSelectors } from '../CardAuthentication.testIds';
+import CardFormField from '../../../components/Onboarding/CardFormField';
 
 interface SignInEmailFieldsProps {
   origin: 'only' | 'fork' | 'resume';
@@ -50,13 +53,14 @@ const SignInEmailFields = ({
       {showBack && onBack && (
         <TouchableOpacity
           onPress={onBack}
+          accessibilityRole="button"
           style={tw.style('flex-row items-center gap-2 self-start')}
         >
           <Icon name={IconName.ArrowLeft} size={IconSize.Sm} />
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="text-text-alternative"
+            color={TextColor.TextAlternative}
           >
             {strings(
               origin === 'resume'
@@ -67,8 +71,7 @@ const SignInEmailFields = ({
         </TouchableOpacity>
       )}
 
-      <Box>
-        <Label>{strings('card.card_authentication.email_label')}</Label>
+      <CardFormField label={strings('card.card_authentication.email_label')}>
         <TextField
           onChangeText={onEmailChange}
           value={email}
@@ -83,22 +86,23 @@ const SignInEmailFields = ({
             testID: CardAuthenticationSelectors.EMAIL_FIELD,
           }}
         />
-      </Box>
-      <Box>
-        <Label>{strings('card.card_authentication.password_label')}</Label>
+      </CardFormField>
+      <CardFormField label={strings('card.card_authentication.password_label')}>
         <TextField
           onChangeText={onPasswordChange}
           value={password}
           endAccessory={
-            <TouchableOpacity
+            <ButtonIcon
+              iconName={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
+              size={ButtonIconSize.Md}
               onPress={onTogglePasswordVisibility}
+              accessibilityLabel={strings(
+                isPasswordVisible
+                  ? 'choose_password.hide'
+                  : 'choose_password.show',
+              )}
               testID={CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE}
-            >
-              <Icon
-                name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
-                size={IconSize.Md}
-              />
-            </TouchableOpacity>
+            />
           }
           inputProps={{
             autoCapitalize: 'none',
@@ -129,7 +133,7 @@ const SignInEmailFields = ({
             </Text>
           </TouchableOpacity>
         )}
-      </Box>
+      </CardFormField>
     </Box>
   );
 };

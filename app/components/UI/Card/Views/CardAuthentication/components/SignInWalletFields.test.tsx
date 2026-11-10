@@ -28,7 +28,19 @@ jest.mock('../../../components/MoneyAccountRow/MoneyAccountRow', () => {
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
+  const passthrough =
+    (tag: string) =>
+    ({
+      children,
+      testID,
+      onPress,
+    }: React.PropsWithChildren<{ testID?: string; onPress?: () => void }>) =>
+      ReactActual.createElement(
+        onPress ? Pressable : View,
+        { testID: testID ?? tag, onPress },
+        children,
+      );
   return {
     Box: ({ children, testID }: React.PropsWithChildren<{ testID?: string }>) =>
       ReactActual.createElement(View, { testID }, children),
@@ -39,11 +51,24 @@ jest.mock('@metamask/design-system-react-native', () => {
       ReactActual.createElement(Text, { testID }, children),
     Label: ({ children }: React.PropsWithChildren<object>) =>
       ReactActual.createElement(Text, null, children),
+    HelpText: ({
+      children,
+      testID,
+    }: React.PropsWithChildren<{ testID?: string }>) =>
+      ReactActual.createElement(Text, { testID }, children),
+    Button: passthrough('button'),
     Icon: () => null,
     AvatarAccount: () =>
       ReactActual.createElement(View, { testID: 'sign-in-account-avatar' }),
     FontWeight: { Medium: 'Medium' },
     TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+    },
+    HelpTextSeverity: { Danger: 'Danger' },
+    ButtonVariant: { Tertiary: 'Tertiary', Primary: 'Primary' },
+    ButtonSize: { Md: 'Md', Lg: 'Lg' },
     IconName: { ArrowLeft: 'ArrowLeft' },
     IconSize: { Sm: 'Sm' },
     AvatarBaseSize: { Sm: 'Sm' },
@@ -52,6 +77,31 @@ jest.mock('@metamask/design-system-react-native', () => {
       Blockies: 'Blockies',
       Maskicon: 'Maskicon',
     },
+  };
+});
+
+jest.mock('../../../components/Onboarding/SelectField', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      value,
+      onPress,
+      testID,
+      startAccessory,
+    }: {
+      value?: string;
+      onPress?: () => void;
+      testID?: string;
+      startAccessory?: React.ReactNode;
+    }) =>
+      ReactActual.createElement(
+        Pressable,
+        { testID, onPress },
+        startAccessory,
+        ReactActual.createElement(Text, null, value ?? ''),
+      ),
   };
 });
 
