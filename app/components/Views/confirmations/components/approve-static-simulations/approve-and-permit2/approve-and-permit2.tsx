@@ -15,6 +15,7 @@ import InfoRow from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import Address from '../../UI/info-row/info-value/address';
+import InfoDate from '../../UI/info-row/info-value/info-date';
 import { Pill } from '../../UI/pill';
 import { ApproveMethod } from '../../../types/approve';
 import { EditSpendingCapButton } from '../../edit-spending-cap-button';
@@ -26,7 +27,9 @@ export const ApproveAndPermit2 = () => {
     approveMethod,
     amount,
     decimals,
+    expiration,
     isRevoke,
+    token,
     tokenBalance,
     tokenId,
     tokenStandard,
@@ -38,7 +41,9 @@ export const ApproveAndPermit2 = () => {
 
   const transactionMetadata =
     useTransactionMetadataRequest() as TransactionMeta;
-  const isERC20 = tokenStandard === TokenStandard.ERC20;
+  const tokenAddress = (token ?? transactionMetadata?.txParams?.to) as string;
+  const isPermit2 = approveMethod === ApproveMethod.PERMIT2_APPROVE;
+  const isERC20 = isPermit2 || tokenStandard === TokenStandard.ERC20;
   const isERC721 = tokenStandard === TokenStandard.ERC721;
   const shouldShow = isERC20 || isERC721;
 
@@ -56,7 +61,7 @@ export const ApproveAndPermit2 = () => {
         >
           <View style={styles.amountAndAddressContainer}>
             <Address
-              address={transactionMetadata?.txParams?.to as string}
+              address={tokenAddress}
               chainId={transactionMetadata.chainId}
             />
           </View>
@@ -97,6 +102,7 @@ export const ApproveAndPermit2 = () => {
               <PillAndAddress
                 amount={amount}
                 isERC20
+                tokenAddress={tokenAddress}
                 tokenId={tokenId}
                 transactionMetadata={transactionMetadata}
               />
@@ -105,6 +111,7 @@ export const ApproveAndPermit2 = () => {
           {!isERC20 && (
             <PillAndAddress
               isERC20={isERC20}
+              tokenAddress={tokenAddress}
               tokenId={tokenId}
               transactionMetadata={transactionMetadata}
             />
@@ -120,6 +127,11 @@ export const ApproveAndPermit2 = () => {
           chainId={transactionMetadata.chainId}
         />
       </AlertRow>
+      {isPermit2 && (
+        <InfoRow label={strings('confirm.expiration')}>
+          <InfoDate unixTimestamp={Number(expiration)} />
+        </InfoRow>
+      )}
     </>
   );
 };
@@ -127,6 +139,7 @@ export const ApproveAndPermit2 = () => {
 interface PillAndAddressProps {
   amount?: string;
   isERC20: boolean;
+  tokenAddress: string;
   tokenId?: string;
   transactionMetadata: TransactionMeta;
 }
@@ -142,6 +155,7 @@ function formatDisplayAmount(amount: string | undefined): string {
 function PillAndAddress({
   amount,
   isERC20,
+  tokenAddress,
   tokenId,
   transactionMetadata,
 }: PillAndAddressProps) {
@@ -151,10 +165,7 @@ function PillAndAddress({
         testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
         text={isERC20 ? formatDisplayAmount(amount) : `#${tokenId}`}
       />
-      <Address
-        address={transactionMetadata?.txParams?.to as string}
-        chainId={transactionMetadata.chainId}
-      />
+      <Address address={tokenAddress} chainId={transactionMetadata.chainId} />
     </>
   );
 }

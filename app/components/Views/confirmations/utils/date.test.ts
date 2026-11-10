@@ -8,6 +8,12 @@ describe('date util', () => {
       );
     });
 
+    it('returns the timestamp if it is too large to format', () => {
+      expect(formatUTCDateFromUnixTimestamp(281474976710655)).toStrictEqual(
+        281474976710655,
+      );
+    });
+
     it('returns empty string if no value is passed', () => {
       expect(
         formatUTCDateFromUnixTimestamp(undefined as unknown as number),

@@ -9,9 +9,13 @@ export const formatUTCDateFromUnixTimestamp = (unixTimestamp: number) => {
     return unixTimestamp;
   }
 
-  return DateTime.fromSeconds(unixTimestamp)
-    .toUTC()
-    .toFormat('dd LLLL yyyy, HH:mm');
+  const date = DateTime.fromSeconds(unixTimestamp);
+
+  if (!date.isValid) {
+    return unixTimestamp;
+  }
+
+  return date.toUTC().toFormat('dd LLLL yyyy, HH:mm');
 };
 
 /**
