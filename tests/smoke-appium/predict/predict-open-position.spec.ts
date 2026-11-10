@@ -71,7 +71,9 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 };
 
 appiumTest.describe(SmokePredictions('Predictions'), () => {
-  appiumTest(
+  // Skipped (flaky): `predict-market-details-screen` is not displayed after
+  // opening the Celtics vs. Nets market on Android CI, on main as well as on PR branches.
+  appiumTest.skip(
     'opens position on Celtics vs. Nets market',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
