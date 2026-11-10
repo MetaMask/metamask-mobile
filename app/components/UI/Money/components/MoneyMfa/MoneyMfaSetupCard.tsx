@@ -33,7 +33,7 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
 
   return (
     <Box
-      twClassName="mx-4 mt-4 mb-2 flex-row gap-4 rounded-2xl bg-muted p-4"
+      twClassName="mx-4 mt-2 mb-2 flex-row gap-4 rounded-2xl bg-muted p-4"
       testID={MoneyMfaTestIds.SETUP_CARD}
     >
       <Box twClassName="h-9 w-9 items-center justify-center rounded-full bg-muted">
