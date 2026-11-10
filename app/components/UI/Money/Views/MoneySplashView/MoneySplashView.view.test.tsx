@@ -107,6 +107,22 @@ describeForPlatforms('MoneySplashView', () => {
     expect(queryByTestId(MoneySplashViewTestIds.HERO)).not.toBeOnTheScreen();
   });
 
+  it('keeps the hero and skips the APY on a normal offline device', async () => {
+    netInfoMock.__setMockNetInfo({
+      type: 'none',
+      isInternetReachable: false,
+    });
+
+    const { getByTestId } = renderMoneySplashView({ apy: 0.062 });
+
+    await waitFor(() => {
+      expect(getByTestId(MoneySplashViewTestIds.BODY)).toHaveTextContent(
+        strings('money.splash.body_no_apy'),
+      );
+    });
+    expect(getByTestId(MoneySplashViewTestIds.HERO)).toBeOnTheScreen();
+  });
+
   it('marks the splash as seen on mount', async () => {
     const { store } = renderMoneySplashView();
 
