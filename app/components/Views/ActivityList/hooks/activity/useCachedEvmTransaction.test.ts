@@ -60,4 +60,33 @@ describe('useCachedEvmTransaction', () => {
     });
     expect(result.current).toBe(transaction);
   });
+
+  it('skips a cached row that has no v5 tx instead of throwing', () => {
+    mockGetQueriesData.mockReturnValue([
+      [
+        ['accounts', 'transactions', 'v5MultiAccount'],
+        {
+          pages: [
+            {
+              data: [
+                { hash: '0xabc' },
+                { tx: { chainId: 'eip155:1', id: '0xdef' } },
+              ],
+            },
+          ],
+        } as unknown as InfiniteData<V5MultiAccountTransactionsResponse>,
+      ],
+    ]);
+
+    const { result } = renderHook(() =>
+      useCachedEvmTransaction({
+        chainId: 'eip155:1',
+        txHash: '0xdef',
+      }),
+    );
+
+    expect(result.current).toEqual({
+      tx: { chainId: 'eip155:1', id: '0xdef' },
+    });
+  });
 });

@@ -10,6 +10,7 @@ import {
 } from '../tx-sentinel-networks-map';
 import { USDC_MAINNET } from '../../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const MUSD_MONAD = '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
 const MUSD_MONAD_HEX = 'aca92e438df0b2401ff60da7e4337b687a2435da';
@@ -1075,72 +1076,48 @@ async function mockAccountsApiTransactions(
   mockServer: Mockttp,
   amountBaseUnits: string,
 ) {
-  const handler = () => ({
-    statusCode: 200,
-    json: {
-      unprocessedNetworks: [],
-      pageInfo: {
-        count: 1,
-        hasNextPage: false,
-        endCursor: '',
-      },
-      data: [
-        {
-          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          timestamp: new Date().toISOString(),
-          chainId: 143,
-          blockNumber: 1234568,
-          blockHash:
-            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-          gas: 21000,
-          gasUsed: 21000,
-          gasPrice: '1000000000',
-          effectiveGasPrice: '1000000000',
-          nonce: 1,
-          cumulativeGasUsed: 21000,
-          value: '0',
-          to: '0x0000000000000000000000000000000000000000',
-          from: DEFAULT_FIXTURE_ACCOUNT,
-          isError: false,
-          transactionType: 'withdraw',
-          transactionCategory: 'money',
-          valueTransfers: [
-            {
-              from: DEFAULT_FIXTURE_ACCOUNT,
-              to: DEFAULT_FIXTURE_ACCOUNT,
-              amount: amountBaseUnits,
-              decimal: 6,
-              contractAddress: MUSD_MONAD,
-              symbol: 'mUSD',
-              name: 'mUSD',
-              transferType: 'ERC20',
-            },
-          ],
-        },
-      ],
+  await mockAccountsApiTransactionRoutes(mockServer, {
+    unprocessedNetworks: [],
+    pageInfo: {
+      count: 1,
+      hasNextPage: false,
+      endCursor: '',
     },
+    data: [
+      {
+        hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        timestamp: new Date().toISOString(),
+        chainId: 143,
+        blockNumber: 1234568,
+        blockHash:
+          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 1,
+        cumulativeGasUsed: 21000,
+        value: '0',
+        to: '0x0000000000000000000000000000000000000000',
+        from: DEFAULT_FIXTURE_ACCOUNT,
+        isError: false,
+        transactionType: 'withdraw',
+        transactionCategory: 'money',
+        valueTransfers: [
+          {
+            from: DEFAULT_FIXTURE_ACCOUNT,
+            to: DEFAULT_FIXTURE_ACCOUNT,
+            amount: amountBaseUnits,
+            decimal: 6,
+            contractAddress: MUSD_MONAD,
+            symbol: 'mUSD',
+            name: 'mUSD',
+            transferType: 'ERC20',
+          },
+        ],
+      },
+    ],
   });
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
 }
 
 async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {

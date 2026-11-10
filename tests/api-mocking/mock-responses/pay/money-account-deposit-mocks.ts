@@ -11,6 +11,7 @@ import {
 import { USDC_MAINNET } from '../../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import { toWeiHex } from '../../../framework/fixtures/mmpay-token-holdings-registry';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const MAINNET_SPOT_PRICES = {
   'eip155:1/slip44:60': {
@@ -1102,72 +1103,48 @@ async function mockPriceApis(mockServer: Mockttp) {
 }
 
 async function mockAccountsApiTransactions(mockServer: Mockttp) {
-  const handler = () => ({
-    statusCode: 200,
-    json: {
-      unprocessedNetworks: [],
-      pageInfo: {
-        count: 1,
-        hasNextPage: false,
-        endCursor: '',
-      },
-      data: [
-        {
-          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          timestamp: new Date().toISOString(),
-          chainId: 143,
-          blockNumber: 1234568,
-          blockHash:
-            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-          gas: 21000,
-          gasUsed: 21000,
-          gasPrice: '1000000000',
-          effectiveGasPrice: '1000000000',
-          nonce: 1,
-          cumulativeGasUsed: 21000,
-          value: '0',
-          to: '0x0000000000000000000000000000000000000000',
-          from: DEFAULT_FIXTURE_ACCOUNT,
-          isError: false,
-          transactionType: 'deposit',
-          transactionCategory: 'money',
-          valueTransfers: [
-            {
-              from: DEFAULT_FIXTURE_ACCOUNT,
-              to: DEFAULT_FIXTURE_ACCOUNT,
-              amount: '50000000',
-              decimal: 6,
-              contractAddress: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-              symbol: 'mUSD',
-              name: 'mUSD',
-              transferType: 'ERC20',
-            },
-          ],
-        },
-      ],
+  await mockAccountsApiTransactionRoutes(mockServer, {
+    unprocessedNetworks: [],
+    pageInfo: {
+      count: 1,
+      hasNextPage: false,
+      endCursor: '',
     },
+    data: [
+      {
+        hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        timestamp: new Date().toISOString(),
+        chainId: 143,
+        blockNumber: 1234568,
+        blockHash:
+          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 1,
+        cumulativeGasUsed: 21000,
+        value: '0',
+        to: '0x0000000000000000000000000000000000000000',
+        from: DEFAULT_FIXTURE_ACCOUNT,
+        isError: false,
+        transactionType: 'deposit',
+        transactionCategory: 'money',
+        valueTransfers: [
+          {
+            from: DEFAULT_FIXTURE_ACCOUNT,
+            to: DEFAULT_FIXTURE_ACCOUNT,
+            amount: '50000000',
+            decimal: 6,
+            contractAddress: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+            symbol: 'mUSD',
+            name: 'mUSD',
+            transferType: 'ERC20',
+          },
+        ],
+      },
+    ],
   });
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
 }
 
 async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {

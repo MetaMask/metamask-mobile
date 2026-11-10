@@ -34,7 +34,7 @@ export function useCachedEvmTransaction({
         .flatMap((page) => page.data)
         .find(
           (item) =>
-            item.tx.chainId === chainId &&
+            item.tx?.chainId === chainId &&
             item.tx.id.toLowerCase() === normalizedHash,
         );
 
