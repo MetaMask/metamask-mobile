@@ -1,7 +1,7 @@
 import type { Mockttp } from 'mockttp';
 import {
   buildRelayQuoteMock,
-  mockRelayQuoteWith,
+  mockRelayQuoteWithExecute,
   mockRelayStatusSuccess,
 } from './relay-mocks';
 import {
@@ -119,7 +119,9 @@ export async function MONEY_ACCOUNT_WITHDRAW_MOCKS(
     recipient,
   });
 
-  await mockRelayQuoteWith(mockServer, quote);
+  // Post-quote withdrawals are quoted and signed by the Money account, which
+  // cannot sign a plain transaction, so it gets an execute quote.
+  await mockRelayQuoteWithExecute(mockServer, quote, E2E_MONEY_ACCOUNT);
   await mockRelayStatusSuccess(mockServer);
 }
 
