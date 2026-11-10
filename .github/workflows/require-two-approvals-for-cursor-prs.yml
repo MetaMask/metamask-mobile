@@ -1,13 +1,33 @@
 name: Require two approvals for Cursor PRs
 
 on:
-  workflow_call:
+  # zizmor: ignore[dangerous-triggers] reads trusted workflow code and PR metadata only; never checks out or executes PR code
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
+    branches:
+      - main
+  pull_request_review:
+    types: [submitted, dismissed]
+  merge_group:
+    types: [checks_requested]
 
 permissions: {}
+
+concurrency:
+  group: >-
+    cursor-pr-approvals-${{
+      github.event.pull_request.number ||
+      github.event.merge_group.head_sha ||
+      github.run_id
+    }}
+  cancel-in-progress: true
 
 jobs:
   require-two-approvals:
     name: Require two approvals for Cursor PRs
+    if: >-
+      github.event_name == 'merge_group' ||
+      github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

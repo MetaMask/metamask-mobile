@@ -1,80 +1,25 @@
 name: Block stable-main to main PRs
 
 on:
-  # zizmor: ignore[dangerous-triggers] calls trusted workflow code and reads PR metadata only; never checks out or executes PR code
-  pull_request_target:
-    types:
-      [
-        opened,
-        reopened,
-        synchronize,
-        edited,
-        ready_for_review,
-        converted_to_draft,
-      ]
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
     branches:
       - main
-  pull_request_review:
-    types: [submitted, dismissed]
   merge_group:
 
-permissions: {}
-
-concurrency:
-  group: >-
-    pr-policy-${{
-      github.event.pull_request.number ||
-      github.event.merge_group.head_sha ||
-      github.run_id
-    }}
-  cancel-in-progress: true
-
 jobs:
-  cursor-approval-policy:
-    name: Cursor approval policy
-    if: >-
-      github.event_name != 'merge_group' &&
-      github.event.pull_request.base.ref == 'main' &&
-      github.event.pull_request.user.login == 'cursor[bot]'
-    permissions:
-      pull-requests: read
-    uses: ./.github/workflows/require-two-approvals-for-cursor-prs.yml # zizmor: ignore[self-repository] actionlint 1.7.1 rejects $/
-
   check-branch:
     name: Block stable-main-X.Y.Z to main
-    needs: cursor-approval-policy
-    # Keep this job name stable: the default-branch ruleset requires this status.
-    if: >-
-      always() &&
-      (
-        github.event_name == 'merge_group' ||
-        (
-          github.event.pull_request.base.ref == 'main' &&
-          (
-            startsWith(github.event.pull_request.head.ref, 'stable-main-') ||
-            github.event.pull_request.user.login == 'cursor[bot]'
-          )
-        )
-      )
+    # Pre-filter: only spin up runner for branches starting with 'stable-main-'
+    # This saves runner time for most PRs while still doing exact regex check below
+    if: startsWith(github.head_ref, 'stable-main-')
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - name: Enforce Cursor approval policy
-        if: >-
-          github.event_name != 'merge_group' &&
-          github.event.pull_request.user.login == 'cursor[bot]'
-        env:
-          APPROVAL_POLICY_RESULT: ${{ needs.cursor-approval-policy.result }}
-        run: |
-          if [[ "$APPROVAL_POLICY_RESULT" != "success" ]]; then
-            echo "::error::Cursor approval policy finished with result: $APPROVAL_POLICY_RESULT"
-            exit 1
-          fi
-
       - name: Check exact branch pattern
         env:
-          SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
-          TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+          SOURCE_BRANCH: ${{ github.head_ref }}
+          TARGET_BRANCH: ${{ github.base_ref }}
         run: |
           # Check if source branch matches exact pattern: stable-main-X.Y.Z
           if [[ "$TARGET_BRANCH" == "main" && "$SOURCE_BRANCH" =~ ^stable-main-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
