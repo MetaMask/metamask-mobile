@@ -1,16 +1,23 @@
+import type { QueryClient } from '@tanstack/react-query';
 import type { Position, PositionsResponse } from '@metamask/social-controllers';
-import Engine from '../../../../../core/Engine';
+import Engine from '../../core/Engine';
+import {
+  TRADER_PROFILE_PREFETCH_STALE_TIME_MS,
+  buildPaginatedClosedPositionsQueryKey,
+  buildPaginatedOpenPositionsQueryKey,
+} from './traderProfileQueries';
 import {
   fetchTraderPositionsPage,
   flattenTraderPositionPages,
   getNextTraderPositionsPageParam,
   getTraderPositionKey,
   keepFirstTraderPositionsPage,
+  prefetchPaginatedTraderPositions,
   replaceFirstTraderPositionsPage,
   type TraderPositionsInfiniteData,
 } from './traderPositionsPagination';
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../core/Engine', () => ({
   __esModule: true,
   default: { controllerMessenger: { call: jest.fn() } },
 }));
@@ -71,6 +78,61 @@ describe('traderPositionsPagination', () => {
         'SocialService:fetchClosedPositions',
         { addressOrId: 'trader-1', sort: 'latest', limit: 100, page: 3 },
       );
+    });
+  });
+
+  describe('prefetchPaginatedTraderPositions', () => {
+    it('warms page 1 of both paginated keys', async () => {
+      const infiniteQuery = jest.fn().mockResolvedValue(undefined);
+      const queryClient = { infiniteQuery } as unknown as QueryClient;
+
+      await prefetchPaginatedTraderPositions(queryClient, 'trader-1');
+
+      expect(infiniteQuery).toHaveBeenCalledTimes(2);
+      expect(infiniteQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: buildPaginatedOpenPositionsQueryKey('trader-1'),
+          initialPageParam: 1,
+          getNextPageParam: getNextTraderPositionsPageParam,
+          pages: 1,
+          staleTime: TRADER_PROFILE_PREFETCH_STALE_TIME_MS,
+        }),
+      );
+      expect(infiniteQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: buildPaginatedClosedPositionsQueryKey('trader-1'),
+          pages: 1,
+        }),
+      );
+    });
+
+    it('fetches each status through its own action', async () => {
+      const infiniteQuery = jest.fn().mockResolvedValue(undefined);
+      const queryClient = { infiniteQuery } as unknown as QueryClient;
+      mockCall.mockResolvedValue(makePage([]));
+
+      await prefetchPaginatedTraderPositions(queryClient, 'trader-1');
+      const [[openOptions], [closedOptions]] = infiniteQuery.mock.calls;
+      await openOptions.queryFn({ pageParam: 1 });
+      await closedOptions.queryFn({ pageParam: 1 });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'SocialService:fetchOpenPositions',
+        { addressOrId: 'trader-1', limit: 100, page: 1 },
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'SocialService:fetchClosedPositions',
+        { addressOrId: 'trader-1', sort: 'latest', limit: 100, page: 1 },
+      );
+    });
+
+    it('resolves when a prefetch fails', async () => {
+      const infiniteQuery = jest.fn().mockRejectedValue(new Error('boom'));
+      const queryClient = { infiniteQuery } as unknown as QueryClient;
+
+      await expect(
+        prefetchPaginatedTraderPositions(queryClient, 'trader-1'),
+      ).resolves.toBeUndefined();
     });
   });
 

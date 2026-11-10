@@ -1,11 +1,16 @@
-import type { InfiniteData } from '@tanstack/react-query';
+import type { InfiniteData, QueryClient } from '@tanstack/react-query';
 import type {
   FetchPositionsOptions,
   Position,
   PositionsResponse,
 } from '@metamask/social-controllers';
-import Engine from '../../../../../core/Engine';
-import { TRADER_POSITIONS_FETCH_LIMIT } from '../../../../../util/social/traderProfileQueries';
+import Engine from '../../core/Engine';
+import {
+  TRADER_POSITIONS_FETCH_LIMIT,
+  TRADER_PROFILE_PREFETCH_STALE_TIME_MS,
+  buildPaginatedClosedPositionsQueryKey,
+  buildPaginatedOpenPositionsQueryKey,
+} from './traderProfileQueries';
 
 export type TraderPositionsStatus = 'open' | 'closed';
 
@@ -55,6 +60,38 @@ export const getNextTraderPositionsPageParam = (
   lastPage: PositionsResponse,
 ): number | undefined =>
   lastPage.pagination.hasMore ? lastPage.pagination.nextPage : undefined;
+
+/**
+ * Warms page 1 of a trader's paginated open and closed positions.
+ * `pages: 1` keeps a background refresh from refetching every page the user
+ * already scrolled through; the cached entry restarts from the top.
+ */
+export const prefetchPaginatedTraderPositions = async (
+  queryClient: QueryClient,
+  traderId: string,
+): Promise<void> => {
+  const statuses: { status: TraderPositionsStatus; queryKey: unknown[] }[] = [
+    { status: 'open', queryKey: buildPaginatedOpenPositionsQueryKey(traderId) },
+    {
+      status: 'closed',
+      queryKey: buildPaginatedClosedPositionsQueryKey(traderId),
+    },
+  ];
+
+  await Promise.allSettled(
+    statuses.map(({ status, queryKey }) =>
+      queryClient.infiniteQuery({
+        queryKey,
+        queryFn: ({ pageParam }: { pageParam: number }) =>
+          fetchTraderPositionsPage(status, traderId, pageParam),
+        initialPageParam: 1,
+        getNextPageParam: getNextTraderPositionsPageParam,
+        pages: 1,
+        staleTime: TRADER_PROFILE_PREFETCH_STALE_TIME_MS,
+      }),
+    ),
+  );
+};
 
 /** Same identity rule the positions list uses to key rows. */
 export const getTraderPositionKey = (position: Position): string =>

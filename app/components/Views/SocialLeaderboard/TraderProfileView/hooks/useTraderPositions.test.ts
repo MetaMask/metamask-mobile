@@ -758,6 +758,7 @@ describe('useTraderPositions', () => {
       });
 
       expect(fetchNextPage).toHaveBeenCalledTimes(1);
+      expect(fetchNextPage).toHaveBeenCalledWith({ cancelRefetch: false });
     });
 
     it('does not load more when no page is left', () => {

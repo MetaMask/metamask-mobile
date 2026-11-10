@@ -28,7 +28,7 @@ import {
   replaceFirstTraderPositionsPage,
   type TraderPositionsInfiniteData,
   type TraderPositionsStatus,
-} from './traderPositionsPagination';
+} from '../../../../../util/social/traderPositionsPagination';
 
 const EMPTY_POSITIONS: Position[] = [];
 const TRADER_POSITIONS_SOURCE = 'useTraderPositions';
@@ -205,18 +205,20 @@ export const useTraderPositions = (
     refetch: refetchClosedPaged,
   } = closedQuery;
 
+  // Scroll-end-drag and momentum-end can both fire before a re-render, and a
+  // refresh may already be in flight; reuse that fetch instead of cancelling it.
   const loadMoreOpen = useCallback(() => {
     if (!paginated || !hasNextOpenPage || isFetchingNextOpenPage) {
       return;
     }
-    fetchNextOpenPage().catch(() => undefined);
+    fetchNextOpenPage({ cancelRefetch: false }).catch(() => undefined);
   }, [paginated, hasNextOpenPage, isFetchingNextOpenPage, fetchNextOpenPage]);
 
   const loadMoreClosed = useCallback(() => {
     if (!paginated || !hasNextClosedPage || isFetchingNextClosedPage) {
       return;
     }
-    fetchNextClosedPage().catch(() => undefined);
+    fetchNextClosedPage({ cancelRefetch: false }).catch(() => undefined);
   }, [
     paginated,
     hasNextClosedPage,

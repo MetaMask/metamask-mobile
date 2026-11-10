@@ -79,17 +79,32 @@ export const buildPaginatedClosedPositionsQueryKey = (
   TRADER_POSITIONS_INFINITE_QUERY_KIND,
 ];
 
-export const getTraderProfilePrefetchQueryKeys = (traderId: string) => [
-  buildTraderProfileQueryKey(traderId),
-  buildOpenPositionsQueryKey(traderId),
-  buildClosedPositionsQueryKey(traderId),
-];
+export interface TraderProfilePrefetchOptions {
+  /**
+   * Also warm the single-page positions keys. Defaults to `true`. SocialV1
+   * reads the paginated keys instead, so callers warm those separately.
+   */
+  includePositions?: boolean;
+}
+
+export const getTraderProfilePrefetchQueryKeys = (
+  traderId: string,
+  { includePositions = true }: TraderProfilePrefetchOptions = {},
+) =>
+  includePositions
+    ? [
+        buildTraderProfileQueryKey(traderId),
+        buildOpenPositionsQueryKey(traderId),
+        buildClosedPositionsQueryKey(traderId),
+      ]
+    : [buildTraderProfileQueryKey(traderId)];
 
 export const prefetchTraderProfileData = async (
   queryClient: QueryClient,
   traderId: string,
+  options?: TraderProfilePrefetchOptions,
 ): Promise<void> => {
-  const keys = getTraderProfilePrefetchQueryKeys(traderId);
+  const keys = getTraderProfilePrefetchQueryKeys(traderId, options);
 
   await Promise.allSettled(
     keys.map((queryKey) =>

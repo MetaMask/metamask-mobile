@@ -90,6 +90,14 @@ describe('traderProfileQueries', () => {
         buildClosedPositionsQueryKey('trader-1'),
       ]);
     });
+
+    it('returns only the profile key when positions are excluded', () => {
+      expect(
+        getTraderProfilePrefetchQueryKeys('trader-1', {
+          includePositions: false,
+        }),
+      ).toEqual([buildTraderProfileQueryKey('trader-1')]);
+    });
   });
 
   describe('prefetchTraderProfileData', () => {
@@ -110,6 +118,21 @@ describe('traderProfileQueries', () => {
       });
       expect(prefetchQuery).toHaveBeenCalledWith({
         queryKey: buildClosedPositionsQueryKey('trader-1'),
+        staleTime: TRADER_PROFILE_PREFETCH_STALE_TIME_MS,
+      });
+    });
+
+    it('prefetches only the profile key when positions are excluded', async () => {
+      const prefetchQuery = jest.fn().mockResolvedValue(undefined);
+      const queryClient = { prefetchQuery } as unknown as QueryClient;
+
+      await prefetchTraderProfileData(queryClient, 'trader-1', {
+        includePositions: false,
+      });
+
+      expect(prefetchQuery).toHaveBeenCalledTimes(1);
+      expect(prefetchQuery).toHaveBeenCalledWith({
+        queryKey: buildTraderProfileQueryKey('trader-1'),
         staleTime: TRADER_PROFILE_PREFETCH_STALE_TIME_MS,
       });
     });
