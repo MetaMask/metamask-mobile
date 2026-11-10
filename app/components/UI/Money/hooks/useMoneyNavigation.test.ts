@@ -79,6 +79,28 @@ describe('useMoneyNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
     });
 
+    it('skips the onboarding redirect when the caller already showed an intro', () => {
+      setupSelectorMocks({
+        hasSeenOnboarding: false,
+        isOnboardingEnabled: true,
+      });
+
+      const { result } = renderHook(() => useMoneyNavigation());
+
+      act(() =>
+        result.current.navigateToMoneyHome({ skipOnboardingRedirect: true }),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+    });
+
     it('forwards analytics context through Money onboarding', () => {
       const { result } = renderHook(() => useMoneyNavigation());
 

@@ -145,6 +145,24 @@ describeForPlatforms('MoneySplashView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not chain into Rive onboarding when deposit setup fails', async () => {
+    const { getByTestId, findByTestId } = renderMoneySplashView({
+      hasVaultConfig: false,
+      params: {
+        postOnboardingRedirect: {
+          type: 'deposit',
+          preferredPaymentToken: PREFERRED_PAYMENT_TOKEN,
+        },
+      },
+    });
+
+    fireEvent.press(getByTestId(MoneySplashViewTestIds.CTA));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).toBeOnTheScreen();
+  });
+
   it('marks the splash as seen on mount', async () => {
     const { store } = renderMoneySplashView();
 

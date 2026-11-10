@@ -130,7 +130,10 @@ const MoneySplashView = () => {
   useMountEffect(trackScreenViewed);
 
   const goToMoneyHome = useCallback(() => {
-    navigateToMoneyHome(analyticsContext ? { analyticsContext } : undefined);
+    navigateToMoneyHome({
+      skipOnboardingRedirect: true,
+      ...(analyticsContext ? { analyticsContext } : {}),
+    });
   }, [analyticsContext, navigateToMoneyHome]);
 
   const handleStartEarning = useCallback(() => {
