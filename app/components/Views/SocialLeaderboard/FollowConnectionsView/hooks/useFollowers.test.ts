@@ -8,11 +8,6 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../../util/address', () => ({
-  formatAddress: (address: string) =>
-    `${address.slice(0, 6)}...${address.slice(-4)}`,
-}));
-
 jest.mock('@metamask/react-data-query');
 
 jest.mock('@sentry/react-native', () => ({
@@ -141,14 +136,12 @@ describe('useFollowers', () => {
         {
           id: 'follower-1',
           username: 'Moon Rabbit',
-          handle: '0x1111...1111',
           address: '0x1111111111111111111111111111111111111111',
           avatarUri: 'https://example.com/moon.png',
         },
         {
           id: 'follower-2',
           username: 'Hippo Maxi',
-          handle: '0x2222...2222',
           address: '0x2222222222222222222222222222222222222222',
           avatarUri: undefined,
         },

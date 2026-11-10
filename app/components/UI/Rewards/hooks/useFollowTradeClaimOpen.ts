@@ -8,14 +8,13 @@ import type { CommissionsPageDto } from '../../../../core/Engine/controllers/rew
 import { FOLLOW_TRADE_COMMISSIONS_ORIGIN } from './useCommissions';
 
 /**
- * Whether `SOCIAL_FOLLOW_TRADE.claim_open` is true for this session.
- *
- * Reads the commissions first page, which carries both mechanisms. Until that
- * page arrives, follow-trade stays off. Cashback does not use this flag.
+ * Claim routes from this session's commissions page. Until that page
+ * arrives, both stay closed. Cashback is not one of these flags.
  */
-export function useFollowTradeClaimOpen(
-  profileId: string | undefined,
-): boolean {
+export function useClaimMechanisms(profileId: string | undefined): {
+  followTradeClaimOpen: boolean;
+  revShareClaimOpen: boolean;
+} {
   const dispatch = useDispatch();
   const mechanisms = useSelector((state: RootState) =>
     selectCommissionMechanisms(state, profileId),
@@ -51,5 +50,15 @@ export function useFollowTradeClaimOpen(
     };
   }, [dispatch, mechanisms, profileId]);
 
-  return mechanisms?.SOCIAL_FOLLOW_TRADE.claim_open === true;
+  return {
+    followTradeClaimOpen: mechanisms?.SOCIAL_FOLLOW_TRADE?.claim_open === true,
+    revShareClaimOpen: mechanisms?.REFERRAL_REV_SHARE?.claim_open === true,
+  };
+}
+
+/** Whether `SOCIAL_FOLLOW_TRADE.claim_open` is true for this session. */
+export function useFollowTradeClaimOpen(
+  profileId: string | undefined,
+): boolean {
+  return useClaimMechanisms(profileId).followTradeClaimOpen;
 }

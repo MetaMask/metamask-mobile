@@ -77,7 +77,7 @@ const VbaAccountCreateErrorAdapter = () => {
     retryStartedRef.current = true;
 
     if (sourceCurrency) {
-      openCompletedVbaAccount(navigation, sourceCurrency);
+      openCompletedVbaAccount(navigation);
       return;
     }
     await resumeOnboarding();

@@ -123,6 +123,22 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   defiControllerV2: {
     enabled: false,
   },
+  // Prod serves BRL on to every user at a version the E2E build meets. Keep
+  // the registry at the prod values and keep new VBA signups closed in smoke.
+  moneyMovementNeobankBrl: {
+    enabled: false,
+    minimumVersion: '8.19.0',
+    currency: 'BRL',
+    regions: ['BR'],
+    layout: 'Pix',
+  },
+  moneyMovementNeobankUsd: {
+    enabled: false,
+    minimumVersion: '8.19.0',
+    currency: 'USD',
+    regions: ['US'],
+    layout: 'UsBank',
+  },
 };
 
 /**

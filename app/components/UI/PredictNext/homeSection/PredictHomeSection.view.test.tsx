@@ -489,28 +489,21 @@ describe('PredictHomeSection', () => {
       expect(sliceOf(view)).toEqual({ status: 'ready', valueFiat: 72.5 });
     });
 
-    it('renders nothing, and never reads Polymarket positions, without open Positions', async () => {
+    it('shows discovery instead of the rows, and never reads Polymarket positions, without open Positions', async () => {
       configurePredictNextFeeds({ positions: [] });
 
       const view = renderSection({ predictConfig: KALSHI_ONLY });
-      await waitFor(() => expect(totalOf(view).status).toBe('ready'));
 
-      expect(view.queryByText('Predictions')).not.toBeOnTheScreen();
+      expect(
+        await view.findByTestId(PredictHomeSectionTestIds.DISCOVERY),
+      ).toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictHomeSectionTestIds.POSITIONS),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeSectionTestIds.UNREALIZED_PNL),
       ).not.toBeOnTheScreen();
       expect(getLegacyPositions).not.toHaveBeenCalled();
-    });
-
-    it('renders nothing when the Positions read fails', async () => {
-      configurePredictNextFeeds({ positions: new Error('Positions failed') });
-
-      const view = renderSection({ predictConfig: KALSHI_ONLY });
-      await waitFor(() => expect(totalOf(view).status).toBe('ready'));
-
-      expect(
-        view.queryByTestId(PredictHomeSectionTestIds.POSITIONS),
-      ).not.toBeOnTheScreen();
     });
 
     it('hides the PnL row and masks amounts in privacy mode', async () => {

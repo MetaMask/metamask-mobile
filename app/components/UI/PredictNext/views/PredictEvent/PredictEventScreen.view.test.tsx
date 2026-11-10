@@ -327,29 +327,60 @@ describe('PredictEventScreen', () => {
     expect(view.getByTestId(PredictEventScreenTestIds.TITLE)).toHaveTextContent(
       routeParams.titleSnapshot,
     );
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
+    ).not.toBeOnTheScreen();
   });
 
-  it('renders all standard Event header fields from the immutable Event', async () => {
-    resolveEvent();
+  it('renders the standard Event header as one bar: back, image, title over category', async () => {
+    resolveEvent(createEvent({ category: 'Politics' }));
     const view = renderPredictEventScreen(routeParams);
-
-    await waitFor(() =>
-      expect(
-        view.queryByTestId(PredictEventScreenTestIds.LOADING),
-      ).not.toBeOnTheScreen(),
-    );
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,
     );
 
-    expect(view.getByTestId(PredictEventScreenTestIds.TITLE)).toHaveTextContent(
-      'Canonical Event title',
-    );
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.SUBTITLE),
-    ).toHaveTextContent('Canonical Event subtitle');
-    expect(view.getByTestId(PredictEventScreenTestIds.IMAGE)).toBeOnTheScreen();
+      within(header).getByTestId(PredictEventScreenTestIds.BACK),
+    ).toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.IMAGE),
+    ).toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.TITLE),
+    ).toHaveTextContent('Canonical Event title');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.CATEGORY),
+    ).toHaveTextContent('Politics');
+    expect(view.getAllByTestId(PredictEventScreenTestIds.TITLE)).toHaveLength(
+      1,
+    );
+    // The subtitle row under the bar is gone.
+    expect(view.queryByText('Canonical Event subtitle')).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.LOADING),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows a long standard Event title in full and lets the bar grow', async () => {
+    const longTitle =
+      'Will the winner of the next United States presidential election be ' +
+      'inaugurated before January 20, 2029, after a contested certification?';
+    expect(longTitle.length).toBeGreaterThan(130);
+    resolveEvent(createEvent({ title: longTitle, category: 'Politics' }));
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
+    );
+    const title = within(header).getByTestId(PredictEventScreenTestIds.TITLE);
+
+    expect(title).toHaveTextContent(longTitle);
+    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.ellipsizeMode).toBeUndefined();
+    const headerStyle = StyleSheet.flatten(header.props.style);
+    expect(headerStyle.height).not.toBe(56);
+    expect(headerStyle.minHeight).toBe(56);
   });
 
   describe('standard Event top Markets chart', () => {
@@ -1174,6 +1205,20 @@ describe('PredictEventScreen', () => {
     expect(
       view.queryByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
     ).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictEventScreenTestIds.TITLE)).toHaveTextContent(
+      'Lakers vs Celtics',
+    );
+    expect(view.getByTestId(PredictEventScreenTestIds.TITLE)).toHaveProp(
+      'numberOfLines',
+      1,
+    );
+    expect(view.getByTestId(PredictEventScreenTestIds.BACK)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.IMAGE),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.CATEGORY),
+    ).not.toBeOnTheScreen();
     expect(
       within(header).getByTestId(
         PredictEventScreenTestIds.teamAbbreviation('home'),
@@ -1203,17 +1248,32 @@ describe('PredictEventScreen', () => {
     const dodgersCard = within(
       view.getByTestId(MarketStandardCardTestIds.card('dodgers')),
     );
-    expect(dodgersCard.getByText('$3.2M Vol.')).toBeOnTheScreen();
-    expect(dodgersCard.getByText('38%')).toBeOnTheScreen();
-    expect(dodgersCard.getByText('Yes · 38¢')).toBeOnTheScreen();
-    expect(dodgersCard.getByText('No · 62¢')).toBeOnTheScreen();
+    expect(dodgersCard.getByText('Yes')).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('dodgers')),
+      ).getByText('38¢'),
+    ).toBeOnTheScreen();
+    expect(dodgersCard.getByText('No')).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.noButton('dodgers')),
+      ).getByText('62¢'),
+    ).toBeOnTheScreen();
 
     const fieldCard = within(
       view.getByTestId(MarketStandardCardTestIds.card('field')),
     );
-    expect(fieldCard.queryByText(/ Vol\.$/)).not.toBeOnTheScreen();
-    expect(fieldCard.getByText('0%')).toBeOnTheScreen();
-    expect(fieldCard.getByText('Yes · 0¢')).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('field')),
+      ).getByText('0¢'),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.noButton('field')),
+      ).getByText('—'),
+    ).toBeOnTheScreen();
     expect(fieldCard.getByText('No')).toBeOnTheScreen();
   });
 
@@ -1729,9 +1789,11 @@ describe('PredictEventScreen', () => {
     resolveEvent(createEvent({ rules: 'Event-only rule.' }));
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON);
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
+    );
     fireEvent.press(
-      view.getByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON),
+      within(header).getByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON),
     );
 
     expect(
@@ -2211,17 +2273,52 @@ describe('PredictEventScreen', () => {
     ).toHaveTextContent('Q4 · 12:22');
   });
 
-  it('omits unavailable optional standard Event fields', async () => {
-    resolveEvent(createEvent({ subtitle: undefined, imageUrl: undefined }));
+  it('lays out the standard Event header without an image', async () => {
+    resolveEvent(createEvent({ imageUrl: undefined, category: 'Politics' }));
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
+    );
+
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.IMAGE),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.TITLE),
+    ).toHaveTextContent('Canonical Event title');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.CATEGORY),
+    ).toHaveTextContent('Politics');
+  });
+
+  it('hides the category line when the standard Event has none', async () => {
+    resolveEvent(createEvent({ category: undefined }));
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
+    );
+
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.CATEGORY),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.TITLE),
+    ).toHaveTextContent('Canonical Event title');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.IMAGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the category line when the standard Event category is empty', async () => {
+    resolveEvent(createEvent({ category: '' }));
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
 
     expect(
-      view.queryByTestId(PredictEventScreenTestIds.SUBTITLE),
-    ).not.toBeOnTheScreen();
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.IMAGE),
+      view.queryByTestId(PredictEventScreenTestIds.CATEGORY),
     ).not.toBeOnTheScreen();
   });
 
@@ -2281,6 +2378,9 @@ describe('PredictEventScreen', () => {
     ).toHaveTextContent('Unable to load this event.');
     expect(error).not.toHaveTextContent('unsafe transport detail');
     expect(
+      view.queryByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
+    ).not.toBeOnTheScreen();
+    expect(
       view.queryByTestId(PredictEventScreenTestIds.LOADING),
     ).not.toBeOnTheScreen();
   });
@@ -2326,9 +2426,11 @@ describe('PredictEventScreen', () => {
   it('returns Home when the Event has no originating screen', async () => {
     resolveEvent();
     const view = renderPredictEventScreen(routeParams);
-    await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
+    );
 
-    fireEvent.press(view.getByTestId(PredictEventScreenTestIds.BACK));
+    fireEvent.press(within(header).getByTestId(PredictEventScreenTestIds.BACK));
 
     await waitFor(() =>
       expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen(),
