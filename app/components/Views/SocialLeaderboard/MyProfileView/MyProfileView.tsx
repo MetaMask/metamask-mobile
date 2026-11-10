@@ -13,6 +13,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SectionDivider,
   Spinner,
   TabEmptyState,
   Text,
@@ -139,6 +140,8 @@ type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
+const NO_POSITIONS: Position[] = [];
+const NO_POSTS: SocialV1FeedPost[] = [];
 
 const linkedAddressesMatch = (
   traderAddress: string | null | undefined,
@@ -359,6 +362,12 @@ const MyProfileView: React.FC = () => {
     ? undefined
     : liveProfile.profile?.profile.profileId;
   const { isBlocked, block, unblock } = useTraderBlock(blockProfileId);
+  const isPrivate = displayProfile?.shareTradingActivity === false;
+  // Another trader's privacy is unknown until Social API answers, so nothing
+  // they may keep private is fetched or followable before then.
+  const isPrivacyPending = !isOwner && !liveProfile.profile;
+  const privacyLoadError = isPrivacyPending ? liveProfile.error : null;
+  const isContentHidden = isBlocked || isPrivate || isPrivacyPending;
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const trackInteraction = useSocialScreenAnalytics(Screen.MY_PROFILE, {
     state: [isLoading, Boolean(error), Boolean(displayProfile)],
@@ -411,28 +420,36 @@ const MyProfileView: React.FC = () => {
     }, [isOwner]),
   );
   const {
-    posts,
+    posts: fetchedPosts,
     isLoading: isPostsLoading,
     isFetchingNextPage,
-    hasNextPage,
+    hasNextPage: hasNextFetchedPage,
     loadMore,
     error: postsError,
     refresh: refreshPosts,
   } = useMyProfilePosts(addressOrId, {
     ownerProfileId: isOwner ? myProfile?.profileId : undefined,
-    isActive: activeTab === 'posts' && !isBlocked,
+    isActive: activeTab === 'posts' && !isContentHidden,
   });
   const {
-    openPositions,
-    closedPositions,
+    openPositions: fetchedOpenPositions,
+    closedPositions: fetchedClosedPositions,
     isLoadingOpen,
     isLoadingClosed,
     openError: openPositionsError,
     closedError: closedPositionsError,
     refetch: refetchPositions,
   } = useTraderPositions(addressOrId ?? '', {
-    refetchInterval: isBlocked ? undefined : 30_000,
+    enabled: !isContentHidden,
+    refetchInterval: 30_000,
   });
+  // Disabled queries still return cached data, e.g. from an earlier visit.
+  const posts = isContentHidden ? NO_POSTS : fetchedPosts;
+  const hasNextPage = !isContentHidden && hasNextFetchedPage;
+  const openPositions = isContentHidden ? NO_POSITIONS : fetchedOpenPositions;
+  const closedPositions = isContentHidden
+    ? NO_POSITIONS
+    : fetchedClosedPositions;
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
   const isAssetFilterActive = assetFilter !== 'all';
@@ -464,6 +481,10 @@ const MyProfileView: React.FC = () => {
   const handleEditProfile = useCallback(() => {
     playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
+  }, [navigation]);
+  const handleOpenPrivacySettings = useCallback(() => {
+    playSelection().catch(() => undefined);
+    navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY);
   }, [navigation]);
   const handleEditAvatar = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.EDIT_AVATAR);
@@ -657,17 +678,18 @@ const MyProfileView: React.FC = () => {
       );
       // refreshLiveProfile rethrows after logging; allSettled keeps one
       // failure from aborting the others and from becoming unhandled.
+      // refetch() ignores `enabled`, so hidden content must not be refetched.
       await Promise.allSettled([
         refresh(),
         refreshLiveProfile(),
-        refreshPosts(),
-        refetchPositions(),
+        ...(isContentHidden ? [] : [refreshPosts(), refetchPositions()]),
         minDuration,
       ]);
     } finally {
       setRefreshing(false);
     }
   }, [
+    isContentHidden,
     refresh,
     refreshLiveProfile,
     refreshPosts,
@@ -676,8 +698,15 @@ const MyProfileView: React.FC = () => {
   ]);
 
   const handlePositionsRetry = useCallback(() => {
-    refetchPositions().catch(() => undefined);
-  }, [refetchPositions]);
+    (privacyLoadError ? refreshLiveProfile() : refetchPositions()).catch(
+      () => undefined,
+    );
+  }, [privacyLoadError, refetchPositions, refreshLiveProfile]);
+  const handlePostsRetry = useCallback(() => {
+    (privacyLoadError ? refreshLiveProfile() : refreshPosts()).catch(
+      () => undefined,
+    );
+  }, [privacyLoadError, refreshLiveProfile, refreshPosts]);
 
   const handleTitleSectionLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -772,9 +801,14 @@ const MyProfileView: React.FC = () => {
     visiblePosts.length === 0 &&
     !postsError &&
     (isPostsLoading || isFetchingNextPage || hasNextPage);
+  const isAwaitingPrivacy = isPrivacyPending && !privacyLoadError;
   const showInitialPostSkeletons =
-    (isPostsLoading && posts.length === 0) || showFilteredPostLoading;
+    (isPostsLoading && posts.length === 0) ||
+    showFilteredPostLoading ||
+    isAwaitingPrivacy;
   const showPostsEmptyState =
+    !isAwaitingPrivacy &&
+    !privacyLoadError &&
     !isPostsLoading &&
     !isFetchingNextPage &&
     visiblePosts.length === 0 &&
@@ -841,7 +875,7 @@ const MyProfileView: React.FC = () => {
             ) : undefined
           }
           subtitle={
-            overlayedStats && !isBlocked ? (
+            overlayedStats && !isContentHidden ? (
               <MyProfileCompactStats
                 winRateLabel={overlayedStats.winRateLabel}
                 isWinRatePositive={overlayedStats.isWinRatePositive}
@@ -998,24 +1032,30 @@ const MyProfileView: React.FC = () => {
               gap={2}
               paddingHorizontal={4}
               paddingBottom={
-                overlayedStats.performanceCells.length === 0 ? 8 : undefined
+                isPrivate
+                  ? 3
+                  : overlayedStats.performanceCells.length === 0
+                    ? 8
+                    : undefined
               }
             >
               {isOwner ? (
                 <Box flexDirection={BoxFlexDirection.Row} gap={2}>
-                  <Box twClassName="flex-1">
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      isFullWidth
-                      onPress={handleOpenComposer}
-                      accessibilityLabel={strings(
-                        'social_leaderboard.my_profile.create_post',
-                      )}
-                      testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
-                    >
-                      {strings('social_leaderboard.my_profile.create_post')}
-                    </Button>
-                  </Box>
+                  {isPrivate ? null : (
+                    <Box twClassName="flex-1">
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        isFullWidth
+                        onPress={handleOpenComposer}
+                        accessibilityLabel={strings(
+                          'social_leaderboard.my_profile.create_post',
+                        )}
+                        testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
+                      >
+                        {strings('social_leaderboard.my_profile.create_post')}
+                      </Button>
+                    </Box>
+                  )}
                   <Box twClassName="flex-1">
                     <Button
                       variant={ButtonVariant.Secondary}
@@ -1027,7 +1067,7 @@ const MyProfileView: React.FC = () => {
                     </Button>
                   </Box>
                 </Box>
-              ) : (
+              ) : isPrivate && !isBlocked && !isFollowing ? null : (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
@@ -1050,6 +1090,7 @@ const MyProfileView: React.FC = () => {
                             : ButtonVariant.Primary
                         }
                         isFullWidth
+                        isDisabled={isPrivacyPending}
                         onPress={handleFollowPress}
                         testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
                       >
@@ -1059,7 +1100,7 @@ const MyProfileView: React.FC = () => {
                       </Button>
                     )}
                   </Box>
-                  {showMuteChip && muteProfileId ? (
+                  {showMuteChip && muteProfileId && !isPrivate ? (
                     <TraderMuteChip
                       isMuted={isChipMuted(muteProfileId)}
                       visible={isFollowing}
@@ -1089,7 +1130,7 @@ const MyProfileView: React.FC = () => {
                       >
                         {strings(
                           'social_leaderboard.trader_profile.blocked_title',
-                          { name: displayProfile.displayName },
+                          { name: displayProfile.handle },
                         )}
                       </Text>
                     </>
@@ -1101,6 +1142,74 @@ const MyProfileView: React.FC = () => {
                   testID={MyProfileViewSelectorsIDs.BLOCKED_STATE}
                 />
               </Box>
+            ) : isPrivate ? (
+              <>
+                <SectionDivider marginVertical={4} />
+                <Box alignItems={BoxAlignItems.Center} twClassName="px-8 py-12">
+                  <TabEmptyState
+                    icon={
+                      <Box
+                        alignItems={BoxAlignItems.Center}
+                        gap={4}
+                        twClassName="w-full"
+                      >
+                        <Box
+                          accessibilityElementsHidden
+                          importantForAccessibility="no-hide-descendants"
+                        >
+                          <Icon
+                            name={IconName.EyeSlash}
+                            size={IconSize.Xl}
+                            color={IconColor.IconDefault}
+                          />
+                        </Box>
+                        <Box gap={1} twClassName="w-full">
+                          <Text
+                            variant={TextVariant.HeadingSm}
+                            twClassName="text-center"
+                          >
+                            {strings(
+                              isOwner
+                                ? 'social_leaderboard.trader_profile.private_title_own'
+                                : 'social_leaderboard.trader_profile.private_title',
+                            )}
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                            numberOfLines={3}
+                            ellipsizeMode="tail"
+                            twClassName="text-center"
+                          >
+                            {isOwner
+                              ? strings(
+                                  'social_leaderboard.trader_profile.private_description_own',
+                                )
+                              : strings(
+                                  'social_leaderboard.trader_profile.private_description',
+                                  { name: displayProfile.handle },
+                                )}
+                          </Text>
+                        </Box>
+                      </Box>
+                    }
+                    actionButtonText={
+                      isOwner
+                        ? strings(
+                            'social_leaderboard.trader_profile.privacy_settings',
+                          )
+                        : undefined
+                    }
+                    onAction={isOwner ? handleOpenPrivacySettings : undefined}
+                    actionButtonProps={{
+                      twClassName: 'self-center rounded-xl',
+                      testID: MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
+                    }}
+                    twClassName="w-full max-w-none"
+                    testID={MyProfileViewSelectorsIDs.PRIVATE_STATE}
+                  />
+                </Box>
+              </>
             ) : (
               <>
                 <MyProfilePerformanceStats
@@ -1139,8 +1248,8 @@ const MyProfileView: React.FC = () => {
                 {activeTab !== 'posts' ? (
                   <ProfilePositionsTab
                     positions={positionTab.positions}
-                    isLoading={positionTab.isLoading}
-                    error={positionTab.error}
+                    isLoading={positionTab.isLoading || isAwaitingPrivacy}
+                    error={privacyLoadError ?? positionTab.error}
                     isClosed={positionTab.isClosed}
                     filter={assetFilter}
                     onPositionPress={handlePositionPress}
@@ -1153,9 +1262,9 @@ const MyProfileView: React.FC = () => {
                     showInitialPostSkeletons={showInitialPostSkeletons}
                     showPostsEmptyState={showPostsEmptyState}
                     postsEmptyMessage={postsEmptyMessage}
-                    postsError={postsError}
+                    postsError={privacyLoadError ?? postsError}
                     visiblePosts={visiblePosts}
-                    onRetry={refreshPosts}
+                    onRetry={handlePostsRetry}
                     showCopyTrade={!isOwner}
                   />
                 )}
@@ -1215,7 +1324,7 @@ const MyProfileView: React.FC = () => {
         ) : null}
         {isProfileOptionsOpen && displayProfile && blockProfileId ? (
           <ProfileOptionsSheet
-            traderName={displayProfile.displayName}
+            traderName={displayProfile.handle}
             onBlock={handleBlock}
             onClose={handleCloseProfileOptions}
           />

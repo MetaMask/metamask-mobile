@@ -1730,6 +1730,11 @@
       "unblock": "Unblock",
       "blocked_title": "You blocked @{{name}}",
       "blocked_description": "Their posts and positions are hidden on this device for this session.",
+      "private_title": "This profile is private",
+      "private_description": "@{{name}} keeps their performance, positions and posts hidden.",
+      "private_title_own": "Your profile is private",
+      "private_description_own": "Your performance, positions and posts are hidden from everyone.",
+      "privacy_settings": "Privacy settings",
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
@@ -3492,11 +3497,12 @@
     },
     "margin_mode": {
       "title": "Choose margin mode",
+      "title_with_market": "{{market}} margin mode",
       "isolated_title": "Isolated",
-      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "isolated_description": "Each position uses only its allocated margin. If used up, that position liquidates, others are unaffected.",
       "cross_title": "Cross",
-      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon.",
-      "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
+      "cross_description": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs. Coming soon.",
+      "cross_description_available": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs."
     },
     "cross_position": {
       "badge": "Cross",
@@ -3508,6 +3514,9 @@
       "title": "Cross margin not supported",
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
       "dismiss": "Got it"
+    },
+    "crossMarginRatio": {
+      "description": "Cross margin ratio is {{ratio}}."
     },
     "sort": {
       "volume": "Volume (24h)",
@@ -3535,6 +3544,9 @@
     },
     "provider_selector": {
       "title": "Select Provider"
+    },
+    "selection_sheet": {
+      "save": "Save"
     },
     "market_type": {
       "filter_by": "Filter by"
@@ -3830,6 +3842,8 @@
       "outcomes": "Outcomes",
       "view_all_markets": "View all {{count}} markets",
       "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
+      "card_closes": "Closes {{date}}",
+      "card_volume": "${{volume}}",
       "market_layout": {
         "markets": "Markets",
         "moneyline": "Moneyline",

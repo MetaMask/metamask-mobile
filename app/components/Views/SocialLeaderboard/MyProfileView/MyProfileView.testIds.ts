@@ -38,6 +38,8 @@ export const MyProfileViewSelectorsIDs = {
   FOLLOW_BUTTON: 'my-profile-view-follow-button',
   UNBLOCK_BUTTON: 'my-profile-view-unblock-button',
   BLOCKED_STATE: 'my-profile-view-blocked-state',
+  PRIVATE_STATE: 'my-profile-view-private-state',
+  PRIVACY_SETTINGS_BUTTON: 'my-profile-view-privacy-settings-button',
   MUTE_CHIP: 'my-profile-view-mute-chip',
   SCROLL: 'my-profile-view-scroll',
   OPEN_TAB: 'my-profile-view-open-tab',

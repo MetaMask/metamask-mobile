@@ -26,6 +26,7 @@ import { strings } from '../../../../../locales/i18n';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 import VbaFoxLoader from '../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
 import { useOpenVbaOnboarding } from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaKycSession } from '../../Ramp/Views/VirtualBankAccount/vbaKycSession';
 import { getVbaVendorTermsAcceptance } from '../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
@@ -121,7 +122,7 @@ const KycEmailAdapter = () => {
         }
       }
 
-      await Engine.context.KycController.startSession(
+      await startVbaKycSession(
         aal2Token
           ? { vendor: VBA_KYC_VENDOR, aal2Token }
           : { vendor: VBA_KYC_VENDOR },

@@ -58,7 +58,7 @@ describe('useOneShotBusyRefetch', () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('refetches a 30 second Retry-After after that wait plus jitter', () => {
+  it('refetches a 429 with a 30 second Retry-After after that wait plus jitter', () => {
     jest
       .spyOn(globalThis.crypto, 'getRandomValues')
       .mockImplementation((array) => {
@@ -71,7 +71,10 @@ describe('useOneShotBusyRefetch', () => {
     const { result } = renderHook(() => useOneShotBusyRefetch());
 
     act(() => {
-      result.current.arm(busyError(30), refetch);
+      result.current.arm(
+        new RewardsMoneyHttpError('limited', 429, undefined, 30),
+        refetch,
+      );
     });
     act(() => {
       jest.advanceTimersByTime(30_000);
@@ -84,6 +87,96 @@ describe('useOneShotBusyRefetch', () => {
     });
 
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a 429 refetch within Retry-After plus 1 second', () => {
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 2000;
+        }
+        return array;
+      });
+    const refetch = jest.fn();
+    const { result } = renderHook(() => useOneShotBusyRefetch());
+
+    act(() => {
+      result.current.arm(
+        new RewardsMoneyHttpError('limited', 429, undefined, 2),
+        refetch,
+      );
+    });
+    act(() => {
+      jest.advanceTimersByTime(2998);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('spreads a 503 wait over up to one more Retry-After of jitter', () => {
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 2000;
+        }
+        return array;
+      });
+    const refetch = jest.fn();
+    const { result } = renderHook(() => useOneShotBusyRefetch());
+
+    act(() => {
+      result.current.arm(busyError(2), refetch);
+    });
+    act(() => {
+      jest.advanceTimersByTime(3999);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not schedule a refetch for a statement timeout (503, Retry-After 30)', () => {
+    const refetch = jest.fn();
+    const { result } = renderHook(() => useOneShotBusyRefetch());
+
+    act(() => {
+      result.current.arm(busyError(30), refetch);
+    });
+    act(() => {
+      jest.advanceTimersByTime(61_000);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
+  });
+
+  it('does not schedule a refetch for an error the data service already retried', () => {
+    const refetch = jest.fn();
+    const { result } = renderHook(() => useOneShotBusyRefetch());
+
+    act(() => {
+      result.current.arm(
+        new RewardsMoneyHttpError('busy', 503, undefined, 2, true),
+        refetch,
+      );
+    });
+    act(() => {
+      jest.advanceTimersByTime(10_000);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
   });
 
   it('does not schedule a refetch for a Retry-After over 30 seconds', () => {
