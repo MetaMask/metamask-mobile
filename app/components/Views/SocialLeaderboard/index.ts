@@ -1,4 +1,4 @@
-import { withPortfolioBalanceProviders } from './shared/withPortfolioBalanceProviders';
+import { withPortfolioBalanceProviders } from '../../UI/PortfolioBalance/withPortfolioBalanceProviders';
 import { withSocialAccountGate } from './shared/withSocialAccountGate';
 import SocialV0ViewScreen from './SocialV0View';
 import SocialV1ViewScreen from './SocialV1View';

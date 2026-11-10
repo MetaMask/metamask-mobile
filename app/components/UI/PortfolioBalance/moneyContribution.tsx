@@ -5,15 +5,15 @@ import React, {
   type ReactNode,
 } from 'react';
 import { useSelector } from 'react-redux';
-import useMoneyAccountBalance from '../../../UI/Money/hooks/useMoneyAccountBalance';
-import useMoneyAccountInfo from '../../../UI/Money/hooks/useMoneyAccountInfo';
-import { selectIsMoneyAccountVisible } from '../../../UI/Money/selectors/visibility';
-import { getUsdToFiatConversionRate } from '../../../UI/Money/utils/moneyActivityFiat';
+import useMoneyAccountBalance from '../Money/hooks/useMoneyAccountBalance';
+import useMoneyAccountInfo from '../Money/hooks/useMoneyAccountInfo';
+import { selectIsMoneyAccountVisible } from '../Money/selectors/visibility';
+import { getUsdToFiatConversionRate } from '../Money/utils/moneyActivityFiat';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import type { RootState } from '../../../../reducers';
+} from '../../../selectors/currencyRateController';
+import type { RootState } from '../../../reducers';
 import type { PortfolioSlice } from './portfolioBalance';
 
 const SKIP: PortfolioSlice = { status: 'ineligible', valueFiat: 0 };

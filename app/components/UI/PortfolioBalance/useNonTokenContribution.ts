@@ -1,22 +1,22 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
-import { usePerpsLiveAccount } from '../../../UI/Perps/hooks/stream/usePerpsLiveAccount';
-import { usePerpsConnection } from '../../../UI/Perps/hooks/usePerpsConnection';
-import { selectPerpsEnabledFlag } from '../../../UI/Perps/selectors/featureFlags';
+import { usePerpsLiveAccount } from '../Perps/hooks/stream/usePerpsLiveAccount';
+import { usePerpsConnection } from '../Perps/hooks/usePerpsConnection';
+import { selectPerpsEnabledFlag } from '../Perps/selectors/featureFlags';
 import {
   usePredictAvailability,
   usePredictPortfolioValue,
-} from '../../../UI/PredictNext';
-import { getUsdToFiatConversionRate } from '../../../UI/Money/utils/moneyActivityFiat';
-import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { selectDefiPositionsByChainIds } from '../../../../selectors/defiPositionsController';
-import { selectDeFiPositionsSectionEnabled } from '../../../../selectors/deFiPositionsSectionEnabled';
+} from '../PredictNext';
+import { getUsdToFiatConversionRate } from '../Money/utils/moneyActivityFiat';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { selectDefiPositionsByChainIds } from '../../../selectors/defiPositionsController';
+import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import type { RootState } from '../../../../reducers';
+} from '../../../selectors/currencyRateController';
+import type { RootState } from '../../../reducers';
 import { useMoneyContribution } from './moneyContribution';
 import {
   nonTokenContribution,
@@ -25,9 +25,8 @@ import {
   type PortfolioSlice,
 } from './portfolioBalance';
 
-// Same throttle the homepage uses for perps. Kept local so SocialLeaderboard
-// does not import from the sibling Homepage route directory (ADR 0020).
-const PERPS_SOCIAL_THROTTLE_MS = 1000;
+// Same throttle the homepage uses for perps.
+const PERPS_BALANCE_THROTTLE_MS = 1000;
 
 const SKIP: PortfolioSlice = { status: 'ineligible', valueFiat: 0 };
 const LOADING: PortfolioSlice = { status: 'loading', valueFiat: 0 };
@@ -59,7 +58,7 @@ export const useNonTokenContribution = (): NonTokenContribution => {
   const perpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { account, isInitialLoading } = usePerpsLiveAccount({
     enabled: perpsEnabled,
-    throttleMs: PERPS_SOCIAL_THROTTLE_MS,
+    throttleMs: PERPS_BALANCE_THROTTLE_MS,
   });
   const { error: connectionError } = usePerpsConnection();
   const perpsUsd = parseFloat(account?.totalBalance ?? '0') || 0;

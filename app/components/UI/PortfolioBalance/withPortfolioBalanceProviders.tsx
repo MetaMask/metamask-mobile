@@ -1,10 +1,10 @@
 import React from 'react';
-import { MoneyContributionProvider } from '../hooks/moneyContribution';
-import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
-import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
+import { MoneyContributionProvider } from './moneyContribution';
+import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 
 /**
- * Gives a social account list the perps stream the homepage balance reads.
+ * Gives a screen the perps stream the homepage balance reads.
  *
  * Connection stays with the wallet-root provider. This wrapper only supplies
  * the contexts those balance hooks require, and it does not open a second

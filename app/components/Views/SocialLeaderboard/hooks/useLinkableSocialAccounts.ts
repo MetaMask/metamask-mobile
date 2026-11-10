@@ -8,7 +8,7 @@ import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
 } from '../../../../selectors/accountsController';
-import { selectUnifiedBalancesByAccountGroup } from './selectUnifiedBalancesByAccountGroup';
+import { selectUnifiedBalancesByAccountGroup } from '../../../UI/PortfolioBalance/selectUnifiedBalancesByAccountGroup';
 import {
   selectAccountToGroupMap,
   selectSelectedAccountGroupId,
@@ -23,8 +23,8 @@ import {
   portfolioTotal,
   readPortfolioTotal,
   rememberPortfolioTotal,
-} from './portfolioBalance';
-import { useNonTokenContribution } from './useNonTokenContribution';
+} from '../../../UI/PortfolioBalance/portfolioBalance';
+import { useNonTokenContribution } from '../../../UI/PortfolioBalance/useNonTokenContribution';
 
 export interface LinkableSocialAccount {
   id: string;

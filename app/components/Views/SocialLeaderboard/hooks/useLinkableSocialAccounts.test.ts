@@ -4,7 +4,7 @@ import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
 } from '../../../../selectors/accountsController';
-import { selectUnifiedBalancesByAccountGroup } from './selectUnifiedBalancesByAccountGroup';
+import { selectUnifiedBalancesByAccountGroup } from '../../../UI/PortfolioBalance/selectUnifiedBalancesByAccountGroup';
 import {
   selectAccountToGroupMap,
   selectSelectedAccountGroupId,
@@ -13,20 +13,23 @@ import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/mu
 import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { renderShortAddress } from '../../../../util/address';
-import { clearPortfolioTotalCache } from './portfolioBalance';
+import { clearPortfolioTotalCache } from '../../../UI/PortfolioBalance/portfolioBalance';
 import { useLinkableSocialAccounts } from './useLinkableSocialAccounts';
-import { useNonTokenContribution } from './useNonTokenContribution';
+import { useNonTokenContribution } from '../../../UI/PortfolioBalance/useNonTokenContribution';
 
-jest.mock('./useNonTokenContribution', () => ({
+jest.mock('../../../UI/PortfolioBalance/useNonTokenContribution', () => ({
   useNonTokenContribution: jest.fn(),
 }));
 
-jest.mock('./selectUnifiedBalancesByAccountGroup', () => {
-  const selector = jest.fn();
-  return {
-    selectUnifiedBalancesByAccountGroup: () => selector,
-  };
-});
+jest.mock(
+  '../../../UI/PortfolioBalance/selectUnifiedBalancesByAccountGroup',
+  () => {
+    const selector = jest.fn();
+    return {
+      selectUnifiedBalancesByAccountGroup: () => selector,
+    };
+  },
+);
 
 jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({ popularNetworks: [] as string[] }),

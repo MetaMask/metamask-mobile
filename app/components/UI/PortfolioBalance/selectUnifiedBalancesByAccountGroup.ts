@@ -7,10 +7,10 @@ import {
   parseCaipChainId,
   type CaipChainId,
 } from '@metamask/utils';
-import { selectAssetsControllerStateForBalances } from '../../../../selectors/assets/assets-controller';
-import { getUnifiedBalanceForAccountGroup } from '../../../../selectors/assets/balances';
-import { selectAccountTreeControllerState } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectEnabledNetworksByNamespace } from '../../../../selectors/networkEnablementController';
+import { selectAssetsControllerStateForBalances } from '../../../selectors/assets/assets-controller';
+import { getUnifiedBalanceForAccountGroup } from '../../../selectors/assets/balances';
+import { selectAccountTreeControllerState } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 
 type EnabledNetworkMap = Record<string, Record<string, boolean>>;
 
@@ -70,8 +70,8 @@ const toAccountTreeState = (
  * Aggregated fiat balance for every account group, using the same
  * `getAggregatedBalanceForAccount` path as the homepage total.
  *
- * Lives with the social account list so the shared assets selectors stay
- * unchanged.
+ * Shared so any screen can show the same total as the homepage. The assets
+ * selector files stay unchanged.
  *
  * @param popularChainIds - Optional popular CAIP chain ids for network filtering.
  */

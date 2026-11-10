@@ -1,8 +1,8 @@
-import { getUnifiedBalanceForAccountGroup } from '../../../../selectors/assets/balances';
-import type { RootState } from '../../../../reducers';
+import { getUnifiedBalanceForAccountGroup } from '../../../selectors/assets/balances';
+import type { RootState } from '../../../reducers';
 import { selectUnifiedBalancesByAccountGroup } from './selectUnifiedBalancesByAccountGroup';
 
-jest.mock('../../../../selectors/assets/balances', () => ({
+jest.mock('../../../selectors/assets/balances', () => ({
   getUnifiedBalanceForAccountGroup: jest.fn(
     (_assets: unknown, _tree: unknown, groupId: string) => ({
       walletId: groupId.split('/')[0],
