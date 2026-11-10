@@ -45,6 +45,13 @@ jest.mock('./SocialFeedVirtualized', () => {
   };
 });
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 const mockSelectEnabled = jest.mocked(selectSocialLeaderboardEnabled);
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 

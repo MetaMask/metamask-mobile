@@ -18,7 +18,10 @@ import {
   toFeedAssetId,
 } from '../../../SocialFeed';
 import { HYPERLIQUID_CHAIN_NAME } from '../../../SocialFeed/utils/perp';
-import TokenDetailsHoldersTab from '../../../TokenDetails/components/tabs/HoldersTab';
+import {
+  SocialLeaderboard,
+  type SocialLeaderboardSource,
+} from '../../../SocialLeaderboard';
 import { usePerpsEventTracking } from '../../hooks';
 import {
   getPerpsMarketDetailsTabSelector,
@@ -48,6 +51,10 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
   const [activeIndex, setActiveIndex] = useState(0);
   const isPerpsLeaderboardEnabled = useSelector(
     selectSocialLeaderboardPerpsEnabled,
+  );
+  const holdersSource = useMemo<SocialLeaderboardSource>(
+    () => ({ kind: 'perp', symbol }),
+    [symbol],
   );
   const assetId = useMemo(
     () =>
@@ -110,8 +117,12 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
           twClassName="pt-2"
           testID={PerpsMarketDetailsViewSelectorsIDs.TOP_TRADERS_TAB_CONTENT}
         >
-          {assetId && isPerpsLeaderboardEnabled ? (
-            <TokenDetailsHoldersTab assetId={assetId} />
+          {isPerpsLeaderboardEnabled ? (
+            <SocialLeaderboard
+              source={holdersSource}
+              location="perps_market_details"
+              showRank={false}
+            />
           ) : null}
         </Box>
       ) : null}

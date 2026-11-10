@@ -65,15 +65,24 @@ import {
 } from '../analytics';
 
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
-import TraderMuteChip from '../components/TraderMuteChip';
+import TraderMuteChip, {
+  PROFILE_MUTE_CHIP_DIAMETER,
+} from '../components/TraderMuteChip';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
+import {
+  buildSocialProfileOpenGraph,
+  readTraderShareName,
+} from '../navigation/socialShareOpenGraph';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
+import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
+import ShareButtonSpinner from '../components/ShareButtonSpinner';
 import ProfilePostsEmptyState from '../MyProfileView/components/ProfilePostsEmptyState';
 import { useMyProfilePosts } from '../MyProfileView/hooks/useMyProfilePosts';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
@@ -258,17 +267,41 @@ const TraderProfileView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const { isSharing, runShare } = useSocialShareInProgress();
   const handleShareProfile = useCallback(() => {
     playSelection().catch(() => undefined);
-    shareSocialProfile(traderId, () => {
-      trackSocialPost({
-        interaction_type: SocialEvent.Interaction.POST_SHARED,
-        screen_name: SocialEvent.Screen.MY_PROFILE,
-        source: SocialEvent.Source.TRADER_PROFILE,
-        share_destination: SocialEvent.ShareDestination.EXTERNAL,
-      });
-    });
-  }, [trackSocialPost, traderId]);
+    const traderLabel = readTraderShareName(profile?.profile, traderName);
+    runShare(() =>
+      shareSocialProfile(
+        traderId,
+        () => {
+          trackSocialPost({
+            interaction_type: SocialEvent.Interaction.POST_SHARED,
+            screen_name: SocialEvent.Screen.MY_PROFILE,
+            source: SocialEvent.Source.TRADER_PROFILE,
+            share_destination: SocialEvent.ShareDestination.EXTERNAL,
+          });
+        },
+        buildSocialProfileOpenGraph(traderLabel),
+        async () =>
+          buildSocialProfileOgImageRequest({
+            traderId,
+            username: profile?.profile.name || traderName,
+            avatarUrl: profile?.profile.imageUrl,
+            profile,
+            closedPositions,
+            nowMs: Date.now(),
+          }),
+      ),
+    );
+  }, [
+    closedPositions,
+    profile,
+    runShare,
+    trackSocialPost,
+    traderId,
+    traderName,
+  ]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -442,6 +475,7 @@ const TraderProfileView = () => {
               traderName={headerTitle}
               traderImageUrl={profile.profile.imageUrl}
               traderAddress={profile.profile.address}
+              traderProfileId={profile.profile.profileId}
               variant="compact"
               testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
             />
@@ -458,16 +492,22 @@ const TraderProfileView = () => {
         }}
         endAccessory={
           <SocialHeaderGlassSurface twClassName="px-1">
-            <ButtonIcon
-              iconName={IconName.Share}
-              iconProps={{ color: IconColor.IconDefault }}
-              size={ButtonIconSize.Md}
-              onPress={handleShareProfile}
-              accessibilityLabel={strings(
-                'social_leaderboard.my_profile.share_profile',
-              )}
-              testID={TraderProfileViewSelectorsIDs.SHARE_BUTTON}
-            />
+            {isSharing ? (
+              <ShareButtonSpinner
+                testID={TraderProfileViewSelectorsIDs.SHARE_SPINNER}
+              />
+            ) : (
+              <ButtonIcon
+                iconName={IconName.Share}
+                iconProps={{ color: IconColor.IconDefault }}
+                size={ButtonIconSize.Md}
+                onPress={handleShareProfile}
+                accessibilityLabel={strings(
+                  'social_leaderboard.my_profile.share_profile',
+                )}
+                testID={TraderProfileViewSelectorsIDs.SHARE_BUTTON}
+              />
+            )}
           </SocialHeaderGlassSurface>
         }
         testID={TraderProfileViewSelectorsIDs.HEADER}
@@ -560,6 +600,7 @@ const TraderProfileView = () => {
                         visible={isFollowing}
                         onPress={handleMutePress}
                         traderName={profile?.profile.name}
+                        diameter={PROFILE_MUTE_CHIP_DIAMETER}
                         testID={TraderProfileViewSelectorsIDs.MUTE_CHIP}
                       />
                     )}

@@ -18,8 +18,6 @@ export interface UseOpenPositionForAssetResult {
   position: OpenPositionPnl | null;
   /** Full list row, used to attach the position card in the post composer. */
   sharePosition: TraderPosition | null;
-  /** Set only when the open route never answered. */
-  earliestTradeAt?: number;
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -115,7 +113,6 @@ export const useOpenPositionForAsset = (
   return {
     position: data?.pnl ?? null,
     sharePosition: data?.position ?? null,
-    earliestTradeAt: data?.earliestTradeAt,
     isLoading: enabled && isLoading,
     error: formatSocialQueryErrorMessage(error),
     refetch: refetchPosition,

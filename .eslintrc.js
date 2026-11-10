@@ -196,32 +196,37 @@ module.exports = {
           },
         ],
 
-        // These rule modifications are removing changes to our shared ESLint config made after
-        // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-        // at which point we can restore the intended rules and use error suppression instead.
+        // These rules are off because the shared ESLint config turned them on
+        // after v9, and ESLint 8 cannot save the existing hits. Every rule
+        // below stays off in this change.
         //
-        // TODO: Remove these modifications after the ESLint v9 update
-        '@typescript-eslint/await-thenable': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
-        '@typescript-eslint/consistent-type-exports': 'off',
+        // Fast checks. These do not need type information. Restore them in
+        // the ESLint 9 upgrade and park existing hits in ESLint's
+        // suppressions file.
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/naming-convention': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/prefer-enum-initializers': 'off',
+        // Slow type checks. Leave these off through the ESLint 9 upgrade.
+        // Turn them on in Oxlint and park existing hits in
+        // oxlint-suppressions.json.
+        '@typescript-eslint/await-thenable': 'off',
+        '@typescript-eslint/consistent-type-exports': 'off',
+        '@typescript-eslint/consistent-type-imports': 'off',
         '@typescript-eslint/no-base-to-string': 'off',
         '@typescript-eslint/no-duplicate-type-constituents': 'off',
-        '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-redundant-type-constituents': 'off',
         '@typescript-eslint/no-throw-literal': 'off',
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/only-throw-error': 'off',
-        '@typescript-eslint/prefer-enum-initializers': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
         '@typescript-eslint/prefer-optional-chain': 'off',
@@ -875,6 +880,17 @@ module.exports = {
     'react-compiler/react-compiler': 'warn',
     'no-catch-shadow': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
+    // Code fencing was removed: nothing strips fence-marker blocks any more, so
+    // fenced code would ship in every build. Gate features at runtime instead.
+    // scripts/check-no-code-fences.sh backs this up in CI for files ESLint
+    // doesn't lint.
+    'no-warning-comments': [
+      'error',
+      {
+        terms: ['BEGIN:ONLY_INCLUDE_IF', 'END:ONLY_INCLUDE_IF'],
+        location: 'anywhere',
+      },
+    ],
     quotes: [
       'error',
       'single',
@@ -983,11 +999,9 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // These rule modifications are removing changes to our shared ESLint config made after
-    // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-    // at which point we can restore the intended rules and use error suppression instead.
-    //
-    // TODO: Remove these modifications after the ESLint v9 update
+    // Fast checks, off for the same reason as the block above. These do not
+    // need type information. Restore them in the ESLint 9 upgrade and park
+    // existing hits in ESLint's suppressions file.
     'react-hooks/rules-of-hooks': 'off',
     'no-loss-of-precision': 'off',
   },

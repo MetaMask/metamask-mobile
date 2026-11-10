@@ -135,6 +135,30 @@ export const makePredictNextMultiMarketEvent = (): PredictEvent => ({
   ],
 });
 
+const OUTCOMES_MARKETS_LAYOUT: PredictMarketLayout = {
+  tab: { key: 'outcomes', order: 1 },
+  section: { key: 'markets', order: 1 },
+};
+
+/**
+ * A Politics Event laid out as `outcomes` › `markets`: five ungrouped
+ * Markets in the order the backend sent them.
+ */
+export const makePredictNextLaidOutStandardEvent = (): PredictEvent => ({
+  ...makeEvent('next-speaker', 'Who will be the next Speaker?'),
+  category: 'Politics',
+  markets: [
+    ['johnson', 'Mike Johnson', '0.41', '0.59', '900000'],
+    ['jeffries', 'Hakeem Jeffries', '0.33', '0.67', '600000'],
+    ['jordan', 'Jim Jordan', '0.12', '0.88', '300000'],
+    ['scalise', 'Steve Scalise', '0.08', '0.92', '150000'],
+    ['emmer', 'Tom Emmer', '0.04', '0.96', '50000'],
+  ].map(([id, label, yesAskPrice, noAskPrice, volume]) => ({
+    ...makeStandardMarket({ id, label, yesAskPrice, noAskPrice, volume }),
+    layout: OUTCOMES_MARKETS_LAYOUT,
+  })),
+});
+
 const makeGroupedMarket = ({
   id,
   key,
@@ -443,23 +467,28 @@ export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
     displayOrder: number,
   ): PredictMarket => {
     const id = `${event.id}-${stat.key}-${player}-${threshold}`;
-    const label = `${threshold}+ yards`;
     return {
       ...template,
       id: id as PredictEntityId,
-      question: `${player}: ${label}`,
+      question: `${player}: ${threshold}+`,
       outcomes: [
         {
           ...template.outcomes[0],
           id: `${id}-yes` as PredictEntityId,
-          label,
+          label: 'Yes',
           gameSelection,
         },
-        { ...template.outcomes[1], id: `${id}-no` as PredictEntityId, label },
+        {
+          ...template.outcomes[1],
+          id: `${id}-no` as PredictEntityId,
+          label: 'No',
+        },
       ],
       group: {
         key: `${event.id}:${stat.key}:${player}`,
-        groupType: 'choice',
+        groupType: 'marketSelector',
+        marketType: 'threshold',
+        option: { type: 'number', value: threshold },
         displayOrder,
         label: player,
       },
@@ -510,6 +539,18 @@ export const ncaaEvents = [
   }),
 ];
 
+/** Politics topic Events: non-game Events, shown by the Politics cards. */
+export const politicsEvents = [
+  {
+    ...makeEvent('politics-1', 'Trump approval above 45%?'),
+    category: 'Politics',
+  },
+  {
+    ...makeEvent('politics-2', 'Congress passes the budget?'),
+    category: 'Politics',
+  },
+];
+
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
@@ -523,7 +564,24 @@ export const PREDICT_NEXT_FEED_IDS = {
   ncaaProps: KALSHI_STATIC_VENUE_CATALOG.feeds[
     'college-football-props'
   ] as PredictFeedId,
+  politicsTrump: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-trump'
+  ] as PredictFeedId,
+  politicsCongress: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-congress'
+  ] as PredictFeedId,
+  politicsIran: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-iran'
+  ] as PredictFeedId,
 } as const;
+
+/** The Politics topic Feed IDs, which the default messenger serves from
+ * `politics`. */
+const POLITICS_FEED_IDS: ReadonlySet<string> = new Set([
+  PREDICT_NEXT_FEED_IDS.politicsTrump,
+  PREDICT_NEXT_FEED_IDS.politicsCongress,
+  PREDICT_NEXT_FEED_IDS.politicsIran,
+]);
 
 /**
  * The Venue catalog the messenger serves: a value (valid or malformed), an
@@ -888,6 +946,7 @@ export const publishPredictNextQuoteUpdate = (update: PredictQuote) =>
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
+  politics = politicsEvents,
   details,
   positions,
   positionPages,
@@ -897,6 +956,8 @@ export const configurePredictNextFeeds = ({
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
+  /** Served for every Politics topic Feed (Trump, Congress, Iran). */
+  politics?: readonly PredictEvent[] | Error;
   details?: readonly PredictEvent[] | Error;
   positions?: readonly unknown[] | Error;
   /** Cursor-addressable Positions pages, for tests that exercise
@@ -910,6 +971,7 @@ export const configurePredictNextFeeds = ({
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
     ...(ncaa instanceof Error ? [] : ncaa),
+    ...(politics instanceof Error ? [] : politics),
   ];
 
   resetPredictNextCatalog();
@@ -983,7 +1045,12 @@ export const configurePredictNextFeeds = ({
       }
 
       const feedId = resourceId as PredictFeedId;
-      const result = feedId === PREDICT_NEXT_FEED_IDS.nflGames ? nfl : ncaa;
+      const isPolitics = POLITICS_FEED_IDS.has(feedId);
+      const result = isPolitics
+        ? politics
+        : feedId === PREDICT_NEXT_FEED_IDS.nflGames
+          ? nfl
+          : ncaa;
       if (result instanceof Error) {
         return Promise.reject(result);
       }
@@ -991,8 +1058,9 @@ export const configurePredictNextFeeds = ({
       return Promise.resolve({
         venueId: 'kalshi',
         id: feedId,
-        title:
-          feedId === PREDICT_NEXT_FEED_IDS.nflGames
+        title: isPolitics
+          ? 'Politics'
+          : feedId === PREDICT_NEXT_FEED_IDS.nflGames
             ? 'NFL Games'
             : 'NCAAF Games',
         events: result,

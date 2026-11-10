@@ -44,6 +44,13 @@ const mockTraderPriceChart = jest.fn();
 const mockRefetchPosition = jest.fn().mockResolvedValue(undefined);
 const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
 const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
+const mockCreateSocialOgImage = jest.fn();
+
+jest.mock('../navigation/socialOgImageService', () => ({
+  createSocialOgImage: (...args: unknown[]) => mockCreateSocialOgImage(...args),
+  getSocialOgDefaultImageUrl: () =>
+    'https://social.test/api/v1/og-images/default.jpg',
+}));
 
 interface MockRouteParams {
   positionId?: string;
@@ -403,6 +410,10 @@ describe('TraderPositionView', () => {
       isLoading: false,
     });
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
+    mockCreateSocialOgImage.mockReset();
+    mockCreateSocialOgImage.mockResolvedValue(
+      'https://social.test/api/v1/og-images/card.png?v=1',
+    );
     // Default the A/B test to control (Buy opens QuickBuy). clearAllMocks resets
     // call data but not implementations, so re-assert it for test isolation.
     mockUseABTest.mockReturnValue({
@@ -419,22 +430,32 @@ describe('TraderPositionView', () => {
     };
   });
 
-  it('shares the position deeplink from the header', () => {
+  it('shares the position deeplink from the header', async () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
       screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
     );
 
-    expect(Share.open).toHaveBeenCalledWith({
-      message:
-        'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
-      url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
-      failOnCancel: false,
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message:
+          'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1&share=1',
+        url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1&share=1',
+        failOnCancel: false,
+      });
     });
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
     ).toHaveProp('accessibilityLabel', 'Share position');
+    // The mocked price API returns no prices, so the screen falls back to
+    // the generic card rather than an incomplete trade card.
+    await waitFor(() => {
+      expect(mockCreateSocialOgImage).toHaveBeenCalledWith(
+        { kind: 'generic' },
+        expect.any(AbortSignal),
+      );
+    });
   });
 
   it('renders the container with real position data', () => {
@@ -662,6 +683,47 @@ describe('TraderPositionView', () => {
     ).toBeOnTheScreen();
   });
 
+  it.each(['insider', 'developer', 'blocked'] as const)(
+    'hides Buy for a %s position and keeps the history view',
+    (flag) => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        flags: [flag],
+      };
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('keeps Buy when the position has an empty flags list', () => {
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      flags: [],
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('fires Follow Trading Token CTA Clicked with cta_type buy when the Buy button is pressed', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -748,6 +810,32 @@ describe('TraderPositionView', () => {
       expect(
         screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       ).not.toBeOnTheScreen();
+    });
+
+    it('hides Trade for a flagged perp position and keeps the history view', () => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        tokenSymbol: 'ETH',
+        chain: 'hyperliquid',
+        perpPositionType: 'short',
+        perpLeverage: 10,
+        flags: ['insider'],
+      };
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW),
+      ).toBeOnTheScreen();
     });
 
     it('navigates to the Perps market page (not QuickBuy) when the Trade button is pressed', () => {

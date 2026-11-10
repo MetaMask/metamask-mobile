@@ -83,7 +83,6 @@ appiumTest.describe(SmokeWalletPlatform('Deeplink Navigation'), () => {
 
           // Verify home deeplink opens wallet with network selector
           await openE2EUrl(HOME_DEEPLINK);
-          await DeeplinkModal.tapContinue();
           await Assertions.expectElementToBeVisible(
             NetworkListModal.selectNetwork,
             {
