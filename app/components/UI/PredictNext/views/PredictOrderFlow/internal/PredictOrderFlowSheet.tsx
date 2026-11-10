@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import React, {
   useCallback,
   useEffect,
@@ -21,7 +22,10 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -34,9 +38,11 @@ import Logger from '../../../../../../util/Logger';
 import { useBalance } from '../../../hooks/useBalance';
 import { useVenueStatus } from '../../../hooks/useVenueStatus';
 import { usePredictImplementation } from '../../../implementation';
+import { getVenueCapabilitySource } from '../../../capabilities/venueCapabilities';
 import { PredictError, PredictErrorCode } from '../../../errors';
 import type {
   PredictAmount,
+  PredictBuyOrderPreview,
   PredictDecimal,
   PredictEntityId,
   PredictOrderPreview,
@@ -59,7 +65,6 @@ import { OrderBreakdownSheet } from './OrderBreakdownSheet';
 import { OrderKeypad } from './OrderKeypad';
 import { OrderQuickAmounts } from './OrderQuickAmounts';
 import { OrderQuickContracts } from './OrderQuickContracts';
-import { OrderPreviewRows } from './OrderPreviewRows';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
 import { OrderSummaryRows } from './OrderSummaryRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
@@ -117,7 +122,16 @@ type SubmitPhase = 'input' | 'approval' | 'submitting' | 'receipt';
 
 const styles = StyleSheet.create({
   modalHost: { ...StyleSheet.absoluteFill },
+  // Android draws any underline solid; iOS honours the dotted style.
+  dottedUnderline: {
+    textDecorationLine: 'underline',
+    textDecorationStyle: 'dotted',
+  },
 });
+
+/** An amount as keypad input: whole cents, no trailing '.00'. */
+const toAmountInput = (value: BigNumber): string =>
+  value.toFixed(2).replace(/\.00$/u, '');
 
 export const PredictOrderFlowSheet = ({
   intent,
@@ -151,6 +165,11 @@ export const PredictOrderFlowSheet = ({
   const [venueExpired, setVenueExpired] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const requestIdRef = useRef(0);
+  // The balance a Max press asked for, until its first quote lands. The fee
+  // is charged on top of the amount, so when that quote's total debit
+  // exceeds this balance the amount drops to the balance minus the quoted
+  // fee and re-quotes once. Any other amount edit clears it.
+  const maxBalanceRef = useRef<PredictAmount | null>(null);
   // Unregisters this sheet as the surface showing a committed operation.
   // While registered, the operation's resolution lands here instead of in
   // the completion notification.
@@ -205,8 +224,14 @@ export const PredictOrderFlowSheet = ({
   );
 
   const balanceQuery = useBalance(intent.venueId);
+  const availableBalance = balanceQuery.data?.available;
   const venueStatusQuery = useVenueStatus(intent.venueId);
   const termsUrl = venueStatusQuery.data?.termsUrl;
+  // The client-owned Venue display name names the venue in the buy terms
+  // line; an unknown Venue keeps the generic copy.
+  const venueDisplayName = getVenueCapabilitySource(
+    intent.venueId,
+  )?.displayName;
 
   useEffect(() => {
     sheetRef.current?.onOpenBottomSheet();
@@ -227,6 +252,7 @@ export const PredictOrderFlowSheet = ({
     setCommitError(null);
     setVenueExpired(false);
     requestIdRef.current += 1;
+    maxBalanceRef.current = null;
     releasePresentation();
   }, [intent, releasePresentation]);
 
@@ -322,6 +348,25 @@ export const PredictOrderFlowSheet = ({
         .then((quote) => {
           if (requestIdRef.current !== requestId) {
             return;
+          }
+          const maxBalance = maxBalanceRef.current;
+          maxBalanceRef.current = null;
+          if (
+            maxBalance !== null &&
+            quote.action === 'buy' &&
+            new BigNumber(quote.totalDebit).gt(maxBalance)
+          ) {
+            const affordable = toAmountInput(
+              new BigNumber(maxBalance)
+                .minus(quote.fee)
+                .decimalPlaces(2, BigNumber.ROUND_DOWN),
+            );
+            if (affordable !== amount) {
+              // Never shown: the clamped amount re-quotes in its place.
+              requestIdRef.current += 1;
+              setAmount(affordable);
+              return;
+            }
           }
           setPreview(quote);
           setVenueExpired(false);
@@ -494,10 +539,15 @@ export const PredictOrderFlowSheet = ({
     }
     setIsKeypadOpen(true);
   }, [isAmountEditable]);
-  const handleBreakdownPress = useCallback(
-    () => setIsBreakdownVisible(true),
-    [],
-  );
+  const buyPreview: PredictBuyOrderPreview | null =
+    preview?.action === 'buy' ? preview : null;
+  const canShowDetails = buyPreview !== null && !isQuoting;
+  const handleBreakdownPress = useCallback(() => {
+    if (!canShowDetails) {
+      return;
+    }
+    setIsBreakdownVisible(true);
+  }, [canShowDetails]);
   const handleBreakdownClose = useCallback(
     () => setIsBreakdownVisible(false),
     [],
@@ -511,6 +561,7 @@ export const PredictOrderFlowSheet = ({
         setContracts((current) => sanitizeContracts(`${current}${key}`));
         return;
       }
+      maxBalanceRef.current = null;
       setAmount((current) => {
         const next = sanitizeAmount(`${current}${key}`);
         const digitCount = next.match(/\d/gu)?.length ?? 0;
@@ -527,22 +578,35 @@ export const PredictOrderFlowSheet = ({
       setContracts((current) => current.slice(0, -1));
       return;
     }
+    maxBalanceRef.current = null;
     setAmount((current) => sanitizeAmount(current.slice(0, -1)));
   }, [intent.action, isAmountEditable, sanitizeAmount]);
-  /** Adds a quick-amount chip's increment, in exact cents. */
-  const handleAddAmount = useCallback(
-    (increment: number) => {
+  /** Sets a quick-amount chip's fraction of the balance, in whole cents. */
+  const handleSetAmount = useCallback(
+    (next: BigNumber) => {
       if (!isAmountEditable) {
         return;
       }
-      setAmount((current) => {
-        const cents =
-          Math.round(Number(current || '0') * 100) + increment * 100;
-        return sanitizeAmount((cents / 100).toFixed(2).replace(/\.00$/u, ''));
-      });
+      maxBalanceRef.current = null;
+      setAmount(sanitizeAmount(toAmountInput(next)));
     },
     [isAmountEditable, sanitizeAmount],
   );
+  /** Sets the whole available balance; the quote clamps it for the fee. */
+  const handleMaxAmount = useCallback(() => {
+    if (!isAmountEditable || !availableBalance) {
+      return;
+    }
+    const balance = new BigNumber(availableBalance).decimalPlaces(
+      2,
+      BigNumber.ROUND_DOWN,
+    );
+    maxBalanceRef.current = balance.toFixed(2) as PredictAmount;
+    setAmount(sanitizeAmount(toAmountInput(balance)));
+    // Re-quote even when the amount already equals the balance, so the
+    // clamp always sees a quote for this press.
+    setQuoteNonce((nonce) => nonce + 1);
+  }, [availableBalance, isAmountEditable, sanitizeAmount]);
   /** Sets a quick-contract chip's whole-contract count. */
   const handleSetContracts = useCallback(
     (next: number) => {
@@ -584,12 +648,8 @@ export const PredictOrderFlowSheet = ({
       ? preview.estimatedNetProceeds
       : '0.00',
   );
-  const totalLabel =
-    preview && !isQuoting && preview.action === 'buy'
-      ? formatUsd(preview.totalDebit)
-      : formatUsd(Number(amount || '0').toFixed(2));
-  const balanceLabel = balanceQuery.data
-    ? Number(balanceQuery.data.available).toFixed(2)
+  const balanceLabel = availableBalance
+    ? new BigNumber(availableBalance).toFormat(2, BigNumber.ROUND_DOWN)
     : undefined;
 
   const statusMessage = useMemo(() => {
@@ -726,7 +786,9 @@ export const PredictOrderFlowSheet = ({
         isDisabled={!canReview}
         testID={PredictOrderFlowTestIds.REVIEW}
       >
-        {strings('predict_next.order_preview.review')}
+        {intent.action === 'buy'
+          ? strings('predict_next.order_preview.buy')
+          : strings('predict_next.order_preview.review')}
       </Button>
     );
   };
@@ -747,7 +809,19 @@ export const PredictOrderFlowSheet = ({
             testID={PredictOrderFlowTestIds.SHEET}
           >
             <Box twClassName="flex-row items-center gap-3 px-4 pb-3 pt-1">
-              {intent.eventImageUrl ? (
+              {intent.action === 'buy' ? (
+                // The buy sheet shows the event mark unboxed, as the
+                // Kalshi x Predict design does with team logos.
+                intent.eventImageUrl ? (
+                  <Image
+                    source={{ uri: intent.eventImageUrl }}
+                    style={tw.style('h-10 w-10')}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Box twClassName="h-10 w-10 rounded-full bg-muted" />
+                )
+              ) : intent.eventImageUrl ? (
                 <Image
                   source={{ uri: intent.eventImageUrl }}
                   style={tw.style('h-12 w-12 rounded-lg')}
@@ -764,30 +838,56 @@ export const PredictOrderFlowSheet = ({
                 >
                   {intent.eventTitle}
                 </Text>
-                <Box
-                  twClassName="min-w-0 flex-row items-center"
-                  testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
-                >
-                  <Text
-                    variant={TextVariant.BodyLg}
-                    fontWeight={FontWeight.Bold}
-                    color={TextColor.TextDefault}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
+                {intent.action === 'buy' ? (
+                  <Box
+                    twClassName="min-w-0 flex-row items-center gap-1"
+                    testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
                   >
-                    {intent.outcomeLabel}
-                  </Text>
-                  {displayedPrice ? (
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.SuccessDefault}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                      twClassName="shrink"
+                    >
+                      {intent.outcomeLabel}
+                    </Text>
+                    {/* Decorative until product decides what switching the
+                     * outcome does; not a control. */}
+                    <Icon
+                      name={IconName.SwapHorizontal}
+                      size={IconSize.Sm}
+                      color={IconColor.SuccessDefault}
+                      testID={PredictOrderFlowTestIds.OUTCOME_SWAP_ICON}
+                    />
+                  </Box>
+                ) : (
+                  <Box
+                    twClassName="min-w-0 flex-row items-center"
+                    testID={PredictOrderFlowTestIds.OUTCOME_LABEL}
+                  >
                     <Text
                       variant={TextVariant.BodyLg}
                       fontWeight={FontWeight.Bold}
                       color={TextColor.TextDefault}
                       numberOfLines={1}
+                      ellipsizeMode="tail"
                     >
-                      {` · ${formatCents(displayedPrice)}`}
+                      {intent.outcomeLabel}
                     </Text>
-                  ) : null}
-                </Box>
+                    {displayedPrice ? (
+                      <Text
+                        variant={TextVariant.BodyLg}
+                        fontWeight={FontWeight.Bold}
+                        color={TextColor.TextDefault}
+                        numberOfLines={1}
+                      >
+                        {` · ${formatCents(displayedPrice)}`}
+                      </Text>
+                    ) : null}
+                  </Box>
+                )}
               </Box>
               <ButtonIcon
                 iconName={IconName.Close}
@@ -866,10 +966,20 @@ export const PredictOrderFlowSheet = ({
                         )}
                       </Text>
                     ) : (
+                      // The only entry point to the details sheet: live
+                      // once a quote exists, inert while quoting or without
+                      // one.
                       <Text
                         variant={TextVariant.BodyLg}
                         fontWeight={FontWeight.Medium}
                         color={TextColor.SuccessDefault}
+                        style={styles.dottedUnderline}
+                        onPress={
+                          canShowDetails ? handleBreakdownPress : undefined
+                        }
+                        suppressHighlighting
+                        accessibilityRole={canShowDetails ? 'button' : 'text'}
+                        accessibilityState={{ disabled: !canShowDetails }}
                         testID={PredictOrderFlowTestIds.TO_WIN}
                       >
                         {strings('predict_next.order_preview.to_win', {
@@ -898,18 +1008,16 @@ export const PredictOrderFlowSheet = ({
                     />
                   ) : (
                     <OrderQuickAmounts
-                      onAddAmount={handleAddAmount}
+                      balance={availableBalance}
+                      minimumAmount={MINIMUM_AMOUNT}
+                      onSetAmount={handleSetAmount}
+                      onMax={handleMaxAmount}
                       isDisabled={!isAmountEditable}
                     />
                   )}
                   <Box twClassName="py-3">
                     {intent.action === 'sell' ? null : (
-                      <OrderSummaryRows
-                        balance={balanceLabel}
-                        total={totalLabel}
-                        canShowBreakdown={preview !== null && !isQuoting}
-                        onBreakdownPress={handleBreakdownPress}
-                      />
+                      <OrderSummaryRows balance={balanceLabel} />
                     )}
                   </Box>
                   <Box twClassName="gap-2">
@@ -920,7 +1028,11 @@ export const PredictOrderFlowSheet = ({
                         variant={TextVariant.BodyXs}
                         color={TextColor.TextAlternative}
                       >
-                        {strings('predict_next.order_preview.terms')}
+                        {intent.action === 'buy' && venueDisplayName
+                          ? strings('predict_next.order_preview.venue_terms', {
+                              venue: venueDisplayName,
+                            })
+                          : strings('predict_next.order_preview.terms')}
                       </Text>
                       {termsUrl ? (
                         <Text
@@ -942,13 +1054,14 @@ export const PredictOrderFlowSheet = ({
                 onKeyPress={handleKeyPress}
                 onDelete={handleDelete}
                 showsDecimalKey={intent.action !== 'sell'}
+                hasFilledActionKeys={intent.action === 'buy'}
               />
             )}
           </BottomSheet>
-          {isBreakdownVisible && preview && (
+          {isBreakdownVisible && buyPreview && (
             <OrderBreakdownSheet
               ref={breakdownSheetRef}
-              preview={preview}
+              preview={buyPreview}
               onClose={handleBreakdownClose}
             />
           )}
