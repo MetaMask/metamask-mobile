@@ -67,6 +67,17 @@ interface TokenDetailsProps {
   marketData?: FungibleAssetPrice | null;
 }
 
+// Extracted because React Compiler cannot lower value blocks (ternary, `?.`) written inside a try/catch.
+const toCaipChainId = (chainId: string) =>
+  isNonEvmChainId(chainId)
+    ? (chainId as `${string}:${string}`)
+    : formatChainIdToCaip(chainId as Hex);
+
+const getAssetMarketData = (
+  response: Record<string, Record<string, unknown>> | undefined,
+  assetId: string,
+) => response?.[assetId];
+
 const TokenDetails: React.FC<TokenDetailsProps> = ({
   asset,
   onCopyAddress,
@@ -147,12 +158,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
 
     const fetchData = async () => {
       try {
-        const isNonEvm = isNonEvmChainId(asset.chainId as string);
-
         // Convert chainId to CAIP format for both EVM and non-EVM chains
-        const caipChainId = isNonEvm
-          ? (asset.chainId as `${string}:${string}`)
-          : formatChainIdToCaip(asset.chainId as Hex);
+        const caipChainId = toCaipChainId(asset.chainId as string);
 
         const assetId = toAssetId(plainTokenAddress, caipChainId);
         if (!assetId) return;
@@ -169,7 +176,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
           string,
           Record<string, unknown>
         >;
-        setFetchedMarketData(response?.[assetId]);
+        setFetchedMarketData(getAssetMarketData(response, assetId));
       } catch (error) {
         console.error('Failed to fetch market data:', error);
       }
