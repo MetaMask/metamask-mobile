@@ -166,7 +166,7 @@ describe('usePositionSheetData', () => {
       );
 
       expect(result.current.summaryTitle).toBe('7 PEPE');
-      expect(result.current.summarySubtitle).toBe('Sold · 2 d ago');
+      expect(result.current.summarySubtitle).toBe('Sold · 2d ago');
       expect(result.current.summaryTagLabel).toBeUndefined();
     });
 
@@ -179,7 +179,7 @@ describe('usePositionSheetData', () => {
         }),
       );
 
-      expect(result.current.summarySubtitle).toBe('Opened · 5 hr ago');
+      expect(result.current.summarySubtitle).toBe('Opened · 5h ago');
     });
 
     it('leaves the caption empty when a closed position has no trades', () => {
@@ -233,7 +233,7 @@ describe('usePositionSheetData', () => {
       expect(result.current.perpTradeSymbol).toBe('BTC');
       expect(result.current.summaryTitle).toBe('2 BTC');
       expect(result.current.summaryTagLabel).toBe('40x Short');
-      expect(result.current.summarySubtitle).toBe('Opened · 2 hr ago');
+      expect(result.current.summarySubtitle).toBe('Opened · 2h ago');
       expect(result.current.markers[0].tooltipLabel).toMatch(
         /^Opened short @ \$107,469/,
       );
@@ -273,7 +273,7 @@ describe('usePositionSheetData', () => {
         true,
       );
 
-      expect(result.current.summarySubtitle).toBe('Closed · 3 d ago');
+      expect(result.current.summarySubtitle).toBe('Closed · 3d ago');
       expect(result.current.summaryTagLabel).toBe('40x Short');
     });
 

@@ -370,14 +370,28 @@ export function formatHoldDuration(durationMs: number): string {
   return `${Math.max(1, Math.floor(durationMs / MINUTE))}m`;
 }
 
+/** Days stay the unit through 59 days. 60 days is the first week label. */
+const POST_AGE_WEEK_AFTER_DAYS = 60;
+/** Weeks stay the unit through 89 days. 90 days is the first month label. */
+const POST_AGE_MONTH_AFTER_DAYS = 90;
+const POST_AGE_YEAR_AFTER_DAYS = 365;
+const POST_AGE_DAYS_PER_WEEK = 7;
+/** Months are counted in 30-day blocks, so 90 days is `3mo ago`. */
+const POST_AGE_DAYS_PER_MONTH = 30;
+const POST_AGE_DAYS_PER_YEAR = 365;
+
 /**
- * Spelled-out post age for Social V1 feed cards (e.g. `40 min ago`).
+ * Compact post age (e.g. `40m ago`, `8w ago`).
  *
- * The V1 post header gives the timestamp its own right-aligned column, so
- * unlike the compact V0 row ({@link formatFeedTimestamp}) there is room for the
- * unit and the "ago" suffix. Ages of a day or more stay relative here rather
- * than switching to a clock time, because a post's position in the feed is
- * already chronological and "3 d ago" reads faster than a bare date.
+ * - Under a minute, including a timestamp slightly in the future: "Just now".
+ * - Under an hour: `Nm ago`.
+ * - Under a day: `Nh ago`.
+ * - Under 60 days: `Nd ago`.
+ * - Under 90 days: `Nw ago`. 60 days is `8w ago`.
+ * - Under 365 days: `Nmo ago`, in 30-day months. 90 days is `3mo ago`.
+ * - 365 days and up: `Ny ago`, in 365-day years.
+ *
+ * Counts are floored. Ages of a day or more stay relative.
  */
 export function formatFeedPostAge(
   timestamp: number,
@@ -401,7 +415,25 @@ export function formatFeedPostAge(
     });
   }
 
-  return strings('social_leaderboard.feed.age.days', {
-    count: Math.floor(diff / DAY),
+  const days = Math.floor(diff / DAY);
+
+  if (days < POST_AGE_WEEK_AFTER_DAYS) {
+    return strings('social_leaderboard.feed.age.days', { count: days });
+  }
+
+  if (days < POST_AGE_MONTH_AFTER_DAYS) {
+    return strings('social_leaderboard.feed.age.weeks', {
+      count: Math.floor(days / POST_AGE_DAYS_PER_WEEK),
+    });
+  }
+
+  if (days < POST_AGE_YEAR_AFTER_DAYS) {
+    return strings('social_leaderboard.feed.age.months', {
+      count: Math.floor(days / POST_AGE_DAYS_PER_MONTH),
+    });
+  }
+
+  return strings('social_leaderboard.feed.age.years', {
+    count: Math.floor(days / POST_AGE_DAYS_PER_YEAR),
   });
 }

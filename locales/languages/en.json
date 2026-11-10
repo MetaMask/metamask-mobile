@@ -1387,9 +1387,12 @@
       "trade": "Trade",
       "just_now": "Just now",
       "age": {
-        "minutes": "{{count}} min ago",
-        "hours": "{{count}} hr ago",
-        "days": "{{count}} d ago"
+        "minutes": "{{count}}m ago",
+        "hours": "{{count}}h ago",
+        "days": "{{count}}d ago",
+        "weeks": "{{count}}w ago",
+        "months": "{{count}}mo ago",
+        "years": "{{count}}y ago"
       },
       "action": {
         "perps_opened": "opened",
