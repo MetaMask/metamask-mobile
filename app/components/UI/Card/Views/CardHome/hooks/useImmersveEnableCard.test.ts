@@ -285,4 +285,51 @@ describe('useImmersveEnableCard', () => {
     expect(result.current.provisioningView).toBe('provisioning');
     expect(result.current.canEnableCard).toBe(false);
   });
+
+  it('reports Enable card pending while a Money account link is in progress', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectImmersveMoneyAccountMode) {
+        return true;
+      }
+      if (selector === selectors.selectIsMoneyAccountCardLinkInProgress) {
+        return true;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard({
+        alerts: [{ type: 'card_provisioning', dismissable: false }],
+      } as never),
+    );
+
+    expect(result.current.isEnableCardPending).toBe(true);
+  });
+
+  it('does not report Enable card pending outside Money account mode', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectIsMoneyAccountCardLinkInProgress) {
+        return true;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard({
+        alerts: [{ type: 'card_provisioning', dismissable: false }],
+      } as never),
+    );
+
+    expect(result.current.isEnableCardPending).toBe(false);
+  });
 });

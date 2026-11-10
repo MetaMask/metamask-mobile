@@ -11,6 +11,7 @@ import {
   selectCardActiveProviderId,
   selectCardSelectedCountry,
   selectImmersveMoneyAccountMode,
+  selectIsMoneyAccountCardLinkInProgress,
 } from '../../../../../../selectors/cardController';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -60,6 +61,7 @@ export function useImmersveEnableCard(
   const providerId = useSelector(selectCardActiveProviderId);
   const isImmersve = providerId === CardProviderIds.Immersve;
   const isMoneyAccountMode = useSelector(selectImmersveMoneyAccountMode);
+  const isApproving = useSelector(selectIsMoneyAccountCardLinkInProgress);
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
 
   const { isReconciling, pendingAction, resumePendingAction, isProvisioning } =
@@ -145,5 +147,6 @@ export function useImmersveEnableCard(
     hasPendingAction: Boolean(pendingAction),
     provisioningView,
     setupStep,
+    isEnableCardPending: Boolean(isMoneyAccountMode && isApproving),
   };
 }
