@@ -145,25 +145,24 @@ export const sendSigned = async <Response>(
  * Two-phase signed read (ADR-0004): `send()` first goes out bearer-only and
  * answers with a `sign_required` proposal, which the phone L1-checks and
  * signs, then re-calls the SAME route URL with the envelope and the
- * proposal token. A response that says the signature or the A2T is stale is
- * proposed and signed again (without a fresh confirmation) once; a second
- * failure is the caller's error. Anything the proposal flow does not
- * describe — an error status, an unexpected body — is returned as-is so the
- * caller treats it like an ordinary response.
+ * proposal token. A route whose DTO needs several upstream reads chains
+ * them: every fulfilled relayed read answers with the NEXT `sign_required`
+ * proposal, and the phone signs again — each proposal is L1-checked, so a
+ * proposal outside the profile's allowlist is refused, and the chain is
+ * bounded at `MAX_READ_PROPOSALS`. A response that says the signature or
+ * the A2T is stale is proposed and signed again (without a fresh
+ * confirmation) once; a second failure is the caller's error. Anything the
+ * proposal flow does not describe — an error status, an unexpected body —
+ * is returned as-is so the caller treats it like an ordinary response.
  */
+const MAX_READ_PROPOSALS = 10;
+
 export const sendSignedRead = async <Response>(
   deps: SignedReadDependencies,
-  send: (
-    deviceAuth?: DeviceAuthHeader,
-    proposal?: string,
-  ) => Promise<Response>,
-  readAttempt: (
-    response: Response,
-  ) => Promise<SignedAttempt> | SignedAttempt,
+  send: (deviceAuth?: DeviceAuthHeader, proposal?: string) => Promise<Response>,
+  readAttempt: (response: Response) => Promise<SignedAttempt> | SignedAttempt,
 ): Promise<Response> => {
-  const sign = async (
-    proposed: ProposedRead,
-  ): Promise<DeviceAuthHeader> => {
+  const sign = async (proposed: ProposedRead): Promise<DeviceAuthHeader> => {
     let header: DeviceAuthHeader | undefined;
     try {
       header = await deps.signRead(proposed);
@@ -180,45 +179,66 @@ export const sendSignedRead = async <Response>(
     return header;
   };
 
-  const attempt = async (retried: boolean): Promise<Response> => {
-    // Phase one: the proposal GET. No header, no signature.
-    const proposed = await send();
-    const described = await readAttempt(proposed);
-    if (
-      typeof described.signRequired !== 'object' ||
-      described.signRequired === null
-    ) {
-      return proposed;
+  /** Reads one response's `sign_required` proposal, when it names one the
+   * phone can act on. */
+  const describedProposal = async (
+    response: Response,
+  ): Promise<{ request: ProposedRead; proposal: string } | undefined> => {
+    const described = await readAttempt(response);
+    const signRequired = described.signRequired;
+    if (typeof signRequired !== 'object' || signRequired === null) {
+      return undefined;
     }
-    const request = described.signRequired.request;
-    const proposal = described.signRequired.proposal;
+    const request = signRequired.request;
+    const proposal = signRequired.proposal;
     if (
       !request ||
       typeof request !== 'object' ||
-      typeof (request as ProposedRead).method !== 'string' ||
-      typeof (request as ProposedRead).path !== 'string' ||
-      typeof (request as ProposedRead).query !== 'string' ||
+      typeof request.method !== 'string' ||
+      typeof request.path !== 'string' ||
+      typeof request.query !== 'string' ||
       typeof proposal !== 'string' ||
       proposal.length === 0
     ) {
+      return undefined;
+    }
+    return { request, proposal };
+  };
+
+  const attempt = async (retried: boolean): Promise<Response> => {
+    // Phase one: the proposal GET. No header, no signature.
+    const proposed = await send();
+    const first = await describedProposal(proposed);
+    if (first === undefined) {
       return proposed;
     }
-    // Phase two: sign the proposed upstream bytes and re-call.
-    const response = await send(
-      await sign(request as ProposedRead),
-      proposal,
+    // Phase two: sign each proposed upstream read and re-call. A fulfilled
+    // read may itself answer with the next `sign_required` proposal of the
+    // route's relay plan.
+    let signed = first;
+    for (let hop = 0; hop < MAX_READ_PROPOSALS; hop += 1) {
+      const response = await send(await sign(signed.request), signed.proposal);
+      const next = await describedProposal(response);
+      if (next === undefined) {
+        if (retried) {
+          return response;
+        }
+        const retry = await readAttempt(response);
+        if (!isRenewable(retry)) {
+          return response;
+        }
+        if (retry.code === 'venue_authorization_invalid') {
+          deps.invalidateSigningSession();
+        }
+        return attempt(true);
+      }
+      signed = next;
+    }
+    Logger.log(
+      'PredictNext: venue read relay exceeded its proposal bound',
+      MAX_READ_PROPOSALS,
     );
-    if (retried) {
-      return response;
-    }
-    const retry = await readAttempt(response);
-    if (!isRenewable(retry)) {
-      return response;
-    }
-    if (retry.code === 'venue_authorization_invalid') {
-      deps.invalidateSigningSession();
-    }
-    return attempt(true);
+    throw new VenueSigningUnavailableError();
   };
 
   return attempt(false);

@@ -85,6 +85,13 @@ export const predictPortfolioServiceInit: MessengerClientInitFunction<
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),
+      // Balance and position reads are device-signed; without signRead the
+      // client refuses to send them (PredictRequestNotSentError) and the
+      // balance card always shows the generic error.
+      signRead: (proposed) =>
+        initMessenger.call('PredictDeviceAuthService:signRead', proposed),
+      invalidateSigningSession: () =>
+        initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
     }),
   );
   return {

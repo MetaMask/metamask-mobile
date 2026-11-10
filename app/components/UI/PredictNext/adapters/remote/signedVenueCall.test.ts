@@ -241,9 +241,11 @@ describe('sendSignedRead', () => {
       }
       return {
         status: response.status,
-        signRequired: (response as unknown as {
-          json?: () => Promise<typeof PROPOSAL_BODY>;
-        }).json
+        signRequired: (
+          response as unknown as {
+            json?: () => Promise<typeof PROPOSAL_BODY>;
+          }
+        ).json
           ? PROPOSAL_BODY
           : null,
       };
@@ -272,6 +274,66 @@ describe('sendSignedRead', () => {
 
     expect(send).toHaveBeenCalledTimes(1);
     expect(signRead).not.toHaveBeenCalled();
+  });
+
+  it('follows a chained proposal: signs each relayed read in turn', async () => {
+    // The second sign_required carries a different proposal token.
+    const chained = {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        kind: 'sign_required',
+        request: { method: 'GET', path: '/upstream/positions', query: '' },
+        proposal: 'token-2',
+      }),
+    } as unknown as Response;
+    const send = jest
+      .fn()
+      .mockResolvedValueOnce(propose)
+      .mockResolvedValueOnce(chained)
+      .mockResolvedValueOnce(result);
+    const signRead = jest.fn().mockResolvedValue(HEADER);
+    const readAttempt = async (response: Response) => ({
+      status: response.status,
+      signRequired: (response as unknown as { json?: unknown }).json
+        ? ((await response.json()) as typeof PROPOSAL_BODY)
+        : null,
+    });
+
+    const returned = await sendSignedRead(
+      { signRead, invalidateSigningSession: jest.fn() },
+      send,
+      readAttempt,
+    );
+
+    expect(returned).toBe(result);
+    expect(send).toHaveBeenCalledTimes(3);
+    expect(signRead).toHaveBeenNthCalledWith(1, PROPOSAL_BODY.request);
+    expect(signRead).toHaveBeenNthCalledWith(2, {
+      method: 'GET',
+      path: '/upstream/positions',
+      query: '',
+    });
+  });
+
+  it('stops at its proposal bound instead of looping forever', async () => {
+    const send = jest.fn().mockResolvedValue(propose);
+    const signRead = jest.fn().mockResolvedValue(HEADER);
+    const readAttempt = async (response: Response) => ({
+      status: response.status,
+      signRequired: (response as unknown as { json?: unknown }).json
+        ? ((await response.json()) as typeof PROPOSAL_BODY)
+        : null,
+    });
+
+    await expect(
+      sendSignedRead(
+        { signRead, invalidateSigningSession: jest.fn() },
+        send,
+        readAttempt,
+      ),
+    ).rejects.toBeInstanceOf(VenueSigningUnavailableError);
+    expect(signRead).toHaveBeenCalledTimes(10);
   });
 
   it('re-proposes and signs again once when the signature expired', async () => {
