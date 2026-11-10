@@ -321,7 +321,7 @@ export default class MockServerE2E implements Resource {
         responseCode: 404,
         response: { error: 'Profile not found' },
       },
-      1,
+      2,
     );
 
     await this._server
