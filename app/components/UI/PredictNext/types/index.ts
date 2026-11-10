@@ -504,6 +504,12 @@ export interface PredictEntryContext {
   outcomeLabel: string;
   /** The most specific approved image: the Market's, else the Event's. */
   imageUrl?: PredictHttpsUrl;
+  /**
+   * Ordered, display-ready parts naming the Market beyond its Outcome, such
+   * as `["Josh Jacobs", "60+"]` for a threshold line whose Outcome label is
+   * only "Yes" or "No". Absent when the Outcome label names it alone.
+   */
+  marketLabels?: string[];
 }
 
 /** `open` until the Market's result is determined. `claimable` needs a
