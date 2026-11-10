@@ -1085,6 +1085,9 @@ describe('EarningsTab tax documentation', () => {
         },
       }),
     );
+    expect(
+      view.queryByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('claims and shows the renewal question when the answer is about to expire', async () => {
