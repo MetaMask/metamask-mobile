@@ -326,14 +326,12 @@ const MoneyHomeView = () => {
   );
   const { data: cardHomeData, primaryToken: cardPrimaryToken } =
     useCardHomeData();
-  const { enableCard, provisioningView, setupStep } = useCardEnableCard(
-    cardHomeData,
-    {
+  const { enableCard, provisioningView, setupStep, isEnableCardPending } =
+    useCardEnableCard(cardHomeData, {
       pollIntervalMs: cardSetupPollIntervalMs,
       navigateFromOutsideCard: true,
       recheckOnFocus: true,
-    },
-  );
+    });
   const cardSetupView = deriveMoneyCardSetupView({
     hasProvisioningAlert: (cardHomeData?.alerts ?? []).some(
       (cardAlert) => cardAlert.type === 'card_provisioning',
@@ -998,6 +996,7 @@ const MoneyHomeView = () => {
             onManagePress={navigateToCardHome}
             setupView={cardSetupView ?? undefined}
             onSetupContinuePress={enableCard ?? navigateToCardHome}
+            isSetupContinueLoading={isEnableCardPending}
             showMetalCard={hasMetalCard}
             isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}

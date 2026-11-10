@@ -61,6 +61,8 @@ interface MoneyMetaMaskCardProps {
   onManagePress?: () => void;
   setupView?: MoneyCardSetupView;
   onSetupContinuePress?: () => void;
+  /** True while a Money account funding approval is running in the background. */
+  isSetupContinueLoading?: boolean;
   onHeaderPress?: (mode: MoneyMetaMaskCardMode) => void;
   /**
    * Whether the user holds a Metal card. When true, link/manage layouts use the
@@ -284,9 +286,11 @@ const HEADER_TITLE_KEY_BY_MODE = {
 const SetupContent = ({
   setupView,
   onContinue,
+  isContinueLoading = false,
 }: {
   setupView: MoneyCardSetupView;
   onContinue: () => void;
+  isContinueLoading?: boolean;
 }) => {
   const tw = useTailwind();
 
@@ -314,6 +318,7 @@ const SetupContent = ({
         messageType={CardMessageBoxType.SetupIncomplete}
         values={{ step: setupView.step }}
         onConfirm={onContinue}
+        onConfirmLoading={isContinueLoading}
       />
     );
   }
@@ -332,6 +337,7 @@ const MoneyMetaMaskCard = ({
   onManagePress,
   onSetupContinuePress,
   setupView,
+  isSetupContinueLoading = false,
   onHeaderPress,
   showMetalCard = false,
   isLinkDisabled = false,
@@ -503,6 +509,7 @@ const MoneyMetaMaskCard = ({
       <SetupContent
         setupView={setupView}
         onContinue={handleSetupContinuePress}
+        isContinueLoading={isSetupContinueLoading}
       />
     ) : null;
   } else if (mode === 'verifying') {
