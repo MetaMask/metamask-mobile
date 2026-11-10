@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -11,21 +11,11 @@ import {
   ButtonIconSize,
   ButtonIcon,
   FontWeight,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
-  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
@@ -44,6 +34,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { MoneyFaqList } from '../../components/MoneyFaqList/MoneyFaqList';
 
 const localStyles = StyleSheet.create({
   safeArea: { flex: 1 },
@@ -51,92 +42,6 @@ const localStyles = StyleSheet.create({
 });
 
 const SectionDivider = () => <Box twClassName="h-px bg-border-muted my-5" />;
-const FaqDivider = () => <Box twClassName="h-px bg-border-muted" />;
-
-const FAQ_KEYS = [
-  'faq_q1',
-  'faq_q2',
-  'faq_q3',
-  'faq_q4',
-  'faq_q5',
-  'faq_q6',
-  'faq_q7',
-  'faq_q8',
-  'faq_q9',
-  'faq_q10',
-] as const;
-
-const ANIMATION_DURATION = 200;
-
-const FaqItem = ({
-  question,
-  answer,
-  link,
-  testID,
-}: {
-  question: string;
-  answer: string;
-  link?: { label: string; testID: string; onPress: () => void };
-  testID: string;
-}) => {
-  const [expanded, setExpanded] = useState(false);
-  const rotation = useSharedValue(0);
-
-  const animatedArrowStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
-  const handlePress = useCallback(() => {
-    setExpanded((prev) => {
-      rotation.value = withTiming(prev ? 0 : 180, {
-        duration: ANIMATION_DURATION,
-        easing: Easing.out(Easing.ease),
-      });
-      return !prev;
-    });
-  }, [rotation]);
-
-  return (
-    <Pressable onPress={handlePress} testID={testID}>
-      <Box twClassName="py-5 px-4">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-2"
-        >
-          <Box twClassName="flex-1">
-            <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-              {question}
-            </Text>
-          </Box>
-          <Animated.View style={animatedArrowStyle}>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Md}
-              color={IconColor.IconDefault}
-            />
-          </Animated.View>
-        </Box>
-        {expanded && (
-          <Box twClassName="mt-3">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {answer}
-              {link && (
-                <TextButton onPress={link.onPress} testID={link.testID}>
-                  {link.label}
-                </TextButton>
-              )}
-            </Text>
-          </Box>
-        )}
-      </Box>
-    </Pressable>
-  );
-};
 
 const MoneyHowItWorksView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -249,33 +154,13 @@ const MoneyHowItWorksView = () => {
           </Text>
         </Box>
 
-        {FAQ_KEYS.map((key, index) => {
-          const number = index + 1;
-          return (
-            <React.Fragment key={key}>
-              {index > 0 && <FaqDivider />}
-              <FaqItem
-                question={strings(`money.how_it_works_page.${key}`, {
-                  percentage: apyPercent,
-                })}
-                answer={strings(`money.how_it_works_page.faq_a${number}`, {
-                  percentage: apyPercent,
-                  tokenBullets,
-                })}
-                link={
-                  number === 4
-                    ? {
-                        label: strings('money.how_it_works_page.faq_a4_link'),
-                        testID: MoneyHowItWorksViewTestIds.FAQ_LINK,
-                        onPress: handleCardFeesPress,
-                      }
-                    : undefined
-                }
-                testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(number)}
-              />
-            </React.Fragment>
-          );
-        })}
+        <MoneyFaqList
+          apyPercent={apyPercent}
+          tokenBullets={tokenBullets}
+          onCardFeesPress={handleCardFeesPress}
+          itemTestId={MoneyHowItWorksViewTestIds.FAQ_ITEM}
+          linkTestId={MoneyHowItWorksViewTestIds.FAQ_LINK}
+        />
 
         <SectionDivider />
 
