@@ -72,7 +72,7 @@ const OnboardingStep = ({
   const renderContent = () => (
     <>
       {/* Title and Description - prevent from shrinking when keyboard opens */}
-      <Box twClassName="gap-4 my-2 shrink-0">
+      <Box twClassName="gap-1 mt-3 mb-2 shrink-0">
         {/* Title */}
         <Text
           variant={TextVariant.HeadingLg}
