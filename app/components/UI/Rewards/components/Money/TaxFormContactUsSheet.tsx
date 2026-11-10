@@ -1,9 +1,13 @@
-import React, { useCallback, useRef } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useCallback } from 'react';
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
-  type BottomSheetRef,
   Box,
   Button,
   ButtonSize,
@@ -23,43 +27,53 @@ export interface TaxFormContactUsSheetParams {
   title: string;
   description: string;
   contactLabel: string;
+  /**
+   * Set once support has opened. Backing out of support focuses this sheet
+   * again, and the sheet closes. Absent until then, so dismissing the consent
+   * sheet leaves this sheet up.
+   */
+  closeOnSupportReturn?: boolean;
 }
 
 const TaxFormContactUsSheet: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const params = route.params as TaxFormContactUsSheetParams;
-  const sheetRef = useRef<BottomSheetRef>(null);
   const { openSupportWithConsent } = useSupportConsent();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!params.closeOnSupportReturn) {
+        return undefined;
+      }
+      navigation.goBack();
+      return undefined;
+    }, [navigation, params.closeOnSupportReturn]),
+  );
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleContactSupport = useCallback(() => {
-    const openWebview = (url: string) =>
+    const betaSupportUrl = getBetaSupportUrl();
+    const openWebview = (url: string) => {
+      navigation.dispatch(
+        CommonActions.setParams({ closeOnSupportReturn: true }),
+      );
       openContactSupportWebview(navigation, url);
-    const openSupport = () => {
-      const betaSupportUrl = getBetaSupportUrl();
-      if (betaSupportUrl) {
-        openWebview(betaSupportUrl);
-        return;
-      }
-      openSupportWithConsent(openWebview, METAMASK_SUPPORT_URL);
     };
 
-    // The consent sheet and the webview live on the root navigator, and iOS
-    // presents them over this sheet. Dismissing this sheet afterwards would
-    // dismiss them with it, and presenting while it is still dismissing is
-    // dropped, so start support a frame after this sheet has gone.
-    sheetRef.current?.onCloseBottomSheet(() => {
-      requestAnimationFrame(openSupport);
-    });
+    if (betaSupportUrl) {
+      openWebview(betaSupportUrl);
+      return;
+    }
+
+    openSupportWithConsent(openWebview, METAMASK_SUPPORT_URL);
   }, [navigation, openSupportWithConsent]);
 
   return (
     <BottomSheet
-      ref={sheetRef}
       goBack={navigation.goBack}
       testID={TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER}
     >

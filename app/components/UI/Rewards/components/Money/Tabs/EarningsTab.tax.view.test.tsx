@@ -1085,8 +1085,18 @@ describe('EarningsTab tax documentation', () => {
         },
       }),
     );
+    // Support covers the sheet. Backing out of support closes the sheet.
+    fireEvent.press(view.getByTestId('rewards-root-modal-back'));
+
+    await waitFor(() => {
+      expect(
+        view.queryByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
     expect(
-      view.queryByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
+      view.queryByTestId(
+        getRouteParamsProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW),
+      ),
     ).not.toBeOnTheScreen();
   });
 

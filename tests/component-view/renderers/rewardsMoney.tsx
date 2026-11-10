@@ -3,7 +3,11 @@ import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
 import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
 import Engine from '../../../app/core/Engine';
@@ -45,6 +49,7 @@ import type {
 import Routes from '../../../app/constants/navigation/Routes';
 import {
   createRouteParamsProbe,
+  getRouteParamsProbeTestId,
   getRouteProbeTestId,
   renderScreenWithRoutes,
 } from '../render';
@@ -299,6 +304,24 @@ function RewardsFlowProbe() {
   );
 }
 
+function RootModalFlowProbe() {
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  return (
+    <>
+      <Text testID={getRouteParamsProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW)}>
+        {JSON.stringify(route.params ?? {})}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        testID="rewards-root-modal-back"
+        onPress={() => navigation.goBack()}
+      />
+    </>
+  );
+}
+
 function rewardsFlowRoutes() {
   return [
     { name: Routes.REWARDS_FLOW, Component: RewardsFlowProbe },
@@ -334,7 +357,7 @@ function rewardsFlowRoutes() {
     },
     {
       name: Routes.MODAL.ROOT_MODAL_FLOW,
-      Component: createRouteParamsProbe(Routes.MODAL.ROOT_MODAL_FLOW),
+      Component: RootModalFlowProbe,
     },
   ];
 }
