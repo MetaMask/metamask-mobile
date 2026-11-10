@@ -58,6 +58,9 @@
       "@metamask/eth-money-keyring/v2": [
         "node_modules/@metamask/eth-money-keyring/dist/v2/index.d.cts"
       ],
+      "@metamask/eth-money-mpc-keyring/v2": [
+        "node_modules/@metamask/eth-money-mpc-keyring/dist/v2/index.d.mts"
+      ],
       "@metamask/design-system-react-native/spinner": [
         "node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
       ],
