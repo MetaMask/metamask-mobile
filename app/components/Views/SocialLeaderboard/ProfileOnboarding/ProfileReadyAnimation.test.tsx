@@ -104,7 +104,7 @@ describe('ProfileReadyAnimation', () => {
     expect(lastBound(PROFILE_READY_RIVE_PATHS.IS_VERIFIED)).toBe(false);
   });
 
-  it('updates the badge binding when server verification changes', () => {
+  it('updates the Rive verification binding when isVerified changes', () => {
     const props = {
       displayName: 'Wen Cat',
       handle: 'wen-cat',

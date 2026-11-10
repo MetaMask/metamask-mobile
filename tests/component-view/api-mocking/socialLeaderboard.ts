@@ -12,6 +12,8 @@ import type {
   FeedItem as CoreFeedItem,
   Position as SocialPosition,
   SwapCommentResponse,
+  FollowingResponse,
+  TraderProfileResponse,
 } from '@metamask/social-controllers';
 import Engine from '../../../app/core/Engine';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
@@ -171,6 +173,12 @@ export interface LeaderboardApiMockOptions {
    */
   feedFailuresBeforeSuccess?: number;
   openPositions?: SocialPosition[];
+  /** Profiles returned by `fetchFollowing`. Omit to leave unintercepted. */
+  following?: FollowingResponse['following'];
+  /** Response from `fetchTraderProfile`; null means no trader data. */
+  traderProfile?: TraderProfileResponse | null;
+  /** Items returned by `fetchTraderFeed`. Omit to leave unintercepted. */
+  traderFeedItems?: CoreFeedItem[];
   swapComment?: SwapCommentResponse;
 }
 
@@ -199,6 +207,9 @@ export function setupLeaderboardApiMock(
     leaderboardFailuresBeforeSuccess = 0,
     feedFailuresBeforeSuccess = 0,
     openPositions,
+    following,
+    traderProfile,
+    traderFeedItems,
     swapComment,
   } = options;
 
@@ -220,6 +231,31 @@ export function setupLeaderboardApiMock(
         { chains?: string[] } | undefined,
         ...unknown[],
       ];
+
+      if (
+        following !== undefined &&
+        action === 'SocialService:fetchFollowing'
+      ) {
+        return Promise.resolve({ following }) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
+      if (
+        traderProfile !== undefined &&
+        action === 'SocialService:fetchTraderProfile'
+      ) {
+        return Promise.resolve(traderProfile) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
+      if (
+        traderFeedItems !== undefined &&
+        action === 'SocialService:fetchTraderFeed'
+      ) {
+        return Promise.resolve({ items: traderFeedItems }) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
 
       if (action === 'SocialService:fetchFeed') {
         if (remainingFeedFailures > 0) {

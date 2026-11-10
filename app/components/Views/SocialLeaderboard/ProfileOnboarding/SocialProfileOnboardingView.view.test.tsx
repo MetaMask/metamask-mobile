@@ -1,8 +1,8 @@
 /**
  * Component-view coverage for the manual profile onboarding flow.
  *
- * Account rows come from Redux (AccountsController). The profile itself is an
- * in-memory store, so the test restores that store after each run.
+ * Account rows and server-owned profiles come from Redux. Tests restore the
+ * Engine state and local avatar overlay after each run.
  *
  * Run with:
  * yarn jest -c jest.config.view.js app/components/Views/SocialLeaderboard/ProfileOnboarding/SocialProfileOnboardingView.view.test.tsx --runInBand --silent --coverage=false
@@ -314,7 +314,18 @@ describe('SocialProfileOnboardingView', () => {
           ProfileController: { profile: created },
         };
         store.dispatch(updateBgState({ key: 'ProfileController' }));
-        resolveCreate(created);
+      });
+      // Controller state alone must not verify the ready card before the
+      // creation request succeeds.
+      expect(letsGoDisabled()).toBe(true);
+      expect(
+        screen.queryByTestId(
+          SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE,
+        ),
+      ).not.toBeOnTheScreen();
+
+      await act(async () => {
+        resolveCreate({ ...CREATED_PROFILE, verified });
       });
       await waitFor(() => expect(letsGoDisabled()).toBe(false));
 
@@ -1094,7 +1105,11 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
     ).toHaveTextContent('@degangirl');
-    expect(screen.getByText('View profile')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.profile_onboarding.view_profile'),
+      ),
+    ).toBeOnTheScreen();
 
     await waitFor(() => expect(letsGoDisabled()).toBe(false));
 
