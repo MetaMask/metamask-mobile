@@ -13,6 +13,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SectionDivider,
   Spinner,
   TabEmptyState,
   Text,
@@ -913,7 +914,11 @@ const MyProfileView: React.FC = () => {
               gap={2}
               paddingHorizontal={4}
               paddingBottom={
-                overlayedStats.performanceCells.length === 0 ? 8 : undefined
+                isPrivate
+                  ? 3
+                  : overlayedStats.performanceCells.length === 0
+                    ? 8
+                    : undefined
               }
             >
               {isOwner ? (
@@ -1018,62 +1023,73 @@ const MyProfileView: React.FC = () => {
                 />
               </Box>
             ) : isPrivate ? (
-              <Box alignItems={BoxAlignItems.Center} twClassName="px-8 py-12">
-                <TabEmptyState
-                  icon={
-                    <Box alignItems={BoxAlignItems.Center} gap={4}>
+              <>
+                <SectionDivider marginVertical={4} />
+                <Box alignItems={BoxAlignItems.Center} twClassName="px-8 py-12">
+                  <TabEmptyState
+                    icon={
                       <Box
-                        accessibilityElementsHidden
-                        importantForAccessibility="no-hide-descendants"
+                        alignItems={BoxAlignItems.Center}
+                        gap={4}
+                        twClassName="w-full"
                       >
-                        <Icon
-                          name={IconName.EyeSlash}
-                          size={IconSize.Xl}
-                          color={IconColor.IconDefault}
-                        />
+                        <Box
+                          accessibilityElementsHidden
+                          importantForAccessibility="no-hide-descendants"
+                        >
+                          <Icon
+                            name={IconName.EyeSlash}
+                            size={IconSize.Xl}
+                            color={IconColor.IconDefault}
+                          />
+                        </Box>
+                        <Box gap={1} twClassName="w-full">
+                          <Text
+                            variant={TextVariant.HeadingSm}
+                            twClassName="text-center"
+                          >
+                            {strings(
+                              isOwner
+                                ? 'social_leaderboard.trader_profile.private_title_own'
+                                : 'social_leaderboard.trader_profile.private_title',
+                            )}
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                            numberOfLines={3}
+                            ellipsizeMode="tail"
+                            twClassName="text-center"
+                          >
+                            {isOwner
+                              ? strings(
+                                  'social_leaderboard.trader_profile.private_description_own',
+                                )
+                              : strings(
+                                  'social_leaderboard.trader_profile.private_description',
+                                  { name: displayProfile.handle },
+                                )}
+                          </Text>
+                        </Box>
                       </Box>
-                      <Text
-                        variant={TextVariant.HeadingSm}
-                        twClassName="text-center"
-                      >
-                        {strings(
-                          isOwner
-                            ? 'social_leaderboard.trader_profile.private_title_own'
-                            : 'social_leaderboard.trader_profile.private_title',
-                        )}
-                      </Text>
-                    </Box>
-                  }
-                  description={
-                    isOwner
-                      ? strings(
-                          'social_leaderboard.trader_profile.private_description_own',
-                        )
-                      : strings(
-                          'social_leaderboard.trader_profile.private_description',
-                          { name: displayProfile.handle },
-                        )
-                  }
-                  descriptionProps={{
-                    numberOfLines: 3,
-                    ellipsizeMode: 'tail',
-                    twClassName: 'text-center -mt-2',
-                  }}
-                  actionButtonText={
-                    isOwner
-                      ? strings(
-                          'social_leaderboard.trader_profile.privacy_settings',
-                        )
-                      : undefined
-                  }
-                  onAction={isOwner ? handleOpenPrivacySettings : undefined}
-                  actionButtonProps={{
-                    testID: MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
-                  }}
-                  twClassName="max-w-80"
-                  testID={MyProfileViewSelectorsIDs.PRIVATE_STATE}
-                />
-              </Box>
+                    }
+                    actionButtonText={
+                      isOwner
+                        ? strings(
+                            'social_leaderboard.trader_profile.privacy_settings',
+                          )
+                        : undefined
+                    }
+                    onAction={isOwner ? handleOpenPrivacySettings : undefined}
+                    actionButtonProps={{
+                      twClassName: 'self-center rounded-xl',
+                      testID: MyProfileViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
+                    }}
+                    twClassName="w-full max-w-none"
+                    testID={MyProfileViewSelectorsIDs.PRIVATE_STATE}
+                  />
+                </Box>
+              </>
             ) : (
               <>
                 <MyProfilePerformanceStats
