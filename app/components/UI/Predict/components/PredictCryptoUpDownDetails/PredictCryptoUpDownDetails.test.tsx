@@ -623,6 +623,31 @@ describe('PredictCryptoUpDownDetails', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides the chart for a gold market and keeps the price to beat', () => {
+    const goldSeries: PredictSeries = {
+      id: '12967',
+      slug: 'gold-up-or-down-15m',
+      title: 'Gold Up or Down 15m',
+      recurrence: '15m',
+    };
+    const market = createMockMarket({
+      slug: 'xau-updown-15m-1794338100',
+      tags: ['finance', 'gold', 'up-or-down'],
+      series: goldSeries,
+      priceToBeat: 4031.35,
+    });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(
+      screen.queryByTestId('mock-predict-crypto-up-down-chart'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY),
+    ).toBeOnTheScreen();
+  });
+
   it('uses the Bitcoin accent color for BTC markets', () => {
     const market = createMockMarket({
       slug: 'btc-up-or-down-5m',

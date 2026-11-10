@@ -47,6 +47,7 @@ import { usePredictSeries } from '../../hooks/usePredictSeries';
 import {
   RECURRENCE_TO_DURATION_SECS,
   getCryptoSymbol,
+  isMetalSymbol,
   getEventStartTime,
   getVariant,
   resolveCryptoTargetPrice,
@@ -690,15 +691,19 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
           </Box>
         </Box>
 
-        <Box twClassName="px-4 pt-1">
-          <PredictCryptoUpDownChart
-            market={liveMarketForChart}
-            targetPrice={chartTargetPrice}
-            onCurrentPriceChange={handleCurrentPriceChange}
-            color={currentPriceAccentColor}
-            height={chartAreaHeight}
-          />
-        </Box>
+        {/* No price history or live feed serves metals yet, so their chart
+            would only ever show the connection-error state. */}
+        {!isMetalSymbol(targetPriceSymbol) && (
+          <Box twClassName="px-4 pt-1">
+            <PredictCryptoUpDownChart
+              market={liveMarketForChart}
+              targetPrice={chartTargetPrice}
+              onCurrentPriceChange={handleCurrentPriceChange}
+              color={currentPriceAccentColor}
+              height={chartAreaHeight}
+            />
+          </Box>
+        )}
 
         {hasPositions && (
           <Box twClassName="pt-2">

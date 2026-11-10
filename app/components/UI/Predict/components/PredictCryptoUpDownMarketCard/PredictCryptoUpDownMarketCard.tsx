@@ -59,6 +59,7 @@ import type { PredictEntryPoint } from '../../types/navigation';
 import {
   getEventStartTime,
   getCryptoSymbol,
+  isMetalSymbol,
   getVariant,
   resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
@@ -1236,7 +1237,10 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const imageUrl = selectedMarket.image || market.image;
   const displayTargetPrice =
     typeof validatedTargetPrice === 'number'
-      ? formatPrice(validatedTargetPrice, { maximumDecimals: 0 })
+      ? formatPrice(validatedTargetPrice, {
+          // Whole dollars would hide a gold window's move ($4,030 → $4,030).
+          maximumDecimals: isMetalSymbol(symbol) ? 2 : 0,
+        })
       : undefined;
 
   const handleCardPress = useCallback(() => {

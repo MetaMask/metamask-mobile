@@ -49,6 +49,7 @@ jest.mock('../utils/cryptoUpDown', () => ({
   getCryptoSymbol: (...args: unknown[]) => mockGetCryptoSymbol(...args),
   getVariant: (...args: unknown[]) => mockGetVariant(...args),
   getEventStartTime: (...args: unknown[]) => mockGetEventStartTime(...args),
+  isMetalSymbol: (symbol?: string) => symbol === 'XAU' || symbol === 'XAG',
   RECURRENCE_TO_DURATION_SECS: {
     '5m': 300,
     '15m': 900,
@@ -1565,6 +1566,35 @@ describe('useCryptoUpDownChartData', () => {
         variant: 'fiveminute',
         endDate: undefined,
       });
+    });
+
+    it('skips price history for metals and still subscribes to live ticks', () => {
+      mockGetCryptoSymbol.mockReturnValue('XAU');
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        slug: 'xau-updown-15m-1794338100',
+        tags: ['finance', 'gold', 'up-or-down'],
+      });
+      let fetched = false;
+      mockCryptoPriceHistoryOptions.mockImplementation(() => ({
+        queryKey: ['predict', 'cryptoPriceHistory', 'XAU'],
+        queryFn: async () => {
+          fetched = true;
+          return historicalData;
+        },
+      }));
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      expect(mockLastUseQueryConfig.current?.enabled).toBe(false);
+      expect(fetched).toBe(false);
+      expect(result.current.data).toEqual([]);
+      expect(mockUseLiveCryptoPrices).toHaveBeenCalledWith(
+        'xau/usd',
+        expect.any(Function),
+      );
     });
 
     it('passes the lowercase websocket symbol to useLiveCryptoPrices', () => {

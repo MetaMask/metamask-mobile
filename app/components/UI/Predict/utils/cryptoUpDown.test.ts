@@ -3,6 +3,9 @@ import {
   UP_OR_DOWN_TAG,
   CRYPTO_TAG,
   getCryptoSymbol,
+  GOLD_TAG,
+  isMetalSymbol,
+  SILVER_TAG,
   getVariant,
   getEventStartTime,
   getMarketTargetPrice,
@@ -154,6 +157,52 @@ describe('cryptoUpDown utilities', () => {
 
       expect(result).toBe(false);
     });
+
+    it.each([
+      [GOLD_TAG, 'xau-updown-15m-1794338100', 'gold-up-or-down-15m'],
+      [SILVER_TAG, 'xag-updown-15m-1794338100', 'silver-up-or-down-15m'],
+    ])(
+      'returns true for a %s 15m series market without the crypto tag',
+      (assetTag, slug, seriesSlug) => {
+        const market = createMockMarket({
+          slug,
+          series: {
+            id: 's1',
+            slug: seriesSlug,
+            title: 'Up or Down 15m',
+            recurrence: '15m',
+          },
+          tags: [
+            'finance',
+            assetTag,
+            '15M',
+            'up-or-down',
+            'hide-from-new',
+            'recurring',
+          ],
+        });
+
+        const result = isCryptoUpDown(market);
+
+        expect(result).toBe(true);
+      },
+    );
+
+    it('returns false for a gold market without the up-or-down tag', () => {
+      const market = createMockMarket({
+        series: {
+          id: 's1',
+          slug: 'gold-weekly',
+          title: 'Gold weekly',
+          recurrence: 'weekly',
+        },
+        tags: ['finance', 'gold'],
+      });
+
+      const result = isCryptoUpDown(market);
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('getCryptoSymbol', () => {
@@ -227,6 +276,43 @@ describe('cryptoUpDown utilities', () => {
       expect(result).toBe('HYPE');
     });
 
+    it('returns XAU when market has gold tag', () => {
+      const market = createMockMarket({ tags: ['finance', 'gold'] });
+
+      const result = getCryptoSymbol(market);
+
+      expect(result).toBe('XAU');
+    });
+
+    it('returns XAG when market has silver tag', () => {
+      const market = createMockMarket({ tags: ['finance', 'silver'] });
+
+      const result = getCryptoSymbol(market);
+
+      expect(result).toBe('XAG');
+    });
+
+    it.each([
+      ['xau-updown-15m-1794338100', 'XAU'],
+      ['xag-updown-15m-1794338100', 'XAG'],
+    ])('returns the metal symbol from slug %s', (slug, expected) => {
+      const market = createMockMarket({
+        slug,
+        // No asset tag in the symbol map, so the slug prefix decides.
+        tags: ['crypto', 'up-or-down'],
+        series: {
+          id: 's1',
+          slug: 'metal-up-or-down-15m',
+          title: 'Up or Down 15m',
+          recurrence: '15m',
+        },
+      });
+
+      const result = getCryptoSymbol(market);
+
+      expect(result).toBe(expected);
+    });
+
     it('returns symbol from slug when no matching tag', () => {
       const market = createMockMarket({
         slug: 'btc-up-or-down-5m',
@@ -275,6 +361,16 @@ describe('cryptoUpDown utilities', () => {
       const result = getCryptoSymbol(market);
 
       expect(result).toBe('ETH');
+    });
+  });
+
+  describe('isMetalSymbol', () => {
+    it.each(['XAU', 'XAG', 'xau', 'xag'])('returns true for %s', (symbol) => {
+      expect(isMetalSymbol(symbol)).toBe(true);
+    });
+
+    it.each(['BTC', 'ETH', '', undefined])('returns false for %s', (symbol) => {
+      expect(isMetalSymbol(symbol)).toBe(false);
     });
   });
 

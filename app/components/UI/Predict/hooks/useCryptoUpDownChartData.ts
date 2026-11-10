@@ -5,6 +5,7 @@ import { useLiveCryptoPrices } from './useLiveCryptoPrices';
 import {
   getCryptoSymbol,
   getVariant,
+  isMetalSymbol,
   getEventStartTime,
   RECURRENCE_TO_DURATION_SECS,
   toTimestampSeconds,
@@ -506,7 +507,9 @@ export const useCryptoUpDownChartData = (
         throw error;
       }
     },
-    enabled: enabled && !!symbol && !!historyStartDate,
+    // price-history has no metals (502), so XAU/XAG charts only get live ticks.
+    enabled:
+      enabled && !!symbol && !!historyStartDate && !isMetalSymbol(symbol),
     placeholderData: keepPreviousData,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
