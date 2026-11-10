@@ -1143,10 +1143,10 @@ index 0000000000000000000000000000000000000000..3f9aa9c998f9f2326a1100d43f992809
 \ No newline at end of file
 diff --git a/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java b/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83ab192414
+index 0000000000000000000000000000000000000000..30c1f52b8f361f189f9172dd5aecfdb2314f5f5a
 --- /dev/null
 +++ b/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
-@@ -0,0 +1,363 @@
+@@ -0,0 +1,370 @@
 +package com.reactnativecommunity.webview;
 +
 +import android.annotation.TargetApi;
@@ -1258,6 +1258,10 @@ index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83
 +
 +    @Override
 +    public boolean shouldOverrideUrlLoading(WebView view, String url) {
++        return this.shouldOverrideUrlLoading(view, url, true);
++    }
++
++    private boolean shouldOverrideUrlLoading(WebView view, String url, boolean isTopFrame) {
 +        final RNCWebView rncWebView = (RNCWebView) view;
 +
 +        RNCWebChromeClient webChromeClient = (RNCWebChromeClient) rncWebView.getWebChromeClient();
@@ -1274,6 +1278,7 @@ index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83
 +
 +            final WritableMap event = createWebViewEvent(view, url);
 +            event.putDouble("lockIdentifier", lockIdentifier);
++            event.putBoolean("isTopFrame", isTopFrame);
 +            rncWebView.dispatchDirectShouldStartLoadWithRequest(event);
 +
 +            try {
@@ -1307,11 +1312,13 @@ index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83
 +                    "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
 +            progressChangedFilter.setWaitingForCommandLoadUrl(true);
 +
++            final WritableMap event = createWebViewEvent(view, url);
++            event.putBoolean("isTopFrame", isTopFrame);
 +            int reactTag = RNCWebViewWrapper.getReactTagFromWebView(view);
 +            UIManagerHelper.getEventDispatcherForReactTag((ReactContext) view.getContext(), reactTag)
 +                    .dispatchEvent(new TopShouldStartLoadWithRequestEvent(
 +                            reactTag,
-+                            createWebViewEvent(view, url)));
++                            event));
 +            return true;
 +        }
 +    }
@@ -1320,7 +1327,7 @@ index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83
 +    @Override
 +    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 +        final String url = request.getUrl().toString();
-+        return this.shouldOverrideUrlLoading(view, url);
++        return this.shouldOverrideUrlLoading(view, url, request.isForMainFrame());
 +    }
 +
 +    @Override
@@ -3503,10 +3510,10 @@ index 0000000000000000000000000000000000000000..b87f4fab3841d432a157b5fb612c031c
 +}
 diff --git a/android/src/main/java/com/reactnativecommunity/webview/events/TopShouldStartLoadWithRequestEvent.kt b/android/src/main/java/com/reactnativecommunity/webview/events/TopShouldStartLoadWithRequestEvent.kt
 new file mode 100644
-index 0000000000000000000000000000000000000000..da4eb96640cc550ab8f5b5dbeb2063f66610351c
+index 0000000000000000000000000000000000000000..0f80cedfcf53cd51e344699de246048cac64dd52
 --- /dev/null
 +++ b/android/src/main/java/com/reactnativecommunity/webview/events/TopShouldStartLoadWithRequestEvent.kt
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,27 @@
 +package com.reactnativecommunity.webview.events
 +
 +import com.facebook.react.bridge.WritableMap
@@ -3523,8 +3530,6 @@ index 0000000000000000000000000000000000000000..da4eb96640cc550ab8f5b5dbeb2063f6
 +
 +  init {
 +    mData.putString("navigationType", "other")
-+    // Android does not raise shouldOverrideUrlLoading for inner frames
-+    mData.putBoolean("isTopFrame", true)
 +  }
 +
 +  override fun getEventName(): String = EVENT_NAME

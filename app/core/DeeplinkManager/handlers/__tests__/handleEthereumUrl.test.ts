@@ -63,6 +63,15 @@ jest.mock('../../../Engine', () => ({
     AccountsController: {
       getSelectedAccount: jest.fn(() => ({ address: MOCK_SELECTED_ADDRESS })),
     },
+    KeyringController: {
+      isUnlocked: jest.fn(() => true),
+    },
+    NetworkController: {
+      state: { selectedNetworkClientId: 'linea-mainnet' },
+      getNetworkClientById: jest.fn(() => ({
+        configuration: { chainId: '0xe708' },
+      })),
+    },
   },
 }));
 
@@ -475,9 +484,58 @@ describe('handleEthereumUrl', () => {
 
       await handleEthereumUrl({ url: 'ethereum:transfer', origin: pageOrigin });
 
-      expect(mockGetPermittedAccounts).toHaveBeenCalledWith(pageOrigin);
+      expect(mockGetPermittedAccounts).toHaveBeenCalledWith(pageOrigin, {
+        scope: 'eip155:1',
+      });
       expect(mockAddTransactionForDeeplink).not.toHaveBeenCalled();
       expect(mockShowSimpleNotification).toHaveBeenCalled();
+    });
+
+    it.each([
+      {
+        name: 'the chain in the link',
+        ethUrl: { function_name: ETH_ACTIONS.TRANSFER, chain_id: '137' },
+        isRedesigned: true,
+        scope: 'eip155:137',
+      },
+      {
+        name: 'mainnet when a redesigned request has no chain',
+        ethUrl: { function_name: ETH_ACTIONS.TRANSFER },
+        isRedesigned: true,
+        scope: 'eip155:1',
+      },
+      {
+        name: 'the selected network when a legacy request has no chain',
+        ethUrl: { function_name: ETH_ACTIONS.APPROVE },
+        isRedesigned: false,
+        scope: 'eip155:59144',
+      },
+    ])(
+      'checks permitted accounts on $name',
+      async ({ ethUrl, isRedesigned, scope }) => {
+        mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(
+          isRedesigned,
+        );
+        mockParse.mockReturnValue(parsedUrl(ethUrl));
+
+        await handleEthereumUrl({ url: 'ethereum:x', origin: pageOrigin });
+
+        expect(mockGetPermittedAccounts).toHaveBeenCalledWith(pageOrigin, {
+          scope,
+        });
+      },
+    );
+
+    it('ignores the request without a notification while the wallet is locked', async () => {
+      jest
+        .mocked(Engine.context.KeyringController.isUnlocked)
+        .mockReturnValueOnce(false);
+
+      await handleEthereumUrl({ url: 'ethereum:transfer', origin: pageOrigin });
+
+      expect(mockGetPermittedAccounts).not.toHaveBeenCalled();
+      expect(mockAddTransactionForDeeplink).not.toHaveBeenCalled();
+      expect(mockShowSimpleNotification).not.toHaveBeenCalled();
     });
 
     it('rejects an approval from a page that is not connected', async () => {

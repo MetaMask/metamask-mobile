@@ -1,4 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { toHex } from '@metamask/controller-utils';
+import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
@@ -30,13 +32,39 @@ const isInAppBrowserOrigin = (origin: string) =>
   /^https?:\/\//i.test(origin);
 
 /**
- * Transactions from deeplinks are sent from the selected account, so a page
- * may only request one when that account is connected to it.
+ * Chain the request runs on: the chain in the link, otherwise mainnet for
+ * redesigned confirmations or the selected network for the legacy flows.
  */
-const isSelectedAccountPermittedForOrigin = (origin: string) => {
+const getRequestChainId = (ethUrl: ParseOutput): Hex => {
+  if (ethUrl.chain_id) {
+    return toHex(ethUrl.chain_id);
+  }
+
+  if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
+    return CHAIN_IDS.MAINNET;
+  }
+
+  const { NetworkController } = Engine.context;
+  return NetworkController.getNetworkClientById(
+    NetworkController.state.selectedNetworkClientId,
+  ).configuration.chainId;
+};
+
+/**
+ * Transactions from deeplinks are sent from the selected account, so a page
+ * may only request one when that account is connected to it on the request
+ * chain.
+ */
+const isSelectedAccountPermittedForOrigin = (
+  origin: string,
+  ethUrl: ParseOutput,
+) => {
   try {
     const { address } = Engine.context.AccountsController.getSelectedAccount();
-    return getPermittedAccounts(origin).some(
+    const scope: CaipChainId = `eip155:${hexToBigInt(
+      getRequestChainId(ethUrl),
+    ).toString(10)}`;
+    return getPermittedAccounts(origin, { scope }).some(
       (account) => account.toLowerCase() === address.toLowerCase(),
     );
   } catch (error) {
@@ -60,17 +88,23 @@ async function handleEthereumUrl({
     return;
   }
 
-  if (
-    isInAppBrowserOrigin(origin) &&
-    !isSelectedAccountPermittedForOrigin(origin)
-  ) {
-    NotificationManager.showSimpleNotification({
-      status: 'simple_notification_rejected',
-      duration: 5000,
-      title: strings('deeplink.site_not_connected_title'),
-      description: strings('deeplink.site_not_connected_description'),
-    });
-    return;
+  if (isInAppBrowserOrigin(origin)) {
+    // Permitted accounts are empty while locked, so a connected site would be
+    // reported as not connected.
+    if (!Engine.context.KeyringController.isUnlocked()) {
+      Logger.log('handleEthereumUrl: ignored in-app request while locked');
+      return;
+    }
+
+    if (!isSelectedAccountPermittedForOrigin(origin, ethUrl)) {
+      NotificationManager.showSimpleNotification({
+        status: 'simple_notification_rejected',
+        duration: 5000,
+        title: strings('deeplink.site_not_connected_title'),
+        description: strings('deeplink.site_not_connected_description'),
+      });
+      return;
+    }
   }
 
   const txMeta = { ...ethUrl, source: url };

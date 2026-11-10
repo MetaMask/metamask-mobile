@@ -11920,14 +11920,14 @@ __metadata:
 
 "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch":
   version: 14.8.0
-  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch::version=14.8.0&hash=ed9191"
+  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch::version=14.8.0&hash=7db59b"
   dependencies:
     escape-string-regexp: "npm:^4.0.0"
     invariant: "npm:2.2.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/0d4ac959d7390d2de0bbde15201799b94680de343c47f8f7c35495ccc793031f380d8021c0ccc68f67cef64f754ab1f06d07e1568fd1bcffc06ce8e1713c6763
+  checksum: 10/fc948c81459f5944b45b63b12c32122802d5920931e1a2b5e60afaadd55884f659f225331715b722e133c17d6f8063f171fc64a06cb12be228f9c7aceeaa3157
   languageName: node
   linkType: hard
 

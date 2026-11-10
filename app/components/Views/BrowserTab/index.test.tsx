@@ -501,20 +501,26 @@ describe('BrowserTab', () => {
         );
       });
 
-      it('attributes an ethereum link from an iframe to the in-app browser placeholder', async () => {
-        const { parse, onShouldStartLoadWithRequest } =
-          await renderResolvedPage();
+      it.each([
+        { name: 'from an iframe', isTopFrame: false },
+        { name: 'without frame information', isTopFrame: undefined },
+      ])(
+        'attributes an ethereum link $name to the in-app browser placeholder',
+        async ({ isTopFrame }) => {
+          const { parse, onShouldStartLoadWithRequest } =
+            await renderResolvedPage();
 
-        expect(
-          onShouldStartLoadWithRequest({ url: ethereumUrl, isTopFrame: false }),
-        ).toBe(false);
-        expect(parse).toHaveBeenCalledWith(
-          ethereumUrl,
-          expect.objectContaining({
-            origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
-          }),
-        );
-      });
+          expect(
+            onShouldStartLoadWithRequest({ url: ethereumUrl, isTopFrame }),
+          ).toBe(false);
+          expect(parse).toHaveBeenCalledWith(
+            ethereumUrl,
+            expect.objectContaining({
+              origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+            }),
+          );
+        },
+      );
 
       it('keeps the in-app browser origin for links that are not transactions', async () => {
         const { parse, onShouldStartLoadWithRequest } =

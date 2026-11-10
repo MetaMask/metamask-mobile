@@ -139,7 +139,8 @@ export const isHttpPageUrl = (url: string): boolean => {
  * gets the in-app browser placeholder, which never holds permissions, so the
  * request is rejected downstream.
  *
- * @param options.isTopFrame - Whether the navigation came from the top frame
+ * @param options.isTopFrame - Whether the navigation came from the top frame.
+ * A missing value is treated as unverified.
  * @param options.resolvedUrl - URL of the page currently shown
  * @param options.loadingUrl - URL of the navigation in flight, if any
  * @returns The page origin or `ORIGIN_IN_APP_BROWSER`
@@ -155,7 +156,7 @@ export const getTransactionDeeplinkOrigin = ({
 }): string => {
   const unverifiedOrigin = AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER;
 
-  if (isTopFrame === false || !isHttpPageUrl(resolvedUrl)) {
+  if (isTopFrame !== true || !isHttpPageUrl(resolvedUrl)) {
     return unverifiedOrigin;
   }
 

@@ -26,9 +26,9 @@ describe('BrowserTab utils', () => {
         expected: 'https://app.uniswap.org',
       },
       {
-        name: 'returns the page origin when the platform omits isTopFrame',
+        name: 'returns the placeholder when the platform omits isTopFrame',
         options: { resolvedUrl: 'https://app.uniswap.org/', loadingUrl: '' },
-        expected: 'https://app.uniswap.org',
+        expected: ORIGIN_IN_APP_BROWSER,
       },
       {
         name: 'returns the page origin while a same-origin navigation loads',
