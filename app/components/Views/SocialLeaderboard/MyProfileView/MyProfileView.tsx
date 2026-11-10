@@ -24,7 +24,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
   CommonActions,
-  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -72,7 +71,6 @@ import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
-import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   useTraderBlock,
   useTraderPositions,
@@ -389,15 +387,6 @@ const MyProfileView: React.FC = () => {
     [activeTab],
   );
   const scrollRef = useRef<Animated.ScrollView>(null);
-  useFocusEffect(
-    useCallback(() => {
-      // Every new post lands here, pinned at the top of the Posts tab.
-      if (isOwner && consumePostsTabFocus()) {
-        setActiveTab('posts');
-        scrollRef.current?.scrollTo({ y: 0, animated: true });
-      }
-    }, [isOwner]),
-  );
   const {
     posts,
     isLoading: isPostsLoading,

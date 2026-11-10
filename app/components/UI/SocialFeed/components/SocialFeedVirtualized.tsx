@@ -26,6 +26,7 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialContentState } from '../../../../util/social/socialPerformance';
 import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
+import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed } from '../data/useSocialFeed';
@@ -139,6 +140,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   emptyState,
   realtime = false,
   paused = false,
+  pendingPostsSurface,
   inlineRows = NO_INLINE_ROWS,
   onRefresh,
   performance,
@@ -220,9 +222,24 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     isActive,
   );
 
+  // The socket brings the post in, so this feed never polls for it. A feed
+  // without a pending surface passes its posts through (Following pins none).
+  const pendingOverlay = usePendingPostsOverlay({
+    surface: pendingPostsSurface ?? 'following',
+    ownerProfileId: pendingPostsSurface ? viewerProfileId : undefined,
+    serverPosts: posts,
+    refetch: refresh,
+    isActive,
+    refetchUntilServed: false,
+  });
+  const { pinnedPosts, refresh: refreshWithPendingPosts } = pendingOverlay;
+  const overlaidPosts = pendingOverlay.posts;
   const visiblePosts = useMemo(
     () =>
-      posts.filter(
+      [
+        ...(filterPost ? pinnedPosts.filter(filterPost) : pinnedPosts),
+        ...overlaidPosts,
+      ].filter(
         (post) =>
           !isEntryHidden({
             postId: post.id,
@@ -231,7 +248,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
             commentId: post.commentId,
           }),
       ),
-    [isEntryHidden, posts],
+    [filterPost, isEntryHidden, overlaidPosts, pinnedPosts],
   );
   const { showSkeleton, showEmpty, showRetry } = getSocialFeedListState({
     postCount: visiblePosts.length,
@@ -300,11 +317,11 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     setRefreshing(true);
     try {
       onRefresh?.();
-      await Promise.all([refresh(), waitForMinimumRefresh()]);
+      await Promise.all([refreshWithPendingPosts(), waitForMinimumRefresh()]);
     } finally {
       setRefreshing(false);
     }
-  }, [onRefresh, refresh]);
+  }, [onRefresh, refreshWithPendingPosts]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {

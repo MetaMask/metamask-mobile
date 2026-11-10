@@ -22,7 +22,9 @@ import {
   StackActions,
   useNavigation,
   useRoute,
+  type NavigationProp,
   type NavigationState,
+  type ParamListBase,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import React, {
@@ -79,10 +81,7 @@ import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurf
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
 import { invalidateModerationStatus } from '../../../UI/SocialFeed/moderationApi';
 import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
-import {
-  addPendingPost,
-  requestPostsTabFocus,
-} from '../pendingPosts/pendingPostsStore';
+import { addPendingPost } from '../pendingPosts/pendingPostsStore';
 import type {
   SocialV1FeedAuthor,
   SocialV1FeedItem,
@@ -120,35 +119,47 @@ const getPreviousRoute = (
 ): ComposerRoute | undefined =>
   state && state.index > 0 ? state.routes[state.index - 1] : undefined;
 
+const TRENDING_FEED_PARAMS = { initialTab: 'trending' } as const;
+
 /**
- * The viewer's own profile on either profile route, matched the same way
- * `MyProfileView` decides ownership: no trader, or the viewer's own id or
- * linked address.
+ * Where a published post lands: the Social V1 feed's Trending tab, where the
+ * new post is pinned on top until the API returns it.
+ *
+ * Opened from the V1 feed screen, it pops back to it. Opened from the Social
+ * home tab, it pops back and keeps that tab selected. Opened from anywhere
+ * else (Perps, token details, Quick Buy, a profile), it replaces the composer
+ * with the V1 feed, so Back skips the posted composer and returns to where
+ * the share started.
  */
-const isOwnProfileRoute = (
-  route: ComposerRoute | undefined,
-  viewer: { profileId?: string; linkedAccountAddress?: string | null },
-): boolean => {
+const landOnTrendingFeed = (
+  navigation: Pick<NavigationProp<ParamListBase>, 'dispatch' | 'navigate'> & {
+    getState: () => NavigationState | undefined;
+  },
+): void => {
+  const previousRoute = getPreviousRoute(navigation.getState());
+  if (previousRoute?.name === Routes.SOCIAL.V1) {
+    navigation.dispatch(
+      StackActions.popTo(Routes.SOCIAL.V1, TRENDING_FEED_PARAMS, {
+        merge: true,
+      }),
+    );
+    return;
+  }
+  const homeTabsState = previousRoute?.state;
   if (
-    route?.name !== Routes.SOCIAL.MY_PROFILE &&
-    route?.name !== Routes.SOCIAL.V1_PROFILE
+    previousRoute?.name === Routes.HOME_TABS &&
+    homeTabsState?.index !== undefined &&
+    homeTabsState.routes[homeTabsState.index]?.name === Routes.SOCIAL.TAB
   ) {
-    return false;
+    navigation.navigate(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: TRENDING_FEED_PARAMS },
+      { pop: true },
+    );
+    return;
   }
-  const params = route.params as
-    | { traderId?: string; traderAddress?: string }
-    | undefined;
-  if (!params?.traderId) {
-    return true;
-  }
-  return (
-    params.traderId === viewer.profileId ||
-    Boolean(
-      params.traderAddress &&
-        viewer.linkedAccountAddress &&
-        params.traderAddress.toLowerCase() ===
-          viewer.linkedAccountAddress.toLowerCase(),
-    )
+  navigation.dispatch(
+    StackActions.replace(Routes.SOCIAL.V1, TRENDING_FEED_PARAMS),
   );
 };
 
@@ -433,7 +444,6 @@ const SocialPostComposerView: React.FC = () => {
   const tradeInFlightParams = routeParams?.tradeInFlight;
   const tradeInFlightPreview = routeParams?.preview;
   const routedPosition = routeParams?.position;
-  const openFeedAfterPost = routeParams?.openFeedAfterPost === true;
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
@@ -686,24 +696,7 @@ const SocialPostComposerView: React.FC = () => {
         share_destination: ShareDestination.METAMASK_POST,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
       });
-      if (openFeedAfterPost) {
-        // Replace so Back from the feed skips this already-posted composer.
-        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
-        return;
-      }
-      // Every other post lands on the viewer's Posts tab, where it is pinned.
-      requestPostsTabFocus();
-      if (
-        isOwnProfileRoute(getPreviousRoute(navigation.getState()), {
-          profileId: profile?.profileId,
-          linkedAccountAddress,
-        })
-      ) {
-        navigation.goBack();
-      } else {
-        // Replace so Back from the profile skips this already-posted composer.
-        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1_PROFILE));
-      }
+      landOnTrendingFeed(navigation);
     } catch (error) {
       // The social API refuses a banned author's post with a 403, the same
       // status as a wallet they don't own; the status tells the two apart.
@@ -733,9 +726,7 @@ const SocialPostComposerView: React.FC = () => {
     colors.success.default,
     gifUri,
     isSubmitting,
-    linkedAccountAddress,
     navigation,
-    openFeedAfterPost,
     profile?.imageUrl,
     profile?.profileId,
     selectedPosition,

@@ -17,7 +17,6 @@ import SocialPostComposerView from './SocialPostComposerView';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 import { AddPositionBottomSheetSelectorsIDs } from './AddPositionBottomSheet.testIds';
 import {
-  consumePostsTabFocus,
   getPendingPostsSnapshot,
   resetPendingPosts,
 } from '../pendingPosts/pendingPostsStore';
@@ -665,8 +664,10 @@ describe('SocialPostComposerView', () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ['SocialService:fetchTraderFeed'],
     });
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
     const [entry] = getPendingPostsSnapshot();
     expect(entry).toMatchObject({
       commentId: 'comment-1',
@@ -678,7 +679,6 @@ describe('SocialPostComposerView', () => {
       authorHandle: 'Giga Whale',
       timestampMs: 1700000000 * 1000,
     });
-    expect(consumePostsTabFocus()).toBe(true);
   });
 
   it('falls back to the profile display name when the server sends no name', async () => {
@@ -728,7 +728,9 @@ describe('SocialPostComposerView', () => {
     );
 
     await waitFor(() => {
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+      );
     });
     expect(getPendingPostsSnapshot()).toHaveLength(0);
   });
@@ -1114,7 +1116,21 @@ describe('SocialPostComposerView', () => {
     });
   });
 
-  it('replaces the composer with the viewer profile on Posts when opened from the feed', async () => {
+  const postWithOpenSpot = async () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+    await waitFor(() => {
+      expect(getPendingPostsSnapshot()).toHaveLength(1);
+    });
+  };
+
+  it('pops back to the Social V1 feed on Trending when opened from it', async () => {
     mockNavigationState = {
       index: 1,
       routes: [
@@ -1124,106 +1140,104 @@ describe('SocialPostComposerView', () => {
     };
     mockRouteParams = { position: openSpot, entryPoint: 'perps' };
 
-    renderWithProvider(<SocialPostComposerView />);
-    fireEvent.changeText(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'this is alpha',
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    );
+    await postWithOpenSpot();
 
-    await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1_PROFILE),
-      );
-    });
-    expect(getPendingPostsSnapshot()).toHaveLength(1);
-    expect(consumePostsTabFocus()).toBe(true);
-    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.popTo(
+        Routes.SOCIAL.V1,
+        { initialTab: 'trending' },
+        { merge: true },
+      ),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('goes back to the viewer profile when it was opened with their own trader id', async () => {
+  it('returns to the Social home tab on Trending when opened from it', async () => {
     mockNavigationState = {
       index: 1,
       routes: [
         {
-          name: Routes.SOCIAL.V1_PROFILE,
-          params: { traderId: linkedProfile.profileId },
+          name: Routes.HOME_TABS,
+          state: {
+            index: 1,
+            routes: [{ name: Routes.WALLET.HOME }, { name: Routes.SOCIAL.TAB }],
+          },
         },
         { name: Routes.SOCIAL.POST_COMPOSER },
       ],
     };
     mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
 
-    renderWithProvider(<SocialPostComposerView />);
-    fireEvent.changeText(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'this is alpha',
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    );
+    await postWithOpenSpot();
 
-    await waitFor(() => {
-      expect(mockGoBack).toHaveBeenCalled();
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+      { pop: true },
+    );
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('replaces the composer with Social V1 when openFeedAfterPost is set', async () => {
-    mockRouteParams = {
-      position: openSpot,
-      entryPoint: 'perps',
-      openFeedAfterPost: true,
-    };
-
-    renderWithProvider(<SocialPostComposerView />);
-    fireEvent.changeText(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'this is alpha',
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    );
-
-    await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1),
-      );
-    });
-    expect(getPendingPostsSnapshot()).toHaveLength(1);
-    expect(consumePostsTabFocus()).toBe(false);
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('does not go back to another trader profile after posting', async () => {
+  it('opens the Social V1 feed on Trending when opened from another home tab', async () => {
     mockNavigationState = {
       index: 1,
       routes: [
         {
-          name: Routes.SOCIAL.V1_PROFILE,
-          params: { traderId: 'someone-else' },
+          name: Routes.HOME_TABS,
+          state: { index: 0, routes: [{ name: Routes.WALLET.HOME }] },
         },
         { name: Routes.SOCIAL.POST_COMPOSER },
       ],
     };
     mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
 
-    renderWithProvider(<SocialPostComposerView />);
-    fireEvent.changeText(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'this is alpha',
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    );
+    await postWithOpenSpot();
 
-    await waitFor(() => {
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['their own trader id', { traderId: 'current-user' }],
+    ['another trader', { traderId: 'someone-else' }],
+  ])(
+    'replaces the composer with Trending when opened from a profile with %s',
+    async (_label, params) => {
+      mockNavigationState = {
+        index: 1,
+        routes: [
+          { name: Routes.SOCIAL.V1_PROFILE, params },
+          { name: Routes.SOCIAL.POST_COMPOSER },
+        ],
+      };
+      mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+
+      await postWithOpenSpot();
+
       expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1_PROFILE),
+        StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
       );
-    });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    },
+  );
+
+  it('replaces the composer with Trending when shared from Perps', async () => {
+    mockNavigationState = {
+      index: 1,
+      routes: [
+        { name: 'PerpsSharePositionView' },
+        { name: Routes.SOCIAL.POST_COMPOSER },
+      ],
+    };
+    mockRouteParams = { position: openSpot, entryPoint: 'perps' };
+
+    await postWithOpenSpot();
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+    );
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
@@ -1337,7 +1351,9 @@ describe('SocialPostComposerView', () => {
     });
 
     await waitFor(() => {
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+      );
     });
     const [entry] = getPendingPostsSnapshot();
     expect(entry).toMatchObject({
@@ -1348,7 +1364,6 @@ describe('SocialPostComposerView', () => {
         item: expect.objectContaining({ variant: 'spotShare' }),
       }),
     });
-    expect(consumePostsTabFocus()).toBe(true);
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
