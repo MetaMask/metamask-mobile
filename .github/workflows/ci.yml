@@ -434,11 +434,10 @@ jobs:
           fi
 
   # Same files, rules, and exit semantics as `yarn lint`, split by file size.
-  # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
-  # file set and bin-packs by size. Per-file cache stays off the persisted
-  # paths: #33370 reverted it because cross-file and type-aware rules go stale.
-  # 8x16, not 16x32: ESLint 8 lints on one thread, and the heaviest shard
-  # peaks at 10.8 GB RSS.
+  # ESLint 9 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
+  # file set from eslint.config.mjs and bin-packs by size. Per-file cache
+  # stays off the persisted paths: #33370 reverted it because cross-file and
+  # type-aware rules go stale.
   lint-shards:
     name: Run lint (${{ matrix.shard }})
     permissions:
@@ -1867,7 +1866,13 @@ jobs:
       actions: write
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
+    needs:
+      [
+        build-android-apks,
+        smart-e2e-selection,
+        prepare-e2e-timings,
+        get_requirements,
+      ]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -1908,7 +1913,13 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [get_requirements, build-ios-apps, smart-e2e-selection, prepare-e2e-timings]
+    needs:
+      [
+        get_requirements,
+        build-ios-apps,
+        smart-e2e-selection,
+        prepare-e2e-timings,
+      ]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
@@ -1951,7 +1962,13 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
+    needs:
+      [
+        build-android-apks,
+        smart-e2e-selection,
+        prepare-e2e-timings,
+        get_requirements,
+      ]
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
