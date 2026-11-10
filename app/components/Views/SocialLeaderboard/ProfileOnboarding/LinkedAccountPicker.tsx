@@ -17,14 +17,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useState } from 'react';
-import {
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-} from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -42,11 +35,6 @@ const styles = StyleSheet.create({
   },
   accountList: {
     maxHeight: 420,
-  },
-  // Matches the design-system Switch, which nudges the iOS control so it
-  // lines up with the row instead of sitting on its built-in trailing pad.
-  iosSwitch: {
-    marginRight: 4,
   },
 });
 
@@ -165,7 +153,6 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
             accessibilityRole="switch"
             accessibilityLabel={tradingActivityLabel}
             accessibilityState={{ checked: shareTradingActivity }}
-            style={Platform.OS === 'ios' ? styles.iosSwitch : undefined}
             testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
           />
         </Box>
