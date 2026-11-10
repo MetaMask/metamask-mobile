@@ -41,6 +41,13 @@ jest.mock('../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
   SocialFeedTrackingProvider: ({ children }: { children: React.ReactNode }) =>

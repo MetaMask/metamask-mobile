@@ -166,8 +166,8 @@ describe('usePositionSheetData', () => {
       );
 
       expect(result.current.summaryTitle).toBe('7 PEPE');
-      expect(result.current.summarySubtitle).toBe('Sold · 2d ago');
-      expect(result.current.summaryTagLabel).toBeUndefined();
+      expect(result.current.summarySubtitle).toBe('2d ago');
+      expect(result.current.summaryTagLabel).toBe('Sold');
     });
 
     it('ages an open position from firstTradeAt', () => {
@@ -179,7 +179,8 @@ describe('usePositionSheetData', () => {
         }),
       );
 
-      expect(result.current.summarySubtitle).toBe('Opened · 5h ago');
+      expect(result.current.summarySubtitle).toBe('5h ago');
+      expect(result.current.summaryTagLabel).toBeUndefined();
     });
 
     it('leaves the caption empty when a closed position has no trades', () => {
@@ -233,7 +234,7 @@ describe('usePositionSheetData', () => {
       expect(result.current.perpTradeSymbol).toBe('BTC');
       expect(result.current.summaryTitle).toBe('2 BTC');
       expect(result.current.summaryTagLabel).toBe('40x Short');
-      expect(result.current.summarySubtitle).toBe('Opened · 2h ago');
+      expect(result.current.summarySubtitle).toBe('2h ago');
       expect(result.current.markers[0].tooltipLabel).toMatch(
         /^Opened short @ \$107,469/,
       );
@@ -273,8 +274,8 @@ describe('usePositionSheetData', () => {
         true,
       );
 
-      expect(result.current.summarySubtitle).toBe('Closed · 3d ago');
-      expect(result.current.summaryTagLabel).toBe('40x Short');
+      expect(result.current.summarySubtitle).toBe('3d ago');
+      expect(result.current.summaryTagLabel).toBe('Closed 40x Short');
     });
 
     it('skips the candle request offline', () => {
