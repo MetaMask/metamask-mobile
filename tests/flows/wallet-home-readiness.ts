@@ -42,7 +42,10 @@ export const isTestIdDisplayed = async (
     // UiAutomator2 / shared-adb transport deaths cannot recover via polling —
     // surface immediately so waitForAppReady / login can fail fast and request
     // session recreate.
-    if (isDeviceHealthError(error)) {
+    if (
+      isDeviceHealthError(error) ||
+      (tapWhenVisible && !/found|stale|located|displayed/i.test(`${error}`))
+    ) {
       throw error;
     }
     return false;

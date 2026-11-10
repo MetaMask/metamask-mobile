@@ -52,49 +52,42 @@ export async function mockRewardsMoneyApi(
       },
     },
   });
-
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: new RegExp(`^${REWARDS_HOST}\\/campaigns$`),
     responseCode: 200,
     response: [],
   });
-
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: new RegExp(`^${REWARDS_HOST}\\/public\\/client-version-requirements$`),
     responseCode: 200,
     response: {},
   });
-
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: new RegExp(`^${REWARDS_HOST}\\/benefits(?:\\?.*)?$`),
     responseCode: 200,
     response: { results: [] },
   });
-
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: new RegExp(`^${REWARDS_MONEY_HOST}\\/referral\\/me$`),
     responseCode: 200,
     response: referralMe,
   });
-
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: new RegExp(`^${REWARDS_MONEY_HOST}\\/earnings\\/summary(?:\\?.*)?$`),
     responseCode: 200,
     response: summary,
   });
-
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: new RegExp(`^${REWARDS_MONEY_HOST}\\/earnings\\/ledger(?:\\?.*)?$`),
     responseCode: 200,
     response: EMPTY_LEDGER,
   });
-
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: new RegExp(
@@ -103,7 +96,6 @@ export async function mockRewardsMoneyApi(
     responseCode: 200,
     response: { results: [], has_more: false, cursor: null },
   });
-
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: new RegExp(
@@ -112,7 +104,6 @@ export async function mockRewardsMoneyApi(
     responseCode: 200,
     response: EMPTY_LEDGER,
   });
-
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: new RegExp(`^${REWARDS_MONEY_HOST}\\/tax\\/me(?:\\?.*)?$`),
