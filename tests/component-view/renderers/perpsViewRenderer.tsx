@@ -79,6 +79,7 @@ import {
   type AccountState,
   type CandleData,
   CandlePeriod,
+  type PerpsAvailableToTrade,
   type PerpsMarketData,
   type Position,
   type PriceUpdate,
@@ -274,6 +275,14 @@ export interface PerpsStreamControls {
   emitPositions: (positions: Position[] | null) => void;
   emitPrices: (prices: Record<string, PriceUpdate> | null) => void;
   emitOICaps: (symbols: string[]) => void;
+  /**
+   * Delivers an available-to-trade value (or `undefined` for unknown, as after
+   * an account switch) to order forms subscribed to that market.
+   */
+  emitAvailableToTrade: (
+    value: PerpsAvailableToTrade | undefined,
+    symbol: string,
+  ) => void;
 }
 
 /** Channel that calls callback once with initial value so hooks leave loading state. */
@@ -355,6 +364,38 @@ function topOfBookChannel() {
       return noopUnsubscribe;
     },
     getSnapshot: () => null,
+  };
+}
+
+/**
+ * Available-to-trade channel. Nothing is delivered until a test emits, so an
+ * order form starts on its unknown placeholder like a real venue stream.
+ */
+function availableToTradeChannel() {
+  const subscribers = new Set<{
+    symbol: string;
+    callback: (value: PerpsAvailableToTrade | undefined) => void;
+  }>();
+  return {
+    channel: {
+      subscribeToMarket: (params: {
+        symbol: string;
+        callback: (value: PerpsAvailableToTrade | undefined) => void;
+      }): (() => void) => {
+        subscribers.add(params);
+        return () => {
+          subscribers.delete(params);
+        };
+      },
+      getSnapshot: () => null,
+    },
+    emit: (value: PerpsAvailableToTrade | undefined, symbol: string) => {
+      subscribers.forEach((subscriber) => {
+        if (subscriber.symbol === symbol) {
+          subscriber.callback(value);
+        }
+      });
+    },
   };
 }
 
@@ -587,7 +628,10 @@ function createTestStreamManager(
   const chartCacheFresh =
     streamOverrides?.chartCacheFresh ?? cachedCandles != null;
 
+  const availableToTrade = availableToTradeChannel();
+
   const streamManager = {
+    availableToTrade: availableToTrade.channel,
     prices,
     orders,
     positions,
@@ -637,6 +681,7 @@ function createTestStreamManager(
       },
       emitPrices: prices.emit,
       emitOICaps: oiCaps.emit,
+      emitAvailableToTrade: availableToTrade.emit,
     },
   };
 }

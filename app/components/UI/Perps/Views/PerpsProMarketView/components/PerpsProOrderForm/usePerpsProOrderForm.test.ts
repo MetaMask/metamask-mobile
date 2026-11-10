@@ -11,13 +11,14 @@ import {
   type PerpsMarketData,
   type OrderResult,
   TRIGGER_ORDER_TYPES,
+  type PerpsAvailableToTrade,
   type PerpsProviderType,
   type TriggerOrderType,
   type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../../locales/i18n';
 import {
   PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
   PERPS_ANALYTICS_SIZE_UNIT,
@@ -402,7 +403,11 @@ jest.mock('../../../../../Compliance', () => ({
   },
 }));
 
+let mockAvailableToTrade: PerpsAvailableToTrade | undefined;
+const mockUsePerpsLiveAvailableToTrade = jest.fn(() => mockAvailableToTrade);
 jest.mock('../../../../hooks/stream', () => ({
+  usePerpsLiveAvailableToTrade: (...args: unknown[]) =>
+    mockUsePerpsLiveAvailableToTrade(...args),
   usePerpsLivePrices: () => ({
     BTC: {
       price: mockLivePrice,
@@ -592,14 +597,11 @@ jest.mock('../../../../hooks/usePerpsSavePendingConfig', () => ({
   usePerpsSavePendingConfig: jest.fn(),
 }));
 
-const mockSubscribeToAvailableToTrade = jest.fn();
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       clearPendingTradeConfiguration: (...args: unknown[]) =>
         mockClearPendingTradeConfiguration(...args),
-      subscribeToAvailableToTrade: (...args: unknown[]) =>
-        mockSubscribeToAvailableToTrade(...args),
     },
   },
 }));
@@ -807,50 +809,79 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('availableBalance', () => {
-    const reportAvailableToTrade = (long: string, short: string) => {
-      const [{ callback, symbol }] =
-        mockSubscribeToAvailableToTrade.mock.calls[
-          mockSubscribeToAvailableToTrade.mock.calls.length - 1
-        ];
-      act(() => {
-        callback({ providerId: 'hyperliquid', symbol, long, short });
-      });
-    };
+    const availableToTradeLabel = (amount: string) =>
+      strings('perps.pro_order_form.available_to_trade', { amount });
+    const unknownLabel = strings(
+      'perps.pro_order_form.available_to_trade_unknown',
+    );
 
     beforeEach(() => {
-      mockSubscribeToAvailableToTrade.mockReset().mockReturnValue(jest.fn());
+      mockAvailableToTrade = undefined;
+    });
+
+    it('has a translation for both labels', () => {
+      const labels = [availableToTradeLabel('$1'), unknownLabel];
+
+      expect(labels.filter((label) => label.includes('missing'))).toEqual([]);
     });
 
     it('shows the placeholder until the market value is known', () => {
       const { result } = renderProForm();
 
-      expect(result.current.availableBalance).toBe('-- available to trade');
+      expect(result.current.availableBalance).toBe(unknownLabel);
+    });
+
+    it('reads the value for the market and its provider', () => {
+      renderProForm();
+
+      expect(mockUsePerpsLiveAvailableToTrade).toHaveBeenLastCalledWith({
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+      });
     });
 
     it('shows the controller value for the long side, not the withdrawable balance', () => {
+      mockAvailableToTrade = {
+        providerId: 'hyperliquid',
+        symbol: 'BTC',
+        long: '8.65',
+        short: '9.65',
+      };
+
       const { result } = renderProForm();
 
-      reportAvailableToTrade('8.65', '9.65');
-
-      expect(result.current.availableBalance).toBe('$8.65 available to trade');
+      expect(result.current.availableBalance).toBe(
+        availableToTradeLabel('$8.65'),
+      );
     });
 
     it('shows the short side value for a short order', () => {
       mockContextValue.orderForm = { ...mockOrderForm, direction: 'short' };
+      mockAvailableToTrade = {
+        providerId: 'hyperliquid',
+        symbol: 'BTC',
+        long: '8.65',
+        short: '9.65',
+      };
+
       const { result } = renderProForm();
 
-      reportAvailableToTrade('8.65', '9.65');
-
-      expect(result.current.availableBalance).toBe('$9.65 available to trade');
+      expect(result.current.availableBalance).toBe(
+        availableToTradeLabel('$9.65'),
+      );
     });
 
-    it('does not subscribe before Perps is initialized', () => {
-      mockIsInitialized = false;
+    it('shows a genuine zero as a value, not the placeholder', () => {
+      mockAvailableToTrade = {
+        providerId: 'hyperliquid',
+        symbol: 'BTC',
+        long: '0',
+        short: '0',
+      };
 
       const { result } = renderProForm();
 
-      expect(mockSubscribeToAvailableToTrade).not.toHaveBeenCalled();
-      expect(result.current.availableBalance).toBe('-- available to trade');
+      expect(result.current.availableBalance).toBe(availableToTradeLabel('$0'));
     });
   });
 
@@ -3529,6 +3560,35 @@ describe('usePerpsProOrderForm', () => {
         isFullClose: true,
       });
       expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty('usdAmount');
+    });
+
+    it('submits a canonical fractional size for a full close in a German app language', async () => {
+      const originalLocale = I18n.locale;
+      I18n.locale = 'de';
+      mockExistingPosition = {
+        size: '-0.5',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      act(() => {
+        result.current.sizeSlider.onDragEnd(
+          result.current.sizeSlider.maximumValue,
+        );
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+      I18n.locale = originalLocale;
+
+      expect(mockExecuteOrder.mock.calls[0][0]).toMatchObject({
+        size: '0.5',
+        reduceOnly: true,
+        isFullClose: true,
+      });
     });
 
     it('keeps a focused max preview from becoming a full close', async () => {

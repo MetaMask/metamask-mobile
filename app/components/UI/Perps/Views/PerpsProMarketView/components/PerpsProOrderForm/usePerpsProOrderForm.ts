@@ -10,6 +10,8 @@ import {
   calculateMarginRequired,
   computeScalePriceLadder,
   formatHyperLiquidPrice,
+  // Locale-independent: the full-close size is submitted to the venue.
+  formatPositionSize as formatCanonicalPositionSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -84,6 +86,7 @@ import {
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
+  usePerpsLiveAvailableToTrade,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
@@ -96,7 +99,6 @@ import {
   usePerpsChaseOrders,
 } from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
-import { usePerpsAvailableToTrade } from '../../../../hooks/usePerpsAvailableToTrade';
 import { usePerpsScalePriceLadder } from '../../../../hooks/usePerpsScalePriceLadder';
 import { PerpsCacheInvalidator } from '../../../../services/PerpsCacheInvalidator';
 import {
@@ -114,7 +116,6 @@ import {
   formatPercentageNumber,
   formatPerpsFiat,
   formatPerpsPrice,
-  formatPositionSize,
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -1388,7 +1389,7 @@ export const usePerpsProOrderForm = ({
 
     return isVenueSizedScale
       ? absolutePositionSize.toFixed()
-      : formatPositionSize(absolutePositionSize.toFixed(), szDecimals);
+      : formatCanonicalPositionSize(absolutePositionSize.toFixed(), szDecimals);
   }, [
     currentMarketPosition?.size,
     isAtMaxAmount,
@@ -3816,12 +3817,9 @@ export const usePerpsProOrderForm = ({
     }
   }, [assetData.price, commitLimitPrice, szDecimals]);
 
-  const availableToTrade = usePerpsAvailableToTrade({
+  const availableToTrade = usePerpsLiveAvailableToTrade({
     symbol,
     providerId: market.providerId,
-    enabled: isInitialized,
-    accountAddress: perpsAccountAddress,
-    network,
   });
   // The venue's per-market, per-side amount (it nets the market's position,
   // PnL, resting orders and leverage), not the account-wide withdrawable.

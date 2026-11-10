@@ -61,12 +61,12 @@ describe('perps display format characterization', () => {
   });
 
   it('formats PnL', () => {
-    expect(
-      table(
-        [1234.5, -500, 0, -0.004, 0.004, 1234567.891, ...MISSING_INPUTS],
-        (value) => formatPnl(value as number),
-      ),
-    ).toMatchInlineSnapshot(`
+    const formatted = table(
+      [1234.5, -500, 0, -0.004, 0.004, 1234567.891, ...MISSING_INPUTS],
+      (value) => formatPnl(value as number),
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         """": "$---",
         ""abc"": "$---",
@@ -84,12 +84,12 @@ describe('perps display format characterization', () => {
   });
 
   it('formats percentages at default and RoE precision', () => {
-    expect(
-      table(
-        [5.25, -2.75, 0, -0.004, 1234.56, 10.25, ...MISSING_INPUTS],
-        (value) => formatPercentage(value as number),
-      ),
-    ).toMatchInlineSnapshot(`
+    const formatted = table(
+      [5.25, -2.75, 0, -0.004, 1234.56, 10.25, ...MISSING_INPUTS],
+      (value) => formatPercentage(value as number),
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         """": "--%",
         ""abc"": "--%",
@@ -104,11 +104,13 @@ describe('perps display format characterization', () => {
         "undefined": "--%",
       }
     `);
-    expect(
-      table([10.25, -0.06, -0.7, 0, 1234.56], (value) =>
-        formatPercentage(value, 1),
-      ),
-    ).toMatchInlineSnapshot(`
+
+    const formattedAtPrecision = table(
+      [10.25, -0.06, -0.7, 0, 1234.56],
+      (value) => formatPercentage(value, 1),
+    );
+
+    expect(formattedAtPrecision).toMatchInlineSnapshot(`
       {
         "-0.06": "-0.1%",
         "-0.7": "-0.7%",
@@ -120,12 +122,12 @@ describe('perps display format characterization', () => {
   });
 
   it('formats funding rates', () => {
-    expect(
-      table(
-        [0.0005, -0.0001, 0, 0.000000059, -0.000000059, ...MISSING_INPUTS],
-        (value) => formatFundingRate(value as number),
-      ),
-    ).toMatchInlineSnapshot(`
+    const formatted = table(
+      [0.0005, -0.0001, 0, 0.000000059, -0.000000059, ...MISSING_INPUTS],
+      (value) => formatFundingRate(value as number),
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         """": "--%",
         ""abc"": "--%",
@@ -142,11 +144,12 @@ describe('perps display format characterization', () => {
   });
 
   it('formats position sizes', () => {
-    expect(
-      table([0.00048, 44, 0.0024, 1234.5, -0.004, ...MISSING_INPUTS], (value) =>
-        formatPositionSize(value as number),
-      ),
-    ).toMatchInlineSnapshot(`
+    const formatted = table(
+      [0.00048, 44, 0.0024, 1234.5, -0.004, ...MISSING_INPUTS],
+      (value) => formatPositionSize(value as number),
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         """": "--",
         ""abc"": "--",
@@ -160,9 +163,12 @@ describe('perps display format characterization', () => {
         "undefined": "--",
       }
     `);
-    expect(
-      table([0.00048, 44, -0.004], (value) => formatPositionSize(value, 0)),
-    ).toMatchInlineSnapshot(`
+
+    const formattedAtPrecision = table([0.00048, 44, -0.004], (value) =>
+      formatPositionSize(value, 0),
+    );
+
+    expect(formattedAtPrecision).toMatchInlineSnapshot(`
       {
         "-0.004": "0",
         "0.00048": "0",
@@ -172,15 +178,15 @@ describe('perps display format characterization', () => {
   });
 
   it('formats fiat with the minimal and universal ranges', () => {
-    expect(
-      table(
-        [1234.56, 1250, 0, 0.004, -0.004, 413.47, ...MISSING_INPUTS],
-        (value) =>
-          formatPerpsFiat(value as number, {
-            ranges: PRICE_RANGES_MINIMAL_VIEW,
-          }),
-      ),
-    ).toMatchInlineSnapshot(`
+    const formatted = table(
+      [1234.56, 1250, 0, 0.004, -0.004, 413.47, ...MISSING_INPUTS],
+      (value) =>
+        formatPerpsFiat(value as number, {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        }),
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         """": "$---",
         ""abc"": "$---",
@@ -195,11 +201,13 @@ describe('perps display format characterization', () => {
         "undefined": "$---",
       }
     `);
-    expect(
-      table([75231.4, 1234.56, 12.34567, 0.004236, -0.004], (value) =>
-        formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL }),
-      ),
-    ).toMatchInlineSnapshot(`
+
+    const formattedAtPrecision = table(
+      [75231.4, 1234.56, 12.34567, 0.004236, -0.004],
+      (value) => formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL }),
+    );
+
+    expect(formattedAtPrecision).toMatchInlineSnapshot(`
       {
         "-0.004": "-$0.004",
         "0.004236": "$0.004236",
@@ -211,8 +219,11 @@ describe('perps display format characterization', () => {
   });
 
   it('formats fee fiat (formatPositiveFiat replaced by formatPerpsFiat)', () => {
-    expect(table([0, 0.005, 0.01, 1234.56], (value) => formatPerpsFiat(value)))
-      .toMatchInlineSnapshot(`
+    const formatted = table([0, 0.005, 0.01, 1234.56], (value) =>
+      formatPerpsFiat(value),
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         "0": "$0",
         "0.005": "<$0.01",
@@ -223,17 +234,17 @@ describe('perps display format characterization', () => {
   });
 
   it('formats liquidation distance', () => {
-    expect(
-      table(
-        [
-          [100, 70],
-          [75231, 50893],
-          [100, 100],
-          [100, undefined],
-        ] as const,
-        ([entry, liquidation]) => formatLiquidationDistance(entry, liquidation),
-      ),
-    ).toMatchInlineSnapshot(`
+    const formatted = table(
+      [
+        [100, 70],
+        [75231, 50893],
+        [100, 100],
+        [100, undefined],
+      ] as const,
+      ([entry, liquidation]) => formatLiquidationDistance(entry, liquidation),
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         "[100,100]": "0.00%",
         "[100,70]": "30.00%",
@@ -244,11 +255,12 @@ describe('perps display format characterization', () => {
   });
 
   it('formats fee rates', () => {
-    expect(
-      table([0.00045, 0.00143, 0, undefined, null, Number.NaN], (value) =>
-        formatFeeRate(value),
-      ),
-    ).toMatchInlineSnapshot(`
+    const formatted = table(
+      [0.00045, 0.00143, 0, undefined, null, Number.NaN],
+      (value) => formatFeeRate(value),
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         "0": "0.000%",
         "0.00045": "0.045%",
@@ -261,11 +273,11 @@ describe('perps display format characterization', () => {
   });
 
   it('formats TWAP progress', () => {
-    expect(
-      table([0, 2500, 3333, 9999, 10000], (value) =>
-        formatTwapProgressPercent(value),
-      ),
-    ).toMatchInlineSnapshot(`
+    const formatted = table([0, 2500, 3333, 9999, 10000], (value) =>
+      formatTwapProgressPercent(value),
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         "0": "0.00%",
         "10000": "100.00%",
@@ -277,18 +289,18 @@ describe('perps display format characterization', () => {
   });
 
   it('formats closed-trade PnL in history', () => {
-    expect(
-      table(
-        [
-          ['1234.5', '0'],
-          ['-0.04', '0.01'],
-          ['0.01', '0.01'],
-          ['10', '0.004'],
-        ] as const,
-        ([pnl, fee]) =>
-          transformFillsToTransactions([closeFill(pnl, fee)])[0]?.fill?.amount,
-      ),
-    ).toMatchInlineSnapshot(`
+    const formatted = table(
+      [
+        ['1234.5', '0'],
+        ['-0.04', '0.01'],
+        ['0.01', '0.01'],
+        ['10', '0.004'],
+      ] as const,
+      ([pnl, fee]) =>
+        transformFillsToTransactions([closeFill(pnl, fee)])[0]?.fill?.amount,
+    );
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         "["-0.04","0.01"]": "-$0.05",
         "["0.01","0.01"]": "$0.00",
@@ -301,7 +313,7 @@ describe('perps display format characterization', () => {
   it('formats for a German app language', () => {
     I18n.locale = 'de';
 
-    expect({
+    const formatted = {
       pnl: formatPnl(1234.5),
       percentage: formatPercentage(-1234.56),
       roe: formatPercentage(10.25, 1),
@@ -311,7 +323,9 @@ describe('perps display format characterization', () => {
       price: formatPerpsFiat(75231.4, { ranges: PRICE_RANGES_UNIVERSAL }),
       fee: formatFeeRate(0.00045),
       twap: formatTwapProgressPercent(3333),
-    }).toMatchInlineSnapshot(`
+    };
+
+    expect(formatted).toMatchInlineSnapshot(`
       {
         "fee": "0,045%",
         "fiat": "1.234,56\u00a0$",

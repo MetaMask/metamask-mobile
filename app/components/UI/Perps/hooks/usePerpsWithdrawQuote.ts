@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import { formatPerpsUsdCents } from '../utils/formatUtils';
+import { formatPerpsUsdCents, formatPositionSize } from '../utils/formatUtils';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
+  PERPS_DISPLAY_PRECISION,
   WITHDRAWAL_CONSTANTS,
 } from '@metamask/perps-controller';
 import {
@@ -101,7 +102,9 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
       metamaskFee: METAMASK_WITHDRAWAL_FEE_PLACEHOLDER, // "$0.00"
       totalFees: totalFeesDisplay,
       estimatedTime,
-      receivingAmount: `${receivingAmount.toFixed(2)} USDC`,
+      receivingAmount: `${formatPositionSize(receivingAmount, {
+        decimals: PERPS_DISPLAY_PRECISION.Fee,
+      })} USDC`,
     };
   }, [parsedAmount, isValid, withdrawalRoute]);
 

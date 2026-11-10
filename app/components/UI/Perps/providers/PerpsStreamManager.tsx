@@ -24,6 +24,7 @@ import {
   type PerpsMarketData,
   type PerpsUserDataSnapshot,
   type PerpsProviderType,
+  type PerpsAvailableToTrade,
   findEvmAccount,
 } from '@metamask/perps-controller';
 import { store } from '../../../../store';
@@ -2416,6 +2417,143 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
   }
 }
 
+interface AvailableToTradeRoute {
+  symbol: string;
+  providerId?: PerpsProviderType;
+}
+
+/**
+ * One market's available to trade per side, as the venue reports it
+ * (`PerpsController.subscribeToAvailableToTrade`). All subscribers of a market
+ * route share one controller subscription. Subscribers get `undefined` while
+ * the value is unknown: before the venue reports it, and after a reconnect
+ * (new account or network) clears it. A stream failure reaches `onError`.
+ */
+class AvailableToTradeStreamChannel extends StreamChannel<
+  PerpsAvailableToTrade | undefined
+> {
+  private currentKey: string | null = null;
+  private readonly routes = new Map<string, AvailableToTradeRoute>();
+
+  private static routeKey({ symbol, providerId }: AvailableToTradeRoute) {
+    return `${providerId ?? 'default'}:${symbol}`;
+  }
+
+  protected connect() {
+    const route = this.currentKey
+      ? this.routes.get(this.currentKey)
+      : undefined;
+    if (!this.currentKey || !route || this.wsSubscription) {
+      return;
+    }
+
+    if (!this.ensureReady()) return;
+
+    const key = this.currentKey;
+    const subscriptionContext = this.getSubscriptionContext();
+
+    this.wsSubscription =
+      Engine.context.PerpsController.subscribeToAvailableToTrade({
+        symbol: route.symbol,
+        providerId: route.providerId,
+        callback: (value: PerpsAvailableToTrade) => {
+          if (
+            !this.isSubscriptionGenerationCurrent(subscriptionContext) ||
+            value.symbol !== route.symbol
+          ) {
+            return;
+          }
+          this.cache.set(key, value);
+          this.notifySubscribersForSymbols(value, [key]);
+        },
+        onError: (error: Error) => {
+          if (!this.isSubscriptionGenerationCurrent(subscriptionContext)) {
+            return;
+          }
+          this.cache.delete(key);
+          this.notifyError(error, route.providerId);
+        },
+      });
+  }
+
+  protected getCachedDataForSubscription(
+    params: Pick<
+      StreamSubscription<PerpsAvailableToTrade | undefined>,
+      'symbols'
+    >,
+  ): PerpsAvailableToTrade | null {
+    const key = params.symbols?.[0];
+    return (key && this.cache.get(key)) || null;
+  }
+
+  protected getClearedData(): PerpsAvailableToTrade | undefined {
+    return undefined;
+  }
+
+  public getSnapshot(): PerpsAvailableToTrade | null {
+    return (this.currentKey && this.cache.get(this.currentKey)) || null;
+  }
+
+  public subscribeToMarket(params: {
+    symbol: string;
+    providerId?: PerpsProviderType;
+    callback: (value: PerpsAvailableToTrade | undefined) => void;
+    onError?: (error: Error) => void;
+    throttleMs?: number;
+  }): () => void {
+    const { symbol, providerId, callback, onError, throttleMs } = params;
+    const key = AvailableToTradeStreamChannel.routeKey({ symbol, providerId });
+    this.routes.set(key, { symbol, providerId });
+
+    if (this.currentKey !== key) {
+      // One venue stream at a time: an order form shows one market.
+      this.disconnect();
+      this.currentKey = key;
+    }
+
+    const unsubscribe = this.subscribe({
+      symbols: [key],
+      callback,
+      onError,
+      throttleMs,
+    });
+
+    return () => {
+      unsubscribe();
+      if (!this.symbolSubscribers.has(key)) {
+        this.routes.delete(key);
+      }
+      this.refocusToRemainingRoute();
+    };
+  }
+
+  /** Keep streaming for a market that still has subscribers. */
+  private refocusToRemainingRoute(): void {
+    if (
+      this.subscribers.size === 0 ||
+      (this.currentKey && this.symbolSubscribers.has(this.currentKey))
+    ) {
+      return;
+    }
+    const nextKey = this.symbolSubscribers.keys().next().value;
+    if (!nextKey) {
+      return;
+    }
+    this.disconnect();
+    this.currentKey = nextKey;
+    this.connect();
+  }
+
+  public reconnect(): void {
+    // A reconnect can mean a new account or network: the old value is no
+    // longer known, so subscribers go back to unknown before the next value.
+    this.clearCache();
+    if (this.subscribers.size > 0) {
+      this.connect();
+    }
+  }
+}
+
 // Market data channel for caching market list data
 class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private lastFetchTime = 0;
@@ -2821,6 +2959,7 @@ export class PerpsStreamManager {
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
   public readonly focusedPrice = new FocusedPriceStreamChannel();
+  public readonly availableToTrade = new AvailableToTradeStreamChannel();
   public readonly candles = new CandleStreamChannel(
     () => PerpsConnectionManager.getConnectionState().isInitialized,
   );
@@ -3100,6 +3239,7 @@ export class PerpsStreamManager {
     this.oiCaps.reconnect();
     this.topOfBook.reconnect();
     this.focusedPrice.reconnect();
+    this.availableToTrade.reconnect();
     this.candles.reconnect();
     this.requestUserDataSnapshot();
   }

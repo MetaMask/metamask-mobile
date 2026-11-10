@@ -198,7 +198,7 @@ describe('transactionTransforms', () => {
 
         expect(transaction.fill).toMatchObject({
           fee: '0',
-          amount: '-$0.00',
+          amount: '$0.00',
           amountNumber: 0,
           isPositive: false,
         });

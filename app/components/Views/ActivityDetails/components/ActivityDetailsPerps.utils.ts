@@ -8,6 +8,7 @@ import type {
 import {
   formatTransactionDate as formatPerpsTransactionDate,
   formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
@@ -48,17 +49,16 @@ export function formatSignedPerpsFiat(
   isPositive: boolean,
 ): string {
   const absolute = BigNumber(amount).absoluteValue();
-  const sign = isPositive ? '+' : '-';
+  const signed = isPositive ? absolute : absolute.negated();
 
-  if (absolute.isEqualTo(0)) {
-    return '$0';
-  }
-
-  if (absolute.isLessThan(0.01)) {
-    return `${sign}$${absolute.toFixed()}`;
-  }
-
-  return `${sign}${formatPerpsFiat(absolute.toString())}`;
+  // Sub-cent funding payments keep their significant digits (universal
+  // ranges) instead of collapsing to `<$0.01`.
+  return formatPerpsFiat(signed.toString(), {
+    ranges: absolute.isLessThan(0.01)
+      ? PRICE_RANGES_UNIVERSAL
+      : PRICE_RANGES_MINIMAL_VIEW,
+    sign: 'exceptZero',
+  });
 }
 
 export function getPerpsPositionSize(

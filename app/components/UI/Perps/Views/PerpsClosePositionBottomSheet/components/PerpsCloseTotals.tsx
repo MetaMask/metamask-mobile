@@ -1,5 +1,8 @@
 import React from 'react';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  PERPS_DISPLAY_PRECISION,
+} from '@metamask/perps-controller';
 import {
   KeyValueRow,
   KeyValueRowVariant,
@@ -13,13 +16,24 @@ import {
   getCloseSummaryPnlColor,
 } from '../../../components/PerpsCloseSummary/closeSummaryFormat';
 
-// `formatPercentage` renders -0 as "+0.00%"; a limit RoE that rounds to
-// zero from below (a limit just under the entry price) must keep its minus
-// sign so the percentage agrees with the $P&L rendered beside it. The $P&L
-// must also be negative, so a market RoE of exactly -0 beside a non-negative
-// P&L keeps the plain formatted value.
-const formatSummaryPercentage = (value: number, pnl: number) =>
-  Object.is(value, -0) && pnl < 0 ? '-0.00%' : formatPercentage(value);
+// RoE at the same precision as the position cards. `formatPercentage` shows a
+// value that rounds to zero without a minus; a non-positive RoE beside a
+// negative $P&L (e.g. a limit just under the entry price) keeps its minus so
+// the percentage agrees with the $P&L rendered beside it.
+const formatSummaryPercentage = (value: number, pnl: number) => {
+  const percentage = formatPercentage(
+    value,
+    PERPS_DISPLAY_PRECISION.RoePercent,
+  );
+  if (pnl >= 0 || value > 0 || percentage.startsWith('-')) {
+    return percentage;
+  }
+  const unsigned = formatPercentage(value, {
+    decimals: PERPS_DISPLAY_PRECISION.RoePercent,
+    sign: 'never',
+  });
+  return `-${unsigned}`;
+};
 
 export interface PerpsCloseTotalsProps {
   /** P&L realized by the close; undefined while unavailable. */

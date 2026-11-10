@@ -70,7 +70,7 @@ describe('usePerpsWithdrawQuote', () => {
         metamaskFee: METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
         totalFees: '$1.00',
         estimatedTime: '5 minutes',
-        receivingAmount: '99.00 USDC',
+        receivingAmount: '99 USDC',
       });
     });
 
@@ -86,7 +86,7 @@ describe('usePerpsWithdrawQuote', () => {
         metamaskFee: '$0.00',
         totalFees: '$1.00',
         estimatedTime: '5 minutes',
-        receivingAmount: '0.00 USDC',
+        receivingAmount: '0 USDC',
       });
       expect(result.current.hasValidQuote).toBe(false);
     });
@@ -98,9 +98,7 @@ describe('usePerpsWithdrawQuote', () => {
         { state: {} as DeepPartial<RootState> },
       );
 
-      expect(result.current.formattedQuoteData.receivingAmount).toBe(
-        '0.00 USDC',
-      );
+      expect(result.current.formattedQuoteData.receivingAmount).toBe('0 USDC');
       expect(result.current.hasValidQuote).toBe(false);
       expect(result.current.error).toBeNull();
     });
@@ -112,9 +110,7 @@ describe('usePerpsWithdrawQuote', () => {
         { state: {} as DeepPartial<RootState> },
       );
 
-      expect(result.current.formattedQuoteData.receivingAmount).toBe(
-        '0.00 USDC',
-      );
+      expect(result.current.formattedQuoteData.receivingAmount).toBe('0 USDC');
       expect(result.current.hasValidQuote).toBe(false);
       expect(result.current.error).toBe(
         `Amount must be greater than $1.01 to cover fees`,
@@ -128,9 +124,7 @@ describe('usePerpsWithdrawQuote', () => {
         { state: {} as DeepPartial<RootState> },
       );
 
-      expect(result.current.formattedQuoteData.receivingAmount).toBe(
-        '0.00 USDC',
-      );
+      expect(result.current.formattedQuoteData.receivingAmount).toBe('0 USDC');
       expect(result.current.hasValidQuote).toBe(false);
       expect(result.current.error).toBe(
         `Amount must be greater than $1.01 to cover fees`,
@@ -158,10 +152,9 @@ describe('usePerpsWithdrawQuote', () => {
         { state: {} as DeepPartial<RootState> },
       );
 
-      const expectedReceiving =
-        Number.parseFloat(amount) - HYPERLIQUID_WITHDRAWAL_FEE;
+      // 123.456789 less the $1 fee, at two decimals.
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
-        `${expectedReceiving.toFixed(2)} USDC`,
+        '122.46 USDC',
       );
       expect(result.current.hasValidQuote).toBe(true);
       expect(result.current.error).toBeNull();
@@ -174,10 +167,9 @@ describe('usePerpsWithdrawQuote', () => {
         { state: {} as DeepPartial<RootState> },
       );
 
-      const expectedReceiving =
-        Number.parseFloat(amount) - HYPERLIQUID_WITHDRAWAL_FEE;
+      // 1,000,000 less the $1 fee; sizes never group thousands.
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
-        `${expectedReceiving.toFixed(2)} USDC`,
+        '999999 USDC',
       );
       expect(result.current.hasValidQuote).toBe(true);
     });
@@ -191,9 +183,9 @@ describe('usePerpsWithdrawQuote', () => {
           { state: {} as DeepPartial<RootState> },
         );
 
-        // Invalid input should result in 0.00 USDC, not NaN USDC
+        // Invalid input should result in 0 USDC, not NaN USDC
         expect(result.current.formattedQuoteData.receivingAmount).toBe(
-          '0.00 USDC',
+          '0 USDC',
         );
         expect(result.current.hasValidQuote).toBe(false);
         expect(result.current.error).toBeNull();
@@ -210,7 +202,7 @@ describe('usePerpsWithdrawQuote', () => {
         );
 
         expect(result.current.formattedQuoteData.receivingAmount).toBe(
-          '0.00 USDC',
+          '0 USDC',
         );
         expect(result.current.hasValidQuote).toBe(false);
         expect(result.current.error).toBeNull();
@@ -260,9 +252,7 @@ describe('usePerpsWithdrawQuote', () => {
       // Check that it uses the provider fee of $1.00
       expect(result.current.formattedQuoteData.networkFee).toBe('$1.00');
       expect(result.current.formattedQuoteData.totalFees).toBe('$1.00');
-      expect(result.current.formattedQuoteData.receivingAmount).toBe(
-        '99.00 USDC',
-      );
+      expect(result.current.formattedQuoteData.receivingAmount).toBe('99 USDC');
     });
   });
 
@@ -327,7 +317,7 @@ describe('usePerpsWithdrawQuote', () => {
       );
 
       expect(result1.current.formattedQuoteData.receivingAmount).toBe(
-        '99.00 USDC',
+        '99 USDC',
       );
 
       // Second render with amount 200
@@ -337,7 +327,7 @@ describe('usePerpsWithdrawQuote', () => {
       );
 
       expect(result2.current.formattedQuoteData.receivingAmount).toBe(
-        '199.00 USDC',
+        '199 USDC',
       );
     });
   });

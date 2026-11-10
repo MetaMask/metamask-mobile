@@ -731,6 +731,16 @@ export function buildE2EMockStreamManagerPlain(): Record<
      * `TypeError: undefined is not a function` right after tapping a market row,
      * which surfaced as "market row not found" in Detox/Appium perps flows.
      */
+    /**
+     * Available-to-trade channel (production AvailableToTradeStreamChannel).
+     * The Pro order form subscribes on mount; the mock venue never reports a
+     * value, so the form shows its unknown placeholder.
+     */
+    availableToTrade: {
+      getSnapshot: () => null,
+      clearCache: (): void => undefined,
+      subscribeToMarket: () => () => undefined,
+    },
     focusedPrice: {
       getSnapshot: (): PriceUpdate | undefined | null => null,
       clearCache: (): void => undefined,

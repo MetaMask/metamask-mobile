@@ -177,7 +177,7 @@ describe('PerpsMarketStatisticsCard', () => {
     expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
   });
 
-  it('shows the unknown-rate placeholder without the negative colour', () => {
+  it('shows the unknown-rate placeholder in the neutral colour', () => {
     const { UNSAFE_getAllByType } = render(
       <PerpsMarketStatisticsCard
         {...defaultProps}
@@ -187,6 +187,24 @@ describe('PerpsMarketStatisticsCard', () => {
 
     const fundingRateText = UNSAFE_getAllByType(Text).find(
       (textElement) => textElement.props.children === '--%',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
+  });
+
+  it('colours a known zero rate differently from the unknown placeholder', () => {
+    const { UNSAFE_getAllByType } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={{
+          ...mockMarketStats,
+          fundingRate: FUNDING_RATE_CONFIG.ZeroDisplay,
+        }}
+      />,
+    );
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) =>
+        textElement.props.children === FUNDING_RATE_CONFIG.ZeroDisplay,
     );
     expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
   });

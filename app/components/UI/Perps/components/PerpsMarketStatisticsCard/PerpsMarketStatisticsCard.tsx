@@ -54,7 +54,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   const liveOraclePrice = symbol ? livePrices[symbol]?.markPrice : undefined;
 
   const fundingRateData = useMemo(() => {
-    let fundingValue: number;
+    // Undefined while the rate is unknown, so it is never coloured as a zero.
+    let fundingValue: number | undefined;
     let displayText: string;
 
     if (liveFunding !== undefined) {
@@ -65,7 +66,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     ) {
       // Unknown rate: show the placeholder, never read its leading '-' as a
       // negative rate.
-      fundingValue = 0;
+      fundingValue = undefined;
       displayText = marketStats.fundingRate;
     } else if (
       marketStats.fundingRate &&
@@ -78,8 +79,11 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       displayText = FUNDING_RATE_CONFIG.ZeroDisplay;
     }
 
-    const color =
-      fundingValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+    let color = TextColor.TextDefault;
+    if (fundingValue !== undefined) {
+      color =
+        fundingValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+    }
 
     return {
       value: fundingValue,

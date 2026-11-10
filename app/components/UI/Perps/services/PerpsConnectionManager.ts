@@ -451,6 +451,7 @@ class PerpsConnectionManagerClass {
         streamManager.orders.clearCache();
         streamManager.account.clearCache();
         streamManager.fills.clearCache();
+        streamManager.availableToTrade.clearCache();
 
         // Global market state is account-independent. Preserve it for an
         // account-only switch; provider/network/DEX changes invalidate it.

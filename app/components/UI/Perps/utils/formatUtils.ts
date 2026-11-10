@@ -22,6 +22,7 @@ import {
   formatPnl as formatPnlEnUs,
   formatPositionSize as formatPositionSizeEnUs,
   formatWithSignificantDigits,
+  PERPS_DISPLAY_PRECISION,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
@@ -38,7 +39,9 @@ export {
 /*
  * The perps-controller display formatters, bound to the app language. This is
  * the one place Mobile injects `createFormatters({ locale })` (cached per
- * language by `getFormatters`); every displayed perps number goes through these.
+ * language by `getFormatters`). Display code uses these wrappers; execution
+ * values (order sizes and prices sent to the venue) use the locale-free Core
+ * functions directly.
  */
 
 type PerpsDisplayValue = string | number | null | undefined;
@@ -103,15 +106,16 @@ export const formatPerpsFiat = (
 
 /**
  * A USD amount at cents precision with grouping, e.g. `+$1,234.50`, for
- * history amounts, fees and balances that always show two decimals.
+ * history amounts, fees and balances that always show cents. A nonzero amount
+ * under a cent shows Core's `<$0.01`.
  */
 export const formatPerpsUsdCents = (
   amount: PerpsDisplayValue | BigNumber,
   sign: PerpsSignDisplay = 'auto',
 ): string =>
   formatPerpsFiat(BigNumber.isBigNumber(amount) ? amount.toString() : amount, {
-    minimumDecimals: 2,
-    maximumDecimals: 2,
+    minimumDecimals: PERPS_DISPLAY_PRECISION.Fee,
+    maximumDecimals: PERPS_DISPLAY_PRECISION.Fee,
     stripTrailingZeros: false,
     sign,
   });
@@ -985,7 +989,19 @@ export const formatPerpsPrice = (
       price,
       szDecimals: options.szDecimals,
     });
-    return includeCurrencySymbol ? `$${formattedPrice}` : formattedPrice;
+    if (!includeCurrencySymbol) {
+      // Canonical venue price string, not a display value.
+      return formattedPrice;
+    }
+    // Display the venue-precision price in the app language, at exactly the
+    // decimals the venue precision kept.
+    const decimals = formattedPrice.split('.')[1]?.length ?? 0;
+    return formatPerpsFiat(formattedPrice, {
+      ranges: PRICE_RANGES_UNIVERSAL,
+      minimumDecimals: decimals,
+      maximumDecimals: decimals,
+      stripTrailingZeros: false,
+    });
   } catch {
     return fallback();
   }

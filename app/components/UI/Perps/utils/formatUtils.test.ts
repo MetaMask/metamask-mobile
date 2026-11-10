@@ -249,8 +249,11 @@ describe('formatUtils', () => {
     });
 
     it('keeps the en-US output for an English app language', () => {
-      expect(formatPnl(1234.5)).toBe('+$1,234.50');
-      expect(formatPercentage(10.25, 1)).toBe('+10.3%');
+      const pnl = formatPnl(1234.5);
+      const roe = formatPercentage(10.25, 1);
+
+      expect(pnl).toBe('+$1,234.50');
+      expect(roe).toBe('+10.3%');
     });
   });
 
@@ -262,7 +265,9 @@ describe('formatUtils', () => {
       [-0.004, '$0'],
       [0.007, '-<$0.01'],
     ])('formats funding %p since open as %p', (sinceOpen, expected) => {
-      expect(formatFundingSinceOpen(sinceOpen)).toBe(expected);
+      const formatted = formatFundingSinceOpen(sinceOpen);
+
+      expect(formatted).toBe(expected);
     });
   });
 
@@ -272,30 +277,45 @@ describe('formatUtils', () => {
       [1234.5, 'always', '+$1,234.50'],
       [-0.05, 'always', '-$0.05'],
       [12, 'auto', '$12.00'],
+      [0, 'always', '+$0.00'],
+      [0.01, 'auto', '$0.01'],
+      [0.004, 'auto', '<$0.01'],
+      [0.004, 'always', '+<$0.01'],
+      [-0.004, 'auto', '-<$0.01'],
+      [0.005, 'auto', '<$0.01'],
+      [0.0099, 'auto', '<$0.01'],
     ] as const)('formats %p with sign %p as %p', (amount, sign, expected) => {
-      expect(formatPerpsUsdCents(amount, sign)).toBe(expected);
+      const formatted = formatPerpsUsdCents(amount, sign);
+
+      expect(formatted).toBe(expected);
     });
 
     it('accepts a BigNumber', () => {
-      expect(formatPerpsUsdCents(new BigNumber('1234.5'), 'always')).toBe(
-        '+$1,234.50',
-      );
+      const formatted = formatPerpsUsdCents(new BigNumber('1234.5'), 'always');
+
+      expect(formatted).toBe('+$1,234.50');
     });
   });
 
   describe('formatPercentageNumber', () => {
     it('drops the % so a locale template can place it', () => {
-      expect(formatPercentageNumber(0.04567, { decimals: 2 })).toBe('0.05');
+      const formatted = formatPercentageNumber(0.04567, { decimals: 2 });
+
+      expect(formatted).toBe('0.05');
     });
 
     it('returns the bare placeholder for an unknown value', () => {
-      expect(formatPercentageNumber(undefined)).toBe('--');
+      const formatted = formatPercentageNumber(undefined);
+
+      expect(formatted).toBe('--');
     });
   });
 
   describe('formatLiquidationDistancePercent', () => {
     it('formats an unsigned distance at two decimals', () => {
-      expect(formatLiquidationDistancePercent(31.926)).toBe('31.93%');
+      const formatted = formatLiquidationDistancePercent(31.926);
+
+      expect(formatted).toBe('31.93%');
     });
   });
 
@@ -2144,6 +2164,21 @@ describe('formatUtils', () => {
               includeCurrencySymbol: false,
             }),
           ).toBe('2.1946');
+        });
+
+        it('groups thousands in a venue-precision price', () => {
+          const formatted = formatPerpsPrice(75231, { szDecimals: 5 });
+
+          expect(formatted).toBe('$75,231');
+        });
+
+        it('formats a venue-precision price in the app language', () => {
+          I18n.locale = 'de';
+
+          const formatted = formatPerpsPrice(1234.5, { szDecimals: 2 });
+          I18n.locale = 'en-US';
+
+          expect(formatted).toBe('1.234,5\u00a0$');
         });
 
         it('falls back to universal price ranges when szDecimals is null', () => {

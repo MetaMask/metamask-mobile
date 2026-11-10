@@ -199,7 +199,7 @@ export const LIQUIDATION_DISTANCE_DECIMALS = 2;
  * Decimal places for the estimated and max slippage percentages in the order
  * forms. Mobile keeps its current 2 decimals while product decides whether it
  * moves to perps-controller's `PERPS_DISPLAY_PRECISION.SlippageEstimatePercent`
- * (4). Pending product answer (TAT-4571).
+ * (4). Pending a product decision.
  */
 export const PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS = 2;
 

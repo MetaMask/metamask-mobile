@@ -387,7 +387,7 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('$5')).toBeOnTheScreen();
   });
 
-  it('should display fees with <$0.01 label for amounts < 0.01', () => {
+  it('displays fees with a <$0.01 label for amounts below one cent', () => {
     // Given a transaction with fee less than 0.01
     const smallFeeTransaction = {
       ...mockTransaction,
