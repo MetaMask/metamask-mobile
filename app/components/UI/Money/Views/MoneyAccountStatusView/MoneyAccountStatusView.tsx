@@ -112,7 +112,9 @@ const CopyableValueRow = ({
   copyButtonTestID: string;
 }) => {
   const [copied, setCopied] = useState(false);
-  const resetTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const resetTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   useEffect(() => () => clearTimeout(resetTimeout.current), []);
 
