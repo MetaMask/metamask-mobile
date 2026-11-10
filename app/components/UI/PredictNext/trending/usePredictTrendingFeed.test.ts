@@ -336,10 +336,10 @@ describe('usePredictTrendingFeed', () => {
             callsTo(messenger, 'PredictMarketDataService:getVenueCatalog'),
           ).toHaveLength(1),
         );
+        await waitFor(() => expect(result.current.isLoading).toBe(false));
         await settle();
 
         expect(result.current.data).toEqual([]);
-        expect(result.current.isLoading).toBe(false);
         expect(callsTo(messenger, GET_FEED)).toEqual([]);
         expect(mockGetMarkets).not.toHaveBeenCalled();
       },
