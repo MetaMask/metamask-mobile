@@ -26,8 +26,10 @@ import {
 } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 import { strings } from '../../../../../../locales/i18n';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import { useTheme } from '../../../../../util/theme';
 import { SocialTermsSheetSelectorsIDs } from './SocialTermsSheet.testIds';
+import { themeSocialTermsHtml } from './socialTermsTheme';
 
 /** Distance from the bottom that still counts as "read to the end". */
 const SCROLL_END_THRESHOLD = 20;
@@ -149,9 +151,9 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   onAgree,
   onClose,
 }) => {
-  const { colors } = useTheme();
-  const sheetBackground = colors.background.elevated1;
   const { height: windowHeight } = useWindowDimensions();
+  const { colors, themeAppearance } = useTheme();
+  const termsBackground = colors.background.default;
   const scrollViewRef = useRef<ScrollView>(null);
   const webViewRef = useRef<WebView>(null);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
@@ -160,6 +162,16 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const [viewportHeight, setViewportHeight] = useState(0);
   const allowedOrigin = getUrlOrigin(html ? TERMS_BASE_URL : (uri ?? ''));
   const showsHostedTerms = Boolean(uri || html);
+  const themedHtml = html
+    ? themeSocialTermsHtml(html, {
+        background: termsBackground,
+        text: colors.text.default,
+        heading: colors.text.default,
+        link: colors.primary.default,
+        colorScheme: themeAppearance === AppThemeKey.dark ? 'dark' : 'light',
+      })
+    : undefined;
+  const webViewBackgroundStyle = { backgroundColor: termsBackground };
 
   const markReachedEnd = useCallback(() => setHasReachedEnd(true), []);
 
@@ -256,7 +268,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
       <Box
         style={{
           height: windowHeight * BODY_HEIGHT_RATIO,
-          backgroundColor: sheetBackground,
+          backgroundColor: termsBackground,
         }}
         twClassName="relative border-b border-muted"
       >
@@ -264,18 +276,19 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
           <WebView
             ref={webViewRef}
             source={
-              html
+              themedHtml
                 ? {
-                    html: withSheetBackground(html, sheetBackground),
+                    html: withSheetBackground(themedHtml, termsBackground),
                     baseUrl: TERMS_BASE_URL,
                   }
                 : { uri: uri ?? '' }
             }
-            style={{ backgroundColor: sheetBackground }}
-            containerStyle={{ backgroundColor: sheetBackground }}
+            style={webViewBackgroundStyle}
+            containerStyle={webViewBackgroundStyle}
+            overScrollMode="never"
             nestedScrollEnabled
             injectedJavaScriptBeforeContentLoaded={sheetBackgroundScript(
-              sheetBackground,
+              termsBackground,
             )}
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}

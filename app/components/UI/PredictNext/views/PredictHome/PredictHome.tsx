@@ -23,6 +23,10 @@ import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
 import {
+  KalshiDebugPanel,
+  KalshiDebugTestIds,
+} from '../../onboarding/KalshiDebugPanel';
+import {
   FEED_SCREENS,
   type FeedScreenDefinition,
   type FeedScreenId,
@@ -231,6 +235,22 @@ const PredictHomeView = ({
                 accessibilityRole="button"
               />
             ) : null}
+            {/* TEMPORARY: Kalshi demo onboarding debug. Self-gates on a
+                development build with Kalshi authentication on. Remove with
+                the demo onboarding. */}
+            <KalshiDebugPanel
+              renderTrigger={(open) => (
+                <ButtonIconGlass
+                  isCapsule={isGlassHeader}
+                  size={ButtonIconSize.Md}
+                  iconName={IconName.Flask}
+                  onPress={open}
+                  testID={KalshiDebugTestIds.OPEN}
+                  accessibilityLabel="User debug"
+                  accessibilityRole="button"
+                />
+              )}
+            />
           </Box>
         }
         {...(navigation.canGoBack()
