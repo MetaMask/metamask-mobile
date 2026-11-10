@@ -775,8 +775,10 @@ describe('PredictFeedScreen', () => {
     const gameCard = view.getByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
     );
-    expect(within(gameCard).getByText('Packers')).toBeOnTheScreen();
-    expect(within(gameCard).getByText('Steelers')).toBeOnTheScreen();
+    // A featured card shows the Team abbreviation only. The Team name is on the
+    // quote's accessibility label ("Team name, price, buy").
+    expect(within(gameCard).getByLabelText(/^Packers, /)).toBeOnTheScreen();
+    expect(within(gameCard).getByLabelText(/^Steelers, /)).toBeOnTheScreen();
     expect(within(gameCard).getByText('17')).toBeOnTheScreen();
     expect(within(gameCard).getByText('21')).toBeOnTheScreen();
 
