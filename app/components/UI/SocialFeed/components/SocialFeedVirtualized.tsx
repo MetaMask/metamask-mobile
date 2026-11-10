@@ -14,10 +14,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useComposedEventHandler,
+  useSharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import useInterval from '../../../hooks/useInterval';
@@ -62,7 +63,10 @@ import {
 import SocialFeedRow from './SocialFeedRow';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';
 
-/** Scroll offset under which the list counts as at the top. */
+/**
+ * Extra offset, past the list header, that still counts as the top.
+ * A profile header is the avatar and stats, so the posts start further down.
+ */
 const NEAR_TOP_OFFSET_PX = 4;
 
 /** How often relative post ages ("3 min ago") are recomputed. */
@@ -161,6 +165,10 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const livePrices = useSocialLivePrices();
   const { isEntryHidden } = useSocialEntryModeration();
   const listRef = useRef<Animated.FlatList<SocialFeedListItem>>(null);
+  const headerHeightSv = useSharedValue(0);
+  const headerHeightRef = useRef(0);
+  const viewportHeightRef = useRef(0);
+  const scrollOffsetSv = useSharedValue(0);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [clock, setClock] = useState(() => Date.now());
@@ -234,6 +242,37 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       ),
     [isEntryHidden, posts],
   );
+  const firstPostId = visiblePosts[0]?.id;
+  const previousFirstPostIdRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const previousId = previousFirstPostIdRef.current;
+    previousFirstPostIdRef.current = firstPostId;
+    if (
+      !realtime ||
+      !nearTop ||
+      !previousId ||
+      !firstPostId ||
+      previousId === firstPostId ||
+      !visiblePosts.some((post) => post.id === previousId)
+    ) {
+      return;
+    }
+    const headerHeight = headerHeightRef.current;
+    const viewportHeight = viewportHeightRef.current;
+    const offset = scrollOffsetSv.value;
+    const firstPostIsInView =
+      headerHeight >= offset - NEAR_TOP_OFFSET_PX &&
+      headerHeight < offset + viewportHeight;
+    if (
+      headerHeight <= 0 ||
+      viewportHeight <= 0 ||
+      firstPostIsInView ||
+      offset > headerHeight + NEAR_TOP_OFFSET_PX
+    ) {
+      return;
+    }
+    listRef.current?.scrollToOffset({ offset: headerHeight, animated: true });
+  }, [firstPostId, nearTop, realtime, scrollOffsetSv, visiblePosts]);
   const { showSkeleton, showEmpty, showRetry } = getSocialFeedListState({
     postCount: visiblePosts.length,
     // Offline, the query is off: placeholders until a first page exists,
@@ -270,17 +309,31 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const setNearTopFromScroll = useCallback((value: boolean) => {
     setNearTop(value);
   }, []);
+  const handleHeaderLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const height = event.nativeEvent.layout.height;
+      headerHeightRef.current = height;
+      headerHeightSv.value = height;
+      setNearTop(scrollOffsetSv.value <= height + NEAR_TOP_OFFSET_PX);
+    },
+    [headerHeightSv, scrollOffsetSv],
+  );
+  const handleViewportLayout = useCallback((event: LayoutChangeEvent) => {
+    viewportHeightRef.current = event.nativeEvent.layout.height;
+  }, []);
   const nearTopHandler = useAnimatedScrollHandler<ScrollContext>(
     {
       onScroll: (event, context) => {
-        const nextNearTop = event.contentOffset.y <= NEAR_TOP_OFFSET_PX;
+        scrollOffsetSv.value = event.contentOffset.y;
+        const nextNearTop =
+          event.contentOffset.y <= headerHeightSv.value + NEAR_TOP_OFFSET_PX;
         if (context.nearTop !== nextNearTop) {
           context.nearTop = nextNearTop;
           scheduleOnRN(setNearTopFromScroll, nextNearTop);
         }
       },
     },
-    [setNearTopFromScroll],
+    [headerHeightSv, scrollOffsetSv, setNearTopFromScroll],
   );
   const scrollHandler = useComposedEventHandler([
     onScroll ?? null,
@@ -314,7 +367,10 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     }
     setNearTop(true);
     revealPending();
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    listRef.current?.scrollToOffset({
+      offset: headerHeightRef.current,
+      animated: true,
+    });
     await refresh();
   }, [refresh, revealPending]);
 
@@ -421,14 +477,14 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [paused, pendingNewCount],
   );
   const header = (
-    <>
+    <Box onLayout={handleHeaderLayout}>
       {title ? (
         <Box twClassName="px-4">
           <Text variant={TextVariant.HeadingSm}>{title}</Text>
         </Box>
       ) : null}
       {renderHeader?.()}
-    </>
+    </Box>
   );
 
   return (
@@ -438,7 +494,11 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       showMockedFields={showMockedFields}
     >
       <SocialFeedRealtimeContext.Provider value={realtimeState}>
-        <Box twClassName="flex-1 bg-default" testID={testID}>
+        <Box
+          twClassName="flex-1 bg-default"
+          testID={testID}
+          onLayout={handleViewportLayout}
+        >
           {performance ? (
             <SocialFeedFirstContentTrace
               tab={performance.tab}

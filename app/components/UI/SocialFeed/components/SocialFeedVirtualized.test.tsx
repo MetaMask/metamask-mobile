@@ -434,6 +434,39 @@ describe('SocialFeedVirtualized', () => {
     await waitFor(() => expect(lastFeedOptions()?.nearTop).toBe(false));
   });
 
+  const layoutListHeader = (height: number) => {
+    const header = getList().props.ListHeaderComponent;
+    act(() => {
+      header.props.onLayout({
+        nativeEvent: { layout: { height, width: 10, x: 0, y: 0 } },
+      });
+    });
+  };
+
+  it('keeps the posts in view as the top while the profile header is on screen', async () => {
+    renderFeed({
+      renderHeader: () => <Text>profile header</Text>,
+    });
+    layoutListHeader(400);
+    const nearTopWorklet = (
+      mockUseAnimatedScrollHandler.mock.calls[0][0] as {
+        onScroll: NearTopWorklet;
+      }
+    ).onScroll;
+
+    act(() => {
+      nearTopWorklet({ contentOffset: { y: 120 } }, {});
+    });
+
+    await waitFor(() => expect(lastFeedOptions()?.nearTop).toBe(true));
+
+    act(() => {
+      nearTopWorklet({ contentOffset: { y: 420 } }, {});
+    });
+
+    await waitFor(() => expect(lastFeedOptions()?.nearTop).toBe(false));
+  });
+
   it('scrolls the list through the page ref', () => {
     const scrollToOffset = jest
       .spyOn(FlatList.prototype, 'scrollToOffset')
@@ -553,6 +586,21 @@ describe('SocialFeedVirtualized', () => {
     });
 
     expect(calls).toEqual(['reveal', 'scroll 0', 'refresh']);
+  });
+
+  it('reveals held posts at the posts, under a tall header', async () => {
+    const calls = trackRevealSteps(3);
+    renderFeed({
+      realtime: true,
+      renderHeader: () => <Text>profile header</Text>,
+    });
+    layoutListHeader(480);
+
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText('3 new posts'));
+    });
+
+    expect(calls).toEqual(['reveal', 'scroll 480', 'refresh']);
   });
 
   it('scrolls to the top from the pill before the refresh settles', async () => {

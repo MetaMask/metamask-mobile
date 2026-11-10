@@ -64,6 +64,11 @@ export interface UseSocialFeedRealtimeOptions {
   /** Holds new posts behind the pill even at the top. */
   holdNewPosts: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
+  /**
+   * A new event `filterPost` refused. Profile Posts reloads from this when the
+   * all channel sends that trader's trade without the comment card.
+   */
+  onSkippedPost?: (post: SocialV1FeedPost) => void;
 }
 
 export interface UseSocialFeedRealtimeResult {
@@ -123,6 +128,7 @@ export const useSocialFeedRealtime = (
     nearTop,
     holdNewPosts,
     filterPost,
+    onSkippedPost,
   }: UseSocialFeedRealtimeOptions,
 ): UseSocialFeedRealtimeResult | null => {
   const isLive = realtimeScope !== null && active;
@@ -158,6 +164,8 @@ export const useSocialFeedRealtime = (
   holdNewPostsRef.current = holdNewPosts;
   const filterPostRef = useRef(filterPost);
   filterPostRef.current = filterPost;
+  const onSkippedPostRef = useRef(onSkippedPost);
+  onSkippedPostRef.current = onSkippedPost;
   const dataUpdatedAtRef = useRef(dataUpdatedAt);
   dataUpdatedAtRef.current = dataUpdatedAt;
 
@@ -322,6 +330,9 @@ export const useSocialFeedRealtime = (
           dataUpdatedAtRef.current ?? Date.now(),
         );
         if (!post || !filter(post)) {
+          if (post) {
+            onSkippedPostRef.current?.(post);
+          }
           return;
         }
       }

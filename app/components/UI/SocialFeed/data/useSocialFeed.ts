@@ -280,6 +280,37 @@ export const useSocialFeed = (
     await refetch();
   }, [queryClient, queryKey, refetch, request]);
 
+  const profileId =
+    request?.action === 'SocialService:fetchFeed'
+      ? request.options.profileId
+      : undefined;
+  const commentedOnly =
+    request?.action === 'SocialService:fetchFeed' &&
+    request.options.commentedOnly === true;
+  const profileRefreshInFlightRef = useRef(false);
+  const refreshUnrenderedProfilePost = useCallback(
+    (post: SocialV1FeedPost) => {
+      // The all channel also emits this trader's trades. Posts only renders a
+      // comment card, so a trade with no comment is the cue to reload.
+      if (
+        !profileId ||
+        !commentedOnly ||
+        post.commentId ||
+        post.item.author.id !== profileId ||
+        profileRefreshInFlightRef.current
+      ) {
+        return;
+      }
+      profileRefreshInFlightRef.current = true;
+      refresh()
+        .catch(() => undefined)
+        .finally(() => {
+          profileRefreshInFlightRef.current = false;
+        });
+    },
+    [commentedOnly, profileId, refresh],
+  );
+
   const live = useSocialFeedRealtime(
     { rows, dataUpdatedAt, refresh },
     {
@@ -289,6 +320,7 @@ export const useSocialFeed = (
       nearTop,
       holdNewPosts,
       filterPost,
+      onSkippedPost: refreshUnrenderedProfilePost,
     },
   );
   const filteredPosts = useMemo(

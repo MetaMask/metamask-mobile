@@ -42,6 +42,7 @@ interface HookProps {
   nearTop?: boolean;
   holdNewPosts?: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
+  onSkippedPost?: (post: SocialV1FeedPost) => void;
 }
 
 const NO_ROWS: TraderFeedRow[] = [];
@@ -100,10 +101,19 @@ describe('useSocialFeedRealtime', () => {
         nearTop = true,
         holdNewPosts = false,
         filterPost,
+        onSkippedPost,
       }: HookProps) =>
         useSocialFeedRealtime(
           { rows, dataUpdatedAt, refresh },
-          { realtimeScope, active, paused, nearTop, holdNewPosts, filterPost },
+          {
+            realtimeScope,
+            active,
+            paused,
+            nearTop,
+            holdNewPosts,
+            filterPost,
+            onSkippedPost,
+          },
         ),
       { initialProps },
     );
@@ -321,12 +331,21 @@ describe('useSocialFeedRealtime', () => {
   it('drops new posts the filter rejects before holding or counting them', () => {
     const filterPost = (post: SocialV1FeedPost) =>
       post.position?.positionId !== 'pos-rejected';
-    const { result } = renderRealtime({ paused: true, filterPost });
+    const onSkippedPost = jest.fn();
+    const { result } = renderRealtime({
+      paused: true,
+      filterPost,
+      onSkippedPost,
+    });
 
     emit(buildEvent('pos-rejected'));
     emit(buildEvent('pos-kept'));
 
     expect(result.current?.realtime.pendingNewCount).toBe(1);
+    expect(onSkippedPost).toHaveBeenCalledTimes(1);
+    expect(onSkippedPost.mock.calls[0][0].position?.positionId).toBe(
+      'pos-rejected',
+    );
   });
 
   it('filters the merged posts', () => {
