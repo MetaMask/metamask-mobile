@@ -99,6 +99,31 @@ describe('verifySocialLoginWhileLocked', () => {
     });
   });
 
+  it('returns fallback when passkey fails without cancel', async () => {
+    mockRefresh.mockResolvedValue([
+      { id: '1', type: 'passkey', status: 'active' },
+      { id: '2', type: 'totp', status: 'active' },
+    ]);
+    mockStartMfaFlow.mockRejectedValue(new Error('passkey failed'));
+
+    await expect(verifySocialLoginWhileLocked(reason)).resolves.toEqual({
+      status: 'fallback',
+      methods: ['passkey', 'totp'],
+    });
+  });
+
+  it('ignores pending credentials when choosing active methods', async () => {
+    mockRefresh.mockResolvedValue([
+      { id: '1', type: 'passkey', status: 'pending' },
+      { id: '2', type: 'totp', status: 'active' },
+    ]);
+
+    await expect(verifySocialLoginWhileLocked(reason)).resolves.toEqual({
+      status: 'fallback',
+      methods: ['totp'],
+    });
+  });
+
   it('returns fallback directly when there is no passkey', async () => {
     mockRefresh.mockResolvedValue([
       { id: '2', type: 'totp', status: 'active' },
@@ -145,6 +170,22 @@ describe('verifySocialLoginWhileLocked', () => {
       status: 'verified',
     });
     expect(mockRefresh).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
+  it('skips after exhausting retries for social-not-ready errors', async () => {
+    jest.useFakeTimers();
+    mockRefresh.mockRejectedValue(
+      new Error('the wallet has no social access token'),
+    );
+
+    const pending = verifySocialLoginWhileLocked(reason);
+    await jest.advanceTimersByTimeAsync(400 + 800 + 1200 + 1600);
+    await expect(pending).resolves.toEqual({
+      status: 'skipped',
+      reason: 'list_failed',
+    });
+    expect(mockRefresh).toHaveBeenCalledTimes(5);
     jest.useRealTimers();
   });
 });

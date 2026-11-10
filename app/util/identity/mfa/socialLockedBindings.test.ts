@@ -59,6 +59,30 @@ describe('createSocialLockedMfaControllerAdapter', () => {
         reason: { operation: 'qa.test' },
       }),
     ).rejects.toThrow(/not available while the social wallet is locked/);
+
+    await expect(
+      adapter.completeCredentialEnrollment({
+        flowId: 'flow',
+        proof: { type: 'passkey', attestation: mockPasskeyAssertion },
+        reason: { operation: 'qa.test' },
+      } as never),
+    ).rejects.toThrow(/not available while the social wallet is locked/);
+  });
+
+  it('begins social login verification through Auth', async () => {
+    auth.beginSocialLoginVerification.mockResolvedValue({
+      flowId: 'flow-1',
+      options: {},
+    });
+    const adapter = createSocialLockedMfaControllerAdapter();
+
+    await expect(
+      adapter.beginCredentialVerification({
+        type: 'passkey',
+        reason: { operation: 'qa.test' },
+      }),
+    ).resolves.toEqual({ flowId: 'flow-1', options: {} });
+    expect(auth.beginSocialLoginVerification).toHaveBeenCalledTimes(1);
   });
 
   it('caches the token from completeSocialLoginVerification for getVerificationToken', async () => {
