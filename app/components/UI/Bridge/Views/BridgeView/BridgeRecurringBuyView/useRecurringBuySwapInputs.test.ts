@@ -10,7 +10,10 @@ import {
 } from '../../../../../../core/redux/slices/bridge';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { getNativeSourceToken } from '../../../utils/tokenUtils';
+import {
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../../utils/tokenUtils';
 import { createMockToken } from '../../../testUtils/fixtures';
 import { TokenSelectorType, type BridgeToken } from '../../../types';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -210,7 +213,7 @@ describe('useRecurringBuySwapInputs', () => {
     });
 
     it('is false when the tokens are on different chains', () => {
-      const sourceToken = createMockToken({ chainId: '0x279f' });
+      const sourceToken = createMockToken({ chainId: '0x38' });
       const destToken = createMockToken({
         chainId: '0x1',
         address: '0xdest',
@@ -219,7 +222,7 @@ describe('useRecurringBuySwapInputs', () => {
       const { result } = renderRecurringBuySwapInputsHook(
         { sourceToken, destToken, sourceAmount: undefined },
         ENABLED_CHAIN_IDS,
-        ['0x279f', '0x1'],
+        ['0x38', '0x1'],
       );
 
       expect(result.current.isQuoteSponsored).toBe(false);
@@ -364,6 +367,125 @@ describe('useRecurringBuySwapInputs', () => {
     );
 
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  describe('cross-chain destination token correction', () => {
+    const mUsdToken = createMockToken({
+      chainId: '0x1',
+      symbol: 'mUSD',
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    });
+
+    it('resets the destination token to the source chain default when the token chains differ', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+
+      renderRecurringBuySwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(
+          expect.objectContaining({
+            symbol: 'mUSD',
+            chainId: '0x1',
+          }),
+        ),
+      );
+    });
+
+    it('resets the destination token after the source network changes', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: mUsdToken,
+        sourceAmount: undefined,
+      };
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      mockDispatch.mockClear();
+      selectorState.sourceToken = getNativeSourceToken('eip155:56');
+
+      rerender(undefined);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(
+          expect.objectContaining({
+            symbol: 'USDT',
+            chainId: '0x38',
+          }),
+        ),
+      );
+    });
+
+    it('preserves the destination token when the source token stays on the same chain', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: mUsdToken,
+        sourceAmount: undefined,
+      };
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      mockDispatch.mockClear();
+      selectorState.sourceToken = createMockToken({
+        chainId: '0x1',
+        symbol: 'USDC',
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      });
+
+      rerender(undefined);
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setDestToken(expect.anything()),
+      );
+    });
+
+    it('uses the native token when the source matches the default destination', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      mockDispatch.mockClear();
+      selectorState.sourceToken = mUsdToken;
+
+      rerender(undefined);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(getNativeSourceToken('eip155:1')),
+      );
+    });
+
+    it('uses the source chain default after changing between non-Ethereum networks', () => {
+      const bnbDestToken = getDefaultDestToken('0x38');
+      const baseDestToken = getDefaultDestToken('0x2105');
+      if (!bnbDestToken || !baseDestToken) {
+        throw new Error('expected default destination tokens for BNB and Base');
+      }
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:56'),
+        destToken: bnbDestToken,
+        sourceAmount: undefined,
+      };
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      mockDispatch.mockClear();
+      selectorState.sourceToken = getNativeSourceToken('eip155:8453');
+
+      rerender(undefined);
+
+      expect(mockDispatch).toHaveBeenCalledWith(setDestToken(baseDestToken));
+    });
   });
 
   it('requests quotes without a Recurring slippage override', () => {
