@@ -372,6 +372,8 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
   FEES_VALUE: 'perps-close-all-positions-fees-value',
   ORIGINAL_FEES_VALUE: 'perps-close-all-positions-fees-value-original',
+  MARGIN_VALUE: 'perps-close-all-positions-margin-value',
+  RECEIVE_VALUE: 'perps-close-all-positions-receive-value',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -1107,6 +1109,7 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsTradeSheetSelectorsIDs = {
   SHEET: 'perps-trade-sheet',
   CONTENT: 'perps-trade-sheet-content',
+  PLACEHOLDER: 'perps-trade-sheet-placeholder',
   HEADER_PRICE: 'perps-trade-sheet-header-price',
   HEADER_CHANGE: 'perps-trade-sheet-header-change',
   HEADER_SKELETON: 'perps-trade-sheet-header-skeleton',

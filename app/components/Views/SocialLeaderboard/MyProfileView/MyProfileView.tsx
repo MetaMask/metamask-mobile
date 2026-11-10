@@ -36,6 +36,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -62,10 +63,23 @@ import {
   playSelection,
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
+import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
+import {
+  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+  toFoxiconAvatarUrl,
+} from './avatarPresets';
+import {
+  buildSocialProfileOpenGraph,
+  readTraderShareName,
+} from '../navigation/socialShareOpenGraph';
 import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
+import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
+import ShareButtonSpinner from '../components/ShareButtonSpinner';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
-import TraderMuteChip from '../components/TraderMuteChip';
+import TraderMuteChip, {
+  PROFILE_MUTE_CHIP_DIAMETER,
+} from '../components/TraderMuteChip';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
@@ -481,6 +495,33 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
+  const buildProfileOgImageRequest = useCallback(
+    (shareTraderId: string, username: string | undefined) => async () =>
+      buildSocialProfileOgImageRequest({
+        traderId: shareTraderId,
+        username: liveProfile.profile?.profile.name || username,
+        avatarUrl:
+          liveProfile.profile?.profile.imageUrl ||
+          displayProfile?.imageUrl ||
+          (displayProfile?.avatarPresetId
+            ? toFoxiconAvatarUrl(
+                displayProfile.avatarPresetId,
+                displayProfile.avatarBackgroundId ??
+                  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+              )
+            : undefined),
+        profile: liveProfile.profile,
+        closedPositions,
+        nowMs: Date.now(),
+      }),
+    [
+      closedPositions,
+      displayProfile?.avatarBackgroundId,
+      displayProfile?.avatarPresetId,
+      displayProfile?.imageUrl,
+      liveProfile.profile,
+    ],
+  );
   const trackProfileShared = useCallback(() => {
     trackSocialPost({
       interaction_type: Interaction.POST_SHARED,
@@ -488,13 +529,34 @@ const MyProfileView: React.FC = () => {
       share_destination: ShareDestination.EXTERNAL,
     });
   }, [trackSocialPost]);
+  const { isSharing, runShare } = useSocialShareInProgress();
   const handleShareTraderDeeplink = useCallback(() => {
     if (!traderId) {
       return;
     }
     playSelection().catch(() => undefined);
-    shareSocialProfile(traderId, trackProfileShared);
-  }, [trackProfileShared, traderId]);
+    runShare(() =>
+      shareSocialProfile(
+        traderId,
+        trackProfileShared,
+        buildSocialProfileOpenGraph(
+          readTraderShareName(
+            liveProfile.profile?.profile,
+            displayProfile?.displayName,
+          ),
+        ),
+        buildProfileOgImageRequest(traderId, displayProfile?.handle),
+      ),
+    );
+  }, [
+    buildProfileOgImageRequest,
+    displayProfile?.displayName,
+    displayProfile?.handle,
+    liveProfile.profile?.profile,
+    runShare,
+    trackProfileShared,
+    traderId,
+  ]);
 
   const handleOpenProfileOptions = useCallback(() => {
     setIsProfileOptionsOpen(true);
@@ -511,12 +573,29 @@ const MyProfileView: React.FC = () => {
   }, []);
 
   const handleShareProfile = useCallback(() => {
-    if (!myProfile?.profileId) {
+    const profileId = myProfile?.profileId;
+    if (!profileId) {
       return;
     }
     playSelection().catch(() => undefined);
-    shareSocialProfile(myProfile.profileId, trackProfileShared);
-  }, [myProfile?.profileId, trackProfileShared]);
+    const displayName = myProfile?.displayName;
+    const handle = myProfile?.handle;
+    runShare(() =>
+      shareSocialProfile(
+        profileId,
+        trackProfileShared,
+        buildSocialProfileOpenGraph(displayName),
+        buildProfileOgImageRequest(profileId, handle),
+      ),
+    );
+  }, [
+    buildProfileOgImageRequest,
+    myProfile?.displayName,
+    myProfile?.handle,
+    myProfile?.profileId,
+    runShare,
+    trackProfileShared,
+  ]);
 
   const handleFollowPress = useCallback(async () => {
     await followWithSetup(isFollowing, () =>
@@ -784,18 +863,24 @@ const MyProfileView: React.FC = () => {
                 twClassName="gap-2 px-2"
                 testID={MyProfileViewSelectorsIDs.HEADER_ACTIONS_CAPSULE}
               >
-                <ButtonIcon
-                  iconName={IconName.Share}
-                  iconProps={{ color: IconColor.IconDefault }}
-                  size={ButtonIconSize.Md}
-                  onPress={handleShareTraderDeeplink}
-                  accessibilityLabel={strings(
-                    'social_leaderboard.my_profile.share_profile',
-                  )}
-                  testID={MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON}
-                  hitSlop={HEADER_ICON_HIT_SLOP}
-                  twClassName={HEADER_ICON_BUTTON_CLASS}
-                />
+                {isSharing ? (
+                  <ShareButtonSpinner
+                    testID={MyProfileViewSelectorsIDs.SHARE_SPINNER}
+                  />
+                ) : (
+                  <ButtonIcon
+                    iconName={IconName.Share}
+                    iconProps={{ color: IconColor.IconDefault }}
+                    size={ButtonIconSize.Md}
+                    onPress={handleShareTraderDeeplink}
+                    accessibilityLabel={strings(
+                      'social_leaderboard.my_profile.share_profile',
+                    )}
+                    testID={MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON}
+                    hitSlop={HEADER_ICON_HIT_SLOP}
+                    twClassName={HEADER_ICON_BUTTON_CLASS}
+                  />
+                )}
                 <ButtonIcon
                   iconName={IconName.MoreHorizontal}
                   iconProps={{ color: IconColor.IconDefault }}
@@ -810,6 +895,12 @@ const MyProfileView: React.FC = () => {
                   twClassName={HEADER_ICON_BUTTON_CLASS}
                 />
               </SocialHeaderGlassSurface>
+            ) : isOwner && displayProfile && isSharing ? (
+              // Takes the place of the share capsule below while it works.
+              <ShareButtonSpinner
+                isCapsule
+                testID={MyProfileViewSelectorsIDs.SHARE_SPINNER}
+              />
             ) : undefined
           }
           endButtonIconProps={
@@ -974,6 +1065,7 @@ const MyProfileView: React.FC = () => {
                       visible={isFollowing}
                       onPress={handleMutePress}
                       traderName={displayProfile?.displayName}
+                      diameter={PROFILE_MUTE_CHIP_DIAMETER}
                       testID={MyProfileViewSelectorsIDs.MUTE_CHIP}
                     />
                   ) : null}
