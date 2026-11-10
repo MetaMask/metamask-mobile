@@ -118,6 +118,11 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
       return;
     }
     if (isMoneyAccountMode && pendingAction?.type === 'funding') {
+      // A focus recheck keeps the funding step visible. Ignore the press until
+      // it finishes so a second approval cannot start underneath it.
+      if (isReconciling) {
+        return;
+      }
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties(
@@ -137,6 +142,7 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
   }, [
     isAllowanceRevoked,
     isMoneyAccountMode,
+    isReconciling,
     confirmLinkInBackground,
     pendingAction,
     approveFunding,
