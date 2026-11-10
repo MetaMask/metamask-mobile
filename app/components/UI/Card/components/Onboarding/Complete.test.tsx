@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions, useRoute } from '@react-navigation/native';
-import Complete from './Complete';
+import { IconName } from '@metamask/design-system-react-native';
+import Complete, { COMPLETE_ENTRANCE_START_TIMEOUT_MS } from './Complete';
 import { CompleteSelectors } from './Complete.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -62,26 +63,6 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderStandardGlass',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ onBack }: { onBack?: () => void }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header-standard-glass' },
-          ReactActual.createElement(TouchableOpacity, {
-            testID: 'complete-back-button',
-            onPress: onBack,
-          }),
-        ),
-    };
-  },
-);
-
 jest.mock('../../../Money/hooks/useReduceMotion', () => ({
   useReduceMotionState: jest.fn(() => false),
 }));
@@ -116,89 +97,25 @@ jest.mock('../../../MarketingMomentTitle', () => {
   };
 });
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-
-  return {
-    Box: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { testID, ...props }, children),
-    BoxAlignItems: { Center: 'Center' },
-    BoxJustifyContent: { Center: 'Center', End: 'End' },
-    FontWeight: { Medium: 'Medium' },
-    TextColor: { TextAlternative: 'TextAlternative' },
-    TextVariant: { BodySm: 'BodySm' },
-    Text: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(Text, { testID }, children),
-    TitleStandard: ({
-      title,
-      bottomLabel,
-      topAccessory,
-    }: {
-      title?: React.ReactNode;
-      bottomLabel?: React.ReactNode;
-      topAccessory?: React.ReactNode;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: 'title-standard' },
-        topAccessory,
-        title,
-        bottomLabel,
-      ),
-    Button: ({
-      children,
-      testID,
-      onPress,
-      isDisabled,
-      disabled,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-      onPress?: () => void;
-      isDisabled?: boolean;
-      disabled?: boolean;
-    }) =>
-      ReactActual.createElement(
-        TouchableOpacity,
-        {
-          testID,
-          onPress,
-          disabled: isDisabled ?? disabled,
-          ...props,
-        },
-        typeof children === 'string'
-          ? ReactActual.createElement(Text, null, children)
-          : children,
-      ),
-    ButtonVariant: { Primary: 'Primary', Secondary: 'Secondary' },
-    ButtonSize: { Lg: 'Lg' },
-  };
-});
-
 const mockUseRoute = jest.mocked(useRoute);
 const mockGetCardBaanxToken = jest.mocked(getCardBaanxToken);
 const mockUseReduceMotionState = jest.mocked(useReduceMotionState);
 
+/** Runs the entrance (fallback start plus the cascade) to the end. */
+const finishEntrance = () =>
+  act(() => {
+    jest.advanceTimersByTime(COMPLETE_ENTRANCE_START_TIMEOUT_MS + 2000);
+  });
+
 const pressContinue = () => {
   const { getByTestId } = render(<Complete />);
+  finishEntrance();
   fireEvent.press(getByTestId(CompleteSelectors.CONFIRM_BUTTON));
 };
 
 describe('Complete', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     __resetRiveMocks();
     mockUseReduceMotionState.mockReturnValue(false);
@@ -227,6 +144,49 @@ describe('Complete', () => {
       strings('card.card_onboarding.complete.confirm_button'),
     );
     expect(queryByTestId(CompleteSelectors.NOT_NOW_BUTTON)).toBeNull();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('has no back button in the header', () => {
+    const { UNSAFE_queryAllByProps } = render(<Complete />);
+
+    expect(
+      UNSAFE_queryAllByProps({ iconName: IconName.ArrowLeft }),
+    ).toHaveLength(0);
+  });
+
+  it('ignores taps on the button until its fade-in starts', () => {
+    const { getByTestId } = render(<Complete />);
+
+    expect(getByTestId(CompleteSelectors.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'none',
+    );
+    fireEvent.press(getByTestId(CompleteSelectors.CONFIRM_BUTTON));
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_BUTTON_CLICKED,
+    );
+
+    finishEntrance();
+
+    expect(getByTestId(CompleteSelectors.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'auto',
+    );
+  });
+
+  it('makes the button pressable straight away under Reduce Motion', () => {
+    mockUseReduceMotionState.mockReturnValue(true);
+
+    const { getByTestId } = render(<Complete />);
+
+    expect(getByTestId(CompleteSelectors.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'auto',
+    );
   });
 
   it('draws the tick in with Rive when Reduce Motion is off', () => {
