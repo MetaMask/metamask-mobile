@@ -87,6 +87,15 @@ describe('TeamLogo', () => {
     );
   });
 
+  it('renders the largeWide size at 52x48', () => {
+    renderLogo(team('https://example.com/car.png'), 'largeWide');
+
+    expect(screen.getByTestId('logo', HIDDEN)).toHaveStyle({
+      width: 52,
+      height: 48,
+    });
+  });
+
   it.each([
     ['small', 32],
     ['medium', 40],

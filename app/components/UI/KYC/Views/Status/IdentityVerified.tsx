@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -18,13 +17,9 @@ import {
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import useVerifiedSuccessCascade from '../../hooks/useVerifiedSuccessCascade';
-import { openVbaAccountSetup } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import VerifiedCheckAnimation from '../../components/VerifiedCheckAnimation';
 import MarketingMomentTitle from '../../../MarketingMomentTitle';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
@@ -34,40 +29,44 @@ export const KycIdentityVerifiedSelectorsIDs = {
   CONTAINER: 'kyc-identity-verified-container',
   ILLUSTRATION: 'kyc-identity-verified-illustration',
   BACK_BUTTON: 'kyc-identity-verified-back-button',
+  FOOTER: 'kyc-identity-verified-footer',
   CONTINUE_BUTTON: 'kyc-identity-verified-continue-button',
 } as const;
 
+interface KycIdentityVerifiedProps {
+  /** Leaves the verified screen. The caller chooses the destination. */
+  onExit: () => void;
+  /** Continues after approval. The caller chooses the next step. */
+  onContinue: () => void;
+}
+
 /**
- * KYC approved, no usable autoramp yet. Continue opens Choose Currency when
- * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details.
- * Back goes to Money home. Visual layout matches Card's You're verified
- * success pattern (MarketingMomentTitle, Rive tick, content cascade).
+ * KYC approved. Back and Continue are supplied by the caller. Uses Card's
+ * You're verified pattern: Rive tick, then the copy and button cascade in.
  */
-const KycIdentityVerified = () => {
+const KycIdentityVerified = ({
+  onExit,
+  onContinue,
+}: KycIdentityVerifiedProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   useTrackKycResultViewed('approved');
-  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
   const {
+    mode,
+    startEntrance,
     titleStyle,
     descriptionStyle,
     buttonStyle,
     isButtonInteractive,
-    checkMode,
-    startEntrance,
   } = useVerifiedSuccessCascade();
 
   const handleBack = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
+    onExit();
+  }, [onExit]);
 
   const handleContinue = useCallback(() => {
-    openVbaAccountSetup(navigation, chooseCurrency);
-  }, [chooseCurrency, navigation]);
+    onContinue();
+  }, [onContinue]);
 
   return (
     <SafeAreaView
@@ -114,14 +113,12 @@ const KycIdentityVerified = () => {
           topAccessory={
             <Box
               alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.End}
               twClassName="mb-5 w-full"
               testID={KycIdentityVerifiedSelectorsIDs.ILLUSTRATION}
             >
               <VerifiedCheckAnimation
-                mode={checkMode}
+                mode={mode}
                 onEntranceStart={startEntrance}
-                onRiveError={startEntrance}
               />
             </Box>
           }
@@ -130,8 +127,9 @@ const KycIdentityVerified = () => {
       <Animated.View
         style={buttonStyle}
         pointerEvents={isButtonInteractive ? 'auto' : 'none'}
+        testID={KycIdentityVerifiedSelectorsIDs.FOOTER}
       >
-        <Box twClassName="gap-2 px-4 pb-2 pt-4">
+        <Box twClassName="px-4 pb-2 pt-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}

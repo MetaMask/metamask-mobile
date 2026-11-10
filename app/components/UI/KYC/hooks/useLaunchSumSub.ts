@@ -61,7 +61,8 @@ async function recordSessionConsents(): Promise<void> {
     throw new Error('KYC service is unavailable');
   }
 
-  const country = await KycService.getGeoCountry();
+  const country =
+    KycController.state?.geoCountry ?? (await KycService.getGeoCountry());
   const catalog = await KycController.fetchSessionDisclaimers({
     country,
   });

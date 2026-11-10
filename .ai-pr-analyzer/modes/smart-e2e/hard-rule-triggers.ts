@@ -9,6 +9,7 @@ import {
   evaluateExtractTagsFromChangedSpecs,
   evaluateExtractTagsFromImportGraph,
 } from './hard-rule-extract';
+import { evaluateExtractTagsFromLocaleKeys } from './locale-key-impact';
 
 type TriggerCtx = {
   rule: {
@@ -28,6 +29,27 @@ type TriggerCtx = {
 };
 
 export const triggers = {
+  extractTagsFromLocaleKeys: (ctx: TriggerCtx) => {
+    const match = evaluateExtractTagsFromLocaleKeys(
+      ctx.rule,
+      ctx.changedFiles,
+      ctx.context,
+      ctx.catalog,
+      ctx.utils.normalizeChangedPath,
+    );
+    if (!match) {
+      return null;
+    }
+    return {
+      detail: match.detail,
+      patch: {
+        selected_tags: match.selectedTags,
+        ...(match.confidence === undefined
+          ? {}
+          : { confidence: match.confidence }),
+      },
+    };
+  },
   extractTagsFromChangedSpecs: (ctx: TriggerCtx) => {
     const match = evaluateExtractTagsFromChangedSpecs(
       ctx.rule,

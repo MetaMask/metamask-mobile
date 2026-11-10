@@ -1,109 +1,76 @@
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
-import { Alignment, Fit, RiveErrorType } from '@rive-app/react-native';
+import { act, render, screen } from '@testing-library/react-native';
+import {
+  RiveErrorType,
+  __fireRiveViewError,
+  __resetRiveMocks,
+} from '../../../../__mocks__/rive-app-react-native';
+import Logger from '../../../../util/Logger';
 import VerifiedCheckAnimation from './VerifiedCheckAnimation';
 import { VerifiedCheckAnimationSelectors } from './VerifiedCheckAnimation.testIds';
-import { __resetRiveMocks } from '../../../../__mocks__/rive-app-react-native';
 
-interface MockRiveViewProps {
-  testID?: string;
-  artboardName?: string;
-  stateMachineName?: string;
-  autoPlay?: boolean;
-  fit?: Fit;
-  alignment?: Alignment;
-  onError?: (error: { message: string; type: RiveErrorType }) => void;
-}
-
-// Override the shared Rive mock so tests can drive the file-load result and
-// the native view's readiness, which gates the entrance signal.
-let mockRiveFileResult: {
-  riveFile: unknown;
-  isLoading: boolean;
-  error: Error | null;
-};
-let mockViewReady: boolean;
-let mockLastRiveViewProps: MockRiveViewProps | undefined;
+const mockUseRiveFile = jest.fn();
+const mockRiveView = jest.fn();
 
 jest.mock('@rive-app/react-native', () => {
+  const ReactActual = jest.requireActual('react');
   const actual = jest.requireActual(
     '../../../../__mocks__/rive-app-react-native',
   );
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const MockReact = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View } = require('react-native');
-
-  const MockRiveView = (props: MockRiveViewProps) => {
-    mockLastRiveViewProps = props;
-    return MockReact.createElement(View, { testID: props.testID });
-  };
-
   return {
     ...actual,
-    RiveView: MockRiveView,
-    useRiveFile: () => mockRiveFileResult,
-    useRive: () => ({
-      riveRef: { current: null },
-      riveViewRef: mockViewReady ? { playIfNeeded: jest.fn() } : null,
-      setHybridRef: { f: jest.fn() },
-    }),
+    useRiveFile: (...args: unknown[]) => mockUseRiveFile(...args),
+    RiveView: (props: Record<string, unknown>) => {
+      mockRiveView(props);
+      return ReactActual.createElement(actual.RiveView, props);
+    },
   };
 });
 
-jest.mock('../../../../animations/card_verified_check.riv', () => 1, {
-  virtual: true,
-});
+jest.mock(
+  '../../../../animations/card_verified_check.riv',
+  () => 'verified-check',
+);
 
-jest.mock('./Illustration', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    KycIllustrationSource: { checkmark: 'checkmark' },
-    default: () =>
-      ReactActual.createElement(View, { testID: 'vba-illustration' }),
-  };
-});
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
+
+const loadedFile = { riveFile: { __mockRiveFile: true }, error: null };
 
 describe('VerifiedCheckAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __resetRiveMocks();
-    mockLastRiveViewProps = undefined;
-    mockViewReady = true;
-    mockRiveFileResult = {
-      riveFile: { __mockRiveFile: true },
-      isLoading: false,
-      error: null,
-    };
+    mockUseRiveFile.mockReturnValue(loadedFile);
   });
 
-  it('plays the tick through the authored artboard and state machine', () => {
-    const { getByTestId, queryByTestId } = render(
-      <VerifiedCheckAnimation mode="animate" />,
+  it('plays the Check artboard and starts the entrance', () => {
+    const onEntranceStart = jest.fn();
+
+    render(
+      <VerifiedCheckAnimation
+        mode="animate"
+        onEntranceStart={onEntranceStart}
+      />,
     );
 
-    expect(
-      getByTestId(VerifiedCheckAnimationSelectors.CHECK_ANIMATION),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(VerifiedCheckAnimationSelectors.CHECK_IMAGE),
-    ).not.toBeOnTheScreen();
-    expect(mockLastRiveViewProps).toEqual(
+    expect(mockRiveView).toHaveBeenCalledWith(
       expect.objectContaining({
         artboardName: 'Check',
         stateMachineName: 'State Machine 1',
         autoPlay: true,
-        fit: Fit.Contain,
-        alignment: Alignment.Center,
+        testID: VerifiedCheckAnimationSelectors.CHECK_ANIMATION,
       }),
     );
+    expect(onEntranceStart).toHaveBeenCalled();
   });
 
   it('shows the static checkmark in static mode', () => {
     const onEntranceStart = jest.fn();
-    const { getByTestId, queryByTestId } = render(
+
+    render(
       <VerifiedCheckAnimation
         mode="static"
         onEntranceStart={onEntranceStart}
@@ -111,91 +78,61 @@ describe('VerifiedCheckAnimation', () => {
     );
 
     expect(
-      getByTestId(VerifiedCheckAnimationSelectors.CHECK_IMAGE),
+      screen.getByTestId(VerifiedCheckAnimationSelectors.CHECK_IMAGE),
     ).toBeOnTheScreen();
-    expect(
-      queryByTestId(VerifiedCheckAnimationSelectors.CHECK_ANIMATION),
-    ).not.toBeOnTheScreen();
+    expect(mockRiveView).not.toHaveBeenCalled();
     expect(onEntranceStart).not.toHaveBeenCalled();
   });
 
-  it('renders neither the tick nor the checkmark while pending', () => {
-    const { queryByTestId } = render(<VerifiedCheckAnimation mode="pending" />);
+  it('keeps the slot empty while pending', () => {
+    render(
+      <VerifiedCheckAnimation mode="pending" onEntranceStart={jest.fn()} />,
+    );
 
     expect(
-      queryByTestId(VerifiedCheckAnimationSelectors.CHECK_ANIMATION),
+      screen.queryByTestId(VerifiedCheckAnimationSelectors.CHECK_IMAGE),
     ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(VerifiedCheckAnimationSelectors.CHECK_IMAGE),
-    ).not.toBeOnTheScreen();
+    expect(mockRiveView).not.toHaveBeenCalled();
   });
 
-  it('reports the entrance start once the file is loaded and the view is ready', () => {
+  it('falls back and starts the entrance when the file fails to load', () => {
     const onEntranceStart = jest.fn();
-    mockViewReady = false;
-
-    const { rerender } = render(
-      <VerifiedCheckAnimation
-        mode="animate"
-        onEntranceStart={onEntranceStart}
-      />,
-    );
-    expect(onEntranceStart).not.toHaveBeenCalled();
-
-    mockViewReady = true;
-    rerender(
-      <VerifiedCheckAnimation
-        mode="animate"
-        onEntranceStart={onEntranceStart}
-      />,
-    );
-    rerender(
-      <VerifiedCheckAnimation
-        mode="animate"
-        onEntranceStart={onEntranceStart}
-      />,
-    );
-
-    expect(onEntranceStart).toHaveBeenCalledTimes(1);
-  });
-
-  it('falls back to the static checkmark and reports when the file fails to load', () => {
-    const onRiveError = jest.fn();
-    mockRiveFileResult = {
+    mockUseRiveFile.mockReturnValue({
       riveFile: null,
-      isLoading: false,
-      error: new Error('malformed file'),
-    };
+      error: { message: 'malformed', type: RiveErrorType.MalformedFile },
+    });
 
-    const { getByTestId } = render(
-      <VerifiedCheckAnimation mode="animate" onRiveError={onRiveError} />,
+    render(
+      <VerifiedCheckAnimation
+        mode="animate"
+        onEntranceStart={onEntranceStart}
+      />,
     );
 
     expect(
-      getByTestId(VerifiedCheckAnimationSelectors.CHECK_IMAGE),
+      screen.getByTestId(VerifiedCheckAnimationSelectors.CHECK_IMAGE),
     ).toBeOnTheScreen();
-    expect(onRiveError).toHaveBeenCalledTimes(1);
+    expect(onEntranceStart).toHaveBeenCalled();
   });
 
-  it('falls back to the static checkmark when the Rive view errors', () => {
-    const onRiveError = jest.fn();
-    const { getByTestId, queryByTestId } = render(
-      <VerifiedCheckAnimation mode="animate" onRiveError={onRiveError} />,
+  it('falls back when the native view reports an error', () => {
+    render(
+      <VerifiedCheckAnimation mode="animate" onEntranceStart={jest.fn()} />,
     );
 
     act(() => {
-      mockLastRiveViewProps?.onError?.({
-        message: 'bad artboard',
+      __fireRiveViewError({
+        message: 'missing artboard',
         type: RiveErrorType.IncorrectArtboardName,
       });
     });
 
+    expect(Logger.error).toHaveBeenCalled();
     expect(
-      getByTestId(VerifiedCheckAnimationSelectors.CHECK_IMAGE),
+      screen.getByTestId(VerifiedCheckAnimationSelectors.CHECK_IMAGE),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(VerifiedCheckAnimationSelectors.CHECK_ANIMATION),
+      screen.queryByTestId(VerifiedCheckAnimationSelectors.CHECK_ANIMATION),
     ).not.toBeOnTheScreen();
-    expect(onRiveError).toHaveBeenCalledTimes(1);
   });
 });

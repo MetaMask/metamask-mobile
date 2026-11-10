@@ -606,7 +606,8 @@
             "profileId": "",
             "tradingPrivacy": "public",
             "updatedAt": "",
-            "username": ""
+            "username": "",
+            "verified": false
           }
         },
         "QrSyncController": {

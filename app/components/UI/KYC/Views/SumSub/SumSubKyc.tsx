@@ -15,7 +15,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from '../../hooks/useLaunchSumSub';
 import VbaFoxLoader from '../../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
@@ -38,16 +37,18 @@ export const KycSumSubSelectorsIDs = {
  * launching it shows the fox loader (the SDK presents itself over this screen); if
  * the launch fails it surfaces a retryable error instead of bouncing back to
  * the previous screen. Closing the provider before submitting returns to the
- * caller (money home); re-entry relaunches the provider directly. Provider
- * terms are accepted earlier, on Verify Identity.
+ * caller. Re-entry relaunches the provider directly. Provider terms are
+ * accepted earlier, on Verify Identity.
  */
 interface KycSumSubProps {
   onSubmitted: (
     result: KycIdentityVerificationCompletion,
   ) => void | Promise<void>;
+  /** Used when neither this stack nor its parent can pop. */
+  onExit: () => void;
 }
 
-const KycSumSub = ({ onSubmitted }: KycSumSubProps) => {
+const KycSumSub = ({ onSubmitted, onExit }: KycSumSubProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
@@ -55,8 +56,8 @@ const KycSumSub = ({ onSubmitted }: KycSumSubProps) => {
   const handleBack = useCallback(() => {
     // The onboarding stack is reset to this screen plus the caller, and
     // provider terms are replaced so they are not left underneath. Back
-    // returns to that caller. Money home is only the fallback when nothing
-    // can be popped, such as a cold entry with no history.
+    // returns to that caller. onExit runs only when nothing can be popped,
+    // such as a cold entry with no history.
     if (navigation.canGoBack()) {
       navigation.goBack();
       return;
@@ -68,11 +69,8 @@ const KycSumSub = ({ onSubmitted }: KycSumSubProps) => {
       return;
     }
 
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
+    onExit();
+  }, [navigation, onExit]);
 
   const { isLaunching, hasError, retry } = useLaunchSumSub(
     onSubmitted,

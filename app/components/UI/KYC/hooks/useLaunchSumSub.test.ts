@@ -20,6 +20,7 @@ const originalLocale = I18n.locale;
 jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
+      state: { geoCountry: null as string | null },
       fetchSessionDisclaimers: jest.fn(),
       recordSessionDisclaimers: jest.fn(),
       launchProviderFlow: jest.fn(),
@@ -43,6 +44,7 @@ jest.mock('../utils/kycVerificationAnalytics', () => ({
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
+  state: { geoCountry: string | null };
   fetchSessionDisclaimers: jest.Mock;
   recordSessionDisclaimers: jest.Mock;
   launchProviderFlow: jest.Mock;
@@ -70,6 +72,7 @@ describe('useLaunchSumSub', () => {
       kycProvider: [],
     });
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
+    mockKycController.state.geoCountry = null;
     mockMark.mockResolvedValue(undefined);
     mockClear.mockResolvedValue(undefined);
     jest
@@ -89,6 +92,32 @@ describe('useLaunchSumSub', () => {
 
   const renderLaunch = () =>
     renderHook(() => useLaunchSumSub(onSubmitted, onAbandoned));
+
+  describe('consent country', () => {
+    it('records consents from the catalog for the stored KYC geoCountry', async () => {
+      mockKycController.state.geoCountry = 'ARG';
+      mockKycController.launchProviderFlow.mockResolvedValue('submitted');
+
+      renderLaunch();
+
+      await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+      expect(mockKycService.getGeoCountry).not.toHaveBeenCalled();
+      expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
+        country: 'ARG',
+      });
+    });
+
+    it('falls back to the detected country when none is stored', async () => {
+      mockKycController.launchProviderFlow.mockResolvedValue('submitted');
+
+      renderLaunch();
+
+      await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+      expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
+        country: 'BRA',
+      });
+    });
+  });
 
   describe('post-unlock resume', () => {
     it('requests a post-unlock resume before the provider opens and clears it before reporting the outcome', async () => {

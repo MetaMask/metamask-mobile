@@ -4,8 +4,11 @@ import { Text } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import type { ReactTestInstance } from 'react-test-renderer';
+import {
+  fireEvent,
+  waitFor,
+  type RenderResult,
+} from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import renderWithProvider, {
@@ -23,9 +26,8 @@ import VbaDetails, {
 import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
 import VbaChooseCurrency from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency';
 import { VbaChooseCurrencySelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency.testIds';
-import KycIdentityVerified, {
-  KycIdentityVerifiedSelectorsIDs,
-} from './IdentityVerified';
+import { KycIdentityVerifiedSelectorsIDs } from './IdentityVerified';
+import { VbaIdentityVerifiedAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 
 const Onboarding = createNativeStackNavigator();
 const Root = createNativeStackNavigator();
@@ -40,7 +42,7 @@ const OnboardingNavigator = () => (
   >
     <Onboarding.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
-      component={KycIdentityVerified}
+      component={VbaIdentityVerifiedAdapter}
     />
     <Onboarding.Screen
       name={VbaOnboardingRoutes.CHOOSE_CURRENCY}
@@ -88,32 +90,16 @@ const engineContext = Engine.context as unknown as {
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 /** Waits for the success cascade so Continue is pressable, then taps it. */
-const getFooter = (getByTestId: (id: string) => ReactTestInstance) => {
-  let node: ReactTestInstance | null = getByTestId(
-    KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON,
-  );
-  while (node) {
-    if (
-      node.props.pointerEvents === 'none' ||
-      node.props.pointerEvents === 'auto'
-    ) {
-      return node;
-    }
-    node = node.parent;
-  }
-  throw new Error('Could not find the Continue footer wrapper');
-};
-
-/** Waits for the success cascade so Continue is pressable, then taps it. */
-const pressContinue = async (utils: {
-  getByTestId: (id: string) => ReactTestInstance;
-}) => {
+const pressContinue = async ({
+  getByTestId,
+}: Pick<RenderResult, 'getByTestId'>) => {
   await waitFor(() => {
-    expect(getFooter(utils.getByTestId)).toHaveProp('pointerEvents', 'auto');
+    expect(getByTestId(KycIdentityVerifiedSelectorsIDs.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'auto',
+    );
   });
-  fireEvent.press(
-    utils.getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
-  );
+  fireEvent.press(getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON));
 };
 
 describeForPlatforms('KycIdentityVerified view', () => {

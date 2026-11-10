@@ -97,6 +97,7 @@ describe('PredictMarketDataService', () => {
       venueId: KALSHI_VENUE_ID,
       actions: ['buy' as const],
       feeds: { 'nfl-games': feedId },
+      categories: [],
       searchSupported: true,
     };
     const marketData = createMarketData();

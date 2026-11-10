@@ -41,6 +41,7 @@ import {
   getVbaKycStatusOverride,
 } from '../vbaDevOverrides';
 import { findUsableAutoramp } from '../ensureMusdAutoramp';
+import { startVbaKycSession } from '../vbaKycSession';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 import { TraceName } from '../../../../../../util/trace';
@@ -57,6 +58,21 @@ interface StackController {
   getParent: () => StackController | undefined;
   getState: () => NavigationState | undefined;
 }
+
+/**
+ * Leaves KYC for Money home. KYC screens call this through an `onExit`
+ * prop so the destination stays with the VBA caller.
+ *
+ * @param navigation - Navigation from the KYC screen's VBA adapter.
+ */
+export const exitVbaOnboardingToMoneyHome = (
+  navigation: AppNavigationProp,
+): void => {
+  navigation.navigate(Routes.HOME_TABS, {
+    screen: Routes.MONEY.ROOT,
+    params: { screen: Routes.MONEY.HOME },
+  });
+};
 
 const getCallerRoute = (state: NavigationState) => {
   for (let index = state.index; index >= 0; index -= 1) {
@@ -355,7 +371,7 @@ const resumePersistedKycSession = async (): Promise<void> => {
   }
 
   try {
-    await kycController.startSession({
+    await startVbaKycSession({
       vendor: VBA_KYC_VENDOR,
     });
   } catch (error) {

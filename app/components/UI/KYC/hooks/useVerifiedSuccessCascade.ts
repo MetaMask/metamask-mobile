@@ -8,126 +8,92 @@ import {
 } from 'react-native-reanimated';
 import { AnimationDuration } from '@metamask/design-tokens';
 import { useReduceMotionState } from '../../Money/hooks/useReduceMotion';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 
-/**
- * Shared entrance for KYC / Card-style verified success screens.
- * Once the tick starts drawing, the title, description and button each fade
- * in and rise into place, one after another. Under Reduce Motion they show
- * at once.
- */
+const RISE_PX = 10;
+/** Lets the title land mid-draw of the tick. */
+const LEAD_MS = AnimationDuration.Regularly;
+const STAGGER_MS = 80;
+const DURATION_MS = AnimationDuration.Regularly;
+/** The Rive load is unbounded, so the copy never waits longer than this. */
+export const VERIFIED_SUCCESS_ENTRANCE_TIMEOUT_MS = 2000;
 
-/** How far each item rises into place. */
-export const VERIFIED_SUCCESS_CASCADE_RISE_PX = 10;
-/** Delay after the tick starts before the title enters, so it lands mid-draw. */
-export const VERIFIED_SUCCESS_CASCADE_LEAD_MS = AnimationDuration.Regularly;
-/** Gap between each item starting. */
-export const VERIFIED_SUCCESS_CASCADE_STAGGER_MS = 80;
-/** How long each item takes to enter. */
-export const VERIFIED_SUCCESS_CASCADE_DURATION_MS = AnimationDuration.Regularly;
-/**
- * Cap on waiting for the tick to start. The Rive file load and the native
- * view-ready handshake are both unbounded, and the copy must never wait on them.
- */
-export const VERIFIED_SUCCESS_ENTRANCE_START_TIMEOUT_MS = 2000;
+/** `pending` until Reduce Motion resolves, so the first paint never flashes. */
+export type VerifiedSuccessMode = 'pending' | 'animate' | 'static';
 
-export type CascadeState = 'pending' | 'play' | 'static';
-export type VerifiedCheckMode = 'pending' | 'animate' | 'static';
-
-const useCascadeStyle = (step: number, state: CascadeState) => {
+const useEntranceStyle = (step: number, isShown: boolean, animate: boolean) => {
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    if (state === 'static') {
-      progress.value = 1;
+    if (!isShown) {
       return;
     }
-    if (state === 'play') {
-      progress.value = withDelay(
-        VERIFIED_SUCCESS_CASCADE_LEAD_MS +
-          step * VERIFIED_SUCCESS_CASCADE_STAGGER_MS,
-        withTiming(1, {
-          duration: VERIFIED_SUCCESS_CASCADE_DURATION_MS,
-          easing: Easing.out(Easing.cubic),
-        }),
-      );
-    }
-  }, [progress, state, step]);
+    progress.value = animate
+      ? withDelay(
+          LEAD_MS + step * STAGGER_MS,
+          withTiming(1, {
+            duration: DURATION_MS,
+            easing: Easing.out(Easing.cubic),
+          }),
+        )
+      : 1;
+  }, [animate, isShown, progress, step]);
 
   return useAnimatedStyle(() => ({
     opacity: progress.value,
-    transform: [
-      {
-        translateY: (1 - progress.value) * VERIFIED_SUCCESS_CASCADE_RISE_PX,
-      },
-    ],
+    transform: [{ translateY: (1 - progress.value) * RISE_PX }],
   }));
 };
 
 /**
- * Entrance cascade and Reduce Motion timing for a verified success screen.
- * The button only becomes pressable once its fade-in starts (straight away
- * under Reduce Motion), because a view at zero opacity still takes taps.
+ * Verified success entrance: once the tick starts, the title, description and
+ * button fade and rise in one after another. Everything shows at once under
+ * Reduce Motion, with no network, or on a low-end phone on slow cellular.
  */
 const useVerifiedSuccessCascade = () => {
-  // `null` while the Reduce Motion check is in flight; nothing animates or
-  // shows until it resolves, so the first paint never flashes.
   const reduceMotion = useReduceMotionState();
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const [hasEntranceStarted, setHasEntranceStarted] = useState(false);
+  const [isButtonReady, setIsButtonReady] = useState(false);
   const startEntrance = useCallback(() => setHasEntranceStarted(true), []);
 
-  let cascadeState: CascadeState = 'pending';
-  if (reduceMotion === true) {
-    cascadeState = 'static';
-  } else if (reduceMotion === false && hasEntranceStarted) {
-    cascadeState = 'play';
+  let mode: VerifiedSuccessMode = 'animate';
+  if (reduceMotion === null) {
+    mode = 'pending';
+  } else if (
+    reduceMotion ||
+    networkTier === 'NONE' ||
+    (hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR')
+  ) {
+    mode = 'static';
   }
 
-  const titleStyle = useCascadeStyle(0, cascadeState);
-  const descriptionStyle = useCascadeStyle(1, cascadeState);
-  const buttonStyle = useCascadeStyle(2, cascadeState);
+  const animate = mode === 'animate';
+  const isShown = mode === 'static' || (animate && hasEntranceStarted);
+  const titleStyle = useEntranceStyle(0, isShown, animate);
+  const descriptionStyle = useEntranceStyle(1, isShown, animate);
+  const buttonStyle = useEntranceStyle(2, isShown, animate);
 
-  const [isButtonInteractive, setIsButtonInteractive] = useState(false);
+  // A view at zero opacity still takes taps, so the button waits for its fade.
   useEffect(() => {
-    if (cascadeState === 'static') {
-      setIsButtonInteractive(true);
+    if (!animate) {
       return undefined;
     }
-    if (cascadeState !== 'play') {
-      return undefined;
-    }
-    const timeout = setTimeout(
-      () => setIsButtonInteractive(true),
-      VERIFIED_SUCCESS_CASCADE_LEAD_MS +
-        2 * VERIFIED_SUCCESS_CASCADE_STAGGER_MS,
-    );
+    const timeout = hasEntranceStarted
+      ? setTimeout(() => setIsButtonReady(true), LEAD_MS + 2 * STAGGER_MS)
+      : setTimeout(startEntrance, VERIFIED_SUCCESS_ENTRANCE_TIMEOUT_MS);
     return () => clearTimeout(timeout);
-  }, [cascadeState]);
-
-  let checkMode: VerifiedCheckMode = 'pending';
-  if (reduceMotion === true) {
-    checkMode = 'static';
-  } else if (reduceMotion === false) {
-    checkMode = 'animate';
-  }
-
-  useEffect(() => {
-    if (reduceMotion !== false || hasEntranceStarted) {
-      return undefined;
-    }
-    const timeout = setTimeout(
-      startEntrance,
-      VERIFIED_SUCCESS_ENTRANCE_START_TIMEOUT_MS,
-    );
-    return () => clearTimeout(timeout);
-  }, [reduceMotion, hasEntranceStarted, startEntrance]);
+  }, [animate, hasEntranceStarted, startEntrance]);
 
   return {
+    mode,
+    startEntrance,
     titleStyle,
     descriptionStyle,
     buttonStyle,
-    isButtonInteractive,
-    checkMode,
-    startEntrance,
+    isButtonInteractive: mode === 'static' || isButtonReady,
   };
 };
 
