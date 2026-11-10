@@ -443,7 +443,7 @@ const RewardsHome = () => {
   // waiting forever.
   useCandidateSubscriptionId();
   // Same altitude, same reason: the Money referral persona decides which of the
-  // three homes this stack opens on, so it is resolved once here rather than by
+  // two homes this stack opens on, so it is resolved once here rather than by
   // whichever screen happened to mount.
   const { moneyEnabled, moneyReferralResolved, moneyPersona, navigatorKey } =
     useRewardsMoneyTabRouting();
@@ -1102,7 +1102,7 @@ const MainNavigator = () => {
       />
       {/*
        * Rewards sheets are registered on the root MainNavigator so they are
-       * reachable from both the Rewards tab (dashboard/onboarding) and
+       * reachable from both the Rewards tab (dashboard) and
        * REWARDS_FLOW sub-pages. transparentModalStackOptions carries
        * animation: 'none' so only the BottomSheet's internal slide runs —
        * without it the native stack slides the entire screen (overlay

@@ -96,9 +96,9 @@ jest.mock(
   }),
 );
 
-// RewardsHome resolves the candidate subscription id for both the dashboard and
-// onboarding branches. Mock it so the regression test can assert the call
-// without exercising the real async fetch.
+// RewardsHome resolves the candidate subscription id before it opens a home.
+// Mock it so the regression test can assert the call without exercising the
+// real async fetch.
 const mockUseCandidateSubscriptionId = jest.fn();
 jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
@@ -2524,18 +2524,28 @@ describe('MainNavigator', () => {
           (node: ReactTestInstance) => node.type?.toString?.() === 'Navigator',
         )[0]?.props?.initialRouteName as string | undefined;
 
-      it('registers the points dashboard in the Rewards tab stack', () => {
+      it('registers the two Rewards homes in the tab stack', () => {
         const screenNames = findRewardsHomeScreenNames('test-subscription-id');
 
-        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
-        expect(screenNames).not.toContain('RewardsOnboardingFlow');
+        expect(screenNames).toEqual([
+          Routes.REWARDS_DASHBOARD,
+          Routes.REWARDS_MONEY_DASHBOARD,
+        ]);
       });
 
-      it('registers the points dashboard when the user has no subscription', () => {
+      it('registers the same homes when the user has no subscription', () => {
         const screenNames = findRewardsHomeScreenNames(null);
 
-        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
-        expect(screenNames).not.toContain('RewardsOnboardingFlow');
+        expect(screenNames).toEqual([
+          Routes.REWARDS_DASHBOARD,
+          Routes.REWARDS_MONEY_DASHBOARD,
+        ]);
+      });
+
+      it('opens the points dashboard when Money is off and the user has not joined', () => {
+        expect(findRewardsHomeInitialRouteName(null)).toBe(
+          Routes.REWARDS_DASHBOARD,
+        );
       });
 
       it('does not register rewards modal screens in the Rewards tab stack', () => {
@@ -2578,9 +2588,10 @@ describe('MainNavigator', () => {
             moneyPersona: 'plain',
           });
 
-          expect(screenNames).toContain(Routes.REWARDS_MONEY_DASHBOARD);
-          expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
-          expect(screenNames).not.toContain('RewardsOnboardingFlow');
+          expect(screenNames).toEqual([
+            Routes.REWARDS_DASHBOARD,
+            Routes.REWARDS_MONEY_DASHBOARD,
+          ]);
         });
 
         it.each<MoneyDashboardPersona>(['referrer', 'referee'])(

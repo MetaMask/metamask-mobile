@@ -12433,31 +12433,13 @@
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
     "onboarding": {
-      "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.",
-      "not_supported_account_type_title": "Account type not supported",
       "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.",
-      "not_supported_confirm_go_back": "Go back",
-      "not_supported_confirm_retry": "Retry",
-      "auth_fail_title": "Authentication failed",
-      "auth_fail_description": "Unable to authenticate with the rewards program. Check your connection and try again.",
-      "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.",
-      "intro_confirm_geo_loading": "Checking region...",
       "step_confirm": "Next",
       "step_finish": "Let's go",
       "step_skip": "Skip",
-      "title": "Start earning rewards",
-      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
-      "sign_up": "Join Rewards",
-      "sign_up_loading": "Joining...",
-      "legal_disclaimer_1": "By joining, you agree to the",
-      "legal_disclaimer_2": "Terms of Use",
-      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
-      "legal_disclaimer_4": "Learn more",
-      "referral_label": "Referral code"
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask."
     },
     "settings": {
       "title": "Rewards settings",
