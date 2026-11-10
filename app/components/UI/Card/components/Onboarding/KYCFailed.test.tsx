@@ -1,4 +1,5 @@
 import React from 'react';
+import { StatusBar } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import KYCFailed from './KYCFailed';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -8,6 +9,10 @@ const mockExitCardFlow = jest.fn();
 
 jest.mock('../../hooks/useExitCardFlow', () => ({
   useExitCardFlow: () => mockExitCardFlow,
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: (effect: () => void) => effect(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -227,6 +232,9 @@ describe('KYCFailed Component', () => {
 
   describe('Component Rendering', () => {
     it('renders the title text', () => {
+      const setBarStyle = jest
+        .spyOn(StatusBar, 'setBarStyle')
+        .mockImplementation(() => undefined);
       const { getByTestId } = render(<KYCFailed />);
 
       const title = getByTestId('kyc-failed-title');
@@ -235,6 +243,8 @@ describe('KYCFailed Component', () => {
       expect(title.props.children).toBe(
         "You're not eligible for MetaMask Card right now",
       );
+      expect(setBarStyle).toHaveBeenCalledWith('dark-content', true);
+      setBarStyle.mockRestore();
     });
 
     it('renders the description text', () => {
