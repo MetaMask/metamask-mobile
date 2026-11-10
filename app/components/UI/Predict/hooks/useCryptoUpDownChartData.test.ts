@@ -49,7 +49,8 @@ jest.mock('../utils/cryptoUpDown', () => ({
   getCryptoSymbol: (...args: unknown[]) => mockGetCryptoSymbol(...args),
   getVariant: (...args: unknown[]) => mockGetVariant(...args),
   getEventStartTime: (...args: unknown[]) => mockGetEventStartTime(...args),
-  isMetalSymbol: (symbol?: string) => symbol === 'XAU' || symbol === 'XAG',
+  isMetalSymbol: (symbol?: string): boolean =>
+    symbol === 'XAU' || symbol === 'XAG',
   RECURRENCE_TO_DURATION_SECS: {
     '5m': 300,
     '15m': 900,
@@ -1578,7 +1579,7 @@ describe('useCryptoUpDownChartData', () => {
       let fetched = false;
       mockCryptoPriceHistoryOptions.mockImplementation(() => ({
         queryKey: ['predict', 'cryptoPriceHistory', 'XAU'],
-        queryFn: async () => {
+        queryFn: async (): Promise<LivelinePoint[]> => {
           fetched = true;
           return historicalData;
         },
