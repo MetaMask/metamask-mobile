@@ -81,6 +81,14 @@ describe('usePositionSheetData', () => {
   describe('spot', () => {
     const prices = hourlyPrices(NOW_MS - 6 * DAY_MS, NOW_MS, [90, 100, 120]);
 
+    it('titles a spot token by its name', () => {
+      mockUseTraderPositionData.mockReturnValue(baseData({ symbol: 'PEPE' }));
+
+      const { result } = renderData(buildPosition());
+
+      expect(result.current.assetName).toBe('Pepe');
+    });
+
     it('labels values in market cap when one is known', () => {
       mockUseTraderPositionData.mockReturnValue(
         baseData({
@@ -239,6 +247,34 @@ describe('usePositionSheetData', () => {
         /^Opened short @ \$107,469/,
       );
     });
+
+    it.each([
+      {
+        symbol: 'BTC',
+        tokenSymbol: 'BTC',
+        tokenName: 'BTC',
+        label: 'BTC-USD perp',
+      },
+      {
+        symbol: 'CL',
+        tokenSymbol: 'xyz:CL',
+        tokenName: 'CL-USDC',
+        label: 'CL-USD perp',
+      },
+    ])(
+      'titles the $tokenSymbol perp as $label',
+      ({ symbol, tokenSymbol, tokenName, label }) => {
+        mockUseTraderPositionData.mockReturnValue(
+          baseData({ isPerp: true, symbol }),
+        );
+
+        const { result } = renderData(
+          buildPerpPosition({ tokenSymbol, tokenName }),
+        );
+
+        expect(result.current.assetName).toBe(label);
+      },
+    );
 
     it('sizes an open perp from the leveraged amount', () => {
       mockUseTraderPositionData.mockReturnValue(
