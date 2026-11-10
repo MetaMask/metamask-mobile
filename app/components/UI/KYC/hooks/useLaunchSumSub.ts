@@ -17,7 +17,6 @@ import { IRON_KYC_VENDOR } from '../vendors/iron';
 import type { KycIdentityVerificationCompletion } from '../Views/SumSub/types';
 import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
-import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 
 export const VBA_KYC_RESUME_OWNER = 'vba-kyc';
 const VBA_KYC_RESUME_SOURCE = 'vba-kyc-relaunch';
@@ -63,12 +62,13 @@ async function recordSessionConsents(): Promise<void> {
   }
 
   const country =
-    KycController.state?.geoCountry ?? (await KycService.getGeoCountry());
+    KycController.state?.sessions?.[IRON_KYC_VENDOR.id]?.residenceCountry ??
+    (await KycService.getGeoCountry());
   const catalog = await KycController.fetchSessionDisclaimers({
     country,
   });
   await KycController.recordSessionDisclaimers({
-    vendor: VBA_KYC_VENDOR,
+    vendor: IRON_KYC_VENDOR.id,
     providerDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.kycProvider),
     idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
     credentialReusabilityConsentGiven: false,
@@ -163,7 +163,7 @@ export const useLaunchSumSub = (
 
         trackKycVerificationUpdated({ status: 'started' });
         const outcome = await KycController.launchProviderFlow({
-          vendor: VBA_KYC_VENDOR,
+          vendor: IRON_KYC_VENDOR.id,
           locale: toSumSubLocale(I18n.locale),
         });
         await stopKycResume();

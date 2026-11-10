@@ -44,8 +44,6 @@ jest.mock('../../../../core/Engine', () => ({
       state: { sessions: {} as Record<string, unknown> },
       getSessionStatusForVendor: jest.fn(),
       startSession: jest.fn(),
-      reset: jest.fn(),
-      readSessionStatus: jest.fn(),
       recordVendorDisclaimers: jest.fn(),
     },
   },
@@ -63,8 +61,6 @@ const mockKycController = Engine.context.KycController as unknown as {
   state: { sessions: Record<string, unknown> };
   getSessionStatusForVendor: jest.Mock<Promise<unknown>, [unknown]>;
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
-  reset: jest.Mock<Promise<unknown>, []>;
-  readSessionStatus: jest.Mock<unknown, []>;
   recordVendorDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
 };
 
@@ -218,7 +214,7 @@ describe('KycEmailAdapter', () => {
       },
     };
 
-    renderWithProvider(<VbaEmailAdapter />);
+    renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(mockKycController.recordVendorDisclaimers).not.toHaveBeenCalled();
@@ -274,51 +270,6 @@ describe('KycEmailAdapter', () => {
       expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(2);
       expect(mockAdvance).toHaveBeenCalled();
     });
-  });
-
-  it('resets empty KYC state and starts again when the geoCountry changed', async () => {
-    mockKycController.readSessionStatus.mockReturnValue(null);
-    mockKycController.startSession
-      .mockRejectedValueOnce(
-        new Error(
-          'KycController already initialized with a different geoCountry',
-        ),
-      )
-      .mockResolvedValueOnce({ id: 'session-1', finalStatus: 'new' });
-    mockKycController.reset.mockResolvedValue(undefined);
-
-    renderWithProvider(<KycEmailAdapter />);
-
-    await waitFor(() => {
-      expect(mockAdvance).toHaveBeenCalled();
-    });
-    expect(mockKycController.reset).toHaveBeenCalledTimes(1);
-    expect(mockKycController.startSession).toHaveBeenCalledTimes(2);
-    expect(mockKycController.startSession).toHaveBeenLastCalledWith({
-      vendor: VBA_KYC_VENDOR,
-      aal2Token: 'aal2-token',
-    });
-    expect(mockKycController.reset.mock.invocationCallOrder[0]).toBeLessThan(
-      mockKycController.startSession.mock.invocationCallOrder[1],
-    );
-  });
-
-  it('does not reset for an email mismatch', async () => {
-    mockKycController.startSession.mockRejectedValue(
-      new Error('KycController already initialized with a different email'),
-    );
-
-    const screen = renderWithProvider(<KycEmailAdapter />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
-      ).toHaveTextContent(
-        'KycController already initialized with a different email',
-      );
-    });
-    expect(mockKycController.reset).not.toHaveBeenCalled();
-    expect(mockAdvance).not.toHaveBeenCalled();
   });
 
   it('leaves the step when email verification is cancelled', async () => {

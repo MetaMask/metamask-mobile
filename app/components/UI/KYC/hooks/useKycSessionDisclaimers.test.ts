@@ -4,7 +4,9 @@ import { useKycSessionDisclaimers } from './useKycSessionDisclaimers';
 
 const mockFetchSessionDisclaimers = jest.fn();
 const mockGetGeoCountry = jest.fn();
-const mockKycState: { geoCountry: string | null } = { geoCountry: null };
+const mockKycState: {
+  sessions: { iron?: { residenceCountry: string | null } };
+} = { sessions: {} };
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -45,11 +47,11 @@ describe('useKycSessionDisclaimers', () => {
     jest.clearAllMocks();
     mockFetchSessionDisclaimers.mockResolvedValue(catalog);
     mockGetGeoCountry.mockResolvedValue('BRA');
-    mockKycState.geoCountry = null;
+    mockKycState.sessions = {};
   });
 
-  it('loads the catalog for the stored KYC geoCountry instead of the detected one', async () => {
-    mockKycState.geoCountry = 'ARG';
+  it("loads the catalog for the Iron entry's residence country instead of the detected one", async () => {
+    mockKycState.sessions = { iron: { residenceCountry: 'ARG' } };
 
     const { result } = renderHook(() => useKycSessionDisclaimers());
 
