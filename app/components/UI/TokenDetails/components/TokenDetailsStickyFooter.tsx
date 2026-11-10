@@ -171,7 +171,6 @@ interface TokenStickyFooterProps {
    * container type mid-load and remounting the buttons (flicker).
    */
   reserveTraderPositionLayout?: boolean;
-  /** Reports the height the footer overlays on the page, or 0 when it renders in flow. */
   onFooterLayout?: (height: number) => void;
 }
 
