@@ -12401,7 +12401,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^73.0.0, @metamask/transaction-controller@npm:^73.1.0, @metamask/transaction-controller@npm:^73.1.1":
+"@metamask/transaction-controller@npm:^73.0.0, @metamask/transaction-controller@npm:^73.1.0, @metamask/transaction-controller@npm:^73.1.1, @metamask/transaction-controller@npm:^73.1.2":
   version: 73.1.2
   resolution: "@metamask/transaction-controller@npm:73.1.2"
   dependencies:
