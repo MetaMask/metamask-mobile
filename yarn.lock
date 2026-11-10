@@ -9985,9 +9985,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.56.0":
-  version: 0.56.0
-  resolution: "@metamask/design-system-react-native@npm:0.56.0"
+"@metamask/design-system-react-native@npm:^0.56.1":
+  version: 0.56.1
+  resolution: "@metamask/design-system-react-native@npm:0.56.1"
   dependencies:
     "@metamask/design-system-shared": "npm:^0.45.0"
     react-native-jazzicon: "npm:^0.1.2"
@@ -10003,7 +10003,7 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/f0c5bdc5501b0a4cc89ec9e51b68594890eaf6340e0fcdc4e4b1f0b6b817e5f81b0e4a85a4a4d76619608c0643483d925828b866d67c4a7167d1fc851f69033e
+  checksum: 10/86e531ac2a87ac5dd1d872ebba82126dadd65583b1659495d5ae7add89ac29bde3e8528373de833a8fe85d14593655ffda3d33366b7e5a5ee69e221c2093a4ed
   languageName: node
   linkType: hard
 
@@ -11519,18 +11519,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-controller@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/profile-controller@npm:2.0.0"
+"@metamask/profile-controller@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@metamask/profile-controller@npm:3.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^36.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.1.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.1"
-  checksum: 10/98834b87f75f4612cd4016985e0528991cde20479792ad227d067b8442b171f769c572b7e83e13bbbee0b1f3f8ed0d8b21735b2f245ea4401a9dfc83307bf884
+  checksum: 10/f5b0f019bd90e8369b666baf58dcd75633f78fb8070bf7b055d026552f95e596ba2fe06d15d4ad32db4f64c6b968a7352d3d5eb8cfcd5ceffe8ed8156a2a53e1
   languageName: node
   linkType: hard
 
@@ -38257,7 +38257,7 @@ __metadata:
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/delegation-controller": "npm:^4.0.0"
     "@metamask/delegation-deployments": "npm:^2.1.0"
-    "@metamask/design-system-react-native": "npm:^0.56.0"
+    "@metamask/design-system-react-native": "npm:^0.56.1"
     "@metamask/design-system-twrnc-preset": "npm:^0.14.0"
     "@metamask/design-tokens": "npm:^13.0.0"
     "@metamask/device-mcp": "npm:^0.7.0"
@@ -38328,7 +38328,7 @@ __metadata:
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
-    "@metamask/profile-controller": "npm:^2.0.0"
+    "@metamask/profile-controller": "npm:^3.0.0"
     "@metamask/profile-metrics-controller": "npm:^5.2.1"
     "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/providers": "npm:^18.3.1"

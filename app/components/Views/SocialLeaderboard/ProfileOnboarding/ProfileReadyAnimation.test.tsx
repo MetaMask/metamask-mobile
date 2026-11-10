@@ -104,6 +104,24 @@ describe('ProfileReadyAnimation', () => {
     expect(lastBound(PROFILE_READY_RIVE_PATHS.IS_VERIFIED)).toBe(false);
   });
 
+  it('updates the Rive verification binding when isVerified changes', () => {
+    const props = {
+      displayName: 'Wen Cat',
+      handle: 'wen-cat',
+      avatarPresetId: 'visor',
+      avatarBackgroundId: 'lime',
+      fallback,
+    };
+    const { rerender } = render(
+      <ProfileReadyAnimation {...props} isVerified={false} />,
+    );
+    expect(lastBound(PROFILE_READY_RIVE_PATHS.IS_VERIFIED)).toBe(false);
+
+    rerender(<ProfileReadyAnimation {...props} isVerified />);
+
+    expect(lastBound(PROFILE_READY_RIVE_PATHS.IS_VERIFIED)).toBe(true);
+  });
+
   it('draws the chosen avatar over the card', () => {
     renderReady('zombie');
 

@@ -45,6 +45,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   READY_STEP: 'social-profile-onboarding-ready-step',
   READY_CARD_SLOT: 'social-profile-onboarding-ready-card-slot',
   READY_HANDLE: 'social-profile-onboarding-ready-handle',
+  READY_VERIFIED_BADGE: 'social-profile-onboarding-ready-verified-badge',
   READY_ANIMATION: 'social-profile-onboarding-ready-animation',
   READY_AVATAR: 'social-profile-onboarding-ready-avatar',
   READY_FALLBACK: 'social-profile-onboarding-ready-fallback',
