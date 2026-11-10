@@ -103,6 +103,7 @@ const mockStreamManagerInstance = {
     reconnect: jest.fn(),
   },
   focusedPrice: { clearCache: jest.fn(), reconnect: jest.fn() },
+  availableToTrade: { clearCache: jest.fn(), reconnect: jest.fn() },
   candles: {
     clearCache: jest.fn(),
     prewarm: jest.fn(() => jest.fn()),

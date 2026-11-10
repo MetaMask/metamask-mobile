@@ -17,6 +17,7 @@ import {
 /** Root keys on `PerpsStreamManager` that the E2E plain-object mock must provide. */
 const EXPECTED_E2E_STREAM_ROOT_KEYS = [
   'account',
+  'availableToTrade',
   'candles',
   'fills',
   'focusedPrice',

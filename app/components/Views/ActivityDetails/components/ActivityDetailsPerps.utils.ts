@@ -8,7 +8,6 @@ import type {
 import {
   formatTransactionDate as formatPerpsTransactionDate,
   formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
@@ -49,15 +48,26 @@ export function formatSignedPerpsFiat(
   isPositive: boolean,
 ): string {
   const absolute = BigNumber(amount).absoluteValue();
-  const signed = isPositive ? absolute : absolute.negated();
+  const signed = (isPositive ? absolute : absolute.negated()).toString();
 
-  // Sub-cent funding payments keep their significant digits (universal
-  // ranges) instead of collapsing to `<$0.01`.
-  return formatPerpsFiat(signed.toString(), {
-    ranges: absolute.isLessThan(0.01)
-      ? PRICE_RANGES_UNIVERSAL
-      : PRICE_RANGES_MINIMAL_VIEW,
-    sign: 'exceptZero',
+  if (absolute.isZero() || absolute.isGreaterThanOrEqualTo(0.01)) {
+    return formatPerpsFiat(signed, { sign: 'exceptZero' });
+  }
+
+  // Sub-cent funding fees keep every reported digit instead of `<$0.01`:
+  // one range at the value's own precision, with no threshold.
+  const decimals = absolute.decimalPlaces() ?? 0;
+  return formatPerpsFiat(signed, {
+    ranges: [
+      {
+        condition: () => true,
+        minimumDecimals: decimals,
+        maximumDecimals: decimals,
+        threshold: 0,
+      },
+    ],
+    stripTrailingZeros: false,
+    sign: 'always',
   });
 }
 
