@@ -11,7 +11,7 @@ import {
 } from '@react-navigation/native';
 import VerifyIdentity from './VerifyIdentity';
 import PartnerTerms from './PartnerTerms';
-import VbaSumSubKyc from './SumSubKyc';
+import KycSumSub from './SumSubKyc';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
   VbaIdentityVerificationRoutes,
@@ -95,7 +95,7 @@ const ProviderStep = () => {
   const advance = useOpenVbaOnboarding('identity-verification-submitted');
   const handleSubmitted = useCallback(() => advance(), [advance]);
 
-  return <VbaSumSubKyc onSubmitted={handleSubmitted} />;
+  return <KycSumSub onSubmitted={handleSubmitted} />;
 };
 
 const InstrumentedProviderStep = withScreenPerformance(
@@ -116,7 +116,7 @@ export const getVbaIdentityVerificationInitialRoute = (
     ? VbaIdentityVerificationRoutes.PROVIDER
     : VbaIdentityVerificationRoutes.PROVIDER_TERMS;
 
-const VbaIdentityVerificationModule = ({ route }: Props) => {
+const KycIdentityVerificationModule = ({ route }: Props) => {
   const initialRouteName = getVbaIdentityVerificationInitialRoute(
     route.params.snapshot,
   );
@@ -142,4 +142,4 @@ const VbaIdentityVerificationModule = ({ route }: Props) => {
   );
 };
 
-export default VbaIdentityVerificationModule;
+export default KycIdentityVerificationModule;
