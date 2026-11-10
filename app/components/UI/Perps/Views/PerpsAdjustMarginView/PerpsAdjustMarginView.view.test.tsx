@@ -199,6 +199,28 @@ describe('Add margin bottom sheet deposit entry', () => {
     jest.clearAllMocks();
   });
 
+  it('labels margin in position with the position mode when cross margin is enabled', async () => {
+    renderPerpsView(
+      BottomSheet as unknown as React.ComponentType,
+      Routes.PERPS.ADJUST_MARGIN,
+      {
+        crossMarginEnabled: true,
+        initialParams: {
+          position,
+          mode: 'remove',
+          useBottomSheet: true,
+        },
+        streamOverrides: { positions: [position] },
+      },
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+      ),
+    ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+  });
+
   it('starts a perp deposit from the available-to-add row when the account has no funds', async () => {
     const depositWithConfirmation = jest.mocked(
       Engine.context.PerpsController.depositWithConfirmation,

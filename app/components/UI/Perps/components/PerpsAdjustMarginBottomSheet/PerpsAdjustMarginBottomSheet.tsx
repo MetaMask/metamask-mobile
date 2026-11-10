@@ -22,6 +22,8 @@ import {
   SegmentedControl,
   Skeleton,
   Slider,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -43,6 +45,7 @@ import React, {
   useState,
 } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -59,6 +62,7 @@ import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import { PerpsAdjustMarginBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { usePerpsFreshRemovalLimit } from '../../hooks/usePerpsFreshRemovalLimit';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -137,6 +141,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   PerpsAdjustMarginBottomSheetProps
 > = ({ position: routePosition, initialMode, enableHaptics = false }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const { styles } = useStyles(styleSheet);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isDepositCoverVisible, setIsDepositCoverVisible] = useState(false);
@@ -260,6 +265,13 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     mode,
     inputAmount: marginAmount,
   });
+  const marginModeLabel = isCrossMarginEnabled
+    ? strings(
+        (position?.leverage?.type ?? routePosition.leverage?.type) === 'cross'
+          ? 'perps.margin_mode.cross_title'
+          : 'perps.margin_mode.isolated_title',
+      )
+    : undefined;
 
   const { flooredMaxAmount, submitLimitAmount } = usePerpsFreshRemovalLimit({
     freshMaxAmount,
@@ -682,6 +694,18 @@ const PerpsAdjustMarginBottomSheet: React.FC<
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
               keyLabel={strings('perps.adjust_margin.margin_in_position')}
+              keyEndAccessory={
+                marginModeLabel ? (
+                  <Tag
+                    severity={TagSeverity.Neutral}
+                    testID={
+                      PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG
+                    }
+                  >
+                    {marginModeLabel}
+                  </Tag>
+                ) : undefined
+              }
               value={renderTransitionValue(
                 formatPerpsFiat(displayCurrentMargin, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,

@@ -1336,6 +1336,7 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   SLIDER: 'perps-adjust-margin-bottom-sheet-slider',
   ERROR: 'perps-adjust-margin-bottom-sheet-error',
   MARGIN_VALUE: 'perps-adjust-margin-bottom-sheet-margin-value',
+  MARGIN_MODE_TAG: 'perps-adjust-margin-bottom-sheet-margin-mode-tag',
   AVAILABLE_VALUE: 'perps-adjust-margin-bottom-sheet-available-value',
   ADD_FUNDS_BUTTON: 'perps-adjust-margin-bottom-sheet-add-funds-button',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
