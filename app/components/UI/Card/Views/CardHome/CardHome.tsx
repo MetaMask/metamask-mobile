@@ -562,6 +562,13 @@ const CardHome = () => {
 
   const hasAlertOnlyState = hasSetupAlerts && effectiveActions.length === 0;
 
+  const showLinkMoneyAccountCta =
+    canLinkMoneyAccount &&
+    !isUkMigrationForced &&
+    !isLoading &&
+    !hasSetupActions &&
+    !hasSetupAlerts;
+
   const showSpendingLimitProgress =
     isAuthenticated &&
     data?.primaryFundingAsset?.status === FundingAssetStatus.Limited &&
@@ -913,7 +920,7 @@ const CardHome = () => {
           </Box>
         )}
 
-        {canLinkMoneyAccount && !isUkMigrationForced && (
+        {showLinkMoneyAccountCta && (
           <>
             <Box twClassName="mb-6 mt-7">
               <MoneyMetaMaskCard

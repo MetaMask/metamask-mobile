@@ -13,4 +13,6 @@ export const MoneyMetaMaskCardTestIds = {
   MANAGE_BALANCE: 'money-mm-card-manage-balance',
   VERIFYING_BANNER: 'money-mm-card-verifying-banner',
   LOADING_SPINNER: 'money-mm-card-loading-spinner',
+  SETUP_BANNER: 'money-mm-card-setup-banner',
+  SETUP_SKELETON: 'money-mm-card-setup-skeleton',
 } as const;

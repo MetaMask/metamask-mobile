@@ -316,6 +316,7 @@ interface ForwardedParamsHostProps {
 /** `Routes.CARD.ROOT` takes an animation override beside its nested params. */
 interface CardRootRouteParams {
   animation?: NativeStackNavigationOptions['animation'];
+  returnToCaller?: boolean;
 }
 
 /**

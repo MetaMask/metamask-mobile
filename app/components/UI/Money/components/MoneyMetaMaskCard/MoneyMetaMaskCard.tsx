@@ -35,16 +35,23 @@ import {
 } from '../../../Card/util/metrics';
 
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
-import { MoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import {
+  MoneyMetaMaskCardMode,
+  type MoneyCardSetupView,
+} from '../../utils/moneyMetaMaskCardMode';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import CardMessageBox from '../../../Card/components/CardMessageBox/CardMessageBox';
+import { CardMessageBoxType } from '../../../Card/types';
 
 interface MoneyMetaMaskCardProps {
   /**
    * 'upsell' (default): virtual/metal card rows.
    * 'link': card-linking CTA layout.
    * 'manage': cardholder management layout with available balance and metal upsell.
+   * 'setup': unfinished card setup.
    */
-  mode?: 'upsell' | 'link' | 'manage' | 'verifying' | 'loading';
+  mode?: MoneyMetaMaskCardMode;
   onGetNowPress: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
@@ -52,6 +59,8 @@ interface MoneyMetaMaskCardProps {
   isLinkDisabled?: boolean;
   /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
+  setupView?: MoneyCardSetupView;
+  onSetupContinuePress?: () => void;
   onHeaderPress?: (mode: MoneyMetaMaskCardMode) => void;
   /**
    * Whether the user holds a Metal card. When true, link/manage layouts use the
@@ -269,13 +278,60 @@ const HEADER_TITLE_KEY_BY_MODE = {
   manage: 'money.metamask_card.title',
   verifying: 'money.metamask_card.title',
   loading: 'money.metamask_card.title',
+  setup: 'money.metamask_card.title',
 } as const satisfies Record<MoneyMetaMaskCardMode, string>;
+
+const SetupContent = ({
+  setupView,
+  onContinue,
+}: {
+  setupView: MoneyCardSetupView;
+  onContinue: () => void;
+}) => {
+  const tw = useTailwind();
+
+  if (setupView.kind === 'reconciling') {
+    return (
+      <Skeleton
+        height={88}
+        width="100%"
+        style={tw.style('rounded-xl')}
+        testID={MoneyMetaMaskCardTestIds.SETUP_SKELETON}
+      />
+    );
+  }
+
+  let message: React.ReactNode;
+  if (setupView.kind === 'kyc_under_review') {
+    message = <CardMessageBox messageType={CardMessageBoxType.KYCPending} />;
+  } else if (setupView.kind === 'provisioning') {
+    message = (
+      <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
+    );
+  } else {
+    message = (
+      <CardMessageBox
+        messageType={CardMessageBoxType.SetupIncomplete}
+        values={{ step: setupView.step }}
+        onConfirm={onContinue}
+      />
+    );
+  }
+
+  return (
+    <Box twClassName="pt-3" testID={MoneyMetaMaskCardTestIds.SETUP_BANNER}>
+      {message}
+    </Box>
+  );
+};
 
 const MoneyMetaMaskCard = ({
   mode = 'upsell',
   onGetNowPress,
   onLinkPress,
   onManagePress,
+  onSetupContinuePress,
+  setupView,
   onHeaderPress,
   showMetalCard = false,
   isLinkDisabled = false,
@@ -380,6 +436,16 @@ const MoneyMetaMaskCard = ({
     onManagePress?.();
   }, [trackCardButtonClick, onManagePress]);
 
+  const handleSetupSectionPress = useCallback(() => {
+    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_SETUP_BUTTON);
+    onManagePress?.();
+  }, [trackCardButtonClick, onManagePress]);
+
+  const handleSetupContinuePress = useCallback(() => {
+    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_SETUP_BUTTON);
+    onSetupContinuePress?.();
+  }, [trackCardButtonClick, onSetupContinuePress]);
+
   const isInteractionDisabled =
     mode === 'verifying' || mode === 'loading' || isLinkDisabled;
 
@@ -392,12 +458,14 @@ const MoneyMetaMaskCard = ({
               upsell: handleGetNowPress,
               link: handleLinkPress,
               manage: handleManagePress,
+              setup: handleSetupSectionPress,
             } satisfies Partial<Record<MoneyMetaMaskCardMode, () => void>>
           )[mode],
     [
       handleGetNowPress,
       handleLinkPress,
       handleManagePress,
+      handleSetupSectionPress,
       isInteractionDisabled,
       mode,
     ],
@@ -430,6 +498,13 @@ const MoneyMetaMaskCard = ({
         privacyMode={privacyMode}
       />
     );
+  } else if (mode === 'setup') {
+    content = setupView ? (
+      <SetupContent
+        setupView={setupView}
+        onContinue={handleSetupContinuePress}
+      />
+    ) : null;
   } else if (mode === 'verifying') {
     content = (
       <Box twClassName="pt-3">

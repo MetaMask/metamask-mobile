@@ -308,4 +308,104 @@ describe('useImmersveOnboardingRouter', () => {
       });
     });
   });
+
+  describe('navigateFromOutsideCard (caller outside the Card navigator)', () => {
+    const cardRootOnboarding = (
+      screen: string,
+      params?: Record<string, unknown>,
+    ) => [
+      Routes.CARD.ROOT,
+      {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.ONBOARDING.ROOT,
+          params: params === undefined ? { screen } : { screen, params },
+        },
+        returnToCaller: true,
+      },
+    ];
+
+    it('routes contact through the Card root to SignUp', () => {
+      getRoute()(
+        { type: 'contact', needsEmail: true, needsPhone: true },
+        { navigateFromOutsideCard: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.SIGN_UP, {}),
+      );
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('forwards the KYC url through the Card root', () => {
+      getRoute()(
+        { type: 'kyc', url: 'https://verify.immersve.com/abc' },
+        { countryKey: 'GB', navigateFromOutsideCard: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+          countryKey: 'GB',
+          kycUrl: 'https://verify.immersve.com/abc',
+        }),
+      );
+    });
+
+    it('routes expected spend through the Card root to KYC processing', () => {
+      getRoute()(
+        { type: 'expected_spend' },
+        { countryKey: 'GB', navigateFromOutsideCard: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+          countryKey: 'GB',
+          kycUrl: undefined,
+        }),
+      );
+    });
+
+    it('forwards the country through the Card root to funding approval', () => {
+      getRoute()(
+        {
+          type: 'funding',
+          write: {
+            abi: [],
+            contractAddress: '0x',
+            method: 'approve',
+            params: {},
+          },
+        },
+        { countryKey: 'GB', navigateFromOutsideCard: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.FUNDING_APPROVAL, {
+          countryKey: 'GB',
+        }),
+      );
+    });
+
+    it('routes a rejected identity check through the Card root', () => {
+      getRoute()({ type: 'rejected' }, { navigateFromOutsideCard: true });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.KYC_FAILED),
+      );
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('opens Card Home through the Card root when the card is active', () => {
+      getRoute()(
+        { type: 'active' },
+        { navigateFromOutsideCard: true, showAccountExistsToast: false },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        returnToCaller: true,
+      });
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+  });
 });

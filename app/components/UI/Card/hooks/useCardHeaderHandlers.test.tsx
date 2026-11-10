@@ -7,12 +7,28 @@ import Routes from '../../../../constants/navigation/Routes';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
+const mockParentGoBack = jest.fn();
+const mockParentCanGoBack = jest.fn(() => true);
+
+let mockParentState: {
+  index: number;
+  routes: { name: string; params?: { returnToCaller?: boolean } }[];
+} | null = null;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
     reset: mockReset,
+    getParent: () =>
+      mockParentState
+        ? {
+            goBack: mockParentGoBack,
+            canGoBack: mockParentCanGoBack,
+            getState: () => mockParentState,
+            getParent: () => undefined,
+          }
+        : undefined,
   }),
 }));
 
@@ -40,6 +56,8 @@ const HookProbe = ({
 describe('useCardHeaderHandlers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockParentState = null;
+    mockParentCanGoBack.mockReturnValue(true);
     jest.spyOn(Alert, 'alert');
   });
 
@@ -95,6 +113,55 @@ describe('useCardHeaderHandlers', () => {
 
     expect(Alert.alert).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  });
+
+  it('pops the Card root for close-direct when the caller asked to return', () => {
+    mockParentState = {
+      index: 1,
+      routes: [
+        { name: Routes.WALLET.HOME },
+        {
+          name: Routes.CARD.ROOT,
+          params: { returnToCaller: true },
+        },
+      ],
+    };
+
+    const { getByTestId } = render(
+      <HookProbe headerMode="close-direct" handlerKey="onClose" />,
+    );
+
+    fireEvent.press(getByTestId('handler-button'));
+
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('pops the Card root when the confirmed exit should return to the caller', () => {
+    mockParentState = {
+      index: 1,
+      routes: [
+        { name: Routes.WALLET.HOME },
+        {
+          name: Routes.CARD.ROOT,
+          params: { returnToCaller: true },
+        },
+      ],
+    };
+
+    const { getByTestId } = render(
+      <HookProbe headerMode="close-with-confirmation" handlerKey="onClose" />,
+    );
+
+    fireEvent.press(getByTestId('handler-button'));
+
+    const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
+    const destructiveButton = alertCall[2][1];
+
+    destructiveButton.onPress();
+
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('resets navigator to Card Home for close-reset-home header mode', () => {

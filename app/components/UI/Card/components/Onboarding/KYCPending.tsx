@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, useWindowDimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
+import { useExitCardFlow } from '../../hooks/useExitCardFlow';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens, withCardProvider } from '../../util/metrics';
@@ -32,7 +30,7 @@ const SMALL_SCREEN_THRESHOLD = 700;
  * Informs the user that approvals typically take around 12 hours and they will be notified.
  */
 const KYCPending = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const exitCardFlow = useExitCardFlow();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
@@ -67,8 +65,8 @@ const KYCPending = () => {
   }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const navigateToHome = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME);
-  }, [navigation]);
+    exitCardFlow();
+  }, [exitCardFlow]);
 
   return (
     <Box twClassName="flex-1" style={tw.style('bg-accent04-dark')}>
