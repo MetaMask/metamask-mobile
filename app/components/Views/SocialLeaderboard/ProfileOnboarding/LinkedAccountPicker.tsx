@@ -12,13 +12,19 @@ import {
   IconName,
   IconSize,
   ListItemSelect,
-  Switch,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -36,6 +42,11 @@ const styles = StyleSheet.create({
   },
   accountList: {
     maxHeight: 420,
+  },
+  // Matches the design-system Switch, which nudges the iOS control so it
+  // lines up with the row instead of sitting on its built-in trailing pad.
+  iosSwitch: {
+    marginRight: 4,
   },
 });
 
@@ -65,6 +76,12 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const selectedAccount =
     accounts.find((account) => account.id === selectedAccountId) ?? accounts[0];
+  // Design-system Switch copies `label` into accessibilityLabel and ignores a
+  // passed accessibilityLabel. This row keeps its own text so the label can
+  // fill the row, and the native switch carries the accessible name.
+  const tradingActivityLabel = strings(
+    'social_leaderboard.manage_profile.show_trading_activity',
+  );
 
   const closeSheet = useCallback(() => {
     setIsSheetOpen(false);
@@ -140,11 +157,15 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
             fontWeight={FontWeight.Medium}
             twClassName="flex-1 mr-2"
           >
-            {strings('social_leaderboard.manage_profile.show_trading_activity')}
+            {tradingActivityLabel}
           </Text>
           <Switch
-            isOn={shareTradingActivity}
+            value={shareTradingActivity}
             onValueChange={onShareTradingActivityChange}
+            accessibilityRole="switch"
+            accessibilityLabel={tradingActivityLabel}
+            accessibilityState={{ checked: shareTradingActivity }}
+            style={Platform.OS === 'ios' ? styles.iosSwitch : undefined}
             testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
           />
         </Box>
