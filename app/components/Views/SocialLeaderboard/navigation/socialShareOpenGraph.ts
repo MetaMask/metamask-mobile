@@ -1,12 +1,14 @@
 import { strings } from '../../../../../locales/i18n';
+import AppConstants from '../../../../core/AppConstants';
 
 /**
- * One brand image for every Social share preview. This is the static default
- * card the social API serves (`/api/v1/og-images/default.jpg`) on the dev
- * host while the share-card API is still being tested.
+ * One brand image for every Social share preview: the static default card
+ * the build's social API (`SOCIAL_API_URL`) serves.
  */
-export const SOCIAL_SHARE_OPEN_GRAPH_IMAGE_URL =
-  'https://social.dev-api.cx.metamask.io/api/v1/og-images/default.jpg';
+export const SOCIAL_SHARE_OPEN_GRAPH_IMAGE_URL = `${AppConstants.SOCIAL_API_URL.replace(
+  /\/$/,
+  '',
+)}/api/v1/og-images/default.jpg`;
 
 /** Branch dynamic open-graph fields attached to a shared social link. */
 export interface SocialLinkOpenGraph {

@@ -1,11 +1,7 @@
+import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
 import { logSocialOgShare } from './socialOgShareLog';
-
-/**
- * The og-image API runs on the dev host while it is still being tested.
- * TODO: switch to `AppConstants.SOCIAL_API_URL` once it ships to prod.
- */
-const SOCIAL_OG_IMAGE_BASE_URL = 'https://social.dev-api.cx.metamask.io';
+import { SOCIAL_SHARE_OPEN_GRAPH_IMAGE_URL } from './socialShareOpenGraph';
 
 export type SocialOgImageTheme = 'mono' | 'blue' | 'purple' | 'orange';
 
@@ -78,14 +74,16 @@ export class SocialOgImageHttpError extends Error {
   }
 }
 
-const socialApiBase = (): string => SOCIAL_OG_IMAGE_BASE_URL.replace(/\/$/, '');
+/** The social API for this build (`SOCIAL_API_URL`), which serves og-images. */
+const socialApiBase = (): string =>
+  AppConstants.SOCIAL_API_URL.replace(/\/$/, '');
 
 /**
  * Static card the API serves for links that have no card of their own.
  * Used when generating a card fails.
  */
 export const getSocialOgDefaultImageUrl = (): string =>
-  `${socialApiBase()}/api/v1/og-images/default.jpg`;
+  SOCIAL_SHARE_OPEN_GRAPH_IMAGE_URL;
 
 const readImageUrl = (body: unknown): string => {
   const imageUrl =

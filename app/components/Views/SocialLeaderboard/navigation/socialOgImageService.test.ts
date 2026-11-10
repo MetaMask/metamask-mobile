@@ -1,3 +1,4 @@
+import AppConstants from '../../../../core/AppConstants';
 import {
   createSocialOgImage,
   getSocialOgDefaultImageUrl,
@@ -8,7 +9,7 @@ import {
 const mockCall = jest.fn();
 const mockFetch = jest.fn();
 
-const OG_IMAGE_HOST = 'https://social.dev-api.cx.metamask.io';
+const OG_IMAGE_HOST = AppConstants.SOCIAL_API_URL.replace(/\/$/, '');
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -89,7 +90,7 @@ describe('createSocialOgImage', () => {
 });
 
 describe('getSocialOgDefaultImageUrl', () => {
-  it('points at the static default card on the dev og-image host', () => {
+  it('points at the static default card on the social API for this build', () => {
     expect(getSocialOgDefaultImageUrl()).toBe(
       `${OG_IMAGE_HOST}/api/v1/og-images/default.jpg`,
     );
