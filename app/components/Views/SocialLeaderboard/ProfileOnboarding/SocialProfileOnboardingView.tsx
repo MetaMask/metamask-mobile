@@ -34,6 +34,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  type LayoutChangeEvent,
   type TextStyle,
 } from 'react-native';
 import Animated, {
@@ -201,6 +202,8 @@ const INTRO_TITLE_KEYS = {
   3: 'social_leaderboard.profile_onboarding.intro_title_post',
 } as const;
 
+const INTRO_TITLE_STEPS = [1, 2, 3] as const;
+
 /** How long the outgoing and incoming intro titles crossfade. */
 const INTRO_TITLE_FADE_MS = 280;
 
@@ -223,20 +226,40 @@ const IntroTitleText: React.FC<{
 );
 
 /**
- * Scene title. The slot stays as tall as the two-line activity line, so a
- * one-line title does not pull the animation up. A scene change crossfades
- * the outgoing line out while the incoming line fades in. The first paint
- * and Reduce Motion swap the line with no fade.
+ * Scene title. Hidden copies of the three lines are measured, and the slot
+ * stays as tall as the tallest one, so a longer title or a larger text size
+ * stays clear of the animation. A scene change crossfades the outgoing line
+ * out while the incoming line fades in. The first paint and Reduce Motion
+ * swap the line with no fade.
  */
 const IntroStepTitle: React.FC<{ step: 1 | 2 | 3 }> = ({ step }) => {
   const tw = useTailwind();
   const reducedMotion = useReducedMotion();
   const shownStepRef = useRef(step);
   const skipFade = useRef(true);
+  const measuredHeights = useRef<Partial<Record<1 | 2 | 3, number>>>({});
+  const [slotHeight, setSlotHeight] = useState(0);
   const [currentStep, setCurrentStep] = useState(step);
   const [previousStep, setPreviousStep] = useState<1 | 2 | 3 | null>(null);
   const incomingOpacity = useSharedValue(1);
   const outgoingOpacity = useSharedValue(0);
+
+  const handleSizerLayout = useCallback(
+    (sizerStep: 1 | 2 | 3, event: LayoutChangeEvent) => {
+      const nextHeight = event.nativeEvent.layout.height;
+      if (measuredHeights.current[sizerStep] === nextHeight) {
+        return;
+      }
+      measuredHeights.current[sizerStep] = nextHeight;
+      const tallest = Math.max(
+        ...INTRO_TITLE_STEPS.map(
+          (titleStep) => measuredHeights.current[titleStep] ?? 0,
+        ),
+      );
+      setSlotHeight((current) => (current === tallest ? current : tallest));
+    },
+    [],
+  );
 
   useEffect(() => {
     if (skipFade.current) {
@@ -280,14 +303,24 @@ const IntroStepTitle: React.FC<{ step: 1 | 2 | 3 }> = ({ step }) => {
   }));
 
   return (
-    <Box twClassName="relative w-full">
-      <Box
-        twClassName="w-full opacity-0"
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-      >
-        <IntroTitleText step={2} />
-      </Box>
+    <Box
+      twClassName="relative w-full"
+      style={slotHeight > 0 ? { minHeight: slotHeight } : undefined}
+      testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SLOT}
+    >
+      {INTRO_TITLE_STEPS.map((sizerStep) => (
+        <Box
+          key={sizerStep}
+          twClassName="absolute left-0 right-0 top-0 w-full opacity-0"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          pointerEvents="none"
+          onLayout={(event) => handleSizerLayout(sizerStep, event)}
+          testID={`${SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SIZER}-${sizerStep}`}
+        >
+          <IntroTitleText step={sizerStep} />
+        </Box>
+      ))}
       {previousStep !== null && (
         <Animated.View
           style={[tw.style('absolute left-0 right-0 top-0'), outgoingStyle]}

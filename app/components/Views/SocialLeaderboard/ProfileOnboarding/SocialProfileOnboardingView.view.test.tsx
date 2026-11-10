@@ -685,6 +685,30 @@ describe('SocialProfileOnboardingView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('reserves the intro title slot for the tallest scene title', () => {
+    renderSocialProfileOnboarding();
+    const heights = { 1: 64, 2: 32, 3: 80 } as const;
+
+    ([1, 2, 3] as const).forEach((step) => {
+      fireEvent(
+        screen.getByTestId(
+          `${SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SIZER}-${step}`,
+          { includeHiddenElements: true },
+        ),
+        'layout',
+        {
+          nativeEvent: {
+            layout: { x: 0, y: 0, width: 300, height: heights[step] },
+          },
+        },
+      );
+    });
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SLOT),
+    ).toHaveStyle({ minHeight: heights[3] });
+  });
+
   it('follows the intro scene with the title', () => {
     goOnline();
     renderSocialProfileOnboarding();

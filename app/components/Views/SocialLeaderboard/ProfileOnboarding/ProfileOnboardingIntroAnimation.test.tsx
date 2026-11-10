@@ -330,9 +330,9 @@ describe('ProfileOnboardingIntroAnimation', () => {
     expect(setLightMode).toHaveBeenLastCalledWith(false);
   });
 
-  it('reports currentStep and ignores a skipped animation', () => {
+  it('reports the current scene step', () => {
     const onStepChange = jest.fn();
-    const { rerender } = render(
+    render(
       <ProfileOnboardingIntroAnimation
         fallback={fallback}
         onStepChange={onStepChange}
@@ -344,15 +344,18 @@ describe('ProfileOnboardingIntroAnimation', () => {
     });
 
     expect(onStepChange).toHaveBeenCalledWith(2);
+  });
 
-    onStepChange.mockClear();
+  it('does not report a scene step when the animation is skipped', () => {
+    const onStepChange = jest.fn();
     mockUseNetworkTier.mockReturnValue('NONE');
-    rerender(
+    render(
       <ProfileOnboardingIntroAnimation
         fallback={fallback}
         onStepChange={onStepChange}
       />,
     );
+
     act(() => {
       __setRivePropertyValue(PROFILE_ONBOARDING_RIVE_PATHS.CURRENT_STEP, 3);
     });
