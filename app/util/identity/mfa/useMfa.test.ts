@@ -1,8 +1,11 @@
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
-import { mobileMfaControllerAdapter } from './bindings';
+import {
+  createSocialLoginControllerAdapter,
+  mobileMfaControllerAdapter,
+} from './bindings';
 import { startMfaFlow } from './engine/activeFlow';
-import type { MfaReason } from './engine/types';
+import type { MfaControllerAdapter, MfaReason } from './engine/types';
 import Logger from '../../Logger';
 import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { useMfa } from './useMfa';
@@ -15,6 +18,7 @@ jest.mock('./engine/activeFlow', () => ({
 
 jest.mock('./bindings', () => ({
   mobileMfaControllerAdapter: {},
+  createSocialLoginControllerAdapter: jest.fn(),
 }));
 
 jest.mock('./passkeyAdapter', () => ({
@@ -28,6 +32,10 @@ jest.mock('../../analytics/analytics', () => ({
 }));
 
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
+const mockRefreshSocialCredentials = jest.fn();
+const socialLoginController = {
+  refreshEnrolledCredentials: mockRefreshSocialCredentials,
+} as unknown as MfaControllerAdapter;
 
 const enrolledCredentials: EnrolledCredential[] = [
   { id: 'email_otp', type: 'email_otp', status: 'active', verified: true },
@@ -47,6 +55,10 @@ const renderUseMfa = () =>
 describe('useMfa', () => {
   beforeEach(() => {
     mockStartMfaFlow.mockResolvedValue({ credentials: [] });
+    jest.mocked(createSocialLoginControllerAdapter).mockClear();
+    jest
+      .mocked(createSocialLoginControllerAdapter)
+      .mockReturnValue(socialLoginController);
   });
 
   it('returns the cached credentials', () => {
@@ -135,5 +147,68 @@ describe('useMfa', () => {
         properties: { status: 'started' },
       }),
     );
+  });
+
+  describe('verifyForSocialLogin', () => {
+    beforeEach(() => {
+      mockStartMfaFlow.mockClear();
+    });
+
+    const reason: MfaReason = { operation: 'qa.verifyForSocialLogin' };
+    const passkey: EnrolledCredential = {
+      id: 'passkey',
+      type: 'passkey',
+      status: 'active',
+    };
+    const pendingEmail: EnrolledCredential = {
+      id: 'email_otp',
+      type: 'email_otp',
+      status: 'pending',
+      email: 'a@b.co',
+      verified: false,
+    };
+
+    it('rejects with credential_not_enrolled and starts no flow when nothing is active', async () => {
+      mockRefreshSocialCredentials.mockResolvedValue([pendingEmail]);
+
+      const result = renderUseMfa().verifyForSocialLogin({ reason });
+
+      await expect(result).rejects.toMatchObject({
+        mfaCode: 'credential_not_enrolled',
+      });
+      expect(mockStartMfaFlow).not.toHaveBeenCalled();
+    });
+
+    it('uses a new adapter for each verification', async () => {
+      mockRefreshSocialCredentials.mockResolvedValue(enrolledCredentials);
+
+      await renderUseMfa().verifyForSocialLogin({ reason });
+      await renderUseMfa().verifyForSocialLogin({ reason });
+
+      expect(createSocialLoginControllerAdapter).toHaveBeenCalledTimes(2);
+    });
+
+    it('verifies with the active methods through the social adapter', async () => {
+      mockRefreshSocialCredentials.mockResolvedValue([
+        ...enrolledCredentials,
+        passkey,
+      ]);
+
+      await renderUseMfa().verifyForSocialLogin({ reason });
+
+      expect(mockStartMfaFlow).toHaveBeenCalledWith({
+        request: {
+          kind: 'verifyOrEnroll',
+          methods: ['passkey', 'email_otp'],
+          verifyWith: ['passkey', 'email_otp'],
+        },
+        reason,
+        platform: 'mobile',
+        controller: socialLoginController,
+        passkey: mobilePasskeyAdapter,
+        reportError: expect.any(Function),
+        trackEvent: expect.any(Function),
+      });
+    });
   });
 });

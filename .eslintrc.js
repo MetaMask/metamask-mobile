@@ -261,6 +261,38 @@ module.exports = {
         ],
       },
     },
+    // Verification tokens and the locked-only social-login calls are reached
+    // through the MFA kit only. `no-restricted-properties` is used so it does
+    // not replace the `no-restricted-syntax` list of the overrides above.
+    {
+      files: ['app/**/*.{ts,tsx,js,jsx}'],
+      excludedFiles: ['app/util/identity/mfa/**'],
+      rules: {
+        'no-restricted-properties': [
+          'error',
+          {
+            property: 'getVerificationToken',
+            message:
+              'Use `useMfa()` from app/util/identity/mfa. These controller calls are low-level and only the MFA kit may call them.',
+          },
+          {
+            property: 'refreshSocialLoginCredentials',
+            message:
+              'Use `useMfa()` from app/util/identity/mfa. These controller calls are low-level and only the MFA kit may call them.',
+          },
+          {
+            property: 'beginSocialLoginVerification',
+            message:
+              'Use `useMfa()` from app/util/identity/mfa. These controller calls are low-level and only the MFA kit may call them.',
+          },
+          {
+            property: 'completeSocialLoginVerification',
+            message:
+              'Use `useMfa()` from app/util/identity/mfa. These controller calls are low-level and only the MFA kit may call them.',
+          },
+        ],
+      },
+    },
     // MMQA-2174 / MMQA-2173: re-apply after *.{ts,tsx} override which replaces no-restricted-syntax
     {
       files: ['tests/page-objects/**/*.{js,ts}', 'tests/flows/**/*.{js,ts}'],
