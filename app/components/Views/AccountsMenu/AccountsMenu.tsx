@@ -412,7 +412,7 @@ const AccountsMenu = () => {
         testID={AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID}
       >
         {/* Quick Actions Section */}
-        <Box style={tw.style('px-4 py-3 flex-row gap-4 justify-between')}>
+        <Box style={tw.style('px-4 pt-4 pb-3 flex-row gap-4 justify-between')}>
           <Box style={tw.style('mb-2 flex-1')}>
             <MainActionButtonGlass
               iconName={IconName.Activity}
