@@ -63,7 +63,9 @@ export function useImmersveEnableCard(
   const isImmersve = providerId === CardProviderIds.Immersve;
   const isMoneyAccountMode = useSelector(selectImmersveMoneyAccountMode);
   const isFundingSettling = useSelector(selectImmersveFundingSettling);
-  const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
+  const { confirmLinkInBackground } = useMoneyAccountCardLinkage({
+    consumesPendingLink: false,
+  });
   const { approveFunding, isApproving } =
     useImmersveMoneyAccountFundingApproval();
 

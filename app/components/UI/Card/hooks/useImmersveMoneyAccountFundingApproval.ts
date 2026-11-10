@@ -18,7 +18,9 @@ import { useMoneyAccountCardLinkage } from './useMoneyAccountCardLinkage';
 export function useImmersveMoneyAccountFundingApproval() {
   const dispatch = useDispatch();
   const isApproving = useSelector(selectIsMoneyAccountCardLinkInProgress);
-  const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
+  const { confirmLinkInBackground } = useMoneyAccountCardLinkage({
+    consumesPendingLink: false,
+  });
 
   const approveFunding = useCallback(
     async (entrypoint: CardEntryPoint | string): Promise<boolean> => {
