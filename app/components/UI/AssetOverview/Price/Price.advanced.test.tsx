@@ -352,7 +352,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('does not show header skeletons when only chart is loading', () => {
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [],
       isLoading: true,
       error: undefined,
@@ -384,7 +384,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('shows candle empty state when hasEmptyData is true', () => {
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [],
       isLoading: false,
       error: undefined,
@@ -398,7 +398,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('shows candle empty state when only one OHLCV candle (insufficient for advanced chart)', () => {
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
       ],
@@ -415,7 +415,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('shows candle empty state on OHLCV error', () => {
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [],
       isLoading: false,
       error: new Error('fetch failed'),
@@ -430,7 +430,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('shows candle empty state when OHLCV has fewer than 3 candles', () => {
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
         { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
@@ -550,7 +550,7 @@ describe('PriceAdvanced', () => {
       },
     ];
 
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         ...ohlcvPadBefore,
         {
@@ -586,7 +586,7 @@ describe('PriceAdvanced', () => {
   });
 
   it('shows candle empty state when OHLCV data is empty', () => {
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [],
       isLoading: false,
       error: undefined,
@@ -633,7 +633,7 @@ describe('PriceAdvanced', () => {
       },
     ];
 
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         ...ohlcvPadBefore,
         {
@@ -668,7 +668,7 @@ describe('PriceAdvanced', () => {
 
     // After time range change: prevBar close = 103, current = 105
     // Expected: (105 - 103) / 103 * 100 = 1.94%
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         ...ohlcvPadBefore.slice(0, -1),
         { ...ohlcvPadBefore[2], close: 103 },
@@ -732,7 +732,7 @@ describe('PriceAdvanced', () => {
       },
     ];
 
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         ...ohlcvPadBefore,
         {
@@ -776,7 +776,7 @@ describe('PriceAdvanced', () => {
     const lastBarTime = Date.now() - 1000;
     const oneDayMs = 24 * 60 * 60 * 1000;
 
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         // Extra history so candle count >= CHART_DATA_THRESHOLD (ignored for compare)
         {
@@ -843,7 +843,7 @@ describe('PriceAdvanced', () => {
   describe('custom network support', () => {
     it('shows candle empty state when formatAddressToAssetId throws for unsupported chain', () => {
       // useOHLCVChart should receive empty assetId and skip fetch
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [],
         isLoading: false,
         error: undefined,
@@ -868,7 +868,7 @@ describe('PriceAdvanced', () => {
     });
 
     it('handles formatAddressToAssetId error for Linea Sepolia testnet', () => {
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [],
         isLoading: false,
         error: undefined,
@@ -893,7 +893,7 @@ describe('PriceAdvanced', () => {
 
     it('still renders advanced chart for supported networks', () => {
       // Mock successful OHLCV data fetch
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           ...ohlcvPaddingThree,
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -916,7 +916,7 @@ describe('PriceAdvanced', () => {
     });
 
     it('passes empty assetId to useOHLCVChart when formatAddressToAssetId fails', () => {
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [],
         isLoading: false,
         error: undefined,
@@ -1159,7 +1159,7 @@ describe('PriceAdvanced', () => {
 
       mockEndTrace.mockClear();
 
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [],
         isLoading: false,
         error: undefined,
@@ -1196,7 +1196,7 @@ describe('PriceAdvanced', () => {
     it('does not start trace when falling back to legacy chart immediately', () => {
       mockTrace.mockClear();
 
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [],
         isLoading: false,
         error: undefined,
@@ -1406,7 +1406,7 @@ describe('PriceAdvanced', () => {
     });
 
     it('returns success green when displayDiff is null (no data)', () => {
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           ...ohlcvPaddingThree,
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -1449,7 +1449,7 @@ describe('PriceAdvanced', () => {
       // First visible candle at time 20000000 has close=100
       // Last candle has close=95
       // prevBar.close = 100, displayPrice = 95, diff = -5 (negative)
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           { time: 1000000, open: 90, high: 91, low: 89, close: 90, volume: 1 },
           { time: 2000000, open: 90, high: 91, low: 89, close: 91, volume: 1 },
@@ -1517,7 +1517,7 @@ describe('PriceAdvanced', () => {
 
       // Mock OHLCV data with negative price movement
       // prevBar.close = 100, lastBar.close = 95 → negative diff
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           { time: 1000000, open: 90, high: 91, low: 89, close: 90, volume: 1 },
           { time: 2000000, open: 90, high: 91, low: 89, close: 91, volume: 1 },
@@ -1569,7 +1569,7 @@ describe('PriceAdvanced', () => {
     it('does not call onPriceDirectionChange when falling back to legacy', () => {
       const mockOnPriceDirectionChange = jest.fn();
 
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
         ],
@@ -1596,7 +1596,7 @@ describe('PriceAdvanced', () => {
       const mockOnPriceDirectionChange = jest.fn();
 
       // Sufficient OHLCV data (5 bars total)
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           ...ohlcvPaddingThree, // 3 bars
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -1627,7 +1627,7 @@ describe('PriceAdvanced', () => {
       const mockOnPriceDirectionChange = jest.fn();
 
       // Insufficient OHLCV data (2 bars total) - should fallback to legacy
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           { time: 100, open: 90, high: 91, low: 89, close: 90, volume: 1 },
           { time: 200, open: 90, high: 91, low: 89, close: 91, volume: 1 },
@@ -1659,7 +1659,7 @@ describe('PriceAdvanced', () => {
 
       // Single OHLCV bar (would compute initialPriceDiff = 0, always positive)
       // But priceDiff is negative
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
         ],
@@ -2148,7 +2148,7 @@ describe('PriceAdvanced', () => {
 
     it('shows line chart when OHLCV data is empty in line mode', () => {
       enableLineMode();
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [],
         isLoading: false,
         error: undefined,

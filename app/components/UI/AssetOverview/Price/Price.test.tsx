@@ -145,6 +145,7 @@ const unifiedProps = {
 describe('Price Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseOHLCVChart.mockReturnValue(defaultOhlcvChartResult);
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewChartType) {
@@ -172,7 +173,7 @@ describe('Price Component', () => {
   });
 
   it('does not show header skeletons when only chart is loading', () => {
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [],
       isLoading: true,
       error: undefined,
@@ -195,7 +196,7 @@ describe('Price Component', () => {
 
   describe('showCandleEmptyState logic', () => {
     it('shows empty state when OHLCV data length is below threshold (< 3)', () => {
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
           { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
@@ -217,7 +218,7 @@ describe('Price Component', () => {
     });
 
     it('shows empty state when hasEmptyData is true', () => {
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
           { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
@@ -241,7 +242,7 @@ describe('Price Component', () => {
     });
 
     it('shows empty state when chartError is present', () => {
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
           { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
@@ -265,7 +266,7 @@ describe('Price Component', () => {
     });
 
     it('does NOT show empty state when chart is still loading', () => {
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [],
         isLoading: true,
         error: undefined,
@@ -292,7 +293,7 @@ describe('Price Component', () => {
     });
 
     it('shows empty state when OHLCV data is exactly at threshold (5) but hasEmptyData is true', () => {
-      mockUseOHLCVChart.mockReturnValueOnce({
+      mockUseOHLCVChart.mockReturnValue({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
           { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
