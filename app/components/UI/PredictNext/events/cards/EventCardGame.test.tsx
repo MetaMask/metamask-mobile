@@ -6,8 +6,9 @@ import {
   within,
 } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
-import { brandColor, lightTheme } from '@metamask/design-tokens';
+import { brandColor, darkTheme, lightTheme } from '@metamask/design-tokens';
 import I18n, { strings } from '../../../../../../locales/i18n';
+import { ThemeContext } from '../../../../../util/theme';
 import type {
   PredictDecimal,
   PredictEntityId,
@@ -133,6 +134,40 @@ const renderCard = (
   event = createEvent(),
   props: Partial<React.ComponentProps<typeof EventCardGame>> = {},
 ) => render(<EventCardGame event={event} onPress={jest.fn()} {...props} />);
+
+const darkThemeValue = {
+  colors: darkTheme.colors,
+  themeAppearance: 'dark',
+  typography: darkTheme.typography,
+  shadows: darkTheme.shadows,
+  brandColors: brandColor,
+};
+
+const renderDarkFeaturedCard = (event: PredictEvent) =>
+  render(
+    <ThemeContext.Provider value={darkThemeValue}>
+      <EventCardGame
+        event={event}
+        onPress={jest.fn()}
+        onOrder={jest.fn()}
+        variant="featured"
+      />
+    </ThemeContext.Provider>,
+  );
+
+/** The fill of the home featured quote and the color of both its label texts. */
+const getHomeFeaturedQuoteColors = () => {
+  const quote = screen.getByTestId('predict-next-game-quote-game-event-home');
+  const [name, price] = [
+    within(quote).getByText('CAR'),
+    within(quote).getByText(/·/),
+  ].map((text) => StyleSheet.flatten(text.props.style).color);
+  return {
+    fill: StyleSheet.flatten(quote.props.style).backgroundColor,
+    name,
+    price,
+  };
+};
 
 describe('EventCardGame', () => {
   const originalLocale = I18n.locale;
@@ -322,6 +357,48 @@ describe('EventCardGame', () => {
     expect(
       screen.getByTestId('predict-next-game-bar-game-event-home'),
     ).toHaveStyle({ backgroundColor: homeColor });
+  });
+
+  it('puts the dark ink on a pale Team color featured quote in dark mode', () => {
+    const event = createEvent();
+    // Gold passes 3:1 on the dark card, but white reads at about 1.76:1 on it.
+    getGame(event).homeTeam.primaryColor = `#${'FFB612'}` as PredictHexColor;
+
+    renderDarkFeaturedCard(event);
+
+    expect(getHomeFeaturedQuoteColors()).toEqual({
+      fill: `#${'FFB612'}`,
+      name: brandColor.grey1000,
+      price: brandColor.grey1000,
+    });
+  });
+
+  it('keeps a dark Team color and its white label on a featured quote in dark mode', () => {
+    const event = createEvent();
+    // Reads at about 3.27:1 on the dark card and carries white at about 5.42:1.
+    getGame(event).homeTeam.primaryColor = `#${'D50A0A'}` as PredictHexColor;
+
+    renderDarkFeaturedCard(event);
+
+    expect(getHomeFeaturedQuoteColors()).toEqual({
+      fill: `#${'D50A0A'}`,
+      name: darkTheme.colors.overlay.inverse,
+      price: darkTheme.colors.overlay.inverse,
+    });
+  });
+
+  it('keeps an unmeasurable Team color and the white label on a featured quote', () => {
+    const event = createEvent();
+    const color = 'rgb(255, 182, 18)' as PredictHexColor;
+    getGame(event).homeTeam.primaryColor = color;
+
+    renderDarkFeaturedCard(event);
+
+    expect(getHomeFeaturedQuoteColors()).toEqual({
+      fill: color,
+      name: darkTheme.colors.overlay.inverse,
+      price: darkTheme.colors.overlay.inverse,
+    });
   });
 
   it.each(['away', 'home'] as const)(

@@ -474,7 +474,7 @@ const QuoteLabel = ({
  * color.
  */
 const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, brandColors } = useTheme();
   const {
     event,
     team,
@@ -554,20 +554,28 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
     );
   }
 
+  // `teamColor` only reads on the card background, not under a label: a pale
+  // Team color (gold in dark mode) would carry an unreadable white label. The
+  // label and, for mid tones, the fill follow the compact quote's rule.
+  const { fill: fillColor, label: labelColor } = getReadableQuoteColors(
+    teamColor,
+    { light: themeColors.overlay.inverse, dark: brandColors.grey1000 },
+  );
+
   return (
     <Button
       testID={testID}
       variant={ButtonVariant.Primary}
       onPress={onPress}
       accessibilityLabel={accessibilityLabel}
-      style={{ backgroundColor: teamColor }}
+      style={{ backgroundColor: fillColor }}
       size={ButtonSize.Lg}
       twClassName="w-full px-3"
     >
       <QuoteLabel
         name={abbreviation}
         price={formattedPrice}
-        textColor={themeColors.overlay.inverse}
+        textColor={labelColor}
       />
     </Button>
   );
