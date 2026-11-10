@@ -545,10 +545,16 @@ describe('CardHome', () => {
       });
     });
 
-    it('does not render a logout row when the user is authenticated', () => {
-      const { queryByText } = renderCardHomeView();
+    it('does not show logout on Card home after the footer loads', async () => {
+      const { findByTestId, queryByTestId } = renderCardHomeView();
 
-      expect(queryByText('Log out')).toBeNull();
+      expect(
+        await findByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+      ).toBeOnTheScreen();
+
+      expect(
+        queryByTestId(CardHomeSelectors.LOGOUT_ITEM),
+      ).not.toBeOnTheScreen();
     });
   });
 
