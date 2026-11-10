@@ -20,7 +20,8 @@ import {
 } from '../abTestConfig';
 
 const mockTraderPositionQuickBuy = jest.fn((_props: unknown) => null);
-const mockPlayImpact = jest.fn();
+// Defaults to a resolved promise so every call site can chain .catch (S9383).
+const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 
 let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
@@ -218,6 +219,26 @@ describe('TraderPositionBuyCta', () => {
       expect(mockGoToSwaps).not.toHaveBeenCalled();
       expect(onSellCtaClicked).toHaveBeenCalledTimes(1);
       expect(onBuyCtaClicked).not.toHaveBeenCalled();
+    });
+
+    it('swallows a rejected haptic promise when Sell is tapped', async () => {
+      mockPlayImpact.mockRejectedValueOnce(new Error('haptic unavailable'));
+      const { getByTestId } = renderCta({
+        traderAddress: VIEWER_ADDRESS,
+        isTraderPositionClosed: false,
+      });
+
+      // The catch handler on the playImpact promise must swallow the
+      // rejection so tapping Sell never surfaces an unhandled rejection.
+      fireEvent.press(getByTestId(SELL_BUTTON_TEST_ID));
+      // Flush the rejected haptic promise's microtasks.
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true, initialTradeMode: 'sell' }),
+      );
     });
 
     it('reopens the sheet in buy mode when Buy is tapped after Sell', () => {

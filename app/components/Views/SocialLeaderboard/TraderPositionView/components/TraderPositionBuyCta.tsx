@@ -216,7 +216,9 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
 
   const handleSellPress = useCallback(() => {
     if (!position) return;
-    playImpact(ImpactMoment.PrimaryCTA);
+    // The haptic promise is fire-and-forget; a rejection (e.g. no haptic
+    // hardware) must never surface as an unhandled rejection (Sonar S9383).
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     onSellCtaClicked();
     // A Sell supersedes a deferred treatment buy-to-swaps intent, so the
     // resolver effect can never navigate away from the sell sheet.
