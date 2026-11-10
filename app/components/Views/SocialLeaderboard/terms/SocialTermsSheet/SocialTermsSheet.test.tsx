@@ -1,8 +1,11 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
+import { darkTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../locales/i18n';
+import { mockTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import SocialTermsSheet from './SocialTermsSheet';
 import { SocialTermsSheetSelectorsIDs } from './SocialTermsSheet.testIds';
@@ -194,6 +197,41 @@ describe('SocialTermsSheet', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onAgree).not.toHaveBeenCalled();
+  });
+
+  it('paints hosted terms with the sheet background before the document loads', () => {
+    const sheetBackground = darkTheme.colors.background.elevated1;
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html={
+          '<html><head></head><body style="background:white">Terms</body></html>'
+        }
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+      {
+        theme: {
+          ...mockTheme,
+          colors: darkTheme.colors,
+          themeAppearance: AppThemeKey.dark,
+        },
+      },
+    );
+
+    const webView = getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW);
+
+    expect(webView.props.style).toEqual(
+      expect.objectContaining({ backgroundColor: sheetBackground }),
+    );
+    expect(webView.props.containerStyle).toEqual(
+      expect.objectContaining({ backgroundColor: sheetBackground }),
+    );
+    expect(webView.props.source.html).toContain(
+      `background-color:${sheetBackground}!important`,
+    );
+    expect(webView.props.injectedJavaScriptBeforeContentLoaded).toContain(
+      `background-color:${sheetBackground}!important`,
+    );
   });
 
   it('renders the hosted terms page when a uri is provided', () => {
