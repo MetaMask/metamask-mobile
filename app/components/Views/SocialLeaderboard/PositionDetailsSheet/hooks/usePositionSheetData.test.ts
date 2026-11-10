@@ -113,6 +113,32 @@ describe('usePositionSheetData', () => {
       expect(result.current.summaryTitle).toBe('2 PEPE');
     });
 
+    it('signs an exit fill as a negative amount', () => {
+      mockUseTraderPositionData.mockReturnValue(
+        baseData({
+          historicalPrices: prices,
+          currentPrice: 120,
+          tradeActions: ['sold'],
+        }),
+      );
+
+      const { result } = renderData(
+        buildPosition({
+          trades: [
+            buildTrade({
+              intent: 'exit',
+              action: 'sold',
+              timestamp: NOW_MS - 2 * HOUR_MS,
+            }),
+          ],
+        }),
+      );
+
+      expect(result.current.markers[0].actionLabel).toBe('Sold');
+      expect(result.current.markers[0].valueLabel).toBe('-$200.00');
+      expect(result.current.markers[0].isValuePositive).toBe(false);
+    });
+
     it('falls back to price without a market cap', () => {
       mockUseTraderPositionData.mockReturnValue(
         baseData({ historicalPrices: prices, currentPrice: 120 }),
