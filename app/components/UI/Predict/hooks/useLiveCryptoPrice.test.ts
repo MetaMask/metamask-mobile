@@ -1,7 +1,14 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { act } from '@testing-library/react-native';
 import { useLiveCryptoPrice } from './useLiveCryptoPrice';
 import Engine from '../../../../core/Engine';
 import { CryptoPriceUpdate } from '../types';
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import {
+  createMockAccountGroup,
+  createMockInternalAccount,
+  createMockState,
+  createMockWallet,
+} from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -11,6 +18,25 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+const evmAccount = createMockInternalAccount(
+  'account-1',
+  '0x1234567890123456789012345678901234567890',
+  'Account 1',
+);
+const mockState = createMockState(
+  [
+    createMockWallet('keyring:wallet-1', 'Wallet 1', [
+      createMockAccountGroup('keyring:wallet-1/1', 'Account 1', [
+        evmAccount.id,
+      ]),
+    ]),
+  ],
+  { [evmAccount.id]: evmAccount },
+);
+
+const renderHookWithAccount = <Result>(hook: () => Result) =>
+  renderHookWithProvider(hook, { state: mockState });
 
 describe('useLiveCryptoPrice', () => {
   const mockSubscribeToCryptoPrices = Engine.context.PredictController
@@ -46,7 +72,9 @@ describe('useLiveCryptoPrice', () => {
   };
 
   it('subscribes to the lowercased ws symbol when enabled', () => {
-    renderHook(() => useLiveCryptoPrice({ symbol: 'BTC', enabled: true }));
+    renderHookWithAccount(() =>
+      useLiveCryptoPrice({ symbol: 'BTC', enabled: true }),
+    );
 
     expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
       ['btc/usd'],
@@ -56,19 +84,23 @@ describe('useLiveCryptoPrice', () => {
   });
 
   it('does not subscribe when disabled', () => {
-    renderHook(() => useLiveCryptoPrice({ symbol: 'BTC', enabled: false }));
+    renderHookWithAccount(() =>
+      useLiveCryptoPrice({ symbol: 'BTC', enabled: false }),
+    );
 
     expect(mockSubscribeToCryptoPrices).not.toHaveBeenCalled();
   });
 
   it('does not subscribe when symbol is undefined', () => {
-    renderHook(() => useLiveCryptoPrice({ symbol: undefined }));
+    renderHookWithAccount(() => useLiveCryptoPrice({ symbol: undefined }));
 
     expect(mockSubscribeToCryptoPrices).not.toHaveBeenCalled();
   });
 
   it('commits the first update immediately', () => {
-    const { result } = renderHook(() => useLiveCryptoPrice({ symbol: 'BTC' }));
+    const { result } = renderHookWithAccount(() =>
+      useLiveCryptoPrice({ symbol: 'BTC' }),
+    );
 
     expect(result.current.value).toBeUndefined();
 
@@ -78,7 +110,7 @@ describe('useLiveCryptoPrice', () => {
   });
 
   it('coalesces rapid ticks to at most one commit per updateIntervalMs', () => {
-    const { result } = renderHook(() =>
+    const { result } = renderHookWithAccount(() =>
       useLiveCryptoPrice({ symbol: 'BTC', updateIntervalMs: 1000 }),
     );
 
@@ -101,7 +133,7 @@ describe('useLiveCryptoPrice', () => {
   });
 
   it('commits immediately again once updateIntervalMs has elapsed', () => {
-    const { result } = renderHook(() =>
+    const { result } = renderHookWithAccount(() =>
       useLiveCryptoPrice({ symbol: 'BTC', updateIntervalMs: 1000 }),
     );
 
@@ -117,7 +149,9 @@ describe('useLiveCryptoPrice', () => {
   });
 
   it('does not build or expose any point-history array', () => {
-    const { result } = renderHook(() => useLiveCryptoPrice({ symbol: 'BTC' }));
+    const { result } = renderHookWithAccount(() =>
+      useLiveCryptoPrice({ symbol: 'BTC' }),
+    );
 
     sendUpdate(93000);
 
@@ -125,7 +159,9 @@ describe('useLiveCryptoPrice', () => {
   });
 
   it('unsubscribes on unmount', () => {
-    const { unmount } = renderHook(() => useLiveCryptoPrice({ symbol: 'BTC' }));
+    const { unmount } = renderHookWithAccount(() =>
+      useLiveCryptoPrice({ symbol: 'BTC' }),
+    );
 
     unmount();
 
@@ -133,7 +169,7 @@ describe('useLiveCryptoPrice', () => {
   });
 
   it('passes the twap window through to the subscription', () => {
-    renderHook(() =>
+    renderHookWithAccount(() =>
       useLiveCryptoPrice({ symbol: 'BTC', twapWindowSeconds: 30 }),
     );
 
@@ -145,7 +181,7 @@ describe('useLiveCryptoPrice', () => {
   });
 
   it('passes the settlement provider through to the subscription', () => {
-    renderHook(() =>
+    renderHookWithAccount(() =>
       useLiveCryptoPrice({ symbol: 'BTC', provider: 'binance' }),
     );
 
