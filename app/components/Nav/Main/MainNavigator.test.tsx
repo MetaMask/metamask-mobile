@@ -575,7 +575,7 @@ describe('MainNavigator', () => {
   });
 
   // The SampleFeature screen is gated behind `INCLUDE_SAMPLE_FEATURE=true`,
-  // read once at module-load time (see MainNavigator.js) so that
+  // read once at module-load time (see MainNavigator.tsx) so that
   // `app/features/SampleFeature` is dead-code-eliminated out of builds that
   // don't set the flag. Re-requiring the module with the flag flipped would
   // pull in a second React instance and break context, so only the default
