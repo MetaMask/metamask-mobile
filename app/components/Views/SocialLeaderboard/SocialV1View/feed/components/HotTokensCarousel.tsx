@@ -264,6 +264,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
     <Animated.View style={[styles.pill, pillStyle]} onLayout={handleLayout}>
       <ExplorePill
         testID={getSocialV1HotTokenChipTestId(chipId)}
+        twClassName="pl-2"
         accessibilityState={{ selected: false }}
         leading={
           <Box twClassName="mr-1">
@@ -291,7 +292,7 @@ const HotTokenTrack: React.FC<
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="pl-4 gap-2"
+    twClassName="pl-2 gap-2"
     onLayout={onLayout}
     testID={testID}
   >

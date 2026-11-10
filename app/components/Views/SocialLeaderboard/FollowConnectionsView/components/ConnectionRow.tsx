@@ -75,6 +75,7 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
           <TraderAvatar
             imageUrl={avatarUri}
             address={address}
+            profileId={id}
             size={AVATAR_SIZE}
             recyclingKey={id}
           />

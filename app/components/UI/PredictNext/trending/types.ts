@@ -1,3 +1,5 @@
+import type { SearchRequestPerformance } from '../../../../util/searchPerformance';
+
 declare const predictTrendingMarketBrand: unique symbol;
 
 /**
@@ -29,6 +31,8 @@ export interface UsePredictTrendingFeedOptions {
   tab?: PredictTrendingTab;
   /** A non-empty query searches instead of listing the tab's feed. */
   query?: string;
+  /** Search request performance observer for query results. */
+  performance?: SearchRequestPerformance;
   /** Explore's pull-to-refresh trigger. */
   refresh?: { trigger: number; silentRefresh: boolean };
   /** @default true */

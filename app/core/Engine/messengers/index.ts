@@ -4,7 +4,6 @@ import {
   getAccountTreeControllerMessenger,
 } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
-import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
 import {
   getDeFiPositionsControllerInitMessenger,
@@ -20,7 +19,6 @@ import {
   getAccountActivityServiceMessenger,
   getOHLCVServiceMessenger,
 } from './core-backend';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   getCronjobControllerMessenger,
   getExecutionServiceMessenger,
@@ -30,17 +28,12 @@ import {
   getSnapRegistryControllerMessenger,
   getWebSocketServiceMessenger,
 } from './snaps';
-///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
-///: END:ONLY_INCLUDE_IF
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
-///: END:ONLY_INCLUDE_IF
+import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import {
@@ -108,9 +101,7 @@ import {
 } from './money-account-controller-messenger';
 import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
 import { getMoneyAccountApiDataServiceMessenger } from './money-account-api-data-service-messenger';
-import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getSentinelApiServiceMessenger } from './sentinel-api-service-messenger';
-import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getRewardsMoneyDataServiceMessenger } from './rewards-money-data-service-messenger';
 import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
@@ -137,10 +128,6 @@ import {
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getProofOfOwnershipServiceMessenger } from './proof-of-ownership-service-messenger';
-import {
-  getAnalyticsControllerInitMessenger,
-  getAnalyticsControllerMessenger,
-} from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialRealtimeServiceMessenger } from './social-realtime-service-messenger';
@@ -186,16 +173,8 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getEarnControllerMessenger,
     getInitMessenger: noop,
   },
-  GeolocationApiService: {
-    getMessenger: getGeolocationApiServiceMessenger,
-    getInitMessenger: noop,
-  },
   SentinelApiService: {
     getMessenger: getSentinelApiServiceMessenger,
-    getInitMessenger: noop,
-  },
-  GeolocationController: {
-    getMessenger: getGeolocationControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionPayController: {
@@ -238,7 +217,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getDeFiPositionsControllerV2Messenger,
     getInitMessenger: getDeFiPositionsControllerV2InitMessenger,
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   AuthenticationController: {
     getMessenger: getAuthenticationControllerMessenger,
     getInitMessenger: noop,
@@ -279,8 +257,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getWebSocketServiceMessenger,
     getInitMessenger: noop,
   },
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainRoutingService: {
     getMessenger: getMultichainRoutingServiceMessenger,
     getInitMessenger: getMultichainRoutingServiceInitMessenger,
@@ -297,20 +273,23 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getSnapAccountServiceMessenger,
     getInitMessenger: noop,
   },
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: {
-    getMessenger: getSamplePetnamesControllerMessenger,
+    // Only construct the (parented) messenger when the feature is actually
+    // enabled. `initMessengerClients` calls `getMessenger` unconditionally
+    // for every entry in `initFunctions`, so creating a real child messenger
+    // here even when `samplePetnamesControllerInit` is a no-op would
+    // register it with the root messenger without ever tearing it down.
+    getMessenger:
+      process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+        ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+          require('../../../features/SampleFeature/controllers/sample-petnames-controller-messenger')
+            .getSamplePetnamesControllerMessenger
+        : (noop as () => SamplePetnamesControllerMessenger),
     getInitMessenger: noop,
   },
-  ///: END:ONLY_INCLUDE_IF
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: getSmartTransactionsControllerInitMessenger,
-  },
-  NetworkEnablementController: {
-    getMessenger: getNetworkEnablementControllerMessenger,
-    getInitMessenger: noop,
   },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
@@ -439,10 +418,6 @@ export const MESSENGER_FACTORIES = {
   ProofOfOwnershipService: {
     getMessenger: getProofOfOwnershipServiceMessenger,
     getInitMessenger: noop,
-  },
-  AnalyticsController: {
-    getMessenger: getAnalyticsControllerMessenger,
-    getInitMessenger: getAnalyticsControllerInitMessenger,
   },
   AiDigestController: {
     getMessenger: getAiDigestControllerMessenger,

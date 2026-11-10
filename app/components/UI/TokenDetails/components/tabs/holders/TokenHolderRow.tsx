@@ -57,6 +57,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row, onPress }) => {
       <TraderAvatar
         imageUrl={item.avatarUri}
         address={item.traderAddress}
+        profileId={item.traderId}
         size={AVATAR_SIZE}
         recyclingKey={item.id}
       />

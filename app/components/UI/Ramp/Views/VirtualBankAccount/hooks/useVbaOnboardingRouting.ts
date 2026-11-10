@@ -26,7 +26,11 @@ import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
-import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
+import {
+  VBA_DEFAULT_CALLER_ROUTE,
+  VbaOnboardingRoutes,
+  type VbaOnboardingParamList,
+} from '../routes';
 import {
   accountCreateErrorVariantForDestination,
   isAccountCreateErrorDestination,
@@ -54,14 +58,6 @@ interface StackController {
   getState: () => NavigationState | undefined;
 }
 
-const DEFAULT_CALLER_ROUTE = {
-  name: Routes.HOME_TABS,
-  params: {
-    screen: Routes.MONEY.ROOT,
-    params: { screen: Routes.MONEY.HOME },
-  },
-};
-
 const getCallerRoute = (state: NavigationState) => {
   for (let index = state.index; index >= 0; index -= 1) {
     const route = state.routes[index];
@@ -72,7 +68,7 @@ const getCallerRoute = (state: NavigationState) => {
       return route;
     }
   }
-  return DEFAULT_CALLER_ROUTE;
+  return VBA_DEFAULT_CALLER_ROUTE;
 };
 
 /**
@@ -144,12 +140,9 @@ export const openAsOnlyOnboardingRoute = (
  * directly to the caller instead of revealing the onboarding loader.
  *
  * @param navigation - Navigation from any screen inside or beside onboarding.
- * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
- * IP country's currency.
  */
 export const openCompletedVbaAccount = (
   navigation: AppNavigationProp,
-  sourceCurrency?: VbaSourceCurrency,
 ): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;
@@ -164,12 +157,7 @@ export const openCompletedVbaAccount = (
             getCallerRoute(
               state,
             ) as PartialState<NavigationState>['routes'][number],
-            sourceCurrency
-              ? {
-                  name: Routes.RAMP.VBA_DETAILS,
-                  params: { sourceCurrency },
-                }
-              : { name: Routes.RAMP.VBA_DETAILS },
+            { name: Routes.RAMP.VBA_DETAILS },
           ],
         }),
       );
