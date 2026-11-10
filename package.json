@@ -664,6 +664,7 @@
     "react-native-svg": "15.15.5",
     "react-native-svg-charts": "^5.4.0",
     "react-native-swipe-gestures": "1.0.3",
+    "react-native-tab-view": "4.3.4",
     "react-native-url-polyfill": "^1.3.0",
     "react-native-vector-icons": "10.2.0",
     "react-native-video": "^6.19.2",

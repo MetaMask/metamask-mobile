@@ -34,7 +34,7 @@ import Animated, {
   useDerivedValue,
   useSharedValue,
 } from 'react-native-reanimated';
-import PagerView from 'react-native-pager-view';
+import { TabView } from 'react-native-tab-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { playSelection } from '../../../../util/haptics';
@@ -51,8 +51,11 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
-  TabsBar,
-  type TabItem,
+  TabViewBar,
+  TAB_VIEW_INITIAL_LAYOUT,
+  usePageActivation,
+  type TabViewBarProps,
+  type TabViewRoute,
 } from '../../../../component-library/components-temp/Tabs';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -207,7 +210,6 @@ const SocialV1ViewContent: React.FC = () => {
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
-  const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
   const isFocused = useIsFocused();
@@ -225,27 +227,29 @@ const SocialV1ViewContent: React.FC = () => {
     getLandingIndex(route.params?.initialTab),
   );
   const [activeIndex, setActiveIndex] = useState(landingIndex);
+  const { pageActiveIndex, activate, onPagerRest } =
+    usePageActivation(landingIndex);
   const socialPerformanceByTab = useMemo(
     () =>
       ({
         trending: {
           enabled: isSocialV1Treatment,
           hardwareTier,
-          isActive: activeIndex === trendingIndex,
+          isActive: pageActiveIndex === trendingIndex,
           isFocused,
           networkTier,
         },
         following: {
           enabled: isSocialV1Treatment,
           hardwareTier,
-          isActive: activeIndex === followingIndex,
+          isActive: pageActiveIndex === followingIndex,
           isFocused,
           networkTier,
         },
         leaderboard: {
           enabled: isSocialV1Treatment,
           hardwareTier,
-          isActive: activeIndex === leaderboardIndex,
+          isActive: pageActiveIndex === leaderboardIndex,
           isFocused,
           networkTier,
         },
@@ -254,7 +258,7 @@ const SocialV1ViewContent: React.FC = () => {
         SocialPerformanceContext
       >,
     [
-      activeIndex,
+      pageActiveIndex,
       hardwareTier,
       isFocused,
       isSocialV1Treatment,
@@ -614,26 +618,28 @@ const SocialV1ViewContent: React.FC = () => {
     NotificationService.openSystemSettings();
   }, []);
 
-  // `content` is unused: the pages live in the PagerView below so they stay
-  // swipeable, and TabsBar renders the bar only.
-  const tabs: TabItem[] = useMemo(
+  const routes: TabViewRoute[] = useMemo(
     () =>
       tabOrder.map((tab) => ({
         key: tab,
-        label: strings(SOCIAL_SHELL_TAB_CONFIG[tab].labelKey),
-        content: null,
+        title: strings(SOCIAL_SHELL_TAB_CONFIG[tab].labelKey),
       })),
     [tabOrder],
   );
+  const navigationState = useMemo(
+    () => ({ index: activeIndex, routes }),
+    [activeIndex, routes],
+  );
 
   const selectTab = useCallback(
-    (index: number) => {
+    (index: number, isTap = false) => {
       syncIncomingPageScroll(index);
       activeIndexSv.value = index;
       setActiveIndex(index);
+      activate(index, isTap);
       livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
     },
-    [activeIndexSv, livePrices, syncIncomingPageScroll],
+    [activate, activeIndexSv, livePrices, syncIncomingPageScroll],
   );
 
   const changeTab = useCallback(
@@ -658,7 +664,10 @@ const SocialV1ViewContent: React.FC = () => {
       });
 
       playSelection().catch(() => undefined);
-      selectTab(index);
+      selectTab(
+        index,
+        tabChangeMethod === SocialLeaderboardEventValues.TAB_CHANGE_METHOD.TAP,
+      );
     },
     [activeIndex, selectTab, tabOrder, track],
   );
@@ -678,27 +687,123 @@ const SocialV1ViewContent: React.FC = () => {
     }
   }, [activeIndex, navigation, requestedTab, selectTab, tabOrder]);
 
+  // Marks the next index change as a tap. Pressing the active tab changes nothing.
   const handleTabPress = useCallback(
     (index: number) => {
-      programmaticTabChangeRef.current = true;
-      pagerRef.current?.setPage(index);
-      changeTab(index);
+      programmaticTabChangeRef.current = index !== activeIndex;
     },
-    [changeTab],
+    [activeIndex],
   );
 
-  const handlePageSelected = useCallback(
-    (e: { nativeEvent: { position: number } }) => {
-      changeTab(e.nativeEvent.position);
-    },
-    [changeTab],
+  const renderTabBar = useCallback(
+    (props: TabViewBarProps) => (
+      <Box twClassName="relative bg-default mt-4">
+        <Animated.View
+          pointerEvents="none"
+          testID={SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER}
+          style={[
+            tw.style(
+              'absolute bottom-0 left-0 right-0 z-0 h-px bg-border-muted',
+            ),
+            tabsScrollDividerStyle,
+          ]}
+        />
+        <TabViewBar
+          {...props}
+          onTabPress={handleTabPress}
+          testID={SocialV1ViewSelectorsIDs.TABS}
+          twClassName="z-10"
+        />
+      </Box>
+    ),
+    [handleTabPress, tabsScrollDividerStyle, tw],
   );
-
-  useEffect(() => {
-    pagerRef.current?.setPage(activeIndex);
-  }, [activeIndex]);
 
   const title = strings('homepage.sections.top_traders');
+
+  const renderScene = ({ route: sceneRoute }: { route: TabViewRoute }) => {
+    const tab = sceneRoute.key as SocialShellTab;
+    const isPageActive = pageActiveIndex === tabOrder.indexOf(tab);
+    const testIds = PAGE_TEST_IDS[tab];
+    const pageRef =
+      tab === 'trending'
+        ? trendingPageRef
+        : tab === 'following'
+          ? followingPageRef
+          : tab === 'live'
+            ? livePageRef
+            : leaderboardPageRef;
+    return (
+      <View
+        style={tw.style('flex-1')}
+        collapsable={false}
+        testID={testIds.page}
+      >
+        <SocialFeedPageProviders
+          isActive={isFocused && isPageActive}
+          rotatesTraderStats={isPageActive}
+        >
+          {tab === 'leaderboard' ? (
+            <LeaderboardShellTabPage
+              isActive={isPageActive}
+              performance={socialPerformanceByTab.leaderboard}
+              onScroll={scrollHandlers[tab]}
+              pageRef={pageRef}
+              containerTestID={testIds.container}
+              appliedFilters={applied.leaderboard}
+              onOpenFilters={handleOpenLeaderboardFilters}
+              isFilterActive={hasActiveFilters('leaderboard')}
+              onClearFilters={() => clearAppliedFilters('leaderboard')}
+              onTypeChange={setLeaderboardType}
+            />
+          ) : tab === 'live' ? (
+            <LiveView
+              isActive={isPageActive}
+              source={analyticsSource}
+              onScroll={scrollHandlers[tab]}
+              pageRef={pageRef}
+              onCopyTrade={handleLiveCopyTrade}
+              onOpenFilters={handleOpenLiveFilters}
+              isFilterActive={hasActiveFilters('live')}
+              onClearFilters={() => clearAppliedFilters('live')}
+              appliedFilters={applied.live}
+            />
+          ) : tab === 'trending' ? (
+            <TrendingView
+              isActive={isPageActive}
+              source={analyticsSource}
+              performance={socialPerformanceByTab.trending}
+              onScroll={scrollHandlers[tab]}
+              pageRef={pageRef}
+              onCopyTrade={handleTrendingCopyTrade}
+              onOpenFilters={handleOpenTrendingFilters}
+              isFilterActive={hasActiveFilters('trending')}
+              onClearFilters={() => clearAppliedFilters('trending')}
+              appliedFilters={applied.trending}
+              testID={testIds.container}
+              scrollTestID={testIds.scroll}
+            />
+          ) : (
+            <EmptyShellTabPage
+              tab={tab}
+              source={analyticsSource}
+              performance={socialPerformanceByTab[tab]}
+              isActive={isPageActive}
+              onScroll={scrollHandlers[tab]}
+              pageRef={pageRef}
+              containerTestID={testIds.container}
+              scrollTestID={testIds.scroll}
+              onOpenFilters={handleOpenFollowingFilters}
+              isFilterActive={hasActiveFilters('following')}
+              onClearFilters={() => clearAppliedFilters('following')}
+              appliedFilters={applied.following}
+              onQuickBuy={openFollowingQuickBuy}
+            />
+          )}
+        </SocialFeedPageProviders>
+      </View>
+    );
+  };
 
   return (
     // Top and bottom edges are deliberately off — see
@@ -802,122 +907,18 @@ const SocialV1ViewContent: React.FC = () => {
               collapsingBlockStyle,
             ]}
           >
-            <Box twClassName="relative bg-default mt-4">
-              <Animated.View
-                pointerEvents="none"
-                testID={SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER}
-                style={[
-                  tw.style(
-                    'absolute bottom-0 left-0 right-0 z-0 h-px bg-border-muted',
-                  ),
-                  tabsScrollDividerStyle,
-                ]}
-              />
-              <TabsBar
-                tabs={tabs}
-                activeIndex={activeIndex}
-                onTabPress={handleTabPress}
-                testID={SocialV1ViewSelectorsIDs.TABS}
-                twClassName="z-10"
-              />
-            </Box>
-
             {/* Flush with the tab underline. A top margin would clip the
               pages in a band below the bar instead of at the underline. */}
-            <PagerView
-              ref={pagerRef}
+            <TabView
+              navigationState={navigationState}
+              renderScene={renderScene}
+              renderTabBar={renderTabBar}
+              onIndexChange={changeTab}
+              onSwipeEnd={onPagerRest}
+              initialLayout={TAB_VIEW_INITIAL_LAYOUT}
+              lazy
               style={tw.style('flex-1')}
-              initialPage={landingIndex}
-              onPageSelected={handlePageSelected}
-              testID={SocialV1ViewSelectorsIDs.PAGER}
-            >
-              {tabOrder.map((tab, pageIndex) => {
-                const testIds = PAGE_TEST_IDS[tab];
-                const pageRef =
-                  tab === 'trending'
-                    ? trendingPageRef
-                    : tab === 'following'
-                      ? followingPageRef
-                      : tab === 'live'
-                        ? livePageRef
-                        : leaderboardPageRef;
-                return (
-                  <View
-                    key={tab}
-                    style={tw.style('flex-1')}
-                    collapsable={false}
-                    testID={testIds.page}
-                  >
-                    <SocialFeedPageProviders
-                      isActive={isFocused && activeIndex === pageIndex}
-                      rotatesTraderStats={activeIndex === pageIndex}
-                    >
-                      {tab === 'leaderboard' ? (
-                        <LeaderboardShellTabPage
-                          isActive={activeIndex === leaderboardIndex}
-                          performance={socialPerformanceByTab.leaderboard}
-                          onScroll={scrollHandlers[tab]}
-                          pageRef={pageRef}
-                          containerTestID={testIds.container}
-                          appliedFilters={applied.leaderboard}
-                          onOpenFilters={handleOpenLeaderboardFilters}
-                          isFilterActive={hasActiveFilters('leaderboard')}
-                          onClearFilters={() =>
-                            clearAppliedFilters('leaderboard')
-                          }
-                          onTypeChange={setLeaderboardType}
-                        />
-                      ) : tab === 'live' ? (
-                        <LiveView
-                          isActive={activeIndex === liveIndex}
-                          source={analyticsSource}
-                          onScroll={scrollHandlers[tab]}
-                          pageRef={pageRef}
-                          onCopyTrade={handleLiveCopyTrade}
-                          onOpenFilters={handleOpenLiveFilters}
-                          isFilterActive={hasActiveFilters('live')}
-                          onClearFilters={() => clearAppliedFilters('live')}
-                          appliedFilters={applied.live}
-                        />
-                      ) : tab === 'trending' ? (
-                        <TrendingView
-                          isActive={activeIndex === trendingIndex}
-                          source={analyticsSource}
-                          performance={socialPerformanceByTab.trending}
-                          onScroll={scrollHandlers[tab]}
-                          pageRef={pageRef}
-                          onCopyTrade={handleTrendingCopyTrade}
-                          onOpenFilters={handleOpenTrendingFilters}
-                          isFilterActive={hasActiveFilters('trending')}
-                          onClearFilters={() => clearAppliedFilters('trending')}
-                          appliedFilters={applied.trending}
-                          testID={testIds.container}
-                          scrollTestID={testIds.scroll}
-                        />
-                      ) : (
-                        <EmptyShellTabPage
-                          tab={tab}
-                          source={analyticsSource}
-                          performance={socialPerformanceByTab[tab]}
-                          isActive={activeIndex === followingIndex}
-                          onScroll={scrollHandlers[tab]}
-                          pageRef={pageRef}
-                          containerTestID={testIds.container}
-                          scrollTestID={testIds.scroll}
-                          onOpenFilters={handleOpenFollowingFilters}
-                          isFilterActive={hasActiveFilters('following')}
-                          onClearFilters={() =>
-                            clearAppliedFilters('following')
-                          }
-                          appliedFilters={applied.following}
-                          onQuickBuy={openFollowingQuickBuy}
-                        />
-                      )}
-                    </SocialFeedPageProviders>
-                  </View>
-                );
-              })}
-            </PagerView>
+            />
           </Animated.View>
         </Box>
 
