@@ -1,16 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { View, InteractionManager, UIManager } from 'react-native';
+import { InteractionManager, UIManager } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
-import { createStyles } from './styles';
 import { Authentication } from '../../../core';
 import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { ForgotPasswordModalSelectorsIDs } from '../../../util/ForgotPasswordModal.testIds';
@@ -19,24 +12,29 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
 import { RootState } from '../../../reducers';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
 import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  Button,
-  ButtonVariant,
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  Box,
   ButtonSize,
+  ButtonsAlignment,
+  FontWeight,
+  IconAlertSeverity,
+  IconName,
+  ListItem,
+  ListItemVariant,
+  Text,
+  TextColor,
+  TextVariant,
+  TitleAlert,
 } from '@metamask/design-system-react-native';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -46,9 +44,7 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
 const DeleteWalletModal: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
-  const { colors } = useTheme();
   const { isEnabled } = useAnalytics();
-  const styles = createStyles(colors);
 
   const isResetWalletFromParams =
     (route.params as { isResetWallet?: boolean })?.isResetWallet || false;
@@ -66,8 +62,6 @@ const DeleteWalletModal: React.FC = () => {
   );
 
   const [isDeletingWallet, setIsDeletingWallet] = useState<boolean>(false);
-
-  const { signOut } = useSignOut();
 
   const dismissModal = (cb?: () => void): void =>
     modalRef?.current?.onCloseBottomSheet(cb);
@@ -110,7 +104,6 @@ const DeleteWalletModal: React.FC = () => {
     setIsDeletingWallet(true);
     try {
       dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
-      signOut();
       await CookieManager.clearAll(true);
       await Authentication.deleteWallet();
       // Track analytics for successful deletion
@@ -125,174 +118,172 @@ const DeleteWalletModal: React.FC = () => {
     setIsDeletingWallet(false);
   };
 
+  const showForgotPassword = !isResetWallet && !isResetWalletFromParams;
+
   return (
-    <BottomSheet ref={modalRef} isInteractable={!isDeletingWallet}>
-      {!isResetWallet && !isResetWalletFromParams ? (
-        <View
-          style={styles.forgotPasswordContainer}
-          testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
-        >
-          <Text
-            style={styles.heading}
-            variant={TextVariant.HeadingMd}
-            color={TextColor.TextDefault}
+    <BottomSheet
+      ref={modalRef}
+      isInteractable={!isDeletingWallet}
+      goBack={navigation.goBack}
+    >
+      {showForgotPassword ? (
+        <>
+          <BottomSheetHeader
+            onClose={triggerClose}
             testID={ForgotPasswordModalSelectorsIDs.TITLE}
+            closeButtonProps={{
+              testID: ForgotPasswordModalSelectorsIDs.CLOSE_BUTTON,
+            }}
           >
             {strings('login.forgot_password_desc')}
-          </Text>
-
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-            testID={ForgotPasswordModalSelectorsIDs.DESCRIPTION}
-          >
-            {strings('login.forgot_password_desc_2')}
-          </Text>
-
-          <View style={styles.forgotPasswordPointsContainer}>
-            <View style={styles.forgotPasswordPoint}>
-              <Icon
-                name={IconName.FaceId}
-                size={IconSize.Md}
-                color={IconColor.Muted}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                style={styles.forgotPasswordPointText}
-              >
-                {strings('login.forgot_password_point_1')}{' '}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  style={styles.bold}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('login.forgot_password_point_1_bold')}
-                </Text>{' '}
-                {strings('login.forgot_password_point_1_1')}
-              </Text>
-            </View>
-            <View style={styles.forgotPasswordPoint}>
-              <Icon
-                name={IconName.SecurityKey}
-                size={IconSize.Md}
-                color={IconColor.Muted}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                style={styles.forgotPasswordPointText}
-              >
-                {strings('login.forgot_password_point_2')}{' '}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  style={styles.bold}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('login.forgot_password_point_2_bold')}{' '}
-                </Text>
-                {strings('login.forgot_password_point_2_1')}
-              </Text>
-            </View>
-          </View>
-
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            isDanger
-            onPress={() => {
-              setIsResetWallet(true);
-              track(MetaMetricsEvents.RESET_WALLET, {
-                account_type: isOauthLoginSuccess ? 'social' : 'metamask',
-              });
-            }}
-            testID={ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON}
-          >
-            {strings('login.reset_wallet')}
-          </Button>
-        </View>
-      ) : (
-        <View style={styles.container}>
-          <View
-            style={styles.areYouSure}
+          </BottomSheetHeader>
+          <Box
             testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
+            paddingHorizontal={4}
+            paddingBottom={4}
           >
-            <View style={styles.iconContainer}>
-              {!isResetWalletFromParams ? (
-                <ButtonIcon
-                  iconName={IconName.ArrowLeft}
-                  size={ButtonIconSizes.Md}
-                  iconColor={IconColor.Default}
-                  onPress={() => setIsResetWallet(false)}
-                  testID={ForgotPasswordModalSelectorsIDs.BACK_BUTTON}
-                  isDisabled={isDeletingWallet}
-                />
-              ) : (
-                <View style={styles.iconEmptyContainer} />
-              )}
-              <Icon
-                style={styles.warningIcon}
-                size={IconSize.Xl}
-                color={IconColor.Error}
-                name={IconName.Danger}
-              />
-              <View style={styles.iconEmptyContainer} />
-            </View>
-
             <Text
-              style={styles.heading}
-              variant={TextVariant.HeadingMd}
-              color={TextColor.TextDefault}
-              testID={ForgotPasswordModalSelectorsIDs.WARNING_TEXT}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              testID={ForgotPasswordModalSelectorsIDs.DESCRIPTION}
             >
-              {strings('login.are_you_sure')}
+              {strings('login.forgot_password_desc_2')}
             </Text>
-            <View style={styles.warningTextContainer}>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {strings('login.reset_wallet_desc')}{' '}
+          </Box>
+          <Box gap={4}>
+            <ListItem
+              variant={ListItemVariant.MultiLine}
+              twClassName="min-h-0 py-0"
+              avatar={
+                <AvatarIcon
+                  iconName={IconName.FaceId}
+                  size={AvatarIconSize.Md}
+                  severity={AvatarIconSeverity.Neutral}
+                />
+              }
+              title={
                 <Text
-                  style={styles.warningText}
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Medium}
                 >
-                  {strings('login.reset_wallet_desc_bold')}
-                </Text>{' '}
-                {strings('login.reset_wallet_desc_2')}
-              </Text>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {strings('login.reset_wallet_desc_srp')}
-              </Text>
-            </View>
-            <View style={styles.buttonContainer}>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={deleteWallet}
-                isFullWidth
-                isDanger
-                testID={ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON}
-                isLoading={isDeletingWallet}
-                isDisabled={isDeletingWallet}
+                  {strings('login.forgot_password_point_1')}{' '}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('login.forgot_password_point_1_bold')}
+                  </Text>{' '}
+                  {strings('login.forgot_password_point_1_1')}
+                </Text>
+              }
+            />
+            <ListItem
+              variant={ListItemVariant.MultiLine}
+              twClassName="min-h-0 pt-0 pb-2"
+              avatar={
+                <AvatarIcon
+                  iconName={IconName.ShieldLock}
+                  size={AvatarIconSize.Md}
+                  severity={AvatarIconSeverity.Neutral}
+                />
+              }
+              title={
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('login.forgot_password_point_2')}{' '}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('login.forgot_password_point_2_bold')}{' '}
+                  </Text>
+                  {strings('login.forgot_password_point_2_1')}
+                </Text>
+              }
+            />
+          </Box>
+          <BottomSheetFooter
+            primaryButtonProps={{
+              children: strings('login.reset_wallet'),
+              isDanger: true,
+              size: ButtonSize.Lg,
+              onPress: () => {
+                setIsResetWallet(true);
+                track(MetaMetricsEvents.RESET_WALLET, {
+                  account_type: isOauthLoginSuccess ? 'social' : 'metamask',
+                });
+              },
+              testID: ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON,
+            }}
+            twClassName="pt-4"
+          />
+        </>
+      ) : (
+        <>
+          <Box
+            testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
+            paddingHorizontal={4}
+            gap={4}
+          >
+            <TitleAlert
+              severity={IconAlertSeverity.Danger}
+              title={strings('login.are_you_sure')}
+              titleProps={{
+                testID: ForgotPasswordModalSelectorsIDs.WARNING_TEXT,
+              }}
+              twClassName="pt-6"
+            />
+            <Box gap={4}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
               >
-                {strings('login.erase_my')}
-              </Button>
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Lg}
-                onPress={triggerClose}
-                isFullWidth
-                testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
-                isDisabled={isDeletingWallet}
+                {strings('login.reset_wallet_desc')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
               >
-                {strings('login.cancel')}
-              </Button>
-            </View>
-          </View>
-        </View>
+                {strings('login.reset_wallet_desc_srp_1')}{' '}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {strings('login.reset_wallet_desc_srp_bold')}
+                </Text>
+                {'. '}
+                {strings('login.reset_wallet_desc_srp_2')}
+              </Text>
+            </Box>
+          </Box>
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Vertical}
+            primaryButtonProps={{
+              children: strings('login.erase_my'),
+              onPress: deleteWallet,
+              size: ButtonSize.Lg,
+              isDanger: true,
+              isLoading: isDeletingWallet,
+              isDisabled: isDeletingWallet,
+              testID: ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
+              style: { marginTop: 0 },
+            }}
+            secondaryButtonProps={{
+              children: strings('login.cancel'),
+              onPress: triggerClose,
+              size: ButtonSize.Lg,
+              isDisabled: isDeletingWallet,
+              testID: ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
+              twClassName: 'mt-4',
+            }}
+            twClassName="pt-6 flex-col-reverse"
+          />
+        </>
       )}
     </BottomSheet>
   );

@@ -139,6 +139,11 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
 
   const remainingCount = chainRanking.length - visibleChains.length;
 
+  // When only one blockchain is available, "All networks" and that single
+  // network are functionally identical, so the "All" pill is redundant and
+  // should be hidden.
+  const hasSingleChain = chainRanking.length === 1;
+
   // On selection change only:
   // - Out-of-list chain → pin [selected, ...current visible].slice(0, N) in
   //   Redux for the Swaps session, then scroll to start.
@@ -188,8 +193,12 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
 
   const renderChainPill = (chain: ChainRankingEntry) => {
     // Only one pill may appear selected at a time (star, All, or one network).
+    // When the "All" pill is hidden (single-chain case), an unset filter is
+    // equivalent to that one chain being selected, so treat it as such.
     const isSelected =
-      !isWatchlistFilterActive && selectedChainId === chain.chainId;
+      !isWatchlistFilterActive &&
+      (selectedChainId === chain.chainId ||
+        (hasSingleChain && !selectedChainId));
     const imageSource = getNetworkImageSource({ chainId: chain.chainId });
 
     return (
@@ -224,7 +233,7 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
         isActive={isSelected}
         onPress={() => onChainSelect(chain.chainId)}
         size={ButtonSize.Md}
-        style={tw.style('rounded-xl py-2 px-3')}
+        style={tw.style('rounded-full py-2 px-4 h-auto min-h-10')}
       />
     );
   };
@@ -254,19 +263,24 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
           isActive={isWatchlistFilterActive}
           onPress={onWatchlistFilterPress}
           size={ButtonSize.Md}
-          style={tw.style('rounded-xl py-2 px-3')}
+          style={tw.style(
+            'rounded-full py-2 px-4 h-auto min-h-10 self-stretch',
+          )}
           testID="bridge-watchlist-filter-watchlist"
           accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
         />
       ) : null}
-      {/* All networks pill */}
-      <ButtonToggle
-        label={strings('bridge.all')}
-        isActive={!selectedChainId && !isWatchlistFilterActive}
-        onPress={() => onChainSelect(undefined)}
-        style={tw.style('rounded-xl py-2 px-3')}
-        size={ButtonSize.Md}
-      />
+      {/* All networks pill — hidden when only one blockchain is available,
+          since "All" and that single network would be redundant. */}
+      {!hasSingleChain && (
+        <ButtonToggle
+          label={strings('bridge.all')}
+          isActive={!selectedChainId && !isWatchlistFilterActive}
+          onPress={() => onChainSelect(undefined)}
+          style={tw.style('rounded-full py-2 px-4 h-auto min-h-10')}
+          size={ButtonSize.Md}
+        />
+      )}
       {visibleChains.map(renderChainPill)}
       {remainingCount > 0 && (
         <ButtonToggle
@@ -275,7 +289,7 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
           })}
           isActive={false}
           onPress={onMorePress}
-          style={tw.style('rounded-xl py-2 px-3')}
+          style={tw.style('rounded-full py-2 px-4 h-auto min-h-10')}
           size={ButtonSize.Md}
           testID="network-pills-more-button"
         />

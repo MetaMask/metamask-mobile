@@ -62,6 +62,10 @@ const CollapsibleReveal: React.FC<CollapsibleRevealProps> = ({
     snapExpandedOnMount && expanded ? 'natural' : 'animated',
   );
   const [isMounted, setIsMounted] = useState(expanded || !unmountWhenCollapsed);
+  // The animated height reaches the UI thread a frame or two after React
+  // commits the switch to absolute content; holding the natural height as a
+  // static style covers that gap so the container never collapses to 0.
+  const [naturalHeight, setNaturalHeight] = useState<number>();
   const measuredHeightSV = useSharedValue(0);
   const animatedHeightSV = useSharedValue(0);
   const opacitySV = useSharedValue(expanded ? 1 : 0);
@@ -117,6 +121,7 @@ const CollapsibleReveal: React.FC<CollapsibleRevealProps> = ({
       measuredHeightSV.value = nextHeight;
       animatedHeightSV.value = nextHeight;
       opacitySV.value = 1;
+      setNaturalHeight(nextHeight);
       setLayoutMode('animated');
     },
     [animatedHeightSV, measuredHeightSV, opacitySV],
@@ -166,7 +171,11 @@ const CollapsibleReveal: React.FC<CollapsibleRevealProps> = ({
 
   return (
     <Animated.View
-      style={[revealStyle, style]}
+      style={[
+        naturalHeight !== undefined ? { height: naturalHeight } : undefined,
+        revealStyle,
+        style,
+      ]}
       onLayout={isNatural ? handleNaturalLayout : undefined}
       testID={testID}
     >

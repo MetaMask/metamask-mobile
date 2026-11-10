@@ -1,21 +1,21 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { sleep, type EncapsulatedElementType } from '../../framework';
+import { sleep, type AppiumElement } from '../../framework';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 
 class SignModal {
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
   }
 
-  getNetworkText(network: string): EncapsulatedElementType {
+  getNetworkText(network: string): Promise<AppiumElement> {
     return Matchers.getElementByNativeXPath(
       `(//android.widget.TextView[@text="${network}"])[1]`,
     );

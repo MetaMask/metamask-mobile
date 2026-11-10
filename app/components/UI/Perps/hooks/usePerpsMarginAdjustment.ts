@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { strings } from '../../../../../locales/i18n';
+import { useCallback, useRef, useState } from 'react';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -8,12 +8,22 @@ import usePerpsToasts from './usePerpsToasts';
 import {
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
+import { translatePerpsError } from '../utils/translatePerpsError';
+import { calculateMaxRemovableMargin } from '../utils/marginUtils';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
 
 export interface UsePerpsMarginAdjustmentOptions {
   onSuccess?: () => void;
   onError?: (error: string) => void;
+  /** Called with the new safe max when a removal was stopped because it shrank */
+  onAmountChanged?: (maxAmount: number) => void;
 }
+
+const floorUsd = (value: number) => Math.floor(value * 100) / 100;
 
 /**
  * Hook for handling margin adjustment operations (add/remove margin from positions)
@@ -24,22 +34,108 @@ export interface UsePerpsMarginAdjustmentOptions {
 export function usePerpsMarginAdjustment(
   options?: UsePerpsMarginAdjustmentOptions,
 ) {
-  const { updateMargin } = usePerpsTrading();
+  const { updateMargin, getPositions } = usePerpsTrading();
   const [isAdjusting, setIsAdjusting] = useState(false);
+  const isAdjustingRef = useRef(false);
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { track } = usePerpsEventTracking();
+
+  // Re-reads the position so a removal is checked against what the exchange
+  // will see, not the snapshot the form was built from. Returns null when the
+  // read can't be trusted so the submission is not blocked. A missing position
+  // counts as that: the provider also returns [] when the fetch fails, so the
+  // exchange decides whether the position is really gone.
+  const getFreshRemovableMargin = useCallback(
+    async (
+      symbol: string,
+    ): Promise<{ exchangeMax: number; safeMax: number } | null> => {
+      try {
+        const positions = await getPositions({ skipCache: true });
+        const position = positions.find((p) => p.symbol === symbol);
+        if (!position) {
+          return null;
+        }
+        const params = {
+          currentMargin: parseFloat(position.marginUsed),
+          positionSize: Math.abs(parseFloat(position.size)),
+          entryPrice: parseFloat(position.entryPrice),
+          currentPrice: 0,
+          positionLeverage: position.leverage?.value ?? 0,
+          notionalValue: parseFloat(position.positionValue),
+        };
+        // Unusable fields would read as "nothing removable"; treat them like
+        // a failed read instead of blocking the removal.
+        if (
+          !(params.currentMargin > 0) ||
+          !(params.notionalValue > 0) ||
+          !(params.positionLeverage > 0)
+        ) {
+          return null;
+        }
+        return {
+          exchangeMax: calculateMaxRemovableMargin({
+            ...params,
+            priceMoveBufferRatio: 0,
+          }),
+          safeMax: floorUsd(calculateMaxRemovableMargin(params)),
+        };
+      } catch (error) {
+        DevLogger.log(
+          'Fresh position read before margin removal failed:',
+          error,
+        );
+        return null;
+      }
+    },
+    [getPositions],
+  );
 
   const handleMarginUpdate = useCallback(
     async (symbol: string, amount: number, action: 'add' | 'remove') => {
+      if (isAdjustingRef.current) {
+        return;
+      }
+
+      isAdjustingRef.current = true;
       setIsAdjusting(true);
       DevLogger.log(
         `usePerpsMarginAdjustment: Setting isAdjusting to true (action: ${action})`,
       );
 
+      // Positive for add, negative for remove
+      const adjustmentAmount = action === 'remove' ? -amount : amount;
+      const trackAdjustment = (
+        status:
+          | typeof PERPS_EVENT_VALUE.STATUS.SUCCESS
+          | typeof PERPS_EVENT_VALUE.STATUS.FAILED,
+        errorMessage?: string,
+      ) => {
+        track(MetaMetricsEvents.PERPS_MARGIN_ADJUSTMENT_TRANSACTION, {
+          [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+          [PERPS_EVENT_PROPERTY.ACTION]: action,
+          [PERPS_EVENT_PROPERTY.STATUS]: status,
+          ...(errorMessage && {
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+          }),
+        });
+      };
+
       try {
-        // Convert amount to string with proper sign
-        // Positive for add, negative for remove
-        const adjustmentAmount = action === 'remove' ? -amount : amount;
+        if (action === 'remove') {
+          // The position can move between opening the form and submitting,
+          // so re-check the amount against a fresh read before sending it.
+          const fresh = await getFreshRemovableMargin(symbol);
+          if (fresh && amount > fresh.exchangeMax) {
+            showToast(
+              PerpsToastOptions.positionManagement.margin.removeAmountChanged(
+                fresh.safeMax.toFixed(2),
+              ),
+            );
+            options?.onAmountChanged?.(fresh.safeMax);
+            return;
+          }
+        }
 
         const result = await updateMargin({
           symbol,
@@ -63,12 +159,15 @@ export function usePerpsMarginAdjustment(
                 ),
           );
 
+          trackAdjustment(PERPS_EVENT_VALUE.STATUS.SUCCESS);
+
           // Call success callback if provided
           options?.onSuccess?.();
         } else {
           DevLogger.log('Failed to adjust margin:', result.error);
 
-          const errorMessage = result.error || strings('perps.errors.unknown');
+          const errorMessage = translatePerpsError(result.error);
+          trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
 
           showToast(
             PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -106,10 +205,8 @@ export function usePerpsMarginAdjustment(
           },
         });
 
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : strings('perps.errors.unknown');
+        const errorMessage = translatePerpsError(error);
+        trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
 
         showToast(
           PerpsToastOptions.positionManagement.margin.adjustmentFailed(
@@ -121,14 +218,17 @@ export function usePerpsMarginAdjustment(
         options?.onError?.(errorMessage);
       } finally {
         DevLogger.log('usePerpsMarginAdjustment: Setting isAdjusting to false');
+        isAdjustingRef.current = false;
         setIsAdjusting(false);
       }
     },
     [
       updateMargin,
+      getFreshRemovableMargin,
       showToast,
       PerpsToastOptions.positionManagement.margin,
       options,
+      track,
     ],
   );
 

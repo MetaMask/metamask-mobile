@@ -14,6 +14,8 @@ import { RootState } from '../../reducers';
 import { areAddressesEqual } from '../../util/address';
 import { createDeepEqualSelector } from '../util';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../multichainAccounts/accountTreeController';
+import { selectPrimaryMoneyAccount } from '../moneyAccountController';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 /**
  * Selects the RampsController state from Redux.
@@ -151,4 +153,63 @@ export const selectTransak = createSelector(
       buyQuote: createDefaultResourceState(null),
       kycRequirement: createDefaultResourceState(null),
     },
+);
+
+/**
+ * Primary Money account address, used as `walletAddress` for
+ * {@link RampsController.hydrateVbaOnboarding} (selfhosted registration +
+ * autoramp create). Must not use the selected account-group EVM address —
+ * that registers Account 1 and deposits land outside the Money screen.
+ */
+export const selectSelectedVbaWalletAddress = createSelector(
+  selectPrimaryMoneyAccount,
+  (moneyAccount): string | null => {
+    const address = moneyAccount?.address;
+    if (!address) {
+      return null;
+    }
+    return toChecksumHexAddress(address);
+  },
+);
+
+/**
+ * Autoramp on the Money account address that is not Rejected or Cancelled.
+ * A failed account create still counts, but any other usable autoramp wins
+ * over it. Reads no feature flag, so an existing account stays reachable when
+ * the neobank flags are off.
+ *
+ * @param autoramps - Autoramps from `RampsController` state.
+ * @param walletAddress - Money account address.
+ * @returns The usable autoramp, or undefined.
+ */
+export const findUsableVbaAutoramp = <
+  T extends { walletAddress: string; status: string },
+>(
+  autoramps: readonly T[],
+  walletAddress: string | null | undefined,
+): T | undefined => {
+  const wallet = walletAddress?.trim().toLowerCase();
+  if (!wallet) {
+    return undefined;
+  }
+  const usable = autoramps.filter(
+    (autoramp) =>
+      autoramp.walletAddress?.trim().toLowerCase() === wallet &&
+      autoramp.status !== 'Rejected' &&
+      autoramp.status !== 'Cancelled',
+  );
+  return (
+    usable.find(
+      (autoramp) =>
+        autoramp.status !== 'RegistrationFailed' &&
+        autoramp.status !== 'AuthorizationFailed',
+    ) ?? usable[0]
+  );
+};
+
+export const selectUsableVbaAutoramp = createSelector(
+  selectRampsControllerState,
+  selectSelectedVbaWalletAddress,
+  (rampsControllerState, walletAddress) =>
+    findUsableVbaAutoramp(rampsControllerState?.autoramps ?? [], walletAddress),
 );

@@ -7,8 +7,7 @@ const styles = StyleSheet.create({
     aspectRatio: 620 / 400,
   },
   media: {
-    width: '100%',
-    height: '100%',
+    flex: 1,
   },
   staticImage: {
     width: 150,

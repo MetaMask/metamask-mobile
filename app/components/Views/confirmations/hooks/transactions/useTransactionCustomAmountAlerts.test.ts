@@ -28,18 +28,18 @@ const ALERT_MOCK = {
 function runHook({
   isInputChanged = false,
   isKeyboardVisible = false,
-  pendingTokenAmount = '0',
+  pendingFiatAmount = '0',
 }: {
   isInputChanged?: boolean;
   isKeyboardVisible?: boolean;
-  pendingTokenAmount?: string;
+  pendingFiatAmount?: string;
 } = {}) {
   return renderHookWithProvider(
     () =>
       useTransactionCustomAmountAlerts({
         isInputChanged,
         isKeyboardVisible,
-        pendingTokenAmount,
+        pendingFiatAmount,
       }),
     {
       state: merge(
@@ -195,5 +195,54 @@ describe('useTransactionCustomAmountAlerts', () => {
     });
 
     expect(result.current.alertMessage).toBeUndefined();
+  });
+
+  it('does not duplicate an alert present in both the pending and confirmation lists', () => {
+    const PENDING_MESSAGE = 'Max deposit: $100,000';
+    const CONFIRMATION_MESSAGE = 'Stale confirmation copy';
+
+    usePendingAmountAlertsMock.mockReturnValue([
+      {
+        ...ALERT_MOCK,
+        key: AlertKeys.DepositLimit,
+        message: PENDING_MESSAGE,
+      },
+    ]);
+
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          ...ALERT_MOCK,
+          key: AlertKeys.DepositLimit,
+          message: CONFIRMATION_MESSAGE,
+        },
+      ],
+    } as AlertsContextParams);
+
+    const { result } = runHook({ isInputChanged: true });
+
+    // The pending copy wins, and the confirmation duplicate is dropped.
+    expect(result.current.alertMessage).toBe(PENDING_MESSAGE);
+  });
+
+  it('returns the deposit limit alert while the keyboard is visible', () => {
+    usePendingAmountAlertsMock.mockReturnValue([
+      {
+        ...ALERT_MOCK,
+        key: AlertKeys.DepositLimit,
+        message: 'Max deposit: $100,000',
+      },
+    ]);
+
+    useAlertsMock.mockReturnValue({
+      alerts: [],
+    } as unknown as AlertsContextParams);
+
+    const { result } = runHook({
+      isInputChanged: true,
+      isKeyboardVisible: true,
+    });
+
+    expect(result.current.alertMessage).toBe('Max deposit: $100,000');
   });
 });

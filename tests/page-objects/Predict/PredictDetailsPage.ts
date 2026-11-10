@@ -3,7 +3,7 @@ import {
   Gestures,
   Matchers,
   getDriver,
-  type EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import {
@@ -21,21 +21,21 @@ import { PREDICT_BET_BUTTONS_TEST_IDS } from '../../../app/components/UI/Predict
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictGameDetailsContent/PredictGameDetailsContent.testIds';
 
 class PredictDetailsPage {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(PredictMarketDetailsSelectorsIDs.SCREEN);
   }
 
-  get positionsTab(): EncapsulatedElementType {
+  get positionsTab(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.POSITIONS_TAB,
     );
   }
 
-  get aboutTab(): EncapsulatedElementType {
+  get aboutTab(): Promise<AppiumElement> {
     return Matchers.getElementByID(PredictMarketDetailsSelectorsIDs.ABOUT_TAB);
   }
 
-  get outcomesTab(): EncapsulatedElementType {
+  get outcomesTab(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB,
     );
@@ -43,7 +43,7 @@ class PredictDetailsPage {
 
   //TODO: Add the correct TESTID on the component for the about tab content
   // This was migrated from the old screen-objects/PredictDetailsScreen.js file
-  get aboutTabContent(): EncapsulatedElementType {
+  get aboutTabContent(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
     );
@@ -51,71 +51,71 @@ class PredictDetailsPage {
 
   //TODO: Add the correct TESTID on the component for the outcomes tab content
   // This was migrated from the old screen-objects/PredictDetailsScreen.js file
-  get outcomesTabContent(): EncapsulatedElementType {
+  get outcomesTabContent(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
     );
   }
 
-  get cashOutButton(): EncapsulatedElementType {
+  get cashOutButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
     );
   }
 
-  get claimButton(): EncapsulatedElementType {
+  get claimButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON,
     );
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  private get backButtonByLabel(): EncapsulatedElementType {
+  private get backButtonByLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText('Back');
   }
 
-  get balanceCard(): EncapsulatedElementType {
+  get balanceCard(): Promise<AppiumElement> {
     return Matchers.getElementByID(PredictBalanceSelectorsIDs.BALANCE_CARD);
   }
 
-  get placeBetButton(): EncapsulatedElementType {
+  get placeBetButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON,
     );
   }
 
-  get volumeLabel(): EncapsulatedElementType {
+  get volumeLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText('Volume');
   }
 
-  private getOpenPositionValueButton(): EncapsulatedElementType {
+  private getOpenPositionValueButton(): Promise<AppiumElement> {
     return Matchers.getElementByNativeXPath(
       `//*[ (contains(@text,'Celtics') and contains(@text,'83¢')) or (contains(@label,'Celtics') and contains(@label,'83¢')) or (contains(@name,'Celtics') and contains(@name,'83¢')) ]`,
     );
   }
 
-  private getKeypadDigitButton(digit: string): EncapsulatedElementType {
+  private getKeypadDigitButton(digit: string): Promise<AppiumElement> {
     const testID = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
     return Matchers.getElementByID(testID);
   }
 
-  private getDoneButton(): EncapsulatedElementType {
+  private getDoneButton(): Promise<AppiumElement> {
     return Matchers.getElementByNativeXPath(
       `//*[(@text='Done' or @content-desc='Done' or @label='Done' or @name='Done')]`,
       { lastElement: true },
     );
   }
 
-  private getContinueButton(): EncapsulatedElementType {
+  private getContinueButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Continue');
   }
 
-  get gameBetYesButton(): EncapsulatedElementType {
+  get gameBetYesButton(): Promise<AppiumElement> {
     const testID = `${PREDICT_GAME_DETAILS_FOOTER}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.ACTION_BUTTONS}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_YES}`;
     return Matchers.getElementByID(testID);
   }
@@ -132,7 +132,7 @@ class PredictDetailsPage {
   }
 
   async tapBackButton(): Promise<void> {
-    const tapBack = async (target: EncapsulatedElementType) => {
+    const tapBack = async (target: Promise<AppiumElement>) => {
       await Assertions.expectElementToBeVisible(target, {
         description: 'Market details back button',
         timeout: 10_000,
@@ -186,12 +186,12 @@ class PredictDetailsPage {
     });
   }
 
-  getGameCashOutButton(positionId: string): EncapsulatedElementType {
+  getGameCashOutButton(positionId: string): Promise<AppiumElement> {
     const testID = `${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_CASH_OUT_BUTTON}-${positionId}`;
     return Matchers.getElementByID(testID);
   }
 
-  private get gameDetailsScrollView(): EncapsulatedElementType {
+  private get gameDetailsScrollView(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW,
     );

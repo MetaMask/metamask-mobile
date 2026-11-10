@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { Pressable } from 'react-native';
+import { Linking, Pressable } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
@@ -11,31 +11,39 @@ import {
 } from '../../../core/Braze';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { useBrazeBanner } from './useBrazeBanner';
-import { isAllowedBrazeDeeplink } from './isAllowedBrazeDeeplink';
+import {
+  isAllowedBrazeDeeplink,
+  isAllowedBrazeExternalUrl,
+} from './isAllowedBrazeDeeplink';
 import BrazeBannerCard from './BrazeBannerCard';
 
 interface BrazeBannerProps {
   placementId: string;
+  isGlass?: boolean;
 }
 
 /**
  * Orchestrates the Braze banner lifecycle for a given placement ID.
  *
  * Subscribes to `bannerCardsUpdated`, manages loading/visible/empty/dismissed
- * state via `useBrazeBanner`, logs impressions and clicks, and delegates all
- * visual rendering to `BrazeBannerCard` (swap out for another renderer if needed).
+ * state via `useBrazeBanner`, logs impressions, clicks, and selects, and
+ * delegates all visual rendering to `BrazeBannerCard` (swap out for another
+ * renderer if needed).
+ * MetaMask deeplinks use the shared deeplink pipeline; external web links open
+ * with the OS browser.
  *
  * State machine (managed by `useBrazeBanner`):
- * - `loading`   → skeleton visible, waits for a non-dismissed banner
+ * - `loading`   → nothing rendered, waits for a valid banner
  * - `visible`   → BrazeBannerCard rendered
  * - `empty`     → returns null (no campaign / timeout reached)
- * - `dismissed` → returns null immediately, no skeleton shown again
+ * - `dismissed` → returns null immediately; Braze owns re-eligibility
  */
-const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
+const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
   const tw = useTailwind();
   const {
     status,
     eventProperties,
+    flushImmediately,
     title,
     body,
     imageUrl,
@@ -51,15 +59,38 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
   }, [status, placementId, eventProperties]);
 
   const handlePress = useCallback(() => {
-    if (!deeplink) return;
-    if (!isAllowedBrazeDeeplink(deeplink)) {
+    const isInternalDeeplink = Boolean(
+      deeplink && isAllowedBrazeDeeplink(deeplink),
+    );
+    const isExternalUrl = Boolean(
+      deeplink && isAllowedBrazeExternalUrl(deeplink),
+    );
+
+    // A configured deeplink that fails the allowlist is a broken campaign:
+    // reject the tap without logging a select so it does not feed targeting.
+    if (deeplink && !isInternalDeeplink && !isExternalUrl) {
       Logger.error(new Error('BrazeBanner: deeplink rejected by allowlist'), {
         placementId,
         deeplink,
       });
       return;
     }
-    logBrazeBannerClick(placementId);
+
+    // Every tap counts as a select, including banners with no deeplink, so
+    // campaigns can trigger full-screen in-app messages from the banner.
+    logBrazeBannerClick(placementId, eventProperties, flushImmediately);
+
+    if (!deeplink) {
+      return;
+    }
+
+    if (isExternalUrl) {
+      Linking.openURL(deeplink).catch((error) => {
+        Logger.error(error, 'BrazeBanner: failed to open external URL');
+      });
+      return;
+    }
+
     SharedDeeplinkManager.getInstance()
       .parse(deeplink, {
         origin: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
@@ -67,7 +98,7 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
       .catch((error) => {
         Logger.error(error, 'BrazeBanner: failed to handle deeplink');
       });
-  }, [deeplink, placementId]);
+  }, [deeplink, eventProperties, flushImmediately, placementId]);
 
   if (status === 'empty' || status === 'dismissed' || status === 'loading')
     return null;
@@ -81,6 +112,7 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
           imageUrl={imageUrl}
           ctaLabel={ctaLabel}
           onDismiss={dismiss}
+          isGlass={isGlass}
         />
       </Pressable>
     </Box>

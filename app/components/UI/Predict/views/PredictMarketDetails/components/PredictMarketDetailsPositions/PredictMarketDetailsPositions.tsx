@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
   Box,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -55,7 +56,7 @@ const PredictMarketDetailsPositions = memo(
       <Box twClassName="space-y-4">
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="font-medium"
+          fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
         >
           {strings('predict.market_details.no_positions_found')}

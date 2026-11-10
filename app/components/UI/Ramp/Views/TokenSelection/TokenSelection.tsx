@@ -22,7 +22,6 @@ import {
   Text,
   TextVariant,
   FontWeight,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
@@ -46,12 +45,46 @@ import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectMod
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
 );
 
+/**
+ * Nested navigation to the Token Selection leaf while already inside the
+ * Ramp buy stack (e.g. dismissing Token Not Available / Provider Selection).
+ * Mirrors {@link createBuildQuoteNavDetails}: outer TokenListRoutes mount →
+ * RootStack `TOKEN_SELECTION_ROOT` → MainRoutes leaf `TOKEN_SELECTION`.
+ * Omitting the leaf leaves MainRoutes on Amount Input after the modal closes.
+ */
+export const createNestedTokenSelectionNavDetails = (): readonly [
+  string,
+  {
+    screen: string;
+    params: {
+      screen: string;
+    };
+  },
+] =>
+  [
+    Routes.RAMP.TOKEN_SELECTION,
+    {
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+      params: {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+      },
+    },
+  ] as const;
+
 function TokenSelection() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const listRef = useRef<FlatList>(null);
   const [searchString, setSearchString] = useState('');
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
@@ -297,6 +330,16 @@ function TokenSelection() {
     return Array.from(uniqueNetworksSet);
   }, [supportedTokens]);
 
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
+    contentReady: !isLoading,
+    contentState: error
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : supportedTokens.length === 0
+        ? RAMP_SCREEN_CONTENT_STATE.EMPTY
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
+
   const handleHeaderBack = useCallback(() => {
     navigation.goBack();
     trackEvent(
@@ -313,7 +356,9 @@ function TokenSelection() {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('deposit.token_modal.select_token')}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -335,7 +380,9 @@ function TokenSelection() {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('deposit.token_modal.select_token')}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -362,7 +409,9 @@ function TokenSelection() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('deposit.token_modal.select_token')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

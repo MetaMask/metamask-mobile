@@ -3,6 +3,7 @@ import React from 'react';
 import { stakingClaimConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../../../hooks/useConfirmReject';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingClaim from './staking-claim';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
@@ -47,6 +48,10 @@ jest.mock('../../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/useConfirmReject', () => ({
+  useConfirmReject: jest.fn(),
+}));
+
 jest.mock('../../../../components/UI/animated-pulse', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -77,6 +82,7 @@ jest.mock('../../../../../../../util/trace', () => ({
 describe('StakingClaim', () => {
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmReject = jest.mocked(useConfirmReject);
   const mockEndTrace = jest.mocked(endTrace);
 
   beforeEach(() => {
@@ -85,6 +91,7 @@ describe('StakingClaim', () => {
       onReject: jest.fn(),
       onConfirm: jest.fn(),
     });
+    mockUseConfirmReject.mockReturnValue({ onReject: jest.fn() });
   });
 
   it('should render correctly', () => {
@@ -93,6 +100,7 @@ describe('StakingClaim', () => {
       onConfirm: jest.fn(),
       onReject: mockOnReject,
     }));
+    mockUseConfirmReject.mockImplementation(() => ({ onReject: mockOnReject }));
 
     const mockRoute: RouteProp<{ params: { amountWei: string } }, 'params'> = {
       key: 'test',

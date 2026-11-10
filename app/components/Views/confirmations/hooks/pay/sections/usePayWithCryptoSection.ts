@@ -23,7 +23,7 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../../selector
 import { strings } from '../../../../../../../locales/i18n';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
+import { TokenIcon } from '../../../components/token-icon';
 import {
   PayWithRowConfig,
   PayWithSectionConfig,
@@ -156,11 +156,13 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const showNoFeeRowTags = isMoneyDeposit || isMoneyWithdraw;
 
   const handleOtherAssetsPress = useCallback(() => {
-    clearPaymentOverride();
+    // Do not clear the payment override here: the user has only opened the
+    // token picker and may close it without choosing anything. PayWithModal
+    // clears the override once a token is actually selected.
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
       dismissOnSelectCount: 2,
     });
-  }, [clearPaymentOverride, navigation]);
+  }, [navigation]);
 
   const handlePreferredTokenPress = useCallback(() => {
     if (isPreferredTokenSelected) {
@@ -281,8 +283,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         icon: React.createElement(TokenIcon, {
           address: preferredToken.address,
           chainId: preferredToken.chainId,
-          variant: TokenIconVariant.Row,
+          size: 40,
         }),
+        hasIconBackground: false,
         title: preferredToken.symbol,
         subtitle: isDeposit
           ? strings('confirm.pay_with_bottom_sheet.available_balance', {
@@ -322,8 +325,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         icon: React.createElement(TokenIcon, {
           address: selectedTokenDisplay.address,
           chainId: selectedTokenDisplay.chainId,
-          variant: TokenIconVariant.Row,
+          size: 40,
         }),
+        hasIconBackground: false,
         title: selectedTokenDisplay.symbol,
         subtitle: isDeposit
           ? strings('confirm.pay_with_bottom_sheet.available_balance', {
@@ -368,8 +372,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         icon: React.createElement(TokenIcon, {
           address: noFeeToken.address,
           chainId: noFeeToken.chainId,
-          variant: TokenIconVariant.Row,
+          size: 40,
         }),
+        hasIconBackground: false,
         title: noFeeToken.symbol,
         subtitle: isDeposit
           ? strings('confirm.pay_with_bottom_sheet.available_balance', {
@@ -398,7 +403,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     rows.push({
       id: 'crypto-other-assets',
       icon: React.createElement(Icon, {
-        name: IconName.Coin,
+        name: IconName.MoreHorizontal,
         size: IconSize.Md,
         color: IconColor.IconAlternative,
       }),

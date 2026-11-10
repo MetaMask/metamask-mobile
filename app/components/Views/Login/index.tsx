@@ -10,31 +10,24 @@ import {
   BackHandler,
   TouchableOpacity,
   Platform,
-  Image,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   TextField,
-  Button,
   ButtonSize,
-  ButtonVariant,
 } from '@metamask/design-system-react-native';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { ThemeContext } from '../../../util/theme';
 import { TextVariant as DSTextVariant } from '../../../component-library/components/Texts/Text';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   KeyboardController,
   AndroidSoftInputModes,
 } from 'react-native-keyboard-controller';
+import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
@@ -83,9 +76,11 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
-import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
+import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
+import Device from '../../../util/device';
 import { hasTestOverrides } from '../../../util/test/utils';
-import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import useAuthCapabilities from '../../../core/Authentication/hooks/useAuthCapabilities';
@@ -100,13 +95,38 @@ import {
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
 import {
-  cancelHomepageReadyTrace,
-  startHomepageReadyTrace,
-  type HomepageReadyTraceToken,
-} from '../../../core/Performance/HomepageReady';
+  cancelUnlockTraces,
+  startUnlockTraces,
+  type UnlockTraceTokens,
+} from '../../../core/Performance/unlockTraces';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { checkForDeeplink } from '../../../actions/user';
+import {
+  getLoginUnlockFailureErrorType,
+  trackAppUnlocked,
+  trackAppUnlockedFailed,
+  UNLOCK_TYPE,
+  type UnlockType,
+} from './loginUnlockAnalytics';
+
+/** Returns true if `candidatePassword` decrypts the on-device vault backup. */
+const canDecryptVaultBackup = async (
+  candidatePassword: string,
+): Promise<boolean> => {
+  const backupResult = await getVaultFromBackup();
+  if (!backupResult.vault) {
+    return false;
+  }
+  const vaultSeed = await parseVaultValue(
+    candidatePassword,
+    backupResult.vault,
+  );
+  return Boolean(vaultSeed);
+};
 
 interface LoginRouteParams {
-  locked: boolean;
+  locked?: boolean;
+  resumeOverlay?: boolean;
 }
 
 interface LoginProps {
@@ -118,6 +138,8 @@ interface LoginProps {
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput | null>(null);
+  const lastSubmittedPasswordRef = useRef('');
+  const isProcessingForgotPassword = useRef(false);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -126,10 +148,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     undefined | 'Start' | 'Loader'
   >(undefined);
 
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.LOGIN,
+    saveOnboardingEvent,
+  });
+
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);
+  const canvasColor =
+    themeAppearance === 'dark'
+      ? colors.background.default
+      : importedColors.gettingStartedPageBackgroundColorLightMode;
 
   const {
     unlockWallet,
@@ -139,7 +171,21 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   } = useAuthentication();
   const { capabilities } = useAuthCapabilities();
   const isLocked = Boolean(route.params?.locked);
+  const resumeOverlay = Boolean(route.params?.resumeOverlay);
   const loginPerformanceTags = useRef(getLoginPerformanceTags(isLocked));
+
+  const dismissResumeOverlay = useCallback(() => {
+    navigation.goBack();
+    ReduxService.store.dispatch(checkForDeeplink());
+  }, [navigation]);
+
+  // Disable gesture on resumeOverlay to prevent the user from swiping back to the previous screen
+  useEffect(() => {
+    if (!resumeOverlay) {
+      return;
+    }
+    navigation.setOptions({ gestureEnabled: false });
+  }, [navigation, resumeOverlay]);
 
   useEffect(() => {
     trace({
@@ -148,14 +194,21 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       tags: loginPerformanceTags.current,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
-    setStartFoxAnimation('Start');
   }, [saveOnboardingEvent]);
+
+  const handleStartFoxAnimation = useCallback(() => {
+    setStartFoxAnimation('Start');
+  }, []);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        lockApp({ reset: false });
+        // Disable back gesture on resumeOverlay to prevent the user from pressing back on Android to reveal the previous screen
+        if (resumeOverlay) {
+          return true;
+        }
+        void lockApp({ reset: false });
         return false;
       },
     );
@@ -163,7 +216,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     return () => {
       subscription.remove();
     };
-  }, [lockApp]);
+  }, [lockApp, resumeOverlay]);
 
   useEffect(() => {
     if (Platform.OS === 'android' && !hasTestOverrides) {
@@ -234,13 +287,19 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handlePasswordError = useCallback((loginErrorMessage: string) => {
     setLoading(false);
     setError(strings('login.invalid_password'));
-    trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
+    void trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
   }, []);
 
   const handleLoginError = useCallback(
-    async (loginError: Error) => {
+    async (loginError: Error, unlockType: UnlockType) => {
       // Prioritize message property over toString for error handling
       const loginErrorMessage = loginError.message || loginError.toString();
+
+      trackAppUnlockedFailed({
+        unlockType,
+        reason: getLoginUnlockFailureErrorType(loginError),
+        saveOnboardingEvent,
+      });
 
       const isWrongPasswordError =
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR) ||
@@ -302,22 +361,26 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setLoading(false);
       Logger.error(loginError, 'Failed to unlock');
     },
-    [handlePasswordError, handleVaultCorruption, navigation],
+    [
+      handlePasswordError,
+      handleVaultCorruption,
+      navigation,
+      saveOnboardingEvent,
+    ],
   );
 
   const unlockWithPassword = useCallback(async () => {
     if (loading) return;
 
+    lastSubmittedPasswordRef.current = password;
     fieldRef.current?.clear();
     setPassword('');
     setLoading(true);
     setError(null);
 
-    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
-      startHomepageReadyTrace({
-        source: 'unlock',
-        appStartType: loginPerformanceTags.current.app_start_type,
-      });
+    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -337,7 +400,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               skipCache: false,
               captureSentryError: true,
             });
-          await unlockWallet({ password });
+          await unlockWallet(
+            resumeOverlay
+              ? { password, navigationBehavior: 'preserve' }
+              : { password },
+          );
+          if (resumeOverlay) {
+            dismissResumeOverlay();
+          }
+          lastSubmittedPasswordRef.current = '';
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();
             if (
@@ -359,21 +430,25 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           }
         },
       );
-    } catch (loginErr) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
+      trackAppUnlocked({
+        unlockType: UNLOCK_TYPE.PASSWORD,
+        saveOnboardingEvent,
       });
-      await handleLoginError(loginErr as Error);
+    } catch (loginErr) {
+      cancelUnlockTraces(unlockTraceTokens);
+      await handleLoginError(loginErr as Error, UNLOCK_TYPE.PASSWORD);
     }
     setLoading(false);
   }, [
     password,
     loading,
+    resumeOverlay,
+    dismissResumeOverlay,
     handleLoginError,
     unlockWallet,
     getAuthType,
     checkIsSeedlessPasswordOutdated,
+    saveOnboardingEvent,
   ]);
 
   const unlockWithDeviceAuthentication = useCallback(async () => {
@@ -385,11 +460,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
-      startHomepageReadyTrace({
-        source: 'unlock',
-        appStartType: loginPerformanceTags.current.app_start_type,
-      });
+    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -404,35 +477,131 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           tags: loginPerformanceTags.current,
         },
         async () => {
-          await unlockWallet();
+          await unlockWallet(
+            resumeOverlay ? { navigationBehavior: 'preserve' } : undefined,
+          );
+          if (resumeOverlay) {
+            dismissResumeOverlay();
+          }
         },
       );
-    } catch (loginerror) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
+      trackAppUnlocked({
+        unlockType: UNLOCK_TYPE.BIOMETRIC,
+        saveOnboardingEvent,
       });
-      await handleLoginError(loginerror as Error);
+    } catch (loginerror) {
+      cancelUnlockTraces(unlockTraceTokens);
+      await handleLoginError(loginerror as Error, UNLOCK_TYPE.BIOMETRIC);
     }
     setLoading(false);
-  }, [unlockWallet, loading, handleLoginError]);
+  }, [
+    unlockWallet,
+    loading,
+    resumeOverlay,
+    dismissResumeOverlay,
+    handleLoginError,
+    saveOnboardingEvent,
+  ]);
 
-  const toggleWarningModal = () => {
+  const toggleWarningModal = async () => {
+    if (isProcessingForgotPassword.current) {
+      return;
+    }
+    isProcessingForgotPassword.current = true;
+
     trackOnboarding(
       MetaMetricsEvents.FORGOT_PASSWORD_CLICKED,
       saveOnboardingEvent,
     );
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.DELETE_WALLET,
-    });
+    // Use the last submitted password.
+    const submittedPassword = lastSubmittedPasswordRef.current;
+    lastSubmittedPasswordRef.current = '';
+
+    try {
+      const isSeedlessLogin = selectSeedlessOnboardingLoginFlow(
+        ReduxService.store.getState(),
+      );
+
+      if (isSeedlessLogin) {
+        const isPasswordOutdated = await checkIsSeedlessPasswordOutdated({
+          skipCache: true,
+          captureSentryError: true,
+        });
+
+        let localBackupDecrypts = false;
+        if (submittedPassword) {
+          try {
+            localBackupDecrypts =
+              await canDecryptVaultBackup(submittedPassword);
+          } catch (e: unknown) {
+            Logger.error(
+              e as Error,
+              'Login/ toggleWarningModal: seedless vault backup check failed',
+            );
+          }
+        }
+
+        if (isPasswordOutdated || localBackupDecrypts) {
+          Logger.error(
+            new Error(
+              'Forgot password: seedless local vault may be out of sync with server',
+            ),
+            {
+              tags: {
+                feature: 'account_access',
+              },
+              context: {
+                name: 'ForgotPasswordSeedlessDesync',
+                data: {
+                  password_outdated: isPasswordOutdated,
+                  local_backup_decrypts: localBackupDecrypts,
+                  unlock_attempted: Boolean(submittedPassword),
+                },
+              },
+            },
+          );
+        }
+      } else if (submittedPassword) {
+        const backupDecrypts = await canDecryptVaultBackup(submittedPassword);
+        if (backupDecrypts) {
+          Logger.error(
+            new Error(
+              'Forgot password: submitted password decrypts on-device vault backup',
+            ),
+            {
+              tags: {
+                feature: 'account_access',
+              },
+              context: {
+                name: 'ForgotPasswordVaultMismatch',
+                data: {
+                  local_backup_decrypts: true,
+                  unlock_attempted: true,
+                },
+              },
+            },
+          );
+        }
+      }
+    } catch (e: unknown) {
+      Logger.error(
+        e as Error,
+        'Login/ toggleWarningModal: vault backup check failed',
+      );
+    } finally {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      isProcessingForgotPassword.current = false;
+    }
   };
 
   const handleDownloadStateLogs = () => {
     const fullState = ReduxService.store.getState();
 
     trackOnboarding(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS, saveOnboardingEvent);
-    downloadStateLogs(fullState, false);
+    void downloadStateLogs(fullState, false);
   };
 
   const isDeviceAuthenticationAvailable =
@@ -447,132 +616,86 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(null);
   };
 
+  const renderWordmark = (wordmark: React.ReactElement) => (
+    <TouchableOpacity
+      testID={LoginViewSelectors.DOWNLOAD_LOGS_BUTTON}
+      delayLongPress={10 * 1000}
+      onLongPress={handleDownloadStateLogs}
+      activeOpacity={1}
+    >
+      {wordmark}
+    </TouchableOpacity>
+  );
+
+  const ctaSize = Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg;
+
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView style={tw.style('flex-1')}>
-        <KeyboardAwareScrollView
-          keyboardShouldPersistTaps="handled"
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-1')}
-          extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
-          enableOnAndroid
-          enableResetScrollToCoords={false}
-        >
-          <Box
-            testID={LoginViewSelectors.CONTAINER}
-            flexDirection={BoxFlexDirection.Column}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Start}
-            paddingHorizontal={6}
-            twClassName="flex-1 w-full pt-20"
-          >
-            <Image
-              source={METAMASK_NAME}
-              style={[
-                tw.style('w-40 h-20 self-center mt-[60px] mb-[60px]'),
-                { tintColor: colors.icon.default },
-              ]}
-              resizeMode="contain"
-              resizeMethod={'auto'}
-            />
-            <Box
-              flexDirection={BoxFlexDirection.Column}
-              justifyContent={BoxJustifyContent.Start}
-              gap={2}
-              marginBottom={2}
-              twClassName="w-full mt-[80px]"
+      <OnboardingLoginCanvas
+        canvasColor={canvasColor}
+        containerTestID={LoginViewSelectors.CONTAINER}
+        startFoxAnimation={startFoxAnimation}
+        setStartFoxAnimation={handleStartFoxAnimation}
+        renderWordmark={renderWordmark}
+        showScreenshotDeterrent
+      >
+        <Box flexDirection={BoxFlexDirection.Column} gap={2}>
+          <TextField
+            placeholder={strings('login.password_placeholder')}
+            inputRef={fieldRef}
+            onChangeText={handlePasswordChange}
+            value={password}
+            endAccessory={
+              capabilities ? (
+                <DeviceAuthenticationButton
+                  disabled={loading}
+                  onPress={unlockWithDeviceAuthentication}
+                  hidden={shouldHideDeviceAuthenticationButton}
+                  iconName={capabilities.authIcon}
+                />
+              ) : null
+            }
+            isError={!!error}
+            isDisabled={loading}
+            inputProps={{
+              testID: LoginViewSelectors.PASSWORD_INPUT,
+              accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+              returnKeyType: 'done',
+              autoCapitalize: 'none',
+              secureTextEntry: true,
+              onSubmitEditing: unlockWithPassword,
+              keyboardAppearance: themeAppearance,
+            }}
+          />
+          {!!error && (
+            <HelpText
+              severity={HelpTextSeverity.Error}
+              variant={DSTextVariant.BodyMD}
+              testID={LoginViewSelectors.PASSWORD_ERROR}
             >
-              <TextField
-                placeholder={strings('login.password_placeholder')}
-                inputRef={fieldRef}
-                onChangeText={handlePasswordChange}
-                value={password}
-                endAccessory={
-                  capabilities ? (
-                    <DeviceAuthenticationButton
-                      disabled={loading}
-                      onPress={unlockWithDeviceAuthentication}
-                      hidden={shouldHideDeviceAuthenticationButton}
-                      iconName={capabilities.authIcon}
-                    />
-                  ) : null
-                }
-                isError={!!error}
-                isDisabled={loading}
-                inputProps={{
-                  testID: LoginViewSelectors.PASSWORD_INPUT,
-                  accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
-                  returnKeyType: 'done',
-                  autoCapitalize: 'none',
-                  secureTextEntry: true,
-                  onSubmitEditing: unlockWithPassword,
-                  keyboardAppearance: themeAppearance,
-                }}
-              />
-            </Box>
-
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Start}
-              justifyContent={BoxJustifyContent.Start}
-              twClassName="self-start"
-            >
-              {!!error && (
-                <HelpText
-                  severity={HelpTextSeverity.Error}
-                  variant={DSTextVariant.BodyMD}
-                  testID={LoginViewSelectors.PASSWORD_ERROR}
-                >
-                  {error}
-                </HelpText>
-              )}
-            </Box>
-
-            <Box
-              flexDirection={BoxFlexDirection.Column}
-              alignItems={BoxAlignItems.Center}
-              twClassName="w-full"
-              pointerEvents="box-none"
-            >
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={unlockWithPassword}
-                isDisabled={password.length === 0 || loading}
-                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                isLoading={loading}
-                twClassName="mt-1"
-                isFullWidth
-              >
-                {strings('login.unlock_button')}
-              </Button>
-              <Button
-                variant={ButtonVariant.Tertiary}
-                size={ButtonSize.Lg}
-                onPress={toggleWarningModal}
-                isDisabled={loading}
-                testID={LoginViewSelectors.RESET_WALLET}
-                isFullWidth
-                twClassName="mt-4"
-              >
-                {strings('login.forgot_password')}
-              </Button>
-            </Box>
-          </Box>
-        </KeyboardAwareScrollView>
-        <FadeOutOverlay />
-        {!hasTestOverrides && (
-          <TouchableOpacity
-            style={tw.style('absolute bottom-0 left-0 right-0 h-[200px]')}
-            delayLongPress={10 * 1000} // 10 seconds
-            onLongPress={handleDownloadStateLogs}
-            activeOpacity={1}
-          >
-            <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
-          </TouchableOpacity>
-        )}
-        <ScreenshotDeterrent enabled isSRP={false} />
-      </SafeAreaView>
+              {error}
+            </HelpText>
+          )}
+        </Box>
+        <FooterGlass
+          twClassName="px-0"
+          primaryButtonProps={{
+            children: strings('login.unlock_button'),
+            size: ctaSize,
+            onPress: unlockWithPassword,
+            isDisabled: password.length === 0 || loading,
+            isLoading: loading,
+            testID: LoginViewSelectors.LOGIN_BUTTON_ID,
+          }}
+          tertiaryButtonProps={{
+            children: strings('login.forgot_password'),
+            size: ctaSize,
+            onPress: toggleWarningModal,
+            isDisabled: loading,
+            testID: LoginViewSelectors.RESET_WALLET,
+          }}
+        />
+      </OnboardingLoginCanvas>
     </ErrorBoundary>
   );
 };

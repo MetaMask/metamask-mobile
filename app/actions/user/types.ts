@@ -5,7 +5,6 @@ import { type PendingAppInstall } from '../../reducers/user/types';
 
 // Action type enum
 export enum UserActionType {
-  LOCKED_APP = 'LOCKED_APP',
   CHECK_FOR_DEEPLINK = 'CHECK_FOR_DEEPLINK',
   LOGIN = 'LOGIN',
   LOGOUT = 'LOGOUT',
@@ -43,8 +42,6 @@ export enum UserActionType {
 }
 
 // User actions
-export type LockAppAction = Action<UserActionType.LOCKED_APP>;
-
 export type CheckForDeeplinkAction = Action<UserActionType.CHECK_FOR_DEEPLINK>;
 
 export type LoginAction = Action<UserActionType.LOGIN>;
@@ -171,7 +168,6 @@ export type ClearPendingAppInstallAction =
  * User actions union type
  */
 export type UserAction =
-  | LockAppAction
   | CheckForDeeplinkAction
   | LoginAction
   | LogoutAction

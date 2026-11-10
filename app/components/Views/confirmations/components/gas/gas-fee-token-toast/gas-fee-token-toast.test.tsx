@@ -17,8 +17,7 @@ import initialRootState, {
   backgroundState,
 } from '../../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../../reducers';
-import { GasFeeToken, TransactionType } from '@metamask/transaction-controller';
-import { Token } from '@metamask/assets-controllers';
+import { GasFeeToken } from '@metamask/transaction-controller';
 import { toHex } from '@metamask/controller-utils';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 
@@ -84,9 +83,12 @@ describe('GasFeeTokenToast', () => {
     accounts: {
       [mockAccountId]: {
         address: mockAccountId,
+        type: 'eip155:eoa',
       },
     },
   } as unknown as Partial<AccountsControllerState>;
+
+  const matchingTokenAssetId = `eip155:1/erc20:${matchingTokenAddress}`;
 
   const TOKENS_CONTROLLER_STATE = {
     ...initialRootState,
@@ -94,18 +96,21 @@ describe('GasFeeTokenToast', () => {
       ...initialRootState.engine,
       backgroundState: {
         ...backgroundState,
-        TokensController: {
-          ...backgroundState.TokensController,
-          allTokens: {
-            ...backgroundState.TokensController.allTokens,
-            '0x1': {
-              [mockAccountId]: [
-                {
-                  address: matchingTokenAddress,
-                  symbol: matchingTokenSymbol,
-                  image: matchingTokenImage,
-                } as unknown as Token,
-              ],
+        AssetsController: {
+          ...backgroundState.AssetsController,
+          assetsInfo: {
+            ...backgroundState.AssetsController.assetsInfo,
+            [matchingTokenAssetId]: {
+              type: 'erc20',
+              symbol: matchingTokenSymbol,
+              image: matchingTokenImage,
+              decimals: 18,
+            },
+          },
+          assetsBalance: {
+            ...backgroundState.AssetsController.assetsBalance,
+            [mockAccountId]: {
+              [matchingTokenAssetId]: { amount: '1' },
             },
           },
         },
@@ -204,25 +209,5 @@ describe('GasFeeTokenToast', () => {
 
     // The component should still work with undefined chainId, defaulting to '0x1'
     expect(mockShowToast).toHaveBeenCalledTimes(1);
-  });
-
-  it('does nothing for mUSD conversion transactions', () => {
-    (useGasFeeToken as jest.Mock).mockReturnValue(GAS_FEE_TOKEN_MOCK);
-    (useSelectedGasFeeToken as jest.Mock).mockReturnValue(
-      GAS_FEE_TOKEN_USDC_MOCK,
-    );
-    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
-      chainId: '0x1',
-      type: TransactionType.musdConversion,
-    });
-
-    renderWithProvider(
-      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-        <GasFeeTokenToast />
-      </ToastContext.Provider>,
-      { state: TOKENS_CONTROLLER_STATE },
-    );
-
-    expect(mockShowToast).not.toHaveBeenCalled();
   });
 });

@@ -2,6 +2,7 @@ import { BigNumber } from 'bignumber.js';
 import { trimTrailingZeros } from './trimTrailingZeros';
 
 export const FIAT_INPUT_DECIMALS = 2;
+export const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
 export const SECONDARY_TOKEN_AMOUNT_DECIMALS = 5;
 
 export const formatFiatInputAmount = (

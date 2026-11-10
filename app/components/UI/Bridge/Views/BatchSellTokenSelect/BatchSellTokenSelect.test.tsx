@@ -57,6 +57,13 @@ let mockMultichainAssetsRates = {};
 const usdcAssetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: () => false,
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
@@ -706,10 +713,10 @@ describe('BatchSellTokenSelect', () => {
     expect(getByText('+1.23%').props.color).toBe(DSTextColor.SuccessDefault);
     expect(getByText('-4.56%').props.color).toBe(DSTextColor.ErrorDefault);
     expect(getByTestId('token-balance-GAIN').props.variant).toBe(
-      ComponentLibraryTextVariant.BodySMMedium,
+      ComponentLibraryTextVariant.BodyMDMedium,
     );
     expect(getByTestId('token-balance-GAIN').props.color).toBe(
-      ComponentLibraryTextColor.Alternative,
+      ComponentLibraryTextColor.Default,
     );
     expect(getByTestId('token-balance-GAIN').props.style).toMatchObject({
       textAlign: 'right',
@@ -886,9 +893,7 @@ describe('BatchSellTokenSelect', () => {
       getByTestId(BatchSellTokenSelectSelectorsIDs.EXPLORE_TOKENS_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
-      screen: Routes.TRENDING_FEED,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 
   it('clears selected tokens when changing networks', () => {

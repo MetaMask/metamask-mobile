@@ -12,13 +12,14 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import type { TransactionGroup } from './transaction-group';
-import type { ActivityFee, Status } from '../types';
+import { isNftAssetType, type ActivityFee, type Status } from '../types';
 import { GAS_FEE_SPONSORED } from '../fees';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
   type ActivityTokenMetadata,
 } from './environment';
+import { calcTokenAmount } from '../../transactions';
 
 const NATIVE_FEE_DECIMALS = 18;
 
@@ -210,12 +211,8 @@ export function getLocalActivityFees(
 const MAINNET_HEX_CHAIN_ID = '0x1';
 const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
 
-export const isNftTransferType = (transferType?: string) => {
-  const normalizedTransferType = transferType?.toLowerCase();
-  return (
-    normalizedTransferType === 'erc721' || normalizedTransferType === 'erc1155'
-  );
-};
+export const isNftTransferType = (transferType?: string) =>
+  isNftAssetType(transferType);
 
 function stringifyParsedTokenAmount(value: unknown): string | undefined {
   if (typeof value === 'string' || typeof value === 'number') {
@@ -257,16 +254,26 @@ export function getTokenApprovalAmountFromData(
   );
 }
 
-export function isUnlimitedApprovalAmount(
-  amount: string | undefined,
+export function isSpendingCapUnlimited(
+  value: number | string | null | undefined,
   decimals = 0,
 ): boolean {
-  if (!amount) {
+  if (
+    value === undefined ||
+    value === null ||
+    (typeof value === 'string' && value.trim() === '')
+  ) {
     return false;
   }
 
+  // A null scale from the Accounts API would read as 0 and flag raw base units of 18-decimal tokens as unlimited.
+  if (!Number.isInteger(decimals)) {
+    return false;
+  }
+
+  const tokenAmount = calcTokenAmount(value, decimals);
   return (
-    Number.parseFloat(amount) / 10 ** decimals > TOKEN_VALUE_UNLIMITED_THRESHOLD
+    !tokenAmount.isNaN() && tokenAmount.gte(TOKEN_VALUE_UNLIMITED_THRESHOLD)
   );
 }
 

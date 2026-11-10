@@ -56,6 +56,7 @@ function mockQrWallet(
     setTargetWalletType: jest.fn(),
     setPendingOperationAddress: jest.fn(),
     showHardwareWalletError: jest.fn(),
+    cancelConnectionFlow: jest.fn(),
     showAwaitingConfirmation: jest.fn(),
     hideAwaitingConfirmation: jest.fn(),
     qr: {
@@ -83,6 +84,7 @@ function mockLedgerWallet(): HardwareWalletContextValue {
     setTargetWalletType: jest.fn(),
     setPendingOperationAddress: jest.fn(),
     showHardwareWalletError: jest.fn(),
+    cancelConnectionFlow: jest.fn(),
     showAwaitingConfirmation: jest.fn(),
     hideAwaitingConfirmation: jest.fn(),
     qr: {

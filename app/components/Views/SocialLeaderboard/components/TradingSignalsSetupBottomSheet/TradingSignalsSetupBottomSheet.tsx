@@ -29,7 +29,7 @@ export interface TradingSignalsSetupParams {
 
 export const createTradingSignalsSetupNavigationDetails =
   createNavigationDetails<TradingSignalsSetupParams>(
-    Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+    Routes.SOCIAL.TRADING_SIGNALS_SETUP,
   );
 
 const TradingSignalsSetupBottomSheet = () => {

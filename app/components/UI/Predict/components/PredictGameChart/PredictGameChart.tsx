@@ -43,8 +43,6 @@ const FIDELITY_BY_TIMEFRAME: Record<ChartTimeframe, number> = {
   max: 60,
 };
 
-const ENDED_GAME_FIDELITY = 2;
-
 const getMinuteTimestamp = (timestamp: number): number =>
   Math.floor(timestamp / 60000) * 60000;
 
@@ -154,9 +152,10 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
     return TIMEFRAME_TO_INTERVAL[timeframe];
   }, [isGameEnded, timeframe]);
 
-  const fidelity = isGameEnded
-    ? ENDED_GAME_FIDELITY
-    : FIDELITY_BY_TIMEFRAME[timeframe];
+  // Ended games send no fidelity: the server then picks the finest bucket that
+  // still covers the game window. An explicit fine bucket comes back empty once
+  // that grain's retention has passed (about 7 days for 1-minute data).
+  const fidelity = isGameEnded ? undefined : FIDELITY_BY_TIMEFRAME[timeframe];
 
   const { priceHistories, isFetching, errors, refetch } =
     usePredictPriceHistory({

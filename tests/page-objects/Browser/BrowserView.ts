@@ -5,9 +5,10 @@ import {
 } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountRightButton/AccountOverview.testIds';
 import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
+import { PhishingModalSelectorsIDs } from '../../../app/components/UI/PhishingModal/PhishingModal.testIds';
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import {
   Assertions,
@@ -16,53 +17,60 @@ import {
   Utilities,
   sleep,
 } from '../../framework';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
-import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
+import {
+  executeMobileDeepLink,
+  withImplicitWait,
+} from '../../framework/AppiumUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+
+/** Keep in sync with AppConstants.HOMEPAGE_URL — do not import app constants (pulls RN). */
+const HOMEPAGE_URL =
+  'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
 }
 
 class Browser {
-  get reloadButton(): EncapsulatedElementType {
+  get reloadButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON);
   }
 
-  get bookmarkButton(): EncapsulatedElementType {
+  get bookmarkButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BOOKMARK_BUTTON);
   }
 
-  get newTabButton(): EncapsulatedElementType {
+  get newTabButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NEW_TAB_BUTTON);
   }
 
-  get closeBrowserButton(): EncapsulatedElementType {
+  get closeBrowserButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
     );
   }
 
   // Legacy getters for backward compatibility with existing tests
-  get homeButton(): EncapsulatedElementType {
+  get homeButton(): Promise<AppiumElement> {
     // Home button removed, but kept for backward compatibility
     // Tests using this should be updated
     return this.newTabButton;
   }
 
-  get browserScreenID(): EncapsulatedElementType {
+  get browserScreenID(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
   }
 
-  get androidBrowserWebViewID(): EncapsulatedElementType {
+  get androidBrowserWebViewID(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
   }
 
-  get addressBar(): EncapsulatedElementType {
+  get addressBar(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.URL_INPUT);
   }
 
-  get urlInputBoxID(): EncapsulatedElementType {
+  get urlInputBoxID(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
   }
 
@@ -70,14 +78,14 @@ class Browser {
    * Visible URL label when the bar is unfocused. Tapping it runs
    * `onPressUrlText` → `inputRef.focus()` so the TextInput appears.
    */
-  get urlBarDisplayText(): EncapsulatedElementType {
+  get urlBarDisplayText(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT);
   }
 
   /**
    * Editable URL field after the bar is focused (Android needs the inner EditText).
    */
-  get urlBarTextInput(): EncapsulatedElementType {
+  get urlBarTextInput(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(
         new RegExp(BrowserURLBarSelectorsIDs.URL_INPUT),
@@ -86,83 +94,87 @@ class Browser {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
   }
 
-  get clearURLButton(): EncapsulatedElementType {
+  get clearURLButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
   }
 
-  get cancelUrlInputButton(): EncapsulatedElementType {
+  get cancelUrlInputButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
     );
   }
 
-  get backToSafetyButton(): EncapsulatedElementType {
-    return Matchers.getElementByText(
-      BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
+  get backToSafetyButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      PhishingModalSelectorsIDs.BACK_TO_SAFETY_BUTTON,
     );
   }
 
-  get returnHomeButton(): EncapsulatedElementType {
+  get returnHomeButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(BrowserViewSelectorsText.RETURN_HOME);
   }
 
-  get addFavouritesButton(): EncapsulatedElementType {
+  get addFavouritesButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
-  get homePageFavouritesTab(): WebElement {
+  get homePageFavouritesTab(): Promise<AppiumElement> {
     return Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       BrowserViewSelectorsXPaths.FAVORITE_TAB,
+      HOMEPAGE_URL,
     );
   }
 
-  get testDappURLInFavouritesTab(): WebElement {
+  get testDappURLInFavouritesTab(): Promise<AppiumElement> {
     return PlatformDetector.isIOS()
       ? Matchers.getElementByXPath(
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
           BrowserViewSelectorsXPaths.TEST_DAPP_LINK,
+          HOMEPAGE_URL,
         )
       : Matchers.getElementByXPath(
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
           BrowserViewSelectorsXPaths.TEST_DAPP_TEXT,
+          HOMEPAGE_URL,
         );
   }
 
-  get multiTabButton(): EncapsulatedElementType {
+  get multiTabButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
-  get DefaultAvatarImageForLocalHost(): EncapsulatedElementType {
+  get DefaultAvatarImageForLocalHost(): Promise<AppiumElement> {
     return Matchers.getElementByLabel('L');
   }
 
-  get networkAvatarOrAccountButton(): EncapsulatedElementType {
+  get networkAvatarOrAccountButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON);
   }
 
-  get addBookmarkButton(): EncapsulatedElementType {
+  get addBookmarkButton(): Promise<AppiumElement> {
     return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  get tabsNumber(): EncapsulatedElementType {
+  get tabsNumber(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_NUMBER);
   }
 
-  get closeAllTabsButton(): EncapsulatedElementType {
+  get closeAllTabsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('tabs_close_all');
   }
 
-  get noTabsMessage(): EncapsulatedElementType {
+  get noTabsMessage(): Promise<AppiumElement> {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NO_TABS_MESSAGE);
   }
 
-  async getFavoritesURL(url: string): Promise<SystemElement> {
+  async getFavoritesURL(url: string): Promise<AppiumElement> {
     return Matchers.getElementByHref(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       url,
+      HOMEPAGE_URL,
     );
   }
 
@@ -473,6 +485,10 @@ class Browser {
     await Gestures.waitAndTap(this.backToSafetyButton, {
       elemDescription: 'Back to safety button',
     });
+    // Do not wait here for the button to stay gone. `goBackToSafety` hides the
+    // modal after 500ms, and an iframe rescan can show it again about a second
+    // later. iOS keeps the control displayed across that rescan, so a reverse
+    // visibility wait fails the tap before the URL assertion can re-dismiss.
   }
 
   async tapReturnHomeButton(): Promise<void> {
@@ -502,10 +518,102 @@ class Browser {
     // wrapper View often returns empty getText(), which would falsely pass a
     // not-equal assertion. After a WebView load/tap the driver stays in WEBVIEW
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
-    await PlaywrightContextHelpers.switchToNativeContext();
-    await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
-      description: description ?? `URL input box text is not "${text}"`,
-    });
+    //
+    // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
+    // rescan can cover the URL bar again about a second later. While the modal
+    // is up, display text may be empty or may still show the blocked origin.
+    // Read text when the node exists. A URL that no longer shows the blocked
+    // origin passes. Otherwise, if Back to safety is visible, re-dismiss
+    // (bounded) and re-read. Create each locator inside a 300ms
+    // implicit wait so a missing Cancel does not burn the 3.5s session wait.
+    await AppiumContextHelpers.switchToNativeContext();
+    const assertionDescription =
+      description ?? `URL input box text is not "${text}"`;
+    // Same budget as AppiumAssertions poll probes.
+    const probeImplicitWaitMs = 300;
+    // Cap re-dismisses so a stuck phishing modal fails with a clear error.
+    let phishingReDismisses = 0;
+    const maxPhishingReDismisses = 2;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const urlText = await withImplicitWait(
+          probeImplicitWaitMs,
+          async () => {
+            const display = await this.urlBarDisplayText;
+            if (!(await display.unwrap().isExisting())) {
+              return '';
+            }
+            return (await display.textContent()).trim();
+          },
+        );
+
+        // A safe URL satisfies this assertion. Do not re-dismiss after that,
+        // or a leftover overlay can exhaust the re-tap cap and fail a pass.
+        if (urlText && !urlText.includes(text)) {
+          return;
+        }
+
+        // The URL is still empty or still shows the blocked origin. Re-tap
+        // whenever Back to safety is visible, then re-read the URL.
+        const phishingVisible = await withImplicitWait(
+          probeImplicitWaitMs,
+          async () => {
+            const back = await this.backToSafetyButton;
+            return (
+              (await back.unwrap().isExisting()) && (await back.isVisible())
+            );
+          },
+        );
+        if (phishingVisible) {
+          if (phishingReDismisses >= maxPhishingReDismisses) {
+            throw new Error(
+              'Phishing modal still visible after re-dismiss limit',
+            );
+          }
+          phishingReDismisses += 1;
+          await Gestures.waitAndTap(this.backToSafetyButton, {
+            elemDescription: `Back to safety re-dismiss (${phishingReDismisses})`,
+            timeout: 5_000,
+          });
+          throw new Error(
+            `Phishing modal reappeared (re-dismiss ${phishingReDismisses})`,
+          );
+        }
+
+        // Display text is opacity 0 while the editor is focused. Dismiss only
+        // when Cancel is already up; a missing Cancel must not wait 3.5s.
+        if (!urlText) {
+          const editorOpen = await withImplicitWait(
+            probeImplicitWaitMs,
+            async () => {
+              const cancel = await this.cancelUrlInputButton;
+              return (
+                (await cancel.unwrap().isExisting()) &&
+                (await cancel.isVisible())
+              );
+            },
+          );
+          if (editorOpen) {
+            await Gestures.waitAndTap(this.cancelUrlInputButton, {
+              elemDescription: 'Cancel URL input (dismiss URL editor)',
+              timeout: 2_000,
+            });
+          }
+        }
+
+        throw new Error(
+          `URL bar still shows the blocked page (got "${urlText}")`,
+        );
+      },
+      {
+        // Product delay (500ms) + modal out + possible iframe re-warning cycle.
+        timeout: 20_000,
+        interval: 200,
+        description: assertionDescription,
+        elemDescription: 'browser URL bar',
+      },
+    );
   }
 
   /**
@@ -513,7 +621,7 @@ class Browser {
    * Display text is origin + pathname + query, so callers typically pass an origin.
    */
   async expectUrlToContain(text: string, description?: string): Promise<void> {
-    await PlaywrightContextHelpers.switchToNativeContext();
+    await AppiumContextHelpers.switchToNativeContext();
     // Display text is opacity:0 while the editor is focused; dismiss so we
     // read the committed URL, not leftover inputValue.
     if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {

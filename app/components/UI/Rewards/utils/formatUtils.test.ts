@@ -4,8 +4,11 @@
 
 import {
   formatDateRemaining,
+  formatDuration,
   formatRewardsDate,
   formatRewardsDateLabel,
+  formatRewardsRelativeDay,
+  formatRewardsRelativeTime,
   formatRewardsTimeOnly,
   formatTimeRemaining,
   formatNumber,
@@ -16,6 +19,8 @@ import {
   resolveTemplate,
   validateEmail,
   formatPercentChange,
+  formatMusdBaseUnits,
+  isPositiveBaseUnits,
   isPercentChangeNonNegative,
   getChainHex,
   getAssetReference,
@@ -24,6 +29,8 @@ import {
   shortenAddress,
   formatUsd,
   formatSignedUsd,
+  formatPredictPositionPercent,
+  formatPredictPositionUsd,
   formatCompactValue,
   formatCompactUsd,
   formatOrdinalRank,
@@ -150,6 +157,121 @@ describe('formatUtils', () => {
       const date = new Date('2025-04-23T14:30:00Z');
       const result = formatRewardsTimeOnly(date, 'fr-FR');
       expect(result).toMatch(/\d{1,2}:\d{2}/);
+    });
+  });
+
+  describe('formatDuration', () => {
+    const now = Date.parse('2026-10-01T00:00:00.000Z');
+    const templates = {
+      day: '{count} day',
+      days: '{count} days',
+      hour: '{count} hour',
+      hours: '{count} hours',
+    };
+
+    it('uses whole days when at least a day remains', () => {
+      expect(formatDuration('2026-10-03T12:00:00.000Z', templates, now)).toBe(
+        '2 days',
+      );
+    });
+
+    it('uses hours below a day and keeps at least one hour', () => {
+      expect(formatDuration('2026-10-01T05:00:00.000Z', templates, now)).toBe(
+        '5 hours',
+      );
+      expect(formatDuration('2026-10-01T00:20:00.000Z', templates, now)).toBe(
+        '1 hour',
+      );
+    });
+
+    it('returns null for a missing, invalid, or past end', () => {
+      expect(formatDuration(null, templates, now)).toBeNull();
+      expect(formatDuration('not-a-date', templates, now)).toBeNull();
+      expect(
+        formatDuration('2026-09-01T00:00:00.000Z', templates, now),
+      ).toBeNull();
+    });
+
+    it('returns null when the unit template has no count placeholder', () => {
+      expect(
+        formatDuration(
+          '2026-10-03T12:00:00.000Z',
+          { ...templates, days: 'days' },
+          now,
+        ),
+      ).toBeNull();
+    });
+  });
+
+  describe('formatRewardsRelativeTime', () => {
+    const now = new Date('2026-09-25T12:00:00.000Z');
+
+    it('returns an empty string for an invalid date', () => {
+      expect(formatRewardsRelativeTime(new Date('not-a-date'), now)).toBe('');
+    });
+
+    it('returns just now when the instant is under a minute ago', () => {
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-25T11:59:30.000Z'), now),
+      ).toBe('just now');
+    });
+
+    it('returns minutes, hours, then days', () => {
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-25T11:55:00.000Z'), now),
+      ).toBe('5m ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-25T09:00:00.000Z'), now),
+      ).toBe('3h ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-21T12:00:00.000Z'), now),
+      ).toBe('4d ago');
+    });
+
+    it('rolls days into weeks, months, then years', () => {
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-18T12:00:00.000Z'), now),
+      ).toBe('1w ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-08-26T12:00:00.000Z'), now),
+      ).toBe('1mo ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-06-25T12:00:00.000Z'), now),
+      ).toBe('3mo ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2025-09-25T12:00:00.000Z'), now),
+      ).toBe('1y ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2024-09-25T12:00:00.000Z'), now),
+      ).toBe('2y ago');
+    });
+  });
+
+  describe('formatRewardsRelativeDay', () => {
+    const now = new Date('2026-09-25T23:30:00.000Z');
+
+    it('returns an empty string for a value that is not a UTC day', () => {
+      expect(formatRewardsRelativeDay('2026-09-25T00:00:00.000Z', now)).toBe(
+        '',
+      );
+    });
+
+    it('returns today for the current UTC day', () => {
+      expect(formatRewardsRelativeDay('2026-09-25', now)).toBe('today');
+    });
+
+    it('counts whole UTC days', () => {
+      expect(formatRewardsRelativeDay('2026-09-24', now)).toBe('1d ago');
+      expect(formatRewardsRelativeDay('2026-09-21', now)).toBe('4d ago');
+    });
+
+    it('rolls days into weeks, months, then years', () => {
+      expect(formatRewardsRelativeDay('2026-09-18', now)).toBe('1w ago');
+      expect(formatRewardsRelativeDay('2026-08-27', now)).toBe('4w ago');
+      expect(formatRewardsRelativeDay('2026-08-26', now)).toBe('1mo ago');
+      expect(formatRewardsRelativeDay('2025-09-26', now)).toBe('12mo ago');
+      expect(formatRewardsRelativeDay('2025-09-25', now)).toBe('1y ago');
+      expect(formatRewardsRelativeDay('2024-09-25', now)).toBe('2y ago');
     });
   });
 
@@ -1413,6 +1535,67 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('isPositiveBaseUnits', () => {
+    it('is true only for a positive integer string', () => {
+      expect(isPositiveBaseUnits('1')).toBe(true);
+      expect(isPositiveBaseUnits('1000000')).toBe(true);
+      expect(isPositiveBaseUnits('0')).toBe(false);
+      expect(isPositiveBaseUnits('-1')).toBe(false);
+      expect(isPositiveBaseUnits(undefined)).toBe(false);
+      expect(isPositiveBaseUnits(null)).toBe(false);
+      expect(isPositiveBaseUnits('')).toBe(false);
+      expect(isPositiveBaseUnits('not-a-number')).toBe(false);
+      expect(isPositiveBaseUnits('1.5')).toBe(false);
+    });
+  });
+
+  describe('formatMusdBaseUnits', () => {
+    it('shifts base units to USD at 6 decimals', () => {
+      expect(formatMusdBaseUnits('41750000')).toBe('$41.75');
+    });
+
+    it('formats zero as an amount rather than nothing', () => {
+      expect(formatMusdBaseUnits('0')).toBe('$0.00');
+    });
+
+    it('keeps precision on a total larger than a JSON number holds exactly', () => {
+      expect(formatMusdBaseUnits('90071992547409910')).toBe(
+        '$90,071,992,547.41',
+      );
+    });
+
+    it('returns null for a missing amount', () => {
+      expect(formatMusdBaseUnits(null)).toBeNull();
+      expect(formatMusdBaseUnits(undefined)).toBeNull();
+      expect(formatMusdBaseUnits('')).toBeNull();
+    });
+
+    it('returns null for an unparseable amount', () => {
+      expect(formatMusdBaseUnits('not-a-number')).toBeNull();
+    });
+
+    it('prefixes a positive amount when signed', () => {
+      expect(formatMusdBaseUnits('41750000', { signed: true })).toBe('+$41.75');
+      expect(formatMusdBaseUnits('-1250000', { signed: true })).toBe('$-1.25');
+      expect(formatMusdBaseUnits('0', { signed: true })).toBe('$0.00');
+    });
+
+    it('pins two decimals when maximumFractionDigits is 2', () => {
+      expect(
+        formatMusdBaseUnits('1000000', {
+          signed: true,
+          maximumFractionDigits: 2,
+        }),
+      ).toBe('+$1.00');
+      expect(
+        formatMusdBaseUnits('2500000', {
+          signed: true,
+          maximumFractionDigits: 2,
+        }),
+      ).toBe('+$2.50');
+    });
+  });
+
   describe('formatOrdinalRank', () => {
     it('formats 1 as 1st', () => {
       expect(formatOrdinalRank(1)).toBe('1st');
@@ -1623,6 +1806,34 @@ describe('formatUtils', () => {
       expect(formatUsd(undefined)).toBe('—');
       expect(formatUsd(Number.NaN)).toBe('—');
       expect(formatUsd('not-a-number')).toBe('—');
+    });
+  });
+
+  describe('formatPredictPositionUsd', () => {
+    it.each([
+      [10, '$10'],
+      [0, '$0'],
+      [12.5, '$12.50'],
+      [1234.567, '$1,234.57'],
+      [9.999, '$10'],
+      [-3.2, '-$3.20'],
+      [NaN, '$0.00'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionUsd(value)).toBe(expected);
+    });
+  });
+
+  describe('formatPredictPositionPercent', () => {
+    it.each([
+      [25, '25%'],
+      [0, '0%'],
+      [-12.5, '-12.5%'],
+      [33.3333, '33.33%'],
+      [10.1, '10.1%'],
+      [-0.001, '0%'],
+      [NaN, '0%'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionPercent(value)).toBe(expected);
     });
   });
 

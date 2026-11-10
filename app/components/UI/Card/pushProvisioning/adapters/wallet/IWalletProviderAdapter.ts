@@ -22,8 +22,16 @@ export interface IWalletProviderAdapter {
   /** Check if the wallet is available on this device */
   checkAvailability(): Promise<boolean>;
 
-  /** Get detailed wallet eligibility including existing card status */
-  getEligibility(lastFourDigits?: string): Promise<WalletEligibility>;
+  /**
+   * Get detailed wallet eligibility including existing card status.
+   * Apple matches Immersve passes by the last four digits on the iPhone and a
+   * paired Watch when a primary account identifier is provided, and by the
+   * iPhone PAN suffix otherwise.
+   */
+  getEligibility(
+    lastFourDigits?: string,
+    primaryAccountIdentifier?: string,
+  ): Promise<WalletEligibility>;
 
   /** Check the status of a specific card in the wallet */
   getCardStatus(lastFourDigits: string): Promise<CardTokenStatus>;
@@ -41,6 +49,12 @@ export interface IWalletProviderAdapter {
 
   /** List all tokenized cards in the wallet */
   listTokens?(): Promise<TokenInfo[]>;
+
+  /**
+   * Open this card's pass in Apple Wallet on the iPhone.
+   * Returns false when no matching iPhone pass is installed.
+   */
+  openCardInWallet?(lastFourDigits: string): Promise<boolean>;
 
   /** Add a listener for card activation events; returns unsubscribe function */
   addActivationListener(

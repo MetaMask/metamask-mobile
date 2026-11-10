@@ -17,6 +17,7 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 
 const PENDING_TX_ID = 'pending-tx-from-elsewhere';
 
@@ -51,6 +52,10 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+    // The harness renders the sheet outside a navigator, so the real
+    // `useRoute` throws. No params models the Money home entry point, which
+    // passes no launch source.
+    useRoute: () => ({ params: undefined }),
   };
 });
 
@@ -146,6 +151,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../selectors/visibility', () => ({
+  ...jest.requireActual('../../selectors/visibility'),
+  selectMoneyAccountAccessBlockReason: jest.fn(),
+}));
+
 jest.mock('../../../../../selectors/moneyAccountController', () => ({
   ...jest.requireActual('../../../../../selectors/moneyAccountController'),
   selectPrimaryMoneyAccount: jest.fn(() => mockPrimaryMoneyAccount),
@@ -204,9 +214,12 @@ function renderHarness(pendingTransactions: TransactionMeta[]) {
  * Regression test for the Money-home "Add funds" bug where tapping "Add"
  * landed the user back on money home, with an empty 'Deposited activity'.
  */
+const originalRequestAnimationFrame = global.requestAnimationFrame;
+
 describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectMoneyAccountAccessBlockReason).mockReturnValue(undefined);
     // Reset the module-level binding so a prior test's setter can't leak in.
     unmountSheet = () => undefined;
     global.requestAnimationFrame = jest.fn((callback) => {
@@ -233,6 +246,10 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
       trackBottomSheetViewed: jest.fn(),
       trackSurfaceClicked: jest.fn(),
     });
+  });
+
+  afterEach(() => {
+    global.requestAnimationFrame = originalRequestAnimationFrame;
   });
 
   it('navigates to the Add funds flow even when an unconfirmed transaction is already pending', async () => {

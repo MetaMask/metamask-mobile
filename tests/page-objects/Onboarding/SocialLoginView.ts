@@ -2,81 +2,30 @@ import {
   Assertions,
   Gestures,
   Matchers,
-  type EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
-import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 import { AccountStatusSelectorIDs } from '../../../app/components/Views/AccountStatus/AccountStatus.testIds';
 
 class SocialLoginView {
-  get iosNewUserTitle(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_TITLE,
-    );
-  }
-
-  get iosNewUserButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON,
-    );
-  }
-
-  async isIosNewUserScreenVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.iosNewUserTitle, {
-      timeout: 30000,
-      description: 'iOS New User Social Login screen should be visible',
-    });
-  }
-
-  async tapIosNewUserSetPinButton(): Promise<void> {
-    await Gestures.waitAndTap(this.iosNewUserButton, {
-      elemDescription: 'Set MetaMask PIN button on iOS new user screen',
-    });
-  }
-
-  get iosExistingUserTitle(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE,
-    );
-  }
-
-  get iosExistingUserButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
-    );
-  }
-
-  async isIosExistingUserScreenVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.iosExistingUserTitle, {
-      timeout: 30000,
-      description: 'iOS Existing User Social Login screen should be visible',
-    });
-  }
-
-  async tapIosExistingUserSecureWalletButton(): Promise<void> {
-    await Gestures.waitAndTap(this.iosExistingUserButton, {
-      elemDescription: 'Secure your wallet button on iOS existing user screen',
-    });
-  }
-
-  get accountFoundContainer(): EncapsulatedElementType {
+  get accountFoundContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_CONTAINER,
     );
   }
 
-  get accountFoundTitle(): EncapsulatedElementType {
+  get accountFoundTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_TITLE,
     );
   }
 
-  get accountFoundLoginButton(): EncapsulatedElementType {
+  get accountFoundLoginButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
     );
   }
 
-  get accountFoundDifferentMethodButton(): EncapsulatedElementType {
+  get accountFoundDifferentMethodButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_DIFFERENT_METHOD_BUTTON,
     );
@@ -99,19 +48,19 @@ class SocialLoginView {
     await this.tapLoginButton();
   }
 
-  get accountNotFoundContainer(): EncapsulatedElementType {
+  get accountNotFoundContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CONTAINER,
     );
   }
 
-  get accountNotFoundTitle(): EncapsulatedElementType {
+  get accountNotFoundTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_TITLE,
     );
   }
 
-  get accountNotFoundCreateButton(): EncapsulatedElementType {
+  get accountNotFoundCreateButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CREATE_BUTTON,
     );
@@ -130,7 +79,7 @@ class SocialLoginView {
     });
   }
 
-  get updateModalContinueButton(): EncapsulatedElementType {
+  get updateModalContinueButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('Continue');
   }
 

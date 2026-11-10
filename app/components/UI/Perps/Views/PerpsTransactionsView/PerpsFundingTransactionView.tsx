@@ -2,7 +2,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import { BigNumber } from 'bignumber.js';
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
@@ -11,7 +11,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -32,8 +31,11 @@ import {
 import { styleSheet } from './PerpsFundingTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 const PerpsFundingTransactionView: React.FC = () => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation<AppNavigationProp>();
@@ -48,17 +50,16 @@ const PerpsFundingTransactionView: React.FC = () => {
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
   // Check if transaction exists before proceeding
   if (!transaction) {
     return (
       <ScreenView>
-        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
+        <HeaderStandardGlass
+          isGlass={isBrandRefresh}
+          isFloating={false}
+          includesTopInset
+          onBack={() => navigation.goBack()}
+        />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -115,7 +116,9 @@ const PerpsFundingTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={transaction.title}
         onBack={() => navigation.goBack()}
