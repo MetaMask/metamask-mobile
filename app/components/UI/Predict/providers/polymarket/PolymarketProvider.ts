@@ -348,7 +348,14 @@ export class PolymarketProvider implements PredictProvider {
   readonly #getFeatureFlags: () => PredictFeatureFlags;
   readonly #getSelectedAddress: () => string | undefined;
 
-  #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
+  /**
+   * One API key derivation per address, stored as soon as it starts. Live
+   * crypto cards subscribe together, so concurrent callers must share the
+   * pending request rather than each prompting a signature and creating a
+   * duplicate CLOB key. A failed derivation is dropped so the next call
+   * retries.
+   */
+  #apiKeysByProtocolAddress: Map<string, Promise<ApiKeyCreds>> = new Map();
   #accountStateByAddress: Map<string, CachedAccountState> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
   /**
@@ -1246,8 +1253,11 @@ export class PolymarketProvider implements PredictProvider {
       return cachedApiKey;
     }
 
-    const apiKeyCreds = await createApiKey({
+    const apiKeyCreds = createApiKey({
       address,
+    }).catch((error: unknown) => {
+      this.#apiKeysByProtocolAddress.delete(cacheKey);
+      throw error;
     });
     this.#apiKeysByProtocolAddress.set(cacheKey, apiKeyCreds);
     return apiKeyCreds;
