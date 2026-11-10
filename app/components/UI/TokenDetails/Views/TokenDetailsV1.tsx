@@ -192,7 +192,10 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       flex: 1,
     },
-    content: {
+    // Load-bearing stacking-context boundary: `isolation: 'isolate'` keeps
+    // the glass header's z-index inside this subtree, so sibling overlays
+    // (Quick Buy sheets, PnL section) painted after it render above it.
+    isolatedContent: {
       flex: 1,
       isolation: 'isolate',
     },
@@ -861,7 +864,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   return (
     <PriceChartProvider>
       <View style={styles.wrapper} testID={TokenDetailsIds.v1}>
-        <View style={styles.content} testID={TokenDetailsIds.content}>
+        <View style={styles.isolatedContent} testID={TokenDetailsIds.content}>
           <TokenDetailsInlineHeader
             token={token}
             securityData={securityData}
@@ -1011,6 +1014,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           </PriceChartContext.Consumer>
         </View>
 
+        {/* Everything from here down is a sibling of the isolated content
+            and must stay outside it: only nodes outside the isolated stacking
+            context render above the glass header. */}
         {/* Outside the isolated content, so its sheets open above the glass header. */}
         <TraderPositionPnlSection
           token={token}
