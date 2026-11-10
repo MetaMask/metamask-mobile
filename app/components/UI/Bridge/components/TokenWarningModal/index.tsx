@@ -152,6 +152,15 @@ const TokenWarningModalSheet = ({
   } = getTokenWarningContent(warningType, destToken?.symbol ?? '');
 
   const negativeFeatureLabels = getNegativeFeatureLabels();
+  // Same rule as Token Details: only list features matching this severity.
+  const severityTypes: string[] = isMalicious
+    ? [SecurityDataType.Malicious]
+    : [SecurityDataType.Warning, SecurityDataType.Spam];
+  const shownFeatures = features.filter((feature) =>
+    severityTypes.includes(
+      negativeFeatureLabels[feature.featureId]?.type ?? feature.type,
+    ),
+  );
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -212,9 +221,9 @@ const TokenWarningModalSheet = ({
               </Text>
             )}
           </Box>
-          {features.length > 0 ? (
+          {shownFeatures.length > 0 ? (
             <Box twClassName="w-full">
-              {features.map((feature) => (
+              {shownFeatures.map((feature) => (
                 <Box
                   key={feature.featureId}
                   flexDirection={BoxFlexDirection.Row}

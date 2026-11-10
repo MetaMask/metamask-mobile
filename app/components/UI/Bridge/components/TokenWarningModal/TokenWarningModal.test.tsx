@@ -242,6 +242,10 @@ describe('TokenWarningModal', () => {
       mockUseParams.mockReturnValue({
         ...defaultWarningParams,
         warningType: SecurityDataType.Malicious,
+        features: mockFeatures.map((feature) => ({
+          ...feature,
+          type: SecurityDataType.Malicious,
+        })),
       });
     });
 
