@@ -58,8 +58,9 @@ describe('verifying with a social login while the wallet is locked', () => {
     const flow = createMfaFlow({
       request: {
         kind: 'verifyOrEnroll',
-        methods: ['email_otp'],
-        verifyWith: ['email_otp'],
+        methods: ['passkey', 'totp', 'email_otp'],
+        verifyWith: ['passkey', 'totp', 'email_otp'],
+        verifyOnly: true,
       },
       reason: { operation: 'qa.test' },
       platform: 'mobile',
@@ -79,6 +80,7 @@ describe('verifying with a social login while the wallet is locked', () => {
       ok: true,
       value: { credentials, token },
     });
+    expect(controller.refreshSocialLoginCredentials).toHaveBeenCalledTimes(1);
     expect(controller.beginSocialLoginVerification).toHaveBeenCalledTimes(1);
     expect(controller.completeSocialLoginVerification).toHaveBeenCalledTimes(1);
   });

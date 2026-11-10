@@ -6,8 +6,7 @@ import {
 } from './bindings';
 import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { startMfaFlow } from './engine/activeFlow';
-import { MfaFlowError } from './engine/errors';
-import { getVerifiableMethods } from './engine/planner';
+import { METHOD_COST_RANKING } from './engine/planner';
 import Logger from '../../Logger';
 import {
   MetaMetricsEvents,
@@ -72,31 +71,31 @@ const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
 
 /**
  * Proves it's the user during social-login wallet recovery, while the wallet
- * is still locked. Never enrolls: it fetches the credentials the
+ * is still locked. Never enrolls: the flow fetches the credentials the
  * profile already has and verifies with one of the active ones that this
  * platform supports. Resolves with the flow's result, rejects with
  * `credential_not_enrolled` when there is none to verify with, or with the
  * code of an error the kit has already shown.
  */
-const verifyForSocialLogin = async ({
+const verifyForSocialLogin = ({
   reason,
 }: {
   reason: MfaReason;
-}): Promise<MfaFlowResult> => {
-  // One adapter per flow: it keeps the flow's own verification token.
-  const controller = createSocialLoginControllerAdapter();
-  const credentials = await controller.refreshEnrolledCredentials();
-  const active = getVerifiableMethods(credentials, clientOptions.platform);
-  if (active.length === 0) {
-    throw new MfaFlowError('credential_not_enrolled');
-  }
-  return startMfaFlow({
-    request: { kind: 'verifyOrEnroll', methods: active, verifyWith: active },
+}): Promise<MfaFlowResult> =>
+  startMfaFlow({
+    // Every method may verify: the flow keeps the active ones this platform
+    // runs, and never plans a setup.
+    request: {
+      kind: 'verifyOrEnroll',
+      methods: [...METHOD_COST_RANKING],
+      verifyWith: [...METHOD_COST_RANKING],
+      verifyOnly: true,
+    },
     reason,
     ...clientOptions,
-    controller,
+    // One adapter per flow: it keeps the flow's own verification token.
+    controller: createSocialLoginControllerAdapter(),
   });
-};
 
 /**
  * The MFA kit for features and settings.
