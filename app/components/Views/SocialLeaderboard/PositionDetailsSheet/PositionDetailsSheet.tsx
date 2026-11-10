@@ -407,6 +407,7 @@ const PositionDetailsSheet = () => {
           title={data.summaryTitle}
           tagLabel={data.summaryTagLabel}
           direction={data.perpDirection}
+          isClosed={data.isClosed}
           subtitle={data.summarySubtitle}
           pnlPercentLabel={data.pnlPercentLabel}
           pnlValueLabel={data.pnlValueLabel}
