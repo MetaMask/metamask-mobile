@@ -36,8 +36,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import InlineTextFlow from '../../../InlineTextFlow';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
+import { getMoneyEntryDecision } from '../../../Money/navigation/moneyEntryDecision';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
-import { useMoneyAccountDeposit } from '../../../Money/hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../../Money/hooks/useMoneyAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
 import { useProjectedEarnings } from '../../../Money/hooks/useProjectedEarnings';
@@ -45,7 +46,7 @@ import type { MoneyDepositAsset } from '../../../Money/selectors/depositTokens';
 import PotentialEarningsTokenRow from '../../../Money/components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
 import {
   useMoneyNavigation,
-  useMoneyOnboardingNavigation,
+  useMoneyDepositNavigation,
 } from '../../../Money/hooks/useMoneyNavigation';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import { isPositiveNumber } from '../../../Money/utils/number';
@@ -66,7 +67,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnScreensStackParamList } from '../../types/navigation';
 import {
   COMPONENT_NAMES as MONEY_COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
@@ -81,7 +81,6 @@ import {
 } from '../../constants/earnModuleEvents';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
-import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import DottedUnderline from '../../../DottedUnderline';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
@@ -262,11 +261,13 @@ const EarnSectionListView = () => {
     isBalanceLoading: isMoneyAccountBalanceLoading,
     refetchBalance: refetchMoneyAccountBalance,
   } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
-  const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
-    useMoneyNavigation();
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
+  const isMoneyOnboardingRedirectNeeded =
+    getMoneyEntryDecision('home', moneyEntryContext).destination ===
+    'onboarding';
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
-  const { initiateDeposit } = useMoneyAccountDeposit();
   const {
     trackSurfaceClicked: trackMoneySurfaceClicked,
     trackTokenButtonClicked,
@@ -367,8 +368,7 @@ const EarnSectionListView = () => {
         ),
         redirect_target: getEarnAssetSelectionRedirectTarget(
           item.asset,
-          // isMoneyOnboardingRedirectNeeded is always false here since this handler is for non-Money deposit experiences.
-          false,
+          moneyEntryContext,
         ),
       });
       navigateFromEarnAsset(item.asset, TokenDetailsSource.ExploreEarn, {
@@ -385,30 +385,26 @@ const EarnSectionListView = () => {
       navigateFromEarnAsset,
       params?.analyticsContext?.entry_point,
       trackEarnSurfaceClicked,
+      moneyEntryContext,
     ],
   );
 
   const handleDeposit = useCallback(
-    async (token: MoneyDepositAsset) => {
+    async (
+      token: MoneyDepositAsset,
+      track?: NonNullable<
+        Parameters<typeof navigateToMoneyDeposit>[0]
+      >['track'],
+    ) => {
       try {
         const preferredPaymentToken = {
           address: token.address,
           chainId: token.chainId,
         };
 
-        const redirectedToOnboarding = redirectToOnboardingIfNeeded({
-          postOnboardingRedirect: {
-            type: MoneyPostOnboardingRedirectType.DEPOSIT,
-            preferredPaymentToken,
-          },
-        });
-
-        if (redirectedToOnboarding) {
-          return;
-        }
-
-        await initiateDeposit({
+        await navigateToMoneyDeposit({
           preferredPaymentToken,
+          track,
         });
       } catch (error: unknown) {
         Logger.error(
@@ -417,72 +413,58 @@ const EarnSectionListView = () => {
         );
       }
     },
-    [initiateDeposit, redirectToOnboardingIfNeeded],
+    [navigateToMoneyDeposit],
   );
 
   const handleMoneyAccountPress = useCallback(() => {
-    trackMoneySurfaceClicked({
-      component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,
-      redirect_target: isOnboardingRedirectNeeded
-        ? SCREEN_NAMES.MONEY_ONBOARDING
-        : SCREEN_NAMES.MONEY_HOME,
+    navigateToMoneyHome({
+      pop: false,
+      track: ({ redirect_target }) => {
+        trackMoneySurfaceClicked({
+          component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,
+          redirect_target,
+        });
+      },
     });
-    navigateToMoneyHome({ pop: false });
-  }, [
-    isOnboardingRedirectNeeded,
-    navigateToMoneyHome,
-    trackMoneySurfaceClicked,
-  ]);
+  }, [navigateToMoneyHome, trackMoneySurfaceClicked]);
 
   const handleTokenCardPress = useCallback(
     async (token: MoneyDepositAsset, tokenIndex: number) => {
-      trackTokenSurfaceClicked({
-        component_name:
-          MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
-        redirect_target: isOnboardingRedirectNeeded
-          ? SCREEN_NAMES.MONEY_ONBOARDING
-          : SCREEN_NAMES.MONEY_DEPOSIT,
-        token_symbol: token.symbol,
-        token_position_in_list: tokenIndex + 1,
-        token_chain_id: token.chainId ?? '',
-        tokens_in_list: moneyAssets.length,
-        token_has_balance: new BigNumber(token.balance).gt(0),
+      await handleDeposit(token, ({ redirect_target }) => {
+        trackTokenSurfaceClicked({
+          component_name:
+            MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+          redirect_target,
+          token_symbol: token.symbol,
+          token_position_in_list: tokenIndex + 1,
+          token_chain_id: token.chainId ?? '',
+          tokens_in_list: moneyAssets.length,
+          token_has_balance: new BigNumber(token.balance).gt(0),
+        });
       });
-      await handleDeposit(token);
     },
-    [
-      handleDeposit,
-      isOnboardingRedirectNeeded,
-      moneyAssets.length,
-      trackTokenSurfaceClicked,
-    ],
+    [handleDeposit, moneyAssets.length, trackTokenSurfaceClicked],
   );
 
   const handleTokenButtonPress = useCallback(
     async (token: MoneyDepositAsset, tokenIndex: number) => {
-      trackTokenButtonClicked({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        component_name:
-          MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
-        label_key: 'money.potential_earnings.add',
-        redirect_target: isOnboardingRedirectNeeded
-          ? SCREEN_NAMES.MONEY_ONBOARDING
-          : SCREEN_NAMES.MONEY_DEPOSIT,
-        token_symbol: token.symbol,
-        token_position_in_list: tokenIndex + 1,
-        token_chain_id: token.chainId ?? '',
-        tokens_in_list: moneyAssets.length,
-        token_has_balance: new BigNumber(token.balance).gt(0),
+      await handleDeposit(token, ({ button_intent, redirect_target }) => {
+        trackTokenButtonClicked({
+          button_type: MONEY_BUTTON_TYPES.TEXT,
+          button_intent,
+          component_name:
+            MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+          label_key: 'money.potential_earnings.add',
+          redirect_target,
+          token_symbol: token.symbol,
+          token_position_in_list: tokenIndex + 1,
+          token_chain_id: token.chainId ?? '',
+          tokens_in_list: moneyAssets.length,
+          token_has_balance: new BigNumber(token.balance).gt(0),
+        });
       });
-      await handleDeposit(token);
     },
-    [
-      handleDeposit,
-      isOnboardingRedirectNeeded,
-      moneyAssets.length,
-      trackTokenButtonClicked,
-    ],
+    [handleDeposit, moneyAssets.length, trackTokenButtonClicked],
   );
 
   const handleRetry = useCallback(async () => {
@@ -586,7 +568,7 @@ const EarnSectionListView = () => {
         <EarnMoneyAccountRow
           item={moneyAccountItem}
           onPress={handleMoneyAccountPress}
-          isOnboardingRedirectNeeded={isOnboardingRedirectNeeded}
+          isOnboardingRedirectNeeded={isMoneyOnboardingRedirectNeeded}
           privacyMode={privacyMode}
         />
         {visibleMoneyAssets.map((token, index) => (
@@ -630,7 +612,7 @@ const EarnSectionListView = () => {
     handleTokenButtonPress,
     hasError,
     isLoading,
-    isOnboardingRedirectNeeded,
+    isMoneyOnboardingRedirectNeeded,
     isMoneyAccountVisible,
     isNoFeeToken,
     isRetrying,

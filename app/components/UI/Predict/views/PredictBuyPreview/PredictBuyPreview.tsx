@@ -325,9 +325,16 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       predictBuyPreviewOrderInitiatedRef.current = true;
       if (isSheetMode) {
         onClose?.();
-      } else {
-        dispatch(StackActions.pop());
+        return;
       }
+
+      // Popping inside the commit that carries `result` makes Fabric mount the
+      // removal of this screen and its re-render in one batch. On Android that
+      // batch can fail with "addViewAt: cannot insert view ... View already has a
+      // parent" (a flatten/unflatten reparent in the same commit), which
+      // destroys the React host. Let the result commit land first, then pop.
+      const popTimer = setTimeout(() => dispatch(StackActions.pop()), 0);
+      return () => clearTimeout(popTimer);
     }
   }, [dispatch, result, isSheetMode, onClose]);
 

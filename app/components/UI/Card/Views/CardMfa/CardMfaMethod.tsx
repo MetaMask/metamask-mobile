@@ -2,17 +2,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   Icon,
   IconName,
   IconSize,
-  Label,
+  HelpText,
+  HelpTextSeverity,
   ListItemSelect,
-  Text,
   TextField,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,6 +24,7 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import SelectField from '../../components/Onboarding/SelectField';
+import CardFormField from '../../components/Onboarding/CardFormField';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -237,18 +234,17 @@ const CardMfaMethod = () => {
             description={option.maskedDestination}
             twClassName={
               isSelected
-                ? 'rounded-xl border border-primary-default bg-background-muted'
-                : 'rounded-xl border border-border-muted'
+                ? 'rounded-xl border border-primary-default bg-muted'
+                : 'rounded-xl border border-muted'
             }
           />
         );
       })}
 
       {selectedMethod === 'phone' ? (
-        <Box>
-          <Label>{strings('card.mfa.phone_label')}</Label>
+        <CardFormField label={strings('card.mfa.phone_label')}>
           <Box twClassName="flex-row items-center gap-2">
-            <Box twClassName="w-26">
+            <Box twClassName="w-28">
               <SelectField
                 value={`${selectedCountry?.emoji ?? ''} +${selectedCountry?.areaCode ?? callingCode ?? ''}`}
                 onPress={openCountrySelector}
@@ -273,12 +269,11 @@ const CardMfaMethod = () => {
               />
             </Box>
           </Box>
-        </Box>
+        </CardFormField>
       ) : null}
 
       {selectedMethod === 'email' ? (
-        <Box>
-          <Label>{strings('card.mfa.email_label')}</Label>
+        <CardFormField label={strings('card.mfa.email_label')}>
           <TextField
             onChangeText={(value) => {
               setEmail(value);
@@ -294,47 +289,36 @@ const CardMfaMethod = () => {
               accessibilityLabel: strings('card.mfa.email_label'),
             }}
           />
-        </Box>
+        </CardFormField>
       ) : null}
 
       {error ? (
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-error-default"
+        <HelpText
+          severity={HelpTextSeverity.Danger}
           testID="card-mfa-method-error"
           accessibilityRole="alert"
           accessibilityLiveRegion="polite"
         >
           {error}
-        </Text>
+        </HelpText>
       ) : null}
     </Box>
   );
 
-  const actions = needsRestart ? (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={handleRestart}
-      isFullWidth
-      isLoading={isSubmitting}
-      testID="card-mfa-method-restart"
-    >
-      {strings('card.mfa.start_over')}
-    </Button>
-  ) : (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      isFullWidth
-      isDisabled={!destination || isSubmitting}
-      isLoading={isSubmitting}
-      testID="card-mfa-method-continue"
-    >
-      {strings('card.mfa.continue')}
-    </Button>
-  );
+  const primaryButtonProps = needsRestart
+    ? {
+        children: strings('card.mfa.start_over'),
+        onPress: handleRestart,
+        isLoading: isSubmitting,
+        testID: 'card-mfa-method-restart',
+      }
+    : {
+        children: strings('card.mfa.continue'),
+        onPress: handleContinue,
+        isDisabled: !destination || isSubmitting,
+        isLoading: isSubmitting,
+        testID: 'card-mfa-method-continue',
+      };
 
   return (
     <OnboardingStep
@@ -345,8 +329,7 @@ const CardMfaMethod = () => {
           : strings('card.mfa.method_description')
       }
       formFields={formFields}
-      actions={actions}
-      stickyActions
+      primaryButtonProps={primaryButtonProps}
       headerMode="back"
     />
   );

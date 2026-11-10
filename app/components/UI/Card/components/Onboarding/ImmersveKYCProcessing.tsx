@@ -13,6 +13,7 @@ import {
   IconSize,
   Spinner,
   Text,
+  TextColor,
   TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
@@ -199,7 +200,10 @@ const ImmersveKYCProcessing = () => {
       {errorMessage ? (
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="text-center text-error-default px-4"
+          color={TextColor.ErrorDefault}
+          twClassName="text-center px-4"
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
           testID="immersve-kyc-processing-error"
         >
           {errorMessage}
@@ -212,7 +216,8 @@ const ImmersveKYCProcessing = () => {
           />
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-center text-text-alternative mt-4 px-4"
+            color={TextColor.TextAlternative}
+            twClassName="text-center mt-4 px-4"
           >
             {strings(
               'card.card_onboarding.immersve_kyc_processing.helper_text',
@@ -318,7 +323,6 @@ const ImmersveKYCProcessing = () => {
         'card.card_onboarding.immersve_kyc_processing.description',
       )}
       formFields={renderFormFields()}
-      actions={null}
       headerMode="close-direct"
     />
   );
