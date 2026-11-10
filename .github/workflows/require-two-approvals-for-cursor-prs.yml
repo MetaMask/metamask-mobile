@@ -120,7 +120,7 @@ jobs:
 
             if (eligibleApprovers.length < requiredApprovalCount) {
               core.setFailed(
-                `Cursor-authored pull requests require ${requiredApprovalCount} approvals ` +
+                `${requiredAuthorLogin}-authored pull requests require ${requiredApprovalCount} approvals ` +
                   `from collaborators with write access on the current commit; ` +
                   `found ${eligibleApprovers.length}.`,
               );
