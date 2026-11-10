@@ -196,6 +196,88 @@ module.exports = {
           },
         ],
 
+        // Fast checks. These do not need type information. Warn, rather than
+        // error, so new hits from main do not fail CI. The options match the
+        // shared config. Change them to error once the migration is complete.
+        '@typescript-eslint/explicit-function-return-type': 'warn',
+        '@typescript-eslint/naming-convention': [
+          'warn',
+          {
+            selector: 'default',
+            format: ['camelCase'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'forbid',
+          },
+          {
+            selector: 'enumMember',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'import',
+            format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+          },
+          {
+            selector: 'interface',
+            format: ['PascalCase'],
+            custom: {
+              regex: '^I[A-Z]',
+              match: false,
+            },
+          },
+          {
+            selector: 'objectLiteralMethod',
+            format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          },
+          {
+            selector: 'objectLiteralProperty',
+            format: null,
+          },
+          {
+            selector: 'typeLike',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'typeParameter',
+            format: ['PascalCase'],
+            custom: { regex: '^.{3,}', match: true },
+          },
+          {
+            selector: 'variable',
+            format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: 'parameter',
+            format: ['camelCase', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: [
+              'classProperty',
+              'objectLiteralProperty',
+              'typeProperty',
+              'classMethod',
+              'objectLiteralMethod',
+              'typeMethod',
+              'accessor',
+              'enumMember',
+            ],
+            format: null,
+            modifiers: ['requiresQuotes'],
+          },
+        ],
+        '@typescript-eslint/no-empty-object-type': 'warn',
+        '@typescript-eslint/no-unused-vars': [
+          'warn',
+          {
+            vars: 'all',
+            args: 'all',
+            argsIgnorePattern: '[_]+',
+            ignoreRestSiblings: true,
+          },
+        ],
+        '@typescript-eslint/no-wrapper-object-types': 'warn',
+        '@typescript-eslint/prefer-enum-initializers': 'warn',
         // Slow type checks. The shared ESLint config turns these on, but they
         // need type information, so they stay off through the ESLint 9
         // upgrade. Turn them on in Oxlint and park existing hits in
@@ -986,6 +1068,10 @@ module.exports = {
     'react/prefer-es6-class': 'error',
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
+
+    // Fast checks. Warn, rather than error, so new hits from main do not fail CI.
+    'react-hooks/rules-of-hooks': 'error',
+    'no-loss-of-precision': 'warn',
   },
 
   ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],

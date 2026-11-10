@@ -32,9 +32,8 @@ const legacyWithoutTypescriptExtend = {
 // to TypeScript, then re-apply the overrides from .eslintrc.js so rules that
 // are off today stay off. Drop projectService so type-aware parsing stays on
 // today's `parserOptions.project`.
-const typescriptBlocks = (Array.isArray(typescriptConfig)
-  ? typescriptConfig
-  : [typescriptConfig]
+const typescriptBlocks = (
+  Array.isArray(typescriptConfig) ? typescriptConfig : [typescriptConfig]
 ).map((block) => {
   const next = { ...block };
   if (!next.files) {
@@ -69,11 +68,6 @@ const ignores = [
   '**/tests/scripts/ai-e2e-tags-selector.ts',
   '**/app/**/*-method-action-types.ts',
   '**/app/util/termsOfUse/termsOfUseContent.ts',
-  // Predict test files with pre-existing lint errors (explicit return types,
-  // naming-convention on UNSAFE_getAllByType). Not fixed in this PR.
-  '**/app/components/UI/PredictNext/activity/PredictActivityDetails.view.test.tsx',
-  '**/app/components/UI/PredictNext/closure/PredictCrossSurface.view.test.tsx',
-  '**/tests/component-view/renderers/predictCrossSurface.tsx',
 ];
 
 const config = [
@@ -161,7 +155,10 @@ const typescriptEslintPlugin = typescriptBlocks.find(
 
 export default [
   ...flatConfig,
-  { files: ['**/*.{js,jsx}'], plugins: { '@typescript-eslint': typescriptEslintPlugin } },
+  {
+    files: ['**/*.{js,jsx}'],
+    plugins: { '@typescript-eslint': typescriptEslintPlugin },
+  },
   { rules: pinToToday },
   { files: ['**/*.{js,jsx}'], rules: pinJavascriptToToday },
   { files: ['**/*.{ts,tsx}'], rules: pinTypescriptToToday },
