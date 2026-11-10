@@ -272,7 +272,7 @@ const CardHome = () => {
   }, [openInWallet]);
 
   const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
-    useCardEnableCard(data);
+    useCardEnableCard(data, { recheckOnFocus: true });
 
   // Still in identity review with no signed-in Card account: show the pending
   // banner and the waiting layout (no Add funds or card management).
