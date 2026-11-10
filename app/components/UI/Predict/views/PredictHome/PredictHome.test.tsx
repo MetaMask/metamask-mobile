@@ -100,9 +100,8 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('../../components/PredictHeaderStacked', () => {
   const ReactActual = jest.requireActual<typeof import('react')>('react');
-  const { Pressable } = jest.requireActual<typeof import('react-native')>(
-    'react-native',
-  );
+  const { Pressable } =
+    jest.requireActual<typeof import('react-native')>('react-native');
   const { PredictMarketListSelectorsIDs: testIds } = jest.requireActual<
     typeof import('../../Predict.testIds')
   >('../../Predict.testIds');
