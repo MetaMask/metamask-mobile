@@ -4,7 +4,7 @@ import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Engine from '../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
-import VbaEmailAdapter, { VbaEmailAdapterSelectorsIDs } from './EmailAdapter';
+import KycEmailAdapter, { KycEmailAdapterSelectorsIDs } from './EmailAdapter';
 import { strings } from '../../../../../locales/i18n';
 
 const mockAdvance = jest.fn();
@@ -15,6 +15,10 @@ const mockVerifyOrEnroll = jest.fn();
 const mockNavigation = {
   goBack: mockGoBack,
 };
+
+jest.mock('../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotion: () => false,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -98,7 +102,7 @@ const verifiedEmail = (
   },
 });
 
-describe('VbaEmailAdapter', () => {
+describe('KycEmailAdapter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockVerifyOrEnroll.mockResolvedValue(verifiedEmail());
@@ -126,7 +130,7 @@ describe('VbaEmailAdapter', () => {
       finalStatus: 'pending',
     });
 
-    renderWithProvider(<VbaEmailAdapter />);
+    renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(mockKycController.getSessionStatusForVendor).toHaveBeenCalledWith(
@@ -141,7 +145,7 @@ describe('VbaEmailAdapter', () => {
   });
 
   it('verifies email, creates the session, records vendor terms, and advances', async () => {
-    renderWithProvider(<VbaEmailAdapter />);
+    renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
@@ -170,11 +174,11 @@ describe('VbaEmailAdapter', () => {
       token: undefined,
     });
 
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(
-        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+        screen.getByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
       ).toHaveTextContent(
         'Something went wrong opening email verification. Please try again.',
       );
@@ -190,7 +194,7 @@ describe('VbaEmailAdapter', () => {
       token: verifiedEmail().token,
     });
 
-    renderWithProvider(<VbaEmailAdapter />);
+    renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(mockKycController.startSession).toHaveBeenCalledWith({
@@ -206,7 +210,7 @@ describe('VbaEmailAdapter', () => {
       new Error('disclaimer failed'),
     );
 
-    renderWithProvider(<VbaEmailAdapter />);
+    renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(mockAdvance).toHaveBeenCalled();
@@ -216,7 +220,7 @@ describe('VbaEmailAdapter', () => {
   it('advances when local vendor terms are missing', async () => {
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
 
-    renderWithProvider(<VbaEmailAdapter />);
+    renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(mockKycController.recordVendorDisclaimers).not.toHaveBeenCalled();
@@ -229,11 +233,11 @@ describe('VbaEmailAdapter', () => {
       new Error('Session creation failed.'),
     );
 
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(
-        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+        screen.getByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
       ).toHaveTextContent('Session creation failed.');
       expect(mockAdvance).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
@@ -245,16 +249,16 @@ describe('VbaEmailAdapter', () => {
       .mockRejectedValueOnce(new Error('Session creation failed.'))
       .mockResolvedValueOnce({ id: 'session-1', finalStatus: 'new' });
 
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(
-        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+        screen.getByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
       ).toBeOnTheScreen();
     });
 
     fireEvent.press(
-      screen.getByTestId(VbaEmailAdapterSelectorsIDs.RETRY_BUTTON),
+      screen.getByTestId(KycEmailAdapterSelectorsIDs.RETRY_BUTTON),
     );
 
     await waitFor(() => {
@@ -266,7 +270,7 @@ describe('VbaEmailAdapter', () => {
   it('leaves the step when email verification is cancelled', async () => {
     mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('flow_cancelled'));
 
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(mockGoBack).toHaveBeenCalled();
@@ -274,18 +278,18 @@ describe('VbaEmailAdapter', () => {
     expect(mockKycController.startSession).not.toHaveBeenCalled();
     expect(mockAdvance).not.toHaveBeenCalled();
     expect(
-      screen.queryByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      screen.queryByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
     ).toBeNull();
   });
 
   it('shows the generic error when session lookup rejects with a non-Error', async () => {
     mockKycController.getSessionStatusForVendor.mockRejectedValue('offline');
 
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(
-        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+        screen.getByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
       ).toHaveTextContent(
         'Something went wrong opening email verification. Please try again.',
       );
@@ -296,32 +300,32 @@ describe('VbaEmailAdapter', () => {
   it('shows the MFA message for the verification error code', async () => {
     mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('too_many_attempts'));
 
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(
-        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+        screen.getByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
       ).toHaveTextContent(strings('mfa.errors.too_many_attempts'));
     });
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockKycController.startSession).not.toHaveBeenCalled();
   });
 
-  it('shows a spinner without navigation on the loading screen', () => {
+  it('shows the fox loader without navigation on the loading screen', () => {
     mockKycController.getSessionStatusForVendor.mockReturnValue(
       new Promise(() => undefined),
     );
 
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     expect(
-      screen.getByTestId(VbaEmailAdapterSelectorsIDs.SPINNER),
+      screen.getByTestId(KycEmailAdapterSelectorsIDs.SPINNER),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      screen.queryByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
     ).toBeNull();
     expect(
-      screen.queryByTestId(VbaEmailAdapterSelectorsIDs.BACK_BUTTON),
+      screen.queryByTestId(KycEmailAdapterSelectorsIDs.BACK_BUTTON),
     ).toBeNull();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
@@ -333,7 +337,7 @@ describe('VbaEmailAdapter', () => {
         resolveLookup = resolve;
       }),
     );
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     screen.unmount();
     await act(async () => {
@@ -349,16 +353,16 @@ describe('VbaEmailAdapter', () => {
       new Error('Session creation failed.'),
     );
 
-    const screen = renderWithProvider(<VbaEmailAdapter />);
+    const screen = renderWithProvider(<KycEmailAdapter />);
 
     await waitFor(() => {
       expect(
-        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+        screen.getByTestId(KycEmailAdapterSelectorsIDs.ERROR_MESSAGE),
       ).toBeOnTheScreen();
     });
 
     fireEvent.press(
-      screen.getByTestId(VbaEmailAdapterSelectorsIDs.BACK_BUTTON),
+      screen.getByTestId(KycEmailAdapterSelectorsIDs.BACK_BUTTON),
     );
 
     expect(mockGoBack).toHaveBeenCalled();

@@ -25,6 +25,13 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => ({ profile: null }),
 }));
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(() => ({
     posts: [],

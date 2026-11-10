@@ -321,22 +321,50 @@ export const selectCardHomeDataFetchedThisSession = createSelector(
     cardState?.cardHomeDataFetchedThisSession ?? false,
 );
 
-export const selectIsCardStateResolved = createSelector(
+/**
+ * Card home data has settled, or this user never fetches it. Verification
+ * status is a separate wait: some providers do not report one.
+ */
+export const selectIsCardHomeDataResolved = createSelector(
   selectCardHomeDataStatus,
   selectCardHomeData,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+  (status, cardHomeData, isAuthenticated, isCardholder) =>
+    status === 'success' ||
+    cardHomeData !== null ||
+    (!isAuthenticated && !isCardholder),
+);
+
+export const selectIsCardStateResolved = createSelector(
+  selectIsCardHomeDataResolved,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
-  (status, cardHomeData, verificationStatus, isAuthenticated, isCardholder) =>
-    ((status === 'success' || cardHomeData !== null) &&
-      (!isAuthenticated || verificationStatus !== null)) ||
+  (homeDataResolved, verificationStatus, isAuthenticated, isCardholder) =>
+    (homeDataResolved && (!isAuthenticated || verificationStatus !== null)) ||
     (!isAuthenticated && !isCardholder),
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
   selectCardFeatureFlag,
-  (cardFeatureFlag): VedaTokenConfig | null =>
-    getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains),
+  selectImmersveMoneyAccountMode,
+  selectImmersveFundingChannelForSelectedCountry,
+  (
+    cardFeatureFlag,
+    isImmersveMoneyAccountMode,
+    channel,
+  ): VedaTokenConfig | null => {
+    if (isImmersveMoneyAccountMode && isMoneyAccountFundingChannel(channel)) {
+      return {
+        caipChainId: channel.caipChainId,
+        address: channel.tokenAddress,
+        decimals: channel.decimals,
+        delegationContract: channel.spenderAddress,
+      };
+    }
+    return getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains);
+  },
 );
 
 export const selectCardCountryOfResidence = createSelector(
