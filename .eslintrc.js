@@ -13,6 +13,9 @@ const {
 const {
   predictBoundaryZones,
 } = require('./scripts/eslint-predict-boundary-zones');
+const {
+  FAKE_TIMER_MESSAGE: componentViewFakeTimerMessage,
+} = require('./scripts/eslint/component-view-plugin');
 
 // Existing BN.js migration zone, kept in a named const so it can be
 // re-declared by the route-isolation overrides below without duplicating
@@ -115,8 +118,27 @@ const utilNumberImportBurndownFiles = [
 const cvFakeTimerBan = {
   selector:
     "CallExpression[callee.object.name='jest'][callee.property.name=/^(useFakeTimers|useRealTimers|advanceTimersByTime(Async)?|advanceTimersToNextTimer(Async)?|runAllTimers(Async)?|runOnlyPendingTimers(Async)?|runAllTicks|setSystemTime|clearAllTimers)$/]",
-  message:
-    'Component-view tests must not use fake timers. Keep time behaviour in a unit test, or serve fixtures already in the target state. See docs/testing/component-view-tests.md.',
+  message: componentViewFakeTimerMessage,
+};
+
+// no-restricted-syntax has one severity for every selector, so the fake-timer
+// ban (error, no current violations) cannot share a rule with patterns that
+// already exist in the tree. Comment checks and "clearAllMocks without a
+// reset anywhere in the file" also do not fit a selector.
+// testing-library/prefer-find-by would ban `waitFor(() => getBy*)`, which is
+// an allowed alternative to a nested findBy*. no-wait-for-side-effects does
+// not flag findBy* inside waitFor.
+//
+// TODO: flip each warn rule to 'error' once its existing violations are gone.
+// Counts when these rules were added (`yarn eslint` on `*.view.test.*` and
+// `tests/component-view/**`): no-nested-find-in-wait-for 13,
+// no-fixed-sleep 20, no-bare-query-timeout 427,
+// no-clear-all-mocks-without-reset 41.
+const cvFlakeRules = {
+  'component-view/no-nested-find-in-wait-for': 'warn',
+  'component-view/no-fixed-sleep': 'warn',
+  'component-view/no-bare-query-timeout': 'warn',
+  'component-view/no-clear-all-mocks-without-reset': 'warn',
 };
 
 module.exports = {
@@ -434,25 +456,23 @@ module.exports = {
       },
     },
     {
+      // View tests may mock only Engine and react-native-device-info (any
+      // relative depth). tests/component-view/mocks.ts owns every other
+      // framework mock; allowFrameworkExtras is on for that directory only.
       files: ['**/*.view.test.{js,ts,tsx,jsx}'],
+      plugins: ['component-view'],
       rules: {
-        'no-restricted-syntax': [
-          'error',
-          {
-            selector:
-              "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
-            message:
-              'Only Engine and react-native-device-info can be mocked in component-view tests.',
-          },
-          cvFakeTimerBan,
-        ],
+        'no-restricted-syntax': ['error', cvFakeTimerBan],
+        'component-view/no-arbitrary-jest-mock': 'error',
+        ...cvFlakeRules,
       },
     },
     {
-      // Shared component-view helpers keep the base no-restricted-syntax bans
-      // and add the fake-timer ban. The jest.mock ban above does not apply
-      // here (mocks.ts mocks Engine).
+      // Shared helpers keep the base no-restricted-syntax bans and the
+      // fake-timer ban. jest.mock is limited to the modules mocks.ts already
+      // mocks (Engine, device-info, and the framework extras in that file).
       files: ['tests/component-view/**/*.{ts,tsx}'],
+      plugins: ['component-view'],
       rules: {
         'no-restricted-syntax': [
           'error',
@@ -466,6 +486,11 @@ module.exports = {
           },
           cvFakeTimerBan,
         ],
+        'component-view/no-arbitrary-jest-mock': [
+          'error',
+          { allowFrameworkExtras: true },
+        ],
+        ...cvFlakeRules,
       },
     },
     {

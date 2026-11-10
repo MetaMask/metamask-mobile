@@ -47,7 +47,7 @@ import {
   getActivityDetailsStepTestId,
 } from './ActivityDetails.testIds';
 
-// eslint-disable-next-line no-restricted-syntax
+// eslint-disable-next-line component-view/no-arbitrary-jest-mock -- perps activity query has no Redux or nock seam yet
 jest.mock('./hooks/usePerpsActivityQuery', () => ({
   usePerpsActivityQuery: jest.fn(() => ({
     data: undefined,
