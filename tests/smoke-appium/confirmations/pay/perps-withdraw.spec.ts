@@ -36,8 +36,7 @@ const PERPS_WITHDRAW_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Perps withdraw'), () => {
-  // Opening Activity after confirm lands past 4 minutes on Android CI.
-  appiumTest.describe.configure({ timeout: 360_000 });
+  appiumTest.describe.configure({ timeout: 250_000 });
 
   appiumTest(
     'withdraws Perps balance to Arbitrum ETH',
