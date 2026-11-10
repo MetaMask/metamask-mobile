@@ -120,6 +120,22 @@ describe('useHomepageBalanceBreakdownHero', () => {
     expect(result.current.deltaColor).toBe(TextColor.TextAlternative);
   });
 
+  it('skips balance animation when privacy mode is disabled', () => {
+    privacyMode = true;
+    const { result, rerender } = renderHook(() =>
+      useHomepageBalanceBreakdownHero(baseHero),
+    );
+
+    privacyMode = false;
+    rerender({});
+
+    expect(result.current.skipBalanceAnimation).toBe(true);
+
+    rerender({});
+
+    expect(result.current.skipBalanceAnimation).toBe(false);
+  });
+
   it('toggles privacy through PreferencesController', () => {
     const { result } = renderHook(() =>
       useHomepageBalanceBreakdownHero(baseHero),

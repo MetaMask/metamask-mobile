@@ -110,14 +110,16 @@ describe('TraderPositionQuickBuy', () => {
         analyticsContext: {
           traderAddress: '0xtrader',
           marketCap: 1000000,
+          tokenPriceFiat: undefined,
           source: 'profile_position',
           originalEntryPoint: 'leaderboard',
+          traderTradeType: undefined,
         },
       }),
     );
   });
 
-  it('passes undefined analyticsContext when no analytics props are provided', () => {
+  it('passes analyticsContext with the default source when no analytics props are provided', () => {
     render(
       <TraderPositionQuickBuy
         isVisible
@@ -126,7 +128,16 @@ describe('TraderPositionQuickBuy', () => {
       />,
     );
     expect(mockQuickBuyRoot).toHaveBeenCalledWith(
-      expect.objectContaining({ analyticsContext: undefined }),
+      expect.objectContaining({
+        analyticsContext: {
+          traderAddress: undefined,
+          marketCap: undefined,
+          tokenPriceFiat: undefined,
+          source: 'profile_position',
+          originalEntryPoint: undefined,
+          traderTradeType: undefined,
+        },
+      }),
     );
   });
 
@@ -152,7 +163,7 @@ describe('TraderPositionQuickBuy', () => {
     );
   });
 
-  it('passes only defined analytics props in context', () => {
+  it('keeps optional analytics fields empty and defaults source', () => {
     render(
       <TraderPositionQuickBuy
         isVisible
@@ -166,8 +177,10 @@ describe('TraderPositionQuickBuy', () => {
         analyticsContext: {
           traderAddress: '0xtrader',
           marketCap: undefined,
-          source: undefined,
+          tokenPriceFiat: undefined,
+          source: 'profile_position',
           originalEntryPoint: undefined,
+          traderTradeType: undefined,
         },
       }),
     );
@@ -201,6 +214,20 @@ describe('TraderPositionQuickBuy', () => {
           tradeModes: expect.arrayContaining(['buy', 'sell']),
         }),
       }),
+    );
+  });
+
+  it('forwards the opening trade mode to QuickBuy.Root', () => {
+    render(
+      <TraderPositionQuickBuy
+        isVisible
+        position={mockPosition}
+        onClose={jest.fn()}
+        initialTradeMode="sell"
+      />,
+    );
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({ initialTradeMode: 'sell' }),
     );
   });
 });

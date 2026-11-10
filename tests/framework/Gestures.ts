@@ -9,16 +9,105 @@ import {
   TypeTextOptions,
   type ScrollContainer,
 } from './types.ts';
-import UnifiedGestures from './UnifiedGestures.ts';
 import { AppiumElement } from './AppiumElement.ts';
 import AppiumGestures from './AppiumGestures.ts';
+import Matchers from './Matchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
+import { getDriver } from './AppiumUtilities.ts';
+import { findWithSelfHealingLocator } from './ai-locator/SelfHealingLocator.ts';
+import {
+  getPerformanceLocatorRecovery,
+  isPerformanceSuiteActive,
+} from './ai-locator/PerformanceLocatorRecovery.ts';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 
+type TapAtIndexElement =
+  | AppiumElement
+  | Promise<AppiumElement>
+  | AppiumElement[];
+
 /**
- * Gestures class with element stability and auto-retry
+ * Gestures — canonical page-object entry point for Appium interactions.
  */
 export default class Gestures {
+  /**
+   * Page-object scroll direction is inverted relative to Appium scrollIntoView
+   * swipe direction for vertical scrolling (scroll down → swipe up).
+   */
+  private static toScrollIntoViewDirection(
+    direction?: ScrollOptions['direction'],
+  ): 'up' | 'down' | 'left' | 'right' {
+    if (direction === 'down') {
+      return 'up';
+    }
+    if (direction === 'up') {
+      return 'down';
+    }
+    return direction ?? 'up';
+  }
+
+  private static async resolveScrollableElement(
+    scrollView?: ScrollContainer,
+  ): Promise<AppiumElement | undefined> {
+    if (typeof scrollView !== 'string') {
+      return undefined;
+    }
+    return Matchers.getElementByID(scrollView);
+  }
+
+  private static async scrollWithinContainer(
+    scrollView: AppiumElement | Promise<AppiumElement>,
+    swipeDirection: 'up' | 'down' | 'left' | 'right',
+    percent = 0.6,
+  ): Promise<void> {
+    // Coordinate drag works on both platforms. Prefer it over Android
+    // `mobile: scrollGesture`, which returns false for RN ScrollViews
+    // (same approach as WalletHomeScroll.scrollWalletHomeAndroid).
+    const container = await scrollView;
+    const location = await container.unwrap().getLocation();
+    const size = await container.unwrap().getSize();
+    const centerX = Math.floor(location.x + size.width / 2);
+    const centerY = Math.floor(location.y + size.height / 2);
+
+    if (swipeDirection === 'up' || swipeDirection === 'down') {
+      const travel = Math.floor(
+        size.height * Math.min(Math.max(percent, 0.1), 0.9),
+      );
+      const fromY =
+        swipeDirection === 'up'
+          ? location.y + Math.floor(size.height * 0.8)
+          : location.y + Math.floor(size.height * 0.2);
+      const toY = swipeDirection === 'up' ? fromY - travel : fromY + travel;
+
+      await AppiumGestures.swipe({
+        scrollParams: { direction: swipeDirection },
+        percent,
+        duration: 600,
+        from: { x: centerX, y: fromY },
+        to: { x: centerX, y: toY },
+      });
+      return;
+    }
+
+    // Horizontal swipe bounded to the element's own coordinates.
+    const travelX = Math.floor(
+      size.width * Math.min(Math.max(percent, 0.1), 0.9),
+    );
+    const fromX =
+      swipeDirection === 'left'
+        ? location.x + Math.floor(size.width * 0.8)
+        : location.x + Math.floor(size.width * 0.2);
+    const toX = swipeDirection === 'left' ? fromX - travelX : fromX + travelX;
+
+    await AppiumGestures.swipe({
+      scrollParams: { direction: swipeDirection },
+      percent,
+      duration: 600,
+      from: { x: fromX, y: centerY },
+      to: { x: toX, y: centerY },
+    });
+  }
+
   /**
    * Tap an element with stability checking and auto-retry
    * @returns A Promise that resolves when the tap is successful
@@ -28,13 +117,7 @@ export default class Gestures {
     elem: AppiumElement | Promise<AppiumElement>,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.tap(elem, {
-      timeout: options.timeout,
-      description: options.elemDescription,
-      delay: options.delay,
-      checkForDisplayed: options.checkForDisplayed,
-      checkForEnabled: options.checkEnabled,
-    });
+    await this.performTap(elem, options);
   }
 
   /**
@@ -48,16 +131,50 @@ export default class Gestures {
     elem: AppiumElement | Promise<AppiumElement>,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.waitAndTap(elem, {
-      timeout: options.timeout,
-      description: options.elemDescription,
-      delay: options.delay,
-      checkForDisplayed: options.checkForDisplayed,
-      checkForEnabled: options.checkEnabled,
-      waitForInteractive: options.waitForInteractive,
-      // Detox checkStability ≈ Appium position-stable wait
-      checkForStable: options.checkStability,
+    await this.performTap(elem, options);
+  }
+
+  private static async performTap(
+    elementOrPromise: AppiumElement | Promise<AppiumElement>,
+    options: TapOptions,
+  ): Promise<void> {
+    const tap = async (target: AppiumElement): Promise<void> => {
+      await AppiumGestures.waitAndTap(target, {
+        timeout: options.timeout,
+        delay: options.delay,
+        checkForDisplayed: options.checkForDisplayed ?? true,
+        checkForEnabled: options.checkEnabled,
+        waitForInteractive: options.waitForInteractive,
+        enabledStableReads: options.enabledStableReads,
+        postEnabledSettleMs: options.postEnabledSettleMs,
+        checkForStable: options.checkStability,
+      });
+    };
+
+    const recovery = getPerformanceLocatorRecovery();
+    if (!recovery) {
+      const resolvedElement = await elementOrPromise;
+      await tap(resolvedElement);
+      return;
+    }
+
+    // Matchers are lazy: resolving the promise does not prove the control is
+    // tappable. Run the real waitAndTap as `primary` so a missing/stale
+    // control triggers recovery. Tap again only for the recovered locator.
+    const { element, source } = await findWithSelfHealingLocator({
+      intent: options.elemDescription ?? 'tap the current mobile control',
+      primary: async () => {
+        const resolvedElement = await elementOrPromise;
+        await tap(resolvedElement);
+        return resolvedElement;
+      },
+      driver: getDriver(),
+      recovery: recovery.provider,
+      onRecovered: recovery.onRecovered,
     });
+    if (source === 'recovered') {
+      await tap(element);
+    }
   }
 
   /**
@@ -66,31 +183,44 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtIndex(
-    elem: AppiumElement | Promise<AppiumElement>,
+    elem: TapAtIndexElement,
     index: number,
-    options: TapOptions = {},
+    _options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.tapAtIndex(elem, index, {
-      timeout: options.timeout,
-      description: options.elemDescription,
-    });
+    if (Array.isArray(elem)) {
+      const elements = elem as AppiumElement[];
+      if (index < 0 || index >= elements.length) {
+        throw new Error(
+          `tapAtIndex: index ${index} is out of bounds (${elements.length} elements)`,
+        );
+      }
+      await elements[index].click();
+      return;
+    }
+
+    if (index !== 0) {
+      throw new Error(
+        `tapAtIndex: Appium requires a AppiumElement[] array for index > 0. ` +
+          `Received single element with index ${index}.`,
+      );
+    }
+    const el = await elem;
+    await el.click();
   }
 
   /**
    * Tap an element at specific point with stability checking
-   * This method is specifically designed for detox elements and should not be used with web elements.
+   * This method is for native elements and should not be used with web elements.
    * @returns A Promise that resolves when the tap is successful
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtPoint(
     elem: AppiumElement | Promise<AppiumElement>,
     point: { x: number; y: number },
-    options: TapOptions = {},
+    _options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.tapAtPoint(elem, point, {
-      timeout: options.timeout,
-      description: options.elemDescription,
-    });
+    const el = await elem;
+    await el.tapOnCoordinates(point);
   }
 
   /**
@@ -101,12 +231,10 @@ export default class Gestures {
    */
   static async dblTap(
     elem: AppiumElement | Promise<AppiumElement>,
-    options: TapOptions = {},
+    _options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.dblTap(elem, {
-      timeout: options.timeout,
-      description: options.elemDescription,
-    });
+    const el = await elem;
+    await AppiumGestures.dblTap(el);
   }
 
   /**
@@ -118,11 +246,8 @@ export default class Gestures {
     elem: AppiumElement | Promise<AppiumElement>,
     options: LongPressOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.longPress(elem, {
-      timeout: options.timeout,
-      description: options.elemDescription,
-      duration: options.duration,
-    });
+    const el = await elem;
+    await AppiumGestures.longPress(el, options.duration);
   }
 
   /**
@@ -135,19 +260,17 @@ export default class Gestures {
     text: string,
     options: TypeTextOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.typeText(elem, text, {
-      timeout: options.timeout,
-      description: options.elemDescription,
-      hideKeyboard: options.hideKeyboard,
-      clearFirst: options.clearFirst,
-      checkForDisplayed: options.checkForDisplayed,
-    });
+    const el = await elem;
+    await el.fill(text);
+
+    if (options.hideKeyboard ?? true) {
+      await AppiumGestures.hideKeyboard();
+    }
   }
 
   /**
    * Type text into a web element within a webview.
-   * Detox uses JS injection; Appium uses Playwright clear + fill on the web element.
-   * @param {AppiumElement | Promise<AppiumElement> | Promise<{ clear: () => Promise<void>; fill: (text: string) => Promise<void> }>} element
+   * @param {AppiumElement | Promise<AppiumElement>} element
    * @param {string} text - The text to type.
    */
   static async typeInWebElement(
@@ -170,10 +293,19 @@ export default class Gestures {
     text: string,
     options: GestureOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.replaceText(elem, text, {
-      timeout: options.timeout,
-      description: options.elemDescription,
+    const timeout = options.timeout ?? 15_000;
+    const el = await elem;
+    // Wait for a fresh displayed node before clearValue — otherwise Appium
+    // fails with "Can't call clearValue ... because element wasn't found"
+    // when navigation to the input screen is still settling.
+    await el.waitForDisplayed({
+      timeout,
+      timeoutMsg: options.elemDescription
+        ? `${options.elemDescription} was not displayed within ${timeout}ms`
+        : `Element was not displayed within ${timeout}ms before replaceText`,
     });
+    await el.clear();
+    await el.fill(text);
   }
 
   /**
@@ -186,13 +318,24 @@ export default class Gestures {
     direction: 'up' | 'down' | 'left' | 'right',
     options: SwipeOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.swipe(elem, direction, {
-      timeout: options.timeout,
-      description: options.elemDescription,
-      speed: options.speed,
-      percentage: options.percentage,
-    });
+    const percent = options.percentage ?? 0.75;
+
+    // Smoke keeps the previous full-gesture horizontal swipe (carousel, quotes).
+    // Performance drags inside the element so the leverage picker can snap.
+    if (
+      (direction === 'left' || direction === 'right') &&
+      !isPerformanceSuiteActive()
+    ) {
+      await AppiumGestures.swipe({
+        scrollParams: { direction },
+        percent,
+      });
+      return;
+    }
+
+    await this.scrollWithinContainer(elem, direction, percent);
   }
+
   /**
    * Scroll to element with dynamic retry and platform-specific adjustments
    * @returns A Promise that resolves when the scroll is successful
@@ -203,11 +346,22 @@ export default class Gestures {
     scrollableContainer?: ScrollContainer,
     options: ScrollOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.scrollToElement(targetElement, scrollableContainer, {
-      timeout: options.timeout,
-      description: options.elemDescription,
-      direction: options.direction,
-      scrollAmount: options.scrollAmount,
+    const el = await targetElement;
+    const scrollableElement =
+      await Gestures.resolveScrollableElement(scrollableContainer);
+
+    // Cap scrolls so a missing target fails in tens of seconds instead of
+    // burning a 3-minute Playwright timeout (each miss is ~5s of findElement).
+    const maxScrolls = options.timeout
+      ? Math.max(3, Math.min(12, Math.ceil(options.timeout / 5000)))
+      : 10;
+
+    await AppiumGestures.scrollIntoView(el, {
+      scrollParams: {
+        direction: Gestures.toScrollIntoViewDirection(options.direction),
+      },
+      scrollableElement,
+      maxScrolls,
     });
   }
 

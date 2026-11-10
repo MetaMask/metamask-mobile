@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { ScrollView, View } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
 
 // Internal dependencies.
@@ -1644,6 +1645,33 @@ describe('TabsBar', () => {
 
       // Should handle hasValidDimensions state updates
       expect(tabsBarComponent).toBeOnTheScreen();
+    });
+  });
+
+  describe('End Accessory', () => {
+    it('renders endAccessory on a tab that sets it', () => {
+      const tabsWithAccessory: TabItem[] = [
+        { key: 'tab1', label: 'Tab 1', content: null },
+        {
+          key: 'tab2',
+          label: 'Tab 2',
+          content: null,
+          endAccessory: <View testID="tab-2-end-accessory" />,
+        },
+      ];
+
+      const { getByTestId, queryByTestId } = render(
+        <TabsBar
+          tabs={tabsWithAccessory}
+          activeIndex={0}
+          onTabPress={jest.fn()}
+          testID="tabs-bar"
+        />,
+      );
+
+      expect(getByTestId('tab-2-end-accessory')).toBeOnTheScreen();
+      expect(getByTestId('tabs-bar-tab-0')).toBeOnTheScreen();
+      expect(queryByTestId('tab-1-end-accessory')).toBeNull();
     });
   });
 

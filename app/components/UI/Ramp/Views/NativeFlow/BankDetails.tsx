@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  HeaderStandard,
   Text,
   TextVariant,
   TextColor,
@@ -50,6 +49,13 @@ import { RAMPS_BUY_CUF_TAG } from '../../constants/rampsBuyCufTags';
 import { TraceName } from '../../../../../util/trace';
 import { BANK_DETAILS_TEST_IDS } from './BankDetails.testIds';
 import { isHttpUnauthorized } from '../../utils/isHttpUnauthorized';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -67,6 +73,7 @@ const TERMINAL_STATUSES = new Set([
  * and fetches deposit-specific data (paymentDetails) from TransakService.
  */
 const V2BankDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
@@ -92,6 +99,9 @@ const V2BankDetails = () => {
   );
   const [showBankInfo, setShowBankInfo] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [initialRefreshSettled, setInitialRefreshSettled] = useState(
+    order?.status !== RampsOrderStatus.Created || !shouldUpdate,
+  );
 
   const [cancelOrderError, setCancelOrderError] = useState<Error | null>(null);
   const [isLoadingCancelOrder, setIsLoadingCancelOrder] = useState(false);
@@ -138,6 +148,7 @@ const V2BankDetails = () => {
       Logger.error(refreshError as Error, 'V2BankDetails: handleOnRefresh');
     } finally {
       setIsRefreshing(false);
+      setInitialRefreshSettled(true);
     }
   }, [order, getDepositOrder, refreshOrder, handleLogoutError]);
 
@@ -172,6 +183,15 @@ const V2BankDetails = () => {
       });
     }
   }, [order?.status, navigation, order?.providerOrderId]);
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.BANK_DETAILS,
+    contentReady: Boolean(order) && initialRefreshSettled && !isRefreshing,
+    contentState:
+      cancelOrderError || confirmPaymentError
+        ? RAMP_SCREEN_CONTENT_STATE.ERROR
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const capitalizeWords = useCallback(
     (text: string): string =>
@@ -333,7 +353,9 @@ const V2BankDetails = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={headerTitle}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

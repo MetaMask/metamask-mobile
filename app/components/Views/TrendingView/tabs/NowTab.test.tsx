@@ -1,4 +1,5 @@
 import React from 'react';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
@@ -89,20 +90,9 @@ jest.mock('../feeds/perps/perpsNavigation', () => ({
   ) => mockNavigateToPerpsMarketList(nav, filter, sortOptionId, options),
 }));
 
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: jest.fn(),
+jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
+  usePredictTrendingFeed: jest.fn(),
 }));
-
-jest.mock('../feeds/predictions/PredictionRowItem', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { createElement } = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View } = require('react-native');
-  return {
-    PredictionCarouselRowItem: ({ market }: { market: { id: string } }) =>
-      createElement(View, { testID: `predict-market-row-item-${market.id}` }),
-  };
-});
 
 jest.mock('../components/HorizontalCarousel', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -128,6 +118,34 @@ jest.mock('../feeds/perps/PerpsSectionProvider', () => {
   return ({ children }: { children: unknown }) =>
     createElement(View, null, children);
 });
+
+const mockEarnSection = jest.fn(
+  (props: {
+    homeAnalytics?: unknown;
+    refresh?: { trigger: number; silentRefresh: boolean };
+    showDividers?: boolean;
+    tokenDetailsSource?: string;
+    enabled?: boolean;
+    // TODO: Can we not use the actual type here? Why do we need unknown?
+    analyticsContext?: unknown;
+  }) =>
+    React.createElement('View', {
+      testID: 'explore-earn-section',
+      accessibilityLabel: JSON.stringify(props),
+    }),
+);
+
+jest.mock('../../../UI/Earn/components/EarnSection', () => ({
+  __esModule: true,
+  default: (props: {
+    homeAnalytics?: unknown;
+    refresh?: { trigger: number; silentRefresh: boolean };
+    showDividers?: boolean;
+    tokenDetailsSource?: string;
+    enabled?: boolean;
+    analyticsContext?: unknown;
+  }) => mockEarnSection(props),
+}));
 
 const mockWhatsHappeningRefresh = jest.fn();
 const mockUseWhatsHappening = jest.fn(() => ({
@@ -177,9 +195,8 @@ const mockPredictionsCarouselSection = jest.fn(
   },
 );
 
-jest.mock('../feeds/predictions/PredictionsCarouselSection', () => ({
-  __esModule: true,
-  default: (props: {
+jest.mock('../../../UI/PredictNext/trending/PredictTrendingCarousel', () => ({
+  PredictTrendingCarousel: (props: {
     idPrefix?: string;
     title?: string;
     onViewAll?: () => void;
@@ -195,20 +212,29 @@ jest.mock('../../../UI/WhatsHappening', () => ({
 
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+  usePredictTrendingFeed,
+} from '../../../UI/PredictNext';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import NowTab from './NowTab';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import type { ExploreTabName } from '../search/analytics';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import Routes from '../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_SCREEN_NAMES,
+} from '../../../UI/Earn/constants/earnModuleEvents';
 
-const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
+const mockUsePredictionsFeed = jest.mocked(usePredictTrendingFeed);
 const mockUseStocksFeed = jest.mocked(useStocksFeed);
 const mockWhatsHappeningImpl = jest.mocked(WhatsHappeningSection);
 
@@ -220,10 +246,7 @@ const defaultTabProps = {
 };
 
 const predictSectionTestId = 'section-header-view-all-predictions';
-const cryptoMoversSectionTestId = 'section-header-view-all-crypto_movers';
-const perpsSectionTestId = 'section-header-view-all-perps';
 const whatsHappeningSectionTestId = 'whats-happening-carousel';
-const stocksSectionTestId = 'section-header-view-all-stocks';
 
 const createWhatsHappeningCarousel = () =>
   React.createElement('View', { testID: whatsHappeningSectionTestId });
@@ -233,16 +256,23 @@ const createMockSelectorImpl =
     perpsEnabled = false,
     predictEnabled = false,
     whatsHappeningEnabled = false,
+    earnSectionVisible = false,
   }: {
     perpsEnabled?: boolean;
     predictEnabled?: boolean;
     whatsHappeningEnabled?: boolean;
+    earnSectionVisible?: boolean;
   }) =>
   (selector: unknown) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
-    if (selector === selectPredictEnabledFlag) return predictEnabled;
+    if (selector === selectPredictAvailability) return predictEnabled;
     if (selector === selectWhatsHappeningEnabled) return whatsHappeningEnabled;
-    return undefined;
+    if (selector === selectIsExploreEarnSectionVisible)
+      return earnSectionVisible;
+    // Other selectors, such as Predict's Active Venue, read the default state.
+    return (selector as (state: unknown) => unknown)({
+      engine: { backgroundState },
+    });
   };
 
 const arrangeMocks = () => {
@@ -667,6 +697,91 @@ describe('NowTab — Crypto Movers', () => {
 
     expect(screen.getByTestId('section-pill-eip155:1/erc20:0x17')).toBeTruthy();
     expect(screen.queryByTestId('section-pill-eip155:1/erc20:0x18')).toBeNull();
+  });
+});
+
+describe('NowTab — Earn section', () => {
+  it('renders Earn section without Homepage analytics metadata when visible', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionVisible: true }),
+    );
+
+    renderNowTab();
+
+    expect(screen.getByTestId('explore-earn-section')).toBeOnTheScreen();
+    expect(mockEarnSection).toHaveBeenCalledWith({
+      enabled: true,
+      refresh: { trigger: 0, silentRefresh: true },
+      tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_NOW_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_NOW_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
+    });
+  });
+
+  it('forwards Explore refresh trigger to Earn section', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionVisible: true }),
+    );
+
+    renderNowTab({
+      ...defaultTabProps,
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    expect(mockEarnSection).toHaveBeenCalledWith({
+      enabled: true,
+      refresh: { trigger: 1, silentRefresh: true },
+      tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_NOW_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_NOW_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
+    });
+  });
+
+  it('disables Earn when another Explore tab is active', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionVisible: true }),
+    );
+
+    renderNowTab(defaultTabProps, { activeTab: 'Crypto' });
+
+    expect(mockEarnSection).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('disables Earn when Explore screen is unfocused', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionVisible: true }),
+    );
+    mockUseIsFocused.mockReturnValue(false);
+
+    renderNowTab();
+
+    expect(mockEarnSection).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('does not render Earn section when not visible', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionVisible: false }),
+    );
+
+    renderNowTab();
+
+    expect(mockEarnSection).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('explore-earn-section')).toBeNull();
   });
 });
 

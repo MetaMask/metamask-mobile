@@ -13,6 +13,7 @@ import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
+import ChartCandleSkeleton from '../ChartCandleSkeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet, { DEFAULT_CHART_HEIGHT } from './AdvancedChart.styles';
 import {
@@ -104,8 +105,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onCrosshairMove,
       onTradeMarkerPress,
       onChartInteracted,
+      onVisibleCandleCountChange,
       onChartTradingViewClicked,
       isLoading = false,
+      skeletonVariant = 'default',
       subPaneHeightRatio,
       useSubscriptPriceFormat,
       priceDecimals,
@@ -567,6 +570,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             onChartInteracted?.(message.payload);
             break;
 
+          case 'VISIBLE_CANDLE_COUNT_CHANGED':
+            onVisibleCandleCountChange?.(message.payload.candleCount);
+            break;
+
           case 'CHART_TRADINGVIEW_CLICKED': {
             const bridgeUrl = message.payload?.url;
             if (typeof bridgeUrl === 'string' && bridgeUrl.length > 0) {
@@ -636,6 +643,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onCrosshairMove,
         onTradeMarkerPress,
         onChartInteracted,
+        onVisibleCandleCountChange,
         handleTradingViewOpen,
         postMessage,
       ],
@@ -1114,14 +1122,22 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             androidLayerType="hardware"
             mixedContentMode="always"
           />
-          {showSkeleton && (
-            <Skeleton
-              height={height}
-              width="100%"
-              style={styles.skeletonOverlay}
-              testID="advanced-chart-skeleton"
-            />
-          )}
+          {showSkeleton &&
+            (skeletonVariant === 'candles' ? (
+              <View
+                style={styles.skeletonOverlay}
+                testID="advanced-chart-skeleton"
+              >
+                <ChartCandleSkeleton height={height} />
+              </View>
+            ) : (
+              <Skeleton
+                height={height}
+                width="100%"
+                style={styles.skeletonOverlay}
+                testID="advanced-chart-skeleton"
+              />
+            ))}
         </View>
       </View>
     );

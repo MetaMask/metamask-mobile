@@ -7,7 +7,10 @@ import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../controllers/remote-feature-flag-controller';
-import { getBaseSemVerVersion } from '../../../../util/version';
+import {
+  getBaseSemVerVersion,
+  getEffectiveAppVersion,
+} from '../../../../util/version';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import AppConstants from '../../../AppConstants';
 import type { RootMessenger } from '../../types';
@@ -17,6 +20,11 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ClientConfigApiService: jest
     .fn()
     .mockImplementation(() => ({ name: 'mock-client-config-api-service' })),
+}));
+
+jest.mock('../../../../util/version', () => ({
+  getBaseSemVerVersion: jest.fn(),
+  getEffectiveAppVersion: jest.fn(),
 }));
 
 jest.mock('../../../../store', () => ({ store: { getState: jest.fn() } }));
@@ -33,6 +41,8 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+    jest.mocked(getBaseSemVerVersion).mockReturnValue('1.2.3');
+    jest.mocked(getEffectiveAppVersion).mockReturnValue('1.2.3');
   });
 
   it('builds a ClientConfigApiService for the mobile client', () => {
@@ -71,6 +81,39 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     expect(options.getMetaMetricsId?.()).toBeUndefined();
   });
 
+  it('resolves the canonical profile id from AuthenticationController via the messenger', () => {
+    const messenger = {
+      call: jest.fn(() => ({
+        srpSessionData: {
+          'srp-1': { profile: { canonicalProfileId: 'canonical-id' } },
+        },
+      })),
+    } as unknown as RootMessenger;
+
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger,
+      state: {},
+    });
+
+    expect(options.getCanonicalProfileId?.()).toBe('canonical-id');
+    expect(messenger.call).toHaveBeenCalledWith(
+      'AuthenticationController:getState',
+    );
+  });
+
+  it('returns an empty canonical profile id when no session profile is present', () => {
+    const messenger = {
+      call: jest.fn(() => ({ srpSessionData: {} })),
+    } as unknown as RootMessenger;
+
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger,
+      state: {},
+    });
+
+    expect(options.getCanonicalProfileId?.()).toBe('');
+  });
+
   it('reads prevClientVersion from persisted AppMetadataController state', () => {
     const options = getRemoteFeatureFlagControllerInstanceOptions({
       messenger: buildMessenger('metrics-id'),
@@ -78,6 +121,29 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     });
 
     expect(options.prevClientVersion).toBe('1.2.2');
+  });
+
+  it('maps a persisted native version matching the current binary to the effective OTA version', () => {
+    jest.mocked(getEffectiveAppVersion).mockReturnValue('1.2.4');
+
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger: buildMessenger('metrics-id'),
+      state: { AppMetadataController: { currentAppVersion: '1.2.3' } },
+    });
+
+    expect(options.clientVersion).toBe('1.2.4');
+    expect(options.prevClientVersion).toBe('1.2.4');
+  });
+
+  it('keeps a persisted version from a different native binary unchanged', () => {
+    jest.mocked(getEffectiveAppVersion).mockReturnValue('1.2.4');
+
+    const options = getRemoteFeatureFlagControllerInstanceOptions({
+      messenger: buildMessenger('metrics-id'),
+      state: { AppMetadataController: { currentAppVersion: '1.1.0' } },
+    });
+
+    expect(options.prevClientVersion).toBe('1.1.0');
   });
 
   it('leaves prevClientVersion undefined when not persisted', () => {
@@ -109,13 +175,15 @@ describe('getRemoteFeatureFlagControllerInstanceOptions', () => {
     expect(options.disabled).toBe(true);
   });
 
-  it('uses the configured client version and fetch interval', () => {
+  it('uses the effective (OTA-aware) client version and the fetch interval', () => {
+    jest.mocked(getEffectiveAppVersion).mockReturnValue('1.2.4');
+
     const options = getRemoteFeatureFlagControllerInstanceOptions({
       messenger: buildMessenger('metrics-id'),
       state: {},
     });
 
-    expect(options.clientVersion).toBe(getBaseSemVerVersion());
+    expect(options.clientVersion).toBe('1.2.4');
     // `__DEV__` is false under jest, so the production branch runs.
     expect(options.fetchInterval).toBe(
       AppConstants.FEATURE_FLAGS_API.DEFAULT_FETCH_INTERVAL,

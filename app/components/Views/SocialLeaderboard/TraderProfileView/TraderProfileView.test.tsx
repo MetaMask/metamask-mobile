@@ -4,6 +4,7 @@ import type {
   TraderProfileResponse,
 } from '@metamask/social-controllers';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import Share from 'react-native-share';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { ImpactMoment } from '../../../../util/haptics';
@@ -17,6 +18,13 @@ import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSaf
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
+jest.mock('react-native-share', () => ({
+  __esModule: true,
+  default: {
+    open: jest.fn(() => Promise.resolve({ success: true, message: '' })),
+  },
+}));
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
@@ -26,6 +34,7 @@ const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockPlayErrorNotification = jest.fn().mockResolvedValue(undefined);
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playImpact: (...args: unknown[]) => mockPlayImpact(...args),
@@ -125,6 +134,12 @@ jest.mock('../NotificationPreferences/hooks', () => ({
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'USD',
+}));
+
+let mockIsMasterNotificationsEnabled = true;
+jest.mock('../../../../selectors/notifications', () => ({
+  ...jest.requireActual('../../../../selectors/notifications'),
+  selectIsMetamaskNotificationsEnabled: () => mockIsMasterNotificationsEnabled,
 }));
 
 jest.mock(
@@ -251,6 +266,11 @@ const fixtureProfile: TraderProfileResponse = {
   socialHandles: {},
   followerCount: 45,
   followingCount: 12,
+  copytradedAllTime: {
+    count: 0,
+    volumeUSD: 0,
+    distinctActors: 0,
+  },
 };
 
 const fixtureOpenPositions: Position[] = [
@@ -362,6 +382,8 @@ let mockPositionsResult: UseTraderPositionsResult = {
   isLoadingOpen: false,
   isLoadingClosed: false,
   error: null,
+  openError: null,
+  closedError: null,
   refetch: mockRefetchPositions,
 };
 
@@ -369,6 +391,34 @@ jest.mock('./hooks', () => ({
   useTraderProfile: () => mockProfileResult,
   useTraderPositions: () => mockPositionsResult,
 }));
+
+const mockRefreshPosts = jest.fn().mockResolvedValue(undefined);
+let mockPostsResult = {
+  posts: [] as { id: string }[],
+  rows: [] as never[],
+  isLoading: false,
+  isFetchingNextPage: false,
+  hasNextPage: false,
+  loadMore: jest.fn(),
+  error: null as string | null,
+  refresh: mockRefreshPosts,
+};
+
+jest.mock('../MyProfileView/hooks/useMyProfilePosts', () => ({
+  useMyProfilePosts: () => mockPostsResult,
+}));
+
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ post }: { post: { id: string } }) => (
+      <View testID={`trader-profile-post-${post.id}`}>
+        <Text>{post.id}</Text>
+      </View>
+    ),
+  };
+});
 
 const channelsDisabledPreferences: SocialAIPreference = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -396,9 +446,22 @@ describe('TraderProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetchPositions,
     };
+    mockPostsResult = {
+      posts: [],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: mockRefreshPosts,
+    };
     mockRefresh.mockResolvedValue(undefined);
+    mockRefreshPosts.mockResolvedValue(undefined);
     mockRefetchPositions.mockResolvedValue(undefined);
     mockToggleFollow.mockResolvedValue(undefined);
     mockNotificationPreferences = {
@@ -409,6 +472,7 @@ describe('TraderProfileView', () => {
     };
     mockHasNotificationPreferences.mockReturnValue(true);
     mockIsLoadingPreferences = false;
+    mockIsMasterNotificationsEnabled = true;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockRouteParams = {
@@ -425,6 +489,24 @@ describe('TraderProfileView', () => {
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('shares the trader profile deeplink from the header', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(Share.open).toHaveBeenCalledWith({
+      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
+      url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+      failOnCancel: false,
+    });
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    ).toHaveProp('accessibilityLabel', 'Share profile');
   });
 
   describe('safe area layout', () => {
@@ -521,7 +603,7 @@ describe('TraderProfileView', () => {
 
   const runDeferredSetupAction = async () => {
     const setupCall = mockNavigate.mock.calls.find(
-      ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      ([route]) => route === Routes.SOCIAL.TRADING_SIGNALS_SETUP,
     );
     const onSetupComplete = setupCall?.[1]?.onSetupComplete;
     await act(async () => {
@@ -547,12 +629,31 @@ describe('TraderProfileView', () => {
       );
     });
 
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
-      expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
+      expect.objectContaining({ onSetupComplete: undefined }),
     );
-    expect(mockToggleFollow).not.toHaveBeenCalled();
     expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to the feature notifications gate when following with the master toggle off', async () => {
+    mockIsMasterNotificationsEnabled = false;
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      );
+    });
+
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
+      params: { feature: 'socialAI', autoDismiss: true },
+    });
   });
 
   it('follows immediately without a haptic when a channel is already enabled', async () => {
@@ -567,12 +668,12 @@ describe('TraderProfileView', () => {
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.anything(),
     );
   });
 
-  it('performs the follow when the deferred setup action runs', async () => {
+  it('does not follow again when the setup sheet completes', async () => {
     mockNotificationPreferences = channelsDisabledPreferences;
 
     renderWithProvider(<TraderProfileView />);
@@ -607,7 +708,7 @@ describe('TraderProfileView', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.objectContaining({ onSetupComplete: expect.any(Function) }),
     );
     expect(mockToggleTraderNotification).not.toHaveBeenCalled();
@@ -668,7 +769,7 @@ describe('TraderProfileView', () => {
     expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.anything(),
     );
   });
@@ -692,25 +793,42 @@ describe('TraderProfileView', () => {
     expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
   });
 
+  it('does not navigate when a flagged position is pressed', () => {
+    const flaggedPosition = {
+      ...fixtureOpenPositions[0],
+      flags: ['insider'],
+    };
+    mockPositionsResult.openPositions = [flaggedPosition];
+
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId('position-row-flag-label-STARKBOT'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('position-row-STARKBOT').props.accessibilityRole,
+    ).toBeUndefined();
+  });
+
   it('navigates to the trader position view when a position is pressed', () => {
     renderWithProvider(<TraderProfileView />);
 
     fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        traderId: 'trader-1',
-        traderName: 'trader1',
-        traderImageUrl: 'https://example.com/avatar.png',
-        traderAddress: '0xabc',
-        tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
-        position: fixtureOpenPositions[0],
-        source: 'profile_position',
-        originalEntryPoint: 'leaderboard',
-        isClosed: false,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      traderId: 'trader-1',
+      traderName: 'trader1',
+      traderImageUrl: 'https://example.com/avatar.png',
+      traderAddress: '0xabc',
+      tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
+      position: fixtureOpenPositions[0],
+      source: 'profile_position',
+      originalEntryPoint: 'leaderboard',
+      isClosed: false,
+    });
   });
 
   it('tracks Trader Profile Position Clicked with perps_market for a perp row', () => {
@@ -738,13 +856,58 @@ describe('TraderProfileView', () => {
   it('shows empty state when no positions', () => {
     mockPositionsResult.openPositions = [];
     renderWithProvider(<TraderProfileView />);
-    expect(screen.getByText('No positions yet')).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
   });
 
   it('switches to closed tab', () => {
     renderWithProvider(<TraderProfileView />);
     fireEvent.press(screen.getByTestId('trader-profile-tab-closed'));
-    expect(screen.getByText('No positions yet')).toBeOnTheScreen();
+    expect(screen.getByText('No closed positions')).toBeOnTheScreen();
+  });
+
+  it('shows the same posts empty state as my profile', () => {
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+    );
+    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+    expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
+  });
+
+  it('renders a trader posts when the posts tab has them', () => {
+    mockPostsResult.posts = [{ id: 'post-1' }];
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+    );
+    expect(screen.getByText('post-1')).toBeOnTheScreen();
+    expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
+  });
+
+  it('requests the next posts page when a scroll settles near the end', () => {
+    const loadMore = jest.fn();
+    mockPostsResult = {
+      ...mockPostsResult,
+      posts: [{ id: 'post-1' }],
+      hasNextPage: true,
+      loadMore,
+    };
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+    );
+    fireEvent(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SCROLL),
+      'momentumScrollEnd',
+      {
+        nativeEvent: {
+          contentOffset: { y: 400, x: 0 },
+          contentSize: { height: 500, width: 400 },
+          layoutMeasurement: { height: 400, width: 400 },
+        },
+      },
+    );
+    expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
   it('renders skeleton placeholders when profile is loading', () => {
@@ -785,7 +948,7 @@ describe('TraderProfileView', () => {
     fireEvent.press(
       screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
     );
-    expect(screen.queryByText('No positions yet')).not.toBeOnTheScreen();
+    expect(screen.queryByText('No closed positions')).not.toBeOnTheScreen();
   });
 
   describe('pull-to-refresh', () => {
@@ -802,6 +965,7 @@ describe('TraderProfileView', () => {
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
       expect(mockRefetchPositions).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosts).toHaveBeenCalledTimes(1);
       expect(mockPlayImpact).toHaveBeenCalledTimes(1);
       expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
     });
@@ -1069,6 +1233,7 @@ describe('TraderProfileView', () => {
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
       expect(screen.getByText('P&L %')).toBeOnTheScreen();
+      expect(mockPlaySelection).toHaveBeenCalledTimes(5);
     });
 
     it('triggers a haptic on each sort tap', () => {
@@ -1257,5 +1422,15 @@ describe('TraderProfileView', () => {
       ).toBeOnTheScreen();
       expect(screen.queryByText('+$1,000,000')).not.toBeOnTheScreen();
     });
+  });
+
+  it('opens the stats sheet when the headline stats row is pressed', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+    );
+
+    expect(screen.getByTestId('trader-stats-sheet')).toBeOnTheScreen();
   });
 });

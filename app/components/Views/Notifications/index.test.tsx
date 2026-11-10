@@ -12,6 +12,7 @@ import NotificationsView, {
 } from './';
 import renderWithProvider, {
   DeepPartial,
+  renderHookWithProvider,
 } from '../../../util/test/renderWithProvider';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { RootState } from '../../../reducers';
@@ -20,16 +21,22 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 // eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../util/notifications/hooks/useNotifications';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
+import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
+import { useNotificationListPerformance } from '../../../util/notifications/hooks/useNotificationListPerformance';
 
 const navigationMock = {
   navigate: jest.fn(),
   goBack: jest.fn(),
   canGoBack: jest.fn().mockReturnValue(true),
 } as unknown as NavigationProp<ParamListBase>;
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: () => '99.0.0',
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -39,6 +46,13 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
+
+jest.mock(
+  '../../../util/notifications/hooks/useNotificationListPerformance',
+  () => ({
+    useNotificationListPerformance: jest.fn(),
+  }),
+);
 
 const mockMetrics = {
   trackEvent: jest.fn(),
@@ -142,6 +156,29 @@ describe('NotificationsView - content', () => {
     ).toBeOnTheScreen();
   });
 
+  it('reports the deduplicated notification count for performance tracing', () => {
+    const notification = processNotification(createMockNotificationEthSent());
+    const state: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NotificationServicesController: {
+            isNotificationServicesEnabled: true,
+            metamaskNotificationsList: [notification, notification],
+          },
+        },
+      },
+    };
+
+    renderWithProvider(<NotificationsView navigation={navigationMock} />, {
+      state,
+    });
+
+    expect(jest.mocked(useNotificationListPerformance)).toHaveBeenCalledWith(
+      expect.objectContaining({ notificationCount: 1 }),
+    );
+  });
+
   it('shows enable prompt and opens settings when notifications are disabled', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <NotificationsView navigation={navigationMock} />,
@@ -172,7 +209,7 @@ describe('NotificationsView - content', () => {
 
 describe('useMarkAsReadCallback', () => {
   const arrangeMocks = () => {
-    const mockMarkNotificationsAsRead = jest.fn();
+    const mockMarkNotificationsAsRead = jest.fn().mockResolvedValue(undefined);
     jest
       .spyOn(UseNotificationsModule, 'useMarkNotificationAsRead')
       .mockReturnValue({
@@ -180,7 +217,9 @@ describe('useMarkAsReadCallback', () => {
         markNotificationAsRead: mockMarkNotificationsAsRead,
       });
 
-    const mockSetBadgeCount = jest.spyOn(NotificationsService, 'setBadgeCount');
+    const mockSetBadgeCount = jest
+      .spyOn(NotificationsService, 'setBadgeCount')
+      .mockResolvedValue(undefined);
 
     return {
       mockMetrics,
@@ -191,6 +230,11 @@ describe('useMarkAsReadCallback', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('marks content as read and fires event', async () => {
@@ -198,17 +242,90 @@ describe('useMarkAsReadCallback', () => {
     const notifications = [
       processNotification(createMockNotificationEthSent()),
     ];
-    const hook = renderHook(() => useMarkAsReadCallback({ notifications }));
+    const hook = renderHookWithProvider(
+      () => useMarkAsReadCallback({ notifications }),
+      { state: mockInitialState },
+    );
 
     await act(() => hook.result.current.handleMarkAllAsRead());
 
-    // Assert - mark as read action called
     expect(mocks.mockMarkNotificationsAsRead).toHaveBeenCalled();
-
-    // Assert - badge count updated
     expect(mocks.mockSetBadgeCount).toHaveBeenCalled();
+    expect(mocks.mockMetrics.trackEvent).toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
 
-    // Assert - event fired
+  it('logs mark-all-as-read rejections when glass headers are off', async () => {
+    const mocks = arrangeMocks();
+    const markFailure = new Error('mark failed');
+    const badgeFailure = new Error('badge failed');
+    mocks.mockMarkNotificationsAsRead.mockRejectedValue(markFailure);
+    mocks.mockSetBadgeCount.mockRejectedValue(badgeFailure);
+    const notifications = [
+      processNotification(createMockNotificationEthSent()),
+    ];
+    const hook = renderHookWithProvider(
+      () => useMarkAsReadCallback({ notifications }),
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      hook.result.current.handleMarkAllAsRead();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      markFailure,
+      'Failed to mark all notifications as read',
+    );
+    expect(Logger.error).toHaveBeenCalledWith(
+      badgeFailure,
+      'Failed to clear the notification badge',
+    );
+  });
+
+  it('logs when marking notifications as read rejects', async () => {
+    const mocks = arrangeMocks();
+    const failure = new Error('mark failed');
+    mocks.mockMarkNotificationsAsRead.mockRejectedValue(failure);
+    const notifications = [
+      processNotification(createMockNotificationEthSent()),
+    ];
+    const hook = renderHookWithProvider(
+      () => useMarkAsReadCallback({ notifications }),
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      hook.result.current.handleMarkAllAsRead();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      failure,
+      'Failed to mark all notifications as read',
+    );
+    expect(mocks.mockMetrics.trackEvent).toHaveBeenCalled();
+  });
+
+  it('logs when clearing the notification badge rejects', async () => {
+    const mocks = arrangeMocks();
+    const failure = new Error('badge failed');
+    mocks.mockSetBadgeCount.mockRejectedValue(failure);
+    const notifications = [
+      processNotification(createMockNotificationEthSent()),
+    ];
+    const hook = renderHookWithProvider(
+      () => useMarkAsReadCallback({ notifications }),
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      hook.result.current.handleMarkAllAsRead();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      failure,
+      'Failed to clear the notification badge',
+    );
     expect(mocks.mockMetrics.trackEvent).toHaveBeenCalled();
   });
 });

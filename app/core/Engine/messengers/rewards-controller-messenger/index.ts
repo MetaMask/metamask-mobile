@@ -18,7 +18,6 @@ import {
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
-  RewardsDataServiceValidateReferralCodeAction,
   RewardsDataServiceValidateBonusCodeAction,
   RewardsDataServiceMobileJoinAction,
   RewardsDataServiceOptOutAction,
@@ -47,7 +46,6 @@ import {
   RewardsDataServiceGetDiscoverSeasonsAction,
   RewardsDataServiceGetSeasonMetadataAction,
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
-  RewardsDataServiceApplyReferralCodeAction,
   RewardsDataServiceApplyBonusCodeAction,
   RewardsDataServiceGetRewardsEnvUrlAction,
   RewardsDataServiceCanChangeRewardsEnvUrlAction,
@@ -61,13 +59,13 @@ import {
   RewardsDataServiceGetVIPDashboardAction,
   RewardsDataServiceGetVipEquityMultiplierAction,
   RewardsDataServiceGetVipRefereeDashboardAction,
+  RewardsDataServiceGetTradingFeeGrantsAction,
   RewardsDataServiceGetVipFeesAction,
   RewardsDataServiceGetVipTransactionsAction,
   RewardsDataServiceLookupVipTransactionAction,
   RewardsDataServiceGetVipTransactionsLastUpdatedAction,
   RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
-  RewardsDataServiceGetFirstPredictOnUsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
   RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
   RewardsDataServiceGetOndoCampaignPortfolioPositionAction,
@@ -78,6 +76,7 @@ import {
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
   RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
+  RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
   RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
   RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
@@ -86,11 +85,13 @@ import {
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
   RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
   RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction,
   RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
   RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
   RewardsDataServiceRegisterMoneyAccountBindingAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 
 const name = 'RewardsController' as const;
 
@@ -110,7 +111,6 @@ type AllowedActions =
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
@@ -121,7 +121,6 @@ type AllowedActions =
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
-  | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
@@ -134,7 +133,6 @@ type AllowedActions =
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
-  | RewardsDataServiceGetFirstPredictOnUsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
@@ -145,9 +143,11 @@ type AllowedActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
+  | RewardsDataServiceGetTradingFeeGrantsAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetVipTransactionsAction
   | RewardsDataServiceLookupVipTransactionAction
@@ -160,6 +160,7 @@ type AllowedActions =
   | RewardsDataServiceGetPredictThePitchPrizePoolAction
   | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
   | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
   | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsDataServiceRegisterMoneyAccountBindingAction;
@@ -167,7 +168,11 @@ type AllowedActions =
 // Don't reexport as per guidelines
 type AllowedEvents =
   | AccountTreeControllerSelectedAccountGroupChangeEvent
-  | KeyringControllerUnlockEvent;
+  | KeyringControllerUnlockEvent
+  | Extract<
+      AuthenticationController.Events,
+      { type: 'AuthenticationController:stateChange' }
+    >;
 
 export type RewardsControllerMessenger = Messenger<
   typeof name,
@@ -218,7 +223,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getReferralDetails',
       'RewardsDataService:mobileOptin',
       'RewardsDataService:logout',
-      'RewardsDataService:validateReferralCode',
       'RewardsDataService:validateBonusCode',
       'RewardsDataService:mobileJoin',
       'RewardsDataService:getOptInStatus',
@@ -229,7 +233,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getDiscoverSeasons',
       'RewardsDataService:getSeasonMetadata',
       'RewardsDataService:getSeasonOneLineaRewardTokens',
-      'RewardsDataService:applyReferralCode',
       'RewardsDataService:applyBonusCode',
       'RewardsDataService:getSubscriptionAccounts',
       'RewardsDataService:getCampaigns',
@@ -243,13 +246,13 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getVIPDashboard',
       'RewardsDataService:getVipEquityMultiplier',
       'RewardsDataService:getVipRefereeDashboard',
+      'RewardsDataService:getTradingFeeGrants',
       'RewardsDataService:getVipFees',
       'RewardsDataService:getVipTransactions',
       'RewardsDataService:lookupVipTransaction',
       'RewardsDataService:getVipTransactionsLastUpdated',
       'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
-      'RewardsDataService:getFirstPredictOnUs',
       'RewardsDataService:getOndoCampaignLeaderboard',
       'RewardsDataService:getOndoCampaignLeaderboardPosition',
       'RewardsDataService:getOndoCampaignPortfolioPosition',
@@ -260,6 +263,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsTradingCampaignLeaderboard',
       'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
       'RewardsDataService:getPerpsTradingCampaignVolume',
+      'RewardsDataService:getPerpsTradingCampaignPrizePool',
       'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
       'RewardsDataService:getPredictThePitchLeaderboard',
       'RewardsDataService:getPredictThePitchLeaderboardPosition',
@@ -268,6 +272,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPredictThePitchPrizePool',
       'RewardsDataService:getMoneyAccountSweepstakesStatsMe',
       'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesVolumeStats',
       'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
       'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
       'RewardsDataService:registerMoneyAccountBinding',
@@ -275,6 +280,7 @@ export function getRewardsControllerMessenger(
     events: [
       'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
+      'AuthenticationController:stateChange',
     ],
   } as Parameters<RootMessenger['delegate']>[0]);
 

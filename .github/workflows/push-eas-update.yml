@@ -33,6 +33,14 @@ on:
           - ios
           - android
         default: all
+      build_attribution:
+        description: "Analytics build attribution. Use 'nightly' for nightly OTA. Official RC OTA is published via Runway OTA RC, not this form. Unofficial leaves rc OTAs as -rc-unofficial."
+        required: false
+        type: choice
+        options:
+          - unofficial
+          - nightly
+        default: unofficial
 
   workflow_call:
     inputs:
@@ -58,10 +66,17 @@ on:
         type: string
         required: false
         default: all
+      build_attribution:
+        description: >-
+          Optional analytics build attribution forwarded to eas-update-platform.yml as
+          METAMASK_BUILD_ATTRIBUTION. Nightly OTA passes 'nightly'. Official RC OTA
+          passes 'official'. Empty or other values report `-rc-unofficial` for rc.
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
-  id-token: write
 
 env:
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
@@ -79,7 +94,7 @@ jobs:
       commit_sha: ${{ steps.resolve-pr.outputs.commit_sha }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -93,29 +108,18 @@ jobs:
           .github/scripts/validate-pr-commit.sh
 
   verify-release-branch:
-    name: Verify release branch (production only)
+    name: Verify release branch
     runs-on: ubuntu-latest
     steps:
-      - name: Enforce release branch for production channel
+      - name: Enforce release branch
         env:
           PR_NUMBER: ${{ inputs.pr_number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          TARGET_CHANNEL: ${{ inputs.channel }}
         run: |
           set -euo pipefail
 
-          if [ "${TARGET_CHANNEL}" != "production" ]; then
-            echo "ℹ️  Channel is '${TARGET_CHANNEL}' — release branch check skipped."
-            {
-              echo "### ℹ️ Release branch check skipped"
-              echo ""
-              echo "Channel \`${TARGET_CHANNEL}\` does not require a release branch."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          echo "🔒 Production channel selected — verifying PR head branch..."
+          echo "🔒 Verifying PR head branch is a release branch..."
 
           OWNER="${GITHUB_REPOSITORY%%/*}"
           REPO="${GITHUB_REPOSITORY#*/}"
@@ -131,22 +135,43 @@ jobs:
           fi
 
           head_ref=$(echo "$pr_details" | jq -r '.head.ref')
+          # head.ref is only the branch name, so a fork branch named release/* would match.
+          head_repo=$(echo "$pr_details" | jq -r '.head.repo.full_name // empty')
 
-          if [[ "$head_ref" != release/* ]]; then
+          if [[ "$head_repo" != "$GITHUB_REPOSITORY" ]]; then
             {
-              echo "### ❌ Production OTA push rejected"
+              echo "### ❌ OTA push rejected"
               echo ""
-              echo "Production channel pushes are only allowed from a release branch PR."
+              echo "OTA pushes are only allowed from a branch in \`${GITHUB_REPOSITORY}\`."
+              echo ""
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| PR | #${PR_NUMBER} |"
+              echo "| Head repository | \`${head_repo:-<deleted>}\` |"
+              echo "| Required repository | \`${GITHUB_REPOSITORY}\` |"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Invalid repository for OTA::PR #${PR_NUMBER} head repository is '${head_repo:-<deleted>}' but must be '${GITHUB_REPOSITORY}'"
+            exit 1
+          fi
+
+          # Only these names are covered by the release branch rulesets (restricted creation and push).
+          RELEASE_BRANCH_PATTERN='^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$'
+
+          if [[ ! "$head_ref" =~ $RELEASE_BRANCH_PATTERN ]]; then
+            {
+              echo "### ❌ OTA push rejected"
+              echo ""
+              echo "OTA pushes are only allowed from a release branch PR."
               echo ""
               echo "| Field | Value |"
               echo "| --- | --- |"
               echo "| PR | #${PR_NUMBER} |"
               echo "| Head branch | \`${head_ref}\` |"
-              echo "| Required pattern | \`release/*\` |"
+              echo "| Required pattern | \`release/X.Y.Z\` or \`release/X.Y.Z-ota\` |"
               echo ""
-              echo "Re-run this workflow against a PR whose head branch is a release branch (for example \`release/7.78.0\`)."
+              echo "Re-run this workflow against a PR whose head branch is a release branch (for example \`release/7.78.0\` or \`release/7.78.1-ota\`)."
             } >> "$GITHUB_STEP_SUMMARY"
-            echo "::error title=Invalid branch for production OTA::PR #${PR_NUMBER} head branch is '${head_ref}' but must match 'release/*'"
+            echo "::error title=Invalid branch for OTA::PR #${PR_NUMBER} head branch is '${head_ref}' but must be 'release/X.Y.Z' or 'release/X.Y.Z-ota'"
             exit 1
           fi
 
@@ -181,6 +206,9 @@ jobs:
     needs:
       - validate-pr
       - verify-release-branch
+    permissions:
+      contents: read
+      id-token: write # requested by setup-node-modules.yml
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.validate-pr.outputs.commit_sha }}
@@ -194,6 +222,9 @@ jobs:
     needs:
       - validate-pr
       - verify-release-branch
+    permissions:
+      contents: read
+      id-token: write # requested by setup-node-modules.yml
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ inputs.base_branch }}
@@ -212,12 +243,12 @@ jobs:
       build_name: ${{ steps.config.outputs.build_name }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.validate-pr.outputs.commit_sha }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -226,17 +257,30 @@ jobs:
 
       - name: Map channel to build name and load config
         id: config
+        env:
+          CHANNEL: ${{ inputs.channel }}
         run: |
-          case "${{ inputs.channel }}" in
-            exp)        BUILD_NAME="main-exp" ;;
-            rc)         BUILD_NAME="main-rc" ;;
-            production) BUILD_NAME="main-prod" ;;
+          # Environment is pinned per channel. builds.yml still supplies the secret mapping.
+          case "${CHANNEL}" in
+            exp)
+              BUILD_NAME="main-exp"
+              ENVIRONMENT_NAME="build-exp"
+              ;;
+            rc)
+              BUILD_NAME="main-rc"
+              ENVIRONMENT_NAME="build-rc"
+              ;;
+            production)
+              BUILD_NAME="main-prod"
+              ENVIRONMENT_NAME="build-production"
+              ;;
             *)
-              echo "::error::Unknown channel: ${{ inputs.channel }}"
+              echo "::error::Unknown channel: ${CHANNEL}"
               exit 1
               ;;
           esac
           echo "build_name=$BUILD_NAME" >> "$GITHUB_OUTPUT"
+          echo "github_environment=$ENVIRONMENT_NAME" >> "$GITHUB_OUTPUT"
 
           node -e "
           const yaml = require('js-yaml');
@@ -244,7 +288,6 @@ jobs:
           const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
           const build = config.builds['${BUILD_NAME}'];
           if (!build) { console.error('Build not found: ${BUILD_NAME}'); process.exit(1); }
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           "
 
@@ -266,20 +309,20 @@ jobs:
       BASE_ARTIFACT_NAME: ${{ needs.setup-dependencies-base.outputs.artifact-name }}
     steps:
       - name: Checkout target commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.validate-pr.outputs.commit_sha }}
           fetch-depth: 1
 
       - name: Checkout base branch snapshot
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ env.BASE_BRANCH_REF }}
           path: main
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -291,7 +334,7 @@ jobs:
           validation-context: PR commit
 
       - name: Download node_modules artifact (PR commit)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.PR_ARTIFACT_NAME }}
 
@@ -327,7 +370,7 @@ jobs:
           validation-context: base branch
 
       - name: Download node_modules artifact (base branch)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.BASE_ARTIFACT_NAME }}
           path: main
@@ -392,6 +435,9 @@ jobs:
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       inputs.channel == 'production'
+    permissions:
+      contents: read
+      id-token: write # token exchange for the team approval check
     runs-on: ubuntu-latest
     steps:
       - name: Get token
@@ -430,6 +476,9 @@ jobs:
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'ios')
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: ios
@@ -438,6 +487,7 @@ jobs:
       channel: ${{ inputs.channel }}
       message: ${{ inputs.message }}
       build_name: ${{ needs.prepare.outputs.build_name }}
+      build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
     secrets: inherit
@@ -448,6 +498,7 @@ jobs:
       - fingerprint-comparison
       - approval
       - validate-pr
+      - verify-release-branch
       - setup-dependencies
       - prepare
     # approval is intentionally skipped for non-production channels, so the default implicit
@@ -456,11 +507,15 @@ jobs:
       always() && !cancelled() &&
       needs.fingerprint-comparison.result == 'success' &&
       needs.validate-pr.result == 'success' &&
+      needs.verify-release-branch.result == 'success' &&
       needs.setup-dependencies.result == 'success' &&
       needs.prepare.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'android')
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: android
@@ -469,6 +524,7 @@ jobs:
       channel: ${{ inputs.channel }}
       message: ${{ inputs.message }}
       build_name: ${{ needs.prepare.outputs.build_name }}
+      build_attribution: ${{ inputs.build_attribution }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
     secrets: inherit

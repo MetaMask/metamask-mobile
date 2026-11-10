@@ -20,7 +20,8 @@ export interface UsePerpsCancelAllOrdersOptions {
   navigateBackOnSuccess?: boolean;
   /**
    * Restricts cancellation to exactly the passed orders. Without it the whole
-   * book is cancelled provider-side, which would over-cancel a filtered view.
+   * book is cancelled provider-side, which would over-cancel a filtered view
+   * and skips the TP/SL orders that a scoped caller may have listed.
    */
   isFiltered?: boolean;
 }
@@ -114,11 +115,14 @@ export const usePerpsCancelAllOrders = (
         }
       }
 
-      // If complete failure, throw error to trigger catch block
-      if (result.successCount === 0 && result.failureCount > 0) {
+      // Nothing cancelled reports as a failure of every order the sheet listed.
+      // `failureCount` is 0 when the request matched no cancelable order at all,
+      // so fall back to the listed count rather than returning quietly — a
+      // silent return reads to the user as a dead button.
+      if (result.successCount === 0) {
         throw new Error(
           strings('perps.cancel_all_modal.error_message', {
-            count: result.failureCount,
+            count: result.failureCount || orders.length,
           }),
         );
       }

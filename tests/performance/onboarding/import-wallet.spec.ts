@@ -18,6 +18,7 @@ import {
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
@@ -47,12 +48,13 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
       );
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
-        // +50 accounts on BrowserStack can take longer than local emulator.
-        { ios: 21000, android: 6000 },
+        // +50 accounts on TestMu can take longer than local emulator.
+        { ios: 21000, android: 2400 },
         currentDeviceDetails.platform,
       );
       const walletTokenLoadTimeoutMs = 60_000;
 
+      await enableHermesAppProfiling();
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
@@ -87,11 +89,11 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
 
       await CreatePasswordView.tapPasswordVisibilityIcon();
       await CreatePasswordView.tapConfirmPasswordVisibilityIcon();
-      await CreatePasswordView.tapIUnderstandCheckBox();
       if (await PlatformDetector.isAndroid()) {
         await AppiumGestures.hideKeyboard();
       }
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
 
       await timer4.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

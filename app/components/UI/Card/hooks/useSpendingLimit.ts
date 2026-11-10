@@ -234,8 +234,10 @@ const useSpendingLimit = ({
   const isUiInteractionLocked =
     isLoading && (!isMoneyAccountSource || isOnboardingFlow);
 
-  isLoadingRef.current = isLoading;
-  isMoneyAccountSourceRef.current = isMoneyAccountSource;
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+    isMoneyAccountSourceRef.current = isMoneyAccountSource;
+  }, [isLoading, isMoneyAccountSource]);
 
   // Wallet-only token balances for the currently selected MetaMask account.
   // Using this (instead of useAssetBalances) ensures sorting reflects the active

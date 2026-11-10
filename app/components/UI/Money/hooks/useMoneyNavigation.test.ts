@@ -7,7 +7,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
+import {
+  MoneyPostOnboardingRedirectType,
+  type MoneyOnboardingParams,
+} from '../types/navigation';
 
 const mockNavigate = jest.fn();
 const analyticsContext = {
@@ -73,7 +76,7 @@ describe('useMoneyNavigation', () => {
     it('forwards analytics context through Money onboarding', () => {
       const { result } = renderHook(() => useMoneyNavigation());
 
-      act(() => result.current.navigateToMoneyHome(analyticsContext));
+      act(() => result.current.navigateToMoneyHome({ analyticsContext }));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
         analyticsContext,
@@ -108,7 +111,7 @@ describe('useMoneyNavigation', () => {
       });
       const { result } = renderHook(() => useMoneyNavigation());
 
-      act(() => result.current.navigateToMoneyHome(analyticsContext));
+      act(() => result.current.navigateToMoneyHome({ analyticsContext }));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.HOME_TABS,
@@ -154,7 +157,7 @@ describe('useMoneyOnboardingNavigation', () => {
   });
 
   it('redirects to onboarding with post-onboarding deposit params', () => {
-    const params = {
+    const params: MoneyOnboardingParams = {
       postOnboardingRedirect: {
         type: MoneyPostOnboardingRedirectType.DEPOSIT,
         preferredPaymentToken: {

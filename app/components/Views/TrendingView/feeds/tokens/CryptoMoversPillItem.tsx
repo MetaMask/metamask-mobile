@@ -4,17 +4,16 @@ import { isCaipChainId } from '@metamask/utils';
 import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import {
   getCaipChainIdFromAssetId,
-  getNetworkBadgeSource,
+  getNetworkBadgeSrc,
   getPriceChangeFieldKey,
 } from '../../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import TrendingTokenLogo from '../../../../UI/Trending/components/TrendingTokenLogo';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import {
+  BadgeNetwork,
+  BadgeWrapperPosition,
+  BadgeWrapper,
+  Box,
+} from '@metamask/design-system-react-native';
 import { useTrendingTokenPress } from '../../../../UI/Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { CRYPTO_MOVERS_HOME_FILTER_CONTEXT } from '../search-utils';
@@ -54,7 +53,7 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   const networkBadgeImageSource = useMemo(() => {
     const caipChainId = getCaipChainIdFromAssetId(token.assetId);
     if (!isCaipChainId(caipChainId)) return undefined;
-    return getNetworkBadgeSource(caipChainId);
+    return getNetworkBadgeSrc(caipChainId);
   }, [token.assetId]);
 
   const { changeLabel, changeTextColor } = useMemo(() => {
@@ -64,24 +63,21 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
 
   const leading = useMemo(
     () => (
-      <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            size={AvatarSize.Xs}
-            variant={BadgeVariant.Network}
-            imageSource={networkBadgeImageSource}
-            isScaled={false}
+      <Box twClassName="mr-2">
+        <BadgeWrapper
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
+            <BadgeNetwork src={networkBadgeImageSource} twClassName="h-4 w-4" />
+          }
+        >
+          <TrendingTokenLogo
+            assetId={token.assetId}
+            symbol={token.symbol}
+            size={LOGO_SIZE}
+            recyclingKey={token.assetId}
           />
-        }
-      >
-        <TrendingTokenLogo
-          assetId={token.assetId}
-          symbol={token.symbol}
-          size={LOGO_SIZE}
-          recyclingKey={token.assetId}
-        />
-      </BadgeWrapper>
+        </BadgeWrapper>
+      </Box>
     ),
     [networkBadgeImageSource, token.assetId, token.symbol],
   );

@@ -5,11 +5,17 @@ import { type OrderFill } from '@metamask/perps-controller';
 
 // Mock the stream provider
 const mockSubscribe = jest.fn();
+const mockRetryOrderStreams = jest.fn();
+const mockGetError = jest.fn((): Error | null => null);
+const mockGetSnapshot = jest.fn((): OrderFill[] | null => []);
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
+    retryOrderStreams: mockRetryOrderStreams,
     fills: {
       subscribe: mockSubscribe,
+      getError: mockGetError,
+      getSnapshot: mockGetSnapshot,
     },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -32,11 +38,29 @@ describe('usePerpsLiveFills', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSubscribe.mockReset().mockReturnValue(jest.fn());
+    mockGetError.mockReturnValue(null);
+    mockGetSnapshot.mockReturnValue([]);
     jest.useFakeTimers();
   });
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  it('retains the failed provider error while healthy data renders', () => {
+    mockSubscribe.mockReturnValue(jest.fn());
+    const { result } = renderHook(() => usePerpsLiveFills());
+    const subscription = mockSubscribe.mock.calls[0][0];
+    const failure = new Error('Lighter authentication failed');
+    mockGetError.mockReturnValue(failure);
+    act(() => subscription.onError(failure));
+    act(() => subscription.callback([mockFill]));
+    expect(result.current.fills).toHaveLength(1);
+    expect(result.current.error).toBe(failure);
+    mockGetError.mockReturnValue(null);
+    act(() => subscription.callback([]));
+    expect(result.current.error).toBeNull();
   });
 
   it('subscribes to fills on mount', () => {
@@ -47,6 +71,7 @@ describe('usePerpsLiveFills', () => {
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs,
     });
   });
@@ -62,6 +87,20 @@ describe('usePerpsLiveFills', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
+  it('settles loading with an error and retries both authenticated channels', () => {
+    const { result } = renderHook(() => usePerpsLiveFills());
+    const failure = new Error('Trading key rejected');
+
+    act(() => mockSubscribe.mock.calls[0][0].onError(failure));
+
+    expect(result.current.error).toBe(failure);
+    expect(result.current.isInitialLoading).toBe(false);
+
+    act(() => result.current.retry());
+
+    expect(mockRetryOrderStreams).toHaveBeenCalledTimes(1);
+  });
+
   it('updates fills when callback is invoked', async () => {
     let capturedCallback: (fills: OrderFill[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
@@ -72,7 +111,10 @@ describe('usePerpsLiveFills', () => {
     const { result } = renderHook(() => usePerpsLiveFills());
 
     // Initially empty with isInitialLoading false (fills always start as [])
-    expect(result.current).toEqual({ fills: [], isInitialLoading: false });
+    expect(result.current).toMatchObject({
+      fills: [],
+      isInitialLoading: false,
+    });
 
     // Simulate fills update
     const fills: OrderFill[] = [
@@ -96,6 +138,7 @@ describe('usePerpsLiveFills', () => {
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs: 0, // Default value for fills (immediate)
     });
   });
@@ -117,6 +160,7 @@ describe('usePerpsLiveFills', () => {
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs: 2000,
     });
 
@@ -127,6 +171,7 @@ describe('usePerpsLiveFills', () => {
     expect(mockUnsubscribe1).toHaveBeenCalled();
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onError: expect.any(Function),
       throttleMs: 3000,
     });
   });
@@ -184,6 +229,33 @@ describe('usePerpsLiveFills', () => {
     await waitFor(() => {
       expect(result.current.fills).toEqual(validFills);
     });
+  });
+
+  it('starts loading when the account context has no fills snapshot', () => {
+    mockGetSnapshot.mockReturnValue(null);
+    mockSubscribe.mockReturnValue(jest.fn());
+
+    const { result } = renderHook(() => usePerpsLiveFills());
+
+    expect(result.current.fills).toEqual([]);
+    expect(result.current.isInitialLoading).toBe(true);
+  });
+
+  it('returns to loading when the account context clears', () => {
+    let capturedCallback: ((fills: OrderFill[]) => void) | undefined;
+    mockSubscribe.mockImplementation(({ callback }) => {
+      capturedCallback = callback;
+      return jest.fn();
+    });
+    const { result } = renderHook(() => usePerpsLiveFills());
+    act(() => capturedCallback?.([mockFill]));
+    expect(result.current.isInitialLoading).toBe(false);
+
+    mockGetSnapshot.mockReturnValue(null);
+    act(() => capturedCallback?.([]));
+
+    expect(result.current.fills).toEqual([]);
+    expect(result.current.isInitialLoading).toBe(true);
   });
 
   it('replaces fills on each update', async () => {

@@ -239,7 +239,7 @@ describe('QRInfo', () => {
     expect(mockQrKeyringBridge.resolvePendingScan).not.toHaveBeenCalled();
     expect(
       getByText(
-        "Incongruent transaction data. Please use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
+        "Incongruent transaction data. Use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
       ),
     ).toBeOnTheScreen();
   });
@@ -261,7 +261,7 @@ describe('QRInfo', () => {
     fireEvent.press(getByText('onScanSuccess'));
 
     const errorText =
-      "Incongruent transaction data. Please use your hardware wallet to sign the QR code below and tap 'Get Signature'.";
+      "Incongruent transaction data. Use your hardware wallet to sign the QR code below and tap 'Get Signature'.";
     expect(getByText(errorText)).toBeOnTheScreen();
 
     fireEvent.press(getByText(errorText));
@@ -289,7 +289,7 @@ describe('QRInfo', () => {
     expect(mockQrKeyringBridge.resolvePendingScan).not.toHaveBeenCalled();
     expect(
       getByText(
-        "Incongruent transaction data. Please use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
+        "Incongruent transaction data. Use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
       ),
     ).toBeOnTheScreen();
   });

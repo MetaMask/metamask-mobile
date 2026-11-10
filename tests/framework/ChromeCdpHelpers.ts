@@ -2,17 +2,20 @@
 import { execFileSync } from 'child_process';
 import { WebSocket as WsClient } from 'ws';
 import type { Context } from '@wdio/protocols';
-import type { AndroidDetailedContext } from 'webdriverio/build/types';
+import type { AndroidDetailedContext } from 'webdriverio';
 import { APP_PACKAGE_IDS } from './Constants.ts';
 import { getDriver, executeMobileDeepLink } from './AppiumUtilities';
 import { PlatformDetector } from './PlatformLocator';
 import AppiumContextHelpers from './AppiumContextHelpers';
+import { tapWebIdFallingBackToDomClick } from './IosWebViewTap.ts';
 import { createAppiumLogger } from './appiumLogger.ts';
+import {
+  adbDeviceArgs,
+  chromeCdpForwardPort,
+  metamaskWebViewCdpForwardPort,
+} from './e2eWorkerPorts.ts';
 
 const logger = createAppiumLogger('ChromeCdpHelpers');
-
-/** Host port for `adb forward` to Chrome's `@chrome_devtools_remote` socket. */
-const CDP_FORWARD_PORT = 9222;
 const CDP_READY_TIMEOUT_MS = 20_000;
 const DAPP_PAGE_TIMEOUT_MS = 30_000;
 /** SDK opens metamask:// only after transport `session_request` (can take several seconds). */
@@ -158,6 +161,51 @@ class CdpSession {
     return result.result?.value as T;
   }
 
+  /**
+   * Like {@link evaluate}, but a destroyed execution context, CDP error, or
+   * timeout resolves to `null` so a reload poll can continue until its deadline.
+   */
+  async evaluateOptional<T>(expression: string): Promise<T | null> {
+    if (this.ws.readyState !== WsClient.OPEN) {
+      return null;
+    }
+
+    const id = this.nextId++;
+    return new Promise<T | null>((resolve) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        resolve(null);
+      }, 15_000);
+      this.pending.set(id, {
+        resolve: (value) => {
+          clearTimeout(timer);
+          const result = value as CdpEvaluateResult;
+          if (result.exceptionDetails) {
+            resolve(null);
+            return;
+          }
+          resolve((result.result?.value ?? null) as T | null);
+        },
+        reject: () => {
+          clearTimeout(timer);
+          resolve(null);
+        },
+      });
+      this.ws.send(
+        JSON.stringify({
+          id,
+          method: 'Runtime.evaluate',
+          params: {
+            expression,
+            returnByValue: true,
+            awaitPromise: true,
+            userGesture: false,
+          },
+        }),
+      );
+    });
+  }
+
   close(): void {
     for (const [, waiter] of this.pending) {
       waiter.reject(new Error('CDP session closed'));
@@ -179,7 +227,7 @@ export default class ChromeCdpHelpers {
   /**
    * Forward host → device Chrome DevTools abstract socket.
    */
-  private static ensureAdbForward(port = CDP_FORWARD_PORT): void {
+  private static ensureAdbForward(port = chromeCdpForwardPort()): void {
     this.ensureAdbForwardToAbstractSocket(port, 'chrome_devtools_remote');
     logger.debug(`ADB forwarded tcp:${port} → chrome_devtools_remote`);
   }
@@ -193,15 +241,24 @@ export default class ChromeCdpHelpers {
     abstractSocket: string,
   ): void {
     try {
-      execFileSync('adb', ['forward', '--remove', `tcp:${port}`], {
-        stdio: 'pipe',
-      });
+      execFileSync(
+        'adb',
+        [...adbDeviceArgs(), 'forward', '--remove', `tcp:${port}`],
+        {
+          stdio: 'pipe',
+        },
+      );
     } catch {
       // No existing forward is fine.
     }
     execFileSync(
       'adb',
-      ['forward', `tcp:${port}`, `localabstract:${abstractSocket}`],
+      [
+        ...adbDeviceArgs(),
+        'forward',
+        `tcp:${port}`,
+        `localabstract:${abstractSocket}`,
+      ],
       { stdio: 'pipe' },
     );
   }
@@ -642,7 +699,7 @@ export default class ChromeCdpHelpers {
     }
 
     this.ensureAdbForward();
-    const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
+    const endpoint = `http://127.0.0.1:${chromeCdpForwardPort()}`;
     await this.waitForCdpEndpoint(endpoint);
     return endpoint;
   }
@@ -809,7 +866,6 @@ export default class ChromeCdpHelpers {
   // is cached so `mobile: getContexts` (which can be slow) is called at most
   // once per test — call `resetMetaMaskWebViewCache()` between tests.
 
-  private static readonly MM_WV_CDP_PORT = 10902;
   private static cachedMmWebViewSocket: string | null = null;
 
   /** Clear the WebView socket cache — call at the start of each test. */
@@ -821,10 +877,10 @@ export default class ChromeCdpHelpers {
     if (this.cachedMmWebViewSocket) {
       try {
         this.ensureAdbForwardToAbstractSocket(
-          this.MM_WV_CDP_PORT,
+          metamaskWebViewCdpForwardPort(),
           this.cachedMmWebViewSocket,
         );
-        const endpoint = `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+        const endpoint = `http://127.0.0.1:${metamaskWebViewCdpForwardPort()}`;
         // adb forward succeeds even when the abstract socket is gone — probe CDP.
         const response = await fetch(`${endpoint}/json/version`);
         if (response.ok) {
@@ -848,9 +904,12 @@ export default class ChromeCdpHelpers {
     if (!mmCtx?.proc) throw new Error('MetaMask WebView CDP context not found');
 
     const socketName = mmCtx.proc.replace(/^@/, '');
-    this.ensureAdbForwardToAbstractSocket(this.MM_WV_CDP_PORT, socketName);
+    this.ensureAdbForwardToAbstractSocket(
+      metamaskWebViewCdpForwardPort(),
+      socketName,
+    );
     this.cachedMmWebViewSocket = socketName;
-    return `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+    return `http://127.0.0.1:${metamaskWebViewCdpForwardPort()}`;
   }
 
   private static async withMetaMaskWebViewSession<T>(
@@ -915,7 +974,8 @@ export default class ChromeCdpHelpers {
    * Click an element by HTML `id` in the MetaMask in-app WebView.
    * Waits until the control exists and is not disabled (test-dapp buttons start
    * disabled until connect / contract deploy), then clicks.
-   * Android: CDP trusted click. iOS: Appium WebView context + element.click().
+   * Android: CDP trusted click. iOS: Appium WebView context, with a page-script
+   * click when LavaMoat scuttling blocks the remote-debugger element click.
    */
   static async clickByIdInWebView(
     dappUrl: string,
@@ -949,7 +1009,9 @@ export default class ChromeCdpHelpers {
       await el.waitForExist({ timeout: timeoutMs });
       await el.waitForEnabled({ timeout: timeoutMs });
       await el.scrollIntoView();
-      await el.click();
+      await tapWebIdFallingBackToDomClick(elementId, async () => {
+        await el.click();
+      });
       await AppiumContextHelpers.switchToNativeContext();
       return true;
     } catch {
@@ -1037,7 +1099,8 @@ export default class ChromeCdpHelpers {
   }
 
   /**
-   * Poll until the element's `textContent` is non-empty (truthy).
+   * Poll until the element's `textContent` is non-empty (truthy), optionally
+   * requiring `includes` as a substring (trimmed).
    * Android: single CDP session held open for the full duration.
    * iOS: Appium WebView context held open for the full duration.
    */
@@ -1045,7 +1108,18 @@ export default class ChromeCdpHelpers {
     dappUrl: string,
     elementId: string,
     timeoutMs = 10_000,
+    options?: { includes?: string },
   ): Promise<string | null> {
+    const textMatches = (text: string | null): boolean => {
+      if (!text) {
+        return false;
+      }
+      if (!options?.includes) {
+        return true;
+      }
+      return text.trim().includes(options.includes);
+    };
+
     if (PlatformDetector.isAndroid()) {
       try {
         return await this.withMetaMaskWebViewSession(
@@ -1053,13 +1127,13 @@ export default class ChromeCdpHelpers {
           async (session) => {
             const deadline = Date.now() + timeoutMs;
             while (Date.now() < deadline) {
-              const text = await session.evaluate<string | null>(
+              const text = await session.evaluateOptional<string>(
                 `(() => {
                 const el = document.getElementById(${JSON.stringify(elementId)});
                 return el ? (el.textContent ?? null) : null;
               })()`,
               );
-              if (text) return text;
+              if (textMatches(text)) return text;
               await new Promise<void>((r) => setTimeout(r, POLL_MS));
             }
             return null;
@@ -1078,7 +1152,7 @@ export default class ChromeCdpHelpers {
           const text = (await getDriver().execute(
             `return document.getElementById(${JSON.stringify(elementId)})?.textContent ?? null`,
           )) as string | null;
-          if (text) {
+          if (textMatches(text)) {
             await AppiumContextHelpers.switchToNativeContext();
             return text;
           }

@@ -347,7 +347,11 @@ describe('BridgeStatusController Init', () => {
 
       onQuoteStatusManagerError?.(error);
 
-      expect(captureException).toHaveBeenCalledWith(error);
+      expect(captureException).toHaveBeenCalledWith(error, {
+        tags: {
+          feature: 'swap',
+        },
+      });
     });
 
     it('does not call captureException for QuoteStatusGetError', () => {

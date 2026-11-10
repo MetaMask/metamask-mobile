@@ -1,6 +1,6 @@
 import { SDK } from '@metamask/profile-sync-controller';
 import { getBuildType } from '../OAuthService/OAuthLoginHandlers/constants';
-import { authEnv } from '../devApiEnv';
+import { authEnv } from '../apiEnv';
 
 export const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
 

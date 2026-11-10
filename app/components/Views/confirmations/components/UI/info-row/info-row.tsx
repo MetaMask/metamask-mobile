@@ -36,6 +36,7 @@ export interface InfoRowProps {
   testID?: string;
   variant?: TextColor;
   copyText?: string;
+  copyIconColor?: IconColor;
   valueOnNewLine?: boolean;
   withIcon?: {
     color: IconColor;
@@ -59,6 +60,7 @@ const InfoRow = ({
   testID,
   variant = TextColor.TextAlternative,
   copyText,
+  copyIconColor = IconColor.Muted,
   valueOnNewLine = false,
   withIcon,
   rowVariant = InfoRowVariant.Default,
@@ -117,7 +119,7 @@ const InfoRow = ({
         )}
         {valueOnNewLine ? null : ValueComponent}
         {copyText && (
-          <CopyIcon textToCopy={copyText ?? ''} color={IconColor.Muted} />
+          <CopyIcon textToCopy={copyText ?? ''} color={copyIconColor} />
         )}
         {withIcon && (
           <Icon

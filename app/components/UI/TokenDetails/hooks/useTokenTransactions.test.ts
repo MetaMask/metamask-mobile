@@ -5,7 +5,6 @@ import { TokenI } from '../../Tokens/types';
 import { TX_CONFIRMED } from '../../../../constants/transaction';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
-import { selectIsActivityRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -38,13 +37,6 @@ jest.mock('../../../../selectors/transactionController', () => ({
   selectSwapsTransactions: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/activityRedesign',
-  () => ({
-    selectIsActivityRedesignEnabled: jest.fn(),
-  }),
-);
-
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountAddress: jest.fn(),
@@ -60,6 +52,7 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 }));
 
 jest.mock('../../../../util/activity', () => ({
+  ...jest.requireActual('../../../../util/activity'),
   sortTransactions: jest.fn((txs: unknown[]) => txs),
 }));
 
@@ -154,26 +147,24 @@ const createAsset = (overrides: Partial<TokenI> = {}): TokenI => ({
 const setupMocks = (
   transactions: unknown[] = [],
   {
-    isActivityRedesignEnabled = false,
     bridgeHistory = {} as Record<string, unknown>,
+    selectedAddress = MOCK_ADDRESS,
   } = {},
 ) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectTransactions) return transactions;
     if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
-    if (selector === selectIsActivityRedesignEnabled)
-      return isActivityRedesignEnabled;
     if (selector === selectTokens) return [];
     if (selector === selectSelectedInternalAccount) {
-      return { address: MOCK_ADDRESS, metadata: { importTime: 0 } };
+      return { address: selectedAddress, metadata: { importTime: 0 } };
     }
     if (selector === selectSelectedInternalAccountByScope) {
-      return () => ({ address: MOCK_ADDRESS });
+      return () => ({ address: selectedAddress });
     }
     if (selector === selectConversionRate) return 1;
     if (selector === selectCurrentCurrency) return 'usd';
     // Inline selector for selectedAddressForAsset
-    return MOCK_ADDRESS;
+    return selectedAddress;
   });
 };
 
@@ -279,6 +270,43 @@ describe('useTokenTransactions', () => {
       expect(result.current.confirmedTxs.length).toBe(1);
     });
 
+    it('includes an ERC20 transfer on the recipient token page', async () => {
+      const transferData =
+        `0xa9059cbb${MOCK_RECIPIENT.slice(2).padStart(64, '0')}` +
+        '1'.padStart(64, '0');
+      const tx = createMockTransaction({
+        chainId: ETH_CHAIN_ID,
+        txParams: {
+          from: MOCK_ADDRESS,
+          to: MOCK_TOKEN_ADDRESS,
+          data: transferData,
+        },
+        isTransfer: true,
+        transferInformation: {
+          contractAddress: MOCK_TOKEN_ADDRESS,
+        },
+      });
+      setupMocks([tx], { selectedAddress: MOCK_RECIPIENT });
+
+      const asset = createAsset({
+        symbol: 'DAI',
+        isETH: false,
+        isNative: false,
+        address: MOCK_TOKEN_ADDRESS,
+        chainId: ETH_CHAIN_ID,
+      });
+
+      const { result } = renderHook(() => useTokenTransactions(asset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs).toEqual([
+        expect.objectContaining({ id: 'tx-1' }),
+      ]);
+    });
+
     it('excludes unrelated transactions from ERC20 token view', async () => {
       const tx = createMockTransaction({
         chainId: ETH_CHAIN_ID,
@@ -372,7 +400,7 @@ describe('useTokenTransactions', () => {
         type: TransactionType.gasPayment,
         txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
       });
-      setupMocks([send, fee], { isActivityRedesignEnabled: true });
+      setupMocks([send, fee]);
 
       const asset = createAsset({
         symbol: 'USDT',
@@ -388,38 +416,6 @@ describe('useTokenTransactions', () => {
       });
 
       expect(result.current.transactions.map((tx) => tx.id)).toEqual(['send']);
-    });
-
-    it('keeps gas_payment transactions when activity redesign is off', async () => {
-      const send = createMockTransaction({
-        id: 'send',
-        type: TransactionType.simpleSend,
-        txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
-      });
-      const fee = createMockTransaction({
-        id: 'fee',
-        type: TransactionType.gasPayment,
-        txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
-      });
-      setupMocks([send, fee], { isActivityRedesignEnabled: false });
-
-      const asset = createAsset({
-        symbol: 'USDT',
-        isETH: false,
-        isNative: false,
-        address: MOCK_TOKEN_ADDRESS,
-      });
-
-      const { result } = renderHook(() => useTokenTransactions(asset));
-
-      await waitFor(() => {
-        expect(result.current.transactionsUpdated).toBe(true);
-      });
-
-      expect(result.current.transactions.map((tx) => tx.id).sort()).toEqual([
-        'fee',
-        'send',
-      ]);
     });
   });
 
@@ -860,7 +856,6 @@ describe('useTokenTransactions', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectTransactions) return evmTxs;
         if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
-        if (selector === selectIsActivityRedesignEnabled) return true;
         if (selector === selectTokens) return [];
         if (selector === selectSelectedInternalAccount) {
           return { address: SOLANA_ADDRESS, metadata: { importTime: 0 } };
@@ -1004,7 +999,6 @@ describe('useTokenTransactions', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectTransactions) return [];
         if (selector === selectBridgeHistoryForAccount) return {};
-        if (selector === selectIsActivityRedesignEnabled) return true;
         if (selector === selectTokens) return [];
         if (selector === selectSelectedInternalAccount) {
           return { address: SOLANA_ADDRESS, metadata: { importTime: 0 } };
@@ -1122,6 +1116,59 @@ describe('useTokenTransactions', () => {
       expect(result.current.transactions.map((tx) => tx.id)).toEqual([
         'swap-mixed',
       ]);
+    });
+
+    it('replaces a pending unknown row when the same non-EVM transaction confirms', async () => {
+      const pendingTx = {
+        id: 'tron-swap-1',
+        chain: SOLANA_CHAIN_ID,
+        type: 'unknown',
+        status: 'unconfirmed',
+        time: 2,
+        from: [createSolanaMovement(SOL_ASSET_ID, 'SOL')],
+        to: [],
+      };
+
+      setupNonEvmMocks([pendingTx]);
+
+      const { result, rerender } = renderHook(() =>
+        useTokenTransactions(
+          solanaAsset({
+            symbol: 'SOL',
+            name: 'Solana',
+            isNative: true,
+            address: SOL_ASSET_ID,
+          }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactions).toHaveLength(1);
+      });
+
+      expect(result.current.transactions[0]).toMatchObject({
+        id: 'tron-swap-1',
+        type: 'unknown',
+        status: 'unconfirmed',
+      });
+
+      setupNonEvmMocks([
+        {
+          ...pendingTx,
+          type: 'send',
+          status: TX_CONFIRMED,
+          to: [createSolanaMovement(USDC_ASSET_ID, 'USDC')],
+        },
+      ]);
+      rerender({});
+
+      await waitFor(() => {
+        expect(result.current.transactions[0]).toMatchObject({
+          id: 'tron-swap-1',
+          type: 'send',
+          status: TX_CONFIRMED,
+        });
+      });
     });
   });
 });

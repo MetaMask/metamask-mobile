@@ -3,6 +3,7 @@ import {
   PhishingDetectorResultType,
   PhishingController as PhishingControllerClass,
   RecommendedAction,
+  RequestSourceFlow,
 } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 
@@ -13,16 +14,18 @@ import Engine from '../core/Engine';
  * entries on shared-host domains can be evaluated correctly.
  *
  * @param url - Full URL, origin, or hostname to check
+ * @param flow - The user flow that triggered the scan
  * @returns Phishing test result object — `result` is true if the site is UNSAFE
  */
 export const getPhishingTestResultAsync = async (
   url: string,
+  flow: RequestSourceFlow,
 ): Promise<PhishingDetectorResult> => {
   const { PhishingController } = Engine.context as {
     PhishingController: PhishingControllerClass;
   };
 
-  const scanResult = await PhishingController.scanUrl(url);
+  const scanResult = await PhishingController.scanUrl(url, flow);
   return {
     // result is true if site is UNSAFE (Block action)
     result:

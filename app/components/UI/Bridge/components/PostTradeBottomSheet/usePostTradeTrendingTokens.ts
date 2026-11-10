@@ -65,7 +65,7 @@ export const usePostTradeTrendingTokens = ({
     },
     enabled: isQueryEnabled,
     staleTime: STALE_TIME_MS,
-    cacheTime: STALE_TIME_MS,
+    gcTime: STALE_TIME_MS,
   });
   const destinationTokens = useMemo(
     () =>
@@ -86,7 +86,7 @@ export const usePostTradeTrendingTokens = ({
     queryFn: () => getSortedTrendingTokens(NetworkToCaipChainId.ETHEREUM),
     enabled: isFallbackEnabled,
     staleTime: STALE_TIME_MS,
-    cacheTime: STALE_TIME_MS,
+    gcTime: STALE_TIME_MS,
   });
   const tokens = useMemo(() => {
     if (!shouldFillWithFallback || !fallbackQuery.data?.length) {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyGeoBlockSheet from './MoneyGeoBlockSheet';
@@ -6,11 +7,12 @@ import { MoneyGeoBlockSheetTestIds } from './MoneyGeoBlockSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
-import Routes from '../../../../../constants/navigation/Routes';
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 const mockNavigate = jest.fn();
+const mockParentGoBack = jest.fn();
+const mockGetParent = jest.fn(() => ({ goBack: mockParentGoBack }));
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -22,6 +24,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      getParent: mockGetParent,
     }),
   };
 });
@@ -89,6 +92,50 @@ describe('MoneyGeoBlockSheet', () => {
     );
   });
 
+  it('renders eligibility failure copy when geolocation errors without a known location', () => {
+    const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />, {
+      state: {
+        engine: {
+          backgroundState: {
+            GeolocationController: {
+              location: UNKNOWN_LOCATION,
+              status: 'error',
+            },
+          },
+        },
+      },
+    });
+
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+      strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title'),
+    );
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.BODY)).toHaveTextContent(
+      strings('fiat_on_ramp_aggregator.eligibility_failed_modal.description'),
+    );
+  });
+
+  it('renders geo-block copy when geolocation errors with a known location', () => {
+    const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />, {
+      state: {
+        engine: {
+          backgroundState: {
+            GeolocationController: {
+              location: 'US',
+              status: 'error',
+            },
+          },
+        },
+      },
+    });
+
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+      strings('money.geo_block.title'),
+    );
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.BODY)).toHaveTextContent(
+      strings('money.geo_block.description'),
+    );
+  });
+
   it('renders continue button copy', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
 
@@ -97,32 +144,35 @@ describe('MoneyGeoBlockSheet', () => {
     ).toHaveTextContent(strings('money.geo_block.button'));
   });
 
-  it('closes sheet and navigates to wallet home when continue button is pressed', () => {
+  it('dismisses the Money modal gateway when continue is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
 
     fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.CONTINUE_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('closes sheet and navigates to wallet home when bottom sheet close callback runs', () => {
+  it('dismisses the Money modal gateway when the bottom sheet close callback runs', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
     const sheet = getByTestId(MoneyGeoBlockSheetTestIds.SHEET);
 
     sheet.props.onClose();
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('closes sheet and navigates to wallet home when header close button is pressed', () => {
+  it('dismisses the Money modal gateway when the header close button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
 
     fireEvent.press(getByTestId(MoneyGeoBlockSheetTestIds.CLOSE_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   describe('analytics', () => {

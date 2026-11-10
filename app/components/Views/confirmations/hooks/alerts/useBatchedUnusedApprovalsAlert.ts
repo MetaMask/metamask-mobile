@@ -15,7 +15,7 @@ import { APPROVAL_TYPES } from '../../constants/approvals';
 import { AlertKeys } from '../../constants/alerts';
 import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
-import { Severity } from '../../types/alerts';
+import { NO_ALERTS, Severity } from '../../types/alerts';
 import { memoizedGetTokenStandardAndDetails } from '../../utils/token';
 import {
   parseApprovalTransactionData,
@@ -234,7 +234,7 @@ export const useBatchedUnusedApprovalsAlert = () => {
 
   return useMemo(() => {
     if (!shouldShowAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

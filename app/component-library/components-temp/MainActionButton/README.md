@@ -75,7 +75,7 @@ const ActionButtonExample = () => (
       onPress={() => console.log('Swap pressed')}
     />
     <MainActionButton
-      iconName={IconName.Receive}
+      iconName={IconName.Received}
       label="Receive"
       onPress={() => console.log('Receive pressed')}
     />

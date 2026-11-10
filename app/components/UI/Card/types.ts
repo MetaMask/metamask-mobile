@@ -38,7 +38,6 @@ export enum CardMessageBoxType {
   KYCPending = 'kyc_pending',
   Blocked = 'blocked',
   CardProvisioning = 'card_provisioning',
-  PendingVerification = 'pending_verification',
   AuthPrompt = 'auth_prompt',
   CashbackFundingRequired = 'cashback_funding_required',
   CashbackMoneyAccountRequired = 'cashback_money_account_required',
@@ -46,7 +45,21 @@ export enum CardMessageBoxType {
   CreditMoneyAccountRequired = 'credit_money_account_required',
   CreditAvailable = 'credit_available',
   CreditAvailableNoMoneyAccount = 'credit_available_no_money_account',
+  UkMigrationSoft = 'uk_migration_soft',
+  UkMigrationRequired = 'uk_migration_required',
+  WalletVerificationPending = 'wallet_verification_pending',
 }
+
+/**
+ * How the `card_provisioning` alert should render. Providers that reconcile
+ * provisioning state client-side narrow this; the rest keep the default
+ * `provisioning` banner.
+ */
+export type CardProvisioningView =
+  | 'reconciling'
+  | 'hidden'
+  | 'kyc_under_review'
+  | 'provisioning';
 
 export type CardUserPhase =
   | 'ACCOUNT'
@@ -354,6 +367,11 @@ export interface UserResponse {
   mailingUsState?: string | null; // Required for US users
   contactVerificationId?: string | null;
   createdAt?: string | null;
+  /**
+   * Card processor for this account. Known values are `galileo` and
+   * `monavate`, compared exactly. Omitted responses fail a processor rule.
+   */
+  cardProvider?: string;
 }
 
 // Country type definition

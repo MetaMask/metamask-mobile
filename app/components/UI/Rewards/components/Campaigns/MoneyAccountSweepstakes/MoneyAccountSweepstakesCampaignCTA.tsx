@@ -13,6 +13,7 @@ import type {
   MoneyAccountSweepstakesLocalizedTextDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { ConfirmationLaunchSource } from '../../../../../Views/confirmations/components/confirm/confirm-component';
 import useCampaignGeoRestriction from '../../../hooks/useCampaignGeoRestriction';
 import { useHasActionableAddMoneyOptions } from '../../../hooks/useHasActionableAddMoneyOptions';
 import { useMoneyAccountSweepstakesBinding } from '../../../hooks/useMoneyAccountSweepstakesBinding';
@@ -94,6 +95,9 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     }
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      // Lands the funded user on Money home pushed over this campaign, so back
+      // returns to Rewards instead of dropping them on the Money tab.
+      params: { launchedFrom: ConfirmationLaunchSource.Rewards },
     });
   }, [hasActionableAddMoneyOptions, navigation]);
 

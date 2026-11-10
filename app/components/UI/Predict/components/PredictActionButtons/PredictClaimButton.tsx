@@ -9,6 +9,7 @@ import {
   Box,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 
 import SensitiveText, {
   SensitiveTextLength,
@@ -59,14 +60,26 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
   disabled = false,
   isLoading = false,
   isHidden = false,
+  isGlass = false,
   testID = PREDICT_CLAIM_BUTTON_TEST_IDS.PREDICT_CLAIM_BUTTON,
 }) => {
+  const isDisabled = disabled || isLoading;
+
+  const withGlass = (button: React.ReactElement) =>
+    isGlass ? (
+      <BoxGlass radiusClassName="rounded-full" isInteractive={!isDisabled}>
+        {button}
+      </BoxGlass>
+    ) : (
+      button
+    );
+
   if (amount === undefined) {
-    return (
+    return withGlass(
       <ButtonHero
         size={ButtonHeroSize.Lg}
         onPress={onPress}
-        isDisabled={disabled || isLoading}
+        isDisabled={isDisabled}
         testID={testID}
         isFullWidth
       >
@@ -75,7 +88,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
         ) : (
           strings('predict.claim_winnings_text')
         )}
-      </ButtonHero>
+      </ButtonHero>,
     );
   }
 
@@ -83,11 +96,11 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
     amount: amount.toFixed(2),
   });
 
-  return (
+  return withGlass(
     <ButtonHero
       size={ButtonHeroSize.Lg}
       onPress={onPress}
-      isDisabled={disabled || isLoading}
+      isDisabled={isDisabled}
       testID={testID}
       isFullWidth
     >
@@ -96,7 +109,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
       ) : (
         <AmountLabel label={amountLabel} isHidden={isHidden} />
       )}
-    </ButtonHero>
+    </ButtonHero>,
   );
 };
 

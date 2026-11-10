@@ -11,6 +11,7 @@ import {
   formatColumnValue,
   formatOrderBookPrice,
   getOrderBookPriceFormat,
+  getOrderBookPriceValue,
 } from './orderBookGrouping';
 import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
 import type { OrderBookData } from '@metamask/perps-controller';
@@ -355,6 +356,17 @@ describe('orderBookGrouping', () => {
       expect(result.asks).toHaveLength(1);
       expect(result.maxTotal).toBe(1.5);
     });
+
+    // TAT-3966: the size ladder needs its own denominator, not the cumulative one.
+    it('reports the largest single level size across the trimmed ladder', () => {
+      // Trimmed to one level a side: bid size 1, ask size 1.5.
+      expect(groupOrderBook(book, null, 1).maxSize).toBe(1.5);
+      // Untrimmed, the deeper bid (size 2) is the largest single level, even
+      // though the largest cumulative total is 3.
+      const full = groupOrderBook(book, null, 10);
+      expect(full.maxSize).toBe(2);
+      expect(full.maxTotal).toBe(3);
+    });
   });
 
   describe('getDepthRatio / getDepthWidth / formatters', () => {
@@ -394,8 +406,61 @@ describe('orderBookGrouping', () => {
             totalNotional: '1',
           },
           100,
+          'total',
         ),
       ).toBe(50);
+    });
+
+    // TAT-3966: the bar has to measure whatever the ladder says it is listing
+    // by, otherwise a tiny level sitting deep in the book renders as a near-full
+    // bar just because everything in front of it is included.
+    it('scales the depth bar against the level size when listing by size', () => {
+      const level: OrderBookLevel = {
+        price: '1',
+        size: '2',
+        total: '50',
+        notional: '2',
+        totalNotional: '50',
+      };
+
+      expect(getDepthWidth(level, 8, 'size')).toBe(25);
+    });
+
+    it('keeps scaling against the cumulative total when listing by total', () => {
+      const level: OrderBookLevel = {
+        price: '1',
+        size: '2',
+        total: '50',
+        notional: '2',
+        totalNotional: '50',
+      };
+
+      expect(getDepthWidth(level, 100, 'total')).toBe(50);
+    });
+
+    it('gives the smallest level a smaller bar than the largest when listing by size', () => {
+      const shallow: OrderBookLevel = {
+        price: '1',
+        size: '0.5',
+        total: '49',
+        notional: '0.5',
+        totalNotional: '49',
+      };
+      const deep: OrderBookLevel = {
+        price: '2',
+        size: '10',
+        total: '10',
+        notional: '20',
+        totalNotional: '20',
+      };
+
+      // Cumulatively the shallow level dwarfs the deep one; per tick it must not.
+      expect(getDepthWidth(shallow, 49, 'total')).toBeGreaterThan(
+        getDepthWidth(deep, 49, 'total'),
+      );
+      expect(getDepthWidth(shallow, 10, 'size')).toBeLessThan(
+        getDepthWidth(deep, 10, 'size'),
+      );
     });
 
     it('formats spread percent and column values', () => {
@@ -641,6 +706,58 @@ describe('orderBookGrouping', () => {
           decimals: 2,
         }),
       ).toBe('—');
+    });
+  });
+
+  describe('getOrderBookPriceValue', () => {
+    it('drops a decimal the BTC ladder never displayed', () => {
+      // "$64,123" is what the row reads, so tapping it must not fill 64123.4.
+      const format = getOrderBookPriceFormat(1, 64123, 5);
+
+      expect(formatOrderBookPrice('64123.4', format)).toBe('$64,123');
+      expect(getOrderBookPriceValue('64123.4', format)).toBe('64123');
+    });
+
+    it('keeps the precision an ETH ladder does display', () => {
+      const format = getOrderBookPriceFormat(0.1, 3452, 4);
+
+      expect(getOrderBookPriceValue('3452.1', format)).toBe('3452.1');
+    });
+
+    it('resolves an abbreviated row to the price it stands for', () => {
+      const format = getOrderBookPriceFormat(10, 61470, 5);
+
+      expect(formatOrderBookPrice('61470', format)).toBe('$61.47K');
+      expect(getOrderBookPriceValue('61470', format)).toBe('61470');
+    });
+
+    it('keeps sub-cent prices in plain decimal notation', () => {
+      const format = getOrderBookPriceFormat(0.000001, 0.0021, 0);
+
+      expect(getOrderBookPriceValue('0.002100999', format)).toBe('0.002101');
+    });
+
+    it('leaves the venue price untouched when the format is unknown', () => {
+      expect(getOrderBookPriceValue('0.0682341', null)).toBe('0.0682341');
+    });
+
+    it('leaves the venue price untouched rather than rounding it away', () => {
+      // A stale mid can set a grouping magnitudes coarser than the ladder that
+      // arrives for the next asset; filling 0 would be worse than filling
+      // more precision than the row showed.
+      const format = getOrderBookPriceFormat(10, 90000, 5);
+
+      expect(getOrderBookPriceValue('0.0682341', format)).toBe('0.0682341');
+    });
+
+    it('leaves unparseable prices untouched', () => {
+      expect(
+        getOrderBookPriceValue('not-a-number', {
+          divisor: 1,
+          suffix: '',
+          decimals: 2,
+        }),
+      ).toBe('not-a-number');
     });
   });
 });

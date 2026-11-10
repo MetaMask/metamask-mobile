@@ -8,15 +8,19 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 
 export interface TraderPositionHeaderProps {
   traderName: string;
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
   onBack: () => void;
   onTraderPress: () => void;
+  onShare?: () => void;
   backButtonTestID: string;
+  shareButtonTestID?: string;
   traderNameTestID: string;
 }
 
@@ -24,9 +28,12 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
   traderName,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
   onBack,
   onTraderPress,
+  onShare,
   backButtonTestID,
+  shareButtonTestID,
   traderNameTestID,
 }) => (
   <Box
@@ -47,11 +54,22 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
       traderName={traderName}
       traderImageUrl={traderImageUrl}
       traderAddress={traderAddress}
+      traderProfileId={traderProfileId}
       variant="nav"
       onPress={onTraderPress}
       testID={traderNameTestID}
     />
-    <Box twClassName="w-10" />
+    <Box twClassName="w-10" alignItems={BoxAlignItems.End}>
+      {onShare ? (
+        <ButtonIcon
+          iconName={IconName.Share}
+          size={ButtonIconSize.Md}
+          onPress={onShare}
+          accessibilityLabel={strings('social.profile.share_position')}
+          testID={shareButtonTestID}
+        />
+      ) : null}
+    </Box>
   </Box>
 );
 

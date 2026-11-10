@@ -3,6 +3,7 @@ import { ensureValidState } from './util';
 import migrate from './084';
 import { Duration, inMilliseconds } from '@metamask/utils';
 import { SnapCaveatType, SnapEndowments } from '@metamask/snaps-rpc-methods';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -52,7 +53,7 @@ describe('Migration 084', () => {
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       'Migration 84: `CronjobController` state is not an object.',
     );
   });
@@ -77,7 +78,7 @@ describe('Migration 084', () => {
 
     expect(migratedState).toEqual(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       'Migration 84: `PermissionController` state not found or is not an object.',
     );
   });
