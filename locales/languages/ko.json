@@ -1198,6 +1198,7 @@
       "title": "Pix로 자금 추가",
       "description": "은행에서 직접 자금을 추가하세요. 일반적으로 몇 분 내에 Money account로 예치됩니다.",
       "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "자세히 알아보세요.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix 키",

@@ -1198,6 +1198,7 @@
       "title": "Agrega dinero con Pix",
       "description": "Agrega fondos directamente desde tu banco. Por lo general, los fondos se acreditan en tu Money Account en cuestión de minutos.",
       "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "Conozca más",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Clave Pix",

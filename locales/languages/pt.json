@@ -1200,6 +1200,7 @@
       "title": "Adicionar dinheiro com Pix",
       "description": "Adicione fundos diretamente da sua conta bancária. Os fundos geralmente chegam à sua conta Money em poucos minutos.",
       "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "Saiba mais.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Chave Pix",

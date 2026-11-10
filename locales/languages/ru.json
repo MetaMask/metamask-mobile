@@ -1198,6 +1198,7 @@
       "title": "Пополнить через Pix",
       "description": "Пополняйте напрямую из своего банка. Обычно средства поступают на ваш Money account в течение нескольких минут.",
       "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "Узнайте подробнее.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Ключ Pix",

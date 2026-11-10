@@ -78,7 +78,7 @@ import {
 import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import { AVENIA_URL } from './constants';
+import { AVENIA_URL, MOONPAY_RISK_URL } from './constants';
 import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
@@ -98,6 +98,8 @@ export const VbaDetailsSelectorsIDs = {
   BANK_NAME: 'vba-details-bank-name',
   PROVIDER_DISCLOSURE: 'vba-details-provider-disclosure',
   PROVIDER_DISCLOSURE_LINK: 'vba-details-provider-disclosure-link',
+  RISK_DISCLOSURE: 'vba-details-risk-disclosure',
+  RISK_DISCLOSURE_LINK: 'vba-details-risk-disclosure-link',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
@@ -743,6 +745,14 @@ const VbaDetails = () => {
     });
   }, []);
 
+  const handleOpenRiskInfo = useCallback(() => {
+    Linking.openURL(MOONPAY_RISK_URL).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to open the risk link',
+      });
+    });
+  }, []);
+
   const handleOpenDebug = useCallback(() => {
     setIsDebugOpen(true);
   }, []);
@@ -815,6 +825,8 @@ const VbaDetails = () => {
   const showProviderDisclosure = instructions
     ? instructions.type === 'Pix'
     : sourceCurrency === 'BRL';
+  const showRiskDisclosure =
+    instructions?.type === 'UsBank' && rows.length > 0 && !loadError;
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
   const errorMessage = loadError
@@ -973,6 +985,25 @@ const VbaDetails = () => {
               variant={TextVariant.BodyXs}
               onPress={handleOpenProviderInfo}
               testID={VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE_LINK}
+            >
+              {strings(
+                'virtual_bank_account.vba_details.provider_disclosure_link',
+              )}
+            </TextButton>
+          </Text>
+        ) : null}
+        {showRiskDisclosure ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={VbaDetailsSelectorsIDs.RISK_DISCLOSURE}
+          >
+            {strings('virtual_bank_account.vba_details.risk_disclosure')}{' '}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              onPress={handleOpenRiskInfo}
+              testID={VbaDetailsSelectorsIDs.RISK_DISCLOSURE_LINK}
             >
               {strings(
                 'virtual_bank_account.vba_details.provider_disclosure_link',

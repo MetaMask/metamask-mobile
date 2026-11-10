@@ -1199,6 +1199,7 @@
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
       "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "Learn more",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",

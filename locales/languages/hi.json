@@ -1198,6 +1198,7 @@
       "title": "Pix से पैसे जोड़ें",
       "description": "सीधे अपने बैंक से फंड जोड़ें। आमतौर पर कुछ ही मिनटों में फंड आपके Money Account में आ जाते हैं।",
       "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "ज्यादा जानें",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix की",

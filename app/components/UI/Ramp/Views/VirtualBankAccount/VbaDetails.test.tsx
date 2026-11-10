@@ -39,7 +39,7 @@ import {
   startVbaCufChildTrace,
 } from './vbaCufTrace';
 import { VBA_CUF_END_REASON } from './vbaCufTags';
-import { AVENIA_URL } from './constants';
+import { AVENIA_URL, MOONPAY_RISK_URL } from './constants';
 import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
 
 const mockNavigate = jest.fn();
@@ -326,7 +326,7 @@ describe('VbaDetails', () => {
   it('shows the Brazil provider disclosure on the Pix layout', async () => {
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
@@ -338,6 +338,9 @@ describe('VbaDetails', () => {
         'virtual_bank_account.vba_details.provider_disclosure_link',
       )}`,
     );
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens Avenia from the provider disclosure link', async () => {
@@ -685,6 +688,37 @@ describe('VbaDetails', () => {
       expect(
         queryByTestId(VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE_LINK),
       ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE),
+      ).toHaveTextContent(
+        `${strings('virtual_bank_account.vba_details.risk_disclosure')} ${strings(
+          'virtual_bank_account.vba_details.provider_disclosure_link',
+        )}`,
+      );
+      expect(strings('virtual_bank_account.vba_details.risk_disclosure')).toBe(
+        'Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.',
+      );
+    });
+
+    it('opens the MoonPay risk page from the USD disclaimer', async () => {
+      const openURLSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE_LINK),
+        ).toBeOnTheScreen();
+      });
+
+      const link = getByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE_LINK);
+      expect(link).toHaveProp('accessibilityRole', 'link');
+      fireEvent.press(link);
+
+      expect(openURLSpy).toHaveBeenCalledWith(MOONPAY_RISK_URL);
+      openURLSpy.mockRestore();
     });
 
     it('copies the routing number', async () => {
@@ -1521,11 +1555,14 @@ describe('VbaDetails', () => {
   it('shows a load error when account details fail', async () => {
     mockGetDepositInstructions.mockRejectedValue(new Error('details failed'));
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
     });
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE),
+    ).not.toBeOnTheScreen();
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: VBA_SCREEN_PERFORMANCE_CONFIG,
       screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
