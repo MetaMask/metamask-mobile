@@ -41,6 +41,18 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('../../hooks/useImmersveSpendingPrerequisites');
 jest.mock('../../hooks/useImmersveOnboardingRouter');
 
+let mockIsMoneyAccountCountry = false;
+const mockApproveFunding = jest.fn().mockResolvedValue(true);
+jest.mock('../../hooks/useImmersveFundingChannel', () => ({
+  useIsImmersveMoneyAccountCountry: () => mockIsMoneyAccountCountry,
+}));
+jest.mock('../../hooks/useImmersveMoneyAccountFundingApproval', () => ({
+  useImmersveMoneyAccountFundingApproval: () => ({
+    approveFunding: mockApproveFunding,
+    isApproving: false,
+  }),
+}));
+
 const mockRefresh = jest.fn().mockResolvedValue(null);
 const mockRoute = jest.fn();
 
@@ -142,6 +154,7 @@ describe('ImmersveKYCProcessing', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockParams = { countryKey: 'GB' };
+    mockIsMoneyAccountCountry = false;
     mockCapturedOnClose = null;
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
@@ -281,6 +294,29 @@ describe('ImmersveKYCProcessing', () => {
     render(<ImmersveKYCProcessing />);
 
     expect(mockRoute).toHaveBeenCalledWith(action, { countryKey: 'GB' });
+    expect(mockApproveFunding).not.toHaveBeenCalled();
+  });
+
+  it('starts the Money account approval once before routing funding home', () => {
+    mockIsMoneyAccountCountry = true;
+    const action: ImmersveNextAction = {
+      type: 'funding',
+      write: {
+        abi: [],
+        contractAddress: '0xusdc',
+        method: 'approve',
+        params: {},
+      },
+    };
+    setNextAction(action);
+    const { rerender } = render(<ImmersveKYCProcessing />);
+
+    expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+    expect(mockApproveFunding).toHaveBeenCalledWith('SIGN_UP');
+    expect(mockRoute).toHaveBeenCalledWith(action, { countryKey: 'GB' });
+
+    rerender(<ImmersveKYCProcessing />);
+    expect(mockApproveFunding).toHaveBeenCalledTimes(1);
   });
 
   it('re-polls when the KYC webview reports a close', () => {

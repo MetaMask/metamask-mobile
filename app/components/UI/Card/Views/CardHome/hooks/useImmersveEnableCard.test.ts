@@ -28,6 +28,15 @@ jest.mock('../../../hooks/useMoneyAccountCardLinkage', () => ({
   }),
 }));
 
+const mockApproveFunding = jest.fn().mockResolvedValue(true);
+let mockIsApproving = false;
+jest.mock('../../../hooks/useImmersveMoneyAccountFundingApproval', () => ({
+  useImmersveMoneyAccountFundingApproval: () => ({
+    approveFunding: mockApproveFunding,
+    isApproving: mockIsApproving,
+  }),
+}));
+
 const mockBuild = jest.fn(() => ({ build: 'event' }));
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -53,6 +62,7 @@ const mockUseImmersveCardProvisioning =
 describe('useImmersveEnableCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsApproving = false;
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
     mockUseSelector.mockImplementation((selector) => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -96,7 +106,127 @@ describe('useImmersveEnableCard', () => {
       result.current.enableCard();
     });
     expect(mockResumePendingAction).toHaveBeenCalledTimes(1);
+    expect(mockApproveFunding).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('approves Money account funding in the background instead of resuming', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectCardSelectedCountry) {
+        return 'NZ';
+      }
+      if (selector === selectors.selectImmersveMoneyAccountMode) {
+        return true;
+      }
+      return undefined;
+    });
+    mockUseImmersveCardProvisioning.mockReturnValue({
+      isProvisioning: true,
+      isReconciling: false,
+      pendingAction: { type: 'funding', write: {} as never },
+      resumePendingAction: mockResumePendingAction,
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard({
+        alerts: [{ type: 'card_provisioning', dismissable: false }],
+      } as never),
+    );
+
+    act(() => {
+      result.current.enableCard();
+    });
+
+    expect(mockApproveFunding).toHaveBeenCalledWith(
+      CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+    );
+    expect(mockResumePendingAction).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('uses the Money home entrypoint when approval starts outside Card', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectImmersveMoneyAccountMode) {
+        return true;
+      }
+      return undefined;
+    });
+    mockUseImmersveCardProvisioning.mockReturnValue({
+      isProvisioning: true,
+      isReconciling: false,
+      pendingAction: { type: 'funding', write: {} as never },
+      resumePendingAction: mockResumePendingAction,
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard(
+        {
+          alerts: [{ type: 'card_provisioning', dismissable: false }],
+        } as never,
+        { navigateFromOutsideCard: true },
+      ),
+    );
+
+    act(() => {
+      result.current.enableCard();
+    });
+
+    expect(mockApproveFunding).toHaveBeenCalledWith(
+      CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+    );
+    expect(mockResumePendingAction).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: CardActions.IMMERSVE_PROVISIONING_RESUME,
+        next_action: 'funding',
+      }),
+    );
+  });
+
+  it('disables Enable card while a Money account approval is in progress', () => {
+    mockIsApproving = true;
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectImmersveMoneyAccountMode) {
+        return true;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard({
+        alerts: [{ type: 'allowance_revoked', dismissable: false }],
+      } as never),
+    );
+
+    expect(result.current.isEnableCardPending).toBe(true);
+  });
+
+  it('does not disable Enable card for a USDC on Base approval', () => {
+    mockIsApproving = true;
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard({
+        alerts: [{ type: 'card_provisioning', dismissable: false }],
+      } as never),
+    );
+
+    expect(result.current.isEnableCardPending).toBe(false);
   });
 
   it('does not enable the card when KYC is under review', () => {

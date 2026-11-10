@@ -16,6 +16,8 @@ export interface CardEnableCardState {
   enableCard: (() => void) | null;
   provisioningView: CardProvisioningView;
   setupStep: CardSetupStep | null;
+  /** True while a Money account funding approval is running in the background. */
+  isEnableCardPending: boolean;
 }
 
 const DEFAULT_STATE: CardEnableCardState = {
@@ -23,6 +25,7 @@ const DEFAULT_STATE: CardEnableCardState = {
   enableCard: null,
   provisioningView: 'provisioning',
   setupStep: null,
+  isEnableCardPending: false,
 };
 
 /**
@@ -49,6 +52,7 @@ export function useCardEnableCard(
       enableCard: immersve.canEnableCard ? immersve.enableCard : null,
       provisioningView: immersve.provisioningView,
       setupStep: immersve.setupStep,
+      isEnableCardPending: immersve.isEnableCardPending,
     };
   }, [
     providerId,
@@ -56,5 +60,6 @@ export function useCardEnableCard(
     immersve.enableCard,
     immersve.provisioningView,
     immersve.setupStep,
+    immersve.isEnableCardPending,
   ]);
 }

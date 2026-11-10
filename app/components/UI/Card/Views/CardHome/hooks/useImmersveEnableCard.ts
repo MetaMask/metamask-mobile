@@ -16,6 +16,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { BAANX_MAX_LIMIT } from '../../../constants';
 import { useMoneyAccountCardLinkage } from '../../../hooks/useMoneyAccountCardLinkage';
+import { useImmersveMoneyAccountFundingApproval } from '../../../hooks/useImmersveMoneyAccountFundingApproval';
 import {
   CardActions,
   CardEntryPoint,
@@ -61,6 +62,8 @@ export function useImmersveEnableCard(
   const isImmersve = providerId === CardProviderIds.Immersve;
   const isMoneyAccountMode = useSelector(selectImmersveMoneyAccountMode);
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
+  const { approveFunding, isApproving } =
+    useImmersveMoneyAccountFundingApproval();
 
   const { isReconciling, pendingAction, resumePendingAction, isProvisioning } =
     useImmersveCardProvisioning(data, options);
@@ -124,11 +127,32 @@ export function useImmersveEnableCard(
       });
       return;
     }
+    if (isMoneyAccountMode && pendingAction?.type === 'funding') {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action: CardActions.IMMERSVE_PROVISIONING_RESUME,
+              next_action: pendingAction.type,
+            }),
+          )
+          .build(),
+      );
+      approveFunding(
+        options?.navigateFromOutsideCard
+          ? CardEntryPoint.MONEY_HOME_METAMASK_CARD
+          : CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+      ).catch(() => undefined);
+      return;
+    }
     resumePendingAction();
   }, [
     isAllowanceRevoked,
     isMoneyAccountMode,
     confirmLinkInBackground,
+    pendingAction,
+    approveFunding,
+    options?.navigateFromOutsideCard,
     trackEvent,
     createEventBuilder,
     navigation,
@@ -145,5 +169,6 @@ export function useImmersveEnableCard(
     hasPendingAction: Boolean(pendingAction),
     provisioningView,
     setupStep,
+    isEnableCardPending: Boolean(isMoneyAccountMode && isApproving),
   };
 }
