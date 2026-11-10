@@ -250,7 +250,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 ## Related docs
 
 - [iOS Appium device pool](./ios-appium-device-pool.md) — default N=2 clone/WDA port map for all iOS smoke suites
-- [Android Appium device pool](./android-appium-device-pool.md) — default N=2 emulator pool for Android smoke suites
+- [Android Appium device pool](./android-appium-device-pool.md) — default N=3 emulator pool for Android smoke suites
 - [E2E testing guidelines](../../docs/testing/e2e-testing.md) — POM, Matchers, Gestures, Assertions
 - [E2E setup](../../docs/readme/e2e-testing.md) — Metro, debug builds, smoke
 - [Playwright local emulator](./PLAYWRIGHT_LOCAL_EMULATOR.md) — `buildPath`, reinstall behavior

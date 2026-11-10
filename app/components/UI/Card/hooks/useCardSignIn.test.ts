@@ -104,6 +104,53 @@ jest.mock(
   }),
 );
 
+const mockMoneySignInState: {
+  address: string | null;
+  countries: string[];
+} = {
+  address: null,
+  countries: [],
+};
+
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: () =>
+    mockMoneySignInState.address
+      ? { address: mockMoneySignInState.address }
+      : null,
+}));
+
+jest.mock('../../../../selectors/featureFlagController/card', () => ({
+  immersveFundingChannelForCountry: (
+    countryFunding: Record<string, unknown> | null | undefined,
+    country: string | null | undefined,
+  ) => {
+    if (!country || !countryFunding) {
+      return null;
+    }
+    return (
+      (countryFunding as Record<string, unknown>)[country.toUpperCase()] ?? null
+    );
+  },
+  isMoneyAccountFundingChannel: (
+    channel: { source?: string } | null | undefined,
+  ) => channel?.source === 'moneyAccount',
+  selectCardImmersveCountryFunding: () =>
+    Object.fromEntries(
+      mockMoneySignInState.countries.map((country) => [
+        country.toUpperCase(),
+        {
+          source: 'moneyAccount',
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+          network: 'monad-mainnet',
+          caipChainId: 'eip155:143',
+          tokenAddress: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+          decimals: 6,
+        },
+      ]),
+    ),
+}));
+
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope:
     (state: { selectedAccount: { address: string; type: string } }) => () =>
@@ -126,6 +173,8 @@ describe('useCardSignIn', () => {
     jest.clearAllMocks();
     mockHandoffMfa.mockReset();
     mockSelectedSignInAddress = SELECTED;
+    mockMoneySignInState.address = null;
+    mockMoneySignInState.countries = [];
     mockResolveSignIn.mockResolvedValue({
       kind: 'email',
       option: {
@@ -336,6 +385,22 @@ describe('useCardSignIn', () => {
     });
 
     expect(mockResolveSignIn).toHaveBeenCalledTimes(1);
+  });
+
+  it('looks up only the Money account when the country uses that funding channel', async () => {
+    const moneyAccount = '0x000000000000000000000000000000000000dEaD';
+    mockMoneySignInState.address = moneyAccount;
+    mockMoneySignInState.countries = ['NZ'];
+
+    renderHook(() => useCardSignIn('NZ'));
+
+    await waitFor(() => {
+      expect(mockResolveSignIn).toHaveBeenCalledWith({
+        country: 'NZ',
+        candidateAddresses: [moneyAccount],
+        deviceAddresses: [moneyAccount],
+      });
+    });
   });
 
   it('does not resolve when country is null', () => {

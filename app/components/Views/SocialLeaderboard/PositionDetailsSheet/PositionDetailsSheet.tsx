@@ -389,16 +389,19 @@ const PositionDetailsSheet = () => {
     ? formatChartTimestamp(Number(scrubPoint[0]))
     : strings('social_leaderboard.position_sheet.today');
 
-  const footer = (
-    <PositionSheetFooter
-      isPerp={data.isPerp}
-      isClosed={data.isClosed}
-      canSell={Boolean(heldBalance)}
-      onCopyTrade={handleCopyTrade}
-      onPerpsOrder={handlePerpsOrder}
-      onSpotTrade={openQuickBuy}
-    />
-  );
+  // Copy trade repeats the viewer's own position. Closed markets still offer
+  // a fresh Long, Short, Buy, or Sell.
+  const footer =
+    isOwnPost && !data.isClosed ? null : (
+      <PositionSheetFooter
+        isPerp={data.isPerp}
+        isClosed={data.isClosed}
+        canSell={Boolean(heldBalance)}
+        onCopyTrade={handleCopyTrade}
+        onPerpsOrder={handlePerpsOrder}
+        onSpotTrade={openQuickBuy}
+      />
+    );
 
   const details = (
     <View>
@@ -407,6 +410,7 @@ const PositionDetailsSheet = () => {
           title={data.summaryTitle}
           tagLabel={data.summaryTagLabel}
           direction={data.perpDirection}
+          isClosed={data.isClosed}
           subtitle={data.summarySubtitle}
           pnlPercentLabel={data.pnlPercentLabel}
           pnlValueLabel={data.pnlValueLabel}
@@ -455,7 +459,6 @@ const PositionDetailsSheet = () => {
             <PositionSheetPriceHeader
               assetName={data.assetName}
               isPerp={data.isPerp}
-              leverage={data.leverage}
               valueLabel={headerLabel}
               isMarketCapMode={headlineIsMarketCap}
               changePercent={headerChange}

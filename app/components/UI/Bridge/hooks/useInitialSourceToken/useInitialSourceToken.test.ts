@@ -1,9 +1,10 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useInitialSourceToken } from '.';
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import {
+  resetBridgeState,
   selectBridgeViewMode,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -276,5 +277,70 @@ describe('useInitialSourceToken', () => {
     rerender(undefined);
 
     expect(setSourceToken).not.toHaveBeenCalled();
+  });
+
+  it('consumes a new source token when the initialization key changes', async () => {
+    const firstToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000001',
+      symbol: 'FIRST',
+      name: 'First Token',
+      decimals: 18,
+      chainId: mockChainId,
+    };
+    const secondToken: BridgeToken = {
+      ...firstToken,
+      address: '0x0000000000000000000000000000000000000002',
+      symbol: 'SECOND',
+      name: 'Second Token',
+    };
+    let initialSourceToken = firstToken;
+    let initializationKey = 'trace-1';
+    const { rerender } = renderHookWithProvider(
+      () =>
+        useInitialSourceToken(initialSourceToken, undefined, initializationKey),
+      { state: initialState },
+    );
+    await waitFor(() => {
+      expect(setSourceToken).toHaveBeenCalledWith(firstToken);
+    });
+    jest.mocked(setSourceToken).mockClear();
+
+    initialSourceToken = secondToken;
+    initializationKey = 'trace-2';
+    rerender(undefined);
+
+    await waitFor(() => {
+      expect(setSourceToken).toHaveBeenCalledWith(secondToken);
+    });
+  });
+
+  it('restores the default source token for a new entry after state reset', async () => {
+    let initializationKey = 'trace-1';
+    const { rerender, store } = renderHookWithProvider(
+      () => useInitialSourceToken(undefined, undefined, initializationKey),
+      { state: initialState },
+    );
+    await waitFor(() => {
+      expect(setSourceToken).toHaveBeenCalledTimes(1);
+    });
+    jest.mocked(setSourceToken).mockClear();
+
+    act(() => {
+      store.dispatch(resetBridgeState());
+    });
+    initializationKey = 'trace-2';
+    rerender(undefined);
+
+    await waitFor(() => {
+      expect(setSourceToken).toHaveBeenCalledWith({
+        address: mockNativeAsset.address,
+        name: mockNativeAsset.name,
+        symbol: mockNativeAsset.symbol,
+        image:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+        decimals: mockNativeAsset.decimals,
+        chainId: mockChainId,
+      });
+    });
   });
 });
