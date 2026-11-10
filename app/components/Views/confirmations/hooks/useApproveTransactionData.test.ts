@@ -13,6 +13,10 @@ import {
   approveERC20Permit2TransactionStateMock,
   revokeERC20Permit2TransactionStateMock,
 } from '../__mocks__/approve-transaction-mock';
+import {
+  permit2TokenMock,
+  tokenAddressMock,
+} from '../__mocks__/controllers/transaction-controller-mock';
 import { TokenStandard } from '../types/token';
 import { ApproveMethod } from '../types/approve';
 import { ZERO_ADDRESS } from '../constants/address';
@@ -299,6 +303,7 @@ describe('useApproveTransactionData', () => {
         spender,
         amount,
         expiration,
+        token,
       } = result.current;
 
       expect(isLoading).toBe(false);
@@ -307,7 +312,28 @@ describe('useApproveTransactionData', () => {
       expect(approveMethod).toBe(ApproveMethod.PERMIT2_APPROVE);
       expect(spender).toBe(mockedSpender);
       expect(amount).toBe('100');
-      expect(expiration).toBe('1746696740463');
+      expect(expiration).toBe('1746696740');
+      expect(token).toBe(permit2TokenMock);
+    });
+
+    it('looks up the calldata token instead of txParams.to', () => {
+      renderHookWithProvider(() => useApproveTransactionData(), {
+        state: approveERC20Permit2TransactionStateMock,
+      });
+
+      expect(mockUseGetTokenStandardAndDetails).toHaveBeenCalledWith(
+        permit2TokenMock,
+        expect.any(String),
+      );
+      expect(mockUseGetTokenStandardAndDetails).not.toHaveBeenCalledWith(
+        tokenAddressMock,
+        expect.anything(),
+      );
+      expect(mockUseERC20TokenBalance).toHaveBeenCalledWith(
+        permit2TokenMock,
+        expect.any(String),
+        expect.any(String),
+      );
     });
 
     it('returns correct data revoking permit2 token', () => {
@@ -334,7 +360,7 @@ describe('useApproveTransactionData', () => {
       expect(approveMethod).toBe(ApproveMethod.PERMIT2_APPROVE);
       expect(spender).toBe(mockedSpender);
       expect(amount).toBe('0');
-      expect(expiration).toBe('1746696740463');
+      expect(expiration).toBe('1746696740');
     });
   });
 
