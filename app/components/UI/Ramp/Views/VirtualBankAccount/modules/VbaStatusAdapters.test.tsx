@@ -192,7 +192,7 @@ describe('VbaStatusAdapters', () => {
         name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
         params: { snapshot: EMPTY_VBA_ONBOARDING_SNAPSHOT },
       },
-    } as NativeStackScreenProps<
+    } as unknown as NativeStackScreenProps<
       VbaOnboardingParamList,
       typeof VbaOnboardingRoutes.IDENTITY_VERIFICATION
     >;
