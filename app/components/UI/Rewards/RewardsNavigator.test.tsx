@@ -18,18 +18,6 @@ jest.mock('../../../core/Engine', () => ({
 // Mock dependencies
 jest.mock('./hooks/useOptIn');
 
-jest.mock('./OnboardingNavigator', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockOnboardingNavigator() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-onboarding-navigator' },
-      ReactActual.createElement(Text, null, 'Onboarding Navigator'),
-    );
-  };
-});
-
 jest.mock('./Views/RewardsDashboard', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -730,7 +718,6 @@ describe('RewardsNavigator', () => {
       );
 
       expect(getByTestId('rewards-update-required')).toBeOnTheScreen();
-      expect(queryByTestId('rewards-onboarding-navigator')).toBeNull();
       expect(queryByTestId('rewards-dashboard-view')).toBeNull();
     });
 

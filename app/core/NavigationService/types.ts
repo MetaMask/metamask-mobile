@@ -647,8 +647,6 @@ export type RootStackParamList = {
   SitesFullView: { mode?: 'favorites' } | undefined;
   MarketInsightsView: MarketInsightsRouteParams;
   ExploreSearch: ExploreSearchRouteParams | undefined;
-  RewardsOnboardingFlow: undefined;
-  RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
   BenefitsFullView: undefined;
 
