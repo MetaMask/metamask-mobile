@@ -5,6 +5,7 @@ import {
   BoxJustifyContent,
   ButtonBase,
   ButtonBaseSize,
+  FontFamily,
   Icon,
   IconColor,
   IconName,
@@ -18,6 +19,8 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
+import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
@@ -40,6 +43,7 @@ import ReactionPickerBalloon, {
 import { PositionCardBody } from './SocialFeedPositionCard';
 import SocialFeedGif from './SocialFeedGif';
 import { useSocialFeedTracking } from '../socialFeedTracking';
+import { useSocialFeedSurface } from '../SocialFeedSurface';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
@@ -208,9 +212,14 @@ const SocialFeedPostFooter = ({
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
           />
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {copyCount}
-          </Text>
+          {/* Default face keeps the count's look; AnimatedNumericText defaults to Hero. */}
+          <AnimatedNumericText
+            animated={getHardwareTier() !== 'LOW'}
+            color={TextColor.TextAlternative}
+            fontFamily={FontFamily.Default}
+            value={String(copyCount)}
+            variant={TextVariant.BodySm}
+          />
         </Box>
       ) : null}
     </Box>
@@ -231,6 +240,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   now,
 }) => {
   const tracked = useSocialFeedTracking();
+  const { location } = useSocialFeedSurface();
+  const showEngagement = location !== 'social_live';
   const notifyCopy = onCopyTradeInteraction ?? tracked.onCopyTradeInteraction;
   const notifyReaction = onReactionInteraction ?? tracked.onReactionInteraction;
   const notifyPicker = onReactionPickerOpened ?? tracked.onReactionPickerOpened;
@@ -482,19 +493,21 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             </Box>
           ) : null}
 
-          <SocialFeedPostFooter
-            postId={post.id}
-            canReact={canReact}
-            copyCount={post.copyCount}
-            chips={chips}
-            userReaction={userReaction}
-            burst={burst}
-            onToggleEmotion={toggleEmotion}
-            onBurstAnchor={placeBurst}
-            onOpenPicker={openPicker}
-            reactionAnchorRef={reactionAnchorRef}
-            emojiColor={colors.icon.alternative}
-          />
+          {showEngagement ? (
+            <SocialFeedPostFooter
+              postId={post.id}
+              canReact={canReact}
+              copyCount={post.copyCount}
+              chips={chips}
+              userReaction={userReaction}
+              burst={burst}
+              onToggleEmotion={toggleEmotion}
+              onBurstAnchor={placeBurst}
+              onOpenPicker={openPicker}
+              reactionAnchorRef={reactionAnchorRef}
+              emojiColor={colors.icon.alternative}
+            />
+          ) : null}
         </Box>
       </SocialTraderIdentityRow>
 

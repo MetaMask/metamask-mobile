@@ -33,6 +33,10 @@ ignores:
   # Ledger DMK packages staged for subsequent PRs (already wired in metro.config.js)
   - '@ledgerhq/context-module'
   - '@ledgerhq/device-signer-kit-ethereum'
+  # app/shims/walletconnect-relay-auth.ts (and its test) import the copy of
+  # relay-auth that @walletconnect/core resolves, so the shim follows core's
+  # version instead of pinning its own
+  - '@walletconnect/relay-auth'
   # Appium drivers are used by Appwright for mobile automation
   - 'appium-adb'
   - 'appium-chromium-driver'
@@ -118,14 +122,12 @@ ignores:
   - 'react-native-crypto'
   - 'react-native-level-fs'
   - 'react-native-os'
-  - 'react-native-randombytes'
   - 'react-native-swipe-gestures'
   - 'socket.io-client'
   - 'stream-browserify'
   - 'url'
   - 'vm-browserify'
   - 'react-native-cli'
-  - 'babel-plugin-module-resolver'
 
   ## Missing dependencies to investigate
   - '@react-navigation/core'

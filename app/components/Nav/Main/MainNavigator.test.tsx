@@ -7,7 +7,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
 import { mockTheme } from '../../../util/theme';
 import AddBookmark from '../../Views/AddBookmark';
-import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
@@ -85,6 +84,10 @@ jest.mock('./HomeTabs/useIsNativeTabBar', () => ({
   useIsNativeTabBar: () => mockIsNativeTabBar,
 }));
 
+jest.mock('./HomeTabs/useCanOpenSocialTabDirectly', () => ({
+  useCanOpenSocialTabDirectly: () => false,
+}));
+
 jest.mock(
   '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen',
   () => ({
@@ -159,12 +162,16 @@ jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
   default: () => 'PredictRoot',
 }));
 
-// On the legacy lane Predict availability is the legacy flag.
-jest.mock('../../UI/PredictNext', () => ({
-  ...jest.requireActual('../../UI/PredictNext'),
-  selectPredictAvailability: (state: unknown) =>
-    mockSelectPredictEnabledFlag(state),
-}));
+// On the legacy lane Predict availability is the legacy flag. Mock the
+// selector's own module: a factory spreading the PredictNext entry point
+// re-enters it mid-load through its import cycle with confirmations.
+jest.mock(
+  '../../UI/PredictNext/availability/selectPredictAvailability',
+  () => ({
+    selectPredictAvailability: (state: unknown) =>
+      mockSelectPredictEnabledFlag(state),
+  }),
+);
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -218,6 +225,7 @@ const mockSelectIsMoneyAccountVisible = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/visibility', () => ({
   selectIsMoneyAccountVisible: (state: unknown) =>
     mockSelectIsMoneyAccountVisible(state),
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 describe('MainNavigator', () => {
@@ -566,35 +574,28 @@ describe('MainNavigator', () => {
     });
   });
 
-  it('includes SampleFeature screen in the navigation stack', () => {
-    // Given the initial app state
+  // The SampleFeature screen is gated behind `INCLUDE_SAMPLE_FEATURE=true`,
+  // read once at module-load time (see MainNavigator.js) so that
+  // `app/features/SampleFeature` is dead-code-eliminated out of builds that
+  // don't set the flag. Re-requiring the module with the flag flipped would
+  // pull in a second React instance and break context, so only the default
+  // (flag unset) behavior is covered here; the enabled path is exercised by
+  // the SampleFeature feature's own component tests.
+  it('excludes the SampleFeature screen by default', () => {
+    // Given the initial app state, with INCLUDE_SAMPLE_FEATURE unset
     // When rendering the MainNavigator
     const container = renderWithProvider(<MainNavigator />, {
       state: initialRootState,
     });
 
-    // Then it should contain the SampleFeature screen with correct configuration
-    interface ScreenChild {
-      name: string;
-      component: React.ComponentType;
-    }
-    const screenProps: ScreenChild[] = container.root
-      .findAll(
-        (child: ReactTestInstance) =>
-          child.type?.toString?.() === 'Screen' &&
-          typeof child.props?.name === 'string',
-      )
-      .map((child) => ({
-        name: child.props.name,
-        component: child.props.component,
-      }));
-
-    const sampleFeatureScreen = screenProps?.find(
-      (screen) => screen?.name === Routes.SAMPLE_FEATURE,
+    // Then it should not contain the SampleFeature screen
+    const sampleFeatureScreens = container.root.findAll(
+      (child: ReactTestInstance) =>
+        child.type?.toString?.() === 'Screen' &&
+        child.props?.name === Routes.SAMPLE_FEATURE,
     );
 
-    expect(sampleFeatureScreen).toBeDefined();
-    expect(sampleFeatureScreen?.component).toBe(SampleFeature);
+    expect(sampleFeatureScreens).toHaveLength(0);
   });
 
   it('includes FeatureFlagOverride screen when METAMASK_ENVIRONMENT is not production', () => {
@@ -689,6 +690,20 @@ describe('MainNavigator', () => {
       const homeScreen = screenProps?.find((screen) => screen?.name === 'Home');
 
       expect(homeScreen).toBeDefined();
+    });
+
+    it('registers the Money modal gateway when the Money account feature is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const moneyModalScreen = getScreenProps(container).find(
+        (screen) => screen.name === Routes.MONEY.MODALS.ROOT,
+      );
+
+      expect(moneyModalScreen).toBeDefined();
+      expect(moneyModalScreen?.component.name).toBe('MoneyModalGateway');
     });
 
     it('includes TokensFullView screen', () => {
@@ -2627,24 +2642,24 @@ describe('MainNavigator', () => {
           ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
-        it('opens onboarding for a plain user without a subscription', () => {
+        it('opens the points dashboard for a plain user without a subscription', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
               moneyPersona: 'plain',
             }),
-          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+          ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
-        it('opens onboarding when the referral fetch resolved with no persona', () => {
+        it('opens the points dashboard when the referral fetch resolved with no persona', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
               moneyPersona: undefined,
             }),
-          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+          ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
         it('keeps the points path when Money is disabled', () => {
@@ -2803,6 +2818,9 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_SELECT_SHEET,
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
           Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
+          Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+          Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+          Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,
         ]);
       });
 

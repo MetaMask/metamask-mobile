@@ -15,6 +15,7 @@ import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
   selectPredictUpDownEnabledFlag: jest.fn(() => true),
 }));
 

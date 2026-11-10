@@ -16,9 +16,9 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { useSharedValue } from 'react-native-reanimated';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Theme } from '@metamask/design-tokens';
 import {
@@ -53,12 +53,18 @@ import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
+  type QuickBuyTradeMode,
 } from '../../QuickBuy';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import type { SocialV1FeedItem } from '../../SocialFeed/types';
 import { chainNameToId } from '../../SocialFeed/utils/chainMapping';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
+import { resolveTokenContractAddress } from '../../AssetOverview/utils/getTokenDetails';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
@@ -82,6 +88,7 @@ import { useTokenHolders } from '../components/tabs/holders/useTokenHolders';
 import TokenDetailsHoldersTab from '../components/tabs/HoldersTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
+  usePinnedTokenDetailsV1TabBar,
   HIDDEN_TAB_PAGE_STYLE,
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
@@ -112,14 +119,6 @@ import { formatTokenAge } from '../utils/formatTokenAge';
 import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { TokenDetailsIds } from '../testIds';
-
-/**
- * Direct-child index of the tab bar inside the body ScrollView — registered in
- * `stickyHeaderIndices` so the tab bar docks below the nav header when the
- * price hero (with the security/social row), chart, stat bar, action tiles and
- * tab content scroll under it.
- */
-export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
 
 const AGE_EXPLAINER_COPY: ExplainerCopy = {
   title: 'token_details_v1.age.explainer.title',
@@ -196,6 +195,15 @@ const styleSheet = (params: { theme: Theme }) => {
     scroll: {
       flex: 1,
     },
+    scrollArea: {
+      flex: 1,
+    },
+    pinnedTabBar: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+    },
     scrollContent: {
       paddingBottom: STICKY_FOOTER_RESERVED_HEIGHT,
     },
@@ -260,6 +268,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = useIsFocused();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
 
@@ -386,6 +395,17 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   }, []);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
+
+  /**
+   * Resolve `token.address` once through the same normalizer the header uses,
+   * so the security-row chip shows the bare contract address (not the full
+   * CAIP-19 asset id that Solana tokens carry in `token.address`).
+   */
+  const contractAddress = useMemo(
+    () => (isNativeToken ? null : resolveTokenContractAddress(token)),
+    [token, isNativeToken],
+  );
+
   const hasBalanceValue = useMemo(() => {
     if (token.balance === undefined || token.balance === null) return false;
     return Number(token.balance) > 0;
@@ -437,14 +457,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { inset: headerInset, onLayout: handleHeaderLayout } =
     useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
 
+  // The docked tab bar is a copy laid over the page, outside the ScrollView,
+  // rather than a sticky header. See `usePinnedTokenDetailsV1TabBar`.
+  const pinnedTabBar = usePinnedTokenDetailsV1TabBar(headerScrollY);
+  const { onScrollOffset: onPinnedTabBarScroll, onTabBarOffsetY } =
+    pinnedTabBar;
+
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const scrollOffset = event.nativeEvent.contentOffset.y;
       headerScrollY.set(scrollOffset);
+      onPinnedTabBarScroll(scrollOffset);
       onScrollOffset(scrollOffset);
       onPageScroll(event);
     },
-    [headerScrollY, onPageScroll, onScrollOffset],
+    [headerScrollY, onPageScroll, onPinnedTabBarScroll, onScrollOffset],
   );
 
   const {
@@ -472,10 +499,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   );
   const handleTabBarContainerLayout = useCallback(
     (event: LayoutChangeEvent) => {
-      setTabBarHeight(event.nativeEvent.layout.height);
+      const { y, height } = event.nativeEvent.layout;
+      setTabBarHeight(height);
+      onTabBarOffsetY(y);
       handleTabBarLayout(event);
     },
-    [handleTabBarLayout],
+    [handleTabBarLayout, onTabBarOffsetY],
   );
   const tabContentStyle = useMemo(() => {
     const minHeight =
@@ -494,6 +523,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const [copyTrade, setCopyTrade] = useState<{
     target: QuickBuyTarget;
     copyTradeOrigin?: CopyTradeOrigin;
+    tradeMode?: QuickBuyTradeMode;
   } | null>(null);
   const handleFeedCopyTrade = useCallback(
     (item: SocialV1FeedItem, commentId?: string) => {
@@ -518,6 +548,20 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     [],
   );
   const closeCopyTrade = useCallback(() => setCopyTrade(null), []);
+  const handlePostTradeShareReopen = useCallback(
+    (
+      target: QuickBuyTarget,
+      copyTradeOrigin?: CopyTradeOrigin,
+      tradeMode?: QuickBuyTradeMode,
+    ) => {
+      setCopyTrade({ target, copyTradeOrigin, tradeMode });
+    },
+    [],
+  );
+  usePostTradeShareReopen(
+    handlePostTradeShareReopen,
+    isFocused ? PostTradeShareOwner.tokenDetails : undefined,
+  );
   // Reads the same query the tab itself renders from: identical key, so
   // react-query serves both from one fetch rather than requesting twice.
   const {
@@ -817,6 +861,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           token={token}
           securityData={securityData}
           tdpVersion="v3"
+          hideContractAddress
           onBackPress={handleBackPress}
           onSharePress={shareUrl ? handleShare : undefined}
           starButton={starButton}
@@ -836,107 +881,125 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           onLayout={handleHeaderLayout}
           scrollY={headerScrollY}
         />
-        {/* The tab bar is a direct ScrollView child registered in
-            `stickyHeaderIndices`, so it docks right below the nav header
-            while the price hero, chart and tab content scroll under it. */}
+        {/* The in-flow tab bar scrolls with the page and takes taps until it
+            reaches the top. From there a copy laid over the page, outside the
+            ScrollView, docks it below the nav header and takes the taps
+            instead. See `usePinnedTokenDetailsV1TabBar`. */}
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.scroll}
-              contentContainerStyle={scrollContentStyle}
-              stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
-              onScroll={onScrollViewScroll}
-              scrollEventThrottle={16}
-              scrollEnabled={!isChartBeingTouched}
-              onLayout={handleScrollViewLayout}
-              onContentSizeChange={pageScroll.onContentSizeChange}
-              testID={TokenDetailsIds.scrollView}
-            >
-              <Price.Provider
-                asset={token}
-                prices={prices}
-                timePeriod={timePeriod}
-                setTimePeriod={setTimePeriod}
-                currentPrice={currentPrice}
-                priceDiff={priceDiff}
-                comparePrice={comparePrice}
-                currentCurrency={currentCurrency}
-                isLoading={isPriceLoading}
-                hasInsufficientCoverage={hasInsufficientCoverage}
+            <View style={styles.scrollArea}>
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.scroll}
+                contentContainerStyle={scrollContentStyle}
+                onScroll={onScrollViewScroll}
+                scrollEventThrottle={16}
+                scrollEnabled={!isChartBeingTouched}
+                onLayout={handleScrollViewLayout}
+                onContentSizeChange={pageScroll.onContentSizeChange}
+                testID={TokenDetailsIds.scrollView}
               >
-                <Price.Header showPeriodLabel={false} />
+                <Price.Provider
+                  asset={token}
+                  prices={prices}
+                  timePeriod={timePeriod}
+                  setTimePeriod={setTimePeriod}
+                  currentPrice={currentPrice}
+                  priceDiff={priceDiff}
+                  comparePrice={comparePrice}
+                  currentCurrency={currentCurrency}
+                  isLoading={isPriceLoading}
+                  hasInsufficientCoverage={hasInsufficientCoverage}
+                >
+                  <Price.Header showPeriodLabel={false} />
 
-                <Box twClassName="px-4">
-                  <SecuritySocialSection
-                    securityVerdict={securityFacts.verdict}
-                    securityRiskCount={securityFacts.risks.length}
-                    externalLinks={securityData?.metadata?.externalLinks}
-                    contractAddress={token.isNative ? null : token.address}
-                    onSecurityPress={
-                      visibleTabs.includes('security')
-                        ? handleSecurityPress
-                        : undefined
+                  <Box twClassName="px-4">
+                    <SecuritySocialSection
+                      securityVerdict={securityFacts.verdict}
+                      securityRiskCount={securityFacts.risks.length}
+                      externalLinks={securityData?.metadata?.externalLinks}
+                      contractAddress={contractAddress}
+                      onSecurityPress={
+                        visibleTabs.includes('security')
+                          ? handleSecurityPress
+                          : undefined
+                      }
+                    />
+                  </Box>
+                  {/* The interval bar above the chart adds 8px of its own top padding. */}
+                  <Box
+                    twClassName={
+                      isTechnicalIndicatorsEnabled ? 'pt-4 pb-2' : 'py-4'
                     }
-                  />
-                </Box>
-                {/* The interval bar above the chart adds 8px of its own top padding. */}
-                <Box
-                  twClassName={
-                    isTechnicalIndicatorsEnabled ? 'pt-4 pb-2' : 'py-4'
-                  }
-                >
-                  <StatBar
-                    variant={variant}
-                    stats={tokenStats}
-                    onStatPress={handleRowExplain}
-                  />
-                </Box>
+                  >
+                    <StatBar
+                      variant={variant}
+                      stats={tokenStats}
+                      onStatPress={handleRowExplain}
+                    />
+                  </Box>
 
-                <Price.Chart uniformSpacing />
-              </Price.Provider>
+                  <Price.Chart uniformSpacing />
+                </Price.Provider>
 
-              <TokenDetailsActionsSection
-                token={token}
-                networkName={networkConfigurationByChainId?.name}
-                severity={securityData?.resultType}
-                tdpVersion="v3"
-              />
+                <TokenDetailsActionsSection
+                  token={token}
+                  networkName={networkConfigurationByChainId?.name}
+                  severity={securityData?.resultType}
+                  tdpVersion="v3"
+                />
 
-              <TokenDetailsV1TabBar
-                activeTab={activeTab}
-                onTabPress={handleTabPress}
-                onLayout={handleTabBarContainerLayout}
-                topInset={isGlassHeader ? headerInset : 0}
-                scrollY={headerScrollY}
-                tabs={visibleTabs}
-              />
-
-              <GestureDetector gesture={swipeGesture}>
                 <View
-                  collapsable={false}
-                  style={isEmptyFeed ? undefined : tabContentStyle}
-                  testID={TokenDetailsIds.tabContent}
+                  {...pinnedTabBar.inFlowProps}
+                  onLayout={handleTabBarContainerLayout}
+                  testID={TokenDetailsIds.tabBarSlot}
                 >
-                  <TokenDetailsScrollProvider value={pageScroll.value}>
-                    {visibleTabs.map((tab) => {
-                      const isActive = tab === activeTab;
-                      return (
-                        <View
-                          key={tab}
-                          collapsable={false}
-                          style={isActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
-                          pointerEvents={isActive ? 'auto' : 'none'}
-                          testID={TokenDetailsIds.tabPage(tab)}
-                        >
-                          {renderTabPage(tab, isActive)}
-                        </View>
-                      );
-                    })}
-                  </TokenDetailsScrollProvider>
+                  <TokenDetailsV1TabBar
+                    activeTab={activeTab}
+                    onTabPress={handleTabPress}
+                    tabs={visibleTabs}
+                  />
                 </View>
-              </GestureDetector>
-            </ScrollView>
+
+                <GestureDetector gesture={swipeGesture}>
+                  <View
+                    collapsable={false}
+                    style={isEmptyFeed ? undefined : tabContentStyle}
+                    testID={TokenDetailsIds.tabContent}
+                  >
+                    <TokenDetailsScrollProvider value={pageScroll.value}>
+                      {visibleTabs.map((tab) => {
+                        const isActive = tab === activeTab;
+                        return (
+                          <View
+                            key={tab}
+                            collapsable={false}
+                            style={isActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
+                            pointerEvents={isActive ? 'auto' : 'none'}
+                            testID={TokenDetailsIds.tabPage(tab)}
+                          >
+                            {renderTabPage(tab, isActive)}
+                          </View>
+                        );
+                      })}
+                    </TokenDetailsScrollProvider>
+                  </View>
+                </GestureDetector>
+              </ScrollView>
+              <Animated.View
+                style={[styles.pinnedTabBar, pinnedTabBar.pinnedStyle]}
+                {...pinnedTabBar.pinnedProps}
+                testID={TokenDetailsIds.pinnedTabBarOverlay}
+              >
+                <TokenDetailsV1TabBar
+                  activeTab={activeTab}
+                  onTabPress={handleTabPress}
+                  topInset={isGlassHeader ? headerInset : 0}
+                  tabs={visibleTabs}
+                  isPinnedCopy
+                />
+              </Animated.View>
+            </View>
           )}
         </PriceChartContext.Consumer>
 
@@ -982,9 +1045,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           target={copyTrade?.target ?? null}
           onClose={closeCopyTrade}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          initialTradeMode="buy"
+          initialTradeMode={copyTrade?.tradeMode ?? 'buy'}
           analyticsContext={{ source: 'trader_feed' }}
           copyTradeOrigin={copyTrade?.copyTradeOrigin}
+          postTradeShare
+          postTradeShareOwner={PostTradeShareOwner.tokenDetails}
         />
       </View>
     </PriceChartProvider>

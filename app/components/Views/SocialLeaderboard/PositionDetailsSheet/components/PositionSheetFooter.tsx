@@ -102,7 +102,10 @@ const PositionSheetFooter = ({
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={() => onSpotTrade('buy')}
+          onPress={() => {
+            fireImpact(ImpactMoment.PrimaryCTA);
+            onSpotTrade('buy');
+          }}
           style={halfWidth}
           testID={PositionDetailsSheetSelectorsIDs.BUY_BUTTON}
         >

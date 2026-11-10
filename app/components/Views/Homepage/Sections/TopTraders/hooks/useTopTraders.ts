@@ -19,6 +19,7 @@ import {
 } from '../../../../../../util/social/socialServiceTelemetry';
 import Engine from '../../../../../../core/Engine';
 import { useSocialBlockLists } from '../../../../../UI/SocialFeed/hooks/useSocialBlockLists';
+import { readXHandle } from '../../../../../UI/SocialFeed/utils/xHandle';
 import {
   measureSocialDataFetch,
   type SocialDataFetchTab,
@@ -191,6 +192,7 @@ export const useTopTraders = (
         pnlPerChain: entry.pnlPerChain ?? {},
         followerCount: entry.followerCount ?? 0,
         isFollowing: isFollowing(entry.profileId),
+        xHandle: readXHandle(entry.socialHandles),
       }));
   }, [blockedProfileIds, data, isFollowing, timeframe]);
 

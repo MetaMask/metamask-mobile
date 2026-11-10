@@ -6,20 +6,18 @@
 //
 // Two allowlists exempt existing importers, and they mean different things:
 //
-// - `predictCompositionFiles` is PERMANENT. It names the composition wiring
-//   that has to reach inside Predict: Engine controller and service init,
-//   messengers and Engine types, transaction-pay Polymarket callbacks, the
-//   transaction-controller messenger, App toast registration,
-//   MainNavigator registration and the UI Slots widget and contract
-//   registries (plus the colocated tests of those files).
+// - `predictCompositionGroups` (flattened as `predictCompositionFiles`) names
+//   the composition wiring that has to reach inside Predict until PRED-1356:
+//   legacy controller init, types, messenger and persistence; transaction-pay
+//   Polymarket callbacks and the sign and publish hooks; the legacy
+//   confirmations; toast registration; navigator registration; the UI Slots
+//   registries; and the PredictNext Engine services. Documented file by file
+//   in app/components/UI/PredictNext/docs/composition-allowlist.md.
 //   Keep it small; add to it only for new wiring of the same kind.
 //
-// - `predictImportBurndownFiles` is TEMPORARY. Those files are allowed by
-//   exception until a PRED-1340 migration ticket moves them to the public
-//   API. EVERY MIGRATION PR MUST DELETE ITS FILES FROM THIS LIST. The list
-//   may only shrink: scripts/eslint-predict-boundary-zones.test.ts fails if
-//   an entry is added, if an entry no longer exists, or if an entry no longer
-//   imports Predict internals (so a migrated file cannot stay listed).
+// - `predictImportBurndownFiles` was the PRED-1399 burn-down list. PRED-1394
+//   emptied it, and it stays empty: scripts/eslint-predict-boundary-zones.test.ts
+//   fails if an entry is added.
 //
 // Why a computed `target` instead of override `excludedFiles`:
 // ESLint replaces `import-x/no-restricted-paths` per override instead of
@@ -46,106 +44,117 @@ const PREDICT_DIR = 'app/components/UI/Predict';
 const PREDICT_NEXT_DIR = 'app/components/UI/PredictNext';
 
 /**
- * Composition wiring that may import Predict internals permanently. This is
- * not a burn-down list: entries stay until PRED-1356 removes the legacy parts
- * they wire up.
+ * Composition wiring that may import Predict internals until PRED-1356
+ * removes the legacy parts it wires up. Every group names what it wires; the
+ * list is documented, file by file, with what PRED-1356 does to it, in
+ * app/components/UI/PredictNext/docs/composition-allowlist.md. These files
+ * import Predict modules directly on purpose: a composition-only dependency
+ * is listed here, never hidden behind a re-export from the entry point.
+ *
+ * Add to a group only for new wiring of the same kind. Do not add product
+ * callers: they import `app/components/UI/PredictNext`.
  */
-const predictCompositionFiles = [
-  'app/components/Nav/App/App.tsx',
-  'app/components/Nav/Main/MainNavigator.tsx',
-  // Engine init loads it, so it cannot import the PredictNext entry point:
-  // that would pull the Predict UI into Engine init and load in a cycle.
-  'app/components/UI/UiSlots/contractRegistry.ts',
-  // The Predictions section renders a UI Slot, so the entry point loads this
-  // registry while it loads; importing the entry point back forms a cycle.
-  'app/components/UI/UiSlots/registry.ts',
-  'app/core/Engine/controllers/predict-controller/index.test.ts',
-  'app/core/Engine/controllers/predict-controller/index.ts',
-  'app/core/Engine/controllers/predict-device-auth-service-init.test.ts',
-  'app/core/Engine/controllers/predict-device-auth-service-init.ts',
-  'app/core/Engine/controllers/predict-service-init.test.ts',
-  'app/core/Engine/controllers/predict-service-init.ts',
-  'app/core/Engine/controllers/predict-venue-controller-init.test.ts',
-  'app/core/Engine/controllers/predict-venue-controller-init.ts',
-  'app/core/Engine/controllers/transaction-pay-controller/polymarket-callbacks.test.ts',
-  'app/core/Engine/controllers/transaction-pay-controller/polymarket-callbacks.ts',
-  'app/core/Engine/messengers/predict-controller-messenger/index.ts',
-  'app/core/Engine/messengers/predict-device-auth-service-messenger.test.ts',
-  'app/core/Engine/messengers/predict-device-auth-service-messenger.ts',
-  'app/core/Engine/messengers/predict-live-data-service-messenger.test.ts',
-  'app/core/Engine/messengers/predict-live-data-service-messenger.ts',
-  'app/core/Engine/messengers/predict-market-data-service-messenger.test.ts',
-  'app/core/Engine/messengers/predict-market-data-service-messenger.ts',
-  'app/core/Engine/messengers/predict-order-service-messenger.test.ts',
-  'app/core/Engine/messengers/predict-order-service-messenger.ts',
-  'app/core/Engine/messengers/predict-portfolio-service-messenger.test.ts',
-  'app/core/Engine/messengers/predict-portfolio-service-messenger.ts',
-  'app/core/Engine/messengers/predict-venue-controller-messenger.test.ts',
-  'app/core/Engine/messengers/predict-venue-controller-messenger.ts',
-  'app/core/Engine/types.ts',
-  'app/core/Engine/wallet-init/messengers/transaction-controller-messenger.ts',
-];
+const predictCompositionGroups = {
+  /** Legacy PredictController init, messenger, Engine types and persistence. */
+  legacyController: [
+    'app/core/Engine/controllers/predict-controller/index.test.ts',
+    'app/core/Engine/controllers/predict-controller/index.ts',
+    'app/core/Engine/messengers/predict-controller-messenger/index.ts',
+    'app/core/Engine/types.ts',
+  ],
+  /**
+   * Legacy Polymarket funding: transaction-pay `PolymarketCallbacks`
+   * registration and the transaction-controller messenger that delegates the
+   * PredictController sign and publish hooks.
+   */
+  legacyTransactionHooks: [
+    'app/core/Engine/controllers/transaction-pay-controller/polymarket-callbacks.test.ts',
+    'app/core/Engine/controllers/transaction-pay-controller/polymarket-callbacks.ts',
+    'app/core/Engine/wallet-init/messengers/transaction-controller-messenger.ts',
+  ],
+  /**
+   * Legacy Polymarket confirmations: the deposit, withdraw and claim
+   * confirmations and the pay-with Predict source. ADR-0002 keeps them as
+   * legacy execution, changed only by the availability gate (PRED-1388);
+   * PRED-1389 records their move to canonical funding contracts as PRED-1356
+   * work.
+   */
+  legacyConfirmations: [
+    'app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.test.tsx',
+    'app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.tsx',
+    'app/components/Views/confirmations/components/predict-confirmations/predict-claim-amount/predict-claim-amount.test.tsx',
+    'app/components/Views/confirmations/components/predict-confirmations/predict-claim-amount/predict-claim-amount.tsx',
+    'app/components/Views/confirmations/components/predict-confirmations/predict-claim-footer/predict-claim-footer.tsx',
+    'app/components/Views/confirmations/components/predict-confirmations/predict-withdraw-balance/predict-withdraw-balance.test.tsx',
+    'app/components/Views/confirmations/components/predict-confirmations/predict-withdraw-balance/predict-withdraw-balance.tsx',
+    'app/components/Views/confirmations/components/rows/predict-account-picker-row/predict-account-picker-row.tsx',
+    'app/components/Views/confirmations/hooks/gas/usePredictWithdrawGasFeeToken.ts',
+    'app/components/Views/confirmations/hooks/metrics/usePredictClaimConfirmationMetrics.ts',
+    'app/components/Views/confirmations/hooks/pay/sections/usePayWithCryptoSection.test.tsx',
+    'app/components/Views/confirmations/hooks/pay/sections/usePayWithCryptoSection.ts',
+    'app/components/Views/confirmations/hooks/pay/sections/usePayWithPredictSection.test.tsx',
+    'app/components/Views/confirmations/hooks/pay/sections/usePayWithPredictSection.tsx',
+    'app/components/Views/confirmations/hooks/pay/useMoneyPredictDeposit.test.ts',
+    'app/components/Views/confirmations/hooks/pay/useMoneyPredictDeposit.ts',
+    'app/components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.test.ts',
+    'app/components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.ts',
+    'app/components/Views/confirmations/hooks/pay/useTransactionPayBalance.test.ts',
+    'app/components/Views/confirmations/hooks/pay/useTransactionPayBalance.ts',
+    'app/components/Views/confirmations/hooks/pay/useTransactionPayMetrics.test.ts',
+    'app/components/Views/confirmations/hooks/pay/useTransactionPayPostQuote.test.ts',
+    'app/components/Views/confirmations/hooks/pay/useTransactionPayPostQuote.ts',
+    'app/components/Views/confirmations/hooks/transactions/usePredictSubAccounts.test.ts',
+    'app/components/Views/confirmations/hooks/transactions/usePredictSubAccounts.ts',
+    'app/components/Views/confirmations/hooks/transactions/useTransactionCustomAmount.test.ts',
+  ],
+  /** App shell toast registration for both lanes. */
+  toastRegistration: ['app/components/Nav/App/App.tsx'],
+  /** MainNavigator: the legacy modal stack and preview-sheet provider. */
+  navigatorRegistration: ['app/components/Nav/Main/MainNavigator.tsx'],
+  /**
+   * UI Slots: Engine init loads the contract registry, so it cannot import
+   * the entry point (that would pull the Predict UI into Engine init and
+   * load in a cycle). The Predictions section renders a UI Slot, so the
+   * entry point loads the widget registry while it loads; importing the
+   * entry point back forms a cycle.
+   */
+  uiSlotsRegistries: [
+    'app/components/UI/UiSlots/contractRegistry.ts',
+    'app/components/UI/UiSlots/registry.ts',
+  ],
+  /** PredictNext Engine services and controller: init and messengers. */
+  predictNextEngine: [
+    'app/core/Engine/controllers/predict-device-auth-service-init.test.ts',
+    'app/core/Engine/controllers/predict-device-auth-service-init.ts',
+    'app/core/Engine/controllers/predict-service-init.test.ts',
+    'app/core/Engine/controllers/predict-service-init.ts',
+    'app/core/Engine/controllers/predict-venue-controller-init.test.ts',
+    'app/core/Engine/controllers/predict-venue-controller-init.ts',
+    'app/core/Engine/messengers/predict-device-auth-service-messenger.test.ts',
+    'app/core/Engine/messengers/predict-device-auth-service-messenger.ts',
+    'app/core/Engine/messengers/predict-live-data-service-messenger.test.ts',
+    'app/core/Engine/messengers/predict-live-data-service-messenger.ts',
+    'app/core/Engine/messengers/predict-market-data-service-messenger.test.ts',
+    'app/core/Engine/messengers/predict-market-data-service-messenger.ts',
+    'app/core/Engine/messengers/predict-order-service-messenger.test.ts',
+    'app/core/Engine/messengers/predict-order-service-messenger.ts',
+    'app/core/Engine/messengers/predict-portfolio-service-messenger.test.ts',
+    'app/core/Engine/messengers/predict-portfolio-service-messenger.ts',
+    'app/core/Engine/messengers/predict-venue-controller-messenger.test.ts',
+    'app/core/Engine/messengers/predict-venue-controller-messenger.ts',
+  ],
+};
+
+const predictCompositionFiles = Object.values(predictCompositionGroups).flat();
 
 /**
- * Burn-down allowlist: files outside Predict that still import legacy
- * `UI/Predict/` or PredictNext internals. Recorded at PRED-1399; it may only
- * shrink. Each PRED-1340 migration PR deletes the files it migrates from this
- * list. Do not add entries: import from `app/components/UI/PredictNext`
- * instead, and add the export you need to its public API.
+ * Burn-down allowlist: files outside Predict that still imported legacy
+ * `UI/Predict/` or PredictNext internals at PRED-1399. PRED-1394 closed it:
+ * every entry was migrated or reclassified as named composition wiring. It
+ * stays empty. Import from `app/components/UI/PredictNext` instead, and add
+ * the export you need to its public API.
  */
-const predictImportBurndownFiles = [
-  'app/components/UI/Money/components/MoneyTransferSheet/MoneyTransferSheet.test.tsx',
-  'app/components/UI/Money/components/MoneyTransferSheet/MoneyTransferSheet.tsx',
-  'app/components/UI/Rewards/components/Campaigns/PredictThePitchCampaignCTA.test.tsx',
-  'app/components/UI/Rewards/components/Campaigns/PredictThePitchCampaignCTA.tsx',
-  'app/components/UI/Rewards/components/Campaigns/PredictThePitchPositionRows.test.tsx',
-  'app/components/UI/Rewards/components/Campaigns/PredictThePitchPositionRows.tsx',
-  'app/components/UI/UrlAutocomplete/index.tsx',
-  'app/components/Views/ActivityDetails/ActivityDetails.predict.view.test.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.test.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/PredictionRowItem.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/PredictionsCarouselSection.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/PredictionsSkeleton.tsx',
-  'app/components/Views/TrendingView/feeds/predictions/usePredictionsFeed.ts',
-  'app/components/Views/TrendingView/feeds/predictions/useSportsMarketsFeed.test.ts',
-  'app/components/Views/TrendingView/feeds/predictions/useSportsMarketsFeed.ts',
-  'app/components/Views/TrendingView/feeds/search-utils.ts',
-  'app/components/Views/TrendingView/search/SearchFeedRow.test.tsx',
-  'app/components/Views/TrendingView/search/SearchFeedRow.tsx',
-  'app/components/Views/TrendingView/tabs/SportsTab.tsx',
-  'app/components/Views/confirmations/__mocks__/controllers/other-controllers-mock.ts',
-  'app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.test.tsx',
-  'app/components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal.tsx',
-  'app/components/Views/confirmations/components/predict-confirmations/predict-claim-amount/predict-claim-amount.test.tsx',
-  'app/components/Views/confirmations/components/predict-confirmations/predict-claim-amount/predict-claim-amount.tsx',
-  'app/components/Views/confirmations/components/predict-confirmations/predict-claim-footer/predict-claim-footer.tsx',
-  'app/components/Views/confirmations/components/predict-confirmations/predict-withdraw-balance/predict-withdraw-balance.test.tsx',
-  'app/components/Views/confirmations/components/predict-confirmations/predict-withdraw-balance/predict-withdraw-balance.tsx',
-  'app/components/Views/confirmations/components/rows/predict-account-picker-row/predict-account-picker-row.tsx',
-  'app/components/Views/confirmations/hooks/gas/usePredictWithdrawGasFeeToken.ts',
-  'app/components/Views/confirmations/hooks/metrics/usePredictClaimConfirmationMetrics.ts',
-  'app/components/Views/confirmations/hooks/pay/sections/usePayWithCryptoSection.test.tsx',
-  'app/components/Views/confirmations/hooks/pay/sections/usePayWithCryptoSection.ts',
-  'app/components/Views/confirmations/hooks/pay/sections/usePayWithPredictSection.test.tsx',
-  'app/components/Views/confirmations/hooks/pay/sections/usePayWithPredictSection.tsx',
-  'app/components/Views/confirmations/hooks/pay/useMoneyPredictDeposit.test.ts',
-  'app/components/Views/confirmations/hooks/pay/useMoneyPredictDeposit.ts',
-  'app/components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.test.ts',
-  'app/components/Views/confirmations/hooks/pay/usePaySectionSourceMetrics.ts',
-  'app/components/Views/confirmations/hooks/pay/useTransactionPayBalance.test.ts',
-  'app/components/Views/confirmations/hooks/pay/useTransactionPayBalance.ts',
-  'app/components/Views/confirmations/hooks/pay/useTransactionPayMetrics.test.ts',
-  'app/components/Views/confirmations/hooks/pay/useTransactionPayPostQuote.test.ts',
-  'app/components/Views/confirmations/hooks/pay/useTransactionPayPostQuote.ts',
-  'app/components/Views/confirmations/hooks/transactions/usePredictSubAccounts.test.ts',
-  'app/components/Views/confirmations/hooks/transactions/usePredictSubAccounts.ts',
-  'app/components/Views/confirmations/hooks/transactions/useTransactionCustomAmount.test.ts',
-  'app/core/DeeplinkManager/handlers/intent/__tests__/handlePredictUrl.test.ts',
-  'app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts',
-  'app/core/Engine/controllers/ui-slots-controller/UiSlotsController.test.ts',
-  'app/core/Engine/controllers/ui-slots-controller/contracts/v1.test.ts',
-  'app/selectors/featureFlagController/mocks.ts',
-];
+const predictImportBurndownFiles = [];
 
 const LINTABLE_FILE = /\.(?:[cm]?js|jsx|ts|tsx)$/;
 
@@ -235,5 +244,6 @@ module.exports = {
   PREDICT_NEXT_DIR,
   predictBoundaryZones,
   predictCompositionFiles,
+  predictCompositionGroups,
   predictImportBurndownFiles,
 };

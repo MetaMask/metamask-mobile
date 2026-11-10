@@ -13,12 +13,7 @@ import {
 } from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  Box,
-  IconName,
-  Tag,
-  TagSeverity,
-} from '@metamask/design-system-react-native';
+import { Box, IconName } from '@metamask/design-system-react-native';
 import {
   TabsBar,
   type TabItem,
@@ -40,6 +35,9 @@ import {
   setBridgeViewMode,
   setLimitOrderCostTolerance,
   setLimitOrderExpirationMinutes,
+  setRecurringEveryUnit,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
@@ -98,17 +96,30 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const tokenInitializationKey =
+    route.params?.sourcePage === 'deeplink'
+      ? route.params.swapViewTraceId
+      : undefined;
   const initialLimitOrderExpirationMinutes =
     route.params?.initialLimitOrderExpirationMinutes;
   const initialLimitOrderPriceTolerance =
     route.params?.initialLimitOrderPriceTolerance;
+  const initialRecurringSchedule = route.params?.initialRecurringSchedule;
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location =
     route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
 
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
+  useInitialSourceToken(
+    initialSourceToken,
+    initialSourceAmount,
+    tokenInitializationKey,
+  );
+  useInitialDestToken(
+    initialSourceToken,
+    initialDestToken,
+    tokenInitializationKey,
+  );
   useReconcileInputsForNonMarketSwapTab({
     renderedTab,
     sourceToken,
@@ -174,6 +185,17 @@ const BridgeView = () => {
     dispatch,
     navigation,
   ]);
+
+  useLayoutEffect(() => {
+    if (!initialRecurringSchedule) {
+      return;
+    }
+
+    dispatch(setRecurringEveryUnit(initialRecurringSchedule.everyUnit));
+    dispatch(setRecurringEveryValue(initialRecurringSchedule.everyValue));
+    dispatch(setRecurringRepeatCount(initialRecurringSchedule.repeatCount));
+    navigation.setParams({ initialRecurringSchedule: undefined });
+  }, [dispatch, initialRecurringSchedule, navigation]);
 
   const quoteParams = useMemo(
     (): QuoteParams => ({
@@ -256,16 +278,6 @@ const BridgeView = () => {
         label: strings('bridge.tabs.limit'),
         content: null,
         testID: BridgeViewSelectorsIDs.LIMIT_TAB,
-        endAccessory: (
-          <Tag
-            severity={TagSeverity.Info}
-            startIconName={IconName.Sparkle}
-            twClassName="top-0.5"
-            testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_BADGE}
-          >
-            {strings('bridge.tabs.new_badge')}
-          </Tag>
-        ),
       });
     }
 
