@@ -8,9 +8,9 @@ import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
 import { useOneShotBusyRefetch } from './useOneShotBusyRefetch';
 
 /**
- * How many times a failed later page is asked for again. The scroll that
- * opened the page is not one of these. Four waits (2s, 4s, 8s, 16s) stay
- * well under the earnings read budget of 60 requests per 30 seconds.
+ * Default for how many times a failed later page is asked for again. The
+ * scroll that opened the page is not one of these. Four waits (2s, 4s, 8s,
+ * 16s). Money lists pass 1, since their reads already retry a busy refusal.
  */
 const LATER_PAGE_RETRY_LIMIT = 4;
 const LATER_PAGE_RETRY_BASE_MS = 2_000;
@@ -26,17 +26,25 @@ function retryJitterMs(): number {
 /**
  * Wait before asking for a failed later page again. `null` means this error
  * will not succeed by asking again: a client refusal other than `429`, an
- * authorization failure, or the retry limit. A `Retry-After` is the wait.
- * Anything else backs off from 2 seconds and never sooner than that.
+ * authorization failure, a refusal the data service already retried, or the
+ * retry limit. A `Retry-After` is the wait. Anything else backs off from 2
+ * seconds and never sooner than that.
  */
-function laterPageRetryDelayMs(error: unknown, attempt: number): number | null {
-  if (attempt > LATER_PAGE_RETRY_LIMIT) {
+function laterPageRetryDelayMs(
+  error: unknown,
+  attempt: number,
+  limit: number,
+): number | null {
+  if (attempt > limit) {
     return null;
   }
   if (error instanceof RewardsMoneyAuthorizationError) {
     return null;
   }
   if (error instanceof RewardsMoneyHttpError) {
+    if (error.alreadyRetried) {
+      return null;
+    }
     const retryable =
       error.status === 408 ||
       error.status === 429 ||
@@ -85,6 +93,8 @@ export interface UseCursorPaginatedListParams<T> {
   errorMessage?: string;
   /** Sentry `feature` tag for a read this list cannot recover. */
   feature: string;
+  /** How many times a failed later page is asked for again. Defaults to 4. */
+  laterPageRetryLimit?: number;
 }
 
 export interface UseCursorPaginatedListResult<T> {
@@ -113,9 +123,10 @@ const nonEmpty = <T>(items: T[] | null | undefined): T[] | null =>
  * - Error with cache/rows: keep those rows and still report the error
  * - Error with no rows/cache: surface error and no rows
  * - A failed later page is not asked for again from the list end. It retries
- * on its own timer, honors `Retry-After`, and stops on a client refusal or
- * after {@link LATER_PAGE_RETRY_LIMIT} attempts. Blur cancels a wait that
- * is already running. A retryable failure that lands while blurred is
+ * on its own timer, honors `Retry-After`, and stops on a client refusal, on
+ * a refusal the data service already retried, or after `laterPageRetryLimit`
+ * attempts. `isLoadingMore` stays true while it waits. Blur cancels a wait
+ * that is already running. A retryable failure that lands while blurred is
  * remembered too, and counts as one attempt, so the next focus asks once.
  * The failure that stops the retries is the one that is reported.
  */
@@ -127,6 +138,7 @@ export const useCursorPaginatedList = <T>({
   onFirstPage,
   errorMessage = 'Failed to fetch',
   feature,
+  laterPageRetryLimit = LATER_PAGE_RETRY_LIMIT,
 }: UseCursorPaginatedListParams<T>): UseCursorPaginatedListResult<T> => {
   const [items, setItems] = useState<T[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -258,7 +270,11 @@ export const useCursorPaginatedList = <T>({
         // the footer spinner unmounts and would cancel the wait below.
         const retryDelayMs = isFirstPage
           ? null
-          : laterPageRetryDelayMs(err, pageRetryAttemptRef.current + 1);
+          : laterPageRetryDelayMs(
+              err,
+              pageRetryAttemptRef.current + 1,
+              laterPageRetryLimit,
+            );
         if (retryDelayMs !== null && !isFocused()) {
           // Count the ask the next focus will make, so leaving and returning
           // cannot add a retry past the limit. Nothing is reported yet.
@@ -305,7 +321,8 @@ export const useCursorPaginatedList = <T>({
           if (isFirstPage) {
             setIsLoading(false);
           } else {
-            setIsLoadingMore(false);
+            // A retry still to come keeps the footer spinner up.
+            setIsLoadingMore(pendingPageRetryRef.current !== null);
           }
         }
       }
@@ -321,6 +338,7 @@ export const useCursorPaginatedList = <T>({
       errorMessage,
       feature,
       isFocused,
+      laterPageRetryLimit,
     ],
   );
   fetchListRef.current = fetchList;

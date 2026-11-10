@@ -1210,6 +1210,8 @@
       "bank_name_label": "Bank name",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
+      "copy_all_button": "Copy all details",
+      "copied_all_label": "Copied bank details",
       "button": "Done",
       "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
@@ -1653,6 +1655,13 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "share_link": {
+      "profile_title": "{{trader}} on MetaMask",
+      "profile_description": "See {{trader}}'s trades on MetaMask",
+      "position_title": "{{trader}}'s {{asset}} trade",
+      "position_description": "{{trader}} is trading {{asset}}",
+      "position_title_no_asset": "{{trader}}'s trade"
+    },
     "popular_traders": "Popular traders",
     "profiles_to_follow": {
       "title": "Profiles to follow",
@@ -1723,6 +1732,11 @@
       "unblock": "Unblock",
       "blocked_title": "You blocked @{{name}}",
       "blocked_description": "Their posts and positions are hidden on this device for this session.",
+      "private_title": "This profile is private",
+      "private_description": "@{{name}} keeps their performance, positions and posts hidden.",
+      "private_title_own": "Your profile is private",
+      "private_description_own": "Your performance, positions and posts are hidden from everyone.",
+      "privacy_settings": "Privacy settings",
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
@@ -1999,7 +2013,8 @@
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
       "toast_failed_sell": "Couldn't sell {{symbol}}"
-    }
+    },
+    "share_preparing": "Preparing link"
   },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
@@ -3484,11 +3499,12 @@
     },
     "margin_mode": {
       "title": "Choose margin mode",
+      "title_with_market": "{{market}} margin mode",
       "isolated_title": "Isolated",
-      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "isolated_description": "Each position uses only its allocated margin. If used up, that position liquidates, others are unaffected.",
       "cross_title": "Cross",
-      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon.",
-      "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
+      "cross_description": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs. Coming soon.",
+      "cross_description_available": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs."
     },
     "cross_position": {
       "badge": "Cross",
@@ -3500,6 +3516,9 @@
       "title": "Cross margin not supported",
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
       "dismiss": "Got it"
+    },
+    "crossMarginRatio": {
+      "description": "Cross margin ratio is {{ratio}}."
     },
     "sort": {
       "volume": "Volume (24h)",
@@ -3527,6 +3546,9 @@
     },
     "provider_selector": {
       "title": "Select Provider"
+    },
+    "selection_sheet": {
+      "save": "Save"
     },
     "market_type": {
       "filter_by": "Filter by"
@@ -3827,6 +3849,8 @@
       "outcomes": "Outcomes",
       "view_all_markets": "View all {{count}} markets",
       "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
+      "card_closes": "Closes {{date}}",
+      "card_volume": "${{volume}}",
       "market_layout": {
         "markets": "Markets",
         "moneyline": "Moneyline",
@@ -5356,16 +5380,6 @@
     "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
     "x_account_disconnect_success": "X account has been disconnected"
-  },
-  "profile_drawer": {
-    "close": "Close",
-    "scan": "Scan QR code",
-    "create_profile": "Create profile",
-    "notifications": "Notifications",
-    "activity": "Activity",
-    "subscriptions": "Subscriptions",
-    "settings": "Settings",
-    "help_and_support": "Help and support"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
