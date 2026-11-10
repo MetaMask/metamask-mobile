@@ -22,6 +22,7 @@ import {
   RequestSourceFlow,
 } from '@metamask/phishing-controller';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 
 const mockInjectJavaScript = jest.fn();
 const mockStopLoading = jest.fn();
@@ -473,6 +474,52 @@ describe('BrowserTab', () => {
           url: 'javascript://example.com',
         }),
       ).toBe(false);
+    });
+
+    describe('WalletConnect URIs', () => {
+      const mockParse = jest.fn();
+      let getInstanceSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        mockParse.mockResolvedValue(true);
+        getInstanceSpy = jest
+          .spyOn(SharedDeeplinkManager, 'getInstance')
+          .mockReturnValue({ parse: mockParse } as unknown as ReturnType<
+            typeof SharedDeeplinkManager.getInstance
+          >);
+      });
+
+      afterEach(() => {
+        getInstanceSpy.mockRestore();
+      });
+
+      it.each([
+        'wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303',
+        'metamask://wc?uri=wc%3A7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9%402%3Frelay-protocol%3Dirn%26symKey%3D587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303',
+      ])(
+        'hands %s to the deeplink manager as an in-app browser link',
+        async (wcUrl) => {
+          renderWithProvider(<BrowserTab {...mockProps} />, {
+            state: mockInitialState,
+          });
+
+          await waitFor(() =>
+            expect(screen.getByTestId('browser-webview')).toBeVisible(),
+          );
+
+          const webView = screen.getByTestId('browser-webview');
+          const onShouldStartLoadWithRequest =
+            webView.props.onShouldStartLoadWithRequest;
+
+          expect(onShouldStartLoadWithRequest({ url: wcUrl })).toBe(false);
+          expect(mockParse).toHaveBeenCalledWith(
+            wcUrl,
+            expect.objectContaining({
+              origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+            }),
+          );
+        },
+      );
     });
   });
 
