@@ -1094,6 +1094,33 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
     });
 
+    it('falls back to "your account" when the transfer keeps the mUSD on the money account', () => {
+      const moneyAccount = '0x2222222222222222222222222222222222222222';
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: moneyAccount,
+            data: encodeWithdrawData(BigInt(5_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(moneyAccount, BigInt(5_000_000)),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'your account',
+      );
+    });
+
     it('failed → withdraw failed toast', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
 
