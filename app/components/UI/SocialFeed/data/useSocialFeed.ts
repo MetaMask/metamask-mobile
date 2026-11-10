@@ -280,6 +280,28 @@ export const useSocialFeed = (
     await refetch();
   }, [queryClient, queryKey, refetch, request]);
 
+  const realtimeFilterPost = useMemo(() => {
+    const feedOptions =
+      request?.action === 'SocialService:fetchFeed'
+        ? request.options
+        : undefined;
+    if (!feedOptions?.profileId && feedOptions?.commentedOnly !== true) {
+      return filterPost;
+    }
+    return (post: SocialV1FeedPost) => {
+      if (
+        feedOptions.profileId &&
+        post.item.author.id !== feedOptions.profileId
+      ) {
+        return false;
+      }
+      if (feedOptions.commentedOnly === true && !post.commentId) {
+        return false;
+      }
+      return filterPost ? filterPost(post) : true;
+    };
+  }, [filterPost, request]);
+
   const live = useSocialFeedRealtime(
     { rows, dataUpdatedAt, refresh },
     {
@@ -288,7 +310,7 @@ export const useSocialFeed = (
       paused,
       nearTop,
       holdNewPosts,
-      filterPost,
+      filterPost: realtimeFilterPost,
     },
   );
   const filteredPosts = useMemo(

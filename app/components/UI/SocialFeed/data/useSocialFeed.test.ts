@@ -595,6 +595,35 @@ describe('useSocialFeed', () => {
       expect(result.current).not.toHaveProperty('realtime');
     });
 
+    it("streams a profile on the all channel and keeps only that trader's comments", () => {
+      mockUseSocialFeedRealtime.mockReturnValue(null);
+
+      renderHook(
+        () =>
+          useSocialFeed(
+            { scope: 'all', profileId: 'profile-1', commentedOnly: true },
+            { realtime: true },
+          ),
+        { wrapper: createWrapper().wrapper },
+      );
+
+      const filterPost =
+        mockUseSocialFeedRealtime.mock.lastCall?.[1].filterPost;
+      const post = (authorId: string, commentId?: string) =>
+        ({
+          item: { author: { id: authorId } },
+          commentId,
+        }) as SocialV1FeedPost;
+
+      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({ realtimeScope: 'all' }),
+      );
+      expect(filterPost?.(post('profile-1', 'comment-1'))).toBe(true);
+      expect(filterPost?.(post('someone-else', 'comment-2'))).toBe(false);
+      expect(filterPost?.(post('profile-1'))).toBe(false);
+    });
+
     it('ignores realtime for a source without a socket channel', () => {
       renderHook(() => useSocialFeed(perpSource, { realtime: true }), {
         wrapper: createWrapper().wrapper,
