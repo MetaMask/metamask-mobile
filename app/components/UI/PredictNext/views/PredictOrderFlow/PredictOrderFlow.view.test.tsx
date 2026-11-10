@@ -272,7 +272,13 @@ describe('PredictOrderFlow', () => {
   const openSheet = async (Component: React.ComponentType = BuyProbe) => {
     renderProbe(Component);
     fireEvent.press(screen.getByTestId(PROBE_BUTTON));
-    await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+    // Venue capabilities resolve through the catalog query. On a loaded CI
+    // runner that can take longer than the default one-second findBy wait.
+    await screen.findByTestId(
+      PredictOrderFlowTestIds.SHEET,
+      {},
+      { timeout: 10000 },
+    );
   };
 
   const flushDebounce = () =>
