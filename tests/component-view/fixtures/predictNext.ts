@@ -135,6 +135,30 @@ export const makePredictNextMultiMarketEvent = (): PredictEvent => ({
   ],
 });
 
+const OUTCOMES_MARKETS_LAYOUT: PredictMarketLayout = {
+  tab: { key: 'outcomes', order: 1 },
+  section: { key: 'markets', order: 1 },
+};
+
+/**
+ * A Politics Event laid out as `outcomes` › `markets`: five ungrouped
+ * Markets in the order the backend sent them.
+ */
+export const makePredictNextLaidOutStandardEvent = (): PredictEvent => ({
+  ...makeEvent('next-speaker', 'Who will be the next Speaker?'),
+  category: 'Politics',
+  markets: [
+    ['johnson', 'Mike Johnson', '0.41', '0.59', '900000'],
+    ['jeffries', 'Hakeem Jeffries', '0.33', '0.67', '600000'],
+    ['jordan', 'Jim Jordan', '0.12', '0.88', '300000'],
+    ['scalise', 'Steve Scalise', '0.08', '0.92', '150000'],
+    ['emmer', 'Tom Emmer', '0.04', '0.96', '50000'],
+  ].map(([id, label, yesAskPrice, noAskPrice, volume]) => ({
+    ...makeStandardMarket({ id, label, yesAskPrice, noAskPrice, volume }),
+    layout: OUTCOMES_MARKETS_LAYOUT,
+  })),
+});
+
 const makeGroupedMarket = ({
   id,
   key,
@@ -488,6 +512,37 @@ export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
       prop(passing, 'Drake Maye', 'away', 200, 0),
       prop(passing, 'Drake Maye', 'away', 250, 1),
     ],
+  };
+};
+
+/**
+ * The Market, side and catalog context of an entry (Position, Trade or
+ * Settlement) on one of the player-props Game's threshold lines, as the
+ * backend sends them: the Outcome label is only "Yes" or "No", and the
+ * context's `marketLabels` name the Player and the line.
+ */
+export const makePredictNextThresholdEntry = (
+  event: PredictEvent,
+  player: string,
+  threshold: number,
+  side: PredictOutcome['side'],
+) => {
+  const market = event.markets.find(
+    (candidate) => candidate.question === `${player}: ${threshold}+`,
+  );
+  if (!market) {
+    throw new Error(`No threshold line ${player}: ${threshold}+`);
+  }
+  return {
+    marketId: market.id,
+    side,
+    context: {
+      eventId: event.id,
+      eventTitle: event.title,
+      marketQuestion: market.question,
+      outcomeLabel: side === 'yes' ? 'Yes' : 'No',
+      marketLabels: [player, `${threshold}+`],
+    },
   };
 };
 

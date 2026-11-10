@@ -96,7 +96,10 @@ import type {
   MoneyModalsNavigationParamList,
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
-import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
+import type {
+  VbaOnboardingParamList,
+  VbaOnboardingRootParams,
+} from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -579,7 +582,10 @@ export type RootStackParamList = {
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-  RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
+  RampVbaOnboarding:
+    | (NavigatorScreenParams<VbaOnboardingParamList> & VbaOnboardingRootParams)
+    | VbaOnboardingRootParams
+    | undefined;
   RampVbaDetails: undefined;
 
   // Deposit routes
@@ -1189,21 +1195,17 @@ export type RootStackParamList = {
   MultichainAccountsExplorerWebview: WebviewStackParamList['SimpleWebview'];
   SmartAccountDetails: SmartAccountParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes
   SnapsSettingsList: undefined;
   SnapSettings: SnapSettingsParams | undefined;
-  ///: END:ONLY_INCLUDE_IF
 
   // Misc routes
   FoxLoader: FoxLoaderParams | undefined;
   SetPasswordFlow: NavigatorScreenParams<SetPasswordFlowParamList> | undefined;
   EditAccountName: EditAccountNameParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   // Sample feature
   SampleFeature: undefined;
-  ///: END:ONLY_INCLUDE_IF
 
   // Card routes
   CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;

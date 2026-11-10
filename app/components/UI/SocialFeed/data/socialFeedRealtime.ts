@@ -4,6 +4,7 @@ import type {
   SocialFeedEvent,
 } from '@metamask/social-controllers';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
+import { getFeedItemId } from '../utils/feedItemId';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 
@@ -35,6 +36,20 @@ export interface SocialFeedRow extends TraderFeedRow {
    */
   serverEngagement?: AuthorComment['engagement'];
 }
+
+/** The id realtime revisions of this row carry. */
+export const getRowFeedItemId = (row: TraderFeedRow): string =>
+  getFeedItemId(row.core);
+
+/**
+ * Where the server placed the row: its `occurredAt` on the all and trending
+ * feeds, where a comment is placed at the time it was written, and its latest
+ * trade elsewhere.
+ */
+export const getRowSortTimestamp = (row: TraderFeedRow): number => {
+  const occurredAt = Date.parse(row.core.occurredAt ?? '');
+  return Number.isNaN(occurredAt) ? row.item.timestamp : occurredAt;
+};
 
 export interface PendingRealtimeEvent {
   event: SocialFeedEvent;
@@ -103,27 +118,34 @@ const resolveRefreshedAuthorComment = (
  * `authorComment`: an explicit null clears the Call, while an absent one keeps
  * the HTTP row's Call. When both comments have the same UID, the realtime
  * aggregate reactions are kept while the known viewer reaction is preserved.
+ *
+ * Core's normalized `data` drops the envelope's `feedItemId`, so it is copied
+ * back: a socket-only card keys on it like its HTTP copy does.
  */
 export const mergeRealtimeFeedItem = (
   current: CoreFeedItem | undefined,
   event: SocialFeedEvent,
-): CoreFeedItem => ({
-  ...current,
-  ...event.data,
-  authorComment: resolveRealtimeAuthorComment(
-    event.data.authorComment,
-    current?.authorComment,
-  ),
-  eventId: event.eventId,
-  revision: event.revision,
-  occurredAt: event.occurredAt,
-});
+): CoreFeedItem => {
+  const merged: CoreFeedItem & { feedItemId: string } = {
+    ...current,
+    ...event.data,
+    authorComment: resolveRealtimeAuthorComment(
+      event.data.authorComment,
+      current?.authorComment,
+    ),
+    eventId: event.eventId,
+    revision: event.revision,
+    occurredAt: event.occurredAt,
+    feedItemId: event.feedItemId,
+  };
+  return merged;
+};
 
 export const toSocialFeedRow = (row: TraderFeedRow): SocialFeedRow => ({
   ...row,
   stableId: row.item.id,
-  sortTimestamp: row.item.timestamp,
-  feedItemId: row.core.positionId,
+  sortTimestamp: getRowSortTimestamp(row),
+  feedItemId: getRowFeedItemId(row),
   revision: row.core.revision,
 });
 
@@ -157,7 +179,7 @@ export const applyRealtimeEventToRow = (
     return null;
   }
 
-  const stableId = previous?.stableId ?? row?.item.id ?? mappedItem.id;
+  const stableId = previous?.stableId ?? row?.item.id ?? event.feedItemId;
 
   return {
     item: {
@@ -167,7 +189,8 @@ export const applyRealtimeEventToRow = (
     core: mergedCore,
     stableId,
     sortTimestamp:
-      previous?.sortTimestamp ?? row?.item.timestamp ?? mappedItem.timestamp,
+      previous?.sortTimestamp ??
+      getRowSortTimestamp(row ?? { item: mappedItem, core: mergedCore }),
     realtimeEventId: previous
       ? previous.realtimeEventId
       : animate
@@ -284,7 +307,7 @@ export const mergeRealtimeRows = ({
   const byId = new Map<string, SocialFeedRow>();
   const serverById = new Map<string, TraderFeedRow>();
   serverRows.forEach((row) => {
-    const feedItemId = row.core.positionId;
+    const feedItemId = getRowFeedItemId(row);
     serverById.set(feedItemId, row);
     if (shouldDeferPendingNewRow(pending.get(feedItemId))) {
       return;

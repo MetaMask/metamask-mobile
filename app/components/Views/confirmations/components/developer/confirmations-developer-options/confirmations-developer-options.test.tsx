@@ -90,6 +90,7 @@ jest.mock(
   () => ({
     selectMoneyAccountDepositEnabledFlag: jest.fn(),
     selectMoneyAccountWithdrawEnabledFlag: jest.fn(),
+    selectMoneyOnboardingStepperAnimationEnabled: jest.fn(() => false),
   }),
 );
 

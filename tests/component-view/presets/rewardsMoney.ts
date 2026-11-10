@@ -471,6 +471,21 @@ export function referralMeFixture(
   };
 }
 
+export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
+
+export function referralMeWithInvitedBenefit(
+  invitedBenefitTitle: string = REFEREE_INVITED_BENEFIT_TITLE,
+): ReferralMeDto {
+  const referralMe = referralMeFixture('referee');
+  return {
+    ...referralMe,
+    localized_text: {
+      ...referralMe.localized_text,
+      invitedBenefitTitle,
+    },
+  };
+}
+
 function moneyAccount(): MoneyAccount {
   return {
     id: 'money-1',
@@ -511,6 +526,8 @@ export interface RewardsMoneyViewStateOptions {
    * gear and referral field read this cache, the `REFERRER` role, and geo.
    */
   referralMe?: ReferralMeDto;
+  /** When false, referral me is loaded by the screen instead of the preset. */
+  seedReferralMe?: boolean;
   /** Points subscription. Null leaves Rewards Settings on the referral field. */
   subscriptionId?: string | null;
   /** Device country. Null fails open for a Money referral. */
@@ -556,6 +573,7 @@ export function rewardsMoneyViewState({
   claimReady = false,
   claimGates,
   referralMe: referralMeOverride,
+  seedReferralMe = true,
   subscriptionId = null,
   geoLocation = null,
   moneyControllerEnabled = false,
@@ -567,7 +585,9 @@ export function rewardsMoneyViewState({
   supportPreferenceSaved = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
-  const referralMe = referralMeOverride ?? referralMeFixture(persona);
+  const referralMe = seedReferralMe
+    ? (referralMeOverride ?? referralMeFixture(persona))
+    : undefined;
   const account = moneyAccount();
   const monadVault = claimGates?.monadVault ?? claimReady;
   const gasSponsorship = claimGates?.gasSponsorship ?? claimReady;
@@ -624,9 +644,11 @@ export function rewardsMoneyViewState({
         : {}),
       rewardsMoney: {
         ...rewardsMoneyInitialState,
-        referralMe: {
-          [profileId]: { loading: false, error: false, data: referralMe },
-        },
+        referralMe: referralMe
+          ? {
+              [profileId]: { loading: false, error: false, data: referralMe },
+            }
+          : {},
         earningsSummary: {
           [profileId]: {
             loading: false,

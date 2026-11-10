@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
 import { SocialFeedSurfaceProvider } from '../../../../UI/SocialFeed/SocialFeedSurface';
+import { X_TRUST_MARK_TEST_ID } from '../../../../UI/SocialFeed/components/XTrustMark';
 import SocialV1TraderRow from './SocialV1TraderRow';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
@@ -30,6 +31,19 @@ const mockOnTraderPress = jest.fn();
 describe('SocialV1TraderRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('seeds the avatar with the profile id even when the trader has a wallet address', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, avatarUri: undefined }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      'trader-1',
+    );
   });
 
   it('seeds the avatar with the profile id when the trader has no wallet address', () => {
@@ -129,6 +143,28 @@ describe('SocialV1TraderRow', () => {
     ).toHaveTextContent('20x Short');
   });
 
+  it('renders the X mark when the trader is connected to X', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, xHandle: 'alpha' }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.getByTestId(X_TRUST_MARK_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('omits the X mark when the trader has no X handle', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.queryByTestId(X_TRUST_MARK_TEST_ID)).toBeNull();
+  });
+
   it('renders no name tag by default', () => {
     renderWithProvider(
       <SocialV1TraderRow
@@ -156,26 +192,28 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
 
-  it('wraps a highlighted row in the muted viewer card', () => {
+  it('wraps a highlighted row in the muted wash with a left bar', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={{ ...baseTrader, rank: 59, overallRank: 59 }}
         onFollowPress={mockOnFollowPress}
         highlighted
+        showLeaderboardDetails
       />,
     );
 
     const card = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT);
+    const bar = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT_BAR);
 
     expect(card).toBeOnTheScreen();
     expect(card).toHaveStyle({
       backgroundColor: lightTheme.colors.background.muted,
-      borderWidth: 1,
-      borderRadius: 16,
-      paddingLeft: 8,
-      paddingRight: 8,
-      paddingTop: 12,
-      paddingBottom: 12,
+      height: 72,
+    });
+    expect(card).not.toHaveStyle({ borderRadius: 16, borderWidth: 1 });
+    expect(bar).toHaveStyle({
+      backgroundColor: lightTheme.colors.success.default,
+      width: 2,
     });
     expect(screen.queryByTestId('social-gradient-card-gradient')).toBeNull();
     expect(screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toHaveStyle({

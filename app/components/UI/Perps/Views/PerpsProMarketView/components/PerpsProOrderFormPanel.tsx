@@ -1,10 +1,11 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import type {
-  OrderType,
-  PerpsMarketData,
-  PerpsProviderType,
-  TriggerOrderType,
+import {
+  getPerpsDisplaySymbol,
+  type OrderType,
+  type PerpsMarketData,
+  type PerpsProviderType,
+  type TriggerOrderType,
 } from '@metamask/perps-controller';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
@@ -590,6 +591,7 @@ const PerpsProOrderFormPanel = ({
         >
           <PerpsMarginModeBottomSheet
             isVisible
+            marketLabel={`${getPerpsDisplaySymbol(market.symbol)}-USDC`}
             onClose={closeMarginMode}
             selectedMarginMode={marginMode}
             isCrossMarginAvailable={isCrossMarginAvailableForMarket}
