@@ -103,6 +103,7 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
 let mockMoneyAccountVisible = false;
 jest.mock('../../UI/Money/selectors/visibility', () => ({
   selectIsMoneyAccountVisible: jest.fn(() => mockMoneyAccountVisible),
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
