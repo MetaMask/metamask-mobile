@@ -78,7 +78,7 @@ jest.mock('../../hooks/useMoneyMfa', () => ({
 }));
 
 const mockTurnOn = jest.fn();
-const mockAddPasskeyAndTurnOn = jest.fn();
+const mockAddPasskey = jest.fn();
 const mockTurnOff = jest.fn();
 
 describe('Money 2-step verification sheets', () => {
@@ -88,7 +88,7 @@ describe('Money 2-step verification sheets', () => {
     jest.mocked(useMoneyMfa).mockReturnValue({
       status: 'not_set_up',
       turnOn: mockTurnOn,
-      addPasskeyAndTurnOn: mockAddPasskeyAndTurnOn,
+      addPasskey: mockAddPasskey,
       retry: jest.fn(),
       turnOff: mockTurnOff,
       isSettingUpBannerDismissed: false,
@@ -236,22 +236,22 @@ describe('Money 2-step verification sheets', () => {
       expect(getByText(strings('money.mfa.intro_title'))).toBeOnTheScreen();
     });
 
-    it('closes the sheet then turns on 2-step verification when Add passkey is pressed', () => {
+    it('closes the sheet then adds a passkey when Add passkey is pressed', () => {
       const { getByTestId } = render(<MoneyMfaPromptSheet />);
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.INTRO_BUTTON));
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-      expect(mockAddPasskeyAndTurnOn).toHaveBeenCalledTimes(1);
+      expect(mockAddPasskey).toHaveBeenCalledTimes(1);
     });
 
-    it('does not turn on 2-step verification before the sheet finishes closing', () => {
+    it('does not add a passkey before the sheet finishes closing', () => {
       mockOnCloseBottomSheet.mockImplementationOnce(() => undefined);
       const { getByTestId } = render(<MoneyMfaPromptSheet />);
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.INTRO_BUTTON));
 
-      expect(mockAddPasskeyAndTurnOn).not.toHaveBeenCalled();
+      expect(mockAddPasskey).not.toHaveBeenCalled();
     });
 
     it('dismisses the home prompt for good when closed', () => {

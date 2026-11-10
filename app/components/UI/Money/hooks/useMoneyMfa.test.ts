@@ -382,38 +382,38 @@ describe('useMoneyMfa', () => {
     });
   });
 
-  describe('addPasskeyAndTurnOn', () => {
-    it('adds a passkey first when none is active', async () => {
+  describe('addPasskey', () => {
+    it('adds a passkey without turning on 2-step verification', async () => {
       const { result } = arrange();
 
       await act(async () => {
-        await result.current.addPasskeyAndTurnOn();
+        await result.current.addPasskey();
       });
 
       expect(mockEnroll).toHaveBeenCalledWith({
         method: 'passkey',
-        reason: expect.objectContaining({ operation: 'money.mfa.setup' }),
+        reason: expect.objectContaining({ operation: 'money.mfa.addPasskey' }),
       });
-      expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(1);
+      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+      expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(false);
     });
 
     it('skips adding a passkey when one is active', async () => {
       const { result } = arrange({ credentials: [activePasskey] });
 
       await act(async () => {
-        await result.current.addPasskeyAndTurnOn();
+        await result.current.addPasskey();
       });
 
       expect(mockEnroll).not.toHaveBeenCalled();
-      expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(1);
     });
 
-    it('stops when adding the passkey is cancelled', async () => {
+    it('resolves when adding the passkey is cancelled', async () => {
       mockEnroll.mockRejectedValue(new Error('flow_cancelled'));
       const { result } = arrange();
 
       await act(async () => {
-        await result.current.addPasskeyAndTurnOn();
+        await result.current.addPasskey();
       });
 
       expect(mockVerifyOrEnroll).not.toHaveBeenCalled();

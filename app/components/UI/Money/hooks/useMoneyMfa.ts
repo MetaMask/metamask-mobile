@@ -43,6 +43,10 @@ const getReason = (): MfaReason => ({
   operation: 'money.mfa.setup',
 });
 
+const getAddPasskeyReason = (): MfaReason => ({
+  operation: 'money.mfa.addPasskey',
+});
+
 const getTurnOffReason = (): MfaReason => ({
   operation: 'money.mfa.turnOff',
   verifyDescription: strings('money.mfa.turn_off_verify_description'),
@@ -172,16 +176,16 @@ export const useMoneyMfa = () => {
     await migrate();
   }, [verifyOrEnroll, showToast]);
 
-  const addPasskeyAndTurnOn = useCallback(async () => {
-    if (!activeMethods.includes('passkey')) {
-      try {
-        await enroll({ method: 'passkey', reason: getReason() });
-      } catch {
-        return;
-      }
+  const addPasskey = useCallback(async () => {
+    if (activeMethods.includes('passkey')) {
+      return;
     }
-    await turnOn();
-  }, [activeMethods, enroll, turnOn]);
+    try {
+      await enroll({ method: 'passkey', reason: getAddPasskeyReason() });
+    } catch {
+      // The kit has already shown any error.
+    }
+  }, [activeMethods, enroll]);
 
   const turnOff = useCallback(async () => {
     try {
@@ -233,7 +237,7 @@ export const useMoneyMfa = () => {
   return {
     status,
     turnOn,
-    addPasskeyAndTurnOn,
+    addPasskey,
     retry,
     turnOff,
     isSettingUpBannerDismissed: isMigrationBannerDismissed,

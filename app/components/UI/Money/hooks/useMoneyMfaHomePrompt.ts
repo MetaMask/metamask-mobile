@@ -4,20 +4,22 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectIsAccountGroupFunded } from '../../../../selectors/assets/balances';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyMfaHomePromptSession } from '../../../../lib/Money/mfa/moneyMfaHomePromptSession';
 import { useMoneyMfa } from './useMoneyMfa';
 
 /**
- * Opens the passkey prompt on the wallet home, at most once per session, after
- * the wallet has a balance, when Money 2-step verification is available and not
- * set up.
+ * Opens the passkey prompt on the wallet home for social login users, at most
+ * once per session, after the wallet has a balance, when Money 2-step
+ * verification is available and not set up.
  */
 export const useMoneyMfaHomePrompt = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { status } = useMoneyMfa();
   const isFunded = useSelector(selectIsAccountGroupFunded);
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const { isHomePromptDismissed } = useSyncExternalStore(
     moneyMfaStore.subscribe,
     moneyMfaStore.getState,
@@ -25,7 +27,10 @@ export const useMoneyMfaHomePrompt = () => {
   const pendingCheck = useRef<Promise<boolean> | null>(null);
 
   const isEligible =
-    status === 'not_set_up' && isFunded && !isHomePromptDismissed;
+    status === 'not_set_up' &&
+    isSocialLogin &&
+    isFunded &&
+    !isHomePromptDismissed;
 
   useFocusEffect(
     useCallback(() => {

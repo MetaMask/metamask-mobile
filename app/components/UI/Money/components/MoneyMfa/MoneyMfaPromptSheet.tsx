@@ -21,7 +21,7 @@ import {
 const MoneyMfaPromptSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const { addPasskeyAndTurnOn } = useMoneyMfa();
+  const { addPasskey } = useMoneyMfa();
   const { trackBottomSheetViewed, trackButtonClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MFA_PROMPT_SHEET,
   });
@@ -44,9 +44,9 @@ const MoneyMfaPromptSheet = () => {
       label_key: 'money.mfa.intro_cta',
     });
     sheetRef.current?.onCloseBottomSheet(() => {
-      void addPasskeyAndTurnOn();
+      void addPasskey();
     });
-  }, [addPasskeyAndTurnOn, trackButtonClicked]);
+  }, [addPasskey, trackButtonClicked]);
 
   return (
     <BottomSheet
