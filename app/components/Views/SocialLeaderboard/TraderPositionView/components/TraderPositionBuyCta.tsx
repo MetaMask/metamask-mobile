@@ -64,13 +64,19 @@ export interface TraderPositionBuyCtaProps {
    * so the parent's "dismissed" event is suppressed. Called for both variants.
    */
   onBuyCtaClicked: () => void;
+  /**
+   * Marks the Sell CTA as clicked so the parent's "dismissed" event is
+   * suppressed, without firing the TSA-901 success metric.
+   */
+  onSellCtaClicked: () => void;
   buyButtonTestID: string;
   sellButtonTestID: string;
 }
 
 /**
- * Spot Buy CTA for the trader position screen, gated by the Top Traders Buy
- * Action A/B test (`socialAiTSA901AbtestTopTradersBuyAction`).
+ * Spot trade CTA (Trade / Buy / Sell) for the trader position screen, gated by
+ * the Top Traders Buy Action A/B test
+ * (`socialAiTSA901AbtestTopTradersBuyAction`).
  *
  * - control: tapping Buy opens the QuickBuy sheet (existing behavior).
  * - treatment: tapping Buy opens the main swaps view with the trader's token
@@ -92,6 +98,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   isTraderPositionClosed,
   postTradeShare,
   onBuyCtaClicked,
+  onSellCtaClicked,
   buyButtonTestID,
   sellButtonTestID,
 }) => {
@@ -129,6 +136,9 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   );
   const ownTraderAddress = traderAddress ?? '';
   const ownSelectedAddress = selectedAccountAddress ?? '';
+  // Sell-mode safety rests on the QuickBuy sheet's live-balance validation
+  // (usePositionTokenBalance + insufficient_balance), never on position.size —
+  // at zero balance the sheet falls back to buy mode.
   const isOwnOpenPosition =
     position != null &&
     isTraderPositionClosed === false &&
@@ -164,6 +174,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
       setIsSwapPending(false);
     }
 
+    setSheetTradeMode('buy');
     setIsQuickBuyVisible(true);
   }, [
     position,
@@ -190,6 +201,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     }
     if (!isLoading) {
       setIsSwapPending(false);
+      setSheetTradeMode('buy');
       setIsQuickBuyVisible(true);
     }
   }, [isSwapPending, isFocused, destToken, isLoading, goToSwaps]);
@@ -202,9 +214,10 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   const handleSellPress = useCallback(() => {
     if (!position) return;
     playImpact(ImpactMoment.PrimaryCTA);
+    onSellCtaClicked();
     setSheetTradeMode('sell');
     setIsQuickBuyVisible(true);
-  }, [position]);
+  }, [position, onSellCtaClicked]);
 
   const handlePostSwapReopen = useCallback(
     (

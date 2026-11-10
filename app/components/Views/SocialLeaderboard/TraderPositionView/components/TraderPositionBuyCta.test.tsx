@@ -142,6 +142,7 @@ const renderCta = (
     <TraderPositionBuyCta
       position={mockPosition}
       onBuyCtaClicked={props?.onBuyCtaClicked ?? jest.fn()}
+      onSellCtaClicked={props?.onSellCtaClicked ?? jest.fn()}
       buyButtonTestID={BUY_BUTTON_TEST_ID}
       sellButtonTestID={SELL_BUTTON_TEST_ID}
       {...props}
@@ -200,10 +201,12 @@ describe('TraderPositionBuyCta', () => {
 
     it('opens the QuickBuy sheet in sell mode on Sell press', () => {
       const onBuyCtaClicked = jest.fn();
+      const onSellCtaClicked = jest.fn();
       const { getByTestId } = renderCta({
         traderAddress: VIEWER_ADDRESS,
         isTraderPositionClosed: false,
         onBuyCtaClicked,
+        onSellCtaClicked,
       });
 
       fireEvent.press(getByTestId(SELL_BUTTON_TEST_ID));
@@ -213,7 +216,25 @@ describe('TraderPositionBuyCta', () => {
         expect.objectContaining({ isVisible: true, initialTradeMode: 'sell' }),
       );
       expect(mockGoToSwaps).not.toHaveBeenCalled();
+      expect(onSellCtaClicked).toHaveBeenCalledTimes(1);
       expect(onBuyCtaClicked).not.toHaveBeenCalled();
+    });
+
+    it('reopens the sheet in buy mode when Buy is tapped after Sell', () => {
+      const { getByTestId, getByText } = renderCta({
+        traderAddress: VIEWER_ADDRESS,
+        isTraderPositionClosed: false,
+      });
+
+      fireEvent.press(getByTestId(SELL_BUTTON_TEST_ID));
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true, initialTradeMode: 'sell' }),
+      );
+
+      fireEvent.press(getByText('Buy'));
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true, initialTradeMode: 'buy' }),
+      );
     });
 
     it('opens the QuickBuy sheet in sell mode in the treatment variant', () => {
@@ -357,6 +378,7 @@ describe('TraderPositionBuyCta', () => {
         <TraderPositionBuyCta
           position={mockPosition}
           onBuyCtaClicked={onBuyCtaClicked}
+          onSellCtaClicked={jest.fn()}
           buyButtonTestID={BUY_BUTTON_TEST_ID}
           sellButtonTestID={SELL_BUTTON_TEST_ID}
         />,
@@ -387,6 +409,7 @@ describe('TraderPositionBuyCta', () => {
         <TraderPositionBuyCta
           position={mockPosition}
           onBuyCtaClicked={jest.fn()}
+          onSellCtaClicked={jest.fn()}
           buyButtonTestID={BUY_BUTTON_TEST_ID}
           sellButtonTestID={SELL_BUTTON_TEST_ID}
         />,

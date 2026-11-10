@@ -341,8 +341,9 @@ const TraderPositionView = () => {
     followTradingTokenContextRef.current = followTradingTokenContext;
   }, [followTradingTokenContext]);
 
-  // Dismissed fires only when the user backs out without ever clicking Buy or Trade.
-  // Closing the QuickBuy sheet still counts as having visited the token screen.
+  // Dismissed fires only when the user backs out without ever clicking a CTA
+  // (Buy, Trade, or Sell). Closing the QuickBuy sheet still counts as having
+  // visited the token screen.
   // Empty dep array ensures the cleanup runs ONLY on unmount, never on re-render.
   useEffect(
     () => () => {
@@ -380,6 +381,12 @@ const TraderPositionView = () => {
     ctaClickedRef.current = true;
     trackFollowTradingCtaClicked(SocialLeaderboardEventValues.CTA_TYPE.BUY);
   }, [trackFollowTradingCtaClicked]);
+
+  // Marks the Sell CTA as clicked so the "dismissed" cleanup is suppressed,
+  // without firing the TSA-901 success metric (a sell is not a buy action).
+  const handleSellCtaClicked = useCallback(() => {
+    ctaClickedRef.current = true;
+  }, []);
 
   const handleChartIndexChange = useCallback((_index: number) => {
     // Legacy (perp) chart scrub: price readout not wired for the SVG chart.
@@ -740,6 +747,7 @@ const TraderPositionView = () => {
         originalEntryPoint={quickBuyOriginalEntryPoint}
         isTraderPositionClosed={isClosed}
         onBuyCtaClicked={handleBuyCtaClicked}
+        onSellCtaClicked={handleSellCtaClicked}
         postTradeShare={isSocialV1 === true}
         buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
         sellButtonTestID={TraderPositionViewSelectorsIDs.SELL_BUTTON}
