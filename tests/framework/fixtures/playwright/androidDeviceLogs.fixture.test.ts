@@ -90,18 +90,17 @@ describe('androidDeviceLogs fixture', () => {
     expect(testInfo.attach).not.toHaveBeenCalled();
   });
 
-  it('clears the buffer before the test and attaches the dump on failure', async () => {
-    stubAdb('E/ReactNativeJS: Fabric mount failed\n');
+  it('clears the logcat buffer before the test body runs', async () => {
+    stubAdb('');
     let adbCallsDuringUse = 0;
     const use = jest.fn().mockImplementation(async () => {
       adbCallsDuringUse = execFileMock.mock.calls.length;
     });
-    const testInfo = createTestInfo();
 
     await captureAndroidDeviceLogs(
       { currentDeviceDetails: androidDevice() },
       use,
-      testInfo as unknown as TestInfo,
+      createTestInfo() as unknown as TestInfo,
     );
 
     expect(adbCallsDuringUse).toBe(1);
@@ -111,6 +110,18 @@ describe('androidDeviceLogs fixture', () => {
       'logcat',
       '-c',
     ]);
+  });
+
+  it('attaches the logcat dump to a failed test', async () => {
+    stubAdb('E/ReactNativeJS: Fabric mount failed\n');
+    const testInfo = createTestInfo();
+
+    await captureAndroidDeviceLogs(
+      { currentDeviceDetails: androidDevice() },
+      jest.fn().mockResolvedValue(undefined),
+      testInfo as unknown as TestInfo,
+    );
+
     expect(testInfo.attach).toHaveBeenCalledTimes(1);
     expect(testInfo.attach.mock.calls[0][1].body).toContain(
       'E/ReactNativeJS: Fabric mount failed',

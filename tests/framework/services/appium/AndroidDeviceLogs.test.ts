@@ -125,6 +125,8 @@ describe('AndroidDeviceLogs', () => {
     it('targets the adb serial and keeps the line cap plus tag filters', () => {
       const args = buildLogcatDumpArgs('emulator-5554');
 
+      // Listed literally on purpose: changing the allowlist has to be a
+      // deliberate edit here too, so a tag cannot be dropped by accident.
       expect(args).toEqual([
         '-s',
         'emulator-5554',
@@ -135,8 +137,28 @@ describe('AndroidDeviceLogs', () => {
         '-t',
         String(ANDROID_LOGCAT_MAX_LINES),
         '-s',
-        ...ANDROID_LOGCAT_TAG_FILTERS,
+        'AndroidRuntime:V',
+        'DEBUG:V',
+        'libc:V',
+        'System.err:V',
+        'ReactNative:V',
+        'ReactNativeJS:V',
+        'ActivityManager:I',
+        'lowmemorykiller:V',
+        'lmkd:V',
+        '*:W',
       ]);
+    });
+
+    it('ends with a catch-all so unlisted tags still contribute failures', () => {
+      // React Native prefix its own tags (`unknown:SurfaceMountingManager`), so
+      // naming class names alone would drop the crash we are chasing.
+      expect(ANDROID_LOGCAT_TAG_FILTERS.at(-1)).toBe('*:W');
+    });
+
+    it('keeps process death at info level', () => {
+      // `Process ... has died` and `Force stopping ...` are I, not W.
+      expect(ANDROID_LOGCAT_TAG_FILTERS).toContain('ActivityManager:I');
     });
 
     it('omits the serial so adb falls back to ANDROID_SERIAL', () => {

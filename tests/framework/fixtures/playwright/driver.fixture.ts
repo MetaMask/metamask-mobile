@@ -2,7 +2,11 @@ import type { FullProject, TestInfo } from '@playwright/test';
 import type { WebDriverConfig } from '../../types.ts';
 import { DEFAULT_IMPLICIT_WAIT_MS } from '../../Constants.ts';
 import { setDeviceInfo } from '../../DeviceInfoCache.ts';
-import type { SharedAppiumSession, WorkerLevelFixtures } from './types.ts';
+import type {
+  SharedAppiumSession,
+  TestLevelFixtures,
+  WorkerLevelFixtures,
+} from './types.ts';
 import {
   isVideoRecordingOnFailureEnabled,
   startFailureRecording,
@@ -43,7 +47,13 @@ export const driverFixture = {
     {
       deviceProvider,
       sharedSession,
-    }: Pick<WorkerLevelFixtures, 'deviceProvider' | 'sharedSession'>,
+      // Dependency only. Taking the fixture here, rather than relying on the
+      // order the auto fixtures happen to be spread in, is what guarantees the
+      // log buffer is cleared before the session is created and the dump runs
+      // after the session is torn down.
+      androidDeviceLogs: _androidDeviceLogs,
+    }: Pick<WorkerLevelFixtures, 'deviceProvider' | 'sharedSession'> &
+      Pick<TestLevelFixtures, 'androidDeviceLogs'>,
     use: (drv: WebdriverIO.Browser) => Promise<void>,
     testInfo: TestInfo,
   ) => {

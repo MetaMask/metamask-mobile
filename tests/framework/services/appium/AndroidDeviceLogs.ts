@@ -12,20 +12,29 @@ export const ANDROID_DEVICE_LOGS_ATTACHMENT_NAME = 'android-device-logs.txt';
 /*
  * logcat tag filters (`tag:priority`, priority is the minimum level kept).
  *
- * The dump exists to explain a failed test, so it keeps tags that carry
- * failure evidence and drops the rest:
- * - `AndroidRuntime` — fatal Java/Kotlin exceptions plus their stack traces
- *   (this is where a Fabric mount crash lands before the process dies).
+ * Filterspecs match the tag exactly. There is no prefix matching, `*` is the
+ * only wildcard, so `ReactNative:V` does not cover `ReactNativeJS` and friends.
+ * React Native also logs through tags it prefixes itself: the two lines that
+ * matter most here are `E unknown:SurfaceMountingManager` and
+ * `W unknown:BridgelessReact`, not the bare class names. That is why the list
+ * ends with a `*:W` catch-all instead of trusting a guessed tag name. The
+ * named tags only add verbose and info context on top of it.
+ *
+ * - `*:W` — warnings and errors from every tag. This is where a Fabric mount
+ *   crash (`SurfaceMountingManager`, `MountItemDispatcher`) and the React host
+ *   exception (`BridgelessReact`) are logged.
+ * - `AndroidRuntime` — fatal Java/Kotlin exceptions plus their stack traces.
  * - `DEBUG`, `libc` — native crash dump and tombstone lines, so a signal
  *   death is not reported as "device disconnected".
  * - `System.err` — exceptions the JVM or the JS bridge writes to stderr.
- * - `ReactNative`, `ReactHost` — RN instance / Fabric surface lifecycle
- *   (`ReactHost` destroyed, surface mount failures, bridge timeouts).
+ * - `ReactNative` — RN instance and surface lifecycle at info level, for
+ *   example `Destroying ReactContext` and `Resetting ReactInstance`.
  * - `ReactNativeJS` — `console.error` / redbox output from the app bundle.
- * - `ActivityManager` at `W` — process death, ANR and low-memory kills.
- *
- * logcat tag specs match tag prefixes, so `ReactNative` also covers
- * `ReactNativeJSBatchedBridge` and friends.
+ * - `ActivityManager` at `I` — process death, ANR and low-memory kills. The
+ *   `Process ... has died` and `Force stopping ...` lines are info level, so
+ *   `W` would drop them, which is the case that matters when the UiAutomator2
+ *   instrumentation dies mid-test.
+ * - `lowmemorykiller`, `lmkd` — low-memory kills on recent images.
  */
 export const ANDROID_LOGCAT_TAG_FILTERS = [
   'AndroidRuntime:V',
@@ -33,9 +42,11 @@ export const ANDROID_LOGCAT_TAG_FILTERS = [
   'libc:V',
   'System.err:V',
   'ReactNative:V',
-  'ReactHost:V',
   'ReactNativeJS:V',
-  'ActivityManager:W',
+  'ActivityManager:I',
+  'lowmemorykiller:V',
+  'lmkd:V',
+  '*:W',
 ] as const;
 
 /**

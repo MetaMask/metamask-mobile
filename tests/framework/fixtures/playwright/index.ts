@@ -26,9 +26,10 @@ export const test = base.extend<TestLevelFixtures, WorkerLevelFixtures>({
   ...currentDeviceDetailsFixture,
   ...driverFixture,
   ...performanceTrackerFixture,
-  // Registered before `phaseTimer` so its `adb logcat -c` runs before the
-  // `driver` fixture creates the session: app launch / Fabric mount logs from
-  // session creation are then inside the captured window.
+  // `driver` takes `androidDeviceLogs` as a dependency, so the order here does
+  // not decide when the buffer is cleared: Playwright resolves the dependency
+  // first, which runs `adb logcat -c` before the session is created and the
+  // dump after the session is torn down.
   ...androidDeviceLogsFixture,
   ...phaseTimerFixture,
   ...appProfilingFixture,
