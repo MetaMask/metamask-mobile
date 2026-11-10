@@ -102,6 +102,7 @@ import {
   PostTradeShareOwner,
   usePostTradeShareReopen,
 } from '../PostTradeShareBottomSheet';
+import { useQuoteTokensQuery } from '../PostTradeShareBottomSheet/useQuoteTokensQuery';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
@@ -210,6 +211,7 @@ const SocialV1ViewContent: React.FC = () => {
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
+  useQuoteTokensQuery(isSocialV1Treatment);
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
   const [hardwareTier] = useState(() => getHardwareTier());

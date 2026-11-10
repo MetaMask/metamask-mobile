@@ -1100,6 +1100,7 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsTradeSheetSelectorsIDs = {
   SHEET: 'perps-trade-sheet',
   CONTENT: 'perps-trade-sheet-content',
+  PLACEHOLDER: 'perps-trade-sheet-placeholder',
   HEADER_PRICE: 'perps-trade-sheet-header-price',
   HEADER_CHANGE: 'perps-trade-sheet-header-change',
   HEADER_SKELETON: 'perps-trade-sheet-header-skeleton',
@@ -1264,6 +1265,16 @@ export const PerpsMarginModeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-margin-mode-bottom-sheet-close',
   ISOLATED_OPTION: 'perps-margin-mode-isolated',
   CROSS_OPTION: 'perps-margin-mode-cross',
+} as const;
+
+export const PerpsCrossMarginConfirmBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-cross-margin-confirm-bottom-sheet',
+  CLOSE_BUTTON: 'perps-cross-margin-confirm-bottom-sheet-close',
+  COLLATERAL_ITEM: 'perps-cross-margin-confirm-collateral',
+  LIQUIDATION_ITEM: 'perps-cross-margin-confirm-liquidation',
+  MARGIN_ITEM: 'perps-cross-margin-confirm-margin',
+  GO_BACK_BUTTON: 'perps-cross-margin-confirm-go-back',
+  CONFIRM_BUTTON: 'perps-cross-margin-confirm-confirm',
 } as const;
 
 export const PerpsLeverageBottomSheetSelectorsIDs = {

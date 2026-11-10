@@ -691,7 +691,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                         return;
                       }
                       void onClaimPress(summaryData, (options) =>
-                        claim(summaryData, options).catch(() => undefined),
+                        claim(options?.summary ?? summaryData, options).catch(
+                          () => undefined,
+                        ),
                       );
                     }
                   : undefined

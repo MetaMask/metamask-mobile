@@ -14,6 +14,7 @@ import { Connection, ConnectionProps } from '../Connection';
 import checkPermissions from '../handlers/checkPermissions';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
+import { revokeChannelPermissions } from '../utils/revokeChannelPermissions.util';
 import { wait, waitForCondition } from '../utils/wait.util';
 import { SDKConnect } from './../SDKConnect';
 
@@ -35,6 +36,7 @@ async function connectToChannel({
   instance: SDKConnect;
 }) {
   const existingConnection = instance.state.connected[id] !== undefined;
+  const hasSession = instance.state.connections[id] !== undefined;
   const isReady = existingConnection && instance.state.connected[id].isReady;
 
   DevLogger.log(
@@ -92,6 +94,13 @@ async function connectToChannel({
   }
 
   try {
+    if (!hasSession) {
+      // A channelId without a session must earn fresh approval, even if an
+      // earlier session or a deeplink-protocol session (same permission
+      // subject) left a permission behind.
+      revokeChannelPermissions(id);
+    }
+
     instance.state.connections[id] = {
       id,
       otherPublicKey,
