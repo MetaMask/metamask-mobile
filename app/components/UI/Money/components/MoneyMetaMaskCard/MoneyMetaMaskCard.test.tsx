@@ -490,14 +490,54 @@ describe('MoneyMetaMaskCard', () => {
       screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_SPINNER),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(MoneyMetaMaskCardTestIds.SETUP_BANNER),
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTAINER),
     ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the identity review banner', () => {
+  it.each([
+    [
+      'identity review',
+      { kind: 'kyc_under_review' } as const,
+      'money.metamask_card.setup.reviewing_title',
+      'money.metamask_card.setup.reviewing_description',
+    ],
+    [
+      'card creation',
+      { kind: 'provisioning' } as const,
+      'money.metamask_card.setup.creating_title',
+      'money.metamask_card.setup.creating_description',
+    ],
+  ])(
+    'renders the %s state as the card row with no Continue button',
+    (_label, setupView, titleKey, descriptionKey) => {
+      render(
+        <MoneyMetaMaskCard
+          mode="setup"
+          setupView={setupView}
+          onGetNowPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_TITLE),
+      ).toHaveTextContent(strings(titleKey));
+      expect(
+        screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_DESCRIPTION),
+      ).toHaveTextContent(strings(descriptionKey));
+      expect(
+        screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_CARD_ART),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('confirm-button')).not.toBeOnTheScreen();
+    },
+  );
+
+  it('mutes the card art while setup is pending', () => {
     render(
       <MoneyMetaMaskCard
         mode="setup"
@@ -507,27 +547,11 @@ describe('MoneyMetaMaskCard', () => {
     );
 
     expect(
-      screen.getByText(strings('card.card_home.warnings.kyc_pending.title')),
-    ).toBeOnTheScreen();
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_CARD_ART),
+    ).toHaveStyle({ opacity: 0.5 });
   });
 
-  it('renders the card creation banner', () => {
-    render(
-      <MoneyMetaMaskCard
-        mode="setup"
-        setupView={{ kind: 'provisioning' }}
-        onGetNowPress={jest.fn()}
-      />,
-    );
-
-    expect(
-      screen.getByText(
-        strings('card.card_home.messages.card_provisioning.title'),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('continues the unfinished setup step and tracks the press', () => {
+  it('continues the unfinished identity step and tracks the press', () => {
     const onSetupContinuePress = jest.fn();
     const onManagePress = jest.fn();
     render(
@@ -543,12 +567,17 @@ describe('MoneyMetaMaskCard', () => {
     jest.clearAllMocks();
 
     expect(
-      screen.getByText(
-        strings('card.card_home.messages.setup_incomplete.descriptions.kyc'),
-      ),
-    ).toBeOnTheScreen();
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_TITLE),
+    ).toHaveTextContent(strings('money.metamask_card.setup.finish_kyc_title'));
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_DESCRIPTION),
+    ).toHaveTextContent(
+      strings('money.metamask_card.setup.finish_kyc_description'),
+    );
 
-    fireEvent.press(screen.getByTestId('confirm-button'));
+    fireEvent.press(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON),
+    );
 
     expect(onSetupContinuePress).toHaveBeenCalledTimes(1);
     expect(onManagePress).not.toHaveBeenCalled();
@@ -558,6 +587,35 @@ describe('MoneyMetaMaskCard', () => {
         mode: 'setup',
       }),
     );
+  });
+
+  it('uses the generic setup copy for other unfinished steps', () => {
+    const onSetupContinuePress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="setup"
+        setupView={{ kind: 'action_required', step: 'funding' }}
+        onGetNowPress={jest.fn()}
+        onSetupContinuePress={onSetupContinuePress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_TITLE),
+    ).toHaveTextContent(
+      strings('card.card_home.messages.setup_incomplete.title'),
+    );
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_DESCRIPTION),
+    ).toHaveTextContent(
+      strings('card.card_home.messages.setup_incomplete.descriptions.funding'),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON),
+    );
+
+    expect(onSetupContinuePress).toHaveBeenCalledTimes(1);
   });
 
   it('disables Continue while the Money account approval is running', () => {
@@ -571,7 +629,9 @@ describe('MoneyMetaMaskCard', () => {
       />,
     );
 
-    expect(screen.getByTestId('confirm-button')).toBeDisabled();
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON),
+    ).toBeDisabled();
   });
 
   it('opens Card Home from the setup section', () => {

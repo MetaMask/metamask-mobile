@@ -3779,7 +3779,7 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('replaces the card upsell with the unfinished setup banner', () => {
+    it('replaces the card upsell with the unfinished setup card row', () => {
       const enableCard = jest.fn();
       mockSelectIsCardholder.mockReturnValue(false);
       mockUseMoneyAccountCardLinkage.mockReturnValue(
@@ -3819,21 +3819,21 @@ describe('MoneyHomeView', () => {
       );
 
       expect(
-        getByTestId(MoneyMetaMaskCardTestIds.SETUP_BANNER),
+        getByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTAINER),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('card.card_home.messages.setup_incomplete.title')),
+        getByText(strings('money.metamask_card.setup.finish_kyc_title')),
       ).toBeOnTheScreen();
       expect(
-        getByText(
-          strings('card.card_home.messages.setup_incomplete.descriptions.kyc'),
-        ),
+        getByText(strings('money.metamask_card.setup.finish_kyc_description')),
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
       ).not.toBeOnTheScreen();
 
-      fireEvent.press(getByTestId('confirm-button'));
+      fireEvent.press(
+        getByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON),
+      );
 
       expect(enableCard).toHaveBeenCalledTimes(1);
       expect(mockUseCardEnableCard).toHaveBeenCalledWith(
