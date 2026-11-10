@@ -17,7 +17,10 @@ const mockExitCardFlow = jest.fn();
 const mockAddListener = jest.fn(
   (
     _eventName: string,
-    _listener: (event: { preventDefault: () => void }) => void,
+    _listener: (event: {
+      preventDefault: () => void;
+      data: { action: { type: string } };
+    }) => void,
   ) => jest.fn(),
 );
 const mockRequestMultiple = jest.fn();
@@ -602,7 +605,10 @@ describe('ImmersveKYCModal', () => {
     render(<ImmersveKYCModal />);
     const preventDefault = jest.fn();
 
-    getBeforeRemoveListener()({ preventDefault });
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
 
     expect(preventDefault).toHaveBeenCalledTimes(1);
     expect(Alert.alert).toHaveBeenCalledWith(
@@ -618,7 +624,10 @@ describe('ImmersveKYCModal', () => {
     render(<ImmersveKYCModal />);
     const preventDefault = jest.fn();
 
-    getBeforeRemoveListener()({ preventDefault });
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
     pressExitConfirmationButton(1);
 
     expect(preventDefault).toHaveBeenCalledTimes(1);
@@ -631,6 +640,19 @@ describe('ImmersveKYCModal', () => {
         expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
       ]),
     );
+  });
+
+  it('lets a programmatic reset remove the screen without confirmation', () => {
+    render(<ImmersveKYCModal />);
+    const preventDefault = jest.fn();
+
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'RESET' } },
+    });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(Alert.alert).not.toHaveBeenCalled();
   });
 
   it('lets a redirect close through without confirmation', async () => {
@@ -646,7 +668,10 @@ describe('ImmersveKYCModal', () => {
       });
     });
     const preventDefault = jest.fn();
-    getBeforeRemoveListener()({ preventDefault });
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
 
     expect(preventDefault).not.toHaveBeenCalled();
     expect(Alert.alert).not.toHaveBeenCalled();

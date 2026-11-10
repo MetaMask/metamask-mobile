@@ -389,10 +389,13 @@ const ImmersveKYCModal: React.FC = () => {
   }, [exitWebview]);
 
   // Hardware back and swipe skip the header X. Ask the same way, unless we
-  // already started a close (redirect goBack or a confirmed exit).
+  // already started a close (redirect goBack or a confirmed exit). A reset or
+  // navigate from the screen underneath (pending timeout, next onboarding
+  // step) must go through, or the exit alert replaces that navigation.
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
-      if (hasClosed.current) {
+      const { type } = event.data.action;
+      if (hasClosed.current || (type !== 'GO_BACK' && type !== 'POP')) {
         return;
       }
       event.preventDefault();
