@@ -26,6 +26,7 @@ import {
   selectLastSubscriptionByProduct,
   selectMoneyAccountPlusPricing,
   selectMoneyAccountPlusSubscription,
+  selectShouldLeaveBenefitsForProHub,
   selectSubscriptionBenefits,
   selectSubscriptionByProduct,
   selectSubscriptionControllerState,
@@ -414,6 +415,7 @@ describe('subscriptionController selectors', () => {
       SUBSCRIPTION_STATUSES.paused,
       SUBSCRIPTION_STATUSES.awaitingFunds,
       SUBSCRIPTION_STATUSES.unpaid,
+      SUBSCRIPTION_STATUSES.canceled,
     ])('opens Pro Hub for a %s Money Account Plus subscription', (status) => {
       const state = createState({
         subscriptions: [
@@ -430,7 +432,6 @@ describe('subscriptionController selectors', () => {
     });
 
     it.each([
-      SUBSCRIPTION_STATUSES.canceled,
       SUBSCRIPTION_STATUSES.incomplete,
       SUBSCRIPTION_STATUSES.incompleteExpired,
     ])('keeps a %s subscription on Benefits', (status) => {
@@ -465,6 +466,69 @@ describe('subscriptionController selectors', () => {
 
     it('returns false when the controller slice is absent', () => {
       expect(selectHasMoneyAccountPlusMembership(createState())).toBe(false);
+    });
+  });
+
+  describe('selectShouldLeaveBenefitsForProHub', () => {
+    it.each([
+      SUBSCRIPTION_STATUSES.active,
+      SUBSCRIPTION_STATUSES.trialing,
+      SUBSCRIPTION_STATUSES.provisional,
+      SUBSCRIPTION_STATUSES.pastDue,
+      SUBSCRIPTION_STATUSES.paused,
+      SUBSCRIPTION_STATUSES.awaitingFunds,
+      SUBSCRIPTION_STATUSES.unpaid,
+    ])('leaves Benefits for a %s Money Account Plus subscription', (status) => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectShouldLeaveBenefitsForProHub(state)).toBe(true);
+    });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.canceled,
+      SUBSCRIPTION_STATUSES.incomplete,
+      SUBSCRIPTION_STATUSES.incompleteExpired,
+    ])('keeps a %s subscription on Benefits', (status) => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectShouldLeaveBenefitsForProHub(state)).toBe(false);
+    });
+
+    it('ignores a past-due subscription for another product', () => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-shield',
+            products: [createProduct(PRODUCT_TYPES.SHIELD)],
+            status: SUBSCRIPTION_STATUSES.pastDue,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectShouldLeaveBenefitsForProHub(state)).toBe(false);
+    });
+
+    it('returns false when the controller slice is absent', () => {
+      expect(selectShouldLeaveBenefitsForProHub(createState())).toBe(false);
     });
   });
 

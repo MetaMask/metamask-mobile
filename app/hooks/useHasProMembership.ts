@@ -5,9 +5,9 @@ import { selectHasMoneyAccountPlusMembership } from '../selectors/subscriptionCo
 /**
  * True when Plus is in a status Pro Hub can show.
  *
- * Those statuses use the MetaMask Orange label and open Pro Hub. Canceled,
- * incomplete, incomplete-expired, and no subscription stay on the join label
- * and Benefits.
+ * Those statuses use the MetaMask Orange label and open Pro Hub, including
+ * canceled. Incomplete, incomplete-expired, and no subscription stay on the
+ * join label and Benefits.
  */
 export function useHasProMembership(): boolean {
   return useSelector(selectHasMoneyAccountPlusMembership);

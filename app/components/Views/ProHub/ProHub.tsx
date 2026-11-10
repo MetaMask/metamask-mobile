@@ -153,8 +153,8 @@ const ProHub = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // Statuses the hub banner can show stay. Unknown access waits for the
-  // first fetch. A canceled, incomplete, or missing plan leaves.
+  // Statuses the hub banner can show stay, including canceled. Unknown
+  // access waits for the first fetch. An incomplete or missing plan leaves.
   useEffect(() => {
     if (
       proAccess === MoneyAccountPlusAccess.Unknown ||

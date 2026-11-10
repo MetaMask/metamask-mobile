@@ -263,6 +263,7 @@ describe('ProHub', () => {
       SUBSCRIPTION_STATUSES.pastDue,
       SUBSCRIPTION_STATUSES.awaitingFunds,
       SUBSCRIPTION_STATUSES.unpaid,
+      SUBSCRIPTION_STATUSES.canceled,
     ])('shows the hub for a %s plan while access is unresolved', (status) => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(
         MoneyAccountPlusAccess.Unknown,
@@ -282,7 +283,7 @@ describe('ProHub', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('leaves when only a cached plan remains after access lapses', () => {
+    it('stays open for a canceled plan', () => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(
         MoneyAccountPlusAccess.Eligible,
       );
@@ -294,12 +295,12 @@ describe('ProHub', () => {
         subscription: { id: 'sub-last' } as Subscription,
       });
 
-      const { queryByTestId } = renderProHub({
+      const { getByTestId } = renderProHub({
         subscriptions: [createPlusSubscription(SUBSCRIPTION_STATUSES.canceled)],
       });
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
     });
 
     it('stays open for a paused plan without an entitlement', () => {

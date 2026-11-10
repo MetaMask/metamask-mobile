@@ -64,9 +64,9 @@ jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
   useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
 }));
 
-const mockUseHasProMembership = jest.fn(() => false);
-jest.mock('../../../hooks/useHasProMembership', () => ({
-  useHasProMembership: () => mockUseHasProMembership(),
+const mockUseShouldLeaveBenefitsForProHub = jest.fn(() => false);
+jest.mock('../../../hooks/useShouldLeaveBenefitsForProHub', () => ({
+  useShouldLeaveBenefitsForProHub: () => mockUseShouldLeaveBenefitsForProHub(),
 }));
 
 const mockGetSubscriptions = jest.fn().mockResolvedValue([]);
@@ -149,7 +149,7 @@ describe('ProSubscription', () => {
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Eligible,
     );
-    mockUseHasProMembership.mockReturnValue(false);
+    mockUseShouldLeaveBenefitsForProHub.mockReturnValue(false);
   });
 
   describe('access guard', () => {
@@ -170,7 +170,7 @@ describe('ProSubscription', () => {
     });
 
     it('sends an existing member straight to the hub', () => {
-      mockUseHasProMembership.mockReturnValue(true);
+      mockUseShouldLeaveBenefitsForProHub.mockReturnValue(true);
 
       render(<ProSubscription />);
 
@@ -181,7 +181,7 @@ describe('ProSubscription', () => {
       const { getByTestId, rerender } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-checkout-start'));
-      mockUseHasProMembership.mockReturnValue(true);
+      mockUseShouldLeaveBenefitsForProHub.mockReturnValue(true);
       rerender(<ProSubscription />);
 
       expect(mockDispatch).not.toHaveBeenCalled();
@@ -193,7 +193,7 @@ describe('ProSubscription', () => {
 
       fireEvent.press(getByTestId('mock-checkout-start'));
       fireEvent.press(getByTestId('mock-checkout-error'));
-      mockUseHasProMembership.mockReturnValue(true);
+      mockUseShouldLeaveBenefitsForProHub.mockReturnValue(true);
       rerender(<ProSubscription />);
 
       expectProHubReplacesSubscriptionModal();
@@ -218,7 +218,7 @@ describe('ProSubscription', () => {
 
       const { rerender } = render(<ProSubscription />);
 
-      mockUseHasProMembership.mockReturnValue(true);
+      mockUseShouldLeaveBenefitsForProHub.mockReturnValue(true);
       rerender(<ProSubscription />);
 
       expectProHubReplacesSubscriptionModal();
@@ -228,6 +228,7 @@ describe('ProSubscription', () => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(
         MoneyAccountPlusAccess.Subscriber,
       );
+      mockUseShouldLeaveBenefitsForProHub.mockReturnValue(false);
 
       const { getByTestId } = render(<ProSubscription />);
 
@@ -311,7 +312,7 @@ describe('ProSubscription', () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
-      mockUseHasProMembership.mockReturnValue(true);
+      mockUseShouldLeaveBenefitsForProHub.mockReturnValue(true);
       fireEvent.press(getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON));
 
       expect(getByTestId('mock-success')).toBeOnTheScreen();
