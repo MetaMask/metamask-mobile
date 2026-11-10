@@ -32,6 +32,7 @@ interface ManageProfileTextEditorProps {
   prefix?: string;
   multiline?: boolean;
   maxLength?: number;
+  autoFocus?: boolean;
 }
 
 const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
@@ -50,6 +51,7 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
   prefix,
   multiline = false,
   maxLength,
+  autoFocus = false,
 }) => {
   const tw = useTailwind();
   const [value, setValue] = useState(initialValue);
@@ -71,6 +73,7 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
               value={value}
               onChangeText={setValue}
               maxLength={maxLength}
+              autoFocus={autoFocus}
               testID={inputTestID}
             />
           ) : (
@@ -94,6 +97,7 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
                   // TextField puts the rest of its props on the root Box, so
                   // the cap has to reach the inner input through `inputProps`.
                   inputProps={{ maxLength }}
+                  autoFocus={autoFocus}
                   testID={inputTestID}
                 />
               </Box>
