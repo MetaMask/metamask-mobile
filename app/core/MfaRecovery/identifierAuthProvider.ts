@@ -54,7 +54,10 @@ export type LoginWithNonceAndSeedlessAuth = (params: {
 
 export interface OidcIdentifierAuthProviderOptions {
   isEnabled: () => boolean;
-  loginWithNonce?: LoginWithNonce;
+  /**
+   * Override for tests. Production uses
+   * {@link loginWithNonceAndSeedlessAuthViaHandlers}.
+   */
   loginWithNonceAndSeedlessAuth?: LoginWithNonceAndSeedlessAuth;
 }
 
@@ -318,50 +321,14 @@ const buildKeyBoundToken = (
  * Builds the `identifierAuthProvider` the MFA recovery controller calls when it
  * needs a key-bound Google, Apple, or Telegram assertion for a specific request.
  *
- * Prefer {@link RecoveryIdentifierAuthProvider.getKeyBoundIdentifierLogin} for the
- * seedless + password unlock path (one login → provider proof + seedless tokens).
+ * Implements Core’s single provider method
+ * {@link RecoveryIdentifierAuthProvider.getKeyBoundIdentifierLogin}: one social
+ * login returns the key-bound token plus optional seedless auth-server data.
  */
 export const createOidcIdentifierAuthProvider = ({
   isEnabled,
-  loginWithNonce,
   loginWithNonceAndSeedlessAuth = loginWithNonceAndSeedlessAuthViaHandlers,
 }: OidcIdentifierAuthProviderOptions): RecoveryIdentifierAuthProvider => ({
-  async getKeyBoundIdentifierToken({
-    identifier,
-    proofPublicKey,
-    requestHash,
-  }: {
-    identifier: Identifier;
-    proofPublicKey: Uint8Array;
-    requestHash: string;
-  }): Promise<KeyBoundIdentifierToken> {
-    const authConnection = assertEnabledAndResolveConnection(
-      isEnabled,
-      identifier,
-    );
-    const proofPublicKeyHex = bytesToHex(proofPublicKey);
-    const nonce = computeKeyBoundNonce(proofPublicKeyHex, requestHash);
-
-    let idToken: string;
-    if (loginWithNonce) {
-      idToken = await loginWithNonce({ authConnection, nonce });
-    } else {
-      ({ providerIdToken: idToken } = await loginWithNonceAndSeedlessAuth({
-        authConnection,
-        nonce,
-      }));
-    }
-
-    const providerSubject = validateProviderIdToken(idToken, identifier, nonce);
-    return buildKeyBoundToken(
-      identifier,
-      proofPublicKey,
-      requestHash,
-      idToken,
-      providerSubject,
-    );
-  },
-
   async getKeyBoundIdentifierLogin({
     identifier,
     proofPublicKey,

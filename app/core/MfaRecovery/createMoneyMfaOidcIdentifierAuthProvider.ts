@@ -1,7 +1,7 @@
 import { isMoneyMfaEnabled } from '../../lib/Money/feature-flags';
 import {
   createOidcIdentifierAuthProvider,
-  type LoginWithNonce,
+  type LoginWithNonceAndSeedlessAuth,
 } from './identifierAuthProvider';
 import type { RecoveryIdentifierAuthProvider } from './types';
 
@@ -9,11 +9,15 @@ export interface CreateMoneyMfaOidcIdentifierAuthProviderOptions {
   /**
    * Returns the current remote feature-flag map (e.g.
    * `RemoteFeatureFlagController.state.remoteFeatureFlags`). Invoked on each
-   * `getKeyBoundIdentifierToken` call so flag flips apply without rebuilding
+   * `getKeyBoundIdentifierLogin` call so flag flips apply without rebuilding
    * the provider.
    */
   getRemoteFeatureFlags: () => Record<string, unknown> | undefined;
-  loginWithNonce?: LoginWithNonce;
+  /**
+   * Test override for the single identifier login. Production uses
+   * `loginWithNonceAndSeedlessAuthViaHandlers`.
+   */
+  loginWithNonceAndSeedlessAuth?: LoginWithNonceAndSeedlessAuth;
 }
 
 /**
@@ -22,7 +26,8 @@ export interface CreateMoneyMfaOidcIdentifierAuthProviderOptions {
  *
  * Wraps Seedless Google/Apple/Telegram login
  * ({@link createOidcIdentifierAuthProvider}) and gates it with
- * {@link isMoneyMfaEnabled}. This is the first consumer path for
+ * {@link isMoneyMfaEnabled}. Implements Core’s single
+ * `getKeyBoundIdentifierLogin` method. This is the first consumer path for
  * `@metamask/mfa-recovery-controller`; passkey/SIWE and full Engine
  * `MfaRecoveryController` init (AuthToken, Cubist escrow) follow later.
  *
@@ -31,10 +36,12 @@ export interface CreateMoneyMfaOidcIdentifierAuthProviderOptions {
  */
 export function createMoneyMfaOidcIdentifierAuthProvider({
   getRemoteFeatureFlags,
-  loginWithNonce,
+  loginWithNonceAndSeedlessAuth,
 }: CreateMoneyMfaOidcIdentifierAuthProviderOptions): RecoveryIdentifierAuthProvider {
   return createOidcIdentifierAuthProvider({
     isEnabled: () => isMoneyMfaEnabled(getRemoteFeatureFlags()),
-    ...(loginWithNonce === undefined ? {} : { loginWithNonce }),
+    ...(loginWithNonceAndSeedlessAuth === undefined
+      ? {}
+      : { loginWithNonceAndSeedlessAuth }),
   });
 }

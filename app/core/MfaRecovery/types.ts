@@ -2,6 +2,10 @@
  * Local mirrors of `@metamask/mfa-recovery-controller` identifier-auth /
  * seedless-unlock types. Keep the PR free of the unpublished preview package
  * (CI). Swap to package imports once it is published.
+ *
+ * Matches Core MFA recovery after Himanshu’s review on #11224:
+ * one provider method (`getKeyBoundIdentifierLogin`); `authenticateIdentifier`
+ * returns `{ session, seedlessAuthData? }` with no options flag.
  */
 
 export type SeedlessAuthConnection = 'google' | 'apple' | 'telegram';
@@ -32,8 +36,11 @@ export interface SeedlessAuthData {
   accessToken: string;
   metadataAccessToken: string;
   refreshToken: string;
-  /** Required — matches OAuthService.handleSeedlessAuthenticate. */
-  revokeToken: string;
+  /**
+   * Optional at the Core type level. Mobile password unlock requires it and
+   * checks presence before seedless authenticate.
+   */
+  revokeToken?: string;
   authConnection: SeedlessAuthConnection;
   authConnectionId: string;
   groupedAuthConnectionId?: string;
@@ -46,27 +53,38 @@ export interface KeyBoundIdentifierLogin {
   seedlessAuthData?: SeedlessAuthData;
 }
 
+/**
+ * Single method on Core’s `RecoveryIdentifierAuthProvider`. Reads and writes
+ * both call `getKeyBoundIdentifierLogin`; mutation paths use only `token`.
+ */
 export interface RecoveryIdentifierAuthProvider {
-  getKeyBoundIdentifierToken: (
-    params: KeyBoundIdentifierTokenRequest,
-  ) => Promise<KeyBoundIdentifierToken>;
-  getKeyBoundIdentifierLogin?: (
+  getKeyBoundIdentifierLogin: (
     params: KeyBoundIdentifierTokenRequest,
   ) => Promise<KeyBoundIdentifierLogin>;
 }
 
 /**
- * Minimal shape of `MfaRecoveryController.authenticateIdentifier` used by the
- * left-hand password unlock path. Present on Engine only when the preview
- * package is wired locally for testing.
+ * Ephemeral session for a later `getRecoverySecret`. Shape is owned by Core;
+ * Mobile only retains the object.
  */
-export interface MfaRecoveryAuthenticateIdentifierSession {
+export type IdentifierSession = object;
+
+/**
+ * Result of `MfaRecoveryController.authenticateIdentifier` — `seedlessAuthData`
+ * is beside `session`, not on it.
+ */
+export interface AuthenticateIdentifierResult {
+  session: IdentifierSession;
   seedlessAuthData?: SeedlessAuthData;
 }
 
+/**
+ * Minimal shape of `MfaRecoveryController.authenticateIdentifier` used by the
+ * social password unlock path. Present on Engine only when the preview package
+ * is wired locally for testing.
+ */
 export interface MfaRecoveryControllerLike {
   authenticateIdentifier: (
     identifier: Identifier,
-    options?: { requireSeedlessAuthData?: boolean },
-  ) => Promise<MfaRecoveryAuthenticateIdentifierSession>;
+  ) => Promise<AuthenticateIdentifierResult>;
 }

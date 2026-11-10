@@ -9,7 +9,6 @@ import {
   createOidcIdentifierAuthProvider,
   loginWithNonceAndSeedlessAuthViaHandlers,
   loginWithNonceViaHandlers,
-  type LoginWithNonce,
   type LoginWithNonceAndSeedlessAuth,
 } from './identifierAuthProvider';
 import type { Identifier } from './types';
@@ -594,70 +593,65 @@ describe('createOidcIdentifierAuthProvider', () => {
     REQUEST_HASH,
   );
 
+  const mockSeedlessLogin = (
+    providerIdToken: string,
+    overrides: Record<string, unknown> = {},
+  ): jest.MockedFunction<LoginWithNonceAndSeedlessAuth> =>
+    jest.fn().mockResolvedValue({
+      providerIdToken,
+      seedlessAuthData: {
+        idTokens: ['auth-jwt'],
+        accessToken: 'access',
+        metadataAccessToken: 'metadata',
+        refreshToken: 'refresh',
+        revokeToken: 'revoke',
+        authConnection: AuthConnection.Google,
+        authConnectionId: 'ios-google',
+        userId: 'auth-sub',
+        ...overrides,
+      },
+    });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('logs in with the bound nonce and returns the four-field token', async () => {
-    const loginWithNonce: jest.MockedFunction<LoginWithNonce> = jest
-      .fn()
-      .mockResolvedValue(tokenFor(expectedNonce));
+  it('exposes only getKeyBoundIdentifierLogin', () => {
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
-      loginWithNonce,
     });
 
-    const token = await provider.getKeyBoundIdentifierToken({
-      identifier: googleIdentifier,
-      proofPublicKey: PROOF_PUBLIC_KEY,
-      requestHash: REQUEST_HASH,
-    });
-
-    expect(loginWithNonce).toHaveBeenCalledWith({
-      authConnection: AuthConnection.Google,
-      nonce: expectedNonce,
-    });
-    expect(Object.keys(token).sort()).toStrictEqual([
-      'identifier',
-      'proofPublicKey',
-      'providerAssertion',
-      'requestHash',
-    ]);
-    expect(token.proofPublicKey).toBe(PROOF_PUBLIC_KEY);
-    expect(token.providerAssertion).toBe(tokenFor(expectedNonce));
+    expect(provider.getKeyBoundIdentifierLogin).toEqual(expect.any(Function));
+    expect(provider).not.toHaveProperty('getKeyBoundIdentifierToken');
   });
 
-  it('getKeyBoundIdentifierLogin returns seedlessAuthData and key-bound token from one login', async () => {
+  it('returns seedlessAuthData and key-bound token from one login', async () => {
     const providerIdToken = tokenFor(expectedNonce);
-    const loginWithNonceAndSeedlessAuth: jest.MockedFunction<LoginWithNonceAndSeedlessAuth> =
-      jest.fn().mockResolvedValue({
-        providerIdToken,
-        seedlessAuthData: {
-          idTokens: ['auth-jwt'],
-          accessToken: 'access',
-          metadataAccessToken: 'metadata',
-          refreshToken: 'refresh',
-          revokeToken: 'revoke',
-          authConnection: AuthConnection.Google,
-          authConnectionId: 'ios-google',
-          userId: 'auth-sub',
-        },
-      });
+    const loginWithNonceAndSeedlessAuth = mockSeedlessLogin(providerIdToken);
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
       loginWithNonceAndSeedlessAuth,
     });
 
-    const login = await provider.getKeyBoundIdentifierLogin?.({
+    const login = await provider.getKeyBoundIdentifierLogin({
       identifier: googleIdentifier,
       proofPublicKey: PROOF_PUBLIC_KEY,
       requestHash: REQUEST_HASH,
     });
 
-    expect(loginWithNonceAndSeedlessAuth).toHaveBeenCalledTimes(1);
-    expect(login?.token.providerAssertion).toBe(providerIdToken);
-    expect(login?.token.proofPublicKey).toBe(PROOF_PUBLIC_KEY);
-    expect(login?.seedlessAuthData).toMatchObject({
+    expect(loginWithNonceAndSeedlessAuth).toHaveBeenCalledWith({
+      authConnection: AuthConnection.Google,
+      nonce: expectedNonce,
+    });
+    expect(Object.keys(login.token).sort()).toStrictEqual([
+      'identifier',
+      'proofPublicKey',
+      'providerAssertion',
+      'requestHash',
+    ]);
+    expect(login.token.providerAssertion).toBe(providerIdToken);
+    expect(login.token.proofPublicKey).toBe(PROOF_PUBLIC_KEY);
+    expect(login.seedlessAuthData).toMatchObject({
       idTokens: ['auth-jwt'],
       accessToken: 'access',
       authConnection: AuthConnection.Google,
@@ -665,40 +659,20 @@ describe('createOidcIdentifierAuthProvider', () => {
     });
   });
 
-  it('keeps getKeyBoundIdentifierToken working beside getKeyBoundIdentifierLogin', async () => {
-    const loginWithNonce: jest.MockedFunction<LoginWithNonce> = jest
-      .fn()
-      .mockResolvedValue(tokenFor(expectedNonce));
-    const provider = createOidcIdentifierAuthProvider({
-      isEnabled: () => true,
-      loginWithNonce,
-    });
-
-    await expect(
-      provider.getKeyBoundIdentifierToken({
-        identifier: googleIdentifier,
-        proofPublicKey: PROOF_PUBLIC_KEY,
-        requestHash: REQUEST_HASH,
-      }),
-    ).resolves.toMatchObject({
-      requestHash: REQUEST_HASH,
-      providerAssertion: tokenFor(expectedNonce),
-    });
-    expect(provider.getKeyBoundIdentifierLogin).toEqual(expect.any(Function));
-  });
-
   it('maps the Apple issuer to Apple login', async () => {
-    const loginWithNonce: jest.MockedFunction<LoginWithNonce> = jest
-      .fn()
-      .mockResolvedValue(
-        tokenFor(expectedNonce, { iss: 'https://appleid.apple.com' }),
-      );
+    const providerIdToken = tokenFor(expectedNonce, {
+      iss: 'https://appleid.apple.com',
+    });
+    const loginWithNonceAndSeedlessAuth = mockSeedlessLogin(providerIdToken, {
+      authConnection: AuthConnection.Apple,
+      authConnectionId: 'ios-apple',
+    });
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
-      loginWithNonce,
+      loginWithNonceAndSeedlessAuth,
     });
 
-    await provider.getKeyBoundIdentifierToken({
+    await provider.getKeyBoundIdentifierLogin({
       identifier: {
         ...googleIdentifier,
         namespace: 'https://appleid.apple.com',
@@ -707,7 +681,7 @@ describe('createOidcIdentifierAuthProvider', () => {
       requestHash: REQUEST_HASH,
     });
 
-    expect(loginWithNonce).toHaveBeenCalledWith({
+    expect(loginWithNonceAndSeedlessAuth).toHaveBeenCalledWith({
       authConnection: AuthConnection.Apple,
       nonce: expectedNonce,
     });
@@ -716,11 +690,11 @@ describe('createOidcIdentifierAuthProvider', () => {
   it('rejects when MFA recovery is disabled', async () => {
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => false,
-      loginWithNonce: jest.fn(),
+      loginWithNonceAndSeedlessAuth: jest.fn(),
     });
 
     await expect(
-      provider.getKeyBoundIdentifierToken({
+      provider.getKeyBoundIdentifierLogin({
         identifier: googleIdentifier,
         proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: REQUEST_HASH,
@@ -731,11 +705,11 @@ describe('createOidcIdentifierAuthProvider', () => {
   it('rejects when the ID token nonce does not match', async () => {
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
-      loginWithNonce: jest.fn().mockResolvedValue(tokenFor('wrong-nonce')),
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(tokenFor('wrong-nonce')),
     });
 
     await expect(
-      provider.getKeyBoundIdentifierToken({
+      provider.getKeyBoundIdentifierLogin({
         identifier: googleIdentifier,
         proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: REQUEST_HASH,
@@ -746,31 +720,29 @@ describe('createOidcIdentifierAuthProvider', () => {
   });
 
   it('discovers provider subject when identifier.value is empty', async () => {
-    const loginWithNonce: jest.MockedFunction<LoginWithNonce> = jest
-      .fn()
-      .mockResolvedValue(tokenFor(expectedNonce));
+    const providerIdToken = tokenFor(expectedNonce);
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
-      loginWithNonce,
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(providerIdToken),
     });
 
-    const token = await provider.getKeyBoundIdentifierToken({
+    const login = await provider.getKeyBoundIdentifierLogin({
       identifier: { ...googleIdentifier, value: '' },
       proofPublicKey: PROOF_PUBLIC_KEY,
       requestHash: REQUEST_HASH,
     });
 
-    expect(token.identifier.value).toBe('google-sub-1');
+    expect(login.token.identifier.value).toBe('google-sub-1');
   });
 
   it('rejects when a pre-known provider subject does not match the ID token', async () => {
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
-      loginWithNonce: jest.fn().mockResolvedValue(tokenFor(expectedNonce)),
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(tokenFor(expectedNonce)),
     });
 
     await expect(
-      provider.getKeyBoundIdentifierToken({
+      provider.getKeyBoundIdentifierLogin({
         identifier: { ...googleIdentifier, value: 'other-google-sub' },
         proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: REQUEST_HASH,
@@ -781,11 +753,11 @@ describe('createOidcIdentifierAuthProvider', () => {
   it('rejects unsupported identifier types', async () => {
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
-      loginWithNonce: jest.fn(),
+      loginWithNonceAndSeedlessAuth: jest.fn(),
     });
 
     await expect(
-      provider.getKeyBoundIdentifierToken({
+      provider.getKeyBoundIdentifierLogin({
         identifier: { ...googleIdentifier, type: 'passkey' },
         proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: REQUEST_HASH,
@@ -796,11 +768,11 @@ describe('createOidcIdentifierAuthProvider', () => {
   it('rejects unsupported OIDC issuers', async () => {
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
-      loginWithNonce: jest.fn(),
+      loginWithNonceAndSeedlessAuth: jest.fn(),
     });
 
     await expect(
-      provider.getKeyBoundIdentifierToken({
+      provider.getKeyBoundIdentifierLogin({
         identifier: {
           ...googleIdentifier,
           namespace: 'https://example.com',
@@ -816,13 +788,13 @@ describe('createOidcIdentifierAuthProvider', () => {
   it('rejects ID tokens missing subject', async () => {
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
-      loginWithNonce: jest
-        .fn()
-        .mockResolvedValue(tokenFor(expectedNonce, { sub: '' })),
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(
+        tokenFor(expectedNonce, { sub: '' }),
+      ),
     });
 
     await expect(
-      provider.getKeyBoundIdentifierToken({
+      provider.getKeyBoundIdentifierLogin({
         identifier: googleIdentifier,
         proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: REQUEST_HASH,
@@ -833,53 +805,17 @@ describe('createOidcIdentifierAuthProvider', () => {
   it('rejects ID tokens with mismatched issuer', async () => {
     const provider = createOidcIdentifierAuthProvider({
       isEnabled: () => true,
-      loginWithNonce: jest
-        .fn()
-        .mockResolvedValue(
-          tokenFor(expectedNonce, { iss: 'https://appleid.apple.com' }),
-        ),
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(
+        tokenFor(expectedNonce, { iss: 'https://appleid.apple.com' }),
+      ),
     });
 
     await expect(
-      provider.getKeyBoundIdentifierToken({
+      provider.getKeyBoundIdentifierLogin({
         identifier: googleIdentifier,
         proofPublicKey: PROOF_PUBLIC_KEY,
         requestHash: REQUEST_HASH,
       }),
     ).rejects.toThrow('MFA recovery: ID token issuer does not match');
-  });
-
-  it('uses loginWithNonceAndSeedlessAuth when loginWithNonce is omitted', async () => {
-    const providerIdToken = tokenFor(expectedNonce);
-    const loginWithNonceAndSeedlessAuth: jest.MockedFunction<LoginWithNonceAndSeedlessAuth> =
-      jest.fn().mockResolvedValue({
-        providerIdToken,
-        seedlessAuthData: {
-          idTokens: ['auth-jwt'],
-          accessToken: 'access',
-          metadataAccessToken: 'metadata',
-          refreshToken: 'refresh',
-          revokeToken: 'revoke',
-          authConnection: AuthConnection.Google,
-          authConnectionId: 'ios-google',
-          userId: 'auth-sub',
-        },
-      });
-    const provider = createOidcIdentifierAuthProvider({
-      isEnabled: () => true,
-      loginWithNonceAndSeedlessAuth,
-    });
-
-    const token = await provider.getKeyBoundIdentifierToken({
-      identifier: googleIdentifier,
-      proofPublicKey: PROOF_PUBLIC_KEY,
-      requestHash: REQUEST_HASH,
-    });
-
-    expect(loginWithNonceAndSeedlessAuth).toHaveBeenCalledWith({
-      authConnection: AuthConnection.Google,
-      nonce: expectedNonce,
-    });
-    expect(token.providerAssertion).toBe(providerIdToken);
   });
 });

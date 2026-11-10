@@ -8,8 +8,8 @@ import OAuthLoginService from '../OAuthService/OAuthService';
 import { AUTH_CONNECTION_OIDC_ISSUERS } from './identifierAuthProvider';
 import type {
   Identifier,
+  IdentifierSession,
   MfaRecoveryControllerLike,
-  MfaRecoveryAuthenticateIdentifierSession,
   SeedlessAuthData,
 } from './types';
 
@@ -21,7 +21,7 @@ export interface SeedlessPasswordUnlockResult {
    * Session retained for a later recovery-secret read without a second social
    * prompt (when Cubist / getRecoverySecret is wired).
    */
-  session: MfaRecoveryAuthenticateIdentifierSession;
+  session: IdentifierSession;
 }
 
 export interface AuthenticateSeedlessViaMfaIdentifierOptions {
@@ -74,8 +74,9 @@ const toAuthResponse = (seedlessAuthData: SeedlessAuthData): AuthResponse => {
 };
 
 /**
- * Seedless + password unlock start (social unlock work plan, left-hand path):
- * one `authenticateIdentifier` login with `requireSeedlessAuthData`, then
+ * Seedless + password unlock start (social unlock path): one
+ * `authenticateIdentifier` login, then Mobile checks that `seedlessAuthData`
+ * (including `revokeToken`) is present, then
  * {@link OAuthService.handleSeedlessAuthenticate}.
  *
  * Does not manage `oauthLoginSuccess` / `setSeedlessOnboarding` — callers
@@ -91,25 +92,27 @@ export async function authenticateSeedlessViaMfaIdentifier(
 ): Promise<SeedlessPasswordUnlockResult> {
   const MfaRecoveryController = getMfaRecoveryController();
 
-  const session = await MfaRecoveryController.authenticateIdentifier(
-    identifier,
-    { requireSeedlessAuthData: true },
-  );
+  const { session, seedlessAuthData } =
+    await MfaRecoveryController.authenticateIdentifier(identifier);
 
-  if (!session.seedlessAuthData) {
+  if (!seedlessAuthData) {
     throw new Error(
       'MFA recovery: authenticateIdentifier did not return seedlessAuthData',
     );
   }
 
+  if (!seedlessAuthData.revokeToken) {
+    throw new Error('MFA recovery: seedlessAuthData is missing revokeToken');
+  }
+
   if (
     options.expectedSeedlessUserId &&
-    session.seedlessAuthData.userId !== options.expectedSeedlessUserId
+    seedlessAuthData.userId !== options.expectedSeedlessUserId
   ) {
     throw new Error('MFA recovery: signed in with a different account');
   }
 
-  const { authConnection, socialLoginEmail, userId } = session.seedlessAuthData;
+  const { authConnection, socialLoginEmail, userId } = seedlessAuthData;
   const typedAuthConnection = authConnection as AuthConnection;
 
   // handleSeedlessAuthenticate reads userId / accountName from localState.
@@ -119,7 +122,7 @@ export async function authenticateSeedlessViaMfaIdentifier(
   });
 
   const result = await OAuthLoginService.handleSeedlessAuthenticate(
-    toAuthResponse(session.seedlessAuthData),
+    toAuthResponse(seedlessAuthData),
     typedAuthConnection,
     options.clientId,
   );
