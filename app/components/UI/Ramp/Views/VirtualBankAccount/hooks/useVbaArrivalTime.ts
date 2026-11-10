@@ -69,9 +69,10 @@ export function getVbaArrivalTimeframe(
  * regions use the ramps payment-methods catalog (`PaymentMethod.delay`, in
  * minutes).
  *
- * Region comes from the same GeolocationController IP lookup that gates VBA
- * entry (`useVbaEligibility`), scoped to the Money Account deposit asset so
- * the controller resolves the providers that serve it. Read-only: the shared
+ * Region is the effective VBA location that gates entry (`useVbaEligibility`:
+ * `regionOverride`, then the stored KYC session country, then the IP lookup),
+ * scoped to the Money Account deposit asset so the controller resolves the
+ * providers that serve it. Read-only: the shared
  * catalog is never re-scoped by this screen.
  *
  * @returns The localized arrival title.

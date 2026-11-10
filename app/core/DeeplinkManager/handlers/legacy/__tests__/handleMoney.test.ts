@@ -19,6 +19,7 @@ import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
+import { selectKycPinnedCountryAlpha2 } from '../../../../../selectors/kycController';
 import {
   selectRawRemoteFeatureFlags,
   selectRemoteFeatureFlags,
@@ -68,6 +69,10 @@ jest.mock(
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: jest.fn(),
   selectGeolocationStatus: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/kycController', () => ({
+  selectKycPinnedCountryAlpha2: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/featureFlagController', () => ({
@@ -129,7 +134,6 @@ const brlMarket = { currency: 'BRL', regions: ['BR'] } as const;
 
 describe('handleMoney', () => {
   let mockNavigate: jest.Mock;
-  const mockState = {} as ReturnType<typeof ReduxService.store.getState>;
 
   const setMoneyAccountFlags = ({
     rawFlag = enabledFlag,
@@ -167,7 +171,10 @@ describe('handleMoney', () => {
       navigate: mockNavigate,
     } as unknown as typeof NavigationService.navigation;
 
-    jest.mocked(ReduxService.store.getState).mockReturnValue(mockState);
+    // A fresh object per test so memoized selectors see the new mock values.
+    jest
+      .mocked(ReduxService.store.getState)
+      .mockReturnValue({} as ReturnType<typeof ReduxService.store.getState>);
     setMoneyAccountFlags();
     jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(true);
     jest.mocked(selectIsMoneyAccountGeoEligible).mockReturnValue(true);
@@ -181,6 +188,7 @@ describe('handleMoney', () => {
     jest.mocked(selectNeobankMarkets).mockReturnValue([brlMarket]);
     jest.mocked(selectGeolocationLocation).mockReturnValue('BR-SP');
     jest.mocked(selectGeolocationStatus).mockReturnValue('complete');
+    jest.mocked(selectKycPinnedCountryAlpha2).mockReturnValue(undefined);
     jest.mocked(isVbaGeoBypassEnabled).mockReturnValue(false);
   });
 
@@ -346,6 +354,45 @@ describe('handleMoney', () => {
 
     it('uses the flag region override ahead of the IP location', () => {
       jest.mocked(selectGeolocationLocation).mockReturnValue('US-CA');
+      jest.mocked(selectMoneyMovementNeobank).mockReturnValue({
+        ...enabledNeobankRollout,
+        regionOverride: 'BR',
+      });
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expect(mockNavigate).toHaveBeenLastCalledWith(
+        Routes.RAMP.VBA_ONBOARDING,
+        { screen: VbaOnboardingRoutes.LOADING },
+      );
+    });
+
+    it('uses the stored KYC country ahead of the IP location', () => {
+      const usdMarket = { currency: 'USD', regions: ['US'] } as const;
+      jest.mocked(selectNeobankMarkets).mockReturnValue([usdMarket]);
+      jest.mocked(selectGeolocationLocation).mockReturnValue('SE');
+      jest.mocked(selectKycPinnedCountryAlpha2).mockReturnValue('US');
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expect(mockNavigate).toHaveBeenLastCalledWith(
+        Routes.RAMP.VBA_ONBOARDING,
+        { screen: VbaOnboardingRoutes.LOADING },
+      );
+    });
+
+    it('stays on MONEY.HOME when the stored KYC country has no open market', () => {
+      jest.mocked(selectGeolocationLocation).mockReturnValue('BR-SP');
+      jest.mocked(selectKycPinnedCountryAlpha2).mockReturnValue('SE');
+
+      handleMoney({ moneyPath: '?screen=account' });
+
+      expectMoneyHomeNavigation();
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the flag region override ahead of the stored KYC country', () => {
+      jest.mocked(selectKycPinnedCountryAlpha2).mockReturnValue('SE');
       jest.mocked(selectMoneyMovementNeobank).mockReturnValue({
         ...enabledNeobankRollout,
         regionOverride: 'BR',

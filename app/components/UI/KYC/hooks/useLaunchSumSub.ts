@@ -11,6 +11,7 @@ import {
   setPostUnlockResume,
 } from '../../../../core/PostUnlockResume';
 import Logger from '../../../../util/Logger';
+import { getKycPinnedGeoCountry } from '../../../../selectors/kycController';
 import I18n from '../../../../../locales/i18n';
 import { getVbaOnboardingResumeState } from '../../Ramp/Views/VirtualBankAccount/routes';
 import { IRON_KYC_VENDOR } from '../vendors/iron';
@@ -62,7 +63,8 @@ async function recordSessionConsents(): Promise<void> {
   }
 
   const country =
-    KycController.state?.geoCountry ?? (await KycService.getGeoCountry());
+    getKycPinnedGeoCountry(KycController.state) ??
+    (await KycService.getGeoCountry());
   const catalog = await KycController.fetchSessionDisclaimers({
     country,
   });

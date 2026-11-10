@@ -5,6 +5,7 @@ import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
 import type { RootState } from '../../../../../../reducers';
 import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
+import { getKycPinnedGeoCountry } from '../../../../../../selectors/kycController';
 import { VBA_KYC_VENDOR } from '../constants';
 import { saveVbaVendorTermsAcceptance } from '../vbaVendorTermsStorage';
 
@@ -103,7 +104,11 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
         throw new Error('KYC service is unavailable');
       }
 
-      const country = await kycService.getGeoCountry();
+      // A stored session keeps the country it was started under, so the
+      // terms match the account even if the IP changes later.
+      const country =
+        getKycPinnedGeoCountry(Engine.context.KycController.state) ??
+        (await kycService.getGeoCountry());
       return {
         country,
         loadedDisclaimers:

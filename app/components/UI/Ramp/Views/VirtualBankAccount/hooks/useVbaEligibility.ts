@@ -3,13 +3,10 @@ import { useSelector } from 'react-redux';
 import type { GeolocationRequestStatus } from '@metamask/geolocation-controller';
 import {
   isVbaGeoBypassEnabled,
-  selectMoneyMovementNeobank,
   selectNeobankMarkets,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
-import {
-  selectGeolocationLocation,
-  selectGeolocationStatus,
-} from '../../../../../../selectors/geolocationController';
+import { selectGeolocationStatus } from '../../../../../../selectors/geolocationController';
+import { selectVbaEffectiveLocation } from '../../../../../../selectors/vbaEffectiveLocation';
 import {
   getVbaMarketForCountry,
   type VbaMarket,
@@ -19,12 +16,15 @@ export interface VbaEligibility {
   /**
    * Whether the user may start a new VBA signup. True when an open currency
    * flag lists the effective country, or when at least one currency flag is
-   * open and the dev bypass is set. The effective location is `regionOverride`
-   * from `moneyMovementNeobank` when that field is set, otherwise the IP
-   * location.
+   * open and the dev bypass is set. The effective location comes from
+   * `selectVbaEffectiveLocation`: `regionOverride`, then the stored KYC
+   * session country, then the IP location.
    */
   isEligible: boolean;
-  /** IP lookup has not resolved yet; callers should hold rather than deny. */
+  /**
+   * No effective location yet and the IP lookup has not resolved; callers
+   * should hold rather than deny. A stored KYC country or override skips it.
+   */
   isLoading: boolean;
   /**
    * At least one per-currency market is open for this binary. Missing,
@@ -37,14 +37,15 @@ export interface VbaEligibility {
   isDevBypassEnabled: boolean;
   /**
    * Effective location: `regionOverride` from `moneyMovementNeobank` when set,
-   * otherwise the GeolocationController IP location, such as `BR` or `US-CA`.
+   * then the country the stored KYC session was started under, otherwise the
+   * GeolocationController IP location, such as `BR` or `US-CA`.
    */
   location: string | undefined;
 }
 
 export interface VbaEligibilityInputs {
   isFlagEnabled: boolean;
-  /** GeolocationController `location` (IP lookup). Not the Settings region. */
+  /** Effective location from `selectVbaEffectiveLocation`. Not the Settings region. */
   location: string | undefined | null;
   geolocationStatus: GeolocationRequestStatus | undefined;
   isDevBypassEnabled: boolean;
@@ -55,12 +56,13 @@ export interface VbaEligibilityInputs {
 /**
  * Pure eligibility resolution so the rule can be unit tested without Redux.
  *
- * `location` is the effective location. The hook passes `regionOverride` from
- * `moneyMovementNeobank` when the flag sets one, otherwise the
+ * `location` is the effective location. The hook passes
+ * `selectVbaEffectiveLocation`: `regionOverride` from `moneyMovementNeobank`
+ * when the flag sets one, then the stored KYC session country, otherwise the
  * GeolocationController IP lookup. The Settings region picker
- * (`RampsController.userRegion`) is not consulted. An override country still
- * has to be listed by an open market. `isFlagEnabled` is true when at least
- * one currency flag is open.
+ * (`RampsController.userRegion`) is not consulted. An override or stored
+ * country still has to be listed by an open market. `isFlagEnabled` is true
+ * when at least one currency flag is open.
  */
 export function getVbaEligibility({
   isFlagEnabled,
@@ -90,17 +92,15 @@ export function getVbaEligibility({
 
 /**
  * Single gate for every Virtual Bank Account entry point (Add funds row, Money
- * home cards). Combines the effective location, the per-currency markets, the
- * optional `regionOverride` from `moneyMovementNeobank`, the dev escape hatch,
- * and a loading state.
+ * home cards). Combines the effective location (`selectVbaEffectiveLocation`),
+ * the per-currency markets, the dev escape hatch, and a loading state.
  *
  * @example
  * const { isEligible, isLoading } = useVbaEligibility();
  */
 export function useVbaEligibility(): VbaEligibility {
-  const { regionOverride } = useSelector(selectMoneyMovementNeobank);
   const markets = useSelector(selectNeobankMarkets);
-  const location = useSelector(selectGeolocationLocation);
+  const location = useSelector(selectVbaEffectiveLocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
   const isFlagEnabled = markets.length > 0;
 
@@ -108,12 +108,12 @@ export function useVbaEligibility(): VbaEligibility {
     () =>
       getVbaEligibility({
         isFlagEnabled,
-        location: regionOverride ?? location,
+        location,
         geolocationStatus,
         isDevBypassEnabled: isVbaGeoBypassEnabled(),
         markets,
       }),
-    [isFlagEnabled, location, geolocationStatus, regionOverride, markets],
+    [isFlagEnabled, location, geolocationStatus, markets],
   );
 }
 

@@ -7,6 +7,7 @@ import {
   type KycVendorDisclaimersAccepted,
 } from '@metamask/kyc-controller';
 import { RootState } from '../../reducers';
+import { alpha3ToAlpha2 } from '../../util/region/alpha3ToAlpha2';
 
 /**
  * Fallback for when the KycController state is unavailable in Redux (for
@@ -33,6 +34,47 @@ export const selectKycSessionStatus = createSelector(
   selectKycControllerState,
   (kycControllerState): KycSessionStatus | null =>
     kycControllerState?.sessionStatus ?? null,
+);
+
+/**
+ * Returns the alpha-3 `geoCountry` the stored KYC session was started under,
+ * or `null` when no session is stored. `startSession` writes `geoCountry`
+ * before the server session exists, so `geoCountry` alone does not pin it.
+ *
+ * Single rule for every reader (selectors and imperative code such as the KYC
+ * disclaimer hooks), so they all agree on which country the session is in.
+ *
+ * @param kycControllerState - KycController state, or undefined when the
+ * controller is unavailable.
+ * @returns The alpha-3 country, or `null` when the session is not pinned.
+ */
+export const getKycPinnedGeoCountry = (
+  kycControllerState:
+    | Pick<KycControllerState, 'geoCountry' | 'sessionStatus'>
+    | null
+    | undefined,
+): string | null =>
+  kycControllerState?.sessionStatus && kycControllerState.geoCountry
+    ? kycControllerState.geoCountry
+    : null;
+
+/**
+ * Selects the alpha-3 `geoCountry` the stored KYC session was started under,
+ * or `null` when no session is stored. See {@link getKycPinnedGeoCountry}.
+ */
+export const selectKycPinnedGeoCountry = createSelector(
+  selectKycControllerState,
+  (kycControllerState): string | null =>
+    getKycPinnedGeoCountry(kycControllerState),
+);
+
+/**
+ * Selects the alpha-2 form of {@link selectKycPinnedGeoCountry}, such as `US`,
+ * or undefined when no session is stored or the code is unknown.
+ */
+export const selectKycPinnedCountryAlpha2 = createSelector(
+  selectKycPinnedGeoCountry,
+  (geoCountry): string | undefined => alpha3ToAlpha2(geoCountry),
 );
 
 /**

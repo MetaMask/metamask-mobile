@@ -33,11 +33,8 @@ import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import {
-  selectMoneyMovementNeobank,
-  selectNeobankMarkets,
-} from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectNeobankMarkets } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectVbaEffectiveLocation } from '../../../../../selectors/vbaEffectiveLocation';
 import { getVbaMarketForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
@@ -219,8 +216,9 @@ const buildDetailRows = (
 /**
  * Virtual bank account screen. This is the only place that registers the
  * wallet and creates the autoramp, in the currency of the open market flag
- * listing the effective location (`moneyMovementNeobank.regionOverride` when
- * set, otherwise the IP country).
+ * listing the effective location (`selectVbaEffectiveLocation`):
+ * `moneyMovementNeobank.regionOverride` when set, then the country the stored
+ * KYC session was started under, otherwise the IP country.
  * Until the autoramp is Approved it shows the creating state. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
@@ -233,13 +231,9 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const location = useSelector(selectGeolocationLocation);
-  const { regionOverride } = useSelector(selectMoneyMovementNeobank);
+  const location = useSelector(selectVbaEffectiveLocation);
   const markets = useSelector(selectNeobankMarkets);
-  const sourceCurrency = getVbaMarketForCountry(
-    markets,
-    regionOverride ?? location,
-  )?.currency;
+  const sourceCurrency = getVbaMarketForCountry(markets, location)?.currency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();

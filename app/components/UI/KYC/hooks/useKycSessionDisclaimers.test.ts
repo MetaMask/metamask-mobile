@@ -4,7 +4,10 @@ import { useKycSessionDisclaimers } from './useKycSessionDisclaimers';
 
 const mockFetchSessionDisclaimers = jest.fn();
 const mockGetGeoCountry = jest.fn();
-const mockKycState: { geoCountry: string | null } = { geoCountry: null };
+const mockKycState: { geoCountry: string | null; sessionStatus: unknown } = {
+  geoCountry: null,
+  sessionStatus: null,
+};
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -46,10 +49,12 @@ describe('useKycSessionDisclaimers', () => {
     mockFetchSessionDisclaimers.mockResolvedValue(catalog);
     mockGetGeoCountry.mockResolvedValue('BRA');
     mockKycState.geoCountry = null;
+    mockKycState.sessionStatus = null;
   });
 
   it('loads the catalog for the stored KYC geoCountry instead of the detected one', async () => {
     mockKycState.geoCountry = 'ARG';
+    mockKycState.sessionStatus = { id: 'session-1', finalStatus: 'pending' };
 
     const { result } = renderHook(() => useKycSessionDisclaimers());
 
@@ -57,6 +62,18 @@ describe('useKycSessionDisclaimers', () => {
     expect(mockGetGeoCountry).not.toHaveBeenCalled();
     expect(mockFetchSessionDisclaimers).toHaveBeenCalledWith({
       country: 'ARG',
+    });
+  });
+
+  it('uses the detected country when geoCountry is set but no session is stored', async () => {
+    mockKycState.geoCountry = 'ARG';
+
+    const { result } = renderHook(() => useKycSessionDisclaimers());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockGetGeoCountry).toHaveBeenCalled();
+    expect(mockFetchSessionDisclaimers).toHaveBeenCalledWith({
+      country: 'BRA',
     });
   });
 

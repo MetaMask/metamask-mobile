@@ -7,10 +7,17 @@ const mockFetchVendorDisclaimers = jest.fn();
 const mockGetGeoCountry = jest.fn();
 const mockGetState = jest.fn();
 const mockSaveVbaVendorTermsAcceptance = jest.fn();
+const mockKycState: { geoCountry: string | null; sessionStatus: unknown } = {
+  geoCountry: null,
+  sessionStatus: null,
+};
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
+      get state() {
+        return mockKycState;
+      },
       fetchVendorDisclaimers: (...args: unknown[]) =>
         mockFetchVendorDisclaimers(...args),
     },
@@ -46,6 +53,36 @@ describe('useKycDisclaimers', () => {
     mockGetGeoCountry.mockResolvedValue('BRA');
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockSaveVbaVendorTermsAcceptance.mockResolvedValue(undefined);
+    mockKycState.geoCountry = null;
+    mockKycState.sessionStatus = null;
+  });
+
+  it('loads the disclaimers for the stored KYC session country', async () => {
+    mockKycState.geoCountry = 'USA';
+    mockKycState.sessionStatus = { id: 'session-1' };
+    mockGetGeoCountry.mockResolvedValue('SWE');
+
+    const { result } = renderHook(() => useKycDisclaimers());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockGetGeoCountry).not.toHaveBeenCalled();
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+      country: 'USA',
+    });
+  });
+
+  it('uses the IP country when geoCountry is set without a stored session', async () => {
+    mockKycState.geoCountry = 'USA';
+    mockGetGeoCountry.mockResolvedValue('SWE');
+
+    const { result } = renderHook(() => useKycDisclaimers());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+      country: 'SWE',
+    });
   });
 
   it('loads vendor disclaimers through KycController', async () => {
