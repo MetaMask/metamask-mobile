@@ -205,6 +205,27 @@ describe('transactionTransforms', () => {
       },
     );
 
+    it.each([
+      ['0.5', '-$0.50'],
+      ['1234.5', '-$1,234.50'],
+      ['0.004', '-<$0.01'],
+    ])(
+      'formats an opening fee of %s with the shared fiat formatter as %s',
+      (fee, amount) => {
+        const [transaction] = transformFillsToTransactions([
+          createFill({
+            direction: 'Open Long',
+            side: 'buy',
+            pnl: undefined,
+            fee,
+          }),
+        ]);
+
+        expect(transaction.fill?.amount).toBe(amount);
+        expect(transaction.fill?.isPositive).toBe(false);
+      },
+    );
+
     it('preserves reported zero PnL', () => {
       const [transaction] = transformFillsToTransactions([
         createFill({ pnl: '0', fee: '0' }),

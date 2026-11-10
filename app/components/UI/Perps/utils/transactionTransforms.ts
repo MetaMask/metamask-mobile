@@ -21,6 +21,7 @@ import {
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
+import { formatPerpsFiat } from './formatUtils';
 import {
   formatOrderLabel,
   getInlineOrderLabelDirection,
@@ -642,7 +643,14 @@ export function transformFillsToTransactions(
         displayAmount = strings('perps.transactions.unknown_pnl');
       } else {
         amountBN = openingFee;
-        displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
+        displayAmount = `-${formatPerpsFiat(
+          amountBN.absoluteValue().toNumber(),
+          {
+            minimumDecimals: 2,
+            maximumDecimals: 2,
+            stripTrailingZeros: false,
+          },
+        )}`;
         isPositive = false; // Fee is always a cost
       }
     } else if (
