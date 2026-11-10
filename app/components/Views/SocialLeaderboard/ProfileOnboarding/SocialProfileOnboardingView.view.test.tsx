@@ -20,7 +20,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
