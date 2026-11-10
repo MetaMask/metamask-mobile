@@ -43,6 +43,7 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
 import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
 import {
   getMoneyHomeCardDevOverrideById,
@@ -136,7 +137,7 @@ jest.mock('../../components/MoneyHeader/useMoneyNativeHeader', () => ({
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockInitiateDeposit = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockRefetchBalance = jest.fn();
 const mockRefetchInterest = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -363,6 +364,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 
 jest.mock('../../selectors/visibility', () => ({
   selectIsMoneyAccountVisible: jest.fn(() => true),
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
@@ -466,12 +468,13 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: jest.fn(() => ({
-    initiateDeposit: mockInitiateDeposit,
-  })),
   useMoneyAccountWithdrawal: jest.fn(() => ({
     initiateWithdrawal: jest.fn().mockResolvedValue(undefined),
   })),
+}));
+
+jest.mock('../../hooks/useMoneyNavigation', () => ({
+  useMoneyDepositNavigation: jest.fn(),
 }));
 
 jest.mock('../../hooks/useOnboardingStep', () => ({
@@ -499,6 +502,7 @@ const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
 const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
 const mockUseVbaTransactionRefresh = jest.mocked(useVbaTransactionRefresh);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 const mockUseActiveGroupCryptoPresence = jest.mocked(
   useActiveGroupCryptoPresence,
 );
@@ -859,7 +863,15 @@ describe('MoneyHomeView', () => {
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
-    mockInitiateDeposit.mockResolvedValue(undefined);
+    mockNavigateToMoneyDeposit.mockImplementation(async ({ track }) => {
+      track?.({
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      });
+    });
+    mockUseMoneyDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
+    });
     mockRefetchInterest.mockResolvedValue(undefined);
     mockUseMoneyAccountInterest.mockReturnValue({
       last30DaysQuery: {
@@ -3443,7 +3455,7 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('initiates a deposit when a token Convert button is pressed', async () => {
+    it('navigates to deposit when a token Convert button is pressed', async () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const potentialEarnings = getByTestId(
@@ -3457,13 +3469,13 @@ describe('MoneyHomeView', () => {
         );
       });
 
-      expect(mockInitiateDeposit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          preferredPaymentToken: expect.objectContaining({
-            address: mockDepositTokens[0].address,
-          }),
-        }),
-      );
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: {
+          address: mockDepositTokens[0].address,
+          chainId: mockDepositTokens[0].chainId,
+        },
+        track: expect.any(Function),
+      });
     });
 
     it('tracks positive balance when a token Convert button is pressed', async () => {
@@ -3480,9 +3492,19 @@ describe('MoneyHomeView', () => {
         );
       });
 
-      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
-        expect.objectContaining({ token_has_balance: true }),
-      );
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        component_name:
+          COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
+        label_key: 'money.potential_earnings.add',
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: mockDepositTokens[0].symbol,
+        token_position_in_list: 1,
+        token_chain_id: mockDepositTokens[0].chainId,
+        tokens_in_list: mockDepositTokens.length,
+        token_has_balance: true,
+      });
     });
 
     it('tracks positive balance when a token row is pressed', async () => {
@@ -3492,13 +3514,29 @@ describe('MoneyHomeView', () => {
         fireEvent.press(getByText(mockDepositTokens[0].name));
       });
 
-      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith(
-        expect.objectContaining({ token_has_balance: true }),
-      );
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: {
+          address: mockDepositTokens[0].address,
+          chainId: mockDepositTokens[0].chainId,
+        },
+        track: expect.any(Function),
+      });
+      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith({
+        component_name:
+          COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: mockDepositTokens[0].symbol,
+        token_position_in_list: 1,
+        token_chain_id: mockDepositTokens[0].chainId,
+        tokens_in_list: mockDepositTokens.length,
+        token_has_balance: true,
+      });
     });
 
-    it('logs an error when initiateDeposit rejects', async () => {
-      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
+    it('logs an error when deposit navigation rejects', async () => {
+      mockNavigateToMoneyDeposit.mockRejectedValueOnce(
+        new Error('network failure'),
+      );
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const potentialEarnings = getByTestId(
