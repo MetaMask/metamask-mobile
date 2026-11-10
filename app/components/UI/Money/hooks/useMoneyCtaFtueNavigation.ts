@@ -4,6 +4,8 @@ import NavigationService from '../../../../core/NavigationService/NavigationServ
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneySplashSeen } from '../../../../reducers/user/selectors';
 import { selectMoneySplashEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import { ensureError } from '../../../../util/errorUtils';
+import Logger from '../../../../util/Logger';
 import type { NavigationAnalyticsContext } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import { MONEY_BUTTON_INTENTS, SCREEN_NAMES } from '../constants/moneyEvents';
 import {
@@ -81,7 +83,14 @@ export const useMoneyCtaFtueNavigation = () => {
         return;
       }
 
-      await initiateDeposit();
+      try {
+        await initiateDeposit();
+      } catch (error) {
+        Logger.error(
+          ensureError(error, '[Money CTA FTUE] Deposit setup failed'),
+          '[Money CTA FTUE] Failed to initiate deposit from CTA',
+        );
+      }
     },
     [initiateDeposit, redirectToCtaFtueIfNeeded],
   );

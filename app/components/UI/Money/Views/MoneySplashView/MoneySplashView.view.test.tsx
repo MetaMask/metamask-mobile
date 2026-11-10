@@ -1,5 +1,8 @@
 import '../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { getTotalMemorySync } from 'react-native-device-info';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { strings } from '../../../../../../locales/i18n';
 import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -12,7 +15,19 @@ const PREFERRED_PAYMENT_TOKEN = {
   chainId: '0x1',
 };
 
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+const mockGetTotalMemorySync = jest.mocked(getTotalMemorySync);
+
 describeForPlatforms('MoneySplashView', () => {
+  beforeEach(() => {
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    mockGetTotalMemorySync.mockReturnValue(6 * 1024 ** 3);
+  });
+
+  afterEach(() => {
+    netInfoMock.__resetMockNetInfo();
+  });
+
   it('renders the title, CTA, and benefit rows', () => {
     const { getByText, getByTestId } = renderMoneySplashView();
 
@@ -42,6 +57,33 @@ describeForPlatforms('MoneySplashView', () => {
         strings('money.splash.body_no_apy'),
       );
     });
+  });
+
+  it('skips the APY fetch when the network is offline', async () => {
+    netInfoMock.__setMockNetInfo({
+      type: 'none',
+      isInternetReachable: false,
+    });
+
+    const { getByTestId } = renderMoneySplashView({ apy: 0.062 });
+
+    await waitFor(() => {
+      expect(getByTestId(MoneySplashViewTestIds.BODY)).toHaveTextContent(
+        strings('money.splash.body_no_apy'),
+      );
+    });
+  });
+
+  it('hides the hero on a low-end offline device', () => {
+    mockGetTotalMemorySync.mockReturnValue(1 * 1024 ** 3);
+    netInfoMock.__setMockNetInfo({
+      type: 'none',
+      isInternetReachable: false,
+    });
+
+    const { queryByTestId } = renderMoneySplashView();
+
+    expect(queryByTestId(MoneySplashViewTestIds.HERO)).toBeNull();
   });
 
   it('marks the splash as seen on mount', async () => {

@@ -3,6 +3,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { selectMoneySplashSeen } from '../../../../reducers/user/selectors';
 import { selectMoneySplashEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import Logger from '../../../../util/Logger';
 import { MONEY_BUTTON_INTENTS, SCREEN_NAMES } from '../constants/moneyEvents';
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
@@ -27,6 +28,11 @@ jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
 
 jest.mock('../../../../core/NavigationService/NavigationService', () => ({
   navigation: { navigate: jest.fn() },
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 jest.mock('./useMoneyNavigation');
@@ -213,5 +219,23 @@ describe('useMoneyCtaFtueNavigation', () => {
 
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs a failed deposit instead of rejecting', async () => {
+    setup({ hasSeenSplash: true, isSplashEnabled: false });
+    mockInitiateDeposit.mockRejectedValue(new Error('deposit failed'));
+
+    const { result } = renderHook(() => useMoneyCtaFtueNavigation());
+
+    await act(async () => {
+      await expect(
+        result.current.navigateToMoneyDepositWithCtaFtue(),
+      ).resolves.toBeUndefined();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      '[Money CTA FTUE] Failed to initiate deposit from CTA',
+    );
   });
 });

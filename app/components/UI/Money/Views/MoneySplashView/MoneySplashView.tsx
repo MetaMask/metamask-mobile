@@ -28,6 +28,8 @@ import { ensureError } from '../../../../../util/errorUtils';
 import Logger from '../../../../../util/Logger';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { MoneyFaqList } from '../../components/MoneyFaqList/MoneyFaqList';
 import {
   COMPONENT_NAMES,
@@ -108,7 +110,11 @@ const MoneySplashView = () => {
   const { colors } = useTheme();
   const { postOnboardingRedirect, analyticsContext } =
     useParams<MoneySplashParams>();
-  const { apyPercent } = useMoneyVaultApy();
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const isOffline = networkTier === 'NONE';
+  const showHero = !(hardwareTier === 'LOW' && isOffline);
+  const { apyPercent } = useMoneyVaultApy({ enabled: !isOffline });
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
@@ -196,12 +202,14 @@ const MoneySplashView = () => {
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="px-4" style={{ paddingTop: insets.top + 48 }}>
-          <Image
-            source={moneySplashHero}
-            style={styles.hero}
-            resizeMode="contain"
-            testID={MoneySplashViewTestIds.HERO}
-          />
+          {showHero && (
+            <Image
+              source={moneySplashHero}
+              style={styles.hero}
+              resizeMode="contain"
+              testID={MoneySplashViewTestIds.HERO}
+            />
+          )}
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
