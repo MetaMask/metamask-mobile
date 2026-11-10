@@ -21,6 +21,7 @@ import { buildLivePriceSource } from '../live/buildLivePriceSource';
 import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
+import { readXHandle } from './xHandle';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -233,6 +234,7 @@ export function toSocialV1FeedItem(
     pnl30d: card.actor.pnl30d ?? null,
     tradeCount30d: card.actor.tradeCount30d ?? null,
     followerCount: card.actor.followerCount ?? null,
+    xHandle: readXHandle(card.actor.socialHandles),
   };
 
   const authorComment = readAuthorComment(core);
@@ -254,7 +256,11 @@ export function toSocialV1FeedItem(
   const base = {
     id: item.id,
     author,
-    timestamp: item.timestamp,
+    // A comment card is a post made when the comment was written, which can be
+    // long after the trade it is about.
+    timestamp: authorComment
+      ? tradeTimestampToMs(authorComment.timestamp)
+      : item.timestamp,
     asset: {
       symbol: displaySymbol,
       ...(assetName ? { name: assetName } : {}),

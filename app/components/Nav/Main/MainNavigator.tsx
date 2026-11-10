@@ -144,14 +144,12 @@ import type {
   HomeTabKey,
   HomeTabRoute,
 } from './HomeTabs/homeTabs.types';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
   SnapSettings,
   ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 } from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
@@ -235,9 +233,6 @@ import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsVie
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
-///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
@@ -253,6 +248,10 @@ import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeason
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
+import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
+import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
+import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
+import RewardsTaxFormView from '../../UI/Rewards/Views/RewardsTaxFormView';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
@@ -562,7 +561,6 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -582,7 +580,6 @@ const SnapsSettingsStack = () => {
     </NativeStack.Navigator>
   );
 };
-///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -708,18 +705,14 @@ const SettingsFlow = () => {
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      }
+      {}
       {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
         />
       ) : null}
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {}
     </NativeStack.Navigator>
   );
 };
@@ -1050,6 +1043,15 @@ const SetPasswordFlow = () => (
   </NativeStack.Navigator>
 );
 
+// Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in;
+// no build in builds.yml sets it); otherwise this is dead-code-eliminated.
+const SampleFeature =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+      require('../../../features/SampleFeature/components/views/SampleFeature')
+        .default
+    : null;
+
 const MainNavigator = () => {
   const dispatch = useDispatch();
   // Announce to the saga layer (deeplink pipeline) that post-login screens
@@ -1158,7 +1160,24 @@ const MainNavigator = () => {
           name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
           component={TermsSheet}
         />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}
+          component={TaxFormQuestionSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET}
+          component={TaxFormOpenFormSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_CONTACT_SHEET}
+          component={TaxFormContactUsSheet}
+        />
       </NativeStack.Group>
+      <NativeStack.Screen
+        name={Routes.REWARDS_TAX_FORM_VIEW}
+        component={RewardsTaxFormView}
+        options={{ headerShown: false }}
+      />
       {/*
        * Post-accept confirmation. Registered on the root stack (not inside
        * RewardsNavigator) so it can fade over the Money dashboard after the
@@ -1524,6 +1543,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}
             component={MyProfileView}
+            options={{
+              // A push replace would bring this screen in from the right. Pop
+              // uses the screen being replaced, so onboarding can leave to the left.
+              animationTypeForReplace: 'pop',
+            }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.V1_PROFILE}
@@ -1640,16 +1664,12 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={slideFromRightNativeOptions}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      }
-      <NativeStack.Screen
-        name={Routes.SAMPLE_FEATURE}
-        component={SampleFeature}
-      />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {SampleFeature && (
+        <NativeStack.Screen
+          name={Routes.SAMPLE_FEATURE}
+          component={SampleFeature}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}

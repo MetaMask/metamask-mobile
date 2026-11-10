@@ -58,6 +58,7 @@ export {
   readImmersveFundingChannels,
   resolveCardProviderForCountry,
   resolveCardProvisioningWallets,
+  immersveFundingChannelForCountry,
   resolveImmersveFundingChannel,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,

@@ -106,6 +106,7 @@ export const CreatedLimitOrderSchema = type({
   src: LimitOrderLegSchema,
   dest: LimitOrderLegSchema,
   trigger: LimitOrderTriggerSchema,
+  priceTolerance: optional(number()),
   state: string(),
   timingData: LimitOrderTimingDataSchema,
   isCancellable: optional(boolean()),

@@ -310,7 +310,11 @@ interface PredictFeed {
   presentation of the backend option only. It does not change the canonical
   signed value or define a second ordering rule.
 - A missing or unsupported group falls back to the standard Market
-  presentation. Malformed known group fields fail runtime validation.
+  presentation. A malformed group, such as a `marketSelector` without an
+  `option`, with a non-numeric `option.value` or with an empty `marketType`, is
+  dropped (logged in dev) and the Market still parses as a standard Market,
+  because a group is presentation only. One bad line never fails the Event;
+  its other Markets keep their groups.
 - `marketType: 'team_total'` is a `marketSelector` line picker per Team: one
   group per Team, each with its Over/Under lines. The layout projection makes
   one line-picker card per Team.

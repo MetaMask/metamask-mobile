@@ -368,14 +368,16 @@ describe('SocialFeedPositionCard', () => {
       expect(style?.width).toBe('100%');
     });
 
-    it('keeps the leverage tag beside the symbol', () => {
+    it('keeps a neutral closed tag beside the symbol', () => {
       const item = mockClosedPerpsFeedItem();
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(
-        screen.getByText('15x social_leaderboard.trader_position.short'),
+        screen.getByText(
+          'social_leaderboard.feed.position_card.closed 15x social_leaderboard.trader_position.short',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -398,17 +400,20 @@ describe('SocialFeedPositionCard', () => {
     });
 
     // The side is spent once the position closes; the toned border says how.
-    it('titles a closed spot position with the bare symbol', () => {
+    it('titles a closed spot position with Sold beside the symbol', () => {
       const item = mockClosedSpotFeedItem({ closedAtMs: Date.now() });
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('AAPL')).toBeOnTheScreen();
       expect(
+        screen.getByText('social_leaderboard.feed.position_card.sold'),
+      ).toBeOnTheScreen();
+      expect(
         screen.queryByText('social_leaderboard.feed.position_card.sell'),
       ).toBeNull();
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.sold_ago'),
+        screen.getByText('social_leaderboard.feed.just_now'),
       ).toBeOnTheScreen();
     });
 
@@ -418,7 +423,9 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.closed_ago'),
+        within(screen.getByTestId('position-card-header-closed')).getByText(
+          'social_leaderboard.feed.just_now',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -428,7 +435,9 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(
-        screen.queryByText('social_leaderboard.feed.position_card.closed_ago'),
+        within(screen.getByTestId('position-card-header-closed')).queryByText(
+          'social_leaderboard.feed.just_now',
+        ),
       ).toBeNull();
     });
   });
@@ -575,7 +584,7 @@ describe('SocialFeedPositionCard', () => {
       expect(statValue(item.id, 'exit')).toBe('$1,842');
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
       ).toBe(1);
     });
@@ -665,7 +674,7 @@ describe('SocialFeedPositionCard', () => {
       expect(statValue(item.id, 'exit')).toBe('$1,842');
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
       ).toBe(1);
     });
@@ -679,7 +688,7 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<PositionCardBody item={item} />);
 
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.closed_ago'),
+        screen.getByText('social_leaderboard.feed.age.hours'),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
@@ -693,7 +702,7 @@ describe('SocialFeedPositionCard', () => {
       ).not.toBeOnTheScreen();
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
       ).toBe(1);
     });
@@ -707,7 +716,10 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<PositionCardBody item={item} />);
 
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.sold_ago'),
+        screen.getByText('social_leaderboard.feed.position_card.sold'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('social_leaderboard.feed.age.hours'),
       ).toBeOnTheScreen();
       expect(screen.getByText('AAPL')).toBeOnTheScreen();
       expect(

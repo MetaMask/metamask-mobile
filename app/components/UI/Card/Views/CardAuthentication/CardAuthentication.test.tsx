@@ -80,6 +80,26 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useCardAuth');
 jest.mock('../../hooks/useCardSignIn');
 
+let mockIsMoneyAccountCountry = false;
+jest.mock('../../hooks/useImmersveFundingChannel', () => {
+  const actual = jest.requireActual('../../hooks/useImmersveFundingChannel');
+  return {
+    ...actual,
+    useIsImmersveMoneyAccountCountry: () => mockIsMoneyAccountCountry,
+  };
+});
+
+let mockPrimaryMoneyAccount: { address: string } | undefined;
+jest.mock('../../../../../selectors/moneyAccountController', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/moneyAccountController',
+  );
+  return {
+    ...actual,
+    selectPrimaryMoneyAccount: () => mockPrimaryMoneyAccount,
+  };
+});
+
 const GB_REGION = {
   key: 'GB',
   name: 'United Kingdom',
@@ -354,6 +374,8 @@ describe('CardAuthentication', () => {
     mockSignInWithWallet.mockResolvedValue(undefined);
     mockGetSignInLink.mockReturnValue(null);
     mockLogout.mockResolvedValue(undefined);
+    mockIsMoneyAccountCountry = false;
+    mockPrimaryMoneyAccount = undefined;
     setResolution({ kind: 'email', option: emailOption });
   });
 
@@ -372,6 +394,41 @@ describe('CardAuthentication', () => {
   });
 
   describe('R1 Wallet', () => {
+    it('locks the account row to the Money account', () => {
+      mockIsMoneyAccountCountry = true;
+      mockPrimaryMoneyAccount = { address: ADDR };
+      setResolution({
+        kind: 'wallet',
+        option: walletOption,
+        address: ADDR,
+        source: 'record',
+      });
+      render();
+
+      expect(screen.getByTestId('money-account-identity')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.ACCOUNT_SELECT),
+      ).toBeOnTheScreen();
+    });
+
+    it('asks for a Money account without an email link on wallet sign-in', () => {
+      mockIsMoneyAccountCountry = true;
+      setResolution({
+        kind: 'wallet',
+        option: walletOption,
+        address: ADDR,
+        source: 'record',
+      });
+      render();
+
+      expect(screen.getByTestId('money-account-required')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardAuthenticationSelectors.MONEY_ACCOUNT_EMAIL_LINK,
+        ),
+      ).toBeNull();
+    });
+
     it('shows the linked account and SIWE CTA', () => {
       setResolution({
         kind: 'wallet',
@@ -387,6 +444,7 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeOnTheScreen();
+      expect(screen.getByText('Sign in')).toBeOnTheScreen();
       expect(screen.queryByText(/isn't the account your card/i)).toBeNull();
       expect(
         screen.queryByText(/this is the account you set your card up with/i),
@@ -1598,6 +1656,61 @@ describe('CardAuthentication', () => {
   });
 
   describe('R5 Unresolved', () => {
+    it('replaces the fork with the Money account setup CTA when none exists', () => {
+      mockIsMoneyAccountCountry = true;
+      setResolution({
+        kind: 'unresolved',
+        options: [walletOption, emailOption],
+        reason: 'no_match',
+      });
+      render();
+
+      expect(screen.getByTestId('money-account-required')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.FORK_CONTAINER),
+      ).toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Continue with email' }),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens email sign-in from the Money account setup screen', () => {
+      mockIsMoneyAccountCountry = true;
+      setResolution({
+        kind: 'unresolved',
+        options: [walletOption, emailOption],
+        reason: 'no_match',
+      });
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(
+          CardAuthenticationSelectors.MONEY_ACCOUNT_EMAIL_LINK,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('money-account-required')).toBeNull();
+    });
+
+    it('keeps the fork when a Money account already exists', () => {
+      mockIsMoneyAccountCountry = true;
+      mockPrimaryMoneyAccount = { address: ADDR };
+      setResolution({
+        kind: 'unresolved',
+        options: [walletOption, emailOption],
+        reason: 'no_match',
+      });
+      render();
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.FORK_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('money-account-required')).toBeNull();
+    });
+
     it('shows the email/wallet fork', () => {
       setResolution({
         kind: 'unresolved',
@@ -1931,6 +2044,28 @@ describe('CardAuthentication', () => {
       expect(screen.getByText(/United States/)).toBeOnTheScreen();
       expect(mockUseCardSignIn).toHaveBeenCalledWith('US');
       expect(mockSetUserLocation).toHaveBeenCalledWith('us');
+      expect(mockSetSelectedCountry).not.toHaveBeenCalled();
+    });
+
+    it('does not commit a picked country to the controller before sign-in', () => {
+      mockGeoLocation = 'UNKNOWN';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+      act(() => {
+        mockOnRegionChange?.({
+          key: 'GB',
+          name: 'United Kingdom',
+          code: 'GB',
+        });
+      });
+
+      expect(screen.getByText(/United Kingdom/)).toBeOnTheScreen();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+      expect(mockSetSelectedCountry).not.toHaveBeenCalled();
     });
 
     it('does not pre-select a country that is not live', () => {

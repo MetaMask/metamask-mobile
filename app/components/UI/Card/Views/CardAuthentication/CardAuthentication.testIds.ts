@@ -16,6 +16,7 @@ export const CardAuthenticationSelectors = {
   FORK_WALLET: 'card-auth-fork-wallet',
   FORK_TRY_AGAIN: 'card-auth-fork-try-again',
   FORK_NOT_SURE: 'card-auth-fork-not-sure',
+  MONEY_ACCOUNT_EMAIL_LINK: 'card-auth-money-account-email',
   BANNER: 'card-auth-banner',
   RESUME_PROGRESS: 'card-auth-resume-progress',
   RESUME_SOFT_LINK: 'card-auth-resume-soft-link',

@@ -68,7 +68,9 @@ import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featu
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
-import TraderMuteChip from '../components/TraderMuteChip';
+import TraderMuteChip, {
+  PROFILE_MUTE_CHIP_DIAMETER,
+} from '../components/TraderMuteChip';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -442,6 +444,7 @@ const TraderProfileView = () => {
               traderName={headerTitle}
               traderImageUrl={profile.profile.imageUrl}
               traderAddress={profile.profile.address}
+              traderProfileId={profile.profile.profileId}
               variant="compact"
               testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
             />
@@ -560,6 +563,7 @@ const TraderProfileView = () => {
                         visible={isFollowing}
                         onPress={handleMutePress}
                         traderName={profile?.profile.name}
+                        diameter={PROFILE_MUTE_CHIP_DIAMETER}
                         testID={TraderProfileViewSelectorsIDs.MUTE_CHIP}
                       />
                     )}

@@ -149,6 +149,24 @@ describe('usePredictTrendingFeed', () => {
       expect(mockGetMarkets).not.toHaveBeenCalled();
     });
 
+    it('forwards search performance to the legacy search feed', async () => {
+      givenVenue(POLYMARKET);
+      const requestEnd = jest.fn();
+      const performance = {
+        startRequest: jest.fn(() => ({ end: requestEnd })),
+      };
+
+      const { result } = renderHook(
+        () => usePredictTrendingFeed({ query: 'bitcoin', performance }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(performance.startRequest).toHaveBeenCalledWith('bitcoin');
+      expect(requestEnd).toHaveBeenCalledWith('success');
+    });
+
     it('reads nothing while the caller disables it', async () => {
       givenVenue(POLYMARKET);
 

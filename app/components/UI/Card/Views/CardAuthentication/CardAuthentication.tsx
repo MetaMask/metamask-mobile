@@ -38,6 +38,9 @@ import {
   selectCardForgotPasswordFeatureEnabled,
   selectCardImmersveCountries,
 } from '../../../../../selectors/featureFlagController/card';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { useIsImmersveMoneyAccountCountry } from '../../hooks/useImmersveFundingChannel';
+import { MoneyAccountRequired } from '../../components/MoneyAccountRow/MoneyAccountRow';
 import { CardMessageBoxType, type Region } from '../../types';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import {
@@ -186,6 +189,11 @@ const CardAuthentication = () => {
   const { state: ukMigrationState } = useCardUkMigrationState();
 
   const countryKey = selectedCountry?.key ?? null;
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const isMoneyAccountMode = useIsImmersveMoneyAccountCountry(countryKey);
+  const moneyAccountAddress = safeToChecksumAddress(
+    primaryMoneyAccount?.address,
+  );
   const {
     resolution,
     isResolving,
@@ -256,6 +264,10 @@ const CardAuthentication = () => {
     ukMode,
     resumeEmail,
   });
+  const showMoneyAccountRequired =
+    isMoneyAccountMode &&
+    !moneyAccountAddress &&
+    (view.mode === 'fork' || view.mode === 'wallet');
 
   const activeBanner = resolveActiveBanner({ banner, view });
 
@@ -313,16 +325,21 @@ const CardAuthentication = () => {
     AccessibilityInfo.announceForAccessibility(displayedLoginError);
   }, [displayedLoginError, view.mode]);
 
-  const { displayAccountAddress, displayAccountLabel, nextSeenLinkedAddress } =
-    resolveSignInAccountPresentation({
-      view,
-      selectedAddress,
-      seenLinkedAddress: seenLinkedAddressRef.current,
-      accountsByAddress,
-      accountToGroupMap,
-      fallbackAccountName: accountName,
-    });
-  seenLinkedAddressRef.current = nextSeenLinkedAddress;
+  const resolvedAccount = resolveSignInAccountPresentation({
+    view,
+    selectedAddress,
+    seenLinkedAddress: seenLinkedAddressRef.current,
+    accountsByAddress,
+    accountToGroupMap,
+    fallbackAccountName: accountName,
+  });
+  seenLinkedAddressRef.current = resolvedAccount.nextSeenLinkedAddress;
+  const displayAccountAddress = isMoneyAccountMode
+    ? moneyAccountAddress
+    : resolvedAccount.displayAccountAddress;
+  const displayAccountLabel = isMoneyAccountMode
+    ? strings('card.card_spending_limit.money_account_label')
+    : resolvedAccount.displayAccountLabel;
 
   useEffect(() => {
     if (!signInRegions.length || hasAutoSelectedCountry.current) {
@@ -745,6 +762,9 @@ const CardAuthentication = () => {
 
   const switchedForAddressRef = useRef<string | null>(null);
   useEffect(() => {
+    if (isMoneyAccountMode) {
+      return;
+    }
     if (
       view.mode !== 'wallet' ||
       (view.origin !== 'linked' && view.origin !== 'resume') ||
@@ -773,7 +793,13 @@ const CardAuthentication = () => {
 
     switchedForAddressRef.current = pinned;
     Engine.context.AccountTreeController.setSelectedAccountGroup(groupId);
-  }, [view, selectedAddress, accountsByAddress, accountToGroupMap]);
+  }, [
+    view,
+    selectedAddress,
+    accountsByAddress,
+    accountToGroupMap,
+    isMoneyAccountMode,
+  ]);
 
   const handleCountrySelect = useCallback(() => {
     if (isLoadingRegions) return;
@@ -946,10 +972,8 @@ const CardAuthentication = () => {
     if (view.mode === 'otp') {
       return strings('card.card_otp_authentication.confirm_button');
     }
-    if (view.mode === 'wallet') {
-      return view.origin === 'resume'
-        ? strings('card.card_authentication.continue_button')
-        : strings('card.card_authentication.siwe_button');
+    if (view.mode === 'wallet' && view.origin === 'resume') {
+      return strings('card.card_authentication.continue_button');
     }
     if (view.mode === 'email' && isBaanxPasswordless && !emailCodeSent) {
       return strings('card.card_authentication.request_email_code_button');
@@ -1047,7 +1071,7 @@ const CardAuthentication = () => {
           />
         )}
 
-        {view.mode === 'fork' && (
+        {view.mode === 'fork' && !showMoneyAccountRequired && (
           <SignInFork
             reason={view.reason}
             onSelectEmail={() => setUkMode('email')}
@@ -1060,6 +1084,27 @@ const CardAuthentication = () => {
               )
             }
           />
+        )}
+
+        {showMoneyAccountRequired && (
+          <>
+            <MoneyAccountRequired returnTo="authentication" />
+            {emailOption ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => setUkMode('email')}
+                testID={CardAuthenticationSelectors.MONEY_ACCOUNT_EMAIL_LINK}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-default text-center p-4"
+                >
+                  {strings('card.card_authentication.fork_email_title')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </>
         )}
 
         {activeBanner && (
@@ -1114,7 +1159,7 @@ const CardAuthentication = () => {
           />
         )}
 
-        {view.mode === 'wallet' && (
+        {view.mode === 'wallet' && !showMoneyAccountRequired && (
           <SignInWalletFields
             origin={view.origin}
             displayAccountLabel={displayAccountLabel}
@@ -1130,6 +1175,7 @@ const CardAuthentication = () => {
               setResumeEmail(true);
               setBanner('resume_soft');
             }}
+            lockToMoneyAccount={isMoneyAccountMode}
           />
         )}
       </>
