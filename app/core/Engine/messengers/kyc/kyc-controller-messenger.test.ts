@@ -28,6 +28,8 @@ describe('getKycControllerMessenger', () => {
           'KycService:createDeletion',
           'KycService:completeDeletion',
           'KycService:getDataShares',
+          'KycService:getStep',
+          'KycService:markProviderSubmitted',
           'AuthenticatedUserStorageService:putIdentitySharingConsent',
           'AuthenticationController:getPartnerIdentityToken',
         ]),

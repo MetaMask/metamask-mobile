@@ -1,14 +1,12 @@
 import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 
 /**
- * {@link RampsVbaOnboardingSnapshot} plus client-local vendor terms.
+ * Account facts from `RampsController` hydrate. VBA reads `autorampStatus`
+ * from it; the KYC step comes from kyc-api through `KycController`.
  */
-export type VbaOnboardingSnapshot = RampsVbaOnboardingSnapshot & {
-  vendorTermsAcceptedLocally: boolean;
-};
+export type VbaOnboardingSnapshot = RampsVbaOnboardingSnapshot;
 
 export const EMPTY_VBA_ONBOARDING_SNAPSHOT: VbaOnboardingSnapshot = {
-  vendorTermsAcceptedLocally: false,
   sessionExists: false,
   vendorDisclaimersComplete: false,
   sessionDisclaimersComplete: false,

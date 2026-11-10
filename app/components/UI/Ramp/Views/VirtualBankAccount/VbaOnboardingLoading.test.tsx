@@ -115,6 +115,7 @@ describe('VbaOnboardingLoading', () => {
       status: 'ready',
       destinationId: 'vendorTerms',
       snapshot,
+      step: 'vendor_terms',
     });
 
     renderLoading();
@@ -133,12 +134,12 @@ describe('VbaOnboardingLoading', () => {
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
       vendorDisclaimersComplete: true,
-      vendorTermsAcceptedLocally: true,
     };
     mockResolve.mockResolvedValue({
       status: 'ready',
       destinationId: 'identityVerification',
       snapshot,
+      step: 'identity_verification',
     });
 
     renderLoading();
@@ -163,8 +164,9 @@ describe('VbaOnboardingLoading', () => {
         destinationId: 'email' as const,
         snapshot: {
           ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
-          vendorTermsAcceptedLocally: true,
+          vendorDisclaimersComplete: true,
         },
+        step: 'verify_email' as const,
       };
     });
 
@@ -185,7 +187,7 @@ describe('VbaOnboardingLoading', () => {
       expect(mockNavigateToDestination).toHaveBeenCalledWith(
         expect.anything(),
         'email',
-        expect.objectContaining({ vendorTermsAcceptedLocally: true }),
+        expect.objectContaining({ vendorDisclaimersComplete: true }),
       );
     });
   });
@@ -222,6 +224,7 @@ describe('VbaOnboardingLoading', () => {
       status: 'ready',
       destinationId: 'vendorTerms',
       snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
+      step: 'vendor_terms',
     });
 
     await waitFor(() => {

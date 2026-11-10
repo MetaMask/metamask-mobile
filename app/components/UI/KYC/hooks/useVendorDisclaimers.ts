@@ -19,11 +19,11 @@ const FETCH_TIMEOUT_MS = 10_000;
 
 /**
  * Loads a vendor's legal disclaimers (Privacy Policy / T&Cs) for the user's
- * country and stores the accepted document ids on the KYC controller's entry
- * for that vendor, marked not yet submitted.
+ * country, stores the accepted document ids on the KYC controller's entry for
+ * that vendor, and sends them to kyc-api right away.
  *
- * The KYC flow submits that acceptance to the vendor once a session exists. This lets product show vendor terms before email
- * even though the API requires an email/customer before remote acceptance.
+ * kyc-api keeps the acceptance and records it with the vendor once the
+ * vendor's customer exists, so terms can come before email.
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
@@ -60,6 +60,9 @@ export const useVendorDisclaimers = (
         country,
         disclaimerIds: disclaimers.map(({ id }) => id),
       });
+      // kyc-api keeps the acceptance until the vendor's customer exists, so it
+      // is sent now, and the next onboarding step comes back with it.
+      await Engine.context.KycController.recordVendorDisclaimers({ vendor });
       return true;
     } catch (acceptError) {
       setError(

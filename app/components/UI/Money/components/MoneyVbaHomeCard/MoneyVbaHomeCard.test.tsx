@@ -240,6 +240,7 @@ describe('MoneyVbaHomeCard', () => {
     mockResolve.mockResolvedValue({
       status: 'ready',
       destinationId: 'kycPending',
+      step: 'kyc_pending',
       snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
     });
     mockUseMoneyAnalytics.mockReturnValue({
@@ -340,6 +341,7 @@ describe('MoneyVbaHomeCard', () => {
       mockResolve.mockResolvedValue({
         status: 'ready',
         destinationId: 'identityVerified',
+      step: 'approved',
         snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT, kycStatus: 'approved' },
       });
       const { getByTestId } = render(
@@ -369,6 +371,7 @@ describe('MoneyVbaHomeCard', () => {
     mockResolve.mockResolvedValue({
       status: 'ready',
       destinationId: 'identityVerified',
+      step: 'approved',
       snapshot,
     });
     const { getByTestId } = render(
@@ -554,6 +557,7 @@ describe('MoneyVbaHomeCard', () => {
       resolveOnboarding({
         status: 'ready',
         destinationId: 'kycPending',
+      step: 'kyc_pending',
         snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
       });
     });

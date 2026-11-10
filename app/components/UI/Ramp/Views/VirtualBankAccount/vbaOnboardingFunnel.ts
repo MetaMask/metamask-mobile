@@ -1,3 +1,4 @@
+import type { KycStep } from '@metamask/kyc-controller';
 import type { AccountCreateErrorDestinationId } from './accountCreateError';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
@@ -16,101 +17,46 @@ export type VbaOnboardingDestinationId =
   | 'error'
   | 'complete';
 
-interface VbaOnboardingModule {
-  id: Extract<
-    VbaOnboardingDestinationId,
-    'vendorTerms' | 'email' | 'identityVerification'
-  >;
-  isComplete: (snapshot: VbaOnboardingSnapshot) => boolean;
-}
+/**
+ * VBA's screen for each KYC step kyc-api returns. kyc-api decides the step:
+ * the order, the retry and rejection rules, and what survives a reinstall.
+ * Retry and rejection share the failure screen; its action follows the step.
+ */
+const VBA_DESTINATION_FOR_KYC_STEP: Record<
+  KycStep,
+  VbaOnboardingDestinationId
+> = {
+  vendor_terms: 'vendorTerms',
+  verify_email: 'email',
+  identity_verification: 'identityVerification',
+  kyc_pending: 'kycPending',
+  kyc_retry: 'kycRejected',
+  kyc_rejected: 'kycRejected',
+  approved: 'identityVerified',
+  error: 'error',
+};
 
 /**
- * Product funnel order used by the coordinator to pick the first incomplete
- * module. Modules own their internal screens and report completion back to the
- * coordinator instead of navigating to the next module directly.
- */
-export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
-  {
-    id: 'vendorTerms',
-    isComplete: (snapshot) =>
-      snapshot.vendorTermsAcceptedLocally || snapshot.vendorDisclaimersComplete,
-  },
-  {
-    id: 'email',
-    isComplete: (snapshot) => snapshot.sessionExists,
-  },
-  {
-    id: 'identityVerification',
-    // Server-side pending survives reinstall even when the local provider-flow
-    // marker does not, so it must not reopen SumSub.
-    isComplete: (snapshot) =>
-      snapshot.sessionDisclaimersComplete &&
-      snapshot.kycStatus !== 'retry' &&
-      (snapshot.kycStatus === 'approved' ||
-        (snapshot.kycStatus === 'pending' &&
-          snapshot.providerFlowStatus === 'not_started') ||
-        snapshot.providerFlowStatus === 'submitted'),
-  },
-];
-
-/**
- * Maps controller facts onto the next onboarding module or status destination.
- * This read does not sign or create an account. A usable autoramp opens the
- * account screen even when reinstall wiped local terms and the KYC session.
- * Approved KYC without one opens Identity verified. Account setup runs later,
- * on that account screen.
+ * Picks VBA's next screen. A usable autoramp opens the account first: only
+ * VBA knows the account is already provisioned, and a reinstall must not send
+ * an existing account back through creation. Otherwise the KYC step from
+ * kyc-api decides.
  *
- * A rejected applicant opens the failure screen. Rejection is terminal, so
- * that screen contacts support instead of requesting another SumSub token.
- * An applicant UKYC asked to retry before the provider flow was (re)submitted
- * opens the same screen, and Try again relaunches Sumsub. Routing that retry
- * straight into identity verification from every entry point dropped the user
- * back into the provider, so closing Sumsub looked like it had done nothing.
- *
- * @param snapshot - Facts from hydrate.
- * @returns The next module or status destination.
+ * @param step - The step kyc-api returned for `iron`, or `null` when unknown.
+ * @param snapshot - Account facts from hydrate. Only `autorampStatus` is read.
+ * @returns The next destination.
  */
-export const getVbaDestinationForSnapshot = (
-  snapshot: VbaOnboardingSnapshot | null | undefined,
+export const getVbaDestinationForStep = (
+  step: KycStep | null | undefined,
+  snapshot: Pick<VbaOnboardingSnapshot, 'autorampStatus'> | null | undefined,
 ): VbaOnboardingDestinationId => {
-  if (!snapshot) {
-    return 'error';
-  }
-  if (
-    snapshot.kycStatus === 'rejected' ||
-    (snapshot.kycStatus === 'retry' &&
-      snapshot.providerFlowStatus !== 'submitted')
-  ) {
-    return 'kycRejected';
-  }
-
-  // Reinstall drops local vendor terms and the persisted KYC session.
-  // Hydrate can still report a usable autoramp once that session is
-  // reattached. Those incomplete modules must not send an existing account
-  // back through creation, which then waits on a session that already exists.
-  if (snapshot.autorampStatus === 'ready') {
+  if (snapshot?.autorampStatus === 'ready') {
     return 'complete';
   }
-
-  for (const moduleDescriptor of VBA_ONBOARDING_MODULES) {
-    if (!moduleDescriptor.isComplete(snapshot)) {
-      return moduleDescriptor.id;
-    }
+  if (!step) {
+    return 'error';
   }
-
-  if (snapshot.kycStatus === 'approved') {
-    return 'identityVerified';
-  }
-
-  if (
-    snapshot.kycStatus === 'pending' ||
-    (snapshot.providerFlowStatus === 'submitted' &&
-      snapshot.kycStatus !== 'retry')
-  ) {
-    return 'kycPending';
-  }
-
-  return 'error';
+  return VBA_DESTINATION_FOR_KYC_STEP[step];
 };
 
 export const createEmptyVbaOnboardingSnapshot = (): VbaOnboardingSnapshot => ({

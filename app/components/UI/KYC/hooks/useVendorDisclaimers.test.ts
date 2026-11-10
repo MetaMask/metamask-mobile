@@ -7,6 +7,7 @@ const VENDOR = 'iron' as const;
 const mockFetchVendorDisclaimers = jest.fn();
 const mockGetGeoCountry = jest.fn();
 const mockAcceptVendorDisclaimers = jest.fn();
+const mockRecordVendorDisclaimers = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -15,6 +16,8 @@ jest.mock('../../../../core/Engine', () => ({
         mockFetchVendorDisclaimers(...args),
       acceptVendorDisclaimers: (...args: unknown[]) =>
         mockAcceptVendorDisclaimers(...args),
+      recordVendorDisclaimers: (...args: unknown[]) =>
+        mockRecordVendorDisclaimers(...args),
     },
     KycService: {
       getGeoCountry: (...args: unknown[]) => mockGetGeoCountry(...args),
@@ -29,6 +32,8 @@ describe('useVendorDisclaimers', () => {
     jest.clearAllMocks();
     mockFetchVendorDisclaimers.mockResolvedValue(disclaimers);
     mockGetGeoCountry.mockResolvedValue('BRA');
+    mockAcceptVendorDisclaimers.mockReset();
+    mockRecordVendorDisclaimers.mockResolvedValue([]);
   });
 
   it('loads vendor disclaimers through KycController', async () => {
@@ -118,7 +123,7 @@ describe('useVendorDisclaimers', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('stores every displayed vendor disclaimer on the KYC controller', async () => {
+  it('stores every displayed vendor disclaimer on the KYC controller, then sends it to kyc-api', async () => {
     const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -132,6 +137,12 @@ describe('useVendorDisclaimers', () => {
       country: 'BRA',
       disclaimerIds: ['1'],
     });
+    expect(mockRecordVendorDisclaimers).toHaveBeenCalledWith({
+      vendor: VENDOR,
+    });
+    expect(
+      mockAcceptVendorDisclaimers.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockRecordVendorDisclaimers.mock.invocationCallOrder[0]);
     expect(accepted).toBe(true);
     expect(result.current.error).toBeNull();
   });
@@ -150,5 +161,20 @@ describe('useVendorDisclaimers', () => {
 
     expect(accepted).toBe(false);
     expect(result.current.error).toBe('Consent storage failed');
+  });
+
+  it('returns false and surfaces an error when sending acceptance to kyc-api fails', async () => {
+    mockRecordVendorDisclaimers.mockRejectedValue(new Error('kyc-api down'));
+    const { result } = renderHook(() => useVendorDisclaimers(VENDOR));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let accepted = true;
+    await act(async () => {
+      accepted = await result.current.acceptDisclaimers();
+    });
+
+    expect(mockAcceptVendorDisclaimers).toHaveBeenCalled();
+    expect(accepted).toBe(false);
+    expect(result.current.error).toBe('kyc-api down');
   });
 });

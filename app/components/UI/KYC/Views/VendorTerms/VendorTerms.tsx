@@ -62,9 +62,9 @@ export interface VendorTermsProps {
 
 /**
  * A vendor's terms and conditions, owned by KYC. Loads the vendor's catalog for
- * the user's country, stores the user's acceptance on the KYC controller (not
- * yet submitted), and reports back. The KYC flow submits the acceptance to the
- * vendor once a session exists.
+ * the user's country, stores the user's acceptance on the KYC controller and
+ * sends it to kyc-api, then reports back. kyc-api records it with the vendor
+ * once the vendor's customer exists.
  */
 const VendorTerms = ({
   vendor,

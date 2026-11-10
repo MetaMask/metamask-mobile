@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
 import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
-import type { KycSessionStatus } from '@metamask/kyc-controller';
 import KycPending from '../../../../KYC/Views/Status/KycPending';
 import KycRejected from '../../../../KYC/Views/Status/KycRejected';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
-import { selectKycSessionStatus } from '../../../../../../selectors/kycController';
 import type { RootState } from '../../../../../../reducers';
 import { VBA_KYC_VENDOR } from '../constants';
 import VbaOnboardingStub, {
@@ -22,20 +20,13 @@ interface VbaStatusAdapterProps {
   variant: VbaOnboardingStubVariant;
 }
 
-const isRejectedKycSession = (
-  sessionStatus: KycSessionStatus | null,
-): boolean =>
-  sessionStatus?.finalStatus === 'rejected' ||
-  sessionStatus?.kycStatus === 'rejected';
-
 /**
- * A session can re-enter SumSub only when its status is `retry` and neither
- * finalStatus nor kycStatus is the terminal `rejected` decision.
+ * kyc-api's step for `iron`. `kyc_retry` re-enters SumSub; `kyc_rejected` is
+ * final and contacts support.
  */
-const canRetryKycSession = (sessionStatus: KycSessionStatus | null): boolean =>
-  !isRejectedKycSession(sessionStatus) &&
-  (sessionStatus?.finalStatus === 'retry' ||
-    sessionStatus?.kycStatus === 'retry');
+const selectVbaKycStep = (state: RootState) =>
+  state.engine.backgroundState.KycController?.sessions?.[VBA_KYC_VENDOR]
+    ?.nextStep ?? null;
 
 const VbaStatusAdapter = ({ variant }: VbaStatusAdapterProps) => {
   const advance = useOpenVbaOnboarding(`${variant}-retry`);
@@ -81,14 +72,12 @@ const VbaKycRejectedSupportAction = () => {
 };
 
 export const VbaKycRejectedAdapter = () => {
-  const sessionStatus = useSelector((state: RootState) =>
-    selectKycSessionStatus(state, VBA_KYC_VENDOR),
-  );
+  const step = useSelector(selectVbaKycStep);
   useEffect(() => {
     endVbaCufJourney(false, VBA_CUF_END_REASON.KYC_REJECTED);
   }, []);
 
-  if (canRetryKycSession(sessionStatus)) {
+  if (step === 'kyc_retry') {
     return <VbaKycRetryAction />;
   }
 

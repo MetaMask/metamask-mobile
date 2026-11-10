@@ -3,6 +3,7 @@ import {
   type VbaKycStatus,
   type VbaOnboardingSnapshot,
 } from '@metamask/ramps-controller';
+import type { KycStep } from '@metamask/kyc-controller';
 import { readVbaKycStatusOverrideEnv } from './vbaDevOverrides.env';
 
 /**
@@ -51,4 +52,24 @@ export const applyVbaDevOverrides = (
     sessionDisclaimersComplete: true,
     kycStatus,
   };
+};
+
+const KYC_STEP_FOR_OVERRIDE: Partial<Record<VbaKycStatus, KycStep>> = {
+  retry: 'kyc_retry',
+  pending: 'kyc_pending',
+  approved: 'approved',
+  rejected: 'kyc_rejected',
+};
+
+/**
+ * Applies {@link getVbaKycStatusOverride} to the KYC step from kyc-api, so a
+ * forced status still opens its status screen. `none` and `new` leave the
+ * step as kyc-api returned it.
+ *
+ * @param step - The step kyc-api returned.
+ * @returns The step, replaced when an override maps to one.
+ */
+export const applyVbaDevStepOverride = (step: KycStep): KycStep => {
+  const kycStatus = getVbaKycStatusOverride();
+  return (kycStatus && KYC_STEP_FOR_OVERRIDE[kycStatus]) ?? step;
 };
