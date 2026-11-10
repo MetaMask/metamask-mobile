@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -10,6 +9,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
+import VbaFoxLoader from './VbaFoxLoader';
 import VbaOnboardingStub from './VbaOnboardingStub';
 import {
   navigateToVbaOnboardingDestination,
@@ -140,7 +140,7 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
       >
-        <ActivityIndicator testID={VbaOnboardingLoadingSelectorsIDs.SPINNER} />
+        <VbaFoxLoader testID={VbaOnboardingLoadingSelectorsIDs.SPINNER} />
       </Box>
     </SafeAreaView>
   );

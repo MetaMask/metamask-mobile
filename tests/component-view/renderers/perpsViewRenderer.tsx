@@ -1,6 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
@@ -15,6 +16,7 @@ import {
 import { PerpsConnectionManager } from '../../../app/components/UI/Perps/services/PerpsConnectionManager';
 import { buildPerpsMarketContextKey } from '../../../app/components/UI/Perps/utils/perpsMarketContext';
 import Routes from '../../../app/constants/navigation/Routes';
+import { PerpsTradeSheetSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import {
   createComponentViewQueryClient,
@@ -1305,11 +1307,19 @@ export function renderPerpsOrderView(options: RenderPerpsViewOptions = {}) {
     defaultMaxLeverage: 50,
     ...options.initialParams,
   };
-  return renderPerpsView(
+  const result = renderPerpsView(
     PerpsOrderView as unknown as React.ComponentType,
     'PerpsOrderView',
     { ...options, initialParams },
   );
+  // React Test Renderer does not emit the native layout event that mounts the sheet form.
+  const placeholder = result.queryByTestId(
+    PerpsTradeSheetSelectorsIDs.PLACEHOLDER,
+  );
+  if (placeholder) {
+    fireEvent(placeholder, 'layout');
+  }
+  return result;
 }
 
 /**

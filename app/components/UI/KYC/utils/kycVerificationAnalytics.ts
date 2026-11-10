@@ -2,17 +2,12 @@ import {
   type KycAnalyticsStatus,
   type KycAnalyticsVerificationOutcome,
 } from '@metamask/kyc-controller';
-import {
-  MetaMetricsEvents,
-  type IMetaMetricsEvent,
-} from '../../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { analytics } from '../../../../util/analytics/analytics';
-import Logger from '../../../../util/Logger';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   buildKycBaseProperties,
   type KycStateInput,
 } from './kycBaseProperties';
+import { trackKycEvent } from './trackKycEvent';
 
 export {
   buildKycBaseProperties,
@@ -46,32 +41,6 @@ export interface KycStatusUpdatedInput extends KycStateInput {
 }
 
 /**
- * Builds and sends one event. `buildProperties` runs inside the try, because
- * reading controller or store state is as likely to throw as the send itself
- * and these trackers sit on the identity-verification path — a launch, a
- * retry press, a screen mount. Nothing here may reach the caller.
- *
- * @param event - The event definition.
- * @param buildProperties - Produces the event properties.
- */
-const track = (
-  event: IMetaMetricsEvent,
-  buildProperties: () => Record<string, string>,
-): void => {
-  try {
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(event)
-        .addProperties(buildProperties())
-        .build(),
-    );
-  } catch (error) {
-    Logger.error(error as Error, {
-      tags: { feature: 'vba-kyc', event: event.category },
-    });
-  }
-};
-
-/**
  * Fires `KYC Verification Updated`, the SumSub webview step. Analytics
  * failures never reach the caller.
  *
@@ -80,7 +49,7 @@ const track = (
 export function trackKycVerificationUpdated(
   input: KycVerificationUpdatedInput,
 ): void {
-  track(MetaMetricsEvents.KYC_VERIFICATION_UPDATED, () => ({
+  trackKycEvent(MetaMetricsEvents.KYC_VERIFICATION_UPDATED, () => ({
     ...buildKycBaseProperties(input),
     status: input.status,
     ...(input.retrySource ? { retry_source: input.retrySource } : {}),
@@ -94,7 +63,7 @@ export function trackKycVerificationUpdated(
  * @param input - The new status, the previous one, and the flow status.
  */
 export function trackKycStatusUpdated(input: KycStatusUpdatedInput): void {
-  track(MetaMetricsEvents.KYC_STATUS_UPDATED, () => ({
+  trackKycEvent(MetaMetricsEvents.KYC_STATUS_UPDATED, () => ({
     ...buildKycBaseProperties(input),
     previous_kyc_status: input.previousKycStatus,
   }));
