@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
@@ -219,6 +219,36 @@ describe('TokenDetailsStickyFooter', () => {
       expect(
         queryByTestId('token-details-sticky-footer-surface'),
       ).toBeOnTheScreen();
+    });
+
+    it('reports the measured height of the trader position footer', async () => {
+      const onFooterLayout = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31' }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 132 } },
+        persist: jest.fn(),
+      });
+
+      await waitFor(() => expect(onFooterLayout).toHaveBeenLastCalledWith(132));
+    });
+
+    it('reports no overlay height when the footer renders in flow', () => {
+      const onFooterLayout = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      expect(onFooterLayout).toHaveBeenLastCalledWith(0);
     });
 
     it('renders the expanded trader position sheet with footer actions', () => {

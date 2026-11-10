@@ -171,7 +171,7 @@ interface TokenStickyFooterProps {
    * container type mid-load and remounting the buttons (flicker).
    */
   reserveTraderPositionLayout?: boolean;
-  /** Reports the laid-out height of the sticky footer, including its safe-area inset. */
+  /** Reports the height the footer overlays on the page, or 0 when it renders in flow. */
   onFooterLayout?: (height: number) => void;
 }
 
@@ -310,6 +310,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       },
     );
   }, [expandedDetailsProgress, isTraderPositionExpanded]);
+
+  useEffect(() => {
+    if (!showTraderPositionLayout) {
+      onFooterLayout?.(0);
+    }
+  }, [onFooterLayout, showTraderPositionLayout]);
 
   const handleExpandedDetailsLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -809,9 +815,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       </GestureDetector>
     </BottomSheetDialog>
   ) : (
-    <View onLayout={handleFooterLayout} style={legacyFooterStyle}>
-      {footerActions}
-    </View>
+    <View style={legacyFooterStyle}>{footerActions}</View>
   );
 
   return (
