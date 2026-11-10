@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import {
   fireGestureHandler,
   getByGestureTestId,
@@ -22,7 +23,9 @@ const MARKER: PositionSheetMarker = {
   index: 1,
   intent: 'enter',
   timestampMs: 2,
-  tooltipLabel: 'Bought @ $110',
+  actionLabel: 'Opened',
+  valueLabel: '+$1,250.00',
+  isValuePositive: true,
 };
 
 const lineProgress = { value: 1 } as SharedValue<number>;
@@ -67,6 +70,13 @@ describe('PositionSheetChart', () => {
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText('Wed')).toBeOnTheScreen();
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(
+          `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${MARKER.id}`,
+        ).props.style,
+      ).borderWidth,
+    ).toBeUndefined();
   });
 
   it('shows the skeleton while prices load', () => {

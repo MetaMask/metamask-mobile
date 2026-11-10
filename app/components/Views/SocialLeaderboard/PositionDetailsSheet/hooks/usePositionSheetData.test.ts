@@ -106,7 +106,9 @@ describe('usePositionSheetData', () => {
       expect(result.current.isMarketCapMode).toBe(true);
       expect(result.current.formatValue(120)).toBe('$1.2M');
       expect(result.current.markers).toHaveLength(1);
-      expect(result.current.markers[0].tooltipLabel).toBe('Bought @ $1M');
+      expect(result.current.markers[0].actionLabel).toBe('Bought');
+      expect(result.current.markers[0].valueLabel).toBe('+$200.00');
+      expect(result.current.markers[0].isValuePositive).toBe(true);
       expect(result.current.isTrendPositive).toBe(true);
       expect(result.current.summaryTitle).toBe('2 PEPE');
     });
@@ -234,9 +236,9 @@ describe('usePositionSheetData', () => {
       expect(result.current.summaryTitle).toBe('2 BTC');
       expect(result.current.summaryTagLabel).toBe('40x Short');
       expect(result.current.summarySubtitle).toBe('Opened · 2 hr ago');
-      expect(result.current.markers[0].tooltipLabel).toMatch(
-        /^Opened short @ \$107,469/,
-      );
+      expect(result.current.markers[0].actionLabel).toBe('Opened');
+      expect(result.current.markers[0].valueLabel).toBe('+$107,469.00');
+      expect(result.current.markers[0].isValuePositive).toBe(true);
     });
 
     it('sizes an open perp from the leveraged amount', () => {
