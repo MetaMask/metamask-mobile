@@ -10,8 +10,29 @@ concurrency:
 permissions: {}
 
 jobs:
+  validate-dispatch-ref:
+    name: Validate dispatch ref
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Require main
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::Dispatch React Native Upgrade Sync from main."
+            {
+              echo "## React Native upgrade sync failed"
+              echo
+              echo "Dispatch React Native Upgrade Sync from main."
+              echo
+              printf 'Dispatched ref: %s\n' "$GITHUB_REF"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
   open-sync-pull-request:
     name: Open React Native upgrade sync pull request
+    needs: validate-dispatch-ref
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -129,22 +150,23 @@ jobs:
             EXISTING_HEAD_SHA=$(jq -r '.[0].headRefOid' <<<"$PREFIX_MATCHES")
             EXISTING_HEAD_SHA=$(printf '%s' "$EXISTING_HEAD_SHA" | tr '[:upper:]' '[:lower:]')
             require_sha "Existing pull request head" "$EXISTING_HEAD_SHA"
+            HEAD_MATCHES_SOURCE="false"
+            HEAD_AHEAD_BY="0"
+            HEAD_BEHIND_BY="0"
 
             if [[ "$EXISTING_HEAD_SHA" == "$SOURCE_SHA" ]]; then
-              HEAD_RELATION="matches the observed main SHA."
+              HEAD_MATCHES_SOURCE="true"
             else
-              # behind_by counts existing-head commits missing from the observed main SHA.
-              # Zero means that head is an ancestor of the observed main SHA.
-              if ! HEAD_BEHIND_BY=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${EXISTING_HEAD_SHA}...${SOURCE_SHA}" --jq .behind_by); then
+              if ! HEAD_COMPARISON=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${EXISTING_HEAD_SHA}...${SOURCE_SHA}"); then
                 fail "GitHub compare failed for existing pull request head ${EXISTING_HEAD_SHA}...${SOURCE_SHA}."
               fi
-              if [[ ! "$HEAD_BEHIND_BY" =~ ^[0-9]+$ ]]; then
-                fail "GitHub compare returned a non-numeric behind_by value for the existing pull request."
+              HEAD_AHEAD_BY=$(jq -r .ahead_by <<<"$HEAD_COMPARISON")
+              HEAD_BEHIND_BY=$(jq -r .behind_by <<<"$HEAD_COMPARISON")
+              if [[ ! "$HEAD_AHEAD_BY" =~ ^[0-9]+$ || ! "$HEAD_BEHIND_BY" =~ ^[0-9]+$ ]]; then
+                fail "GitHub compare returned a non-numeric ahead_by or behind_by value for the existing pull request."
               fi
-              if [[ "$HEAD_BEHIND_BY" == "0" ]]; then
-                HEAD_RELATION="is behind the observed main SHA."
-              else
-                HEAD_RELATION="contains commits that are not in the observed main SHA."
+              if [[ "$HEAD_AHEAD_BY" == "0" && "$HEAD_BEHIND_BY" == "0" ]]; then
+                fail "GitHub compare found no unique commits between different existing-head and main SHAs."
               fi
             fi
 
@@ -157,7 +179,16 @@ jobs:
               echo
               printf 'Existing pull request: %s\n' "$PR_URL"
               printf 'Existing pull request head: %s\n' "$EXISTING_HEAD_SHA"
-              printf 'The existing pull request head %s\n' "$HEAD_RELATION"
+              if [[ "$HEAD_MATCHES_SOURCE" == "true" ]]; then
+                echo "The existing pull request head matches the observed main SHA."
+              else
+                if [[ "$HEAD_AHEAD_BY" -gt 0 ]]; then
+                  printf 'The existing pull request head is behind the observed main SHA by %s commit(s).\n' "$HEAD_AHEAD_BY"
+                fi
+                if [[ "$HEAD_BEHIND_BY" -gt 0 ]]; then
+                  printf 'The existing pull request head contains %s commit(s) that are not in the observed main SHA.\n' "$HEAD_BEHIND_BY"
+                fi
+              fi
               echo
               echo "No additional temporary ref or pull request was created."
             } >> "$GITHUB_STEP_SUMMARY"
