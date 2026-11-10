@@ -41,7 +41,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('../../hooks/useImmersveSpendingPrerequisites');
 jest.mock('../../hooks/useImmersveOnboardingRouter');
 
-
 const mockRefresh = jest.fn().mockResolvedValue(null);
 const mockRoute = jest.fn();
 

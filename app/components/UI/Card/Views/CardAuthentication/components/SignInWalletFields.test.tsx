@@ -62,7 +62,10 @@ jest.mock('@metamask/design-system-react-native', () => {
       ReactActual.createElement(View, { testID: 'sign-in-account-avatar' }),
     FontWeight: { Medium: 'Medium' },
     TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm' },
-    TextColor: { TextDefault: 'TextDefault', TextAlternative: 'TextAlternative' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+    },
     HelpTextSeverity: { Danger: 'Danger' },
     ButtonVariant: { Tertiary: 'Tertiary', Primary: 'Primary' },
     ButtonSize: { Md: 'Md', Lg: 'Lg' },

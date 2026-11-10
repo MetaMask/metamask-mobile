@@ -29,7 +29,6 @@ jest.mock('../../../AnimatedSpinner', () => {
 // Mock useUserRegistrationStatus hook
 jest.mock('../../hooks/useUserRegistrationStatus');
 
-
 // Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({

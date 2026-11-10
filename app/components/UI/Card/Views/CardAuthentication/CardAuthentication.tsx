@@ -12,9 +12,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
+  FontWeight,
   HelpText,
   HelpTextSeverity,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useCardAuth } from '../../hooks/useCardAuth';
 import { useCardSignIn } from '../../hooks/useCardSignIn';
