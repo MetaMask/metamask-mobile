@@ -1,14 +1,20 @@
-import React, { useEffect, type ReactNode } from 'react';
-import type { PriceUpdate } from '@metamask/perps-controller';
+import React, { useEffect, useRef, type ReactNode } from 'react';
+import { Box } from '@metamask/design-system-react-native';
+import type { Position, PriceUpdate } from '@metamask/perps-controller';
 import PerpsMarketStatisticsCard, {
   type PerpsMarketStatisticsCardProps,
 } from '../../components/PerpsMarketStatisticsCard';
+import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import {
   usePerpsLiveFocusedPrice,
   usePerpsLivePrices,
 } from '../../hooks/stream';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import type { PerpsMarketDetailSectionState } from '../../hooks/usePerpsMarketDetailSession';
+import {
+  useStopLossPrompt,
+  type StopLossPromptVariant,
+} from '../../hooks/useStopLossPrompt';
 
 const toPrice = (priceData: PriceUpdate | undefined): number => {
   if (priceData?.markPrice) {
@@ -103,4 +109,107 @@ export const PerpsLiveMarketStatisticsCard = ({
   }, [onSectionStateChange, sectionState]);
 
   return <PerpsMarketStatisticsCard {...cardProps} marketStats={marketStats} />;
+};
+
+/** Chart price wins. Live price fills the pause. Last price covers the reload. */
+export function resolveMarketDetailDisplayPrice(
+  chartPrice: number,
+  livePrice: number,
+  lastPrice: number,
+): number {
+  if (chartPrice > 0) {
+    return chartPrice;
+  }
+  if (livePrice > 0) {
+    return livePrice;
+  }
+  return lastPrice;
+}
+
+interface PerpsStopLossPromptSectionProps {
+  position: Position | null | undefined;
+  positionOpenedTimestamp?: number;
+  onSetStopLoss: (suggestedStopLossPrice: string) => void;
+  onAddMargin: () => void;
+  isSettingStopLoss: boolean;
+  isStopLossSuccess: boolean;
+  onFadeOutComplete: () => void;
+  testID: string;
+}
+
+/** Owns the mark-price subscription so stop-loss ticks do not re-render the screen. */
+export const PerpsStopLossPromptSection = ({
+  position,
+  positionOpenedTimestamp,
+  onSetStopLoss,
+  onAddMargin,
+  isSettingStopLoss,
+  isStopLossSuccess,
+  onFadeOutComplete,
+  testID,
+}: PerpsStopLossPromptSectionProps) => {
+  const currentPrice = usePerpsCurrentPrice(
+    position?.symbol ?? '',
+    Boolean(position),
+  );
+  const {
+    variant: bannerVariantFromHook,
+    liquidationDistance,
+    suggestedStopLossPrice,
+    suggestedStopLossPercent,
+    isVisible: isBannerVisible,
+    onDismissComplete,
+  } = useStopLossPrompt({
+    position,
+    currentPrice,
+    positionOpenedTimestamp,
+  });
+  const preservedBannerVariantRef = useRef<StopLossPromptVariant | null>(null);
+
+  useEffect(() => {
+    preservedBannerVariantRef.current = null;
+  }, [position?.symbol]);
+
+  useEffect(() => {
+    if (bannerVariantFromHook && !isStopLossSuccess) {
+      preservedBannerVariantRef.current = bannerVariantFromHook;
+    }
+  }, [bannerVariantFromHook, isStopLossSuccess]);
+
+  const bannerVariant = isStopLossSuccess
+    ? preservedBannerVariantRef.current
+    : bannerVariantFromHook;
+
+  const handleSetStopLoss = () => {
+    if (!suggestedStopLossPrice) {
+      return;
+    }
+    onSetStopLoss(suggestedStopLossPrice);
+  };
+
+  const handleFadeOutComplete = () => {
+    onFadeOutComplete();
+    onDismissComplete();
+  };
+
+  if ((!isBannerVisible && !isStopLossSuccess) || !bannerVariant) {
+    return null;
+  }
+
+  return (
+    <Box twClassName="px-4 mb-4">
+      <PerpsStopLossPromptBanner
+        variant={bannerVariant}
+        liquidationDistance={liquidationDistance ?? 0}
+        suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
+        suggestedStopLossPercent={suggestedStopLossPercent ?? undefined}
+        onSetStopLoss={handleSetStopLoss}
+        onAddMargin={onAddMargin}
+        isLoading={isSettingStopLoss}
+        isSuccess={isStopLossSuccess}
+        onFadeOutComplete={handleFadeOutComplete}
+        testID={testID}
+      />
+    </Box>
+  );
 };

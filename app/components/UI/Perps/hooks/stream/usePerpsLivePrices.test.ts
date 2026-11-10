@@ -63,14 +63,13 @@ describe('usePerpsLivePrices', () => {
     expect(result.current.BTC.price).toBe('50000');
   });
 
-  it('keeps the previous reference when a tick repeats the same values', () => {
+  it('updates when only the 24h change moves', () => {
     const { result, emit } = renderWithCapturedCallback();
     emit({ BTC: BTC_PRICE });
-    const firstPrices = result.current;
 
-    emit({ BTC: { ...BTC_PRICE, timestamp: 456 } });
+    emit({ BTC: { ...BTC_PRICE, percentChange24h: '3.1' } });
 
-    expect(result.current).toBe(firstPrices);
+    expect(result.current.BTC.percentChange24h).toBe('3.1');
   });
 
   it('updates when a tick changes the price', () => {

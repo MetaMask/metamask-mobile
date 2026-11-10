@@ -6,6 +6,7 @@ import {
   PerpsCurrentPriceSync,
   PerpsLiveCurrentPrice,
   PerpsLiveMarketStatisticsCard,
+  resolveMarketDetailDisplayPrice,
 } from './PerpsMarketDetailsLiveSections';
 
 const mockUsePerpsLivePrices = jest.fn();
@@ -157,6 +158,20 @@ describe('PerpsMarketDetailsLiveSections', () => {
       const onSectionStateChange = renderStatsCard();
 
       expect(onSectionStateChange).toHaveBeenLastCalledWith('error');
+    });
+  });
+
+  describe('resolveMarketDetailDisplayPrice', () => {
+    it('uses the chart price while candles are current', () => {
+      expect(resolveMarketDetailDisplayPrice(100, 90, 80)).toBe(100);
+    });
+
+    it('uses the live price while candles are cleared', () => {
+      expect(resolveMarketDetailDisplayPrice(0, 90, 80)).toBe(90);
+    });
+
+    it('keeps the last price while both sources are empty', () => {
+      expect(resolveMarketDetailDisplayPrice(0, 0, 80)).toBe(80);
     });
   });
 });

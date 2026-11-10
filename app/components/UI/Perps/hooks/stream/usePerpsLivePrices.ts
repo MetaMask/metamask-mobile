@@ -40,23 +40,7 @@ export function usePerpsLivePrices(
         if (!newPrices) {
           return;
         }
-        setPrices((previous) => {
-          const nextSymbols = Object.keys(newPrices);
-          const unchanged =
-            nextSymbols.length > 0 &&
-            nextSymbols.every((nextSymbol) => {
-              const prev = previous[nextSymbol];
-              const next = newPrices[nextSymbol];
-              return (
-                prev?.price === next?.price &&
-                prev?.markPrice === next?.markPrice &&
-                prev?.funding === next?.funding &&
-                prev?.openInterest === next?.openInterest &&
-                prev?.volume24h === next?.volume24h
-              );
-            });
-          return unchanged ? previous : newPrices;
-        });
+        setPrices(newPrices);
       },
       throttleMs,
     });

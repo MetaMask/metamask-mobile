@@ -103,7 +103,8 @@ import {
   PerpsCurrentPriceSync,
   PerpsLiveCurrentPrice,
   PerpsLiveMarketStatisticsCard,
-  usePerpsCurrentPrice,
+  PerpsStopLossPromptSection,
+  resolveMarketDetailDisplayPrice,
 } from './PerpsMarketDetailsLiveSections';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import {
@@ -116,7 +117,6 @@ import PerpsMarketSocialTabs from '../../components/PerpsMarketSocialTabs';
 import PerpsPostToFeedButton from '../../components/PerpsPostToFeedButton';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
-import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
@@ -183,7 +183,6 @@ import {
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSharePosition } from '../../hooks/usePerpsSharePosition';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
-import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import {
   getPerpsChartAnalyticsProperties,
@@ -414,13 +413,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
-  // Stop loss prompt banner state - for loading/success when setting stop loss via banner
   const [isSettingStopLoss, setIsSettingStopLoss] = useState(false);
   const [isStopLossSuccess, setIsStopLossSuccess] = useState(false);
-  // Preserve banner variant during success fade-out (hook's variant becomes null after SL is set)
-  const preservedBannerVariantRef = useRef<'stop_loss' | 'add_margin' | null>(
-    null,
-  );
   // Track current market symbol for staleness checks in async callbacks
   // Using a ref allows reading the CURRENT value at execution time, not closure-captured value
   const currentMarketSymbolRef = useRef<string | undefined>(market?.symbol);
@@ -686,12 +680,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   }, [configuredChartLibrary, market?.symbol, marketContextKey]);
 
   const [isChartInViewport, setIsChartInViewport] = useState(true);
-  const [hasPausedCandles, setHasPausedCandles] = useState(false);
   const handleChartVisible = useCallback(() => setIsChartInViewport(true), []);
-  const handleChartHidden = useCallback(() => {
-    setIsChartInViewport(false);
-    setHasPausedCandles(true);
-  }, []);
+  const handleChartHidden = useCallback(() => setIsChartInViewport(false), []);
   const {
     candleData,
     isLoading: isLoadingHistory,
@@ -708,9 +698,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     isMarketContextReady,
     enabled: isChartInViewport,
   });
-  // Candles stop while the chart is off-screen, so the header falls back to the focused price.
-  const resolveDisplayPrice = (livePrice: number) =>
-    chartCurrentPrice > 0 || !hasPausedCandles ? chartCurrentPrice : livePrice;
+  // Last non-zero price covers the frame where candles clear and the live tick has not arrived.
+  const lastDisplayPriceRef = useRef(0);
+  if (chartCurrentPrice > 0) {
+    lastDisplayPriceRef.current = chartCurrentPrice;
+  }
+  const resolveDisplayPrice = (livePrice: number) => {
+    const next = resolveMarketDetailDisplayPrice(
+      chartCurrentPrice,
+      livePrice,
+      lastDisplayPriceRef.current,
+    );
+    if (next > 0) {
+      lastDisplayPriceRef.current = next;
+    }
+    return next;
+  };
   const previousPriceDeliveryRevisionRef = useRef(priceDeliveryRevision);
   useEffect(() => {
     if (
@@ -883,47 +886,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     });
   }, [existingPosition, chartCurrentPrice, limitOrders]);
 
-  const stopLossCurrentPrice = usePerpsCurrentPrice(
-    market?.symbol ?? '',
-    Boolean(existingPosition),
-  );
-
-  // Stop loss prompt banner logic
-  // Hook handles visibility orchestration including fade-out animation
-  const {
-    variant: bannerVariantFromHook,
-    liquidationDistance,
-    suggestedStopLossPrice,
-    suggestedStopLossPercent,
-    isVisible: isBannerVisible,
-    onDismissComplete: handleBannerDismissComplete,
-  } = useStopLossPrompt({
-    position: existingPosition,
-    currentPrice: stopLossCurrentPrice,
-    positionOpenedTimestamp,
-  });
-
-  // Reset stop loss success state when market or position changes.
-  // Runs before the preserve effect below so a remount/symbol change clears
-  // first, then the current variant is re-captured.
   useEffect(() => {
     setIsStopLossSuccess(false);
-    preservedBannerVariantRef.current = null;
   }, [market?.symbol, existingPosition?.symbol]);
-
-  // Preserve banner variant when we have a valid one (for use during success fade-out)
-  // The hook's variant becomes null after SL is set, but we need to keep rendering
-  // Use useEffect to avoid ref mutation during render (React best practice)
-  useEffect(() => {
-    if (bannerVariantFromHook && !isStopLossSuccess) {
-      preservedBannerVariantRef.current = bannerVariantFromHook;
-    }
-  }, [bannerVariantFromHook, isStopLossSuccess]);
-
-  // Use preserved variant during success fade-out, otherwise use hook's variant
-  const bannerVariant = isStopLossSuccess
-    ? preservedBannerVariantRef.current
-    : bannerVariantFromHook;
 
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
@@ -1085,7 +1050,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     Boolean(marketDataError),
   );
   const priceSectionState: PerpsMarketDetailSectionState =
-    isMarketContextReady && (chartCurrentPrice > 0 || hasPausedCandles)
+    isMarketContextReady &&
+    (chartCurrentPrice > 0 || lastDisplayPriceRef.current > 0)
       ? 'content'
       : 'loading';
   const currentAdvancedChartState =
@@ -1488,105 +1454,100 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     useBottomSheet,
   ]);
 
-  // Handler for "Set Stop Loss" from stop loss prompt banner
-  const handleSetStopLossFromBanner = useCallback(() => {
-    if (!existingPosition || !suggestedStopLossPrice) return;
-
-    return gate(async () => {
-      // Geo-restriction check for set stop loss from banner
-      if (!isEligible) {
-        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-          [PERPS_EVENT_PROPERTY.SOURCE]:
-            PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_SET_SL,
-        });
-        setIsEligibilityModalVisible(true);
-        return;
+  // Handler for "Set Stop Loss" from stop loss prompt banner.
+  // Returns true only when the position was updated, so the banner can fade out.
+  const handleSetStopLossFromBanner = useCallback(
+    (suggestedStopLossPrice: string) => {
+      if (!existingPosition) {
+        return false;
       }
 
-      // Capture symbol before async to detect market changes during API call
-      const originalSymbol = existingPosition.symbol;
-
-      setIsSettingStopLoss(true);
-
-      try {
-        // Build tracking data
-        const riskSource =
-          PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.STOP_LOSS_PROMPT_BANNER;
-        const trackingData: TPSLTrackingData = {
-          direction: parseFloat(existingPosition.size) >= 0 ? 'long' : 'short',
-          source: riskSource,
-          ...toPerpsEntryAttribution({ source: riskSource }),
-          positionSize: Math.abs(parseFloat(existingPosition.size)),
-        };
-
-        // Set the stop loss using the suggested price (keep existing TP if any)
-        const result = await handleUpdateTPSL(
-          existingPosition,
-          existingPosition.takeProfitPrice, // Keep existing TP
-          suggestedStopLossPrice, // Use suggested SL
-          trackingData,
-        );
-
-        // Only trigger success state if the update actually succeeded
-        if (!result.success) {
-          // Error toast is already shown by handleUpdateTPSL
-          return;
+      return gate(async () => {
+        // Geo-restriction check for set stop loss from banner
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_SET_SL,
+          });
+          setIsEligibilityModalVisible(true);
+          return false;
         }
 
-        // Staleness check: user may have navigated to a different market during API call
-        // Use ref to get CURRENT market symbol, not the closure-captured value
-        if (originalSymbol !== currentMarketSymbolRef.current) {
+        // Capture symbol before async to detect market changes during API call
+        const originalSymbol = existingPosition.symbol;
+        setIsSettingStopLoss(true);
+
+        try {
+          // Build tracking data
+          const riskSource =
+            PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.STOP_LOSS_PROMPT_BANNER;
+          const trackingData: TPSLTrackingData = {
+            direction:
+              parseFloat(existingPosition.size) >= 0 ? 'long' : 'short',
+            source: riskSource,
+            ...toPerpsEntryAttribution({ source: riskSource }),
+            positionSize: Math.abs(parseFloat(existingPosition.size)),
+          };
+
+          // Set the stop loss using the suggested price (keep existing TP if any)
+          const result = await handleUpdateTPSL(
+            existingPosition,
+            existingPosition.takeProfitPrice, // Keep existing TP
+            suggestedStopLossPrice, // Use suggested SL
+            trackingData,
+          );
+
+          // Only trigger success state if the update actually succeeded
+          if (!result.success) {
+            // Error toast is already shown by handleUpdateTPSL
+            return false;
+          }
+
+          // Staleness check: user may have navigated to a different market during API call
+          // Use ref to get CURRENT market symbol, not the closure-captured value
+          if (originalSymbol !== currentMarketSymbolRef.current) {
+            return false;
+          }
+
+          // Track the interaction - use STOP_LOSS_ONE_CLICK_PROMPT for one-click stop loss from banner
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.STOP_LOSS_ONE_CLICK_PROMPT,
+            [PERPS_EVENT_PROPERTY.ASSET]: existingPosition.symbol,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_BANNER,
+            [PERPS_EVENT_PROPERTY.STOP_LOSS_PRICE]: suggestedStopLossPrice,
+          });
+          setIsStopLossSuccess(true);
           return;
-        }
-
-        // Trigger success state to start fade-out animation
-        setIsStopLossSuccess(true);
-
-        // Track the interaction - use STOP_LOSS_ONE_CLICK_PROMPT for one-click stop loss from banner
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.STOP_LOSS_ONE_CLICK_PROMPT,
-          [PERPS_EVENT_PROPERTY.ASSET]: existingPosition.symbol,
-          [PERPS_EVENT_PROPERTY.SOURCE]:
-            PERPS_EVENT_VALUE.SOURCE.STOP_LOSS_PROMPT_BANNER,
-          [PERPS_EVENT_PROPERTY.STOP_LOSS_PRICE]: suggestedStopLossPrice,
-        });
-      } catch (error) {
-        Logger.error(
-          ensureError(
-            error,
-            'PerpsMarketDetailsView.handleSetStopLossFromBanner',
-          ),
-          {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: {
-              name: 'PerpsMarketDetailsView.handleSetStopLossFromBanner',
-              data: {},
+        } catch (error) {
+          Logger.error(
+            ensureError(
+              error,
+              'PerpsMarketDetailsView.handleSetStopLossFromBanner',
+            ),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'PerpsMarketDetailsView.handleSetStopLossFromBanner',
+                data: {},
+              },
             },
-          },
-        );
-      } finally {
-        setIsSettingStopLoss(false);
-      }
-    });
-  }, [
-    gate,
-    existingPosition,
-    suggestedStopLossPrice,
-    handleUpdateTPSL,
-    track,
-    isEligible,
-  ]);
+          );
+          return false;
+        } finally {
+          setIsSettingStopLoss(false);
+        }
+      });
+    },
+    [gate, existingPosition, handleUpdateTPSL, track, isEligible],
+  );
 
-  // Handler for when banner fade-out animation completes
   const handleBannerFadeOutComplete = useCallback(() => {
-    // Reset success state for potential future displays
     setIsStopLossSuccess(false);
-    // Notify hook that dismiss animation is complete
-    handleBannerDismissComplete();
-  }, [handleBannerDismissComplete]);
+  }, []);
 
   // Handler for market insights card tap - navigates to full market insights view
   const handleMarketInsightsPress = useCallback(() => {
@@ -2024,7 +1985,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         />
         <PerpsLiveCurrentPrice
           symbol={market.symbol}
-          enabled={hasPausedCandles}
+          enabled={!isChartInViewport}
         >
           {(livePrice) => (
             <PerpsMarketHeader
@@ -2080,7 +2041,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             )}
             <PerpsLiveCurrentPrice
               symbol={market.symbol}
-              enabled={hasPausedCandles}
+              enabled={!isChartInViewport}
             >
               {(livePrice) => (
                 <PerpsMarketSummary
@@ -2215,28 +2176,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               </Box>
             )}
 
-            {/* Stop Loss Prompt Banner - Shows when position needs attention */}
-            {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
-            {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
-              <Box twClassName="px-4 mb-4">
-                <PerpsStopLossPromptBanner
-                  variant={bannerVariant}
-                  liquidationDistance={liquidationDistance ?? 0}
-                  suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
-                  suggestedStopLossPercent={
-                    suggestedStopLossPercent ?? undefined
-                  }
-                  onSetStopLoss={handleSetStopLossFromBanner}
-                  onAddMargin={handleAddMarginFromBanner}
-                  isLoading={isSettingStopLoss}
-                  isSuccess={isStopLossSuccess}
-                  onFadeOutComplete={handleBannerFadeOutComplete}
-                  testID={
-                    PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
-                  }
-                />
-              </Box>
-            )}
+            <PerpsStopLossPromptSection
+              position={existingPosition}
+              positionOpenedTimestamp={positionOpenedTimestamp}
+              onSetStopLoss={handleSetStopLossFromBanner}
+              onAddMargin={handleAddMarginFromBanner}
+              isSettingStopLoss={isSettingStopLoss}
+              isStopLossSuccess={isStopLossSuccess}
+              onFadeOutComplete={handleBannerFadeOutComplete}
+              testID={
+                PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
+              }
+            />
 
             {shouldShowPerpsMarketInsightsSection && !isPerpsSocialEnabled ? (
               <Box twClassName="mb-4">{marketInsightsCard}</Box>

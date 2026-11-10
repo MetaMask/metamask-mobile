@@ -267,7 +267,7 @@ describe('usePerpsLiveFocusedPrice', () => {
       expect(result.current?.price).toBe('51000');
     });
 
-    it('keeps the previous reference when a tick repeats the same prices', () => {
+    it('updates when only the 24h change moves', () => {
       let capturedCallback: (update: PriceUpdate | undefined) => void =
         jest.fn();
       mockSubscribeToSymbol.mockImplementation(
@@ -282,13 +282,12 @@ describe('usePerpsLiveFocusedPrice', () => {
       act(() => {
         capturedCallback(mockPriceUpdate);
       });
-      const firstUpdate = result.current;
 
       act(() => {
-        capturedCallback({ ...mockPriceUpdate, timestamp: 456 });
+        capturedCallback({ ...mockPriceUpdate, percentChange24h: '3.1' });
       });
 
-      expect(result.current).toBe(firstUpdate);
+      expect(result.current?.percentChange24h).toBe('3.1');
     });
 
     it('returns undefined when the channel fires with undefined', () => {

@@ -84,20 +84,9 @@ export function usePerpsLiveFocusedPrice(
     const unsubscribe = stream.focusedPrice.subscribeToSymbol({
       symbol,
       callback: (update) => {
-        setPriceState((previous) => {
-          if (!update) {
-            return undefined;
-          }
-          if (
-            previous?.symbol === symbol &&
-            previous.contextKey === marketContextKey &&
-            previous.update.price === update.price &&
-            previous.update.markPrice === update.markPrice
-          ) {
-            return previous;
-          }
-          return { contextKey: marketContextKey, symbol, update };
-        });
+        setPriceState(
+          update ? { contextKey: marketContextKey, symbol, update } : undefined,
+        );
       },
     });
 
