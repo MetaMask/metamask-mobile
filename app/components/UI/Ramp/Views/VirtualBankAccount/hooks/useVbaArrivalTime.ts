@@ -22,11 +22,17 @@ export interface VbaArrivalTime {
 
 const getVbaArrivalTitle = (
   isPixDeposit: boolean,
+  isEurDeposit: boolean,
   arrivalTimeframe: string | undefined,
 ): string => {
   if (isPixDeposit) {
     return strings(
       'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
+    );
+  }
+  if (isEurDeposit) {
+    return strings(
+      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_eur',
     );
   }
   return arrivalTimeframe
@@ -65,9 +71,9 @@ export function getVbaArrivalTimeframe(
 }
 
 /**
- * Arrival row title for the VBA intro screen. Pix regions use static copy; other
- * regions use the ramps payment-methods catalog (`PaymentMethod.delay`, in
- * minutes).
+ * Arrival row title for the VBA intro screen. Pix and EUR regions use static
+ * copy; other regions use the ramps payment-methods catalog
+ * (`PaymentMethod.delay`, in minutes).
  *
  * Region comes from the same GeolocationController IP lookup that gates VBA
  * entry (`useVbaEligibility`), scoped to the Money Account deposit asset so
@@ -83,18 +89,21 @@ export function useVbaArrivalTime(): VbaArrivalTime {
   const depositAssetId = useMoneyAccountDepositAssetId();
 
   // With chooseCurrency on, the rail is unknown until the user picks a currency.
-  const isPixDeposit =
-    !chooseCurrency &&
-    getVbaMarketForCountry(markets, location)?.currency === 'BRL';
+  const market = getVbaMarketForCountry(markets, location);
+  const isPixDeposit = !chooseCurrency && market?.currency === 'BRL';
+  // EUR copy is fixed to the SEPA window: instant to one business day.
+  const isEurDeposit = !chooseCurrency && market?.currency === 'EUR';
+  const usesStaticArrivalCopy = isPixDeposit || isEurDeposit;
 
   // Only fetch for countries an open currency flag lists (same gate as
   // entry). Under the dev geo bypass the IP lookup can be unknown or outside
   // that list, and the ramps API has no catalog for it. Geolocation returns
   // "US" or "US-CA"; the ramps API indexes country-level regions by lowercase
-  // ISO code ("us"). Pix skips the fetch: its copy is static, because no Brazil
-  // provider lists the deposit asset and the catalog delay would read "instant".
+  // ISO code ("us"). Static-copy regions skip the fetch, because the catalog
+  // delay does not describe their rail (Pix reads "instant"; the EUR rail has
+  // no catalog entry at all).
   const regionCode =
-    isRegionEligible && !isPixDeposit
+    isRegionEligible && !usesStaticArrivalCopy
       ? (location?.split('-')[0].toLowerCase() ?? '')
       : '';
 
@@ -114,10 +123,11 @@ export function useVbaArrivalTime(): VbaArrivalTime {
     () => ({
       arrivalTitle: getVbaArrivalTitle(
         isPixDeposit,
+        isEurDeposit,
         getVbaArrivalTimeframe(paymentMethods),
       ),
     }),
-    [paymentMethods, isPixDeposit],
+    [paymentMethods, isPixDeposit, isEurDeposit],
   );
 }
 
