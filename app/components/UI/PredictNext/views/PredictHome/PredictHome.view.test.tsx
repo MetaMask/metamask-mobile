@@ -361,16 +361,16 @@ describe('PredictHome', () => {
       home: 'Steelers',
       awayScore: '17',
       homeScore: '21',
-      awayQuote: 'PAC · 41¢',
-      homeQuote: 'STE · 59¢',
+      awayQuote: /^Packers\s*· 41¢$/,
+      homeQuote: /^Steelers\s*· 59¢$/,
     });
     expectPredictNextGameCard(nflSection, 'nfl-2', {
       away: 'Panthers',
       home: 'Cardinals',
       awayScore: '10',
       homeScore: '7',
-      awayQuote: 'PAN · 36¢',
-      homeQuote: 'CAR · 64¢',
+      awayQuote: /^Panthers\s*· 36¢$/,
+      homeQuote: /^Cardinals\s*· 64¢$/,
     });
     expect(
       within(nflSection).queryByText('Hidden NFL Game'),
@@ -389,16 +389,16 @@ describe('PredictHome', () => {
       home: 'Miami',
       awayScore: '24',
       homeScore: '31',
-      awayQuote: 'PIT · 47¢',
-      homeQuote: 'MIA · 53¢',
+      awayQuote: /^Pittsburgh\s*· 47¢$/,
+      homeQuote: /^Miami\s*· 53¢$/,
     });
     expectPredictNextGameCard(ncaaSection, 'ncaa-2', {
       away: 'Georgia',
       home: 'Florida',
       awayScore: '3',
       homeScore: '0',
-      awayQuote: 'GEO · 55¢',
-      homeQuote: 'FLO · 45¢',
+      awayQuote: /^Georgia\s*· 55¢$/,
+      homeQuote: /^Florida\s*· 45¢$/,
     });
     expect(
       within(ncaaSection).queryByText('Hidden College Game'),

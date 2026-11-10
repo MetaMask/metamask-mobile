@@ -3889,7 +3889,11 @@
         "buy_price_unavailable": "Buy, price unavailable",
         "holding": "{{shares}} shares at {{price}}",
         "holding_shares": "{{shares}} shares"
-      }
+      },
+      "game_quote_price": "· {{price}}",
+      "game_quote_buy_accessibility_label": "{{team}}, {{price}}, buy",
+      "game_quote_price_accessibility_label": "{{team}}, {{price}}",
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable"
     },
     "trending": {
       "search_row_chance": "{{probability}} chance on {{outcome}}"
