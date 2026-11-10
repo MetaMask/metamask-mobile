@@ -385,9 +385,6 @@ describe('SocialProfileOnboardingView', () => {
         { nativeEvent: { data: 'social-terms-scroll-end' } },
       );
       fireEvent.press(
-        screen.getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX),
-      );
-      fireEvent.press(
         screen.getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON),
       );
     };
