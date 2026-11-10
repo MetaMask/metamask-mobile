@@ -19452,7 +19452,7 @@
       "count": 10
     },
     "@typescript-eslint/no-unused-vars": {
-      "count": 2
+      "count": 6
     },
     "@typescript-eslint/prefer-enum-initializers": {
       "count": 9
@@ -22761,6 +22761,11 @@
       "count": 6
     },
     "@typescript-eslint/naming-convention": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Rewards/hooks/useRewardsVersionGuard.ts": {
+    "@typescript-eslint/no-meaningless-void-operator": {
       "count": 1
     }
   },
