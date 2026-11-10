@@ -19,6 +19,7 @@ import {
 } from '../constants/notification-storage-keys';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { resolveNativePushPermissionStatus } from '../utils/push-notification-status';
+import { useIsHomeUnobstructed } from './useIsHomeUnobstructed';
 
 export type PushPrePromptVariant =
   | 'push_permission'
@@ -149,6 +150,7 @@ const resolvePrePromptVariant = async (
  */
 export function usePushPrePromptVariant(): {
   isResolving: boolean;
+  isHomeUnobstructed: boolean;
   nativeOsPermissionEnabled: boolean | null;
   variant: PushPrePromptVariant;
   markShown: () => Promise<void>;
@@ -181,6 +183,10 @@ export function usePushPrePromptVariant(): {
     useSelector(selectPendingMoneyReferralCode),
   );
 
+  // The pre-prompt waits until home is unobstructed, so it never opens over the
+  // trade tray, a screen the user pushed, or anything else presented on top.
+  const isHomeUnobstructed = useIsHomeUnobstructed();
+
   const [startupMarketingConsent, setStartupMarketingConsent] = useState<
     boolean | null
   >(() =>
@@ -211,7 +217,8 @@ export function usePushPrePromptVariant(): {
     isNotificationsByDefaultFlagOn &&
     isBasicFunctionalityEnabled &&
     !isReferralLinkPending &&
-    !hasPendingMoneyReferralCode;
+    !hasPendingMoneyReferralCode &&
+    isHomeUnobstructed;
 
   // Storage resets should affect the next app session/remount, not reopen the
   // pre-prompt while this root is already mounted.
@@ -320,6 +327,7 @@ export function usePushPrePromptVariant(): {
   return {
     dismiss,
     isResolving: isCurrentResolution ? resolutionState.isResolving : true,
+    isHomeUnobstructed,
     markShown,
     nativeOsPermissionEnabled: isCurrentResolution
       ? resolutionState.nativeOsPermissionEnabled

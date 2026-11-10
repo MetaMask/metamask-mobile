@@ -20,6 +20,7 @@ interface VisiblePrePrompt {
 const PushNotificationOnboardingRootContent = () => {
   const {
     dismiss: dismissPrePrompt,
+    isHomeUnobstructed,
     markShown: markPrePromptShown,
     nativeOsPermissionEnabled,
     variant,
@@ -33,6 +34,15 @@ const PushNotificationOnboardingRootContent = () => {
       setVisiblePrePrompt({ nativeOsPermissionEnabled, variant });
     }
   }, [nativeOsPermissionEnabled, variant, visiblePrePrompt]);
+
+  // The latch above holds a shown sheet through resolution churn. Anything
+  // presented over home (a deeplink, say) takes it down, so it never sits over
+  // the screen the user moved to.
+  useEffect(() => {
+    if (!isHomeUnobstructed) {
+      setVisiblePrePrompt(null);
+    }
+  }, [isHomeUnobstructed]);
 
   const currentPrePrompt =
     visiblePrePrompt ??

@@ -23,6 +23,7 @@ import { renderHookWithProvider } from '../../test/renderWithProvider';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { resolveNativePushPermissionStatus } from '../utils/push-notification-status';
 import { usePushPrePromptVariant } from './usePushPrePromptVariant';
+import { useIsHomeUnobstructed } from './useIsHomeUnobstructed';
 
 jest.mock('../utils/push-notification-status', () => ({
   resolveNativePushPermissionStatus: jest.fn(),
@@ -32,12 +33,17 @@ jest.mock('../constants', () => ({
   isNotificationsFeatureEnabled: jest.fn(),
 }));
 
+jest.mock('./useIsHomeUnobstructed', () => ({
+  useIsHomeUnobstructed: jest.fn(),
+}));
+
 const mockResolveNativePushPermissionStatus = jest.mocked(
   resolveNativePushPermissionStatus,
 );
 const mockIsNotificationsFeatureEnabled = jest.mocked(
   isNotificationsFeatureEnabled,
 );
+const mockUseIsHomeUnobstructed = jest.mocked(useIsHomeUnobstructed);
 
 const mockNativePushPermissionStatus = ({
   nativeOsPermissionEnabled = true,
@@ -129,6 +135,7 @@ describe('usePushPrePromptVariant', () => {
     arrangeSelectors();
     arrangeStorage();
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
+    mockUseIsHomeUnobstructed.mockReturnValue(true);
     mockNativePushPermissionStatus();
   });
 
@@ -627,5 +634,43 @@ describe('usePushPrePromptVariant', () => {
     });
 
     expect(result.current.variant).toBeNull();
+  });
+
+  it('does not return a prompt while home is obstructed', async () => {
+    mockUseIsHomeUnobstructed.mockReturnValue(false);
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(result.current.isHomeUnobstructed).toBe(false);
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns the prompt once home is unobstructed again', async () => {
+    mockUseIsHomeUnobstructed.mockReturnValue(false);
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result, rerender } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+
+    mockUseIsHomeUnobstructed.mockReturnValue(true);
+    rerender(undefined);
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
   });
 });

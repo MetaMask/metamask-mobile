@@ -51,11 +51,13 @@ const mockDismissPrePrompt = jest.fn();
 const mockMarkPrePromptShown = jest.fn();
 
 const mockPrePromptState = ({
+  isHomeUnobstructed = true,
   nativeOsPermissionEnabled = null,
   variant = null,
 }: Partial<ReturnType<typeof usePushPrePromptVariant>> = {}) => {
   mockUsePushPrePromptVariant.mockReturnValue({
     dismiss: mockDismissPrePrompt,
+    isHomeUnobstructed,
     isResolving: false,
     markShown: mockMarkPrePromptShown,
     nativeOsPermissionEnabled,
@@ -124,6 +126,25 @@ describe('PushNotificationOnboardingRoot', () => {
     });
 
     mockPrePromptState({ variant: null });
+    mockPushNotificationOnboarding.mockClear();
+    rerender(<PushNotificationOnboardingRoot />);
+
+    expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('takes a visible pre-prompt down once home is obstructed', () => {
+    mockPrePromptState({
+      nativeOsPermissionEnabled: true,
+      variant: 'push_permission',
+    });
+    const { rerender } = render(<PushNotificationOnboardingRoot />);
+
+    // The hook resolves no variant while something is presented over home.
+    mockPrePromptState({ isHomeUnobstructed: false, variant: null });
+    rerender(<PushNotificationOnboardingRoot />);
+
+    // The clearing effect runs after the first obstructed render; the sheet is
+    // gone from every render after it.
     mockPushNotificationOnboarding.mockClear();
     rerender(<PushNotificationOnboardingRoot />);
 
