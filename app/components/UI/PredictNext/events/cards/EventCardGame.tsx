@@ -74,6 +74,7 @@ const FeaturedGameCard = ({
   onOrder,
 }: GameCompositionProps) => {
   const [first, second] = getGameTeamOrder(game);
+  const competition = event.sports?.competition?.label;
 
   return (
     <GameCard.Provider
@@ -83,15 +84,20 @@ const FeaturedGameCard = ({
       onOrder={onOrder}
     >
       <EventCard.Root
-        twClassName="rounded-2xl bg-section px-4 pb-4 pt-4"
+        twClassName="rounded-2xl bg-section py-4"
         testID={`predict-next-event-${event.venueId}-${event.id}`}
       >
         <GameCard.Navigation>
-          <EventCard.Header twClassName="items-center pb-1">
-            <EventCard.Title numberOfLines={1} twClassName="w-68 text-center">
-              {event.title}
-            </EventCard.Title>
-          </EventCard.Header>
+          <EventCard.HeaderRow testID={`predict-next-game-header-${event.id}`}>
+            <EventCard.HeaderRow.Title>{event.title}</EventCard.HeaderRow.Title>
+            {competition ? (
+              <EventCard.HeaderRow.Meta
+                testID={`predict-next-game-header-${event.id}-competition`}
+              >
+                {competition}
+              </EventCard.HeaderRow.Meta>
+            ) : null}
+          </EventCard.HeaderRow>
           <GameCard.Matchup>
             <GameCard.FeaturedTeam selection={first} />
             <GameCard.Score selection={first} />
@@ -99,12 +105,10 @@ const FeaturedGameCard = ({
             <GameCard.Score selection={second} />
             <GameCard.FeaturedTeam selection={second} />
           </GameCard.Matchup>
-          <EventCard.Body twClassName="pb-4">
-            <GameCard.ProbabilityBar />
-          </EventCard.Body>
+          <GameCard.ProbabilityBar />
         </GameCard.Navigation>
 
-        <GameCard.Actions />
+        <GameCard.FeaturedActions />
       </EventCard.Root>
     </GameCard.Provider>
   );

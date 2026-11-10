@@ -214,6 +214,75 @@ const MoreMarkets = ({
     </NativePressable>
   ) : null;
 
+/**
+ * A card's top row: leading content on the left, trailing content on the
+ * right, and a full-width dashed divider below. The row pads its own sides,
+ * so render it in a Root without horizontal padding and the divider reaches
+ * both card edges. Compose the sides from `HeaderRow.Title`, `HeaderRow.Meta`
+ * or any other element.
+ */
+const HeaderRowRoot = ({
+  children,
+  testID,
+}: {
+  children: React.ReactNode;
+  testID?: string;
+}) => (
+  <Box twClassName="gap-3" testID={testID}>
+    <Box twClassName="flex-row items-center justify-between gap-3 px-4">
+      {children}
+    </Box>
+    {/* iOS draws a one-sided dashed border solid, so clip a dashed box to its top edge. */}
+    <Box twClassName="h-px overflow-hidden">
+      <Box
+        twClassName="h-1 border border-dashed border-muted"
+        testID={testID ? `${testID}-divider` : undefined}
+      />
+    </Box>
+  </Box>
+);
+
+const HeaderRowTitle = ({
+  children,
+  testID,
+}: {
+  children: React.ReactNode;
+  testID?: string;
+}) => (
+  <Text
+    variant={TextVariant.BodySm}
+    fontWeight={FontWeight.Bold}
+    numberOfLines={1}
+    twClassName="min-w-0 flex-1"
+    testID={testID}
+  >
+    {children}
+  </Text>
+);
+
+const HeaderRowMeta = ({
+  children,
+  testID,
+}: {
+  children: React.ReactNode;
+  testID?: string;
+}) => (
+  <Text
+    variant={TextVariant.BodyXs}
+    fontWeight={FontWeight.Medium}
+    color={TextColor.TextAlternative}
+    numberOfLines={1}
+    testID={testID}
+  >
+    {children}
+  </Text>
+);
+
+const HeaderRow = Object.assign(HeaderRowRoot, {
+  Title: HeaderRowTitle,
+  Meta: HeaderRowMeta,
+});
+
 interface OutcomeRowProps {
   event: PredictEvent;
   market: PredictMarket;
@@ -300,4 +369,5 @@ export const EventCard = {
   Volume,
   MoreMarkets,
   OutcomeRow,
+  HeaderRow,
 };

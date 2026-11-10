@@ -149,3 +149,44 @@ describe('EventCard.OutcomeRow', () => {
     ).toBeDisabled();
   });
 });
+
+describe('EventCard.HeaderRow', () => {
+  it('lays out leading and trailing content above a dashed divider', () => {
+    render(
+      <EventCard.HeaderRow testID="header">
+        <EventCard.HeaderRow.Title testID="header-title">
+          Panthers vs. Eagles
+        </EventCard.HeaderRow.Title>
+        <EventCard.HeaderRow.Meta testID="header-meta">
+          NFL
+        </EventCard.HeaderRow.Meta>
+      </EventCard.HeaderRow>,
+    );
+
+    const title = screen.getByTestId('header-title');
+    const meta = screen.getByTestId('header-meta');
+    expect(title).toHaveTextContent('Panthers vs. Eagles');
+    expect(title).toHaveProp('numberOfLines', 1);
+    expect(meta).toHaveTextContent('NFL');
+    expect(meta).toHaveStyle({ color: lightTheme.colors.text.alternative });
+    const divider = screen.getByTestId('header-divider');
+    expect(divider).toHaveStyle({
+      borderStyle: 'dashed',
+      borderColor: lightTheme.colors.border.muted,
+    });
+  });
+
+  it('accepts any element on either side', () => {
+    render(
+      <EventCard.HeaderRow>
+        <EventCard.HeaderRow.Meta>Sports</EventCard.HeaderRow.Meta>
+        <EventCard.MetadataTag testID="trailing-tag">
+          LIVE
+        </EventCard.MetadataTag>
+      </EventCard.HeaderRow>,
+    );
+
+    expect(screen.getByText('Sports')).toBeOnTheScreen();
+    expect(screen.getByTestId('trailing-tag')).toHaveTextContent('LIVE');
+  });
+});
