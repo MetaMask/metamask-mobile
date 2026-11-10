@@ -346,11 +346,15 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   // A USD amount typed before the price can project coin must stay in USD
   // until the keypad closes. Flipping to coin on the price tick would reseed
   // the draft and make the next key edit coin instead of the USD entry.
-  const usdEditBeforePriceRef = React.useRef(false);
-  if (!isInputFocused) {
-    usdEditBeforePriceRef.current = false;
-  }
-  const holdingPrePriceUsdEdit = usdEditBeforePriceRef.current;
+  // State, not a ref read during render, so React Compiler can optimize this
+  // screen. Cleared when the keypad closes; only counts while it is open.
+  const [usdEditBeforePrice, setUsdEditBeforePrice] = React.useState(false);
+  React.useEffect(() => {
+    if (!isInputFocused) {
+      setUsdEditBeforePrice(false);
+    }
+  }, [isInputFocused]);
+  const holdingPrePriceUsdEdit = isInputFocused && usdEditBeforePrice;
   const showAssetValue =
     resolveShownPerpsSizeDenomination({
       saved: denomination,
@@ -384,7 +388,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   }) => {
     if (!showAssetValue) {
       if (denomination === 'asset') {
-        usdEditBeforePriceRef.current = true;
+        setUsdEditBeforePrice(true);
       }
       onKeypadChange(input);
       return;

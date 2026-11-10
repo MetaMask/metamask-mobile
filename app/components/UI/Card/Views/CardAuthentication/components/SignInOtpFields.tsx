@@ -1,9 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { Platform, TextInput, TouchableOpacity } from 'react-native';
+import { Platform, TextInput } from 'react-native';
 import {
   Box,
-  FontWeight,
+  HelpText,
+  HelpTextSeverity,
   Text,
+  TextButton,
+  TextColor,
   TextVariant,
   TextField,
 } from '@metamask/design-system-react-native';
@@ -52,71 +55,68 @@ const SignInOtpFields = ({
   }, [isScreenTransitionComplete]);
 
   return (
-    <>
-      <Box>
-        <TextField
-          inputRef={codeInputRef}
-          onChangeText={onChangeCode}
-          value={confirmCode}
-          isError={!!error}
-          inputProps={{
-            autoCapitalize: 'none',
-            numberOfLines: 1,
-            keyboardType: 'number-pad',
-            textContentType: 'oneTimeCode',
-            autoComplete,
-            maxLength: CODE_LENGTH,
-            accessibilityLabel: strings(
-              'card.card_otp_authentication.confirm_code_label',
-            ),
-            testID: CardAuthenticationSelectors.OTP_CODE_FIELD,
-          }}
-        />
-        {error && (
-          <Text
-            testID={CardAuthenticationSelectors.OTP_CODE_FIELD_ERROR}
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default"
-          >
-            {error}
-          </Text>
-        )}
-      </Box>
-      <Box twClassName="mt-2">
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-text-alternative"
-          testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
+    <Box gap={2}>
+      <TextField
+        inputRef={codeInputRef}
+        onChangeText={onChangeCode}
+        value={confirmCode}
+        isError={!!error}
+        inputProps={{
+          autoCapitalize: 'none',
+          numberOfLines: 1,
+          keyboardType: 'number-pad',
+          textContentType: 'oneTimeCode',
+          autoComplete,
+          maxLength: CODE_LENGTH,
+          accessibilityLabel: strings(
+            'card.card_otp_authentication.confirm_code_label',
+          ),
+          testID: CardAuthenticationSelectors.OTP_CODE_FIELD,
+        }}
+      />
+      {error && (
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          testID={CardAuthenticationSelectors.OTP_CODE_FIELD_ERROR}
         >
-          {resendCooldown > 0 ? (
-            strings('card.card_otp_authentication.resend_cooldown', {
-              seconds: resendCooldown,
-            })
-          ) : (
-            <>
-              {strings('card.card_otp_authentication.didnt_receive_code')}
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-text-alternative underline"
-                onPress={resendCooldown > 0 ? undefined : onResend}
-                disabled={resendCooldown > 0 || otpLoading}
-              >
-                {resendLabel}
-              </Text>
-            </>
-          )}
-        </Text>
-        {otpError && (
-          <Text
-            testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default"
-          >
-            {otpError}
-          </Text>
+          {error}
+        </HelpText>
+      )}
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
+      >
+        {resendCooldown > 0 ? (
+          strings('card.card_otp_authentication.resend_cooldown', {
+            seconds: resendCooldown,
+          })
+        ) : (
+          <>
+            {strings('card.card_otp_authentication.didnt_receive_code')}
+            <TextButton
+              variant={TextVariant.BodySm}
+              onPress={resendCooldown > 0 ? undefined : onResend}
+              disabled={resendCooldown > 0 || otpLoading}
+            >
+              {resendLabel}
+            </TextButton>
+          </>
         )}
-      </Box>
-    </>
+      </Text>
+      {otpError && (
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
+        >
+          {otpError}
+        </HelpText>
+      )}
+    </Box>
   );
 };
 

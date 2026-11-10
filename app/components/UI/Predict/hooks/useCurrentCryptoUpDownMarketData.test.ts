@@ -293,5 +293,30 @@ describe('useCurrentCryptoUpDownMarketData', () => {
         expect.objectContaining({ updateIntervalMs: 2000 }),
       );
     });
+
+    it('streams the provider the market settles against', () => {
+      const binanceMarket = {
+        ...MARKET,
+        cryptoPriceProvider: 'binance' as const,
+      };
+      mockUseCurrentPredictMarketFromSeries.mockReturnValue({
+        market: binanceMarket,
+        marketId: binanceMarket.id,
+        isLoading: false,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      renderHook(() =>
+        useCurrentCryptoUpDownMarketData({
+          series: SERIES,
+          withChartData: false,
+        }),
+      );
+
+      expect(mockUseLiveCryptoPrice).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'binance' }),
+      );
+    });
   });
 });

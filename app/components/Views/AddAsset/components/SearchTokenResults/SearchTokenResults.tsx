@@ -181,7 +181,7 @@ const SearchTokenResults = ({
 
   if (searchResults.length === 0) {
     return (
-      <Box twClassName="flex-1 justify-center items-center px-[30px]">
+      <Box twClassName="flex-1 justify-center items-center px-8">
         <Image
           source={tokensImage}
           resizeMode="contain"

@@ -46,6 +46,7 @@ describe('profileControllerInit', () => {
         avatarUrl: '',
         tradingPrivacy: 'public' as const,
         connectedToX: false,
+        verified: false,
         createdAt: '',
         updatedAt: '',
       },
