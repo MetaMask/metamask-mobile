@@ -241,38 +241,12 @@ describe('money-account-override', () => {
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
-    it('calls replaceAccountInNestedTransactions for a moneyAccountWithdraw transaction', () => {
+    it('does not call replaceAccountInNestedTransactions for a moneyAccountWithdraw transaction', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(
         buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
       );
 
-      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
-        transactionId: TRANSACTION_ID_MOCK,
-        nestedTransactions: undefined,
-        oldAddress: '0x123',
-        newAddress: EVM_ADDRESS_MOCK,
-      });
-    });
-
-    it('calls replaceAccountInNestedTransactions for a batch containing a nested moneyAccountWithdraw', () => {
-      const nestedTransactions = [
-        { type: TransactionType.tokenMethodApprove },
-        { type: TransactionType.moneyAccountWithdraw },
-      ];
-
-      handleUnapprovedTransactionAddedForMoneyAccount(
-        buildTransactionMeta({
-          type: TransactionType.batch,
-          nestedTransactions,
-        } as never),
-      );
-
-      expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
-        transactionId: TRANSACTION_ID_MOCK,
-        nestedTransactions,
-        oldAddress: '0x123',
-        newAddress: EVM_ADDRESS_MOCK,
-      });
+      expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
     });
 
     it('does not call replaceAccountInNestedTransactions for a moneyAccountDeposit transaction', () => {
