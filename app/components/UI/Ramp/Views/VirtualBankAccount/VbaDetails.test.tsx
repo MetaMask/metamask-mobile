@@ -2,6 +2,7 @@ import React, { StrictMode } from 'react';
 import { AccessibilityInfo, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import Share from 'react-native-share';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import renderWithProvider, {
   type ProviderValues,
@@ -80,6 +81,10 @@ const mockMarkVbaAccountDetailsViewed = jest.mocked(
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
+}));
+
+jest.mock('react-native-share', () => ({
+  open: jest.fn(() => Promise.resolve()),
 }));
 
 const mockNavigation = {
@@ -700,7 +705,7 @@ describe('VbaDetails', () => {
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
     });
 
-    it('copies every US bank row as a notes-friendly block', async () => {
+    it('copies every US bank row and opens the share sheet', async () => {
       mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
 
       const { getByTestId } = renderWithProvider(<VbaDetails />);
@@ -713,21 +718,24 @@ describe('VbaDetails', () => {
 
       fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
 
-      expect(Clipboard.setString).toHaveBeenCalledWith(
-        [
-          'Account holder',
-          'Jane Doe',
-          '',
-          'Routing number',
-          '021000021',
-          '',
-          'Account number',
-          '123456789',
-          '',
-          'Bank name',
-          'Lead Bank',
-        ].join('\n'),
-      );
+      const bankDetails = [
+        'Account holder',
+        'Jane Doe',
+        '',
+        'Routing number',
+        '021000021',
+        '',
+        'Account number',
+        '123456789',
+        '',
+        'Bank name',
+        'Lead Bank',
+      ].join('\n');
+      expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
+      expect(Share.open).toHaveBeenCalledWith({
+        message: bankDetails,
+        failOnCancel: false,
+      });
     });
 
     it('renders cached US bank details immediately for a USD account', () => {

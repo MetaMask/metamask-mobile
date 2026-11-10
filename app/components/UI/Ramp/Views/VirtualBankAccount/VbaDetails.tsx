@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
+import Share from 'react-native-share';
 import {
   Box,
   BoxBackgroundColor,
@@ -752,10 +753,16 @@ const VbaDetails = () => {
 
   const rows = buildDetailRows(instructions);
   const handleCopyAll = useCallback(() => {
-    Clipboard.setString(formatBankDetailsForCopy(rows));
+    const message = formatBankDetailsForCopy(rows);
+    Clipboard.setString(message);
     AccessibilityInfo.announceForAccessibility(
       strings('virtual_bank_account.vba_details.copied_all_label'),
     );
+    Share.open({ message, failOnCancel: false }).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to open the share sheet',
+      });
+    });
   }, [rows]);
   const hasCurrentAccountState = stateAccountKey === accountKey;
   let accountDetailsContentState: VbaScreenContentState =
