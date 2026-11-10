@@ -56,6 +56,12 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
   const closeIntentRef = useRef<'dismiss' | 'confirm'>('dismiss');
+  // Identifies the visible opening that `handleDismissed` belongs to.
+  // Hiding unmounts BottomSheet before its close animation can finish, so a
+  // confirm intent must not leak into the next opening, and a late confirm
+  // animation must not call onClose after that opening has started.
+  const openingIdRef = useRef(0);
+  const [openingId, setOpeningId] = useState(0);
   const [acknowledged, setAcknowledged] = useState(INITIAL_ACKNOWLEDGEMENTS);
 
   const resetAcknowledgements = useCallback(() => {
@@ -69,12 +75,22 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
       resetAcknowledgements();
       return;
     }
+
+    const nextOpeningId = openingIdRef.current + 1;
+    openingIdRef.current = nextOpeningId;
+    closeIntentRef.current = 'dismiss';
+    setOpeningId(nextOpeningId);
+
     if (!externalSheetRef) {
       sheetRef.current?.onOpenBottomSheet();
     }
   }, [isVisible, externalSheetRef, sheetRef, resetAcknowledgements]);
 
   const handleDismissed = useCallback(() => {
+    if (openingId !== openingIdRef.current) {
+      return;
+    }
+
     const confirmed = closeIntentRef.current === 'confirm';
     closeIntentRef.current = 'dismiss';
     resetAcknowledgements();
@@ -82,7 +98,7 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
     if (!confirmed) {
       onClose();
     }
-  }, [onClose, resetAcknowledgements]);
+  }, [onClose, openingId, resetAcknowledgements]);
 
   const handleClose = useCallback(() => {
     closeIntentRef.current = 'dismiss';

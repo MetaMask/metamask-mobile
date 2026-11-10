@@ -1,10 +1,68 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsCrossMarginConfirmBottomSheetSelectorsIDs as ids } from '../../Perps.testIds';
 import PerpsCrossMarginConfirmBottomSheet from './PerpsCrossMarginConfirmBottomSheet';
 
 const ITEM_IDS = [ids.COLLATERAL_ITEM, ids.LIQUIDATION_ITEM, ids.MARGIN_ITEM];
+
+// The shared BottomSheet mock runs dismiss synchronously. Production defers it
+// until the close animation ends, and `isVisible={false}` can unmount the sheet
+// first. This mock can hold that callback so tests cover the deferred path.
+const mockCrossMarginBottomSheet = {
+  flushDismiss: true,
+  pendingDismiss: undefined as (() => void) | undefined,
+  latestDismiss: undefined as (() => void) | undefined,
+};
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        goBack,
+        testID,
+      }: {
+        children?: React.ReactNode;
+        onClose?: () => void;
+        goBack?: () => void;
+        testID?: string;
+      },
+      ref: React.Ref<{
+        onOpenBottomSheet: () => void;
+        onCloseBottomSheet: () => void;
+      }>,
+    ) => {
+      const dismiss = () => {
+        onClose?.();
+        goBack?.();
+      };
+      mockCrossMarginBottomSheet.latestDismiss = dismiss;
+      ReactActual.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: () => undefined,
+        onCloseBottomSheet: () => {
+          if (mockCrossMarginBottomSheet.flushDismiss) {
+            dismiss();
+            return;
+          }
+          mockCrossMarginBottomSheet.pendingDismiss = dismiss;
+        },
+      }));
+      return ReactActual.createElement(View, { testID }, children);
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+
+  return {
+    ...actual,
+    BottomSheet,
+  };
+});
 
 describe('PerpsCrossMarginConfirmBottomSheet', () => {
   const defaultProps = {
@@ -12,8 +70,21 @@ describe('PerpsCrossMarginConfirmBottomSheet', () => {
     onConfirm: jest.fn(),
   };
 
+  const acknowledgeAll = () => {
+    ITEM_IDS.forEach((id) => fireEvent.press(screen.getByTestId(id)));
+  };
+
+  const runDismiss = (dismiss: (() => void) | undefined) => {
+    act(() => {
+      dismiss?.();
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCrossMarginBottomSheet.flushDismiss = true;
+    mockCrossMarginBottomSheet.pendingDismiss = undefined;
+    mockCrossMarginBottomSheet.latestDismiss = undefined;
   });
 
   it('renders nothing when not visible', () => {
@@ -133,6 +204,73 @@ describe('PerpsCrossMarginConfirmBottomSheet', () => {
     fireEvent.press(screen.getByTestId(ids.GO_BACK_BUTTON));
 
     expect(defaultProps.onConfirm).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onClose when the confirm close animation finishes after the sheet is hidden', () => {
+    mockCrossMarginBottomSheet.flushDismiss = false;
+    const { rerender } = render(
+      <PerpsCrossMarginConfirmBottomSheet {...defaultProps} />,
+    );
+    acknowledgeAll();
+    fireEvent.press(screen.getByTestId(ids.CONFIRM_BUTTON));
+
+    rerender(
+      <PerpsCrossMarginConfirmBottomSheet
+        {...defaultProps}
+        isVisible={false}
+      />,
+    );
+    runDismiss(mockCrossMarginBottomSheet.pendingDismiss);
+
+    expect(defaultProps.onConfirm).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
+  });
+
+  it('calls onClose for a later dismiss after confirm hid the sheet before the close animation', () => {
+    mockCrossMarginBottomSheet.flushDismiss = false;
+    const { rerender } = render(
+      <PerpsCrossMarginConfirmBottomSheet {...defaultProps} />,
+    );
+    acknowledgeAll();
+    fireEvent.press(screen.getByTestId(ids.CONFIRM_BUTTON));
+
+    rerender(
+      <PerpsCrossMarginConfirmBottomSheet
+        {...defaultProps}
+        isVisible={false}
+      />,
+    );
+    rerender(<PerpsCrossMarginConfirmBottomSheet {...defaultProps} />);
+    runDismiss(mockCrossMarginBottomSheet.latestDismiss);
+
+    expect(defaultProps.onConfirm).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a confirm close animation that finishes after the sheet opens again', () => {
+    mockCrossMarginBottomSheet.flushDismiss = false;
+    const { rerender } = render(
+      <PerpsCrossMarginConfirmBottomSheet {...defaultProps} />,
+    );
+    acknowledgeAll();
+    fireEvent.press(screen.getByTestId(ids.CONFIRM_BUTTON));
+    const lateConfirmDismiss = mockCrossMarginBottomSheet.pendingDismiss;
+
+    rerender(
+      <PerpsCrossMarginConfirmBottomSheet
+        {...defaultProps}
+        isVisible={false}
+      />,
+    );
+    rerender(<PerpsCrossMarginConfirmBottomSheet {...defaultProps} />);
+    runDismiss(lateConfirmDismiss);
+
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
+
+    runDismiss(mockCrossMarginBottomSheet.latestDismiss);
+
+    expect(defaultProps.onConfirm).toHaveBeenCalledTimes(1);
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
 });
