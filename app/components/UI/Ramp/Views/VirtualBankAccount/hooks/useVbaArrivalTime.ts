@@ -2,10 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { PaymentMethod } from '@metamask/ramps-controller';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  selectMoneyMovementNeobank,
-  selectNeobankMarkets,
-} from '../../../../../../selectors/featureFlagController/moneyAccount';
+import { selectNeobankMarkets } from '../../../../../../selectors/featureFlagController/moneyAccount';
 import { getVbaMarketForCountry } from '../../../../../../util/region/getVbaSourceCurrency';
 import { formatDelayFromArray } from '../../../Aggregator/utils';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
@@ -71,7 +68,7 @@ export function getVbaArrivalTimeframe(
 }
 
 /**
- * Arrival row title for the VBA intro screen. Pix and EUR regions use static
+ * Arrival row title for the VBA intro screen. Pix and EUR markets use static
  * copy; other regions use the ramps payment-methods catalog
  * (`PaymentMethod.delay`, in minutes).
  *
@@ -84,15 +81,16 @@ export function getVbaArrivalTimeframe(
  */
 export function useVbaArrivalTime(): VbaArrivalTime {
   const { location, isRegionEligible } = useVbaEligibility();
-  const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
   const markets = useSelector(selectNeobankMarkets);
   const depositAssetId = useMoneyAccountDepositAssetId();
 
-  // With chooseCurrency on, the rail is unknown until the user picks a currency.
+  // The rail follows the market. Choose Currency never changes it, and the
+  // picker is skipped whenever a market resolves, so the flag cannot make the
+  // rail unknown.
   const market = getVbaMarketForCountry(markets, location);
-  const isPixDeposit = !chooseCurrency && market?.currency === 'BRL';
+  const isPixDeposit = market?.currency === 'BRL';
   // EUR copy is fixed to the SEPA window: instant to one business day.
-  const isEurDeposit = !chooseCurrency && market?.currency === 'EUR';
+  const isEurDeposit = market?.currency === 'EUR';
   const usesStaticArrivalCopy = isPixDeposit || isEurDeposit;
 
   // Only fetch for countries an open currency flag lists (same gate as

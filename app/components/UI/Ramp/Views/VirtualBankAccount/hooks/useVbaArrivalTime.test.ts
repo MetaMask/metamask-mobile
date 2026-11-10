@@ -2,10 +2,7 @@ import type { PaymentMethod } from '@metamask/ramps-controller';
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  selectMoneyMovementNeobank,
-  selectNeobankMarkets,
-} from '../../../../../../selectors/featureFlagController/moneyAccount';
+import { selectNeobankMarkets } from '../../../../../../selectors/featureFlagController/moneyAccount';
 import type { VbaMarket } from '../../../../../../util/region/getVbaSourceCurrency';
 import { getVbaArrivalTimeframe, useVbaArrivalTime } from './useVbaArrivalTime';
 import { useVbaEligibility } from './useVbaEligibility';
@@ -150,7 +147,6 @@ describe('useVbaArrivalTime', () => {
 
   const setup = ({
     eligibility,
-    chooseCurrency = false,
     paymentMethods = [
       buildMethod({ isManualBankTransfer: true, delay: [2880, 4320] }),
     ],
@@ -160,18 +156,11 @@ describe('useVbaArrivalTime', () => {
       location?: string | undefined;
       isRegionEligible?: boolean;
     };
-    chooseCurrency?: boolean;
     paymentMethods?: PaymentMethod[];
   } = {}) => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMoneyMovementNeobank) {
-        return { chooseCurrency, regionOverride: undefined };
-      }
-      if (selector === selectNeobankMarkets) {
-        return markets;
-      }
-      return undefined;
-    });
+    mockUseSelector.mockImplementation((selector) =>
+      selector === selectNeobankMarkets ? markets : undefined,
+    );
     mockUseVbaEligibility.mockReturnValue({
       location: 'US',
       isRegionEligible: true,
@@ -240,28 +229,6 @@ describe('useVbaArrivalTime', () => {
       );
     },
   );
-
-  it('returns the EUR title when chooseCurrency is on, because the picker is skipped', () => {
-    setup({ eligibility: { location: 'DE' }, chooseCurrency: true });
-
-    const { result } = renderHook(() => useVbaArrivalTime());
-
-    expect(result.current.arrivalTitle).toBe(EUR_TITLE);
-    expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
-      expect.objectContaining({ regionCode: '' }),
-    );
-  });
-
-  it('returns the Pix title when chooseCurrency is on, because the picker is skipped', () => {
-    setup({ eligibility: { location: 'BR' }, chooseCurrency: true });
-
-    const { result } = renderHook(() => useVbaArrivalTime());
-
-    expect(result.current.arrivalTitle).toBe(PIX_TITLE);
-    expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
-      expect.objectContaining({ regionCode: '' }),
-    );
-  });
 
   it('disables the query when the IP geolocation is not an allowed VBA region', () => {
     setup({ eligibility: { location: 'PT', isRegionEligible: false } });

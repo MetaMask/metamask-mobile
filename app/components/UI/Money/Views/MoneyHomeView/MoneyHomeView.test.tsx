@@ -571,6 +571,7 @@ const VBA_ELIGIBILITY_NOT_ELIGIBLE: VbaEligibility = {
   isRegionEligible: false,
   isDevBypassEnabled: false,
   location: undefined,
+  market: undefined,
 };
 
 const VBA_ELIGIBILITY_ELIGIBLE: VbaEligibility = {
@@ -580,6 +581,7 @@ const VBA_ELIGIBILITY_ELIGIBLE: VbaEligibility = {
   isRegionEligible: true,
   isDevBypassEnabled: false,
   location: 'BR',
+  market: { currency: 'BRL', regions: ['BR'] },
 };
 
 const mockSelectHasCard = jest.mocked(selectHasCard);
@@ -1119,11 +1121,21 @@ describe('MoneyHomeView', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
       } as VbaHomeCard);
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+
+      const rendered = renderWithProvider(<MoneyHomeView />);
 
       expectOnlyVbaCard(
-        renderWithProvider(<MoneyHomeView />),
+        rendered,
         MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
       );
+      expect(
+        rendered.getByText(
+          strings('money.vba_home_card.get_started.description_with_currency', {
+            currency: 'BRL',
+          }),
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('renders the identity_verified card', () => {

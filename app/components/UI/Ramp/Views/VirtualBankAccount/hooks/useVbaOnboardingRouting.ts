@@ -208,10 +208,11 @@ export const openCompletedVbaAccount = (
 
 /**
  * Opens the step after Identity verified: Choose Currency when
- * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details,
- * which creates the account. Shared by the Identity verified screen's
- * Continue and the Money home `identity_verified` card, which skips that
- * screen.
+ * `moneyMovementNeobank.chooseCurrency` is on and the location has no resolved
+ * market, otherwise account details, which creates the account. A resolved
+ * market has exactly one currency, so there is nothing to choose and the
+ * picker is skipped. Shared by the Identity verified screen's Continue and the
+ * Money home `identity_verified` card, which skips that screen.
  *
  * Inside onboarding (Identity verified), Choose Currency is pushed so Back
  * returns there. From outside it opens as the only onboarding route, so
@@ -219,12 +220,15 @@ export const openCompletedVbaAccount = (
  *
  * @param navigation - Navigation from Identity verified or an entry surface.
  * @param isChooseCurrencyEnabled - `moneyMovementNeobank.chooseCurrency`.
+ * @param sourceCurrency - Currency of the open market serving the user, when
+ * one resolved. Its presence means there is nothing to pick.
  */
 export const openVbaAccountSetup = (
   navigation: AppNavigationProp,
   isChooseCurrencyEnabled: boolean,
+  sourceCurrency?: VbaSourceCurrency,
 ): void => {
-  if (!isChooseCurrencyEnabled) {
+  if (!isChooseCurrencyEnabled || sourceCurrency) {
     openCompletedVbaAccount(navigation);
     return;
   }
