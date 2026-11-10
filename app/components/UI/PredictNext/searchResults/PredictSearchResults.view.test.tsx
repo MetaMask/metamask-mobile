@@ -137,7 +137,25 @@ describeForPlatforms('Browser URL autocomplete predictions', () => {
       'bitcoin',
     );
 
-    const openRow = await view.findByTestId(
+    await waitFor(() => {
+      expect(
+        view.getByTestId(
+          getPredictSearchResultRowTestId(IMAGED_MARKET.id),
+          HIDDEN,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          getPredictSearchResultRowTestId(MOCK_PREDICT_CLOSED_MARKET.id),
+          HIDDEN,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    // Re-query after the wait: the list re-keys a row whenever a section above
+    // Predictions settles, so a node found before that settles is unmounted by
+    // the time it is used.
+    const openRow = view.getByTestId(
       getPredictSearchResultRowTestId(IMAGED_MARKET.id),
       HIDDEN,
     );
@@ -145,6 +163,7 @@ describeForPlatforms('Browser URL autocomplete predictions', () => {
       getPredictSearchResultRowTestId(MOCK_PREDICT_CLOSED_MARKET.id),
       HIDDEN,
     );
+
     expect(view.getByText(PREDICTIONS_HEADER, HIDDEN)).toBeOnTheScreen();
     expect(
       within(openRow).getByText(IMAGED_MARKET.title, HIDDEN),
@@ -213,12 +232,21 @@ describeForPlatforms('Browser URL autocomplete predictions', () => {
       view.getByTestId(URL_AUTOCOMPLETE_QUERY_INPUT),
       'bitcoin',
     );
-    const row = await view.findByTestId(
-      getPredictSearchResultRowTestId(IMAGED_MARKET.id),
-      HIDDEN,
+    await waitFor(() =>
+      expect(
+        view.getByTestId(
+          getPredictSearchResultRowTestId(IMAGED_MARKET.id),
+          HIDDEN,
+        ),
+      ).toBeOnTheScreen(),
     );
 
-    fireEvent.press(row);
+    fireEvent.press(
+      view.getByTestId(
+        getPredictSearchResultRowTestId(IMAGED_MARKET.id),
+        HIDDEN,
+      ),
+    );
 
     const params = await view.findByTestId(PREDICT_ROOT_PARAMS_PROBE);
     expect(JSON.parse(String(params.props.children))).toEqual({
