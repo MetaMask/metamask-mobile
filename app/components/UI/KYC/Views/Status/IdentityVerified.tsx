@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -9,7 +9,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -18,18 +17,20 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { navigateToVbaOnboardingDestination } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
+import { openVbaAccountSetup } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
-import VbaIllustration, {
-  VbaIllustrationSource,
+import KycIllustration, {
+  KycIllustrationSource,
 } from '../../components/Illustration';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
-export const VbaIdentityVerifiedSelectorsIDs = {
-  CONTAINER: 'vba-identity-verified-container',
-  ILLUSTRATION: 'vba-identity-verified-illustration',
-  BACK_BUTTON: 'vba-identity-verified-back-button',
-  CONTINUE_BUTTON: 'vba-identity-verified-continue-button',
+export const KycIdentityVerifiedSelectorsIDs = {
+  CONTAINER: 'kyc-identity-verified-container',
+  ILLUSTRATION: 'kyc-identity-verified-illustration',
+  BACK_BUTTON: 'kyc-identity-verified-back-button',
+  CONTINUE_BUTTON: 'kyc-identity-verified-continue-button',
 } as const;
 
 /**
@@ -37,7 +38,9 @@ export const VbaIdentityVerifiedSelectorsIDs = {
  * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details.
  * Back goes to Money home.
  */
-const VbaIdentityVerified = () => {
+const KycIdentityVerified = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  useTrackKycResultViewed('approved');
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
@@ -50,13 +53,7 @@ const VbaIdentityVerified = () => {
   }, [navigation]);
 
   const handleContinue = useCallback(() => {
-    if (chooseCurrency) {
-      navigation.dispatch(
-        StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY),
-      );
-      return;
-    }
-    navigateToVbaOnboardingDestination(navigation, 'complete');
+    openVbaAccountSetup(navigation, chooseCurrency);
   }, [chooseCurrency, navigation]);
 
   return (
@@ -64,36 +61,38 @@ const VbaIdentityVerified = () => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
-          testID: VbaIdentityVerifiedSelectorsIDs.BACK_BUTTON,
+          testID: KycIdentityVerifiedSelectorsIDs.BACK_BUTTON,
         }}
         includesTopInset
       />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow justify-center px-4 py-4')}
-        testID={VbaIdentityVerifiedSelectorsIDs.CONTAINER}
+        testID={KycIdentityVerifiedSelectorsIDs.CONTAINER}
       >
         <Box alignItems={BoxAlignItems.Center}>
           <Box
             twClassName="mb-[24px]"
-            testID={VbaIdentityVerifiedSelectorsIDs.ILLUSTRATION}
+            testID={KycIdentityVerifiedSelectorsIDs.ILLUSTRATION}
           >
-            <VbaIllustration
-              source={VbaIllustrationSource.checkmark}
+            <KycIllustration
+              source={KycIllustrationSource.checkmark}
               twClassName="h-[107px] w-[140px]"
             />
           </Box>
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-            {strings('virtual_bank_account.identity_verified.title')}
+            {strings('kyc.identity_verified.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="mt-[4px] text-center"
           >
-            {strings('virtual_bank_account.identity_verified.description')}
+            {strings('kyc.identity_verified.description')}
           </Text>
         </Box>
       </ScrollView>
@@ -103,13 +102,13 @@ const VbaIdentityVerified = () => {
           size={ButtonSize.Lg}
           isFullWidth
           onPress={handleContinue}
-          testID={VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON}
+          testID={KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON}
         >
-          {strings('virtual_bank_account.identity_verified.button')}
+          {strings('kyc.identity_verified.button')}
         </Button>
       </Box>
     </SafeAreaView>
   );
 };
 
-export default VbaIdentityVerified;
+export default KycIdentityVerified;

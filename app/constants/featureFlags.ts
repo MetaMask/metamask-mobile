@@ -62,6 +62,7 @@ export enum FeatureFlagNames {
   moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
   perpsBrandRefresh = 'perpsBrandRefresh',
   exploreBrandRefresh = 'exploreBrandRefresh',
+  glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
 }
 

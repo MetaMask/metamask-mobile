@@ -109,9 +109,9 @@ const Routes = {
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
+  NFT_DETAILS: 'NftDetails',
   TRANSACTION_DETAILS: 'TransactionDetails',
-  // Redesigned activity details screen (gated by selectIsTransactionsRedesignEnabled).
-  // Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
+  // Activity details screen. Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
   ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
   REWARDS_FLOW: 'RewardsFlow',
@@ -131,6 +131,7 @@ const Routes = {
   REWARDS_TRADING_COMMISSIONS_VIEW: 'RewardsTradingCommissionsView',
   REWARDS_TRADING_REBATES_VIEW: 'RewardsTradingRebatesView',
   REWARDS_EARNINGS_HISTORY_VIEW: 'RewardsEarningsHistoryView',
+  REWARDS_TAX_FORM_VIEW: 'RewardsTaxFormView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
   REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
@@ -200,6 +201,9 @@ const Routes = {
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
     REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
     REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
+    REWARDS_TAX_QUESTION_SHEET: 'RewardsTaxQuestionSheet',
+    REWARDS_TAX_OPEN_FORM_SHEET: 'RewardsTaxOpenFormSheet',
+    REWARDS_TAX_CONTACT_SHEET: 'RewardsTaxContactSheet',
     SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
@@ -573,6 +577,8 @@ const Routes = {
     ADDRESS_LIST: 'MultichainAddressList',
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
+    /** Block explorer pushed on AppFlow, above the address list. */
+    EXPLORER_WEBVIEW: 'MultichainAccountsExplorerWebview',
   },
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
@@ -581,12 +587,10 @@ const Routes = {
     X_ACCOUNT: 'ManageProfileXAccount',
     LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',
   },
-  ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
   SEEDPHRASE_MODAL: 'SeedphraseModal',
   SET_PASSWORD_FLOW: {
@@ -597,14 +601,16 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SAMPLE_FEATURE: 'SampleFeature',
-  ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
+    APPLE_PAY_SPLASH: 'CardApplePaySplash',
+    APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
     WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
+    MFA_METHOD: 'CardMfaMethod',
+    MFA_CODE: 'CardMfaCode',
     SPENDING_LIMIT: 'CardSpendingLimit',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
@@ -653,6 +659,7 @@ const Routes = {
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      APPLE_PAY_USAGE: 'CardApplePayUsageSheet',
       SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },

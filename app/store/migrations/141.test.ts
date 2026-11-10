@@ -4,6 +4,7 @@ import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
 import { RootState } from '../../reducers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -59,7 +60,7 @@ describe('Migration #141 - Replace zkSync Era Network RPC URL', () => {
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });

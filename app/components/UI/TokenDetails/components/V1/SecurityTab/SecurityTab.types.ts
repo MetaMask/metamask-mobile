@@ -25,8 +25,8 @@ export const ContractCheckKey = {
   NoBlacklist: 'no_blacklist',
   /**
    * Last, which is where the design puts it — and the only check named as a
-   * question rather than as the state we want, so its row carries no pass or
-   * fail glyph. See `ContractCheck.tone` in `securityFacts.ts`.
+   * question rather than as the state we want. See `ContractCheck.tone` in
+   * `securityFacts.ts`.
    */
   IsMintable: 'is_mintable',
 } as const;

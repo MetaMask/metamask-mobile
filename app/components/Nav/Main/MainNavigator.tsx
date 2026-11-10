@@ -133,6 +133,7 @@ import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
+import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
 import {
   TAB_BAR_VISIBLE_STYLE,
   toJsTabOptions,
@@ -143,14 +144,12 @@ import type {
   HomeTabKey,
   HomeTabRoute,
 } from './HomeTabs/homeTabs.types';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
   SnapSettings,
   ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 } from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
@@ -179,7 +178,7 @@ import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import {
   MoneyConfirmationScreenStack,
-  MoneyModalStack,
+  MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
@@ -200,9 +199,8 @@ import {
 import {
   PredictModalStack,
   PredictPreviewSheetProvider,
-  selectPredictEnabledFlag,
 } from '../../UI/Predict';
-import { PredictRoot } from '../../UI/PredictNext';
+import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -235,9 +233,6 @@ import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsVie
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
-///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
@@ -253,6 +248,10 @@ import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeason
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
+import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
+import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
+import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
+import RewardsTaxFormView from '../../UI/Rewards/Views/RewardsTaxFormView';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
@@ -493,13 +492,9 @@ const RewardsHome = () => {
     return <RewardsUpdateRequired />;
   }
 
-  // Only the Money persona gate holds the whole stack back. Candidate
-  // subscription pending still mounts onboarding as the discovery surface;
-  // OnboardingMainStep owns that skeleton and replace-to-dashboard.
-  if (
-    tabContent.status === 'pending' &&
-    tabContent.reason === 'money_referral'
-  ) {
+  // The screen itself is not behind Rewards opt-in. Wait only until the
+  // money persona or the candidate subscription is known, then open a home.
+  if (tabContent.status === 'pending') {
     return <RewardsTabSkeleton />;
   }
 
@@ -507,7 +502,7 @@ const RewardsHome = () => {
     tabContent.status === 'ready' &&
     isRewardsHomeInitialVariant(tabContent.variant)
       ? REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT[tabContent.variant]
-      : Routes.REWARDS_ONBOARDING_FLOW;
+      : Routes.REWARDS_DASHBOARD;
 
   return (
     <NativeStack.Navigator
@@ -566,7 +561,6 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -586,7 +580,6 @@ const SnapsSettingsStack = () => {
     </NativeStack.Navigator>
   );
 };
-///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -712,18 +705,14 @@ const SettingsFlow = () => {
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      }
+      {}
       {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
         />
       ) : null}
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {}
     </NativeStack.Navigator>
   );
 };
@@ -786,6 +775,8 @@ const HomeTabs = () => {
     (homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled);
   const isSocialV1Enabled = homeNavBarConfig.isSocialHeader;
   const { showSocialTabNewBadge } = useSocialTabNewBadge(isSocialV1Enabled);
+  const canOpenSocialTabDirectly =
+    useCanOpenSocialTabDirectly(isSocialV1Enabled);
   // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
@@ -810,6 +801,7 @@ const HomeTabs = () => {
       isMoneyAccountVisible,
       showSocialTab,
       isSocialV1Enabled,
+      canOpenSocialTabDirectly,
       showSocialTabNewBadge,
       trackMoneyTabPress,
     });
@@ -919,6 +911,7 @@ const HomeTabs = () => {
           : toNativeTabOptions(tab, undefined, colors.success.default)
       }
       listeners={getNativeTabListeners(tab)}
+      initialParams={tab.initialParams}
       component={tabComponentFor(tab)}
     />
   );
@@ -1050,6 +1043,15 @@ const SetPasswordFlow = () => (
   </NativeStack.Navigator>
 );
 
+// Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in;
+// no build in builds.yml sets it); otherwise this is dead-code-eliminated.
+const SampleFeature =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+      require('../../../features/SampleFeature/components/views/SampleFeature')
+        .default
+    : null;
+
 const MainNavigator = () => {
   const dispatch = useDispatch();
   // Announce to the saga layer (deeplink pipeline) that post-login screens
@@ -1065,12 +1067,9 @@ const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
-  // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
-  const isPredictEnabled = useMemo(
-    () => predictEnabledFlag,
-    [predictEnabledFlag],
-  );
+  // Predict routes are registered while Predict is available for the
+  // Active Venue, the same gate its entry points use.
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
   // on — both entry points navigate to the same screen.
@@ -1161,7 +1160,24 @@ const MainNavigator = () => {
           name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
           component={TermsSheet}
         />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}
+          component={TaxFormQuestionSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET}
+          component={TaxFormOpenFormSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_CONTACT_SHEET}
+          component={TaxFormContactUsSheet}
+        />
       </NativeStack.Group>
+      <NativeStack.Screen
+        name={Routes.REWARDS_TAX_FORM_VIEW}
+        component={RewardsTaxFormView}
+        options={{ headerShown: false }}
+      />
       {/*
        * Post-accept confirmation. Registered on the root stack (not inside
        * RewardsNavigator) so it can fade over the Money dashboard after the
@@ -1262,7 +1278,6 @@ const MainNavigator = () => {
           component={RWATokensFullView}
         />
       </NativeStack.Group>
-
       <NativeStack.Screen name="Webview" component={Webview} />
       <NativeStack.Screen
         name="Send"
@@ -1415,17 +1430,20 @@ const MainNavigator = () => {
             }}
           />
           <NativeStack.Screen
-            name={Routes.MONEY.MODALS.ROOT}
-            component={MoneyModalStack}
-            options={transparentModalStackOptions}
-          />
-          <NativeStack.Screen
             name={Routes.TRANSACTIONS_VIEW}
             component={TransactionsHome}
             options={slideFromRightNativeOptions}
           />
         </>
       )}
+      {/* Always register this gateway so Money sheets opened from other app
+          screens, such as Card Home, show the unavailable notice when the
+          feature is disabled. */}
+      <NativeStack.Screen
+        name={Routes.MONEY.MODALS.ROOT}
+        component={MoneyModalGateway}
+        options={transparentModalStackOptions}
+      />
       {/*
        * Rendered outside isMoneyAccountEnabled so we can display modal when feature is disabled.
        * - Maintenance modal when the feature is disabled.
@@ -1525,6 +1543,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}
             component={MyProfileView}
+            options={{
+              // A push replace would bring this screen in from the right. Pop
+              // uses the screen being replaced, so onboarding can leave to the left.
+              animationTypeForReplace: 'pop',
+            }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.V1_PROFILE}
@@ -1641,16 +1664,12 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={slideFromRightNativeOptions}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      }
-      <NativeStack.Screen
-        name={Routes.SAMPLE_FEATURE}
-        component={SampleFeature}
-      />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {SampleFeature && (
+        <NativeStack.Screen
+          name={Routes.SAMPLE_FEATURE}
+          component={SampleFeature}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}

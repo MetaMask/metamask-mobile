@@ -22,7 +22,6 @@ const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
   otp_resend_cooldown: 'mfa.errors.cooldown',
   rate_limited: 'mfa.errors.cooldown',
   max_passkeys_reached: 'mfa.errors.limit_reached',
-  max_identifiers_reached: 'mfa.errors.limit_reached',
   authentication_required: 'mfa.errors.signed_out',
   passkey_unsupported: 'mfa.errors.unsupported',
   flow_in_progress: 'mfa.errors.flow_in_progress',
@@ -79,6 +78,41 @@ export const getSpecificErrorMessage = (
   const key =
     (method === 'totp' ? TOTP_ERROR_KEYS[code] : undefined) ?? ERROR_KEYS[code];
   return key ? strings(key) : undefined;
+};
+
+/**
+ * Errors whose failure screen has its own title and description, rather than
+ * "Something went wrong" and the error's message.
+ */
+const SUPPORT_KEYS = {
+  title: 'mfa.failure.support_title',
+  description: 'mfa.failure.support_description',
+};
+
+const FAILURE_KEYS: Partial<
+  Record<MfaFlowErrorCode, { title: string; description: string }>
+> = {
+  max_identifiers_reached: SUPPORT_KEYS,
+  multi_primary_srp: SUPPORT_KEYS,
+};
+
+/**
+ * The failure screen's copy for an error.
+ *
+ * @param code - The error's code.
+ * @returns The title, and a description when there is more to say.
+ */
+export const getFailureCopy = (
+  code: MfaFlowErrorCode,
+): { title: string; description?: string } => {
+  const keys = FAILURE_KEYS[code];
+  return keys
+    ? { title: strings(keys.title), description: strings(keys.description) }
+    : {
+        title: strings('mfa.failure.title'),
+        // The title already says something went wrong; only a specific reason adds to it.
+        description: getSpecificErrorMessage(code),
+      };
 };
 
 export const getErrorMessage = (

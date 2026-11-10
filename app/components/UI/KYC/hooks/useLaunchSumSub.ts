@@ -6,7 +6,11 @@ import type {
 } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
+import I18n from '../../../../../locales/i18n';
+import { IRON_KYC_VENDOR } from '../vendors/iron';
+import type { KycIdentityVerificationCompletion } from '../Views/SumSub/types';
+import { trackKycVerificationUpdated } from '../utils/kycVerificationAnalytics';
+import { toSumSubLocale } from '../utils/toSumSubLocale';
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */
@@ -71,7 +75,7 @@ async function recordSessionConsents(): Promise<void> {
  */
 export const useLaunchSumSub = (
   onSubmitted: (
-    result: VbaIdentityVerificationCompletion,
+    result: KycIdentityVerificationCompletion,
   ) => void | Promise<void>,
   onAbandoned: () => void | Promise<void>,
 ): UseLaunchSumSubResult => {
@@ -85,6 +89,10 @@ export const useLaunchSumSub = (
   attemptRef.current = attempt;
 
   const retry = useCallback(() => {
+    trackKycVerificationUpdated({
+      status: 'retry_started',
+      retrySource: 'sumsub_error',
+    });
     setHasError(false);
     setIsLaunching(true);
     setAttempt((count) => count + 1);
@@ -109,7 +117,10 @@ export const useLaunchSumSub = (
           return;
         }
 
-        const outcome = await KycController.launchProviderFlow({});
+        trackKycVerificationUpdated({ status: 'started' });
+        const outcome = await KycController.launchProviderFlow({
+          locale: toSumSubLocale(I18n.locale),
+        });
         if (cancelled) {
           return;
         }
@@ -125,7 +136,10 @@ export const useLaunchSumSub = (
           return;
         }
         Logger.error(error as Error, {
-          tags: { feature: 'vba-kyc', provider: 'sumsub' },
+          tags: {
+            feature: IRON_KYC_VENDOR.loggerFeature,
+            provider: IRON_KYC_VENDOR.analytics.provider,
+          },
         });
         setHasError(true);
         setIsLaunching(false);

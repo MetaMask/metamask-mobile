@@ -11,12 +11,13 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 
 // External dependencies
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -35,9 +36,7 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import {
   isHardwareAccount,
   isHDOrFirstPartySnapAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
-  ///: END:ONLY_INCLUDE_IF
 } from '../../../util/address';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import ExtendedKeyringTypes, {
@@ -63,7 +62,8 @@ const AccountActions = () => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { navigate } = navigation;
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { networkSupporting7702Present } = useEIP7702Networks(
@@ -71,6 +71,10 @@ const AccountActions = () => {
   );
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const controllers = useMemo(() => {
     const { KeyringController, PreferencesController } = Engine.context;
@@ -199,8 +203,6 @@ const AccountActions = () => {
     );
   }, []);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
   /**
    * Remove the snap account from the keyring
    */
@@ -246,7 +248,6 @@ const AccountActions = () => {
       ],
     );
   }, [removeSnapAccount]);
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Trigger the remove hardware account action when user click on the remove account button
@@ -313,7 +314,7 @@ const AccountActions = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View style={styles.actionsContainer}>
         <AccountAction
           actionTitle={strings('account_actions.edit_name')}
@@ -365,18 +366,14 @@ const AccountActions = () => {
             }
           />
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          selectedAddress && isSnapAccount(selectedAddress) && (
-            <AccountAction
-              actionTitle={strings('accounts.remove_snap_account')}
-              iconName={IconName.Close}
-              onPress={showRemoveSnapAccountAlert}
-              testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT}
-            />
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
+        {selectedAddress && isSnapAccount(selectedAddress) && (
+          <AccountAction
+            actionTitle={strings('accounts.remove_snap_account')}
+            iconName={IconName.Close}
+            onPress={showRemoveSnapAccountAlert}
+            testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT}
+          />
+        )}
         {networkSupporting7702Present &&
           !isHardwareAccount(selectedAddress) && (
             <AccountAction

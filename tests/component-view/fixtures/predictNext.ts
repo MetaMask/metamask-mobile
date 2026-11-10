@@ -19,14 +19,19 @@ import type {
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
+  PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
   PredictMarket,
+  PredictMarketLayout,
   PredictOutcome,
+  PredictPosition,
   PredictSignedAmount,
+  PredictSignedPercent,
   PredictTimestamp,
+  PredictVenueId,
 } from '../../../app/components/UI/PredictNext/types';
 
 interface GameEventOptions {
@@ -128,6 +133,30 @@ export const makePredictNextMultiMarketEvent = (): PredictEvent => ({
       yesAskPrice: '0',
     }),
   ],
+});
+
+const OUTCOMES_MARKETS_LAYOUT: PredictMarketLayout = {
+  tab: { key: 'outcomes', order: 1 },
+  section: { key: 'markets', order: 1 },
+};
+
+/**
+ * A Politics Event laid out as `outcomes` › `markets`: five ungrouped
+ * Markets in the order the backend sent them.
+ */
+export const makePredictNextLaidOutStandardEvent = (): PredictEvent => ({
+  ...makeEvent('next-speaker', 'Who will be the next Speaker?'),
+  category: 'Politics',
+  markets: [
+    ['johnson', 'Mike Johnson', '0.41', '0.59', '900000'],
+    ['jeffries', 'Hakeem Jeffries', '0.33', '0.67', '600000'],
+    ['jordan', 'Jim Jordan', '0.12', '0.88', '300000'],
+    ['scalise', 'Steve Scalise', '0.08', '0.92', '150000'],
+    ['emmer', 'Tom Emmer', '0.04', '0.96', '50000'],
+  ].map(([id, label, yesAskPrice, noAskPrice, volume]) => ({
+    ...makeStandardMarket({ id, label, yesAskPrice, noAskPrice, volume }),
+    layout: OUTCOMES_MARKETS_LAYOUT,
+  })),
 });
 
 const makeGroupedMarket = ({
@@ -344,6 +373,148 @@ export const makePredictNextCompositeGameEvent = (): PredictEvent => {
   };
 };
 
+const gameLinesLayout = (
+  section: { key: string; order: number },
+  subgroup: { key: string; order: number },
+): PredictMarketLayout => ({
+  tab: { key: 'game_lines', order: 0 },
+  section,
+  subgroup,
+});
+const MONEYLINE = { key: 'moneyline', order: 0 };
+const FULL_GAME = { key: 'full_game', order: 0 };
+const FIRST_HALF = { key: 'first_half', order: 1 };
+
+/**
+ * The composite Game as the backend composes it (PRED-1424): every moneyline
+ * is a `choice` group with an Event screen layout, and a first-half moneyline
+ * with a tie claims the same Game Selections as the full-game one.
+ */
+export const makePredictNextLaidOutGameEvent = (): PredictEvent => {
+  const event = makePredictNextCompositeGameEvent();
+  const markets = event.markets.map((market): PredictMarket => {
+    if (market.group !== undefined) {
+      const section =
+        market.group.marketType === PREDICT_MARKET_TYPES.TOTAL
+          ? { key: 'total_points', order: 2 }
+          : { key: 'spread', order: 1 };
+      return { ...market, layout: gameLinesLayout(section, FULL_GAME) };
+    }
+    const isAway = market.outcomes[0].gameSelection === 'away';
+    return {
+      ...market,
+      group: {
+        key: `${event.id}:moneyline`,
+        groupType: 'choice',
+        displayOrder: isAway ? 0 : 1,
+      },
+      layout: gameLinesLayout(MONEYLINE, FULL_GAME),
+    };
+  });
+  const [template] = event.markets;
+  const firstHalf = (
+    suffix: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    displayOrder: number,
+  ): PredictMarket => ({
+    ...template,
+    id: `${event.id}-1h-${suffix}` as PredictEntityId,
+    outcomes: [
+      {
+        ...template.outcomes[0],
+        id: `${event.id}-1h-${suffix}-yes` as PredictEntityId,
+        gameSelection,
+      },
+      {
+        ...template.outcomes[1],
+        id: `${event.id}-1h-${suffix}-no` as PredictEntityId,
+      },
+    ],
+    group: {
+      key: `${event.id}-1h:moneyline`,
+      groupType: 'choice',
+      displayOrder,
+    },
+    layout: gameLinesLayout(MONEYLINE, FIRST_HALF),
+  });
+
+  return {
+    ...event,
+    markets: [
+      // Period moneylines first, so a lookup by order alone would pick them.
+      firstHalf('away', 'away', 0),
+      firstHalf('tie', undefined, 1),
+      firstHalf('home', 'home', 2),
+      ...markets,
+    ],
+  };
+};
+
+/**
+ * The laid-out Game with player props as the backend composes them
+ * (PRED-1438): a `player_props` tab where each Player's thresholds are one
+ * `choice` group titled with the Player. Rushing yards has four Players (one
+ * with a single threshold), passing yards one.
+ */
+export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
+  const event = makePredictNextLaidOutGameEvent();
+  const [template] = makePredictNextCompositeGameEvent().markets;
+  const prop = (
+    stat: { key: string; order: number },
+    player: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    threshold: number,
+    displayOrder: number,
+  ): PredictMarket => {
+    const id = `${event.id}-${stat.key}-${player}-${threshold}`;
+    return {
+      ...template,
+      id: id as PredictEntityId,
+      question: `${player}: ${threshold}+`,
+      outcomes: [
+        {
+          ...template.outcomes[0],
+          id: `${id}-yes` as PredictEntityId,
+          label: 'Yes',
+          gameSelection,
+        },
+        {
+          ...template.outcomes[1],
+          id: `${id}-no` as PredictEntityId,
+          label: 'No',
+        },
+      ],
+      group: {
+        key: `${event.id}:${stat.key}:${player}`,
+        groupType: 'marketSelector',
+        marketType: 'threshold',
+        option: { type: 'number', value: threshold },
+        displayOrder,
+        label: player,
+      },
+      layout: { tab: { key: 'player_props', order: 1 }, section: stat },
+    };
+  };
+  const rushing = { key: 'rushing_yards', order: 1 };
+  const passing = { key: 'passing_yards', order: 3 };
+
+  return {
+    ...event,
+    markets: [
+      ...event.markets,
+      prop(rushing, 'Rhamondre Stevenson', 'away', 60, 1),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 40, 0),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 80, 2),
+      prop(rushing, 'Kenneth Walker', 'home', 50, 0),
+      prop(rushing, 'Kenneth Walker', 'home', 70, 1),
+      prop(rushing, 'Drake Maye', 'away', 20, 0),
+      prop(rushing, 'Zach Charbonnet', 'home', 30, 0),
+      prop(passing, 'Drake Maye', 'away', 200, 0),
+      prop(passing, 'Drake Maye', 'away', 250, 1),
+    ],
+  };
+};
+
 export const nflEvents = [
   makePredictNextGameEvent('nfl-1', 'Packers', 'Steelers', 'NFL', {
     askPrices: { away: '0.41', home: '0.59' },
@@ -368,6 +539,18 @@ export const ncaaEvents = [
   }),
 ];
 
+/** Politics topic Events: non-game Events, shown by the Politics cards. */
+export const politicsEvents = [
+  {
+    ...makeEvent('politics-1', 'Trump approval above 45%?'),
+    category: 'Politics',
+  },
+  {
+    ...makeEvent('politics-2', 'Congress passes the budget?'),
+    category: 'Politics',
+  },
+];
+
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
@@ -381,7 +564,24 @@ export const PREDICT_NEXT_FEED_IDS = {
   ncaaProps: KALSHI_STATIC_VENUE_CATALOG.feeds[
     'college-football-props'
   ] as PredictFeedId,
+  politicsTrump: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-trump'
+  ] as PredictFeedId,
+  politicsCongress: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-congress'
+  ] as PredictFeedId,
+  politicsIran: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-iran'
+  ] as PredictFeedId,
 } as const;
+
+/** The Politics topic Feed IDs, which the default messenger serves from
+ * `politics`. */
+const POLITICS_FEED_IDS: ReadonlySet<string> = new Set([
+  PREDICT_NEXT_FEED_IDS.politicsTrump,
+  PREDICT_NEXT_FEED_IDS.politicsCongress,
+  PREDICT_NEXT_FEED_IDS.politicsIran,
+]);
 
 /**
  * The Venue catalog the messenger serves: a value (valid or malformed), an
@@ -453,10 +653,11 @@ export interface PredictNextPositionsPageFixture {
  * trading adapter is bound to the stubbed transport and the bearer-token
  * provider resolves through the mocked Engine context.
  */
-export const composePredictNextOrderService = (): PredictOrderService => {
-  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+export const composePredictNextOrderService = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never> = new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
-  });
+  }),
+): PredictOrderService => {
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
@@ -525,6 +726,74 @@ export const composePredictNextPortfolioTrading = () => {
   };
 };
 
+/**
+ * Routes the renderer's UI query client to real Predict services: its
+ * messenger adapter calls the Engine controller messenger, so point the
+ * portfolio actions and cache events at the composition root the composed
+ * services share. Every other action keeps the fixture answers.
+ *
+ * @param rootMessenger - The composition root the real services run on.
+ * @returns A restore function for the caller's cleanup.
+ */
+export const routePredictPortfolioServicesTo = (
+  rootMessenger: ReturnType<
+    typeof composePredictNextPortfolioTrading
+  >['rootMessenger'],
+) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    call: (action: string, ...params: unknown[]) => Promise<unknown>;
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalCall = controllerMessenger.call;
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and a spy here can re-enter itself when
+  // the fixture delegate is the same mock.
+  controllerMessenger.call = (action: string, ...params: unknown[]) => {
+    if (action.startsWith('PredictPortfolioService:')) {
+      // The composition root is a MockAnyNamespace messenger: it accepts any
+      // action the real services registered.
+      return (
+        rootMessenger.call as unknown as (
+          action: string,
+          ...params: unknown[]
+        ) => Promise<unknown>
+      )(action, ...params);
+    }
+    return originalCall(action, ...params);
+  };
+  controllerMessenger.subscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.subscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.unsubscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  return () => {
+    controllerMessenger.call = originalCall;
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
+  };
+};
+
 const lakersContext = {
   eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
   eventTitle: 'Lakers vs Celtics',
@@ -535,20 +804,21 @@ const lakersContext = {
 /** A valued open Position, valid against the C1 Positions contract. */
 export const makePredictNextPosition = (
   overrides: Record<string, unknown> = {},
-) => ({
-  venueId: 'kalshi',
-  marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
-  side: 'yes' as const,
-  status: 'open' as const,
-  shares: '75.00',
-  averagePrice: '0.55' as PredictDecimal,
-  costBasis: '41.25',
-  currentValue: '45.00',
-  unrealizedPnl: '3.75' as PredictSignedAmount,
-  unrealizedPnlPercent: '9.09',
-  context: lakersContext,
-  ...overrides,
-});
+): PredictPosition =>
+  ({
+    venueId: 'kalshi' as PredictVenueId,
+    marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+    side: 'yes' as const,
+    status: 'open' as const,
+    shares: '75.00' as PredictAmount,
+    averagePrice: '0.55' as PredictDecimal,
+    costBasis: '41.25' as PredictAmount,
+    currentValue: '45.00' as PredictAmount,
+    unrealizedPnl: '3.75' as PredictSignedAmount,
+    unrealizedPnlPercent: '9.09' as PredictSignedPercent,
+    context: lakersContext,
+    ...overrides,
+  }) as PredictPosition;
 
 /** A sell Trade, valid against the C1 Activity contract. */
 export const makePredictNextTrade = (
@@ -676,6 +946,7 @@ export const publishPredictNextQuoteUpdate = (update: PredictQuote) =>
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
+  politics = politicsEvents,
   details,
   positions,
   positionPages,
@@ -685,6 +956,8 @@ export const configurePredictNextFeeds = ({
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
+  /** Served for every Politics topic Feed (Trump, Congress, Iran). */
+  politics?: readonly PredictEvent[] | Error;
   details?: readonly PredictEvent[] | Error;
   positions?: readonly unknown[] | Error;
   /** Cursor-addressable Positions pages, for tests that exercise
@@ -698,6 +971,7 @@ export const configurePredictNextFeeds = ({
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
     ...(ncaa instanceof Error ? [] : ncaa),
+    ...(politics instanceof Error ? [] : politics),
   ];
 
   resetPredictNextCatalog();
@@ -771,7 +1045,12 @@ export const configurePredictNextFeeds = ({
       }
 
       const feedId = resourceId as PredictFeedId;
-      const result = feedId === PREDICT_NEXT_FEED_IDS.nflGames ? nfl : ncaa;
+      const isPolitics = POLITICS_FEED_IDS.has(feedId);
+      const result = isPolitics
+        ? politics
+        : feedId === PREDICT_NEXT_FEED_IDS.nflGames
+          ? nfl
+          : ncaa;
       if (result instanceof Error) {
         return Promise.reject(result);
       }
@@ -779,8 +1058,9 @@ export const configurePredictNextFeeds = ({
       return Promise.resolve({
         venueId: 'kalshi',
         id: feedId,
-        title:
-          feedId === PREDICT_NEXT_FEED_IDS.nflGames
+        title: isPolitics
+          ? 'Politics'
+          : feedId === PREDICT_NEXT_FEED_IDS.nflGames
             ? 'NFL Games'
             : 'NCAAF Games',
         events: result,

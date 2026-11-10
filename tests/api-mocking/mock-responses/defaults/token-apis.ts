@@ -24,6 +24,13 @@ const tokenAssetsMarketDataRegex =
 const tokenV3AssetsRegex =
   /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/;
 
+// v2 assets endpoint read by the AssetsController launchpad spam check on unlock
+// (core-backend TokenApiClient.fetchV2Assets). An empty list means no launchpad
+// tokens, so nothing extra is flagged as spam.
+// e.g. https://token.api.cx.metamask.io/v2/assets?assetIds=eip155:1/erc20:0x...&includeLaunchpadData=true&includeTokenSecurityData=true
+const tokenV2AssetsRegex =
+  /^https:\/\/token\.api\.cx\.metamask\.io\/v2\/assets\?.*$/;
+
 const tokenV2SupportedNetworksRegex =
   /^https:\/\/tokens?\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/;
 
@@ -84,6 +91,11 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint: tokenV3AssetsRegex,
+      responseCode: 200,
+      response: [],
+    },
+    {
+      urlEndpoint: tokenV2AssetsRegex,
       responseCode: 200,
       response: [],
     },

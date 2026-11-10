@@ -135,6 +135,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsTransactionHistory: false,
           supportsContactDetails: false,
           supportsMoneyAccountLinking: false,
+          reportsVerificationStatus: true,
         }),
       },
       PhishingController: {
@@ -292,9 +293,15 @@ jest.mock('../../app/core/Engine', () => {
       },
       KycController: {
         readSessionStatus: jest.fn().mockReturnValue(null),
+        // Reinstall recovery asks for the latest vendor session before hydrate.
+        // Null is a first-time user; tests that resume a session override this.
+        getSessionStatusForVendor: jest.fn().mockResolvedValue(null),
         startSession: jest.fn().mockResolvedValue(undefined),
         fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
         recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
+        // Fired, fire-and-forget, once the vendor-terms screen's initial
+        // disclaimers request settles (CreateVirtualBankAccount).
+        ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
       },
       SeedlessOnboardingController: {
         state: {

@@ -18,10 +18,10 @@ import {
 import Animated from 'react-native-reanimated';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
 import { type QuickBuyTarget } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
-import { useMyProfile } from '../MyProfileView/hooks';
 import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
@@ -121,9 +121,8 @@ export interface EmptyShellTabPageProps {
 }
 
 /**
- * Social Bundle V1 Trending / Following page: mocked position cards until the
- * API supplies post/comment fields. Following also pins the viewer's own new
- * posts until the feed returns them.
+ * Social Bundle V1 Trending / Following page. A just-written post appears
+ * here only once the feed API returns it.
  */
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   tab,
@@ -141,11 +140,17 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   onQuickBuy,
 }) => {
   const tw = useTailwind();
-  const { profile: myProfile } = useMyProfile();
   const {
     onAuthorPress: handleAuthorPress,
     onPositionPress: handlePositionPress,
-  } = useSocialFeedPostNavigation();
+  } = useSocialFeedPostNavigation(
+    tab === 'trending'
+      ? 'social_trending'
+      : tab === 'following'
+        ? 'social_following'
+        : undefined,
+  );
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const livePrices = useSocialLivePrices();
   const scrollRef = useRef<ScrollView>(null);
   const {
@@ -159,7 +164,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     refresh,
     dataUpdatedAt,
   } = useSocialV1Feed(tab, {
-    ownerProfileId: myProfile?.profileId,
     isActive,
   });
   const { isEntryHidden } = useSocialEntryModeration();
@@ -357,18 +361,25 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
         <SocialFeedPostShell
           post={post}
+          requireSocialTerms
+          requireSocialProfile
           onCopyTrade={handleCopyTrade}
           onAuthorPress={handleAuthorPress}
           onPositionPress={post.position ? handlePositionPress : undefined}
+          showCopyTrade={post.item.author.id !== viewerProfileId}
         />
       </SocialFeedPostEntrance>
     ),
-    [handleAuthorPress, handleCopyTrade, handlePositionPress, seenPostIds],
+    [
+      handleAuthorPress,
+      handleCopyTrade,
+      handlePositionPress,
+      seenPostIds,
+      viewerProfileId,
+    ],
   );
 
   const showInitialFeedSkeletons = isLoading && posts.length === 0;
-  // Posting opens Following, often before its first page has loaded: the
-  // viewer's pinned post stays on screen above the skeletons meanwhile.
   const showPinnedPostsWhileLoading =
     showInitialFeedSkeletons && visiblePinnedPosts.length > 0;
   // The tab feed itself came back empty. Hidden posts can also leave the list

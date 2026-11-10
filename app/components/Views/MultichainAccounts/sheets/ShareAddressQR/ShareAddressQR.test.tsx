@@ -1,6 +1,41 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import ShareAddressQR from '.';
+import Routes from '../../../../../constants/navigation/Routes';
+
+// The design-system sheet closes on an animation. Run goBack, then the
+// post-close callback, in the same order as BottomSheet.onCloseCB.
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual<typeof React>('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const BottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        goBack,
+      }: {
+        children?: React.ReactNode;
+        goBack?: () => void;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (callback?: () => void) => {
+          goBack?.();
+          callback?.();
+        },
+      }));
+      return children;
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+  return {
+    ...actual,
+    BottomSheet,
+  };
+});
 import {
   createMockSnapInternalAccount,
   internalAccount1,
@@ -378,7 +413,6 @@ describe('ShareAddressQR', () => {
 
   it('navigates to block explorer when View on Etherscan button is pressed', () => {
     // Arrange
-    const mockToBlockExplorer = jest.fn();
     const mockGetBlockExplorerUrl = jest
       .fn()
       .mockReturnValue('https://etherscan.io/address/0x123');
@@ -389,7 +423,6 @@ describe('ShareAddressQR', () => {
       '../../../../hooks/useBlockExplorer',
     ).default;
     useBlockExplorer.mockReturnValue({
-      toBlockExplorer: mockToBlockExplorer,
       getBlockExplorerUrl: mockGetBlockExplorerUrl,
       getBlockExplorerName: mockGetBlockExplorerName,
     });
@@ -400,7 +433,19 @@ describe('ShareAddressQR', () => {
     // Act
     fireEvent.press(explorerButton);
 
-    // Assert
+    // Assert — sheet pops before the explorer opens, so back lands on the
+    // address list rather than the QR sheet.
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW,
+      {
+        url: 'https://etherscan.io/address/0x123',
+        title: 'View on Etherscan (Multichain)',
+      },
+    );
+    expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'External Link Clicked',
@@ -410,7 +455,6 @@ describe('ShareAddressQR', () => {
         }),
       }),
     );
-    expect(mockToBlockExplorer).toHaveBeenCalledTimes(1);
   });
 
   it('displays View on Etherscan button with correct text', () => {

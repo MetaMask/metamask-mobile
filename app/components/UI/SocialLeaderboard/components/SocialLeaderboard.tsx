@@ -71,6 +71,9 @@ const rowLayoutTransition = LinearTransition.duration(
 /** Extra placeholders past the fold so the shimmer continues while scrolling. */
 const SKELETON_OVERSCAN = 2;
 
+/** Stable empty chain list so an unready source does not change the hook deps. */
+const NO_LEADERBOARD_CHAINS: readonly string[] = [];
+
 /** Lets a host that owns the scroll view drive pull-to-refresh. */
 export interface SocialLeaderboardHandle {
   refresh: () => Promise<void>;
@@ -95,9 +98,13 @@ export interface SocialLeaderboardProps {
   emptyClassName?: string;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
+  /** Shows each row's position, with medals for the top three. */
+  showRank?: boolean;
   onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
   /** Enables treatment-only Social V1 fetch and first-content tracing. */
   performance?: SocialPerformanceContext;
+  /** Gates Follow behind a linked social wallet on Social V1 hosts. */
+  requireSocialProfile?: boolean;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
@@ -117,15 +124,20 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   onClearFilters,
   emptyClassName,
   showViewerRow = false,
+  showRank = true,
   onOutcomeChange,
   performance,
+  requireSocialProfile,
   ref,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const { track } = useSocialLeaderboardAnalytics();
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialTerms: true,
+    requireSocialProfile,
+  });
   const networkTier = useNetworkTier();
   // Low-RAM devices skip the reveal and the reorder slide.
   const canAnimate = getHardwareTier() !== 'LOW';
@@ -152,8 +164,6 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       : undefined,
   });
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
   const hydrateSnapshotRow = useCallback(
     (trader: TopTrader): RankedTrader => ({
       ...trader,
@@ -173,12 +183,30 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     hydrateRow: hydrateSnapshotRow,
   });
 
-  const { viewerRow, rowsWithoutViewer, viewerProfileId, viewerAddress } =
-    useLeaderboardViewerRow(
-      traders,
-      sort,
-      showViewerRow && resolution.status === 'ready',
-    );
+  const {
+    viewerRow,
+    rowsWithoutViewer,
+    viewerProfileId,
+    viewerAddress,
+    refreshViewerProfile,
+  } = useLeaderboardViewerRow(
+    traders,
+    sort,
+    showViewerRow && resolution.status === 'ready' && hasFetched,
+    {
+      timeframe,
+      chains:
+        resolution.status === 'ready'
+          ? resolution.chains
+          : NO_LEADERBOARD_CHAINS,
+    },
+  );
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([refresh(), refreshViewerProfile()]);
+  }, [refresh, refreshViewerProfile]);
+
+  useImperativeHandle(ref, () => ({ refresh: refreshAll }), [refreshAll]);
 
   const rows = useMemo(
     () =>
@@ -248,8 +276,8 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   }, [navigation, viewerAddress, viewerProfileId]);
 
   const handleRetry = useCallback(() => {
-    refresh().catch(() => undefined);
-  }, [refresh]);
+    refreshAll().catch(() => undefined);
+  }, [refreshAll]);
 
   const firstContentState =
     !isEnabled || resolution.status === 'hidden'
@@ -298,7 +326,11 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       return (
         <Box testID={SocialLeaderboardSelectorsIDs.SKELETON}>
           {skeletonKeys.map((key) => (
-            <SocialV1TraderRowSkeleton key={key} showLeaderboardDetails />
+            <SocialV1TraderRowSkeleton
+              key={key}
+              showLeaderboardDetails
+              showRankColumn={showRank}
+            />
           ))}
         </Box>
       );
@@ -316,9 +348,12 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
               <SocialV1TraderRow
                 trader={trader}
                 metric={trader.displayMetric}
+                secondaryMetric={trader.secondaryMetric}
+                nameTag={trader.nameTag}
                 onFollowPress={handleFollowPress}
                 onTraderPress={handleTraderPress}
                 showLeaderboardDetails
+                showRankColumn={showRank}
               />
             </Animated.View>
           ))}
@@ -340,7 +375,11 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
           <SocialFilterEmptyState onClear={onClearFilters} />
         ) : (
           <SocialEmptyState
-            description={strings('social_leaderboard.profiles_to_follow.empty')}
+            description={strings(
+              resolution.status === 'holders'
+                ? 'token_details_v1.holders_tab.empty'
+                : 'social_leaderboard.profiles_to_follow.empty',
+            )}
             testID={SocialLeaderboardSelectorsIDs.EMPTY}
           />
         );
@@ -361,19 +400,23 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             {title}
           </Text>
         ) : null}
-        {viewerRow ? (
-          <SocialV1TraderRow
-            trader={viewerRow.trader}
-            metric={viewerRow.trader.displayMetric}
-            onFollowPress={handleFollowPress}
-            onTraderPress={handleViewerPress}
-            highlighted
-            hideRank={viewerRow.hideRank}
-            showLeaderboardDetails
-            testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
-          />
-        ) : null}
-        {renderBody()}
+        <Box>
+          {viewerRow ? (
+            <SocialV1TraderRow
+              trader={viewerRow.trader}
+              metric={viewerRow.trader.displayMetric}
+              onFollowPress={handleFollowPress}
+              onTraderPress={handleViewerPress}
+              highlighted
+              hideRank={viewerRow.hideRank}
+              showRankColumn={showRank}
+              showLeaderboardDetails
+              omitPercentage={viewerRow.omitPercentage}
+              testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
+            />
+          ) : null}
+          {renderBody()}
+        </Box>
       </Box>
     </SocialFeedSurfaceProvider>
   );

@@ -10,12 +10,10 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
   ButtonSize,
   ButtonVariant,
   FontFamily,
   FontWeight,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -34,17 +32,20 @@ import AlsoIncludedRow from './components/AlsoIncludedRow';
 import MembershipBanner from './components/MembershipBanner';
 import { MembershipAlertAction } from './components/MembershipBanner/MembershipBanner.utils';
 import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
+import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
 import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 import { formatCombinedSinceInceptionInterest } from '../../UI/Money/utils/formatCombinedSinceInceptionInterest';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
+import HeaderBaseGlass from '../../../component-library/components-temp/HeaderBaseGlass';
 
 const formatPercent = (value: number): string => `${value}%`;
 
@@ -113,8 +114,10 @@ const StatRow = ({
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { model: membershipBanner } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
+  const hasMembership = useHasProMembership();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
   const { sinceInceptionQuery: premiumSinceInceptionQuery } =
     useMoneyPremiumAccountInterest();
@@ -140,20 +143,27 @@ const ProHub = () => {
     ],
   );
   const moneyBalanceApy = ratePercentFormatted ?? '—';
-  const showHubContent = proAccess === MoneyAccountPlusAccess.Subscriber;
+  // A cached membership is enough to render the hub. Access stays Unknown
+  // for past-due, awaiting-funds, and unpaid plans until the subscriptions
+  // query settles, and a failed refresh would otherwise leave only the header.
+  const showHubContent =
+    hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // Subscriber access stays, including a paused plan. Unknown access waits for
-  // the first fetch. A cached last plan does not keep an eligible user here.
+  // Statuses the hub banner can show stay. Unknown access waits for the
+  // first fetch. A canceled, incomplete, or missing plan leaves.
   useEffect(() => {
-    if (proAccess === MoneyAccountPlusAccess.Unknown || showHubContent) {
+    if (
+      proAccess === MoneyAccountPlusAccess.Unknown ||
+      (hasMembership && proAccess !== MoneyAccountPlusAccess.Disabled)
+    ) {
       return;
     }
     navigation.goBack();
-  }, [navigation, proAccess, showHubContent]);
+  }, [hasMembership, navigation, proAccess]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
@@ -189,28 +199,28 @@ const ProHub = () => {
       edges={['top', 'bottom']}
       testID={ProHubTestIds.CONTAINER}
     >
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID={ProHubTestIds.HEADER_ROOT}
         twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={ProHubTestIds.BACK_BUTTON}
-          />
-        }
-        endAccessory={
-          <ButtonIcon
-            iconName={IconName.Setting}
-            onPress={handleManageMembership}
-            accessibilityLabel={strings('pro_hub.manage')}
-            testID={ProHubTestIds.MANAGE_PLANS_BUTTON}
-          />
-        }
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          onPress: handleBack,
+          accessibilityLabel: strings('navigation.back'),
+          testID: ProHubTestIds.BACK_BUTTON,
+        }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Setting,
+            onPress: handleManageMembership,
+            accessibilityLabel: strings('pro_hub.manage'),
+            testID: ProHubTestIds.MANAGE_PLANS_BUTTON,
+          },
+        ]}
       >
         {strings('pro_hub.title')}
-      </HeaderBase>
+      </HeaderBaseGlass>
 
       {showHubContent && (
         <ScrollView

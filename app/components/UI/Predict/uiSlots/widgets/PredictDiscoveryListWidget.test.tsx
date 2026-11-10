@@ -2,30 +2,24 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import type { UiSlot } from '../../../../../core/Engine/controllers/ui-slots-controller/types';
 import { BTC_UP_OR_DOWN_5M_SERIES } from '../../constants/btcUpDown5mSeries';
-import { useHomepagePredictMarketSlots } from '../../../../Views/Homepage/Sections/Predictions/hooks';
+import { useHomepagePredictMarketSlots } from '../../homeSection/hooks';
 import { PredictDiscoveryListHostContext } from './PredictDiscoveryListContext';
 import { PredictDiscoveryListWidget } from './PredictDiscoveryListWidget';
 import type { PredictHomepageMarketSlotReference } from '../types';
-import { HOMEPAGE_PREDICT_MARKET_SLOTS } from '../../../../Views/Homepage/Sections/Predictions/constants/homepagePredictMarketSlots';
+import { HOMEPAGE_PREDICT_MARKET_SLOTS } from '../../homeSection/constants/homepagePredictMarketSlots';
 
 const mockHomepagePredictDiscovery = jest.fn((_props: unknown) => null);
 
-jest.mock(
-  '../../../../Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery',
-  () => ({
-    __esModule: true,
-    default: (props: unknown) => mockHomepagePredictDiscovery(props),
-  }),
-);
-jest.mock('../../../../Views/Homepage/Sections/Predictions/hooks', () => ({
+jest.mock('../../homeSection/components/HomepagePredictDiscovery', () => ({
+  __esModule: true,
+  default: (props: unknown) => mockHomepagePredictDiscovery(props),
+}));
+jest.mock('../../homeSection/hooks', () => ({
   useHomepagePredictMarketSlots: jest.fn(),
 }));
-jest.mock(
-  '../../../../Views/Homepage/Sections/Predictions/hooks/useTreatmentDiscoveryFeedsLoading',
-  () => ({
-    useTreatmentDiscoveryFeedsLoading: () => false,
-  }),
-);
+jest.mock('../../homeSection/hooks/useTreatmentDiscoveryFeedsLoading', () => ({
+  useTreatmentDiscoveryFeedsLoading: () => false,
+}));
 
 const reference: PredictHomepageMarketSlotReference = {
   id: 'markets',

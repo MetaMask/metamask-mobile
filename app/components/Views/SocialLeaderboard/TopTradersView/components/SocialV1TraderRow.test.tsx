@@ -1,3 +1,4 @@
+import { AvatarAccount } from '@metamask/design-system-react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
@@ -5,6 +6,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
 import { SocialFeedSurfaceProvider } from '../../../../UI/SocialFeed/SocialFeedSurface';
+import { X_TRUST_MARK_TEST_ID } from '../../../../UI/SocialFeed/components/XTrustMark';
 import SocialV1TraderRow from './SocialV1TraderRow';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
@@ -29,6 +31,32 @@ const mockOnTraderPress = jest.fn();
 describe('SocialV1TraderRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('seeds the avatar with the profile id even when the trader has a wallet address', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, avatarUri: undefined }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      'trader-1',
+    );
+  });
+
+  it('seeds the avatar with the profile id when the trader has no wallet address', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, address: '', avatarUri: undefined }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.UNSAFE_getByType(AvatarAccount).props.address).toBe(
+      'trader-1',
+    );
   });
 
   it('renders rank medal, username, and PnL without follow chrome', () => {
@@ -96,31 +124,96 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK),
     ).toBeOnTheScreen();
-    expect(screen.getByText('-')).toBeOnTheScreen();
+    expect(screen.queryByText('-')).toBeNull();
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
 
-  it('wraps a highlighted row in the muted viewer card', () => {
+  it('renders the name tag after the username, colored by its side', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        nameTag={{ label: '20x Short', isPositive: false }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.NAME_TAG),
+    ).toHaveTextContent('20x Short');
+  });
+
+  it('renders the X mark when the trader is connected to X', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, xHandle: 'alpha' }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.getByTestId(X_TRUST_MARK_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('omits the X mark when the trader has no X handle', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(screen.queryByTestId(X_TRUST_MARK_TEST_ID)).toBeNull();
+  });
+
+  it('renders no name tag by default', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.NAME_TAG),
+    ).toBeNull();
+  });
+
+  it('drops the rank column, medal included, when showRankColumn is off', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        showRankColumn={false}
+      />,
+    );
+
+    expect(screen.queryByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toBeNull();
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+  });
+
+  it('wraps a highlighted row in the muted wash with a left bar', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={{ ...baseTrader, rank: 59, overallRank: 59 }}
         onFollowPress={mockOnFollowPress}
         highlighted
+        showLeaderboardDetails
       />,
     );
 
     const card = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT);
+    const bar = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT_BAR);
 
     expect(card).toBeOnTheScreen();
     expect(card).toHaveStyle({
       backgroundColor: lightTheme.colors.background.muted,
-      borderWidth: 1,
-      borderRadius: 16,
-      paddingLeft: 8,
-      paddingRight: 8,
-      paddingTop: 12,
-      paddingBottom: 12,
+      height: 72,
+    });
+    expect(card).not.toHaveStyle({ borderRadius: 16, borderWidth: 1 });
+    expect(bar).toHaveStyle({
+      backgroundColor: lightTheme.colors.success.default,
+      width: 2,
     });
     expect(screen.queryByTestId('social-gradient-card-gradient')).toBeNull();
     expect(screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toHaveStyle({
@@ -230,8 +323,90 @@ describe('SocialV1TraderRow', () => {
       />,
     );
 
-    expect(screen.getByText('-')).toBeOnTheScreen();
+    expect(screen.queryByText('-')).toBeNull();
     expect(screen.getByText('+0.0%')).toBeOnTheScreen();
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
+  });
+
+  it('shows zero dollar, percent, and follower metrics for no trades', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{
+          ...baseTrader,
+          rank: 0,
+          overallRank: 0,
+          percentageChange: 0,
+          followerCount: 0,
+          pnlValue: 0,
+        }}
+        onFollowPress={mockOnFollowPress}
+        highlighted
+        hideRank
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('$0.00')).toBeOnTheScreen();
+    expect(screen.getByText('+0.0%')).toBeOnTheScreen();
+    expect(screen.getByText('0 followers')).toBeOnTheScreen();
+    expect(screen.queryByText('-')).toBeNull();
+  });
+
+  it('keeps followers and hides a missing percent on the pinned card', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{
+          ...baseTrader,
+          percentageChange: 0,
+          followerCount: 7,
+          pnlValue: -0.59,
+        }}
+        metric={{ label: '-$0.59', isPositive: false }}
+        onFollowPress={mockOnFollowPress}
+        highlighted
+        hideRank
+        showLeaderboardDetails
+        omitPercentage
+      />,
+    );
+
+    expect(screen.getByText('-$0.59')).toBeOnTheScreen();
+    expect(screen.getByText('7 followers')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
+  });
+
+  it('renders a neutral metric in the default text color', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        metric={{ label: '$9.6M', isPositive: true, isNeutral: true }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.METRIC),
+    ).toHaveStyle({ color: lightTheme.colors.text.default });
+  });
+
+  it('shows the secondary metric in place of the window percent', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: 7.76 }}
+        metric={{ label: '$9.6M', isPositive: true, isNeutral: true }}
+        secondaryMetric={{ label: '-$300 (-2.0%)', isPositive: false }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    const subline = screen.getByTestId(
+      SocialV1TraderRowSelectorsIDs.PERCENTAGE,
+    );
+    expect(subline).toHaveTextContent('-$300 (-2.0%)');
+    expect(subline).toHaveStyle({ color: lightTheme.colors.error.default });
+    expect(screen.queryByText('+7.8%')).toBeNull();
   });
 });

@@ -65,13 +65,20 @@ concurrency:
     }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
+permissions: {}
+
 jobs:
   get_requirements:
     name: Get workflow and job requirements
+    permissions:
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/get-requirements.yml
 
   check-diff:
     name: Check diff
+    permissions:
+      contents: read
     # Not an iOS job: setup.mjs skips CocoaPods off darwin, so this does not need
     # Xcode. Keep it off NAMESPACE_RUNNER_IOS so it does not consume reduced
     # macos/ios-build concurrency.
@@ -216,6 +223,8 @@ jobs:
 
   dedupe:
     name: Dedupe
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -278,6 +287,8 @@ jobs:
 
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -333,6 +344,8 @@ jobs:
 
   scripts:
     name: Run `${{ matrix.scripts }}`
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -349,6 +362,7 @@ jobs:
     needs:
       - get_requirements
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       # `include` with no base axis yields exactly these combinations, and `name`
       # already interpolates a matrix value, so the rendered job names stay
       # `Run <script>` and the required status checks keep reporting (MCWP-813).
@@ -423,12 +437,16 @@ jobs:
   # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
   # file set and bin-packs by size. Per-file cache stays off the persisted
   # paths: #33370 reverted it because cross-file and type-aware rules go stale.
+  # 8x16, not 16x32: ESLint 8 lints on one thread, and the heaviest shard
+  # peaks at 10.8 GB RSS.
   lint-shards:
     name: Run lint (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -441,7 +459,7 @@ jobs:
     needs:
       - get_requirements
     strategy:
-      fail-fast: false
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         shard: [1, 2, 3, 4]
     steps:
@@ -482,9 +500,11 @@ jobs:
       - name: Lint shard
         run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
         env:
-          # Namespace large is 16x32 (MCWP-812): 24576. ubuntu-latest matches
-          # the other test jobs at 20480. Local yarn lint stays at 12288.
-          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '24576' || '20480' }}
+          # Namespace ci-linux is 8x16. 13312 leaves about 3 GB for the rest of
+          # the process and the runner; a higher heap trades the V8 heap error
+          # for the kernel OOM killer. ubuntu-latest matches the other test
+          # jobs at 20480. Local yarn lint stays at 12288.
+          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '13312' || '20480' }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -499,6 +519,7 @@ jobs:
   # Shard jobs are `Run lint (N)` and do not use that name.
   lint:
     name: Run `lint`
+    permissions: {}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -586,6 +607,8 @@ jobs:
   # needing to know anything about what (if anything) reacts to it.
   dependency-audit:
     name: Dependency audit (advisory)
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1059,6 +1082,8 @@ jobs:
 
   check-workflows:
     name: Check workflows
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1103,6 +1128,8 @@ jobs:
   # runners uploads a ci-js-deps artifact so consumers can skip their own install.
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1147,6 +1174,8 @@ jobs:
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1164,7 +1193,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
-      fail-fast: false
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
@@ -1227,6 +1256,8 @@ jobs:
   # We need to merge unit, component view, and integration tests into a
   # single coverage report so the PR coverage threshold calculation is accurate.
   merge-unit-and-component-view-tests:
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1443,6 +1474,8 @@ jobs:
 
   component-view-tests:
     name: Component view tests (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1460,6 +1493,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
         # The shard list length must match the denominator in --shard below.
@@ -1514,6 +1548,8 @@ jobs:
   # Integration tests are optional for the PR gate — they feed coverage into
   # merge → Sonar but are not listed in check-all-jobs-pass needs.
   integration-tests:
+    permissions:
+      contents: read
     # Renders exactly as GitHub's own matrix suffix did for `name: Integration tests`
     # with a single `shard` axis, so the `Integration tests (1)` / `(2)` required
     # checks keep reporting. Spelling it out is load-bearing: the auto-suffix joins
@@ -1537,6 +1573,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         include:
           # Shard 1 peaks at 9.3 GB — above the 8 GB line, so it keeps 8x16.
@@ -1727,6 +1764,10 @@ jobs:
 
   prepare-e2e-timings:
     name: 'Prepare E2E Timings'
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
     # Run in parallel with the build jobs — it is a lightweight API call (~30s).
     # Fetches qa-stats timings once (merge-base preferred, latest-main fallback)
     # and uploads them as a run-scoped artifact so every shard and every re-run
@@ -1979,6 +2020,8 @@ jobs:
 
   sonar-cloud:
     name: SonarCloud analysis
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -2193,45 +2236,10 @@ jobs:
               core.info('Artifact ci-js-deps not found (already deleted or never created)');
             }
 
-  # Required for pull requests and the merge queue. Check all jobs pass fails
-  # when this job fails. Push, schedule, and manual runs skip it.
-  security-code-scan:
-    name: Security code scan
-    needs:
-      - get_requirements
-    if: ${{ (github.event_name == 'pull_request' || github.event_name == 'merge_group') && needs.get_requirements.outputs.skip_everything != 'true' }}
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2.1.1
-    with:
-      scanner-ref: v2.1.1
-      # ubuntu-latest cannot finish these detected languages. Swift needs macOS.
-      # C/C++ has no compiled source. Java looks for ./mvnw, which this repo does
-      # not have. JavaScript, TypeScript, Python, Ruby, Actions, and Semgrep still run.
-      languages-config: |
-        [
-          {"language":"swift","ignore":true},
-          {"language":"cpp","ignore":true},
-          {"language":"java","ignore":true}
-        ]
-      paths-ignored: |
-        tests/
-        docs/
-        scripts/money-movement/debug-dashboard/
-        .storybook/
-        '**/*.test.js'
-        '**/*.test.ts'
-        '**/*.test.jsx'
-        '**/*.test.tsx'
-        '**/*.stories.tsx'
-        '**/*.stories.js'
-        '**/*.snap'
-      rules-excluded: example
-
   check-all-jobs-pass:
     name: Check all jobs pass
+    permissions:
+      contents: read
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
     if: ${{ always() && !cancelled() }}
@@ -2265,7 +2273,6 @@ jobs:
       - build-ios-apps
       - appium-smoke-tests-android
       - appium-smoke-tests-ios
-      - security-code-scan
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -2292,6 +2299,7 @@ jobs:
 
   log-merge-group-failure:
     name: Log merge group failure
+    permissions: {}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&

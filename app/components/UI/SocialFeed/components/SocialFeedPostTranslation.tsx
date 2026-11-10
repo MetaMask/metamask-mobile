@@ -2,11 +2,16 @@ import {
   Box,
   FontWeight,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  AccessibilityInfo,
+  type NativeSyntheticEvent,
+  type TextLayoutEventData,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectAiSocialCommentTranslationEnabled } from '../../../../selectors/featureFlagController/socialCommentTranslation';
@@ -15,6 +20,77 @@ import { translateComment } from '../translateComment';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 const ENGLISH = 'en';
+
+/** Feed captions collapse after this many lines. */
+const FEED_COMMENT_PREVIEW_LINES = 4;
+
+/**
+ * Measures the full caption off-screen, then clamps the visible copy.
+ * The measure text stays out of layout so a long post does not expand the
+ * feed row before it collapses.
+ */
+const FeedCommentBody = ({ text }: { text: string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  const onMeasureLayout = useCallback(
+    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
+      const nextTruncated =
+        event.nativeEvent.lines.length > FEED_COMMENT_PREVIEW_LINES;
+      setIsTruncated((current) =>
+        current === nextTruncated ? current : nextTruncated,
+      );
+    },
+    [],
+  );
+
+  const showToggle = isTruncated || isExpanded;
+
+  return (
+    <Box>
+      <Box
+        pointerEvents="none"
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        collapsable={false}
+        twClassName="absolute left-0 right-0 opacity-0"
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Regular}
+          onTextLayout={onMeasureLayout}
+          testID={SocialFeedPostShellSelectorsIDs.COMMENT_MEASURE}
+        >
+          {text}
+        </Text>
+      </Box>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Regular}
+        color={TextColor.TextDefault}
+        numberOfLines={isExpanded ? undefined : FEED_COMMENT_PREVIEW_LINES}
+        accessibilityLiveRegion="polite"
+      >
+        {text}
+      </Text>
+      {showToggle ? (
+        <TextButton
+          variant={TextVariant.BodySm}
+          accessibilityState={{ expanded: isExpanded }}
+          onPress={() => setIsExpanded((expanded) => !expanded)}
+          testID={SocialFeedPostShellSelectorsIDs.SEE_MORE}
+        >
+          {strings(
+            isExpanded
+              ? 'social_leaderboard.translation.see_less'
+              : 'social_leaderboard.translation.see_more',
+          )}
+        </TextButton>
+      ) : null}
+    </Box>
+  );
+};
 
 type TranslationPhase = 'idle' | 'pending' | 'translated' | 'failed';
 
@@ -25,15 +101,11 @@ interface TranslationState {
 }
 
 /**
- * Shown under a Call whose language is missing or not English.
+ * Shown under every saved Call, including English.
  * A pending composer post stays as written until the Call exists on the server.
  */
-export const showsTranslationControl = (post: SocialV1FeedPost): boolean => {
-  if (!post.item.comment || !post.commentId || post.isPending) {
-    return false;
-  }
-  return post.sourceLanguage?.toLowerCase() !== ENGLISH;
-};
+export const showsTranslationControl = (post: SocialV1FeedPost): boolean =>
+  Boolean(post.item.comment && post.commentId && !post.isPending);
 
 const TranslationAction = ({
   label,
@@ -180,13 +252,15 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
         if (requestId.current !== id || currentIdentity.current !== identity) {
           return;
         }
-        const text =
-          result.state === 'translated' ? result.translations[ENGLISH] : '';
-        if (!text) {
+        if (result.state !== 'translated') {
           setTranslation({ identity, phase: 'failed', translatedText: null });
           return;
         }
-        setTranslation({ identity, phase: 'translated', translatedText: text });
+        setTranslation({
+          identity,
+          phase: 'translated',
+          translatedText: result.translations[ENGLISH] || null,
+        });
       })
       .catch(() => {
         if (requestId.current === id && currentIdentity.current === identity) {
@@ -196,14 +270,11 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
   };
 
   return (
-    <Box twClassName="gap-2">
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextDefault}
-        accessibilityLiveRegion="polite"
-      >
-        {visibleComment}
-      </Text>
+    <Box twClassName="mt-1">
+      <FeedCommentBody
+        key={`${post.id}:${visibleComment}`}
+        text={visibleComment}
+      />
       {translationEnabled && showsTranslationControl(post) ? (
         <TranslationStatus
           phase={phase}

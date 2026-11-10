@@ -24,6 +24,9 @@ interface FeedCardOverrides {
     pnl30d?: number | null;
     tradeCount30d?: number | null;
     followerCount?: number | null;
+    socialHandles?: {
+      twitter?: string | null;
+    };
   };
   commentCount?: number;
   replyCount?: number;
