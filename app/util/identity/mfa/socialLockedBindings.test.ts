@@ -70,10 +70,13 @@ describe('createSocialLockedMfaControllerAdapter', () => {
   });
 
   it('begins social login verification through Auth', async () => {
-    auth.beginSocialLoginVerification.mockResolvedValue({
+    const challenge = {
       flowId: 'flow-1',
-      options: {},
-    });
+      expiresAt: Date.now() + 60_000,
+      type: 'passkey' as const,
+      publicKey: {} as never,
+    };
+    auth.beginSocialLoginVerification.mockResolvedValue(challenge);
     const adapter = createSocialLockedMfaControllerAdapter();
 
     await expect(
@@ -81,7 +84,7 @@ describe('createSocialLockedMfaControllerAdapter', () => {
         type: 'passkey',
         reason: { operation: 'qa.test' },
       }),
-    ).resolves.toEqual({ flowId: 'flow-1', options: {} });
+    ).resolves.toEqual(challenge);
     expect(auth.beginSocialLoginVerification).toHaveBeenCalledTimes(1);
   });
 

@@ -194,28 +194,27 @@ jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(),
 }));
 
-const mockSelectMfaUiKitEnabled = jest.fn(() => false);
-const mockSelectMoneyEnableMfaFlag = jest.fn(() => false);
+const mockSelectMfaUiKitEnabled = jest.fn().mockReturnValue(false);
+const mockSelectMoneyEnableMfaFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../../selectors/featureFlagController/mfaUiKit', () => ({
-  selectMfaUiKitEnabled: (...args: unknown[]) =>
-    mockSelectMfaUiKitEnabled(...args),
+  selectMfaUiKitEnabled: (state: unknown) => mockSelectMfaUiKitEnabled(state),
 }));
 jest.mock('../../UI/Money/selectors/featureFlags', () => {
   const actual = jest.requireActual('../../UI/Money/selectors/featureFlags');
   return {
     ...actual,
-    selectMoneyEnableMfaFlag: (...args: unknown[]) =>
-      mockSelectMoneyEnableMfaFlag(...args),
+    selectMoneyEnableMfaFlag: (state: unknown) =>
+      mockSelectMoneyEnableMfaFlag(state),
   };
 });
 
 const mockVerifySocialLoginWhileLocked = jest.fn();
 const mockVerifySocialLoginFactorWhileLocked = jest.fn();
 jest.mock('../../../util/identity/mfa', () => ({
-  verifySocialLoginWhileLocked: (...args: unknown[]) =>
-    mockVerifySocialLoginWhileLocked(...args),
-  verifySocialLoginFactorWhileLocked: (...args: unknown[]) =>
-    mockVerifySocialLoginFactorWhileLocked(...args),
+  verifySocialLoginWhileLocked: (reason: unknown) =>
+    mockVerifySocialLoginWhileLocked(reason),
+  verifySocialLoginFactorWhileLocked: (reason: unknown, method: unknown) =>
+    mockVerifySocialLoginFactorWhileLocked(reason, method),
 }));
 
 jest.mock('../../../store/storage-wrapper', () => ({
