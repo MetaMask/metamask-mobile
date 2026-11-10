@@ -14,10 +14,10 @@ describe('KycIdentityVerified', () => {
     jest.clearAllMocks();
   });
 
-  it('renders copy and hands Back and Continue to the caller', () => {
+  it('renders the verified copy', () => {
     const onExit = jest.fn();
     const onContinue = jest.fn();
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <KycIdentityVerified onExit={onExit} onContinue={onContinue} />,
     );
 
@@ -25,14 +25,36 @@ describe('KycIdentityVerified', () => {
     expect(
       getByText(strings('kyc.identity_verified.description')),
     ).toBeOnTheScreen();
+    expect(onContinue).not.toHaveBeenCalled();
+    expect(onExit).not.toHaveBeenCalled();
+  });
+
+  it('hands Continue to the caller', () => {
+    const onExit = jest.fn();
+    const onContinue = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <KycIdentityVerified onExit={onExit} onContinue={onContinue} />,
+    );
 
     fireEvent.press(
       getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
-    fireEvent.press(getByTestId(KycIdentityVerifiedSelectorsIDs.BACK_BUTTON));
 
     expect(onContinue).toHaveBeenCalledTimes(1);
+    expect(onExit).not.toHaveBeenCalled();
+  });
+
+  it('hands Back to the caller', () => {
+    const onExit = jest.fn();
+    const onContinue = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <KycIdentityVerified onExit={onExit} onContinue={onContinue} />,
+    );
+
+    fireEvent.press(getByTestId(KycIdentityVerifiedSelectorsIDs.BACK_BUTTON));
+
     expect(onExit).toHaveBeenCalledTimes(1);
+    expect(onContinue).not.toHaveBeenCalled();
   });
 
   it('reports the approved result as viewed', () => {
