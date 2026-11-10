@@ -2,6 +2,7 @@ import {
   array,
   boolean,
   is,
+  optional,
   record,
   refine,
   string,
@@ -27,11 +28,13 @@ const nonEmptyString = refine(
 
 // Unknown fields are ignored, and unknown actions and Feed keys are dropped
 // below, so the schema accepts any string there. A known field with the wrong
-// shape still rejects the catalog.
+// shape still rejects the catalog. `categories` is optional so a catalog from
+// before PRED-1485 still parses, with no Categories.
 const venueCatalogSchema = type({
   venueId: nonEmptyString,
   actions: array(string()),
   feeds: record(string(), unknown()),
+  categories: optional(array(string())),
   searchSupported: boolean(),
 });
 
@@ -45,7 +48,7 @@ const invalidCatalog = (reason: string) =>
 
 /**
  * Parses a Venue catalog for `expectedVenueId`. Unknown actions and Feed keys
- * are dropped. Anything structurally wrong, a known Feed key without a Feed
+ * are dropped, and so is a Category whose Feed key was dropped or is absent. Anything structurally wrong, a known Feed key without a Feed
  * ID, or a catalog for another Venue throws `INVALID_RESPONSE`, so a caller
  * that fails closed enables nothing.
  */
@@ -75,10 +78,19 @@ export const parsePredictVenueCatalog = (
     feeds[key as PredictFeedKey] = feedId as PredictFeedId;
   }
 
+  const categories = [
+    ...new Set(
+      (value.categories ?? []).filter((key) =>
+        Object.prototype.hasOwnProperty.call(feeds, key),
+      ),
+    ),
+  ] as PredictFeedKey[];
+
   return {
     venueId: expectedVenueId,
     actions,
     feeds,
+    categories,
     searchSupported: value.searchSupported,
   };
 };

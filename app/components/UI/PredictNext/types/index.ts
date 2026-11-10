@@ -283,6 +283,9 @@ export interface PredictVenueCatalog {
   venueId: PredictVenueId;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
+  /** The Venue's Categories in display order, each named by its Feed key.
+   * Every key is in `feeds`, and the Category opens on that Feed. */
+  categories: readonly PredictFeedKey[];
   searchSupported: boolean;
 }
 

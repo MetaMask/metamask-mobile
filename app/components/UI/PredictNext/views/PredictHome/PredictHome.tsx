@@ -193,10 +193,14 @@ const PredictHomeView = ({
     (categoryId: string) => {
       const category = categories.find(({ id }) => id === categoryId);
       if (category) {
-        openFeedScreen(category.feedScreenId);
+        navigation.navigate(PredictNextRoutes.FEED, {
+          venueId,
+          feedScreenId: category.feedScreenId,
+          selectedTabId: category.tabId,
+        });
       }
     },
-    [categories, openFeedScreen],
+    [categories, navigation, venueId],
   );
   const { openOrderFlow } = usePredictOrderFlow();
   const openEvent = useCallback(

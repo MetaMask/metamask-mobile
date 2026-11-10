@@ -1047,34 +1047,43 @@ describe('PredictHome', () => {
   });
 
   describe('Categories section', () => {
-    const HIDDEN_CATEGORY_IDS = [
-      'sports',
-      'crypto',
-      'esports',
-      'weather',
-      'finance',
-      'tech',
-    ];
+    const chipIds = (view: ReturnType<typeof renderPredictNext>) =>
+      within(view.getByTestId(PredictHomeTestIds.CATEGORIES_LIST))
+        .getAllByRole('button')
+        .map((chip) => chip.props.testID);
 
-    it('shows the header and only the Categories the Venue has a Feed Screen for', async () => {
+    it('shows the header and the catalog Categories as chips, in catalog order', async () => {
       const view = renderPredictNext();
 
       const categories = await view.findByTestId(PredictHomeTestIds.CATEGORIES);
       expect(
         within(categories).getByTestId(PredictHomeTestIds.CATEGORIES_HEADER),
       ).toHaveTextContent('Categories');
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('sports'),
+        PredictHomeTestIds.categoryChip('politics'),
+      ]);
       expect(
-        within(categories).getByTestId(
-          PredictHomeTestIds.categoryChip('politics'),
-        ),
+        view.getByTestId(PredictHomeTestIds.categoryChip('sports')),
+      ).toHaveTextContent('Sports');
+      expect(
+        view.getByTestId(PredictHomeTestIds.categoryChip('politics')),
       ).toHaveTextContent('Politics');
-      HIDDEN_CATEGORY_IDS.forEach((categoryId) =>
-        expect(
-          within(categories).queryByTestId(
-            PredictHomeTestIds.categoryChip(categoryId),
-          ),
-        ).not.toBeOnTheScreen(),
-      );
+    });
+
+    it('follows the order the catalog gives', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        categories: ['politics', 'sports'],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('politics'),
+        PredictHomeTestIds.categoryChip('sports'),
+      ]);
     });
 
     it('sits after the sports previews and before Politics', async () => {
@@ -1091,7 +1100,7 @@ describe('PredictHome', () => {
       expect(blocks.map((block) => block.props.testID)).toEqual(order);
     });
 
-    it('opens the Politics Feed Screen from the Politics chip', async () => {
+    it('opens the Politics Feed Screen on the Trump tab from the Politics chip', async () => {
       const view = renderPredictNext();
 
       fireEvent.press(
@@ -1101,16 +1110,32 @@ describe('PredictHome', () => {
       const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
       expect(within(feedScreen).getByText('Politics')).toBeOnTheScreen();
       expect(
-        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('trump')),
-      ).toBeOnTheScreen();
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('trump'))
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
     });
 
-    it('keeps the Politics chip while any Politics tab has a Feed, without the Trump preview', async () => {
+    it('opens the NFL Feed Screen on the Games tab from the Sports chip', async () => {
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('sports')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(within(feedScreen).getByText('NFL')).toBeOnTheScreen();
+      expect(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('games'))
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    it("opens the tab of the Category's own Feed", async () => {
       configurePredictNextCatalog({
         ...KALSHI_STATIC_VENUE_CATALOG,
         feeds: {
-          'nfl-games': KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'],
-          'politics-iran': KALSHI_STATIC_VENUE_CATALOG.feeds['politics-iran'],
+          ...KALSHI_STATIC_VENUE_CATALOG.feeds,
+          politics: KALSHI_STATIC_VENUE_CATALOG.feeds['politics-iran'],
         },
       });
       const view = renderPredictNext();
@@ -1121,21 +1146,37 @@ describe('PredictHome', () => {
 
       const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
       expect(
-        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('iran')),
-      ).toBeOnTheScreen();
-      expect(
-        within(feedScreen).queryByTestId(PredictFeedScreenTestIds.UNAVAILABLE),
-      ).not.toBeOnTheScreen();
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('iran'))
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
     });
 
-    it('hides the section when the Venue has no Feed for any Category', async () => {
-      configurePredictNextCatalog({
-        ...KALSHI_STATIC_VENUE_CATALOG,
-        feeds: { 'nfl-games': KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'] },
-      });
+    it.each([
+      ['lists no Categories', { categories: [] }],
+      [
+        'drops the Category Feed keys',
+        {
+          feeds: {
+            'nfl-games': KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'],
+          },
+        },
+      ],
+      [
+        'lists only a Category mobile has no Feed Screen for',
+        { feeds: { crypto: 'crypto' }, categories: ['crypto'] },
+      ],
+      [
+        'lists a Category whose Feed Screen has no tab the Venue supports',
+        {
+          feeds: { politics: KALSHI_STATIC_VENUE_CATALOG.feeds.politics },
+          categories: ['politics'],
+        },
+      ],
+    ])('hides the section when the catalog %s', async (_name, patch) => {
+      configurePredictNextCatalog({ ...KALSHI_STATIC_VENUE_CATALOG, ...patch });
       const view = renderPredictNext();
 
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
       expect(
         view.queryByTestId(PredictHomeTestIds.CATEGORIES),

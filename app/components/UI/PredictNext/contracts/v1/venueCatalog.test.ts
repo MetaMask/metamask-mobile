@@ -37,8 +37,33 @@ describe('parsePredictVenueCatalog', () => {
         'nfl-games': 'sports-football-nfl-games',
         'nfl-props': 'sports-football-nfl-win-totals',
       },
+      categories: [],
       searchSupported: true,
     });
+  });
+
+  it('keeps the Categories in catalog order', () => {
+    const result = parsePredictVenueCatalog(
+      createCatalog({ categories: ['nfl-props', 'nfl-games'] }),
+      venueId,
+    );
+
+    expect(result.categories).toEqual(['nfl-props', 'nfl-games']);
+  });
+
+  it('drops unknown, duplicate, and Feed-less Categories', () => {
+    const result = parsePredictVenueCatalog(
+      createCatalog({
+        feeds: {
+          'nfl-games': 'sports-football-nfl-games',
+          'curling-live': 'curling',
+        },
+        categories: ['curling-live', 'nfl-games', 'politics', 'nfl-games'],
+      }),
+      venueId,
+    );
+
+    expect(result.categories).toEqual(['nfl-games']);
   });
 
   it('drops unknown and duplicate actions', () => {
@@ -81,6 +106,7 @@ describe('parsePredictVenueCatalog', () => {
       venueId: 'kalshi',
       actions: [],
       feeds: {},
+      categories: [],
       searchSupported: false,
     });
   });
@@ -97,6 +123,8 @@ describe('parsePredictVenueCatalog', () => {
     ['a non-string action', createCatalog({ actions: ['buy', 1] })],
     ['missing feeds', createCatalog({ feeds: undefined })],
     ['feeds that are an array', createCatalog({ feeds: ['nfl-games'] })],
+    ['categories that are not an array', createCatalog({ categories: 'x' })],
+    ['a non-string Category', createCatalog({ categories: ['nfl-games', 1] })],
     ['missing searchSupported', createCatalog({ searchSupported: undefined })],
     ['a string searchSupported', createCatalog({ searchSupported: 'true' })],
     [

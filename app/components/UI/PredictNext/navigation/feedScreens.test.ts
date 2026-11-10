@@ -22,6 +22,7 @@ const readyCapabilities = (
     displayName: 'Test Venue',
     actions: [],
     feeds: feeds as Record<string, PredictFeedId>,
+    categories: [],
     searchSupported: false,
   },
 });

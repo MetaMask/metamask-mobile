@@ -57,6 +57,7 @@ describe('resolveVenueCapabilities', () => {
             'crypto-up-down-live': 'btc-up-or-down-5m',
             'world-cup': 'fifa-world-cup',
           },
+          categories: [],
           searchSupported: true,
         },
       });
@@ -213,6 +214,7 @@ describe('resolveSurfaceFeeds', () => {
       displayName: 'Test Venue',
       actions: [],
       feeds: feeds as Record<string, PredictFeedId>,
+      categories: [],
       searchSupported: false,
     },
   });
@@ -244,7 +246,7 @@ describe('resolveSurfaceFeeds', () => {
     expect(result).toEqual([]);
   });
 
-  it('shows Kalshi V1 only its football sections and the Sports tab', () => {
+  it('shows Kalshi V1 its football sections, Politics, and the Sports, Macro and RWAs tabs', () => {
     const kalshi = resolveVenueCapabilities(
       KALSHI,
       read({ data: KALSHI_STATIC_VENUE_CATALOG }),
@@ -260,7 +262,10 @@ describe('resolveSurfaceFeeds', () => {
       'nfl-games',
       'college-football-games',
     ]);
+    // Macro and RWAs read the `politics` key, the Politics Category's Feed.
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.exploreTabs)).toEqual([
+      'macro',
+      'rwas',
       'sports',
     ]);
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.campaignRows)).toEqual([]);

@@ -3819,12 +3819,7 @@
     "home_categories": {
       "title": "Categories",
       "politics": "Politics",
-      "sports": "Sports",
-      "crypto": "Crypto",
-      "esports": "E-sports",
-      "weather": "Weather",
-      "finance": "Finance",
-      "tech": "Tech"
+      "sports": "Sports"
     },
     "event": {
       "your_positions": "Your positions",
