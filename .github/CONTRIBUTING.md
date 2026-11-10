@@ -51,7 +51,7 @@ The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-te
 
 The scheduled arm64 E2E APK build (`build-android-arm64-scheduled.yml`) previously stayed on Cirrus for artifact-store parity, but now uses `inherit`. When resolved to Namespace, it dual-uploads the release APK to both GitHub Actions and Namespace artifact stores; on a `current` rollback it uploads to GitHub only. That keeps the local-repro `gh run download` path working while the build itself runs on Namespace. Appium jobs and fixture validation already follow the same resolution chain as the PR build jobs (converted in #35002).
 
-A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not follow `NAMESPACE_RUNNER_LINUX`: `get-requirements.yml`, `native-build-fingerprint`, `prepare-e2e-timings`, `cleanup-ci-js-deps`, plus light CI gates that do not need Namespace cache volumes (`check-diff`, `dedupe`, `git-safe-dependencies`, `check-workflows`, `lint` aggregate, `report-fixture-validation`, `sonar-cloud-quality-gate-status`, `check-all-jobs-pass`, `log-merge-group-failure`, and the non-`lint:tsc` legs of the `scripts` matrix).
+A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not follow `NAMESPACE_RUNNER_LINUX`: `get-requirements.yml`, `native-build-fingerprint`, `prepare-e2e-timings`, and `cleanup-ci-js-deps`.
 
 #### Namespace Linux capacity
 
@@ -63,7 +63,7 @@ The org Namespace Linux pool is capped (about 2,000 vCPUs). Android Appium and G
 | Unit-test shards                | `ci.yml` `unit-tests`                                                  | `max-parallel: 5`                                            |
 | Component-view shards           | `ci.yml` `component-view-tests`                                        | `max-parallel: 3`                                            |
 | Lint shards                     | `ci.yml` `lint-shards`                                                 | `max-parallel: 2`                                            |
-| Scripts matrix                  | `ci.yml` `scripts`                                                     | `max-parallel: 4`; light legs on `ubuntu-latest`             |
+| Scripts matrix                  | `ci.yml` `scripts`                                                     | `max-parallel: 4`                                            |
 | Scheduled Android serialization | `run-performance-e2e-manual.yml` + `build-android-arm64-scheduled.yml` | shared concurrency group `namespace-linux-android-scheduled` |
 | Arm64 build schedule            | `build-android-arm64-scheduled.yml`                                    | `0 9 * * 1-5`, between ci.yml's 08:00 and 10:00 runs         |
 
