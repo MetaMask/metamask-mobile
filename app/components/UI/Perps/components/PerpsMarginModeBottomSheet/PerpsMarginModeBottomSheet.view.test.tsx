@@ -14,10 +14,12 @@ import { createLongPositionForViews } from '../../../../../../tests/component-vi
 import {
   openMarginModeSheet,
   resetMarginModeControllerMocks,
+  selectCrossMarginMode,
 } from '../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import {
+  PerpsCrossMarginConfirmBottomSheetSelectorsIDs as confirmIds,
   PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsProOrderFormSelectorsIDs as formIds,
 } from '../../Perps.testIds';
@@ -58,6 +60,9 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
         strings(`perps.margin_mode.${marginMode}_title`),
       );
       expect(screen.getByTestId(selectedId)).toBeEnabled();
+      expect(screen.getByTestId(marginIds.LOCK_NOTICE)).toHaveTextContent(
+        strings('perps.margin_mode.locked_by_position'),
+      );
       const sheet = within(screen.getByTestId(marginIds.CONTAINER));
       expect(
         sheet.getByText(
@@ -94,13 +99,27 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
     await waitFor(() =>
       expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
     );
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
-
-    await waitFor(() =>
-      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await selectCrossMarginMode();
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.margin_mode.cross_title'),
+    );
+  });
+
+  it('keeps Isolated when the trader backs out of the cross margin confirmation', async () => {
+    renderPerpsCrossMarginOrderFormPanel();
+    await openMarginModeSheet();
+    await waitFor(() =>
+      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+
+    fireEvent.press(await screen.findByTestId(confirmIds.GO_BACK_BUTTON));
+
+    await waitFor(() =>
+      expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen(),
+    );
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.pro_order_form.isolated'),
     );
   });
 
@@ -127,6 +146,9 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
 
     await waitFor(() =>
       expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeDisabled(),
+    );
+    expect(screen.getByTestId(marginIds.LOCK_NOTICE)).toHaveTextContent(
+      strings('perps.margin_mode.locked_by_open_order'),
     );
     expect(
       Engine.context.PerpsController.getMarginModeLock,

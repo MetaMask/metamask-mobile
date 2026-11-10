@@ -28,12 +28,9 @@ describe('PerpsCrossMarginInfoButton', () => {
   it.each([
     [
       false,
-      'At the current account value, this position has no liquidation price. This can change as the value of your other cross positions changes. A liquidation can affect your entire cross balance.',
+      'This position has no liquidation price at your current account value. It can change with the P&L of your other positions.',
     ],
-    [
-      true,
-      'This price moves with the profit and loss of your other cross positions and changes to your cross balance. A liquidation can affect your entire cross balance.',
-    ],
+    [true, 'This price moves with the P&L of your other positions.'],
   ] as const)(
     'opens the explanation with hasLiquidationPrice=%s',
     (hasLiquidationPrice, explanation) => {
@@ -49,6 +46,9 @@ describe('PerpsCrossMarginInfoButton', () => {
       expect(
         screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
       ).toHaveTextContent(explanation);
+      expect(
+        screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE_TAG),
+      ).toHaveTextContent('Cross');
     },
   );
 });

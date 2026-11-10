@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, Modal, NativeScrollEvent } from 'react-native';
+import { View, Modal, NativeScrollEvent, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -87,6 +87,10 @@ import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
+import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
+import PerpsCrossMarginRatioBanner from '../../components/PerpsCrossMarginRatioBanner';
+import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
+import { formatCrossMarginRatio } from '../../utils/crossMarginSummary';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
@@ -380,6 +384,25 @@ const PerpsHomeView = () => {
   const spendableBalance = perpsAccount?.spendableBalance || '0';
   const totalBn = BigNumber(totalBalance);
   const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
+
+  const {
+    isCrossMarginEnabled,
+    accountRatio: crossMarginRatio,
+    tone: crossMarginTone,
+  } = usePerpsCrossMarginSummary();
+  const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
+  const openBalanceSheet = useCallback(
+    () => setIsBalanceSheetVisible(true),
+    [],
+  );
+  const closeBalanceSheet = useCallback(
+    () => setIsBalanceSheetVisible(false),
+    [],
+  );
+  const crossMarginBannerSeverity =
+    crossMarginTone === 'warning' || crossMarginTone === 'danger'
+      ? crossMarginTone
+      : undefined;
 
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
@@ -1347,31 +1370,50 @@ const PerpsHomeView = () => {
             }
             bottomLabel={
               !isBalanceEmpty ? (
-                <Box flexDirection={BoxFlexDirection.Row}>
-                  <SensitiveText
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    isHidden={privacyMode}
-                    length={SensitiveTextLength.Short}
-                    testID={
-                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                    }
-                  >
-                    {formatPerpsBalance(spendableBalance)}
-                  </SensitiveText>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {' '}
-                    {strings('perps.available')}
-                  </Text>
-                </Box>
+                <Pressable
+                  onPress={openBalanceSheet}
+                  disabled={!isCrossMarginEnabled}
+                  accessibilityRole={
+                    isCrossMarginEnabled ? 'button' : undefined
+                  }
+                  testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
+                >
+                  <Box flexDirection={BoxFlexDirection.Row} accessible={false}>
+                    <SensitiveText
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      isHidden={privacyMode}
+                      length={SensitiveTextLength.Short}
+                      testID={
+                        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                      }
+                    >
+                      {formatPerpsBalance(spendableBalance)}
+                    </SensitiveText>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {' '}
+                      {strings('perps.available')}
+                    </Text>
+                  </Box>
+                </Pressable>
               ) : undefined
             }
             twClassName="px-4 pb-3"
           />
         </PerpsMarketBalanceActions>
+
+        {crossMarginBannerSeverity && crossMarginRatio !== undefined && (
+          <Box twClassName="px-4 pb-3">
+            <PerpsCrossMarginRatioBanner
+              ratio={formatCrossMarginRatio(crossMarginRatio)}
+              severity={crossMarginBannerSeverity}
+              testID={PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER}
+            />
+          </Box>
+        )}
 
         <PerpsCompetitionBanner
           isGlass={isGlass}
@@ -1428,6 +1470,11 @@ const PerpsHomeView = () => {
           onClose={handleCloseAllSheetClose}
         />
       )}
+
+      <PerpsBalanceBottomSheet
+        isVisible={isBalanceSheetVisible}
+        onClose={closeBalanceSheet}
+      />
 
       {/* Cancel All Orders Bottom Sheet */}
       {showCancelAllSheet && (

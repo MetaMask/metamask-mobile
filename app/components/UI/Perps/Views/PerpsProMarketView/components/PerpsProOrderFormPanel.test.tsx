@@ -53,6 +53,12 @@ jest.mock('../../../hooks/usePerpsProvider', () => ({
   usePerpsProvider: (params: unknown) => mockUsePerpsProvider(params),
 }));
 
+jest.mock('../../../hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: () => ({
+    crossMarginRatio: undefined,
+    tone: undefined,
+  }),
+}));
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
 jest.mock('../../../../../../util/haptics');
@@ -173,6 +179,8 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   isCrossMarginAvailableForMarket: false,
   refreshMarginModeLock: jest.fn(),
   onMarginModeSelect: jest.fn(),
+  marginModeLockReason: undefined,
+  onLockedMarginModePress: jest.fn(),
 };
 
 // Mutated in place by tests; fully restored in beforeEach via Object.assign so

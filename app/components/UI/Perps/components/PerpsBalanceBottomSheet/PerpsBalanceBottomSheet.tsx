@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Modal, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -27,6 +27,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
+import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
 import {
   formatPercentage,
   formatPerpsBalance,
@@ -36,13 +37,17 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { PerpsBalanceBottomSheetProps } from './PerpsBalanceBottomSheet.types';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import PerpsCrossMarginSummary, {
+  type PerpsCrossMarginSummaryTooltipKey,
+} from './PerpsCrossMarginSummary';
 
 /**
  * Perps account balance bottom sheet.
  *
  * Shows total balance, available balance, and unrealized P&L, with quick
- * access to Withdraw / Add funds. Opened from the wallet icon in the Pro
- * market header without leaving the market screen.
+ * access to Withdraw / Add funds. When the account holds cross margin
+ * exposure it also shows the cross margin metrics. Opened from the wallet
+ * icon in the Pro market header and from the Perps home balance.
  */
 const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   isVisible,
@@ -52,6 +57,16 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const privacyMode = useSelector(selectPrivacyMode);
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  const {
+    hasCrossExposure,
+    accountRatio,
+    maintenanceMargin,
+    accountLeverage,
+    crossMarginUsage,
+  } = usePerpsCrossMarginSummary({ enabled: isVisible });
+  const [activeTooltip, setActiveTooltip] =
+    useState<PerpsCrossMarginSummaryTooltipKey | null>(null);
+  const closeTooltip = useCallback(() => setActiveTooltip(null), []);
 
   const {
     handleAddFunds,
@@ -197,6 +212,17 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
           </Box>
         </Box>
 
+        {hasCrossExposure && (
+          <PerpsCrossMarginSummary
+            accountRatio={accountRatio}
+            maintenanceMargin={maintenanceMargin}
+            accountLeverage={accountLeverage}
+            crossMarginUsage={crossMarginUsage}
+            privacyMode={privacyMode}
+            onInfoPress={setActiveTooltip}
+          />
+        )}
+
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}
           secondaryButtonProps={{
@@ -225,6 +251,24 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
                 contentKey="geo_block"
                 testID={
                   PerpsBalanceBottomSheetSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
+                }
+              />
+            </ModalSafeAreaProvider>
+          </Modal>
+        </View>
+      )}
+
+      {activeTooltip && (
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeTooltip}
+                contentKey={activeTooltip}
+                testID={
+                  PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_TOOLTIP
                 }
               />
             </ModalSafeAreaProvider>

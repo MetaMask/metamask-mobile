@@ -391,11 +391,7 @@ const PerpsProPositionCard = ({
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
-                label={strings(
-                  isCross
-                    ? 'perps.cross_position.margin_used'
-                    : 'perps.pro_positions_panel.card.margin',
-                )}
+                label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}
                 isHidden={privacyMode}
                 labelAccessory={

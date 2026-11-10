@@ -127,6 +127,14 @@ jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
   })),
 }));
 
+jest.mock('../../UI/Perps/hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: jest.fn(() => ({
+    isCrossMarginEnabled: false,
+    hasCrossExposure: false,
+    isInitialLoading: false,
+  })),
+}));
+
 jest.mock('../../UI/Perps/hooks', () => ({
   useIsActivePerpsTrader: jest.fn(() => false),
   usePerpsLivePositions: jest.fn(() => ({

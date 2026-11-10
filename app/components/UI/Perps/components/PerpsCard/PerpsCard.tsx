@@ -18,7 +18,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -96,7 +95,6 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
   const privacyMode = useSelector(selectPrivacyMode);
-  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
 
   const symbol = position?.symbol || order?.symbol || '';
 
@@ -235,11 +233,6 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
             >
               {positionDisplay.directionLabel}
             </Tag>
-            {isCrossMarginEnabled && position?.leverage.type === 'cross' && (
-              <Tag testID={testID ? `${testID}-margin-tag` : undefined}>
-                {strings('perps.cross_position.badge')}
-              </Tag>
-            )}
           </Box>
         ) : undefined
       }

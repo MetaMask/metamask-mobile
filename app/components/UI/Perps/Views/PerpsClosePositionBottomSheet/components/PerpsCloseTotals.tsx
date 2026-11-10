@@ -1,8 +1,10 @@
 import React from 'react';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type MarginMode } from '@metamask/perps-controller';
 import {
   KeyValueRow,
   KeyValueRowVariant,
+  Tag,
+  TagSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
@@ -34,19 +36,51 @@ export interface PerpsCloseTotalsProps {
   roePercentage?: number;
   /** Cash the close returns; undefined while unavailable. */
   receiveAmount: number | undefined;
+  /**
+   * Margin the close returns. Isolated margin includes its P&L, cross margin
+   * does not. Shown only when `marginMode` is set.
+   */
+  margin?: number;
+  /** Margin mode of the position; renders the margin row when set. */
+  marginMode?: MarginMode;
 }
 
 /**
  * Receive and P&L rows for the close sheet. Deliberately shorter than
  * `PerpsCloseSummary`, which the full-screen close flow uses: the sheet drops
- * the margin, fees, and rewards rows.
+ * the fees and rewards rows, and shows margin only when a mode is given.
  */
 const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   pnl,
   roePercentage,
   receiveAmount,
+  margin,
+  marginMode,
 }) => (
   <>
+    {marginMode ? (
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('perps.close_position.margin')}
+        keyEndAccessory={
+          <Tag
+            severity={TagSeverity.Neutral}
+            testID={PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG}
+          >
+            {strings(
+              marginMode === 'cross'
+                ? 'perps.margin_mode.cross_title'
+                : 'perps.margin_mode.isolated_title',
+            )}
+          </Tag>
+        }
+        value={formatCloseSummaryFiat(margin)}
+        valueTextProps={{
+          testID: PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+        }}
+      />
+    ) : null}
+
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
       keyLabel={strings('perps.close_position.total_receive')}

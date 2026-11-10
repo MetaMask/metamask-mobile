@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import {
   ButtonIcon,
   ButtonIconSize,
+  IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,7 +29,8 @@ const PerpsCrossMarginInfoButton = ({
     <>
       <ButtonIcon
         iconName={IconName.Info}
-        size={ButtonIconSize.Sm}
+        size={ButtonIconSize.Xs}
+        iconProps={{ color: IconColor.IconAlternative }}
         accessibilityLabel={strings('perps.cross_position.liquidation_info')}
         testID={testID}
         onPress={handleOpen}
@@ -38,6 +40,7 @@ const PerpsCrossMarginInfoButton = ({
           <PerpsBottomSheetTooltip
             isVisible
             onClose={handleClose}
+            titleTag={strings('perps.cross_position.badge')}
             contentKey={
               hasLiquidationPrice
                 ? 'cross_liquidation_price'

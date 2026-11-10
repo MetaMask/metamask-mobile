@@ -34,4 +34,39 @@ describe('PerpsCloseTotals', () => {
     expect(row).toHaveTextContent(new RegExp(`^${label}\\+\\$[\\d.]+$`));
     expect(row).not.toHaveTextContent(/\[missing/iu);
   });
+
+  it('omits the margin row when no margin mode is given', () => {
+    render(<PerpsCloseTotals pnl={2} receiveAmount={17} margin={15} />);
+
+    expect(
+      screen.queryByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    ['cross', 'perps.margin_mode.cross_title'],
+    ['isolated', 'perps.margin_mode.isolated_title'],
+  ] as const)('shows the %s margin with its mode tag', (marginMode, tagKey) => {
+    render(
+      <PerpsCloseTotals
+        pnl={2}
+        receiveAmount={17}
+        margin={15}
+        marginMode={marginMode}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+      ),
+    ).toHaveTextContent(strings(tagKey));
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+      ),
+    ).toHaveTextContent('$15');
+  });
 });

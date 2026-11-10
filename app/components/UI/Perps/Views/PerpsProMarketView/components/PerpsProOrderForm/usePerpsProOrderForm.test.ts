@@ -14,6 +14,7 @@ import {
   type PerpsProviderType,
   type TriggerOrderType,
   type PositionModifyPreviewResult,
+  type AccountState,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -221,6 +222,7 @@ let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
+let mockLiveAccount: Pick<AccountState, 'crossMarginSummary'> | null = null;
 let mockLiveMarkPrice = '90000';
 let mockSizeDecimals = 3;
 let mockSelectedAddress = '0xaccount-a';
@@ -411,6 +413,10 @@ jest.mock('../../../../hooks/stream', () => ({
     },
   }),
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
+  usePerpsLiveAccount: () => ({
+    account: mockLiveAccount,
+    isInitialLoading: false,
+  }),
 }));
 
 let mockIsInitialized = true;
@@ -758,6 +764,7 @@ describe('usePerpsProOrderForm', () => {
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
+    mockLiveAccount = null;
     mockLiveMarkPrice = '90000';
     mockTotalFee = 5;
     mockTakerFeeRate = undefined;
@@ -4002,6 +4009,24 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('estimates a Cross order liquidation price from the cross account', () => {
+      mockLiveAccount = {
+        crossMarginSummary: {
+          accountValue: '10',
+          maintenanceMargin: '0',
+          marginUsed: '0',
+          notional: '0',
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toMatch(/\$/);
     });
 
     it('keeps the liquidation estimate for an isolated order when Cross is available', () => {

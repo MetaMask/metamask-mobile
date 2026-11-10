@@ -2,6 +2,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { MarketInfo } from '@metamask/perps-controller';
 import Engine from '../../../app/core/Engine';
 import {
+  PerpsCrossMarginConfirmBottomSheetSelectorsIDs as confirmIds,
   PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsProOrderFormSelectorsIDs as formIds,
 } from '../../../app/components/UI/Perps/Perps.testIds';
@@ -65,4 +66,27 @@ export async function openMarginModeSheet(waitForLock = true) {
       );
     });
   }
+}
+
+/** Acknowledge every risk on the cross margin confirm sheet and confirm. */
+export async function confirmCrossMarginSheet() {
+  await screen.findByTestId(confirmIds.CONTAINER);
+  [
+    confirmIds.COLLATERAL_ITEM,
+    confirmIds.LIQUIDATION_ITEM,
+    confirmIds.MARGIN_ITEM,
+  ].forEach((id) => fireEvent.press(screen.getByTestId(id)));
+  fireEvent.press(screen.getByTestId(confirmIds.CONFIRM_BUTTON));
+  await waitFor(() =>
+    expect(screen.queryByTestId(confirmIds.CONTAINER)).not.toBeOnTheScreen(),
+  );
+}
+
+/** Pick Cross in the open margin mode sheet and confirm its risks. */
+export async function selectCrossMarginMode() {
+  fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+  await waitFor(() =>
+    expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
+  );
+  await confirmCrossMarginSheet();
 }

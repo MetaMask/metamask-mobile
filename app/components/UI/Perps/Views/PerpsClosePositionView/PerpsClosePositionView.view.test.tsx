@@ -455,7 +455,7 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
-  it('shows Core receive for a winning cross position, keeping its margin', async () => {
+  it('shows Core receive for a winning cross position, keeping P&L out of its margin', async () => {
     const position = createLongPositionForViews({
       unrealizedPnl: '150',
       leverage: { value: 3, type: 'cross' },
@@ -481,7 +481,10 @@ describe('PerpsClosePositionView', () => {
     });
     expect(
       screen.getByTestId(PerpsClosePositionViewSelectorsIDs.MARGIN_VALUE),
-    ).toHaveTextContent('$983.33');
+    ).toHaveTextContent('$833.33');
+    expect(
+      screen.getByText(strings('perps.close_position.pnl')),
+    ).toBeOnTheScreen();
   });
 
   it('estimates a partial close on the size the order sends, rounded to the market decimals', async () => {

@@ -1,6 +1,7 @@
 import PerpsFeeCaption from '../../components/PerpsFeesDisplay/PerpsFeeCaption';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -24,6 +25,7 @@ import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import { formatPositionSize } from '../../utils/formatUtils';
 import {
   formatCombinedFeePercentage,
@@ -51,6 +53,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   }, []);
 
   const [showTokenAmount, setShowTokenAmount] = useState(false);
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
 
   const {
     position,
@@ -80,6 +83,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleDonePress,
     confirmButtonProps,
     feeResults,
+    summaryMargin,
+    summaryMarginMode,
     summaryPnl,
     summaryRoePercentage,
     receiveAmount,
@@ -254,6 +259,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           pnl={summaryPnl}
           roePercentage={summaryRoePercentage}
           receiveAmount={receiveAmount}
+          margin={summaryMargin}
+          marginMode={isCrossMarginEnabled ? summaryMarginMode : undefined}
         />
       )}
 

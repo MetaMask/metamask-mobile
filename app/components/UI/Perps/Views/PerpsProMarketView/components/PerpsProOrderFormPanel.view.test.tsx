@@ -24,6 +24,7 @@ import {
   crossMarginMarketInfo,
   openMarginModeSheet,
   resetMarginModeControllerMocks,
+  selectCrossMarginMode,
 } from '../../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
 import {
   createPerpsControllerStateHarness,
@@ -246,10 +247,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
     );
 
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
-    await waitFor(() =>
-      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await selectCrossMarginMode();
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.margin_mode.cross_title'),
     );
@@ -285,10 +283,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     await waitFor(() =>
       expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
     );
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
-    await waitFor(() =>
-      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await selectCrossMarginMode();
 
     await openMarginModeSheet();
     await waitFor(() =>
@@ -425,10 +420,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     });
     unwire = wirePerpsControllerForStore(store);
     await openMarginModeSheet();
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
-    await waitFor(() =>
-      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await selectCrossMarginMode();
     // Resting-order acceptance runs onSuccess immediately; market orders wait
     // for their fill to arrive on the position stream before that callback.
     fireEvent.press(screen.getByTestId(formIds.ORDER_TYPE_BUTTON));
@@ -495,11 +487,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     await waitFor(() =>
       expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
     );
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
-
-    await waitFor(() =>
-      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await selectCrossMarginMode();
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.margin_mode.cross_title'),
     );
@@ -510,10 +498,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     const controllerState = createPerpsControllerStateHarness(store);
     unwire = controllerState.cleanup;
     await openMarginModeSheet();
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
-    await waitFor(() =>
-      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await selectCrossMarginMode();
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.margin_mode.cross_title'),
     );
@@ -636,11 +621,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     await waitFor(() =>
       expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
     );
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
-
-    await waitFor(() =>
-      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
-    );
+    await selectCrossMarginMode();
     await waitFor(
       () =>
         expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
@@ -671,7 +652,7 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     await waitFor(() =>
       expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
     );
-    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+    await selectCrossMarginMode();
     await waitFor(() =>
       expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
         strings('perps.margin_mode.cross_title'),

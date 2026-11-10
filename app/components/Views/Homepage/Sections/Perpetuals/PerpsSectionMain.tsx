@@ -39,6 +39,9 @@ import { calculatePositionAggregateTotals } from '../../../../UI/Perps/utils/pnl
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsServiceInterruptionBanner from '../../../../UI/Perps/components/PerpsServiceInterruptionBanner';
+import PerpsCrossMarginRatioBanner from '../../../../UI/Perps/components/PerpsCrossMarginRatioBanner';
+import { usePerpsCrossMarginSummary } from '../../../../UI/Perps/hooks/usePerpsCrossMarginSummary';
+import { formatCrossMarginRatio } from '../../../../UI/Perps/utils/crossMarginSummary';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsTrendingCarousel from './components/PerpsTrendingCarousel';
@@ -264,6 +267,18 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
+
+    const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
+      usePerpsCrossMarginSummary({
+        enabled: hasFilledPositions,
+        throttleMs: HOMEPAGE_ACCOUNT_THROTTLE_MS,
+      });
+    const crossMarginBannerSeverity =
+      !showSkeleton &&
+      hasFilledPositions &&
+      (crossMarginTone === 'warning' || crossMarginTone === 'danger')
+        ? crossMarginTone
+        : undefined;
 
     // Aggregated over every live-enriched position, not just the MAX_ITEMS the rows
     // below display, so this stays the account-wide total it has always been. It
@@ -540,6 +555,15 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               label={strings('perps.unrealized_pnl')}
               testID="homepage-perps-unrealized-pnl"
             />
+          )}
+          {crossMarginBannerSeverity && crossMarginRatio !== undefined && (
+            <SectionRow>
+              <PerpsCrossMarginRatioBanner
+                ratio={formatCrossMarginRatio(crossMarginRatio)}
+                severity={crossMarginBannerSeverity}
+                testID={HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER}
+              />
+            </SectionRow>
           )}
           {/* Outer flag guard avoids mounting the padded wrapper (and banner
               hooks) when disabled, so `gap` does not reserve space for it. */}

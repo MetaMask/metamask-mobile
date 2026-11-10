@@ -55,12 +55,15 @@ const renderWithVariant = (
     price?: string;
     /** Enables the close-position limit-order flag for limit tests. */
     limitOrderFlag?: boolean;
+    /** Enables the cross margin flag. */
+    crossMarginFlag?: boolean;
   } = {},
 ) => {
   const {
     position = createLongPositionForViews(),
     price = '2500',
     limitOrderFlag = false,
+    crossMarginFlag = false,
   } = options;
 
   const remoteFeatureFlags: FeatureFlags = {};
@@ -69,6 +72,12 @@ const renderWithVariant = (
   }
   if (limitOrderFlag) {
     remoteFeatureFlags.perpsClosePositionLimitOrderEnabled = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    };
+  }
+  if (crossMarginFlag) {
+    remoteFeatureFlags.perpsCrossMarginEnabled = {
       enabled: true,
       minimumVersion: '0.0.0',
     };
@@ -165,6 +174,48 @@ describe('PerpsClosePositionRouter', () => {
         ),
       ).toBeNull();
     });
+  });
+
+  it('shows cross margin without its P&L in the close bottom sheet', async () => {
+    calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+    renderWithVariant(ScreenVsBottomSheetVariant.Treatment, {
+      position: createLongPositionForViews({
+        unrealizedPnl: '150',
+        leverage: { value: 3, type: 'cross' },
+      }),
+      price: '2650',
+      crossMarginFlag: true,
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+      ),
+    ).toHaveTextContent('$833.33');
+  });
+
+  it('hides the margin row in the close bottom sheet without the cross margin flag', async () => {
+    renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
+
+    expect(
+      await screen.findByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+      ),
+    ).toBeNull();
   });
 
   it('presents a Core grant quote in the full-page close flow', async () => {

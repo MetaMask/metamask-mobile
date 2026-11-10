@@ -239,7 +239,7 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
         expect(screen.getByText('Margin used')).toBeOnTheScreen();
-        expect(screen.getByText('Position margin used')).toBeOnTheScreen();
+        expect(screen.getAllByText('Margin').length).toBeGreaterThan(0);
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
@@ -638,7 +638,7 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
         expect(screen.getByText('Margin used')).toBeOnTheScreen();
-        expect(screen.getByText('Position margin used')).toBeOnTheScreen();
+        expect(screen.getAllByText('Margin').length).toBeGreaterThan(0);
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
       });
     });

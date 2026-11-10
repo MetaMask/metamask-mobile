@@ -63,7 +63,7 @@ describe('PerpsProPositionCard', () => {
         PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE,
       );
       if (liquidationPrice === null) {
-        expect(liquidationValue).toHaveTextContent('No liquidation price');
+        expect(liquidationValue).toHaveTextContent('N/A');
       } else {
         expect(liquidationValue).toHaveTextContent('$2,500');
         expect(
@@ -75,7 +75,7 @@ describe('PerpsProPositionCard', () => {
           screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_TREND),
         ).toBeOnTheScreen();
       }
-      expect(screen.getByText('Position margin used')).toBeOnTheScreen();
+      expect(screen.getByText('Margin')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
           PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN,
@@ -110,7 +110,6 @@ describe('PerpsProPositionCard', () => {
     expect(
       screen.queryByTestId('cross-liquidation-info-pro-ETH'),
     ).not.toBeOnTheScreen();
-    expect(screen.queryByText('Position margin used')).not.toBeOnTheScreen();
   });
 
   it.each([null, '2500'])(
@@ -135,7 +134,7 @@ describe('PerpsProPositionCard', () => {
         PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE,
       );
       if (liquidationPrice === null) {
-        expect(liquidationValue).not.toHaveTextContent('No liquidation price');
+        expect(liquidationValue).not.toHaveTextContent('N/A');
       } else {
         expect(liquidationValue).not.toHaveTextContent('$2,500');
       }

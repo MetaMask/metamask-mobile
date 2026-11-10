@@ -1,6 +1,11 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import {
   PERPS_CONSTANTS,
@@ -320,7 +325,11 @@ describe('PerpsPositionCard', () => {
         screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
       );
 
-      expect(screen.getByTestId('cross-margin-tag-lite-ETH')).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+        ).getByTestId('cross-margin-tag-lite-ETH'),
+      ).toBeOnTheScreen();
       expect(onMarginPress).not.toHaveBeenCalled();
       expect(
         screen.getByTestId('cross-liquidation-info-lite-ETH'),
@@ -338,10 +347,25 @@ describe('PerpsPositionCard', () => {
         screen.queryByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
       ).not.toBeOnTheScreen();
       expect(
-        screen.getByText('perps.cross_position.margin_used'),
+        screen.getByText('perps.position.card.margin_label'),
       ).toBeOnTheScreen();
     },
   );
+
+  it('labels the isolated margin row with its margin mode', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsCrossMarginEnabledFlag,
+    );
+
+    render(<PerpsPositionCard position={mockPosition} />);
+
+    expect(
+      within(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+      ).getByText('perps.pro_positions_panel.card.isolated'),
+    ).toBeOnTheScreen();
+  });
 
   it('retains the isolated margin edit action', () => {
     const onMarginPress = jest.fn();

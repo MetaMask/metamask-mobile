@@ -43,4 +43,8 @@ export const tooltipContentRegistry: ContentRegistry = {
   slippage: undefined,
   size_skew: undefined,
   twap_runtime: undefined,
+  account_ratio: undefined,
+  maintenance_margin: undefined,
+  account_leverage: undefined,
+  cross_margin_usage: undefined,
 };

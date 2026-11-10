@@ -17,6 +17,7 @@ import {
   IconSize,
   KeyValueRow,
   SegmentedControl,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -497,6 +498,7 @@ const PerpsProOrderForm = ({
   isOrderBookCollapsed = false,
   onExpandOrderBook,
   marginModeLabel,
+  marginModeTag,
   onMarginModePress,
   leverageLabel,
   onLeveragePress,
@@ -792,6 +794,16 @@ const PerpsProOrderForm = ({
               isDisabled={isScaleFormLocked || !onMarginModePress}
               twClassName="flex-1 rounded-xl bg-muted"
               textProps={{ variant: TextVariant.BodySm }}
+              endAccessory={
+                marginModeTag ? (
+                  <Tag
+                    severity={marginModeTag.severity}
+                    testID={ids.MARGIN_MODE_TAG}
+                  >
+                    {marginModeTag.label}
+                  </Tag>
+                ) : undefined
+              }
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}

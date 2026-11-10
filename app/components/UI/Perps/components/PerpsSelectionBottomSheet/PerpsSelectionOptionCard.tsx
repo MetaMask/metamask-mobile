@@ -37,12 +37,16 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
   const {
     title,
     tag,
+    tagSeverity = TagSeverity.Neutral,
     description,
     startAccessory,
     icon,
     isDisabled = false,
+    onDisabledPress,
   } = option;
   const hasMultiLineText = descriptionLineCount > 1;
+  const isPressable = !isDisabled || onDisabledPress !== undefined;
+  const handlePress = isDisabled ? onDisabledPress : onPress;
   const accessibilityLabel = [title, tag, description?.replace(/\n/g, ', ')]
     .filter(Boolean)
     .join(', ');
@@ -52,8 +56,10 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="radio"
       accessibilityState={{ checked: isSelected, disabled: isDisabled }}
-      disabled={isDisabled}
-      onPress={onPress}
+      // Pressable overwrites accessibilityState.disabled with this prop, so
+      // a disabled option that still reports its press must leave it unset.
+      disabled={isPressable ? undefined : true}
+      onPress={handlePress}
       testID={testID}
       // The 1px border is always rendered (transparent when unselected) and
       // the padding is reduced by the same amount so selecting never shifts
@@ -94,7 +100,7 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
           >
             {title}
           </Text>
-          {tag ? <Tag severity={TagSeverity.Neutral}>{tag}</Tag> : null}
+          {tag ? <Tag severity={tagSeverity}>{tag}</Tag> : null}
         </Box>
         {description ? (
           <Text

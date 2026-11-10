@@ -19,6 +19,7 @@ import {
   type ExpectedScaleLadder,
   type GetScalePriceLadderParams,
   type MarginMode,
+  type MarginModeLockReason,
   type OrderType,
   type PerpsFeeSource,
   type PerpsMarketData,
@@ -85,9 +86,11 @@ import {
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
+  usePerpsLiveAccount,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
+import { estimateCrossLiquidationPrice } from '../../../../utils/crossMarginSummary';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
@@ -596,9 +599,13 @@ export interface UsePerpsProOrderFormResult {
   marginMode: MarginMode;
   isCrossMarginAvailableForMarket: boolean;
   isMarginModeLocked: boolean;
+  /** Why the venue fixes the margin mode; undefined while unknown or unlocked. */
+  marginModeLockReason?: MarginModeLockReason;
   /** Re-read the venue lock before the trader changes the margin mode. */
   refreshMarginModeLock: () => void;
   onMarginModeSelect: (marginMode: MarginMode) => void;
+  /** Explains why the other margin mode cannot be picked. */
+  onLockedMarginModePress: () => void;
   // Leverage sheet
   isLeverageVisible: boolean;
   minLeverage: number;
@@ -1142,6 +1149,24 @@ export const usePerpsProOrderForm = ({
     (!!currentMarketPosition ||
       venueLockedMarginMode !== undefined ||
       !isMarginModeLockResolved);
+  const marginModeLockReason: MarginModeLockReason | undefined =
+    !isCrossMarginAvailableForMarket
+      ? undefined
+      : currentMarketPosition
+        ? 'position'
+        : marginModeLock?.status === 'locked'
+          ? marginModeLock.reason
+          : undefined;
+  const onLockedMarginModePress = useCallback(() => {
+    if (!marginModeLockReason) {
+      return;
+    }
+    showToast(
+      PerpsToastOptions.formValidation.orderForm.marginModeLocked(
+        marginModeLockReason,
+      ),
+    );
+  }, [marginModeLockReason, showToast, PerpsToastOptions]);
   // Keep the displayed choice through a metadata reload, but hold submission
   // until the current restrictions and the subsequent venue read arrive.
   // An `unavailable` lock answer does not hold it; the venue re-checks at submit.
@@ -2084,10 +2109,36 @@ export const usePerpsProOrderForm = ({
     liquidationPrice: isolatedLiquidationPrice,
     isCalculating: isLiquidationCalculating,
   } = usePerpsLiquidationPrice(liquidationPriceParams);
-  // The estimate uses the isolated formula; a Cross order's liquidation depends
-  // on the whole account, so treat it as unknown instead of showing a wrong price.
+  // A Cross order liquidates against the whole cross account, so it is
+  // estimated from the account's cross collateral and maintenance margin. It
+  // stays unknown when the order adds to a position or is a Scale ladder.
+  const { account: liveAccount } = usePerpsLiveAccount({
+    enabled: marginMode === 'cross',
+  });
+  const crossLiquidationPrice = useMemo(() => {
+    if (marginMode !== 'cross' || isScaleOrder || currentMarketPosition) {
+      return '';
+    }
+    const estimate = estimateCrossLiquidationPrice({
+      entryPrice: effectivePrice,
+      size: Number.parseFloat(positionSize),
+      isLong: orderForm.direction === 'long',
+      maxLeverage,
+      crossMarginSummary: liveAccount?.crossMarginSummary,
+    });
+    return estimate === undefined ? '' : String(estimate);
+  }, [
+    marginMode,
+    isScaleOrder,
+    currentMarketPosition,
+    effectivePrice,
+    positionSize,
+    orderForm.direction,
+    maxLeverage,
+    liveAccount?.crossMarginSummary,
+  ]);
   const liquidationPrice =
-    marginMode === 'cross' ? '' : isolatedLiquidationPrice;
+    marginMode === 'cross' ? crossLiquidationPrice : isolatedLiquidationPrice;
 
   const {
     summaryDisplay: positionModifySummaryDisplay,
@@ -4902,8 +4953,10 @@ export const usePerpsProOrderForm = ({
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
+    marginModeLockReason,
     refreshMarginModeLock,
     onMarginModeSelect,
+    onLockedMarginModePress,
     // Leverage sheet
     isLeverageVisible,
     minLeverage: 1,

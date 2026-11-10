@@ -94,31 +94,22 @@ describe('PerpsCard', () => {
     });
   });
 
-  it('labels Cross in compact position rows', () => {
-    const position = {
-      ...mockPosition,
-      leverage: { type: 'cross' as const, value: 3 },
-    };
+  it.each(['cross', 'isolated'] as const)(
+    'keeps %s compact rows free of a margin mode label',
+    (type) => {
+      const position = {
+        ...mockPosition,
+        leverage: { type, value: 3 },
+      };
 
-    const { getByTestId } = render(
-      <PerpsCard position={position} testID="compact" />,
-    );
+      const { getByTestId, queryByTestId } = render(
+        <PerpsCard position={position} testID="compact" />,
+      );
 
-    expect(getByTestId('compact-margin-tag')).toBeOnTheScreen();
-  });
-
-  it('keeps isolated compact rows free of the Cross label', () => {
-    const position = {
-      ...mockPosition,
-      leverage: { type: 'isolated' as const, value: 3 },
-    };
-
-    const { queryByTestId } = render(
-      <PerpsCard position={position} testID="compact" />,
-    );
-
-    expect(queryByTestId('compact-margin-tag')).not.toBeOnTheScreen();
-  });
+      expect(getByTestId('compact-direction-tag')).toBeOnTheScreen();
+      expect(queryByTestId('compact-margin-tag')).not.toBeOnTheScreen();
+    },
+  );
 
   describe('Navigation', () => {
     it('navigates to position tab when position card is pressed', () => {

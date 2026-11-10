@@ -42,6 +42,20 @@ jest.mock('../../hooks/stream', () => ({
   })),
 }));
 
+const mockCrossMarginSummary = {
+  hasCrossExposure: false,
+  isCrossMarginEnabled: true,
+  isInitialLoading: false,
+  accountRatio: undefined as number | undefined,
+  maintenanceMargin: undefined as number | undefined,
+  accountLeverage: undefined as number | undefined,
+  crossMarginUsage: undefined as number | undefined,
+};
+
+jest.mock('../../hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: jest.fn(() => mockCrossMarginSummary),
+}));
+
 jest.mock('../PerpsBottomSheetTooltip', () => {
   const { View, Text } = jest.requireActual('react-native');
   return jest.fn(({ isVisible, testID, onClose }) =>
@@ -86,6 +100,13 @@ describe('PerpsBalanceBottomSheet', () => {
       unrealizedPnl: '50.25',
       returnOnEquity: '5.5',
     };
+    Object.assign(mockCrossMarginSummary, {
+      hasCrossExposure: false,
+      accountRatio: undefined,
+      maintenanceMargin: undefined,
+      accountLeverage: undefined,
+      crossMarginUsage: undefined,
+    });
   });
 
   it('renders nothing when not visible', () => {
@@ -219,6 +240,63 @@ describe('PerpsBalanceBottomSheet', () => {
         PerpsBalanceBottomSheetSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  it('does not render the cross margin summary without cross exposure', () => {
+    const { queryByTestId } = renderSheet();
+
+    expect(
+      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_SUMMARY),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders cross margin metrics when the account has cross exposure', () => {
+    Object.assign(mockCrossMarginSummary, {
+      hasCrossExposure: true,
+      accountRatio: 0.61,
+      maintenanceMargin: 86.41,
+      accountLeverage: 12.5,
+      crossMarginUsage: 0.73,
+    });
+
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE),
+    ).toHaveTextContent('61%');
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.MAINTENANCE_MARGIN_VALUE),
+    ).toHaveTextContent('$86.41');
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_LEVERAGE_VALUE),
+    ).toHaveTextContent('12.5x');
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE),
+    ).toHaveTextContent('73%');
+  });
+
+  it('shows a placeholder for cross margin metrics that cannot be computed', () => {
+    Object.assign(mockCrossMarginSummary, { hasCrossExposure: true });
+
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE),
+    ).toHaveTextContent('--');
+  });
+
+  it('opens the explainer tooltip when a cross margin label is pressed', () => {
+    Object.assign(mockCrossMarginSummary, {
+      hasCrossExposure: true,
+      accountRatio: 0.61,
+    });
+    const { getByText, getByTestId } = renderSheet();
+
+    fireEvent.press(getByText('Account ratio'));
+
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_TOOLTIP),
+    ).toBeOnTheScreen();
   });
 
   it('hides balance, available, and PnL values when privacy mode is enabled', () => {
