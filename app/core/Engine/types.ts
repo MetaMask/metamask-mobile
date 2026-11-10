@@ -123,10 +123,13 @@ import {
   RampsControllerEvents,
   RampsService,
   RampsServiceActions,
+  RampsServiceEvents,
   TransakService,
   TransakServiceActions,
+  TransakServiceEvents,
   NeoBankService,
   NeoBankServiceActions,
+  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -853,6 +856,9 @@ export type GlobalEvents =
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
   | RampsControllerEvents
+  | RampsServiceEvents
+  | TransakServiceEvents
+  | NeoBankServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
