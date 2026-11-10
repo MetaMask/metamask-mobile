@@ -1,7 +1,7 @@
 import type { PredictVenueCapabilities } from '../../../capabilities';
 import {
-  NFL_FEED_SCREEN_ID,
   POLITICS_FEED_SCREEN_ID,
+  SPORTS_FEED_SCREEN_ID,
   resolveFeedScreenTabs,
   type FeedScreenId,
 } from '../../../navigation/feedScreens';
@@ -11,11 +11,10 @@ import { strings } from '../../../../../../../locales/i18n';
 /**
  * The Feed Screen each Category opens, by the Category's Feed key. The Venue
  * catalog decides which Categories exist and their order; this only says
- * where a chip goes. A Category missing here shows no chip. Sports opens the
- * NFL Feed Screen until Sports has a league switch.
+ * where a chip goes. A Category missing here shows no chip.
  */
 const CATEGORY_FEED_SCREENS: Partial<Record<PredictFeedKey, FeedScreenId>> = {
-  sports: NFL_FEED_SCREEN_ID,
+  sports: SPORTS_FEED_SCREEN_ID,
   politics: POLITICS_FEED_SCREEN_ID,
 };
 

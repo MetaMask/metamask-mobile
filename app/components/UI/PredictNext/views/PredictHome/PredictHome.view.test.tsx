@@ -1115,7 +1115,7 @@ describe('PredictHome', () => {
       ).toEqual({ selected: true });
     });
 
-    it('opens the NFL Feed Screen on the Games tab from the Sports chip', async () => {
+    it('opens the Sports Feed Screen with NFL and NCAAF tabs, NFL first, from the Sports chip', async () => {
       const view = renderPredictNext();
 
       fireEvent.press(
@@ -1123,11 +1123,63 @@ describe('PredictHome', () => {
       );
 
       const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
-      expect(within(feedScreen).getByText('NFL')).toBeOnTheScreen();
+      expect(within(feedScreen).getByText('Sports')).toBeOnTheScreen();
+      const tabs = within(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.TABS),
+      )
+        .getAllByRole('button')
+        .map((tab) => tab.props.accessibilityLabel);
+      expect(tabs).toEqual(['NFL', 'NCAAF']);
       expect(
-        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('games'))
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('nfl'))
           .props.accessibilityState,
       ).toEqual({ selected: true });
+    });
+
+    it('switches the Sports Feed Screen to NCAAF games', async () => {
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('sports')),
+      );
+      fireEvent.press(
+        await view.findByTestId(PredictFeedScreenTestIds.tab('ncaaf')),
+      );
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictFeedScreenTestIds.tab('ncaaf')).props
+            .accessibilityState,
+        ).toEqual({ selected: true }),
+      );
+      const list = await view.findByTestId(PredictFeedScreenTestIds.LIST);
+      expect(
+        await within(list).findByTestId(
+          PredictHomeTestIds.event('kalshi', 'ncaa-1'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(list).queryByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows only the NFL tab when the Venue has no college Games Feed', async () => {
+      const { 'college-football-games': _collegeGames, ...feeds } =
+        KALSHI_STATIC_VENUE_CATALOG.feeds;
+      configurePredictNextCatalog({ ...KALSHI_STATIC_VENUE_CATALOG, feeds });
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('sports')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('nfl')),
+      ).toBeOnTheScreen();
+      expect(
+        within(feedScreen).queryByTestId(PredictFeedScreenTestIds.tab('ncaaf')),
+      ).not.toBeOnTheScreen();
     });
 
     it("opens the tab of the Category's own Feed", async () => {
