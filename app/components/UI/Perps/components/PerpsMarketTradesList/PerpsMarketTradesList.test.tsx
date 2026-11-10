@@ -104,14 +104,16 @@ jest.mock('@metamask/perps-controller', () => {
     '@metamask/perps-controller/constants',
   );
 
-  const { calculateNetClosedPnl } = jest.requireActual(
+  const { calculateNetClosedPnl, formatPerpsFiat } = jest.requireActual(
     '@metamask/perps-controller',
   );
 
   return {
     getPerpsDisplaySymbol: (symbol: string) => symbol,
-    // History nets closed PnL with Core's formula.
+    // History nets closed PnL with Core's formula and formats fees with Core's
+    // fiat formatter.
     calculateNetClosedPnl,
+    formatPerpsFiat,
     PERPS_CONSTANTS: {
       RecentActivityLimit: 3,
     },
