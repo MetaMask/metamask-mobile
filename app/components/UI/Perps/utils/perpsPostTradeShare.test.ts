@@ -98,7 +98,10 @@ describe('perpsPostTradeShare', () => {
       }),
     ).toBe(false);
     expect(
-      canPromptPerpsPostTrade({ orderType: 'market', activeProvider: 'myx' }),
+      canPromptPerpsPostTrade({
+        orderType: 'market',
+        activeProvider: 'lighter',
+      }),
     ).toBe(false);
   });
 

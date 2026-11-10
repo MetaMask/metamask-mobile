@@ -18,6 +18,7 @@ import {
 import Animated from 'react-native-reanimated';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
 import { type QuickBuyTarget } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
@@ -149,6 +150,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         ? 'social_following'
         : undefined,
   );
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const livePrices = useSocialLivePrices();
   const scrollRef = useRef<ScrollView>(null);
   const {
@@ -364,10 +366,17 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           onCopyTrade={handleCopyTrade}
           onAuthorPress={handleAuthorPress}
           onPositionPress={post.position ? handlePositionPress : undefined}
+          showCopyTrade={post.item.author.id !== viewerProfileId}
         />
       </SocialFeedPostEntrance>
     ),
-    [handleAuthorPress, handleCopyTrade, handlePositionPress, seenPostIds],
+    [
+      handleAuthorPress,
+      handleCopyTrade,
+      handlePositionPress,
+      seenPostIds,
+      viewerProfileId,
+    ],
   );
 
   const showInitialFeedSkeletons = isLoading && posts.length === 0;
