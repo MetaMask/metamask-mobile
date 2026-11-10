@@ -320,7 +320,7 @@
     "react-native-blob-util@npm:^0.18.0": "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch",
     "@ledgerhq/device-signer-kit-ethereum@npm:^1.16.0": "patch:@ledgerhq/device-signer-kit-ethereum@npm%3A1.16.0#~/.yarn/patches/@ledgerhq-device-signer-kit-ethereum-npm-1.16.0-df4b883905.patch",
     "@metamask/eth-sig-util": "^9.0.0",
-    "@metamask/profile-sync-controller": "^36.0.0",
+    "@metamask/profile-sync-controller": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
     "@metamask/account-tree-controller": "^11.1.0",
     "expo@npm:^57.0.0": "57.0.22",
     "expo-modules-core@npm:~57.0.18": "57.0.18",
@@ -333,7 +333,12 @@
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
     "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
-    "@metamask/subscription-controller": "15.0.0"
+    "@metamask/subscription-controller": "15.0.0",
+    "@metamask/profile-sync-controller@npm:^36.0.0": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
+    "@metamask/profile-sync-controller@npm:^34.0.3": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
+    "@metamask/profile-sync-controller@npm:^34.0.0": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
+    "@metamask/profile-sync-controller@npm:^32.0.0": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
+    "@metamask/profile-sync-controller@npm:^35.0.0": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
@@ -447,7 +452,7 @@
     "@metamask/preinstalled-example-snap": "^0.8.1",
     "@metamask/profile-controller": "^2.0.0",
     "@metamask/profile-metrics-controller": "^5.1.0",
-    "@metamask/profile-sync-controller": "^36.0.0",
+    "@metamask/profile-sync-controller": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
     "@metamask/ramps-controller": "^29.0.0",
     "@metamask/react-data-query": "^1.0.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",

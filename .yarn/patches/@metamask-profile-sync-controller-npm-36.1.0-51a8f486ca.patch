@@ -1,0 +1,20 @@
+diff --git a/dist/controllers/authentication/AuthenticationController.js b/dist/controllers/authentication/AuthenticationController.js
+index f555433c9447484e70e4e956c63662ecdc4ac67f..978344ba95125fbbfad608bd84c0dc2b4c3c278f 100644
+--- a/dist/controllers/authentication/AuthenticationController.js
++++ b/dist/controllers/authentication/AuthenticationController.js
+@@ -344,12 +344,9 @@ export class AuthenticationController extends BaseController {
+      * @returns The social provider identifier type, or `SRP`.
+      */
+     #identifierTypeFromSeedlessState(state) {
+-        if (state.vault === null || state.vault === undefined) {
+-            return 'SRP';
+-        }
+-        // Match provider strings from SeedlessOnboarding state rather than
+-        // importing AuthConnection — a value import would load that package
+-        // (and its heavy deps) whenever this controller is imported.
++        // Locked social MFA (exchangeSocialAccessToken) must work after OAuth
++        // even when the seedless vault is not written yet (new-device recovery /
++        // pre-password). authConnection alone identifies the social wallet.
+         switch (state.authConnection) {
+             case 'google':
+                 return 'GOOGLE';

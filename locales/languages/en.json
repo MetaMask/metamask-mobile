@@ -11065,6 +11065,9 @@
     "method_password": "Password",
     "method_email": "Email",
     "method_totp": "Authenticator app",
+    "method_failed": "Verification failed. Try again or choose another method.",
+    "offline_reason": "Connect to the internet to use these methods.",
+    "cant_use_these": "Can't use any of these?",
     "password_description": "Enter the password for this wallet.",
     "password_placeholder": "Password",
     "continue": "Continue"

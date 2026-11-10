@@ -7,11 +7,14 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  HelpText,
+  HelpTextSeverity,
   Icon,
   IconColor,
   IconName,
   IconSize,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -32,6 +35,7 @@ export interface WalletRecoveryVerifyProps {
   showPassword?: boolean;
   /**
    * When false, hides the email recovery row.
+   * MFA-882: only Telegram may show email; Google/Apple sign-in email is filtered out.
    */
   showEmail?: boolean;
   /**
@@ -39,7 +43,19 @@ export interface WalletRecoveryVerifyProps {
    */
   showTotp?: boolean;
   isBusy?: boolean;
+  /**
+   * MFA methods need network; password stays available offline (MFA-882).
+   */
+  isOffline?: boolean;
+  /**
+   * Short line after a factor verify failure (MFA-882).
+   */
+  error?: string | null;
   onBack: () => void;
+  /**
+   * "Can't use any of these?" → return to social login (MFA-882).
+   */
+  onCantUseThese: () => void;
   onSelectMethod: (method: WalletRecoveryMethod) => void;
 }
 
@@ -52,8 +68,8 @@ interface MethodRowProps {
 }
 
 /**
- * Figma Social login users — "Wallet recovery / Verify it's you" picker.
- * Pixel target: board J5wxbuiNyxmKTG92x7JqFT node screenshots under section 1:36.
+ * Figma Social login users — full-screen "Verify it's you" fallback (MFA-882).
+ * Shown when passkey is cancelled/fails or the user has no passkey.
  */
 const MethodRow = ({
   icon,
@@ -67,6 +83,7 @@ const MethodRow = ({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled: !!isDisabled }}
       disabled={isDisabled}
       onPress={onPress}
       testID={testID}
@@ -101,10 +118,16 @@ const WalletRecoveryVerify = ({
   showEmail = true,
   showTotp = true,
   isBusy = false,
+  isOffline = false,
+  error = null,
   onBack,
+  onCantUseThese,
   onSelectMethod,
 }: WalletRecoveryVerifyProps) => {
   const insets = useSafeAreaInsets();
+  // Password works offline; MFA factors need network (MFA-882).
+  const mfaDisabled = isBusy || isOffline;
+  const passwordDisabled = isBusy;
 
   const onPasskey = useCallback(() => {
     onSelectMethod('passkey');
@@ -135,13 +158,33 @@ const WalletRecoveryVerify = ({
           {strings('wallet_recovery_mfa.verify_description')}
         </Text>
 
+        {isOffline ? (
+          <HelpText
+            severity={HelpTextSeverity.Warning}
+            twClassName="mt-3"
+            testID={WalletRecoverySelectorsIDs.VERIFY_OFFLINE}
+          >
+            {strings('wallet_recovery_mfa.offline_reason')}
+          </HelpText>
+        ) : null}
+
+        {error ? (
+          <HelpText
+            severity={HelpTextSeverity.Danger}
+            twClassName="mt-3"
+            testID={WalletRecoverySelectorsIDs.VERIFY_ERROR}
+          >
+            {error}
+          </HelpText>
+        ) : null}
+
         <Box twClassName="mt-8 gap-4">
           {showPasskey ? (
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               isFullWidth
-              isDisabled={isBusy}
+              isDisabled={mfaDisabled}
               onPress={onPasskey}
               testID={WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON}
             >
@@ -165,7 +208,7 @@ const WalletRecoveryVerify = ({
                 icon={IconName.Lock}
                 label={strings('wallet_recovery_mfa.method_password')}
                 testID={WalletRecoverySelectorsIDs.METHOD_PASSWORD}
-                isDisabled={isBusy}
+                isDisabled={passwordDisabled}
                 onPress={() => onSelectMethod('password')}
               />
             ) : null}
@@ -174,7 +217,7 @@ const WalletRecoveryVerify = ({
                 icon={IconName.Mail}
                 label={strings('wallet_recovery_mfa.method_email')}
                 testID={WalletRecoverySelectorsIDs.METHOD_EMAIL}
-                isDisabled={isBusy}
+                isDisabled={mfaDisabled}
                 onPress={() => onSelectMethod('email')}
               />
             ) : null}
@@ -183,12 +226,23 @@ const WalletRecoveryVerify = ({
                 icon={IconName.QrCode}
                 label={strings('wallet_recovery_mfa.method_totp')}
                 testID={WalletRecoverySelectorsIDs.METHOD_TOTP}
-                isDisabled={isBusy}
+                isDisabled={mfaDisabled}
                 onPress={() => onSelectMethod('totp')}
               />
             ) : null}
           </Box>
         </Box>
+      </Box>
+
+      <Box twClassName="px-4 items-center">
+        <TextButton
+          variant={TextVariant.BodyMd}
+          onPress={isBusy ? undefined : onCantUseThese}
+          twClassName={isBusy ? 'opacity-50' : undefined}
+          testID={WalletRecoverySelectorsIDs.CANT_USE_THESE}
+        >
+          {strings('wallet_recovery_mfa.cant_use_these')}
+        </TextButton>
       </Box>
     </Box>
   );

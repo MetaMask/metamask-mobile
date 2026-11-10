@@ -8,8 +8,3 @@ export type { WalletRecoveryPasswordProps } from './WalletRecoveryPassword';
 export { default as WalletRecoveryLoading } from './WalletRecoveryLoading';
 export type { WalletRecoveryLoadingProps } from './WalletRecoveryLoading';
 export { WalletRecoverySelectorsIDs } from './WalletRecovery.testIds';
-export {
-  activeSocialMfaMethods,
-  listSocialEnrolledCredentials,
-  socialRecoveryMethodFlags,
-} from './listSocialEnrolledCredentials';

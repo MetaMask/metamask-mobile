@@ -109,15 +109,23 @@ import { selectAnalyticsId } from '../../../selectors/analyticsController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
-import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
-import { performSignIn } from '../../../actions/identity';
-import Engine from '../../../core/Engine';
-import { useMfa } from '../../../util/identity/mfa';
+import {
+  verifySocialLoginFactorWhileLocked,
+  verifySocialLoginWhileLocked,
+} from '../../../util/identity/mfa';
+import type {
+  MfaMethod,
+  MfaReason,
+} from '../../../util/identity/mfa/engine/types';
 import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
 import {
+  WalletRecoveryLoading,
   WalletRecoveryPassword,
-  activeSocialMfaMethods,
+  WalletRecoveryVerify,
+  type WalletRecoveryMethod,
 } from './WalletRecovery';
+
+type WalletRecoveryStep = 'loading' | 'verify' | 'password';
 
 interface OAuthRehydrationProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
@@ -131,9 +139,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const dispatch = useDispatch();
   const isMfaUiKitEnabled = useSelector(selectMfaUiKitEnabled);
   const isMoneyMfaEnabledFlag = useSelector(selectMoneyEnableMfaFlag);
-  // Social recovery: password unlock, then accounts MFA kit when factors exist.
+  // Social recovery: locked MFA (Mathieu Core APIs) then password unlock.
   const canOfferSocialMfaVerify = isMoneyMfaEnabledFlag && isMfaUiKitEnabled;
-  const { verifyOrEnroll } = useMfa();
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
   const analyticsId = useSelector(selectAnalyticsId);
@@ -584,141 +591,98 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     ],
   );
 
+  // MFA-882: blank loader → OS passkey → full-screen Verify it's you (not
+  // kit bottomsheet) → password. `password` also used when MFA is skipped.
+  const [walletRecoveryStep, setWalletRecoveryStep] =
+    useState<WalletRecoveryStep>(
+      canOfferSocialMfaVerify ? 'loading' : 'password',
+    );
+  const [fallbackMethods, setFallbackMethods] = useState<MfaMethod[]>([]);
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  /** MFA-882: password opened from fallback → back returns to verify. */
+  const [passwordFromVerify, setPasswordFromVerify] = useState(false);
+
+  const lockedMfaReason = useMemo(
+    (): MfaReason =>
+      ({
+        // Not in MfaEntryPoint yet — recovery analytics entry.
+        operation: 'onboarding.social_mfa_verify',
+        presentation: 'modal',
+        verifyDescription: strings('wallet_recovery_mfa.verify_description'),
+      }) as MfaReason,
+    [],
+  );
+
   /**
-   * After password unlock (Figma social recovery):
-   * 1. List enrolled MFA (unlocked Auth).
-   * 2. No MFA → home.
-   * 3. Highest-priority factor (passkey → totp → email) → accounts kit goes
-   * straight to that ceremony (kit skips picker when `verifyWith` is one).
-   * 4. Primary cancel/fail + other factors → kit picker bottomsheet fallback
-   * (“Verify it's you” / Get a verification code).
-   * Kit cancel/error after that still continues home (vault already unlocked).
+   * Before password unlock: Mathieu locked-state social MFA
+   * (`refreshSocialLoginCredentials` + begin/complete SocialLoginVerification).
+   * On passkey dismiss → full-screen WalletRecoveryVerify (MFA-882).
    */
-  const offerSocialMfaVerify = useCallback(async () => {
+  const offerLockedSocialMfaVerify = useCallback(async () => {
     if (!canOfferSocialMfaVerify) {
+      setWalletRecoveryStep('password');
       return;
     }
 
-    setLoading(false);
     setError(null);
-
-    const signInError = await performSignIn();
-    if (signInError) {
-      Logger.error(new Error(signInError), {
-        tags: {
-          feature: 'mfa',
-          operation: 'onboarding.social_mfa_verify',
-          phase: 'performSignIn',
-        },
-      });
-    }
-
-    let methods: ('passkey' | 'totp' | 'email_otp')[] = [];
+    setVerifyError(null);
+    setPasswordFromVerify(false);
     try {
-      const credentials =
-        await Engine.context.AuthenticationController.refreshEnrolledCredentials();
-      methods = activeSocialMfaMethods(credentials);
-      Logger.log('OAuthRehydration: post-password MFA methods', {
-        methodCount: methods.length,
-        methods,
-      });
-    } catch (listError) {
-      Logger.error(
-        listError instanceof Error ? listError : new Error(String(listError)),
-        {
-          tags: {
-            feature: 'mfa',
-            operation: 'onboarding.social_mfa_verify',
-            phase: 'refreshEnrolledCredentials',
-          },
-        },
-      );
-      return;
-    }
-
-    if (methods.length === 0) {
-      return;
-    }
-
-    const mfaReason = {
-      operation: 'onboarding.social_mfa_verify',
-      presentation: 'modal' as const,
-      verifyDescription: strings('wallet_recovery_mfa.verify_description'),
-    };
-
-    // Figma: highest-priority MFA opens directly (no bottomsheet first).
-    // Kit: single `verifyWith` → skip picker and start that factor.
-    const primary = methods[0];
-    try {
-      Logger.log(
-        'OAuthRehydration: starting post-password primary MFA factor',
-        { primary, methods },
-      );
-      await verifyOrEnroll({
-        methods: [primary],
-        verifyWith: primary,
-        reason: mfaReason,
-      });
-      Logger.log('OAuthRehydration: post-password primary MFA finished');
-      return;
-    } catch (primaryError) {
-      const primaryCode = getMfaErrorCode(primaryError);
-      if (primaryCode !== 'flow_cancelled') {
-        Logger.error(
-          primaryError instanceof Error
-            ? primaryError
-            : new Error(String(primaryCode ?? 'mfa_error')),
-          {
-            tags: {
-              feature: 'mfa',
-              mfaCode: primaryCode ?? 'unknown',
-              operation: 'onboarding.social_mfa_verify',
-              phase: 'accounts_kit_primary_post_password',
-            },
-          },
-        );
-      } else {
-        Logger.log('OAuthRehydration: post-password primary MFA cancelled');
-      }
-    }
-
-    // Figma fallback: “Verify it's you” picker when other factors exist.
-    if (methods.length < 2) {
-      return;
-    }
-
-    try {
-      Logger.log(
-        'OAuthRehydration: starting post-password MFA picker fallback',
-        { methods },
-      );
-      await verifyOrEnroll({
-        methods,
-        verifyWith: methods,
-        reason: mfaReason,
-      });
-      Logger.log('OAuthRehydration: post-password MFA picker finished');
-    } catch (mfaError) {
-      const code = getMfaErrorCode(mfaError);
-      if (code === 'flow_cancelled') {
-        Logger.log('OAuthRehydration: post-password MFA picker cancelled');
+      const outcome = await verifySocialLoginWhileLocked(lockedMfaReason);
+      Logger.log('OAuthRehydration: locked social MFA outcome', outcome);
+      if (outcome.status === 'fallback') {
+        setFallbackMethods(outcome.methods);
+        setWalletRecoveryStep('verify');
         return;
       }
-      Logger.error(
-        mfaError instanceof Error
-          ? mfaError
-          : new Error(String(code ?? 'mfa_error')),
-        {
-          tags: {
-            feature: 'mfa',
-            mfaCode: code ?? 'unknown',
-            operation: 'onboarding.social_mfa_verify',
-            phase: 'accounts_kit_picker_fallback_post_password',
-          },
-        },
-      );
+      // verified / skipped / failed / cancelled → password unlock next
+      setPasswordFromVerify(false);
+    } finally {
+      setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
     }
-  }, [canOfferSocialMfaVerify, verifyOrEnroll]);
+  }, [canOfferSocialMfaVerify, lockedMfaReason]);
+
+  const handleRecoveryMethodSelect = useCallback(
+    async (method: WalletRecoveryMethod) => {
+      // MFA-882: Google/Apple must never offer sign-in email as a method.
+      if (method === 'email' && authConnection !== 'telegram') {
+        return;
+      }
+
+      if (method === 'password') {
+        setVerifyError(null);
+        setPasswordFromVerify(true);
+        setWalletRecoveryStep('password');
+        return;
+      }
+
+      const mfaMethod: MfaMethod = method === 'email' ? 'email_otp' : method;
+      setVerifyBusy(true);
+      setVerifyError(null);
+      setError(null);
+      try {
+        const outcome = await verifySocialLoginFactorWhileLocked(
+          lockedMfaReason,
+          mfaMethod,
+        );
+        Logger.log('OAuthRehydration: fallback factor outcome', outcome);
+        if (outcome.status === 'verified') {
+          // MFA succeeded — continue recovery at password; do not loop to verify.
+          setPasswordFromVerify(false);
+          setWalletRecoveryStep('password');
+          return;
+        }
+        if (outcome.status === 'failed') {
+          setVerifyError(strings('wallet_recovery_mfa.method_failed'));
+        }
+        // cancelled → stay on full-screen verify, no error line
+      } finally {
+        setVerifyBusy(false);
+      }
+    },
+    [authConnection, lockedMfaReason],
+  );
 
   const onRehydrateLogin = useCallback(async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
@@ -782,8 +746,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               endTrace({ name: TraceName.OnboardingExistingSocialLogin });
               endTrace({ name: TraceName.OnboardingJourneyOverall });
               await upgradeKeychainAuthAfterSuccessfulUnlock();
-              // Password unlocked — open accounts MFA kit when factors exist.
-              await offerSocialMfaVerify();
             },
             // Nest OnboardingFetchSrps under Password Login Attempt when present.
             parentContext: passwordLoginAttemptCtx ?? journeyCtx,
@@ -833,7 +795,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     promptBiometricFailedAlert,
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
-    offerSocialMfaVerify,
     accountType,
     syncMarketingOptInAfterUnlock,
   ]);
@@ -915,6 +876,49 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
   }, [track]);
 
+  // Locked-state MFA before password (Mathieu Core #11371 APIs).
+  // Wait until Seedless has a social authConnection — Telegram/Google/Apple
+  // OAuth can land on this screen before social state is written, and
+  // refreshSocialLoginCredentials then fails with "no social login".
+  const hasOfferedLockedSocialMfa = useRef(false);
+  const hasSocialAuthConnection =
+    authConnection === 'google' ||
+    authConnection === 'apple' ||
+    authConnection === 'telegram';
+  useEffect(() => {
+    if (
+      !canOfferSocialMfaVerify ||
+      !hasSocialAuthConnection ||
+      hasOfferedLockedSocialMfa.current
+    ) {
+      return;
+    }
+    hasOfferedLockedSocialMfa.current = true;
+    void offerLockedSocialMfaVerify();
+  }, [
+    canOfferSocialMfaVerify,
+    hasSocialAuthConnection,
+    offerLockedSocialMfaVerify,
+  ]);
+
+  // Safety: don't leave the loading gate forever if social state never arrives.
+  useEffect(() => {
+    if (
+      !canOfferSocialMfaVerify ||
+      walletRecoveryStep !== 'loading' ||
+      hasSocialAuthConnection
+    ) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      Logger.log(
+        'OAuthRehydration: locked MFA gate timed out waiting for social auth',
+      );
+      setWalletRecoveryStep('password');
+    }, 10_000);
+    return () => clearTimeout(timer);
+  }, [canOfferSocialMfaVerify, walletRecoveryStep, hasSocialAuthConnection]);
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
     return false;
@@ -931,13 +935,22 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     };
   }, [handleBackPress]);
 
-  const handleUseOtherMethod = () => {
+  const handleUseOtherMethod = useCallback(() => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
       account_type: accountType,
     });
     navigation.goBack();
     OAuthService.resetOauthState();
-  };
+  }, [accountType, navigation, track]);
+
+  const handlePasswordBack = useCallback(() => {
+    // MFA-882: back from password opened via "Use password" → fallback verify.
+    if (passwordFromVerify) {
+      setWalletRecoveryStep('verify');
+      return;
+    }
+    handleUseOtherMethod();
+  }, [passwordFromVerify, handleUseOtherMethod]);
 
   const handleDownloadStateLogs = () => {
     const fullState = ReduxService.store.getState();
@@ -1065,19 +1078,47 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     </OnboardingLoginCanvas>
   );
 
-  // Password unlock first, then accounts MFA kit (in onBeforeNavigate).
-  const renderWalletRecovery = () => (
-    <WalletRecoveryPassword
-      password={password}
-      error={error}
-      isBusy={finalLoading}
-      isDisabled={disabledInput}
-      themeAppearance={themeAppearance}
-      onBack={handleUseOtherMethod}
-      onChangePassword={handlePasswordChange}
-      onContinue={handleLogin}
-    />
-  );
+  // MFA-882: email code only for Telegram — never Google/Apple sign-in email.
+  const showEmailOnVerify =
+    authConnection === 'telegram' && fallbackMethods.includes('email_otp');
+
+  const isRecoveryOffline =
+    netInfo.isConnected === false || netInfo.isInternetReachable === false;
+
+  // MFA-882: loader → (OS passkey) → full-screen verify fallback → password.
+  const renderWalletRecovery = () => {
+    if (walletRecoveryStep === 'loading') {
+      return <WalletRecoveryLoading onBack={handleUseOtherMethod} />;
+    }
+    if (walletRecoveryStep === 'verify') {
+      return (
+        <WalletRecoveryVerify
+          showPasskey={fallbackMethods.includes('passkey')}
+          showPassword
+          showEmail={showEmailOnVerify}
+          showTotp={fallbackMethods.includes('totp')}
+          isBusy={verifyBusy}
+          isOffline={isRecoveryOffline}
+          error={verifyError}
+          onBack={handleUseOtherMethod}
+          onCantUseThese={handleUseOtherMethod}
+          onSelectMethod={handleRecoveryMethodSelect}
+        />
+      );
+    }
+    return (
+      <WalletRecoveryPassword
+        password={password}
+        error={error}
+        isBusy={finalLoading}
+        isDisabled={disabledInput}
+        themeAppearance={themeAppearance}
+        onBack={handlePasswordBack}
+        onChangePassword={handlePasswordChange}
+        onContinue={handleLogin}
+      />
+    );
+  };
 
   return (
     <ErrorBoundary
