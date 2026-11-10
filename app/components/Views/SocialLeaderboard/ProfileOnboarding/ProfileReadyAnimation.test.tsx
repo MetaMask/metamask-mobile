@@ -63,7 +63,9 @@ const renderReady = (
   themeAppearance: AppThemeKey.light | AppThemeKey.dark = AppThemeKey.light,
 ) => {
   const ui = (appearance: AppThemeKey.light | AppThemeKey.dark) => (
-    <ThemeContext.Provider value={{ ...mockTheme, themeAppearance: appearance }}>
+    <ThemeContext.Provider
+      value={{ ...mockTheme, themeAppearance: appearance }}
+    >
       <ProfileReadyAnimation
         displayName="Wen Cat"
         handle="wen-cat"
