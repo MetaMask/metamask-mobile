@@ -15,6 +15,7 @@ import {
   unknown,
   union,
 } from '@metamask/superstruct';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PredictError, PredictErrorCode } from '../../errors';
 import { amount, decimal, httpsUrl, timestamp } from './primitives';
 import type {
@@ -203,6 +204,35 @@ export const PredictMarketGroupSchema = union([
   unsupportedMarketGroupSchema,
 ]);
 
+/**
+ * A Market's group. Presentation only, so a malformed group is dropped and the
+ * Market renders as a standard card, rather than one bad line rejecting the
+ * whole Event.
+ */
+const marketGroupSchema = coerce(
+  optional(PredictMarketGroupSchema),
+  unknown(),
+  (value) => {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    try {
+      return mask(value, PredictMarketGroupSchema);
+    } catch (error) {
+      const key =
+        typeof value === 'object' && value !== null && 'key' in value
+          ? String(value.key)
+          : '';
+      DevLogger.log(
+        `[PredictNext] Dropped malformed Market group "${key}"; its Market renders as a standard card`,
+        error instanceof Error ? error.message : error,
+      );
+      return undefined;
+    }
+  },
+);
+
 const layoutLevelSchema = object({
   key: nonEmptyGroupString('PredictMarketLayoutKey'),
   order: refine(number(), 'PredictMarketLayoutOrder', Number.isInteger),
@@ -242,7 +272,7 @@ const marketSchema = object({
   rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
-  group: optional(PredictMarketGroupSchema),
+  group: marketGroupSchema,
   layout: marketLayoutSchema,
   volume: optional(amount),
   volume24h: optional(amount),
