@@ -9,6 +9,8 @@ import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { strings } from '../../../../../../locales/i18n';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
+import { useReduceMotionState } from '../../../Money/hooks/useReduceMotion';
+import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
 
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
@@ -80,6 +82,10 @@ jest.mock(
   },
 );
 
+jest.mock('../../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotionState: jest.fn(() => false),
+}));
+
 jest.mock('../../../KYC/components/Illustration', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -92,6 +98,21 @@ jest.mock('../../../KYC/components/Illustration', () => {
     },
     default: () =>
       ReactActual.createElement(View, { testID: 'vba-illustration' }),
+  };
+});
+
+jest.mock('../../../MarketingMomentTitle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      testID,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(Text, { testID }, children),
   };
 });
 
@@ -110,29 +131,31 @@ jest.mock('@metamask/design-system-react-native', () => {
     }) => ReactActual.createElement(View, { testID, ...props }, children),
     BoxAlignItems: { Center: 'Center' },
     BoxJustifyContent: { Center: 'Center', End: 'End' },
+    FontWeight: { Medium: 'Medium' },
+    TextColor: { TextAlternative: 'TextAlternative' },
+    TextVariant: { BodySm: 'BodySm' },
+    Text: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(Text, { testID }, children),
     TitleStandard: ({
       title,
       bottomLabel,
-      titleProps,
-      bottomLabelProps,
       topAccessory,
     }: {
-      title?: string;
-      bottomLabel?: string;
-      titleProps?: { testID?: string };
-      bottomLabelProps?: { testID?: string };
+      title?: React.ReactNode;
+      bottomLabel?: React.ReactNode;
       topAccessory?: React.ReactNode;
     }) =>
       ReactActual.createElement(
         View,
         { testID: 'title-standard' },
         topAccessory,
-        ReactActual.createElement(Text, { testID: titleProps?.testID }, title),
-        ReactActual.createElement(
-          Text,
-          { testID: bottomLabelProps?.testID },
-          bottomLabel,
-        ),
+        title,
+        bottomLabel,
       ),
     Button: ({
       children,
@@ -167,6 +190,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 const mockUseRoute = jest.mocked(useRoute);
 const mockGetCardBaanxToken = jest.mocked(getCardBaanxToken);
+const mockUseReduceMotionState = jest.mocked(useReduceMotionState);
 
 const pressContinue = () => {
   const { getByTestId } = render(<Complete />);
@@ -176,6 +200,8 @@ const pressContinue = () => {
 describe('Complete', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetRiveMocks();
+    mockUseReduceMotionState.mockReturnValue(false);
     mockUseRoute.mockReturnValue({
       key: 'complete',
       name: 'Complete',
@@ -201,6 +227,38 @@ describe('Complete', () => {
       strings('card.card_onboarding.complete.confirm_button'),
     );
     expect(queryByTestId(CompleteSelectors.NOT_NOW_BUTTON)).toBeNull();
+  });
+
+  it('draws the tick in with Rive when Reduce Motion is off', () => {
+    const { getByTestId, queryByTestId } = render(<Complete />);
+
+    expect(getByTestId(CompleteSelectors.CHECK_ANIMATION)).toBeOnTheScreen();
+    expect(queryByTestId(CompleteSelectors.CHECK_IMAGE)).not.toBeOnTheScreen();
+  });
+
+  it('shows the static checkmark and all content under Reduce Motion', () => {
+    mockUseReduceMotionState.mockReturnValue(true);
+
+    const { getByTestId, queryByTestId } = render(<Complete />);
+
+    expect(getByTestId(CompleteSelectors.CHECK_IMAGE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(CompleteSelectors.CHECK_ANIMATION),
+    ).not.toBeOnTheScreen();
+    expect(getByTestId(CompleteSelectors.TITLE)).toBeOnTheScreen();
+    expect(getByTestId(CompleteSelectors.CONFIRM_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('shows neither checkmark while the Reduce Motion check is pending', () => {
+    mockUseReduceMotionState.mockReturnValue(null);
+
+    const { getByTestId, queryByTestId } = render(<Complete />);
+
+    expect(
+      queryByTestId(CompleteSelectors.CHECK_ANIMATION),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId(CompleteSelectors.CHECK_IMAGE)).not.toBeOnTheScreen();
+    expect(getByTestId(CompleteSelectors.IMAGE)).toBeOnTheScreen();
   });
 
   it('tracks the screen view on mount', () => {

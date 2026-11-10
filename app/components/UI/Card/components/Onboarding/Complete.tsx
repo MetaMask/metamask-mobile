@@ -1,5 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
+import { AnimationDuration } from '@metamask/design-tokens';
 import {
   StackActions,
   useNavigation,
@@ -19,6 +27,7 @@ import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CompleteSelectors } from './Complete.testIds';
+import MarketingMomentTitle from '../../../MarketingMomentTitle';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -27,13 +36,16 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import VbaIllustration, {
-  VbaIllustrationSource,
-} from '../../../KYC/components/Illustration';
+import { useReduceMotionState } from '../../../Money/hooks/useReduceMotion';
+import CompleteCheckAnimation from './CompleteCheckAnimation';
 
 /**
  * Route params for Complete screen
@@ -49,6 +61,51 @@ interface CompleteRouteParams {
    */
   nextDestination?: NextDestination;
 }
+
+// -- Content cascade ---------------------------------------------------------
+// Once the tick starts drawing, the title, description and button each fade in
+// and rise into place, one after another. Under Reduce Motion they show at once.
+
+/** How far each item rises into place. */
+const CASCADE_RISE_PX = 10;
+/** Delay after the tick starts before the title enters, so it lands mid-draw. */
+const CASCADE_LEAD_MS = AnimationDuration.Regularly;
+/** Gap between each item starting. */
+const CASCADE_STAGGER_MS = 80;
+/** How long each item takes to enter. */
+const CASCADE_DURATION_MS = AnimationDuration.Regularly;
+/**
+ * Cap on waiting for the tick to start. The Rive file load and the native
+ * view-ready handshake are both unbounded, and the copy must never wait on them.
+ */
+export const COMPLETE_ENTRANCE_START_TIMEOUT_MS = 2000;
+
+type CascadeState = 'pending' | 'play' | 'static';
+
+const useCascadeStyle = (step: number, state: CascadeState) => {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    if (state === 'static') {
+      progress.value = 1;
+      return;
+    }
+    if (state === 'play') {
+      progress.value = withDelay(
+        CASCADE_LEAD_MS + step * CASCADE_STAGGER_MS,
+        withTiming(1, {
+          duration: CASCADE_DURATION_MS,
+          easing: Easing.out(Easing.cubic),
+        }),
+      );
+    }
+  }, [progress, state, step]);
+
+  return useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ translateY: (1 - progress.value) * CASCADE_RISE_PX }],
+  }));
+};
 
 /**
  * Card onboarding success ("You're in!"). Visual layout mirrors VBA's
@@ -66,6 +123,39 @@ const Complete = () => {
   const route =
     useRoute<RouteProp<{ params: CompleteRouteParams }, 'params'>>();
   const nextDestination = route.params?.nextDestination;
+  // `null` while the Reduce Motion check is in flight; nothing animates or
+  // shows until it resolves, so the first paint never flashes.
+  const reduceMotion = useReduceMotionState();
+  const [hasEntranceStarted, setHasEntranceStarted] = useState(false);
+  const startEntrance = useCallback(() => setHasEntranceStarted(true), []);
+
+  let cascadeState: CascadeState = 'pending';
+  if (reduceMotion === true) {
+    cascadeState = 'static';
+  } else if (reduceMotion === false && hasEntranceStarted) {
+    cascadeState = 'play';
+  }
+  const titleStyle = useCascadeStyle(0, cascadeState);
+  const descriptionStyle = useCascadeStyle(1, cascadeState);
+  const buttonStyle = useCascadeStyle(2, cascadeState);
+
+  let checkMode: 'pending' | 'animate' | 'static' = 'pending';
+  if (reduceMotion === true) {
+    checkMode = 'static';
+  } else if (reduceMotion === false) {
+    checkMode = 'animate';
+  }
+
+  useEffect(() => {
+    if (reduceMotion !== false || hasEntranceStarted) {
+      return undefined;
+    }
+    const timeout = setTimeout(
+      startEntrance,
+      COMPLETE_ENTRANCE_START_TIMEOUT_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [reduceMotion, hasEntranceStarted, startEntrance]);
 
   useEffect(() => {
     trackEvent(
@@ -144,17 +234,30 @@ const Complete = () => {
         contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
       >
         <TitleStandard
-          title={strings('card.card_onboarding.complete.title')}
-          bottomLabel={strings('card.card_onboarding.complete.description')}
-          titleProps={{
-            twClassName: 'text-center',
-            testID: CompleteSelectors.TITLE,
-          }}
+          title={
+            <Animated.View style={[tw.style('w-full'), titleStyle]}>
+              <MarketingMomentTitle
+                twClassName="w-full text-center"
+                testID={CompleteSelectors.TITLE}
+              >
+                {strings('card.card_onboarding.complete.title')}
+              </MarketingMomentTitle>
+            </Animated.View>
+          }
+          bottomLabel={
+            <Animated.View style={[tw.style('w-full'), descriptionStyle]}>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="text-center"
+                testID={CompleteSelectors.DESCRIPTION}
+              >
+                {strings('card.card_onboarding.complete.description')}
+              </Text>
+            </Animated.View>
+          }
           titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
-          bottomLabelProps={{
-            twClassName: 'text-center',
-            testID: CompleteSelectors.DESCRIPTION,
-          }}
           bottomLabelWrapperProps={{
             justifyContent: BoxJustifyContent.Center,
           }}
@@ -165,27 +268,30 @@ const Complete = () => {
               twClassName="mb-5 w-full"
               testID={CompleteSelectors.IMAGE}
             >
-              <VbaIllustration
-                source={VbaIllustrationSource.checkmark}
-                twClassName="h-[107px] w-[140px]"
+              <CompleteCheckAnimation
+                mode={checkMode}
+                onEntranceStart={startEntrance}
+                onRiveError={startEntrance}
               />
             </Box>
           }
         />
       </ScrollView>
-      <Box twClassName="gap-2 px-4 pb-2 pt-4">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={handleContinue}
-          isFullWidth
-          isDisabled={isLoading}
-          isLoading={isLoading}
-          testID={CompleteSelectors.CONFIRM_BUTTON}
-        >
-          {strings('card.card_onboarding.complete.confirm_button')}
-        </Button>
-      </Box>
+      <Animated.View style={buttonStyle}>
+        <Box twClassName="gap-2 px-4 pb-2 pt-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            onPress={handleContinue}
+            isFullWidth
+            isDisabled={isLoading}
+            isLoading={isLoading}
+            testID={CompleteSelectors.CONFIRM_BUTTON}
+          >
+            {strings('card.card_onboarding.complete.confirm_button')}
+          </Button>
+        </Box>
+      </Animated.View>
     </SafeAreaView>
   );
 };
