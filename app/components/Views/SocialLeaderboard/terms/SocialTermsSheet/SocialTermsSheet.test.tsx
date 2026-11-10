@@ -176,6 +176,41 @@ describe('SocialTermsSheet', () => {
     expect(onAgree).not.toHaveBeenCalled();
   });
 
+  it('paints hosted terms with the sheet background before the document loads', () => {
+    const sheetBackground = darkTheme.colors.background.default;
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html={
+          '<html><head></head><body style="background:white">Terms</body></html>'
+        }
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+      {
+        theme: {
+          ...mockTheme,
+          colors: darkTheme.colors,
+          themeAppearance: AppThemeKey.dark,
+        },
+      },
+    );
+
+    const webView = getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW);
+
+    expect(webView.props.style).toEqual(
+      expect.objectContaining({ backgroundColor: sheetBackground }),
+    );
+    expect(webView.props.containerStyle).toEqual(
+      expect.objectContaining({ backgroundColor: sheetBackground }),
+    );
+    expect(webView.props.source.html).toContain(
+      `background-color:${sheetBackground}!important`,
+    );
+    expect(webView.props.injectedJavaScriptBeforeContentLoaded).toContain(
+      `background-color:${sheetBackground}!important`,
+    );
+  });
+
   it('renders the hosted terms page when a uri is provided', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <SocialTermsSheet

@@ -37,6 +37,36 @@ const BODY_HEIGHT_RATIO = 0.6;
 const WEBVIEW_SCROLL_END_EVENT = 'social-terms-scroll-end';
 const WEBVIEW_SCROLL_NOT_END_EVENT = 'social-terms-scroll-not-end';
 const TERMS_BASE_URL = 'https://metamask.com';
+/** Sheet fills are hex tokens. Reject anything else before it reaches CSS. */
+const SHEET_BACKGROUND_COLOR_PATTERN =
+  /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+
+/**
+ * The WebView and the terms document both paint white before the page's dark
+ * stylesheet applies. Force the sheet surface onto both so that first frame
+ * matches the bottom sheet.
+ */
+const sheetBackgroundStyle = (backgroundColor: string): string =>
+  `html,body{background-color:${backgroundColor}!important}`;
+
+const withSheetBackground = (html: string, backgroundColor: string): string => {
+  if (!SHEET_BACKGROUND_COLOR_PATTERN.test(backgroundColor)) {
+    return html;
+  }
+  const style = `<style>${sheetBackgroundStyle(backgroundColor)}</style>`;
+  const headOpen = /<head[^>]*>/iu.exec(html);
+  if (headOpen?.[0]) {
+    return html.replace(headOpen[0], `${headOpen[0]}${style}`);
+  }
+  return `${style}${html}`;
+};
+
+const sheetBackgroundScript = (backgroundColor: string): string | undefined => {
+  if (!SHEET_BACKGROUND_COLOR_PATTERN.test(backgroundColor)) {
+    return undefined;
+  }
+  return `(function(){var style=document.createElement('style');style.textContent='${sheetBackgroundStyle(backgroundColor)}';(document.head||document.documentElement).appendChild(style);})();`;
+};
 
 /**
  * Android composites WebView above later siblings. Elevation keeps this
@@ -224,7 +254,10 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
         {strings('social_leaderboard.terms.title')}
       </BottomSheetHeader>
       <Box
-        style={{ height: windowHeight * BODY_HEIGHT_RATIO }}
+        style={{
+          height: windowHeight * BODY_HEIGHT_RATIO,
+          backgroundColor: termsBackground,
+        }}
         twClassName="relative border-b border-muted"
       >
         {showsHostedTerms ? (
@@ -232,13 +265,19 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
             ref={webViewRef}
             source={
               themedHtml
-                ? { html: themedHtml, baseUrl: 'https://metamask.com' }
+                ? {
+                    html: withSheetBackground(themedHtml, termsBackground),
+                    baseUrl: TERMS_BASE_URL,
+                  }
                 : { uri: uri ?? '' }
             }
             style={webViewBackgroundStyle}
             containerStyle={webViewBackgroundStyle}
             overScrollMode="never"
             nestedScrollEnabled
+            injectedJavaScriptBeforeContentLoaded={sheetBackgroundScript(
+              termsBackground,
+            )}
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}
             onScroll={handleWebViewScroll}
