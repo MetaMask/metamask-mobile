@@ -546,6 +546,31 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('uses the DisplayLg line height for the account step title', async () => {
+    renderSocialProfileOnboarding();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+
+    const title = screen.getByText(
+      strings('social_leaderboard.profile_onboarding.link_account'),
+    );
+
+    expect(title).toHaveStyle({
+      lineHeight: 50,
+      paddingTop: 0,
+      paddingBottom: 0,
+      marginBottom: 0,
+    });
+  });
+
   it('shows the static live activity on the intro while offline', () => {
     renderSocialProfileOnboarding();
 

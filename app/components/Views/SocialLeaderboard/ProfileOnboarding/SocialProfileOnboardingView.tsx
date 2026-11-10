@@ -30,7 +30,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  type TextStyle,
+} from 'react-native';
 import {
   SafeAreaInsetsContext,
   SafeAreaView,
@@ -152,14 +157,27 @@ const LIVE_ACTIVITY = [
  * Spacing stays on the wrapper. The title paints its metrics as a style, so a
  * padding class on the text would lose to that style.
  */
+/**
+ * Design-system DisplayLg line box (40px font, 50px line). It replaces the
+ * Grotzec tight metrics, so the clip padding and negative margin are cleared.
+ */
+const DISPLAY_LG_LINE_STYLE: TextStyle = {
+  lineHeight: 50,
+  paddingTop: 0,
+  paddingBottom: 0,
+  marginBottom: 0,
+};
+
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
-}> = ({ children, twClassName }) => (
+  textStyle?: TextStyle;
+}> = ({ children, twClassName, textStyle }) => (
   <Box twClassName={twClassName}>
     <MarketingMomentTitle
       variant={TextVariant.DisplayLg}
       twClassName="w-full text-center"
+      style={textStyle}
     >
       {children}
     </MarketingMomentTitle>
@@ -1187,7 +1205,10 @@ const SocialProfileOnboardingView: React.FC = () => {
                   twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
-                  <OnboardingTitle twClassName="pt-2">
+                  <OnboardingTitle
+                    twClassName="pt-2"
+                    textStyle={DISPLAY_LG_LINE_STYLE}
+                  >
                     {strings(
                       'social_leaderboard.profile_onboarding.link_account',
                     )}
