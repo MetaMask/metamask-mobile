@@ -96,6 +96,12 @@ const mapError = (error: unknown): never => {
         metadata,
       });
     }
+    // The backend refuses an account read it cannot verify against the
+    // device's signature: there is no shared account to fall back on, so
+    // the only fix is an authorized read. Not a region refusal.
+    if (error.bodyCode === 'venue_authorization_required') {
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
+    }
     // A 451, or a 403 from the backend or its edge, refuses the user's
     // region. Retrying cannot change that.
     if (error.status === 403 || error.status === 451) {

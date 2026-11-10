@@ -490,6 +490,19 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
+  it('maps a venue_authorization_required 403 to UNAUTHENTICATED, not GEO_BLOCKED', async () => {
+    client.fetchBalance.mockRejectedValue(
+      new PredictHttpError(403, 'venue_authorization_required'),
+    );
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({
+        code: PredictErrorCode.UNAUTHENTICATED,
+        metadata: { status: 403, bodyCode: 'venue_authorization_required' },
+      }),
+    );
+  });
+
   it('maps Balance HTTP 503 to VENUE_UNAVAILABLE', async () => {
     client.fetchBalance.mockRejectedValue(new PredictHttpError(503));
 
