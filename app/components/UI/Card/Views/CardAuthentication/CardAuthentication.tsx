@@ -14,13 +14,11 @@ import React, {
 } from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
-  Box,
   FontWeight,
+  HelpText,
+  HelpTextSeverity,
   Text,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useCardAuth } from '../../hooks/useCardAuth';
 import { useCardSignIn } from '../../hooks/useCardSignIn';
@@ -970,96 +968,74 @@ const CardAuthentication = () => {
     );
   })();
 
-  const actions =
-    view.mode === 'otp' ? (
-      <>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={() => performEmailLogin(confirmCode)}
-          isLoading={loading}
-          isDisabled={
-            loading || !confirmCode || confirmCode.length < CODE_LENGTH
+  const signUpButtonProps = {
+    children: strings('card.card_authentication.signup_button'),
+    onPress: handleSignUpPress,
+    testID: CardAuthenticationSelectors.SIGNUP_BUTTON,
+  };
+
+  const showPrimaryCta =
+    view.mode !== 'fork' &&
+    view.mode !== 'account_missing' &&
+    view.mode !== 'resolving';
+
+  const primaryButtonProps =
+    view.mode === 'otp'
+      ? {
+          children: strings('card.card_otp_authentication.confirm_button'),
+          onPress: () => performEmailLogin(confirmCode),
+          isLoading: loading,
+          isDisabled:
+            loading || !confirmCode || confirmCode.length < CODE_LENGTH,
+          testID: CardAuthenticationSelectors.OTP_CONFIRM_BUTTON,
+        }
+      : showPrimaryCta
+        ? {
+            children: ctaLabel,
+            onPress: handlePrimary,
+            isLoading: view.mode === 'wallet' ? walletSubmitting : loading,
+            isDisabled: ctaDisabled,
+            testID: CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
           }
-          isFullWidth
-          testID={CardAuthenticationSelectors.OTP_CONFIRM_BUTTON}
-        >
-          {strings('card.card_otp_authentication.confirm_button')}
-        </Button>
-        <TouchableOpacity
-          onPress={handleBackToLogin}
-          testID={CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-default text-center p-4"
-          >
-            {strings('card.card_otp_authentication.back_to_login_button')}
-          </Text>
-        </TouchableOpacity>
-      </>
-    ) : (
-      <Box twClassName="flex flex-col justify-center gap-2">
-        {error && view.mode === 'email' && (
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default"
-            testID={CardAuthenticationSelectors.LOGIN_ERROR_TEXT}
-          >
-            {error}
-          </Text>
-        )}
-        {view.mode !== 'fork' &&
-          view.mode !== 'account_missing' &&
-          view.mode !== 'resolving' && (
-            <Box>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                testID={CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON}
-                onPress={handlePrimary}
-                isLoading={view.mode === 'wallet' ? walletSubmitting : loading}
-                isFullWidth
-                isDisabled={ctaDisabled}
-              >
-                {ctaLabel}
-              </Button>
-              {showSignupWithCta && (
-                <TouchableOpacity onPress={handleSignUpPress}>
-                  <Text
-                    testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    twClassName="text-default text-center p-4"
-                  >
-                    {strings('card.card_authentication.signup_button')}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </Box>
-          )}
-        {view.mode === 'fork' && (
-          <TouchableOpacity onPress={handleSignUpPress}>
-            <Text
-              testID={CardAuthenticationSelectors.SIGNUP_BUTTON}
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              twClassName="text-default text-center p-4"
-            >
-              {strings('card.card_authentication.signup_button')}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </Box>
-    );
+        : undefined;
+
+  const tertiaryButtonProps =
+    view.mode === 'otp'
+      ? {
+          children: strings(
+            'card.card_otp_authentication.back_to_login_button',
+          ),
+          onPress: handleBackToLogin,
+          testID: CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON,
+        }
+      : (showPrimaryCta && showSignupWithCta) || view.mode === 'fork'
+        ? signUpButtonProps
+        : undefined;
+
+  const loginError =
+    error && view.mode === 'email' ? (
+      <HelpText
+        severity={HelpTextSeverity.Danger}
+        accessibilityRole="alert"
+        accessibilityLiveRegion="polite"
+        testID={CardAuthenticationSelectors.LOGIN_ERROR_TEXT}
+      >
+        {error}
+      </HelpText>
+    ) : null;
 
   return (
     <OnboardingStep
       title={title}
       description={description}
-      formFields={formFields}
-      actions={actions}
+      formFields={
+        <>
+          {formFields}
+          {loginError}
+        </>
+      }
+      primaryButtonProps={primaryButtonProps}
+      tertiaryButtonProps={tertiaryButtonProps}
       headerMode="back"
     />
   );

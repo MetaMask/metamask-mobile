@@ -24,8 +24,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
-import { ActivityIndicator } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, IconSize, Spinner } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CardUserPhase } from '../types';
 import Complete from '../components/Onboarding/Complete';
@@ -205,7 +204,10 @@ const OnboardingNavigator: React.FC = () => {
   if (onboardingId && !user && (isLoading || isFetchingUserData)) {
     return (
       <Box twClassName="flex-1 items-center justify-center">
-        <ActivityIndicator testID="activity-indicator" size="large" />
+        <Spinner
+          testID="activity-indicator"
+          spinnerIconProps={{ size: IconSize.Xl }}
+        />
       </Box>
     );
   }
