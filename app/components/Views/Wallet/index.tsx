@@ -592,9 +592,7 @@ const Wallet = ({
   }, []);
 
   useEffect(() => {
-    // do not prompt for social login flow
     if (
-      !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
       isParticipatingInMetaMetrics &&
       isPastPrivacyPolicyDate
@@ -604,7 +602,6 @@ const Wallet = ({
       });
     }
   }, [
-    isSocialLogin,
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
