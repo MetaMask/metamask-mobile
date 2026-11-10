@@ -618,6 +618,29 @@ export function useTaxDocumentation(profileId: string) {
     [openSheet],
   );
 
+  /**
+   * One forced summary read per press. The pressed summary still holds the
+   * income that tax has just released, so it has no claim route and Claim
+   * runs against this read. A second forced read would queue behind the
+   * first, so a read that fails here is not retried. Without a held balance
+   * a GATE_OFF read only refreshes the card in the background.
+   */
+  const readSummaryAfterTax = useCallback(
+    async (
+      taxMe: TaxMeDto | null,
+      heldForTax: boolean,
+    ): Promise<EarningsSummaryDto | undefined> => {
+      if (heldForTax && taxMe?.cleared === true) {
+        return readFreshSummary();
+      }
+      if (taxMe?.reason === 'GATE_OFF') {
+        refreshSummary();
+      }
+      return undefined;
+    },
+    [readFreshSummary, refreshSummary],
+  );
+
   const onClaimPress = useCallback(
     async (
       summary: EarningsSummaryDto,
@@ -641,15 +664,7 @@ export function useTaxDocumentation(profileId: string) {
         const submitted = taxMe
           ? await dropStaleSubmitted(readBack, taxMe)
           : readBack;
-        if (taxMe?.reason === 'GATE_OFF') {
-          refreshSummary();
-        }
-        // The pressed summary still holds the income that tax has just
-        // released, so it has no claim route. Claim against the fresh read.
-        const freshSummary =
-          heldForTax && taxMe?.cleared === true
-            ? await readFreshSummary()
-            : undefined;
+        const freshSummary = await readSummaryAfterTax(taxMe, heldForTax);
         const omitFollowTrade = taxMe
           ? openClaimSheet(taxMe, submitted)
           : false;
@@ -667,10 +682,9 @@ export function useTaxDocumentation(profileId: string) {
     [
       dropStaleSubmitted,
       openClaimSheet,
-      readFreshSummary,
       readSubmitted,
+      readSummaryAfterTax,
       readTaxMeForPress,
-      refreshSummary,
       taxFlowEnabled,
     ],
   );

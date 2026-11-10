@@ -366,6 +366,28 @@ describe('useTaxDocumentation', () => {
       expect(claim).toHaveBeenCalledWith({ summary: freshSummary });
     });
 
+    it('reads the summary once and claims against it when the gate is off on a held balance', async () => {
+      const freshSummary = { ...summary, minimum_musd_base_units: '1' };
+      mockFetchEarningsSummary.mockResolvedValue(freshSummary);
+      mockTaxRead(
+        taxMe({
+          state: 'UNDER_REVIEW',
+          next_action: 'NONE',
+          reason: 'GATE_OFF',
+          cleared: true,
+        }),
+      );
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(taxHeldSummary, claim);
+      });
+
+      expect(mockFetchEarningsSummary).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith({ summary: freshSummary });
+    });
+
     it('still claims with the pressed summary when the fresh read fails', async () => {
       mockFetchEarningsSummary.mockRejectedValue(new Error('offline'));
       mockTaxRead(taxMe(clearedTaxMe));
