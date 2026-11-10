@@ -382,8 +382,11 @@ const TraderPositionView = () => {
     trackFollowTradingCtaClicked(SocialLeaderboardEventValues.CTA_TYPE.BUY);
   }, [trackFollowTradingCtaClicked]);
 
-  // Marks the Sell CTA as clicked so the "dismissed" cleanup is suppressed,
-  // without firing the TSA-901 success metric (a sell is not a buy action).
+  // Marks the Sell CTA as clicked so the "dismissed" cleanup is suppressed.
+  // Deliberately fires no event: SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED is
+  // registered in the TSA-901 analytics mapping (abTestConfig), so a new
+  // sell cta_type would enter the live experiment's event stream — add a
+  // dedicated sell event after the experiment readout instead.
   const handleSellCtaClicked = useCallback(() => {
     ctaClickedRef.current = true;
   }, []);

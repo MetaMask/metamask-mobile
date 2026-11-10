@@ -85,8 +85,10 @@ export interface TraderPositionBuyCtaProps {
  * Rendering this component (spot-only) is what scopes the experiment exposure
  * to spot positions — perps never mount it, so perps users are never exposed.
  *
- * The viewer's own OPEN spot position is a holding of the selected account, so
- * it renders Sell + Buy instead of the copy-trade Trade button.
+ * The viewer's own OPEN spot position is presumed to be a holding of the
+ * selected account (the QuickBuy sheet independently validates the live
+ * balance and falls back to buy mode at zero balance), so it renders Sell +
+ * Buy instead of the copy-trade Trade button.
  */
 const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   position,
@@ -137,8 +139,9 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   const ownTraderAddress = traderAddress ?? '';
   const ownSelectedAddress = selectedAccountAddress ?? '';
   // Sell-mode safety rests on the QuickBuy sheet's live-balance validation
-  // (usePositionTokenBalance + insufficient_balance), never on position.size —
-  // at zero balance the sheet falls back to buy mode.
+  // (usePositionTokenBalance + insufficient_balance in useQuickBuyController,
+  // covered by runQuickBuyControllerCases), never on position.size — at zero
+  // balance the sheet falls back to buy mode.
   const isOwnOpenPosition =
     position != null &&
     isTraderPositionClosed === false &&
@@ -215,6 +218,9 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     if (!position) return;
     playImpact(ImpactMoment.PrimaryCTA);
     onSellCtaClicked();
+    // A Sell supersedes a deferred treatment buy-to-swaps intent, so the
+    // resolver effect can never navigate away from the sell sheet.
+    setIsSwapPending(false);
     setSheetTradeMode('sell');
     setIsQuickBuyVisible(true);
   }, [position, onSellCtaClicked]);

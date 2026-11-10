@@ -237,6 +237,41 @@ describe('TraderPositionBuyCta', () => {
       );
     });
 
+    it('cancels a pending treatment buy when Sell is tapped', () => {
+      setVariant(true);
+      setDestToken(undefined, true);
+      const { getByTestId, getByText, rerender } = renderCta({
+        traderAddress: VIEWER_ADDRESS,
+        isTraderPositionClosed: false,
+      });
+
+      // Buy while metadata is still loading defers the swaps navigation.
+      fireEvent.press(getByText('Buy'));
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+
+      fireEvent.press(getByTestId(SELL_BUTTON_TEST_ID));
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true, initialTradeMode: 'sell' }),
+      );
+
+      // Metadata resolving afterwards must not navigate away from the sheet.
+      setDestToken(mockDestToken, false);
+      rerender(
+        <TraderPositionBuyCta
+          position={mockPosition}
+          onBuyCtaClicked={jest.fn()}
+          onSellCtaClicked={jest.fn()}
+          buyButtonTestID={BUY_BUTTON_TEST_ID}
+          sellButtonTestID={SELL_BUTTON_TEST_ID}
+        />,
+      );
+
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true, initialTradeMode: 'sell' }),
+      );
+    });
+
     it('opens the QuickBuy sheet in sell mode in the treatment variant', () => {
       setVariant(true);
       const { getByTestId } = renderCta({
