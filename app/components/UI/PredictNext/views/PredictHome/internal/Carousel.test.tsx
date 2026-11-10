@@ -36,9 +36,7 @@ import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { act, render, screen, within } from '@testing-library/react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
-import HorizontalCarousel, {
-  type HorizontalCarouselProps,
-} from './HorizontalCarousel';
+import { Carousel, type CarouselProps } from './Carousel';
 
 interface Card {
   id: string;
@@ -52,9 +50,9 @@ const renderItem: ListRenderItem<Card> = ({ item }) => (
   <Text testID={`card-${item.id}`}>{item.id}</Text>
 );
 
-const renderCarousel = (props: Partial<HorizontalCarouselProps<Card>> = {}) =>
+const renderCarousel = (props: Partial<CarouselProps<Card>> = {}) =>
   render(
-    <HorizontalCarousel<Card>
+    <Carousel<Card>
       data={CARDS}
       isLoading={false}
       renderItem={renderItem}
@@ -78,12 +76,12 @@ const viewToken = (index: number, isViewable = true) => ({
   timestamp: 0,
 });
 
-describe('HorizontalCarousel', () => {
+describe('Carousel', () => {
   beforeEach(() => {
     mockFlashListProps.mockClear();
   });
 
-  describe('default layout (Explore)', () => {
+  describe('default layout', () => {
     it('sizes every card slot at 80% of the screen width with a 12pt gap carved out of all but the last', () => {
       const slotWidth = SCREEN_WIDTH * 0.8;
 
@@ -104,7 +102,7 @@ describe('HorizontalCarousel', () => {
       expect(cellStyle(2).paddingRight).toBeUndefined();
     });
 
-    it('snaps by the 80% slot and keeps the list props it always had', () => {
+    it('snaps by the 80% slot in a horizontal list with fast deceleration', () => {
       renderCarousel();
 
       const props = lastFlashListProps();
@@ -236,7 +234,7 @@ describe('HorizontalCarousel', () => {
       });
 
       rerender(
-        <HorizontalCarousel<Card>
+        <Carousel<Card>
           data={CARDS.slice(0, 2)}
           isLoading={false}
           renderItem={renderItem}

@@ -15,7 +15,7 @@ export interface CarouselPaginationDotsProps {
  * it is hidden from screen readers and takes no touches. Renders nothing
  * for a single page.
  */
-const CarouselPaginationDots = ({
+export const CarouselPaginationDots = ({
   totalPages,
   activePage,
   testID = 'carousel-pagination-dots',
@@ -45,5 +45,3 @@ const CarouselPaginationDots = ({
     </Box>
   );
 };
-
-export default CarouselPaginationDots;

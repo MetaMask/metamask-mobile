@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import { render, screen } from '@testing-library/react-native';
-import CarouselPaginationDots from './CarouselPaginationDots';
+import { CarouselPaginationDots } from './CarouselPaginationDots';
 
 const TEST_ID = 'carousel-pagination-dots';
 
