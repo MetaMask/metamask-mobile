@@ -842,6 +842,7 @@ describe('MoneyHomeView', () => {
       enableCard: null,
       provisioningView: 'provisioning',
       setupStep: null,
+      isEnableCardPending: false,
     });
     mockUseCardHomeData.mockReturnValue({
       data: null,
@@ -3807,6 +3808,7 @@ describe('MoneyHomeView', () => {
         enableCard,
         provisioningView: 'hidden',
         setupStep: 'kyc',
+        isEnableCardPending: false,
       });
 
       const { getByTestId, getByText, queryByTestId } = renderWithProvider(
