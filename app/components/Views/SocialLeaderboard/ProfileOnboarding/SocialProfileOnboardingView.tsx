@@ -22,6 +22,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
 import React, {
   useCallback,
   useEffect,
@@ -63,7 +64,6 @@ import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
-  SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
   applyXOnboardingProfile,
   startManualOnboarding,
   buildCreateProfileParams,
@@ -87,6 +87,7 @@ import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
+import { lookUpExistingSocialProfile } from '../hooks/lookUpExistingSocialProfile';
 import ProfileAvatarPicker from './ProfileAvatarPicker';
 import {
   generateUsername,
@@ -110,6 +111,11 @@ const { Interaction, Outcome, Screen, Step } = SocialEvent;
 // Future live source: https://metamask.com/terms-of-use
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
+
+const EXISTING_PROFILE_LOOKUP_QUERY_KEY = [
+  'social',
+  'profileOnboardingExistingProfile',
+] as const;
 
 /**
  * `superseded` means a newer check started before this one finished. That is
@@ -339,8 +345,32 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
-  const { checkUsernameAvailability, createProfile, updateProfile } =
-    useProfileController();
+  const {
+    checkUsernameAvailability,
+    createProfile,
+    updateProfile,
+    fetchAndUpdateProfile,
+  } = useProfileController();
+  const isTermsOnlyRoute = route.params?.termsOnly === true;
+  // The entry gates only read ProfileController, which is empty on a fresh
+  // install until the profile is fetched. Ask the server before offering to
+  // create one, so an existing profile is never replaced.
+  const existingProfileLookup = useQuery({
+    queryKey: EXISTING_PROFILE_LOOKUP_QUERY_KEY,
+    queryFn: async () =>
+      lookUpExistingSocialProfile(
+        await getSocialProfileId(),
+        fetchAndUpdateProfile,
+      ),
+    enabled: !isTermsOnlyRoute,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
+    retry: false,
+  });
+  const isCheckingExistingProfile =
+    !isTermsOnlyRoute && existingProfileLookup.isPending;
+  const existingProfileLookupResult = existingProfileLookup.data;
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
@@ -353,9 +383,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   // Path the user picked while the terms sheet is open; null when it is closed.
   const [pendingTermsPath, setPendingTermsPath] =
     useState<ProfileOnboardingPath | null>(null);
-  const [pendingTermsOnly, setPendingTermsOnly] = useState(
-    () => route.params?.termsOnly === true,
-  );
+  const [pendingTermsOnly, setPendingTermsOnly] = useState(isTermsOnlyRoute);
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
@@ -403,6 +431,22 @@ const SocialProfileOnboardingView: React.FC = () => {
       trackInteraction(Interaction.SHEET_DISPLAYED, { step: Step.TERMS });
     }
   }, [pendingTermsOnly, trackInteraction]);
+
+  // An existing profile skips creation. An older accepted terms version still
+  // has to be accepted again, so that case keeps only the terms sheet.
+  useEffect(() => {
+    if (
+      existingProfileLookupResult !== 'found' ||
+      stepRef.current !== 'intro'
+    ) {
+      return;
+    }
+    if (hasAcceptedSocialTerms()) {
+      finishProfileOnboardingToSocialTab(navigation);
+      return;
+    }
+    setPendingTermsOnly(true);
+  }, [existingProfileLookupResult, navigation]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -804,8 +848,10 @@ const SocialProfileOnboardingView: React.FC = () => {
     const linkedAccount = accountsRef.current.find(
       (account) => account.id === current.linkedAccountId,
     );
-    const profileId =
-      (await getSocialProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
+    const profileId = await getSocialProfileId();
+    if (!profileId) {
+      throw new Error('Social profile id is not available');
+    }
     const params = buildCreateProfileParams(
       current,
       profileId,
@@ -1076,8 +1122,8 @@ const SocialProfileOnboardingView: React.FC = () => {
                     'social_leaderboard.profile_onboarding.connect_x',
                   ),
                   onPress: handleConnectX,
-                  isLoading: isConnectingX,
-                  isDisabled: isConnectingX,
+                  isLoading: isConnectingX || isCheckingExistingProfile,
+                  isDisabled: isConnectingX || isCheckingExistingProfile,
                   testID: SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
                 }}
                 secondaryAction={{
@@ -1085,7 +1131,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     'social_leaderboard.profile_onboarding.create_manually',
                   ),
                   onPress: handleCreateManually,
-                  isDisabled: isConnectingX,
+                  isDisabled: isConnectingX || isCheckingExistingProfile,
                   testID:
                     SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
                 }}
