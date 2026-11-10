@@ -75,7 +75,7 @@ const CardMessageBox = ({
         ),
       },
       [CardMessageBoxType.KYCPending]: {
-        variant: CardMessageBoxVariant.Warning,
+        variant: CardMessageBoxVariant.Info,
         title: strings('card.card_home.warnings.kyc_pending.title'),
         description: strings('card.card_home.warnings.kyc_pending.description'),
       },

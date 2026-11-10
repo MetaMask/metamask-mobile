@@ -24,7 +24,7 @@ import { CardVerificationState } from '../../../../components/UI/Card/types';
  * 1. Onboarding flow (user has onboardingId): Checks registration status and navigates to:
  * - KYCFailed: If REJECTED
  * - Complete (with nextDestination: 'personal_details'): If VERIFIED
- * - KYCPending: If still PENDING
+ * - Card home (pending warning): If still PENDING
  *
  * 2. Authenticated flow (user is authenticated): Checks user details and navigates to:
  * - KYCFailed: If REJECTED
@@ -228,15 +228,13 @@ function navigateBasedOnVerificationState(
       case 'PENDING':
         if (flowType === 'onboarding') {
           Logger.log(
-            '[handleCardKycNotification] User still pending (onboarding), navigating to KYCPending',
+            '[handleCardKycNotification] User still pending (onboarding), navigating to CardHome',
           );
           NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
             screen: Routes.CARD.HOME,
             params: {
-              screen: Routes.CARD.ONBOARDING.ROOT,
-              params: {
-                screen: Routes.CARD.ONBOARDING.KYC_PENDING,
-              },
+              screen: Routes.CARD.HOME,
+              fromKycPending: true,
             },
           });
         } else {
