@@ -34,6 +34,7 @@ function mockImmersveState(
     provisioningView: 'hidden',
     setupStep: null,
     isEnableCardPending: false,
+    markCardFlowOpened: jest.fn(),
     ...overrides,
   });
 }
@@ -49,12 +50,14 @@ describe('useCardEnableCard', () => {
   });
 
   it('exposes the Immersve state when Immersve is the active provider', () => {
+    const markCardFlowOpened = jest.fn();
     mockActiveProvider(CardProviderIds.Immersve);
     mockImmersveState({
       canEnableCard: true,
       provisioningView: 'hidden',
       setupStep: 'kyc',
       isEnableCardPending: true,
+      markCardFlowOpened,
     });
 
     const { result } = renderHook(() =>
@@ -69,6 +72,7 @@ describe('useCardEnableCard', () => {
     expect(result.current.provisioningView).toBe('hidden');
     expect(result.current.setupStep).toBe('kyc');
     expect(result.current.isEnableCardPending).toBe(true);
+    expect(result.current.markCardFlowOpened).toBe(markCardFlowOpened);
   });
 
   it('withholds the Immersve handler when Immersve cannot enable the card', () => {
@@ -92,6 +96,7 @@ describe('useCardEnableCard', () => {
     expect(result.current.enableCard).toBeNull();
     expect(result.current.setupStep).toBeNull();
     expect(result.current.isEnableCardPending).toBe(false);
+    expect(() => result.current.markCardFlowOpened()).not.toThrow();
   });
 
   it('does not report a pending Enable card for a non-Immersve provider', () => {

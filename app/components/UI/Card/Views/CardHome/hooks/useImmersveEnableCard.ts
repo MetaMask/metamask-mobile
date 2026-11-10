@@ -64,8 +64,13 @@ export function useImmersveEnableCard(
   const isApproving = useSelector(selectIsMoneyAccountCardLinkInProgress);
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
 
-  const { isReconciling, pendingAction, resumePendingAction, isProvisioning } =
-    useImmersveCardProvisioning(data, options);
+  const {
+    isReconciling,
+    pendingAction,
+    resumePendingAction,
+    isProvisioning,
+    markCardFlowOpened,
+  } = useImmersveCardProvisioning(data, options);
 
   const isAllowanceRevoked =
     isImmersve &&
@@ -148,5 +153,6 @@ export function useImmersveEnableCard(
     provisioningView,
     setupStep,
     isEnableCardPending: Boolean(isMoneyAccountMode && isApproving),
+    markCardFlowOpened,
   };
 }

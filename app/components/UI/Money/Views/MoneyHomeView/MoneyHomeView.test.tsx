@@ -444,6 +444,7 @@ jest.mock('../../../Card/Views/CardHome/hooks/useCardEnableCard', () => ({
     provisioningView: 'provisioning',
     setupStep: null,
     isEnableCardPending: false,
+    markCardFlowOpened: jest.fn(),
   })),
 }));
 
@@ -838,6 +839,8 @@ describe('MoneyHomeView', () => {
       enableCard: null,
       provisioningView: 'provisioning',
       setupStep: null,
+      isEnableCardPending: false,
+      markCardFlowOpened: jest.fn(),
     });
     mockUseCardHomeData.mockReturnValue({
       data: null,
@@ -3769,6 +3772,8 @@ describe('MoneyHomeView', () => {
         enableCard,
         provisioningView: 'hidden',
         setupStep: 'kyc',
+        isEnableCardPending: false,
+        markCardFlowOpened: jest.fn(),
       });
 
       const { getByTestId, getByText, queryByTestId } = renderWithProvider(
@@ -3799,6 +3804,55 @@ describe('MoneyHomeView', () => {
           navigateFromOutsideCard: true,
           recheckOnFocus: true,
         }),
+      );
+    });
+
+    it('marks the Card flow before opening Card Home from the setup row', () => {
+      const markCardFlowOpened = jest.fn();
+      mockSelectIsCardholder.mockReturnValue(false);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          isCardAuthenticated: true,
+          isCardVerified: false,
+          reportsVerificationStatus: false,
+          isMoneyCardSectionAvailable: true,
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+        }),
+      );
+      mockUseCardHomeData.mockReturnValue({
+        data: {
+          alerts: [{ type: 'card_provisioning', dismissable: false }],
+        },
+        isLoading: false,
+        isRefreshing: false,
+        isError: false,
+        refetch: jest.fn(),
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
+      } as unknown as ReturnType<typeof useCardHomeData>);
+      mockUseCardEnableCard.mockReturnValue({
+        canEnableCard: true,
+        enableCard: jest.fn(),
+        provisioningView: 'hidden',
+        setupStep: 'kyc',
+        isEnableCardPending: false,
+        markCardFlowOpened,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+
+      expect(markCardFlowOpened).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
+      expect(markCardFlowOpened.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
       );
     });
 
