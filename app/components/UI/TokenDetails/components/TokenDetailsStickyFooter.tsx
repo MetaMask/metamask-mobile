@@ -615,7 +615,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   ) : null;
 
   const handleFooterLayout = (event: LayoutChangeEvent) => {
-    onFooterLayout?.(event.nativeEvent.layout.height);
+    if (!isTraderPositionExpanded) {
+      onFooterLayout?.(event.nativeEvent.layout.height);
+    }
   };
 
   const positionContent = traderPositionPnl ? (
