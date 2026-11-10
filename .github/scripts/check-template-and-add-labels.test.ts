@@ -1,6 +1,15 @@
 // mock-prefixed variables are allowed in jest.mock factories by babel-jest's
 // hoisting transform. All other variables would be undefined at factory evaluation time.
 const mockContextPayload: Record<string, unknown> = {};
+const mockContext: {
+  repo: { owner: string; repo: string };
+  payload: Record<string, unknown>;
+  eventName: string;
+} = {
+  repo: { owner: 'MetaMask', repo: 'metamask-mobile' },
+  payload: mockContextPayload,
+  eventName: 'pull_request_target',
+};
 const mockGetOctokit = jest.fn();
 const mockRetrievePullRequest = jest.fn();
 const mockRemoveLabelFromLabelableIfPresent = jest.fn();
@@ -20,10 +29,7 @@ jest.mock('@actions/core', () => ({
 }), { virtual: true });
 
 jest.mock('@actions/github', () => ({
-  context: {
-    repo: { owner: 'MetaMask', repo: 'metamask-mobile' },
-    payload: mockContextPayload,
-  },
+  context: mockContext,
   getOctokit: mockGetOctokit,
 }), { virtual: true });
 
@@ -127,6 +133,22 @@ describe('check-template-and-add-labels — base-branch guard', () => {
     delete process.env.LABEL_TOKEN;
     // Clear pull_request from shared payload object between tests.
     delete mockContextPayload.pull_request;
+    mockContext.eventName = 'pull_request_target';
+  });
+
+  describe('merge queue', () => {
+    it('exits 0 without a token or template checks', async () => {
+      delete process.env.LABEL_TOKEN;
+      mockContext.eventName = 'merge_group';
+
+      await loadModule();
+
+      expect(processExitSpy).toHaveBeenCalledWith(0);
+      expect(mockGetOctokit).not.toHaveBeenCalled();
+      expect(mockRunAllChecks).not.toHaveBeenCalled();
+      expect(mockSetFailed).not.toHaveBeenCalled();
+      expect(mockUpsertStickyComment).not.toHaveBeenCalled();
+    });
   });
 
   describe('PR targeting a non-main branch', () => {

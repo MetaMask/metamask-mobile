@@ -40,6 +40,18 @@ main().catch((error: Error): void => {
 });
 
 async function main(): Promise<void> {
+  // Merge-queue commits are synthetic merges. This check already ran on the
+  // pull request. The job must exit 0 — a skipped required check never
+  // reports a status, so the queue stays on "Expected — Waiting for status
+  // to be reported" until it times out. Do this before requesting a token.
+  if (context.eventName === 'merge_group') {
+    console.log(
+      'Merge queue: PR template checks already passed on the pull request. Reporting success.',
+    );
+    process.exit(0);
+    return;
+  }
+
   // "GITHUB_TOKEN" is an automatically generated, repository-specific access token provided by GitHub Actions.
   // We can't use "GITHUB_TOKEN" here, as its permissions don't allow neither to create new labels
   // nor to retrieve the list of organisations a user belongs to.
