@@ -53,12 +53,15 @@ const reason: MfaReason = {
 
 const mockRefresh = jest.fn();
 
+const mockLockedAdapter = () =>
+  ({
+    refreshEnrolledCredentials: mockRefresh,
+  }) as unknown as ReturnType<typeof createSocialLockedMfaControllerAdapter>;
+
 describe('verifySocialLoginWhileLocked', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreateAdapter.mockReturnValue({
-      refreshEnrolledCredentials: mockRefresh,
-    } as ReturnType<typeof createSocialLockedMfaControllerAdapter>);
+    mockCreateAdapter.mockReturnValue(mockLockedAdapter());
   });
 
   it('opens passkey first and returns verified on success', async () => {
@@ -149,9 +152,7 @@ describe('verifySocialLoginWhileLocked', () => {
 describe('verifySocialLoginFactorWhileLocked', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreateAdapter.mockReturnValue({
-      refreshEnrolledCredentials: mockRefresh,
-    } as ReturnType<typeof createSocialLockedMfaControllerAdapter>);
+    mockCreateAdapter.mockReturnValue(mockLockedAdapter());
   });
 
   it('verifies a single factor', async () => {

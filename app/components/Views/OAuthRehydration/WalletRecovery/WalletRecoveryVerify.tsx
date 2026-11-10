@@ -259,7 +259,7 @@ const WalletRecoveryVerify = ({
         <TextButton
           variant={TextVariant.BodyMd}
           onPress={onCantUseThese}
-          isDisabled={isBusy}
+          disabled={isBusy}
           accessibilityState={{ disabled: isBusy }}
           twClassName={isBusy ? 'opacity-50' : undefined}
           testID={WalletRecoverySelectorsIDs.CANT_USE_THESE}
