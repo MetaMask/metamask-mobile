@@ -11,9 +11,10 @@ export const navigateToExploreSearch = (
   searchOrigin?: SearchOrigin,
   pastePillVisible?: boolean,
 ) => {
+  trackExploreSearchOpened('home');
+
   if (!isSearchHeaderEnabled) {
-    trackExploreSearchOpened('home');
-    navigation.navigate(Routes.EXPLORE_SEARCH);
+    navigation.navigate(Routes.EXPLORE_SEARCH, { entryPoint: 'home' });
     return;
   }
 

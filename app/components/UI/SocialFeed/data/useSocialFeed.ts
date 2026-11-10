@@ -20,6 +20,7 @@ import {
 import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
+import { getRowSortTimestamp } from './socialFeedRealtime';
 import {
   toSocialFeedRealtimeScope,
   toSocialFeedRequest,
@@ -117,7 +118,7 @@ const toTelemetryQueryParams = (
 
 /** Newest event first. Stable for equal timestamps (preserves API order). */
 const byTimestampDesc = (a: TraderFeedRow, b: TraderFeedRow): number =>
-  b.item.timestamp - a.item.timestamp;
+  getRowSortTimestamp(b) - getRowSortTimestamp(a);
 
 /**
  * Social feed for any {@link SocialFeedSource}: a `fetchFeed` query (scope,

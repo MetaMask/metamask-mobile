@@ -704,18 +704,28 @@ export class PredictOrderService {
       ? now
       : operation.expiresAt + this.#ambiguousCommitGraceMs;
     operation.backgroundObservations += 1;
+    const observe = () => {
+      operation.backgroundTimer = undefined;
+      if (
+        this.#operations.get(operation.previewId) !== operation ||
+        this.#inFlightCommits.has(operation.previewId)
+      ) {
+        return;
+      }
+      // Timers run on the event loop's clock, which can trail `Date.now()`
+      // under load, so one may fire just before `earliest`. A refusal to a
+      // re-POST sent then proves nothing (`sentAfterGrace` is false) and
+      // would cost another round trip, so wait out the remainder instead.
+      const remaining = earliest - Date.now();
+      if (remaining > 0) {
+        operation.backgroundTimer = setTimeout(observe, remaining);
+        return;
+      }
+      // Failures are handled inside; the background has no caller.
+      this.#dispatch(operation, 0).catch(() => undefined);
+    };
     operation.backgroundTimer = setTimeout(
-      () => {
-        operation.backgroundTimer = undefined;
-        if (
-          this.#operations.get(operation.previewId) !== operation ||
-          this.#inFlightCommits.has(operation.previewId)
-        ) {
-          return;
-        }
-        // Failures are handled inside; the background has no caller.
-        this.#dispatch(operation, 0).catch(() => undefined);
-      },
+      observe,
       Math.max(delay, earliest - now),
     );
   }

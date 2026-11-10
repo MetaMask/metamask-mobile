@@ -116,4 +116,97 @@ describe('SocialFeedPostTranslation', () => {
     ).toBeOnTheScreen();
     expect(screen.queryByText('Stale translation')).not.toBeOnTheScreen();
   });
+
+  const fireMeasuredLines = (lineCount: number) => {
+    act(() => {
+      fireEvent(
+        screen.getByTestId(SocialFeedPostShellSelectorsIDs.COMMENT_MEASURE, {
+          includeHiddenElements: true,
+        }),
+        'onTextLayout',
+        {
+          nativeEvent: {
+            lines: Array.from({ length: lineCount }, (_, index) => ({
+              text: `line ${index + 1}`,
+              x: 0,
+              y: index * 22,
+              width: 100,
+              height: 22,
+            })),
+          },
+        },
+      );
+    });
+  };
+
+  it('hides See more when the comment fits in 4 lines', () => {
+    renderTranslation(createPost());
+
+    fireMeasuredLines(4);
+
+    expect(
+      screen.queryByTestId(SocialFeedPostShellSelectorsIDs.SEE_MORE),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText('Original comment').props.numberOfLines).toBe(4);
+  });
+
+  it('shows See more when the comment is longer than 4 lines', () => {
+    renderTranslation(createPost());
+
+    fireMeasuredLines(5);
+
+    expect(screen.getByText('See more')).toBeOnTheScreen();
+    expect(screen.getByText('Original comment').props.numberOfLines).toBe(4);
+  });
+
+  it('expands the comment and offers See less', () => {
+    renderTranslation(createPost());
+    fireMeasuredLines(5);
+
+    fireEvent.press(
+      screen.getByTestId(SocialFeedPostShellSelectorsIDs.SEE_MORE),
+    );
+
+    expect(screen.getByText('See less')).toBeOnTheScreen();
+    expect(
+      screen.getByText('Original comment').props.numberOfLines,
+    ).toBeUndefined();
+  });
+
+  it('collapses the comment after See less', () => {
+    renderTranslation(createPost());
+    fireMeasuredLines(5);
+    fireEvent.press(
+      screen.getByTestId(SocialFeedPostShellSelectorsIDs.SEE_MORE),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(SocialFeedPostShellSelectorsIDs.SEE_MORE),
+    );
+
+    expect(screen.getByText('See more')).toBeOnTheScreen();
+    expect(screen.getByText('Original comment').props.numberOfLines).toBe(4);
+  });
+
+  it('collapses a new comment after the caption changes', () => {
+    const { rerender } = renderTranslation(createPost());
+    fireMeasuredLines(5);
+    fireEvent.press(
+      screen.getByTestId(SocialFeedPostShellSelectorsIDs.SEE_MORE),
+    );
+
+    rerender(
+      <SocialFeedPostTranslation
+        post={createPost({
+          item: mockOpenPerpsFeedItem({
+            id: 'item-1',
+            comment: 'A newer comment',
+          }),
+        })}
+      />,
+    );
+
+    expect(screen.queryByText('See less')).not.toBeOnTheScreen();
+    expect(screen.getByText('A newer comment').props.numberOfLines).toBe(4);
+  });
 });

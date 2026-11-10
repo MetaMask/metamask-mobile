@@ -35,6 +35,7 @@ export const PREDICT_SURFACE_FEED_KEYS = {
   nextHomeSections: {
     'sports-football-nfl': 'nfl-games',
     'sports-football-ncaa': 'college-football-games',
+    politics: 'politics-trump',
   },
   /** PredictNext Feed Screen tabs, by Feed Screen and tab. */
   nextFeedScreenTabs: {
@@ -45,6 +46,11 @@ export const PREDICT_SURFACE_FEED_KEYS = {
     'sports-football-ncaa': {
       games: 'college-football-games',
       props: 'college-football-props',
+    },
+    politics: {
+      trump: 'politics-trump',
+      congress: 'politics-congress',
+      iran: 'politics-iran',
     },
   },
 } as const satisfies {

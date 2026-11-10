@@ -23,4 +23,15 @@ describe('usePortfolioSummary', () => {
       retry: false,
     });
   });
+
+  it.each([true, false])('passes enabled: %s through', (enabled) => {
+    usePortfolioSummary(venueId, { enabled });
+
+    expect(mockedUseQuery).toHaveBeenCalledWith({
+      queryKey: ['PredictPortfolioService:getPortfolioSummary', venueId],
+      staleTime: 30_000,
+      retry: false,
+      enabled,
+    });
+  });
 });

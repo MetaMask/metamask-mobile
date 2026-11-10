@@ -1,87 +1,70 @@
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
-import {
-  getVbaSourceCurrencyForCountry,
-  isVbaSourceCurrency,
-} from './getVbaSourceCurrency';
+import { getVbaMarketForCountry, type VbaMarket } from './getVbaSourceCurrency';
 
-describe('getVbaSourceCurrencyForCountry', () => {
-  const regions = ['BR', 'US', 'FR', 'DE'];
-  const regionCurrencies = { BR: 'BRL', US: 'USD', FR: 'EUR' } as const;
+const brl: VbaMarket = { currency: 'BRL', regions: ['BR'] };
+const usd: VbaMarket = { currency: 'USD', regions: ['US'] };
 
-  it.each([
-    ['BR', 'BRL'],
-    ['br-sp', 'BRL'],
-  ])('maps %s to %s', (location, expected) => {
-    expect(
-      getVbaSourceCurrencyForCountry(location, regionCurrencies, regions),
-    ).toBe(expected);
+describe('getVbaMarketForCountry', () => {
+  it('returns the open market listing the country of the location', () => {
+    expect(getVbaMarketForCountry([brl, usd], ' br-sp ')).toBe(brl);
+    expect(getVbaMarketForCountry([brl, usd], 'US-CA')).toBe(usd);
   });
 
-  it('maps the US to USD', () => {
+  it('returns the BRL market, not USD, when both markets list the same country', () => {
+    const sharedCountry = 'BR';
+    const brlSharedCountry: VbaMarket = {
+      currency: 'BRL',
+      regions: [sharedCountry],
+    };
+    const usdSharedCountry: VbaMarket = {
+      currency: 'USD',
+      regions: [sharedCountry],
+    };
+
     expect(
-      getVbaSourceCurrencyForCountry('US-CA', regionCurrencies, regions),
-    ).toBe('USD');
+      getVbaMarketForCountry(
+        [brlSharedCountry, usdSharedCountry],
+        sharedCountry,
+      ),
+    ).toBe(brlSharedCountry);
   });
 
-  it('fails closed when the flag does not map the country and there is no default', () => {
+  it('returns whichever shared-country market is first in the array, not BRL specifically: this function has no currency priority of its own', () => {
+    // NOTE: `getVbaMarketForCountry` is a plain `Array.prototype.find`, so it
+    // has no BRL-priority logic. The "BRL first" guarantee documented on
+    // `selectNeobankMarkets` ("@returns The open markets, BRL first.") is
+    // produced entirely by that selector's fixed [BRL, USD] construction
+    // order (see selectors/featureFlagController/moneyAccount/index.test.ts),
+    // not by this function. Feeding it USD before BRL, as this test does,
+    // returns the USD market for a country both list; that input ordering
+    // never happens in the app because `selectNeobankMarkets` is the only
+    // real caller and always returns BRL first.
+    const sharedCountry = 'BR';
+    const brlSharedCountry: VbaMarket = {
+      currency: 'BRL',
+      regions: [sharedCountry],
+    };
+    const usdSharedCountry: VbaMarket = {
+      currency: 'USD',
+      regions: [sharedCountry],
+    };
+
     expect(
-      getVbaSourceCurrencyForCountry('US-CA', { BR: 'BRL' }, ['BR', 'US']),
-    ).toBeUndefined();
+      getVbaMarketForCountry(
+        [usdSharedCountry, brlSharedCountry],
+        sharedCountry,
+      ),
+    ).toBe(usdSharedCountry);
   });
 
-  it('uses defaultCurrency when the country is in regions but not mapped', () => {
-    expect(getVbaSourceCurrencyForCountry('br', {}, ['BR', 'US'], 'USD')).toBe(
-      'USD',
-    );
-    expect(
-      getVbaSourceCurrencyForCountry('US', { BR: 'BRL' }, ['BR', 'US'], 'USD'),
-    ).toBe('USD');
-  });
-
-  it('does not use the default when the country is absent from regions', () => {
-    expect(
-      getVbaSourceCurrencyForCountry('US', { BR: 'BRL' }, ['BR'], 'USD'),
-    ).toBeUndefined();
-  });
-
-  it('prefers an explicit mapping over the default', () => {
-    expect(
-      getVbaSourceCurrencyForCountry('BR', { BR: 'BRL' }, ['BR', 'US'], 'USD'),
-    ).toBe('BRL');
-  });
-
-  it('does not fall through from an explicit EUR mapping to the USD default', () => {
-    expect(
-      getVbaSourceCurrencyForCountry('FR', { FR: 'EUR' }, ['FR'], 'USD'),
-    ).toBeUndefined();
-  });
-
-  it('fails closed when the default currency has no details layout', () => {
-    expect(
-      getVbaSourceCurrencyForCountry('US', {}, ['US'], 'EUR'),
-    ).toBeUndefined();
-  });
-
-  it('fails closed when the mapped currency has no details layout', () => {
-    expect(
-      getVbaSourceCurrencyForCountry('FR', regionCurrencies, regions),
-    ).toBeUndefined();
-  });
-
-  it.each(['DE', 'FR-75', '', UNKNOWN_LOCATION, undefined, null])(
-    'returns undefined for %p',
+  it.each([['DE'], [UNKNOWN_LOCATION], [''], [undefined], [null]])(
+    'returns undefined for %s',
     (location) => {
-      expect(
-        getVbaSourceCurrencyForCountry(location, regionCurrencies, regions),
-      ).toBeUndefined();
+      expect(getVbaMarketForCountry([brl, usd], location)).toBeUndefined();
     },
   );
-});
 
-describe('isVbaSourceCurrency', () => {
-  it('accepts BRL, USD, and EUR only', () => {
-    expect(['BRL', 'USD', 'EUR'].every(isVbaSourceCurrency)).toBe(true);
-    expect(isVbaSourceCurrency('GBP')).toBe(false);
-    expect(isVbaSourceCurrency(undefined)).toBe(false);
+  it('returns undefined when no market is open', () => {
+    expect(getVbaMarketForCountry([], 'BR')).toBeUndefined();
   });
 });

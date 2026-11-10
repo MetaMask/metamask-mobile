@@ -26,7 +26,10 @@ import {
 } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 import { strings } from '../../../../../../locales/i18n';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import { useTheme } from '../../../../../util/theme';
 import { SocialTermsSheetSelectorsIDs } from './SocialTermsSheet.testIds';
+import { themeSocialTermsHtml } from './socialTermsTheme';
 
 /** Distance from the bottom that still counts as "read to the end". */
 const SCROLL_END_THRESHOLD = 20;
@@ -107,8 +110,9 @@ const isAtEnd = ({
     contentSize.height - SCROLL_END_THRESHOLD;
 
 /**
- * Social Supplemental Terms consent sheet. The user must scroll to the end
- * before the checkbox enables, and check it before Agree enables. A circular
+ * Social Supplemental Terms consent sheet. The first tap on the agreement
+ * checkbox scrolls the terms to the end. Once that end has been reached, the
+ * next tap checks it, and Agree stays disabled until it is checked. A circular
  * button jumps to that end and hides while the end is already on screen.
  */
 const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
@@ -118,6 +122,8 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   onClose,
 }) => {
   const { height: windowHeight } = useWindowDimensions();
+  const { colors, themeAppearance } = useTheme();
+  const termsBackground = colors.background.default;
   const scrollViewRef = useRef<ScrollView>(null);
   const webViewRef = useRef<WebView>(null);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
@@ -126,6 +132,16 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const [viewportHeight, setViewportHeight] = useState(0);
   const allowedOrigin = getUrlOrigin(html ? TERMS_BASE_URL : (uri ?? ''));
   const showsHostedTerms = Boolean(uri || html);
+  const themedHtml = html
+    ? themeSocialTermsHtml(html, {
+        background: termsBackground,
+        text: colors.text.default,
+        heading: colors.text.default,
+        link: colors.primary.default,
+        colorScheme: themeAppearance === AppThemeKey.dark ? 'dark' : 'light',
+      })
+    : undefined;
+  const webViewBackgroundStyle = { backgroundColor: termsBackground };
 
   const markReachedEnd = useCallback(() => setHasReachedEnd(true), []);
 
@@ -179,6 +195,17 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
     [markReachedEnd, viewportHeight],
   );
 
+  const handleCheckboxChange = useCallback(
+    (next: boolean) => {
+      if (!hasReachedEnd) {
+        scrollToBottom();
+        return;
+      }
+      setIsChecked(next);
+    },
+    [hasReachedEnd, scrollToBottom],
+  );
+
   const handleWebViewMessage = useCallback(
     (event: { nativeEvent: { data: string } }) => {
       if (event.nativeEvent.data === WEBVIEW_SCROLL_END_EVENT) {
@@ -216,10 +243,13 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
           <WebView
             ref={webViewRef}
             source={
-              html
-                ? { html, baseUrl: 'https://metamask.com' }
+              themedHtml
+                ? { html: themedHtml, baseUrl: 'https://metamask.com' }
                 : { uri: uri ?? '' }
             }
+            style={webViewBackgroundStyle}
+            containerStyle={webViewBackgroundStyle}
+            overScrollMode="never"
             nestedScrollEnabled
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}
@@ -267,8 +297,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
       <Box twClassName="px-4 pt-4 pb-6 gap-4">
         <Checkbox
           isSelected={isChecked}
-          isDisabled={!hasReachedEnd}
-          onChange={setIsChecked}
+          onChange={handleCheckboxChange}
           label={strings('social_leaderboard.terms.checkbox')}
           labelProps={{ style: { flex: 1 } }}
           testID={SocialTermsSheetSelectorsIDs.CHECKBOX}

@@ -8,7 +8,10 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectCardHomeData } from '../../../../selectors/cardController';
+import {
+  selectCardHomeData,
+  selectImmersveFundingChannelForSelectedCountry,
+} from '../../../../selectors/cardController';
 import { selectCardImmersveConfig } from '../../../../selectors/featureFlagController/card';
 import {
   areAddressesEqual,
@@ -19,6 +22,8 @@ import {
   type AwaitTransactionConfirmedMessenger,
 } from '../../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
 import {
+  CardProviderError,
+  CardProviderErrorCode,
   CardProviderIds,
   type CardCreateResult,
   type CardFundingSourceResult,
@@ -37,6 +42,7 @@ import { getCardProviderErrorMessage } from '../util/getCardProviderErrorMessage
 import { withCardProvider } from '../util/metrics';
 import { resolveCardFundingAddress } from '../util/resolveCardFundingAddress';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
+import { useImmersveFundingChannel } from './useImmersveFundingChannel';
 import { UserCancelledError } from './useCardDelegation';
 
 interface FundingState {
@@ -77,6 +83,8 @@ function isUserCancelledError(errorMessage: string): boolean {
 interface UseImmersveFundingOptions {
   /** SIWE / route-param funding wallet; wins over Card Home and selection. */
   fundingAddress?: string | null;
+  /** Country from route params. Falls back to the selected country. */
+  country?: string | null;
 }
 
 export const useImmersveFunding = (options: UseImmersveFundingOptions = {}) => {
@@ -87,6 +95,11 @@ export const useImmersveFunding = (options: UseImmersveFundingOptions = {}) => {
   );
   const cardHomeData = useSelector(selectCardHomeData);
   const immersveConfig = useSelector(selectCardImmersveConfig);
+  const selectedChannel = useSelector(
+    selectImmersveFundingChannelForSelectedCountry,
+  );
+  const countryChannel = useImmersveFundingChannel(options.country);
+  const fundingChannel = options.country ? countryChannel : selectedChannel;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [state, setState] = useState<FundingState>({
     isLoading: false,
@@ -158,10 +171,11 @@ export const useImmersveFunding = (options: UseImmersveFundingOptions = {}) => {
         step,
         ...extraMetrics,
       });
-      const network = immersveConfig?.network;
+      const network = fundingChannel?.network ?? immersveConfig?.network;
       let caipChainId: string | undefined;
       try {
-        caipChainId = immersveNetworkToCaipChainId(network);
+        caipChainId =
+          fundingChannel?.caipChainId ?? immersveNetworkToCaipChainId(network);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED)
             .addProperties(metricsProps)
@@ -240,6 +254,8 @@ export const useImmersveFunding = (options: UseImmersveFundingOptions = {}) => {
     },
     [
       resolveFundingFromAddress,
+      fundingChannel?.caipChainId,
+      fundingChannel?.network,
       immersveConfig?.network,
       ensureNetworkExists,
       TransactionController,
@@ -269,20 +285,26 @@ export const useImmersveFunding = (options: UseImmersveFundingOptions = {}) => {
    */
   const buildApproveWrite = useCallback(
     (amountBaseUnits: string): CardSmartContractWriteParams => {
-      const spenderAddress = immersveConfig?.spenderAddress;
+      const spenderAddress =
+        fundingChannel?.spenderAddress || immersveConfig?.spenderAddress;
       if (!spenderAddress) {
         throw new Error('Immersve spender address is not configured');
       }
-      const { tokenAddress } = immersveNetworkToFundingToken(
-        immersveConfig?.network,
-      );
+      const tokenAddress =
+        fundingChannel?.tokenAddress ??
+        immersveNetworkToFundingToken(immersveConfig?.network).tokenAddress;
       return buildImmersveApproveWrite({
         tokenAddress,
         spenderAddress,
         amountBaseUnits,
       });
     },
-    [immersveConfig?.network, immersveConfig?.spenderAddress],
+    [
+      fundingChannel?.spenderAddress,
+      fundingChannel?.tokenAddress,
+      immersveConfig?.network,
+      immersveConfig?.spenderAddress,
+    ],
   );
 
   const revokeFunding = useCallback(
@@ -309,6 +331,15 @@ export const useImmersveFunding = (options: UseImmersveFundingOptions = {}) => {
         setState({ isLoading: false, error: null });
         return result;
       } catch (e) {
+        // Conflict means the card already exists. The caller treats it as
+        // success, so it is not a failed funding attempt.
+        if (
+          e instanceof CardProviderError &&
+          e.code === CardProviderErrorCode.Conflict
+        ) {
+          setState({ isLoading: false, error: null });
+          throw e;
+        }
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_FUNDING_PROCESS_FAILED)
             .addProperties(metricsProps)

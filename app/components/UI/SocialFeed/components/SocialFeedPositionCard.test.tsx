@@ -575,7 +575,7 @@ describe('SocialFeedPositionCard', () => {
       expect(statValue(item.id, 'exit')).toBe('$1,842');
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
       ).toBe(1);
     });
@@ -665,7 +665,7 @@ describe('SocialFeedPositionCard', () => {
       expect(statValue(item.id, 'exit')).toBe('$1,842');
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
       ).toBe(1);
     });
@@ -693,7 +693,7 @@ describe('SocialFeedPositionCard', () => {
       ).not.toBeOnTheScreen();
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
       ).toBe(1);
     });
