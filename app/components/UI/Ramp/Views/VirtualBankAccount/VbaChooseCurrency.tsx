@@ -31,11 +31,13 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 const CURRENCY_FLAGS: Record<VbaSourceCurrency, string> = {
   BRL: '🇧🇷',
   USD: '🇺🇸',
+  EUR: '🇪🇺',
 };
 
 const CURRENCY_NAME_KEYS: Record<VbaSourceCurrency, string> = {
   BRL: 'virtual_bank_account.choose_currency.currencies.brl',
   USD: 'virtual_bank_account.choose_currency.currencies.usd',
+  EUR: 'virtual_bank_account.choose_currency.currencies.eur',
 };
 
 const getCurrencyName = (currency: VbaSourceCurrency): string =>

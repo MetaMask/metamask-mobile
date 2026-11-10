@@ -132,6 +132,9 @@ describe('useVbaArrivalTime', () => {
   const PIX_TITLE = strings(
     'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
   );
+  const EUR_TITLE = strings(
+    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_eur',
+  );
   const CATALOG_TITLE = strings(
     'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
     { timeframe: '2 - 3 business days' },
@@ -142,6 +145,7 @@ describe('useVbaArrivalTime', () => {
   const markets: VbaMarket[] = [
     { currency: 'BRL', regions: ['BR'] },
     { currency: 'USD', regions: ['US'] },
+    { currency: 'EUR', regions: ['DE'] },
   ];
 
   const setup = ({
@@ -223,14 +227,39 @@ describe('useVbaArrivalTime', () => {
     },
   );
 
-  it('does not return the Pix title before the user picks a currency', () => {
+  it.each(['DE', 'DE-BE'])(
+    'returns the EUR title and disables the query for %s',
+    (location) => {
+      setup({ eligibility: { location }, paymentMethods: [] });
+
+      const { result } = renderHook(() => useVbaArrivalTime());
+
+      expect(result.current.arrivalTitle).toBe(EUR_TITLE);
+      expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
+        expect.objectContaining({ regionCode: '' }),
+      );
+    },
+  );
+
+  it('returns the EUR title when chooseCurrency is on, because the picker is skipped', () => {
+    setup({ eligibility: { location: 'DE' }, chooseCurrency: true });
+
+    const { result } = renderHook(() => useVbaArrivalTime());
+
+    expect(result.current.arrivalTitle).toBe(EUR_TITLE);
+    expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
+      expect.objectContaining({ regionCode: '' }),
+    );
+  });
+
+  it('returns the Pix title when chooseCurrency is on, because the picker is skipped', () => {
     setup({ eligibility: { location: 'BR' }, chooseCurrency: true });
 
     const { result } = renderHook(() => useVbaArrivalTime());
 
-    expect(result.current.arrivalTitle).toBe(CATALOG_TITLE);
+    expect(result.current.arrivalTitle).toBe(PIX_TITLE);
     expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
-      expect.objectContaining({ regionCode: 'br' }),
+      expect.objectContaining({ regionCode: '' }),
     );
   });
 

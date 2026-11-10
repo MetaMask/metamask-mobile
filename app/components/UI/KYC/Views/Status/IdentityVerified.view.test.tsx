@@ -220,7 +220,7 @@ describeForPlatforms('KycIdentityVerified view', () => {
   });
 
   it('opens Choose Currency from Continue when chooseCurrency is on', async () => {
-    const { findByTestId, getByTestId, queryByTestId } = render(VbaDetails, {
+    const { findByTestId, getByTestId } = render(VbaDetails, {
       chooseCurrency: true,
     });
 
@@ -236,8 +236,8 @@ describeForPlatforms('KycIdentityVerified view', () => {
       getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
-    ).toBeNull();
+      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
+    ).toBeOnTheScreen();
     expect(ramps.createAutoramp).not.toHaveBeenCalled();
   });
 

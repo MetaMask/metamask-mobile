@@ -80,6 +80,7 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { AVENIA_URL } from './constants';
 import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
+import { formatIbanForDisplay } from './formatIban';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -96,6 +97,8 @@ export const VbaDetailsSelectorsIDs = {
   ROUTING_NUMBER: 'vba-details-routing-number',
   ACCOUNT_NUMBER: 'vba-details-account-number',
   BANK_NAME: 'vba-details-bank-name',
+  IBAN: 'vba-details-iban',
+  BIC: 'vba-details-bic',
   PROVIDER_DISCLOSURE: 'vba-details-provider-disclosure',
   PROVIDER_DISCLOSURE_LINK: 'vba-details-provider-disclosure-link',
   LOADING: 'vba-details-loading',
@@ -123,6 +126,8 @@ interface DetailRow {
   testID: string;
   label: string;
   value: string;
+  /** Copied instead of `value` when the display form is not paste-safe. */
+  copyValue?: string;
 }
 
 interface DepositRamps {
@@ -195,6 +200,42 @@ const buildDetailRows = (
         value: instructions.bankName,
       },
     ];
+  }
+  if (instructions?.type === 'Sepa') {
+    const rows: DetailRow[] = [];
+    if (instructions.accountHolder) {
+      rows.push({
+        id: 'account-holder',
+        testID: VbaDetailsSelectorsIDs.ACCOUNT_HOLDER,
+        label: strings('virtual_bank_account.vba_details.account_holder_label'),
+        value: instructions.accountHolder,
+      });
+    }
+    // Only the IBAN is guaranteed. Display it grouped, copy it without spaces.
+    rows.push({
+      id: 'iban',
+      testID: VbaDetailsSelectorsIDs.IBAN,
+      label: strings('virtual_bank_account.vba_details.iban_label'),
+      value: formatIbanForDisplay(instructions.iban),
+      copyValue: instructions.iban.replace(/\s+/gu, ''),
+    });
+    if (instructions.bic) {
+      rows.push({
+        id: 'bic',
+        testID: VbaDetailsSelectorsIDs.BIC,
+        label: strings('virtual_bank_account.vba_details.bic_label'),
+        value: instructions.bic,
+      });
+    }
+    if (instructions.bankName) {
+      rows.push({
+        id: 'bank-name',
+        testID: VbaDetailsSelectorsIDs.BANK_NAME,
+        label: strings('virtual_bank_account.vba_details.bank_name_label'),
+        value: instructions.bankName,
+      });
+    }
+    return rows;
   }
   if (instructions?.type !== 'Pix') {
     return [];
@@ -809,9 +850,10 @@ const VbaDetails = () => {
   }, [hasShownDetails, walletAddress]);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
-    (!instructions && sourceCurrency === 'USD');
+    instructions?.type === 'Sepa' ||
+    (!instructions && (sourceCurrency === 'USD' || sourceCurrency === 'EUR'));
   // MoonPay's legal line names Brazil, so it follows the Pix (BRL) rail, not
-  // the user's country. The US bank transfer layout never shows it.
+  // the user's country. The US and SEPA bank transfer layouts never show it.
   const showProviderDisclosure = instructions
     ? instructions.type === 'Pix'
     : sourceCurrency === 'BRL';
@@ -886,7 +928,7 @@ const VbaDetails = () => {
                   <ButtonIcon
                     iconName={IconName.Copy}
                     size={ButtonIconSize.Md}
-                    onPress={handleCopy(row.value, row.label)}
+                    onPress={handleCopy(row.copyValue ?? row.value, row.label)}
                     accessibilityLabel={strings(
                       'virtual_bank_account.vba_details.copy_label',
                       { field: row.label },
@@ -926,7 +968,10 @@ const VbaDetails = () => {
                 jump when the details land. Both bars sit in the title slot
                 because it is the only full-width slot, so the 85% bar has a
                 width to resolve against. */}
-            {['pix-key', 'copia-cola'].map((id) => (
+            {(sourceCurrency === 'EUR'
+              ? ['account-holder', 'iban', 'bic']
+              : ['pix-key', 'copia-cola']
+            ).map((id) => (
               <ListItem
                 key={id}
                 title={
