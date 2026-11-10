@@ -38,8 +38,8 @@ import {
   SUMSUB_BIOMETRICS_CONSENT_URL,
   SUMSUB_PERSONAL_DATA_PROCESSING_URL,
   SUMSUB_PRIVACY_NOTICE_URL,
-} from '../../../Ramp/Views/VirtualBankAccount/constants';
-import { VbaPartnerTermsSelectorsIDs } from './VerifyIdentity.testIds';
+} from '../../constants';
+import { KycPartnerTermsSelectorsIDs } from './VerifyIdentity.testIds';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { trackIdentityTerms } from '../../utils/identityTermsAnalytics';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -98,7 +98,7 @@ const DisclaimerRow = ({
       }
       onPress={openLink}
       accessibilityRole="link"
-      testID={`${VbaPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+      testID={`${KycPartnerTermsSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
     />
   );
 };
@@ -113,7 +113,7 @@ const GroupTitle = ({ title }: { title: string }) => (
   </Text>
 );
 
-interface VbaPartnerTermsProps {
+interface KycPartnerTermsProps {
   /** idOS and SumSub documents loaded on page 1. */
   disclaimers: KycCatalogDisclaimerLink[];
   onAgree: () => void | Promise<void>;
@@ -130,11 +130,11 @@ interface VbaPartnerTermsProps {
  * separate biometric consent, so the consent recorded downstream is the idOS
  * catalog documents (see `useLaunchSumSub`).
  */
-const VbaPartnerTerms = ({
+const KycPartnerTerms = ({
   disclaimers,
   onAgree,
   onBack,
-}: VbaPartnerTermsProps) => {
+}: KycPartnerTermsProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   // The catalog follows the country the KYC session was started under, so the
   // US-only rows must too. Without a stored session it is the IP country.
@@ -236,15 +236,11 @@ const VbaPartnerTerms = ({
     viewportHeight > 0 &&
     consentRowY + CHECKBOX_VISIBLE_HEIGHT <= scrollOffset + viewportHeight;
 
-  let ctaLabel = strings(
-    'virtual_bank_account.partner_terms.scroll_to_continue_button',
-  );
+  let ctaLabel = strings('kyc.partner_terms.scroll_to_continue_button');
   if (hasBiometricConsent) {
-    ctaLabel = strings('virtual_bank_account.partner_terms.button');
+    ctaLabel = strings('kyc.partner_terms.button');
   } else if (isConsentRowInView) {
-    ctaLabel = strings(
-      'virtual_bank_account.partner_terms.agree_to_consent_above_button',
-    );
+    ctaLabel = strings('kyc.partner_terms.agree_to_consent_above_button');
   }
 
   const stepIndicator = (
@@ -259,9 +255,9 @@ const VbaPartnerTerms = ({
           total: TOTAL_PAGES,
         },
       )}
-      testID={VbaPartnerTermsSelectorsIDs.STEP_INDICATOR}
+      testID={KycPartnerTermsSelectorsIDs.STEP_INDICATOR}
     >
-      {strings('virtual_bank_account.verify_identity.step_indicator', {
+      {strings('kyc.verify_identity.step_indicator', {
         current: TOTAL_PAGES,
         total: TOTAL_PAGES,
       })}
@@ -279,7 +275,7 @@ const VbaPartnerTerms = ({
           isFloating={false}
           onBack={onBack}
           backButtonProps={{
-            testID: VbaPartnerTermsSelectorsIDs.BACK_BUTTON,
+            testID: KycPartnerTermsSelectorsIDs.BACK_BUTTON,
           }}
           includesTopInset
         />
@@ -288,14 +284,12 @@ const VbaPartnerTerms = ({
           scrollEventThrottle={16}
           onScroll={handleScroll}
           onLayout={handleViewportLayout}
-          testID={VbaPartnerTermsSelectorsIDs.CONTAINER}
+          testID={KycPartnerTermsSelectorsIDs.CONTAINER}
         >
           <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
-            title={strings('virtual_bank_account.partner_terms.title')}
-            bottomLabel={strings(
-              'virtual_bank_account.partner_terms.description',
-            )}
+            title={strings('kyc.partner_terms.title')}
+            bottomLabel={strings('kyc.partner_terms.description')}
             twClassName="px-4 pb-4"
           />
 
@@ -304,15 +298,11 @@ const VbaPartnerTerms = ({
             fontWeight={FontWeight.Bold}
             twClassName="px-4 pb-2 pt-2"
           >
-            {strings('virtual_bank_account.partner_terms.section_title')}
+            {strings('kyc.partner_terms.section_title')}
           </Text>
 
           <Box twClassName="mx-4 overflow-hidden rounded-xl bg-muted">
-            <GroupTitle
-              title={strings(
-                'virtual_bank_account.partner_terms.idos_group_title',
-              )}
-            />
+            <GroupTitle title={strings('kyc.partner_terms.idos_group_title')} />
             {listedIdosDocuments.map((disclaimer) => (
               <DisclaimerRow key={disclaimer.id} disclaimer={disclaimer} />
             ))}
@@ -320,51 +310,43 @@ const VbaPartnerTerms = ({
             <Box twClassName="h-px bg-muted" />
 
             <GroupTitle
-              title={strings(
-                'virtual_bank_account.partner_terms.sumsub_group_title',
-              )}
+              title={strings('kyc.partner_terms.sumsub_group_title')}
             />
             <Box twClassName="px-4 pb-4">
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                testID={VbaPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT}
+                testID={KycPartnerTermsSelectorsIDs.SUMSUB_ACKNOWLEDGEMENT}
               >
                 <SentenceWithLinks
-                  i18nKey="virtual_bank_account.partner_terms.sumsub_acknowledgement"
+                  i18nKey="kyc.partner_terms.sumsub_acknowledgement"
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                   links={{
                     notice: toSentenceLink(
-                      strings(
-                        'virtual_bank_account.partner_terms.sumsub_notice',
-                      ),
+                      strings('kyc.partner_terms.sumsub_notice'),
                       sumsubNotice,
-                      VbaPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK,
+                      KycPartnerTermsSelectorsIDs.SUMSUB_NOTICE_LINK,
                       SUMSUB_PERSONAL_DATA_PROCESSING_URL,
                     ),
                   }}
                 />
                 {isUsResident ? (
                   <SentenceWithLinks
-                    i18nKey="virtual_bank_account.partner_terms.sumsub_acknowledgement_us_residents"
+                    i18nKey="kyc.partner_terms.sumsub_acknowledgement_us_residents"
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                     links={{
                       privacyNotice: toSentenceLink(
-                        strings(
-                          'virtual_bank_account.partner_terms.sumsub_privacy_notice',
-                        ),
+                        strings('kyc.partner_terms.sumsub_privacy_notice'),
                         sumsubPrivacy,
-                        VbaPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK,
+                        KycPartnerTermsSelectorsIDs.SUMSUB_PRIVACY_NOTICE_LINK,
                         SUMSUB_PRIVACY_NOTICE_URL,
                       ),
                       biometricsConsent: toSentenceLink(
-                        strings(
-                          'virtual_bank_account.partner_terms.sumsub_biometrics_consent',
-                        ),
+                        strings('kyc.partner_terms.sumsub_biometrics_consent'),
                         sumsubBiometrics,
-                        VbaPartnerTermsSelectorsIDs.SUMSUB_BIOMETRICS_LINK,
+                        KycPartnerTermsSelectorsIDs.SUMSUB_BIOMETRICS_LINK,
                         SUMSUB_BIOMETRICS_CONSENT_URL,
                       ),
                     }}
@@ -382,29 +364,29 @@ const VbaPartnerTerms = ({
             alignItems={BoxAlignItems.Start}
             twClassName="mx-4 mt-4 gap-3"
             onLayout={handleConsentRowLayout}
-            testID={VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_ROW}
+            testID={KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_ROW}
           >
             <Checkbox
               ref={checkboxRef}
               isSelected={hasBiometricConsent}
               onChange={setHasBiometricConsent}
-              testID={VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX}
+              testID={KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX}
             />
             <Box twClassName="flex-1">
               <SentenceWithLinks
-                i18nKey="virtual_bank_account.partner_terms.biometric_consent"
+                i18nKey="kyc.partner_terms.biometric_consent"
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextDefault}
                 onPress={toggleBiometricConsent}
                 suppressHighlighting
-                testID={VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT}
+                testID={KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT}
                 links={{
                   privacyNotice: toSentenceLink(
                     strings(
-                      'virtual_bank_account.partner_terms.biometric_consent_privacy_notice',
+                      'kyc.partner_terms.biometric_consent_privacy_notice',
                     ),
                     findDisclaimerByKeyword(idos, 'privacy-notice'),
-                    VbaPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK,
+                    KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK,
                   ),
                 }}
               />
@@ -414,15 +396,15 @@ const VbaPartnerTerms = ({
 
         <Box twClassName="gap-4 border-t border-muted px-4 pb-2 pt-4">
           <SentenceWithLinks
-            i18nKey="virtual_bank_account.partner_terms.agreement"
+            i18nKey="kyc.partner_terms.agreement"
             twClassName="text-center"
-            testID={VbaPartnerTermsSelectorsIDs.AGREEMENT}
+            testID={KycPartnerTermsSelectorsIDs.AGREEMENT}
             links={{
               termsAndConditions: {
                 ...toSentenceLink(
-                  strings('virtual_bank_account.partner_terms.agreement_terms'),
+                  strings('kyc.partner_terms.agreement_terms'),
                   findDisclaimerByKeyword(idos, 'terms'),
-                  VbaPartnerTermsSelectorsIDs.AGREEMENT_TERMS_LINK,
+                  KycPartnerTermsSelectorsIDs.AGREEMENT_TERMS_LINK,
                 ),
                 color: TextColor.PrimaryDefault,
               },
@@ -434,7 +416,7 @@ const VbaPartnerTerms = ({
             isDisabled={!hasBiometricConsent}
             onPress={handleAgree}
             label={ctaLabel}
-            testID={VbaPartnerTermsSelectorsIDs.AGREE_BUTTON}
+            testID={KycPartnerTermsSelectorsIDs.AGREE_BUTTON}
           />
         </Box>
       </SafeAreaView>
@@ -442,4 +424,4 @@ const VbaPartnerTerms = ({
   );
 };
 
-export default VbaPartnerTerms;
+export default KycPartnerTerms;

@@ -50,8 +50,6 @@ import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
 } from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import {
@@ -304,10 +302,6 @@ const TokenDetails: React.FC<{
     AMBIENT_PRICE_COLOR_VARIANTS,
   );
   const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
-  const { variant: moneyFooterCtaVariant } = useABTest(
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
-  );
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
@@ -520,7 +514,6 @@ const TokenDetails: React.FC<{
     setChartPricePositive(isPositive);
   }, []);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const refreshTronAssets = useFreshTronAssets(token.chainId);
   useFocusEffect(
     useCallback(() => {
@@ -529,18 +522,15 @@ const TokenDetails: React.FC<{
       }
     }, [refreshTronAssets, token]),
   );
-  ///: END:ONLY_INCLUDE_IF
 
   const {
     balance,
     fiatBalance,
     balanceFiatUsd,
     tokenFormattedBalance,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
-    ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -552,9 +542,8 @@ const TokenDetails: React.FC<{
     hasBalance: hasBalanceValue,
   });
   const isMoneyFooterCtaActive =
-    moneyFooterCtaVariant.showMoneyDepositFooterCta &&
-    (moneyAssetOverviewCtas.isFooterCtaLoading ||
-      moneyAssetOverviewCtas.isFooterCtaVisible);
+    moneyAssetOverviewCtas.isFooterCtaLoading ||
+    moneyAssetOverviewCtas.isFooterCtaVisible;
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -743,11 +732,9 @@ const TokenDetails: React.FC<{
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
         mostRecentOrder={mostRecentOrder}
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}
-        ///: END:ONLY_INCLUDE_IF
       />
       {(txLoading || hasTransactions) && (
         <ActivityHeader

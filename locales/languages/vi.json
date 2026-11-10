@@ -1154,66 +1154,10 @@
       "powered_by": "Được cung cấp bởi",
       "button": "Nhận thông tin tài khoản"
     },
-    "verify_identity": {
-      "title": "Xác minh danh tính của bạn",
-      "description": "Quá trình này thường chỉ mất vài phút. Bạn cần chuẩn bị sẵn giấy tờ tùy thân có ảnh hợp lệ do chính phủ cấp.",
-      "step_photograph_id": "Chụp ảnh giấy tờ tùy thân",
-      "step_take_selfie": "Chụp ảnh tự chụp",
-      "step_confirm_details": "Xác nhận thông tin của bạn",
-      "step_answer_questions": "Trả lời một vài câu hỏi",
-      "footer": "Thông tin của bạn được mã hóa và chia sẻ an toàn với các nhà cung cấp dịch vụ xác minh của chúng tôi. Bạn sẽ được xem lại thông tin trước khi tiếp tục.",
-      "powered_by": "Được cung cấp bởi",
-      "disclaimers_error": "Không thể tải các điều khoản và điều kiện.",
-      "disclaimers_retry": "Thử lại",
-      "button": "Tiếp tục",
-      "terms_sheet_title": "Dữ liệu và quyền riêng tư",
-      "terms_sheet_description": "Để xác minh danh tính, thông tin của bạn sẽ được chia sẻ an toàn với các nhà cung cấp bên dưới. Hãy xem lại chính sách và điều khoản của họ trước khi tiếp tục.",
-      "metamask_privacy_policy": "Chính sách quyền riêng tư của MetaMask",
-      "metamask_terms": "Điều khoản và điều kiện của MetaMask",
-      "terms_sheet_button": "Đồng ý và bắt đầu xác minh"
-    },
-    "kyc_email": {
-      "error_title": "Không thể bắt đầu xác minh",
-      "error_description": "Đã xảy ra lỗi khi mở quy trình xác minh email. Vui lòng thử lại."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Chúng tôi cần thêm một vài thông tin",
-      "more_info_description": "Đôi khi, chúng tôi cần thêm thông tin để hoàn tất xác minh. Hãy xem lại các yêu cầu bên dưới để tiếp tục.",
-      "more_info_item_title": "Giấy tờ chứng minh địa chỉ",
-      "more_info_item_description": "Tải lên một giấy tờ gần đây có ghi tên và địa chỉ nhà hiện tại của bạn",
-      "more_info_button": "Tiếp tục",
-      "more_info_help": "Bạn cần trợ giúp xác minh?",
-      "error_title": "Không thể bắt đầu xác minh",
-      "error_description": "Đã xảy ra lỗi khi mở quy trình xác minh danh tính. Vui lòng thử lại.",
-      "retry": "Thử lại"
-    },
-    "kyc_taking_longer": {
-      "title": "Đang xác minh danh tính của bạn",
-      "description": "Hầu hết các lần kiểm tra đều hoàn tất trong khoảng 10 giây. Bạn có thể quay lại sau, chúng tôi sẽ thông báo khi quá trình kiểm tra hoàn tất.",
-      "button": "Quay lại sau"
-    },
-    "identity_verified": {
-      "title": "Đã xác minh danh tính",
-      "description": "Quá trình xác minh danh tính của bạn đã hoàn tất.",
-      "button": "Tiếp tục"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "Đang chờ MoonPay chấp thuận tài khoản của bạn"
-    },
-    "kyc_rejected": {
-      "title": "Chúng tôi không thể xác minh danh tính của bạn",
-      "description": "Có một vài thông tin bạn cần chú ý. Hãy xem lại từng mục bên dưới, rồi liên hệ bộ phận hỗ trợ.",
-      "retry_description": "Có một vài thông tin bạn cần chú ý. Hãy xem lại từng mục bên dưới, rồi thử lại.",
-      "identity_document_title": "Kiểm tra giấy tờ tùy thân của bạn",
-      "identity_document_description": "Đảm bảo giấy tờ hợp lệ, rõ nét và hiển thị đầy đủ",
-      "selfie_title": "Chụp lại ảnh tự chụp",
-      "selfie_description": "Chụp ở nơi đủ sáng và để khuôn mặt hiển thị rõ",
-      "details_title": "Xem lại thông tin của bạn",
-      "details_description": "Đảm bảo thông tin của bạn khớp với giấy tờ",
-      "button": "Liên hệ bộ phận hỗ trợ",
-      "retry_button": "Thử lại"
     },
     "account_provisioning_error": {
       "title": "Không thể tạo tài khoản của bạn",
@@ -1271,6 +1215,64 @@
       "load_error": "Không thể làm mới khoản nạp tiền. Chúng tôi sẽ thử lại.",
       "setup_error": "Không thể tạo tài khoản của bạn.",
       "retry": "Thử lại"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "Xác minh danh tính của bạn",
+      "description": "Quá trình này thường chỉ mất vài phút. Bạn cần chuẩn bị sẵn giấy tờ tùy thân có ảnh hợp lệ do chính phủ cấp.",
+      "step_photograph_id": "Chụp ảnh giấy tờ tùy thân",
+      "step_take_selfie": "Chụp ảnh tự chụp",
+      "step_confirm_details": "Xác nhận thông tin của bạn",
+      "step_answer_questions": "Trả lời một vài câu hỏi",
+      "footer": "Thông tin của bạn được mã hóa và chia sẻ an toàn với các nhà cung cấp dịch vụ xác minh của chúng tôi. Bạn sẽ được xem lại thông tin trước khi tiếp tục.",
+      "powered_by": "Được cung cấp bởi",
+      "disclaimers_error": "Không thể tải các điều khoản và điều kiện.",
+      "disclaimers_retry": "Thử lại",
+      "button": "Tiếp tục",
+      "terms_sheet_title": "Dữ liệu và quyền riêng tư",
+      "terms_sheet_description": "Để xác minh danh tính, thông tin của bạn sẽ được chia sẻ an toàn với các nhà cung cấp bên dưới. Hãy xem lại chính sách và điều khoản của họ trước khi tiếp tục.",
+      "metamask_privacy_policy": "Chính sách quyền riêng tư của MetaMask",
+      "metamask_terms": "Điều khoản và điều kiện của MetaMask",
+      "terms_sheet_button": "Đồng ý và bắt đầu xác minh"
+    },
+    "kyc_email": {
+      "error_title": "Không thể bắt đầu xác minh",
+      "error_description": "Đã xảy ra lỗi khi mở quy trình xác minh email. Vui lòng thử lại."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Chúng tôi cần thêm một vài thông tin",
+      "more_info_description": "Đôi khi, chúng tôi cần thêm thông tin để hoàn tất xác minh. Hãy xem lại các yêu cầu bên dưới để tiếp tục.",
+      "more_info_item_title": "Giấy tờ chứng minh địa chỉ",
+      "more_info_item_description": "Tải lên một giấy tờ gần đây có ghi tên và địa chỉ nhà hiện tại của bạn",
+      "more_info_button": "Tiếp tục",
+      "more_info_help": "Bạn cần trợ giúp xác minh?",
+      "error_title": "Không thể bắt đầu xác minh",
+      "error_description": "Đã xảy ra lỗi khi mở quy trình xác minh danh tính. Vui lòng thử lại.",
+      "retry": "Thử lại"
+    },
+    "kyc_taking_longer": {
+      "title": "Đang xác minh danh tính của bạn",
+      "description": "Hầu hết các lần kiểm tra đều hoàn tất trong khoảng 10 giây. Bạn có thể quay lại sau, chúng tôi sẽ thông báo khi quá trình kiểm tra hoàn tất.",
+      "button": "Quay lại sau"
+    },
+    "identity_verified": {
+      "title": "Đã xác minh danh tính",
+      "description": "Quá trình xác minh danh tính của bạn đã hoàn tất.",
+      "button": "Tiếp tục"
+    },
+    "kyc_rejected": {
+      "title": "Chúng tôi không thể xác minh danh tính của bạn",
+      "description": "Có một vài thông tin bạn cần chú ý. Hãy xem lại từng mục bên dưới, rồi liên hệ bộ phận hỗ trợ.",
+      "retry_description": "Có một vài thông tin bạn cần chú ý. Hãy xem lại từng mục bên dưới, rồi thử lại.",
+      "identity_document_title": "Kiểm tra giấy tờ tùy thân của bạn",
+      "identity_document_description": "Đảm bảo giấy tờ hợp lệ, rõ nét và hiển thị đầy đủ",
+      "selfie_title": "Chụp lại ảnh tự chụp",
+      "selfie_description": "Chụp ở nơi đủ sáng và để khuôn mặt hiển thị rõ",
+      "details_title": "Xem lại thông tin của bạn",
+      "details_description": "Đảm bảo thông tin của bạn khớp với giấy tờ",
+      "button": "Liên hệ bộ phận hỗ trợ",
+      "retry_button": "Thử lại"
     }
   },
   "social": {
@@ -11910,7 +11912,6 @@
       "email_label": "Email",
       "password_label": "Mật khẩu",
       "login_button": "Đăng nhập",
-      "siwe_button": "Đăng nhập bằng Ethereum",
       "continue_button": "Tiếp tục",
       "uk_login_button": "Đăng nhập bằng tài khoản này",
       "signup_button": "Đăng ký",
