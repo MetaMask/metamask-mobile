@@ -12,4 +12,5 @@ export const WalletRecoverySelectorsIDs = {
   PASSWORD_INPUT: 'wallet-recovery-password-input',
   PASSWORD_CONTINUE: 'wallet-recovery-password-continue',
   PASSWORD_ERROR: 'wallet-recovery-password-error',
+  PASSWORD_FORGOT: 'wallet-recovery-password-forgot',
 } as const;

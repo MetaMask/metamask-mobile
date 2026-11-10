@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WalletRecoveryVerify from './WalletRecoveryVerify';
@@ -116,5 +117,37 @@ describe('WalletRecoveryVerify', () => {
 
     fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.CANT_USE_THESE));
     expect(onCantUseThese).toHaveBeenCalledTimes(1);
+  });
+
+  it('announces error and offline status for accessibility', () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    const error = 'Verification failed. Try again or choose another method.';
+
+    const { getByTestId } = renderVerify({
+      error,
+      isOffline: true,
+    });
+
+    expect(announce).toHaveBeenCalledWith(error);
+    expect(announce).toHaveBeenCalledWith(
+      'Connect to the internet to use these methods.',
+    );
+    expect(getByTestId(WalletRecoverySelectorsIDs.VERIFY_ERROR).props).toEqual(
+      expect.objectContaining({ accessibilityRole: 'alert' }),
+    );
+    expect(
+      getByTestId(WalletRecoverySelectorsIDs.VERIFY_OFFLINE).props,
+    ).toEqual(expect.objectContaining({ accessibilityRole: 'alert' }));
+
+    announce.mockRestore();
+  });
+
+  it('marks cannot-use link disabled while busy', () => {
+    const { getByTestId } = renderVerify({ isBusy: true });
+    const cantUse = getByTestId(WalletRecoverySelectorsIDs.CANT_USE_THESE);
+
+    expect(cantUse.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
   });
 });

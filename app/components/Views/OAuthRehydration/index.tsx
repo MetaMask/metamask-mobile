@@ -604,13 +604,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [passwordFromVerify, setPasswordFromVerify] = useState(false);
 
   const lockedMfaReason = useMemo(
-    (): MfaReason =>
-      ({
-        // Not in MfaEntryPoint yet — recovery analytics entry.
-        operation: 'onboarding.social_mfa_verify',
-        presentation: 'modal',
-        verifyDescription: strings('wallet_recovery_mfa.verify_description'),
-      }) as MfaReason,
+    (): MfaReason => ({
+      // Closest typed entry point until recovery is added to MfaEntryPoint.
+      operation: 'settings.social_mfa_verify',
+      presentation: 'modal',
+      verifyDescription: strings('wallet_recovery_mfa.verify_description'),
+    }),
     [],
   );
 
@@ -914,26 +913,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       Logger.log(
         'OAuthRehydration: locked MFA gate timed out waiting for social auth',
       );
+      // Prevent a late authConnection from launching MFA after we give up.
+      hasOfferedLockedSocialMfa.current = true;
       setWalletRecoveryStep('password');
     }, 10_000);
     return () => clearTimeout(timer);
   }, [canOfferSocialMfaVerify, walletRecoveryStep, hasSocialAuthConnection]);
-
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-    return false;
-  }, [navigation]);
-
-  useEffect(() => {
-    const backHandlerSubscription = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackPress,
-    );
-
-    return () => {
-      backHandlerSubscription.remove();
-    };
-  }, [handleBackPress]);
 
   const handleUseOtherMethod = useCallback(() => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
@@ -951,6 +936,37 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
     handleUseOtherMethod();
   }, [passwordFromVerify, handleUseOtherMethod]);
+
+  // Hardware back must match header back (password → verify when applicable).
+  const handleBackPress = useCallback(() => {
+    if (!canOfferSocialMfaVerify) {
+      navigation.goBack();
+      return true;
+    }
+    if (walletRecoveryStep === 'password') {
+      handlePasswordBack();
+      return true;
+    }
+    handleUseOtherMethod();
+    return true;
+  }, [
+    canOfferSocialMfaVerify,
+    walletRecoveryStep,
+    handlePasswordBack,
+    handleUseOtherMethod,
+    navigation,
+  ]);
+
+  useEffect(() => {
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
+
+    return () => {
+      backHandlerSubscription.remove();
+    };
+  }, [handleBackPress]);
 
   const handleDownloadStateLogs = () => {
     const fullState = ReduxService.store.getState();
@@ -1113,9 +1129,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         isBusy={finalLoading}
         isDisabled={disabledInput}
         themeAppearance={themeAppearance}
+        showForgotPassword={!!isSeedlessPasswordOutdated}
         onBack={handlePasswordBack}
         onChangePassword={handlePasswordChange}
         onContinue={handleLogin}
+        onForgotPassword={toggleWarningModal}
       />
     );
   };

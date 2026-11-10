@@ -23,9 +23,14 @@ export interface WalletRecoveryPasswordProps {
   isBusy?: boolean;
   isDisabled?: boolean;
   themeAppearance?: 'light' | 'dark';
+  /**
+   * When true, shows Forgot password (seedless password outdated reset path).
+   */
+  showForgotPassword?: boolean;
   onBack: () => void;
   onChangePassword: (value: string) => void;
   onContinue: () => void;
+  onForgotPassword?: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -43,9 +48,11 @@ const WalletRecoveryPassword = ({
   isBusy = false,
   isDisabled = false,
   themeAppearance = 'dark',
+  showForgotPassword = false,
   onBack,
   onChangePassword,
   onContinue,
+  onForgotPassword,
 }: WalletRecoveryPasswordProps) => {
   const insets = useSafeAreaInsets();
   const canContinue = password.length > 0 && !isDisabled && !isBusy;
@@ -85,7 +92,6 @@ const WalletRecoveryPassword = ({
                 returnKeyType: 'done',
                 autoCapitalize: 'none',
                 secureTextEntry: true,
-                autoFocus: true,
                 onSubmitEditing: canContinue ? onContinue : undefined,
                 keyboardAppearance: themeAppearance,
               }}
@@ -101,7 +107,7 @@ const WalletRecoveryPassword = ({
           </Box>
         </Box>
 
-        <Box twClassName="px-4">
+        <Box twClassName="px-4 gap-3">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -113,6 +119,18 @@ const WalletRecoveryPassword = ({
           >
             {strings('wallet_recovery_mfa.continue')}
           </Button>
+          {showForgotPassword && onForgotPassword ? (
+            <Button
+              variant={ButtonVariant.Tertiary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              isDisabled={isBusy}
+              onPress={onForgotPassword}
+              testID={WalletRecoverySelectorsIDs.PASSWORD_FORGOT}
+            >
+              {strings('login.forgot_password')}
+            </Button>
+          ) : null}
         </Box>
       </Box>
     </KeyboardAvoidingView>

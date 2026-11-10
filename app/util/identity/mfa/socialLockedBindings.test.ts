@@ -11,10 +11,27 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const auth = Engine.context.AuthenticationController as {
-  refreshSocialLoginCredentials: jest.Mock;
-  beginSocialLoginVerification: jest.Mock;
-  completeSocialLoginVerification: jest.Mock;
+const auth = {
+  refreshSocialLoginCredentials: jest.mocked(
+    Engine.context.AuthenticationController.refreshSocialLoginCredentials,
+  ),
+  beginSocialLoginVerification: jest.mocked(
+    Engine.context.AuthenticationController.beginSocialLoginVerification,
+  ),
+  completeSocialLoginVerification: jest.mocked(
+    Engine.context.AuthenticationController.completeSocialLoginVerification,
+  ),
+};
+
+const mockPasskeyAssertion = {
+  id: 'cred-id',
+  rawId: 'raw-id',
+  type: 'public-key' as const,
+  response: {
+    authenticatorData: 'auth-data',
+    clientDataJSON: 'client-data',
+    signature: 'sig',
+  },
 };
 
 describe('createSocialLockedMfaControllerAdapter', () => {
@@ -39,7 +56,7 @@ describe('createSocialLockedMfaControllerAdapter', () => {
     await expect(
       adapter.beginCredentialEnrollment({
         type: 'passkey',
-        reason: { operation: 'test' },
+        reason: { operation: 'qa.test' },
       }),
     ).rejects.toThrow(/not available while the social wallet is locked/);
   });
@@ -57,8 +74,8 @@ describe('createSocialLockedMfaControllerAdapter', () => {
     await expect(
       adapter.completeCredentialVerification({
         flowId: 'flow',
-        proof: { type: 'passkey', assertion: {} },
-        reason: { operation: 'test' },
+        proof: { type: 'passkey', assertion: mockPasskeyAssertion },
+        reason: { operation: 'qa.test' },
       }),
     ).resolves.toBe(token);
 

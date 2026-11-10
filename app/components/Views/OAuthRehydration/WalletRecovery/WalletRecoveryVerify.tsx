@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { AccessibilityInfo, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Box,
@@ -133,6 +133,23 @@ const WalletRecoveryVerify = ({
     onSelectMethod('passkey');
   }, [onSelectMethod]);
 
+  // WCAG 4.1.3 / 3.3.1: announce status and errors for VoiceOver / TalkBack.
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(error);
+  }, [error]);
+
+  useEffect(() => {
+    if (!isOffline) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('wallet_recovery_mfa.offline_reason'),
+    );
+  }, [isOffline]);
+
   return (
     <Box
       twClassName="flex-1 bg-default"
@@ -162,6 +179,8 @@ const WalletRecoveryVerify = ({
           <HelpText
             severity={HelpTextSeverity.Warning}
             twClassName="mt-3"
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             testID={WalletRecoverySelectorsIDs.VERIFY_OFFLINE}
           >
             {strings('wallet_recovery_mfa.offline_reason')}
@@ -172,6 +191,8 @@ const WalletRecoveryVerify = ({
           <HelpText
             severity={HelpTextSeverity.Danger}
             twClassName="mt-3"
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             testID={WalletRecoverySelectorsIDs.VERIFY_ERROR}
           >
             {error}
@@ -237,7 +258,9 @@ const WalletRecoveryVerify = ({
       <Box twClassName="px-4 items-center">
         <TextButton
           variant={TextVariant.BodyMd}
-          onPress={isBusy ? undefined : onCantUseThese}
+          onPress={onCantUseThese}
+          isDisabled={isBusy}
+          accessibilityState={{ disabled: isBusy }}
           twClassName={isBusy ? 'opacity-50' : undefined}
           testID={WalletRecoverySelectorsIDs.CANT_USE_THESE}
         >
