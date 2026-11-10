@@ -125,6 +125,23 @@ describe('useMoneyCtaFtueNavigation', () => {
     );
   });
 
+  it('does not fall back to onboarding when the splash flag is on and the splash is seen', () => {
+    setup({
+      hasSeenSplash: true,
+      isSplashEnabled: true,
+      isOnboardingRedirectNeeded: true,
+    });
+
+    const { result } = renderHook(() => useMoneyCtaFtueNavigation());
+
+    expect(result.current.isSplashRedirectNeeded).toBe(false);
+    expect(result.current.isCtaFtueRedirectNeeded).toBe(false);
+    expect(result.current.ctaFtueRedirectTarget).toBeUndefined();
+    expect(result.current.ctaFtueButtonIntent).toBe(
+      MONEY_BUTTON_INTENTS.ADD_MONEY,
+    );
+  });
+
   it('navigates to the splash and forwards the params', () => {
     const { result } = renderHook(() => useMoneyCtaFtueNavigation());
     const params = {

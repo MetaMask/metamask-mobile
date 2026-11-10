@@ -785,7 +785,7 @@ describe('EarnSectionListView', () => {
     expect(mockNavigateToMoneyDepositWithCtaFtue).toHaveBeenCalledTimes(1);
     expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith(
       expect.objectContaining({
-        redirect_target: 'money_home',
+        redirect_target: 'money_deposit',
       }),
     );
   });

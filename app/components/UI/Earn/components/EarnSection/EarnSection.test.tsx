@@ -621,7 +621,7 @@ describe('EarnSection', () => {
     {
       isSplashRedirectNeeded: false,
       isOnboardingRedirectNeeded: false,
-      redirectTarget: 'money_home',
+      redirectTarget: 'money_deposit',
     },
   ] as const)(
     'tracks Money account card presses with the $redirectTarget destination',

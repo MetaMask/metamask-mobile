@@ -25,18 +25,20 @@ export const useMoneyCtaFtueNavigation = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
 
   const isSplashRedirectNeeded = isSplashEnabled && !hasSeenSplash;
+  const isOnboardingFallbackRedirectNeeded =
+    !isSplashEnabled && isOnboardingRedirectNeeded;
   const isCtaFtueRedirectNeeded =
-    isSplashRedirectNeeded || isOnboardingRedirectNeeded;
+    isSplashRedirectNeeded || isOnboardingFallbackRedirectNeeded;
 
   const ctaFtueRedirectTarget = isSplashRedirectNeeded
     ? SCREEN_NAMES.MONEY_SPLASH
-    : isOnboardingRedirectNeeded
+    : isOnboardingFallbackRedirectNeeded
       ? SCREEN_NAMES.MONEY_ONBOARDING
       : undefined;
 
   const ctaFtueButtonIntent = isSplashRedirectNeeded
     ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH
-    : isOnboardingRedirectNeeded
+    : isOnboardingFallbackRedirectNeeded
       ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
       : MONEY_BUTTON_INTENTS.ADD_MONEY;
 
@@ -51,9 +53,17 @@ export const useMoneyCtaFtueNavigation = () => {
         return true;
       }
 
-      return redirectToOnboardingIfNeeded(params);
+      if (isOnboardingFallbackRedirectNeeded) {
+        return redirectToOnboardingIfNeeded(params);
+      }
+
+      return false;
     },
-    [isSplashRedirectNeeded, redirectToOnboardingIfNeeded],
+    [
+      isSplashRedirectNeeded,
+      isOnboardingFallbackRedirectNeeded,
+      redirectToOnboardingIfNeeded,
+    ],
   );
 
   const navigateToMoneyDepositWithCtaFtue = useCallback(
@@ -78,7 +88,7 @@ export const useMoneyCtaFtueNavigation = () => {
 
   return {
     isSplashRedirectNeeded,
-    isOnboardingRedirectNeeded,
+    isOnboardingRedirectNeeded: isOnboardingFallbackRedirectNeeded,
     isCtaFtueRedirectNeeded,
     ctaFtueRedirectTarget,
     ctaFtueButtonIntent,

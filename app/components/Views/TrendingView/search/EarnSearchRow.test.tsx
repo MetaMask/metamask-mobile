@@ -163,7 +163,7 @@ describe('EarnSearchRow', () => {
     );
   });
 
-  it('tracks Money surface ownership and onboarding target', () => {
+  it('tracks Money surface ownership and deposit target', () => {
     const item = {
       kind: 'money-account',
       id: 'money-account',
@@ -179,7 +179,7 @@ describe('EarnSearchRow', () => {
     fireEvent.press(getByTestId('money-row'));
 
     expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith({
-      redirect_target: 'money_home',
+      redirect_target: 'money_deposit',
     });
     expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
       component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SEARCH_ROW,

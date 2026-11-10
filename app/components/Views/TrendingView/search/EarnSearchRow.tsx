@@ -76,7 +76,7 @@ const EarnSearchRow = ({
           ? MONEY_SCREEN_NAMES.MONEY_SPLASH
           : isOnboardingRedirectNeeded
             ? MONEY_SCREEN_NAMES.MONEY_ONBOARDING
-            : MONEY_SCREEN_NAMES.MONEY_HOME,
+            : MONEY_SCREEN_NAMES.MONEY_DEPOSIT,
       });
       navigateToMoneyDepositWithCtaFtue();
       return;
