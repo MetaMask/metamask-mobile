@@ -5,11 +5,17 @@
  */
 import '../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import ReduxService from '../../../../core/redux';
 import { OPT_OUT_SECTION_TEST_IDS } from '../components/Settings/OptOutSection.testIds';
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from '../components/Settings/ReferredByCodeSection.testIds';
 import { REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS } from '../components/Settings/RewardSettingsAccountGroupList.testIds';
-import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
+import {
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../../tests/component-view/render';
 import { renderRewardsSettingsView } from '../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   referralMeFixture,
@@ -106,6 +112,48 @@ describe('RewardsSettingsView', () => {
     expect(engine).toHaveBeenCalledWith(
       'RewardsMoneyController:registerReferee',
       { code: 'AB12CD' },
+    );
+  });
+
+  it('opens support in the modal webview from an off-device account', async () => {
+    const view = renderRewardsSettingsView({
+      persona: 'referee',
+      subscriptionId: 'sub-1',
+      supportPreferenceSaved: true,
+      handlers: {
+        'RewardsController:getOffDeviceSubscriptionAccounts': () =>
+          Promise.resolve([
+            'eip155:1:0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+          ]),
+      },
+    });
+    // Consent reads the saved preference from ReduxService.
+    ReduxService.store = view.store;
+
+    fireEvent.press(
+      await view.findByText(
+        strings('rewards.settings.off_device_accounts_banner_cta'),
+      ),
+    );
+    fireEvent.press(
+      await view.findByText(
+        strings('rewards.settings.off_device_accounts_sheet_let_us_know'),
+      ),
+    );
+
+    expect(
+      await view.findByTestId(
+        getRouteParamsProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW),
+      ),
+    ).toHaveTextContent(
+      JSON.stringify({
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url: METAMASK_SUPPORT_URL,
+          title: strings('app_settings.contact_support'),
+          isModal: false,
+        },
+      }),
     );
   });
 });
