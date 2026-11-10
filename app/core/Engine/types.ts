@@ -1162,8 +1162,6 @@ export type MessengerClientsToInitialize =
   | 'AccountTreeController'
   | 'DeFiPositionsController'
   | 'DeFiPositionsControllerV2'
-  | 'GeolocationController'
-  | 'GeolocationApiService'
   | 'MultichainNetworkController'
   | 'NftController'
   | 'TokensController'

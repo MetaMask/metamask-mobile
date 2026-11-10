@@ -60,6 +60,7 @@ import { getSocialEventSource } from '../../../Views/SocialLeaderboard/analytics
 import { resolveQuickBuySubmittedTxHash } from '../resolveQuickBuySubmittedTxHash';
 import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { isSpotPostTradeShareEligible } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
@@ -1747,7 +1748,9 @@ export function useQuickBuyController(
     // Public copy-trades always share. Private profiles use the normal
     // Quick Buy toasts instead. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
-    const canPostTradeShare = isSpotPostTradeShareEligible(amountUsdValue);
+    const canPostTradeShare =
+      isSpotPostTradeShareEligible(amountUsdValue) &&
+      !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
     const isForcedPostTradeShare =
       postTradeShare && !isProfileTradingActivityPrivate;
     const shouldForcePostTradeShare =
