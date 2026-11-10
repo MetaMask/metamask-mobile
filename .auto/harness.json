@@ -1,0 +1,8 @@
+{
+  "status": "ready",
+  "source_file": "app/selectors/assets/assets-migration.ts",
+  "metric": "primary_ms",
+  "metric_unit": "ms",
+  "direction": "lower",
+  "checks_command": "node node_modules/.bin/jest --config jest.config.js --coverage=false app/selectors/assets/assets-migration.test.ts"
+}
