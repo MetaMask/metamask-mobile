@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import PerpsSelectionBottomSheet from './PerpsSelectionBottomSheet';
 import { PerpsSelectionBottomSheetSelectorsIDs } from './PerpsSelectionBottomSheet.testIds';
@@ -93,6 +94,34 @@ describe('PerpsSelectionBottomSheet', () => {
     expect(screen.getByLabelText('Plain option')).toBeOnTheScreen();
     expect(screen.getByText('Plain option')).toBeOnTheScreen();
     expect(screen.queryByText('50x max')).toBeNull();
+  });
+
+  it('renders the option icon', () => {
+    renderSheet({
+      options: [
+        {
+          id: 'icon',
+          title: 'Icon option',
+          icon: <Text testID="option-icon">icon</Text>,
+        },
+      ],
+    });
+
+    expect(screen.getByTestId('option-icon')).toBeOnTheScreen();
+  });
+
+  it('keeps the selection when a disabled option is pressed', () => {
+    renderSheet({
+      options: [OPTIONS[0], { ...OPTIONS[1], isDisabled: true }],
+      selectedOptionId: 'lighter',
+    });
+    const disabledOption = screen.getByTestId(`${OPTION_PREFIX}-hyperliquid`);
+
+    fireEvent.press(disabledOption);
+
+    expect(disabledOption).toBeDisabled();
+    expect(disabledOption).not.toBeChecked();
+    expect(screen.getByTestId(`${OPTION_PREFIX}-lighter`)).toBeChecked();
   });
 
   it('marks only the initially selected option as checked', () => {

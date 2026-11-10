@@ -25,6 +25,15 @@ export interface PerpsSelectionOption {
    * (e.g. an exchange logo).
    */
   startAccessory?: ReactNode;
+  /**
+   * Optional leading 24x24 icon, rendered without a slot.
+   * Ignored when `startAccessory` is set.
+   */
+  icon?: ReactNode;
+  /**
+   * Whether the option can't be selected. Rendered at reduced opacity.
+   */
+  isDisabled?: boolean;
 }
 
 export interface PerpsSelectionBottomSheetProps {

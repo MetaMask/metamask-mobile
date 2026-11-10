@@ -34,7 +34,14 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
     setDescriptionLineCount(event.nativeEvent.lines.length);
   }, []);
 
-  const { title, tag, description, startAccessory } = option;
+  const {
+    title,
+    tag,
+    description,
+    startAccessory,
+    icon,
+    isDisabled = false,
+  } = option;
   const hasMultiLineText = descriptionLineCount > 1;
   const accessibilityLabel = [title, tag, description?.replace(/\n/g, ', ')]
     .filter(Boolean)
@@ -44,7 +51,8 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
     <Pressable
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="radio"
-      accessibilityState={{ checked: isSelected }}
+      accessibilityState={{ checked: isSelected, disabled: isDisabled }}
+      disabled={isDisabled}
       onPress={onPress}
       testID={testID}
       // The 1px border is always rendered (transparent when unselected) and
@@ -56,6 +64,7 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
           hasMultiLineText ? 'items-start' : 'items-center',
           isSelected ? 'border-default' : 'border-transparent',
           pressed && 'bg-pressed',
+          isDisabled && 'opacity-50',
         )
       }
     >
@@ -66,7 +75,9 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
         >
           {startAccessory}
         </Box>
-      ) : null}
+      ) : (
+        icon
+      )}
       <Box accessible={false} twClassName="flex-1">
         <Box
           accessible={false}
@@ -97,6 +108,7 @@ const PerpsSelectionOptionCard: React.FC<PerpsSelectionOptionCardProps> = ({
       </Box>
       <RadioButton
         isChecked={isSelected}
+        isDisabled={isDisabled}
         onPress={onPress}
         touchableOpacityProps={{
           // The card is the radio. This control only draws the indicator.
