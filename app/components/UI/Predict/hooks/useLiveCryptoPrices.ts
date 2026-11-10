@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   CryptoPriceUpdate,
   type CryptoPriceProvider,
@@ -21,6 +23,11 @@ export const useLiveCryptoPrices = (
   const isConnectedRef = useRef(false);
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
+  // The provider authenticates the price feed with this account and skips the
+  // subscription without one, so re-subscribe when it appears or changes.
+  const selectedAddress = useSelector(
+    selectSelectedAccountGroupEvmInternalAccount,
+  )?.address;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -59,7 +66,7 @@ export const useLiveCryptoPrices = (
       setIsConnected(false);
       unsubscribe();
     };
-  }, [symbol, twapWindowSeconds, provider]);
+  }, [symbol, twapWindowSeconds, provider, selectedAddress]);
 
   return { isConnected };
 };
