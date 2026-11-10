@@ -8,6 +8,7 @@ import {
 import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import Animated, {
+  Easing,
   FadeIn,
   FadeOut,
   LinearTransition,
@@ -42,9 +43,16 @@ export interface ReactionChipProps {
   onBurstAnchor?: (nonce: number, frame: EmojiWindowFrame) => void;
 }
 
+/** Slide when one emoji overtakes another. Timed, so it never overshoots. */
+export const REACTION_CHIP_SHIFT_DURATION_MS = 220;
+/** Eases in slowly, then quickly settles into the new slot. */
+export const REACTION_CHIP_SHIFT_EASING = Easing.bezier(0.6, 0, 0.2, 1);
+
 const POP_IN = ZoomIn.springify().damping(14).stiffness(240).duration(280);
 const POP_OUT = ZoomOut.duration(140);
-const SHIFT = LinearTransition.springify().damping(18).stiffness(220);
+const SHIFT = LinearTransition.duration(REACTION_CHIP_SHIFT_DURATION_MS).easing(
+  REACTION_CHIP_SHIFT_EASING,
+);
 
 /**
  * One emoji + count in the engagement row. Tapping it toggles the viewer's
