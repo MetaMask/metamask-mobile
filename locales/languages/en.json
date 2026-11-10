@@ -3515,6 +3515,9 @@
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
       "dismiss": "Got it"
     },
+    "crossMarginRatio": {
+      "description": "Cross margin ratio is {{ratio}}."
+    },
     "sort": {
       "volume": "Volume (24h)",
       "volume_short": "Vol",
