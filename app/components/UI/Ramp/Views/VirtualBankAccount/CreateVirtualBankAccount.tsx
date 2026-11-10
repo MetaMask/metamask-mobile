@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -23,6 +23,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
@@ -89,6 +90,7 @@ const CreateVirtualBankAccount = ({
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const hasEnsuredLocalUserSecretRef = useRef(false);
   const {
     disclaimers,
     isLoading,
@@ -126,6 +128,31 @@ const CreateVirtualBankAccount = ({
   useEffect(() => {
     trackVendorTerms('viewed');
   }, []);
+
+  // Pre-creates and persists the UKYC `local_user_secret` once the initial
+  // disclaimers request settles, so the later `startSession` call does not
+  // pay for secret generation and the Encrypted User Storage write. Waiting
+  // for that request to settle (success or failure) keeps this screen's
+  // initial network burst limited to the disclaimers fetch. A failure here
+  // does not block onboarding: `startSession` creates the secret if it is
+  // still missing. Guarded so a disclaimers retry cannot re-fire this call.
+  useEffect(() => {
+    if (isLoading || hasEnsuredLocalUserSecretRef.current) {
+      return;
+    }
+    hasEnsuredLocalUserSecretRef.current = true;
+    Engine.context.KycController.ensureLocalUserSecret().catch(
+      (error: unknown) => {
+        Logger.error(error as Error, {
+          tags: { feature: 'vba-onboarding' },
+          context: {
+            name: 'CreateVirtualBankAccount',
+            data: { step: 'ensureLocalUserSecret' },
+          },
+        });
+      },
+    );
+  }, [isLoading]);
 
   // Only the load and empty-catalog failures leave the screen without usable
   // terms. A save failure keeps them on screen and is reported from the
