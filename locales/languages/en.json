@@ -3850,6 +3850,11 @@
       "retry": "Retry",
       "unavailable": "No markets are available right now."
     },
+    "home_categories": {
+      "title": "Categories",
+      "politics": "Politics",
+      "sports": "Sports"
+    },
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
