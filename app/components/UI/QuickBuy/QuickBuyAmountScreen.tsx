@@ -15,12 +15,18 @@ import QuickBuyKeypad from './components/QuickBuyKeypad';
 import QuickBuyToolbar from './components/QuickBuyToolbar';
 import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
+import {
+  SwapsBanners,
+  TokenWarningBanner,
+} from '../Bridge/components/SwapsBanners';
+import { useEnsureDestTokenSecurityData } from '../Bridge/hooks/useEnsureDestTokenSecurityData';
 
 /**
  * Default amount-first buy layout (Figma Swap For You).
  */
 const QuickBuyAmountScreen: React.FC = () => {
   const { isUnsupportedChain, hasNoPayWithFunds } = useQuickBuyContext();
+  useEnsureDestTokenSecurityData();
 
   if (isUnsupportedChain) {
     return (
@@ -37,6 +43,9 @@ const QuickBuyAmountScreen: React.FC = () => {
       {/* The toolbar stays live even with no funds — it owns the close button,
           so dimming it would leave the user with no way out of the sheet. */}
       <QuickBuyToolbar />
+      <SwapsBanners>
+        <TokenWarningBanner />
+      </SwapsBanners>
       <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Center}>
         <QuickBuyDisabledSection
           isDisabled={hasNoPayWithFunds}

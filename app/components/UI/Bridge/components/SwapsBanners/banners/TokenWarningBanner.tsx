@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -29,6 +29,7 @@ import { useSwapsBannersContext } from '../SwapsBannersContext';
 export const TokenWarningBanner = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { destToken, location } = useSwapsBannersContext();
+  const [isDismissed, setIsDismissed] = useState(false);
 
   const securityData = destToken?.securityData;
   const tokenWarning = useMemo(
@@ -40,7 +41,7 @@ export const TokenWarningBanner = () => {
     [securityData],
   );
 
-  if (!tokenWarning) {
+  if (!tokenWarning || isDismissed) {
     return null;
   }
 
@@ -83,7 +84,7 @@ export const TokenWarningBanner = () => {
                 token: destToken?.symbol,
               })
         }
-        onClose={openWarningModal}
+        onClose={() => setIsDismissed(true)}
       />
     </Pressable>
   );

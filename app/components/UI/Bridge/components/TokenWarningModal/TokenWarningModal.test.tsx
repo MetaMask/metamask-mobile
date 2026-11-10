@@ -322,6 +322,18 @@ describe('TokenWarningModal', () => {
       expect(queryByText(strings('bridge.proceed'))).toBeNull();
       expect(queryByText(strings('bridge.cancel'))).toBeNull();
     });
+
+    it('does not read quote data, so it can open outside the Bridge providers', () => {
+      mockUseParams.mockReturnValue({
+        ...defaultWarningParams,
+        mode: TokenWarningModalMode.Info,
+      });
+
+      renderModal();
+
+      expect(mockUseBridgeQuoteData).not.toHaveBeenCalled();
+      expect(mockUseBridgeConfirm).not.toHaveBeenCalled();
+    });
   });
 
   describe('handleClose', () => {

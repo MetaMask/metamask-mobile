@@ -97,4 +97,15 @@ describe('TokenWarningBanner', () => {
       params: expect.objectContaining({ features: [] }),
     });
   });
+
+  it('dismisses without opening the modal when the close button is pressed', () => {
+    const { getByLabelText, queryByTestId } = renderWithSecurityType(
+      SecurityDataType.Malicious,
+    );
+
+    fireEvent.press(getByLabelText('Close banner'));
+
+    expect(queryByTestId(SwapsBannersSelectorsIDs.TOKEN_WARNING)).toBeNull();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
 });

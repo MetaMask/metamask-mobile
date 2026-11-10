@@ -80,7 +80,19 @@ export const getTokenWarningContent = (
   };
 };
 
-export const TokenWarningModal = () => {
+type BridgeQuoteData = ReturnType<typeof useBridgeQuoteDataContext>;
+
+interface TokenWarningModalSheetProps {
+  activeQuote?: BridgeQuoteData['activeQuote'];
+  shouldShowPriceImpactError?: BridgeQuoteData['shouldShowPriceImpactError'];
+  confirmBridge?: ReturnType<typeof useBridgeConfirm>;
+}
+
+const TokenWarningModalSheet = ({
+  activeQuote,
+  shouldShowPriceImpactError,
+  confirmBridge,
+}: TokenWarningModalSheetProps) => {
   const navigation = useNavigation<AppStackNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
@@ -93,14 +105,6 @@ export const TokenWarningModal = () => {
   } = useParams<TokenWarningModalParams>();
 
   const destToken = useSelector(selectDestToken);
-
-  const { activeQuote, shouldShowPriceImpactError } =
-    useBridgeQuoteDataContext();
-
-  const confirmBridge = useBridgeConfirm({
-    activeQuote,
-    location,
-  });
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -126,7 +130,7 @@ export const TokenWarningModal = () => {
     if (sheetRef.current?.onCloseBottomSheet) {
       sheetRef.current.onCloseBottomSheet(confirmBridge);
     } else {
-      await confirmBridge();
+      await confirmBridge?.();
     }
   }, [
     activeQuote,
@@ -292,5 +296,32 @@ export const TokenWarningModal = () => {
         />
       )}
     </BottomSheet>
+  );
+};
+
+// Quote data and confirm only exist inside the Bridge providers, so they are
+// read only in Execution mode. Info mode can open from outside them (e.g.
+// Quick Buy).
+const TokenWarningExecutionModal = () => {
+  const { location } = useParams<TokenWarningModalParams>();
+  const { activeQuote, shouldShowPriceImpactError } =
+    useBridgeQuoteDataContext();
+  const confirmBridge = useBridgeConfirm({ activeQuote, location });
+
+  return (
+    <TokenWarningModalSheet
+      activeQuote={activeQuote}
+      shouldShowPriceImpactError={shouldShowPriceImpactError}
+      confirmBridge={confirmBridge}
+    />
+  );
+};
+
+export const TokenWarningModal = () => {
+  const { mode } = useParams<TokenWarningModalParams>();
+  return mode === TokenWarningModalMode.Execution ? (
+    <TokenWarningExecutionModal />
+  ) : (
+    <TokenWarningModalSheet />
   );
 };
