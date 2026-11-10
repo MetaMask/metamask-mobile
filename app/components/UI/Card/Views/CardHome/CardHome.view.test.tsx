@@ -1,6 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -546,28 +545,10 @@ describe('CardHome', () => {
       });
     });
 
-    it('calls CardController.logout when logout is confirmed', async () => {
-      const logoutMock = Engine.context.CardController.logout as jest.Mock;
-      logoutMock.mockClear();
+    it('does not render a logout row when the user is authenticated', () => {
+      const { queryByText } = renderCardHomeView();
 
-      let confirmHandler: (() => Promise<void>) | undefined;
-      jest
-        .spyOn(Alert, 'alert')
-        .mockImplementationOnce((_title, _msg, buttons) => {
-          const destructive = buttons?.find((b) => b.style === 'destructive');
-          confirmHandler = destructive?.onPress as () => Promise<void>;
-        });
-
-      const { getByTestId } = renderCardHomeView();
-
-      fireEvent.press(getByTestId(CardHomeSelectors.LOGOUT_ITEM));
-
-      expect(Alert.alert).toHaveBeenCalled();
-      await act(async () => {
-        await confirmHandler?.();
-      });
-
-      expect(logoutMock).toHaveBeenCalled();
+      expect(queryByText('Log out')).toBeNull();
     });
   });
 

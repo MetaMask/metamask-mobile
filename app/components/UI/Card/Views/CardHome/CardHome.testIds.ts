@@ -8,7 +8,6 @@ export const CardHomeSelectors = {
   CHANGE_ASSET_BUTTON: 'change-asset-button',
   TRAVEL_ITEM: 'travel-item',
   CARD_TOS_ITEM: 'card-tos-item',
-  LOGOUT_ITEM: 'logout-item',
   ENABLE_CARD_BUTTON: 'enable-card-button',
   CONTACT_SUPPORT_ITEM: 'contact-support-item',
   MANAGE_SPENDING_LIMIT_ITEM: 'manage-spending-limit-item',
