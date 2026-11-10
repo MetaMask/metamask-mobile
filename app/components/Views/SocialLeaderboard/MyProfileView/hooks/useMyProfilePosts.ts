@@ -59,23 +59,24 @@ export const useMyProfilePosts = (
     refresh: refetch,
   } = useSocialFeed(source, { realtime: isActive, filterPost });
 
-  const commentDatedPosts = useMemo(
+  const serverPosts = useMemo(
     () =>
-      feedPosts.map((post) => {
-        const commentedAt = post.position
-          ? readAuthorComment(post.position)?.timestamp
+      feedPosts.map((post, index) => {
+        const row = rows[index];
+        const commentedAt = row
+          ? readAuthorComment(row.core)?.timestamp
           : undefined;
         return commentedAt
           ? { ...post, timestampMs: commentedAt * 1000 }
           : post;
       }),
-    [feedPosts],
+    [feedPosts, rows],
   );
 
   const overlay = usePendingPostsOverlay({
     surface: 'posts',
     ownerProfileId,
-    serverPosts: commentDatedPosts,
+    serverPosts,
     refetch,
     isActive,
   });
