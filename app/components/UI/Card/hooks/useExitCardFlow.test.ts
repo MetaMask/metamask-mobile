@@ -1,10 +1,17 @@
 import { act, renderHook } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  CASHBACK_MONEY_ACCOUNT_ORIGIN,
+  MONEY_HOME_CARD_ORIGIN,
+} from './useCardPostAuthRedirect';
 import { useExitCardFlow } from './useExitCardFlow';
 
 interface TestRoute {
   name: string;
-  params?: { returnToCaller?: boolean };
+  params?: {
+    returnToCaller?: boolean;
+    postAuthRedirect?: object;
+  };
 }
 
 interface TestNavigation {
@@ -28,12 +35,14 @@ const createNavigation = ({
   index = 0,
   canGoBack = true,
   parent,
+  routes,
 }: {
   routeName: string;
-  params?: { returnToCaller?: boolean };
+  params?: TestRoute['params'];
   index?: number;
   canGoBack?: boolean;
   parent?: TestNavigation;
+  routes?: TestRoute[];
 }): TestNavigation => ({
   navigate: mockNavigate,
   goBack: jest.fn(),
@@ -41,7 +50,7 @@ const createNavigation = ({
   getParent: () => parent,
   getState: () => ({
     index,
-    routes: [
+    routes: routes ?? [
       ...Array.from({ length: index }, () => ({ name: 'Previous' })),
       { name: routeName, params },
     ],
@@ -144,6 +153,186 @@ describe('useExitCardFlow', () => {
     mockScreenNavigation = createNavigation({
       routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
       parent: cardRoot,
+    });
+
+    const { result } = renderHook(() => useExitCardFlow());
+
+    act(() => {
+      result.current();
+    });
+
+    expect(cardRoot.goBack).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  });
+
+  it('pops the setup navigator when it sits on Card home', () => {
+    const screens = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.ROOT,
+      index: 1,
+      routes: [
+        { name: Routes.CARD.HOME },
+        { name: Routes.CARD.ONBOARDING.ROOT },
+      ],
+    });
+    const onboarding = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
+      parent: screens,
+    });
+    mockScreenNavigation = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      parent: onboarding,
+    });
+
+    const { result } = renderHook(() => useExitCardFlow());
+
+    act(() => {
+      result.current();
+    });
+
+    expect(screens.goBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('pops the setup navigator instead of the Card root when setup sits on Card home', () => {
+    const cardRoot = createNavigation({
+      routeName: Routes.CARD.ROOT,
+      params: { returnToCaller: true },
+      index: 1,
+    });
+    const screens = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.ROOT,
+      index: 1,
+      parent: cardRoot,
+      routes: [
+        { name: Routes.CARD.HOME },
+        {
+          name: Routes.CARD.ONBOARDING.ROOT,
+          params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        },
+      ],
+    });
+    const onboarding = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
+      parent: screens,
+    });
+    mockScreenNavigation = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      parent: onboarding,
+    });
+
+    const { result } = renderHook(() => useExitCardFlow());
+
+    act(() => {
+      result.current();
+    });
+
+    expect(screens.goBack).toHaveBeenCalledTimes(1);
+    expect(cardRoot.goBack).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('pops the Card root when the flow started from Money home', () => {
+    const cardRoot = createNavigation({
+      routeName: Routes.CARD.ROOT,
+      index: 1,
+    });
+    const screens = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.ROOT,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      parent: cardRoot,
+    });
+    mockScreenNavigation = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
+      parent: screens,
+    });
+
+    const { result } = renderHook(() => useExitCardFlow());
+
+    act(() => {
+      result.current();
+    });
+
+    expect(cardRoot.goBack).toHaveBeenCalledTimes(1);
+    expect(screens.goBack).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates to wallet home when a Money home flow cannot pop the Card root', () => {
+    const cardRoot = createNavigation({
+      routeName: Routes.CARD.ROOT,
+      index: 1,
+      canGoBack: false,
+    });
+    const screens = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.ROOT,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      parent: cardRoot,
+    });
+    mockScreenNavigation = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
+      parent: screens,
+    });
+
+    const { result } = renderHook(() => useExitCardFlow());
+
+    act(() => {
+      result.current();
+    });
+
+    expect(cardRoot.goBack).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  });
+
+  it.each([Routes.CARD.WELCOME, Routes.CARD.AUTHENTICATION])(
+    'navigates to wallet home when setup sits on %s',
+    (underlyingRoute) => {
+      const cardRoot = createNavigation({
+        routeName: Routes.CARD.ROOT,
+        index: 1,
+      });
+      const screens = createNavigation({
+        routeName: Routes.CARD.ONBOARDING.ROOT,
+        index: 1,
+        parent: cardRoot,
+        routes: [
+          { name: underlyingRoute },
+          { name: Routes.CARD.ONBOARDING.ROOT },
+        ],
+      });
+      const onboarding = createNavigation({
+        routeName: Routes.CARD.ONBOARDING.SIGN_UP,
+        parent: screens,
+      });
+      mockScreenNavigation = createNavigation({
+        routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
+        parent: onboarding,
+      });
+
+      const { result } = renderHook(() => useExitCardFlow());
+
+      act(() => {
+        result.current();
+      });
+
+      expect(screens.goBack).not.toHaveBeenCalled();
+      expect(cardRoot.goBack).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    },
+  );
+
+  it('navigates to wallet home when the flow started from Cashback', () => {
+    const cardRoot = createNavigation({
+      routeName: Routes.CARD.ROOT,
+      index: 1,
+    });
+    const screens = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.ROOT,
+      params: { postAuthRedirect: CASHBACK_MONEY_ACCOUNT_ORIGIN },
+      parent: cardRoot,
+    });
+    mockScreenNavigation = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
+      parent: screens,
     });
 
     const { result } = renderHook(() => useExitCardFlow());

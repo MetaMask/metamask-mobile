@@ -13,13 +13,13 @@ import { useExitCardFlow } from './useExitCardFlow';
  * the user can step back from.
  *
  * `close-with-confirmation` — close (X) icon that shows a "leave onboarding?"
- * alert before leaving. The exit goes to wallet home, or back to the caller
- * when the flow was entered from outside Card. Used in the onboarding flow
- * after email entry.
+ * alert before leaving. The exit returns to Card home when setup was opened
+ * from it, to Money home when the flow started there, and to wallet home
+ * otherwise. Used in the onboarding flow after email entry.
  *
- * `close-direct` — close (X) icon that leaves immediately. The exit goes to
- * wallet home, or back to the caller when the flow was entered from outside
- * Card. Used on KYC status screens.
+ * `close-direct` — close (X) icon that leaves immediately. The exit returns
+ * to Card home when setup was opened from it, to Money home when the flow
+ * started there, and to wallet home otherwise. Used on KYC status screens.
  *
  * `close-reset-home` — close (X) icon that resets the navigator to
  * `CARD.HOME`. Used by SpendingLimit's onboarding flow where the user must

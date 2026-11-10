@@ -267,8 +267,10 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
-  const { canEnableCard, enableCard, provisioningView } =
-    useCardEnableCard(data);
+  const { canEnableCard, enableCard, provisioningView } = useCardEnableCard(
+    data,
+    { recheckOnFocus: true },
+  );
 
   const effectiveActions = useMemo<CardAction[]>(() => {
     const providerActions = data?.actions ?? [];

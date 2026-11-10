@@ -79,6 +79,7 @@ import { Alert, Linking, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
+import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -343,11 +344,11 @@ let mockProvisioningView:
   | 'kyc_under_review'
   | 'provisioning' = 'provisioning';
 jest.mock('./hooks/useCardEnableCard', () => ({
-  useCardEnableCard: () => ({
+  useCardEnableCard: jest.fn(() => ({
     canEnableCard: mockCanEnableCard,
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
-  }),
+  })),
 }));
 
 jest.mock('../../hooks/useCreditBalance', () => ({
@@ -1510,6 +1511,15 @@ describe('CardHome Component', () => {
     mockUseMoneyAccountCardLinkage.mockReset();
     mockUseMoneyAccountCardLinkage.mockImplementation(
       createDefaultMoneyAccountCardLinkageMock,
+    );
+  });
+
+  it('rechecks the left-off setup step when Card home regains focus', () => {
+    render();
+
+    expect(jest.mocked(useCardEnableCard)).toHaveBeenCalledWith(
+      expect.anything(),
+      { recheckOnFocus: true },
     );
   });
 
