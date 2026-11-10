@@ -1,6 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CommentEngagement, FeedReaction } from '../reactions';
+import {
+  keepReactionOrder,
+  rankReactions,
+  type CommentEngagement,
+  type FeedReaction,
+} from '../reactions';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
 import { invalidateModerationStatus } from '../moderationApi';
 import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
@@ -59,7 +64,11 @@ export const useFeedPostReaction = (
   initialUserReaction: string | null = null,
 ): UseFeedPostReactionResult => {
   const queryClient = useQueryClient();
-  const [reactions, setReactions] = useState(initialReactions);
+  // Ranked once per post. Later counts, including the server's re-sorted
+  // reply to the viewer's own tap, update in place so chips never restack.
+  const [reactions, setReactions] = useState(() =>
+    rankReactions(initialReactions),
+  );
   const [userReaction, setUserReaction] = useState(initialUserReaction);
   const [isPending, setIsPending] = useState(false);
   const engagementSeed = serializeFeedEngagementSeed(
@@ -68,15 +77,29 @@ export const useFeedPostReaction = (
     initialUserReaction,
   );
   const lastPropsSeedRef = useRef(engagementSeed);
+  const rankedCommentIdRef = useRef(commentId);
 
   useEffect(() => {
     if (isPending || lastPropsSeedRef.current === engagementSeed) {
       return;
     }
     lastPropsSeedRef.current = engagementSeed;
-    setReactions(initialReactions);
+    // A recycled row can now hold a different post, which ranks afresh.
+    const isSamePost = rankedCommentIdRef.current === commentId;
+    rankedCommentIdRef.current = commentId;
+    setReactions((current) =>
+      isSamePost
+        ? keepReactionOrder(current, initialReactions)
+        : rankReactions(initialReactions),
+    );
     setUserReaction(initialUserReaction);
-  }, [engagementSeed, initialReactions, initialUserReaction, isPending]);
+  }, [
+    commentId,
+    engagementSeed,
+    initialReactions,
+    initialUserReaction,
+    isPending,
+  ]);
 
   const pickEmotion = useCallback(
     async (emotion: string) => {
@@ -96,7 +119,9 @@ export const useFeedPostReaction = (
           previous.userReaction === emotion
             ? await removeCommentReaction({ commentId })
             : await reactToComment({ commentId, emotion });
-        setReactions(metrics.reactions);
+        setReactions((current) =>
+          keepReactionOrder(current, metrics.reactions),
+        );
         setUserReaction(metrics.userReaction);
         patchFeedCommentEngagementInCache(queryClient, commentId, metrics);
       } catch (error) {

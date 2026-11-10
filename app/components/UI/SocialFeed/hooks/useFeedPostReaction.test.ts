@@ -173,6 +173,119 @@ describe('useFeedPostReaction', () => {
     expect(result.current.userReaction).toBe('🔥');
   });
 
+  it('ranks the first reactions it sees by popularity', () => {
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '😡', count: 1 },
+            { emotion: '❤️', count: 2 },
+          ],
+          null,
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '❤️', count: 2 },
+      { emotion: '😡', count: 1 },
+    ]);
+  });
+
+  it('keeps chips in place when the server re-sorts after the viewer reacts', async () => {
+    mockReactToComment.mockResolvedValue({
+      reactions: [
+        { emotion: '😡', count: 2 },
+        { emotion: '❤️', count: 1 },
+      ],
+      userReaction: '😡',
+    });
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '❤️', count: 2 },
+            { emotion: '😡', count: 1 },
+          ],
+          '❤️',
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😡');
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '❤️', count: 1 },
+      { emotion: '😡', count: 2 },
+    ]);
+  });
+
+  it('keeps chips in place when refreshed feed props re-sort the same post', () => {
+    const { result, rerender } = renderHook(
+      ({ reactions }: { reactions: { emotion: string; count: number }[] }) =>
+        useFeedPostReaction('comment-1', reactions, null),
+      {
+        wrapper: wrapper(new QueryClient()),
+        initialProps: {
+          reactions: [
+            { emotion: '❤️', count: 2 },
+            { emotion: '😡', count: 1 },
+          ],
+        },
+      },
+    );
+
+    rerender({
+      reactions: [
+        { emotion: '😡', count: 5 },
+        { emotion: '🚀', count: 3 },
+        { emotion: '❤️', count: 2 },
+      ],
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '❤️', count: 2 },
+      { emotion: '😡', count: 5 },
+      { emotion: '🚀', count: 3 },
+    ]);
+  });
+
+  it('ranks afresh when the row is reused for a different post', () => {
+    const { result, rerender } = renderHook(
+      ({
+        commentId,
+        reactions,
+      }: {
+        commentId: string;
+        reactions: { emotion: string; count: number }[];
+      }) => useFeedPostReaction(commentId, reactions, null),
+      {
+        wrapper: wrapper(new QueryClient()),
+        initialProps: {
+          commentId: 'comment-1',
+          reactions: [{ emotion: '❤️', count: 2 }],
+        },
+      },
+    );
+
+    rerender({
+      commentId: 'comment-2',
+      reactions: [
+        { emotion: '😂', count: 1 },
+        { emotion: '🔥', count: 4 },
+      ],
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '🔥', count: 4 },
+      { emotion: '😂', count: 1 },
+    ]);
+  });
+
   it('ignores a second pick while a request is pending', async () => {
     const queryClient = new QueryClient();
     let resolvePut: (value: {

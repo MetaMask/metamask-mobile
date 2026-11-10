@@ -59,3 +59,28 @@ export const totalReactionCount = (reactions: FeedReaction[]): number =>
 
 export const visibleReactions = (reactions: FeedReaction[]): FeedReaction[] =>
   reactions.filter((reaction) => reaction.count > 0);
+
+/** Most popular first. Ties keep the server's order. */
+export const rankReactions = (reactions: FeedReaction[]): FeedReaction[] =>
+  visibleReactions(reactions).sort((a, b) => b.count - a.count);
+
+/**
+ * Applies `next` counts without moving chips the viewer can already see.
+ * Known emojis keep their slot, a new one joins at the end, and an emoji
+ * that drops to zero leaves.
+ */
+export const keepReactionOrder = (
+  current: FeedReaction[],
+  next: FeedReaction[],
+): FeedReaction[] => {
+  const nextByEmotion = new Map(
+    next.map((reaction) => [reaction.emotion, reaction]),
+  );
+  const known = new Set(current.map((reaction) => reaction.emotion));
+  const kept = current.flatMap((reaction) => {
+    const updated = nextByEmotion.get(reaction.emotion);
+    return updated ? [updated] : [];
+  });
+  const added = next.filter((reaction) => !known.has(reaction.emotion));
+  return visibleReactions([...kept, ...added]);
+};

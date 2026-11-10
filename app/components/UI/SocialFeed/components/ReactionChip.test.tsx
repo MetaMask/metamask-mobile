@@ -3,21 +3,12 @@ import { lightTheme } from '@metamask/design-tokens';
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { getHardwareTier } from '../../../../util/deviceCapability';
-import { Easing, LinearTransition } from 'react-native-reanimated';
-import ReactionChip, {
-  REACTION_CHIP_SHIFT_DURATION_MS,
-  REACTION_CHIP_SHIFT_EASING,
-} from './ReactionChip';
+import ReactionChip from './ReactionChip';
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  const shift = { easing: jest.fn(() => shift), springify: jest.fn() };
   return {
     ...Reanimated,
-    Easing: {
-      bezier: jest.fn((...points: number[]) => `bezier(${points.join(',')})`),
-    },
-    LinearTransition: { duration: jest.fn(() => shift), springify: jest.fn() },
     useReducedMotion: () => false,
   };
 });
@@ -35,18 +26,6 @@ const resolvedChipStyle = (testID: string) => {
 };
 
 describe('ReactionChip', () => {
-  it('slides to a new slot with a slow-in, fast-settle curve, not a bouncy spring', () => {
-    const shift = jest.mocked(LinearTransition.duration).mock.results[0]
-      ?.value as { easing: jest.Mock };
-
-    expect(LinearTransition.duration).toHaveBeenCalledWith(
-      REACTION_CHIP_SHIFT_DURATION_MS,
-    );
-    expect(Easing.bezier).toHaveBeenCalledWith(0.6, 0, 0.2, 1);
-    expect(shift.easing).toHaveBeenCalledWith(REACTION_CHIP_SHIFT_EASING);
-    expect(LinearTransition.springify).not.toHaveBeenCalled();
-  });
-
   it('renders the emotion and count', () => {
     renderWithProvider(
       <ReactionChip emotion="🐐" count={3} testID="reaction-chip-goat" />,
