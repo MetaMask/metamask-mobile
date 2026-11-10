@@ -1,7 +1,7 @@
 import {
   cancelWalletHomeOnboardingFundFlow,
-  completeWalletHomeOnboardingFundFlow,
   consumeWalletHomeOnboardingFundFlowCompletion,
+  setWalletHomeOnboardingFundFlowOrderAccepted,
   startWalletHomeOnboardingFundFlow,
 } from './walletHomeOnboardingFundFlow';
 
@@ -16,7 +16,7 @@ describe('walletHomeOnboardingFundFlow', () => {
     expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
 
     startWalletHomeOnboardingFundFlow();
-    completeWalletHomeOnboardingFundFlow();
+    setWalletHomeOnboardingFundFlowOrderAccepted(true);
 
     expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(true);
     expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
@@ -26,16 +26,25 @@ describe('walletHomeOnboardingFundFlow', () => {
     startWalletHomeOnboardingFundFlow();
 
     cancelWalletHomeOnboardingFundFlow();
-    completeWalletHomeOnboardingFundFlow();
+    setWalletHomeOnboardingFundFlowOrderAccepted(true);
 
     expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
   });
 
   it('clears completion when the active attempt is cancelled', () => {
     startWalletHomeOnboardingFundFlow();
-    completeWalletHomeOnboardingFundFlow();
+    setWalletHomeOnboardingFundFlowOrderAccepted(true);
 
     cancelWalletHomeOnboardingFundFlow();
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
+  });
+
+  it('clears completion when the order is no longer accepted', () => {
+    startWalletHomeOnboardingFundFlow();
+    setWalletHomeOnboardingFundFlowOrderAccepted(true);
+
+    setWalletHomeOnboardingFundFlowOrderAccepted(false);
 
     expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
   });

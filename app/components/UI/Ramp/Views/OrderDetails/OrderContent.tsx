@@ -72,13 +72,11 @@ const localStyles = StyleSheet.create({
 interface OrderContentProps {
   order: RampsOrder;
   showCloseButton?: boolean;
-  onClose?: () => void;
 }
 
 const OrderContent: React.FC<OrderContentProps> = ({
   order,
   showCloseButton = false,
-  onClose,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -220,9 +218,8 @@ const OrderContent: React.FC<OrderContentProps> = ({
         })
         .build(),
     );
-    onClose?.();
     navigation.goBack();
-  }, [navigation, createEventBuilder, trackEvent, onClose]);
+  }, [navigation, createEventBuilder, trackEvent]);
 
   const handleInfoPress = useCallback(() => {
     trackEvent(

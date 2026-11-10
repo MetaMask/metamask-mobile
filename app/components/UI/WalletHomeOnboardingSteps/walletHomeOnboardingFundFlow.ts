@@ -13,11 +13,18 @@ export function startWalletHomeOnboardingFundFlow(): void {
 }
 
 /**
- * Records that the active flow reached its final Order Details Close action.
+ * Records whether the active flow's final Order Details screen shows an accepted order.
+ *
+ * Order Details keeps this in sync with the order it shows, so leaving by Close, the back
+ * arrow, or a back gesture all count, and an order that turns failed clears it again.
+ *
+ * @param isAccepted - Whether the order shown is accepted.
  */
-export function completeWalletHomeOnboardingFundFlow(): void {
+export function setWalletHomeOnboardingFundFlowOrderAccepted(
+  isAccepted: boolean,
+): void {
   if (isWalletHomeOnboardingFundFlowActive) {
-    isWalletHomeOnboardingFundFlowCompleted = true;
+    isWalletHomeOnboardingFundFlowCompleted = isAccepted;
   }
 }
 
@@ -37,7 +44,7 @@ export function consumeWalletHomeOnboardingFundFlowCompletion(): boolean {
 }
 
 /**
- * Cancels a flow that returned without reaching the final Order Details Close action.
+ * Cancels a flow that returned without reaching an accepted order on Order Details.
  */
 export function cancelWalletHomeOnboardingFundFlow(): void {
   isWalletHomeOnboardingFundFlowActive = false;

@@ -22,7 +22,7 @@ import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboarding
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/BoxGlass';
 import {
   cancelWalletHomeOnboardingFundFlow,
-  completeWalletHomeOnboardingFundFlow,
+  setWalletHomeOnboardingFundFlowOrderAccepted,
   startWalletHomeOnboardingFundFlow,
 } from './walletHomeOnboardingFundFlow';
 
@@ -165,7 +165,7 @@ describe('WalletHomeOnboardingSteps', () => {
       />,
     );
     mockUseIsFocused.mockReturnValue(true);
-    completeWalletHomeOnboardingFundFlow();
+    setWalletHomeOnboardingFundFlowOrderAccepted(true);
     rerender(
       <WalletHomeOnboardingSteps
         testID="steps-root"
@@ -220,7 +220,7 @@ describe('WalletHomeOnboardingSteps', () => {
       />,
     );
     mockUseIsFocused.mockReturnValue(true);
-    completeWalletHomeOnboardingFundFlow();
+    setWalletHomeOnboardingFundFlowOrderAccepted(true);
     rerender(
       <WalletHomeOnboardingSteps
         testID="steps-root"

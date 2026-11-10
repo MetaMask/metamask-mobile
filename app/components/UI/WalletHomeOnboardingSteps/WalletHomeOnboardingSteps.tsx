@@ -114,9 +114,9 @@ export interface WalletHomeOnboardingStepsProps {
  * returns to the wallet. Fund requires a completed buy-flow marker; trade and notifications
  * advance after returning. Both paths briefly hold on the completed step, then run outro + slide.
  * Skip advances immediately (no navigation).
- * Step 1 (fund): Primary opens on-ramp when {@link onFundPrimaryPress} is set; the final order
- * details Close action marks the flow complete before returning to Wallet. Incoming funds without
- * leaving the wallet still advance when the balance gate becomes true.
+ * Step 1 (fund): Primary opens on-ramp when {@link onFundPrimaryPress} is set; reaching the final
+ * order details screen with an accepted order marks the flow complete, however the user leaves it.
+ * Incoming funds without leaving the wallet still advance when the balance gate becomes true.
  */
 const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   testID = WalletHomeOnboardingStepsSelectors.CONTAINER,
