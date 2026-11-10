@@ -1,10 +1,16 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import {
+  ConfirmationLaunchSource,
+  ConfirmationLoader,
+} from '../../../Views/confirmations/components/confirm/confirm-component';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { usePerpsHomeActions } from './usePerpsHomeActions';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import {
   PERPS_EVENT_PROPERTY,
@@ -12,10 +18,29 @@ import {
 } from '@metamask/perps-controller';
 
 // Mock dependencies
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(() => ({
-    navigate: jest.fn(),
-  })),
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: jest.fn(() => ({
+      navigate: jest.fn(),
+      dispatch: jest.fn(),
+      goBack: jest.fn(),
+      getState: jest.fn(() => ({
+        index: 1,
+        routes: [
+          { name: 'PerpsMarketListView' },
+          { name: 'RedesignedConfirmations' },
+        ],
+      })),
+      addListener: jest.fn(() => jest.fn()),
+    })),
+  };
+});
+
+jest.mock('../../../../util/haptics', () => ({
+  playImpact: jest.fn().mockResolvedValue(undefined),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
 jest.mock('react-redux', () => ({
@@ -40,6 +65,11 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
 }));
 
 const mockTrack = jest.fn();
@@ -72,6 +102,18 @@ jest.mock('../../Compliance', () => ({
 describe('usePerpsHomeActions', () => {
   const mockNavigation = {
     navigate: jest.fn(),
+    dispatch: jest.fn(),
+    goBack: jest.fn(),
+    getState: jest.fn(() => ({
+      index: 1,
+      routes: [
+        { name: 'PerpsMarketListView' },
+        { name: 'RedesignedConfirmations' },
+      ],
+    })),
+    addListener: jest.fn<jest.Mock, [event: string, callback: () => void]>(() =>
+      jest.fn(),
+    ),
   };
 
   const mockDepositWithConfirmation = jest
@@ -80,8 +122,11 @@ describe('usePerpsHomeActions', () => {
   const mockNavigateToConfirmation = jest.fn();
 
   beforeEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
     mockTrack.mockClear();
+    mockDepositWithConfirmation.mockReset();
+    mockDepositWithConfirmation.mockResolvedValue(undefined);
     mockWithdrawWithConfirmation.mockResolvedValue(undefined);
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
@@ -141,59 +186,265 @@ describe('usePerpsHomeActions', () => {
 
   describe('handleAddFunds - eligible user', () => {
     it('navigates to confirmation and initiates deposit', async () => {
-      const { result } = renderHook(() => usePerpsHomeActions());
+      jest.useFakeTimers();
+      try {
+        const { result } = renderHook(() => usePerpsHomeActions());
 
-      await act(async () => {
-        await result.current.handleAddFunds();
-      });
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
 
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        stack: Routes.PERPS.ROOT,
-      });
-      expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          loader: ConfirmationLoader.CustomAmount,
+          stack: Routes.PERPS.ROOT,
+        });
+
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
+
+        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
-    it('triggers onAddFundsSuccess callback', async () => {
-      const onAddFundsSuccess = jest.fn();
+    it('pushes confirmation on the current stack when opened in place', async () => {
+      jest.useFakeTimers();
+      try {
+        const { result } = renderHook(() =>
+          usePerpsHomeActions({ openConfirmationInPlace: true }),
+        );
+
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
+
+        expect(mockNavigation.dispatch).not.toHaveBeenCalled();
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          loader: ConfirmationLoader.CustomAmount,
+          launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+          pushOnCurrentStack: true,
+        });
+
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
+
+        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('opens one in-place confirmation when add funds is pressed twice before it appears', async () => {
+      jest.useFakeTimers();
+      const onBeforeOpenConfirmation = jest.fn();
+      try {
+        const { result } = renderHook(() =>
+          usePerpsHomeActions({
+            openConfirmationInPlace: true,
+            onBeforeOpenConfirmation,
+          }),
+        );
+
+        let firstTap: Promise<void> = Promise.resolve();
+        let secondTap: Promise<void> = Promise.resolve();
+
+        act(() => {
+          firstTap = result.current.handleAddFunds();
+          secondTap = result.current.handleAddFunds();
+        });
+
+        expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+
+        await act(async () => {
+          await jest.runAllTimersAsync();
+          await Promise.all([firstTap, secondTap]);
+        });
+
+        expect(onBeforeOpenConfirmation).toHaveBeenCalledTimes(1);
+        expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('opens another in-place confirmation after the sheet is focused again', async () => {
+      let focusListener: (() => void) | undefined;
+      mockNavigation.addListener.mockImplementation(
+        (event: string, callback: () => void) => {
+          if (event === 'focus') {
+            focusListener = callback;
+          }
+          return jest.fn();
+        },
+      );
+
       const { result } = renderHook(() =>
-        usePerpsHomeActions({ onAddFundsSuccess }),
+        usePerpsHomeActions({ openConfirmationInPlace: true }),
       );
 
       await act(async () => {
         await result.current.handleAddFunds();
       });
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
 
-      await waitFor(() => {
+      expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        focusListener?.();
+      });
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(2);
+    });
+
+    describe('deferred deposit prep', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      });
+
+      it('navigates to confirmation without waiting for deposit prep', async () => {
+        let resolveDeposit: () => void = () => undefined;
+        mockDepositWithConfirmation.mockReturnValue(
+          new Promise<void>((resolve) => {
+            resolveDeposit = resolve;
+          }),
+        );
+
+        const { result } = renderHook(() => usePerpsHomeActions());
+
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
+
+        expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+        expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+
+        await act(async () => {
+          jest.runAllTimers();
+        });
+
+        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+          resolveDeposit();
+        });
+      });
+
+      it('starts deposit prep once when add funds is tapped twice', async () => {
+        const { result } = renderHook(() => usePerpsHomeActions());
+
+        await act(async () => {
+          await result.current.handleAddFunds();
+          await result.current.handleAddFunds();
+        });
+
+        await act(async () => {
+          jest.runAllTimers();
+        });
+
+        expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(2);
+        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+      });
+
+      it('dismisses the latest confirmation when the first prep fails after a second tap', async () => {
+        let rejectDeposit: (error: Error) => void = () => undefined;
+        mockDepositWithConfirmation.mockImplementation(
+          () =>
+            new Promise<void>((_resolve, reject) => {
+              rejectDeposit = reject;
+            }),
+        );
+
+        const { result } = renderHook(() => usePerpsHomeActions());
+
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
+        await act(async () => {
+          jest.runAllTimers();
+        });
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
+        await act(async () => {
+          rejectDeposit(new Error('stale prep failed'));
+        });
+
+        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+        expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+      });
+
+      it('triggers onAddFundsSuccess callback', async () => {
+        const onAddFundsSuccess = jest.fn();
+        const { result } = renderHook(() =>
+          usePerpsHomeActions({ onAddFundsSuccess }),
+        );
+
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
+
         expect(onAddFundsSuccess).toHaveBeenCalledTimes(1);
       });
-    });
 
-    it('resets isProcessing to false after operation completes', async () => {
-      const { result } = renderHook(() => usePerpsHomeActions());
+      it('resets isProcessing to false after operation completes', async () => {
+        const { result } = renderHook(() => usePerpsHomeActions());
 
-      await act(async () => {
-        await result.current.handleAddFunds();
-      });
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
 
-      await waitFor(() => {
         expect(result.current.isProcessing).toBe(false);
       });
-    });
 
-    it('handles deposit error during add funds', async () => {
-      const depositError = new Error('Deposit failed');
-      mockDepositWithConfirmation.mockRejectedValueOnce(depositError);
+      it('handles deposit error during add funds', async () => {
+        const depositError = new Error('Deposit failed');
+        mockDepositWithConfirmation.mockImplementationOnce(() =>
+          Promise.reject(depositError),
+        );
 
-      const onError = jest.fn();
-      const { result } = renderHook(() => usePerpsHomeActions({ onError }));
+        const onError = jest.fn();
+        const { result } = renderHook(() => usePerpsHomeActions({ onError }));
 
-      await act(async () => {
-        await result.current.handleAddFunds();
-      });
+        await act(async () => {
+          result.current.handleAddFunds();
+        });
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
 
-      await waitFor(() => {
-        expect(result.current.error).toEqual(depositError);
+        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
         expect(onError).toHaveBeenCalledWith(depositError, 'deposit');
+        expect(result.current.error).toEqual(depositError);
+        expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+        expect(Logger.error).toHaveBeenCalledWith(depositError, {
+          tags: {
+            feature: 'perps',
+            component: 'usePerpsHomeActions',
+            action: 'financial_deposit',
+            operation: 'financial_operations',
+          },
+        });
       });
     });
   });
@@ -210,6 +461,28 @@ describe('usePerpsHomeActions', () => {
 
       expect(result.current.isEligibilityModalVisible).toBe(true);
       expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('opens the eligibility modal again on a later in-place tap', async () => {
+      (useSelector as jest.Mock).mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        usePerpsHomeActions({ openConfirmationInPlace: true }),
+      );
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+        await result.current.handleAddFunds();
+      });
+
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      const depositClicks = mockTrack.mock.calls.filter(
+        ([event, properties]) =>
+          event === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+          properties?.[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+      );
+      expect(depositClicks).toHaveLength(2);
     });
 
     it('tracks geo-block screen viewed event for deposit action', async () => {
@@ -422,6 +695,42 @@ describe('usePerpsHomeActions', () => {
         expect(result.current.error).toEqual(new Error('Withdraw failed'));
         expect(onError).toHaveBeenCalledWith(expect.any(Error), 'withdraw');
       });
+      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+        tags: {
+          feature: 'perps',
+          component: 'usePerpsHomeActions',
+          action: 'financial_withdrawal',
+          operation: 'financial_operations',
+        },
+      });
+    });
+
+    it('does not report user-rejected withdrawals to Sentry', async () => {
+      mockWithdrawWithConfirmation.mockRejectedValueOnce(
+        new Error('MetaMask Tx Signature: User denied transaction signature.'),
+      );
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('does not report user-rejected withdrawals (code 4001) to Sentry', async () => {
+      mockWithdrawWithConfirmation.mockRejectedValueOnce(
+        Object.assign(new Error('Rejected'), { code: 4001 }),
+      );
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('resets isProcessing after completion', async () => {
@@ -479,20 +788,27 @@ describe('usePerpsHomeActions', () => {
 
   describe('error handling with non-Error objects', () => {
     it('converts string error to Error object', async () => {
-      mockDepositWithConfirmation.mockRejectedValueOnce('String error');
+      jest.useFakeTimers();
+      try {
+        mockDepositWithConfirmation.mockRejectedValueOnce('String error');
 
-      const onError = jest.fn();
-      const { result } = renderHook(() => usePerpsHomeActions({ onError }));
+        const onError = jest.fn();
+        const { result } = renderHook(() => usePerpsHomeActions({ onError }));
 
-      await act(async () => {
-        await result.current.handleAddFunds();
-      });
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
 
-      await waitFor(() => {
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
+
         expect(result.current.error).toBeInstanceOf(Error);
         expect(result.current.error?.message).toBe('String error');
         expect(onError).toHaveBeenCalledWith(expect.any(Error), 'deposit');
-      });
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 });

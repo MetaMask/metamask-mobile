@@ -49,7 +49,18 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock('../../components/PerpsCloseSummary', () => 'PerpsCloseSummary');
+jest.mock('../../components/PerpsCloseSummary', () =>
+  jest.fn(
+    ({ afterFees }: { afterFees?: React.ReactNode }) => afterFees ?? null,
+  ),
+);
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 
 const mockUsePerpsLivePositions = usePerpsLivePositions as jest.MockedFunction<
   typeof usePerpsLivePositions
@@ -66,6 +77,9 @@ const mockUsePerpsRewardAccountOptedIn =
   usePerpsRewardAccountOptedIn as jest.MockedFunction<
     typeof usePerpsRewardAccountOptedIn
   >;
+const mockPerpsCloseSummary = jest.requireMock(
+  '../../components/PerpsCloseSummary',
+) as jest.Mock;
 
 describe('PerpsCloseAllPositionsView', () => {
   const mockPositions = [
@@ -99,9 +113,12 @@ describe('PerpsCloseAllPositionsView', () => {
     totalMargin: 1000,
     totalPnl: 100,
     totalFees: 10,
+    originalTotalFees: 12,
     receiveAmount: 1090,
     totalEstimatedPoints: 50,
     avgFeeDiscountPercentage: 5,
+    feeSource: undefined,
+    feeDiscountKind: 'vip' as const,
     avgBonusBips: 10,
     avgMetamaskFeeRate: 0.01,
     avgProtocolFeeRate: 0.00045,
@@ -346,6 +363,14 @@ describe('PerpsCloseAllPositionsView', () => {
     expect(
       getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the close-all rebate banner', () => {
+    render(<PerpsCloseAllPositionsView />);
+
+    expect(mockPerpsRebateBanner).toHaveBeenCalledWith({
+      containerTwClassName: 'px-4 mb-3',
+    });
   });
 
   it('calls usePerpsRewardAccountOptedIn with totalEstimatedPoints', () => {

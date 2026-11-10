@@ -1,7 +1,7 @@
 export const PASSCODE_NOT_SET_ERROR = 'Passcode not set.';
 export const WRONG_PASSWORD_ERROR = 'Decrypt failed';
-export const WRONG_PASSWORD_ERROR_ANDROID =
-  'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
+// Covers OPENSSL BAD_DECRYPT and newer Provider routines::bad decrypt (Android).
+export const WRONG_PASSWORD_ERROR_ANDROID = 'decrypt';
 export const WRONG_PASSWORD_ERROR_ANDROID_2 = 'error in DoCipher, status: 2';
 export const VAULT_ERROR = 'Cannot unlock without a previous vault.';
 export const DENY_PIN_ERROR_ANDROID = 'Error: Cancel';

@@ -106,7 +106,7 @@ describe('BlockExplorerFooter', () => {
     );
     expect(trackEventMock).toHaveBeenCalledWith(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
+        MetaMetricsEvents.NOTIFICATION_DETAIL_ITEM_CLICKED,
       )
         .addProperties({
           ...notificationAnalyticsProperties(props.notification),

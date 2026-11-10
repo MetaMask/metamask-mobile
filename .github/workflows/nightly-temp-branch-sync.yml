@@ -20,7 +20,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # Fetch all history so we can work with branches
           fetch-depth: 0
@@ -41,7 +41,7 @@ jobs:
       - name: Report sync status
         run: |
           echo "✅ Successfully synced chore/temp-nightly branch with main"
-          echo "🌿 Workflow triggered from branch: ${{ github.ref_name }}"
+          echo "🌿 Workflow triggered from branch: ${GITHUB_REF_NAME}"
           echo "📍 Current branch after sync: $(git branch --show-current)"
           echo "📄 Latest commit: $(git log --oneline -1)"
           echo "🔄 Trigger event: ${{ github.event_name }}"

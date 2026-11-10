@@ -41,9 +41,11 @@ export const useVipRefereeDashboard = (): UseVipRefereeDashboardResult => {
     if (!subscriptionId || !isVipReferee) {
       if (subscriptionId) {
         dispatch(setVipRefereeDashboard({ subscriptionId, dashboard: null }));
+        dispatch(setVipRefereeDashboardError({ subscriptionId, error: false }));
+        dispatch(
+          setVipRefereeDashboardLoading({ subscriptionId, loading: false }),
+        );
       }
-      dispatch(setVipRefereeDashboardError(false));
-      dispatch(setVipRefereeDashboardLoading(false));
       setHasAttemptedFetch(true);
       return;
     }
@@ -54,8 +56,10 @@ export const useVipRefereeDashboard = (): UseVipRefereeDashboardResult => {
 
     try {
       isLoadingRef.current = true;
-      dispatch(setVipRefereeDashboardLoading(true));
-      dispatch(setVipRefereeDashboardError(false));
+      dispatch(
+        setVipRefereeDashboardLoading({ subscriptionId, loading: true }),
+      );
+      dispatch(setVipRefereeDashboardError({ subscriptionId, error: false }));
 
       const refereeDashboard = await Engine.controllerMessenger.call(
         'RewardsController:getVipRefereeDashboard',
@@ -69,10 +73,12 @@ export const useVipRefereeDashboard = (): UseVipRefereeDashboardResult => {
         }),
       );
     } catch {
-      dispatch(setVipRefereeDashboardError(true));
+      dispatch(setVipRefereeDashboardError({ subscriptionId, error: true }));
     } finally {
       isLoadingRef.current = false;
-      dispatch(setVipRefereeDashboardLoading(false));
+      dispatch(
+        setVipRefereeDashboardLoading({ subscriptionId, loading: false }),
+      );
       setHasAttemptedFetch(true);
     }
   }, [dispatch, isVipReferee, subscriptionId]);

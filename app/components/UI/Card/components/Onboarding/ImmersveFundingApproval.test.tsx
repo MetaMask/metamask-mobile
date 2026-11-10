@@ -3,10 +3,18 @@ import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import ImmersveFundingApproval from './ImmersveFundingApproval';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import Engine from '../../../../../core/Engine';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendingPrerequisites';
 import { useImmersveFunding } from '../../hooks/useImmersveFunding';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import type { ImmersveNextAction } from '../../util/immersvePrerequisites';
+import { selectCardImmersveCountryFunding } from '../../../../../selectors/featureFlagController/card';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -22,6 +30,28 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: 'select-account-by-scope',
 }));
 
+jest.mock('../../../../../selectors/cardController', () => ({
+  selectCardHomeData: 'select-card-home-data',
+  selectCardSelectedCountry: 'select-card-selected-country',
+}));
+
+jest.mock('../../../../../selectors/accountsController', () => ({
+  getMemoizedInternalAccountByAddress: jest.fn(
+    (_state: unknown, address: string) => ({
+      address,
+      id: `id-${address}`,
+      metadata: { name: 'Funding Account' },
+    }),
+  ),
+}));
+
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: 'select-account-to-group-map',
+  }),
+);
+
 jest.mock('../../../../../selectors/settings', () => ({
   selectAvatarAccountType: 'select-avatar-account-type',
 }));
@@ -30,11 +60,23 @@ jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
   useAccountGroupName: jest.fn(() => null),
 }));
 
+const NZ_FUNDING_CHANNEL = {
+  source: 'moneyAccount' as const,
+  fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+  spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+  network: 'monad-mainnet',
+  caipChainId: 'eip155:143',
+  tokenAddress: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+  decimals: 6,
+};
+
 const MOCK_ACCOUNT = {
   address: '0xAccount',
   metadata: { name: 'Account 1' },
 };
-const mockSelectAccountByScope = jest.fn(() => MOCK_ACCOUNT);
+const mockSelectAccountByScope = jest.fn(
+  (): typeof MOCK_ACCOUNT | undefined => MOCK_ACCOUNT,
+);
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: unknown) => {
@@ -45,6 +87,10 @@ jest.mock('react-redux', () => ({
         return mockSelectAccountByScope;
       case 'select-avatar-account-type':
         return 'default';
+      case 'select-card-home-data':
+        return null;
+      case 'select-account-to-group-map':
+        return {};
       default:
         return undefined;
     }
@@ -52,12 +98,36 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: () => ({ countryKey: 'GB' }),
+  useParams: jest.fn(() => ({ countryKey: 'GB' })),
+}));
+
+const mockMarkMigrationCompleted = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+      markMigrationCompleted: (...args: unknown[]) =>
+        mockMarkMigrationCompleted(...args),
+    },
+  },
+}));
+
+jest.mock('../../hooks/useCardHeaderHandlers', () => ({
+  useCardHeaderHandlers: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/useImmersveSpendingPrerequisites', () => ({
   useImmersveSpendingPrerequisites: jest.fn(),
 }));
+const mockConfirmLinkInBackground = jest.fn().mockResolvedValue(true);
+jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
+  useMoneyAccountCardLinkage: () => ({
+    confirmLinkInBackground: mockConfirmLinkInBackground,
+    isLinking: false,
+  }),
+}));
+
 jest.mock('../../hooks/useImmersveFunding', () => ({
   useImmersveFunding: jest.fn(),
 }));
@@ -69,6 +139,9 @@ const mockRefresh = jest.fn().mockResolvedValue(null);
 const mockRoute = jest.fn();
 const mockExecuteFunding = jest.fn();
 const mockCreateCard = jest.fn();
+const mockBuildApproveWrite = jest.fn();
+const mockFetchCardHomeData = Engine.context.CardController
+  .fetchCardHomeData as jest.Mock;
 
 jest.mock('../../../../../util/theme', () => {
   const actual = jest.requireActual('../../../../../util/theme');
@@ -90,6 +163,10 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../util/metrics', () => ({
   CardScreens: { FUNDING_APPROVAL: 'FUNDING_APPROVAL' },
+  CardEntryPoint: {
+    SIGN_UP: 'SIGN_UP',
+    CARD_HOME_MONEY_ACCOUNT_CARD: 'CARD_HOME_MONEY_ACCOUNT_CARD',
+  },
   CardActions: {
     FUNDING_APPROVAL_CONFIRM: 'FUNDING_APPROVAL_CONFIRM',
     FUNDING_APPROVAL_RETRY: 'FUNDING_APPROVAL_RETRY',
@@ -107,6 +184,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box: ({ children, ...p }: React.PropsWithChildren<object>) =>
       ReactActual.createElement(View, p, children),
     Text: ({ children, ...p }: React.PropsWithChildren<object>) =>
@@ -186,6 +266,7 @@ const setFundingState = (isLoading = false, error: string | null = null) => {
   (useImmersveFunding as jest.Mock).mockReturnValue({
     executeFunding: mockExecuteFunding,
     createCard: mockCreateCard,
+    buildApproveWrite: mockBuildApproveWrite,
     createFundingSource: jest.fn(),
     isLoading,
     error,
@@ -193,14 +274,43 @@ const setFundingState = (isLoading = false, error: string | null = null) => {
 };
 
 describe('ImmersveFundingApproval', () => {
+  const mockUseSelectorImplementation = (selector: unknown) => {
+    switch (selector) {
+      case 'select-funding-source-id':
+        return 'fs-1';
+      case 'select-account-by-scope':
+        return mockSelectAccountByScope;
+      case 'select-avatar-account-type':
+        return 'default';
+      case 'select-card-home-data':
+        return null;
+      case 'select-account-to-group-map':
+        return {};
+      case 'select-card-selected-country':
+        return null;
+      case selectCardImmersveCountryFunding:
+        return {};
+      default:
+        return undefined;
+    }
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation(mockUseSelectorImplementation);
+    (useParams as jest.Mock).mockReturnValue({ countryKey: 'GB' });
     (useNavigation as jest.Mock).mockReturnValue({
       reset: mockReset,
     });
     (useImmersveOnboardingRouter as jest.Mock).mockReturnValue(mockRoute);
+    mockSelectAccountByScope.mockReset();
+    mockSelectAccountByScope.mockReturnValue(MOCK_ACCOUNT);
     mockExecuteFunding.mockResolvedValue('0xtxhash');
     mockCreateCard.mockResolvedValue({ cardId: 'card-1' });
+    mockMarkMigrationCompleted.mockResolvedValue(undefined);
+    mockBuildApproveWrite.mockReturnValue(WRITE);
+    mockFetchCardHomeData.mockResolvedValue(undefined);
     setFundingState();
     setNextAction(null);
   });
@@ -220,10 +330,125 @@ describe('ImmersveFundingApproval', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(2); // mount + retry
   });
 
+  it('hides the token row and uses Money account copy for NZ', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectCardImmersveCountryFunding) {
+        return { NZ: NZ_FUNDING_CHANNEL };
+      }
+      return mockUseSelectorImplementation(selector);
+    });
+    (useParams as jest.Mock).mockReturnValue({ countryKey: 'NZ' });
+    setNextAction({ type: 'funding', write: WRITE });
+    const { getByText, getByTestId, queryByTestId } = render(
+      <ImmersveFundingApproval />,
+    );
+
+    expect(
+      getByText(
+        'card.card_onboarding.immersve_funding_approval.money_account_description',
+      ),
+    ).toBeTruthy();
+    expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
+    expect(queryByTestId('immersve-funding-approval-token-row')).toBeNull();
+  });
+
+  describe('Money account approve', () => {
+    const useMoneyAccountCountry = (mode?: 'reapprove') => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectCardImmersveCountryFunding) {
+          return { NZ: NZ_FUNDING_CHANNEL };
+        }
+        return mockUseSelectorImplementation(selector);
+      });
+      (useParams as jest.Mock).mockReturnValue({
+        countryKey: 'NZ',
+        ...(mode ? { mode } : {}),
+      });
+    };
+
+    it('refreshes prerequisites after a Money account link during onboarding', async () => {
+      useMoneyAccountCountry();
+      setNextAction({ type: 'funding', write: WRITE });
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+      mockRefresh.mockClear();
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
+          delegationAmountHuman: '2199023255551',
+          entrypoint: 'SIGN_UP',
+        });
+        expect(mockRefresh).toHaveBeenCalled();
+      });
+      expect(mockReset).not.toHaveBeenCalled();
+      expect(mockExecuteFunding).not.toHaveBeenCalled();
+    });
+
+    it('fetches home data and returns to Card Home after a Money account reapprove', async () => {
+      useMoneyAccountCountry('reapprove');
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
+          delegationAmountHuman: '2199023255551',
+          entrypoint: 'CARD_HOME_MONEY_ACCOUNT_CARD',
+        });
+        expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
+        });
+      });
+    });
+
+    it('stops settling when the Money account link is not completed', async () => {
+      useMoneyAccountCountry();
+      setNextAction({ type: 'funding', write: WRITE });
+      mockConfirmLinkInBackground.mockResolvedValueOnce(false);
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      await waitFor(() => {
+        expect(
+          getByTestId('immersve-funding-approval-confirm-button').props
+            .accessibilityState.disabled,
+        ).toBeFalsy();
+      });
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('stops settling when the Money account link rejects', async () => {
+      useMoneyAccountCountry();
+      setNextAction({ type: 'funding', write: WRITE });
+      mockConfirmLinkInBackground.mockRejectedValueOnce(
+        new Error('link failed'),
+      );
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      await waitFor(() => {
+        expect(
+          getByTestId('immersve-funding-approval-confirm-button').props
+            .accessibilityState.disabled,
+        ).toBeFalsy();
+      });
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+  });
+
   it('renders the settings card and an enabled confirm button once funding is known', () => {
     setNextAction({ type: 'funding', write: WRITE });
     const { getByTestId } = render(<ImmersveFundingApproval />);
 
+    expect(useCardHeaderHandlers).toHaveBeenCalledWith('close-direct');
     expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
     expect(getByTestId('immersve-funding-approval-token-row')).toBeTruthy();
     const button = getByTestId('immersve-funding-approval-confirm-button');
@@ -297,10 +522,175 @@ describe('ImmersveFundingApproval', () => {
 
     await waitFor(() => {
       expect(mockCreateCard).toHaveBeenCalledWith('fs-1');
+      expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
     });
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: Routes.CARD.HOME }],
+  });
+
+  it('skips createCard and resets to Card Home when a card already exists', async () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === 'select-card-home-data') {
+        return { card: { id: 'existing-card' } };
+      }
+      return mockUseSelectorImplementation(selector);
+    });
+    setNextAction({ type: 'active' });
+    render(<ImmersveFundingApproval />);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+    });
+    expect(mockCreateCard).not.toHaveBeenCalled();
+    expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats a Conflict from createCard as an existing card and goes to Card Home', async () => {
+    mockCreateCard.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.Conflict,
+        'Conflict on createCard',
+        409,
+      ),
+    );
+    setNextAction({ type: 'active' });
+    render(<ImmersveFundingApproval />);
+
+    await waitFor(() => {
+      expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
+      expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+    });
+    expect(mockCreateCard).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the funding account group when it is not the selected account', () => {
+    const fundingAddress = '0xOther';
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === 'select-account-to-group-map') {
+        return {
+          [`id-${fundingAddress}`]: { metadata: { name: 'Savings Group' } },
+        };
+      }
+      // The funding-account lookup is an inline selector. Known selectors are
+      // module functions and stay on the shared mock.
+      if (typeof selector === 'function' && selector.name === '') {
+        return selector({});
+      }
+      return mockUseSelectorImplementation(selector);
+    });
+    (useParams as jest.Mock).mockReturnValue({
+      countryKey: 'GB',
+      fundingAddress,
+    });
+    setNextAction({ type: 'funding', write: WRITE });
+
+    const { getByText } = render(<ImmersveFundingApproval />);
+
+    expect(getByText('Savings Group')).toBeTruthy();
+  });
+
+  it('renders the account row without a name when no account is selected', () => {
+    mockSelectAccountByScope.mockReturnValue(undefined);
+    setNextAction({ type: 'funding', write: WRITE });
+
+    const { getByTestId, queryByText } = render(<ImmersveFundingApproval />);
+
+    expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
+    expect(queryByText('Account 1')).toBeNull();
+    expect(queryByText('Funding Account')).toBeNull();
+  });
+
+  it('uses the selected country when the route has no country', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectCardImmersveCountryFunding) {
+        return { NZ: NZ_FUNDING_CHANNEL };
+      }
+      if (selector === 'select-card-selected-country') {
+        return 'NZ';
+      }
+      return mockUseSelectorImplementation(selector);
+    });
+    (useParams as jest.Mock).mockReturnValue({});
+    setNextAction({ type: 'funding', write: WRITE });
+
+    const { getByText, queryByTestId } = render(<ImmersveFundingApproval />);
+
+    expect(
+      getByText(
+        'card.card_onboarding.immersve_funding_approval.money_account_description',
+      ),
+    ).toBeTruthy();
+    expect(queryByTestId('immersve-funding-approval-token-row')).toBeNull();
+  });
+
+  it('resets to Card Home when marking the migration complete fails', async () => {
+    mockMarkMigrationCompleted.mockRejectedValue(new Error('migration failed'));
+    setNextAction({ type: 'active' });
+    render(<ImmersveFundingApproval />);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
+    });
+  });
+
+  it('stays on the screen when createCard fails for a reason other than Conflict', async () => {
+    mockCreateCard.mockRejectedValue(new Error('create failed'));
+    setNextAction({ type: 'active' });
+    const { rerender } = render(<ImmersveFundingApproval />);
+
+    await waitFor(() => {
+      expect(mockCreateCard).toHaveBeenCalledTimes(1);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    setNextAction({ type: 'funding', write: WRITE });
+    rerender(<ImmersveFundingApproval />);
+    setNextAction({ type: 'active' });
+    rerender(<ImmersveFundingApproval />);
+
+    await waitFor(() => {
+      expect(mockCreateCard).toHaveBeenCalledTimes(2);
+    });
+    expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
+  });
+
+  it('goes to Card Home when the card already exists even if the refetch fails', async () => {
+    mockCreateCard.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.Conflict,
+        'Conflict on createCard',
+        409,
+      ),
+    );
+    mockFetchCardHomeData.mockRejectedValueOnce(new Error('refetch failed'));
+    setNextAction({ type: 'active' });
+    render(<ImmersveFundingApproval />);
+
+    await waitFor(() => {
+      expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
+      expect(mockMarkMigrationCompleted).toHaveBeenCalledTimes(1);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
     });
   });
 
@@ -348,5 +738,84 @@ describe('ImmersveFundingApproval', () => {
 
     expect(mockRoute).toHaveBeenCalledWith(action, { countryKey: 'GB' });
     expect(mockCreateCard).not.toHaveBeenCalled();
+  });
+
+  describe('reapprove mode', () => {
+    beforeEach(() => {
+      (useParams as jest.Mock).mockReturnValue({
+        countryKey: 'GB',
+        mode: 'reapprove',
+      });
+    });
+
+    it('renders reapprove copy and skips prerequisite polling', () => {
+      const { getByText, getByTestId } = render(<ImmersveFundingApproval />);
+
+      expect(mockRefresh).not.toHaveBeenCalled();
+      expect(useCardHeaderHandlers).toHaveBeenCalledWith('back');
+      expect(
+        getByText(
+          'card.card_onboarding.immersve_funding_approval.reapprove.title',
+        ),
+      ).toBeTruthy();
+      expect(
+        getByText(
+          'card.card_onboarding.immersve_funding_approval.reapprove.description',
+        ),
+      ).toBeTruthy();
+      expect(
+        getByTestId('immersve-funding-approval-confirm-button'),
+      ).toBeTruthy();
+    });
+
+    it('builds a local approve, submits it, refetches home data, and resets to Card Home', async () => {
+      (useParams as jest.Mock).mockReturnValue({
+        countryKey: 'GB',
+        mode: 'reapprove',
+        fundingAddress: '0xFunding',
+      });
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      expect(useImmersveFunding).toHaveBeenCalledWith({
+        fundingAddress: '0xFunding',
+        country: 'GB',
+      });
+      expect(mockBuildApproveWrite).toHaveBeenCalledWith('2199023255551');
+      expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE, '2199023255551');
+      expect(mockCreateCard).not.toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
+        });
+      });
+    });
+
+    it('resets to Card Home when refetch fails after reapprove', async () => {
+      mockFetchCardHomeData.mockRejectedValueOnce(new Error('refetch failed'));
+
+      const { getByTestId } = render(<ImmersveFundingApproval />);
+
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
+        });
+      });
+    });
+
+    it('does not create a card when prerequisites report active', () => {
+      setNextAction({ type: 'active' });
+      render(<ImmersveFundingApproval />);
+
+      expect(mockCreateCard).not.toHaveBeenCalled();
+      expect(mockRoute).not.toHaveBeenCalled();
+    });
   });
 });

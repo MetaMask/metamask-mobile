@@ -18,6 +18,51 @@ import { createAppiumLogger } from './appiumLogger.ts';
 
 const logger = createAppiumLogger('AppiumAssertions');
 
+export const matchesAccessibilityLabel = (
+  actualLabel: string,
+  expectedLabel: string,
+  exact = false,
+): boolean => {
+  const normalize = (value: string): string =>
+    value
+      .replace(/[\s,]+/g, ' ')
+      .trim()
+      .toLowerCase();
+
+  const normalizedActual = normalize(actualLabel);
+  const normalizedExpected = normalize(expectedLabel);
+  if (exact) {
+    // An empty accessibility or visible label is not an amount match.
+    if (!normalizedActual || !normalizedExpected) {
+      return false;
+    }
+
+    if (normalizedActual === normalizedExpected) {
+      return true;
+    }
+
+    // Appium joins the accessibility label and visible text with ", ".
+    // Split only on that separator so a thousands comma stays inside "1,000".
+    const parts = actualLabel
+      .split(/,\s+/)
+      .map((part) => normalize(part))
+      .filter((part) => part.length > 0);
+
+    return (
+      parts.length > 0 && parts.every((part) => part === normalizedExpected)
+    );
+  }
+
+  if (normalizedActual.includes(normalizedExpected)) {
+    return true;
+  }
+
+  return expectedLabel
+    .split(',')
+    .map((part) => normalize(part))
+    .every((part) => part.length > 0 && normalizedActual.includes(part));
+};
+
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
 }
@@ -83,10 +128,16 @@ export default class AppiumAssertions {
       : this.POLL_INTERVAL_MS;
     const start = Date.now();
 
+    // Short timeouts (e.g. optional-modal probes at 500ms) must use the full
+    // budget for fast polls. Reserving 2s would skip the poll loop entirely and
+    // fall through to waitForDisplayed under the default implicit wait.
+    const finalReserveMs =
+      timeout <= this.FINAL_WAIT_RESERVE_MS ? 0 : this.FINAL_WAIT_RESERVE_MS;
+
     const found = await withImplicitWait(
       this.POLL_IMPLICIT_WAIT_MS,
       async () => {
-        while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
+        while (Date.now() - start < timeout - finalReserveMs) {
           const remaining = timeout - (Date.now() - start);
           if (remaining <= 0) {
             break;
@@ -129,6 +180,9 @@ export default class AppiumAssertions {
     }
 
     const remainingTimeout = timeout - (Date.now() - start);
+    if (remainingTimeout <= 0) {
+      throw new Error(`Element not visible after ${timeout}ms`);
+    }
     await el.waitForDisplayed({
       timeout: Math.max(interval, remainingTimeout),
     });
@@ -205,6 +259,49 @@ export default class AppiumAssertions {
     if (!found) {
       throw new Error(
         `Element "${description}" not in hierarchy after ${timeout}ms`,
+      );
+    }
+  }
+
+  /**
+   * Asserts that a target element leaves (or never enters) the hierarchy.
+   * Prefer this over {@link expectElementToNotBeVisible} when the element may
+   * legitimately be mounted off screen: list rows below the fold report
+   * isDisplayed=false, so absence from the viewport does not prove removal.
+   */
+  static async expectElementToNotExist(
+    targetElement: AppiumElement | Promise<AppiumElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description = options.description ?? 'element';
+    const start = Date.now();
+
+    const gone = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout) {
+          try {
+            if (!(await el.unwrap().isExisting())) {
+              return true;
+            }
+          } catch {
+            return true;
+          }
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
+          }
+          await sleep(Math.min(this.POLL_INTERVAL_MS, remaining));
+        }
+        return false;
+      },
+    );
+
+    if (!gone) {
+      throw new Error(
+        `Element "${description}" still in hierarchy after ${timeout}ms`,
       );
     }
   }
@@ -401,31 +498,16 @@ export default class AppiumAssertions {
   static async expectElementToHaveLabel(
     targetElement: AppiumElement | Promise<AppiumElement>,
     expectedLabel: string,
-    options: AssertionOptions = {},
+    options: AssertionOptions & { exact?: boolean } = {},
   ): Promise<void> {
     const timeout = this.getTimeout(options);
     const interval = 300;
     const start = Date.now();
     const el = await targetElement;
+    const { exact = false } = options;
 
-    const normalize = (value: string): string =>
-      value
-        .replace(/[\s,]+/g, ' ')
-        .trim()
-        .toLowerCase();
-
-    const matchesLabel = (actual: string): boolean => {
-      const normalizedActual = normalize(actual);
-      const normalizedExpected = normalize(expectedLabel);
-      if (normalizedActual.includes(normalizedExpected)) {
-        return true;
-      }
-
-      return expectedLabel
-        .split(',')
-        .map((part) => normalize(part))
-        .every((part) => part.length > 0 && normalizedActual.includes(part));
-    };
+    const matchesLabel = (actual: string): boolean =>
+      matchesAccessibilityLabel(actual, expectedLabel, exact);
 
     while (Date.now() - start < timeout) {
       const label = await this.getElementAccessibilityLabel(el);

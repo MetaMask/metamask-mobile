@@ -7,10 +7,16 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
+import { TokenIcon } from '../../../components/token-icon';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
@@ -316,6 +322,7 @@ describe('usePayWithCryptoSection', () => {
         subtitle: '$12.34 available',
         isSelected: true,
         trailingElement: 'checkmark',
+        hasIconBackground: false,
         testID: 'pay-with-crypto-section-preferred-token-row',
       }),
     );
@@ -325,7 +332,7 @@ describe('usePayWithCryptoSection', () => {
         props: expect.objectContaining({
           address: TOKEN_MOCK.address,
           chainId: TOKEN_MOCK.chainId,
-          variant: TokenIconVariant.Row,
+          size: 40,
         }),
       }),
     );
@@ -343,7 +350,16 @@ describe('usePayWithCryptoSection', () => {
         testID: 'pay-with-crypto-section-other-assets-row',
       }),
     );
-    expect(result.current?.rows[1].icon).toEqual(expect.any(Object));
+    expect(result.current?.rows[1].icon).toEqual(
+      expect.objectContaining({
+        type: Icon,
+        props: expect.objectContaining({
+          name: IconName.MoreHorizontal,
+          size: IconSize.Md,
+          color: IconColor.IconAlternative,
+        }),
+      }),
+    );
   });
 
   it('omits the "available" suffix on subtitles for order-and-deposit flows but keeps the default "Other assets" copy', () => {
@@ -499,6 +515,7 @@ describe('usePayWithCryptoSection', () => {
         subtitle: '$5.00 available',
         isSelected: true,
         trailingElement: 'checkmark',
+        hasIconBackground: false,
         testID: 'pay-with-crypto-section-selected-token-row',
       }),
     );
@@ -508,7 +525,7 @@ describe('usePayWithCryptoSection', () => {
         props: expect.objectContaining({
           address: SELECTED_TOKEN_MOCK.address,
           chainId: SELECTED_TOKEN_MOCK.chainId,
-          variant: TokenIconVariant.Row,
+          size: 40,
         }),
       }),
     );
@@ -1047,6 +1064,33 @@ describe('usePayWithCryptoSection', () => {
       };
       setTransactionConfigMock.mock.calls[0][1](config);
       expect(config.paymentOverride).toBeUndefined();
+    });
+
+    it('does not clear paymentOverride when "Other assets" is pressed', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-money-1',
+        txParams: {},
+      } as never);
+
+      const setTransactionConfigMock = jest.mocked(
+        Engine.context.TransactionPayController.setTransactionConfig,
+      );
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const otherAssetsRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-other-assets',
+      );
+
+      act(() => {
+        otherAssetsRow?.onPress?.();
+      });
+
+      expect(navigateMock).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_MODAL,
+        { dismissOnSelectCount: 2 },
+      );
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
     it('does not call setTransactionConfig when no paymentOverride is active', () => {

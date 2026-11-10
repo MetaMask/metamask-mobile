@@ -42,4 +42,34 @@ describe('getAuthenticationControllerMessenger', () => {
       }),
     );
   });
+
+  it('delegates SeedlessOnboardingController:getAccessToken for social identifier pairing', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAuthenticationControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'SeedlessOnboardingController:getAccessToken',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates KeyringController:withKeyringV2Unsafe for native SIP-6 signing', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAuthenticationControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'KeyringController:withKeyringV2Unsafe',
+        ]),
+      }),
+    );
+  });
 });

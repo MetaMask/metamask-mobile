@@ -63,9 +63,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       marketStats.fundingRate &&
       marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay
     ) {
-      fundingValue =
-        parseFloat(marketStats.fundingRate.replace('%', '')) /
-        FUNDING_RATE_CONFIG.PercentageMultiplier;
+      fundingValue = marketStats.fundingRate.startsWith('-') ? -1 : 1;
       displayText = marketStats.fundingRate;
     } else {
       fundingValue = 0;
@@ -173,6 +171,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             <KeyValueColumn
               style={styles.statisticsItem}
               keyLabel={strings('perps.market.funding_rate')}
+              keyTextProps={{ twClassName: 'flex-1 min-w-0' }}
               keyEndButtonIconProps={{
                 iconName: IconName.Info,
                 onPress: () => onTooltipPress('funding_rate'),

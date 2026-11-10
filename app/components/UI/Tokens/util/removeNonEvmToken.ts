@@ -25,9 +25,6 @@ export const removeNonEvmToken = async ({
     return;
   }
 
-  const { MultichainAssetsController } = Engine.context;
-  await MultichainAssetsController.ignoreAssets(
-    [tokenAddress as CaipAssetType],
-    selectedNonEvmAccount.id,
-  );
+  const { AssetsController } = Engine.context;
+  AssetsController.hideAsset(tokenAddress as CaipAssetType);
 };

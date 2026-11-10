@@ -1,12 +1,17 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import AccountsMenu from './AccountsMenu';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import { useSelector } from 'react-redux';
 import { Authentication } from '../../../core/';
 import Routes from '../../../constants/navigation/Routes';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
+import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { isHardwareAccount } from '../../../util/address';
 import {
   selectIsMetamaskNotificationsEnabled,
   getMetamaskNotificationsUnreadCount,
@@ -14,6 +19,17 @@ import {
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
+import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
+import { selectCardActiveProviderId } from '../../../selectors/cardController';
+import { CardFlow } from '../../UI/Card/util/metrics';
+import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../UI/Money/constants/moneyEvents';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -38,8 +54,9 @@ jest.mock('../../../util/theme', () => {
 });
 
 const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
 const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
+  addProperties: mockAddProperties,
   build: jest.fn(() => ({ name: 'test-event' })),
 }));
 
@@ -91,8 +108,48 @@ jest.mock('../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(() => 'US'),
 }));
 
+jest.mock('../../../selectors/featureFlagController/batchSell', () => ({
+  selectBatchSellEnabled: jest.fn(),
+}));
+
+jest.mock('../../../core/redux/slices/bridge', () => ({
+  selectIsSwapsEnabled: jest.fn(() => true),
+}));
+
+jest.mock('../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(() => null),
+}));
+
+jest.mock('../../../util/address', () => {
+  const actual = jest.requireActual('../../../util/address');
+
+  return {
+    ...actual,
+    isHardwareAccount: jest.fn(),
+  };
+});
+
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../../UI/Card/hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => null),
+}));
+
+jest.mock('../../UI/Card/hooks/useCardUkMigrationState', () => ({
+  useCardUkMigrationState: jest.fn(() => ({
+    state: {
+      phase: 'soft',
+      isActive: true,
+      deadline: new Date('2026-09-30T23:59:59.999Z'),
+    },
+    refresh: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../selectors/cardController', () => ({
+  selectCardActiveProviderId: jest.fn(),
 }));
 
 jest.mock('../../../selectors/notifications', () => ({
@@ -105,18 +162,75 @@ jest.mock('../../../selectors/identity', () => ({
   selectIsBackupAndSyncEnabled: jest.fn(),
 }));
 
-// Mirrors the Rewards utils.ts mocking shape: mocking the helper (rather than
-// the inline `///: ONLY_INCLUDE_IF(beta)` fence) lets Jest exercise both the
-// beta and consent branches, since babel-jest leaves the fence as a comment.
+const mockUseProSubscriptionEnabled = jest.fn(() => ({
+  isProSubscriptionEnabled: false,
+}));
+jest.mock('../../../hooks/useProSubscriptionEnabled', () => ({
+  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
+}));
+
+const mockUseHasProMembership = jest.fn(() => false);
+jest.mock('../../../hooks/useHasProMembership', () => ({
+  useHasProMembership: () => mockUseHasProMembership(),
+}));
+
+const mockTrackButtonClicked = jest.fn();
+jest.mock('../../UI/Money/hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: () => ({
+    trackButtonClicked: mockTrackButtonClicked,
+  }),
+}));
+
+// Mirrors the Rewards utils.ts mocking shape: mocking the helper lets Jest
+// exercise both the beta and consent branches.
 const mockGetBetaSupportUrl = jest.fn();
 jest.mock('./AccountsMenu.utils', () => ({
   getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
+
+jest.mock('../../../util/environment', () => ({
+  ...jest.requireActual('../../../util/environment'),
+  isFlaskBuild: false,
+  isBetaBuild: false,
+}));
+const mockEnvironment = jest.requireMock('../../../util/environment') as {
+  isFlaskBuild: boolean;
+  isBetaBuild: boolean;
+};
+
+const mockUseCardUkMigrationUpdateBadge = jest.mocked(
+  useCardUkMigrationUpdateBadge,
+);
+const mockUseCardUkMigrationState = jest.mocked(useCardUkMigrationState);
+
 describe('AccountsMenu', () => {
   let mockAlert: jest.SpyInstance;
+  let mockActiveProviderId: ReturnType<typeof selectCardActiveProviderId>;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnvironment.isFlaskBuild = false;
+    mockEnvironment.isBetaBuild = false;
+    jest.mocked(selectBatchSellEnabled).mockReturnValue(false);
+    jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
+    jest
+      .mocked(selectSelectedInternalAccountAddress)
+      .mockReturnValue(undefined);
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: false,
+    });
+    mockUseHasProMembership.mockReturnValue(false);
+    mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
+    mockActiveProviderId = 'baanx';
+    mockUseCardUkMigrationState.mockReturnValue({
+      state: {
+        phase: 'soft',
+        isActive: true,
+        deadline: new Date('2026-09-30T23:59:59.999Z'),
+      },
+      refresh: jest.fn(),
+    });
     // Default to the beta branch so pre-existing tests that don't care about
     // support consent keep their prior (beta) behavior; consent tests below
     // override this to '' to exercise the non-beta branch.
@@ -126,6 +240,10 @@ describe('AccountsMenu', () => {
     mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Setup useSelector to return different values based on the selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectCardActiveProviderId) {
+        return mockActiveProviderId;
+      }
+
       const mockState = {
         engine: {
           backgroundState: {
@@ -138,6 +256,13 @@ describe('AccountsMenu', () => {
         const result = selector(mockState);
         if (result === 'US') {
           return 'US';
+        }
+        if (
+          selector === selectBatchSellEnabled ||
+          selector === selectSelectedInternalAccountAddress ||
+          selector.toString().includes('selectIsSwapsEnabled')
+        ) {
+          return result;
         }
       } catch {
         // Selector might not work with our limited mock state
@@ -173,20 +298,61 @@ describe('AccountsMenu', () => {
 
   describe('MetaMask Card Button', () => {
     it('navigate to card and track analytics when MetaMask Card is pressed', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
       const { getByTestId } = render(<AccountsMenu />);
       const cardButton = getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD);
 
       fireEvent.press(cardButton);
 
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        EVENT_NAME.CARD_HOME_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        update_label_visible: false,
+      });
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('CardScreens');
+    });
+
+    it('includes migration props when Update badge is visible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValue('warning');
+
+      const { getByTestId } = render(<AccountsMenu />);
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD));
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        update_label_visible: true,
+        flow: CardFlow.MIGRATION,
+        migration_phase: 'grace_window',
+      });
+    });
+
+    it('shows Update badge when user is UK migration eligible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValueOnce('warning');
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides Update badge when user is not UK migration eligible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValueOnce(null);
+
+      const { queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE),
+      ).toBeNull();
     });
   });
 
   describe('Buy Button', () => {
-    it('renders the Buy button unconditionally', () => {
+    it('renders the Buy button when Batch sell is disabled', () => {
+      jest.mocked(selectBatchSellEnabled).mockReturnValue(false);
+
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
       expect(getByText('accounts_menu.buy')).toBeOnTheScreen();
@@ -253,6 +419,71 @@ describe('AccountsMenu', () => {
 
       // Verify trackEvent was called with the built event
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('Batch Sell Button', () => {
+    it('replaces the Buy button when enabled', () => {
+      jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
+
+      const { getByTestId, queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to Batch sell token selection when pressed', () => {
+      jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+        params: {
+          batchSellLocation: BatchSellMetricsLocation.Unknown,
+        },
+      });
+    });
+
+    it('renders the Buy button for hardware wallets', () => {
+      jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
+      jest
+        .mocked(selectSelectedInternalAccountAddress)
+        .mockReturnValue('0x123');
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+      const { getByTestId, queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('disables Batch sell when swaps are disabled', () => {
+      jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
+      jest.mocked(selectIsSwapsEnabled).mockReturnValue(false);
+
+      const { getByTestId } = render(<AccountsMenu />);
+      const batchSellButton = getByTestId(
+        AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON,
+      );
+
+      expect(batchSellButton).toBeDisabled();
+
+      fireEvent.press(batchSellButton);
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.BRIDGE.ROOT,
+        expect.anything(),
+      );
     });
   });
 
@@ -490,6 +721,76 @@ describe('AccountsMenu', () => {
     });
   });
 
+  describe('MetaMask Orange row', () => {
+    it('stays hidden while the Orange flow is off', () => {
+      const { queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the join label while membership access is unresolved', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockUseHasProMembership.mockReturnValue(false);
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).toHaveTextContent('accounts_menu.join_metamask_orange');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'accounts_menu',
+      });
+    });
+
+    it('invites a non-member to join and opens the subscription flow', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).toHaveTextContent('accounts_menu.join_metamask_orange');
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+        component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+        label_key: 'accounts_menu.join_metamask_orange',
+        redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'accounts_menu',
+      });
+    });
+
+    it('labels a member MetaMask Orange and opens the hub', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockUseHasProMembership.mockReturnValue(true);
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).toHaveTextContent('accounts_menu.metamask_orange');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'accounts_menu',
+      });
+    });
+  });
+
   describe('Permissions Row', () => {
     it('render Permissions row', () => {
       const { getByText, getByTestId } = render(<AccountsMenu />);
@@ -536,13 +837,29 @@ describe('AccountsMenu', () => {
 
   describe('RESOURCES Section', () => {
     describe('About MetaMask Row', () => {
-      it('render About MetaMask row', () => {
+      it('render About MetaMask row with the default (main) title', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('app_settings.info_title_beta')).toBeOnTheScreen();
+        expect(getByText('app_settings.info_title')).toBeOnTheScreen();
         expect(
           getByTestId(AccountsMenuSelectorsIDs.ABOUT_METAMASK),
         ).toBeOnTheScreen();
+      });
+
+      it('render the flask title on flask builds', () => {
+        mockEnvironment.isFlaskBuild = true;
+
+        const { getByText } = render(<AccountsMenu />);
+
+        expect(getByText('app_settings.info_title_flask')).toBeOnTheScreen();
+      });
+
+      it('render the beta title on beta builds', () => {
+        mockEnvironment.isBetaBuild = true;
+
+        const { getByText } = render(<AccountsMenu />);
+
+        expect(getByText('app_settings.info_title_beta')).toBeOnTheScreen();
       });
 
       it('navigate to CompanySettings when About MetaMask is pressed', () => {

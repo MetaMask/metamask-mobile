@@ -14,6 +14,7 @@ import { addTransactionBatch } from '../../../../../util/transaction-controller'
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 
 const PENDING_TX_ID = 'pending-tx-from-elsewhere';
 
@@ -40,8 +41,20 @@ const mockRecipient = '0x2222222222222222222222222222222222222222';
 // the TransactionController removing a transaction after it is rejected.
 const mockEngineState: {
   TransactionController: { transactions: TransactionMeta[] };
+  RemoteFeatureFlagController?: { remoteFeatureFlags: Record<string, unknown> };
 } = {
   TransactionController: { transactions: [] },
+};
+
+// Rolls Predict out to Kalshi only, which makes Kalshi the Active Venue.
+const KALSHI_ONLY_FLAGS = {
+  remoteFeatureFlags: {
+    predictConfig: {
+      enabled: true,
+      venues: { polymarket: { enabled: false }, kalshi: { enabled: true } },
+      venueSelection: { enabled: false },
+    },
+  },
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -142,6 +155,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../selectors/visibility', () => ({
+  ...jest.requireActual('../../selectors/visibility'),
+  selectMoneyAccountAccessBlockReason: jest.fn(),
+}));
+
 jest.mock('../../../../../selectors/moneyAccountController', () => ({
   ...jest.requireActual('../../../../../selectors/moneyAccountController'),
   selectPrimaryMoneyAccount: jest.fn(() => mockPrimaryMoneyAccount),
@@ -169,6 +187,18 @@ jest.mock('../../../Predict/hooks/usePredictEligibility', () => ({
 }));
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
+}));
+
+// The rescue row consumed the live balance hook; this harness renders without
+// a QueryClient, so stub the balance as unavailable (rescue row disabled —
+// out of scope for the pending-transaction regression it covers).
+jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    liquidMusd: undefined,
+    isBalanceLoading: false,
+    isBalanceFetchError: false,
+  })),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -217,6 +247,7 @@ const flushAsync = async () => {
 describe('MoneyTransferSheet — Between accounts with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectMoneyAccountAccessBlockReason).mockReturnValue(undefined);
     global.requestAnimationFrame = jest.fn((callback) => {
       callback(0);
       return 0;
@@ -301,5 +332,94 @@ describe('MoneyTransferSheet — Between accounts with a pending transaction', (
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       }),
     );
+  });
+});
+
+/**
+ * PRED-1388: a Predictions transfer deferred behind a rejected confirmation
+ * must not start the legacy Polymarket deposit if the Active Venue moved to
+ * Kalshi before it runs.
+ */
+describe('MoneyTransferSheet — Predictions account with a pending transaction', () => {
+  const mockInitiatePredictDeposit = jest.fn().mockResolvedValue(undefined);
+  const pendingTx = {
+    id: PENDING_TX_ID,
+    status: TransactionStatus.unapproved,
+  } as TransactionMeta;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(selectMoneyAccountAccessBlockReason).mockReturnValue(undefined);
+    mockEngineState.TransactionController = { transactions: [] };
+    delete mockEngineState.RemoteFeatureFlagController;
+    (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      initiatePerpsDeposit: jest.fn(),
+    });
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: jest.fn(),
+      trackSurfaceClicked: jest.fn(),
+    });
+  });
+
+  const clearPendingTransaction = async (
+    store: ReturnType<typeof renderHarness>['store'],
+  ) => {
+    mockEngineState.TransactionController = { transactions: [] };
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'TransactionController' }));
+    });
+    await flushAsync();
+  };
+
+  it('starts the deposit once the rejection clears while Polymarket stays active', async () => {
+    const { getByTestId, store } = renderHarness([pendingTx]);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    );
+    await flushAsync();
+
+    expect(
+      jest.mocked(Engine.context.ApprovalController.rejectRequest),
+    ).toHaveBeenCalledWith(PENDING_TX_ID, expect.anything());
+    expect(mockInitiatePredictDeposit).not.toHaveBeenCalled();
+
+    await clearPendingTransaction(store);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockInitiatePredictDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops the deferred deposit and keeps the sheet open when the Active Venue moves to Kalshi first', async () => {
+    const { getByTestId, queryByTestId, store } = renderHarness([pendingTx]);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    );
+    await flushAsync();
+    expect(
+      jest.mocked(Engine.context.ApprovalController.rejectRequest),
+    ).toHaveBeenCalledWith(PENDING_TX_ID, expect.anything());
+
+    mockEngineState.RemoteFeatureFlagController = KALSHI_ONLY_FLAGS;
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'RemoteFeatureFlagController' }));
+    });
+    await clearPendingTransaction(store);
+
+    expect(mockInitiatePredictDeposit).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeNull();
+    expect(
+      getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+    ).toBeOnTheScreen();
   });
 });

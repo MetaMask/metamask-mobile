@@ -8,9 +8,7 @@ export interface NftDetailsParams {
 
 export interface NftDetailsInformationRowProps extends ViewProps {
   title: string;
-  value?: string | null;
-  titleStyle?: StyleProp<TextStyle>;
-  valueStyle?: StyleProp<TextStyle>;
+  value?: string | number | null;
   icon?: React.ReactNode;
   onValuePress?: () => void;
 }

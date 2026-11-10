@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { RpcEndpointType } from '@metamask/network-controller';
 import { toHex } from '@metamask/controller-utils';
 
 import Engine from '../../../core/Engine';
+import { buildAddNetworkRpcEndpoint } from '../../../util/config-registry';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
@@ -55,7 +55,6 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
         nickname,
         ticker,
         rpcUrl,
-        failoverRpcUrls,
         rpcPrefs: { blockExplorerUrl },
       } = networkConfiguration;
 
@@ -106,14 +105,7 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
           defaultBlockExplorerUrlIndex: blockExplorerUrl ? 0 : undefined,
           name: nickname,
           nativeCurrency: ticker,
-          rpcEndpoints: [
-            {
-              url: rpcUrl,
-              failoverUrls: failoverRpcUrls,
-              name: nickname,
-              type: RpcEndpointType.Custom,
-            },
-          ],
+          rpcEndpoints: buildAddNetworkRpcEndpoint(networkConfiguration),
         });
 
         identify(addItemToChainIdList(hexChainId));

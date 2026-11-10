@@ -218,7 +218,7 @@ describe('Carousel Data Fetching', () => {
 describe('Carousel Slide Filtering', () => {
   const setupFilteringTests = (dismissedBanners: string[] = []) => {
     const mockState = makeMockState();
-    mockState.banners = { dismissedBanners, lastDismissedBrazeBanner: null };
+    mockState.banners = { dismissedBanners };
     mockReduxHooks(mockState);
   };
 

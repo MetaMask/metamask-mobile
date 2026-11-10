@@ -370,35 +370,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectNonRegTimeSportsMarketTypes: jest.fn(() => ['soccer_team_to_advance']),
 }));
 
-jest.mock('../../../../Base/TabBar', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockTabBar({ textStyle }: { textStyle: object }) {
-    return (
-      <View testID="tab-bar">
-        <Text style={textStyle}>Tab Bar</Text>
-      </View>
-    );
-  };
-});
-
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockScrollableTabView({
-    children,
-    renderTabBar,
-  }: {
-    children: React.ReactNode;
-    renderTabBar?: () => React.ReactNode;
-  }) {
-    return (
-      <View testID="scrollable-tab-view">
-        {renderTabBar?.()}
-        {children}
-      </View>
-    );
-  };
-});
-
 function createMockMarket(overrides = {}) {
   const defaultMarket = {
     id: 'market-1',
@@ -603,7 +574,7 @@ function setupPredictMarketDetailsTest(
 
   usePredictMarket.mockReturnValue({
     data: mockMarket,
-    isLoading: false,
+    isPending: false,
     isFetching: false,
     error: null,
     refetch: jest.fn(),
@@ -820,7 +791,7 @@ describe('PredictMarketDetails', () => {
         {},
         {},
         {
-          market: { data: null, isLoading: true, isFetching: true },
+          market: { data: null, isPending: true, isFetching: true },
         },
       );
 
@@ -884,7 +855,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(
-        screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowLeft')),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.BACK_BUTTON),
       ).toBeOnTheScreen();
     });
 
@@ -904,7 +875,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isLoading: true, isFetching: true, data: null } },
+        { market: { isPending: true, isFetching: true, data: null } },
       );
 
       expect(
@@ -1035,7 +1006,7 @@ describe('PredictMarketDetails', () => {
       const { mockGoBack, mockCanGoBack } = setupPredictMarketDetailsTest();
 
       const backButton = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowLeft'),
+        PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
       );
       fireEvent.press(backButton);
 
@@ -1757,7 +1728,13 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         singleOutcomeMarket,
         {},
-        { eligibility: { isEligible: false } },
+        {
+          eligibility: {
+            isEligible: false,
+            isIneligible: true,
+            status: 'ineligible',
+          },
+        },
       );
 
       const yesButton = findActionButtonByPrice(65);
@@ -1802,7 +1779,13 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         singleOutcomeMarket,
         {},
-        { eligibility: { isEligible: false } },
+        {
+          eligibility: {
+            isEligible: false,
+            isIneligible: true,
+            status: 'ineligible',
+          },
+        },
       );
 
       const noButton = findActionButtonByPrice(35);
@@ -1953,7 +1936,7 @@ describe('PredictMarketDetails', () => {
       }
     });
 
-    it('displays groupItemTitle with truncation when expanded', () => {
+    it('displays groupItemTitle wrapped rather than truncated when expanded', () => {
       const marketWithPartialResolution = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1961,7 +1944,7 @@ describe('PredictMarketDetails', () => {
             id: 'outcome-1',
             title: 'Option A',
             groupItemTitle:
-              'Very Long Outcome Title That Exceeds One Line And Should Be Truncated',
+              'Very Long Outcome Title That Exceeds One Line And Should Wrap',
             status: 'closed',
             resolutionStatus: 'resolved',
             tokens: [
@@ -1992,11 +1975,11 @@ describe('PredictMarketDetails', () => {
         fireEvent.press(pressable);
 
         const groupItemTitle = screen.getByText(
-          'Very Long Outcome Title That Exceeds One Line And Should Be Truncated',
+          'Very Long Outcome Title That Exceeds One Line And Should Wrap',
         );
         expect(groupItemTitle).toBeOnTheScreen();
-        expect(groupItemTitle.props.numberOfLines).toBe(1);
-        expect(groupItemTitle.props.ellipsizeMode).toBe('tail');
+        expect(groupItemTitle.props.numberOfLines).toBeUndefined();
+        expect(groupItemTitle.props.ellipsizeMode).toBeUndefined();
       }
     });
 

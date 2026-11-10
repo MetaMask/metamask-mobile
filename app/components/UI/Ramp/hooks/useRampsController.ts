@@ -152,7 +152,7 @@ export function useRampsController(): UseRampsControllerResult {
     isFetching: paymentMethodsFetching,
     status: paymentMethodsStatus,
     error: paymentMethodsError,
-  } = useRampsPaymentMethods();
+  } = useRampsPaymentMethods({ catalog: 'buy' });
 
   const { getQuotes, getBuyWidgetData } = useRampsQuotes();
 

@@ -14,9 +14,7 @@ const logger = createAppiumLogger('AppiumMatchers');
  * These matchers use WebdriverIO's robust element finding under the hood,
  * but return elements with Playwright-style API (fill, click, textContent, etc.).
  *
- * All these functions can later take use of the original Detox framework with
- * the executeWithRetry approach, for the time being we're relying on the
- * WebdriverIO framework only.
+ * Selectors return `AppiumElement` wrappers around WebdriverIO elements.
  *
  * @example
  * const element = await AppiumMatchers.getByAccessibilityId('login-button');
@@ -46,8 +44,13 @@ export default class AppiumMatchers {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     if (index !== undefined) {
-      const elements = await drv.$$(`~${elementId}`);
-      return wrapElement(elements[index] as unknown as ChainablePromiseElement);
+      // Same fallback as resource-id lookup: an off-screen row is absent from
+      // `$$`, and wrapping that hole makes scrollIntoView throw on iOS.
+      return this.resolveIndexedElementByLocator(
+        `~${elementId}`,
+        index,
+        `accessibility id ${elementId}`,
+      );
     }
     const element = await drv.$(`~${elementId}`);
     return wrapElement(element);

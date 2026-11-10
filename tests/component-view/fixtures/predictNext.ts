@@ -1,13 +1,37 @@
 import { within } from '@testing-library/react-native';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import Engine from '../../../app/core/Engine';
+import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
+import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
+import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
+import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
+import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
+import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
+import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/config/venueCatalogs';
+import type {
+  PredictGameLive,
+  PredictQuote,
+} from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
+  PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
   PredictMarket,
+  PredictMarketLayout,
+  PredictOutcome,
+  PredictPosition,
+  PredictSignedAmount,
+  PredictSignedPercent,
   PredictTimestamp,
+  PredictVenueId,
 } from '../../../app/components/UI/PredictNext/types';
 
 interface GameEventOptions {
@@ -111,6 +135,164 @@ export const makePredictNextMultiMarketEvent = (): PredictEvent => ({
   ],
 });
 
+const OUTCOMES_MARKETS_LAYOUT: PredictMarketLayout = {
+  tab: { key: 'outcomes', order: 1 },
+  section: { key: 'markets', order: 1 },
+};
+
+/**
+ * A Politics Event laid out as `outcomes` › `markets`: five ungrouped
+ * Markets in the order the backend sent them.
+ */
+export const makePredictNextLaidOutStandardEvent = (): PredictEvent => ({
+  ...makeEvent('next-speaker', 'Who will be the next Speaker?'),
+  category: 'Politics',
+  markets: [
+    ['johnson', 'Mike Johnson', '0.41', '0.59', '900000'],
+    ['jeffries', 'Hakeem Jeffries', '0.33', '0.67', '600000'],
+    ['jordan', 'Jim Jordan', '0.12', '0.88', '300000'],
+    ['scalise', 'Steve Scalise', '0.08', '0.92', '150000'],
+    ['emmer', 'Tom Emmer', '0.04', '0.96', '50000'],
+  ].map(([id, label, yesAskPrice, noAskPrice, volume]) => ({
+    ...makeStandardMarket({ id, label, yesAskPrice, noAskPrice, volume }),
+    layout: OUTCOMES_MARKETS_LAYOUT,
+  })),
+});
+
+const makeGroupedMarket = ({
+  id,
+  key,
+  marketType,
+  option,
+  displayOrder,
+  yesLabel,
+  noLabel,
+  yesAskPrice,
+  noAskPrice,
+  yesGameSelection,
+}: {
+  id: string;
+  key: string;
+  marketType: (typeof PREDICT_MARKET_TYPES)[keyof typeof PREDICT_MARKET_TYPES];
+  option: number;
+  displayOrder: number;
+  yesLabel: string;
+  noLabel: string;
+  yesAskPrice: string;
+  noAskPrice: string;
+  yesGameSelection?: PredictOutcome['gameSelection'];
+}): PredictMarket => ({
+  id: id as PredictEntityId,
+  question: `${yesLabel} at ${option}`,
+  status: 'active',
+  group: {
+    key,
+    groupType: 'marketSelector',
+    marketType,
+    option: { type: 'number', value: option },
+    displayOrder,
+  },
+  outcomes: [
+    {
+      id: `${id}-yes` as PredictEntityId,
+      side: 'yes',
+      label: yesLabel,
+      askPrice: yesAskPrice as PredictDecimal,
+      ...(yesGameSelection === undefined
+        ? {}
+        : { gameSelection: yesGameSelection }),
+    },
+    {
+      id: `${id}-no` as PredictEntityId,
+      side: 'no',
+      label: noLabel,
+      askPrice: noAskPrice as PredictDecimal,
+    },
+  ],
+});
+
+export const makePredictNextTotalsEvent = (): PredictEvent => ({
+  ...makeEvent('nfl-total', 'New England vs Seattle: Total Points'),
+  markets: [
+    makeGroupedMarket({
+      id: 'nfl-total-220-5',
+      key: 'nfl-total-points',
+      marketType: 'total',
+      option: 220.5,
+      displayOrder: 1,
+      yesLabel: 'Over',
+      noLabel: 'Under',
+      yesAskPrice: '0.07',
+      noAskPrice: '0.93',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-total-218-5',
+      key: 'nfl-total-points',
+      marketType: 'total',
+      option: 218.5,
+      displayOrder: 0,
+      yesLabel: 'Over',
+      noLabel: 'Under',
+      yesAskPrice: '0.12',
+      noAskPrice: '0.88',
+    }),
+  ],
+});
+
+export const makePredictNextSpreadsEvent = (): PredictEvent => ({
+  ...makeEvent('nfl-spread', 'New England vs Seattle: Spread'),
+  markets: [
+    makeGroupedMarket({
+      id: 'nfl-spread-new-england-2-5',
+      key: 'nfl-spreads',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: -2.5,
+      displayOrder: 0,
+      yesLabel: 'New England',
+      noLabel: 'Seattle',
+      yesAskPrice: '0.46',
+      noAskPrice: '0.54',
+      yesGameSelection: 'home',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-spread-new-england-1-5',
+      key: 'nfl-spreads',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: -1.5,
+      displayOrder: 1,
+      yesLabel: 'New England',
+      noLabel: 'Seattle',
+      yesAskPrice: '0.42',
+      noAskPrice: '0.58',
+      yesGameSelection: 'home',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-spread-seattle-1-5',
+      key: 'nfl-spreads',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: 1.5,
+      displayOrder: 2,
+      yesLabel: 'Seattle',
+      noLabel: 'New England',
+      yesAskPrice: '0.58',
+      noAskPrice: '0.42',
+      yesGameSelection: 'away',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-spread-seattle-2-5',
+      key: 'nfl-spreads',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: 2.5,
+      displayOrder: 3,
+      yesLabel: 'Seattle',
+      noLabel: 'New England',
+      yesAskPrice: '0.54',
+      noAskPrice: '0.46',
+      yesGameSelection: 'away',
+    }),
+  ],
+});
+
 export const makePredictNextGameEvent = (
   id: string,
   awayTeam: string,
@@ -173,6 +355,166 @@ export const makePredictNextGameEvent = (
   };
 };
 
+export const makePredictNextCompositeGameEvent = (): PredictEvent => {
+  const game = makePredictNextGameEvent(
+    'nfl-composite',
+    'New England',
+    'Seattle',
+    'NFL',
+  );
+
+  return {
+    ...game,
+    markets: [
+      ...game.markets,
+      ...makePredictNextTotalsEvent().markets,
+      ...makePredictNextSpreadsEvent().markets,
+    ],
+  };
+};
+
+const gameLinesLayout = (
+  section: { key: string; order: number },
+  subgroup: { key: string; order: number },
+): PredictMarketLayout => ({
+  tab: { key: 'game_lines', order: 0 },
+  section,
+  subgroup,
+});
+const MONEYLINE = { key: 'moneyline', order: 0 };
+const FULL_GAME = { key: 'full_game', order: 0 };
+const FIRST_HALF = { key: 'first_half', order: 1 };
+
+/**
+ * The composite Game as the backend composes it (PRED-1424): every moneyline
+ * is a `choice` group with an Event screen layout, and a first-half moneyline
+ * with a tie claims the same Game Selections as the full-game one.
+ */
+export const makePredictNextLaidOutGameEvent = (): PredictEvent => {
+  const event = makePredictNextCompositeGameEvent();
+  const markets = event.markets.map((market): PredictMarket => {
+    if (market.group !== undefined) {
+      const section =
+        market.group.marketType === PREDICT_MARKET_TYPES.TOTAL
+          ? { key: 'total_points', order: 2 }
+          : { key: 'spread', order: 1 };
+      return { ...market, layout: gameLinesLayout(section, FULL_GAME) };
+    }
+    const isAway = market.outcomes[0].gameSelection === 'away';
+    return {
+      ...market,
+      group: {
+        key: `${event.id}:moneyline`,
+        groupType: 'choice',
+        displayOrder: isAway ? 0 : 1,
+      },
+      layout: gameLinesLayout(MONEYLINE, FULL_GAME),
+    };
+  });
+  const [template] = event.markets;
+  const firstHalf = (
+    suffix: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    displayOrder: number,
+  ): PredictMarket => ({
+    ...template,
+    id: `${event.id}-1h-${suffix}` as PredictEntityId,
+    outcomes: [
+      {
+        ...template.outcomes[0],
+        id: `${event.id}-1h-${suffix}-yes` as PredictEntityId,
+        gameSelection,
+      },
+      {
+        ...template.outcomes[1],
+        id: `${event.id}-1h-${suffix}-no` as PredictEntityId,
+      },
+    ],
+    group: {
+      key: `${event.id}-1h:moneyline`,
+      groupType: 'choice',
+      displayOrder,
+    },
+    layout: gameLinesLayout(MONEYLINE, FIRST_HALF),
+  });
+
+  return {
+    ...event,
+    markets: [
+      // Period moneylines first, so a lookup by order alone would pick them.
+      firstHalf('away', 'away', 0),
+      firstHalf('tie', undefined, 1),
+      firstHalf('home', 'home', 2),
+      ...markets,
+    ],
+  };
+};
+
+/**
+ * The laid-out Game with player props as the backend composes them
+ * (PRED-1438): a `player_props` tab where each Player's thresholds are one
+ * `choice` group titled with the Player. Rushing yards has four Players (one
+ * with a single threshold), passing yards one.
+ */
+export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
+  const event = makePredictNextLaidOutGameEvent();
+  const [template] = makePredictNextCompositeGameEvent().markets;
+  const prop = (
+    stat: { key: string; order: number },
+    player: string,
+    gameSelection: PredictOutcome['gameSelection'],
+    threshold: number,
+    displayOrder: number,
+  ): PredictMarket => {
+    const id = `${event.id}-${stat.key}-${player}-${threshold}`;
+    return {
+      ...template,
+      id: id as PredictEntityId,
+      question: `${player}: ${threshold}+`,
+      outcomes: [
+        {
+          ...template.outcomes[0],
+          id: `${id}-yes` as PredictEntityId,
+          label: 'Yes',
+          gameSelection,
+        },
+        {
+          ...template.outcomes[1],
+          id: `${id}-no` as PredictEntityId,
+          label: 'No',
+        },
+      ],
+      group: {
+        key: `${event.id}:${stat.key}:${player}`,
+        groupType: 'marketSelector',
+        marketType: 'threshold',
+        option: { type: 'number', value: threshold },
+        displayOrder,
+        label: player,
+      },
+      layout: { tab: { key: 'player_props', order: 1 }, section: stat },
+    };
+  };
+  const rushing = { key: 'rushing_yards', order: 1 };
+  const passing = { key: 'passing_yards', order: 3 };
+
+  return {
+    ...event,
+    markets: [
+      ...event.markets,
+      prop(rushing, 'Rhamondre Stevenson', 'away', 60, 1),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 40, 0),
+      prop(rushing, 'Rhamondre Stevenson', 'away', 80, 2),
+      prop(rushing, 'Kenneth Walker', 'home', 50, 0),
+      prop(rushing, 'Kenneth Walker', 'home', 70, 1),
+      prop(rushing, 'Drake Maye', 'away', 20, 0),
+      prop(rushing, 'Zach Charbonnet', 'home', 30, 0),
+      prop(passing, 'Drake Maye', 'away', 200, 0),
+      prop(passing, 'Drake Maye', 'away', 250, 1),
+    ],
+  };
+};
+
 export const nflEvents = [
   makePredictNextGameEvent('nfl-1', 'Packers', 'Steelers', 'NFL', {
     askPrices: { away: '0.41', home: '0.59' },
@@ -197,25 +539,495 @@ export const ncaaEvents = [
   }),
 ];
 
+/** Politics topic Events: non-game Events, shown by the Politics cards. */
+export const politicsEvents = [
+  {
+    ...makeEvent('politics-1', 'Trump approval above 45%?'),
+    category: 'Politics',
+  },
+  {
+    ...makeEvent('politics-2', 'Congress passes the budget?'),
+    category: 'Politics',
+  },
+];
+
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
+
+/** Kalshi's Feed IDs, as its static Venue catalog maps them. */
+export const PREDICT_NEXT_FEED_IDS = {
+  nflGames: KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'] as PredictFeedId,
+  nflProps: KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-props'] as PredictFeedId,
+  ncaaGames: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'college-football-games'
+  ] as PredictFeedId,
+  ncaaProps: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'college-football-props'
+  ] as PredictFeedId,
+  politicsTrump: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-trump'
+  ] as PredictFeedId,
+  politicsCongress: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-congress'
+  ] as PredictFeedId,
+  politicsIran: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'politics-iran'
+  ] as PredictFeedId,
+} as const;
+
+/** The Politics topic Feed IDs, which the default messenger serves from
+ * `politics`. */
+const POLITICS_FEED_IDS: ReadonlySet<string> = new Set([
+  PREDICT_NEXT_FEED_IDS.politicsTrump,
+  PREDICT_NEXT_FEED_IDS.politicsCongress,
+  PREDICT_NEXT_FEED_IDS.politicsIran,
+]);
+
+/**
+ * The Venue catalog the messenger serves: a value (valid or malformed), an
+ * Error to reject with, or `'pending'` for a read that never settles.
+ */
+export type PredictNextCatalogFixture = unknown;
+
+let catalogFixture: PredictNextCatalogFixture = KALSHI_STATIC_VENUE_CATALOG;
+
+/** Serves `catalog` for every later Venue catalog read until reset by
+ * {@link configurePredictNextFeeds}. */
+export const configurePredictNextCatalog = (
+  catalog: PredictNextCatalogFixture,
+) => {
+  catalogFixture = catalog;
+};
+
+/** Restores the default (valid Kalshi) Venue catalog. */
+export const resetPredictNextCatalog = () => {
+  catalogFixture = KALSHI_STATIC_VENUE_CATALOG;
+};
+
+/**
+ * Answers `PredictMarketDataService:getVenueCatalog`, or returns undefined
+ * for any other action. Custom messenger implementations call it first so
+ * capability-gated UI keeps resolving.
+ */
+export const answerPredictNextCatalog = (
+  action: string,
+): Promise<unknown> | undefined => {
+  if (action !== 'PredictMarketDataService:getVenueCatalog') {
+    return undefined;
+  }
+  if (catalogFixture === 'pending') {
+    return new Promise(() => undefined);
+  }
+  return catalogFixture instanceof Error
+    ? Promise.reject(catalogFixture)
+    : Promise.resolve(catalogFixture);
+};
+
+/**
+ * Installs a messenger implementation that serves the configured Venue
+ * catalog (see {@link configurePredictNextCatalog}) and delegates every other
+ * action to `implementation`. Use it instead of
+ * `messengerCall.mockImplementation` so capability-gated UI keeps resolving.
+ */
+export const mockPredictNextMessenger = (
+  implementation: (action: string, ...params: never[]) => unknown,
+) =>
+  messengerCall.mockImplementation(
+    (action: string, ...params: unknown[]) =>
+      answerPredictNextCatalog(action) ??
+      implementation(action, ...(params as never[])),
+  );
+
+/** One cursor-addressable Positions page: `cursor` is the incoming page
+ * cursor (absent for the first page) and `nextCursor` links to the next
+ * page, mirroring `PredictPositionsPage`. */
+export interface PredictNextPositionsPageFixture {
+  cursor?: string;
+  positions: readonly unknown[];
+  nextCursor?: string;
+}
+
+/**
+ * Composes the real Order workflow service the way the Engine init does,
+ * against whatever `globalThis.fetch` is installed when called: the concrete
+ * trading adapter is bound to the stubbed transport and the bearer-token
+ * provider resolves through the mocked Engine context.
+ */
+export const composePredictNextOrderService = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never> = new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  }),
+): PredictOrderService => {
+  const messenger = getPredictOrderServiceMessenger(
+    rootMessenger as unknown as Parameters<
+      typeof getPredictOrderServiceMessenger
+    >[0],
+  );
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  return new PredictOrderService({
+    messenger,
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+};
+
+/**
+ * Composes the real Order workflow and Portfolio read services the way the
+ * Engine init does — both on one root messenger, with the concrete adapters
+ * bound to whatever `globalThis.fetch` is installed when called. Compose
+ * per-test after stubbing fetch. A UI query client observes these services
+ * by delegating its messenger adapter to the returned root.
+ */
+export const composePredictNextPortfolioTrading = () => {
+  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  const portfolioService = new PredictPortfolioService({
+    messenger: getPredictPortfolioServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictPortfolioServiceMessenger
+      >[0],
+    ),
+    portfolio: adapter.portfolio,
+    venueId: adapter.venueId,
+  });
+  const orderService = new PredictOrderService({
+    messenger: getPredictOrderServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictOrderServiceMessenger
+      >[0],
+    ),
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+  return {
+    rootMessenger,
+    orderService,
+    portfolioService,
+    destroy: () => {
+      orderService.destroy();
+      portfolioService.destroy();
+    },
+  };
+};
+
+/**
+ * Routes the renderer's UI query client to real Predict services: its
+ * messenger adapter calls the Engine controller messenger, so point the
+ * portfolio actions and cache events at the composition root the composed
+ * services share. Every other action keeps the fixture answers.
+ *
+ * @param rootMessenger - The composition root the real services run on.
+ * @returns A restore function for the caller's cleanup.
+ */
+export const routePredictPortfolioServicesTo = (
+  rootMessenger: ReturnType<
+    typeof composePredictNextPortfolioTrading
+  >['rootMessenger'],
+) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    call: (action: string, ...params: unknown[]) => Promise<unknown>;
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalCall = controllerMessenger.call;
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and a spy here can re-enter itself when
+  // the fixture delegate is the same mock.
+  controllerMessenger.call = (action: string, ...params: unknown[]) => {
+    if (action.startsWith('PredictPortfolioService:')) {
+      // The composition root is a MockAnyNamespace messenger: it accepts any
+      // action the real services registered.
+      return (
+        rootMessenger.call as unknown as (
+          action: string,
+          ...params: unknown[]
+        ) => Promise<unknown>
+      )(action, ...params);
+    }
+    return originalCall(action, ...params);
+  };
+  controllerMessenger.subscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.subscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.unsubscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  return () => {
+    controllerMessenger.call = originalCall;
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
+  };
+};
+
+const lakersContext = {
+  eventId: 'KXNBAGAME-26MAY12-LALBOS' as PredictEntityId,
+  eventTitle: 'Lakers vs Celtics',
+  marketQuestion: 'Will the Lakers win?',
+  outcomeLabel: 'Lakers',
+};
+
+/** A valued open Position, valid against the C1 Positions contract. */
+export const makePredictNextPosition = (
+  overrides: Record<string, unknown> = {},
+): PredictPosition =>
+  ({
+    venueId: 'kalshi' as PredictVenueId,
+    marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+    side: 'yes' as const,
+    status: 'open' as const,
+    shares: '75.00' as PredictAmount,
+    averagePrice: '0.55' as PredictDecimal,
+    costBasis: '41.25' as PredictAmount,
+    currentValue: '45.00' as PredictAmount,
+    unrealizedPnl: '3.75' as PredictSignedAmount,
+    unrealizedPnlPercent: '9.09' as PredictSignedPercent,
+    context: lakersContext,
+    ...overrides,
+  }) as PredictPosition;
+
+/** A sell Trade, valid against the C1 Activity contract. */
+export const makePredictNextTrade = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  type: 'trade' as const,
+  id: '0199f6a0-8c1e-7b3a-9d2e-4f1a2b3c4d5e',
+  venueId: 'kalshi',
+  marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
+  side: 'yes' as const,
+  action: 'sell' as const,
+  shares: '10',
+  price: '0.61' as PredictDecimal,
+  amount: '5.93',
+  fee: '0.17',
+  realizedPnl: '0.27' as PredictSignedAmount,
+  timestamp: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
+  context: lakersContext,
+  ...overrides,
+});
+
+/** A winning Settlement of the net held side, valid against C1. */
+export const makePredictNextSettlement = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  type: 'settlement' as const,
+  id: 'settlement-KXNBAGAME-20MAY01-LALBOS-LAL-yes',
+  venueId: 'kalshi',
+  marketId: 'KXNBAGAME-20MAY01-LALBOS-LAL' as PredictEntityId,
+  side: 'yes' as const,
+  shares: '10.00',
+  result: 'yes' as const,
+  proceeds: '10.00',
+  realizedPnl: '4.80' as PredictSignedAmount,
+  timestamp: '2026-05-21T00:00:00.000Z' as PredictTimestamp,
+  context: {
+    ...lakersContext,
+    eventId: 'KXNBAGAME-20MAY01-LALBOS' as PredictEntityId,
+  },
+  ...overrides,
+});
+
+/** A complete Portfolio Summary whose total is the exact sum of its parts,
+ * valid against C1. Override the parts and the total together. */
+export const makePredictNextSummary = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  venueId: 'kalshi',
+  currency: 'USD' as const,
+  availableBalance: '123.13',
+  positionsValue: '45.00',
+  claimableValue: '0',
+  totalValue: '168.13',
+  unrealizedPnl: '3.75',
+  unrealizedPnlPercent: '9.09',
+  asOf: '2026-10-23T12:00:05.120Z' as PredictTimestamp,
+  complete: true,
+  ...overrides,
+});
+
+/** A canonical sell (Cash Out) Order Preview wire payload for fetch stubs. */
+export const makePredictNextSellPreview = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+  venueId: 'kalshi',
+  marketId: 'KXTEST-26-A',
+  side: 'yes',
+  action: 'sell',
+  requestedContracts: 75,
+  estimatedContracts: 70,
+  averagePrice: '0.4800',
+  limitPrice: '0.4000',
+  fee: '0.34',
+  feeBreakdown: [
+    { source: 'venue', amount: '0.17' },
+    { source: 'metamask', amount: '0.17' },
+  ],
+  estimatedProceeds: '33.60',
+  estimatedNetProceeds: '33.26',
+  expiresAt: new Date(Date.now() + 30_000).toISOString(),
+  ...overrides,
+});
+
+/** A canonical sell Order Receipt wire payload for fetch stubs. */
+export const makePredictNextSellReceipt = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  operationId: 'd4e5f6a7-1111-4222-8333-444455556666',
+  previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+  venueId: 'kalshi',
+  marketId: 'KXTEST-26-A',
+  side: 'yes',
+  action: 'sell',
+  status: 'filled',
+  quotedContracts: 70,
+  venueOrderId: 'venue-order-1',
+  filledContracts: '70.00',
+  averageFillPrice: '0.4800',
+  fee: '0.34',
+  actualProceeds: '33.60',
+  netProceeds: '33.26',
+  ...overrides,
+});
+
+const publishPredictNextLiveUpdate = (eventName: string, update: unknown) => {
+  const listeners = (
+    Engine.controllerMessenger.subscribe as unknown as jest.Mock
+  ).mock.calls.filter(([name]) => name === eventName);
+
+  listeners.forEach(([, listener]) => listener(update));
+};
+
+/** Delivers a live Game update to every listener the screen registered. */
+export const publishPredictNextGameLiveUpdate = (update: PredictGameLive) =>
+  publishPredictNextLiveUpdate(
+    'PredictLiveDataService:gameLiveUpdated',
+    update,
+  );
+
+/** Delivers a live market quote to every listener the screen registered. */
+export const publishPredictNextQuoteUpdate = (update: PredictQuote) =>
+  publishPredictNextLiveUpdate('PredictLiveDataService:quoteUpdated', update);
 
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
+  politics = politicsEvents,
   details,
+  positions,
+  positionPages,
+  activity,
+  settlementsCompleteFrom,
+  summary = makePredictNextSummary(),
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
+  /** Served for every Politics topic Feed (Trump, Congress, Iran). */
+  politics?: readonly PredictEvent[] | Error;
   details?: readonly PredictEvent[] | Error;
+  positions?: readonly unknown[] | Error;
+  /** Cursor-addressable Positions pages, for tests that exercise
+   * pagination; `positions` is ignored when this is set. */
+  positionPages?: readonly PredictNextPositionsPageFixture[];
+  activity?: readonly unknown[] | Error;
+  /** The Activity pages' settlement archive horizon. */
+  settlementsCompleteFrom?: string;
+  summary?: unknown;
 } = {}) => {
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
     ...(ncaa instanceof Error ? [] : ncaa),
+    ...(politics instanceof Error ? [] : politics),
   ];
 
+  resetPredictNextCatalog();
   messengerCall.mockImplementation(
-    (action: string, _venueId: string, resourceId: string) => {
+    (action: string, _venueId: string, resourceId: string, cursor?: string) => {
+      const catalogResponse = answerPredictNextCatalog(action);
+      if (catalogResponse) {
+        return catalogResponse;
+      }
+
+      if (action === 'PredictPortfolioService:getBalance') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          currency: 'USD',
+          available: '123.125',
+        });
+      }
+
+      if (action === 'PredictPortfolioService:getPositions') {
+        if (positionPages) {
+          const page = positionPages.find(
+            (candidate) => candidate.cursor === cursor,
+          );
+          if (!page) {
+            return Promise.reject(new Error('Unknown Positions page'));
+          }
+          return Promise.resolve({
+            venueId: 'kalshi',
+            positions: page.positions,
+            ...(page.nextCursor ? { nextCursor: page.nextCursor } : {}),
+          });
+        }
+        return positions instanceof Error
+          ? Promise.reject(positions)
+          : Promise.resolve({
+              venueId: 'kalshi',
+              positions: positions ?? [],
+            });
+      }
+
+      if (action === 'PredictPortfolioService:getActivity') {
+        return activity instanceof Error
+          ? Promise.reject(activity)
+          : Promise.resolve({
+              venueId: 'kalshi',
+              activity: activity ?? [],
+              ...(settlementsCompleteFrom ? { settlementsCompleteFrom } : {}),
+            });
+      }
+
+      if (action === 'PredictPortfolioService:getPortfolioSummary') {
+        return summary instanceof Error
+          ? Promise.reject(summary)
+          : Promise.resolve(summary);
+      }
+
       if (action === 'PredictMarketDataService:getEvent') {
         const result = details ?? defaultDetails;
         if (result instanceof Error) {
@@ -233,7 +1045,12 @@ export const configurePredictNextFeeds = ({
       }
 
       const feedId = resourceId as PredictFeedId;
-      const result = feedId === 'sports-football-nfl-games' ? nfl : ncaa;
+      const isPolitics = POLITICS_FEED_IDS.has(feedId);
+      const result = isPolitics
+        ? politics
+        : feedId === PREDICT_NEXT_FEED_IDS.nflGames
+          ? nfl
+          : ncaa;
       if (result instanceof Error) {
         return Promise.reject(result);
       }
@@ -241,8 +1058,11 @@ export const configurePredictNextFeeds = ({
       return Promise.resolve({
         venueId: 'kalshi',
         id: feedId,
-        title:
-          feedId === 'sports-football-nfl-games' ? 'NFL Games' : 'NCAAF Games',
+        title: isPolitics
+          ? 'Politics'
+          : feedId === PREDICT_NEXT_FEED_IDS.nflGames
+            ? 'NFL Games'
+            : 'NCAAF Games',
         events: result,
       });
     },
@@ -275,8 +1095,8 @@ export const expectPredictNextGameCard = (
     homeScore: string;
     awayQuote: string;
     homeQuote: string;
-    competition: string;
-    volume: string;
+    competition?: string;
+    volume?: string;
   },
 ) => {
   const card = within(section).getByTestId(
@@ -290,6 +1110,10 @@ export const expectPredictNextGameCard = (
   expect(scoped.getByText(homeScore)).toBeOnTheScreen();
   expect(scoped.getByText(awayQuote)).toBeOnTheScreen();
   expect(scoped.getByText(homeQuote)).toBeOnTheScreen();
-  expect(scoped.getByText(competition)).toBeOnTheScreen();
-  expect(scoped.getByText(volume)).toBeOnTheScreen();
+  if (competition) {
+    expect(scoped.getByText(competition)).toBeOnTheScreen();
+  }
+  if (volume) {
+    expect(scoped.getByText(volume)).toBeOnTheScreen();
+  }
 };

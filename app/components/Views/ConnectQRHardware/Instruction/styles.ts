@@ -13,7 +13,7 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
     container: {
       flexDirection: 'column',
       alignItems: 'center',
-      paddingHorizontal: 32,
+      paddingHorizontal: 16,
     },
     scrollWrapper: {
       width: '100%',
@@ -41,21 +41,15 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       ...fontStyles.bold,
     },
     bottom: {
+      width: '100%',
+      paddingHorizontal: 16,
       marginBottom: insets.bottom + 20,
+    },
+    buttonContainer: {
+      width: '100%',
     },
     button: {
       padding: 5,
-      paddingHorizontal: '30%',
-    },
-    buttonText: {
-      color: theme.brandColors.white,
-      ...fontStyles.normal,
-    },
-    image: {
-      width: 240,
-      height: 96,
-      marginTop: 20,
-      marginBottom: 20,
     },
     keystone: {
       color: theme.colors.text.default,

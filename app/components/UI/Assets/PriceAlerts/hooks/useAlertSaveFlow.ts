@@ -1,15 +1,10 @@
-import { useCallback, useContext } from 'react';
+import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
-import { useTheme } from '../../../../../util/theme';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -45,6 +40,8 @@ type AlertAnalyticsProperties = {
   alert_type: (typeof PriceAlertAnalytics.TYPE)[keyof typeof PriceAlertAnalytics.TYPE];
   alert_value: number;
   alert_recurring: boolean;
+  /** Differentiates spot token alerts from perpetuals market alerts. */
+  alert_market_type: (typeof PriceAlertAnalytics.MARKET_TYPE)[keyof typeof PriceAlertAnalytics.MARKET_TYPE];
 } & Record<string, string | number | boolean>;
 
 export interface SaveAlertFlowParams {
@@ -69,35 +66,27 @@ const useAlertSaveFlow = ({
   const navigation = useNavigation<AppStackNavigationProp>();
   const queryClient = useQueryClient();
   const { mutate: addToWatchlist } = useTokenWatchlistAddItemMutation();
-  const { toastRef } = useContext(ToastContext);
-  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const showSuccessToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Confirmation,
-      iconColor: colors.success.default,
-      labelOptions: [
-        {
-          label: strings('price_alerts.save_success', {
-            ticker: displayTicker,
-          }),
-        },
-      ],
+    toast({
+      title: strings('price_alerts.save_success', {
+        ticker: displayTicker,
+      }),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
-  }, [toastRef, colors, displayTicker]);
+  }, [displayTicker]);
 
   const showErrorToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Danger,
-      iconColor: colors.error.default,
-      labelOptions: [{ label: strings('price_alerts.save_error') }],
+    toast({
+      title: strings('price_alerts.save_error'),
+      severity: ToastSeverity.Danger,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
-  }, [toastRef, colors]);
+  }, []);
 
   const navigateAfterSave = useCallback(
     (isEditing: boolean) => {
@@ -165,6 +154,7 @@ const useAlertSaveFlow = ({
               ...analyticsProperties,
               asset_id: assetId,
               token_symbol: displayTicker,
+              alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
               ...(editingAlert
                 ? {
                     interaction_type:

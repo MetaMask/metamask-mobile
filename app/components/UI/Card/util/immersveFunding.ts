@@ -6,6 +6,11 @@ import {
   ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
 } from '../constants';
 
+/**
+ * Legacy network -> chain map. Funding channels resolve their chain from the
+ * CAIP-19 asset id; this remains for the top-level `cardImmersveConfig`
+ * fallback used when `fundingChannels` is absent.
+ */
 export function immersveNetworkToCaipChainId(network?: string): string {
   switch (network) {
     case 'base-mainnet':
@@ -25,6 +30,7 @@ export interface ImmersveFundingTokenInfo {
   decimals: number;
 }
 
+/** Legacy network -> USDC token. See {@link immersveNetworkToCaipChainId}. */
 export function immersveNetworkToFundingToken(
   network?: string,
 ): ImmersveFundingTokenInfo {
@@ -50,6 +56,43 @@ export function immersveNetworkToFundingToken(
     default:
       throw new Error(`Unsupported Immersve funding network: ${network}`);
   }
+}
+
+const ERC20_APPROVE_ABI = [
+  {
+    name: 'approve',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: '_spender', type: 'address' },
+      { name: '_value', type: 'uint256' },
+    ],
+    outputs: [{ name: '', type: 'bool' }],
+  },
+];
+
+/**
+ * Builds a local ERC-20 approve write for Immersve funding (e.g. revoke via
+ * amountBaseUnits `'0'`). Used when no spending-prerequisites payload exists.
+ */
+export function buildImmersveApproveWrite({
+  tokenAddress,
+  spenderAddress,
+  amountBaseUnits,
+}: {
+  tokenAddress: string;
+  spenderAddress: string;
+  amountBaseUnits: string;
+}): CardSmartContractWriteParams {
+  return {
+    abi: ERC20_APPROVE_ABI,
+    contractAddress: tokenAddress,
+    method: 'approve',
+    params: {
+      _spender: spenderAddress,
+      _value: amountBaseUnits,
+    },
+  };
 }
 
 /**

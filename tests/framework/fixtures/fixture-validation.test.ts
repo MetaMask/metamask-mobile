@@ -144,6 +144,43 @@ describe('fixture-validation', () => {
       expect(diff.newKeys).toEqual([]);
     });
 
+    it('ignores the live-fetched config registry events catalog', () => {
+      const baseline = {
+        engine: {
+          backgroundState: {
+            ConfigRegistryController: {
+              configs: { networks: {}, eventsConfig: null },
+              eventsConfigEtag: null,
+            },
+          },
+        },
+      };
+      const candidate = {
+        engine: {
+          backgroundState: {
+            ConfigRegistryController: {
+              configs: {
+                networks: {},
+                eventsConfig: {
+                  version: '1',
+                  timestamp: '2026-01-01T00:00:00.000Z',
+                  schemaVersion: 1,
+                  events: { 'App Opened': [{ purpose: 'product' }] },
+                },
+              },
+              eventsConfigEtag: '"abc"',
+            },
+          },
+        },
+      };
+
+      const diff = computeSchemaDiff(baseline, candidate);
+
+      expect(diff.newKeys).toEqual([]);
+      expect(diff.typeMismatches).toEqual([]);
+      expect(diff.valueMismatches).toEqual([]);
+    });
+
     it('accepts custom ignoredKeys override', () => {
       const baseline = { a: 1 };
       const candidate = { a: 1, b: 2 };
@@ -361,6 +398,78 @@ describe('fixture-validation', () => {
       const diff: FixtureSchemaDiff = { ...emptyDiff, newKeys: ['a'] };
       expect(formatSchemaDiff(diff)).toContain('mergeFixtureChanges()');
     });
+
+    it('prints expected and received values for non-secret mismatches', () => {
+      const diff: FixtureSchemaDiff = {
+        ...emptyDiff,
+        valueMismatches: [
+          {
+            key: 'engine.backgroundState.NetworkController.selectedNetworkClientId',
+            expected: 'mainnet',
+            received: 'linea-mainnet',
+          },
+        ],
+      };
+
+      const output = formatSchemaDiff(diff);
+
+      expect(output).toContain(
+        '~ engine.backgroundState.NetworkController.selectedNetworkClientId: expected "mainnet", received "linea-mainnet"',
+      );
+    });
+
+    it('hides JWTs nested inside non-secret mismatch values', () => {
+      const jwt =
+        'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJlMmUtZml4dHVyZSJ9.e2e-signature';
+      const diff: FixtureSchemaDiff = {
+        ...emptyDiff,
+        valueMismatches: [
+          {
+            key: 'engine.backgroundState.SomeController.session',
+            expected: { label: 'old' },
+            received: { label: 'new', token: { idToken: 'opaque' }, note: jwt },
+          },
+        ],
+      };
+
+      const output = formatSchemaDiff(diff);
+
+      expect(output).toContain('"label":"new"');
+      expect(output).not.toContain(jwt);
+      expect(output).not.toContain('opaque');
+    });
+
+    it('leaves secret values out of the fixture diff report', () => {
+      const jwt =
+        'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJlMmUtZml4dHVyZSJ9.e2e-signature';
+      const vault = 'e2e-vault-cipher';
+      const diff: FixtureSchemaDiff = {
+        ...emptyDiff,
+        valueMismatches: [
+          {
+            key: 'engine.backgroundState.AuthenticationController.jwt',
+            expected: 'fixture-placeholder',
+            received: jwt,
+          },
+          {
+            key: 'engine.backgroundState.KeyringController.vault',
+            expected: vault,
+            received: 'redacted',
+          },
+        ],
+      };
+
+      const output = formatSchemaDiff(diff);
+
+      expect(output).toContain(
+        'engine.backgroundState.AuthenticationController.jwt',
+      );
+      expect(output).toContain(
+        'engine.backgroundState.KeyringController.vault',
+      );
+      expect(output).not.toContain(jwt);
+      expect(output).not.toContain(vault);
+    });
   });
 
   describe('readFixtureFile', () => {
@@ -369,6 +478,26 @@ describe('fixture-validation', () => {
       expect(fixture).toBeDefined();
       expect(fixture.state).toBeDefined();
       expect(fixture.asyncState).toBeDefined();
+    });
+
+    it('includes the Rewards Money Redux initial state', () => {
+      const fixture = readFixtureFile('default-fixture.json');
+
+      expect((fixture.state as Record<string, unknown>).rewardsMoney).toEqual({
+        answeredReferralCode: null,
+        cashbackLedger: {},
+        claimLocks: {},
+        claimWaitingUntil: {},
+        commissionMechanisms: {},
+        commissions: {},
+        earningsHistory: {},
+        earningsSummary: {},
+        inFlightClaims: {},
+        isReferralLinkPending: false,
+        pendingReferralCode: null,
+        referralFunnel: {},
+        referralMe: {},
+      });
     });
 
     it('throws for missing fixture files', () => {

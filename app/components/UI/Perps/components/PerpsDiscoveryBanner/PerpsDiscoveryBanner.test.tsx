@@ -7,8 +7,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
     styles: {
       container: {},
       banner: {},
-      textContainer: {},
-      perpsLogo: {},
     },
   }),
 }));
@@ -56,7 +54,7 @@ describe('PerpsDiscoveryBanner', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders logo image', () => {
+  it('renders infinity avatar', () => {
     const { getByTestId } = render(<PerpsDiscoveryBanner {...defaultProps} />);
     expect(getByTestId('perps-discovery-banner-logo')).toBeOnTheScreen();
   });

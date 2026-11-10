@@ -4,6 +4,10 @@ import {
 } from '@metamask/base-controller';
 import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+export type {
+  PerpsFeeResolverScope,
+  PerpsTradingFeeGrant,
+} from '@metamask/perps-controller';
 import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
 export interface LoginResponseDto {
@@ -269,6 +273,21 @@ export type VipFeesResponseDto = {
   updatedAt: string | null;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TradingFeeGrantDto = {
+  programId: string;
+  hyperliquid: {
+    builderCode: string;
+    builderFeeBips: string;
+  };
+  expiresAt: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TradingFeeGrantResponseDto = {
+  grant: TradingFeeGrantDto | null;
+};
+
 export type VipTransactionType = 'PERPS' | 'SWAP';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -388,20 +407,6 @@ export interface MobileOptinDto {
    * @example '0x...'
    */
   signature: `0x${string}`;
-
-  /**
-   * The referral code of the user
-   * @example '123456'
-   */
-  referralCode?: string;
-}
-
-export interface ApplyReferralDto {
-  /**
-   * The referral code to apply
-   * @example 'ABC123'
-   */
-  referralCode: string;
 }
 
 export interface ApplyBonusCodeDto {
@@ -1086,6 +1091,25 @@ export interface PerpsTradingCampaignLeaderboardDto {
   totalParticipants: number;
   /** Minimum cumulative volume (USD) required to appear on the leaderboard */
   minVolumeForEligibility: number;
+  /**
+   * Number of prize-winning ranks for this campaign. Optional because the
+   * backend only started sending it with per-campaign config; clients fall back
+   * to PERPS_TRADING_MAX_WINNERS while older backends are deployed.
+   */
+  numberOfWinners?: number;
+}
+
+/**
+ * Response DTO for GET /perps-trading/:campaignId/prize-pool (public, no auth).
+ */
+export interface PerpsTradingCampaignPrizePoolDto {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  /** Volume thresholds (USD) that unlock each prize tier, index-aligned with poolScheduleUsd */
+  thresholdsUsd: number[];
+  /** Prize pool size (USD) unlocked at the matching thresholdsUsd index */
+  poolScheduleUsd: number[];
+  computedAt: string | null;
 }
 
 /**
@@ -1128,6 +1152,7 @@ export type PerpsTradingCampaignLeaderboardState = {
   }[];
   totalParticipants: number;
   minVolumeForEligibility: number;
+  numberOfWinners?: number;
   lastFetched: number;
 };
 
@@ -1166,6 +1191,19 @@ export type PerpsTradingCampaignLeaderboardPositionState =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsTradingCampaignVolumeState = {
   totalUsdVolume: string;
+  lastFetched: number;
+};
+
+/**
+ * Cached campaign prize pool (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignPrizePoolState = {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  computedAt: string | null;
   lastFetched: number;
 };
 
@@ -1288,6 +1326,8 @@ export type PredictThePitchCampaignDetails = CampaignDetails;
 export type MoneyAccountSweepstakesLocalizedTextDto = {
   eligibleBalanceTitle: string;
   eligibleBalanceDescription: string;
+  eligibleBalancePendingTitle: string;
+  eligibleBalancePendingDescription: string;
   entriesTitle: string;
   entriesDescription: string;
   entriesCountValue: string;
@@ -1427,45 +1467,6 @@ export interface PredictThePitchPrizePoolDto {
   computedAt: string | null;
 }
 
-/**
- * Minimal reference to a single Polymarket market.
- */
-export interface PredictMarketRef {
-  eventId: string;
-  conditionId?: string;
-}
-
-/**
- * Response DTO for the public first predict on us endpoint.
- */
-export interface FirstPredictOnUsDto {
-  name: string;
-  image: ThemeImage | null;
-  localizedText: Record<string, string>;
-  usdAmount: number;
-  markets: PredictMarketRef[];
-  termsUrl: string | null;
-}
-
-/**
- * Serializable version of FirstPredictOnUsDto for state storage.
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type FirstPredictOnUsDtoState = {
-  name: string;
-  image: ThemeImageState | null;
-  localizedText: { [key: string]: string };
-  usdAmount: number;
-  markets: { eventId: string; conditionId?: string }[];
-  termsUrl: string | null;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type FirstPredictOnUsCacheState = {
-  data: FirstPredictOnUsDtoState | null;
-  lastFetched: number;
-};
-
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchLeaderboardEntryState = {
   rank: number;
@@ -1602,6 +1603,15 @@ export interface MoneyAccountSweepstakesPrizePoolDto {
   maxPrizeUsd: number;
 }
 
+/**
+ * Response DTO for GET /money-account-sweepstakes/:campaignId/stats/volume (public).
+ */
+export interface MoneyAccountSweepstakesVolumeStatsDto {
+  totalVolumeUsd: number;
+  eligibleParticipantCount: number;
+  yieldEarnedUsd: number;
+}
+
 export interface MoneyAccountSweepstakesDrawExplanationDto {
   merkleRoot: string;
   seedBlock: number;
@@ -1683,6 +1693,14 @@ export type MoneyAccountSweepstakesPrizePoolState = {
   numberOfWinners: number;
   minPrizeUsd: number;
   maxPrizeUsd: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesVolumeStatsState = {
+  totalVolumeUsd: number;
+  eligibleParticipantCount: number;
+  yieldEarnedUsd: number;
   lastFetched: number;
 };
 
@@ -2829,6 +2847,10 @@ export type RewardsControllerState = {
   perpsTradingCampaignVolume: {
     [campaignId: string]: PerpsTradingCampaignVolumeState;
   };
+  /** Perps Trading Campaign prize pool keyed by campaignId (public endpoint). */
+  perpsTradingCampaignPrizePool: {
+    [campaignId: string]: PerpsTradingCampaignPrizePoolState;
+  };
   /** Predict The Pitch leaderboard keyed by campaignId (public endpoint). */
   predictThePitchLeaderboard: {
     [campaignId: string]: PredictThePitchLeaderboardState;
@@ -2853,14 +2875,16 @@ export type RewardsControllerState = {
   moneyAccountSweepstakesPrizePool: {
     [campaignId: string]: MoneyAccountSweepstakesPrizePoolState;
   };
+  /** Money Account Sweepstakes volume stats keyed by campaignId (public endpoint). */
+  moneyAccountSweepstakesVolumeStats: {
+    [campaignId: string]: MoneyAccountSweepstakesVolumeStatsState;
+  };
   /** Money Account Sweepstakes draw proof keyed by campaignId (public endpoint). */
   moneyAccountSweepstakesDrawProof: {
     [campaignId: string]: MoneyAccountSweepstakesDrawProofState;
   };
   /** Cached client version requirements for the public version guard endpoint. */
   clientVersionRequirements: ClientVersionRequirementState | null;
-  /** Cached first predict on us content from the public endpoint. */
-  firstPredictOnUs: FirstPredictOnUsCacheState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -3189,7 +3213,7 @@ export interface SeasonStateDto {
 export type SeasonWayToEarnButtonActionDto = {
   /**
    * Route for in-app navigation
-   * @example { root: 'RewardsView', screen: 'RewardsReferralView' }
+   * @example { root: 'RewardsView', screen: 'RewardsSettingsView' }
    */
   route?: {
     root: string;

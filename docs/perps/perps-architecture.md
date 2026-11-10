@@ -266,7 +266,7 @@ React context providers:
 Pure utility functions organized by domain:
 
 - **Calculations**: orderCalculations, positionCalculations, pnlCalculations
-- **Formatting**: formatUtils, amountConversion, textUtils
+- **Formatting**: formatUtils, amountConversion
 - **Validation**: hyperLiquidValidation, tpslValidation
 - **Transforms**: marketDataTransform, transactionTransforms, arbitrumWithdrawalTransforms
 - **Market Utils**: marketUtils, marketHours, sortMarkets
@@ -556,6 +556,61 @@ All user interactions are tracked via MetaMetrics events:
 **See [perps-metametrics-reference.md](./perps-metametrics-reference.md) for complete event catalog.**
 
 ## Development Guidelines
+
+### Testing Targeted Fee Grants Locally
+
+Targeted grants require a Profile Sync session and Basic Functionality consent.
+Rewards opt-in and VIP enrollment are not required.
+
+1. Point Mobile and the Rewards admin dashboard at the same environment. Local
+   builds default to UAT. To use DEV, add this to `.js.env`, then restart Metro
+   with `yarn watch:clean`:
+
+   ```bash
+   export REWARDS_API_URL="https://rewards.dev-api.cx.metamask.io"
+   ```
+
+   In supported non-production builds, the Rewards environment can also be
+   changed from Rewards settings.
+
+2. Unlock the wallet and enable Basic Functionality. Confirm Profile Sync has
+   signed in successfully.
+
+3. Find the primary SRP's canonical profile ID in Redux:
+
+   ```text
+   engine.backgroundState.AuthenticationController
+     .srpSessionData[<primary entropy source ID>]
+     .profile.canonicalProfileId
+   ```
+
+4. In the Rewards admin dashboard for the same environment, create an active
+   trading-fee grant for that canonical profile ID. Configure:
+   - A program ID
+   - A current start time and future expiry
+   - A Hyperliquid builder fee below the default 10 bips, such as `2.5`
+
+   Access requires the `trade-fee-grants-support` role. Contact the Rewards
+   team if the grant controls are unavailable.
+
+5. Open a Hyperliquid mainnet order or close preview. A winning grant should
+   display the promotional seal without a VIP badge. The Lite order and close
+   captions show the original rate struck through beside the green discounted
+   rate and "fee after promo" copy. The Pro fees row shows the struck original
+   fee beside the green discounted fee, and the fees sheet shows the
+   promotional seal and discount message. Grants do not apply to Hyperliquid
+   testnet or other providers.
+
+Core selects the lowest applicable fee across the grant, VIP, membership, and
+default fee. Use a profile without a better competing discount when validating
+grant presentation.
+
+Grant responses are cached for up to 30 seconds; failed lookups have a
+five-second cooldown. After changing a grant, wait for the cache to expire or
+restart the app before retesting.
+
+Never paste Profile Sync JWTs or canonical profile IDs into public issues, logs,
+or screenshots.
 
 ### Adding a New Hook
 

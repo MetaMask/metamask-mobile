@@ -7,7 +7,7 @@ import { ImageSourcePropType, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import styleSheet from './DeFiProtocolPositionDetails.styles';
 import { useParams } from '../../../util/navigation/navUtils';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
@@ -30,6 +30,8 @@ import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import DeFiProtocolPositionDetailsV2, {
   DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
 } from '../Assets/DeFiPositions/components/DeFiProtocolPositionDetailsV2';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export { DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID };
 
@@ -40,6 +42,7 @@ export interface DeFiProtocolPositionDetailsParams {
 }
 
 const DeFiProtocolPositionDetailsV1: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, undefined);
   const navigation = useNavigation<AppStackNavigationProp>();
 
@@ -63,7 +66,9 @@ const DeFiProtocolPositionDetailsV1: React.FC = () => {
       style={styles.protocolPositionDetailsWrapper}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title=""
         onBack={handleBack}
         includesTopInset

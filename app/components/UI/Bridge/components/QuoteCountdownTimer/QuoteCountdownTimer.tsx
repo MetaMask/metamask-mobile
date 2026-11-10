@@ -20,10 +20,17 @@ const createStyles = () =>
     },
   });
 
+interface QuoteCountdownTimerProps {
+  /** Plain-text target used to dismiss the quote keypad without opening a tooltip. */
+  testID?: string;
+}
+
 /**
  * Countdown timer component that displays time remaining until quote refresh
  */
-const QuoteCountdownTimer: React.FC = () => {
+const QuoteCountdownTimer: React.FC<QuoteCountdownTimerProps> = ({
+  testID,
+}) => {
   const styles = createStyles();
   const [secondsRemaining, setSecondsRemaining] = useState<number>(0);
   const bridgeControllerState = useSelector(selectBridgeControllerState);
@@ -68,7 +75,11 @@ const QuoteCountdownTimer: React.FC = () => {
 
   return (
     <Box style={styles.container}>
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        testID={testID}
+      >
         {`0:${formattedSeconds}`}
       </Text>
     </Box>

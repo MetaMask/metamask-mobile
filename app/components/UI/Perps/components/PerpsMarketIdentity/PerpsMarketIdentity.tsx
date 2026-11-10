@@ -68,7 +68,7 @@ const PerpsMarketIdentity = ({
   subtitleContent,
 }: PerpsMarketIdentityProps) => {
   const displaySymbol = getPerpsDisplaySymbol(symbol);
-  const displayTitle = name || displaySymbol;
+  const displayTitle = getPerpsDisplaySymbol(name || symbol);
   const subtitle = strings('perps.market_details.perp_pair', {
     ticker: displaySymbol,
     collateral: PERPS_COLLATERAL_SYMBOL,

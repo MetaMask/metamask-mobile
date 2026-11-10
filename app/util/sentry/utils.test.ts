@@ -1,8 +1,7 @@
 /* eslint-disable dot-notation */
 import {
   Scope,
-  UserFeedback,
-  captureUserFeedback,
+  captureFeedback,
   getClient,
   getGlobalScope,
   init as sentryInit,
@@ -28,6 +27,7 @@ import { RootState } from '../../reducers';
 import { NetworkStatus } from '@metamask/network-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { TraceName } from '../trace';
+import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
 import { store } from '../../store';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
@@ -35,7 +35,7 @@ import Device from '../device';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
-const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+const mockedCaptureFeedback = jest.mocked(captureFeedback);
 const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
 
@@ -71,6 +71,10 @@ jest.mock('../trace', () => ({
   hasMetricsConsent: jest.fn().mockResolvedValue(true),
   // Only TraceName.UIStartup is used in utils.ts (excludeEvents filter)
   TraceName: { UIStartup: 'UIStartup' },
+}));
+
+jest.mock('./navigationInitializationAppStart', () => ({
+  beginNavigationInitializationAppStart: jest.fn(),
 }));
 
 jest.mock('../../constants/ota', () => ({
@@ -258,6 +262,12 @@ describe('excludeEvents', () => {
     expect(eventExcluded).toBe(event);
   });
 
+  it('drops the NavigationChildren wrapper transaction', async () => {
+    const event = { transaction: 'NavigationChildren' };
+    const eventExcluded = excludeEvents(event);
+    expect(eventExcluded).toBeNull();
+  });
+
   it('returns performance event null if empty', async () => {
     const eventExcluded = excludeEvents(null);
     expect(eventExcluded).toBe(null);
@@ -346,19 +356,16 @@ describe('captureSentryFeedback', () => {
   it('captures Sentry user feedback', async () => {
     const mockSentryId = '123';
     const mockComments = 'Comment';
-    const expectedUserFeedback: UserFeedback = {
-      event_id: mockSentryId,
+    captureSentryFeedback({
+      sentryId: mockSentryId,
+      comments: mockComments,
+    });
+    expect(mockedCaptureFeedback).toHaveBeenCalledWith({
+      associatedEventId: mockSentryId,
+      message: mockComments,
       name: '',
       email: '',
-      comments: mockComments,
-    };
-    captureSentryFeedback({
-      sentryId: expectedUserFeedback.event_id,
-      comments: expectedUserFeedback.comments,
     });
-    expect(mockedCaptureUserFeedback).toHaveBeenCalledWith(
-      expectedUserFeedback,
-    );
   });
 
   describe('maskObject', () => {
@@ -371,14 +378,28 @@ describe('captureSentryFeedback', () => {
       collectibles: { favorites: {}, isNftFetchingProgress: false },
       engine: {
         backgroundState: {
-          AccountTrackerController: {
-            accountsByChainId: {
-              '0x1': {
-                '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
-                  balance: '0x0',
-                },
+          // `AccountTrackerController`/`CurrencyRateController` no longer exist
+          // in `EngineState`; `AssetsController` is now the sole source of
+          // asset/balance/price data and `sentryStateMask` masks it entirely
+          // (see `AssetsController: { [AllProperties]: false }` above).
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
               },
             },
+            assetsBalance: {
+              '1be55f5b-eba9-41a7-a9ed-a6a8274aca27': {
+                'eip155:1/slip44:60': { amount: '0' },
+              },
+            },
+            assetsPrice: {},
+            customAssets: {},
+            assetPreferences: {},
           },
           AccountsController: {
             internalAccounts: {
@@ -432,16 +453,6 @@ describe('captureSentryFeedback', () => {
             approvalFlows: [],
             pendingApprovalCount: 0,
             pendingApprovals: {},
-          },
-          CurrencyRateController: {
-            currencyRates: {
-              ETH: {
-                conversionDate: 1720196397083,
-                conversionRate: 298514,
-                usdConversionRate: 298514,
-              },
-            },
-            currentCurrency: 'usd',
           },
           GasFeeController: {
             estimatedGasFeeTimeBounds: {},
@@ -1429,6 +1440,7 @@ describe('setupSentry', () => {
   beforeEach(() => {
     mockedInit.mockClear();
     mockedSetTag.mockClear();
+    jest.mocked(beginNavigationInitializationAppStart).mockClear();
     process.env.MM_SENTRY_DSN = 'https://test@sentry.io/1';
   });
 
@@ -1494,5 +1506,18 @@ describe('setupSentry', () => {
       tags: {},
     });
     expect(result).toBeNull();
+  });
+
+  it('enables standalone app start tracing so app start survives the dropped wrapper transaction', async () => {
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      _experiments?: { enableStandaloneAppStartTracing?: boolean };
+    };
+
+    expect(initOptions._experiments?.enableStandaloneAppStartTracing).toBe(
+      true,
+    );
+    expect(beginNavigationInitializationAppStart).toHaveBeenCalledTimes(1);
   });
 });
