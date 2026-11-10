@@ -51,6 +51,22 @@ describe('usePerpsSyncedChartPrice', () => {
     });
   });
 
+  it('keeps the candle subscription open by default', () => {
+    renderSyncedPrice();
+
+    expect(mockUsePerpsLiveCandles).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
+  it('closes the candle subscription when disabled', () => {
+    renderSyncedPrice({ enabled: false });
+
+    expect(mockUsePerpsLiveCandles).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
   it('uses the last candle close as the display price', () => {
     const { result } = renderSyncedPrice();
 

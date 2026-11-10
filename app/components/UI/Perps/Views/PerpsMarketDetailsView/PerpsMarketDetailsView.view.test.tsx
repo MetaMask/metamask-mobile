@@ -6,6 +6,7 @@
  */
 import '../../../../../../tests/component-view/mocks';
 import type { ComponentType } from 'react';
+import { View } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import {
@@ -112,11 +113,30 @@ function renderEligibleNoPositionPerpsDetails(
   });
 }
 
+// Below-fold sections mount once they measure inside the scroll viewport, and the
+// RN Jest preset stubs `measureInWindow` as a no-op. Every view measures as visible.
+let measureInWindowSpy: jest.SpyInstance;
+
+async function publishScrollViewport() {
+  const scrollView = await screen.findByTestId(
+    PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+  );
+  fireEvent(scrollView, 'layout', {
+    nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 800 } },
+  });
+}
+
 beforeEach(async () => {
+  measureInWindowSpy = jest
+    .spyOn(View.prototype, 'measureInWindow')
+    .mockImplementation((callback) => {
+      callback(0, 0, 390, 320);
+    });
   await acceptSocialTerms();
 });
 
 afterEach(async () => {
+  measureInWindowSpy.mockRestore();
   await resetSocialTermsAcceptance();
 });
 
@@ -552,6 +572,7 @@ describe('PerpsMarketDetailsView', () => {
 
     it('opens statistics tooltip and Got it dismisses it', async () => {
       renderEligibleNoPositionPerpsDetails();
+      await publishScrollViewport();
 
       const openInterestIcon = await screen.findByTestId(
         PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
@@ -1362,6 +1383,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         },
       });
+      await publishScrollViewport();
 
       const tutorialCard = await screen.findByTestId(
         PerpsTutorialSelectorsIDs.TUTORIAL_CARD,
@@ -1572,6 +1594,7 @@ describe('PerpsMarketDetailsView', () => {
           ],
         },
       });
+      await publishScrollViewport();
 
       expect(
         await screen.findByTestId(
@@ -1753,6 +1776,7 @@ describe('PerpsMarketDetailsView', () => {
         },
         socialEnabled: true,
       });
+      await publishScrollViewport();
 
       expect(
         await screen.findByTestId(
@@ -1820,6 +1844,7 @@ describe('PerpsMarketDetailsView', () => {
           marketData: [createEthMarketForViews({ description })],
         },
       });
+      await publishScrollViewport();
 
       expect(
         await screen.findByTestId(

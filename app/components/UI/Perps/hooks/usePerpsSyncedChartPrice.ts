@@ -12,6 +12,8 @@ export interface UsePerpsSyncedChartPriceParams {
   isAdvancedChartEnabled: boolean;
   marketContextKey?: string;
   isMarketContextReady?: boolean;
+  /** Keeps the candle subscription open. Pass `false` while the chart is off-screen. */
+  enabled?: boolean;
 }
 
 export interface UsePerpsSyncedChartPriceResult {
@@ -43,6 +45,7 @@ export function usePerpsSyncedChartPrice({
   isAdvancedChartEnabled,
   marketContextKey = '',
   isMarketContextReady = true,
+  enabled = true,
 }: UsePerpsSyncedChartPriceParams): UsePerpsSyncedChartPriceResult {
   const {
     candleData,
@@ -56,7 +59,7 @@ export function usePerpsSyncedChartPrice({
     duration: TimeDuration.YearToDate,
     throttleMs: 1000,
     resetKey: marketContextKey,
-    enabled: isMarketContextReady,
+    enabled: isMarketContextReady && enabled,
   });
 
   const chartCurrentPrice = useMemo(() => {
