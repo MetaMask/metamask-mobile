@@ -496,8 +496,16 @@ describe('Engine', () => {
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
 
+    // SamplePetnamesController is only registered when
+    // INCLUDE_SAMPLE_FEATURE=true (unset in this test run), so `Engine.state`
+    // omits it entirely even though the fixture has a default value for it.
+    const {
+      SamplePetnamesController: _unusedSamplePetnamesController,
+      ...restBackgroundState
+    } = backgroundState;
+
     const expectedState = {
-      ...backgroundState,
+      ...restBackgroundState,
       // Update application version here, so that we don't have to update
       // `initial-background-state.json` every release
       AppMetadataController: {
@@ -1297,6 +1305,15 @@ describe('Engine', () => {
     expect(networkState.networkConfigurationsByChainId['0x2105'].name).toBe(
       'Base Mainnet',
     );
+  });
+
+  describe('when the sample feature is disabled', () => {
+    it('omits SamplePetnamesController from the context and state', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(Engine.context).not.toHaveProperty('SamplePetnamesController');
+      expect(Engine.state).not.toHaveProperty('SamplePetnamesController');
+    });
   });
 
   describe('Engine.state', () => {

@@ -1,6 +1,8 @@
 import {
   getPerpsDisplaySymbol,
   type OrderType,
+  type PerpsActiveProviderMode,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
@@ -26,12 +28,24 @@ import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 export const orderTypeHasExchangeOrderId = (orderType: OrderType): boolean =>
   orderType !== 'scale' && orderType !== 'twap' && orderType !== 'chase';
 
-const resolveProviderId = (activeProvider: string | undefined): string =>
+/**
+ * Provider a single-venue action runs on: the active provider, or the default
+ * one under aggregation, where no single provider is active.
+ *
+ * @param activeProvider - `PerpsController` active provider.
+ * @returns The provider id.
+ */
+export const resolveProviderId = (
+  activeProvider: PerpsActiveProviderMode | undefined,
+): PerpsProviderType =>
   activeProvider && activeProvider !== PROVIDER_CONFIG.AggregatedProvider
     ? activeProvider
     : PROVIDER_CONFIG.DefaultProvider;
 
-/** Returns whether the entered Perps amount reaches the sharing threshold. */
+/**
+ * Returns whether the Perps order's margin reaches the sharing threshold.
+ * `amountUsd` is position size (notional); margin is notional / leverage.
+ */
 export const isPerpsPostTradeShareEligible = ({
   amountUsd,
   leverage,
@@ -39,12 +53,9 @@ export const isPerpsPostTradeShareEligible = ({
   amountUsd?: string;
   leverage?: number;
 }): boolean => {
-  const amount = Number(amountUsd);
-  const leveragedAmount = amount * (leverage ?? 0);
-  return (
-    Number.isFinite(leveragedAmount) &&
-    leveragedAmount >= MIN_POST_TRADE_SHARE_USD
-  );
+  const notional = Number(amountUsd);
+  const margin = leverage && leverage > 0 ? notional / leverage : Number.NaN;
+  return Number.isFinite(margin) && margin >= MIN_POST_TRADE_SHARE_USD;
 };
 
 export const canBeginPerpsPostTradeShare = ({
@@ -54,7 +65,7 @@ export const canBeginPerpsPostTradeShare = ({
 }: {
   copyTradeOrigin: CopyTradeOrigin | undefined;
   orderType: OrderType;
-  activeProvider: string | undefined;
+  activeProvider: PerpsActiveProviderMode | undefined;
 }): boolean =>
   Boolean(copyTradeOrigin) &&
   orderTypeHasExchangeOrderId(orderType) &&
@@ -69,7 +80,7 @@ export const canPromptPerpsPostTrade = ({
   activeProvider,
 }: {
   orderType: OrderType;
-  activeProvider: string | undefined;
+  activeProvider: PerpsActiveProviderMode | undefined;
 }): boolean =>
   orderType === 'market' && resolveProviderId(activeProvider) === 'hyperliquid';
 
@@ -165,7 +176,7 @@ export const beginPerpsPostTradeShare = ({
 }: {
   copyTradeOrigin: CopyTradeOrigin | undefined;
   orderType: OrderType;
-  activeProvider: string | undefined;
+  activeProvider: PerpsActiveProviderMode | undefined;
   asset: string;
   direction: 'long' | 'short';
   leverage?: number;

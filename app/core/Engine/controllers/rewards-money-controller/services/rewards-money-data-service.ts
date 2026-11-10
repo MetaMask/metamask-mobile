@@ -21,6 +21,9 @@ import type {
   ReferralMeDto,
   ReferrerOriginType,
   RegisterRefereeDto,
+  TaxAnswerResultDto,
+  TaxFormTokenDto,
+  TaxMeDto,
 } from '../types';
 import {
   canChangeRewardsMoneyEnvUrl,
@@ -161,6 +164,43 @@ export class RewardsMoneyHttpError extends Error {
   }
 }
 
+/**
+ * A tax route refused the request. `code` is Nest's `message`
+ * (`ANSWER_ON_FILE`, `SERVER_BUSY`, and the rest). Provider 503s leave
+ * `retryAfterSeconds` unset: that header is not a retry signal for them.
+ */
+export class RewardsMoneyTaxError extends Error {
+  readonly status: number;
+
+  readonly code: string;
+
+  readonly retryAfterSeconds: number | undefined;
+
+  constructor(status: number, code: string, retryAfterSeconds?: number) {
+    super(`Tax request failed: ${status} ${code}`);
+    this.name = 'RewardsMoneyTaxError';
+    this.status = status;
+    this.code = code;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+/**
+ * Tax error codes live in Nest's `message`. A body that is not JSON, or a
+ * message that is not a string, is `UNKNOWN`.
+ */
+export function taxErrorCode(bodyText: string): string {
+  try {
+    const parsed = JSON.parse(bodyText) as { message?: unknown };
+    if (typeof parsed.message === 'string' && parsed.message.length > 0) {
+      return parsed.message;
+    }
+  } catch {
+    // A non-JSON body still refuses the call; the toast stays generic.
+  }
+  return 'UNKNOWN';
+}
+
 // ─── Action types ─────────────────────────────────────────────────────────────
 
 export interface RewardsMoneyDataServiceGetReferralMeAction {
@@ -223,6 +263,26 @@ export interface RewardsMoneyDataServiceInitiateClaimAction {
   handler: RewardsMoneyDataService['initiateClaim'];
 }
 
+export interface RewardsMoneyDataServiceGetTaxMeAction {
+  type: `${typeof SERVICE_NAME}:getTaxMe`;
+  handler: RewardsMoneyDataService['getTaxMe'];
+}
+
+export interface RewardsMoneyDataServiceSubmitTaxAttestationAction {
+  type: `${typeof SERVICE_NAME}:submitTaxAttestation`;
+  handler: RewardsMoneyDataService['submitTaxAttestation'];
+}
+
+export interface RewardsMoneyDataServiceSubmitTaxUsActivityAction {
+  type: `${typeof SERVICE_NAME}:submitTaxUsActivity`;
+  handler: RewardsMoneyDataService['submitTaxUsActivity'];
+}
+
+export interface RewardsMoneyDataServiceMintTaxFormTokenAction {
+  type: `${typeof SERVICE_NAME}:mintTaxFormToken`;
+  handler: RewardsMoneyDataService['mintTaxFormToken'];
+}
+
 export interface RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsMoneyEnvUrl`;
   handler: RewardsMoneyDataService['getRewardsMoneyEnvUrl'];
@@ -256,6 +316,10 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceGetClaimByIdAction
   | RewardsMoneyDataServiceGetRebateQuoteAction
   | RewardsMoneyDataServiceInitiateClaimAction
+  | RewardsMoneyDataServiceGetTaxMeAction
+  | RewardsMoneyDataServiceSubmitTaxAttestationAction
+  | RewardsMoneyDataServiceSubmitTaxUsActivityAction
+  | RewardsMoneyDataServiceMintTaxFormTokenAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
@@ -316,6 +380,14 @@ function parseClaimJson<T>(bodyText: string, status: number): T {
     return JSON.parse(bodyText) as T;
   } catch {
     throw new RewardsMoneyClaimRefusalError(status, 'UNKNOWN');
+  }
+}
+
+function parseTaxJson<T>(bodyText: string, status: number): T {
+  try {
+    return JSON.parse(bodyText) as T;
+  } catch {
+    throw new RewardsMoneyTaxError(status, 'UNKNOWN');
   }
 }
 
@@ -565,6 +637,22 @@ export class RewardsMoneyDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:initiateClaim`,
       this.initiateClaim.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getTaxMe`,
+      this.getTaxMe.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:submitTaxAttestation`,
+      this.submitTaxAttestation.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:submitTaxUsActivity`,
+      this.submitTaxUsActivity.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:mintTaxFormToken`,
+      this.mintTaxFormToken.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsMoneyEnvUrl`,
@@ -940,6 +1028,112 @@ export class RewardsMoneyDataService {
       kind: 'authorized',
       body: parseClaimJson<ClaimInitiateDto>(bodyText, response.status),
     };
+  }
+
+  /** `GET /tax/me`. A short `503` or `429` is waited out once by `#read`. */
+  async getTaxMe(): Promise<TaxMeDto> {
+    const response = await this.#read('/tax/me');
+    if (!response.ok) {
+      return this.#throwTax(response);
+    }
+    return (await response.json()) as TaxMeDto;
+  }
+
+  /**
+   * `POST /wr/tax/attestation`. Sent once, plus one retry when the answer
+   * lock times out (`SERVER_BUSY`) inside the busy-read cap.
+   */
+  async submitTaxAttestation(
+    usPersonOrActivity: boolean,
+  ): Promise<TaxAnswerResultDto> {
+    return this.#submitTaxAnswer('/wr/tax/attestation', {
+      us_person_or_activity: usPersonOrActivity,
+    });
+  }
+
+  /**
+   * `POST /wr/tax/w8-us-activity`. Same single retry as the attestation.
+   */
+  async submitTaxUsActivity(usActivity: boolean): Promise<TaxAnswerResultDto> {
+    return this.#submitTaxAnswer('/wr/tax/w8-us-activity', {
+      us_activity: usActivity,
+    });
+  }
+
+  /**
+   * `POST /wr/tax/form-token`. Sent once. A mint counts toward the hourly
+   * cap, so a busy pod is not retried. Provider 503s drop `Retry-After`.
+   */
+  async mintTaxFormToken(): Promise<TaxFormTokenDto> {
+    const response = await this.#makeRequest('/wr/tax/form-token', {
+      method: 'POST',
+    });
+    const bodyText = await response.text();
+    if (!response.ok) {
+      const code = taxErrorCode(bodyText);
+      const dropRetryAfter =
+        code === 'TAX_PROVIDER_UNCONFIGURED' ||
+        code === 'TAX_PROVIDER_UNAVAILABLE';
+      throw new RewardsMoneyTaxError(
+        response.status,
+        code,
+        dropRetryAfter
+          ? undefined
+          : retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      );
+    }
+    return parseTaxJson<TaxFormTokenDto>(bodyText, response.status);
+  }
+
+  async #submitTaxAnswer(
+    endpoint: string,
+    body: { us_person_or_activity: boolean } | { us_activity: boolean },
+  ): Promise<TaxAnswerResultDto> {
+    const send = () =>
+      this.#makeRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+
+    let response = await send();
+
+    if (response.status === 503) {
+      const busyBody = (await readBodyText(response)) ?? '';
+      const waitSeconds = retryAfterSeconds(
+        response.headers?.get('retry-after') ?? null,
+      );
+      const withinCap =
+        waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
+      if (taxErrorCode(busyBody) === 'SERVER_BUSY' && withinCap) {
+        await delay(busyRetryDelayMs(waitSeconds));
+        response = await send();
+      } else {
+        throw new RewardsMoneyTaxError(
+          response.status,
+          taxErrorCode(busyBody),
+          waitSeconds,
+        );
+      }
+    }
+
+    const bodyText = await response.text();
+    if (!response.ok) {
+      throw new RewardsMoneyTaxError(
+        response.status,
+        taxErrorCode(bodyText),
+        retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      );
+    }
+    return parseTaxJson<TaxAnswerResultDto>(bodyText, response.status);
+  }
+
+  async #throwTax(response: Response): Promise<never> {
+    const bodyText = (await readBodyText(response)) ?? '';
+    throw new RewardsMoneyTaxError(
+      response.status,
+      taxErrorCode(bodyText),
+      retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+    );
   }
 
   async getClaimById(claimId: string): Promise<ClaimDto> {
