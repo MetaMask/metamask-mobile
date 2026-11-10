@@ -89,9 +89,6 @@ scripts/set-secrets-from-config.js                          @MetaMask/mobile-adm
 .github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
 .github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
 
-# Platform & Snaps Code Fencing File
-metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
-
 # Money Movement Team (formerly Ramps)
 app/components/UI/Ramp/                                @MetaMask/money-movement
 app/reducers/fiatOrders/                               @MetaMask/money-movement
@@ -496,6 +493,7 @@ app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask
 app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/analytics-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/geolocation-api-service* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/listeners/ @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/messengers/analytics-controller-messenger* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations

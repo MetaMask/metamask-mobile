@@ -2,8 +2,8 @@ import React, { useCallback, useEffect } from 'react';
 import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import type { KycSessionStatus } from '@metamask/kyc-controller';
-import VbaKycPending from '../../../../KYC/Views/Status/KycPending';
-import VbaKycRejected from '../../../../KYC/Views/Status/KycRejected';
+import KycPending from '../../../../KYC/Views/Status/KycPending';
+import KycRejected from '../../../../KYC/Views/Status/KycRejected';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
 import { selectKycSessionStatus } from '../../../../../../selectors/kycController';
@@ -51,7 +51,7 @@ export const VbaKycPendingAdapter = () => {
     endVbaCufJourney(false, VBA_CUF_END_REASON.KYC_PENDING);
   }, []);
 
-  return <VbaKycPending onLeave={leave} />;
+  return <KycPending onLeave={leave} />;
 };
 
 const VbaKycRetryAction = () => {
@@ -64,7 +64,7 @@ const VbaKycRetryAction = () => {
     return openOnboarding({ retryRejectedKyc: true });
   }, [openOnboarding]);
 
-  return <VbaKycRejected action="retry" onAction={handleRetry} />;
+  return <KycRejected action="retry" onAction={handleRetry} />;
 };
 
 const VbaKycRejectedSupportAction = () => {
@@ -74,7 +74,7 @@ const VbaKycRejectedSupportAction = () => {
   }, [openSupportWithConsent]);
 
   return (
-    <VbaKycRejected action="contactSupport" onAction={handleContactSupport} />
+    <KycRejected action="contactSupport" onAction={handleContactSupport} />
   );
 };
 

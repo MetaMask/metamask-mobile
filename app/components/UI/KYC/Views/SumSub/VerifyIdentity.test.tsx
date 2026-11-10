@@ -3,8 +3,8 @@ import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
-import VbaVerifyIdentity from './VerifyIdentity';
-import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import KycVerifyIdentity from './VerifyIdentity';
+import { KycVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import {
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
@@ -58,9 +58,9 @@ const catalogDisclaimers = [
 ];
 
 const renderScreen = () =>
-  renderWithProvider(<VbaVerifyIdentity onContinue={mockOnContinue} />);
+  renderWithProvider(<KycVerifyIdentity onContinue={mockOnContinue} />);
 
-describe('VbaVerifyIdentity', () => {
+describe('KycVerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseKycSessionDisclaimers.mockReturnValue({
@@ -108,7 +108,7 @@ describe('VbaVerifyIdentity', () => {
       getByText('Delete your verified identity any time in Settings.'),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+      getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeEnabled();
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: KYC_SCREEN_PERFORMANCE_CONFIG,
@@ -121,7 +121,7 @@ describe('VbaVerifyIdentity', () => {
   it('shows the first page of two above the title', () => {
     const { getByTestId } = renderScreen();
 
-    const indicator = getByTestId(VbaVerifyIdentitySelectorsIDs.STEP_INDICATOR);
+    const indicator = getByTestId(KycVerifyIdentitySelectorsIDs.STEP_INDICATOR);
     expect(indicator).toHaveTextContent('Step 1 of 2');
     expect(indicator.props.accessibilityLabel).toBe('Step 1 of 2');
   });
@@ -130,7 +130,7 @@ describe('VbaVerifyIdentity', () => {
     const { getByTestId } = renderScreen();
 
     expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.AGREEMENT),
+      getByTestId(KycVerifyIdentitySelectorsIDs.AGREEMENT),
     ).toHaveTextContent(
       'By continuing, I agree to the MetaMask Terms of Use, acknowledge the MetaMask Privacy Notice and consent to MetaMask storing and transferring my information to idOS.',
     );
@@ -143,10 +143,10 @@ describe('VbaVerifyIdentity', () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK),
+      getByTestId(KycVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK),
     );
     fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
+      getByTestId(KycVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
     );
 
     expect(openUrlSpy.mock.calls).toEqual([
@@ -161,7 +161,7 @@ describe('VbaVerifyIdentity', () => {
       .mockResolvedValue(undefined);
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.LEARN_MORE_LINK));
+    fireEvent.press(getByTestId(KycVerifyIdentitySelectorsIDs.LEARN_MORE_LINK));
 
     expect(openUrlSpy).toHaveBeenCalledWith(
       'https://support.metamask.io/trade/identity-verification',
@@ -171,7 +171,7 @@ describe('VbaVerifyIdentity', () => {
   it('returns to Money home when the header back button is pressed', () => {
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.BACK_BUTTON));
+    fireEvent.press(getByTestId(KycVerifyIdentitySelectorsIDs.BACK_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
@@ -183,7 +183,7 @@ describe('VbaVerifyIdentity', () => {
   it('hands the loaded catalog to the partners page on continue', () => {
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+    fireEvent.press(getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
     expect(mockOnContinue).toHaveBeenCalledWith(catalogDisclaimers);
   });
@@ -197,10 +197,10 @@ describe('VbaVerifyIdentity', () => {
     });
 
     const { getByTestId } = renderScreen();
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+    fireEvent.press(getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
     expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+      getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeDisabled();
     expect(mockOnContinue).not.toHaveBeenCalled();
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
@@ -222,10 +222,10 @@ describe('VbaVerifyIdentity', () => {
     const { getByTestId } = renderScreen();
 
     expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR),
+      getByTestId(KycVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+      getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeDisabled();
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: KYC_SCREEN_PERFORMANCE_CONFIG,
@@ -235,7 +235,7 @@ describe('VbaVerifyIdentity', () => {
     });
 
     fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY),
+      getByTestId(KycVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY),
     );
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
@@ -278,7 +278,7 @@ describe('VbaVerifyIdentity', () => {
       const { getByTestId } = renderScreen();
 
       fireEvent.press(
-        getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+        getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
       );
 
       expect(identityTermsStatuses()).toStrictEqual([

@@ -400,21 +400,23 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             {title}
           </Text>
         ) : null}
-        {viewerRow ? (
-          <SocialV1TraderRow
-            trader={viewerRow.trader}
-            metric={viewerRow.trader.displayMetric}
-            onFollowPress={handleFollowPress}
-            onTraderPress={handleViewerPress}
-            highlighted
-            hideRank={viewerRow.hideRank}
-            showRankColumn={showRank}
-            showLeaderboardDetails
-            omitPercentage={viewerRow.omitPercentage}
-            testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
-          />
-        ) : null}
-        {renderBody()}
+        <Box>
+          {viewerRow ? (
+            <SocialV1TraderRow
+              trader={viewerRow.trader}
+              metric={viewerRow.trader.displayMetric}
+              onFollowPress={handleFollowPress}
+              onTraderPress={handleViewerPress}
+              highlighted
+              hideRank={viewerRow.hideRank}
+              showRankColumn={showRank}
+              showLeaderboardDetails
+              omitPercentage={viewerRow.omitPercentage}
+              testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
+            />
+          ) : null}
+          {renderBody()}
+        </Box>
       </Box>
     </SocialFeedSurfaceProvider>
   );
