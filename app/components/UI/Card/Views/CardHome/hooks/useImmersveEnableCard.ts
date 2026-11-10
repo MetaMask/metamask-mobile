@@ -12,6 +12,7 @@ import {
   selectCardSelectedCountry,
   selectImmersveMoneyAccountMode,
 } from '../../../../../../selectors/cardController';
+import { selectImmersveFundingSettling } from '../../../../../../core/redux/slices/card';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { BAANX_MAX_LIMIT } from '../../../constants';
@@ -61,6 +62,7 @@ export function useImmersveEnableCard(
   const providerId = useSelector(selectCardActiveProviderId);
   const isImmersve = providerId === CardProviderIds.Immersve;
   const isMoneyAccountMode = useSelector(selectImmersveMoneyAccountMode);
+  const isFundingSettling = useSelector(selectImmersveFundingSettling);
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const { approveFunding, isApproving } =
     useImmersveMoneyAccountFundingApproval();
@@ -169,6 +171,13 @@ export function useImmersveEnableCard(
     hasPendingAction: Boolean(pendingAction),
     provisioningView,
     setupStep,
-    isEnableCardPending: Boolean(isMoneyAccountMode && isApproving),
+    // The link flag clears before the effect drops this funding step. Keep the
+    // button disabled through that commit so a second press cannot submit
+    // another allowance.
+    isEnableCardPending: Boolean(
+      isMoneyAccountMode &&
+        (isApproving ||
+          (isFundingSettling && pendingAction?.type === 'funding')),
+    ),
   };
 }

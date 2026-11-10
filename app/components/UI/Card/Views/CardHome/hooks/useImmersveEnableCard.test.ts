@@ -217,6 +217,39 @@ describe('useImmersveEnableCard', () => {
     expect(result.current.isEnableCardPending).toBe(true);
   });
 
+  it('keeps Enable card disabled after approval until the funding step clears', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const cardSlice = require('../../../../../../core/redux/slices/card');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectImmersveMoneyAccountMode) {
+        return true;
+      }
+      if (selector === cardSlice.selectImmersveFundingSettling) {
+        return true;
+      }
+      return undefined;
+    });
+    mockUseImmersveCardProvisioning.mockReturnValue({
+      isProvisioning: true,
+      isReconciling: false,
+      pendingAction: { type: 'funding', write: {} as never },
+      resumePendingAction: mockResumePendingAction,
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard({
+        alerts: [{ type: 'card_provisioning', dismissable: false }],
+      } as never),
+    );
+
+    expect(result.current.isEnableCardPending).toBe(true);
+  });
+
   it('does not disable Enable card for a USDC on Base approval', () => {
     mockIsApproving = true;
 
