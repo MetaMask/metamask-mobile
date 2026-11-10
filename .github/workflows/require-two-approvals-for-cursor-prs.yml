@@ -1,0 +1,111 @@
+name: Require two approvals for Cursor PRs
+
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  require-two-approvals:
+    name: Require two approvals for Cursor PRs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check approvals
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const requiredApprovalCount = 2;
+
+            if (context.eventName === 'merge_group') {
+              core.info('Approval requirements were verified before the pull request entered the merge queue.');
+              return;
+            }
+
+            const pullRequest = context.payload.pull_request;
+            if (!pullRequest) {
+              core.setFailed('The workflow event did not include pull request metadata.');
+              return;
+            }
+
+            if (pullRequest.user.login.toLowerCase() !== 'cursor[bot]') {
+              core.info(`Approval gate does not apply to ${pullRequest.user.login}.`);
+              return;
+            }
+
+            if (pullRequest.draft) {
+              core.info('Approval gate is informational while the pull request is a draft.');
+              return;
+            }
+
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullRequest.number,
+              per_page: 100,
+            });
+
+            const decisiveReviewStates = new Set([
+              'APPROVED',
+              'CHANGES_REQUESTED',
+              'DISMISSED',
+            ]);
+            const latestStateByReviewer = new Map();
+
+            reviews
+              .sort((firstReview, secondReview) => firstReview.id - secondReview.id)
+              .forEach((review) => {
+                const state = review.state.toUpperCase();
+                const reviewer = review.user;
+
+                if (
+                  review.commit_id !== pullRequest.head.sha ||
+                  reviewer?.type !== 'User' ||
+                  !decisiveReviewStates.has(state)
+                ) {
+                  return;
+                }
+
+                latestStateByReviewer.set(reviewer.login, state);
+              });
+
+            const approvalCandidates = [...latestStateByReviewer.entries()]
+              .filter(([, state]) => state === 'APPROVED')
+              .map(([login]) => login);
+            const eligibleApprovers = [];
+
+            for (const login of approvalCandidates) {
+              try {
+                const { data } =
+                  await github.rest.repos.getCollaboratorPermissionLevel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    username: login,
+                  });
+
+                if (['admin', 'maintain', 'write'].includes(data.permission)) {
+                  eligibleApprovers.push(login);
+                }
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+
+                core.info(`${login} is not a repository collaborator.`);
+              }
+            }
+
+            if (eligibleApprovers.length < requiredApprovalCount) {
+              core.setFailed(
+                `Cursor-authored pull requests require ${requiredApprovalCount} approvals ` +
+                  `from collaborators with write access on the current commit; ` +
+                  `found ${eligibleApprovers.length}.`,
+              );
+              return;
+            }
+
+            core.info(
+              `Approval requirement met with ${eligibleApprovers.length} eligible approvals.`,
+            );
