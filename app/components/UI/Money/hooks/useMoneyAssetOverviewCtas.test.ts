@@ -5,7 +5,6 @@ import type { TokenI } from '../../Tokens/types';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { earnSelectors } from '../../../../selectors/earnController/earn';
-import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import type { RootState } from '../../../../reducers';
 import {
   COMPONENT_NAMES,
@@ -13,8 +12,6 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
-import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
-import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
@@ -58,25 +55,6 @@ const mockSelectIsAaveOutputToken = jest.mocked(
 );
 const mockSelectorState = {} as RootState;
 
-const RELAY_CONFIG_WITH_SUBSIDIZED_AUSDC: RelayFixedSpreadConfig = {
-  routes: [
-    {
-      sourceChain: '0x1',
-      sourceToken: '0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c',
-      targetChain: '0x8f',
-      targetToken: MUSD_TOKEN_ADDRESS,
-    },
-    {
-      sourceChain: '0x1',
-      sourceToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      targetChain: '0x8f',
-      targetToken: MUSD_TOKEN_ADDRESS,
-    },
-  ],
-};
-
-const EMPTY_RELAY_CONFIG: RelayFixedSpreadConfig = { routes: [] };
-
 const asset = {
   address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
   chainId: '0x1',
@@ -84,18 +62,9 @@ const asset = {
   balance: '1',
 } as TokenI;
 
-const setupSelectors = (
-  relayFixedSpread: RelayFixedSpreadConfig = RELAY_CONFIG_WITH_SUBSIDIZED_AUSDC,
-  isAaveOutputToken = true,
-) => {
+const setupSelectors = (isAaveOutputToken = true) => {
   mockSelectIsAaveOutputToken.mockReturnValue(isAaveOutputToken);
-  mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectRelayFixedSpread) {
-      return relayFixedSpread;
-    }
-
-    return selector(mockSelectorState);
-  });
+  mockUseSelector.mockImplementation((selector) => selector(mockSelectorState));
 };
 
 describe('useMoneyAssetOverviewCtas', () => {
@@ -162,6 +131,24 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
   });
 
+  it('tracks experiment exposure for eligible control users without fetching APY', () => {
+    setupSelectors(false);
+    mockUseMoneyAssetOverviewCtaVisibility.mockReturnValue({
+      isBalanceCtaEligible: false,
+      isFooterCtaEligible: false,
+    });
+
+    renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
+
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
+  });
+
   it('shows balance CTA loading when eligible', () => {
     mockUseMoneyVaultApy.mockReturnValue({
       apyDecimal: undefined,
@@ -200,7 +187,7 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(result.current.isBalanceCtaVisible).toBe(false);
   });
 
-  it('shows the footer CTA for an aToken with a subsidized Money deposit route', () => {
+  it('shows the footer CTA for an aToken', () => {
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset,
@@ -212,22 +199,8 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(result.current.isFooterCtaVisible).toBe(true);
   });
 
-  it('hides the footer CTA for an aToken without a subsidized Money deposit route', () => {
-    setupSelectors(EMPTY_RELAY_CONFIG);
-
-    const { result } = renderHook(() =>
-      useMoneyAssetOverviewCtas({
-        asset,
-        balanceFiatUsd: 100,
-        hasBalance: true,
-      }),
-    );
-
-    expect(result.current.isFooterCtaVisible).toBe(false);
-  });
-
-  it('shows the footer CTA for an allowlisted stablecoin without a subsidized route', () => {
-    setupSelectors(EMPTY_RELAY_CONFIG, false);
+  it('shows the footer CTA for an allowlisted stablecoin', () => {
+    setupSelectors(false);
 
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
@@ -245,7 +218,7 @@ describe('useMoneyAssetOverviewCtas', () => {
   });
 
   it('hides the footer CTA for a stablecoin in the control variant', () => {
-    setupSelectors(EMPTY_RELAY_CONFIG, false);
+    setupSelectors(false);
     mockUseABTest.mockImplementation((flagKey) => {
       if (flagKey === EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY) {
         return {
@@ -285,7 +258,7 @@ describe('useMoneyAssetOverviewCtas', () => {
     );
   });
 
-  it('keeps a subsidized aToken footer CTA visible in the stablecoin control variant', () => {
+  it('shows an aToken footer CTA in the stablecoin control variant', () => {
     mockUseABTest.mockImplementation((flagKey) => {
       if (flagKey === EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY) {
         return {
@@ -321,21 +294,6 @@ describe('useMoneyAssetOverviewCtas', () => {
     );
   });
 
-  it('keeps the balance CTA visible when the footer route is not subsidized', () => {
-    setupSelectors(EMPTY_RELAY_CONFIG);
-
-    const { result } = renderHook(() =>
-      useMoneyAssetOverviewCtas({
-        asset,
-        balanceFiatUsd: 100,
-        hasBalance: true,
-      }),
-    );
-
-    expect(result.current.isBalanceCtaVisible).toBe(true);
-    expect(result.current.isFooterCtaVisible).toBe(false);
-  });
-
   it('passes the normalized asset ID to the Earn output-token selector', () => {
     renderHook(() =>
       useMoneyAssetOverviewCtas({
@@ -353,32 +311,6 @@ describe('useMoneyAssetOverviewCtas', () => {
     expect(mockSelectIsAaveOutputToken).toHaveBeenCalledWith(
       mockSelectorState,
       expectedAssetId,
-    );
-  });
-
-  it('disables the footer APY query when the asset ID cannot be built', () => {
-    mockUseMoneyAssetOverviewCtaVisibility.mockReturnValue({
-      isBalanceCtaEligible: false,
-      isFooterCtaEligible: true,
-    });
-    setupSelectors(RELAY_CONFIG_WITH_SUBSIDIZED_AUSDC, true);
-
-    const { result } = renderHook(() =>
-      useMoneyAssetOverviewCtas({
-        asset: {
-          ...asset,
-          chainId: 'tron:728126428',
-        },
-        balanceFiatUsd: 100,
-        hasBalance: true,
-      }),
-    );
-
-    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
-    expect(result.current.isFooterCtaVisible).toBe(false);
-    expect(mockSelectIsAaveOutputToken).toHaveBeenCalledWith(
-      mockSelectorState,
-      undefined,
     );
   });
 

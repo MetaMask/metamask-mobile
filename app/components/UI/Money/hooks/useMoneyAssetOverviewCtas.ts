@@ -4,7 +4,6 @@ import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import type { Hex } from '@metamask/utils';
 import { earnSelectors } from '../../../../selectors/earnController/earn';
-import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import type { TokenI } from '../../Tokens/types';
 import type { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
@@ -20,7 +19,6 @@ import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
-import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
@@ -60,7 +58,6 @@ export const useMoneyAssetOverviewCtas = ({
     }
   }, [asset.address, asset.chainId]);
 
-  const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const isAaveOutputToken = useSelector((state: RootState) =>
     earnSelectors.selectIsAaveOutputToken(state, assetId),
   );
@@ -72,6 +69,7 @@ export const useMoneyAssetOverviewCtas = ({
 
   const isStablecoinFooterCtaEligible =
     isFooterCtaEligibleFromVisibility && !isAaveOutputToken;
+
   const { variant: stablecoinFooterCtaVariant } = useABTest(
     EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
     EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
@@ -83,15 +81,12 @@ export const useMoneyAssetOverviewCtas = ({
   const isStablecoinFooterCtaEnabled =
     isStablecoinFooterCtaEligible &&
     stablecoinFooterCtaVariant.showMoneyDepositFooterCta;
-  const isSubsidizedATokenFooterCtaEligible =
-    isFooterCtaEligibleFromVisibility &&
-    isAaveOutputToken &&
-    isMoneyDepositFeeSubsidized(relayFixedSpread, {
-      address: asset.address,
-      chainId: asset.chainId,
-    });
+
+  const isATokenFooterCtaEligible =
+    isFooterCtaEligibleFromVisibility && isAaveOutputToken;
+
   const isFooterCtaEligible =
-    isStablecoinFooterCtaEnabled || isSubsidizedATokenFooterCtaEligible;
+    isStablecoinFooterCtaEnabled || isATokenFooterCtaEligible;
 
   const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({
