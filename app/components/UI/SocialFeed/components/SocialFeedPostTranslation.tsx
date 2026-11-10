@@ -7,11 +7,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  type NativeSyntheticEvent,
-  type TextLayoutEventData,
-} from 'react-native';
+import { AccessibilityInfo, type TextLayoutEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectAiSocialCommentTranslationEnabled } from '../../../../selectors/featureFlagController/socialCommentTranslation';
@@ -34,7 +30,7 @@ const FeedCommentBody = ({ text }: { text: string }) => {
   const [isTruncated, setIsTruncated] = useState(false);
 
   const onMeasureLayout = useCallback(
-    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
+    (event: TextLayoutEvent) => {
       const nextTruncated =
         event.nativeEvent.lines.length > FEED_COMMENT_PREVIEW_LINES;
       setIsTruncated((current) =>
