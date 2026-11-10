@@ -404,10 +404,12 @@ jest.mock('../../../../../Compliance', () => ({
 }));
 
 let mockAvailableToTrade: PerpsAvailableToTrade | undefined;
-const mockUsePerpsLiveAvailableToTrade = jest.fn(() => mockAvailableToTrade);
+const mockUsePerpsLiveAvailableToTrade = jest.fn(
+  (_options: unknown) => mockAvailableToTrade,
+);
 jest.mock('../../../../hooks/stream', () => ({
-  usePerpsLiveAvailableToTrade: (...args: unknown[]) =>
-    mockUsePerpsLiveAvailableToTrade(...args),
+  usePerpsLiveAvailableToTrade: (options: unknown) =>
+    mockUsePerpsLiveAvailableToTrade(options),
   usePerpsLivePrices: () => ({
     BTC: {
       price: mockLivePrice,

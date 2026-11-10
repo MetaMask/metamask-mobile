@@ -79,7 +79,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       displayText = FUNDING_RATE_CONFIG.ZeroDisplay;
     }
 
-    let color = TextColor.TextDefault;
+    let color: TextColor = TextColor.TextDefault;
     if (fundingValue !== undefined) {
       color =
         fundingValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
