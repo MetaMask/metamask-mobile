@@ -165,13 +165,13 @@ describe('ImmersveKYCProcessing', () => {
     setNextAction({ type: 'kyc', url: 'https://verify.immersve.com/abc' });
     const { rerender } = render(<ImmersveKYCProcessing />);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      {
         url: 'https://verify.immersve.com/abc',
         redirectUrl: KYC_REDIRECT_URL,
       },
-    });
+    );
 
     // Re-render with the same kyc action must not re-open the webview.
     rerender(<ImmersveKYCProcessing />);
@@ -187,13 +187,13 @@ describe('ImmersveKYCProcessing', () => {
     setNextAction(null);
     render(<ImmersveKYCProcessing />);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      {
         url: 'https://verify.immersve.com/xyz',
         redirectUrl: KYC_REDIRECT_URL,
       },
-    });
+    );
   });
 
   it('does not navigate or route while pending', () => {
@@ -308,13 +308,13 @@ describe('ImmersveKYCProcessing', () => {
 
     // Tapping it reopens with the freshly polled url.
     fireEvent.press(reopen);
-    expect(mockNavigate).toHaveBeenLastCalledWith(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-      params: {
+    expect(mockNavigate).toHaveBeenLastCalledWith(
+      Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      {
         url: 'https://verify.immersve.com/abc',
         redirectUrl: KYC_REDIRECT_URL,
       },
-    });
+    );
   });
 
   it('shows the spinner (not the reopen prompt) while a re-poll is in flight', () => {

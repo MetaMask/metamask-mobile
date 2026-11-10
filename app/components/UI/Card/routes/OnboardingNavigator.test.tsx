@@ -96,6 +96,10 @@ jest.mock(
   () => 'ImmersveKYCProcessing',
 );
 jest.mock(
+  '../components/ImmersveKYCModal/ImmersveKYCModal',
+  () => 'ImmersveKYCModal',
+);
+jest.mock(
   '../components/Onboarding/ImmersveFundingApproval',
   () => 'ImmersveFundingApproval',
 );
