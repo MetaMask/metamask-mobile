@@ -1,3 +1,7 @@
+import {
+  ProfileApiErrorCode,
+  ProfileServiceError,
+} from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { getLinkedAccountUpdateError } from './linkedAccountUpdateError';
 
@@ -19,6 +23,20 @@ const cooldownError = (httpStatus = 403, days = 30) =>
     `ProfileService: failed to update profile: ${httpStatus}: Linked addresses can only be updated once every ${days} days`,
   );
 
+const profileApiError = (
+  code: string,
+  message: string,
+  details?: {
+    code: string;
+    message: string;
+    meta?: Record<string, unknown>;
+  }[],
+): ProfileServiceError =>
+  new ProfileServiceError(403, message, {
+    code,
+    ...(details ? { details } : {}),
+  });
+
 describe('getLinkedAccountUpdateError', () => {
   it('explains the cooldown when the server refuses the change', () => {
     expect(getLinkedAccountUpdateError(cooldownError())).toBe(cooldown());
@@ -39,6 +57,49 @@ describe('getLinkedAccountUpdateError', () => {
         ),
       ),
     ).toBe(cooldown());
+  });
+
+  it('explains the cooldown from the stable code', () => {
+    const error = profileApiError(
+      ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
+      'ProfileService: failed to update profile: 403: Linked addresses can only be updated once every 23 days',
+    );
+
+    expect(getLinkedAccountUpdateError(error)).toBe(cooldown(23));
+  });
+
+  it('reads the window from the retry detail when the message has no day count', () => {
+    const error = profileApiError(
+      ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
+      'ProfileService: failed to update profile: 403: Too soon',
+      [
+        {
+          code: 'RETRY_AFTER',
+          message: 'Too soon',
+          meta: { retry_after_seconds: 7 * 86_400 },
+        },
+      ],
+    );
+
+    expect(getLinkedAccountUpdateError(error)).toBe(cooldown(7));
+  });
+
+  it('stays quiet for a different code even when the message matches', () => {
+    const error = profileApiError(
+      'PROFILE_NOT_FOUND',
+      'Linked addresses can only be updated once every 30 days',
+    );
+
+    expect(getLinkedAccountUpdateError(error)).toBeNull();
+  });
+
+  it('stays quiet when the cooldown code has no day count or retry detail', () => {
+    const error = profileApiError(
+      ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
+      'ProfileService: failed to update profile: 403: Too soon',
+    );
+
+    expect(getLinkedAccountUpdateError(error)).toBeNull();
   });
 
   it('stays quiet for a 403 that is not the cooldown', () => {

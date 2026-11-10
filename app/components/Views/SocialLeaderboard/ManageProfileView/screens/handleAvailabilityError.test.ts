@@ -18,6 +18,9 @@ const INVALID = strings('social_leaderboard.manage_profile.username_invalid');
 const UNAVAILABLE = strings(
   'social_leaderboard.manage_profile.username_unavailable',
 );
+const RESERVED = strings(
+  'social_leaderboard.manage_profile.username_reserved',
+);
 
 const availability = (
   overrides: Partial<{
@@ -84,7 +87,7 @@ describe('getHandleAvailabilityError', () => {
     ).toBe(UNAVAILABLE);
   });
 
-  it('reports unavailable for a reserved handle', () => {
+  it('reports a reserved handle as reserved', () => {
     expect(
       getHandleAvailabilityError(
         availability({
@@ -92,7 +95,21 @@ describe('getHandleAvailabilityError', () => {
           errors: [{ code: 'RESERVED', message: 'Reserved' }],
         }),
       ),
-    ).toBe(UNAVAILABLE);
+    ).toBe(RESERVED);
+  });
+
+  it('prefers the reserved copy when the server reports reserved and taken', () => {
+    expect(
+      getHandleAvailabilityError(
+        availability({
+          available: false,
+          errors: [
+            { code: 'TAKEN', message: 'Already taken' },
+            { code: 'RESERVED', message: 'Reserved' },
+          ],
+        }),
+      ),
+    ).toBe(RESERVED);
   });
 
   it('prefers a format error when the server reports several', () => {

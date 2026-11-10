@@ -51,6 +51,8 @@ import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderbo
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
+import { getProfileSaveErrorCopy } from '../ManageProfileView/errors/profileApiErrorMessageKeys';
+import { getXConnectError } from '../ManageProfileView/screens/xAuthError';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -455,10 +457,15 @@ const SocialProfileOnboardingView: React.FC = () => {
           };
         }
         if (!availability.available) {
+          const isReserved = availability.errors.some(
+            (error) => error.code === 'RESERVED',
+          );
           return {
             status: 'taken',
             claimError: strings(
-              'social_leaderboard.profile_onboarding.username_unavailable',
+              isReserved
+                ? 'social_leaderboard.profile_onboarding.username_reserved'
+                : 'social_leaderboard.profile_onboarding.username_unavailable',
             ),
           };
         }
@@ -605,7 +612,8 @@ const SocialProfileOnboardingView: React.FC = () => {
           return;
         }
         setConnectXError(
-          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+          (error instanceof XAuthError ? getXConnectError(error) : null) ??
+            strings('social_leaderboard.profile_onboarding.connect_x_error'),
         );
       } finally {
         if (connectAbortRef.current === controller) {
@@ -833,10 +841,11 @@ const SocialProfileOnboardingView: React.FC = () => {
       const hadProfile = serverProfileFingerprintRef.current !== null;
       try {
         await writeOnboardingProfile(currentDraft);
-      } catch {
+      } catch (error) {
         if (stepRef.current === 'ready') {
           setFinishError(
-            strings('social_leaderboard.profile_onboarding.save_error'),
+            getProfileSaveErrorCopy(error) ??
+              strings('social_leaderboard.profile_onboarding.save_error'),
           );
         }
         setIsSubmitting(false);

@@ -28,6 +28,7 @@ import {
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import ProfileAvatar from './ProfileAvatar';
 import DisconnectXAccountSheet from './DisconnectXAccountSheet';
+import { getXAccountDisconnectError } from './xAccountDisconnectError';
 import { useManageProfileAnalytics } from '../../../../hooks/useManageProfileAnalytics';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
@@ -169,7 +170,8 @@ const ManageProfileXAccount = () => {
 
   const disconnectErrorMessage =
     disconnectPhase === 'pending' && disconnectError && !isDisconnecting
-      ? strings('manage_profile.x_account_disconnect_error')
+      ? getXAccountDisconnectError(disconnectError) ??
+        strings('manage_profile.x_account_disconnect_error')
       : null;
 
   const username = xProfile?.username;

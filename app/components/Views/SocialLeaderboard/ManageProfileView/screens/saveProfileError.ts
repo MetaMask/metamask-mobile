@@ -1,29 +1,19 @@
+import { findProfileServiceError } from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { extractHttpStatus } from '../../../../../util/social/socialServiceTelemetry';
+import {
+  PROFILE_FIELD_REJECTION_CODES,
+  PROFILE_FIELD_REJECTION_MESSAGE_KEYS,
+  PROFILE_SAVE_ERROR_MESSAGE_KEYS,
+} from '../errors/profileApiErrorMessageKeys';
 import type { ManageProfileTextEditorField } from './manageProfileTextEditorFields';
 
 /**
- * The profile API rejects a field it will not store with 400. `ProfileService`
- * appends the API's own message to the thrown `HttpError`, but that message
- * describes the value the user typed, not which field was being edited, so the
- * field is read from the editor rather than from the error.
+ * The profile API rejects a field it will not store with 400. The stable code
+ * lives in the shared Profile API error module; older API deployments omit it
+ * and keep the status fallback below.
  */
 const REJECTED_CONTENT_STATUS = 400;
-
-/**
- * Copy for a field the server refused, keyed by the field being edited. Fields
- * left out keep the generic save error, which is the right answer for a
- * dropped connection.
- *
- * The handle is left out because its rules already have copy, and the
- * availability check runs before the save, so a 400 there adds nothing.
- */
-const REJECTED_CONTENT_MESSAGE_KEYS: Partial<
-  Record<ManageProfileTextEditorField, string>
-> = {
-  displayName: 'social_leaderboard.manage_profile.display_name_unavailable',
-  bio: 'social_leaderboard.manage_profile.bio_prohibited',
-};
 
 /**
  * The copy for a field the server refused, or null when the error is not a
@@ -33,11 +23,28 @@ export const getProfileSaveError = (
   error: unknown,
   field: ManageProfileTextEditorField,
 ): string | null => {
-  const messageKey = REJECTED_CONTENT_MESSAGE_KEYS[field];
+  const code = findProfileServiceError(error)?.code;
 
-  if (!messageKey || extractHttpStatus(error) !== REJECTED_CONTENT_STATUS) {
-    return null;
+  if (code) {
+    const fieldCodes = PROFILE_FIELD_REJECTION_CODES[field];
+    const fieldMessageKey = PROFILE_FIELD_REJECTION_MESSAGE_KEYS[field];
+
+    if (
+      fieldCodes?.some((fieldCode) => fieldCode === code) &&
+      fieldMessageKey
+    ) {
+      return strings(fieldMessageKey);
+    }
+
+    const messageKey = PROFILE_SAVE_ERROR_MESSAGE_KEYS[code];
+    return messageKey ? strings(messageKey) : null;
   }
 
-  return strings(messageKey);
+  // Older responses omit the code; keep the existing status-based mapping so
+  // the copy does not regress before the API change ships.
+  const fallbackMessageKey = PROFILE_FIELD_REJECTION_MESSAGE_KEYS[field];
+  return fallbackMessageKey &&
+    extractHttpStatus(error) === REJECTED_CONTENT_STATUS
+    ? strings(fallbackMessageKey)
+    : null;
 };

@@ -7,11 +7,12 @@ import {
 import { MAX_USERNAME_LENGTH } from '../../ProfileOnboarding/generateUsername';
 
 /**
- * The one server code that means the handle broke a rule rather than being
- * spoken for. `UNAVAILABLE`, `RESERVED`, and `TAKEN` all read to the user as
- * "someone else has this".
+ * Server codes that change the copy. `UNAVAILABLE` and `TAKEN` both mean
+ * "someone else has this"; `RESERVED` gets its own copy because the user
+ * cannot pick it even though nobody owns it.
  */
 const INVALID_FORMAT_CODE = 'INVALID_FORMAT';
+const RESERVED_CODE = 'RESERVED';
 
 /** The local rule that fails before the server is asked, or null when it passes. */
 export const getHandleLocalRuleError = (value: string): string | null => {
@@ -48,9 +49,17 @@ export const getHandleAvailabilityError = (
     !availability.valid ||
     availability.errors.some((error) => error.code === INVALID_FORMAT_CODE);
 
+  if (isFormatError) {
+    return strings('social_leaderboard.manage_profile.username_invalid');
+  }
+
+  const isReserved = availability.errors.some(
+    (error) => error.code === RESERVED_CODE,
+  );
+
   return strings(
-    isFormatError
-      ? 'social_leaderboard.manage_profile.username_invalid'
+    isReserved
+      ? 'social_leaderboard.manage_profile.username_reserved'
       : 'social_leaderboard.manage_profile.username_unavailable',
   );
 };

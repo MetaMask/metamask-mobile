@@ -13,7 +13,10 @@ import { renderShortAddress } from '../../../../util/address';
 import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
 import type { UseMyProfileResult } from '../MyProfileView/hooks/useMyProfile';
 import type { UseProfileControllerResult } from './hooks/useProfileController';
-import type { XProfile } from '@metamask/profile-controller';
+import {
+  ProfileServiceError,
+  type XProfile,
+} from '@metamask/profile-controller';
 import type { UseXAuth } from '../../../../hooks/useXAuth';
 import { XAuthError, XAuthErrorType } from '../../../../core/XAuthService';
 import ManageProfileView from './ManageProfileView';
@@ -404,6 +407,33 @@ describe('ManageProfileView', () => {
       expect(
         screen.getByText(
           strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('names the reason when the X account is already linked', () => {
+      mockUseXAuth.mockReturnValue(
+        xAuthResult({
+          isConnected: false,
+          connectError: new XAuthError(
+            XAuthErrorType.BackendError,
+            'Failed to connect X account',
+            {
+              cause: new ProfileServiceError(
+                409,
+                'ProfileService: failed to connect X account: 409',
+                { code: 'X_ACCOUNT_ALREADY_LINKED' },
+              ),
+            },
+          ),
+        }),
+      );
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      expect(
+        screen.getByText(
+          strings('social_leaderboard.manage_profile.x_account_already_linked'),
         ),
       ).toBeOnTheScreen();
     });

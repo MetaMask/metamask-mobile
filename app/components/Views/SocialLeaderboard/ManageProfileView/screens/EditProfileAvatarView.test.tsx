@@ -1,6 +1,10 @@
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  ProfileApiErrorCode,
+  ProfileServiceError,
+} from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { NetworkTier } from '../../../../../util/deviceCapability/types';
@@ -123,6 +127,26 @@ describe('EditProfileAvatarView', () => {
 
     expect(mockUpdateProfile).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('shows the code-specific copy when the update conflicts', async () => {
+    mockUpdateProfile.mockRejectedValueOnce(
+      new ProfileServiceError(409, 'failed to update profile: 409', {
+        code: ProfileApiErrorCode.ProfileUpdateConflict,
+      }),
+    );
+
+    renderWithProvider(<EditProfileAvatarView />);
+
+    fireEvent.press(
+      screen.getByTestId(EditProfileAvatarSelectorsIDs.SAVE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.manage_profile.profile_changed'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('shows and announces the save error when the update fails', async () => {

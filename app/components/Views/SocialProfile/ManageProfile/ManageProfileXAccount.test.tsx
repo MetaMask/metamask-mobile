@@ -1,6 +1,10 @@
 import React from 'react';
 import { act, fireEvent, render, within } from '@testing-library/react-native';
-import type { XProfile } from '@metamask/profile-controller';
+import {
+  ProfileApiErrorCode,
+  ProfileServiceError,
+  type XProfile,
+} from '@metamask/profile-controller';
 
 import ManageProfileXAccount from './ManageProfileXAccount';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -297,6 +301,37 @@ describe('ManageProfileXAccount', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockTrackProfileEdited).not.toHaveBeenCalled();
+    });
+
+    it('shows the session-expired copy when the disconnect fails with an auth code', async () => {
+      const utils = renderScreen();
+      openSheet(utils);
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByTestId(
+            ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CONFIRM,
+          ),
+        );
+      });
+
+      utils.updateXAuth({
+        disconnectError: new XAuthError(
+          XAuthErrorType.BackendError,
+          'backend down',
+          {
+            cause: new ProfileServiceError(401, 'unauthorized', {
+              code: ProfileApiErrorCode.AuthTokenExpired,
+            }),
+          },
+        ),
+      });
+
+      expect(
+        utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
+      ).toHaveTextContent(
+        strings('social_leaderboard.manage_profile.session_expired'),
+      );
     });
 
     it('toasts success and goes back once when the refresh failure lands after the link is cleared', async () => {

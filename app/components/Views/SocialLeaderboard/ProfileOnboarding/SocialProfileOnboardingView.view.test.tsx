@@ -660,6 +660,39 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('names a reserved handle as reserved', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen_cat',
+        available: false,
+        valid: true,
+        normalized: 'wen_cat',
+        errors: [{ code: 'RESERVED', message: 'This username is reserved' }],
+      });
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_reserved'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_unavailable'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('checks availability for a handle with a trailing underscore', async () => {
     renderSocialProfileOnboarding();
     fireEvent.press(
