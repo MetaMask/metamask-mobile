@@ -132,8 +132,8 @@ export const selectMoneyVbaCompletedActivityEnabled = createSelector(
 );
 
 /**
- * Selects whether the Money account status debug page is reachable from
- * Advanced Settings. Typically targeted at individual users by serving a
+ * Selects whether the Money account status debug page is enabled. Typically
+ * targeted at individual users by serving a
  * threshold array whose entries list `metaMetricsIds`.
  */
 export const selectMoneyAccountDebugEnabledFlag = createSelector(
@@ -149,6 +149,12 @@ export const selectMoneyAccountDebugEnabledFlag = createSelector(
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
+);
+
+export const selectMoneyAccountStatusPageEnabled = createSelector(
+  selectMoneyEnableMoneyAccountFlag,
+  selectMoneyAccountDebugEnabledFlag,
+  (isMoneyEnabled, isDebugEnabled) => isMoneyEnabled && isDebugEnabled,
 );
 
 /**

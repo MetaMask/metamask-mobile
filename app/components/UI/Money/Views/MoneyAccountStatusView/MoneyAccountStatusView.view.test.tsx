@@ -292,4 +292,30 @@ describeForPlatforms('MoneyAccountStatusView', () => {
     );
     expect(chompCalls).toEqual([]);
   });
+
+  it.each([
+    ['the debug flag is disabled', 'moneyAccountDebugEnabled'],
+    ['Money account is disabled', 'moneyEnableMoneyAccount'],
+  ])('renders nothing and skips CHOMP when %s', async (_, disabledFlag) => {
+    mockChompResponses();
+
+    const { queryByTestId } = renderMoneyAccountStatusView({
+      remoteFeatureFlags: {
+        [disabledFlag]: { enabled: false, minimumVersion: '0.0.0' },
+      },
+    });
+
+    await act(async () => undefined);
+
+    expect(
+      queryByTestId(MoneyAccountStatusViewTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
+    expect(mockMessengerCall).not.toHaveBeenCalledWith(
+      'AuthenticationController:getSessionProfile',
+    );
+    const chompCalls = mockMessengerCall.mock.calls.filter(([action]) =>
+      String(action).startsWith('ChompApiService:'),
+    );
+    expect(chompCalls).toEqual([]);
+  });
 });

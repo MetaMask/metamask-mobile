@@ -2,6 +2,7 @@
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
 import {
   selectMoneyAccountDebugEnabledFlag,
+  selectMoneyAccountStatusPageEnabled,
   selectMoneyEnableActivityDetailsFlag,
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableCardActivityEnrichmentFlag,
@@ -247,6 +248,25 @@ describe('selectMoneyAccountDebugEnabledFlag', () => {
 
     expect(result).toBe(false);
   });
+});
+
+describe('selectMoneyAccountStatusPageEnabled', () => {
+  it.each([
+    [true, true, true],
+    [true, false, false],
+    [false, true, false],
+    [false, false, false],
+  ])(
+    'returns %s && %s = %s for Money account and debug flags',
+    (isMoneyAccountEnabled, isDebugEnabled, expected) => {
+      expect(
+        selectMoneyAccountStatusPageEnabled.resultFunc(
+          isMoneyAccountEnabled,
+          isDebugEnabled,
+        ),
+      ).toBe(expected);
+    },
+  );
 });
 
 describe('selectMoneyEnableCardActivityEnrichmentFlag', () => {

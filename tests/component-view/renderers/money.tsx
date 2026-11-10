@@ -5,11 +5,23 @@ import MoneyAccountStatusView from '../../../app/components/UI/Money/Views/Money
 import { renderComponentViewScreen } from '../render';
 import { initialStateMoney } from '../presets/money';
 
-export const renderMoneyAccountStatusView = (
-  options: Parameters<typeof initialStateMoney>[0] = {},
-) =>
+const ENABLED_FLAG = { enabled: true, minimumVersion: '0.0.0' };
+
+export const renderMoneyAccountStatusView = ({
+  remoteFeatureFlags,
+  ...options
+}: Parameters<typeof initialStateMoney>[0] = {}) =>
   renderComponentViewScreen(
     MoneyAccountStatusView as unknown as React.ComponentType,
     { name: Routes.MONEY.ACCOUNT_STATUS },
-    { state: initialStateMoney(options).build() },
+    {
+      state: initialStateMoney({
+        ...options,
+        remoteFeatureFlags: {
+          moneyEnableMoneyAccount: ENABLED_FLAG,
+          moneyAccountDebugEnabled: ENABLED_FLAG,
+          ...remoteFeatureFlags,
+        },
+      }).build(),
+    },
   );

@@ -31,6 +31,7 @@ import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccount
 import { selectPrimaryMoneyAccountUpgradeRecord } from '../../../../../selectors/moneyAccountUpgradeController';
 import { selectChompApiBaseUrl } from '../../../../../selectors/featureFlagController/chompApi';
 import { selectAnalyticsId } from '../../../../../selectors/analyticsController';
+import { selectMoneyAccountStatusPageEnabled } from '../../selectors/featureFlags';
 import useMoneyAccountChompStatus from '../../hooks/useMoneyAccountChompStatus';
 import {
   getAssociationStatus,
@@ -185,7 +186,7 @@ const getProfileIdPlaceholder = (
     : strings('money.account_status.loading');
 };
 
-const MoneyAccountStatusView = () => {
+const MoneyAccountStatusContent = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -424,6 +425,19 @@ const MoneyAccountStatusView = () => {
       </ScrollView>
     </Box>
   );
+};
+
+const MoneyAccountStatusView = () => {
+  const navigation = useNavigation();
+  const isEnabled = useSelector(selectMoneyAccountStatusPageEnabled);
+
+  useEffect(() => {
+    if (!isEnabled && navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [isEnabled, navigation]);
+
+  return isEnabled ? <MoneyAccountStatusContent /> : null;
 };
 
 export default MoneyAccountStatusView;

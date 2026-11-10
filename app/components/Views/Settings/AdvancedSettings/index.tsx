@@ -45,10 +45,7 @@ import { createStyles } from './AdvancedSettings.styles';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
-import {
-  selectMoneyAccountDebugEnabledFlag,
-  selectMoneyEnableMoneyAccountFlag,
-} from '../../../UI/Money/selectors/featureFlags';
+import { selectMoneyAccountStatusPageEnabled } from '../../../UI/Money/selectors/featureFlags';
 
 interface SettingsState {
   showHexData: boolean;
@@ -104,9 +101,8 @@ const AdvancedSettings = ({
   isBasicFunctionalityConsolidationEnabled,
 }: Props) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
-  const isMoneyAccountDebugEnabled = useSelector(
-    selectMoneyAccountDebugEnabledFlag,
+  const isMoneyAccountStatusPageEnabled = useSelector(
+    selectMoneyAccountStatusPageEnabled,
   );
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -300,7 +296,7 @@ const AdvancedSettings = ({
             </Button>
           </View>
 
-          {isMoneyAccountEnabled && isMoneyAccountDebugEnabled && (
+          {isMoneyAccountStatusPageEnabled && (
             <View style={styles.setting}>
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.money_account_status')}
