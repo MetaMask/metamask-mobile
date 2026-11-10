@@ -4,6 +4,8 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
+  Button,
+  ButtonVariant,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
@@ -41,8 +43,6 @@ import {
 } from '../../utils/moneyMetaMaskCardMode';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import CardMessageBox from '../../../Card/components/CardMessageBox/CardMessageBox';
-import { CardMessageBoxType } from '../../../Card/types';
 
 interface MoneyMetaMaskCardProps {
   /**
@@ -281,12 +281,56 @@ const HEADER_TITLE_KEY_BY_MODE = {
   setup: 'money.metamask_card.title',
 } as const satisfies Record<MoneyMetaMaskCardMode, string>;
 
+/**
+ * Copy for each pending setup state. The section keeps the default card row
+ * (card art + two lines) and only swaps the copy, instead of a banner.
+ */
+const getSetupCopy = (
+  setupView: Exclude<MoneyCardSetupView, { kind: 'reconciling' }>,
+): { title: string; description: string; showContinue: boolean } => {
+  switch (setupView.kind) {
+    case 'kyc_under_review':
+      return {
+        title: strings('money.metamask_card.setup.reviewing_title'),
+        description: strings('money.metamask_card.setup.reviewing_description'),
+        showContinue: false,
+      };
+    case 'provisioning':
+      return {
+        title: strings('money.metamask_card.setup.creating_title'),
+        description: strings('money.metamask_card.setup.creating_description'),
+        showContinue: false,
+      };
+    default:
+      // Only the identity step has its own row copy so far. Other steps
+      // reuse the generic setup copy until they get their own lines.
+      if (setupView.step === 'kyc') {
+        return {
+          title: strings('money.metamask_card.setup.finish_kyc_title'),
+          description: strings(
+            'money.metamask_card.setup.finish_kyc_description',
+          ),
+          showContinue: true,
+        };
+      }
+      return {
+        title: strings('card.card_home.messages.setup_incomplete.title'),
+        description: strings(
+          `card.card_home.messages.setup_incomplete.descriptions.${setupView.step}`,
+        ),
+        showContinue: true,
+      };
+  }
+};
+
 const SetupContent = ({
   setupView,
   onContinue,
+  showMetalCard,
 }: {
   setupView: MoneyCardSetupView;
   onContinue: () => void;
+  showMetalCard: boolean;
 }) => {
   const tw = useTailwind();
 
@@ -301,26 +345,50 @@ const SetupContent = ({
     );
   }
 
-  let message: React.ReactNode;
-  if (setupView.kind === 'kyc_under_review') {
-    message = <CardMessageBox messageType={CardMessageBoxType.KYCPending} />;
-  } else if (setupView.kind === 'provisioning') {
-    message = (
-      <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
-    );
-  } else {
-    message = (
-      <CardMessageBox
-        messageType={CardMessageBoxType.SetupIncomplete}
-        values={{ step: setupView.step }}
-        onConfirm={onContinue}
-      />
-    );
-  }
+  const { title, description, showContinue } = getSetupCopy(setupView);
 
   return (
-    <Box twClassName="pt-3" testID={MoneyMetaMaskCardTestIds.SETUP_BANNER}>
-      {message}
+    <Box twClassName="gap-4" testID={MoneyMetaMaskCardTestIds.SETUP_CONTAINER}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="pt-3 gap-4"
+      >
+        {/* Muted while pending so the card doesn't read as ready to use. */}
+        <Box
+          twClassName="opacity-50"
+          testID={MoneyMetaMaskCardTestIds.SETUP_CARD_ART}
+        >
+          <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
+        </Box>
+        <Box twClassName="gap-1 flex-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            testID={MoneyMetaMaskCardTestIds.SETUP_TITLE}
+          >
+            {title}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            testID={MoneyMetaMaskCardTestIds.SETUP_DESCRIPTION}
+          >
+            {description}
+          </Text>
+        </Box>
+      </Box>
+      {showContinue ? (
+        <Button
+          variant={ButtonVariant.Secondary}
+          isFullWidth
+          onPress={onContinue}
+          testID={MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON}
+        >
+          {strings('money.metamask_card.setup.continue')}
+        </Button>
+      ) : null}
     </Box>
   );
 };
@@ -503,6 +571,7 @@ const MoneyMetaMaskCard = ({
       <SetupContent
         setupView={setupView}
         onContinue={handleSetupContinuePress}
+        showMetalCard={showMetalCard}
       />
     ) : null;
   } else if (mode === 'verifying') {
