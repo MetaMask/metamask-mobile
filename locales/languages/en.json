@@ -1475,6 +1475,8 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
+        "closed": "Closed",
+        "sold": "Sold",
         "opened_ago": "Opened · {{age}}",
         "closed_ago": "Closed · {{age}}",
         "sold_ago": "Sold · {{age}}"
