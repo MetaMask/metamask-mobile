@@ -1214,10 +1214,10 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'ready' ? (
                 <Box
-                  twClassName="relative flex-1 items-center justify-center py-8"
+                  twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.READY_STEP}
                 >
-                  <OnboardingTitle>
+                  <OnboardingTitle twClassName="pt-2">
                     {strings(
                       'social_leaderboard.profile_onboarding.feed_awaits',
                     )}
@@ -1231,22 +1231,27 @@ const SocialProfileOnboardingView: React.FC = () => {
                       'social_leaderboard.profile_onboarding.feed_awaits_description',
                     )}
                   </Text>
-                  <ProfileReadyAnimation
-                    displayName={draft.displayName}
-                    handle={username}
-                    avatarPresetId={draft.avatarPresetId}
-                    avatarBackgroundId={draft.avatarBackgroundId}
-                    imageUrl={readyImageUrl}
-                    isVerified={draft.path === 'x'}
-                    fallback={
-                      <ReadyCardFallback
-                        avatarPresetId={draft.avatarPresetId}
-                        avatarBackgroundId={draft.avatarBackgroundId}
-                        imageUrl={readyImageUrl}
-                        handle={username}
-                      />
-                    }
-                  />
+                  <Box
+                    twClassName="w-full flex-1 items-center justify-center"
+                    testID={SocialProfileOnboardingSelectorsIDs.READY_CARD_SLOT}
+                  >
+                    <ProfileReadyAnimation
+                      displayName={draft.displayName}
+                      handle={username}
+                      avatarPresetId={draft.avatarPresetId}
+                      avatarBackgroundId={draft.avatarBackgroundId}
+                      imageUrl={readyImageUrl}
+                      isVerified={draft.path === 'x'}
+                      fallback={
+                        <ReadyCardFallback
+                          avatarPresetId={draft.avatarPresetId}
+                          avatarBackgroundId={draft.avatarBackgroundId}
+                          imageUrl={readyImageUrl}
+                          handle={username}
+                        />
+                      }
+                    />
+                  </Box>
                 </Box>
               ) : null}
             </ScrollView>

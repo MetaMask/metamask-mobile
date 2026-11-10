@@ -605,6 +605,53 @@ describe('SocialProfileOnboardingView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('pins the ready title under the header and centers the card with its avatar', async () => {
+    goOnline();
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    const title = screen.getByText(
+      strings('social_leaderboard.profile_onboarding.feed_awaits'),
+    );
+    const slot = screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.READY_CARD_SLOT,
+    );
+
+    expect(StyleSheet.flatten(title.parent?.props.style)).toEqual(
+      expect.objectContaining({ paddingTop: 8 }),
+    );
+    expect(StyleSheet.flatten(slot.props.style)).toEqual(
+      expect.objectContaining({
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }),
+    );
+    expect(
+      within(slot).getByTestId(
+        SocialProfileOnboardingSelectorsIDs.READY_ANIMATION,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(slot).getByTestId(
+        SocialProfileOnboardingSelectorsIDs.READY_AVATAR,
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('stays on the username step when the handle cannot be claimed', () => {
     renderSocialProfileOnboarding();
 
