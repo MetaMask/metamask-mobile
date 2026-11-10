@@ -326,7 +326,7 @@ describe('Predict boundary fence', () => {
     ],
     [
       'burn-down non-Views file',
-      'app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts',
+      'app/core/Engine/controllers/ui-slots-controller/UiSlotsController.test.ts',
     ],
     ['burn-down test support', 'app/selectors/featureFlagController/mocks.ts'],
     ['composition file', 'app/core/Engine/types.ts'],
