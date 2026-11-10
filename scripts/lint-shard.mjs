@@ -121,7 +121,7 @@ function selfTest() {
   console.log('self-test ok');
 }
 
-async function lintPaths(cwd, files) {
+export async function lintPaths(cwd, files) {
   const { ESLint, SuppressionsService } = loadEslintApis();
   const eslint = new ESLint({
     cwd,
