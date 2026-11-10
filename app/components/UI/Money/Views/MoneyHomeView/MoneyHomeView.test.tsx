@@ -443,6 +443,7 @@ jest.mock('../../../Card/Views/CardHome/hooks/useCardEnableCard', () => ({
     enableCard: null,
     provisioningView: 'provisioning',
     setupStep: null,
+    isEnableCardPending: false,
   })),
 }));
 

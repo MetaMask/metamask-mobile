@@ -218,6 +218,7 @@ const CardMessageBox = ({
               variant={ButtonVariant.Primary}
               onPress={onConfirm}
               isLoading={onConfirmLoading}
+              isDisabled={onConfirmLoading}
               testID="confirm-button"
             >
               {config.confirmButtonLabel}

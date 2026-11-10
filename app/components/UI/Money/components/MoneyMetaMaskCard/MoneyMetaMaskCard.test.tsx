@@ -557,6 +557,20 @@ describe('MoneyMetaMaskCard', () => {
     );
   });
 
+  it('disables Continue while the Money account approval is running', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="setup"
+        setupView={{ kind: 'action_required', step: 'funding' }}
+        onGetNowPress={jest.fn()}
+        onSetupContinuePress={jest.fn()}
+        isSetupContinueLoading
+      />,
+    );
+
+    expect(screen.getByTestId('confirm-button')).toBeDisabled();
+  });
+
   it('opens Card Home from the setup section', () => {
     const onManagePress = jest.fn();
     const onHeaderPress = jest.fn();
