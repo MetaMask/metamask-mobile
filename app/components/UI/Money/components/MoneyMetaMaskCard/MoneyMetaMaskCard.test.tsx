@@ -478,17 +478,25 @@ describe('MoneyMetaMaskCard', () => {
   );
 
   it('renders a spinner while card setup is still being checked', () => {
+    const onManagePress = jest.fn();
+    const onHeaderPress = jest.fn();
     render(
       <MoneyMetaMaskCard
         mode="setup"
         setupView={{ kind: 'reconciling' }}
         onGetNowPress={jest.fn()}
+        onManagePress={onManagePress}
+        onHeaderPress={onHeaderPress}
       />,
     );
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
 
     expect(
       screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_SPINNER),
     ).toBeOnTheScreen();
+    expect(onManagePress).not.toHaveBeenCalled();
+    expect(onHeaderPress).not.toHaveBeenCalled();
     expect(
       screen.queryByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTAINER),
     ).not.toBeOnTheScreen();

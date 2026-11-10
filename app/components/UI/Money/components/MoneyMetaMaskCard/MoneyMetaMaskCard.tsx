@@ -521,7 +521,10 @@ const MoneyMetaMaskCard = ({
   }, [trackCardButtonClick, onSetupContinuePress]);
 
   const isInteractionDisabled =
-    mode === 'verifying' || mode === 'loading' || isLinkDisabled;
+    mode === 'verifying' ||
+    mode === 'loading' ||
+    isLinkDisabled ||
+    (mode === 'setup' && setupView?.kind === 'reconciling');
 
   const pressHandler = useMemo(
     () =>
