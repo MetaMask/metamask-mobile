@@ -6,8 +6,6 @@ import {
   mockSpotFeedItem,
 } from '../../../../UI/SocialFeed/mocks/coreFeed.mock';
 import { FEED_PAGE_LIMIT } from '../../../../UI/SocialFeed/data/socialFeedQueries';
-import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
-import { useSocialFeedRealtime } from '../../../../UI/SocialFeed/data/useSocialFeedRealtime';
 import { mockOpenPerpsFeedItem } from '../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import { useSelector } from 'react-redux';
 import {
@@ -33,10 +31,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../UI/SocialFeed/data/useSocialFeedRealtime', () => ({
-  useSocialFeedRealtime: jest.fn(() => null),
-}));
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => true),
 }));
@@ -52,49 +46,23 @@ jest.mock('../../../../../util/social/socialServiceTelemetry', () => ({
 }));
 
 jest.mock('../../../../UI/SocialFeed/utils/mapFeedItem', () => ({
-  mapFeedItem: (core: {
-    positionId?: string;
-    actor?: { profileId?: string };
-  }) => ({
+  mapFeedItem: (core: { positionId?: string }) => ({
     id: core.positionId ?? 'item',
-    author: { id: core.actor?.profileId ?? 'profile-1' },
     timestamp: 1_700_000_000,
     type: 'spot',
   }),
 }));
 
 jest.mock('../../../../UI/SocialFeed/utils/toSocialFeedPosts', () => ({
-  toSocialFeedPosts: (
-    rows: {
-      core: {
-        authorComment?: { uid: string; timestamp: number } | null;
-      };
-      item: { id: string; author: { id: string }; timestamp: number };
-    }[],
-  ) =>
+  toSocialFeedPosts: (rows: { item: { id: string } }[]) =>
     rows.map((row) => ({
       id: row.item.id,
       authorHandle: 'owner',
-      timestampMs: row.item.timestamp * 1000,
-      commentId: row.core.authorComment?.uid,
+      timestampMs: 1,
       reactions: [],
       item: row.item,
-      position: row.core,
     })),
 }));
-
-const commentedFeedItem = (
-  overrides: Parameters<typeof mockSpotFeedItem>[0] = {},
-) =>
-  mockSpotFeedItem({
-    authorComment: {
-      uid: 'server-comment',
-      text: 'gm',
-      timestamp: 1_700_000_200,
-      engagement: { reactions: [], userReaction: null },
-    },
-    ...overrides,
-  });
 
 const createWrapper = () => {
   const client = new QueryClient({
@@ -107,7 +75,6 @@ const createWrapper = () => {
 describe('useMyProfilePosts', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    jest.mocked(useSocialFeedRealtime).mockReturnValue(null);
     jest.mocked(useSelector).mockReturnValue(true);
     resetPendingPosts();
   });
@@ -115,7 +82,7 @@ describe('useMyProfilePosts', () => {
   it('dates each post by its comment rather than its trade', async () => {
     mockCall.mockResolvedValueOnce(
       mockFeedResponse([
-        commentedFeedItem({
+        mockSpotFeedItem({
           authorComment: {
             uid: 'comment-1',
             text: 'gm',
@@ -126,7 +93,7 @@ describe('useMyProfilePosts', () => {
       ]),
     );
 
-    const { result } = renderHook(() => useMyProfilePosts('profile-1'), {
+    const { result } = renderHook(() => useMyProfilePosts('0xabc'), {
       wrapper: createWrapper(),
     });
 
@@ -135,7 +102,7 @@ describe('useMyProfilePosts', () => {
   });
 
   it('shows the owner’s pending post on top of their Posts', async () => {
-    mockCall.mockResolvedValueOnce(mockFeedResponse([commentedFeedItem()]));
+    mockCall.mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()]));
     addPendingPost({
       ownerProfileId: 'viewer-profile',
       post: {
@@ -149,10 +116,7 @@ describe('useMyProfilePosts', () => {
     });
 
     const { result } = renderHook(
-      () =>
-        useMyProfilePosts('profile-1', {
-          ownerProfileId: 'viewer-profile',
-        }),
+      () => useMyProfilePosts('0xabc', { ownerProfileId: 'viewer-profile' }),
       { wrapper: createWrapper() },
     );
 
@@ -161,7 +125,7 @@ describe('useMyProfilePosts', () => {
   });
 
   it('keeps pending posts off someone else’s profile', async () => {
-    mockCall.mockResolvedValueOnce(mockFeedResponse([commentedFeedItem()]));
+    mockCall.mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()]));
     addPendingPost({
       ownerProfileId: 'viewer-profile',
       post: {
@@ -174,7 +138,7 @@ describe('useMyProfilePosts', () => {
       },
     });
 
-    const { result } = renderHook(() => useMyProfilePosts('profile-1'), {
+    const { result } = renderHook(() => useMyProfilePosts('0xother'), {
       wrapper: createWrapper(),
     });
 
@@ -182,24 +146,22 @@ describe('useMyProfilePosts', () => {
     expect(result.current.posts[0].id).not.toBe('pending-comment-1');
   });
 
-  it('fetches commented-only posts for the profile ID', async () => {
-    mockCall.mockResolvedValueOnce(mockFeedResponse([commentedFeedItem()]));
+  it('fetches commented-only posts for the owner address', async () => {
+    mockCall.mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()]));
 
-    const { result } = renderHook(() => useMyProfilePosts('profile-1'), {
+    const { result } = renderHook(() => useMyProfilePosts('0xabc'), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => expect(result.current.posts).toHaveLength(1));
-    expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
-      scope: 'all',
-      chains: FEED_CAIP2_CHAINS,
-      profileId: 'profile-1',
+    expect(mockCall).toHaveBeenCalledWith('SocialService:fetchTraderFeed', {
+      addressOrId: '0xabc',
       commentedOnly: true,
       limit: FEED_PAGE_LIMIT,
     });
   });
 
-  it('does not fetch when the profile ID is missing', () => {
+  it('does not fetch when addressOrId is missing', () => {
     const { result } = renderHook(() => useMyProfilePosts(undefined), {
       wrapper: createWrapper(),
     });
@@ -208,45 +170,14 @@ describe('useMyProfilePosts', () => {
     expect(mockCall).not.toHaveBeenCalled();
   });
 
-  it('streams only commented posts from the viewed profile', async () => {
-    mockCall.mockResolvedValueOnce(
-      mockFeedResponse([commentedFeedItem({ positionId: 'live-position' })]),
-    );
-
-    const { result } = renderHook(() => useMyProfilePosts('profile-1'), {
-      wrapper: createWrapper(),
-    });
-    await waitFor(() => expect(result.current.posts).toHaveLength(1));
-    const realtimeOptions = jest
-      .mocked(useSocialFeedRealtime)
-      .mock.calls.at(-1)?.[1];
-    const filterPost = realtimeOptions?.filterPost;
-    const viewedPost = result.current.posts[0];
-
-    expect(realtimeOptions?.realtimeScope).toBe('all');
-    expect(filterPost?.(viewedPost)).toBe(true);
-    expect(
-      filterPost?.({
-        ...viewedPost,
-        item: {
-          ...viewedPost.item,
-          author: { ...viewedPost.item.author, id: 'profile-2' },
-        },
-      }),
-    ).toBe(false);
-    expect(filterPost?.({ ...viewedPost, commentId: undefined })).toBe(false);
-  });
-
   it('paginates using the older cursor when loadMore is called', async () => {
     mockCall
+      .mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()], 'cursor-1'))
       .mockResolvedValueOnce(
-        mockFeedResponse([commentedFeedItem()], 'cursor-1'),
-      )
-      .mockResolvedValueOnce(
-        mockFeedResponse([commentedFeedItem({ positionId: 'position-2' })]),
+        mockFeedResponse([mockSpotFeedItem({ positionId: 'position-2' })]),
       );
 
-    const { result } = renderHook(() => useMyProfilePosts('profile-1'), {
+    const { result } = renderHook(() => useMyProfilePosts('0xabc'), {
       wrapper: createWrapper(),
     });
 
@@ -257,10 +188,8 @@ describe('useMyProfilePosts', () => {
     });
 
     await waitFor(() => expect(result.current.posts.length).toBeGreaterThan(1));
-    expect(mockCall).toHaveBeenLastCalledWith('SocialService:fetchFeed', {
-      scope: 'all',
-      chains: FEED_CAIP2_CHAINS,
-      profileId: 'profile-1',
+    expect(mockCall).toHaveBeenLastCalledWith('SocialService:fetchTraderFeed', {
+      addressOrId: '0xabc',
       commentedOnly: true,
       limit: FEED_PAGE_LIMIT,
       olderThan: 'cursor-1',

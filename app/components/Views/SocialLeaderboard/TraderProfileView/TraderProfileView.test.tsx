@@ -40,6 +40,7 @@ const mockRefetchPositions = jest.fn();
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockPlayErrorNotification = jest.fn().mockResolvedValue(undefined);
+const mockSocialFeedProps = jest.fn();
 
 jest.mock('../terms/socialTermsAcceptance');
 jest.mock('../../../../util/haptics', () => ({
@@ -421,19 +422,31 @@ let mockPostsResult = {
   refresh: mockRefreshPosts,
 };
 
-jest.mock('../MyProfileView/hooks/useMyProfilePosts', () => ({
-  useMyProfilePosts: () => mockPostsResult,
-}));
-
-jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
+  const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ post }: { post: { id: string } }) => (
-      <View testID={`trader-profile-post-${post.id}`}>
-        <Text>{post.id}</Text>
-      </View>
-    ),
+    default: (props: {
+      emptyState?: React.ReactNode;
+      refreshRef?: React.Ref<{ refresh: () => Promise<void> }>;
+    }) => {
+      mockSocialFeedProps(props);
+      ReactActual.useImperativeHandle(props.refreshRef, () => ({
+        refresh: mockPostsResult.refresh,
+      }));
+      return (
+        <View>
+          {mockPostsResult.posts.length > 0
+            ? mockPostsResult.posts.map((post) => (
+                <View key={post.id} testID={`trader-profile-post-${post.id}`}>
+                  <Text>{post.id}</Text>
+                </View>
+              ))
+            : props.emptyState}
+        </View>
+      );
+    },
   };
 });
 
@@ -937,6 +950,15 @@ describe('TraderProfileView', () => {
 
     expect(screen.getByText('No posts yet')).toBeOnTheScreen();
     expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
+    expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        scope: 'all',
+        profileId: 'trader-1',
+        commentedOnly: true,
+        location: 'trader_profile',
+        realtime: true,
+      }),
+    );
   });
 
   it('renders trader posts by default', () => {
@@ -945,30 +967,6 @@ describe('TraderProfileView', () => {
 
     expect(screen.getByText('post-1')).toBeOnTheScreen();
     expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
-  });
-
-  it('requests the next posts page when a scroll settles near the end', () => {
-    const loadMore = jest.fn();
-    mockPostsResult = {
-      ...mockPostsResult,
-      posts: [{ id: 'post-1' }],
-      hasNextPage: true,
-      loadMore,
-    };
-    renderWithProvider(<TraderProfileView />);
-
-    fireEvent(
-      screen.getByTestId(TraderProfileViewSelectorsIDs.SCROLL),
-      'momentumScrollEnd',
-      {
-        nativeEvent: {
-          contentOffset: { y: 400, x: 0 },
-          contentSize: { height: 500, width: 400 },
-          layoutMeasurement: { height: 400, width: 400 },
-        },
-      },
-    );
-    expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
   it('renders skeleton placeholders when profile is loading', () => {

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import type {
   TraderFeedRow,
   SocialV1FeedPost,
@@ -14,7 +14,7 @@ export interface UseMyProfilePostsOptions {
    * just-written posts show on top until the feed returns them.
    */
   ownerProfileId?: string;
-  /** Whether the Posts tab is on screen; gates realtime and pending refetches. */
+  /** Whether the Posts tab is on screen; gates the pending-post refetches. */
   isActive?: boolean;
 }
 
@@ -34,18 +34,13 @@ export interface UseMyProfilePostsResult {
  * comment time, so each card is dated by its comment rather than its trade.
  */
 export const useMyProfilePosts = (
-  profileId: string | undefined,
+  addressOrId: string | undefined,
   { ownerProfileId, isActive = true }: UseMyProfilePostsOptions = {},
 ): UseMyProfilePostsResult => {
   const source = useMemo(
     (): SocialFeedSource | null =>
-      profileId ? { scope: 'all', profileId, commentedOnly: true } : null,
-    [profileId],
-  );
-  const filterPost = useCallback(
-    (post: SocialV1FeedPost) =>
-      post.item.author.id === profileId && Boolean(post.commentId),
-    [profileId],
+      addressOrId ? { kind: 'trader', addressOrId, commentedOnly: true } : null,
+    [addressOrId],
   );
 
   const {
@@ -57,7 +52,7 @@ export const useMyProfilePosts = (
     loadMore,
     error,
     refresh: refetch,
-  } = useSocialFeed(source, { realtime: isActive, filterPost });
+  } = useSocialFeed(source);
 
   const serverPosts = useMemo(
     () =>

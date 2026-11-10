@@ -3,19 +3,13 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSize,
   ButtonVariant,
-  FontWeight,
   HeaderStandardAnimated,
   IconColor,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -33,12 +27,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native';
+import { RefreshControl } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -84,10 +73,10 @@ import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import ShareButtonSpinner from '../components/ShareButtonSpinner';
 import ProfilePostsEmptyState from '../MyProfileView/components/ProfilePostsEmptyState';
-import { useMyProfilePosts } from '../MyProfileView/hooks/useMyProfilePosts';
-import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
-import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
-import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
+import SocialFeed, {
+  type SocialFeedRefreshHandle,
+} from '../../../UI/SocialFeed/components/SocialFeed';
+import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import {
   HYPERLIQUID_CHAIN_NAME,
   isPerpPosition,
@@ -139,7 +128,6 @@ const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
 
 const PROFILE_TABS = ['posts', 'open', 'closed'] as const;
-const END_REACHED_THRESHOLD_PX = 600;
 
 type TraderProfileTab = (typeof PROFILE_TABS)[number];
 
@@ -181,15 +169,7 @@ const TraderProfileView = () => {
     refetch: refetchPositions,
   } = useTraderPositions(traderId, { refetchInterval: 30_000 });
   const [activeTab, setActiveTab] = useState<TraderProfileTab>('posts');
-  const {
-    posts,
-    isLoading: isPostsLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    loadMore,
-    error: postsError,
-    refresh: refreshPosts,
-  } = useMyProfilePosts(traderId, { isActive: activeTab === 'posts' });
+  const postsFeedRef = useRef<SocialFeedRefreshHandle>(null);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
@@ -307,14 +287,19 @@ const TraderProfileView = () => {
     setIsRefreshing(true);
     playImpact(ImpactMoment.PullToRefresh);
     try {
+      const postsRefresh = postsFeedRef.current?.refresh();
       // Both hooks rethrow after logging; allSettled keeps one failure from
       // taking down the other refetch and prevents an unhandled rejection
       // from surfacing in the UI.
-      await Promise.allSettled([refresh(), refetchPositions(), refreshPosts()]);
+      await Promise.allSettled([
+        refresh(),
+        refetchPositions(),
+        ...(postsRefresh ? [postsRefresh] : []),
+      ]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [refresh, refetchPositions, refreshPosts]);
+  }, [refresh, refetchPositions]);
 
   const handleFollowPress = useCallback(
     async () =>
@@ -412,8 +397,12 @@ const TraderProfileView = () => {
         : sortPositions(positions, currentSortKey, activeTab),
     [activeTab, positions, currentSortKey],
   );
-  const showPostsEmptyState =
-    !isPostsLoading && posts.length === 0 && !postsError;
+  const filterProfilePost = useCallback(
+    (post: SocialV1FeedPost) =>
+      post.item.author.id === profile?.profile.profileId &&
+      Boolean(post.commentId),
+    [profile?.profile.profileId],
+  );
 
   const handleSortPress = useCallback(() => {
     // Fire-and-forget haptic; ignore rejection (unsupported platforms).
@@ -437,22 +426,6 @@ const TraderProfileView = () => {
     setTitleSectionHeight,
     titleSectionHeightSv,
   } = useHeaderStandardAnimated();
-
-  const handlePostsScrollSettled = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (activeTab !== 'posts' || !hasNextPage) {
-        return;
-      }
-      const { contentOffset, contentSize, layoutMeasurement } =
-        event.nativeEvent;
-      const distanceFromEnd =
-        contentSize.height - (contentOffset.y + layoutMeasurement.height);
-      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
-        loadMore();
-      }
-    },
-    [activeTab, hasNextPage, loadMore],
-  );
 
   const headerTitle = profile?.profile.name;
 
@@ -518,8 +491,6 @@ const TraderProfileView = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
           onScroll={onScroll}
-          onMomentumScrollEnd={handlePostsScrollSettled}
-          onScrollEndDrag={handlePostsScrollSettled}
           scrollEventThrottle={16}
           testID={TraderProfileViewSelectorsIDs.SCROLL}
           refreshControl={
@@ -636,54 +607,18 @@ const TraderProfileView = () => {
                   </Box>
 
                   {activeTab === 'posts' ? (
-                    isPostsLoading && posts.length === 0 ? (
-                      <ProfilePostsLoadingState />
-                    ) : showPostsEmptyState ? (
-                      <ProfilePostsEmptyState />
-                    ) : postsError && posts.length === 0 ? (
-                      <Box
-                        alignItems={BoxAlignItems.Center}
-                        justifyContent={BoxJustifyContent.Center}
-                        twClassName="w-full px-4 py-16 gap-3"
-                      >
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.TextDefault}
-                          twClassName="text-center"
-                        >
-                          {strings('social_leaderboard.feed.error.title')}
-                        </Text>
-                        <Button
-                          variant={ButtonVariant.Secondary}
-                          size={ButtonSize.Sm}
-                          onPress={() => {
-                            refreshPosts().catch(() => undefined);
-                          }}
-                          twClassName="self-center"
-                        >
-                          {strings('social_leaderboard.feed.error.retry')}
-                        </Button>
-                      </Box>
-                    ) : (
-                      <Box paddingTop={4}>
-                        <SocialV1FeedPostList
-                          posts={posts}
-                          dividerKeyPrefix="trader-profile"
-                          renderPost={(post) => (
-                            <SocialFeedPostShell post={post} />
-                          )}
-                        />
-                        {isFetchingNextPage ? (
-                          <Box
-                            alignItems={BoxAlignItems.Center}
-                            twClassName="px-4"
-                          >
-                            <ActivityIndicator size="small" />
-                          </Box>
-                        ) : null}
-                      </Box>
-                    )
+                    <Box paddingTop={4}>
+                      <SocialFeed
+                        scope="all"
+                        profileId={profile.profile.profileId}
+                        commentedOnly
+                        location="trader_profile"
+                        realtime
+                        refreshRef={postsFeedRef}
+                        filterPost={filterProfilePost}
+                        emptyState={<ProfilePostsEmptyState />}
+                      />
+                    </Box>
                   ) : isLoadingPositions && positions.length === 0 ? (
                     POSITION_SKELETON_KEYS.map((key) => (
                       <PositionRowSkeleton key={key} />

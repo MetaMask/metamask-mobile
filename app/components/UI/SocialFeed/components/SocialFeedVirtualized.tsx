@@ -131,6 +131,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   commentedOnly,
   location,
   analyticsSource,
+  analyticsEnabled,
   showMockedFields,
   isActive,
   title,
@@ -432,6 +433,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     <SocialFeedSurfaceProvider
       location={location}
       analyticsSource={analyticsSource}
+      analyticsEnabled={analyticsEnabled}
       showMockedFields={showMockedFields}
     >
       <SocialFeedRealtimeContext.Provider value={realtimeState}>

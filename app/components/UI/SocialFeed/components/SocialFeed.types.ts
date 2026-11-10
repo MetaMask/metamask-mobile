@@ -41,6 +41,8 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   location: SocialSurfaceLocation;
   /** Entry point when it is not already implied by `location`. */
   analyticsSource?: SocialEventSource;
+  /** Disables post interaction analytics for read-only profile surfaces. */
+  analyticsEnabled?: boolean;
   /**
    * Shows the invented values posts still carry. Omitted keeps the outer
    * surface's choice.
@@ -73,6 +75,14 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
 
 export interface SocialFeedContentProps extends SocialFeedBaseProps {
   scrollMode?: 'content';
+  /** Streams matching posts directly into the host scroll. */
+  realtime?: boolean;
+  /** Lets a host refresh the feed from its own pull-to-refresh control. */
+  refreshRef?: React.Ref<SocialFeedRefreshHandle>;
+}
+
+export interface SocialFeedRefreshHandle {
+  refresh: () => Promise<void>;
 }
 
 export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
