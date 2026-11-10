@@ -404,7 +404,7 @@ const MultichainPermissionsSummary = ({
         isInteractive
         onPress={handleEditAccountsButtonPress}
         testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
-        variant={ListItemVariant.MultiLine}
+        variant={ListItemVariant.TwoLines}
         style={styles.permissionRow}
         accessoryGap={2}
         avatar={
@@ -458,7 +458,7 @@ const MultichainPermissionsSummary = ({
         testID={
           ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON
         }
-        variant={ListItemVariant.MultiLine}
+        variant={ListItemVariant.TwoLines}
         style={styles.permissionRow}
         accessoryGap={2}
         avatar={
