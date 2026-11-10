@@ -10,6 +10,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import type {
@@ -574,6 +575,114 @@ const FeaturedActions = () => {
   ) : null;
 };
 
+const SMALL_QUOTE_CLASS_NAME = 'h-8 w-[54px] px-0';
+
+/**
+ * A small card's 54x32 price pill. A priced, active quote opens the order
+ * flow for its Outcome; without a price it shows "-" and takes no action.
+ */
+const SmallQuote = ({ selection }: { selection: GameSelection }) => {
+  const { event, team, quote, formattedPrice, canOrder, actions } =
+    useTeam(selection);
+  const testID = `predict-next-game-quote-${event.id}-${selection}`;
+
+  if (!quote || !formattedPrice) {
+    return (
+      <Button
+        testID={testID}
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Sm}
+        accessibilityLabel={strings(
+          'predict_next.event.game_quote_price_unavailable_accessibility_label',
+          { team: team.name },
+        )}
+        twClassName={SMALL_QUOTE_CLASS_NAME}
+        isDisabled
+      >
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          -
+        </Text>
+      </Button>
+    );
+  }
+
+  // Without an order handler (the Venue does not support buy) the price is
+  // shown, never offered as a button.
+  if (!canOrder || !actions.order) {
+    return (
+      <Box
+        testID={testID}
+        twClassName="h-8 w-[54px] items-center justify-center rounded-full bg-muted"
+        accessible
+        accessibilityLabel={strings(
+          'predict_next.event.game_quote_price_accessibility_label',
+          { team: team.name, price: formattedPrice },
+        )}
+      >
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {formattedPrice}
+        </Text>
+      </Box>
+    );
+  }
+
+  return (
+    <Button
+      testID={testID}
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Sm}
+      onPress={() => actions.order?.(event, quote.market, quote.outcome)}
+      accessibilityLabel={strings(
+        'predict_next.event.game_quote_buy_accessibility_label',
+        { team: team.name, price: formattedPrice },
+      )}
+      twClassName={SMALL_QUOTE_CLASS_NAME}
+    >
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {formattedPrice}
+      </Text>
+    </Button>
+  );
+};
+
+/**
+ * A small card Team row: logo and abbreviation, which open the Event, and the
+ * Team's price pill. The pill sits outside the Event press target, so a pill
+ * without a price does nothing when tapped and screen readers reach each
+ * pill on its own.
+ */
+const SmallTeamRow = ({ selection }: { selection: GameSelection }) => {
+  const tw = useTailwind();
+  const { event, abbreviation, actions } = useTeam(selection);
+
+  return (
+    <Box
+      twClassName="flex-row items-center gap-2"
+      testID={`predict-next-game-team-${event.id}-${selection}`}
+    >
+      {/* The header row is the Event's accessible button; this repeats it for touch only. */}
+      <NativePressable
+        onPress={actions.openEvent}
+        accessible={false}
+        style={tw.style('min-w-0 flex-1 flex-row items-center gap-2')}
+        testID={`predict-next-game-team-content-${event.id}-${selection}`}
+      >
+        <TeamLogo selection={selection} />
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+          twClassName="min-w-0 flex-1"
+          testID={`predict-next-game-team-label-${event.id}-${selection}`}
+        >
+          {abbreviation}
+        </Text>
+      </NativePressable>
+      <SmallQuote selection={selection} />
+    </Box>
+  );
+};
+
 const Footer = ({ children }: { children: React.ReactNode }) => {
   const { event, projection } = useGameCard();
 
@@ -642,6 +751,7 @@ export const GameCard = {
   ProbabilityBar,
   Actions,
   FeaturedActions,
+  SmallTeamRow,
   Footer,
   Competition,
   MoreMarkets,
