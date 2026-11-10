@@ -77,13 +77,14 @@ const SearchTokenResultRow = React.memo(
     const tw = useTailwind();
     const isDisabled = isAlreadyAdded;
     const isChecked = isSelected || isAlreadyAdded;
+    const handleSelect = () => onSelect(item);
 
     return (
       <Pressable
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isChecked, disabled: isDisabled }}
         disabled={isDisabled}
-        onPress={() => onSelect(item)}
+        onPress={handleSelect}
         testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
         style={({ pressed }) =>
           tw.style(
@@ -97,11 +98,7 @@ const SearchTokenResultRow = React.memo(
         <Checkbox
           isSelected={isChecked}
           isDisabled={isDisabled}
-          onChange={() => {
-            if (!isDisabled) {
-              onSelect(item);
-            }
-          }}
+          onChange={handleSelect}
           pointerEvents="none"
           accessible={false}
           accessibilityElementsHidden
