@@ -220,5 +220,22 @@ describe('ApproveAndPermit2', () => {
       expect(getByText(shortenedSpenderMock)).toBeTruthy();
       expect(queryByText('Expiration')).toBeNull();
     });
+
+    it.each([TokenStandard.ERC721, undefined])(
+      'does not render if token standard is %s',
+      (standard) => {
+        mockUseGetTokenStandardAndDetails.mockReturnValue({
+          details: { standard, decimalsNumber: undefined },
+          isPending: false,
+        } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
+        const { queryByText } = renderWithProvider(<ApproveAndPermit2 />, {
+          state: approveERC20Permit2TransactionStateMock,
+        });
+        expect(queryByText('Withdraw')).toBeNull();
+        expect(queryByText('Spending cap')).toBeNull();
+        expect(queryByText(shortenedSpenderMock)).toBeNull();
+        expect(queryByText('Expiration')).toBeNull();
+      },
+    );
   });
 });

@@ -45,7 +45,7 @@ export const ApproveAndPermit2 = () => {
   const isPermit2 = approveMethod === ApproveMethod.PERMIT2_APPROVE;
   const isERC20 = tokenStandard === TokenStandard.ERC20;
   const isERC721 = tokenStandard === TokenStandard.ERC721;
-  const shouldShow = isERC20 || isERC721;
+  const shouldShow = isERC20 || (isERC721 && !isPermit2);
 
   if (!shouldShow) {
     return null;
