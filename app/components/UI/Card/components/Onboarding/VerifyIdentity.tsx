@@ -1,21 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import VeriffSdk, { type VeriffBranding } from '@veriff/react-native-sdk';
-import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   HelpText,
   HelpTextSeverity,
-  Text,
-  TextColor,
-  TextVariant,
+  ListItem,
+  ListItemVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
@@ -23,17 +25,28 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { brandColor } from '@metamask/design-tokens';
 import useRegions from '../../hooks/useRegions';
+import { useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 
+/**
+ * Card Veriff identity intro. Visual layout mirrors VBA's SumSub VerifyIdentity
+ * (TitleStandard + ListItem checklist). No top illustration — title/body only,
+ * matching SumSub VerifyIdentity (Connor: remove the icon on this view).
+ */
 const VerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { colors } = useTheme();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const headerHandlers = useCardHeaderHandlers('close-with-confirmation');
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userCountry: selectedCountry } = useRegions();
   const [isLaunchingVeriff, setIsLaunchingVeriff] = useState(false);
@@ -156,86 +169,113 @@ const VerifyIdentity = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  const renderFormFields = () => (
-    <>
-      <Box twClassName="flex flex-1 items-center justify-center">
-        <Image
-          source={MM_CARD_VERIFY_IDENTITY}
-          resizeMode="contain"
-          style={tw.style('w-full h-full')}
-        />
-      </Box>
-      <Box twClassName="flex flex-row gap-3">
-        <Icon
-          name={IconName.EyeSlash}
-          size={IconSize.Lg}
-          color={IconColor.IconAlternative}
-        />
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="flex-1 flex-shrink"
-        >
-          {strings('card.card_onboarding.verify_identity.terms_1')}
-        </Text>
-      </Box>
-      <Box twClassName="flex flex-row gap-3">
-        <Icon
-          name={IconName.Fingerprint}
-          size={IconSize.Lg}
-          color={IconColor.IconAlternative}
-        />
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="flex-1 flex-shrink"
-        >
-          {selectedCountry?.key === 'US'
-            ? strings('card.card_onboarding.verify_identity.terms_2_us')
-            : strings('card.card_onboarding.verify_identity.terms_2')}
-        </Text>
-      </Box>
-
-      {startVerificationIsError ? (
-        <HelpText
-          severity={HelpTextSeverity.Danger}
-          accessibilityRole="alert"
-          accessibilityLiveRegion="polite"
-          testID="verify-identity-start-verification-error"
-          twClassName="text-center"
-        >
-          {startVeriricationErr}
-        </HelpText>
-      ) : !sessionUrl && !startVerificationIsLoading ? (
-        <HelpText
-          severity={HelpTextSeverity.Danger}
-          accessibilityRole="alert"
-          accessibilityLiveRegion="polite"
-          testID="verify-identity-start-verification-error"
-          twClassName="text-center"
-        >
-          {strings(
-            'card.card_onboarding.verify_identity.start_verification_error',
-          )}
-        </HelpText>
-      ) : null}
-    </>
-  );
+  const terms2Description =
+    selectedCountry?.key === 'US'
+      ? strings('card.card_onboarding.verify_identity.terms_2_us_description')
+      : strings('card.card_onboarding.verify_identity.terms_2_description');
 
   return (
-    <OnboardingStep
-      title={strings('card.card_onboarding.verify_identity.title')}
-      description={strings('card.card_onboarding.verify_identity.description')}
-      formFields={renderFormFields()}
-      primaryButtonProps={{
-        children: strings('card.card_onboarding.continue_button'),
-        onPress: handleContinue,
-        isDisabled: !sessionUrl || isLaunchingVeriff,
-        isLoading: isLaunchingVeriff,
-        testID: 'verify-identity-continue-button',
-      }}
-      headerMode="close-with-confirmation"
-    />
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={tw.style('flex-1 bg-default')}
+      testID="onboarding-step"
+    >
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
+      <ScrollView
+        contentContainerStyle={tw.style('flex-grow pb-4')}
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={false}
+      >
+        <TitleStandard
+          title={strings('card.card_onboarding.verify_identity.title')}
+          bottomLabel={strings(
+            'card.card_onboarding.verify_identity.description',
+          )}
+          titleProps={{ testID: 'onboarding-step-title' }}
+          bottomLabelProps={{ testID: 'onboarding-step-description' }}
+          twClassName="px-4 pb-4"
+        />
+        <Box testID="onboarding-step-form-fields">
+          <ListItem
+            variant={ListItemVariant.MultiLine}
+            twClassName="min-h-0 justify-start py-2"
+            avatar={
+              <AvatarIcon
+                iconName={IconName.EyeSlash}
+                severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
+              />
+            }
+            title={strings(
+              'card.card_onboarding.verify_identity.terms_1_title',
+            )}
+            description={strings(
+              'card.card_onboarding.verify_identity.terms_1_description',
+            )}
+            testID="verify-identity-term-privacy"
+          />
+          <ListItem
+            variant={ListItemVariant.MultiLine}
+            twClassName="min-h-0 justify-start py-2"
+            avatar={
+              <AvatarIcon
+                iconName={IconName.Fingerprint}
+                severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
+              />
+            }
+            title={strings(
+              'card.card_onboarding.verify_identity.terms_2_title',
+            )}
+            description={terms2Description}
+            testID="verify-identity-term-id"
+          />
+
+          {startVerificationIsError ? (
+            <HelpText
+              severity={HelpTextSeverity.Danger}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+              testID="verify-identity-start-verification-error"
+              twClassName="text-center px-4 mt-4"
+            >
+              {startVeriricationErr}
+            </HelpText>
+          ) : !sessionUrl && !startVerificationIsLoading ? (
+            <HelpText
+              severity={HelpTextSeverity.Danger}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+              testID="verify-identity-start-verification-error"
+              twClassName="text-center px-4 mt-4"
+            >
+              {strings(
+                'card.card_onboarding.verify_identity.start_verification_error',
+              )}
+            </HelpText>
+          ) : null}
+        </Box>
+      </ScrollView>
+      <Box twClassName="gap-2 px-4 pb-2 pt-4" testID="onboarding-step-actions">
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          onPress={handleContinue}
+          isFullWidth
+          isDisabled={!sessionUrl || isLaunchingVeriff}
+          isLoading={isLaunchingVeriff}
+          testID="verify-identity-continue-button"
+        >
+          {strings('card.card_onboarding.continue_button')}
+        </Button>
+      </Box>
+    </SafeAreaView>
   );
 };
 
