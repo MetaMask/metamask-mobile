@@ -672,18 +672,18 @@ describe('TokenDetailsV1', () => {
         />,
       );
 
-      // The glass header floats at z-10; the isolated wrapper keeps that
-      // stacking context from swallowing the fullscreen sheets.
       const isolatedContent = getByTestId(TokenDetailsIds.content);
       expect(StyleSheet.flatten(isolatedContent.props.style).isolation).toBe(
         'isolate',
       );
-      expect(within(isolatedContent).getByTestId('mock-back')).toBeTruthy();
+      expect(
+        within(isolatedContent).getByTestId('mock-back'),
+      ).toBeOnTheScreen();
 
       expect(
         within(isolatedContent).queryByTestId('mock-sticky-quick-buy-sheet'),
       ).toBeNull();
-      expect(getByTestId('mock-sticky-quick-buy-sheet')).toBeTruthy();
+      expect(getByTestId('mock-sticky-quick-buy-sheet')).toBeOnTheScreen();
 
       fireEvent.press(getByTestId('mock-feed-copy-trade'));
 
@@ -692,7 +692,7 @@ describe('TokenDetailsV1', () => {
           'mock-copy-trade-quick-buy-sheet',
         ),
       ).toBeNull();
-      expect(getByTestId('mock-copy-trade-quick-buy-sheet')).toBeTruthy();
+      expect(getByTestId('mock-copy-trade-quick-buy-sheet')).toBeOnTheScreen();
     });
   });
 
