@@ -3,9 +3,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 
 /**
- * Opens support in the root modal webview. That navigator is a full-bleed
- * transparent modal, so the header keeps the status-bar inset and the back
- * and share buttons stay below it.
+ * Opens support in the root modal webview. That screen is registered with
+ * `presentation: 'modal'`. `isModal: false` keeps the header's top inset, so
+ * the back and share buttons sit below the status bar.
  */
 export const openContactSupportWebview = (
   navigation: AppNavigationProp,

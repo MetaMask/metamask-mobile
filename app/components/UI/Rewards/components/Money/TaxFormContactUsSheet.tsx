@@ -43,11 +43,9 @@ const TaxFormContactUsSheet: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!params.closeOnSupportReturn) {
-        return undefined;
+      if (params.closeOnSupportReturn) {
+        navigation.goBack();
       }
-      navigation.goBack();
-      return undefined;
     }, [navigation, params.closeOnSupportReturn]),
   );
 

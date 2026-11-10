@@ -2,6 +2,7 @@ import type {
   EarningsSummaryDto,
   ReferralLocalizedTextKey,
   SummaryTotalsDto,
+  TaxDocumentationReason,
   TaxFormSubmittedSnapshot,
   TaxFormTokenDto,
   TaxMeDto,
@@ -187,7 +188,7 @@ function actionRequiredSheet(
   );
 }
 
-const PENDING_REVIEW_REASONS = new Set<string>([
+const PENDING_REVIEW_REASONS = new Set<TaxDocumentationReason>([
   'FORM_PENDING',
   'TIN_NOT_MATCHED',
   'REVIEW_PENDING',
@@ -243,14 +244,24 @@ export function taxSheetFor(taxMe: TaxMeDto): TaxDocumentationSheet {
 }
 
 /**
- * The snapshot used when a submit's status read fails and no open-form
- * read is cached. The first form, before any webhook, is this read.
+ * The open-form read that exists before any form is stored. A successful
+ * read with this `stored_at` of null is a real baseline.
  */
 export const PRE_WEBHOOK_TAX_FORM_SNAPSHOT: TaxFormSubmittedSnapshot = {
   state: 'ACTION_REQUIRED',
   next_action: 'OPEN_FORM',
   reason: 'NO_FORM',
   stored_at: null,
+};
+
+/**
+ * Written only when both status reads threw. It keeps Claim on Pending
+ * review and is not a `stored_at` baseline: the next successful open-form
+ * read replaces it.
+ */
+export const UNCONFIRMED_TAX_FORM_SUBMISSION: TaxFormSubmittedSnapshot = {
+  ...PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
+  confirmed: false,
 };
 
 /** True only for the open-form read that exists before Taxbit's status webhook. */
@@ -286,7 +297,9 @@ export function taxFormSubmittedSnapshot(
  * The snapshot is whatever open-form read was current at submit. A null
  * marker, a changed status, or a new `stored_at` means Claim follows
  * `taxSheetFor`. A missing `stored_at` is a snapshot from before the field
- * and compares as no stored form.
+ * and compares as no stored form. An unconfirmed marker has no baseline:
+ * any open-form read is still waiting, and the caller replaces the marker
+ * from that read.
  */
 export function taxFormSubmissionStillWaiting(
   submitted: TaxFormSubmittedSnapshot | null,
@@ -294,6 +307,9 @@ export function taxFormSubmissionStillWaiting(
 ): boolean {
   if (!submitted) {
     return false;
+  }
+  if (submitted.confirmed === false) {
+    return isOpenFormTaxMe(taxMe);
   }
   const current = taxFormSubmittedSnapshot(taxMe);
   return (

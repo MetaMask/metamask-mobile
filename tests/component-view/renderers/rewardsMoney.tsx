@@ -35,6 +35,7 @@ import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views
 import RewardsMoneyReferralAcceptedSplashView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import type { MoneyReferralEntryType } from '../../../app/components/UI/Rewards/types/navigation';
 import RewardsTaxFormView from '../../../app/components/UI/Rewards/Views/RewardsTaxFormView';
+import SupportConsentSheet from '../../../app/components/UI/SupportConsentSheet';
 import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import type {
   ClaimDto,
@@ -304,21 +305,38 @@ function RewardsFlowProbe() {
   );
 }
 
-function RootModalFlowProbe() {
+export const REWARDS_ROOT_MODAL_BACK_TEST_ID = 'rewards-root-modal-back';
+
+function SupportWebviewProbe() {
   const navigation = useNavigation();
   const route = useRoute();
 
   return (
     <>
-      <Text testID={getRouteParamsProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW)}>
+      <Text testID={getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)}>
         {JSON.stringify(route.params ?? {})}
       </Text>
       <Pressable
         accessibilityRole="button"
-        testID="rewards-root-modal-back"
+        testID={REWARDS_ROOT_MODAL_BACK_TEST_ID}
         onPress={() => navigation.goBack()}
       />
     </>
+  );
+}
+
+function RootModalFlowProbe() {
+  return (
+    <FlowStack.Navigator screenOptions={{ headerShown: false }}>
+      <FlowStack.Screen
+        name={Routes.MODAL.SUPPORT_CONSENT_SHEET}
+        component={SupportConsentSheet}
+      />
+      <FlowStack.Screen
+        name={Routes.WEBVIEW.SIMPLE}
+        component={SupportWebviewProbe}
+      />
+    </FlowStack.Navigator>
   );
 }
 

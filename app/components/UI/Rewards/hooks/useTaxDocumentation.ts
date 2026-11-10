@@ -30,7 +30,7 @@ import {
   holdTaxFormSession,
   isOpenFormTaxMe,
   isTaxFlowEnabled,
-  PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
+  UNCONFIRMED_TAX_FORM_SUBMISSION,
   resolveTaxFormUrl,
   taxFormSubmissionStillWaiting,
   taxFormSubmittedSnapshot,
@@ -43,6 +43,15 @@ import {
   type TaxRefusalAction,
 } from '../utils/taxDocumentation';
 import type { ClaimEarningsOptions } from './useClaimEarnings';
+
+/**
+ * What Claim's press passes back. `summary` is for the earnings tab, which
+ * claims against a read taken after tax cleared. `useClaimEarnings` does not
+ * read it.
+ */
+export type ClaimAfterTaxOptions = ClaimEarningsOptions & {
+  summary?: EarningsSummaryDto;
+};
 import { useEarningsSummary } from './useEarningsSummary';
 import useRewardsToast from './useRewardsToast';
 
@@ -82,7 +91,7 @@ function claimSheetDecision(
 function buildClaimOptions(
   omitFollowTrade: boolean,
   summary: EarningsSummaryDto | undefined,
-): ClaimEarningsOptions | undefined {
+): ClaimAfterTaxOptions | undefined {
   if (!omitFollowTrade && !summary) {
     return undefined;
   }
@@ -285,12 +294,25 @@ export function useTaxDocumentation(profileId: string) {
     return Engine.controllerMessenger.call('RewardsMoneyController:getTaxMe');
   }, []);
 
-  /** Clears the submit marker once `tax/me` has moved off its snapshot. */
+  /**
+   * Clears the submit marker once a successful read has moved off its
+   * snapshot. An unconfirmed marker has no baseline: an open-form read
+   * replaces it and stays waiting, and any other read clears it.
+   */
   const dropStaleSubmitted = useCallback(
     async (
       submitted: TaxFormSubmittedSnapshot | null,
       taxMe: TaxMeDto,
     ): Promise<TaxFormSubmittedSnapshot | null> => {
+      if (submitted?.confirmed === false) {
+        if (!isOpenFormTaxMe(taxMe)) {
+          await noteSubmitted(null);
+          return null;
+        }
+        const confirmed = taxFormSubmittedSnapshot(taxMe);
+        await noteSubmitted(confirmed);
+        return confirmed;
+      }
       if (submitted && !taxFormSubmissionStillWaiting(submitted, taxMe)) {
         await noteSubmitted(null);
         return null;
@@ -552,32 +574,48 @@ export function useTaxDocumentation(profileId: string) {
     openInfo('taxFormPendingTitle', 'taxFormPendingDescription');
     refreshSummary();
     void (async () => {
-      // Claim treats a missing snapshot as a new form. Record this submit
-      // before the fresh status read, which can be slow or fail.
-      let remembered = PRE_WEBHOOK_TAX_FORM_SNAPSHOT;
+      // A thrown read writes nothing. The snapshot moves only from a body
+      // a read returned, and only a baseline from such a read can prove
+      // that stored_at changed.
+      let baseline: TaxFormSubmittedSnapshot | null = null;
+      let baselineFailed = false;
       try {
         const cached = await readTaxMe(false);
         if (isOpenFormTaxMe(cached)) {
-          remembered = taxFormSubmittedSnapshot(cached);
+          baseline = taxFormSubmittedSnapshot(cached);
+          await noteSubmitted(baseline);
         }
       } catch (error) {
         if (error instanceof RewardsMoneyAuthorizationError) {
           return;
         }
+        baselineFailed = true;
       }
-      await noteSubmitted(remembered);
       try {
         const taxMe = await readTaxMe(true);
-        // A fresh read that is still an open form can be a new stored form
-        // with the same reason. Keep the pre-submit snapshot only while
-        // stored_at has not moved.
-        if (!taxFormSubmissionStillWaiting(remembered, taxMe)) {
+        if (!baseline) {
+          if (isOpenFormTaxMe(taxMe)) {
+            await noteSubmitted(taxFormSubmittedSnapshot(taxMe));
+            return;
+          }
           await noteSubmitted(null);
           showTaxMe(taxMe);
+          return;
         }
+        const storedSinceSubmit =
+          (taxMe.stored_at ?? null) !== (baseline.stored_at ?? null);
+        if (isOpenFormTaxMe(taxMe) && !storedSinceSubmit) {
+          await noteSubmitted(taxFormSubmittedSnapshot(taxMe));
+          return;
+        }
+        await noteSubmitted(null);
+        showTaxMe(taxMe);
       } catch (error) {
         if (error instanceof RewardsMoneyAuthorizationError) {
           return;
+        }
+        if (baselineFailed) {
+          await noteSubmitted(UNCONFIRMED_TAX_FORM_SUBMISSION);
         }
       }
     })();
@@ -644,7 +682,7 @@ export function useTaxDocumentation(profileId: string) {
   const onClaimPress = useCallback(
     async (
       summary: EarningsSummaryDto,
-      claim: (options?: ClaimEarningsOptions) => Promise<void>,
+      claim: (options?: ClaimAfterTaxOptions) => Promise<void>,
     ) => {
       if (pressBusy.current) {
         return;

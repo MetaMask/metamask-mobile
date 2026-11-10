@@ -313,6 +313,11 @@ export type TaxFormSubmittedSnapshot = {
    * no stored form. A missing value is a snapshot written before the field.
    */
   stored_at?: string | null;
+  /**
+   * False when both status reads failed at submit, so this marker is not a
+   * `stored_at` baseline. Absent on a snapshot taken from a successful read.
+   */
+  confirmed?: boolean;
 };
 
 /** `POST /wr/tax/attestation` and `POST /wr/tax/w8-us-activity`. */
