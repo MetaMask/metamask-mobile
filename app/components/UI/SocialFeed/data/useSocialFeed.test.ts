@@ -632,58 +632,8 @@ describe('useSocialFeed', () => {
           nearTop: false,
           holdNewPosts: true,
           filterPost,
-          onSkippedPost: expect.any(Function),
         },
       );
-    });
-
-    it('reloads profile posts when that trader streams a trade with no comment', async () => {
-      mockUseSocialFeedRealtime.mockReturnValue(null);
-      mockCall.mockResolvedValue(mockFeedResponse([]));
-      const core = mockSpotFeedItem({
-        actor: {
-          profileId: 'profile-1',
-          address: '0x1111111111111111111111111111111111111111',
-          name: 'ada',
-          imageUrl: null,
-        },
-      });
-      const item = mapFeedItem(core);
-      if (!item) {
-        throw new Error('Expected the feed item to map');
-      }
-      const [tradePost] = toSocialFeedPosts([{ core, item }]);
-
-      renderHook(
-        () =>
-          useSocialFeed(
-            { scope: 'all', profileId: 'profile-1', commentedOnly: true },
-            { realtime: true },
-          ),
-        { wrapper: createWrapper().wrapper },
-      );
-      await waitFor(() => expect(mockCall).toHaveBeenCalled());
-      const onSkippedPost =
-        mockUseSocialFeedRealtime.mock.lastCall?.[1].onSkippedPost;
-      mockCall.mockClear();
-
-      act(() => {
-        onSkippedPost?.(tradePost);
-      });
-
-      await waitFor(() => expect(mockCall).toHaveBeenCalledTimes(1));
-      mockCall.mockClear();
-      act(() => {
-        onSkippedPost?.({ ...tradePost, commentId: 'comment-1' });
-        onSkippedPost?.({
-          ...tradePost,
-          item: {
-            ...tradePost.item,
-            author: { ...tradePost.item.author, id: 'someone-else' },
-          },
-        });
-      });
-      expect(mockCall).not.toHaveBeenCalled();
     });
 
     it('returns the realtime posts and state while streaming', () => {

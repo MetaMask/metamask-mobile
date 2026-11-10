@@ -27,6 +27,7 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialContentState } from '../../../../util/social/socialPerformance';
 import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
+import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed } from '../data/useSocialFeed';
@@ -68,6 +69,9 @@ import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testId
  * A profile header is the avatar and stats, so the posts start further down.
  */
 const NEAR_TOP_OFFSET_PX = 4;
+
+/** Stable empty list for feeds that do not show the viewer's pending posts. */
+const NO_PENDING_SERVER_POSTS: SocialV1FeedPost[] = [];
 
 /** How often relative post ages ("3 min ago") are recomputed. */
 const AGE_TICK_MS = 60_000;
@@ -207,6 +211,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     loadMore,
     error,
     refresh,
+    refetchNewestPage,
     dataUpdatedAt,
     realtime: live,
   } = useSocialFeed(query, {
@@ -218,20 +223,54 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     filterPost,
     performance: fetchPerformance,
   });
+  // The just-written card lives in the pending store. Only this viewer's own
+  // profile shows it, and the overlay refetches until the feed returns it.
+  // Live and every other feed keep the realtime posts untouched: the overlay
+  // also drops every comment on the pending post's position, which this list
+  // must keep.
+  const showsOwnPendingPosts = Boolean(
+    profileId && viewerProfileId && profileId === viewerProfileId,
+  );
+  const { pinnedPosts: pendingPinnedPosts, refresh: refreshPendingPosts } =
+    usePendingPostsOverlay({
+      surface: 'posts',
+      ownerProfileId: showsOwnPendingPosts ? viewerProfileId : undefined,
+      serverPosts: showsOwnPendingPosts ? posts : NO_PENDING_SERVER_POSTS,
+      refetch: refresh,
+      confirmRefetch: refetchNewestPage,
+      isActive: showsOwnPendingPosts && (isActive ?? true) && isFocused,
+    });
+  const listedPosts = useMemo(() => {
+    const pinned = showsOwnPendingPosts
+      ? filterPost
+        ? pendingPinnedPosts.filter(filterPost)
+        : pendingPinnedPosts
+      : NO_PENDING_SERVER_POSTS;
+    if (pinned.length === 0) {
+      return posts;
+    }
+    const pinnedCommentIds = new Set(
+      pinned.flatMap((post) => (post.commentId ? [post.commentId] : [])),
+    );
+    const rest = posts.filter(
+      (post) => !(post.commentId && pinnedCommentIds.has(post.commentId)),
+    );
+    return [...pinned, ...rest];
+  }, [filterPost, pendingPinnedPosts, posts, showsOwnPendingPosts]);
   // A disabled query (offline, locked) reports not loading and no error.
   // That is not an empty feed; wait until a fetch has settled.
   const awaitingResult =
-    dataUpdatedAt === undefined && !error && posts.length === 0;
+    dataUpdatedAt === undefined && !error && listedPosts.length === 0;
   useSocialFeedScreenView(
     location,
     analyticsSource,
-    [isLoading || awaitingResult, Boolean(error), posts.length > 0],
+    [isLoading || awaitingResult, Boolean(error), listedPosts.length > 0],
     isActive,
   );
 
   const visiblePosts = useMemo(
     () =>
-      posts.filter(
+      listedPosts.filter(
         (post) =>
           !isEntryHidden({
             postId: post.id,
@@ -240,7 +279,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
             commentId: post.commentId,
           }),
       ),
-    [isEntryHidden, posts],
+    [isEntryHidden, listedPosts],
   );
   const firstPostId = visiblePosts[0]?.id;
   const previousFirstPostIdRef = useRef<string | undefined>(undefined);
@@ -354,11 +393,11 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     setRefreshing(true);
     try {
       onRefresh?.();
-      await Promise.all([refresh(), waitForMinimumRefresh()]);
+      await Promise.all([refreshPendingPosts(), waitForMinimumRefresh()]);
     } finally {
       setRefreshing(false);
     }
-  }, [onRefresh, refresh]);
+  }, [onRefresh, refreshPendingPosts]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {

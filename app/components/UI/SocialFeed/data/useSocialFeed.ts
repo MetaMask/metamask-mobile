@@ -81,6 +81,11 @@ export interface SocialFeedState {
   error: string | null;
   /** Reset to the first page and refetch -- also the recovery path after an error. */
   refresh: () => Promise<void>;
+  /**
+   * Reloads the newest page without dropping pages already loaded. Used while
+   * a just-written profile post waits for the server copy.
+   */
+  refetchNewestPage: () => Promise<void>;
   /** When the loaded pages were fetched, or `undefined` before the first success. */
   dataUpdatedAt: number | undefined;
   /** Present only while realtime streams this source. */
@@ -280,36 +285,24 @@ export const useSocialFeed = (
     await refetch();
   }, [queryClient, queryKey, refetch, request]);
 
-  const profileId =
-    request?.action === 'SocialService:fetchFeed'
-      ? request.options.profileId
-      : undefined;
-  const commentedOnly =
-    request?.action === 'SocialService:fetchFeed' &&
-    request.options.commentedOnly === true;
-  const profileRefreshInFlightRef = useRef(false);
-  const refreshUnrenderedProfilePost = useCallback(
-    (post: SocialV1FeedPost) => {
-      // The all channel also emits this trader's trades. Posts only renders a
-      // comment card, so a trade with no comment is the cue to reload.
-      if (
-        !profileId ||
-        !commentedOnly ||
-        post.commentId ||
-        post.item.author.id !== profileId ||
-        profileRefreshInFlightRef.current
-      ) {
-        return;
+  // Replaces the newest page and leaves pages the reader already loaded.
+  // The full refresh drops those pages, which a socket-driven reload was doing
+  // on every trade and wiping the posts on screen.
+  const refetchNewestPage = useCallback(async () => {
+    if (!request) {
+      return;
+    }
+    const page = await fetchSocialFeedPage(request, pageSize);
+    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) => {
+      if (!old?.pages?.length) {
+        return { pages: [page], pageParams: [undefined] };
       }
-      profileRefreshInFlightRef.current = true;
-      refresh()
-        .catch(() => undefined)
-        .finally(() => {
-          profileRefreshInFlightRef.current = false;
-        });
-    },
-    [commentedOnly, profileId, refresh],
-  );
+      return {
+        pages: [page, ...old.pages.slice(1)],
+        pageParams: old.pageParams,
+      };
+    });
+  }, [pageSize, queryClient, queryKey, request]);
 
   const live = useSocialFeedRealtime(
     { rows, dataUpdatedAt, refresh },
@@ -320,7 +313,6 @@ export const useSocialFeed = (
       nearTop,
       holdNewPosts,
       filterPost,
-      onSkippedPost: refreshUnrenderedProfilePost,
     },
   );
   const filteredPosts = useMemo(
@@ -338,6 +330,7 @@ export const useSocialFeed = (
     loadMore,
     error: hasRequest ? formatSocialQueryErrorMessage(error) : null,
     refresh,
+    refetchNewestPage,
     dataUpdatedAt,
     ...(live ? { realtime: live.realtime } : {}),
   };

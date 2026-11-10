@@ -18,6 +18,8 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
+import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
@@ -42,11 +44,27 @@ jest.mock('../../../../util/haptics', () => ({
 }));
 
 jest.mock('../../../../util/social/useSocialProfileId', () => ({
-  useSocialProfileId: () => ({
+  useSocialProfileId: jest.fn(() => ({
     profileId: undefined,
     isLoading: false,
-  }),
+  })),
 }));
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay',
+  () => ({
+    usePendingPostsOverlay: jest.fn(
+      (options: {
+        serverPosts: SocialV1FeedPost[];
+        refetch: () => Promise<void>;
+      }) => ({
+        pinnedPosts: [],
+        posts: options.serverPosts,
+        refresh: options.refetch,
+      }),
+    ),
+  }),
+);
 
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
@@ -142,6 +160,8 @@ type NearTopWorklet = (
 ) => void;
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
+const mockUseSocialProfileId = jest.mocked(useSocialProfileId);
+const mockUsePendingPostsOverlay = jest.mocked(usePendingPostsOverlay);
 const mockUseIsFocused = jest.mocked(useIsFocused);
 const mockUseNetworkTier = jest.mocked(useNetworkTier);
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
@@ -200,6 +220,7 @@ const feedState = (
   loadMore: jest.fn(),
   error: null,
   refresh: jest.fn(async () => undefined),
+  refetchNewestPage: jest.fn(async () => undefined),
   dataUpdatedAt: 1,
   ...overrides,
 });
@@ -235,6 +256,15 @@ describe('SocialFeedVirtualized', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSocialFeed.mockReturnValue(feedState());
+    mockUseSocialProfileId.mockReturnValue({
+      profileId: undefined,
+      isLoading: false,
+    });
+    mockUsePendingPostsOverlay.mockImplementation((options) => ({
+      pinnedPosts: [],
+      posts: options.serverPosts,
+      refresh: options.refetch,
+    }));
     mockUseIsFocused.mockReturnValue(true);
     mockUseNetworkTier.mockReturnValue(null);
     mockGetHardwareTier.mockReturnValue(null);
@@ -294,6 +324,78 @@ describe('SocialFeedVirtualized', () => {
     expect(
       screen.getByTestId(getSocialV1FeedEntryDividerTestId('social_live-new')),
     ).toBeOnTheScreen();
+  });
+
+  it('keeps live posts beside the viewer just-written post', () => {
+    mockUseSocialProfileId.mockReturnValue({
+      profileId: 'profile-1',
+      isLoading: false,
+    });
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [post('live-comment'), post('older')] }),
+    );
+    mockUsePendingPostsOverlay.mockImplementation(() => ({
+      pinnedPosts: [post('pending')],
+      posts: [],
+      refresh: jest.fn(async () => undefined),
+    }));
+
+    renderFeed({ profileId: 'profile-1', location: 'my_profile' });
+
+    expect(renderedRowTexts(/pending|live-comment|older/)).toEqual([
+      'pending',
+      'live-comment',
+      'older',
+    ]);
+  });
+
+  it('shows the viewer just-written post on their own profile before the feed returns it', () => {
+    mockUseSocialProfileId.mockReturnValue({
+      profileId: 'profile-1',
+      isLoading: false,
+    });
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('server')] }));
+    mockUsePendingPostsOverlay.mockImplementation((options) => ({
+      pinnedPosts: options.ownerProfileId ? [post('pending')] : [],
+      posts: options.serverPosts,
+      refresh: options.refetch,
+    }));
+
+    renderFeed({ profileId: 'profile-1', location: 'my_profile' });
+
+    expect(renderedRowTexts(/pending|server/)).toEqual(['pending', 'server']);
+    expect(mockUsePendingPostsOverlay).toHaveBeenCalledWith(
+      expect.objectContaining({
+        surface: 'posts',
+        ownerProfileId: 'profile-1',
+        isActive: true,
+      }),
+    );
+  });
+
+  it('leaves another trader profile without the viewer pending post', () => {
+    mockUseSocialProfileId.mockReturnValue({
+      profileId: 'profile-1',
+      isLoading: false,
+    });
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('server')] }));
+    mockUsePendingPostsOverlay.mockImplementation((options) => ({
+      pinnedPosts: options.ownerProfileId ? [post('pending')] : [],
+      posts: options.serverPosts,
+      refresh: options.refetch,
+    }));
+
+    renderFeed({ profileId: 'trader-2', location: 'trader_profile' });
+
+    expect(screen.queryByText('pending')).toBeNull();
+    expect(screen.getByText('server')).toBeOnTheScreen();
+    expect(mockUsePendingPostsOverlay).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ownerProfileId: undefined,
+        serverPosts: [],
+        isActive: false,
+      }),
+    );
   });
 
   it('hides posts the viewer hid', () => {
