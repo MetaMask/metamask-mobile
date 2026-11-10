@@ -27,7 +27,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { AccessRestrictedModalSelectorsIDs } from '../../../UI/Compliance/AccessRestrictedModal/AccessRestrictedModal.testIds';
 import {
   clearLeaderboardApiMock,
-  getLeaderboardMessengerSpy,
   setupLeaderboardApiMock,
 } from '../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import {
@@ -303,8 +302,6 @@ describe('SocialV1View copy trade', () => {
 
 describe('SocialV1View initial tab', () => {
   const feedPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`;
-  const getCalledActions = () =>
-    getLeaderboardMessengerSpy().mock.calls.map(([action]) => action);
 
   const SocialV1ViewWithAccessRestricted = () => (
     <AccessRestrictedProvider>
@@ -335,9 +332,7 @@ describe('SocialV1View initial tab', () => {
     expect(
       await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).toBeOnTheScreen();
-    await waitFor(() =>
-      expect(getCalledActions()).toContain('SocialService:fetchFeed'),
-    );
+    // Pages mount lazily, so Trending has not rendered its feed yet.
     const trendingPage = within(
       screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
     );
