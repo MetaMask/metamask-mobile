@@ -279,7 +279,7 @@ describe('EventCardGame', () => {
     expect(screen.getByText('Q4 · 12:22')).toBeOnTheScreen();
   });
 
-  it('labels the featured quote pills with the Team name and price', () => {
+  it('labels the featured quote pills with the Team abbreviation and price, and the accessibility label with the Team name', () => {
     const event = createEvent();
     const onOrder = jest.fn();
 
@@ -287,17 +287,19 @@ describe('EventCardGame', () => {
 
     const away = screen.getByTestId('predict-next-game-quote-game-event-away');
     const home = screen.getByTestId('predict-next-game-quote-game-event-home');
-    expect(away).toHaveTextContent(/^Arizona Cardinals\s*· 47¢$/);
-    expect(home).toHaveTextContent(/^Carolina Panthers\s*· 53¢$/);
+    expect(away).toHaveTextContent(/^ARI\s*· 47¢$/);
+    expect(home).toHaveTextContent(/^CAR\s*· 53¢$/);
     expect(
       screen.getByRole('button', {
         name: 'Arizona Cardinals, 47¢, buy',
       }),
     ).toBeOnTheScreen();
-    expect(within(away).getByText('Arizona Cardinals')).toHaveProp(
-      'numberOfLines',
-      1,
-    );
+    expect(
+      screen.getByRole('button', {
+        name: 'Carolina Panthers, 53¢, buy',
+      }),
+    ).toBeOnTheScreen();
+    expect(within(away).getByText('ARI')).toHaveProp('numberOfLines', 1);
     expect(within(away).getByText('· 47¢')).toBeOnTheScreen();
     expect(away).toHaveStyle({ height: 48, borderRadius: 9999 });
     expect(home).toHaveStyle({ height: 48, borderRadius: 9999 });
@@ -340,7 +342,7 @@ describe('EventCardGame', () => {
     },
   );
 
-  it('shows a featured quote without a price as a disabled Team name pill', () => {
+  it('shows a featured quote without a price as a disabled Team abbreviation pill', () => {
     const event = createEvent({
       markets: [
         createMarket('away', 'away', null),
@@ -352,8 +354,12 @@ describe('EventCardGame', () => {
     renderCard(event, { variant: 'featured', onOrder });
 
     const away = screen.getByTestId('predict-next-game-quote-game-event-away');
-    expect(away).toHaveTextContent('Arizona Cardinals');
+    expect(away).toHaveTextContent('ARI');
+    expect(away).not.toHaveTextContent('Arizona Cardinals');
     expect(away).not.toHaveTextContent('¢');
+    expect(
+      screen.getByLabelText('Arizona Cardinals, price unavailable'),
+    ).toBeOnTheScreen();
     expect(away).toBeDisabled();
     fireEvent.press(away);
     expect(onOrder).not.toHaveBeenCalled();
@@ -364,7 +370,8 @@ describe('EventCardGame', () => {
 
     expect(
       screen.getByTestId('predict-next-game-quote-game-event-away'),
-    ).toHaveTextContent(/^Arizona Cardinals\s*· 47¢$/);
+    ).toHaveTextContent(/^ARI\s*· 47¢$/);
+    expect(screen.getByLabelText('Arizona Cardinals, 47¢')).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: /buy/ })).not.toBeOnTheScreen();
   });
 

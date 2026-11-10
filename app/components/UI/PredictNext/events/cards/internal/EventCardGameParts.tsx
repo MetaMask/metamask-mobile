@@ -427,7 +427,7 @@ const Actions = () => {
 };
 
 /**
- * "Team name · price" on one line. A long name truncates so the price always
+ * "Label · price" on one line. A long label truncates so the price always
  * shows.
  */
 const QuoteLabel = ({
@@ -469,7 +469,7 @@ const QuoteLabel = ({
 };
 
 /**
- * A featured quote: a 48px pill labelled "Team name · price". The first Team
+ * A featured quote: a 48px pill labelled "ABBR · price". The first Team
  * in the card's order gets the neutral primary pill, the second its Team
  * color.
  */
@@ -478,6 +478,7 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
   const {
     event,
     team,
+    abbreviation,
     quote,
     formattedPrice,
     canOrder,
@@ -505,7 +506,7 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
         twClassName="w-full px-3"
         isDisabled
       >
-        {team.name}
+        {abbreviation}
       </Button>
     );
   }
@@ -523,7 +524,7 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
           { team: team.name, price: formattedPrice },
         )}
       >
-        <QuoteLabel name={team.name} price={formattedPrice} />
+        <QuoteLabel name={abbreviation} price={formattedPrice} />
       </Box>
     );
   }
@@ -545,7 +546,7 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
         twClassName="w-full px-3"
       >
         <QuoteLabel
-          name={team.name}
+          name={abbreviation}
           price={formattedPrice}
           color={TextColor.PrimaryInverse}
         />
@@ -564,7 +565,7 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
       twClassName="w-full px-3"
     >
       <QuoteLabel
-        name={team.name}
+        name={abbreviation}
         price={formattedPrice}
         textColor={themeColors.overlay.inverse}
       />

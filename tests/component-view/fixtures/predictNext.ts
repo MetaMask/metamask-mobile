@@ -1125,8 +1125,8 @@ export const expectPredictNextGameCard = (
     awayScore: string;
     homeScore: string;
     /**
-     * The quote's text. A compact card reads "ABBR · price"; a featured card
-     * reads "Team name · price" across two Texts, so pass a RegExp for it.
+     * The quote's text, "ABBR · price". A featured card renders it across two
+     * Texts, so this matches the quote's text content, not a single Text.
      */
     awayQuote: string | RegExp;
     homeQuote: string | RegExp;
@@ -1139,8 +1139,10 @@ export const expectPredictNextGameCard = (
   );
   const scoped = within(card);
 
-  expect(scoped.getByText(away)).toBeOnTheScreen();
-  expect(scoped.getByText(home)).toBeOnTheScreen();
+  // A featured card shows the Team abbreviation only, so the Team name is read
+  // from the quote's accessibility label ("Team name, price, buy").
+  expect(scoped.getByLabelText(new RegExp(`^${away}, `))).toBeOnTheScreen();
+  expect(scoped.getByLabelText(new RegExp(`^${home}, `))).toBeOnTheScreen();
   expect(scoped.getByText(awayScore)).toBeOnTheScreen();
   expect(scoped.getByText(homeScore)).toBeOnTheScreen();
   expect(
