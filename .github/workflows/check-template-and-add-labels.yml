@@ -28,13 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     # Fork PRs are skipped before the label token is requested. The script
     # skips Dependabot PRs anyway.
-    # merge_group must run this job. Skipping it leaves the required check
-    # as "Expected — Waiting for status to be reported" and the merge queue
-    # waits until check_response_timeout_minutes. The template was already
-    # validated on the pull request; this job only reports success.
     if: >-
       github.event_name == 'issues' ||
-      github.event_name == 'merge_group' ||
       (github.event_name == 'pull_request_target' &&
        !github.event.pull_request.head.repo.fork &&
        github.event.pull_request.user.login != 'dependabot[bot]')
@@ -42,25 +37,18 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Report success for merge queue
-        if: github.event_name == 'merge_group'
-        run: echo "PR template checks already passed on the pull request. Reporting success for the merge queue."
-
       - name: Checkout repository
-        if: github.event_name != 'merge_group'
         uses: actions/checkout@v6
         with:
           fetch-depth: 1 # This retrieves only the latest commit.
           persist-credentials: false
 
       - name: Set up Node.js
-        if: github.event_name != 'merge_group'
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
       - name: Install dependencies with retry
-        if: github.event_name != 'merge_group'
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
@@ -69,7 +57,6 @@ jobs:
           command: cd .github/scripts && yarn --immutable
 
       - name: Get access token
-        if: github.event_name != 'merge_group'
         id: get-token
         uses: MetaMask/github-tools/.github/actions/get-token@v1
         with:
@@ -80,7 +67,6 @@ jobs:
             pull_requests: write
 
       - name: Check template and add labels
-        if: github.event_name != 'merge_group'
         id: check-template-and-add-labels
         env:
           LABEL_TOKEN: ${{ steps.get-token.outputs.token }}
