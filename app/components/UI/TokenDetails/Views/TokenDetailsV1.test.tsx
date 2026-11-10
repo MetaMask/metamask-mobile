@@ -33,6 +33,7 @@ import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.t
 import { TokenExplainerSheetSelectors } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.testIds';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
+import { GraduationProgressSelectors } from '../components/GraduationProgressA/GraduationProgress.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import type { QuickBuyTarget } from '../../QuickBuy';
@@ -704,6 +705,74 @@ describe('TokenDetailsV1', () => {
     ).toHaveTextContent(
       'Time since token creation. Seconds, minutes, hours, then days.',
     );
+  });
+
+  describe('graduation progress module', () => {
+    it('renders between the price header and the security row for bonding tokens', () => {
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: {
+          launchpad: 'pumpfun',
+          launchpadData: {
+            bondingCurve: null,
+            deployer: null,
+            description: null,
+            devHeldPercent: null,
+            graduationPercent: '94',
+            graduationStage: 'bonding',
+            holdersCount: 1200,
+            insiderHeldPercent: null,
+            launchedAt: 1735689600000,
+            protocol: 'pump.fun',
+            sniperHeldPercent: null,
+            top10HeldPercent: null,
+          },
+        } as unknown as Record<string, unknown> | null,
+        isLoading: false,
+        isError: false,
+      });
+
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      expect(getByTestId(GraduationProgressSelectors.CARD)).toBeOnTheScreen();
+    });
+
+    it('hides the module once the token graduates', () => {
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: {
+          launchpad: 'pumpfun',
+          launchpadData: {
+            bondingCurve: null,
+            deployer: null,
+            description: null,
+            devHeldPercent: null,
+            graduationPercent: '100',
+            graduationStage: 'bonding',
+            holdersCount: 4200,
+            insiderHeldPercent: null,
+            launchedAt: 1735689600000,
+            protocol: 'pump.fun',
+            sniperHeldPercent: null,
+            top10HeldPercent: null,
+          },
+        } as unknown as Record<string, unknown> | null,
+        isLoading: false,
+        isError: false,
+      });
+
+      const { queryByTestId } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      expect(queryByTestId(GraduationProgressSelectors.CARD)).toBeNull();
+    });
   });
 
   it('omits the price period label so the header does not say Today', () => {

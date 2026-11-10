@@ -68,6 +68,7 @@ import { resolveTokenContractAddress } from '../../AssetOverview/utils/getTokenD
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
+import GraduationProgress from '../components/GraduationProgressA/GraduationProgress';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import { SECURITY_ATTRIBUTION_EXPLAINER } from '../components/V1/SecurityAttribution/SecurityAttribution';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
@@ -919,6 +920,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     <Price.Header showPeriodLabel={false} />
 
                     <Box twClassName="px-4">
+                      <GraduationProgress
+                        launchpadData={tokenAsset?.launchpadData ?? null}
+                        launchpad={tokenAsset?.launchpad ?? null}
+                        marketData={marketData}
+                        currentCurrency={selectedCurrency}
+                      />
                       <SecuritySocialSection
                         securityVerdict={securityFacts.verdict}
                         securityRiskCount={securityFacts.risks.length}

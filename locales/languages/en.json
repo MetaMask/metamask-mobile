@@ -6497,6 +6497,15 @@
         "description": "Time since token creation. Seconds, minutes, hours, then days."
       }
     },
+    "graduation": {
+      "progress": "Graduation progress",
+      "raised": "{{amount}} raised",
+      "to_graduation": "{{amount}} to graduation",
+      "stage": {
+        "bonding": "BONDING",
+        "new": "NEW"
+      }
+    },
     "stats": {
       "market_cap": "MCap",
       "liquidity": "Liquidity",
