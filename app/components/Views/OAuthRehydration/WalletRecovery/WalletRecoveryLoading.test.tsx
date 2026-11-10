@@ -5,9 +5,7 @@ import { WalletRecoverySelectorsIDs } from './WalletRecovery.testIds';
 
 describe('WalletRecoveryLoading', () => {
   it('renders a blank centered loading hold', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletRecoveryLoading onBack={jest.fn()} />,
-    );
+    const { getByTestId } = renderWithProvider(<WalletRecoveryLoading />);
 
     expect(
       getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),

@@ -9,7 +9,7 @@ import type {
 import type { MfaControllerAdapter } from './engine/types';
 
 /**
- * Locked-wallet MFA adapter for social recovery (Mathieu Core #11371).
+ * Locked-wallet MFA adapter for social recovery.
  *
  * Maps kit calls onto `refreshSocialLoginCredentials` /
  * `beginSocialLoginVerification` / `completeSocialLoginVerification`. Those

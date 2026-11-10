@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { AccessibilityInfo, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -67,10 +67,7 @@ interface MethodRowProps {
   onPress: () => void;
 }
 
-/**
- * Figma Social login users — full-screen "Verify it's you" fallback.
- * Shown when passkey is cancelled/fails or the user has no passkey.
- */
+/** Full-screen "Verify it's you" fallback after passkey dismiss/unavailable. */
 const MethodRow = ({
   icon,
   label,
@@ -129,25 +126,19 @@ const WalletRecoveryVerify = ({
   const mfaDisabled = isBusy || isOffline;
   const passwordDisabled = isBusy;
 
-  const onPasskey = useCallback(() => {
-    onSelectMethod('passkey');
-  }, [onSelectMethod]);
-
-  // WCAG 4.1.3 / 3.3.1: announce status and errors for VoiceOver / TalkBack.
+  // Announce status and errors for VoiceOver / TalkBack.
   useEffect(() => {
-    if (!error) {
-      return;
+    if (error) {
+      AccessibilityInfo.announceForAccessibility(error);
     }
-    AccessibilityInfo.announceForAccessibility(error);
   }, [error]);
 
   useEffect(() => {
-    if (!isOffline) {
-      return;
+    if (isOffline) {
+      AccessibilityInfo.announceForAccessibility(
+        strings('wallet_recovery_mfa.offline_reason'),
+      );
     }
-    AccessibilityInfo.announceForAccessibility(
-      strings('wallet_recovery_mfa.offline_reason'),
-    );
   }, [isOffline]);
 
   return (
@@ -201,26 +192,25 @@ const WalletRecoveryVerify = ({
 
         <Box twClassName="mt-8 gap-4">
           {showPasskey ? (
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              isDisabled={mfaDisabled}
-              onPress={onPasskey}
-              testID={WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON}
-            >
-              {strings('wallet_recovery_mfa.use_passkey')}
-            </Button>
-          ) : null}
-
-          {showPasskey ? (
-            <Box twClassName="flex-row items-center gap-4">
-              <Box twClassName="flex-1 border-t border-muted" />
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
-                {strings('wallet_recovery_mfa.or')}
-              </Text>
-              <Box twClassName="flex-1 border-t border-muted" />
-            </Box>
+            <>
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                isDisabled={mfaDisabled}
+                onPress={() => onSelectMethod('passkey')}
+                testID={WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON}
+              >
+                {strings('wallet_recovery_mfa.use_passkey')}
+              </Button>
+              <Box twClassName="flex-row items-center gap-4">
+                <Box twClassName="flex-1 border-t border-muted" />
+                <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
+                  {strings('wallet_recovery_mfa.or')}
+                </Text>
+                <Box twClassName="flex-1 border-t border-muted" />
+              </Box>
+            </>
           ) : null}
 
           <Box twClassName="gap-3">

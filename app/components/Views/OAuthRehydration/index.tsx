@@ -139,7 +139,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const dispatch = useDispatch();
   const isMfaUiKitEnabled = useSelector(selectMfaUiKitEnabled);
   const isMoneyMfaEnabledFlag = useSelector(selectMoneyEnableMfaFlag);
-  // Social recovery: locked MFA (Mathieu Core APIs) then password unlock.
+  // Social recovery: locked MFA then password unlock.
   const canOfferSocialMfaVerify = isMoneyMfaEnabledFlag && isMfaUiKitEnabled;
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
@@ -591,8 +591,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     ],
   );
 
-  // Blank loader → OS passkey → full-screen Verify it's you (not
-  // kit bottomsheet) → password. `password` also used when MFA is skipped.
+  // Loader → OS passkey → full-screen verify → password (password also if MFA skipped).
   const [walletRecoveryStep, setWalletRecoveryStep] =
     useState<WalletRecoveryStep>(
       canOfferSocialMfaVerify ? 'loading' : 'password',
@@ -600,12 +599,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [fallbackMethods, setFallbackMethods] = useState<MfaMethod[]>([]);
   const [verifyBusy, setVerifyBusy] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
-  /** Password opened from fallback → back returns to verify. */
+  /** True when password was opened from verify — back returns to verify. */
   const [passwordFromVerify, setPasswordFromVerify] = useState(false);
 
   const lockedMfaReason = useMemo(
     (): MfaReason => ({
-      // Closest typed entry point until recovery is added to MfaEntryPoint.
       operation: 'settings.social_mfa_verify',
       presentation: 'modal',
       verifyDescription: strings('wallet_recovery_mfa.verify_description'),
@@ -613,11 +611,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [],
   );
 
-  /**
-   * Before password unlock: Mathieu locked-state social MFA
-   * (`refreshSocialLoginCredentials` + begin/complete SocialLoginVerification).
-   * On passkey dismiss → full-screen WalletRecoveryVerify.
-   */
+  /** Pre-password locked social MFA; passkey dismiss → full-screen verify. */
   const offerLockedSocialMfaVerify = useCallback(async () => {
     if (!canOfferSocialMfaVerify) {
       setWalletRecoveryStep('password');
@@ -629,14 +623,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setPasswordFromVerify(false);
     try {
       const outcome = await verifySocialLoginWhileLocked(lockedMfaReason);
-      Logger.log('OAuthRehydration: locked social MFA outcome', outcome);
+      Logger.log('OAuthRehydration: locked social MFA', {
+        status: outcome.status,
+      });
       if (outcome.status === 'fallback') {
         setFallbackMethods(outcome.methods);
         setWalletRecoveryStep('verify');
         return;
       }
       // verified / skipped / failed / cancelled → password unlock next
-      setPasswordFromVerify(false);
     } finally {
       setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
     }
@@ -644,7 +639,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const handleRecoveryMethodSelect = useCallback(
     async (method: WalletRecoveryMethod) => {
-      // Google/Apple must never offer sign-in email as a method.
+      // Google/Apple must never offer sign-in email as a recovery method.
       if (method === 'email' && authConnection !== 'telegram') {
         return;
       }
@@ -665,9 +660,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           lockedMfaReason,
           mfaMethod,
         );
-        Logger.log('OAuthRehydration: fallback factor outcome', outcome);
         if (outcome.status === 'verified') {
-          // MFA succeeded — continue recovery at password; do not loop to verify.
           setPasswordFromVerify(false);
           setWalletRecoveryStep('password');
           return;
@@ -675,7 +668,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         if (outcome.status === 'failed') {
           setVerifyError(strings('wallet_recovery_mfa.method_failed'));
         }
-        // cancelled → stay on full-screen verify, no error line
+        // cancelled → stay on verify with no error
       } finally {
         setVerifyBusy(false);
       }
@@ -875,10 +868,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
   }, [track]);
 
-  // Locked-state MFA before password (Mathieu Core #11371 APIs).
-  // Wait until Seedless has a social authConnection — Telegram/Google/Apple
-  // OAuth can land on this screen before social state is written, and
-  // refreshSocialLoginCredentials then fails with "no social login".
+  // Wait for Seedless social authConnection before locked MFA — OAuth can
+  // land here before social state is written ("no social login").
   const hasOfferedLockedSocialMfa = useRef(false);
   const hasSocialAuthConnection =
     authConnection === 'google' ||
@@ -929,7 +920,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [accountType, navigation, track]);
 
   const handlePasswordBack = useCallback(() => {
-    // Back from password opened via "Use password" → fallback verify.
     if (passwordFromVerify) {
       setWalletRecoveryStep('verify');
       return;
@@ -937,7 +927,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleUseOtherMethod();
   }, [passwordFromVerify, handleUseOtherMethod]);
 
-  // Hardware back must match header back (password → verify when applicable).
+  // Hardware back matches header back (password → verify when applicable).
   const handleBackPress = useCallback(() => {
     if (!canOfferSocialMfaVerify) {
       navigation.goBack();
@@ -1094,17 +1084,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     </OnboardingLoginCanvas>
   );
 
-  // Email code only for Telegram — never Google/Apple sign-in email.
+  // Email OTP only for Telegram — never Google/Apple sign-in email.
   const showEmailOnVerify =
     authConnection === 'telegram' && fallbackMethods.includes('email_otp');
 
   const isRecoveryOffline =
     netInfo.isConnected === false || netInfo.isInternetReachable === false;
 
-  // Loader → (OS passkey) → full-screen verify fallback → password.
   const renderWalletRecovery = () => {
     if (walletRecoveryStep === 'loading') {
-      return <WalletRecoveryLoading onBack={handleUseOtherMethod} />;
+      return <WalletRecoveryLoading />;
     }
     if (walletRecoveryStep === 'verify') {
       return (

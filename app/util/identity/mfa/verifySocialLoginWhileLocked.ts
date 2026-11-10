@@ -84,18 +84,14 @@ const listLockedSocialMethods = async (
 > => {
   const controller = createSocialLockedMfaControllerAdapter();
   try {
-    // OAuth can navigate here a beat before Seedless social state is ready.
-    // Retry briefly when Auth still reports no social login / no token.
+    // OAuth can land here before Seedless social state is ready — retry briefly.
     const maxAttempts = 5;
     let credentials: EnrolledCredential[] = [];
-    let lastError: unknown;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         credentials = await controller.refreshEnrolledCredentials();
-        lastError = undefined;
         break;
       } catch (error) {
-        lastError = error;
         const message = error instanceof Error ? error.message : String(error);
         const retryable =
           message.includes('no social login') ||
@@ -110,14 +106,7 @@ const listLockedSocialMethods = async (
         await new Promise((resolve) => setTimeout(resolve, 400 * attempt));
       }
     }
-    if (lastError) {
-      throw lastError;
-    }
     const methods = activeSocialMfaMethods(credentials);
-    Logger.log('verifySocialLoginWhileLocked: listed methods', {
-      methodCount: methods.length,
-      methods,
-    });
     if (methods.length === 0) {
       return { status: 'skipped', reason: 'no_methods' };
     }
@@ -138,15 +127,12 @@ const listLockedSocialMethods = async (
 };
 
 /**
- * Pre-password social recovery MFA using Mathieu's locked-state Auth APIs.
+ * Pre-password social recovery MFA using locked-state Auth APIs.
  *
- * Lists factors with `refreshSocialLoginCredentials`, then opens the highest-
- * priority factor (usually passkey). On dismiss/cancel, returns `fallback`
- * so the host can show the full-screen recovery picker — not the
- * accounts-kit bottomsheet. Call only while the vault is still locked.
- *
- * @param reason - Feature reason for Auth traces / analytics.
- * @returns Outcome so the host can continue to password unlock or full-screen fallback.
+ * Lists factors with `refreshSocialLoginCredentials`, then opens passkey when
+ * available. On dismiss/cancel/failure, returns `fallback` so the host can show
+ * the full-screen recovery picker (not the accounts-kit bottomsheet). Call only
+ * while the vault is still locked.
  */
 export const verifySocialLoginWhileLocked = async (
   reason: MfaReason,
@@ -157,64 +143,40 @@ export const verifySocialLoginWhileLocked = async (
   }
   const { methods } = listed;
 
-  // Only auto-open OS passkey. No passkey → full-screen fallback
-  // (methods + Use password). Never auto-launch totp/email.
+  // Only auto-open OS passkey. Otherwise → full-screen fallback (+ password).
   if (!methods.includes('passkey')) {
-    Logger.log(
-      'verifySocialLoginWhileLocked: no passkey → full-screen fallback',
-      { methods },
-    );
     return { status: 'fallback', methods };
   }
 
-  const request: Omit<VerifyOrEnrollOptions, 'reason'> = {
-    methods: ['passkey'],
-    verifyWith: 'passkey',
-  };
-
   try {
-    Logger.log('verifySocialLoginWhileLocked: primary factor', {
-      primary: 'passkey',
-      methods,
+    const result = await startLockedVerify(reason, {
+      methods: ['passkey'],
+      verifyWith: 'passkey',
     });
-    const result = await startLockedVerify(reason, request);
     return { status: 'verified', result };
   } catch (primaryError) {
-    const code = getMfaErrorCode(primaryError);
-    if (code === 'flow_cancelled') {
-      // Host shows full-screen Verify it's you (not kit bottomsheet).
-      Logger.log('verifySocialLoginWhileLocked: passkey cancelled → fallback', {
-        methods,
-      });
-      return { status: 'fallback', methods };
-    }
-    // Hard failure on passkey — still offer full-screen alternatives.
-    Logger.log('verifySocialLoginWhileLocked: passkey failed → fallback', {
+    // Cancel or hard failure — still offer full-screen alternatives.
+    Logger.log('verifySocialLoginWhileLocked: passkey → fallback', {
       methods,
-      code,
+      code: getMfaErrorCode(primaryError),
     });
     return { status: 'fallback', methods };
   }
 };
 
-/**
- * Verify one enrolled factor while locked (from the full-screen fallback).
- * Does not open the kit method picker.
- */
+/** Verify one enrolled factor while locked (full-screen fallback path). */
 export const verifySocialLoginFactorWhileLocked = async (
   reason: MfaReason,
   method: MfaMethod,
 ): Promise<VerifySocialLoginWhileLockedResult> => {
   try {
-    Logger.log('verifySocialLoginFactorWhileLocked: method', { method });
     const result = await startLockedVerify(reason, {
       methods: [method],
       verifyWith: method,
     });
     return { status: 'verified', result };
   } catch (error) {
-    const code = getMfaErrorCode(error);
-    if (code === 'flow_cancelled') {
+    if (getMfaErrorCode(error) === 'flow_cancelled') {
       return { status: 'cancelled' };
     }
     return { status: 'failed', error };

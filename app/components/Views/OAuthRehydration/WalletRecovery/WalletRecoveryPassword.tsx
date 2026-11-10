@@ -39,9 +39,7 @@ const styles = StyleSheet.create({
   },
 });
 
-/**
- * Figma Social login users — Password recovery step after "Verify it's you".
- */
+/** Password recovery step after "Verify it's you". */
 const WalletRecoveryPassword = ({
   password,
   error,
