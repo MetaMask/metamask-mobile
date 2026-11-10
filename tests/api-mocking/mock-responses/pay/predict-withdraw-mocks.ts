@@ -22,6 +22,7 @@ import {
   POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS,
 } from '../polymarket/polymarket-mocks';
 import { createTransactionSentinelResponse } from '../polymarket/polymarket-transaction-sentinel-response.ts';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const PREDICT_PUSD_ADDRESS = '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb';
 const PREDICT_WITHDRAW_AMOUNT_BASE_UNITS = '5000000'; // $5 pUSD at 6 decimals
@@ -334,110 +335,86 @@ async function mockAccountsApiTransactions(
   mockServer: Mockttp,
   includeMoneyDeposit = false,
 ) {
-  const handler = () => ({
-    statusCode: 200,
-    json: {
-      unprocessedNetworks: [],
-      pageInfo: {
-        count: includeMoneyDeposit ? 2 : 1,
-        hasNextPage: false,
-        endCursor: '',
-      },
-      data: [
-        ...(includeMoneyDeposit
-          ? [
-              {
-                hash: PREDICT_MONEY_DEPOSIT_TX_HASH,
-                timestamp: new Date().toISOString(),
-                chainId: 143,
-                blockNumber: 1234568,
-                blockHash:
-                  '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-                gas: 21000,
-                gasUsed: 21000,
-                gasPrice: '1000000000',
-                effectiveGasPrice: '1000000000',
-                nonce: 2,
-                cumulativeGasUsed: 21000,
-                value: '0',
-                to: MONEY_ACCOUNT_TELLER_ADDRESS,
-                from: DEFAULT_FIXTURE_ACCOUNT,
-                isError: false,
-                transactionType: 'deposit',
-                transactionCategory: 'money',
-                valueTransfers: [
-                  {
-                    from: MONEY_ACCOUNT_TELLER_ADDRESS,
-                    to: DEFAULT_FIXTURE_ACCOUNT,
-                    amount: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
-                    decimal: 6,
-                    contractAddress: MUSD_MONAD_ADDRESS,
-                    symbol: 'mUSD',
-                    name: 'mUSD',
-                    transferType: 'ERC20',
-                  },
-                ],
-              },
-            ]
-          : []),
-        {
-          hash: PREDICT_WITHDRAW_TX_HASH,
-          timestamp: new Date().toISOString(),
-          chainId: 137,
-          blockNumber: 1234568,
-          blockHash:
-            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-          gas: 21000,
-          gasUsed: 21000,
-          gasPrice: '1000000000',
-          effectiveGasPrice: '1000000000',
-          nonce: 1,
-          cumulativeGasUsed: 21000,
-          value: '0',
-          to: PREDICT_PUSD_ADDRESS,
-          from: DEFAULT_FIXTURE_ACCOUNT,
-          isError: false,
-          transactionType: 'withdraw',
-          transactionCategory: 'predict',
-          valueTransfers: [
-            {
-              from: DEFAULT_FIXTURE_ACCOUNT,
-              to: includeMoneyDeposit
-                ? MONEY_ACCOUNT_TELLER_ADDRESS
-                : DEFAULT_FIXTURE_ACCOUNT,
-              amount: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
-              decimal: 6,
-              contractAddress: PREDICT_PUSD_ADDRESS,
-              symbol: 'pUSD',
-              name: 'Polymarket USD',
-              transferType: 'ERC20',
-            },
-          ],
-        },
-      ],
+  await mockAccountsApiTransactionRoutes(mockServer, {
+    unprocessedNetworks: [],
+    pageInfo: {
+      count: includeMoneyDeposit ? 2 : 1,
+      hasNextPage: false,
+      endCursor: '',
     },
+    data: [
+      ...(includeMoneyDeposit
+        ? [
+            {
+              hash: PREDICT_MONEY_DEPOSIT_TX_HASH,
+              timestamp: new Date().toISOString(),
+              chainId: 143,
+              blockNumber: 1234568,
+              blockHash:
+                '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+              gas: 21000,
+              gasUsed: 21000,
+              gasPrice: '1000000000',
+              effectiveGasPrice: '1000000000',
+              nonce: 2,
+              cumulativeGasUsed: 21000,
+              value: '0',
+              to: MONEY_ACCOUNT_TELLER_ADDRESS,
+              from: DEFAULT_FIXTURE_ACCOUNT,
+              isError: false,
+              transactionType: 'deposit',
+              transactionCategory: 'money',
+              valueTransfers: [
+                {
+                  from: MONEY_ACCOUNT_TELLER_ADDRESS,
+                  to: DEFAULT_FIXTURE_ACCOUNT,
+                  amount: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
+                  decimal: 6,
+                  contractAddress: MUSD_MONAD_ADDRESS,
+                  symbol: 'mUSD',
+                  name: 'mUSD',
+                  transferType: 'ERC20',
+                },
+              ],
+            },
+          ]
+        : []),
+      {
+        hash: PREDICT_WITHDRAW_TX_HASH,
+        timestamp: new Date().toISOString(),
+        chainId: 137,
+        blockNumber: 1234568,
+        blockHash:
+          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 1,
+        cumulativeGasUsed: 21000,
+        value: '0',
+        to: PREDICT_PUSD_ADDRESS,
+        from: DEFAULT_FIXTURE_ACCOUNT,
+        isError: false,
+        transactionType: 'withdraw',
+        transactionCategory: 'predict',
+        valueTransfers: [
+          {
+            from: DEFAULT_FIXTURE_ACCOUNT,
+            to: includeMoneyDeposit
+              ? MONEY_ACCOUNT_TELLER_ADDRESS
+              : DEFAULT_FIXTURE_ACCOUNT,
+            amount: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
+            decimal: 6,
+            contractAddress: PREDICT_PUSD_ADDRESS,
+            symbol: 'pUSD',
+            name: 'Polymarket USD',
+            transferType: 'ERC20',
+          },
+        ],
+      },
+    ],
   });
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
 }
 
 async function mockAccountsApiActiveNetworks(

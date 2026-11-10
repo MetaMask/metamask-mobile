@@ -20,6 +20,7 @@ import {
   dataApiJsonResponse,
   getProxiedDataApiUrl,
 } from '../polymarket/polymarket-mocks';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const MAINNET_SPOT_PRICES = {
   'eip155:1/slip44:60': {
@@ -515,72 +516,48 @@ async function mockPredictActivity(mockServer: Mockttp) {
 }
 
 async function mockAccountsApiTransactions(mockServer: Mockttp) {
-  const handler = () => ({
-    statusCode: 200,
-    json: {
-      unprocessedNetworks: [],
-      pageInfo: {
-        count: 1,
-        hasNextPage: false,
-        endCursor: '',
-      },
-      data: [
-        {
-          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          timestamp: new Date().toISOString(),
-          chainId: 42161,
-          blockNumber: 1234568,
-          blockHash:
-            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-          gas: 21000,
-          gasUsed: 21000,
-          gasPrice: '1000000000',
-          effectiveGasPrice: '1000000000',
-          nonce: 1,
-          cumulativeGasUsed: 21000,
-          value: '0',
-          to: '0x0000000000000000000000000000000000000000',
-          from: DEFAULT_FIXTURE_ACCOUNT,
-          isError: false,
-          transactionType: 'deposit',
-          transactionCategory: 'perps',
-          valueTransfers: [
-            {
-              from: DEFAULT_FIXTURE_ACCOUNT,
-              to: DEFAULT_FIXTURE_ACCOUNT,
-              amount: '50000000',
-              decimal: 6,
-              contractAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-              symbol: 'USDC',
-              name: 'USD Coin',
-              transferType: 'ERC20',
-            },
-          ],
-        },
-      ],
+  await mockAccountsApiTransactionRoutes(mockServer, {
+    unprocessedNetworks: [],
+    pageInfo: {
+      count: 1,
+      hasNextPage: false,
+      endCursor: '',
     },
+    data: [
+      {
+        hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        timestamp: new Date().toISOString(),
+        chainId: 42161,
+        blockNumber: 1234568,
+        blockHash:
+          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        gas: 21000,
+        gasUsed: 21000,
+        gasPrice: '1000000000',
+        effectiveGasPrice: '1000000000',
+        nonce: 1,
+        cumulativeGasUsed: 21000,
+        value: '0',
+        to: '0x0000000000000000000000000000000000000000',
+        from: DEFAULT_FIXTURE_ACCOUNT,
+        isError: false,
+        transactionType: 'deposit',
+        transactionCategory: 'perps',
+        valueTransfers: [
+          {
+            from: DEFAULT_FIXTURE_ACCOUNT,
+            to: DEFAULT_FIXTURE_ACCOUNT,
+            amount: '50000000',
+            decimal: 6,
+            contractAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            transferType: 'ERC20',
+          },
+        ],
+      },
+    ],
   });
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001) // Higher priority than the generic accounts.api mock in perps-arbitrum-mocks
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
 }
 
 /**

@@ -36,7 +36,8 @@ const PREDICT_WITHDRAW_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Predict withdraw'), () => {
-  appiumTest.describe.configure({ timeout: 250_000 });
+  // Opening Activity after confirm lands past 4 minutes on Android CI.
+  appiumTest.describe.configure({ timeout: 360_000 });
 
   appiumTest(
     'withdraws Predict balance to Polygon pUSD',

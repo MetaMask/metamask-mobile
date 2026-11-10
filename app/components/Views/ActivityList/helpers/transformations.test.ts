@@ -350,6 +350,22 @@ describe('ActivityList transformations', () => {
   });
 
   describe('selectApiEvmTransactions', () => {
+    it('drops legacy v4 records instead of failing the activity query', () => {
+      const legacyRecord = {
+        hash: '0xlegacy',
+        from: address,
+        to: otherAddress,
+        value: '0',
+        valueTransfers: [],
+      };
+
+      const result = selectApiEvmTransactions({ address })(
+        buildV5Data([legacyRecord as unknown as V5TransactionRecord]),
+      );
+
+      expect(result.pages[0].data).toEqual([]);
+    });
+
     it('filters outgoing value-transfer-only rows where the top-level tx is unrelated', () => {
       const outgoingTokenTransfer = buildV5Transaction({
         id: '0xoutgoing-token',

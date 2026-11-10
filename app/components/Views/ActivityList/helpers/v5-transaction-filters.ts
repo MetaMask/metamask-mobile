@@ -6,6 +6,12 @@ export function shouldSkipUnrelatedV5Transaction(
   transaction: V5TransactionRecord,
   excludedTxHashes?: Set<string>,
 ) {
+  // A v4-shaped record has no `tx`. Skipping it keeps one bad row from
+  // failing the whole activity query.
+  if (!transaction?.tx) {
+    return true;
+  }
+
   const subjectAddress = address.toLowerCase();
   const rawFrom = transaction.tx.from?.toLowerCase();
   const rawTo = transaction.tx.to?.toLowerCase();
