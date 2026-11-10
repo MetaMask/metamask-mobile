@@ -1163,7 +1163,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'avatar' ? (
                 <Box alignItems={BoxAlignItems.Center}>
-                  <OnboardingTitle twClassName="pb-14">
+                  <OnboardingTitle twClassName="pt-2 pb-14">
                     {strings(
                       'social_leaderboard.profile_onboarding.customize_avatar',
                     )}
