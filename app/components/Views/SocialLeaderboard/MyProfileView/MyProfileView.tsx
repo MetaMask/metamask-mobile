@@ -349,7 +349,11 @@ const MyProfileView: React.FC = () => {
     : liveProfile.profile?.profile.profileId;
   const { isBlocked, block, unblock } = useTraderBlock(blockProfileId);
   const isPrivate = displayProfile?.shareTradingActivity === false;
-  const isContentHidden = isBlocked || isPrivate;
+  // Another trader's privacy is unknown until Social API answers, so nothing
+  // they may keep private is fetched or followable before then.
+  const isPrivacyPending = !isOwner && !liveProfile.profile;
+  const privacyLoadError = isPrivacyPending ? liveProfile.error : null;
+  const isContentHidden = isBlocked || isPrivate || isPrivacyPending;
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const trackInteraction = useSocialScreenAnalytics(Screen.MY_PROFILE, {
     state: [isLoading, Boolean(error), Boolean(displayProfile)],
@@ -422,7 +426,8 @@ const MyProfileView: React.FC = () => {
     closedError: closedPositionsError,
     refetch: refetchPositions,
   } = useTraderPositions(addressOrId ?? '', {
-    refetchInterval: isContentHidden ? undefined : 30_000,
+    enabled: !isContentHidden,
+    refetchInterval: 30_000,
   });
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
@@ -606,8 +611,15 @@ const MyProfileView: React.FC = () => {
   ]);
 
   const handlePositionsRetry = useCallback(() => {
-    refetchPositions().catch(() => undefined);
-  }, [refetchPositions]);
+    (privacyLoadError ? refreshLiveProfile() : refetchPositions()).catch(
+      () => undefined,
+    );
+  }, [privacyLoadError, refetchPositions, refreshLiveProfile]);
+  const handlePostsRetry = useCallback(() => {
+    (privacyLoadError ? refreshLiveProfile() : refreshPosts()).catch(
+      () => undefined,
+    );
+  }, [privacyLoadError, refreshLiveProfile, refreshPosts]);
 
   const handleTitleSectionLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -702,9 +714,14 @@ const MyProfileView: React.FC = () => {
     visiblePosts.length === 0 &&
     !postsError &&
     (isPostsLoading || isFetchingNextPage || hasNextPage);
+  const isAwaitingPrivacy = isPrivacyPending && !privacyLoadError;
   const showInitialPostSkeletons =
-    (isPostsLoading && posts.length === 0) || showFilteredPostLoading;
+    (isPostsLoading && posts.length === 0) ||
+    showFilteredPostLoading ||
+    isAwaitingPrivacy;
   const showPostsEmptyState =
+    !isAwaitingPrivacy &&
+    !privacyLoadError &&
     !isPostsLoading &&
     !isFetchingNextPage &&
     visiblePosts.length === 0 &&
@@ -974,6 +991,7 @@ const MyProfileView: React.FC = () => {
                             : ButtonVariant.Primary
                         }
                         isFullWidth
+                        isDisabled={isPrivacyPending}
                         onPress={handleFollowPress}
                         testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
                       >
@@ -1131,8 +1149,8 @@ const MyProfileView: React.FC = () => {
                 {activeTab !== 'posts' ? (
                   <ProfilePositionsTab
                     positions={positionTab.positions}
-                    isLoading={positionTab.isLoading}
-                    error={positionTab.error}
+                    isLoading={positionTab.isLoading || isAwaitingPrivacy}
+                    error={privacyLoadError ?? positionTab.error}
                     isClosed={positionTab.isClosed}
                     filter={assetFilter}
                     onPositionPress={handlePositionPress}
@@ -1145,9 +1163,9 @@ const MyProfileView: React.FC = () => {
                     showInitialPostSkeletons={showInitialPostSkeletons}
                     showPostsEmptyState={showPostsEmptyState}
                     postsEmptyMessage={postsEmptyMessage}
-                    postsError={postsError}
+                    postsError={privacyLoadError ?? postsError}
                     visiblePosts={visiblePosts}
-                    onRetry={refreshPosts}
+                    onRetry={handlePostsRetry}
                     showCopyTrade={!isOwner}
                   />
                 )}

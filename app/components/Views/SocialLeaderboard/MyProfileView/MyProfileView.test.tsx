@@ -1380,6 +1380,47 @@ describe('MyProfileView', () => {
       };
     });
 
+    it('holds positions and follow until the trader privacy loads', () => {
+      mockUseTraderProfile.mockReturnValue({
+        ...foreignTraderProfileResult(),
+        profile: null,
+        isLoading: true,
+      });
+
+      renderWithProvider(<MyProfileView />);
+
+      expect(mockUseTraderPositions).toHaveBeenLastCalledWith(
+        'trader-1',
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(
+        screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      ).toBeDisabled();
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('retries the trader profile when it fails to load', () => {
+      const refresh = jest.fn().mockResolvedValue(undefined);
+      mockUseTraderProfile.mockReturnValue({
+        ...foreignTraderProfileResult(),
+        profile: null,
+        error: 'Something went wrong',
+        refresh,
+      });
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_RETRY_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_ERROR),
+      ).toBeOnTheScreen();
+      expect(refresh).toHaveBeenCalledTimes(1);
+    });
+
     it('hides performance, positions, posts and follow on a private trader', () => {
       mockUseTraderProfile.mockReturnValue(privateTraderProfileResult());
 
@@ -1514,14 +1555,9 @@ describe('MyProfileView', () => {
       traderAddress: '0xabc',
     };
     const toggleFollow = jest.fn().mockResolvedValue(undefined);
-    mockUseTraderProfile.mockReturnValue({
-      profile: null,
-      isLoading: false,
-      error: null,
-      isFollowing: false,
-      toggleFollow,
-      refresh: jest.fn().mockResolvedValue(undefined),
-    });
+    mockUseTraderProfile.mockReturnValue(
+      foreignTraderProfileResult(false, toggleFollow),
+    );
 
     renderWithProvider(<MyProfileView />);
 
@@ -1731,6 +1767,7 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(mockUseTraderPositions).toHaveBeenCalledWith('0xselected', {
+      enabled: true,
       refetchInterval: 30_000,
     });
   });
