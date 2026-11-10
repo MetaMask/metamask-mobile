@@ -241,7 +241,13 @@ export function useTraderPositionData(
     isClosedOverride ??
     (positionParam != null && isClosedPosition(positionParam));
 
-  const positionValue = isClosed ? null : positionParam?.currentValueUSD;
+  // A perp's headline is its size (leveraged notional). `currentValueUSD` is
+  // the margin, so it is only the fallback when the size is not reported.
+  const positionValue = isClosed
+    ? null
+    : isPerp
+      ? (positionParam?.positionValueUSD ?? positionParam?.currentValueUSD)
+      : positionParam?.currentValueUSD;
 
   const pnlValue = isPerp
     ? (positionParam?.pnlValueUsd ?? positionParam?.realizedPnl)

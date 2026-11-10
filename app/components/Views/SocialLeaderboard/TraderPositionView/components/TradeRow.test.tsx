@@ -1,6 +1,8 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
+import { lightTheme } from '@metamask/design-tokens';
 import {
   AvatarAccount,
   IconColor,
@@ -28,6 +30,10 @@ const baseTrade: Trade = {
   timestamp: 1_700_000_000_000,
   transactionHash: '0xabc',
 };
+
+const colorOf = (node: ReturnType<typeof screen.getByText>) =>
+  (StyleSheet.flatten(node.props.style) as { color?: string } | undefined)
+    ?.color;
 
 const REAL_AVATAR_URL = 'https://example.com/avatar.png';
 const TRADER_ADDRESS = '0x0000000000000000000000000000000000000001';
@@ -129,6 +135,27 @@ describe('TradeRow', () => {
     ).toBeNull();
     expect(screen.queryByText('2x')).toBeNull();
     expect(screen.queryByText('LONG')).toBeNull();
+  });
+
+  it('shows a perp fill as its size (margin x leverage) in neutral color, not the margin in green', () => {
+    renderWithProvider(
+      <TradeRow
+        trade={{
+          ...baseTrade,
+          usdCost: 10.9,
+          classification: 'perp',
+          perpPositionType: 'short',
+          perpLeverage: 3,
+        }}
+        action="opened"
+      />,
+    );
+
+    expect(screen.getByText('$32.70')).toBeOnTheScreen();
+    expect(screen.queryByText('$10.90')).toBeNull();
+    expect(colorOf(screen.getByText('$32.70'))).toBe(
+      lightTheme.colors.text.default,
+    );
   });
 
   it('shows a success plus avatar for a positive spot fill', () => {

@@ -161,10 +161,13 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   // neutral white (matching spot). Closed positions show signed, colored
   // realized PnL: perps via `perpPnlValue` (realized + unrealized), spot via
   // `realizedPnl`.
+  // A perp's open headline is its size, not its margin (`currentValueUSD`).
   const headlineValue = formatPositionHeadlineValue(
     isClosed,
     isPerp,
-    position.currentValueUSD,
+    isPerp
+      ? (position.positionValueUSD ?? position.currentValueUSD)
+      : position.currentValueUSD,
     perpPnlValue,
     position.realizedPnl,
   );

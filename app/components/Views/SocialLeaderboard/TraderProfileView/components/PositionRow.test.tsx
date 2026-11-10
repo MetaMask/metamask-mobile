@@ -517,6 +517,19 @@ describe('PositionRow', () => {
       expect(screen.queryByText('+$1,059.96')).not.toBeOnTheScreen();
     });
 
+    it('shows the position size, not the margin, as the top-right value for an open perp', () => {
+      const position = {
+        ...perpPosition,
+        currentValueUSD: 2259.96,
+        positionValueUSD: 6000,
+      };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('$6,000.00')).toBeOnTheScreen();
+      expect(screen.queryByText('$2,259.96')).toBeNull();
+    });
+
     it('shows the trade date (not the position amount) for a closed perp', () => {
       const closedPerp = { ...perpPosition, currentValueUSD: 0 };
 

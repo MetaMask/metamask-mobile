@@ -84,6 +84,16 @@ const TradeRow: React.FC<TradeRowProps> = ({
 
   const isEntry = trade.intent === 'enter';
   const isPerp = isPerpTrade(trade);
+  // A perp fill's `usdCost` is the margin posted on it. Show the fill's size
+  // (margin x leverage) in neutral white, so it reads as a position size and
+  // not as a P&L. Spot fills keep the signed, colored spend.
+  const perpSizeUsd =
+    isPerp && trade.perpLeverage != null && trade.perpLeverage > 0
+      ? Math.abs(trade.usdCost) * trade.perpLeverage
+      : null;
+  const amountLabel = isPerp
+    ? formatUsd(perpSizeUsd ?? Math.abs(trade.usdCost))
+    : formatUsd(isEntry ? Math.abs(trade.usdCost) : -Math.abs(trade.usdCost));
 
   const actionLabel = strings(
     getTradeActionI18nKey('trader_position', isPerp, action),
@@ -172,13 +182,16 @@ const TradeRow: React.FC<TradeRowProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
+            color={isPerp ? TextColor.TextDefault : undefined}
             twClassName={
-              isEntry ? 'text-success-default' : 'text-error-default'
+              isPerp
+                ? undefined
+                : isEntry
+                  ? 'text-success-default'
+                  : 'text-error-default'
             }
           >
-            {formatUsd(
-              isEntry ? Math.abs(trade.usdCost) : -Math.abs(trade.usdCost),
-            )}
+            {amountLabel}
           </Text>
         </Box>
       </Box>
