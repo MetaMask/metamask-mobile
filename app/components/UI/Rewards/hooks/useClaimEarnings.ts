@@ -162,6 +162,12 @@ export interface ClaimEarningsOptions {
    * would open that sheet again. Cashback still submits.
    */
   omitFollowTrade?: boolean;
+  /**
+   * A summary read after this press found tax had cleared. The earnings tab
+   * claims against it. The summary the button captured can still have the
+   * income in `held`, which has no claim route.
+   */
+  summary?: EarningsSummaryDto;
 }
 
 /**

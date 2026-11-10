@@ -88,6 +88,14 @@ export function useTaxDocumentation(profileId: string) {
     void fetchEarningsSummary({ forceFresh: true }).catch(() => undefined);
   }, [fetchEarningsSummary]);
 
+  const readFreshSummary = useCallback(async () => {
+    try {
+      return await fetchEarningsSummary({ forceFresh: true });
+    } catch {
+      return undefined;
+    }
+  }, [fetchEarningsSummary]);
+
   const showError = useCallback(
     (message: string) => {
       if (message.length === 0) {
@@ -566,12 +574,15 @@ export function useTaxDocumentation(profileId: string) {
           await noteSubmitted(null);
           submitted = null;
         }
-        if (
-          taxMe?.reason === 'GATE_OFF' ||
-          (heldForTax && taxMe?.cleared === true)
-        ) {
+        if (taxMe?.reason === 'GATE_OFF') {
           refreshSummary();
         }
+        // The pressed summary still holds the income that tax has just
+        // released, so it has no claim route. Claim against the fresh read.
+        const freshSummary =
+          heldForTax && taxMe?.cleared === true
+            ? await readFreshSummary()
+            : undefined;
         let omitFollowTrade = false;
         if (taxMe) {
           const sheet = taxSheetForClaim(taxMe, submitted);
@@ -591,8 +602,15 @@ export function useTaxDocumentation(profileId: string) {
             blockingSheetOpen.current = true;
           }
         }
+        const claimOptions: ClaimEarningsOptions = {};
         if (omitFollowTrade) {
-          await claim({ omitFollowTrade: true });
+          claimOptions.omitFollowTrade = true;
+        }
+        if (freshSummary) {
+          claimOptions.summary = freshSummary;
+        }
+        if (claimOptions.omitFollowTrade || claimOptions.summary) {
+          await claim(claimOptions);
         } else {
           await claim();
         }
@@ -605,6 +623,7 @@ export function useTaxDocumentation(profileId: string) {
       localizedText,
       noteSubmitted,
       openSheet,
+      readFreshSummary,
       readSubmitted,
       readTaxMe,
       refreshSummary,

@@ -351,6 +351,35 @@ describe('useTaxDocumentation', () => {
       );
     });
 
+    it('claims against the fresh summary when tax cleared the held income', async () => {
+      const freshSummary = { ...summary, minimum_musd_base_units: '1' };
+      mockFetchEarningsSummary.mockResolvedValue(freshSummary);
+      mockTaxRead(taxMe(clearedTaxMe));
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(taxHeldSummary, claim);
+      });
+
+      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith({ summary: freshSummary });
+    });
+
+    it('still claims with the pressed summary when the fresh read fails', async () => {
+      mockFetchEarningsSummary.mockRejectedValue(new Error('offline'));
+      mockTaxRead(taxMe(clearedTaxMe));
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(taxHeldSummary, claim);
+      });
+
+      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith();
+    });
+
     it('refreshes the summary when a tax hold reads as already cleared', async () => {
       mockTaxRead(taxMe(clearedTaxMe));
       const claim = jest.fn().mockResolvedValue(undefined);
