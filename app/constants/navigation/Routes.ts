@@ -259,6 +259,7 @@ const Routes = {
     NETWORK_DETAILS: 'NetworkDetails',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
     REGION_SELECTOR: 'SettingsRegionSelector',
+    IDENTITY_VERIFICATION: 'IdentityVerificationSettings',
   },
   SHEET: {
     ADDRESS_SELECTOR: 'AddressSelector',
