@@ -37,10 +37,15 @@ function moneyAccount(): MoneyAccount {
 
 export interface MoneySplashViewStateOptions {
   splashSeen?: boolean;
+  onboardingSeen?: boolean;
+  /** Omit the vault config so deposit setup fails and the fallback path runs. */
+  hasVaultConfig?: boolean;
 }
 
 export function moneySplashViewState({
   splashSeen = false,
+  onboardingSeen = false,
+  hasVaultConfig = true,
 }: MoneySplashViewStateOptions = {}) {
   const account = moneyAccount();
 
@@ -59,12 +64,13 @@ export function moneySplashViewState({
         enabled: true,
         minimumVersion: '0.0.0',
       },
-      moneyAccountVaultConfig: MONAD_VAULT,
+      ...(hasVaultConfig ? { moneyAccountVaultConfig: MONAD_VAULT } : {}),
     })
     .withOverrides({
       user: {
         ...userInitialState,
         moneySplashSeen: splashSeen,
+        moneyOnboardingSeen: onboardingSeen,
       },
       engine: {
         backgroundState: {

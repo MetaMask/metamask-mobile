@@ -4,7 +4,10 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { getTotalMemorySync } from 'react-native-device-info';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { strings } from '../../../../../../locales/i18n';
-import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
+import {
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { renderMoneySplashView } from '../../../../../../tests/component-view/renderers/moneySplash';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -121,6 +124,25 @@ describeForPlatforms('MoneySplashView', () => {
       );
     });
     expect(getByTestId(MoneySplashViewTestIds.HERO)).toBeOnTheScreen();
+  });
+
+  it('falls back to Money home when deposit setup fails', async () => {
+    const { getByTestId, findByTestId } = renderMoneySplashView({
+      hasVaultConfig: false,
+      onboardingSeen: true,
+      params: {
+        postOnboardingRedirect: {
+          type: 'deposit',
+          preferredPaymentToken: PREFERRED_PAYMENT_TOKEN,
+        },
+      },
+    });
+
+    fireEvent.press(getByTestId(MoneySplashViewTestIds.CTA));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).toBeOnTheScreen();
   });
 
   it('marks the splash as seen on mount', async () => {
