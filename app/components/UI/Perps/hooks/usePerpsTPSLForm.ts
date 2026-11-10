@@ -6,28 +6,30 @@ import { regex } from '../../../../util/regex';
 import {
   DECIMAL_PRECISION_CONFIG,
   calculatePositionSize,
+  calculatePriceForRoE,
+  calculateRoEForPrice,
+  calculateSignedRoEForPrice,
+  formatRoePercent,
+  isPositiveTriggerPrice,
+  isStopLossSafeFromLiquidation,
+  isValidStopLossPrice,
+  isValidTakeProfitPrice,
+  validateTPSLPrices,
   type OrderType,
   type Position,
+  type TpslCalculationParams,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
 import { calculateExpectedPnL } from '../utils/pnlCalculations';
 import {
-  calculatePriceForRoE,
-  calculateRoEForPrice,
   formatRoEPercentageDisplay,
   getStopLossErrorDirection,
   getStopLossLiquidationErrorDirection,
   getTakeProfitErrorDirection,
   hasExceededSignificantFigures,
   hasTPSLValuesChanged,
-  isPositiveTriggerPrice,
-  isStopLossSafeFromLiquidation,
-  isValidStopLossPrice,
-  isValidTakeProfitPrice,
   roundToSignificantFigures,
-  safeParseRoEPercentage,
   sanitizePercentageInput,
-  validateTPSLPrices,
 } from '../utils/tpslValidation';
 import { usePerpsOrderFees } from './usePerpsOrderFees';
 
@@ -54,8 +56,28 @@ const roeSignFromValue = (roe: string, fallback: TpslRoeSign): TpslRoeSign => {
 const toRoeMagnitude = (roe: string): string => {
   const parsed = Number.parseFloat(roe);
   if (!roe || Number.isNaN(parsed)) return '';
-  return safeParseRoEPercentage(Math.abs(parsed).toString());
+  return formatRoePercent(Math.abs(parsed));
 };
+
+/**
+ * RoE of a trigger price: signed (gain or loss) for a TP/SL bound to an open
+ * position, else on the trigger's own side, where a wrong-side trigger reads 0.
+ *
+ * @param price - The trigger price.
+ * @param isProfit - True for a take profit, false for a stop loss.
+ * @param isPositionBound - Whether the TP/SL is bound to an open position.
+ * @param params - Price context.
+ * @returns The RoE in percent, or '' without a usable price, side or leverage.
+ */
+const getTriggerRoE = (
+  price: string,
+  isProfit: boolean,
+  isPositionBound: boolean,
+  params: TpslCalculationParams,
+): string =>
+  isPositionBound
+    ? calculateSignedRoEForPrice(price, params)
+    : calculateRoEForPrice(price, isProfit, params);
 
 /** Strip any leading sign so the RoE input only carries a magnitude. */
 const stripRoeSign = (text: string): string => text.replace(/[+\-–—]/g, '');
@@ -270,7 +292,7 @@ export function usePerpsTPSLForm(
       if (hasValidPrices && leverage) {
         // Calculate initial RoE percentages when opening
         if (initialTakeProfitPrice) {
-          const roePercent = calculateRoEForPrice(
+          const roePercent = getTriggerRoE(
             initialTakeProfitPrice,
             true,
             !!position,
@@ -291,7 +313,7 @@ export function usePerpsTPSLForm(
         }
 
         if (initialStopLossPrice) {
-          const roePercent = calculateRoEForPrice(
+          const roePercent = getTriggerRoE(
             initialStopLossPrice,
             false,
             !!position,
@@ -341,17 +363,12 @@ export function usePerpsTPSLForm(
         (leverageChanged ||
           (tpSourceOfTruth !== 'percentage' && !tpPercentInputFocused))
       ) {
-        const roePercent = calculateRoEForPrice(
-          takeProfitPrice,
-          true,
-          !!position,
-          {
-            currentPrice,
-            direction: actualDirection,
-            leverage,
-            entryPrice,
-          },
-        );
+        const roePercent = getTriggerRoE(takeProfitPrice, true, !!position, {
+          currentPrice,
+          direction: actualDirection,
+          leverage,
+          entryPrice,
+        });
         setTakeProfitPercentage(toRoeMagnitude(roePercent));
         setTakeProfitSign(
           roeSignFromValue(roePercent, TAKE_PROFIT_DEFAULT_SIGN),
@@ -369,17 +386,12 @@ export function usePerpsTPSLForm(
         (leverageChanged ||
           (slSourceOfTruth !== 'percentage' && !slPercentInputFocused))
       ) {
-        const roePercent = calculateRoEForPrice(
-          stopLossPrice,
-          false,
-          !!position,
-          {
-            currentPrice,
-            direction: actualDirection,
-            leverage,
-            entryPrice,
-          },
-        );
+        const roePercent = getTriggerRoE(stopLossPrice, false, !!position, {
+          currentPrice,
+          direction: actualDirection,
+          leverage,
+          entryPrice,
+        });
         setStopLossPercentage(toRoeMagnitude(roePercent));
         setStopLossSign(roeSignFromValue(roePercent, STOP_LOSS_DEFAULT_SIGN));
         // Only clear button selection if leverage changed (not on price updates)
@@ -441,7 +453,7 @@ export function usePerpsTPSLForm(
         leverage &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
-        const roePercent = calculateRoEForPrice(sanitized, true, !!position, {
+        const roePercent = getTriggerRoE(sanitized, true, !!position, {
           currentPrice,
           direction: actualDirection,
           leverage,
@@ -561,7 +573,7 @@ export function usePerpsTPSLForm(
         leverage &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
-        const roePercent = calculateRoEForPrice(sanitized, false, !!position, {
+        const roePercent = getTriggerRoE(sanitized, false, !!position, {
           currentPrice,
           direction: actualDirection,
           leverage,
@@ -659,17 +671,12 @@ export function usePerpsTPSLForm(
       !Number.isNaN(Number.parseFloat(takeProfitPrice)) &&
       ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
     ) {
-      const roePercent = calculateRoEForPrice(
-        takeProfitPrice,
-        true,
-        !!position,
-        {
-          currentPrice,
-          direction: actualDirection,
-          leverage,
-          entryPrice,
-        },
-      );
+      const roePercent = getTriggerRoE(takeProfitPrice, true, !!position, {
+        currentPrice,
+        direction: actualDirection,
+        leverage,
+        entryPrice,
+      });
       if (roePercent && roePercent !== '') {
         const formattedPercent = toRoeMagnitude(roePercent);
         setTakeProfitPercentage(formattedPercent);
@@ -761,17 +768,12 @@ export function usePerpsTPSLForm(
       !Number.isNaN(Number.parseFloat(stopLossPrice)) &&
       ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
     ) {
-      const roePercent = calculateRoEForPrice(
-        stopLossPrice,
-        false,
-        !!position,
-        {
-          currentPrice,
-          direction: actualDirection,
-          leverage,
-          entryPrice,
-        },
-      );
+      const roePercent = getTriggerRoE(stopLossPrice, false, !!position, {
+        currentPrice,
+        direction: actualDirection,
+        leverage,
+        entryPrice,
+      });
       if (roePercent && roePercent !== '') {
         const formattedPercent = toRoeMagnitude(roePercent);
         setStopLossPercentage(formattedPercent);
@@ -1070,11 +1072,14 @@ export function usePerpsTPSLForm(
     };
   }, [position, currentPrice, orderType, entryPrice]);
 
-  const isValid = validateTPSLPrices(takeProfitPrice, stopLossPrice, {
-    currentPrice: referencePrice,
-    direction: actualDirection,
-    liquidationPrice,
-  });
+  // `unresolved` (a set trigger that cannot be checked yet, e.g. before the
+  // reference price loads) is not a pass.
+  const isValid =
+    validateTPSLPrices(takeProfitPrice, stopLossPrice, {
+      currentPrice: referencePrice,
+      direction: actualDirection,
+      liquidationPrice,
+    }) === 'valid';
 
   const hasChanges = hasTPSLValuesChanged(
     takeProfitPrice,

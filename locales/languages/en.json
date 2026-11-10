@@ -1130,6 +1130,7 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Loading",
     "create_virtual_bank_account": {
       "navbar_title": "Bank account",
       "title": "Add funds right from your bank",
@@ -1155,6 +1156,69 @@
       "powered_by": "Powered by",
       "button": "Get account details"
     },
+    "creating_account": {
+      "title": "Creating your account...",
+      "description": "Most accounts are created instantly.",
+      "awaiting_provider": "Waiting for MoonPay to approve your account"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Try again"
+    },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "Contact support",
+        "secondary": "Done"
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "Try again",
+        "secondary": "Done"
+      }
+    },
+    "error": {
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
+      "button": "Try again"
+    },
+    "choose_currency": {
+      "title": "Choose your currency",
+      "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
+      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Brazilian real",
+        "usd": "US dollar"
+      }
+    },
+    "vba_details": {
+      "title": "Add money with Pix",
+      "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
+      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure_link": "Learn more",
+      "copia_cola_label": "Pix Copia e Cola",
+      "pix_key_label": "Pix key",
+      "bank_transfer_title": "Add money by bank transfer",
+      "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
+      "account_holder_label": "Account holder",
+      "routing_number_label": "Routing number",
+      "account_number_label": "Account number",
+      "bank_name_label": "Bank name",
+      "copy_label": "Copy {{field}}",
+      "copied_label": "Copied {{field}}",
+      "button": "Done",
+      "waiting_for_details": "Your account details will appear here shortly.",
+      "loading_details": "Loading account details",
+      "load_error": "Couldn't refresh the deposit. We'll try again.",
+      "setup_error": "Couldn't create your account.",
+      "retry": "Try again"
+    }
+  },
+  "kyc": {
     "verify_identity": {
       "title": "Verify your identity",
       "subtitle": "This usually takes a few minutes. You'll need a government-issued ID.",
@@ -1224,11 +1288,6 @@
       "description": "Your identity check is complete.",
       "button": "Continue"
     },
-    "creating_account": {
-      "title": "Creating your account...",
-      "description": "Most accounts are created instantly.",
-      "awaiting_provider": "Waiting for MoonPay to approve your account"
-    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then contact support.",
@@ -1241,62 +1300,6 @@
       "details_description": "Make sure your information matches your documents",
       "button": "Contact support",
       "retry_button": "Try again"
-    },
-    "account_provisioning_error": {
-      "title": "Couldn't create your account",
-      "description": "Your identity is verified, but we couldn't finish creating your account.",
-      "button": "Try again"
-    },
-    "account_create_error": {
-      "details": {
-        "title": "We couldn't verify your details",
-        "description": "Contact support to finish setting up bank transfers.",
-        "primary": "Contact support",
-        "secondary": "Done"
-      },
-      "generic": {
-        "title": "Something went wrong",
-        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
-        "primary": "Try again",
-        "secondary": "Done"
-      }
-    },
-    "error": {
-      "title": "Couldn't open your account",
-      "description": "We couldn't load your bank account details.",
-      "button": "Try again"
-    },
-    "choose_currency": {
-      "title": "Choose your currency",
-      "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
-      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
-      "row_label": "{{name}}, {{code}}",
-      "currencies": {
-        "brl": "Brazilian real",
-        "usd": "US dollar"
-      }
-    },
-    "vba_details": {
-      "title": "Add money with Pix",
-      "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
-      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
-      "provider_disclosure_link": "Learn more",
-      "copia_cola_label": "Pix Copia e Cola",
-      "pix_key_label": "Pix key",
-      "bank_transfer_title": "Add money by bank transfer",
-      "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
-      "account_holder_label": "Account holder",
-      "routing_number_label": "Routing number",
-      "account_number_label": "Account number",
-      "bank_name_label": "Bank name",
-      "copy_label": "Copy {{field}}",
-      "copied_label": "Copied {{field}}",
-      "button": "Done",
-      "waiting_for_details": "Your account details will appear here shortly.",
-      "loading_details": "Loading account details",
-      "load_error": "Couldn't refresh the deposit. We'll try again.",
-      "setup_error": "Couldn't create your account.",
-      "retry": "Try again"
     }
   },
   "social": {
@@ -1479,6 +1482,8 @@
     },
     "translation": {
       "see_translation": "See translation",
+      "see_more": "See more",
+      "see_less": "See less",
       "translating": "Translating...",
       "translated_to_english": "Translated to English",
       "failed": "Couldn't translate.",
@@ -3813,7 +3818,9 @@
       "game_lines": "Game Lines",
       "outcomes": "Outcomes",
       "view_all_markets": "View all {{count}} markets",
+      "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
       "market_layout": {
+        "markets": "Markets",
         "moneyline": "Moneyline",
         "spread": "Spread",
         "total_points": "Total points",
@@ -10615,7 +10622,7 @@
       "date_created": "Date created",
       "order_type": "Order type",
       "order_type_limit": "Limit",
-      "create_new_order": "Create new order"
+      "duplicate_order": "Duplicate order"
     },
     "recurring": {
       "you_get": "You get",
