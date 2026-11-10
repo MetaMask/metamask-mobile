@@ -178,11 +178,8 @@ const AccountActions = () => {
   };
 
   const goToExportSRP = () => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-        keyringId: keyringId as string,
-        popToTopOnDone: true,
-      });
+    navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      keyringId: keyringId as string,
     });
   };
 
