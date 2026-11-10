@@ -477,7 +477,7 @@ describe('MoneyMetaMaskCard', () => {
     },
   );
 
-  it('renders a skeleton while card setup is still being checked', () => {
+  it('renders a spinner while card setup is still being checked', () => {
     render(
       <MoneyMetaMaskCard
         mode="setup"
@@ -487,10 +487,13 @@ describe('MoneyMetaMaskCard', () => {
     );
 
     expect(
-      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_SKELETON),
+      screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_SPINNER),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTAINER),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
     ).not.toBeOnTheScreen();
   });
 

@@ -273,6 +273,7 @@ const CardHome = () => {
 
   const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
     useCardEnableCard(data, { recheckOnFocus: true });
+  const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
   // banner and the waiting layout (no Add funds or card management).
@@ -827,7 +828,7 @@ const CardHome = () => {
                 />
               ) : (
                 <CardImageSection
-                  isLoading={isLoading}
+                  isLoading={isLoading || isSetupReconciling}
                   isCardDetailsLoading={
                     actions.isCardDetailsLoading ||
                     actions.isSensitiveDetailsLoading
@@ -892,7 +893,9 @@ const CardHome = () => {
                   isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
                   onAddFunds={actions.addFundsAction}
                   onEnableCard={enableCard ?? actions.enableCardAction}
-                  isEnableCardDisabled={isEnableCardPending}
+                  isEnableCardDisabled={
+                    isEnableCardPending || isSetupReconciling
+                  }
                 />
               </Box>
             )}

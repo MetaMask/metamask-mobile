@@ -18,5 +18,5 @@ export const MoneyMetaMaskCardTestIds = {
   SETUP_TITLE: 'money-mm-card-setup-title',
   SETUP_DESCRIPTION: 'money-mm-card-setup-description',
   SETUP_CONTINUE_BUTTON: 'money-mm-card-setup-continue-button',
-  SETUP_SKELETON: 'money-mm-card-setup-skeleton',
+  SETUP_SPINNER: 'money-mm-card-setup-spinner',
 } as const;

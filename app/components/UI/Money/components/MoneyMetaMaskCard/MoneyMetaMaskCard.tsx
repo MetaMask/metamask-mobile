@@ -42,7 +42,6 @@ import {
   type MoneyCardSetupView,
 } from '../../utils/moneyMetaMaskCardMode';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 interface MoneyMetaMaskCardProps {
   /**
@@ -336,16 +335,16 @@ const SetupContent = ({
   isContinueLoading?: boolean;
   showMetalCard: boolean;
 }) => {
-  const tw = useTailwind();
-
   if (setupView.kind === 'reconciling') {
     return (
-      <Skeleton
-        height={88}
-        width="100%"
-        style={tw.style('rounded-xl')}
-        testID={MoneyMetaMaskCardTestIds.SETUP_SKELETON}
-      />
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="py-3"
+        testID={MoneyMetaMaskCardTestIds.SETUP_SPINNER}
+      >
+        <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
+      </Box>
     );
   }
 
