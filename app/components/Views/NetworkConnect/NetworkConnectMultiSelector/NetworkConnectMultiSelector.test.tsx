@@ -12,6 +12,7 @@ import {
 } from '../../../../selectors/networkController';
 import { CaipChainId } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
+import styleSheet from './NetworkConnectMultiSelector.styles';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -59,6 +60,14 @@ const mockNetworkConfigurations = {
 };
 
 describe('NetworkConnectMultiSelector', () => {
+  it('uses a 16 horizontal gutter on the sheet body', () => {
+    const styles = styleSheet({
+      vars: { isRenderedAsBottomSheet: true },
+    });
+
+    expect(styles.bodyContainer.paddingHorizontal).toBe(16);
+  });
+
   const defaultProps = {
     isLoading: false,
     hostname: 'example.com',

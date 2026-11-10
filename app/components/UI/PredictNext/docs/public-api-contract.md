@@ -68,7 +68,11 @@ Code outside Predict opens Predict with an intent, never with a route, route par
 
 Empty params are omitted, as callers did before. While the Active Venue is resolving, `home` and `feed` take the legacy navigation, which the root router hands to the Active Venue's stack; every other intent is unavailable until the Venue is known.
 
-Entity IDs are `PredictEventRef<Venue>` values: opaque, Venue-qualified, and minted only by Predict. A Polymarket reference is not assignable where a Kalshi one is expected, and an intent naming an entity of another Venue than the Active Venue opens nothing. `createLegacyPredictEventRef` exists for callers that still receive legacy Polymarket data (Browser autocomplete) and goes with PRED-1356.
+Entity IDs are `PredictEventRef<Venue>` values: opaque, Venue-qualified, and minted only by Predict. A Polymarket reference is not assignable where a Kalshi one is expected, and an intent naming an entity of another Venue than the Active Venue opens nothing. `createLegacyPredictEventRef` mints the legacy references Predict's own legacy branches need and goes with PRED-1356. It left the entry point in PRED-1386, when Browser autocomplete stopped receiving legacy data.
+
+### Deep links (PRED-1411)
+
+`handlePredictUrl` is a thin parser: it calls `parsePredictLink` and `resolvePredictLinkFromStore` from the entry point and wraps the navigation they return. A link's identifiers belong to the Venue it names with `venue=`, or to Polymarket when it names none. A link for a Venue other than the Active Venue opens the bounded "Market unavailable" sheet and never a fallback. Two intents exist only for links: `linkList` (V1 list parameters) and `feedScreen` (a PredictNext Feed Screen). See [V1 deep links](./v1-deep-links.md), which also records the V1 limitation against PRED-1294's launch goals.
 
 ### Campaign entry points (PRED-1391)
 
@@ -109,8 +113,8 @@ Kalshi funding needs both halves. The descriptor says what a Venue supports, and
 2. Do not change the legacy controller, providers, confirmations, pay-with integration, transaction-pay callbacks, or Engine wiring before PRED-1356.
 3. Do not add Kalshi branches to legacy code.
 4. Migrate one surface per PR, cheapest first: availability and analytics constants, entry points, narrow projections, then Predict-owned Homepage, Trending, and autocomplete components.
-5. The boundary is fenced with `import-x/no-restricted-paths` (PRED-1399, `scripts/eslint-predict-boundary-zones.js`). Code outside Predict and PredictNext may import neither legacy `UI/Predict/` nor PredictNext internals. It may import only the PredictNext entry point. The named composition wiring stays on a permanent allowlist, `predictCompositionFiles`, until PRED-1356 removes the legacy parts. Every other existing importer is on the burn-down list, `predictImportBurndownFiles`.
-6. **Each migration PR deletes the files it migrates from `predictImportBurndownFiles`.** The list only shrinks. `scripts/eslint-predict-boundary-zones.test.ts` fails if an entry is added, and also if a listed file no longer imports Predict internals, so a finished migration cannot leave its files exempt.
+5. The boundary is fenced with `import-x/no-restricted-paths` (PRED-1399, `scripts/eslint-predict-boundary-zones.js`). Code outside Predict and PredictNext may import neither legacy `UI/Predict/` nor PredictNext internals. It may import only the PredictNext entry point. The named composition wiring stays on `predictCompositionGroups` until PRED-1356 removes the legacy parts; [the composition allowlist](./composition-allowlist.md) documents every file and the deletion checklist.
+6. **The burn-down list, `predictImportBurndownFiles`, is empty since PRED-1394 and stays empty.** `scripts/eslint-predict-boundary-zones.test.ts` fails if an entry is added, if a composition file is not documented, or if a listed file no longer imports Predict internals. `node scripts/predict-closure-scan.js` re-runs the closure scans.
 
 ## Homepage Predictions section
 
@@ -127,11 +131,25 @@ For a next Venue (PRED-1406, PRED-1407) the section has the Polymarket layout ov
 
 ## Explore (TrendingView) prediction sections
 
-PRED-1385 moved Explore's Predict code to legacy `Predict/trending/` as-is: the feed hooks, the carousel section, the market rows, the skeleton and the Predictions Fuse options. Explore renders it through `trending/`:
+PRED-1385 moved Explore's Predict code to legacy `Predict/trending/` as-is: the feed hooks, the carousel section, the market rows, the skeleton and the Predictions Fuse options. PRED-1408 filled the next branch. Explore renders both through `trending/`:
 
-- `usePredictTrendingFeed` (sections and search) and `usePredictSportsMarketsFeed` (the Sports tab's All Sports list) are projection hooks. The legacy branch passes the moved hooks through. While the Active Venue resolves, and for next Venues until PRED-1408, they return nothing and keep the legacy hooks disabled.
-- `usePredictTrendingSupported` tells a caller to leave a section out rather than render it empty: the Sports tab's All Sports list and the search Predictions pill. Predict availability stays the caller's own gate, as before.
-- `PredictTrendingCarousel`, `PredictTrendingMarketCard`, `PredictTrendingSearchRow` and `PredictTrendingSkeleton` render the markets those hooks return, and `getPredictTrendingMarketAnalyticsProperties` gives a market's search analytics identity. Markets are the opaque `PredictTrendingMarket`: callers read `id` and hand the rest back. These components render the market they are given rather than switching on the Active Venue, because only the hooks mint markets.
+- `usePredictTrendingFeed({ tab, query })` (sections and search) and `usePredictSportsMarketsFeed` (the Sports tab's All Sports list) are projection hooks. Both implementations' hooks always run, and only the active one is enabled, so a Venue change swaps the markets on the same render. While the Active Venue resolves they return nothing.
+- A tab (`now`, `macro`, `rwas`, `crypto`, `sports`) names a Feed key through `PREDICT_SURFACE_FEED_KEYS.exploreTabs`. On the legacy lane that key is the legacy feed category, passed through unchanged. A next Venue reads the Feed its descriptor maps the key to, and nothing when the descriptor lacks it: the section is left out, never filled from another Feed or Venue. Kalshi V1 maps only `sports`, so only the Sports tab has a Predictions section.
+- A query searches. A next Venue searches with `useSearchEvents` when its descriptor supports search. That search is unpaginated (no `fetchMore`, `total` is the result count); Polymarket's paginated search is unchanged.
+- An Explore refresh refetches only the active read. The next branch invalidates through the data service, so it reads the backend, and records triggers while inactive, so a Venue change never replays one.
+- `usePredictTrendingSupported(surface)` tells a caller to leave a surface out rather than render it empty. `search` (the search Predictions pill) follows the descriptor's search support. `allSports` (the Sports tab's All Sports list) is legacy-only: its sports are Polymarket tags, not Feed keys. Predict availability stays the caller's own gate, as before.
+- `PredictTrendingCarousel`, `PredictTrendingMarketCard`, `PredictTrendingSearchRow` and `PredictTrendingSkeleton` render the markets those hooks return, and `getPredictTrendingMarketAnalyticsProperties` gives a market's search analytics identity. Markets are the opaque `PredictTrendingMarket`: callers read `id` and hand the rest back. These components render the market they are given rather than switching on the Active Venue, because only the hooks mint markets. A next Venue's market renders the PredictNext Event card in the Polymarket layout: a card press opens the `event` intent, and a buy press opens the PredictNext Order Flow, which the carousel or card hosts. Both are refused for a market whose Venue is no longer the Active Venue. Explore's analytics are unchanged; a next Event reports its id and title, as it has no slug or tags.
+
+## Browser URL autocomplete
+
+PRED-1386 gave Browser autocomplete its own Predict search source, `searchResults/`, instead of reading Explore's Predictions search section and casting its markets back to `PredictMarket`:
+
+- `usePredictSearchResults(query)` returns `PredictSearchResult`s: venue-neutral display values (`id`, `title`, `subtitle`, `imageUrl`) and the `intent` that opens the result. No legacy market, provider ID or Venue crosses it. It debounces the query as Explore does and reports loading while it debounces.
+- The legacy branch is the Polymarket search Browser already used, `usePredictionsFeed` with the query, so it shares Explore's query key and adds no request. Its mapping (`internal/legacy/`) keeps Browser's values: the market title, "Open" or the raw status, the market image, and an `event` intent with a legacy reference and no entry point or snapshots, so the market details screen opens with the same params as before.
+- While the Active Venue resolves, and for next Venues until PRED-1409 (E4), it has no results and never loads, so Browser leaves its Predictions section out.
+- `PredictSearchResultRow` renders a result: image or placeholder icon, title, subtitle, in the autocomplete row layout. Browser opens `result.intent` with `openPredict` and keeps its own blur handling.
+
+`UrlAutocomplete`'s `PredictionsSearchResult` is `PredictSearchResult` plus its autocomplete category.
 
 ## Canonical decisions that remain
 

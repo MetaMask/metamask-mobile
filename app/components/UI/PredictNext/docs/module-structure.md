@@ -46,9 +46,16 @@ PredictNext/
   trending/
     index.ts                   # Explore (TrendingView) prediction feeds, carousel, cards and search rows
     usePredictTrendingFeed.ts  # Feed and search projection; legacy code moved as-is to Predict/trending
-    usePredictSportsMarketsFeed.ts
-    usePredictTrendingSupported.ts # False while resolving and for next Venues until PRED-1408
-    internal/                  # Opaque-market casts for the legacy branch
+    usePredictSportsMarketsFeed.ts # Legacy-only All Sports list (Polymarket tags, no Feed key)
+    usePredictTrendingSupported.ts # Per surface: search (descriptor) and allSports (legacy only)
+    internal/                  # Opaque-market minting: legacy casts, next Events
+      next/                    # Next branch: Feed/search reads, carousel, card, search row, actions
+  searchResults/
+    index.ts                   # Browser URL autocomplete search source and result row
+    usePredictSearchResults.ts # Debounced search; venue-neutral results with an open intent
+    PredictSearchResultRow.tsx # The autocomplete row, moved from UrlAutocomplete/Result.tsx
+    internal/
+      legacy/                  # Polymarket search pass-through and its result mapping
   events/
     cards/
       index.ts                 # Supported Event-card API

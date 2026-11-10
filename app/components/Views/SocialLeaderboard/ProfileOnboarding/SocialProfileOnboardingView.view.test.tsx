@@ -11,7 +11,7 @@
 import '../../../../../tests/component-view/mocks';
 import type { Profile } from '@metamask/profile-controller';
 import NetInfo from '@react-native-community/netinfo';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   act,
   fireEvent,
@@ -20,7 +20,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
@@ -75,14 +75,16 @@ const leaveReadyStep = async () => {
 };
 
 const FeedExitStackProbe = () => {
-  const navigation = useNavigation();
-  const routeNames = (navigation.getState()?.routes ?? [])
-    .map((route) => route.name)
-    .join(',');
+  const route = useRoute();
+  const tabName =
+    route.params &&
+    typeof route.params === 'object' &&
+    'screen' in route.params &&
+    typeof route.params.screen === 'string'
+      ? route.params.screen
+      : '';
 
-  return (
-    <Text testID={getRouteProbeTestId(Routes.SOCIAL.V1)}>{routeNames}</Text>
-  );
+  return <Text testID={getRouteProbeTestId(Routes.HOME_TABS)}>{tabName}</Text>;
 };
 
 const pressBack = () => {
@@ -275,7 +277,7 @@ describe('SocialProfileOnboardingView', () => {
 
   it('writes a manual profile with the typed username casing and opens the feed', async () => {
     renderSocialProfileOnboarding([
-      { name: Routes.SOCIAL.V1, Component: FeedExitStackProbe },
+      { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
     ]);
 
     fireEvent.press(
@@ -345,11 +347,8 @@ describe('SocialProfileOnboardingView', () => {
     await leaveReadyStep();
 
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
-    ).toHaveTextContent(Routes.SOCIAL.V1);
-    expect(
-      screen.getByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
-    ).not.toHaveTextContent(Routes.SOCIAL.PROFILE_ONBOARDING);
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).toHaveTextContent(Routes.SOCIAL.TAB);
     expect(getLocalSocialProfileSnapshot().profile).toEqual(
       expect.objectContaining({
         handle,
@@ -384,9 +383,6 @@ describe('SocialProfileOnboardingView', () => {
         screen.getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW),
         'message',
         { nativeEvent: { data: 'social-terms-scroll-end' } },
-      );
-      fireEvent.press(
-        screen.getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX),
       );
       fireEvent.press(
         screen.getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON),
@@ -483,7 +479,23 @@ describe('SocialProfileOnboardingView', () => {
     });
   });
 
-  it('hides the back arrow on the intro and shows it on later steps', () => {
+  it('pads the header 16px on the left and right', () => {
+    renderSocialProfileOnboarding();
+
+    const style = StyleSheet.flatten(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.HEADER).props
+        .style,
+    );
+
+    expect(style).toEqual(
+      expect.objectContaining({
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
+    );
+  });
+
+  it('hides the back arrow on the intro and the first username step', async () => {
     renderSocialProfileOnboarding();
 
     expect(
@@ -498,6 +510,15 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    await continueFromUsername();
 
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
@@ -523,6 +544,31 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_CAROUSEL,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('uses the DisplayLg line height for the account step title', async () => {
+    renderSocialProfileOnboarding();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+
+    const title = screen.getByText(
+      strings('social_leaderboard.profile_onboarding.link_account'),
+    );
+
+    expect(title).toHaveStyle({
+      lineHeight: 50,
+      paddingTop: 0,
+      paddingBottom: 0,
+      marginBottom: 0,
+    });
   });
 
   it('shows the static live activity on the intro while offline', () => {
@@ -604,6 +650,53 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
     ).not.toBeOnTheScreen();
+  });
+
+  it('pins the ready title under the header and centers the card with its avatar', async () => {
+    goOnline();
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    const title = screen.getByText(
+      strings('social_leaderboard.profile_onboarding.feed_awaits'),
+    );
+    const slot = screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.READY_CARD_SLOT,
+    );
+
+    expect(StyleSheet.flatten(title.parent?.props.style)).toEqual(
+      expect.objectContaining({ paddingTop: 8 }),
+    );
+    expect(StyleSheet.flatten(slot.props.style)).toEqual(
+      expect.objectContaining({
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }),
+    );
+    expect(
+      within(slot).getByTestId(
+        SocialProfileOnboardingSelectorsIDs.READY_ANIMATION,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(slot).getByTestId(
+        SocialProfileOnboardingSelectorsIDs.READY_AVATAR,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('stays on the username step when the handle cannot be claimed', () => {
@@ -785,7 +878,7 @@ describe('SocialProfileOnboardingView', () => {
     jest
       .mocked(Engine.context.ProfileController.createProfile)
       .mockRejectedValueOnce(new Error('network'));
-    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+    renderSocialProfileOnboarding([{ name: Routes.HOME_TABS }]);
 
     fireEvent.press(
       screen.getByTestId(
@@ -813,7 +906,7 @@ describe('SocialProfileOnboardingView', () => {
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
     );
     expect(
-      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).not.toBeOnTheScreen();
     expect(
       Engine.context.ProfileController.createProfile,
@@ -828,7 +921,7 @@ describe('SocialProfileOnboardingView', () => {
     await leaveReadyStep();
 
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
     expect(
       Engine.context.ProfileController.createProfile,
@@ -991,10 +1084,10 @@ describe('SocialProfileOnboardingView', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('starts a fresh manual flow after leaving the X path', async () => {
+  it('hides the back arrow on the X identity step', async () => {
     signIn();
     renderSocialProfileOnboarding([
-      { name: Routes.SOCIAL.V1 },
+      { name: Routes.HOME_TABS },
       { name: Routes.SOCIAL.MY_PROFILE },
     ]);
 
@@ -1006,57 +1099,21 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
       ),
     ).toBeOnTheScreen();
-
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
-    );
-    fireEvent.press(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
-      ),
-    );
-
-    const handle = usernameValue();
-    expect(handle).not.toBe('degangirl');
-    expect(handle).toMatch(/^[a-z0-9]+(?:_[a-z0-9]+)+$/);
     expect(
-      screen.getByTestId(
-        `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-3`,
-      ),
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON),
     ).toBeOnTheScreen();
 
-    await continueFromUsername();
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP),
-    ).not.toBeOnTheScreen();
-
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
-    await leaveReadyStep();
-
-    expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
     ).toBeOnTheScreen();
-    expect(getLocalSocialProfileSnapshot().profile).toEqual(
-      expect.objectContaining({
-        handle,
-        connectedToX: false,
-        xHandle: null,
-        imageUrl: null,
-      }),
-    );
-    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
-      expect.objectContaining({
-        username: handle,
-        avatar_url: 'foxicon://vr/background3',
-      }),
-    );
   });
 
   it('uses the manual username and avatar pickers when X reuse is off', async () => {
@@ -1158,7 +1215,7 @@ describe('SocialProfileOnboardingView', () => {
     jest
       .mocked(Engine.context.ProfileController.createProfile)
       .mockRejectedValueOnce(new Error('offline'));
-    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+    renderSocialProfileOnboarding([{ name: Routes.HOME_TABS }]);
     const profileBeforeFinish = getLocalSocialProfileSnapshot().profile;
 
     await reachReadyStep();
@@ -1178,7 +1235,7 @@ describe('SocialProfileOnboardingView', () => {
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).not.toBeOnTheScreen();
     expect(getLocalSocialProfileSnapshot().profile).toEqual(
       profileBeforeFinish,
@@ -1193,13 +1250,13 @@ describe('SocialProfileOnboardingView', () => {
         profileId: 'alias-profile',
         canonicalProfileId: 'signed-in-profile',
       });
-    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+    renderSocialProfileOnboarding([{ name: Routes.HOME_TABS }]);
 
     await reachReadyStep();
     await leaveReadyStep();
 
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       expect.objectContaining({ profile_id: 'signed-in-profile' }),
@@ -1207,7 +1264,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   it('creates a private profile when trading activity is turned off', async () => {
-    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+    renderSocialProfileOnboarding([{ name: Routes.HOME_TABS }]);
 
     fireEvent.press(
       screen.getByTestId(
@@ -1255,7 +1312,7 @@ describe('SocialProfileOnboardingView', () => {
     await leaveReadyStep();
 
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       expect.objectContaining({ trading_privacy: 'private' }),
@@ -1266,7 +1323,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   it('links the second EVM account when the user picks it', async () => {
-    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }], {
+    renderSocialProfileOnboarding([{ name: Routes.HOME_TABS }], {
       includeSecondEvmAccount: true,
     });
 
@@ -1311,7 +1368,7 @@ describe('SocialProfileOnboardingView', () => {
     await leaveReadyStep();
 
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1408,7 +1465,7 @@ describe('SocialProfileOnboardingView', () => {
 
   it('keeps the current handle when the user continues before the shuffle check resolves', async () => {
     const pendingChecks = deferUsernameChecks();
-    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+    renderSocialProfileOnboarding([{ name: Routes.HOME_TABS }]);
 
     fireEvent.press(
       screen.getByTestId(
@@ -1451,7 +1508,7 @@ describe('SocialProfileOnboardingView', () => {
     await leaveReadyStep();
 
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       expect.objectContaining({ username: initialHandle }),
@@ -1529,7 +1586,7 @@ describe('SocialProfileOnboardingView', () => {
 
   it('updates the created profile when the linked account changes', async () => {
     const resolveUpdate = deferUpdateProfile();
-    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }], {
+    renderSocialProfileOnboarding([{ name: Routes.HOME_TABS }], {
       includeSecondEvmAccount: true,
     });
 
@@ -1562,7 +1619,7 @@ describe('SocialProfileOnboardingView', () => {
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
     );
     expect(
-      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).not.toBeOnTheScreen();
     expect(
       Engine.context.ProfileController.createProfile,
@@ -1585,7 +1642,7 @@ describe('SocialProfileOnboardingView', () => {
     await leaveReadyStep();
 
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
     expect(
       Engine.context.ProfileController.createProfile,
@@ -1594,7 +1651,7 @@ describe('SocialProfileOnboardingView', () => {
 
   it('updates the created profile when the username changes', async () => {
     const resolveUpdate = deferUpdateProfile();
-    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+    renderSocialProfileOnboarding([{ name: Routes.HOME_TABS }]);
 
     await reachReadyStep();
     await waitFor(() => {

@@ -145,6 +145,37 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('removes long and short when the market hits its open interest cap', async () => {
+    const depositWithOrder = jest.mocked(
+      Engine.context.PerpsController.depositWithOrder,
+    );
+    const { stream } = renderEligibleNoPositionPerpsDetails();
+
+    const longButton = await screen.findByTestId(
+      PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+    );
+    const shortButton = await screen.findByTestId(
+      PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+    );
+    expect(longButton).not.toBeDisabled();
+    expect(shortButton).not.toBeDisabled();
+
+    act(() => {
+      stream.emitOICaps(['ETH']);
+    });
+
+    expect(
+      await screen.findByText(strings('perps.order.validation.oi_cap_reached')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(depositWithOrder).not.toHaveBeenCalled();
+  });
+
   it('shows geo block bottom sheet when Long is pressed (geo-restricted user)', async () => {
     renderPerpsMarketDetailsView({
       streamOverrides: { positions: [] },
