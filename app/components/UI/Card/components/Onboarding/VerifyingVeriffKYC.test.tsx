@@ -337,7 +337,7 @@ describe('VerifyingVeriffKYC', () => {
       expect(mockStopPolling).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.CARD.HOME }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     });
 
@@ -381,7 +381,7 @@ describe('VerifyingVeriffKYC', () => {
 
       expect(mockReset).not.toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.CARD.HOME }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     });
 
@@ -410,7 +410,7 @@ describe('VerifyingVeriffKYC', () => {
 
       expect(mockReset).not.toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.CARD.HOME }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     });
 

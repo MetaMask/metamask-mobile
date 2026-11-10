@@ -49,7 +49,7 @@ const VerifyingVeriffKYC = () => {
       stopPolling();
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.CARD.HOME }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     }, POLLING_TIMEOUT_MS);
 

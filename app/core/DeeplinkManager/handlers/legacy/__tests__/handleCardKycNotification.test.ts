@@ -183,7 +183,7 @@ describe('handleCardKycNotification', () => {
         });
       });
 
-      it('navigates to CardHome', async () => {
+      it('navigates to CardHome in its pending state', async () => {
         await handleCardKycNotification();
         jest.runAllTimers();
 
@@ -191,6 +191,7 @@ describe('handleCardKycNotification', () => {
           screen: Routes.CARD.HOME,
           params: {
             screen: Routes.CARD.HOME,
+            fromKycPending: true,
           },
         });
       });

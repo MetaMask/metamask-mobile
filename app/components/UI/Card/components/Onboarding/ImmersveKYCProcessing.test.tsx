@@ -235,7 +235,7 @@ describe('ImmersveKYCProcessing', () => {
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: Routes.CARD.HOME }],
+      routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
     });
     expect(mockRoute).not.toHaveBeenCalled();
   });
@@ -251,7 +251,7 @@ describe('ImmersveKYCProcessing', () => {
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: Routes.CARD.HOME }],
+      routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
     });
   });
 

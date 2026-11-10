@@ -234,6 +234,7 @@ function navigateBasedOnVerificationState(
             screen: Routes.CARD.HOME,
             params: {
               screen: Routes.CARD.HOME,
+              fromKycPending: true,
             },
           });
         } else {
