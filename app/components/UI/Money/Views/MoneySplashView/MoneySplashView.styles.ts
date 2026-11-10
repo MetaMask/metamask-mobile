@@ -7,9 +7,15 @@ export const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 24,
   },
-  hero: {
+  heroContainer: {
     width: '100%',
     aspectRatio: 361 / 203,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  hero: {
+    width: '100%',
+    height: '100%',
   },
   eyebrow: {
     marginTop: 24,

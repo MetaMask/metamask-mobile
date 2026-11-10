@@ -203,12 +203,14 @@ const MoneySplashView = () => {
       >
         <Box twClassName="px-4" style={{ paddingTop: insets.top + 48 }}>
           {showHero && (
-            <Image
-              source={moneySplashHero}
-              style={styles.hero}
-              resizeMode="contain"
-              testID={MoneySplashViewTestIds.HERO}
-            />
+            <View style={styles.heroContainer}>
+              <Image
+                source={moneySplashHero}
+                style={styles.hero}
+                resizeMode="cover"
+                testID={MoneySplashViewTestIds.HERO}
+              />
+            </View>
           )}
           <Text
             variant={TextVariant.BodyMd}
