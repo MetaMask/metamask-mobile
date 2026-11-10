@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Image } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
@@ -9,16 +9,23 @@ import emptyStateDefiLight from '../../../../../images/empty-state-defi-light.pn
 import emptyStateDefiDark from '../../../../../images/empty-state-defi-dark.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Checkbox,
+  ContentVariant,
+  FontWeight,
+  ListItemMultiSelect,
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
 import { ImportAsset } from '../../utils/utils';
-import AddAssetTokenRow from '../AddAssetTokenRow/AddAssetTokenRow';
 
 interface Props {
   /**
@@ -37,10 +44,6 @@ interface Props {
    * Search query that generated "searchResults"
    */
   searchQuery: string;
-  /**
-   * Symbol of the network
-   */
-  ticker?: string;
   /**
    * Name of the network
    */
@@ -66,6 +69,33 @@ interface SearchTokenResultRowProps {
 const getTokenSearchRowKey = (token: ImportAsset) =>
   `${token.chainId}-${token.address.toLowerCase()}`;
 
+const TokenAvatar = ({
+  asset,
+  networkName,
+}: {
+  asset: ImportAsset;
+  networkName?: string;
+}) => (
+  <BadgeWrapper
+    position={BadgeWrapperPosition.BottomRight}
+    badge={
+      <BadgeNetwork
+        src={NetworkBadgeSource(asset.chainId as `0x${string}`)}
+        name={networkName}
+        twClassName="h-5 w-5"
+      />
+    }
+  >
+    {asset.image && (
+      <AvatarToken
+        name={asset.symbol}
+        src={{ uri: asset.image }}
+        size={AvatarTokenSize.Lg}
+      />
+    )}
+  </BadgeWrapper>
+);
+
 const SearchTokenResultRow = React.memo(
   ({
     item,
@@ -74,77 +104,53 @@ const SearchTokenResultRow = React.memo(
     networkName,
     onSelect,
   }: SearchTokenResultRowProps) => {
-    const tw = useTailwind();
     const isDisabled = isAlreadyAdded;
-    const isChecked = isSelected || isAlreadyAdded;
-    const handleSelect = () => onSelect(item);
 
     return (
-      <Pressable
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: isChecked, disabled: isDisabled }}
+      <ListItemMultiSelect
+        variant={ContentVariant.TwoLines}
+        isSelected={isSelected || isAlreadyAdded}
         disabled={isDisabled}
-        onPress={handleSelect}
+        onPress={() => !isDisabled && onSelect(item)}
         testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
-        style={({ pressed }) =>
-          tw.style(
-            'w-full flex-row items-center gap-2 px-4',
-            isChecked && 'bg-background-muted',
-            pressed && 'bg-pressed',
-            isDisabled && 'opacity-50',
-          )
-        }
-      >
-        <Checkbox
-          isSelected={isChecked}
-          isDisabled={isDisabled}
-          onChange={handleSelect}
-          pointerEvents="none"
-          accessible={false}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        />
-        <AddAssetTokenRow asset={item} networkName={networkName} />
-      </Pressable>
+        avatar={<TokenAvatar asset={item} networkName={networkName} />}
+        title={item.name}
+        titleProps={{
+          fontWeight: FontWeight.Medium,
+          numberOfLines: 1,
+        }}
+        description={item.symbol}
+        descriptionProps={{
+          fontWeight: FontWeight.Medium,
+          numberOfLines: 1,
+        }}
+      />
     );
   },
 );
+SearchTokenResultRow.displayName = 'SearchTokenResultRow';
 
-const TokenSkeleton = () => {
-  const tw = useTailwind();
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-2 px-4"
-    >
-      <Box twClassName="h-[22px] w-[22px]" />
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="flex-1 h-16"
-      >
-        <Box twClassName="relative">
-          <Skeleton width={40} height={40} style={tw.style('rounded-[20px]')} />
-          <Skeleton
-            width={20}
-            height={20}
-            style={tw.style('absolute -bottom-1 -right-1 rounded-[10px]')}
-          />
-        </Box>
-        <Box twClassName="flex-1 ml-5 justify-center">
-          <Skeleton width={160} height={20} style={tw.style('rounded-md')} />
-          <Skeleton
-            width={64}
-            height={16}
-            style={tw.style('mt-1 rounded-md')}
-          />
-        </Box>
-      </Box>
+const TokenSkeleton = () => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="w-full min-h-[72px] px-4 py-3"
+  >
+    <Box twClassName="relative">
+      <Skeleton width={40} height={40} twClassName="rounded-[20px]" />
+      <Skeleton
+        width={20}
+        height={20}
+        twClassName="absolute -bottom-1 -right-1 rounded-[10px]"
+      />
     </Box>
-  );
-};
+    <Box twClassName="flex-1 ml-4 justify-center">
+      <Skeleton width={160} height={20} twClassName="rounded-md" />
+      <Skeleton width={64} height={16} twClassName="mt-1 rounded-md" />
+    </Box>
+    <Skeleton width={22} height={22} twClassName="ml-3 rounded-full" />
+  </Box>
+);
 
 const SearchTokenResults = ({
   searchResults,
