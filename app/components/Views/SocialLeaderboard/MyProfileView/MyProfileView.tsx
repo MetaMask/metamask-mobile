@@ -64,6 +64,9 @@ import {
   playSelection,
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
@@ -118,9 +121,14 @@ import { traderProfileResponseToMySocialProfile } from './utils/traderProfileRes
 import type { MySocialProfile } from './hooks/useMyProfile';
 import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
 import {
+  filterPositionsByAsset,
   matchesProfileAssetFilter,
   type ProfileAssetFilter,
 } from './utils/splitPositionsByType';
+import {
+  getPositionsRefreshIntervalMs,
+  POSITIONS_REFRESH_INTERVAL_MS,
+} from './utils/positionsRefreshInterval';
 import { dropProfileDrawerFromStack } from './utils/dropProfileDrawerFromStack';
 import {
   SocialEvent,
@@ -431,6 +439,13 @@ const MyProfileView: React.FC = () => {
     ownerProfileId: isOwner ? myProfile?.profileId : undefined,
     isActive: activeTab === 'posts' && !isContentHidden,
   });
+  const isSocialV1 = useSelector(selectIsSocialV1Enabled);
+  const networkTier = useNetworkTier();
+  // Read once per mount, as SocialV1View does. Only the SocialV1 poll uses it.
+  const [hardwareTier] = useState(() => getHardwareTier());
+  const positionsRefreshIntervalMs = isSocialV1
+    ? getPositionsRefreshIntervalMs({ hardwareTier, networkTier })
+    : POSITIONS_REFRESH_INTERVAL_MS;
   const {
     openPositions: fetchedOpenPositions,
     closedPositions: fetchedClosedPositions,
@@ -439,9 +454,16 @@ const MyProfileView: React.FC = () => {
     openError: openPositionsError,
     closedError: closedPositionsError,
     refetch: refetchPositions,
+    hasMoreOpen: hasMoreOpenPositionsFetched,
+    hasMoreClosed: hasMoreClosedPositionsFetched,
+    isFetchingMoreOpen: isFetchingMoreOpenPositions,
+    isFetchingMoreClosed: isFetchingMoreClosedPositions,
+    loadMoreOpen,
+    loadMoreClosed,
   } = useTraderPositions(addressOrId ?? '', {
     enabled: !isContentHidden,
-    refetchInterval: 30_000,
+    paginated: isSocialV1,
+    refetchInterval: positionsRefreshIntervalMs,
   });
   // Disabled queries still return cached data, e.g. from an earlier visit.
   const posts = isContentHidden ? NO_POSTS : fetchedPosts;
@@ -450,6 +472,23 @@ const MyProfileView: React.FC = () => {
   const closedPositions = isContentHidden
     ? NO_POSITIONS
     : fetchedClosedPositions;
+  const isClosedPositionsTab = activeTab === 'closed';
+  const positionsHasMore =
+    !isContentHidden &&
+    Boolean(
+      isClosedPositionsTab
+        ? hasMoreClosedPositionsFetched
+        : hasMoreOpenPositionsFetched,
+    );
+  const isFetchingMorePositions = Boolean(
+    isClosedPositionsTab
+      ? isFetchingMoreClosedPositions
+      : isFetchingMoreOpenPositions,
+  );
+  const loadMorePositions = useCallback(() => {
+    const loadMoreForTab = isClosedPositionsTab ? loadMoreClosed : loadMoreOpen;
+    loadMoreForTab?.();
+  }, [isClosedPositionsTab, loadMoreClosed, loadMoreOpen]);
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
   const isAssetFilterActive = assetFilter !== 'all';
@@ -780,7 +819,8 @@ const MyProfileView: React.FC = () => {
 
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (activeTab !== 'posts' || !hasNextPage) {
+      const isPostsTab = activeTab === 'posts';
+      if (isPostsTab ? !hasNextPage : !positionsHasMore) {
         return;
       }
       const { contentOffset, contentSize, layoutMeasurement } =
@@ -788,10 +828,14 @@ const MyProfileView: React.FC = () => {
       const distanceFromEnd =
         contentSize.height - (contentOffset.y + layoutMeasurement.height);
       if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
-        loadMore();
+        if (isPostsTab) {
+          loadMore();
+        } else {
+          loadMorePositions();
+        }
       }
     },
-    [activeTab, hasNextPage, loadMore],
+    [activeTab, hasNextPage, loadMore, loadMorePositions, positionsHasMore],
   );
 
   // A Tokens or Perps filter only sees posts already loaded. Keep paging
@@ -833,6 +877,20 @@ const MyProfileView: React.FC = () => {
     openError: openPositionsError,
     closedError: closedPositionsError,
   });
+  // Same as posts: a Tokens or Perps filter only sees loaded rows, so keep
+  // paging until one matches, the list ends, or a page fails.
+  const showFilteredPositionLoading =
+    activeTab !== 'posts' &&
+    isAssetFilterActive &&
+    positionsHasMore &&
+    !positionTab.error &&
+    filterPositionsByAsset(positionTab.positions, assetFilter).length === 0;
+  useEffect(() => {
+    if (!showFilteredPositionLoading || isFetchingMorePositions) {
+      return;
+    }
+    loadMorePositions();
+  }, [isFetchingMorePositions, loadMorePositions, showFilteredPositionLoading]);
 
   return (
     <SocialFeedSurfaceProvider
@@ -1275,6 +1333,15 @@ const MyProfileView: React.FC = () => {
                     alignItems={BoxAlignItems.Center}
                     twClassName="px-4"
                     testID={MyProfileViewSelectorsIDs.POSTS_FOOTER_LOADING}
+                  >
+                    <ActivityIndicator size="small" />
+                  </Box>
+                ) : null}
+                {activeTab !== 'posts' && isFetchingMorePositions ? (
+                  <Box
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="px-4"
+                    testID={MyProfileViewSelectorsIDs.POSITIONS_FOOTER_LOADING}
                   >
                     <ActivityIndicator size="small" />
                   </Box>

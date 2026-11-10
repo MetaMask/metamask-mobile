@@ -63,6 +63,7 @@ export const MyProfileViewSelectorsIDs = {
   POSITIONS_EMPTY: 'my-profile-view-positions-empty',
   POSITIONS_ERROR: 'my-profile-view-positions-error',
   POSITIONS_RETRY_BUTTON: 'my-profile-view-positions-retry-button',
+  POSITIONS_FOOTER_LOADING: 'my-profile-view-positions-footer-loading',
   POSTS_LIST: 'my-profile-view-posts-list',
   POSTS_FOOTER_LOADING: 'my-profile-view-posts-footer-loading',
   POSTS_ERROR: 'my-profile-view-posts-error',
