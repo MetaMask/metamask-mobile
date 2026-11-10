@@ -1,6 +1,5 @@
 import { merge } from 'lodash';
 import { toHex } from '@metamask/controller-utils';
-import { PredictPositionStatus } from '../../../../UI/Predict/types';
 
 export const accountMock = '0xdc47789de4ceff0e8fe9d15d728af7f17550c164';
 export const tokenAddress1Mock = '0x1234567890abcdef1234567890abcdef12345678';
@@ -332,7 +331,7 @@ export const predictControllerMock = {
               icon: 'https://example.com/icon1.png',
               amount: 100,
               price: 1.0,
-              status: PredictPositionStatus.WON,
+              status: 'won',
               size: 100,
               outcomeIndex: 0,
               realizedPnl: 0,
@@ -359,7 +358,7 @@ export const predictControllerMock = {
               icon: 'https://example.com/icon2.png',
               amount: 200,
               price: 1.2,
-              status: PredictPositionStatus.WON,
+              status: 'won',
               size: 200,
               outcomeIndex: 1,
               realizedPnl: 0,
@@ -386,7 +385,7 @@ export const predictControllerMock = {
               icon: 'https://example.com/icon3.png',
               amount: 300,
               price: 0.8,
-              status: PredictPositionStatus.WON,
+              status: 'won',
               size: 300,
               outcomeIndex: 0,
               realizedPnl: 0,
@@ -413,7 +412,7 @@ export const predictControllerMock = {
               icon: 'https://example.com/icon4.png',
               amount: 400,
               price: 0.9,
-              status: PredictPositionStatus.WON,
+              status: 'won',
               size: 400,
               outcomeIndex: 1,
               realizedPnl: 0,
@@ -440,7 +439,7 @@ export const predictControllerMock = {
               icon: 'https://example.com/icon5.png',
               amount: 500,
               price: 1.1,
-              status: PredictPositionStatus.WON,
+              status: 'won',
               size: 500,
               outcomeIndex: 0,
               realizedPnl: 0,

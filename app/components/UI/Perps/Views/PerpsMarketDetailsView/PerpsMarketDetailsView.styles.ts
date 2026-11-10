@@ -79,7 +79,7 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       borderTopColor: theme.colors.border.muted,
       paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: 26,
+      paddingBottom: 24,
     },
     // Action buttons container
     actionsContainer: {

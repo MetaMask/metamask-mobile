@@ -78,6 +78,17 @@ describe('AddWallet', () => {
         strings('multichain_accounts.add_wallet_hardware_description'),
       ),
     ).toBeOnTheScreen();
+
+    const visibleRowIds = [
+      AddWalletTestIds.IMPORT_WALLET_BUTTON,
+      AddWalletTestIds.IMPORT_ACCOUNT_BUTTON,
+      AddWalletTestIds.CONNECT_HARDWARE_BUTTON,
+      AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
+    ].filter((testId) => screen.queryByTestId(testId));
+
+    expect(screen.getAllByTestId(AddWalletTestIds.ROW_ARROW)).toHaveLength(
+      visibleRowIds.length,
+    );
   });
 
   it('goes back when the back button is pressed', () => {
