@@ -103,7 +103,12 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
         throw new Error('KYC service is unavailable');
       }
 
-      const country = await kycService.getGeoCountry();
+      // A stored session keeps the country it was started under, so the
+      // terms match the account even if the IP changes later.
+      const kycState = Engine.context.KycController.state;
+      const country =
+        (kycState?.sessionStatus ? kycState.geoCountry : null) ??
+        (await kycService.getGeoCountry());
       return {
         country,
         loadedDisclaimers:

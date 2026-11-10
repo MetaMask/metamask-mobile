@@ -2,6 +2,8 @@ import { getDefaultKycVendorDisclaimersAccepted } from '@metamask/kyc-controller
 import { RootState } from '../../reducers';
 import {
   selectKycControllerState,
+  selectKycPinnedCountryAlpha2,
+  selectKycPinnedGeoCountry,
   selectKycProviderFlowStatus,
   selectKycSessionStatus,
   selectKycVendorDisclaimersAccepted,
@@ -62,6 +64,97 @@ describe('kycController selectors', () => {
       } as unknown as RootState;
 
       expect(selectKycSessionStatus(state)).toBeNull();
+    });
+  });
+
+  describe('selectKycPinnedGeoCountry', () => {
+    it('returns the stored geoCountry when a session is stored', () => {
+      const state = createMockRootState({
+        sessionStatus: MOCK_SESSION_STATUS,
+        geoCountry: 'USA',
+      });
+
+      const result = selectKycPinnedGeoCountry(state);
+
+      expect(result).toBe('USA');
+    });
+
+    it('returns null when only geoCountry is set', () => {
+      const state = createMockRootState({
+        sessionStatus: null,
+        geoCountry: 'USA',
+      });
+
+      const result = selectKycPinnedGeoCountry(state);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when a session is stored without a geoCountry', () => {
+      const state = createMockRootState({
+        sessionStatus: MOCK_SESSION_STATUS,
+        geoCountry: null,
+      });
+
+      const result = selectKycPinnedGeoCountry(state);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when the controller state is missing', () => {
+      const state = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+
+      const result = selectKycPinnedGeoCountry(state);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectKycPinnedCountryAlpha2', () => {
+    it('returns the alpha-2 code when a session and geoCountry are stored', () => {
+      const state = createMockRootState({
+        sessionStatus: MOCK_SESSION_STATUS,
+        geoCountry: 'USA',
+      });
+
+      const result = selectKycPinnedCountryAlpha2(state);
+
+      expect(result).toBe('US');
+    });
+
+    it('returns undefined when only geoCountry is set', () => {
+      const state = createMockRootState({
+        sessionStatus: null,
+        geoCountry: 'USA',
+      });
+
+      const result = selectKycPinnedCountryAlpha2(state);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when only a session is stored', () => {
+      const state = createMockRootState({
+        sessionStatus: MOCK_SESSION_STATUS,
+        geoCountry: null,
+      });
+
+      const result = selectKycPinnedCountryAlpha2(state);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for an unknown stored geoCountry', () => {
+      const state = createMockRootState({
+        sessionStatus: MOCK_SESSION_STATUS,
+        geoCountry: 'XXX',
+      });
+
+      const result = selectKycPinnedCountryAlpha2(state);
+
+      expect(result).toBeUndefined();
     });
   });
 

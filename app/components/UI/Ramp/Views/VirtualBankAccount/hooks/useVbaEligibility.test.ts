@@ -1,10 +1,14 @@
-import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import {
+  UNKNOWN_LOCATION,
+  type GeolocationRequestStatus,
+} from '@metamask/geolocation-controller';
 import type { Json } from '@metamask/utils';
 import { getVersion } from 'react-native-device-info';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import {
   MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
   MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
 import type { VbaMarket } from '../../../../../../util/region/getVbaSourceCurrency';
 import { getVbaEligibility, useVbaEligibility } from './useVbaEligibility';
@@ -286,5 +290,112 @@ describe('useVbaEligibility regionOverride', () => {
 
     expect(result.current.isEligible).toBe(false);
     expect(result.current.isFlagEnabled).toBe(false);
+  });
+});
+
+describe('useVbaEligibility stored KYC country', () => {
+  const enabledUsdFlag = {
+    enabled: true,
+    minimumVersion: '0.0.0',
+    currency: 'USD',
+    regions: ['US'],
+  };
+  const storedSession = { id: 'session-1', finalStatus: 'pending' };
+
+  beforeEach(() => {
+    jest.mocked(getVersion).mockReturnValue('99.0.0');
+  });
+
+  const renderEligibility = ({
+    location,
+    geolocationStatus = 'complete',
+    regionOverride,
+    kycState,
+  }: {
+    location: string;
+    geolocationStatus?: GeolocationRequestStatus;
+    regionOverride?: string;
+    kycState?: {
+      geoCountry: string | null;
+      sessionStatus: typeof storedSession | null;
+    };
+  }) =>
+    renderHookWithProvider(() => useVbaEligibility(), {
+      state: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+                  enabled: false,
+                  minimumVersion: '0.0.0',
+                  ...(regionOverride !== undefined ? { regionOverride } : {}),
+                },
+                [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: enabledUsdFlag,
+              },
+            },
+            GeolocationController: {
+              location,
+              status: geolocationStatus,
+            },
+            ...(kycState ? { KycController: kycState } : {}),
+          },
+        },
+      },
+    });
+
+  it('keeps a stored USA session eligible for the USD market on a Swedish IP', () => {
+    const kycState = { geoCountry: 'USA', sessionStatus: storedSession };
+
+    const { result } = renderEligibility({ location: 'SE', kycState });
+
+    expect(result.current.isEligible).toBe(true);
+    expect(result.current.isRegionEligible).toBe(true);
+    expect(result.current.location).toBe('US');
+  });
+
+  it('uses the IP location when geoCountry is set without a stored session', () => {
+    const kycState = { geoCountry: 'USA', sessionStatus: null };
+
+    const { result } = renderEligibility({ location: 'SE', kycState });
+
+    expect(result.current.isEligible).toBe(false);
+    expect(result.current.location).toBe('SE');
+  });
+
+  it('keeps regionOverride ahead of the stored KYC country', () => {
+    const kycState = { geoCountry: 'USA', sessionStatus: storedSession };
+
+    const { result } = renderEligibility({
+      location: 'US',
+      regionOverride: 'SE',
+      kycState,
+    });
+
+    expect(result.current.isEligible).toBe(false);
+    expect(result.current.location).toBe('SE');
+  });
+
+  it('is not loading while the IP lookup runs when a stored country exists', () => {
+    const kycState = { geoCountry: 'USA', sessionStatus: storedSession };
+
+    const { result } = renderEligibility({
+      location: '',
+      geolocationStatus: 'loading',
+      kycState,
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isEligible).toBe(true);
+  });
+
+  it('is loading while the IP lookup runs with no stored session', () => {
+    const { result } = renderEligibility({
+      location: '',
+      geolocationStatus: 'loading',
+    });
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isEligible).toBe(false);
   });
 });

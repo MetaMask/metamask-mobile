@@ -54,6 +54,7 @@ const mockRefreshCustomerAbilities = jest.fn();
 const mockNavigateToVbaOnboardingDestination = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
+let mockPinnedCountry: string | undefined;
 let mockChooseCurrency = false;
 const DEFAULT_NEOBANK_MARKETS = [
   { currency: 'BRL', regions: ['BR'] },
@@ -119,6 +120,10 @@ jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
 
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: () => mockLocation,
+}));
+
+jest.mock('../../../../../selectors/kycController', () => ({
+  selectKycPinnedCountryAlpha2: () => mockPinnedCountry,
 }));
 
 jest.mock('../../../../../util/deviceCapability', () => ({
@@ -262,6 +267,7 @@ describe('VbaDetails', () => {
     clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
+    mockPinnedCountry = undefined;
     mockChooseCurrency = false;
     mockRegionOverride = undefined;
     mockNeobankFlagOn = true;
@@ -1078,6 +1084,61 @@ describe('VbaDetails', () => {
   it('creates the autoramp for the flag region override ahead of the IP country', async () => {
     setAutoramps([]);
     mockLocation = 'DE';
+    mockRegionOverride = 'BR';
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'needs_wallet_registration',
+    });
+    mockCreateAutoramp.mockImplementation(async () => {
+      setAutoramps([
+        { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
+      ]);
+      return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
+    });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockCreateAutoramp).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: 'BRL' }],
+        }),
+      );
+    });
+  });
+
+  it('creates a USD autoramp for a stored USA KYC session on a Swedish IP', async () => {
+    setAutoramps([]);
+    mockLocation = 'SE';
+    mockPinnedCountry = 'US';
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'needs_wallet_registration',
+    });
+    mockCreateAutoramp.mockImplementation(async () => {
+      setAutoramps([
+        { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
+      ]);
+      return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
+    });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockCreateAutoramp).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: 'USD' }],
+        }),
+      );
+    });
+    expect(mockNavigateToVbaOnboardingDestination).not.toHaveBeenCalledWith(
+      expect.anything(),
+      'accountCreateGeneric',
+    );
+  });
+
+  it('keeps the flag region override ahead of the stored KYC country', async () => {
+    setAutoramps([]);
+    mockLocation = 'SE';
+    mockPinnedCountry = 'US';
     mockRegionOverride = 'BR';
     mockHydrate.mockResolvedValue({
       autorampStatus: 'needs_wallet_registration',

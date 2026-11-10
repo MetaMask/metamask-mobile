@@ -7,14 +7,11 @@ import { VbaOnboardingRoutes } from '../../../../components/UI/Ramp/Views/Virtua
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user';
 import {
   isVbaGeoBypassEnabled,
-  selectMoneyMovementNeobank,
   selectMoneyOnboardingStepperAnimationEnabled,
   selectNeobankMarkets,
 } from '../../../../selectors/featureFlagController/moneyAccount';
-import {
-  selectGeolocationLocation,
-  selectGeolocationStatus,
-} from '../../../../selectors/geolocationController';
+import { selectGeolocationStatus } from '../../../../selectors/geolocationController';
+import { selectVbaEffectiveLocation } from '../../../../selectors/vbaEffectiveLocation';
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import ReduxService from '../../../redux';
@@ -117,12 +114,11 @@ export const MONEY_ACCOUNT_SCREEN = 'account';
 
 // Same gate as the Add money sheet's bank account row (`useVbaEligibility`).
 const isVbaEligible = (state: RootState): boolean => {
-  const { regionOverride } = selectMoneyMovementNeobank(state);
   const markets = selectNeobankMarkets(state);
 
   return getVbaEligibility({
     isFlagEnabled: markets.length > 0,
-    location: regionOverride ?? selectGeolocationLocation(state),
+    location: selectVbaEffectiveLocation(state),
     geolocationStatus: selectGeolocationStatus(state),
     isDevBypassEnabled: isVbaGeoBypassEnabled(),
     markets,
