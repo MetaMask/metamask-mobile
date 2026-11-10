@@ -287,16 +287,6 @@
       "count": 1
     }
   },
-  "app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx": {
-    "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
-    }
-  },
-  "app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.tsx": {
-    "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
-    }
-  },
   "app/component-library/components-temp/Buttons/ButtonPill/ButtonPill.styles.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
@@ -8493,7 +8483,7 @@
   },
   "app/components/UI/Earn/Views/EarnSectionListView/EarnSectionListView.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 11
+      "count": 9
     },
     "@typescript-eslint/naming-convention": {
       "count": 2
@@ -8501,6 +8491,9 @@
   },
   "app/components/UI/Earn/Views/EarnSectionListView/EarnSectionListView.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
+      "count": 4
+    },
+    "@typescript-eslint/naming-convention": {
       "count": 4
     }
   },
@@ -8622,12 +8615,15 @@
   },
   "app/components/UI/Earn/components/EarnSection/EarnSection.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 5
+      "count": 8
     }
   },
   "app/components/UI/Earn/components/EarnSection/EarnSection.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 5
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 1
     }
   },
   "app/components/UI/Earn/components/EarnSectionAssetCard/EarnSectionAssetCard.tsx": {
@@ -9011,7 +9007,7 @@
   },
   "app/components/UI/Earn/hooks/useEarnOpportunityNavigation.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 8
+      "count": 7
     }
   },
   "app/components/UI/Earn/hooks/useEarnOpportunityNavigation.ts": {
@@ -9034,15 +9030,7 @@
       "count": 2
     }
   },
-  "app/components/UI/Earn/hooks/useEarnToasts.test.tsx": {
-    "@typescript-eslint/explicit-function-return-type": {
-      "count": 3
-    }
-  },
   "app/components/UI/Earn/hooks/useEarnToasts.tsx": {
-    "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
-    },
     "@typescript-eslint/naming-convention": {
       "count": 1
     }
@@ -9264,6 +9252,11 @@
   "app/components/UI/Earn/hooks/useTronUnstake.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 3
+    }
+  },
+  "app/components/UI/Earn/modals/EarnStrategySelectionModal/EarnStrategySelectionModal.test.tsx": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
     }
   },
   "app/components/UI/Earn/modals/EarnStrategySelectionModal/index.tsx": {
@@ -9853,7 +9846,7 @@
   },
   "app/components/UI/KYC/hooks/useKycSessionDisclaimers.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 3
     },
     "@typescript-eslint/naming-convention": {
       "count": 1
@@ -9874,9 +9867,14 @@
       "count": 2
     }
   },
+  "app/components/UI/KYC/hooks/useLaunchSumSub.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/components/UI/KYC/hooks/useLaunchSumSub.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 4
     }
   },
   "app/components/UI/KYC/kycScreenPerformance.ts": {
@@ -10140,6 +10138,9 @@
   "app/components/UI/Money/Views/MoneyHomeView/MoneyHomeView.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 2
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 3
     }
   },
   "app/components/UI/Money/Views/MoneyHowItWorksView/MoneyHowItWorksView.test.tsx": {
@@ -10164,7 +10165,10 @@
   },
   "app/components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 6
+      "count": 8
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 1
     }
   },
   "app/components/UI/Money/Views/MoneyPotentialEarningsView/MoneyPotentialEarningsView.perf-test.tsx": {
@@ -10179,12 +10183,15 @@
   },
   "app/components/UI/Money/Views/MoneyPotentialEarningsView/MoneyPotentialEarningsView.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 4
+      "count": 3
     }
   },
   "app/components/UI/Money/Views/MoneyPotentialEarningsView/MoneyPotentialEarningsView.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 3
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 5
     }
   },
   "app/components/UI/Money/__fixtures__/moneyActivityTransactions.ts": {
@@ -10332,7 +10339,7 @@
   },
   "app/components/UI/Money/components/MoneyBalanceCard/MoneyBalanceCard.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 5
+      "count": 6
     },
     "@typescript-eslint/naming-convention": {
       "count": 7
@@ -10341,6 +10348,9 @@
   "app/components/UI/Money/components/MoneyBalanceCard/MoneyBalanceCard.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 2
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 3
     }
   },
   "app/components/UI/Money/components/MoneyBalanceInfoSheet/MoneyBalanceInfoSheet.styles.ts": {
@@ -10431,12 +10441,15 @@
   },
   "app/components/UI/Money/components/MoneyEarnBanner/MoneyEarnBanner.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/UI/Money/components/MoneyEarnBanner/MoneyEarnBanner.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 2
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 3
     }
   },
   "app/components/UI/Money/components/MoneyEarnCryptoInfoSheet/MoneyEarnCryptoInfoSheet.styles.ts": {
@@ -10452,6 +10465,9 @@
   "app/components/UI/Money/components/MoneyEarnCryptoInfoSheet/MoneyEarnCryptoInfoSheet.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 2
     }
   },
   "app/components/UI/Money/components/MoneyEarnings/MoneyEarnings.tsx": {
@@ -10569,6 +10585,9 @@
   },
   "app/components/UI/Money/components/MoneyOnboardingCard/MoneyOnboardingCard.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    },
+    "@typescript-eslint/naming-convention": {
       "count": 1
     }
   },
@@ -10863,11 +10882,6 @@
       "count": 8
     }
   },
-  "app/components/UI/Money/hooks/useMoneyAddMoney.ts": {
-    "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
-    }
-  },
   "app/components/UI/Money/hooks/useMoneyAnalytics.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
@@ -10889,6 +10903,9 @@
   "app/components/UI/Money/hooks/useMoneyAssetOverviewCtas.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 2
     }
   },
   "app/components/UI/Money/hooks/useMoneyCtaVisibility.test.ts": {
@@ -10933,7 +10950,7 @@
   },
   "app/components/UI/Money/hooks/useMoneyNavigation.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
+      "count": 2
     }
   },
   "app/components/UI/Money/hooks/useMoneyNavigation.ts": {
@@ -10970,6 +10987,9 @@
   "app/components/UI/Money/hooks/useMoneyTokenListCta.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 2
     }
   },
   "app/components/UI/Money/hooks/useMoneyTransactionDisplayInfo.test.ts": {
@@ -11099,6 +11119,16 @@
       "count": 1
     }
   },
+  "app/components/UI/Money/navigation/moneyEntryDecision.ts": {
+    "@typescript-eslint/naming-convention": {
+      "count": 2
+    }
+  },
+  "app/components/UI/Money/navigation/navigateToMoneyHome.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/components/UI/Money/routes/index.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 19
@@ -11187,6 +11217,11 @@
   "app/components/UI/Money/utils/isMoneyDepositFeeSubsidized.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
+    }
+  },
+  "app/components/UI/Money/utils/moneyAccountTransactions.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 2
     }
   },
   "app/components/UI/Money/utils/moneyActivityFiat.ts": {
@@ -11802,7 +11837,7 @@
   },
   "app/components/UI/Perps/Views/PerpsClosePositionBottomSheet/components/PerpsCloseTotals.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/UI/Perps/Views/PerpsClosePositionRouter/PerpsClosePositionRouter.test.tsx": {
@@ -11835,7 +11870,7 @@
   },
   "app/components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionView.view.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
+      "count": 3
     }
   },
   "app/components/UI/Perps/Views/PerpsErrorsAndInfoFlow.view.test.tsx": {
@@ -12036,7 +12071,7 @@
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 62
+      "count": 66
     },
     "react-hooks/rules-of-hooks": {
       "count": 3
@@ -12044,7 +12079,7 @@
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 9
+      "count": 11
     },
     "@typescript-eslint/naming-convention": {
       "count": 1
@@ -12608,7 +12643,7 @@
   },
   "app/components/UI/Perps/Views/PerpsTPSLView/PerpsTPSLView.view.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
+      "count": 2
     }
   },
   "app/components/UI/Perps/Views/PerpsTooltipView/PerpsTooltipView.test.tsx": {
@@ -12667,6 +12702,11 @@
   "app/components/UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 2
+    }
+  },
+  "app/components/UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView.view.test.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
     }
   },
   "app/components/UI/Perps/Views/PerpsTransactionsView/PerpsTransactionsView.styles.ts": {
@@ -12955,6 +12995,11 @@
     }
   },
   "app/components/UI/Perps/components/PerpsCrossMarginInfoButton/PerpsCrossMarginInfoButton.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
+  "app/components/UI/Perps/components/PerpsCrossMarginRatioBanner/PerpsCrossMarginRatioBanner.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
     }
@@ -13570,6 +13615,11 @@
       "count": 10
     }
   },
+  "app/components/UI/Perps/components/PerpsSelectionBottomSheet/PerpsSelectionBottomSheet.test.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/components/UI/Perps/components/PerpsSentimentSatisfiedIcon/PerpsSentimentSatisfiedIcon.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
@@ -13648,7 +13698,7 @@
   },
   "app/components/UI/Perps/components/PerpsTradeBottomSheet/PerpsTradeBottomSheet.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 3
+      "count": 4
     }
   },
   "app/components/UI/Perps/components/PerpsTradeBottomSheet/PerpsTradeNestedScreens.test.tsx": {
@@ -14023,12 +14073,12 @@
   },
   "app/components/UI/Perps/hooks/usePerpsCloseAllCalculations.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 3
+      "count": 4
     }
   },
   "app/components/UI/Perps/hooks/usePerpsCloseAllCalculations.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 3
     }
   },
   "app/components/UI/Perps/hooks/usePerpsCloseAllPositions.test.ts": {
@@ -15032,11 +15082,6 @@
   "app/components/UI/Perps/utils/prewarmedDepositOrder.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 6
-    }
-  },
-  "app/components/UI/Perps/utils/tpslValidation.ts": {
-    "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
     }
   },
   "app/components/UI/Perps/utils/transactionDetailStyles.ts": {
@@ -16516,7 +16561,7 @@
   },
   "app/components/UI/Predict/routes/index.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 20
+      "count": 24
     }
   },
   "app/components/UI/Predict/routes/index.tsx": {
@@ -17352,12 +17397,14 @@
       "count": 3
     }
   },
+  "app/components/UI/PredictNext/events/cards/EventCardStandard.test.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/components/UI/PredictNext/events/cards/EventCardStandard.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 2
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "app/components/UI/PredictNext/events/cards/PredictEventCard.tsx": {
@@ -17388,6 +17435,16 @@
   "app/components/UI/PredictNext/events/game/getGameMoneylineMarkets.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/events/game/useGameTeamColors.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
+  "app/components/UI/PredictNext/events/game/useGameTeamColors.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 4
     }
   },
   "app/components/UI/PredictNext/events/markets/ChoiceMarketGroupCard.test.tsx": {
@@ -17566,12 +17623,12 @@
   },
   "app/components/UI/PredictNext/hooks/useEventsWithLiveData.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 8
+      "count": 10
     }
   },
   "app/components/UI/PredictNext/hooks/useEventsWithLiveData.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 6
+      "count": 8
     }
   },
   "app/components/UI/PredictNext/hooks/useFeed.ts": {
@@ -20028,7 +20085,7 @@
   },
   "app/components/UI/Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 3
+      "count": 4
     }
   },
   "app/components/UI/Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount.tsx": {
@@ -20097,7 +20154,7 @@
   },
   "app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingLoading.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 3
+      "count": 4
     }
   },
   "app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingLoading.tsx": {
@@ -20112,7 +20169,7 @@
   },
   "app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
+      "count": 3
     }
   },
   "app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingStub.test.tsx": {
@@ -20136,6 +20193,11 @@
     },
     "@typescript-eslint/naming-convention": {
       "count": 1
+    }
+  },
+  "app/components/UI/Ramp/Views/VirtualBankAccount/hooks/useFocusMoneyTabBelow.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 3
     }
   },
   "app/components/UI/Ramp/Views/VirtualBankAccount/hooks/useKycDisclaimers.test.ts": {
@@ -20173,7 +20235,7 @@
   },
   "app/components/UI/Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 25
+      "count": 26
     },
     "@typescript-eslint/naming-convention": {
       "count": 2
@@ -21391,6 +21453,11 @@
       "count": 2
     }
   },
+  "app/components/UI/Rewards/Views/RewardsSettingsView.view.test.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 2
+    }
+  },
   "app/components/UI/Rewards/Views/RewardsTaxFormView.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 3
@@ -21985,7 +22052,7 @@
   },
   "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.view.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 7
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -24675,7 +24742,7 @@
   },
   "app/components/UI/TokenDetails/components/V1/SecuritySocialSection/SecuritySocialSection.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 1
+      "count": 2
     }
   },
   "app/components/UI/TokenDetails/components/V1/SecuritySocialSection/SecuritySocialSection.tsx": {
@@ -27726,6 +27793,9 @@
   },
   "app/components/Views/Homepage/components/HomepageBalanceBreakdown/HomepageBalanceBreakdownRow.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
+      "count": 2
+    },
+    "@typescript-eslint/naming-convention": {
       "count": 2
     }
   },
@@ -31132,12 +31202,15 @@
   },
   "app/components/Views/SocialLeaderboard/MyProfileView/MyProfileView.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 23
+      "count": 24
     }
   },
   "app/components/Views/SocialLeaderboard/MyProfileView/MyProfileView.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 2
+      "count": 3
+    },
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
     }
   },
   "app/components/Views/SocialLeaderboard/MyProfileView/components/MyProfileHeader.test.tsx": {
@@ -31222,7 +31295,7 @@
   },
   "app/components/Views/SocialLeaderboard/PositionDetailsSheet/PositionDetailsSheet.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 24
+      "count": 26
     }
   },
   "app/components/Views/SocialLeaderboard/PositionDetailsSheet/PositionDetailsSheet.tsx": {
@@ -31330,6 +31403,11 @@
       "count": 1
     }
   },
+  "app/components/Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/components/Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
@@ -31340,14 +31418,19 @@
       "count": 1
     }
   },
+  "app/components/Views/SocialLeaderboard/PostTradeShareBottomSheet/useQuoteTokensQuery.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/components/Views/SocialLeaderboard/ProfileOnboarding/AvatarBackgroundCarousel.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 6
+      "count": 7
     }
   },
   "app/components/Views/SocialLeaderboard/ProfileOnboarding/AvatarBackgroundCarousel.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 5
+      "count": 7
     }
   },
   "app/components/Views/SocialLeaderboard/ProfileOnboarding/OnboardingProgress.test.tsx": {
@@ -31508,7 +31591,7 @@
   },
   "app/components/Views/SocialLeaderboard/SocialV1View/SocialV1View.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 36
+      "count": 37
     }
   },
   "app/components/Views/SocialLeaderboard/SocialV1View/SocialV1View.tsx": {
@@ -31657,7 +31740,7 @@
   },
   "app/components/Views/SocialLeaderboard/TraderPositionView/TraderPositionView.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 24
+      "count": 26
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -31665,7 +31748,7 @@
   },
   "app/components/Views/SocialLeaderboard/TraderPositionView/TraderPositionView.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 3
+      "count": 4
     }
   },
   "app/components/Views/SocialLeaderboard/TraderPositionView/components/TradeRow.tsx": {
@@ -31753,7 +31836,7 @@
   },
   "app/components/Views/SocialLeaderboard/TraderProfileView/TraderProfileView.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 24
+      "count": 25
     }
   },
   "app/components/Views/SocialLeaderboard/TraderProfileView/TraderProfileView.tsx": {
@@ -31917,6 +32000,11 @@
       "count": 1
     }
   },
+  "app/components/Views/SocialLeaderboard/components/ShareButtonSpinner.tsx": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/components/Views/SocialLeaderboard/components/SocialHeaderGlassSurface/SocialHeaderGlassSurface.test.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 2
@@ -31998,6 +32086,47 @@
   "app/components/Views/SocialLeaderboard/hooks/useTraderMuteActions.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/navigation/socialOgImageCards.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/navigation/socialOgImageCards.ts": {
+    "@typescript-eslint/naming-convention": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/navigation/socialOgImageService.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/navigation/socialTraderDeeplink.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 5
+    },
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/navigation/socialTraderDeeplink.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 5
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/navigation/useSocialShareInProgress.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
+  "app/components/Views/SocialLeaderboard/navigation/useSocialShareInProgress.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 2
     }
   },
   "app/components/Views/SocialLeaderboard/pendingPosts/pendingPostsLoop.test.ts": {
@@ -32151,7 +32280,7 @@
       "count": 2
     },
     "@typescript-eslint/naming-convention": {
-      "count": 5
+      "count": 4
     }
   },
   "app/components/Views/SocialLeaderboard/terms/__mocks__/socialTermsAcceptance.ts": {
@@ -32628,6 +32757,9 @@
   },
   "app/components/Views/TrendingView/search/EarnSearchRow.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    },
+    "@typescript-eslint/naming-convention": {
       "count": 1
     }
   },
@@ -38236,7 +38368,7 @@
   },
   "app/core/DeeplinkManager/utils/startupDeeplinkNavigation.test.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 8
+      "count": 9
     }
   },
   "app/core/DeeplinkManager/utils/startupDeeplinkNavigation.ts": {
@@ -39234,6 +39366,11 @@
       "count": 1
     }
   },
+  "app/core/Engine/wallet-init/listeners/geolocation-controller.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    }
+  },
   "app/core/Engine/wallet-init/messengers/permission-controller-messenger.ts": {
     "@typescript-eslint/explicit-function-return-type": {
       "count": 1
@@ -39775,6 +39912,19 @@
     },
     "@typescript-eslint/no-unused-vars": {
       "count": 3
+    }
+  },
+  "app/core/PostUnlockResume/PostUnlockResume.test.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 4
+    }
+  },
+  "app/core/PostUnlockResume/PostUnlockResume.ts": {
+    "@typescript-eslint/explicit-function-return-type": {
+      "count": 1
+    },
+    "@typescript-eslint/naming-convention": {
+      "count": 1
     }
   },
   "app/core/QrKeyring/QrKeyring.test.ts": {
@@ -44264,7 +44414,7 @@
   },
   "tests/api-mocking/mock-responses/pay/relay-mocks.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 4
+      "count": 7
     }
   },
   "tests/api-mocking/mock-responses/perps-arbitrum-mocks.ts": {
@@ -44729,10 +44879,10 @@
   },
   "tests/component-view/renderers/rewardsMoney.tsx": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 23
+      "count": 25
     },
     "@typescript-eslint/naming-convention": {
-      "count": 9
+      "count": 10
     }
   },
   "tests/component-view/renderers/seedlessOnboarding.tsx": {
@@ -44994,7 +45144,7 @@
   },
   "tests/framework/fixtures/FixtureBuilder.ts": {
     "@typescript-eslint/explicit-function-return-type": {
-      "count": 65
+      "count": 66
     },
     "@typescript-eslint/naming-convention": {
       "count": 6

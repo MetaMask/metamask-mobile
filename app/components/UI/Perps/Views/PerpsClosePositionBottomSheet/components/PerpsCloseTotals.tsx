@@ -1,19 +1,17 @@
 import React from 'react';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import {
   KeyValueRow,
   KeyValueRowVariant,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
+import { formatPercentage } from '../../../utils/formatUtils';
 import {
-  formatPercentage,
-  formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../../utils/formatUtils';
-
-const formatSummaryFiat = (value: number) =>
-  formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+  formatCloseSummaryFiat,
+  formatSignedCloseSummaryFiat,
+  getCloseSummaryPnlColor,
+} from '../../../components/PerpsCloseSummary/closeSummaryFormat';
 
 // `formatPercentage` renders -0 as "+0.00%"; a limit RoE that rounds to
 // zero from below (a limit just under the entry price) must keep its minus
@@ -24,7 +22,8 @@ const formatSummaryPercentage = (value: number, pnl: number) =>
   Object.is(value, -0) && pnl < 0 ? '-0.00%' : formatPercentage(value);
 
 export interface PerpsCloseTotalsProps {
-  pnl: number;
+  /** P&L realized by the close; undefined while unavailable. */
+  pnl: number | undefined;
   /**
    * The %RoE shown beside the $PnL: the position's actual %RoE
    * (`returnOnEquity × 100`) for market closes, or the RoE at the effective
@@ -33,7 +32,8 @@ export interface PerpsCloseTotalsProps {
    * value is unavailable.
    */
   roePercentage?: number;
-  receiveAmount: number;
+  /** Cash the close returns; undefined while unavailable. */
+  receiveAmount: number | undefined;
 }
 
 /**
@@ -50,7 +50,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
       keyLabel={strings('perps.close_position.total_receive')}
-      value={formatSummaryFiat(receiveAmount)}
+      value={formatCloseSummaryFiat(receiveAmount)}
       valueTextProps={{
         testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
       }}
@@ -63,13 +63,17 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
       accessible
       testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
       keyLabel={strings('perps.close_position.included_pnl')}
-      value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(Math.abs(pnl))}${
-        roePercentage !== undefined
-          ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
-          : ''
-      }`}
+      value={
+        pnl === undefined
+          ? PERPS_CONSTANTS.FallbackDataDisplay
+          : `${formatSignedCloseSummaryFiat(pnl)}${
+              roePercentage !== undefined
+                ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
+                : ''
+            }`
+      }
       valueTextProps={{
-        color: pnl < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault,
+        color: getCloseSummaryPnlColor(pnl),
         testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
       }}
     />

@@ -5,6 +5,8 @@ import {
   screen,
   within,
 } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { brandColor, lightTheme } from '@metamask/design-tokens';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import type {
   PredictDecimal,
@@ -18,6 +20,7 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
+import { getContrastRatio } from '../game/useGameTeamColors';
 import { EventCardGame } from './EventCardGame';
 
 const createOutcome = (
@@ -419,6 +422,51 @@ describe('EventCardGame', () => {
     const quote = screen.getByTestId('predict-next-game-quote-game-event-away');
     expect(quote).toHaveTextContent('ARI · 47¢');
     expect(screen.queryByRole('button', { name: /buy/ })).not.toBeOnTheScreen();
+  });
+
+  it('fills an active quote with the Team color when the price color falls back', () => {
+    const event = createEvent();
+    // Pale enough that its price color falls back to the theme's success color.
+    getGame(event).homeTeam.primaryColor = `#${'FFF7CC'}` as PredictHexColor;
+
+    renderCard(event, { onOrder: jest.fn() });
+
+    const quote = screen.getByTestId('predict-next-game-quote-game-event-home');
+    expect(quote).toHaveStyle({ backgroundColor: `#${'FFF7CC'}` });
+    // White reads at about 1.08:1 on this fill, so the label is the dark ink.
+    expect(within(quote).getByText(/·/)).toHaveStyle({
+      color: brandColor.grey1000,
+    });
+  });
+
+  it('keeps the white label on a dark Team fill', () => {
+    const event = createEvent();
+    getGame(event).homeTeam.primaryColor = `#${'0B2265'}` as PredictHexColor;
+
+    renderCard(event, { onOrder: jest.fn() });
+
+    const quote = screen.getByTestId('predict-next-game-quote-game-event-home');
+    expect(quote).toHaveStyle({ backgroundColor: `#${'0B2265'}` });
+    expect(within(quote).getByText(/·/)).toHaveStyle({
+      color: lightTheme.colors.overlay.inverse,
+    });
+  });
+
+  it('darkens a mid-tone Team fill that neither label color can sit on', () => {
+    const event = createEvent();
+    getGame(event).homeTeam.primaryColor = `#${'D2492A'}` as PredictHexColor;
+
+    renderCard(event, { onOrder: jest.fn() });
+
+    const quote = screen.getByTestId('predict-next-game-quote-game-event-home');
+    const fill = StyleSheet.flatten(quote.props.style).backgroundColor;
+    expect(fill).not.toBe(`#${'D2492A'}`);
+    expect(
+      getContrastRatio(lightTheme.colors.overlay.inverse, String(fill)),
+    ).toBeGreaterThanOrEqual(4.5);
+    expect(within(quote).getByText(/·/)).toHaveStyle({
+      color: lightTheme.colors.overlay.inverse,
+    });
   });
 
   it('emits the Event, Market, and Outcome from an active quote', () => {
