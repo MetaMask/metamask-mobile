@@ -3,6 +3,7 @@ import { Text } from 'react-native';
 import { act, render, screen } from '@testing-library/react-native';
 import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import {
+  __getRivePropertySetter,
   __resetRiveMocks,
   __setRivePropertyValue,
 } from '../../../../__mocks__/rive-app-react-native';
@@ -17,6 +18,8 @@ import {
 } from './profileOnboardingRive';
 import type { NetworkTier } from '../../../../hooks/useNetworkTier';
 import type { HardwareTier } from '../../../../util/deviceCapability';
+import { ThemeContext } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 const mockUseNetworkTier = jest.fn<NetworkTier | null, []>();
 const mockGetHardwareTier = jest.fn<HardwareTier | null, []>();
@@ -87,7 +90,22 @@ describe('ProfileOnboardingIntroAnimation', () => {
     mockUseNetworkTier.mockReturnValue('WIFI');
     mockGetHardwareTier.mockReturnValue('HIGH');
     mockUseReducedMotion.mockReturnValue(false);
+    mockUseRive.mockReset();
+    mockUseRiveFile.mockReset();
+    mockUseViewModelInstance.mockReset();
   });
+
+  const renderIntro = (
+    themeAppearance: AppThemeKey.light | AppThemeKey.dark = AppThemeKey.light,
+    props: React.ComponentProps<typeof ProfileOnboardingIntroAnimation> = {
+      fallback,
+    },
+  ) =>
+    render(
+      <ThemeContext.Provider value={{ themeAppearance }}>
+        <ProfileOnboardingIntroAnimation {...props} />
+      </ThemeContext.Provider>,
+    );
 
   it('renders the onboarding artboard bound to its view model', () => {
     render(<ProfileOnboardingIntroAnimation fallback={fallback} />);
@@ -293,6 +311,53 @@ describe('ProfileOnboardingIntroAnimation', () => {
     ).toBeOnTheScreen();
     expect(mockFireContinue).not.toHaveBeenCalled();
     jest.useRealTimers();
+  });
+
+  it('sets lightMode from the app theme', () => {
+    const { rerender } = renderIntro();
+    const setLightMode = __getRivePropertySetter(
+      PROFILE_ONBOARDING_RIVE_PATHS.LIGHT_MODE,
+    );
+
+    expect(setLightMode).toHaveBeenCalledWith(true);
+
+    rerender(
+      <ThemeContext.Provider value={{ themeAppearance: AppThemeKey.dark }}>
+        <ProfileOnboardingIntroAnimation fallback={fallback} />
+      </ThemeContext.Provider>,
+    );
+
+    expect(setLightMode).toHaveBeenLastCalledWith(false);
+  });
+
+  it('reports currentStep and ignores a skipped animation', () => {
+    const onStepChange = jest.fn();
+    const { rerender } = render(
+      <ProfileOnboardingIntroAnimation
+        fallback={fallback}
+        onStepChange={onStepChange}
+      />,
+    );
+
+    act(() => {
+      __setRivePropertyValue(PROFILE_ONBOARDING_RIVE_PATHS.CURRENT_STEP, 2);
+    });
+
+    expect(onStepChange).toHaveBeenCalledWith(2);
+
+    onStepChange.mockClear();
+    mockUseNetworkTier.mockReturnValue('NONE');
+    rerender(
+      <ProfileOnboardingIntroAnimation
+        fallback={fallback}
+        onStepChange={onStepChange}
+      />,
+    );
+    act(() => {
+      __setRivePropertyValue(PROFILE_ONBOARDING_RIVE_PATHS.CURRENT_STEP, 3);
+    });
+
+    expect(onStepChange).not.toHaveBeenCalled();
   });
 
   it('switches to the fallback when Rive reports an error', () => {

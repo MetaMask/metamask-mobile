@@ -36,6 +36,7 @@ import {
 import { displayNameFromUsername } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { strings } from '../../../../../locales/i18n';
+import { __setRivePropertyValue } from '../../../../__mocks__/rive-app-react-native';
 import {
   acceptSocialTerms,
   hasAcceptedSocialTerms,
@@ -533,7 +534,7 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_TITLE),
     ).toHaveTextContent(
-      strings('social_leaderboard.profile_onboarding.intro_title'),
+      strings('social_leaderboard.profile_onboarding.intro_title_activity'),
     );
     const connectXButton = screen.getByTestId(
       SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
@@ -564,6 +565,63 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.PROGRESS),
     ).not.toBeOnTheScreen();
+  });
+
+  it('follows the intro scene with the title', () => {
+    goOnline();
+    renderSocialProfileOnboarding();
+
+    const introTitle = screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
+    );
+    expect(introTitle).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.intro_title_activity'),
+    );
+    expect(
+      screen.queryByTestId(
+        SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_OUTGOING,
+      ),
+    ).not.toBeOnTheScreen();
+
+    act(() => {
+      __setRivePropertyValue('currentStep', 2);
+    });
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_TITLE),
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.intro_title'),
+    );
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_INCOMING,
+      ),
+    ).toHaveAnimatedStyle({ opacity: 1 });
+    const outgoingTitle = screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_OUTGOING,
+      { includeHiddenElements: true },
+    );
+    expect(outgoingTitle).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.intro_title_activity'),
+    );
+    expect(outgoingTitle).toHaveAnimatedStyle({ opacity: 0 });
+
+    act(() => {
+      __setRivePropertyValue('currentStep', 3);
+    });
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_TITLE),
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.intro_title_post'),
+    );
+
+    act(() => {
+      __setRivePropertyValue('currentStep', 0);
+    });
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_TITLE),
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.intro_title_activity'),
+    );
   });
 
   it('plays the intro animation while online', () => {
