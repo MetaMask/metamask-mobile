@@ -12,6 +12,12 @@ fi
 BUILD_TYPE="${BUILD_TYPE:-imported-wallet}"
 GREP_TAGS="${GREP_TAGS:-}"
 CONFIG="tests/playwright.testmu.config.ts"
+PROJECT_PREFIX="testmu-android"
+if [[ "$TEST_FILE" == *.scenario.spec.ts ]]; then
+  # Agent-driven scenarios have their own config and projects.
+  CONFIG="tests/playwright.scenario-shadow.config.ts"
+  PROJECT_PREFIX="scenario-shadow-testmu-android"
+fi
 
 export PLAYWRIGHT_WORKERS="${PLAYWRIGHT_WORKERS:-1}"
 
@@ -19,13 +25,13 @@ select_project_args() {
   case "$BUILD_TYPE" in
     onboarding)
       if [[ "$TEST_FILE" == *'/seedless-'* ]]; then
-        echo --project testmu-android-onboarding-seedless
+        echo --project "${PROJECT_PREFIX}-onboarding-seedless"
       else
-        echo --project testmu-android-onboarding
+        echo --project "${PROJECT_PREFIX}-onboarding"
       fi
       ;;
     imported-wallet)
-      echo --project testmu-android
+      echo --project "$PROJECT_PREFIX"
       ;;
     *)
       echo "Unsupported BUILD_TYPE: $BUILD_TYPE" >&2

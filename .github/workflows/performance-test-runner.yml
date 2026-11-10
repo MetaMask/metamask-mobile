@@ -155,6 +155,7 @@ jobs:
           TEST_SRP_4_SECRET: ${{ secrets.TEST_SRP_4 }}
           E2E_PASSWORD_SECRET: ${{ secrets.E2E_PASSWORD }}
           ANTHROPIC_API_KEY_SECRET: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          ANTHROPIC_MODEL_OVERRIDE: ${{ vars.PERF_AGENT_ANTHROPIC_MODEL }}
         run: |
           echo "Setting TestMu HyperExecute $BUILD_TYPE environment for device: $DEVICE_NAME"
 
@@ -228,6 +229,8 @@ jobs:
             # Stays off when the key is missing (for example on fork PRs).
             echo "AI_LOCATOR_RECOVERY_ENABLED=true"
             echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY_SECRET"
+            # Model for the scenario agent (direct Anthropic API in CI).
+            echo "ANTHROPIC_MODEL=${ANTHROPIC_MODEL_OVERRIDE:-claude-haiku-4-5-20251001}"
             echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
             echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
             echo "E2E_PERFORMANCE_SENTRY_RELEASE=$SENTRY_RELEASE"
@@ -275,6 +278,7 @@ jobs:
           path: |
             tests/reporters/reports
             tests/test-reports/playwright-report/
+            tests/performance/**/*.scenario.cache.json
           if-no-files-found: ignore
           retention-days: 7
 
