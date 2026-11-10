@@ -133,7 +133,7 @@ const ConfirmAddAsset = () => {
         <FlashList
           data={selectedAsset}
           style={tw.style('flex-1 bg-default')}
-          contentContainerStyle={tw.style('pt-6 px-6 pb-4')}
+          contentContainerStyle={tw.style('pt-6 px-4 pb-4')}
           renderItem={renderItem}
           keyExtractor={getAssetRowKey}
         />
