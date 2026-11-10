@@ -20,7 +20,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
@@ -482,7 +482,23 @@ describe('SocialProfileOnboardingView', () => {
     });
   });
 
-  it('hides the back arrow on the intro and shows it on later steps', () => {
+  it('pads the header 16px on the left and right', () => {
+    renderSocialProfileOnboarding();
+
+    const style = StyleSheet.flatten(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.HEADER).props
+        .style,
+    );
+
+    expect(style).toEqual(
+      expect.objectContaining({
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
+    );
+  });
+
+  it('hides the back arrow on the intro and the first username step', async () => {
     renderSocialProfileOnboarding();
 
     expect(
@@ -497,6 +513,15 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    await continueFromUsername();
 
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
@@ -990,7 +1015,7 @@ describe('SocialProfileOnboardingView', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('starts a fresh manual flow after leaving the X path', async () => {
+  it('hides the back arrow on the X identity step', async () => {
     signIn();
     renderSocialProfileOnboarding([
       { name: Routes.HOME_TABS },
@@ -1005,57 +1030,21 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
       ),
     ).toBeOnTheScreen();
-
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
-    );
-    fireEvent.press(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
-      ),
-    );
-
-    const handle = usernameValue();
-    expect(handle).not.toBe('degangirl');
-    expect(handle).toMatch(/^[a-z0-9]+(?:_[a-z0-9]+)+$/);
     expect(
-      screen.getByTestId(
-        `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-3`,
-      ),
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON),
     ).toBeOnTheScreen();
 
-    await continueFromUsername();
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP),
-    ).not.toBeOnTheScreen();
-
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
-    await leaveReadyStep();
-
-    expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
     ).toBeOnTheScreen();
-    expect(getLocalSocialProfileSnapshot().profile).toEqual(
-      expect.objectContaining({
-        handle,
-        connectedToX: false,
-        xHandle: null,
-        imageUrl: null,
-      }),
-    );
-    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
-      expect.objectContaining({
-        username: handle,
-        avatar_url: 'foxicon://vr/background3',
-      }),
-    );
   });
 
   it('uses the manual username and avatar pickers when X reuse is off', async () => {

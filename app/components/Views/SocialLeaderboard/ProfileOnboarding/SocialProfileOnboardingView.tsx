@@ -962,6 +962,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     ((step === 'username' || step === 'x-identity') &&
       !canContinueUsernameStep(draft)) ||
     (step === 'account' && !draft.linkedAccountId);
+  // The first step of either path has no earlier step to return to, so it hides back.
+  const hasBackStep =
+    step !== 'intro' && step !== 'username' && step !== 'x-identity';
   const readyImageUrl =
     draft.useXAvatar && draft.xAvatarUrl ? draft.xAvatarUrl : null;
 
@@ -983,13 +986,14 @@ const SocialProfileOnboardingView: React.FC = () => {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
+        twClassName="px-4"
         title=""
-        onBack={step === 'intro' ? undefined : handleBack}
+        onBack={hasBackStep ? handleBack : undefined}
         onClose={handleClose}
         backButtonProps={
-          step === 'intro'
-            ? undefined
-            : { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+          hasBackStep
+            ? { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+            : undefined
         }
         closeButtonProps={{
           testID: SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON,
