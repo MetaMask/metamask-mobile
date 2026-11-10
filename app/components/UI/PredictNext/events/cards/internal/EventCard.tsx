@@ -207,7 +207,10 @@ const HeaderRowRoot = ({
   testID?: string;
 }) => (
   <Box twClassName="gap-3" testID={testID}>
-    <Box twClassName="flex-row items-center justify-between gap-3 px-4">
+    <Box
+      twClassName="flex-row items-center justify-between gap-3 px-4"
+      testID={testID ? `${testID}-row` : undefined}
+    >
       {children}
     </Box>
     {/* iOS draws a one-sided dashed border solid, so clip a dashed box to its top edge. */}

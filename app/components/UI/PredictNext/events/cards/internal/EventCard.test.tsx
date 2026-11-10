@@ -212,6 +212,11 @@ describe('EventCard.HeaderRow', () => {
     expect(title).toHaveProp('numberOfLines', 1);
     expect(meta).toHaveTextContent('NFL');
     expect(meta).toHaveStyle({ color: lightTheme.colors.text.alternative });
+    expect(screen.getByTestId('header-row')).toHaveStyle({
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    });
     const divider = screen.getByTestId('header-divider');
     expect(divider).toHaveStyle({
       borderStyle: 'dashed',

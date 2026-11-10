@@ -805,6 +805,54 @@ describe('EventCardGame', () => {
       expect(screen.queryByText(/Vol/)).not.toBeOnTheScreen();
     });
 
+    it('is 190pt wide', () => {
+      renderCard(createSmallEvent(), { variant: 'small' });
+
+      expect(
+        screen.getByTestId('predict-next-event-kalshi-game-event'),
+      ).toHaveStyle({ width: 190 });
+    });
+
+    it('lays the Competition and start out on one line', () => {
+      renderCard(createSmallEvent(), { variant: 'small' });
+
+      const row = screen.getByTestId('predict-next-game-header-game-event-row');
+      expect(row).toHaveStyle({
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      });
+      expect(
+        within(row).getByTestId(
+          'predict-next-game-header-game-event-competition',
+        ),
+      ).toHaveProp('numberOfLines', 1);
+      expect(
+        within(row).getByTestId('predict-next-game-header-game-event-start'),
+      ).toHaveProp('numberOfLines', 1);
+    });
+
+    it.each([
+      ['priced', [createMarket('away', 'away', '0.47')], jest.fn()],
+      [
+        'without an order handler',
+        [createMarket('away', 'away', '0.47')],
+        undefined,
+      ],
+      ['without an Ask Price', [createMarket('away', 'away', null)], jest.fn()],
+    ])('sizes the price pill 54x32 when %s', (_, markets, onOrder) => {
+      renderCard(
+        createSmallEvent({
+          markets: [...markets, createMarket('home', 'home')],
+        }),
+        { variant: 'small', onOrder },
+      );
+
+      expect(
+        screen.getByTestId('predict-next-game-quote-game-event-away'),
+      ).toHaveStyle({ width: 54, height: 32 });
+    });
+
     it('keeps the layout and start time for a Game in progress', () => {
       const event = createSmallEvent();
       getGame(event).status = 'in_progress';
@@ -834,8 +882,8 @@ describe('EventCardGame', () => {
       ).toHaveTextContent(/^Nov 23 · 1:00\sPM$/);
     });
 
-    it('keeps the start on the right without a Competition or omits it without a start', () => {
-      const event = createSmallEvent({ startsAt: undefined });
+    it('keeps the start on the right without a Competition', () => {
+      const event = createSmallEvent();
       if (event.sports) {
         event.sports.competition = undefined;
       }
@@ -846,8 +894,31 @@ describe('EventCardGame', () => {
         screen.queryByTestId('predict-next-game-header-game-event-competition'),
       ).not.toBeOnTheScreen();
       expect(
+        screen.getByTestId('predict-next-game-header-game-event-leading'),
+      ).toHaveStyle({ flexGrow: 1 });
+      expect(
+        within(screen.getByTestId('predict-next-game-header-game-event-row'))
+          .getAllByTestId(
+            /^predict-next-game-header-game-event-(leading|start)$/,
+          )
+          .map((part) => String(part.props.testID).split('-').pop()),
+      ).toEqual(['leading', 'start']);
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-start'),
+      ).toHaveTextContent(/^Thu · 8:20\sPM$/);
+    });
+
+    it('omits the start without a start time', () => {
+      renderCard(createSmallEvent({ startsAt: undefined }), {
+        variant: 'small',
+      });
+
+      expect(
         screen.queryByTestId('predict-next-game-header-game-event-start'),
       ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-competition'),
+      ).toHaveTextContent('NFL');
       expect(
         screen.getByTestId('predict-next-game-team-game-event-away'),
       ).toBeOnTheScreen();
@@ -930,9 +1001,8 @@ describe('EventCardGame', () => {
       expect(onPress).not.toHaveBeenCalled();
     });
 
-    it('shows the price, not a button, without an order handler or from an inactive Market', () => {
-      const onOrder = jest.fn();
-      const { rerender } = renderCard(createSmallEvent(), { variant: 'small' });
+    it('shows the price, not a button, without an order handler', () => {
+      renderCard(createSmallEvent(), { variant: 'small' });
 
       expect(
         screen.getByTestId('predict-next-game-quote-game-event-away'),
@@ -940,28 +1010,30 @@ describe('EventCardGame', () => {
       expect(
         screen.queryByRole('button', { name: /buy/ }),
       ).not.toBeOnTheScreen();
+    });
 
-      rerender(
-        <EventCardGame
-          event={createSmallEvent({
-            markets: [
-              createMarket('away', 'away', '0.47', 'inactive'),
-              createMarket('home', 'home', '0.53'),
-            ],
-          })}
-          variant="small"
-          onPress={jest.fn()}
-          onOrder={onOrder}
-        />,
+    it('shows the price, not a button, from an inactive Market', () => {
+      const onOrder = jest.fn();
+      renderCard(
+        createSmallEvent({
+          markets: [
+            createMarket('away', 'away', '0.47', 'inactive'),
+            createMarket('home', 'home', '0.53'),
+          ],
+        }),
+        { variant: 'small', onOrder },
       );
-      fireEvent.press(
-        screen.getByTestId('predict-next-game-quote-game-event-away'),
+
+      const away = screen.getByTestId(
+        'predict-next-game-quote-game-event-away',
       );
+      expect(away).toHaveTextContent('47¢');
+      expect(
+        screen.queryByRole('button', { name: 'Arizona Cardinals, 47¢, buy' }),
+      ).not.toBeOnTheScreen();
+      fireEvent.press(away);
 
       expect(onOrder).not.toHaveBeenCalled();
-      expect(
-        screen.getByTestId('predict-next-game-quote-game-event-away'),
-      ).toHaveTextContent('47¢');
     });
   });
 });

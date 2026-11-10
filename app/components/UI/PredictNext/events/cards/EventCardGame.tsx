@@ -151,7 +151,11 @@ const SmallGameCard = ({
       >
         <GameCard.Navigation>
           <EventCard.HeaderRow testID={`predict-next-game-header-${event.id}`}>
-            <Box twClassName="min-w-0 flex-1">
+            {/* Always rendered, so the start stays right without a Competition. */}
+            <Box
+              twClassName="min-w-0 flex-1"
+              testID={`predict-next-game-header-${event.id}-leading`}
+            >
               {competition ? (
                 <Text
                   variant={TextVariant.BodyXs}
