@@ -592,11 +592,14 @@ jest.mock('../../../../hooks/usePerpsSavePendingConfig', () => ({
   usePerpsSavePendingConfig: jest.fn(),
 }));
 
+const mockSubscribeToAvailableToTrade = jest.fn();
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       clearPendingTradeConfiguration: (...args: unknown[]) =>
         mockClearPendingTradeConfiguration(...args),
+      subscribeToAvailableToTrade: (...args: unknown[]) =>
+        mockSubscribeToAvailableToTrade(...args),
     },
   },
 }));
@@ -804,18 +807,50 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('availableBalance', () => {
-    it('formats spendable balance as "$amount available" when connected', () => {
-      const { result } = renderProForm();
+    const reportAvailableToTrade = (long: string, short: string) => {
+      const [{ callback, symbol }] =
+        mockSubscribeToAvailableToTrade.mock.calls[
+          mockSubscribeToAvailableToTrade.mock.calls.length - 1
+        ];
+      act(() => {
+        callback({ providerId: 'hyperliquid', symbol, long, short });
+      });
+    };
 
-      expect(result.current.availableBalance).toMatch(/^\$500 available$/);
+    beforeEach(() => {
+      mockSubscribeToAvailableToTrade.mockReset().mockReturnValue(jest.fn());
     });
 
-    it('shows the unavailable placeholder before Perps is initialized', () => {
+    it('shows the placeholder until the market value is known', () => {
+      const { result } = renderProForm();
+
+      expect(result.current.availableBalance).toBe('-- available to trade');
+    });
+
+    it('shows the controller value for the long side, not the withdrawable balance', () => {
+      const { result } = renderProForm();
+
+      reportAvailableToTrade('8.65', '9.65');
+
+      expect(result.current.availableBalance).toBe('$8.65 available to trade');
+    });
+
+    it('shows the short side value for a short order', () => {
+      mockContextValue.orderForm = { ...mockOrderForm, direction: 'short' };
+      const { result } = renderProForm();
+
+      reportAvailableToTrade('8.65', '9.65');
+
+      expect(result.current.availableBalance).toBe('$9.65 available to trade');
+    });
+
+    it('does not subscribe before Perps is initialized', () => {
       mockIsInitialized = false;
 
       const { result } = renderProForm();
 
-      expect(result.current.availableBalance).toBe('-- available');
+      expect(mockSubscribeToAvailableToTrade).not.toHaveBeenCalled();
+      expect(result.current.availableBalance).toBe('-- available to trade');
     });
   });
 

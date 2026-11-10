@@ -187,6 +187,20 @@ describe('PerpsProMarketStatsBar', () => {
     expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
   });
 
+  it('shows the unknown-rate placeholder in the default colour', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: '--%',
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '--% / 39:24',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
+  });
+
   it('displays a negative threshold funding rate in error color', () => {
     mockUsePerpsMarketStats.mockReturnValue({
       ...mockMarketStats,

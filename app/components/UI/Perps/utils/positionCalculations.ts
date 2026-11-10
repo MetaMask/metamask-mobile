@@ -5,6 +5,14 @@ import {
   CLOSE_POSITION_CONFIG,
   type Position,
 } from '@metamask/perps-controller';
+import { PERPS_TPSL_PERCENT_DISPLAY_DECIMALS } from '../constants/perpsConfig';
+import { formatPercentage } from './formatUtils';
+
+const formatTpSlPercent = (percent: number): string =>
+  formatPercentage(percent, {
+    decimals: PERPS_TPSL_PERCENT_DISPLAY_DECIMALS,
+    sign: 'never',
+  });
 
 interface CloseAmountFromPercentageParams {
   percentage: number;
@@ -232,12 +240,12 @@ export function buildTpSlLabel(
 
   if (Number.isFinite(tp) && tp > 0) {
     const tpPct = Math.abs(((tp - entry) / entry) * 100);
-    parts.push(`${tpLabel} ${tpPct.toFixed(0)}%`);
+    parts.push(`${tpLabel} ${formatTpSlPercent(tpPct)}`);
   }
 
   if (Number.isFinite(sl) && sl > 0) {
     const slPct = Math.abs(((sl - entry) / entry) * 100);
-    parts.push(`${slLabel} ${slPct.toFixed(0)}%`);
+    parts.push(`${slLabel} ${formatTpSlPercent(slPct)}`);
   }
 
   return parts.length > 0 ? parts.join(', ') : null;

@@ -35,8 +35,8 @@ import {
 } from '../../components';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import {
+  formatPerpsFiat,
   formatPerpsOrderFee,
-  formatPositiveFiat,
   formatPerpsTransactionDate,
   formatSignedPerpsFiat,
   getPerpsFundsCtaLabel,
@@ -166,7 +166,7 @@ function TradeDetails({
         <ActivityDetailSection>
           <ActivityDetailRow
             label={strings('perps.transactions.position.fees')}
-            value={fill?.fee ? formatPositiveFiat(fill.fee) : undefined}
+            value={fill?.fee ? formatPerpsFiat(fill.fee) : undefined}
             testID={ActivityDetailsSelectorsIDs.FEES_ROW}
           />
           {shouldShowPerpsPnl(fill) ? (

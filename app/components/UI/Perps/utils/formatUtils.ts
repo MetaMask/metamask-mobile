@@ -8,11 +8,21 @@ import {
   getIntlNumberFormatter,
 } from '../../../../util/intl';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../constants/perpsConfig';
+import { getFormatters } from '../../../hooks/useFormatters';
 import {
   type FiatRangeConfig,
-  formatPerpsFiat,
+  type PerpsDisplayFormatOptions,
+  type PerpsFiatFormatOptions,
+  type PerpsFundingRateFormatOptions,
+  type PerpsSignDisplay,
+  formatFundingRate as formatFundingRateEnUs,
   formatHyperLiquidPrice,
+  formatPercentage as formatPercentageEnUs,
+  formatPerpsFiat as formatPerpsFiatEnUs,
+  formatPnl as formatPnlEnUs,
+  formatPositionSize as formatPositionSizeEnUs,
   formatWithSignificantDigits,
+  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
 
@@ -23,12 +33,88 @@ export {
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
-  formatPositionSize,
-  formatPnl,
-  formatPercentage,
-  formatFundingRate,
 } from '@metamask/perps-controller';
-export { formatPerpsFiat }; // re-export via local import (needed by formatPositiveFiat below)
+
+/*
+ * The perps-controller display formatters, bound to the app language. This is
+ * the one place Mobile injects `createFormatters({ locale })` (cached per
+ * language by `getFormatters`); every displayed perps number goes through these.
+ */
+
+type PerpsDisplayValue = string | number | null | undefined;
+
+const toDisplayOptions = (
+  decimalsOrOptions?: number | PerpsDisplayFormatOptions,
+): PerpsDisplayFormatOptions =>
+  typeof decimalsOrOptions === 'number'
+    ? { decimals: decimalsOrOptions }
+    : { ...decimalsOrOptions };
+
+/** Core `formatPnl` in the app language. */
+export const formatPnl = (
+  pnl: PerpsDisplayValue,
+  options?: PerpsDisplayFormatOptions,
+): string => formatPnlEnUs(pnl, { formatters: getFormatters(), ...options });
+
+/** Core `formatPercentage` in the app language. */
+export const formatPercentage = (
+  value: PerpsDisplayValue,
+  decimalsOrOptions?: number | PerpsDisplayFormatOptions,
+): string =>
+  formatPercentageEnUs(value, {
+    formatters: getFormatters(),
+    ...toDisplayOptions(decimalsOrOptions),
+  });
+
+/** Core `formatFundingRate` in the app language. */
+export const formatFundingRate = (
+  value?: PerpsDisplayValue,
+  options?: PerpsFundingRateFormatOptions,
+): string =>
+  formatFundingRateEnUs(value, { formatters: getFormatters(), ...options });
+
+/** Core `formatPositionSize` in the app language. */
+export const formatPositionSize = (
+  size: PerpsDisplayValue,
+  szDecimalsOrOptions?: number | PerpsDisplayFormatOptions,
+): string =>
+  formatPositionSizeEnUs(size, {
+    formatters: getFormatters(),
+    ...toDisplayOptions(szDecimalsOrOptions),
+  });
+
+/**
+ * Core `formatPercentage` without its trailing `%`, for locale templates that
+ * place the `%` themselves (e.g. `"Est: {{est}}% / Max: {{value}}%"`).
+ * Unsigned unless `sign` says otherwise.
+ */
+export const formatPercentageNumber = (
+  value: PerpsDisplayValue,
+  options?: PerpsDisplayFormatOptions,
+): string =>
+  formatPercentage(value, { sign: 'never', ...options }).replace(/%$/u, '');
+
+/** Core `formatPerpsFiat` in the app language. */
+export const formatPerpsFiat = (
+  balance: PerpsDisplayValue,
+  options?: PerpsFiatFormatOptions,
+): string =>
+  formatPerpsFiatEnUs(balance, { formatters: getFormatters(), ...options });
+
+/**
+ * A USD amount at cents precision with grouping, e.g. `+$1,234.50`, for
+ * history amounts, fees and balances that always show two decimals.
+ */
+export const formatPerpsUsdCents = (
+  amount: PerpsDisplayValue | BigNumber,
+  sign: PerpsSignDisplay = 'auto',
+): string =>
+  formatPerpsFiat(BigNumber.isBigNumber(amount) ? amount.toString() : amount, {
+    minimumDecimals: 2,
+    maximumDecimals: 2,
+    stripTrailingZeros: false,
+    sign,
+  });
 
 const DEFAULT_PERPS_LOCALE = 'en-US';
 
@@ -905,6 +991,24 @@ export const formatPerpsPrice = (
   }
 };
 
+/** Funding since open below half a cent shows as zero. */
+const FUNDING_SINCE_OPEN_ZERO_THRESHOLD = 0.005;
+
+/**
+ * Formats a position's cumulative funding since open from the trader's side:
+ * a positive value is a cost and shows `-`, a payment shows `+`, and less than
+ * half a cent shows zero.
+ *
+ * @example formatFundingSinceOpen(1.234) => "-$1.23"
+ * @example formatFundingSinceOpen(-0.5) => "+$0.50"
+ * @example formatFundingSinceOpen(0.001) => "$0"
+ */
+export const formatFundingSinceOpen = (sinceOpen: number): string =>
+  formatPerpsFiat(
+    Math.abs(sinceOpen) < FUNDING_SINCE_OPEN_ZERO_THRESHOLD ? 0 : -sinceOpen,
+    { ranges: PRICE_RANGES_MINIMAL_VIEW, sign: 'exceptZero' },
+  );
+
 /**
  * Formats one side of a position's take profit / stop loss summary.
  *
@@ -971,26 +1075,6 @@ export const getUniversalPriceFractionDigits = (price: number): number => {
  */
 export const truncateToTwoDecimals = (value: number): number =>
   new BigNumber(value).decimalPlaces(2, BigNumber.ROUND_DOWN).toNumber();
-
-/**
- * Formats a fee value as USD currency with appropriate decimal places
- * @param fee - Raw numeric or string fee value (e.g., 1234.56, not token minimal denomination)
- * @returns Formatted currency string with variable decimals based on configured ranges
- * @example formatPositiveFiat(1234.56) => "$1,234.56"
- * @example formatPositiveFiat(0.005) => "< $0.01"
- * @example formatPositiveFiat(0) => "$0"
- */
-export const formatPositiveFiat = (fee: number | string): string => {
-  const smallFeeThreshold = 0.01;
-
-  if (BigNumber(fee).isEqualTo(0)) {
-    return '$0';
-  }
-  if (BigNumber(fee).isLessThan(smallFeeThreshold)) {
-    return '< $0.01';
-  }
-  return formatPerpsFiat(fee);
-};
 
 /**
  * Default price range configurations
@@ -1252,6 +1336,16 @@ export const formatLeverage = (leverage: string | number): string => {
 };
 
 /**
+ * Formats a distance to liquidation, already in percent, e.g. `30.05` →
+ * `"30.05%"`.
+ */
+export const formatLiquidationDistancePercent = (distance: number): string =>
+  formatPercentage(distance, {
+    decimals: LIQUIDATION_DISTANCE_DECIMALS,
+    sign: 'never',
+  });
+
+/**
  * Formats how far (in %) the price must move from `entryPrice` to reach
  * `liquidationPrice`, e.g. `"30.05%"`.
  *
@@ -1286,7 +1380,7 @@ export const formatLiquidationDistance = (
   }
 
   const distance = (Math.abs(entry - liquidation) / entry) * 100;
-  return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+  return formatLiquidationDistancePercent(distance);
 };
 
 /**

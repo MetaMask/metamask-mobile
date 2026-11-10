@@ -96,6 +96,7 @@ jest.mock('../../../../../util/haptics', () => ({
 
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: (value: number) => `$${value.toFixed(2)}`,
+  formatLiquidationDistancePercent: (value: number) => `${value.toFixed(2)}%`,
   PRICE_RANGES_UNIVERSAL: {},
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));

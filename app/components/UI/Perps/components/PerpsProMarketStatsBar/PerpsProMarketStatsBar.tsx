@@ -7,7 +7,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { calculateFundingCountdown } from '@metamask/perps-controller';
+import {
+  calculateFundingCountdown,
+  PERPS_CONSTANTS,
+} from '@metamask/perps-controller';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -175,9 +178,11 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
         : TextColor.ErrorDefault;
     }
 
+    // The unknown-rate placeholder starts with '-' but is not a negative rate.
     if (
       !marketStats.fundingRate ||
-      marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay
+      marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay ||
+      marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay
     ) {
       return TextColor.TextDefault;
     }

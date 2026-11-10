@@ -32,6 +32,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -59,6 +60,13 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     if (liveFunding !== undefined) {
       fundingValue = liveFunding;
       displayText = formatFundingRate(liveFunding);
+    } else if (
+      marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay
+    ) {
+      // Unknown rate: show the placeholder, never read its leading '-' as a
+      // negative rate.
+      fundingValue = 0;
+      displayText = marketStats.fundingRate;
     } else if (
       marketStats.fundingRate &&
       marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay

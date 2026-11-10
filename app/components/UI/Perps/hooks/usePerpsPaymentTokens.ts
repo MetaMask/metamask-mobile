@@ -15,6 +15,7 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';
+import { formatPerpsUsdCents } from '../utils/formatUtils';
 
 /**
  * Hook to get all payment tokens for Perps, including:
@@ -76,7 +77,7 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
       chainId: hyperliquidChainId as Hex,
       image: USDC_TOKEN_ICON_URL,
       balance: (hyperliquidBalance * 1e6).toString(),
-      balanceFiat: `$${hyperliquidBalance.toFixed(2)}`,
+      balanceFiat: formatPerpsUsdCents(hyperliquidBalance),
     };
 
     // Always show Hyperliquid USDC first (even if balance is 0)

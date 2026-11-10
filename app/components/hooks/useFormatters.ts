@@ -1,7 +1,7 @@
 import { createFormatters, type Formatters } from '@metamask/client-utils';
 import I18n from '../../../locales/i18n';
 
-export const getLocaleLanguageCode = () => I18n.locale.split('-')[0];
+export const getLocaleLanguageCode = () => (I18n?.locale ?? 'en').split('-')[0];
 
 let cachedFormatters: Formatters | undefined;
 let cachedLocale: string | undefined;

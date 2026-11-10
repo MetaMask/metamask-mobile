@@ -10,7 +10,6 @@ import {
   calculateMarginRequired,
   computeScalePriceLadder,
   formatHyperLiquidPrice,
-  formatPositionSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -97,6 +96,7 @@ import {
   usePerpsChaseOrders,
 } from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
+import { usePerpsAvailableToTrade } from '../../../../hooks/usePerpsAvailableToTrade';
 import { usePerpsScalePriceLadder } from '../../../../hooks/usePerpsScalePriceLadder';
 import { PerpsCacheInvalidator } from '../../../../services/PerpsCacheInvalidator';
 import {
@@ -111,8 +111,10 @@ import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selecte
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
+  formatPercentageNumber,
   formatPerpsFiat,
   formatPerpsPrice,
+  formatPositionSize,
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -158,6 +160,7 @@ import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
   FAR_FROM_MARKET_WARNING_TYPE,
   MAX_PERPS_INPUT_DIGITS,
+  PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
   PERPS_TWAP_UI_CONFIG,
   PROVIDER_CONFIG,
 } from '../../../../constants/perpsConfig';
@@ -1890,7 +1893,11 @@ export const usePerpsProOrderForm = ({
   );
   const estimatedSlippagePctDisplay: string | null = useMemo(
     () =>
-      estimatedSlippagePct === null ? null : estimatedSlippagePct.toFixed(2),
+      estimatedSlippagePct === null
+        ? null
+        : formatPercentageNumber(estimatedSlippagePct, {
+            decimals: PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+          }),
     [estimatedSlippagePct],
   );
   const exceedsMaxSlippage =
@@ -2807,8 +2814,12 @@ export const usePerpsProOrderForm = ({
       showToast(
         PerpsToastOptions.formValidation.orderForm.validationError(
           strings('perps.slippage.exceeds_max', {
-            est: estPct.toFixed(2),
-            max: maxPct.toFixed(2),
+            est: formatPercentageNumber(estPct, {
+              decimals: PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+            }),
+            max: formatPercentageNumber(maxPct, {
+              decimals: PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+            }),
           }),
         ),
       );
@@ -3805,17 +3816,30 @@ export const usePerpsProOrderForm = ({
     }
   }, [assetData.price, commitLimitPrice, szDecimals]);
 
-  const availableBalance = useMemo(() => {
-    if (!isInitialized) {
-      return strings('perps.pro_order_form.available_balance_unavailable');
-    }
-
-    return strings('perps.pro_order_form.available_balance', {
-      amount: formatPerpsFiat(spendableBalance, {
-        ranges: PRICE_RANGES_MINIMAL_VIEW,
-      }),
-    });
-  }, [isInitialized, spendableBalance]);
+  const availableToTrade = usePerpsAvailableToTrade({
+    symbol,
+    providerId: market.providerId,
+    enabled: isInitialized,
+    accountAddress: perpsAccountAddress,
+    network,
+  });
+  // The venue's per-market, per-side amount (it nets the market's position,
+  // PnL, resting orders and leverage), not the account-wide withdrawable.
+  const availableToTradeForSide =
+    orderForm.direction === 'short'
+      ? availableToTrade?.short
+      : availableToTrade?.long;
+  const availableBalance = useMemo(
+    () =>
+      availableToTradeForSide === undefined
+        ? strings('perps.pro_order_form.available_to_trade_unknown')
+        : strings('perps.pro_order_form.available_to_trade', {
+            amount: formatPerpsFiat(availableToTradeForSide, {
+              ranges: PRICE_RANGES_MINIMAL_VIEW,
+            }),
+          }),
+    [availableToTradeForSide],
+  );
 
   const isTriggerOrderUnavailable =
     isTriggerOrderType(orderForm.type) &&

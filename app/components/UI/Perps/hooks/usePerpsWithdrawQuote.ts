@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
+import { formatPerpsUsdCents } from '../utils/formatUtils';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
   WITHDRAWAL_CONSTANTS,
@@ -75,11 +76,11 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
     const feeToken = withdrawalRoute?.constraints?.fees?.token || 'USDC';
     const networkFeeDisplay =
       feeToken === 'USDC'
-        ? `$${networkFee.toFixed(2)}`
+        ? formatPerpsUsdCents(networkFee)
         : `${networkFee} ${feeToken}`;
     const totalFeesDisplay =
       feeToken === 'USDC'
-        ? `$${totalFees.toFixed(2)}`
+        ? formatPerpsUsdCents(totalFees)
         : `${totalFees} ${feeToken}`;
 
     // Format estimated time from minutes (new) or use legacy string

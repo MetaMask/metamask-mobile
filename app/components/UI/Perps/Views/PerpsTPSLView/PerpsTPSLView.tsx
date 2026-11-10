@@ -71,6 +71,7 @@ import {
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {
+  formatLiquidationDistancePercent,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -80,10 +81,7 @@ import {
   calculateLiquidationDistance,
   clampLiquidationDistance,
 } from '../../utils/liquidationDistance';
-import {
-  LIQUIDATION_DISTANCE_DECIMALS,
-  TP_SL_VIEW_CONFIG,
-} from '../../constants/perpsConfig';
+import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
@@ -1036,7 +1034,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       calculateLiquidationDistance(currentPrice, parsedLiquidationPrice),
     );
 
-    return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+    return formatLiquidationDistancePercent(distance);
   }, [currentPrice, displayLiquidationPrice, hasLiquidationPrice, isSheet]);
 
   const takeProfitHasError = !isValid && Boolean(takeProfitError);

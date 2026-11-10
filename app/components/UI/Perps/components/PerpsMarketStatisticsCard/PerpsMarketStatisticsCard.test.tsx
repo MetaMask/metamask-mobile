@@ -177,6 +177,20 @@ describe('PerpsMarketStatisticsCard', () => {
     expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
   });
 
+  it('shows the unknown-rate placeholder without the negative colour', () => {
+    const { UNSAFE_getAllByType } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={{ ...mockMarketStats, fundingRate: '--%' }}
+      />,
+    );
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '--%',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
   it('displays a negative threshold funding rate in error color', () => {
     const { UNSAFE_getAllByType } = render(
       <PerpsMarketStatisticsCard

@@ -34,6 +34,7 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {
+  formatLiquidationDistancePercent,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -43,7 +44,6 @@ import {
   PerpsLeverageBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { getProspectiveExecutionPrice } from '../../utils/orderSizing';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import {
   calculateLiquidationDistance,
   clampLiquidationDistance,
@@ -303,7 +303,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const displayLiquidationPercentage = isRecalculating
     ? null
-    : `${liquidationDropPercentage.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+    : formatLiquidationDistancePercent(liquidationDropPercentage);
 
   const leverageOptions = useMemo(
     () =>

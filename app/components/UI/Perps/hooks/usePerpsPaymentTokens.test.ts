@@ -128,7 +128,7 @@ describe('usePerpsPaymentTokens', () => {
 
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.balance).toBe('1000500000');
-      expect(hyperliquidUsdc.balanceFiat).toBe('$1000.50');
+      expect(hyperliquidUsdc.balanceFiat).toBe('$1,000.50');
     });
   });
 
@@ -314,7 +314,7 @@ describe('usePerpsPaymentTokens', () => {
 
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.balance).toBe('2500000000');
-      expect(hyperliquidUsdc.balanceFiat).toBe('$2500.00');
+      expect(hyperliquidUsdc.balanceFiat).toBe('$2,500.00');
     });
 
     it('handles null account state', () => {

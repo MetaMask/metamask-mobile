@@ -188,6 +188,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/perps-controller": {
+      "type": "breaking",
+      "previewVersion": "22.3.0-preview-a2a3d82"
+    }
+  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",

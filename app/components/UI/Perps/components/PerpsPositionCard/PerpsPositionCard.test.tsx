@@ -412,7 +412,7 @@ describe('PerpsPositionCard', () => {
       );
       expect(returnCard).toHaveProp('accessible', true);
       expect(returnCard).toHaveTextContent(
-        'perps.position.card.return_label+1250.00%',
+        'perps.position.card.return_label+1,250.0%',
       );
     });
 
@@ -580,7 +580,7 @@ describe('PerpsPositionCard', () => {
       const returnValue = screen.getByTestId(
         PerpsPositionCardSelectorsIDs.RETURN_VALUE,
       );
-      expect(returnValue).toHaveTextContent(/\+1250\.00%/); // ROE is 12.5 * 100 = 1250%
+      expect(returnValue).toHaveTextContent(/\+1,250\.0%/); // ROE is 12.5 * 100 = 1250%, at RoE precision
     });
 
     it('handles missing PnL percentage data', () => {
@@ -593,11 +593,11 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithoutROE} />);
 
-      // Assert - Should show 0% when ROE is missing
+      // Assert - Shows the shared placeholder, not a formatted zero
       const returnValue = screen.getByTestId(
         PerpsPositionCardSelectorsIDs.RETURN_VALUE,
       );
-      expect(returnValue).toHaveTextContent(/\+0\.00%/);
+      expect(returnValue).toHaveTextContent('--%');
     });
 
     it('handles missing liquidation price', () => {
@@ -717,7 +717,7 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('Cumulative Funding Display', () => {
-    it('shows white color and $0.00 when cumulative funding is exactly zero', () => {
+    it('shows white color and $0 when cumulative funding is exactly zero', () => {
       const positionWithZeroFunding = {
         ...mockPosition,
         cumulativeFunding: {
@@ -729,13 +729,13 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithZeroFunding} />);
 
-      // New behavior: near-zero (including exactly zero) shows $0.00 (no sign prefix)
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      // Near-zero (including exactly zero) shows $0 (no sign prefix), as the Pro card
+      expect(screen.getByText('$0')).toBeOnTheScreen();
       expect(screen.queryByText('-$0.00')).toBeNull();
       expect(screen.queryByText('+$$0.00')).toBeNull();
     });
 
-    it('shows $0.00 for very small positive cumulative funding (< $0.005)', () => {
+    it('shows $0 for very small positive cumulative funding (< $0.005)', () => {
       const positionWithTinyPositiveFunding = {
         ...mockPosition,
         cumulativeFunding: {
@@ -747,11 +747,11 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithTinyPositiveFunding} />);
 
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      expect(screen.getByText('$0')).toBeOnTheScreen();
       expect(screen.queryByText('-$0.00')).toBeNull();
     });
 
-    it('shows $0.00 for very small negative cumulative funding (> -$0.005)', () => {
+    it('shows $0 for very small negative cumulative funding (> -$0.005)', () => {
       const positionWithTinyNegativeFunding = {
         ...mockPosition,
         cumulativeFunding: {
@@ -763,7 +763,7 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithTinyNegativeFunding} />);
 
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      expect(screen.getByText('$0')).toBeOnTheScreen();
       expect(screen.queryByText('+$$0.00')).toBeNull();
     });
 

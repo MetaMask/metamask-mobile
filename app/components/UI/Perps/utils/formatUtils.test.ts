@@ -2,6 +2,8 @@
  * Unit tests for formatting utilities
  */
 
+import { BigNumber } from 'bignumber.js';
+import I18n from '../../../../../locales/i18n';
 import {
   formatPerpsBalance,
   formatPerpsFiat,
@@ -22,7 +24,10 @@ import {
   formatFundingRate,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
-  formatPositiveFiat,
+  formatFundingSinceOpen,
+  formatLiquidationDistancePercent,
+  formatPercentageNumber,
+  formatPerpsUsdCents,
   formatLimitPriceInput,
   formatPerpsPrice,
   formatPositionTriggerSummary,
@@ -72,26 +77,26 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 describe('formatUtils', () => {
   describe('formatFundingRate', () => {
-    it('displays zero display value when input is undefined', () => {
+    it('displays the placeholder when input is undefined', () => {
       // Given an undefined funding rate value
       const value = undefined;
 
       // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      // Then it shows the missing-value placeholder, not a zero rate
+      expect(result).toBe('--%');
     });
 
-    it('displays zero display value when input is null', () => {
+    it('displays the placeholder when input is null', () => {
       // Given a null funding rate value
       const value = null;
 
       // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      // Then it shows the missing-value placeholder, not a zero rate
+      expect(result).toBe('--%');
     });
 
     it('formats positive funding rate correctly', () => {
@@ -215,137 +220,82 @@ describe('formatUtils', () => {
     });
   });
 
-  describe('formatPositiveFiat', () => {
-    it('returns "$0" when fee is exactly zero', () => {
-      // Given a fee of exactly zero
-      const fee = 0;
-
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then it returns "$0"
-      expect(result).toBe('$0');
+  describe('app-language formatters', () => {
+    afterEach(() => {
+      I18n.locale = 'en-US';
     });
 
-    it('returns "< $0.01" when fee is below threshold', () => {
-      // Given a fee below the 0.01 threshold
-      const fee = 0.005;
+    it('formats every Core display formatter in the app language', () => {
+      // Arrange
+      I18n.locale = 'de';
 
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
+      // Act
+      const formatted = {
+        pnl: formatPnl(1234.5),
+        percentage: formatPercentage(-1234.56),
+        funding: formatFundingRate(0.0005),
+        size: formatPositionSize(1234.5),
+        fiat: formatPerpsFiat(1234.56, { ranges: PRICE_RANGES_MINIMAL_VIEW }),
+      };
 
-      // Then it returns "< $0.01"
-      expect(result).toBe('< $0.01');
+      // Assert
+      expect(formatted).toEqual({
+        pnl: '+1.234,50\u00a0$',
+        percentage: '-1.234,56%',
+        funding: '0,0500%',
+        size: '1234,5',
+        fiat: '1.234,56\u00a0$',
+      });
     });
 
-    it('formats fee normally when exactly at 0.01 threshold', () => {
-      // Given a fee at exactly the 0.01 threshold
-      const fee = 0.01;
+    it('keeps the en-US output for an English app language', () => {
+      expect(formatPnl(1234.5)).toBe('+$1,234.50');
+      expect(formatPercentage(10.25, 1)).toBe('+10.3%');
+    });
+  });
 
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
+  describe('formatFundingSinceOpen', () => {
+    it.each([
+      [1.234, '-$1.23'],
+      [-0.5, '+$0.50'],
+      [0.001, '$0'],
+      [-0.004, '$0'],
+      [0.007, '-<$0.01'],
+    ])('formats funding %p since open as %p', (sinceOpen, expected) => {
+      expect(formatFundingSinceOpen(sinceOpen)).toBe(expected);
+    });
+  });
 
-      // Then it formats normally
-      expect(result).toBe('$0.01');
+  describe('formatPerpsUsdCents', () => {
+    it.each([
+      [1234.5, 'auto', '$1,234.50'],
+      [1234.5, 'always', '+$1,234.50'],
+      [-0.05, 'always', '-$0.05'],
+      [12, 'auto', '$12.00'],
+    ] as const)('formats %p with sign %p as %p', (amount, sign, expected) => {
+      expect(formatPerpsUsdCents(amount, sign)).toBe(expected);
     });
 
-    it('formats fee normally when above threshold', () => {
-      // Given a fee above the 0.01 threshold
-      const fee = 1.5;
+    it('accepts a BigNumber', () => {
+      expect(formatPerpsUsdCents(new BigNumber('1234.5'), 'always')).toBe(
+        '+$1,234.50',
+      );
+    });
+  });
 
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then it formats normally
-      expect(result).toBe('$1.50');
+  describe('formatPercentageNumber', () => {
+    it('drops the % so a locale template can place it', () => {
+      expect(formatPercentageNumber(0.04567, { decimals: 2 })).toBe('0.05');
     });
 
-    it('returns "< $0.01" for very small positive fees', () => {
-      // Given a very small positive fee
-      const fee = 0.0001;
-
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then it returns "< $0.01"
-      expect(result).toBe('< $0.01');
+    it('returns the bare placeholder for an unknown value', () => {
+      expect(formatPercentageNumber(undefined)).toBe('--');
     });
+  });
 
-    it('returns "< $0.01" for fee just below threshold', () => {
-      // Given a fee just below the 0.01 threshold
-      const fee = 0.0099;
-
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then it returns "< $0.01"
-      expect(result).toBe('< $0.01');
-    });
-
-    it('formats fee normally when just above threshold', () => {
-      // Given a fee just above the 0.01 threshold
-      const fee = 0.0101;
-
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then it formats normally (rounded to $0.01)
-      expect(result).toBe('$0.01');
-    });
-
-    it('formats large fees with proper decimals', () => {
-      // Given a large fee value
-      const fee = 123.45;
-
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then it formats with proper decimals
-      expect(result).toBe('$123.45');
-    });
-
-    it('strips trailing zeros for whole number fees', () => {
-      // Given a whole number fee
-      const fee = 100;
-
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then trailing zeros are stripped
-      expect(result).toBe('$100');
-    });
-
-    it('handles fees with many decimal places', () => {
-      // Given a fee with many decimal places
-      const fee = 1.23456789;
-
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then it rounds appropriately
-      expect(result).toBe('$1.23');
-    });
-
-    it('returns "$0" for negative zero', () => {
-      // Given a negative zero value
-      const fee = -0;
-
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then it returns "$0"
-      expect(result).toBe('$0');
-    });
-
-    it('returns "< $0.01" for smallest representable positive fee', () => {
-      // Given the smallest positive fee
-      const fee = 0.00000001;
-
-      // When formatting the fee
-      const result = formatPositiveFiat(fee);
-
-      // Then it returns "< $0.01"
-      expect(result).toBe('< $0.01');
+  describe('formatLiquidationDistancePercent', () => {
+    it('formats an unsigned distance at two decimals', () => {
+      expect(formatLiquidationDistancePercent(31.926)).toBe('31.93%');
     });
   });
 
@@ -1347,9 +1297,9 @@ describe('formatUtils', () => {
     });
 
     it('should handle invalid inputs', () => {
-      expect(formatPnl('invalid')).toBe('$0.00');
-      expect(formatPnl(NaN)).toBe('$0.00');
-      expect(formatPnl('')).toBe('$0.00');
+      expect(formatPnl('invalid')).toBe('$---');
+      expect(formatPnl(NaN)).toBe('$---');
+      expect(formatPnl('')).toBe('$---');
     });
 
     it('should round to 2 decimal places', () => {
@@ -1376,9 +1326,9 @@ describe('formatUtils', () => {
     });
 
     it('should handle invalid inputs', () => {
-      expect(formatPercentage('invalid')).toBe('0.00%');
-      expect(formatPercentage(NaN)).toBe('0.00%');
-      expect(formatPercentage('')).toBe('0.00%');
+      expect(formatPercentage('invalid')).toBe('--%');
+      expect(formatPercentage(NaN)).toBe('--%');
+      expect(formatPercentage('')).toBe('--%');
     });
 
     it('should round to 2 decimal places', () => {
@@ -1555,9 +1505,9 @@ describe('formatUtils', () => {
     });
 
     it('should handle invalid inputs', () => {
-      expect(formatPositionSize('invalid')).toBe('0');
-      expect(formatPositionSize(NaN)).toBe('0');
-      expect(formatPositionSize('')).toBe('0');
+      expect(formatPositionSize('invalid')).toBe('--');
+      expect(formatPositionSize(NaN)).toBe('--');
+      expect(formatPositionSize('')).toBe('--');
     });
 
     it('should handle zero', () => {

@@ -35,10 +35,13 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   getPerpsDisplaySymbol,
+  PERPS_DISPLAY_PRECISION,
   type Order,
   type Position,
 } from '@metamask/perps-controller';
 import {
+  formatFundingSinceOpen,
+  formatPercentage,
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
@@ -133,12 +136,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   // ROE is always stored as a decimal (e.g., 0.171 for 17.10%);
   // the shared parser converts it to the displayed percentage.
-  const roe = parsePositionRoePercentage(position.returnOnEquity) ?? 0;
+  // Undefined while the venue has not reported it; the label then shows the
+  // shared placeholder instead of a formatted zero.
+  const roePercentage = parsePositionRoePercentage(position.returnOnEquity);
+  const roe = roePercentage ?? 0;
 
   // Funding cost (cumulative since open) formatting logic
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
   const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
-  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
+  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> neutral colour
 
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
   let fundingColorFromValue: TextColor = TextColor.TextDefault;
@@ -151,12 +157,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     ? TextColor.TextDefault
     : fundingColorFromValue;
 
-  const fundingSignPrefix = fundingSinceOpen >= 0 ? '-' : '+';
-  const fundingDisplay = isNearZeroFunding
-    ? '$0.00'
-    : `${fundingSignPrefix}${formatPerpsFiat(Math.abs(fundingSinceOpen), {
-        ranges: PRICE_RANGES_MINIMAL_VIEW,
-      })}`;
+  const fundingDisplay = formatFundingSinceOpen(fundingSinceOpen);
 
   const handleSizeToggle = () => {
     setShowSizeInUSD(!showSizeInUSD);
@@ -381,8 +382,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {roe >= 0 ? '+' : ''}
-                {roe.toFixed(2)}%
+                {formatPercentage(
+                  roePercentage,
+                  PERPS_DISPLAY_PRECISION.RoePercent,
+                )}
               </SensitiveText>
             </Card>
           </Box>
