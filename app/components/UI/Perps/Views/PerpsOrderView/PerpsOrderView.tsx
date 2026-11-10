@@ -820,6 +820,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const focusedPriceUpdate = usePerpsLiveFocusedPrice({
     symbol: isDataReady ? orderForm.asset : '',
     enabled: isDataReady,
+    // The order sheet doesn't need sub-second price ticks; each delivered
+    // update re-renders this large view.
+    throttleMs: 1000,
   });
 
   // allMids baseline as first-render fallback (~2 s)
