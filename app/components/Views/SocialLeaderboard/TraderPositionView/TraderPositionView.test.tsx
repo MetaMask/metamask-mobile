@@ -44,6 +44,13 @@ const mockTraderPriceChart = jest.fn();
 const mockRefetchPosition = jest.fn().mockResolvedValue(undefined);
 const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
 const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
+const mockCreateSocialOgImage = jest.fn();
+
+jest.mock('../navigation/socialOgImageService', () => ({
+  createSocialOgImage: (...args: unknown[]) => mockCreateSocialOgImage(...args),
+  getSocialOgDefaultImageUrl: () =>
+    'https://social.test/api/v1/og-images/default.jpg',
+}));
 
 interface MockRouteParams {
   positionId?: string;
@@ -403,6 +410,10 @@ describe('TraderPositionView', () => {
       isLoading: false,
     });
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
+    mockCreateSocialOgImage.mockReset();
+    mockCreateSocialOgImage.mockResolvedValue(
+      'https://social.test/api/v1/og-images/card.png?v=1',
+    );
     // Default the A/B test to control (Buy opens QuickBuy). clearAllMocks resets
     // call data but not implementations, so re-assert it for test isolation.
     mockUseABTest.mockReturnValue({
@@ -419,22 +430,32 @@ describe('TraderPositionView', () => {
     };
   });
 
-  it('shares the position deeplink from the header', () => {
+  it('shares the position deeplink from the header', async () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
       screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
     );
 
-    expect(Share.open).toHaveBeenCalledWith({
-      message:
-        'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
-      url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
-      failOnCancel: false,
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message:
+          'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1&share=1',
+        url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1&share=1',
+        failOnCancel: false,
+      });
     });
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
     ).toHaveProp('accessibilityLabel', 'Share position');
+    // The mocked price API returns no prices, so the screen falls back to
+    // the generic card rather than an incomplete trade card.
+    await waitFor(() => {
+      expect(mockCreateSocialOgImage).toHaveBeenCalledWith(
+        { kind: 'generic' },
+        expect.any(AbortSignal),
+      );
+    });
   });
 
   it('renders the container with real position data', () => {
