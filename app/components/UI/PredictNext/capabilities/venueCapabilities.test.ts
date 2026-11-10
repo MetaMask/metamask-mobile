@@ -37,6 +37,11 @@ const NOT_READY: PredictVenueCapabilities[] = [
   { status: 'unavailable', reason: 'error', retry: jest.fn() },
 ];
 
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
+
 describe('resolveVenueCapabilities', () => {
   describe('a client-config Venue (Polymarket)', () => {
     it('resolves the static descriptor synchronously, matching legacy support', () => {
@@ -90,6 +95,27 @@ describe('resolveVenueCapabilities', () => {
         status: 'ready',
         descriptor: {
           ...KALSHI_STATIC_VENUE_CATALOG,
+          displayName: 'Kalshi',
+        },
+      });
+    });
+
+    it('stays ready, with its actions, Feeds and search, when a Category entry is malformed', () => {
+      const result = resolveVenueCapabilities(
+        KALSHI,
+        read({
+          data: {
+            ...KALSHI_STATIC_VENUE_CATALOG,
+            categories: [{ key: 'sports' }, 'politics', 42],
+          },
+        }),
+      );
+
+      expect(result).toEqual({
+        status: 'ready',
+        descriptor: {
+          ...KALSHI_STATIC_VENUE_CATALOG,
+          categories: ['politics'],
           displayName: 'Kalshi',
         },
       });
