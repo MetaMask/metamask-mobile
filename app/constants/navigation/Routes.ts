@@ -581,7 +581,6 @@ const Routes = {
     EXPLORER_WEBVIEW: 'MultichainAccountsExplorerWebview',
   },
   SOCIAL_PROFILE: {
-    DRAWER: 'ProfileDrawer',
     MANAGE_PROFILE: 'ManageProfile',
     MANAGE_PROFILE_FIELD: 'ManageProfileField',
     X_ACCOUNT: 'ManageProfileXAccount',

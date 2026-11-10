@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -28,10 +27,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import { KycVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import {
   useKycSessionDisclaimers,
   type KycCatalogDisclaimerLink,
@@ -62,22 +59,22 @@ const VERIFICATION_STEPS = [
   {
     id: 'photograph-id',
     icon: IconName.Card,
-    title: 'virtual_bank_account.verify_identity.step_photograph_id',
+    title: 'kyc.verify_identity.step_photograph_id',
   },
   {
     id: 'take-selfie',
     icon: IconName.FaceId,
-    title: 'virtual_bank_account.verify_identity.step_take_selfie',
+    title: 'kyc.verify_identity.step_take_selfie',
   },
   {
     id: 'confirm-details',
     icon: IconName.Details,
-    title: 'virtual_bank_account.verify_identity.step_confirm_details',
+    title: 'kyc.verify_identity.step_confirm_details',
   },
   {
     id: 'answer-questions',
     icon: IconName.Question,
-    title: 'virtual_bank_account.verify_identity.step_answer_questions',
+    title: 'kyc.verify_identity.step_answer_questions',
   },
 ] as const;
 
@@ -85,29 +82,28 @@ const BENEFITS = [
   {
     id: 'reuse',
     icon: IconName.Flash,
-    title: 'virtual_bank_account.verify_identity.benefit_reuse_title',
-    description:
-      'virtual_bank_account.verify_identity.benefit_reuse_description',
+    title: 'kyc.verify_identity.benefit_reuse_title',
+    description: 'kyc.verify_identity.benefit_reuse_description',
   },
   {
     id: 'control',
     icon: IconName.Key,
-    title: 'virtual_bank_account.verify_identity.benefit_control_title',
-    description:
-      'virtual_bank_account.verify_identity.benefit_control_description',
+    title: 'kyc.verify_identity.benefit_control_title',
+    description: 'kyc.verify_identity.benefit_control_description',
   },
   {
     id: 'delete',
     icon: IconName.Trash,
-    title: 'virtual_bank_account.verify_identity.benefit_delete_title',
-    description:
-      'virtual_bank_account.verify_identity.benefit_delete_description',
+    title: 'kyc.verify_identity.benefit_delete_title',
+    description: 'kyc.verify_identity.benefit_delete_description',
   },
 ] as const;
 
-interface VbaVerifyIdentityProps {
+interface KycVerifyIdentityProps {
   /** Hands the loaded catalog to the verification-partners page. */
   onContinue: (disclaimers: KycCatalogDisclaimerLink[]) => void;
+  /** Leaves identity verification. The caller chooses the destination. */
+  onExit: () => void;
 }
 
 /**
@@ -119,9 +115,8 @@ interface VbaVerifyIdentityProps {
  * loading state of its own. Continue stays disabled until it lands — the user
  * cannot be sent to a terms page with no terms on it.
  */
-const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
+const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
 
@@ -144,11 +139,8 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
   const canContinue = !isLoading && !error && Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
+    onExit();
+  }, [onExit]);
 
   useEffect(() => {
     trackIdentityTerms('page1_viewed');
@@ -186,9 +178,9 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
           total: TOTAL_PAGES,
         },
       )}
-      testID={VbaVerifyIdentitySelectorsIDs.STEP_INDICATOR}
+      testID={KycVerifyIdentitySelectorsIDs.STEP_INDICATOR}
     >
-      {strings('virtual_bank_account.verify_identity.step_indicator', {
+      {strings('kyc.verify_identity.step_indicator', {
         current: 1,
         total: TOTAL_PAGES,
       })}
@@ -206,17 +198,17 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
           isFloating={false}
           onBack={handleBack}
           backButtonProps={{
-            testID: VbaVerifyIdentitySelectorsIDs.BACK_BUTTON,
+            testID: KycVerifyIdentitySelectorsIDs.BACK_BUTTON,
           }}
           includesTopInset
         />
         <ScrollView
           contentContainerStyle={tw.style('flex-grow pb-4')}
-          testID={VbaVerifyIdentitySelectorsIDs.CONTAINER}
+          testID={KycVerifyIdentitySelectorsIDs.CONTAINER}
         >
           <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
-            title={strings('virtual_bank_account.verify_identity.title')}
+            title={strings('kyc.verify_identity.title')}
             bottomLabel={
               <Text
                 variant={TextVariant.BodySm}
@@ -228,14 +220,14 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextAlternative}
                 >
-                  {strings('virtual_bank_account.verify_identity.subtitle')}
+                  {strings('kyc.verify_identity.subtitle')}
                 </Text>{' '}
                 <TextButton
                   variant={TextVariant.BodySm}
                   onPress={handleLearnMore}
-                  testID={VbaVerifyIdentitySelectorsIDs.LEARN_MORE_LINK}
+                  testID={KycVerifyIdentitySelectorsIDs.LEARN_MORE_LINK}
                 >
-                  {strings('virtual_bank_account.verify_identity.learn_more')}
+                  {strings('kyc.verify_identity.learn_more')}
                 </TextButton>
               </Text>
             }
@@ -254,7 +246,7 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
                   />
                 }
                 title={strings(step.title)}
-                testID={`${VbaVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
+                testID={`${KycVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
               />
             ))}
           </Box>
@@ -264,7 +256,7 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
             fontWeight={FontWeight.Bold}
             twClassName="px-4 pb-1 pt-6"
           >
-            {strings('virtual_bank_account.verify_identity.partner_title')}
+            {strings('kyc.verify_identity.partner_title')}
           </Text>
           <Box>
             {BENEFITS.map((benefit) => (
@@ -281,7 +273,7 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
                 }
                 title={strings(benefit.title)}
                 description={strings(benefit.description)}
-                testID={`${VbaVerifyIdentitySelectorsIDs.BENEFIT}-${benefit.id}`}
+                testID={`${KycVerifyIdentitySelectorsIDs.BENEFIT}-${benefit.id}`}
               />
             ))}
           </Box>
@@ -294,7 +286,7 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
               alignItems={BoxAlignItems.Start}
               justifyContent={BoxJustifyContent.Center}
               twClassName="gap-2"
-              testID={VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR}
+              testID={KycVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR}
             >
               <Box twClassName="shrink-0 pt-0.5">
                 <Icon
@@ -304,40 +296,32 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
                 />
               </Box>
               <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {strings(
-                  'virtual_bank_account.verify_identity.disclaimers_error',
-                )}{' '}
+                {strings('kyc.verify_identity.disclaimers_error')}{' '}
                 <TextButton
                   variant={TextVariant.BodySm}
                   onPress={retry}
-                  testID={VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY}
+                  testID={KycVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY}
                 >
-                  {strings(
-                    'virtual_bank_account.verify_identity.disclaimers_retry',
-                  )}
+                  {strings('kyc.verify_identity.disclaimers_retry')}
                 </TextButton>
               </Text>
             </Box>
           ) : null}
           <SentenceWithLinks
-            i18nKey="virtual_bank_account.verify_identity.agreement"
+            i18nKey="kyc.verify_identity.agreement"
             twClassName="text-center"
-            testID={VbaVerifyIdentitySelectorsIDs.AGREEMENT}
+            testID={KycVerifyIdentitySelectorsIDs.AGREEMENT}
             links={{
               termsOfUse: {
-                label: strings(
-                  'virtual_bank_account.verify_identity.agreement_terms_of_use',
-                ),
+                label: strings('kyc.verify_identity.agreement_terms_of_use'),
                 url: METAMASK_TERMS_URL,
-                testID: VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK,
+                testID: KycVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK,
               },
               privacyNotice: {
-                label: strings(
-                  'virtual_bank_account.verify_identity.agreement_privacy_notice',
-                ),
+                label: strings('kyc.verify_identity.agreement_privacy_notice'),
                 url: METAMASK_PRIVACY_POLICY_URL,
                 testID:
-                  VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK,
+                  KycVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK,
               },
             }}
           />
@@ -348,11 +332,9 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
             isDisabled={!canContinue}
             isLoading={isLoading}
             onPress={handleContinue}
-            testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
+            testID={KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
           >
-            {strings(
-              'virtual_bank_account.verify_identity.agree_and_continue_button',
-            )}
+            {strings('kyc.verify_identity.agree_and_continue_button')}
           </Button>
         </Box>
       </SafeAreaView>
@@ -360,4 +342,4 @@ const VbaVerifyIdentity = ({ onContinue }: VbaVerifyIdentityProps) => {
   );
 };
 
-export default VbaVerifyIdentity;
+export default KycVerifyIdentity;

@@ -70,6 +70,10 @@ Empty params are omitted, as callers did before. While the Active Venue is resol
 
 Entity IDs are `PredictEventRef<Venue>` values: opaque, Venue-qualified, and minted only by Predict. A Polymarket reference is not assignable where a Kalshi one is expected, and an intent naming an entity of another Venue than the Active Venue opens nothing. `createLegacyPredictEventRef` mints the legacy references Predict's own legacy branches need and goes with PRED-1356. It left the entry point in PRED-1386, when Browser autocomplete stopped receiving legacy data.
 
+### Deep links (PRED-1411)
+
+`handlePredictUrl` is a thin parser: it calls `parsePredictLink` and `resolvePredictLinkFromStore` from the entry point and wraps the navigation they return. A link's identifiers belong to the Venue it names with `venue=`, or to Polymarket when it names none. A link for a Venue other than the Active Venue opens the bounded "Market unavailable" sheet and never a fallback. Two intents exist only for links: `linkList` (V1 list parameters) and `feedScreen` (a PredictNext Feed Screen). See [V1 deep links](./v1-deep-links.md), which also records the V1 limitation against PRED-1294's launch goals.
+
 ### Campaign entry points (PRED-1391)
 
 A Rewards campaign runs on one Venue, and Predict owns which (`campaigns/campaignVenues.ts`; Predict The Pitch runs on Polymarket). Rewards names the campaign, never the Venue:
@@ -109,8 +113,8 @@ Kalshi funding needs both halves. The descriptor says what a Venue supports, and
 2. Do not change the legacy controller, providers, confirmations, pay-with integration, transaction-pay callbacks, or Engine wiring before PRED-1356.
 3. Do not add Kalshi branches to legacy code.
 4. Migrate one surface per PR, cheapest first: availability and analytics constants, entry points, narrow projections, then Predict-owned Homepage, Trending, and autocomplete components.
-5. The boundary is fenced with `import-x/no-restricted-paths` (PRED-1399, `scripts/eslint-predict-boundary-zones.js`). Code outside Predict and PredictNext may import neither legacy `UI/Predict/` nor PredictNext internals. It may import only the PredictNext entry point. The named composition wiring stays on a permanent allowlist, `predictCompositionFiles`, until PRED-1356 removes the legacy parts. Every other existing importer is on the burn-down list, `predictImportBurndownFiles`.
-6. **Each migration PR deletes the files it migrates from `predictImportBurndownFiles`.** The list only shrinks. `scripts/eslint-predict-boundary-zones.test.ts` fails if an entry is added, and also if a listed file no longer imports Predict internals, so a finished migration cannot leave its files exempt.
+5. The boundary is fenced with `import-x/no-restricted-paths` (PRED-1399, `scripts/eslint-predict-boundary-zones.js`). Code outside Predict and PredictNext may import neither legacy `UI/Predict/` nor PredictNext internals. It may import only the PredictNext entry point. The named composition wiring stays on `predictCompositionGroups` until PRED-1356 removes the legacy parts; [the composition allowlist](./composition-allowlist.md) documents every file and the deletion checklist.
+6. **The burn-down list, `predictImportBurndownFiles`, is empty since PRED-1394 and stays empty.** `scripts/eslint-predict-boundary-zones.test.ts` fails if an entry is added, if a composition file is not documented, or if a listed file no longer imports Predict internals. `node scripts/predict-closure-scan.js` re-runs the closure scans.
 
 ## Homepage Predictions section
 
