@@ -74,8 +74,12 @@ export interface PositionSheetData {
   setChartPeriod: (period: ChartPeriod) => void;
 
   summaryTitle: string;
-  /** `40x Short` on a perp. Absent on spot. */
+  /**
+   * `40x Short` on an open perp, `Closed 40x Short` on a closed perp, `Sold`
+   * on closed spot. Absent on open spot.
+   */
   summaryTagLabel: string | undefined;
+  /** Relative age only. The open or closed word lives on the tag. */
   summarySubtitle: string;
   pnlPercentLabel: string;
   pnlValueLabel: string;
@@ -111,11 +115,19 @@ const statusAtMs = (
   return times.length > 0 ? Math.min(...times) : undefined;
 };
 
-const AGE_CAPTION_KEYS = {
-  opened: 'social_leaderboard.feed.position_card.opened_ago',
-  closed: 'social_leaderboard.feed.position_card.closed_ago',
-  sold: 'social_leaderboard.feed.position_card.sold_ago',
-} as const;
+/** `40x Short`, or undefined when the position has neither. */
+const sideTagLabel = (
+  leverage: number | undefined,
+  perpDirection: PerpDirection | null,
+): string | undefined => {
+  const label = [
+    leverage ? `${leverage}x` : undefined,
+    perpDirection ? strings(DIRECTION_KEYS[perpDirection]) : undefined,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return label || undefined;
+};
 
 /**
  * Everything the position sheet renders, derived from one `Position`.
@@ -257,24 +269,22 @@ export function usePositionSheetData(
   }, [position, isPerp, symbol, base.isClosed]);
 
   const summaryTagLabel = useMemo(() => {
-    if (!isPerp) return undefined;
-    const label = [
-      leverage ? `${leverage}x` : undefined,
-      perpDirection ? strings(DIRECTION_KEYS[perpDirection]) : undefined,
-    ]
+    if (base.isClosed && !isPerp) {
+      return strings('social_leaderboard.feed.position_card.sold');
+    }
+    const side = isPerp ? sideTagLabel(leverage, perpDirection) : undefined;
+    if (!base.isClosed) return side;
+    return [strings('social_leaderboard.feed.position_card.closed'), side]
       .filter(Boolean)
       .join(' ');
-    return label || undefined;
-  }, [isPerp, leverage, perpDirection]);
+  }, [base.isClosed, isPerp, leverage, perpDirection]);
 
   const summarySubtitle = useMemo(() => {
     if (!position) return '';
     const atMs = statusAtMs(position, base.isClosed);
     if (atMs == null) return '';
-    const age = formatFeedPostAge(atMs, nowMs);
-    const caption = !base.isClosed ? 'opened' : isPerp ? 'closed' : 'sold';
-    return strings(AGE_CAPTION_KEYS[caption], { age });
-  }, [position, base.isClosed, isPerp, nowMs]);
+    return formatFeedPostAge(atMs, nowMs);
+  }, [position, base.isClosed, nowMs]);
   const firstChartPrice = prices.at(0)?.[1];
   const lastChartPrice = prices.at(-1)?.[1];
   const isTrendPositive =

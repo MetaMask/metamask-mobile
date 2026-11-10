@@ -16,8 +16,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-
 const PRESS_SPRING = { damping: 14, stiffness: 420, mass: 0.6 } as const;
 const POP_SPRING = { damping: 9, stiffness: 320, mass: 0.5 } as const;
 const REVEAL_SPRING = { damping: 14, stiffness: 560, mass: 0.4 } as const;
@@ -31,6 +29,12 @@ const CHIP_GAP = 8;
 const ENTER_TRANSLATE_X = 16;
 /** Scale the chip springs up from as it reveals. */
 const ENTER_SCALE = 0.65;
+/**
+ * Diameter of the bell beside a large Follow button. `Button` defaults to
+ * large (`h-12`, 48px). Width matches height and the chip is `rounded-full`,
+ * so it stays a circle. `ButtonIcon` tops out at `h-10` (40px).
+ */
+export const PROFILE_MUTE_CHIP_DIAMETER = 48;
 
 const styles = StyleSheet.create({
   anchor: {
@@ -56,7 +60,10 @@ export interface TraderMuteChipProps {
   visible?: boolean;
   /** Fired after the tactile feedback when the chip is tapped. */
   onPress: () => void;
-  /** Chip diameter in px. Defaults to 40 (profile). Use 32 for dense rows. */
+  /**
+   * Chip diameter in px. Defaults to 40. Profile screens pass
+   * `PROFILE_MUTE_CHIP_DIAMETER` so the bell matches the large Follow button.
+   */
   diameter?: number;
   /** Trader display name, woven into the accessibility label when available. */
   traderName?: string;
@@ -83,7 +90,6 @@ const TraderMuteChip: React.FC<TraderMuteChipProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
 
   const pressScale = useSharedValue(1);
   const popScale = useSharedValue(1);
@@ -165,7 +171,14 @@ const TraderMuteChip: React.FC<TraderMuteChipProps> = ({
     transform: [{ rotate: '-45deg' }, { scaleX: slash.value }],
   }));
 
-  const iconSize = diameter >= 40 ? IconSize.Md : IconSize.Sm;
+  // The profile bell matches the header `ButtonIcon` glyph (`IconSize.Lg`,
+  // 24px). A 40px chip keeps `Md` (20px). Smaller chips step down to `Sm`.
+  const iconSize =
+    diameter >= PROFILE_MUTE_CHIP_DIAMETER
+      ? IconSize.Lg
+      : diameter >= 40
+        ? IconSize.Md
+        : IconSize.Sm;
   const slashLength = diameter * 0.62;
 
   const accessibilityLabel = traderName
@@ -204,11 +217,10 @@ const TraderMuteChip: React.FC<TraderMuteChipProps> = ({
           hitSlop={8}
           testID={testID}
           style={[
-            tw.style('items-center justify-center rounded-full'),
+            tw.style('items-center justify-center rounded-full bg-muted'),
             {
               width: diameter,
               height: diameter,
-              backgroundColor: colors.background.muted,
             },
           ]}
         >
@@ -221,10 +233,8 @@ const TraderMuteChip: React.FC<TraderMuteChipProps> = ({
             pointerEvents="none"
             style={[
               styles.slash,
-              {
-                width: slashLength,
-                backgroundColor: colors.icon.muted,
-              },
+              tw.style('bg-icon-muted'),
+              { width: slashLength },
               slashStyle,
             ]}
           />
