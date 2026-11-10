@@ -100,6 +100,7 @@ describe('kycControllerInit', () => {
           idosDisclaimersAccepted: null,
           credentialReusabilityConsentGiven: null,
           nextStep: null,
+          vendorAccount: null,
         },
       },
     };
