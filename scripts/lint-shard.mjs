@@ -42,6 +42,9 @@ function loadEslintApis() {
       WarningService: require(
         path.join(eslintRoot, 'lib/services/warning-service.js'),
       ).WarningService,
+      SuppressionsService: require(
+        path.join(eslintRoot, 'lib/services/suppressions-service.js'),
+      ).SuppressionsService,
     };
   }
   return eslintApis;
@@ -119,20 +122,42 @@ function selfTest() {
 }
 
 async function lintPaths(cwd, files) {
-  const { ESLint } = loadEslintApis();
+  const { ESLint, SuppressionsService } = loadEslintApis();
   const eslint = new ESLint({
     cwd,
     cache: true,
     cacheStrategy: 'metadata',
     errorOnUnmatchedPattern: true,
   });
-  const results = await eslint.lintFiles(files);
+  const linted = await eslint.lintFiles(files);
+  // The ESLint class does not apply eslint-suppressions.json. The CLI does, so
+  // apply it here to match `yarn lint`. Suppressions for files outside this
+  // shard are not checked, because applySuppressions only looks at linted files.
+  const suppressions = new SuppressionsService({
+    filePath: path.join(cwd, 'eslint-suppressions.json'),
+    cwd,
+  });
+  const applied = suppressions.applySuppressions(
+    linted,
+    await suppressions.load(),
+  );
+  const results = applied.results;
   const formatter = await eslint.loadFormatter('stylish');
   const text = await formatter.format(results);
   if (text) {
     process.stdout.write(text);
   }
-  return results.reduce((sum, result) => sum + result.errorCount, 0);
+  // Same rule as the CLI: a suppression that no longer matches fails the run
+  // until it is pruned.
+  const unusedCount = Object.keys(applied.unused).length;
+  if (unusedCount > 0) {
+    process.stderr.write(
+      `There are ${unusedCount} suppressed file(s) with no matching errors. Run eslint --prune-suppressions.\n${JSON.stringify(applied.unused, null, 2)}\n`,
+    );
+  }
+  return (
+    results.reduce((sum, result) => sum + result.errorCount, 0) + unusedCount
+  );
 }
 
 /**

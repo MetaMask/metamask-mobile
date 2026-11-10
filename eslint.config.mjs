@@ -147,9 +147,19 @@ const pinJavascriptToToday = {
   'no-new-symbol': 'error',
 };
 
+// The v15 blocks register @typescript-eslint only for TypeScript files. JS
+// files still have eslint-disable comments for its rules, and ESLint 8 loaded
+// the plugin for every file. Register the same plugin object for JS too.
+const typescriptEslintPlugin = typescriptBlocks.find(
+  (block) => block.plugins?.['@typescript-eslint'],
+)?.plugins['@typescript-eslint'];
+
 export default [
   ...flatConfig,
+  { files: ['**/*.{js,jsx}'], plugins: { '@typescript-eslint': typescriptEslintPlugin } },
   { rules: pinToToday },
   { files: ['**/*.{js,jsx}'], rules: pinJavascriptToToday },
   { files: ['**/*.{ts,tsx}'], rules: pinTypescriptToToday },
+  // ESLint 9 warns on unused eslint-disable comments. ESLint 8 did not.
+  { linterOptions: { reportUnusedDisableDirectives: 'off' } },
 ];

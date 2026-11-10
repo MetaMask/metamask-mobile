@@ -196,21 +196,9 @@ module.exports = {
           },
         ],
 
-        // These rules are off because the shared ESLint config turned them on
-        // after v9, and ESLint 8 cannot save the existing hits. Every rule
-        // below stays off in this change.
-        //
-        // Fast checks. These do not need type information. Restore them in
-        // the ESLint 9 upgrade and park existing hits in ESLint's
-        // suppressions file.
-        '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/naming-convention': 'off',
-        '@typescript-eslint/no-empty-object-type': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-wrapper-object-types': 'off',
-        '@typescript-eslint/prefer-enum-initializers': 'off',
-        // Slow type checks. Leave these off through the ESLint 9 upgrade.
-        // Turn them on in Oxlint and park existing hits in
+        // Slow type checks. The shared ESLint config turns these on, but they
+        // need type information, so they stay off through the ESLint 9
+        // upgrade. Turn them on in Oxlint and park existing hits in
         // oxlint-suppressions.json.
         '@typescript-eslint/await-thenable': 'off',
         '@typescript-eslint/consistent-type-exports': 'off',
@@ -987,12 +975,6 @@ module.exports = {
     'react/prefer-es6-class': 'error',
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
-
-    // Fast checks, off for the same reason as the block above. These do not
-    // need type information. Restore them in the ESLint 9 upgrade and park
-    // existing hits in ESLint's suppressions file.
-    'react-hooks/rules-of-hooks': 'off',
-    'no-loss-of-precision': 'off',
   },
 
   ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],
