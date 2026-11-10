@@ -26,9 +26,9 @@ import {
 } from 'react-native-permissions';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { showCardExitConfirmation } from '../../hooks/useCardHeaderHandlers';
+import { useExitCardFlow } from '../../hooks/useExitCardFlow';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
@@ -130,8 +130,8 @@ export const IMMERSVE_KYC_UI_JS = `
 `;
 
 // The opener re-polls when the webview closes back onto it. Close and that
-// re-poll have to happen together: exit to the wallet tears the processing
-// screen down before focus returns, so useFocusEffect is not a reliable signal.
+// re-poll have to happen together: a confirmed exit removes the processing
+// screen before focus returns, so useFocusEffect is not a reliable signal.
 let onCloseCallback: (() => void) | null = null;
 
 export const setImmersveKycOnClose = (callback: () => void) => {
@@ -175,6 +175,7 @@ const ImmersveKYCModal: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
   const navigation = useNavigation<AppNavigationProp>();
+  const exitCardFlow = useExitCardFlow();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -343,8 +344,8 @@ const ImmersveKYCModal: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [status, retryKey, reportError]);
 
-  // Completion redirect re-polls the opener so it can route forward. Manual
-  // exit goes to the wallet home via exitToWalletHome instead.
+  // Completion redirect re-polls the opener so it can route forward. A
+  // confirmed exit returns to the screen that started setup.
   const closeModal = useCallback(() => {
     // WebView can fire multiple navigation updates for the same redirect URL.
     if (hasClosed.current) {
@@ -365,7 +366,7 @@ const ImmersveKYCModal: React.FC = () => {
     navigation.goBack();
   }, [navigation, trackEvent, createEventBuilder]);
 
-  const exitToWalletHome = useCallback(() => {
+  const exitWebview = useCallback(() => {
     if (hasClosed.current) {
       return;
     }
@@ -380,12 +381,12 @@ const ImmersveKYCModal: React.FC = () => {
         )
         .build(),
     );
-    navigation.navigate(Routes.WALLET.HOME);
-  }, [navigation, trackEvent, createEventBuilder]);
+    exitCardFlow();
+  }, [exitCardFlow, trackEvent, createEventBuilder]);
 
   const confirmExit = useCallback(() => {
-    showCardExitConfirmation(exitToWalletHome);
-  }, [exitToWalletHome]);
+    showCardExitConfirmation(exitWebview);
+  }, [exitWebview]);
 
   // Hardware back and swipe skip the header X. Ask the same way, unless we
   // already started a close (redirect goBack or a confirmed exit). A reset or

@@ -145,8 +145,8 @@ const ImmersveKYCProcessing = () => {
     }
   }, [kycUrl, openKycWebview]);
 
-  // Re-poll when the webview closes back onto this screen. Exit to the wallet
-  // tears this screen down before focus returns, so useFocusEffect cannot be
+  // Re-poll when the webview closes back onto this screen. A confirmed exit
+  // removes this screen before focus returns, so useFocusEffect cannot be
   // the signal — the webview invokes this callback instead. The poll then
   // decides: kyc still action-required ⇒ the user bailed (show a reopen
   // prompt); otherwise route.
