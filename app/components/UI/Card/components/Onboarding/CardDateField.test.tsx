@@ -9,7 +9,7 @@ jest.mock('@react-native-community/datetimepicker', () => {
   return ({ onChange }: { onChange: (event: unknown, date?: Date) => void }) =>
     ReactActual.createElement(View, {
       testID: 'mock-date-picker',
-      onChange: (date?: Date) => onChange({}, date),
+      onChange: (date?: Date, type = 'set') => onChange({ type }, date),
     });
 });
 
@@ -179,6 +179,30 @@ describe('CardDateField', () => {
     fireEvent(getByTestId('mock-date-picker'), 'onChange', DOB);
 
     expect(onChangeText).toHaveBeenCalledWith(DOB.getTime().toString());
+  });
+
+  it('closes the Android dialog without saving when cancelled', () => {
+    Platform.OS = 'android';
+    const { getByTestId, queryByTestId } = render(
+      <CardDateField
+        label="Date of birth"
+        value=""
+        onChangeText={onChangeText}
+        testID="dob"
+      />,
+    );
+
+    fireEvent.press(getByTestId('dob'));
+    // Android passes the original value back on cancel.
+    fireEvent(
+      getByTestId('mock-date-picker'),
+      'onChange',
+      new Date(2000, 0, 1),
+      'dismissed',
+    );
+
+    expect(onChangeText).not.toHaveBeenCalled();
+    expect(queryByTestId('mock-date-picker')).toBeNull();
   });
 
   it('shows the stored date in the spoken label', () => {

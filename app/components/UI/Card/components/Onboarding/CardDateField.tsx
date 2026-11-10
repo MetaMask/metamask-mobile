@@ -144,7 +144,12 @@ const CardDateField = ({
           value={valueAsDate ?? DEFAULT_DATE}
           mode="date"
           display="default"
-          onChange={(_, date) => commit(date)}
+          // The Android dialog also fires onChange on cancel ('dismissed'),
+          // passing the original value back. Only a confirmed pick ('set') is
+          // saved; anything else just closes the dialog.
+          onChange={(event, date) =>
+            event.type === 'set' ? commit(date) : closePicker()
+          }
           maximumDate={MAXIMUM_DATE}
           minimumDate={MINIMUM_DATE}
         />
