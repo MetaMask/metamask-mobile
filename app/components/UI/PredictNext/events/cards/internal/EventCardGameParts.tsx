@@ -247,6 +247,7 @@ const FeaturedTeam = ({ selection }: { selection: GameSelection }) => {
         color={TextColor.TextAlternative}
         numberOfLines={1}
         twClassName="text-center"
+        accessibilityLabel={team.name}
         testID={`predict-next-game-team-label-${event.id}-${selection}`}
       >
         {abbreviation}
@@ -283,7 +284,8 @@ const Matchup = ({ children }: { children: React.ReactNode }) => {
 /**
  * Two rounded segments sized by the Teams' share of the two prices. The
  * first Team's segment is neutral and the second takes its Team color, like
- * the featured quote buttons.
+ * the featured quote buttons. A side with no share draws no segment, so the
+ * gap is not left at the end of a full bar.
  */
 const ProbabilityBar = () => {
   const { colors: themeColors } = useTheme();
@@ -295,27 +297,33 @@ const ProbabilityBar = () => {
     return null;
   }
 
+  const secondShare = 100 - firstShare;
+
   return (
     <Box
       testID={`predict-next-game-bar-${event.id}`}
       twClassName="flex-row gap-1 px-4"
     >
-      <Box
-        testID={`predict-next-game-bar-${event.id}-${first}`}
-        twClassName="h-1 rounded-full"
-        style={{
-          flex: firstShare,
-          backgroundColor: themeColors.text.default,
-        }}
-      />
-      <Box
-        testID={`predict-next-game-bar-${event.id}-${second}`}
-        twClassName="h-1 rounded-full"
-        style={{
-          flex: 100 - firstShare,
-          backgroundColor: colors[second],
-        }}
-      />
+      {firstShare > 0 ? (
+        <Box
+          testID={`predict-next-game-bar-${event.id}-${first}`}
+          twClassName="h-1 rounded-full"
+          style={{
+            flex: firstShare,
+            backgroundColor: themeColors.text.default,
+          }}
+        />
+      ) : null}
+      {secondShare > 0 ? (
+        <Box
+          testID={`predict-next-game-bar-${event.id}-${second}`}
+          twClassName="h-1 rounded-full"
+          style={{
+            flex: secondShare,
+            backgroundColor: colors[second],
+          }}
+        />
+      ) : null}
     </Box>
   );
 };
@@ -554,11 +562,13 @@ const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
     );
   }
 
-  // `teamColor` only reads on the card background, not under a label: a pale
-  // Team color (gold in dark mode) would carry an unreadable white label. The
-  // label and, for mid tones, the fill follow the compact quote's rule.
+  // The fill is the Team's own color, as on the compact quote. `teamColor` is
+  // the contrast-checked color for text on the card, which swaps a dark Team
+  // color for a theme color in dark mode. The label is white when it reaches
+  // 4.5:1 on the fill, otherwise the fixed dark ink (a pale Team color such as
+  // gold); a mid tone neither reads on is darkened just enough for white.
   const { fill: fillColor, label: labelColor } = getReadableQuoteColors(
-    teamColor,
+    team.primaryColor ?? teamColor,
     { light: themeColors.overlay.inverse, dark: brandColors.grey1000 },
   );
 
@@ -676,7 +686,7 @@ const SmallQuote = ({ selection }: { selection: GameSelection }) => {
  */
 const SmallTeamRow = ({ selection }: { selection: GameSelection }) => {
   const tw = useTailwind();
-  const { event, abbreviation, actions } = useTeam(selection);
+  const { event, team, abbreviation, actions } = useTeam(selection);
 
   return (
     <Box
@@ -696,6 +706,7 @@ const SmallTeamRow = ({ selection }: { selection: GameSelection }) => {
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
           twClassName="min-w-0 flex-1"
+          accessibilityLabel={team.name}
           testID={`predict-next-game-team-label-${event.id}-${selection}`}
         >
           {abbreviation}
