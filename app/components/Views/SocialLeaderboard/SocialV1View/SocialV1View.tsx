@@ -513,7 +513,7 @@ const SocialV1ViewContent: React.FC = () => {
     Boolean(route.params?.showNotificationsBanner),
   );
 
-  // Rendered outside the PagerView, where a page would clip the inline sheet; null inside the home tabs host.
+  // Rendered outside the tab view, where a page would clip the inline sheet; null inside the home tabs host.
   const { openQuickBuy: showQuickBuy, quickBuySheet } = useQuickBuySheet();
   const quickBuySourceRef = useRef<QuickBuySheetSource>(
     SocialEvent.Source.SOCIAL_TRENDING,
