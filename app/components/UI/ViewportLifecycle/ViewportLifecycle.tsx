@@ -53,6 +53,9 @@ function ViewportLifecycle({
   const check = useCallback(
     (bounds: ViewportBounds) => {
       ref.current?.measureInWindow((_x, y, _width, height) => {
+        if (height > 0) {
+          reservedHeightRef.current = height;
+        }
         if (height <= 0) {
           return;
         }
@@ -112,7 +115,10 @@ function ViewportLifecycle({
 
   const placeholderStyle: StyleProp<ViewStyle> =
     hasProvider && mode === 'unmount-when-far' && !renderChildren
-      ? { height: reservedHeightRef.current || placeholderHeight }
+      ? {
+          // A 0-height slot never intersects, so it can never mount.
+          height: reservedHeightRef.current || placeholderHeight || 1,
+        }
       : undefined;
 
   return (

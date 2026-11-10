@@ -4,6 +4,7 @@ import { act, render, screen } from '@testing-library/react-native';
 import ViewportLifecycle from './ViewportLifecycle';
 import {
   ScrollViewportProvider,
+  publishViewportTarget,
   type ViewportPublisher,
 } from './ScrollViewportContext';
 
@@ -180,5 +181,124 @@ describe('ViewportLifecycle', () => {
     });
 
     expect(screen.queryByText('below')).toBeNull();
+  });
+
+  it('remounts children when a far section scrolls back into view', () => {
+    const measure = jest
+      .spyOn(View.prototype, 'measureInWindow')
+      .mockImplementation((callback) => {
+        callback(0, 4000, 100, 200);
+      });
+    const publishRef = createPublishRef();
+
+    render(
+      <ScrollViewportProvider publishRef={publishRef}>
+        <ViewportLifecycle mode="unmount-when-far">
+          <Text>chart</Text>
+        </ViewportLifecycle>
+      </ScrollViewportProvider>,
+    );
+
+    act(() => {
+      publishRef.current?.publishBounds({ top: 0, height: 800 });
+    });
+    expect(screen.queryByText('chart')).toBeNull();
+
+    measure.mockImplementation((callback) => {
+      callback(0, 100, 100, 200);
+    });
+    act(() => {
+      publishRef.current?.publishBounds({ top: 0, height: 800 });
+    });
+
+    expect(screen.getByText('chart')).toBeOnTheScreen();
+  });
+
+  it('mounts a below-fold section that has no placeholder height once its slot is inside the viewport', () => {
+    const measure = jest
+      .spyOn(View.prototype, 'measureInWindow')
+      .mockImplementation((callback) => {
+        callback(0, 0, 0, 0);
+      });
+    const publishRef = createPublishRef();
+
+    render(
+      <ScrollViewportProvider publishRef={publishRef}>
+        <ViewportLifecycle mode="unmount-when-far" initiallyMounted={false}>
+          <Text>below</Text>
+        </ViewportLifecycle>
+      </ScrollViewportProvider>,
+    );
+
+    act(() => {
+      publishRef.current?.publishBounds({ top: 0, height: 800 });
+    });
+    expect(screen.queryByText('below')).toBeNull();
+
+    const [placeholder] = screen.UNSAFE_getAllByType(View);
+    expect(placeholder.props.style).toEqual({ height: 1 });
+
+    measure.mockImplementation((callback) => {
+      callback(0, 100, 390, 1);
+    });
+    act(() => {
+      placeholder.props.onLayout({
+        nativeEvent: { layout: { x: 0, y: 100, width: 390, height: 1 } },
+      });
+    });
+
+    expect(screen.getByText('below')).toBeOnTheScreen();
+  });
+});
+
+describe('publishViewportTarget', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  function createTarget() {
+    return {
+      measureInWindow: jest.fn(
+        (
+          callback: (
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+          ) => void,
+        ) => {
+          callback(0, 0, 100, 800);
+        },
+      ),
+    };
+  }
+
+  it('measures at most once per 100 ms unless forced', () => {
+    let now = 1_000_000;
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+    const measureTarget = createTarget();
+    const publishRef = {
+      current: { publishBounds: jest.fn() },
+    };
+
+    publishViewportTarget(publishRef, measureTarget);
+    publishViewportTarget(publishRef, measureTarget);
+    expect(measureTarget.measureInWindow).toHaveBeenCalledTimes(1);
+
+    publishViewportTarget(publishRef, measureTarget, { force: true });
+    expect(measureTarget.measureInWindow).toHaveBeenCalledTimes(2);
+
+    now += 100;
+    publishViewportTarget(publishRef, measureTarget);
+    expect(measureTarget.measureInWindow).toHaveBeenCalledTimes(3);
+  });
+
+  it('does nothing when the provider ref is empty', () => {
+    const measureTarget = createTarget();
+    const publishRef = { current: null };
+
+    publishViewportTarget(publishRef, measureTarget);
+
+    expect(measureTarget.measureInWindow).not.toHaveBeenCalled();
   });
 });

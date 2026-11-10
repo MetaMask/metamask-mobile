@@ -18,7 +18,6 @@ export interface MeasurableView {
 
 export interface ViewportPublisher {
   publishBounds: (bounds: ViewportBounds) => void;
-  publishView: (view: unknown) => void;
 }
 
 type ViewportListener = (bounds: ViewportBounds) => void;
@@ -65,24 +64,7 @@ export function ScrollViewportProvider({
     listenersRef.current.forEach((listener) => listener(bounds));
   }, []);
 
-  const publishView = useCallback(
-    (view: unknown) => {
-      const measurable = asMeasurableView(view);
-      if (!measurable) {
-        return;
-      }
-      measurable.measureInWindow((_x, y, _width, height) => {
-        emit({ top: y, height });
-      });
-    },
-    [emit],
-  );
-
-  useImperativeHandle(
-    publishRef,
-    () => ({ publishBounds: emit, publishView }),
-    [emit, publishView],
-  );
+  useImperativeHandle(publishRef, () => ({ publishBounds: emit }), [emit]);
 
   const value = useMemo<ScrollViewportContextValue>(
     () => ({
