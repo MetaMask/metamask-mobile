@@ -117,7 +117,12 @@ const renderAutocomplete = (
 
 describeForPlatforms('Browser URL autocomplete predictions', () => {
   beforeEach(() => {
-    setupTrendingApiFetchMock(mockTrendingTokensData);
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      undefined,
+      bitcoinSearchResults,
+    );
     searchMarkets.mockReset();
     searchMarkets.mockResolvedValue({
       markets: [IMAGED_MARKET, MOCK_PREDICT_CLOSED_MARKET],
@@ -329,12 +334,22 @@ const waitForTokenSearch = async (
   await view.findByText(String(bitcoinToken?.name), HIDDEN);
 };
 
+/** The mocked token search answers with the trending fixture's BTC row. */
+const bitcoinSearchResults = mockTrendingTokensData.filter(
+  ({ symbol }) => symbol === 'BTC',
+);
+
 describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
   /** What Kalshi search answers, read at call time. */
   let kalshiSearch: () => Promise<unknown>;
 
   beforeEach(() => {
-    setupTrendingApiFetchMock(mockTrendingTokensData);
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      undefined,
+      bitcoinSearchResults,
+    );
     // Online, so nothing gated on the network tier is silently off.
     netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     searchMarkets.mockReset();
