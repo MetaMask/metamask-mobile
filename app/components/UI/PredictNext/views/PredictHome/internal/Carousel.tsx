@@ -1,12 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, type ViewabilityConfig } from 'react-native';
+import type { ViewabilityConfig } from 'react-native';
 import { Box, BoxBorderColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, ListRenderItem, ViewToken } from '@shopify/flash-list';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-/** Default card slot: 80% of the screen width, gap included. */
-const DEFAULT_SLOT_WIDTH = SCREEN_WIDTH * 0.8;
 /** Default space between cards. */
 const DEFAULT_GAP = 12;
 const CARD_HEIGHT = 220;
@@ -34,10 +31,9 @@ export interface CarouselProps<T> {
   skeletonCount?: number;
   /**
    * Width of each card, in points. The carousel snaps one card plus `gap`
-   * at a time. When omitted, each card slot is 80% of the screen width with
-   * `gap` taken out of it, and the last card fills its whole slot.
+   * at a time.
    */
-  cardWidth?: number;
+  cardWidth: number;
   /**
    * Space between cards, in points.
    * @default 12
@@ -58,10 +54,10 @@ export interface CarouselProps<T> {
 
 /**
  * Horizontal snap carousel of cards for Predict Home. It is card-agnostic:
- * `renderItem` draws each card and `Skeleton` stands in while loading. By
- * default each card slot is `~80%` of the screen width; `cardWidth` and
- * `gap` size it explicitly. The active page comes from the list's
- * viewability, and `renderFooter` receives it (for pagination dots).
+ * `renderItem` draws each card and `Skeleton` stands in while loading. The
+ * caller sizes the cards with `cardWidth`; `gap` spaces them. The active page
+ * comes from the list's viewability, and `renderFooter` receives it (for
+ * pagination dots).
  */
 export function Carousel<T>({
   data,
@@ -86,9 +82,7 @@ export function Carousel<T>({
   const displayData = isLoading ? skeletonData : data;
 
   // A slot is one card and the gap after it; the last card has no gap.
-  const slotWidth =
-    cardWidth === undefined ? DEFAULT_SLOT_WIDTH : cardWidth + gap;
-  const lastSlotWidth = cardWidth ?? DEFAULT_SLOT_WIDTH;
+  const slotWidth = cardWidth + gap;
 
   const handleViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken<T | undefined>[] }) => {
@@ -112,7 +106,7 @@ export function Carousel<T>({
           <Box
             borderColor={BoxBorderColor.BorderDefault}
             style={tw.style({
-              width: isLastItem ? lastSlotWidth : slotWidth,
+              width: isLastItem ? cardWidth : slotWidth,
               minHeight: CARD_HEIGHT,
               ...(isLastItem ? {} : { paddingRight: gap }),
             })}

@@ -33,7 +33,7 @@ jest.mock('@shopify/flash-list', () => {
 });
 
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { act, render, screen, within } from '@testing-library/react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import { Carousel, type CarouselProps } from './Carousel';
@@ -43,7 +43,7 @@ interface Card {
 }
 
 const CARDS: Card[] = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const CARD_WIDTH = 340;
 
 const Skeleton = () => <Text testID="card-skeleton">loading</Text>;
 const renderItem: ListRenderItem<Card> = ({ item }) => (
@@ -58,6 +58,7 @@ const renderCarousel = (props: Partial<CarouselProps<Card>> = {}) =>
       renderItem={renderItem}
       Skeleton={Skeleton}
       idPrefix="test"
+      cardWidth={CARD_WIDTH}
       {...props}
     />,
   );
@@ -81,28 +82,26 @@ describe('Carousel', () => {
     mockFlashListProps.mockClear();
   });
 
-  describe('default layout', () => {
-    it('sizes every card slot at 80% of the screen width with a 12pt gap carved out of all but the last', () => {
-      const slotWidth = SCREEN_WIDTH * 0.8;
-
+  describe('layout', () => {
+    it('sizes every card slot at cardWidth plus the 12pt gap, and the last card at cardWidth', () => {
       renderCarousel();
 
       expect(cellStyle(0)).toMatchObject({
-        width: slotWidth,
+        width: CARD_WIDTH + 12,
         minHeight: 220,
         paddingRight: 12,
         borderRadius: 16,
         overflow: 'hidden',
       });
       expect(cellStyle(1)).toMatchObject({
-        width: slotWidth,
+        width: CARD_WIDTH + 12,
         paddingRight: 12,
       });
-      expect(cellStyle(2)).toMatchObject({ width: slotWidth, minHeight: 220 });
+      expect(cellStyle(2)).toMatchObject({ width: CARD_WIDTH, minHeight: 220 });
       expect(cellStyle(2).paddingRight).toBeUndefined();
     });
 
-    it('snaps by the 80% slot in a horizontal list with fast deceleration', () => {
+    it('snaps by the card slot in a horizontal list with fast deceleration', () => {
       renderCarousel();
 
       const props = lastFlashListProps();
@@ -110,7 +109,7 @@ describe('Carousel', () => {
         horizontal: true,
         pagingEnabled: false,
         showsHorizontalScrollIndicator: false,
-        snapToInterval: SCREEN_WIDTH * 0.8,
+        snapToInterval: CARD_WIDTH + 12,
         decelerationRate: 'fast',
         testID: 'test-flash-list',
       });
@@ -138,21 +137,11 @@ describe('Carousel', () => {
       expect(lastFlashListProps().snapToInterval).toBe(348);
     });
 
-    it('uses the 12pt default gap when only cardWidth is given', () => {
+    it('uses the 12pt default gap when gap is omitted', () => {
       renderCarousel({ cardWidth: 300 });
 
       expect(cellStyle(0)).toMatchObject({ width: 312, paddingRight: 12 });
       expect(lastFlashListProps().snapToInterval).toBe(312);
-    });
-
-    it('takes a gap-only change out of the default 80% slot', () => {
-      renderCarousel({ gap: 8 });
-
-      expect(cellStyle(0)).toMatchObject({
-        width: SCREEN_WIDTH * 0.8,
-        paddingRight: 8,
-      });
-      expect(lastFlashListProps().snapToInterval).toBe(SCREEN_WIDTH * 0.8);
     });
   });
 
