@@ -89,7 +89,7 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import { markSocialTabVisited } from '../utils/socialTabVisit';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
-import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import { toSpotCopyTradeTarget } from '../../../UI/SocialFeed/utils/copyTrade';
 import {
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
@@ -548,23 +548,13 @@ const SocialV1ViewContent: React.FC = () => {
       commentId: string | undefined,
       source: QuickBuySheetSource,
     ) => {
-      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
-        return;
-      }
-
-      const chain = chainNameToId(item.asset.avatar.chain);
-      const tokenAddress = item.asset.avatar.tokenAddress.trim();
-      if (!chain || !tokenAddress) {
+      const target = toSpotCopyTradeTarget(item);
+      if (!target) {
         return;
       }
 
       openQuickBuy(
-        {
-          tokenAddress,
-          tokenSymbol: item.asset.symbol,
-          tokenName: item.asset.name ?? item.asset.symbol,
-          chain,
-        },
+        target,
         commentId ? { commentId } : undefined,
         'buy',
         source,
