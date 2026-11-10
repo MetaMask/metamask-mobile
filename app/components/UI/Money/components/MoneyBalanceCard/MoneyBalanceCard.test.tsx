@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../../util/theme';
@@ -15,8 +15,10 @@ import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selector
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import {
+  useMoneyNavigation,
+  useMoneyDepositNavigation,
+} from '../../hooks/useMoneyNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   BOTTOM_SHEET_NAMES,
@@ -29,6 +31,7 @@ import {
 } from '../../constants/moneyEvents';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 
 let mockIsGlassEnabled = false;
 jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
@@ -69,6 +72,7 @@ jest.mock('../../../../../../locales/i18n', () => {
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
 const mockInitiateDeposit = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -97,11 +101,7 @@ jest.mock('../../hooks/useMoneyAccountInfo', () => ({
 jest.mock('../../hooks/useMoneyNavigation', () => ({
   __esModule: true,
   useMoneyNavigation: jest.fn(),
-}));
-
-jest.mock('../../hooks/useMoneyAccount', () => ({
-  __esModule: true,
-  useMoneyAccountDeposit: jest.fn(),
+  useMoneyDepositNavigation: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/user/selectors', () => ({
@@ -132,6 +132,11 @@ jest.mock('../../selectors/eligibility', () => ({
   selectIsMoneyAccountGeoEligible: jest.fn(),
 }));
 
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
@@ -151,8 +156,42 @@ const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
 const mockSelectIsMoneyAccountGeoEligible = jest.mocked(
   selectIsMoneyAccountGeoEligible,
 );
+const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
+  selectMoneyEnableMoneyAccountFlag,
+);
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
-const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
+
+const getMockAccessDecision = () => {
+  if (!mockSelectMoneyEnableMoneyAccountFlag(undefined as never)) {
+    return {
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_DEEPLINK_MODAL,
+    };
+  }
+
+  if (!mockSelectIsMoneyAccountGeoEligible(undefined as never)) {
+    return {
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
+    };
+  }
+
+  if (
+    !mockSelectMoneyOnboardingSeen(undefined as never) &&
+    mockSelectMoneyOnboardingStepperAnimationEnabled(undefined as never)
+  ) {
+    return {
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+    };
+  }
+
+  return {
+    button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+    redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+  };
+};
 
 type BalanceMockOverrides = Partial<
   Omit<ReturnType<typeof useMoneyAccountBalance>, 'moneyBalanceQuery'>
@@ -219,13 +258,78 @@ describe('MoneyBalanceCard', () => {
     mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
     mockSelectPrivacyMode.mockReturnValue(false);
     mockSelectIsMoneyAccountGeoEligible.mockReturnValue(true);
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      const decision = getMockAccessDecision();
+      if (
+        decision.redirect_target === BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
+      ) {
+        mockNavigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        });
+      } else if (decision.redirect_target === SCREEN_NAMES.MONEY_ONBOARDING) {
+        mockNavigate(Routes.MONEY.ONBOARDING);
+      } else {
+        mockNavigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+      }
+      track?.({
+        button_intent:
+          decision.redirect_target === SCREEN_NAMES.MONEY_HOME
+            ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME
+            : decision.button_intent,
+        redirect_target:
+          decision.redirect_target === SCREEN_NAMES.MONEY_DEPOSIT
+            ? SCREEN_NAMES.MONEY_HOME
+            : decision.redirect_target,
+      });
+    });
     mockUseMoneyNavigation.mockReturnValue({
-      isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockUseMoneyAccountDeposit.mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
+    mockNavigateToMoneyDeposit.mockImplementation(
+      async ({ track, ...options }) => {
+        const decision = getMockAccessDecision();
+        track?.(decision);
+        if (
+          decision.redirect_target === BOTTOM_SHEET_NAMES.MONEY_DEEPLINK_MODAL
+        ) {
+          mockNavigate(Routes.MONEY.MODALS.DEEPLINK_MODAL, {
+            title: strings('money.deeplink_modal.money_account_disabled.title'),
+            description: strings(
+              'money.deeplink_modal.money_account_disabled.description',
+            ),
+          });
+          return;
+        }
+        if (
+          decision.redirect_target === BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
+        ) {
+          mockNavigate(Routes.MONEY.MODALS.ROOT, {
+            screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+          });
+          return;
+        }
+        if (decision.redirect_target === SCREEN_NAMES.MONEY_ONBOARDING) {
+          mockNavigate(Routes.MONEY.ONBOARDING, {
+            postOnboardingRedirect: {
+              type: MoneyPostOnboardingRedirectType.DEPOSIT,
+            },
+          });
+          return;
+        }
+        await mockInitiateDeposit(options);
+      },
+    );
+    mockUseMoneyDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
@@ -316,14 +420,12 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      await Promise.resolve();
-
-      expect(Logger.default.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          message: expect.stringContaining('MoneyBalanceCard'),
-        }),
-      );
+      await waitFor(() => {
+        expect(Logger.default.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          '[MoneyBalanceCard] Failed to initiate deposit',
+        );
+      });
     });
 
     it('tracks the Add click with the deposit redirect target', () => {
@@ -675,7 +777,9 @@ describe('MoneyBalanceCard', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
       });
-      expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+      expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({
+        track: expect.any(Function),
+      });
     });
 
     it('routes add money when Add is pressed', () => {
@@ -684,6 +788,25 @@ describe('MoneyBalanceCard', () => {
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
       expect(mockInitiateDeposit).toHaveBeenCalled();
+    });
+
+    it('opens the feature-unavailable modal when Money is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        },
+      );
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
     });
 
     it('opens the geo-block sheet when Add is pressed by a geo-ineligible user', () => {

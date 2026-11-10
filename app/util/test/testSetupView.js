@@ -612,14 +612,16 @@ jest.mock('@react-native-cookies/cookies', () => ({
 jest.mock('@metamask/react-native-webview', () => {
   const React = require('react');
   const { View } = require('react-native');
+  const postMessage = jest.fn();
   const WebView = React.forwardRef((props, ref) => {
     React.useImperativeHandle(ref, () => ({
-      postMessage: jest.fn(),
+      postMessage,
       injectJavaScript: jest.fn(),
       reload: jest.fn(),
     }));
     return <View {...props} />;
   });
+  WebView.postMessage = postMessage;
   return { WebView };
 });
 
@@ -693,6 +695,11 @@ jest.mock('@sentry/react-native', () => ({
   setMeasurement: jest.fn(),
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
+  startInactiveSpan: jest.fn(() => ({ end: jest.fn() })),
+  extendAppStart: jest.fn(),
+  getExtendedAppStartSpan: jest.fn(),
+  finishExtendedAppStart: jest.fn(() => Promise.resolve()),
+  spanIsSampled: jest.fn(() => true),
   startTransaction: jest.fn(),
   lastEventId: jest.fn(),
   getGlobalScope: jest.fn(() => ({

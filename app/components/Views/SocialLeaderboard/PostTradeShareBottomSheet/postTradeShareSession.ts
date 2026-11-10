@@ -4,6 +4,7 @@ import type {
   SocialPostPerpsPreview,
   SocialPostTradePreview,
 } from '../SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialEventSource } from '../analytics/socialEvents';
 
 export type PostTradeShareStatus = 'pending' | 'complete' | 'failed';
 
@@ -20,6 +21,7 @@ export type PostTradeShareVariant = 'share' | 'create_profile';
 export const PostTradeShareOwner = {
   socialV1Feed: 'social-v1-feed',
   traderPosition: 'trader-position',
+  tokenDetails: 'token-details',
 } as const;
 
 export type PostTradeShareOwnerId =
@@ -32,6 +34,11 @@ interface PostTradeShareSessionBase {
   pairLabel?: string;
   tradeInFlightChain?: string;
   reopenRequested: boolean;
+  /**
+   * Social Screen Viewed source for the share sheet and composer.
+   * Set from the trade that opened the session.
+   */
+  analyticsSource?: SocialEventSource;
 }
 
 export interface SpotPostTradeShareSession extends PostTradeShareSessionBase {

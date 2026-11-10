@@ -15,6 +15,7 @@ import {
   unknown,
   union,
 } from '@metamask/superstruct';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PredictError, PredictErrorCode } from '../../errors';
 import { amount, decimal, httpsUrl, timestamp } from './primitives';
 import type {
@@ -77,10 +78,12 @@ const teamSchema = object({
   abbreviation: optional(string()),
   logoUrl: optional(httpsUrl),
   primaryColor: optional(hexColor),
+  logoFacing: optional(enums(['left', 'right'] as const)),
 });
 
 const gameSchema = object({
   status: gameStatus,
+  teamOrder: optional(enums(['away_first', 'home_first'] as const)),
   homeTeam: teamSchema,
   awayTeam: teamSchema,
   score: optional(
@@ -166,8 +169,8 @@ const marketSelectorGroupSchema = coerce(
 );
 
 /**
- * A card of rows, one Market per row priced by its yes side: a moneyline's
- * options, or a Player's thresholds titled with `label`.
+ * A card of rows, one Market per row priced by its yes side, such as a
+ * moneyline's options. Titled with `label` when the backend sends one.
  */
 const choiceGroupSchema = coerce(
   structType({
@@ -200,6 +203,35 @@ export const PredictMarketGroupSchema = union([
   choiceGroupSchema,
   unsupportedMarketGroupSchema,
 ]);
+
+/**
+ * A Market's group. Presentation only, so a malformed group is dropped and the
+ * Market renders as a standard card, rather than one bad line rejecting the
+ * whole Event.
+ */
+const marketGroupSchema = coerce(
+  optional(PredictMarketGroupSchema),
+  unknown(),
+  (value) => {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    try {
+      return mask(value, PredictMarketGroupSchema);
+    } catch (error) {
+      const key =
+        typeof value === 'object' && value !== null && 'key' in value
+          ? String(value.key)
+          : '';
+      DevLogger.log(
+        `[PredictNext] Dropped malformed Market group "${key}"; its Market renders as a standard card`,
+        error instanceof Error ? error.message : error,
+      );
+      return undefined;
+    }
+  },
+);
 
 const layoutLevelSchema = object({
   key: nonEmptyGroupString('PredictMarketLayoutKey'),
@@ -240,7 +272,7 @@ const marketSchema = object({
   rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
-  group: optional(PredictMarketGroupSchema),
+  group: marketGroupSchema,
   layout: marketLayoutSchema,
   volume: optional(amount),
   volume24h: optional(amount),

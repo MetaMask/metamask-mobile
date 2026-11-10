@@ -102,6 +102,7 @@ const CreateVirtualBankAccount = ({
   const tw = useTailwind();
   const [isAdvancing, setIsAdvancing] = useState(false);
   const hasPrefetchedIdosJwksRef = useRef(false);
+  const hasEnsuredLocalUserSecretRef = useRef(false);
   const {
     disclaimers,
     isLoading,
@@ -111,7 +112,7 @@ const CreateVirtualBankAccount = ({
     retry,
   } = useKycDisclaimers();
   const { apyPercent } = useMoneyVaultApy();
-  const { arrivalTimeframe } = useVbaArrivalTime();
+  const { arrivalTitle } = useVbaArrivalTime();
 
   let vendorTermsContentState: VbaScreenContentState =
     VBA_SCREEN_CONTENT_STATE.EMPTY;
@@ -162,6 +163,31 @@ const CreateVirtualBankAccount = ({
     kycService
       .fetchIdosRelayJwks()
       .catch(logIdosJwksPrefetchError('fetchIdosRelayJwks'));
+  }, [isLoading]);
+
+  // Pre-creates and persists the UKYC `local_user_secret` once the initial
+  // disclaimers request settles, so the later `startSession` call does not
+  // pay for secret generation and the Encrypted User Storage write. Waiting
+  // for that request to settle (success or failure) keeps this screen's
+  // initial network burst limited to the disclaimers fetch. A failure here
+  // does not block onboarding: `startSession` creates the secret if it is
+  // still missing. Guarded so a disclaimers retry cannot re-fire this call.
+  useEffect(() => {
+    if (isLoading || hasEnsuredLocalUserSecretRef.current) {
+      return;
+    }
+    hasEnsuredLocalUserSecretRef.current = true;
+    Engine.context.KycController.ensureLocalUserSecret().catch(
+      (error: unknown) => {
+        Logger.error(error as Error, {
+          tags: { feature: 'vba-onboarding' },
+          context: {
+            name: 'CreateVirtualBankAccount',
+            data: { step: 'ensureLocalUserSecret' },
+          },
+        });
+      },
+    );
   }, [isLoading]);
 
   // Only the load and empty-catalog failures leave the screen without usable
@@ -249,16 +275,7 @@ const CreateVirtualBankAccount = ({
           />
           <FeatureRow
             icon={IconName.Clock}
-            title={
-              arrivalTimeframe
-                ? strings(
-                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
-                    { timeframe: arrivalTimeframe },
-                  )
-                : strings(
-                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
-                  )
-            }
+            title={arrivalTitle}
             description={strings(
               'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
             )}

@@ -13,15 +13,13 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
+import { useMoneyDepositNavigation } from './useMoneyNavigation';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
@@ -48,18 +46,15 @@ jest.mock('react-redux');
 jest.mock('../../../../hooks/useABTest');
 
 const mockInitiateDeposit = jest.fn();
-const mockRedirectToOnboardingIfNeeded = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyAssetOverviewCtaVisibility = jest.mocked(
   useMoneyAssetOverviewCtaVisibility,
 );
-const mockUseMoneyOnboardingNavigation = jest.mocked(
-  useMoneyOnboardingNavigation,
-);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 const mockUseABTest = jest.mocked(useABTest);
 const mockSelectIsAaveOutputToken = jest.mocked(
   earnSelectors.selectIsAaveOutputToken,
@@ -111,10 +106,18 @@ describe('useMoneyAssetOverviewCtas', () => {
     jest.clearAllMocks();
     setupSelectors();
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
-    mockUseMoneyAccountDeposit.mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
+    mockUseMoneyDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
+    mockNavigateToMoneyDeposit.mockImplementation(
+      async ({ track, ...options }) => {
+        track?.({
+          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        });
+        await mockInitiateDeposit(options);
+      },
+    );
     mockUseMoneyVaultApy.mockReturnValue({
       apyDecimal: 0.04,
       apyPercent: 4,
@@ -126,10 +129,6 @@ describe('useMoneyAssetOverviewCtas', () => {
     mockUseMoneyAssetOverviewCtaVisibility.mockReturnValue({
       isBalanceCtaEligible: true,
       isFooterCtaEligible: true,
-    });
-    mockUseMoneyOnboardingNavigation.mockReturnValue({
-      isOnboardingRedirectNeeded: false,
-      redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
     });
     mockUseABTest.mockReturnValue({
       variant: { showMoneyDepositBalanceCta: true },
@@ -367,7 +366,12 @@ describe('useMoneyAssetOverviewCtas', () => {
   });
 
   it('tracks footer onboarding with interpolated labels and token context', async () => {
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+    mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+      track?.({
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+    });
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset,
@@ -477,7 +481,12 @@ describe('useMoneyAssetOverviewCtas', () => {
   });
 
   it('sends the selected asset to onboarding before tracking footer navigation', async () => {
-    mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+    mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+      track?.({
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+    });
     const { result } = renderHook(() =>
       useMoneyAssetOverviewCtas({
         asset,
@@ -490,14 +499,12 @@ describe('useMoneyAssetOverviewCtas', () => {
       await result.current.onFooterPress();
     });
 
-    expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
-      postOnboardingRedirect: {
-        type: MoneyPostOnboardingRedirectType.DEPOSIT,
-        preferredPaymentToken: {
-          address: asset.address,
-          chainId: asset.chainId,
-        },
+    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+      preferredPaymentToken: {
+        address: asset.address,
+        chainId: asset.chainId,
       },
+      track: expect.any(Function),
     });
   });
 });

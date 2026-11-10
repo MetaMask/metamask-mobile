@@ -188,6 +188,30 @@ describe('toSocialV1FeedItem', () => {
       expect(result.asset.symbol).toBe(core.tokenSymbol);
     });
 
+    it('copies an X handle from the actor social handles', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          actor: {
+            profileId: 'profile-2',
+            address: '0x2222222222222222222222222222222222222222',
+            name: 'aparjey',
+            imageUrl: null,
+            socialHandles: { twitter: ' @aparjey ' },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.author.xHandle).toBe('aparjey');
+    });
+
+    it('leaves the X handle empty when the actor has none', () => {
+      const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
+
+      expect(result.author.xHandle).toBeNull();
+    });
+
     it('carries value, P&L and leverage straight from the mapped row', () => {
       const row = buildRow(mockPerpFeedItem());
 
@@ -578,6 +602,36 @@ describe('toSocialV1FeedItem', () => {
       const result = toSocialV1FeedItem(row);
 
       expect(result.comment).toBe('Thesis unchanged.');
+    });
+
+    it('dates a commented card by its comment rather than its trade', () => {
+      const row = buildRow(
+        mockSpotFeedItem({
+          timestamp: 1_700_000_000,
+          authorComment: {
+            uid: 'comment-1',
+            text: 'Still holding the thesis.',
+            timestamp: 1_700_691_200,
+            engagement: {
+              reactions: [],
+              userReaction: null,
+              replyCount: 0,
+            },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.timestamp).toBe(1_700_691_200_000);
+    });
+
+    it('dates a card with no comment by its trade', () => {
+      const row = buildRow(mockSpotFeedItem({ timestamp: 1_700_000_000 }));
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.timestamp).toBe(row.item.timestamp);
     });
 
     it('strips a static.klipy.com gif url from the caption', () => {

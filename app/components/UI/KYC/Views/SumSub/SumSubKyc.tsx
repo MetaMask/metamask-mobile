@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -19,34 +18,36 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from '../../hooks/useLaunchSumSub';
-import type { VbaIdentityVerificationCompletion } from './types';
+import VbaFoxLoader from '../../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
+import type { KycIdentityVerificationCompletion } from './types';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
-export const VbaSumSubKycSelectorsIDs = {
-  CONTAINER: 'vba-sumsub-kyc-container',
-  BACK_BUTTON: 'vba-sumsub-kyc-back-button',
-  ERROR: 'vba-sumsub-kyc-error',
-  RETRY_BUTTON: 'vba-sumsub-kyc-retry-button',
+export const KycSumSubSelectorsIDs = {
+  CONTAINER: 'kyc-sumsub-container',
+  BACK_BUTTON: 'kyc-sumsub-back-button',
+  ERROR: 'kyc-sumsub-error',
+  RETRY_BUTTON: 'kyc-sumsub-retry-button',
+  LOADER: 'kyc-sumsub-loader',
 } as const;
 
 /**
  * Host screen for the `KycRequired` stage. It opens the SumSub SDK on mount
  * (via {@link useLaunchSumSub}) and reports the KYC outcome. While
- * launching it shows a spinner (the SDK presents itself over this screen); if
+ * launching it shows the fox loader (the SDK presents itself over this screen); if
  * the launch fails it surfaces a retryable error instead of bouncing back to
  * the previous screen. Closing the provider before submitting returns to the
  * caller (money home); re-entry relaunches the provider directly. Provider
  * terms are accepted earlier, on Verify Identity.
  */
-interface VbaSumSubKycProps {
+interface KycSumSubProps {
   onSubmitted: (
-    result: VbaIdentityVerificationCompletion,
+    result: KycIdentityVerificationCompletion,
   ) => void | Promise<void>;
 }
 
-const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
+const KycSumSub = ({ onSubmitted }: KycSumSubProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
@@ -82,7 +83,7 @@ const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
     <SafeAreaView
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
-      testID={VbaSumSubKycSelectorsIDs.CONTAINER}
+      testID={KycSumSubSelectorsIDs.CONTAINER}
     >
       {isLaunching ? null : (
         <HeaderStandardGlass
@@ -90,7 +91,7 @@ const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
           isFloating={false}
           onBack={handleBack}
           backButtonProps={{
-            testID: VbaSumSubKycSelectorsIDs.BACK_BUTTON,
+            testID: KycSumSubSelectorsIDs.BACK_BUTTON,
           }}
           includesTopInset
         />
@@ -101,27 +102,27 @@ const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
           twClassName="flex-1 px-6 gap-3"
-          testID={VbaSumSubKycSelectorsIDs.ERROR}
+          testID={KycSumSubSelectorsIDs.ERROR}
         >
           <Text variant={TextVariant.HeadingMd} twClassName="text-center">
-            {strings('virtual_bank_account.sumsub_kyc.error_title')}
+            {strings('kyc.sumsub_kyc.error_title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
-            {strings('virtual_bank_account.sumsub_kyc.error_description')}
+            {strings('kyc.sumsub_kyc.error_description')}
           </Text>
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
             onPress={retry}
-            testID={VbaSumSubKycSelectorsIDs.RETRY_BUTTON}
+            testID={KycSumSubSelectorsIDs.RETRY_BUTTON}
             twClassName="mt-2"
           >
-            {strings('virtual_bank_account.sumsub_kyc.retry')}
+            {strings('kyc.sumsub_kyc.retry')}
           </Button>
         </Box>
       ) : (
@@ -130,11 +131,11 @@ const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
         >
-          <ActivityIndicator />
+          <VbaFoxLoader testID={KycSumSubSelectorsIDs.LOADER} />
         </Box>
       )}
     </SafeAreaView>
   );
 };
 
-export default VbaSumSubKyc;
+export default KycSumSub;

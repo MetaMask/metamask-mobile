@@ -1,18 +1,10 @@
 import React, { memo, useCallback } from 'react';
-import { TouchableOpacity, View, Text, Image } from 'react-native';
+import { TouchableOpacity, View, Text } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { deleteFavoriteTestId } from './UrlAutocomplete.testIds';
-import {
-  Box,
-  Icon,
-  IconName,
-  IconSize,
-  BoxAlignItems,
-  BoxJustifyContent,
-} from '@metamask/design-system-react-native';
 import { IconName as ComponentLibraryIconName } from '../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import { removeBookmark } from '../../../actions/bookmarks';
@@ -21,7 +13,6 @@ import {
   AutocompleteSearchResult,
   TokenSearchResult,
   UrlAutocompleteCategory,
-  PredictionsSearchResult,
 } from './types';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
@@ -35,6 +26,7 @@ import TrendingTokenLogo from '../Trending/components/TrendingTokenLogo';
 import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 import AppConstants from '../../../core/AppConstants';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { PredictSearchResultRow } from '../PredictNext';
 
 interface ResultProps {
   result: AutocompleteSearchResult;
@@ -43,34 +35,6 @@ interface ResultProps {
   onSwapPress: (result: TokenSearchResult) => void;
   navigation?: AppNavigationProp;
 }
-
-/**
- * Render icon for Predictions result
- */
-const PredictionsIcon: React.FC<{
-  result: PredictionsSearchResult;
-  styles: ReturnType<typeof stylesheet>;
-}> = memo(({ result, styles }) => {
-  if (result.image) {
-    return (
-      <Image
-        source={{ uri: result.image }}
-        style={styles.bookmarkIco}
-        resizeMode="cover"
-      />
-    );
-  }
-  return (
-    <Box
-      style={styles.bookmarkIco}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="bg-background-alternative"
-    >
-      <Icon name={IconName.Speedometer} size={IconSize.Md} />
-    </Box>
-  );
-});
 
 export const Result: React.FC<ResultProps> = memo(
   ({ result, onPress, onPressIn, onSwapPress }) => {
@@ -89,6 +53,11 @@ export const Result: React.FC<ResultProps> = memo(
 
     const currentCurrency = useSelector(selectCurrentCurrency);
 
+    // Predict owns its row: display values only, opened by the caller
+    if (result.category === UrlAutocompleteCategory.Predictions) {
+      return <PredictSearchResultRow result={result} onPress={onPress} />;
+    }
+
     // Determine display name based on category
     const getDisplayName = () => {
       switch (result.category) {
@@ -96,8 +65,6 @@ export const Result: React.FC<ResultProps> = memo(
           return result.name;
         case UrlAutocompleteCategory.Perps:
           return result.name;
-        case UrlAutocompleteCategory.Predictions:
-          return result.title;
         default:
           return typeof result.name === 'string'
             ? result.name
@@ -112,8 +79,6 @@ export const Result: React.FC<ResultProps> = memo(
           return result.symbol;
         case UrlAutocompleteCategory.Perps:
           return `${result.symbol} · ${result.maxLeverage}`;
-        case UrlAutocompleteCategory.Predictions:
-          return result.status === 'open' ? 'Open' : result.status;
         default:
           return result.url;
       }
@@ -141,8 +106,6 @@ export const Result: React.FC<ResultProps> = memo(
           );
         case UrlAutocompleteCategory.Perps:
           return <PerpsTokenLogo symbol={result.symbol} size={32} />;
-        case UrlAutocompleteCategory.Predictions:
-          return <PredictionsIcon result={result} styles={styles} />;
         default:
           return (
             <WebsiteIcon

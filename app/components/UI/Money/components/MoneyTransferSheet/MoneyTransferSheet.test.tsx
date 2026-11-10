@@ -11,14 +11,13 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
-import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
@@ -35,6 +34,11 @@ jest.mock('../../../../../selectors/transactionController', () => ({
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
+}));
+
+jest.mock('../../selectors/visibility', () => ({
+  ...jest.requireActual('../../selectors/visibility'),
+  selectMoneyAccountAccessBlockReason: jest.fn(),
 }));
 
 const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
@@ -82,8 +86,14 @@ jest.mock('../../../Perps/selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
 }));
 
-jest.mock('../../../Predict/hooks/usePredictEligibility', () => ({
-  usePredictEligibility: jest.fn(() => ({ isEligible: true })),
+let mockIsPredictEligible = true;
+let mockIsPredictDepositAvailable = true;
+jest.mock('../../../PredictNext', () => ({
+  usePredictLegacyDepositEligibility: () => mockIsPredictEligible,
+  usePredictLegacyDeposit: () => ({
+    isAvailable: mockIsPredictDepositAvailable,
+    isAvailableNow: () => mockIsPredictDepositAvailable,
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -147,10 +157,48 @@ describe('MoneyTransferSheet', () => {
       initiatePredictDeposit: mockInitiatePredictDeposit,
     });
     (selectPerpsEligibility as unknown as jest.Mock).mockReturnValue(true);
-    (usePredictEligibility as jest.Mock).mockReturnValue({ isEligible: true });
+    mockIsPredictEligible = true;
+    mockIsPredictDepositAvailable = true;
+    (
+      selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+    ).mockReturnValue(undefined);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
+    });
+  });
+
+  describe('Money account availability', () => {
+    it('redirects to the feature-unavailable modal when Money is disabled', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('feature_disabled');
+
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(queryByTestId(MoneyTransferSheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        },
+      );
+    });
+
+    it('redirects to the geo-block sheet when Money is geo-ineligible', () => {
+      (
+        selectMoneyAccountAccessBlockReason as unknown as jest.Mock
+      ).mockReturnValue('geo_blocked');
+
+      const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(queryByTestId(MoneyTransferSheetTestIds.CONTAINER)).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      });
     });
   });
 
@@ -380,32 +428,14 @@ describe('MoneyTransferSheet', () => {
     ).toBeNull();
   });
 
-  it('hides the "Predictions account" option while the Active Venue has no Predict funding', () => {
-    const kalshiOnly = {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          RemoteFeatureFlagController: {
-            ...backgroundState.RemoteFeatureFlagController,
-            remoteFeatureFlags: {
-              ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
-              predictConfig: {
-                enabled: true,
-                venues: {
-                  polymarket: { enabled: false },
-                  kalshi: { enabled: true },
-                },
-                venueSelection: { enabled: false },
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />, {
-      state: kalshiOnly,
+  it('hides the "Predictions account" option while the legacy Predict deposit does not serve the Active Venue', () => {
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
     });
+    mockIsPredictDepositAvailable = false;
+
+    const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     expect(
       queryByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
@@ -468,7 +498,7 @@ describe('MoneyTransferSheet', () => {
       isEnabled: true,
       initiatePredictDeposit: mockInitiatePredictDeposit,
     });
-    (usePredictEligibility as jest.Mock).mockReturnValue({ isEligible: false });
+    mockIsPredictEligible = false;
 
     const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 

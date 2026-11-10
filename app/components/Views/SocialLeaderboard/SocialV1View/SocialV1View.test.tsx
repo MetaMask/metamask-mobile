@@ -1,6 +1,12 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
@@ -65,6 +71,11 @@ jest.mock('../hooks/useOpenSocialPostComposer', () => ({
   useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
 }));
 
+const mockUseQuoteTokensQuery = jest.fn();
+jest.mock('../PostTradeShareBottomSheet/useQuoteTokensQuery', () => ({
+  useQuoteTokensQuery: (enabled: boolean) => mockUseQuoteTokensQuery(enabled),
+}));
+
 jest.mock('../utils/socialTabVisit', () => ({
   markSocialTabVisited: () => mockMarkSocialTabVisited(),
 }));
@@ -94,7 +105,7 @@ jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
-  const { View } = jest.requireActual(
+  const { View, ScrollView } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
   const { SocialFeedRealtimeContext } = jest.requireActual(
@@ -109,6 +120,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     renderHeader?: () => React.ReactNode;
     scrollTestID?: string;
     testID?: string;
+    onScroll?: import('react-native').ScrollViewProps['onScroll'];
   }
 
   return {
@@ -128,7 +140,10 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
           },
           props.renderHeader?.(),
         ),
-        ReactActual.createElement(View, { testID: props.scrollTestID }),
+        ReactActual.createElement(ScrollView, {
+          testID: props.scrollTestID,
+          onScroll: props.onScroll,
+        }),
       );
     },
   };
@@ -287,6 +302,34 @@ jest.mock('react-native-reanimated', () => {
   return {
     ...Reanimated,
     useReducedMotion: jest.fn(() => false),
+    // The stock mock resets shared values every render, freezes derived
+    // values, and ignores scroll handlers, so a scrolled tab could never
+    // reach the divider's visible branch.
+    useSharedValue: (init: unknown) => {
+      const ReactActual = jest.requireActual('react') as typeof import('react');
+      const ref = ReactActual.useRef<{ value: unknown } | null>(null);
+      if (!ref.current) {
+        ref.current = { value: init };
+      }
+      return ref.current;
+    },
+    useDerivedValue: (processor: () => unknown) => ({
+      get value() {
+        return processor();
+      },
+    }),
+    useAnimatedScrollHandler:
+      (
+        handlers:
+          | ((event: { contentOffset: { y: number } }) => void)
+          | { onScroll?: (event: { contentOffset: { y: number } }) => void },
+      ) =>
+      (event: { nativeEvent?: { contentOffset: { y: number } } }) => {
+        const scrollEvent = event.nativeEvent ?? event;
+        const onScroll =
+          typeof handlers === 'function' ? handlers : handlers.onScroll;
+        onScroll?.(scrollEvent as { contentOffset: { y: number } });
+      },
   };
 });
 
@@ -358,6 +401,31 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.live');
+  });
+
+  it('loads the quote-token list for Social V1', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockUseQuoteTokensQuery).toHaveBeenCalledWith(true);
+  });
+
+  it('shows the tab divider only after the feed is scrolled', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const divider = screen.getByTestId(
+      SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER,
+    );
+
+    expect(divider).toHaveStyle({ opacity: 0 });
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 12, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER),
+    ).toHaveStyle({ opacity: 1 });
   });
 
   it('omits tab sub-navigation pills', () => {
@@ -445,10 +513,23 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('opens the post composer from the plus button', () => {
     renderWithProvider(<SocialV1View />);
+
+    const composerButton = screen
+      .UNSAFE_getAllByType(ButtonIcon)
+      .find(
+        (node) => node.props.testID === SocialV1ViewSelectorsIDs.PLUS_BUTTON,
+      );
+
+    expect(composerButton?.props.iconName).toBe(IconName.FeedPost);
+    expect(composerButton?.props.size).toBe(ButtonIconSize.Md);
+    expect(composerButton?.props.iconProps).toEqual({
+      color: IconColor.IconDefault,
+    });
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 

@@ -1,40 +1,41 @@
 import React, { useCallback } from 'react';
+import { Pressable } from 'react-native';
 import {
-  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
-import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import type { SocialV1FeedAuthor } from '../../../../UI/SocialFeed/types';
 import { useFollowToggle } from '../../../../hooks/useFollowToggle';
 import { useFollowWithNotificationSetup } from '../../hooks/useFollowWithNotificationSetup';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 
-const AVATAR_GROUP_SIZE = 40;
 const AVATAR_SIZE = 24;
-const TRADER_AVATAR_RING = 2;
 
 export interface PositionSheetHeaderProps {
   author: SocialV1FeedAuthor;
-  position: Position | undefined;
   /** The viewer's own post: no Follow button. */
   isOwnPost: boolean;
+  /** Dismisses the sheet, then opens the trader profile page. */
+  onPressTrader: () => void;
 }
 
 const PositionSheetHeader = ({
   author,
-  position,
   isOwnPost,
+  onPressTrader,
 }: PositionSheetHeaderProps) => {
   const tw = useTailwind();
   const { isFollowing, toggleFollow } = useFollowToggle(author.id);
@@ -60,55 +61,48 @@ const PositionSheetHeader = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      gap={3}
-      twClassName="px-4 py-2 border-b border-muted"
+      twClassName="justify-between px-4 py-2 border-b border-muted"
       testID={PositionDetailsSheetSelectorsIDs.HEADER}
     >
-      <Box style={{ width: AVATAR_GROUP_SIZE, height: AVATAR_GROUP_SIZE }}>
-        {position ? (
-          <Box twClassName="absolute top-0 right-0">
-            <PositionTokenAvatar
-              position={position}
-              size={AvatarTokenSize.Sm}
-            />
-          </Box>
-        ) : null}
+      <Pressable
+        onPress={onPressTrader}
+        accessibilityRole="button"
+        accessibilityLabel={author.username}
+        testID={PositionDetailsSheetSelectorsIDs.IDENTITY}
+        style={tw.style('flex-row items-center gap-2 min-w-0 flex-1 mr-2')}
+      >
+        <TraderAvatar
+          imageUrl={author.avatarUri}
+          address={author.address}
+          profileId={author.id}
+          size={AVATAR_SIZE}
+          recyclingKey={author.id}
+        />
         <Box
-          twClassName="absolute bottom-0 left-0 rounded-full border-default bg-default"
-          style={{ borderWidth: TRADER_AVATAR_RING }}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+          twClassName="min-w-0 shrink"
         >
-          <TraderAvatar
-            imageUrl={author.avatarUri}
-            address={author.id}
-            size={AVATAR_SIZE}
-            recyclingKey={author.id}
+          <Text
+            variant={TextVariant.HeadingSm}
+            numberOfLines={1}
+            twClassName="shrink"
+            testID={PositionDetailsSheetSelectorsIDs.TITLE}
+          >
+            {author.username}
+          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
           />
         </Box>
-      </Box>
-
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-        twClassName="flex-1 min-w-0"
-      >
-        <Text
-          variant={TextVariant.HeadingSm}
-          numberOfLines={1}
-          twClassName="shrink"
-          testID={PositionDetailsSheetSelectorsIDs.TITLE}
-        >
-          {strings('social_leaderboard.position_sheet.title', {
-            username: author.username,
-          })}
-        </Text>
-      </Box>
+      </Pressable>
 
       {isOwnPost ? null : (
         <Button
-          variant={
-            isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
-          }
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Md}
           onPress={handleFollowPress}
           style={tw.style('shrink-0')}

@@ -1,0 +1,177 @@
+import React from 'react';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+
+import Engine from '../../../../core/Engine';
+import type { PredictConfig } from '../config/predictConfig';
+import { KalshiDebugPanel, KalshiDebugTestIds } from './KalshiDebugPanel';
+
+/**
+ * Unit, not component-view: this sheet is a temporary debug modal, not a
+ * registered route, and the behavior under test is the clipboard write, the
+ * status read and the restart channel.
+ */
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    controllerMessenger: {
+      call: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('./internal/createKalshiOnboardingClient', () => {
+  const getStatus = jest.fn().mockResolvedValue({
+    state: 'link_pending',
+    intentStatus: 'pending',
+    expireTs: 1793972547,
+    balanceDollars: '10.00',
+  });
+  return {
+    createKalshiOnboardingClient: () => ({ getStatus }),
+    __getStatus: getStatus,
+  };
+});
+
+jest.mock('./internal/kalshiDebugInfo', () => ({
+  summarizeA2t: (token: string | undefined) => (token ? { sub: token } : {}),
+}));
+
+const messengerCall = Engine.controllerMessenger.call as jest.Mock;
+const profileId = '2245ae33-2695-4bfe-be45-d01e38de0955';
+
+const kalshiOn: PredictConfig = {
+  enabled: true,
+  venues: {
+    polymarket: { enabled: false },
+    kalshi: { enabled: true },
+  },
+  venueSelection: { enabled: false },
+};
+
+const mockState: { config: PredictConfig } = { config: kalshiOn };
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
+
+jest.mock('../selectors/predictConfig', () => ({
+  selectPredictConfig: () => mockState.config,
+}));
+
+const renderPanel = () => render(<KalshiDebugPanel />);
+
+const devGlobal = globalThis as { __DEV__?: boolean };
+
+describe('KalshiDebugPanel', () => {
+  const originalDev = devGlobal.__DEV__;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockState.config = kalshiOn;
+    devGlobal.__DEV__ = true;
+  });
+
+  afterAll(() => {
+    devGlobal.__DEV__ = originalDev;
+  });
+
+  it('renders nothing on a release build', () => {
+    devGlobal.__DEV__ = false;
+    const renderTrigger = jest.fn(() => null);
+
+    const view = render(<KalshiDebugPanel renderTrigger={renderTrigger} />);
+
+    expect(view.queryByTestId(KalshiDebugTestIds.OPEN)).not.toBeOnTheScreen();
+    expect(renderTrigger).not.toHaveBeenCalled();
+    expect(messengerCall).not.toHaveBeenCalled();
+  });
+
+  it('renders nothing when Kalshi authentication is off', () => {
+    mockState.config = {
+      ...kalshiOn,
+      venues: {
+        ...kalshiOn.venues,
+        kalshi: { enabled: false },
+      },
+    };
+    const renderTrigger = jest.fn(() => null);
+
+    const view = render(<KalshiDebugPanel renderTrigger={renderTrigger} />);
+
+    expect(view.queryByTestId(KalshiDebugTestIds.OPEN)).not.toBeOnTheScreen();
+    expect(renderTrigger).not.toHaveBeenCalled();
+    expect(messengerCall).not.toHaveBeenCalled();
+  });
+
+  it('renders the header trigger on a development build with Kalshi on', () => {
+    const renderTrigger = jest.fn(() => null);
+
+    render(<KalshiDebugPanel renderTrigger={renderTrigger} />);
+
+    expect(renderTrigger).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the server status after opening', async () => {
+    messengerCall.mockResolvedValue(profileId);
+    const view = renderPanel();
+
+    fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
+
+    expect(
+      await view.findByText(
+        'link_pending · intent pending · expires 1793972547 · balance $10.00',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('copies the profile id', async () => {
+    messengerCall.mockResolvedValue(profileId);
+    const view = renderPanel();
+
+    fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
+    fireEvent.press(
+      await view.findByTestId(KalshiDebugTestIds.COPY_PROFILE_ID),
+    );
+
+    expect(Clipboard.setString).toHaveBeenCalledTimes(1);
+    expect(Clipboard.setString).toHaveBeenCalledWith(profileId);
+  });
+
+  it('reports a status failure instead of a state', async () => {
+    messengerCall.mockResolvedValue(profileId);
+    const getStatus = jest.requireMock(
+      './internal/createKalshiOnboardingClient',
+    ).__getStatus as jest.Mock;
+    getStatus.mockRejectedValueOnce({
+      status: 403,
+      code: 'venue_authorization_invalid',
+    });
+    const view = renderPanel();
+
+    fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
+
+    expect(
+      await view.findByText('error: status: 403 venue_authorization_invalid'),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the copy button when the profile id is missing', async () => {
+    messengerCall.mockResolvedValue(undefined);
+    const view = renderPanel();
+
+    fireEvent.press(view.getByTestId(KalshiDebugTestIds.OPEN));
+    await waitFor(() => {
+      expect(
+        view.getByText(
+          'link_pending · intent pending · expires 1793972547 · balance $10.00',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    expect(
+      view.queryByTestId(KalshiDebugTestIds.COPY_PROFILE_ID),
+    ).not.toBeOnTheScreen();
+  });
+});
