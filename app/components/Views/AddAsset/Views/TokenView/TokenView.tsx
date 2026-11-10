@@ -33,42 +33,11 @@ import { useHiddenAssetIds } from '../../hooks/useHiddenAssetIds';
 import SearchTokenAutocomplete from '../../components/SearchTokenAutoComplete/SearchTokenAutocomplete';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 
-interface ShortcutRowProps {
-  iconName: IconName;
-  title: string;
-  onPress: () => void;
-  testID: string;
-}
-
-const ShortcutRow = ({
-  iconName,
-  title,
-  onPress,
-  testID,
-}: ShortcutRowProps) => (
-  <ListItem
-    isInteractive
-    variant={ContentVariant.OneLine}
-    title={title}
-    startAccessory={<Icon name={iconName} size={IconSize.Md} />}
-    endAccessory={
-      <Icon
-        name={IconName.ArrowRight}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    }
-    accessoryGap={3}
-    onPress={onPress}
-    accessibilityRole="button"
-    testID={testID}
-  />
-);
-
 /**
- * Import tokens: search first, then (when not searching) two shortcuts, then
- * the importable token list. Tapping the search pill enters search mode
- * (keyboard opens, shortcuts fade away) and Cancel leaves it. While searching,
+ * Import tokens: search first, then (when not searching and the user has
+ * hidden tokens) a Hidden tokens shortcut, then the importable token list.
+ * Tapping the search pill enters search mode (keyboard opens, the shortcut
+ * fades away) and Cancel leaves it. While searching,
  * a network pill under the search filters the results (all networks by
  * default).
  */
@@ -157,28 +126,33 @@ const TokenView = () => {
             }
           />
         </Animated.View>
-      ) : (
+      ) : hasHiddenTokens ? (
         <Animated.View
           key="shortcuts"
           entering={FadeIn.duration(200)}
           exiting={FadeOut.duration(150)}
         >
-          <ShortcutRow
-            iconName={IconName.Add}
-            title={strings('add_asset.custom_token')}
-            onPress={() => navigation.navigate(Routes.WALLET.ADD_CUSTOM_TOKEN)}
-            testID={ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON}
+          <ListItem
+            isInteractive
+            variant={ContentVariant.OneLine}
+            title={strings('add_asset.hidden_tokens')}
+            startAccessory={
+              <Icon name={IconName.EyeSlash} size={IconSize.Md} />
+            }
+            endAccessory={
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            }
+            accessoryGap={3}
+            onPress={() => navigation.navigate(Routes.WALLET.HIDDEN_TOKENS)}
+            accessibilityRole="button"
+            testID={ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON}
           />
-          {hasHiddenTokens ? (
-            <ShortcutRow
-              iconName={IconName.EyeSlash}
-              title={strings('add_asset.hidden_tokens')}
-              onPress={() => navigation.navigate(Routes.WALLET.HIDDEN_TOKENS)}
-              testID={ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON}
-            />
-          ) : null}
         </Animated.View>
-      )}
+      ) : null}
 
       <Animated.View
         style={tw.style('flex-1')}

@@ -8,6 +8,9 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
+import { IconName } from '@metamask/design-system-react-native';
+import Routes from '../../../constants/navigation/Routes';
+import { ImportTokenViewSelectorsIDs } from './ImportAssetView.testIds';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useParams } from '../../../util/navigation/navUtils';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -66,6 +69,19 @@ const AddAsset = () => {
           `add_asset.${assetType === 'token' ? 'title' : 'title_nft'}`,
         )}
         onBack={() => navigation.goBack()}
+        endButtonIconProps={
+          assetType === 'token'
+            ? [
+                {
+                  iconName: IconName.Add,
+                  onPress: () =>
+                    navigation.navigate(Routes.WALLET.ADD_CUSTOM_TOKEN),
+                  accessibilityLabel: strings('add_asset.custom_token'),
+                  testID: ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON,
+                },
+              ]
+            : undefined
+        }
       />
 
       {assetType === 'token' && <TokenView />}

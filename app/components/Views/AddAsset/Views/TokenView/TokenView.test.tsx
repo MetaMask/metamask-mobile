@@ -46,12 +46,9 @@ describe('TokenView', () => {
     mockUseHiddenAssetIds.mockReturnValue([]);
   });
 
-  it('shows the custom token shortcut and the token list by default', () => {
+  it('shows the token list with no network pill by default', () => {
     const { getByTestId, queryByTestId } = renderComponent();
 
-    expect(
-      getByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
-    ).toBeOnTheScreen();
     expect(getByTestId('search-token-autocomplete')).toBeOnTheScreen();
     expect(
       queryByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
@@ -81,23 +78,14 @@ describe('TokenView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HIDDEN_TOKENS);
   });
 
-  it('opens the custom token screen from the shortcut', () => {
-    const { getByTestId } = renderComponent();
-
-    fireEvent.press(
-      getByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.ADD_CUSTOM_TOKEN);
-  });
-
-  it('enters search mode: shortcuts leave and the network pill appears', () => {
+  it('enters search mode: the shortcut leaves and the network pill appears', () => {
+    mockUseHiddenAssetIds.mockReturnValue(['eip155:1/erc20:0xabc']);
     const { getByTestId, queryByTestId } = renderComponent();
 
     fireEvent.press(getByTestId('explore-view-search-button'));
 
     expect(
-      queryByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
+      queryByTestId(ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON),
     ).toBeNull();
     expect(
       getByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
@@ -125,6 +113,7 @@ describe('TokenView', () => {
   });
 
   it('leaves search mode on Cancel and resets the network', () => {
+    mockUseHiddenAssetIds.mockReturnValue(['eip155:1/erc20:0xabc']);
     const { getByTestId, getByText, queryByTestId } = renderComponent();
     fireEvent.press(getByTestId('explore-view-search-button'));
     fireEvent.press(
@@ -135,7 +124,7 @@ describe('TokenView', () => {
     fireEvent.press(getByText('Cancel'));
 
     expect(
-      getByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
+      getByTestId(ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),

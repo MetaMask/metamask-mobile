@@ -2,12 +2,18 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import AddAsset from './AddAsset';
-import { NFTImportScreenSelectorsIDs } from './ImportAssetView.testIds';
+import { fireEvent } from '@testing-library/react-native';
+import Routes from '../../../constants/navigation/Routes';
+import {
+  ImportTokenViewSelectorsIDs,
+  NFTImportScreenSelectorsIDs,
+} from './ImportAssetView.testIds';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const mockSetOptions = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('../../../util/networks', () => {
   const actual = jest.requireActual('../../../util/networks');
@@ -37,7 +43,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualReactNavigation,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       setOptions: mockSetOptions,
       goBack: jest.fn(),
     }),
@@ -126,6 +132,28 @@ describe('AddAsset', () => {
       mockUseParamsValues.assetType = 'collectible';
       const { getByTestId } = renderComponent();
       expect(getByTestId('add-collectible-screen')).toBeOnTheScreen();
+    });
+  });
+
+  describe('custom token header button', () => {
+    it('opens the custom token screen from the token header', () => {
+      mockUseParamsValues.assetType = 'token';
+      const { getByTestId } = renderComponent();
+
+      fireEvent.press(
+        getByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.ADD_CUSTOM_TOKEN);
+    });
+
+    it('is not shown for collectibles', () => {
+      mockUseParamsValues.assetType = 'collectible';
+      const { queryByTestId } = renderComponent();
+
+      expect(
+        queryByTestId(ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON),
+      ).toBeNull();
     });
   });
 
