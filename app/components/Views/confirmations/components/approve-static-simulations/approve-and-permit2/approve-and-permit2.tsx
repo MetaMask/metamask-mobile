@@ -43,7 +43,7 @@ export const ApproveAndPermit2 = () => {
     useTransactionMetadataRequest() as TransactionMeta;
   const tokenAddress = (token ?? transactionMetadata?.txParams?.to) as string;
   const isPermit2 = approveMethod === ApproveMethod.PERMIT2_APPROVE;
-  const isERC20 = isPermit2 || tokenStandard === TokenStandard.ERC20;
+  const isERC20 = tokenStandard === TokenStandard.ERC20;
   const isERC721 = tokenStandard === TokenStandard.ERC721;
   const shouldShow = isERC20 || isERC721;
 

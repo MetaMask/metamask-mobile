@@ -14,7 +14,6 @@ import {
   shortenedSpenderMock,
   shortenedTokenAddressMock,
 } from '../../../__mocks__/controllers/transaction-controller-mock';
-import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useGetTokenStandardAndDetails } from '../../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../../types/token';
 import { ApproveAndPermit2 } from './approve-and-permit2';
@@ -58,14 +57,16 @@ describe('ApproveAndPermit2', () => {
   });
 
   it('renders spending cap and spender for ERC20', () => {
-    const { getByText } = renderWithProvider(<ApproveAndPermit2 />, {
-      state: approveERC20TransactionStateMock,
-    });
+    const { getByText, queryByText } = renderWithProvider(
+      <ApproveAndPermit2 />,
+      { state: approveERC20TransactionStateMock },
+    );
     expect(getByText('Spending cap')).toBeTruthy();
     expect(getByText('100')).toBeTruthy();
     expect(getByText(shortenedTokenAddressMock)).toBeTruthy();
     expect(getByText('Spender')).toBeTruthy();
     expect(getByText(shortenedSpenderMock)).toBeTruthy();
+    expect(queryByText('Expiration')).toBeNull();
   });
 
   it('renders edit spending cap button for ERC20', () => {
@@ -208,23 +209,6 @@ describe('ApproveAndPermit2', () => {
       expect(getByText('08 May 2025, 09:32')).toBeTruthy();
     });
 
-    it('renders all rows when the token standard is unknown', () => {
-      mockUseGetTokenStandardAndDetails.mockReturnValue({
-        details: {
-          standard: undefined,
-        },
-        isPending: false,
-      } as unknown as ReturnType<typeof useGetTokenStandardAndDetails>);
-      const { getByTestId, getByText } = renderWithProvider(
-        <ApproveAndPermit2 />,
-        { state: approveERC20Permit2TransactionStateMock },
-      );
-      expect(getByTestId(ApproveComponentIDs.SPENDING_CAP_VALUE)).toBeTruthy();
-      expect(getByText(shortenedPermit2TokenMock)).toBeTruthy();
-      expect(getByText(shortenedSpenderMock)).toBeTruthy();
-      expect(getByText('08 May 2025, 09:32')).toBeTruthy();
-    });
-
     it('renders calldata token for revoke', () => {
       const { getByText, queryByText } = renderWithProvider(
         <ApproveAndPermit2 />,
@@ -234,6 +218,7 @@ describe('ApproveAndPermit2', () => {
       expect(queryByText(shortenedTokenAddressMock)).toBeNull();
       expect(getByText('Permission from')).toBeTruthy();
       expect(getByText(shortenedSpenderMock)).toBeTruthy();
+      expect(queryByText('Expiration')).toBeNull();
     });
   });
 });

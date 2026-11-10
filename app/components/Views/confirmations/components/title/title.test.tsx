@@ -504,7 +504,7 @@ describe('Confirm Title', () => {
                 standard:
                   tokenAddress === permit2TokenMock
                     ? TokenStandard.ERC20
-                    : undefined,
+                    : TokenStandard.ERC721,
                 decimalsNumber: 0,
               },
               isPending: false,
