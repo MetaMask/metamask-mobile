@@ -16,7 +16,7 @@ import {
   processPostRequestBody,
   setupAccountsV2SupportedNetworksMock,
   setupAccountsV4TransactionsMock,
-  setupMockRequest,
+  setupDefaultProfileNotFoundMock,
 } from './helpers/mockHelpers.ts';
 import { getLocalHost } from '../framework/fixtures/FixtureUtils.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
@@ -313,16 +313,7 @@ export default class MockServerE2E implements Resource {
 
     await setupAccountsV2SupportedNetworksMock(this._server);
     await setupAccountsV4TransactionsMock(this._server);
-    await setupMockRequest(
-      this._server,
-      {
-        requestMethod: 'GET',
-        url: 'https://profile.api.cx.metamask.io/v1/profiles/',
-        responseCode: 404,
-        response: { error: 'Profile not found' },
-      },
-      2,
-    );
+    await setupDefaultProfileNotFoundMock(this._server);
 
     await this._server
       .forAnyRequest()
