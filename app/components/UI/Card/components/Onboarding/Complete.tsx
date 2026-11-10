@@ -265,7 +265,7 @@ const Complete = () => {
           bottomLabel={
             <Animated.View style={[tw.style('w-full'), descriptionStyle]}>
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
                 twClassName="text-center"
