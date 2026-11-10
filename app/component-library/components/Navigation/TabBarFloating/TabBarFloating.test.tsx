@@ -323,7 +323,9 @@ describe('TabBarFloating', () => {
 
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(trackExploreSearchOpened).toHaveBeenCalledWith('nav_bar');
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH, {
+      entryPoint: 'nav_bar',
+    });
   });
 
   describe('with the trade trailing action', () => {

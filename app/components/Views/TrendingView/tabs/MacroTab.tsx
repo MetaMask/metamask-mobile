@@ -95,7 +95,7 @@ const MacroTabContent: React.FC<TabProps> = ({
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictAvailability);
 
-  const politics = usePredictTrendingFeed({ variant: 'politics', refresh });
+  const politics = usePredictTrendingFeed({ tab: 'macro', refresh });
   const macroPerps = usePerpsFeed({ variant: 'macro', refresh });
 
   const showPredictions =

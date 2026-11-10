@@ -1,3 +1,5 @@
+import type { SearchRequestPerformance } from '../../../../util/searchPerformance';
+
 declare const predictTrendingMarketBrand: unique symbol;
 
 /**
@@ -17,11 +19,20 @@ export type PredictTrendingVariant =
   | 'crypto'
   | 'politics';
 
+/**
+ * The Explore tab a Predictions section belongs to. Predict maps each tab to
+ * a Feed key (`PREDICT_SURFACE_FEED_KEYS.exploreTabs`); a tab whose key the
+ * Active Venue does not support shows no Predictions section.
+ */
+export type PredictTrendingTab = 'now' | 'macro' | 'rwas' | 'crypto' | 'sports';
+
 export interface UsePredictTrendingFeedOptions {
-  /** @default 'trending' */
-  variant?: PredictTrendingVariant;
-  /** A non-empty query searches instead of listing the variant's feed. */
+  /** @default 'now' */
+  tab?: PredictTrendingTab;
+  /** A non-empty query searches instead of listing the tab's feed. */
   query?: string;
+  /** Search request performance observer for query results. */
+  performance?: SearchRequestPerformance;
   /** Explore's pull-to-refresh trigger. */
   refresh?: { trigger: number; silentRefresh: boolean };
   /** @default true */
@@ -33,12 +44,19 @@ export interface PredictTrendingFeed {
   data: PredictTrendingMarket[];
   isLoading: boolean;
   refetch: () => Promise<void>;
+  /** Absent when the source is unpaginated, such as a next Venue's search. */
   fetchMore?: () => void;
   isFetchingMore?: boolean;
   hasMore?: boolean;
-  /** Total result count from the server; only set while searching. */
+  /** Total result count; only set while searching. */
   total?: number;
 }
+
+/**
+ * An Explore surface that only some Venues support. `search`: the search
+ * Predictions pill. `allSports`: the Sports tab's All Sports list.
+ */
+export type PredictTrendingSurface = 'search' | 'allSports';
 
 /** One sport's markets in the Sports tab's All Sports list. */
 export interface PredictSportsMarketsPage {

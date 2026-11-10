@@ -606,7 +606,8 @@
             "profileId": "",
             "tradingPrivacy": "public",
             "updatedAt": "",
-            "username": ""
+            "username": "",
+            "verified": false
           }
         },
         "QrSyncController": {
@@ -958,6 +959,7 @@
       "vipTransactions": {}
     },
     "rewardsMoney": {
+      "answeredReferralCode": null,
       "cashbackLedger": {},
       "claimLocks": {},
       "claimWaitingUntil": {},
@@ -966,6 +968,8 @@
       "earningsHistory": {},
       "earningsSummary": {},
       "inFlightClaims": {},
+      "isReferralLinkPending": false,
+      "pendingReferralCode": null,
       "referralFunnel": {},
       "referralMe": {}
     },

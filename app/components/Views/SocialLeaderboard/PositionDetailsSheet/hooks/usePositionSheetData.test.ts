@@ -1,5 +1,5 @@
 import type { Position } from '@metamask/social-controllers';
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
   useTraderPositionData,
@@ -81,6 +81,14 @@ describe('usePositionSheetData', () => {
   describe('spot', () => {
     const prices = hourlyPrices(NOW_MS - 6 * DAY_MS, NOW_MS, [90, 100, 120]);
 
+    it('titles a spot token by its name', () => {
+      mockUseTraderPositionData.mockReturnValue(baseData({ symbol: 'PEPE' }));
+
+      const { result } = renderData(buildPosition());
+
+      expect(result.current.assetName).toBe('Pepe');
+    });
+
     it('labels values in market cap when one is known', () => {
       mockUseTraderPositionData.mockReturnValue(
         baseData({
@@ -96,7 +104,7 @@ describe('usePositionSheetData', () => {
           trades: [
             buildTrade({
               marketCap: 1_000_000,
-              timestamp: NOW_MS - 3 * DAY_MS,
+              timestamp: NOW_MS - 2 * HOUR_MS,
               action: 'opened',
             }),
           ],
@@ -122,18 +130,21 @@ describe('usePositionSheetData', () => {
       expect(result.current.formatValue(120)).toMatch(/^\$120/);
     });
 
-    it('asks for the narrowest spot period that covers the window', () => {
+    it('requests 1D prices until the user picks another range', () => {
       mockUseTraderPositionData.mockReturnValue(
         baseData({ activeTimePeriod: '1W' }),
       );
 
-      renderData(
-        buildPosition({
-          trades: [buildTrade({ timestamp: NOW_MS - 20 * DAY_MS })],
-        }),
-      );
+      const { result } = renderData(buildPosition());
+
+      expect(mockSetActiveTimePeriod).toHaveBeenCalledWith('1D');
+
+      act(() => {
+        result.current.setChartPeriod('1M');
+      });
 
       expect(mockSetActiveTimePeriod).toHaveBeenCalledWith('1M');
+      expect(result.current.chartPeriod).toBe('1M');
     });
 
     it('reports loading until the requested period is active', () => {
@@ -163,8 +174,8 @@ describe('usePositionSheetData', () => {
       );
 
       expect(result.current.summaryTitle).toBe('7 PEPE');
-      expect(result.current.summarySubtitle).toBe('Sold · 2 d ago');
-      expect(result.current.summaryTagLabel).toBeUndefined();
+      expect(result.current.summarySubtitle).toBe('2 d ago');
+      expect(result.current.summaryTagLabel).toBe('Sold');
     });
 
     it('ages an open position from firstTradeAt', () => {
@@ -176,7 +187,8 @@ describe('usePositionSheetData', () => {
         }),
       );
 
-      expect(result.current.summarySubtitle).toBe('Opened · 5 hr ago');
+      expect(result.current.summarySubtitle).toBe('5 hr ago');
+      expect(result.current.summaryTagLabel).toBeUndefined();
     });
 
     it('leaves the caption empty when a closed position has no trades', () => {
@@ -219,18 +231,50 @@ describe('usePositionSheetData', () => {
       );
 
       expect(mockUsePerpsSheetPrices).toHaveBeenCalledWith(
-        expect.objectContaining({ symbol: 'BTC', enabled: true }),
+        expect.objectContaining({
+          symbol: 'BTC',
+          period: '1D',
+          enabled: true,
+        }),
       );
       expect(result.current.currentPrice).toBe(104000);
       expect(result.current.isTrendPositive).toBe(false);
       expect(result.current.perpTradeSymbol).toBe('BTC');
       expect(result.current.summaryTitle).toBe('2 BTC');
       expect(result.current.summaryTagLabel).toBe('40x Short');
-      expect(result.current.summarySubtitle).toBe('Opened · 2 hr ago');
+      expect(result.current.summarySubtitle).toBe('2 hr ago');
       expect(result.current.markers[0].tooltipLabel).toMatch(
         /^Opened short @ \$107,469/,
       );
     });
+
+    it.each([
+      {
+        symbol: 'BTC',
+        tokenSymbol: 'BTC',
+        tokenName: 'BTC',
+        label: 'BTC-USD perp',
+      },
+      {
+        symbol: 'CL',
+        tokenSymbol: 'xyz:CL',
+        tokenName: 'CL-USDC',
+        label: 'CL-USD perp',
+      },
+    ])(
+      'titles the $tokenSymbol perp as $label',
+      ({ symbol, tokenSymbol, tokenName, label }) => {
+        mockUseTraderPositionData.mockReturnValue(
+          baseData({ isPerp: true, symbol }),
+        );
+
+        const { result } = renderData(
+          buildPerpPosition({ tokenSymbol, tokenName }),
+        );
+
+        expect(result.current.assetName).toBe(label);
+      },
+    );
 
     it('sizes an open perp from the leveraged amount', () => {
       mockUseTraderPositionData.mockReturnValue(
@@ -266,8 +310,8 @@ describe('usePositionSheetData', () => {
         true,
       );
 
-      expect(result.current.summarySubtitle).toBe('Closed · 3 d ago');
-      expect(result.current.summaryTagLabel).toBe('40x Short');
+      expect(result.current.summarySubtitle).toBe('3 d ago');
+      expect(result.current.summaryTagLabel).toBe('Closed 40x Short');
     });
 
     it('skips the candle request offline', () => {

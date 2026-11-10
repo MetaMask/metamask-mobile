@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { Image as ExpoImage } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSelector } from 'react-redux';
 import {
   Box,
   FontWeight,
+  IconName,
   Text,
   TextColor,
   TextVariant,
+  type ButtonIconProps,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import HeaderSubpageGlass from '../../../../../../component-library/components-temp/HeaderSubpageGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createGamePresentation,
@@ -33,46 +39,114 @@ export const EventLoadingHeader = () => (
   </Box>
 );
 
-export const StandardEventHeader = ({ event }: { event: PredictEvent }) => {
+const eventRulesButtonProps = (
+  onRulesPress?: () => void,
+): ButtonIconProps[] | undefined =>
+  onRulesPress
+    ? [
+        {
+          iconName: IconName.Question,
+          onPress: onRulesPress,
+          testID: PredictEventScreenTestIds.EVENT_RULES_BUTTON,
+          accessibilityLabel: strings(
+            'predict.rules.event_accessibility_label',
+          ),
+          accessibilityRole: 'button',
+        },
+      ]
+    : undefined;
+
+interface EventTopBarProps {
+  onBack: () => void;
+  /** Shows the Event rules button when set. */
+  onRulesPress?: () => void;
+}
+
+/**
+ * The one-line top bar for an Event that is loading, failed to load, or is a
+ * Game (whose Teams sit in their own header below it).
+ */
+export const EventTitleHeader = ({
+  title,
+  onBack,
+  onRulesPress,
+}: EventTopBarProps & { title?: string }) => {
+  const isGlass = useSelector(selectPredictBrandRefreshEnabled) === true;
+  return (
+    <HeaderStandardGlass
+      isGlass={isGlass}
+      isFloating={false}
+      includesTopInset
+      title={title}
+      titleProps={{
+        testID: PredictEventScreenTestIds.TITLE,
+        accessibilityRole: 'header',
+        numberOfLines: 1,
+      }}
+      onBack={onBack}
+      backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
+      endButtonIconProps={eventRulesButtonProps(onRulesPress)}
+    />
+  );
+};
+
+/** Renders nothing once the image fails, so the bar drops the avatar. */
+const EventAvatar = ({ imageUrl }: { imageUrl: string }) => {
   const tw = useTailwind();
   const [imageFailed, setImageFailed] = useState(false);
-  const showImage = Boolean(event.imageUrl && !imageFailed);
 
-  if (!showImage && !event.subtitle) {
-    return (
-      <Box
-        testID={PredictEventScreenTestIds.STANDARD_HEADER}
-        twClassName="h-0"
-      />
-    );
+  if (imageFailed) {
+    return null;
   }
 
   return (
-    <Box testID={PredictEventScreenTestIds.STANDARD_HEADER} twClassName="gap-3">
-      <Box twClassName="flex-row items-start gap-3">
-        {showImage ? (
-          <ExpoImage
-            testID={PredictEventScreenTestIds.IMAGE}
-            source={event.imageUrl}
-            recyclingKey={event.imageUrl}
-            contentFit="cover"
-            style={tw.style('h-12 w-12 rounded-lg')}
-            onError={() => setImageFailed(true)}
-            accessible={false}
-          />
-        ) : null}
-        {event.subtitle ? (
-          <Text
-            testID={PredictEventScreenTestIds.SUBTITLE}
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="min-w-0 flex-1"
-          >
-            {event.subtitle}
-          </Text>
-        ) : null}
-      </Box>
-    </Box>
+    <ExpoImage
+      testID={PredictEventScreenTestIds.IMAGE}
+      source={imageUrl}
+      recyclingKey={imageUrl}
+      contentFit="cover"
+      style={tw.style('h-10 w-10 rounded-lg')}
+      onError={() => setImageFailed(true)}
+      accessible={false}
+    />
+  );
+};
+
+/**
+ * The top bar of a standard Event: back, the Event image, the full title over
+ * its category, and the Event rules button. The title never truncates; the
+ * bar grows to fit it.
+ */
+export const StandardEventHeader = ({
+  event,
+  onBack,
+  onRulesPress,
+}: EventTopBarProps & { event: PredictEvent }) => {
+  const isGlass = useSelector(selectPredictBrandRefreshEnabled) === true;
+  return (
+    <HeaderSubpageGlass
+      testID={PredictEventScreenTestIds.STANDARD_HEADER}
+      isGlass={isGlass}
+      isFloating={false}
+      includesTopInset
+      twClassName="min-h-14 h-auto bg-default justify-center"
+      onBack={onBack}
+      backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
+      endButtonIconProps={eventRulesButtonProps(onRulesPress)}
+      avatar={
+        event.imageUrl ? (
+          <EventAvatar key={event.imageUrl} imageUrl={event.imageUrl} />
+        ) : undefined
+      }
+      title={event.title}
+      titleProps={{
+        variant: TextVariant.HeadingMd,
+        testID: PredictEventScreenTestIds.TITLE,
+        accessibilityRole: 'header',
+      }}
+      description={event.category || undefined}
+      descriptionProps={{ testID: PredictEventScreenTestIds.CATEGORY }}
+    />
   );
 };
 

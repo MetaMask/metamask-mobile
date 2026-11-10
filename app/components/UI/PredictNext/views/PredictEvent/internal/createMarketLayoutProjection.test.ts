@@ -351,6 +351,48 @@ describe('createMarketLayoutProjection', () => {
     ]);
   });
 
+  it('shows a line whose group the API dropped as malformed as a standard card', () => {
+    const layout = layoutOf('total_points', 2, FULL_GAME);
+    const outcomes = [
+      { id: 'yes', side: 'yes', label: 'Over' },
+      { id: 'no', side: 'no', label: 'Under' },
+    ];
+    const totalLine = (id: string, option: unknown, displayOrder: number) => ({
+      id,
+      question: id,
+      status: 'active',
+      outcomes,
+      layout,
+      group: {
+        key: 'totals',
+        groupType: 'marketSelector',
+        marketType: 'total',
+        option,
+        displayOrder,
+      },
+    });
+    const event = parsePredictEvent({
+      venueId: 'kalshi',
+      id: 'event-1',
+      title: 'Game',
+      markets: [
+        totalLine('total-44', { type: 'number', value: 44.5 }, 0),
+        totalLine('total-47', undefined, 1),
+        totalLine('total-50', { type: 'number', value: 50.5 }, 2),
+      ],
+    });
+
+    expect(sectionsOf(event.markets)?.[0].periods[0].cards).toEqual([
+      {
+        type: 'marketSelector',
+        key: 'totals',
+        marketType: 'total',
+        markets: ['total-44', 'total-50'],
+      },
+      { type: 'standard', key: 'market:total-47', markets: ['total-47'] },
+    ]);
+  });
+
   it('shows a group of an unknown group type as standard cards', () => {
     const layout = layoutOf('props', 4, FULL_GAME);
     const ladder = (displayOrder: number): PredictMarketGroup => ({

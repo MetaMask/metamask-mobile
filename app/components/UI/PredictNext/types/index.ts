@@ -271,6 +271,9 @@ export const PREDICT_FEED_KEYS = [
   'nfl-props',
   'college-football-games',
   'college-football-props',
+  'politics-trump',
+  'politics-congress',
+  'politics-iran',
 ] as const;
 export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
 
@@ -280,6 +283,9 @@ export interface PredictVenueCatalog {
   venueId: PredictVenueId;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
+  /** The Venue's Categories in display order, each named by its Feed key.
+   * Every key is in `feeds`, and the Category opens on that Feed. */
+  categories: readonly PredictFeedKey[];
   searchSupported: boolean;
 }
 
@@ -501,6 +507,12 @@ export interface PredictEntryContext {
   outcomeLabel: string;
   /** The most specific approved image: the Market's, else the Event's. */
   imageUrl?: PredictHttpsUrl;
+  /**
+   * Ordered, display-ready parts naming the Market beyond its Outcome, such
+   * as `["Josh Jacobs", "60+"]` for a threshold line whose Outcome label is
+   * only "Yes" or "No". Absent when the Outcome label names it alone.
+   */
+  marketLabels?: string[];
 }
 
 /** `open` until the Market's result is determined. `claimable` needs a

@@ -427,6 +427,7 @@ const createDefaultMoneyAccountCardLinkageMock =
     canLink: false,
     isMoneyAccountLinkingSupported: true,
     isMoneyCardSectionAvailable: true,
+    reportsVerificationStatus: true,
     status: 'idle' as const,
     isLinking: false,
     error: null,
@@ -683,8 +684,6 @@ const mockSetSelectedAddress = Engine.setSelectedAddress as jest.MockedFunction<
 >;
 const mockGetCapabilities = Engine.context.CardController
   .getCapabilities as jest.Mock;
-const mockCardControllerLogout = Engine.context.CardController
-  .logout as jest.MockedFunction<typeof Engine.context.CardController.logout>;
 const mockClearLastUnauthenticatedReason = Engine.context.CardController
   .clearLastUnauthenticatedReason as jest.MockedFunction<
   typeof Engine.context.CardController.clearLastUnauthenticatedReason
@@ -708,6 +707,7 @@ const BAANX_CAPABILITIES = {
   supportsTransactionHistory: true,
   supportsContactDetails: false,
   supportsMoneyAccountLinking: true,
+  reportsVerificationStatus: true,
 };
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
@@ -735,13 +735,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.try_again': 'Try again',
       'card.card_home.onboarding_token_revoked':
         'We couldn’t continue your Card session. Please log in again.',
-      'card.card_home.logout': 'Logout',
-      'card.card_home.logout_description': 'Logout of your Card account',
-      'card.card_home.logout_confirmation_title': 'Confirm Logout',
-      'card.card_home.logout_confirmation_message':
-        'Are you sure you want to logout?',
-      'card.card_home.logout_confirmation_cancel': 'Cancel',
-      'card.card_home.logout_confirmation_confirm': 'Logout',
       'card.card_home.kyc_status.pending.title': 'Verification in Progress',
       'card.card_home.kyc_status.pending.description':
         'Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card.',
@@ -1349,7 +1342,7 @@ describe('CardHome Component', () => {
     jest
       .spyOn(Alert, 'alert')
       .mockImplementation((_title, _message, buttons) => {
-        // For logout confirmation, immediately call the confirm button's onPress
+        // Immediately confirm the second button of any confirmation alert.
         if (buttons && buttons.length > 1 && buttons[1].onPress) {
           buttons[1].onPress();
         }
@@ -1389,8 +1382,6 @@ describe('CardHome Component', () => {
       methods: [],
     });
     mockSetSelectedAccount.mockClear();
-    mockCardControllerLogout.mockClear();
-    mockCardControllerLogout.mockResolvedValue(undefined);
     mockIsSolanaChainId.mockReturnValue(false);
 
     // Reset freeze hook mock
@@ -3688,98 +3679,6 @@ describe('CardHome Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
         showAuthPrompt: true,
       });
-    });
-
-    it('shows logout button when user is authenticated', () => {
-      // Given: user is authenticated
-      setupMockSelectors({ isAuthenticated: true });
-      setupLoadCardDataMock({ isAuthenticated: true });
-
-      // When: component renders
-      render();
-
-      // Then: should show logout button
-      expect(screen.getByText('Logout')).toBeOnTheScreen();
-    });
-
-    it('shows logout confirmation alert when logout button pressed', () => {
-      // Given: user is authenticated
-      setupMockSelectors({ isAuthenticated: true });
-      setupLoadCardDataMock({ isAuthenticated: true });
-
-      render();
-
-      // When: user presses logout button
-      const logoutButton = screen.getByText('Logout');
-      fireEvent.press(logoutButton);
-
-      // Then: should show confirmation alert with correct buttons
-      expect(Alert.alert).toHaveBeenCalledWith(
-        'Confirm Logout',
-        'Are you sure you want to logout?',
-        expect.arrayContaining([
-          expect.objectContaining({ text: 'Cancel', style: 'cancel' }),
-          expect.objectContaining({
-            text: 'Logout',
-            style: 'destructive',
-            onPress: expect.any(Function),
-          }),
-        ]),
-      );
-    });
-
-    it('calls controller logout and navigates back when logout confirmed', async () => {
-      // Given: user is authenticated
-      setupMockSelectors({ isAuthenticated: true });
-      setupLoadCardDataMock({ isAuthenticated: true });
-
-      render();
-
-      // When: user presses logout and confirms the Alert
-      const logoutButton = screen.getByText('Logout');
-      fireEvent.press(logoutButton);
-
-      // Then: should call controller logout and navigate back
-      await waitFor(() => {
-        expect(mockCardControllerLogout).toHaveBeenCalled();
-      });
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
-      });
-    });
-
-    it('does not logout when alert is cancelled', () => {
-      // Given: user is authenticated and Alert will be cancelled
-      setupMockSelectors({ isAuthenticated: true });
-      setupLoadCardDataMock({ isAuthenticated: true });
-
-      jest
-        .spyOn(Alert, 'alert')
-        .mockImplementation((_title, _message, buttons) => {
-          // Simulate pressing Cancel button (button at index 0)
-          buttons?.[0].onPress?.();
-        });
-
-      render();
-
-      // When: user presses logout but cancels the Alert
-      const logoutButton = screen.getByText('Logout');
-      fireEvent.press(logoutButton);
-
-      // Then: should not call logout or navigate back
-      expect(mockCardControllerLogout).not.toHaveBeenCalled();
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('does not show logout button when user is not authenticated', () => {
-      // Given: user is not authenticated
-      setupMockSelectors({ isAuthenticated: false });
-
-      // When: component renders
-      render();
-
-      // Then: should not show logout button
-      expect(screen.queryByText('Logout')).not.toBeOnTheScreen();
     });
   });
 
@@ -7597,11 +7496,6 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
       ).toBeOnTheScreen();
     });
-
-    it('does not show logout when unauthenticated', () => {
-      render();
-      expect(screen.queryByTestId(CardHomeSelectors.LOGOUT_ITEM)).toBeNull();
-    });
   });
 
   describe('Link Money Account content', () => {
@@ -7648,6 +7542,7 @@ describe('CardHome Component', () => {
         canLink: true,
         isMoneyAccountLinkingSupported: true,
         isMoneyCardSectionAvailable: true,
+        reportsVerificationStatus: true,
         status: 'idle' as const,
         isLinking: false,
         error: null,
