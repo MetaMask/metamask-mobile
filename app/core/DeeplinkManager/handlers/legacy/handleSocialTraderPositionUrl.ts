@@ -22,7 +22,6 @@ const navigateToFallback = () => {
     if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
       return;
     }
-    // The root-stack Social V1 screen has no tab bar or back button.
     popToSocialTab(NavigationService.navigation);
     return;
   }

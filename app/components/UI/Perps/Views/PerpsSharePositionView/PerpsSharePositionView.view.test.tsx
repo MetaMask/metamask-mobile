@@ -325,8 +325,6 @@ describe('PerpsSharePositionView', () => {
       await screen.findByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
 
-    // Lands on the Social tab under Home, which keeps the bottom tab bar
-    // (TSA-1636), not on the root-stack Social V1 screen.
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();

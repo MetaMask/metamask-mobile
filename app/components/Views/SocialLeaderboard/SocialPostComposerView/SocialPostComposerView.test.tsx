@@ -1187,7 +1187,6 @@ describe('SocialPostComposerView', () => {
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
 
-    // The root-stack Social V1 screen has no tab bar or back button (TSA-1636).
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.HOME_TABS,

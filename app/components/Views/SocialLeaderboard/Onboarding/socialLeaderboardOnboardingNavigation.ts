@@ -229,15 +229,9 @@ export const navigateToSocialTab = (
 };
 
 /**
- * Pops the current flow off the root stack and selects the Social tab under
- * Home. Use it instead of opening the root-stack `Routes.SOCIAL.V1` screen,
- * which has no bottom tab bar and no back button, so the user gets stuck there.
- *
- * Unlike `navigateToSocialTab` (the navbar entry), it skips the terms, profile
- * and onboarding gates and pops root-stack screens. Call it only once the user
- * is already through those gates, e.g. after posting or from a fallback.
- * Social V1 treatment only: the Social tab is always registered under
- * HOME_TABS there (see `useHomeTabDefinitions`).
+ * Pops the root stack and selects the Social tab under Home (Social V1 only).
+ * Unlike `navigateToSocialTab`, it skips the terms, profile and onboarding
+ * gates, so call it only after the user has passed them.
  *
  * @param navigation - The caller's navigation object.
  */

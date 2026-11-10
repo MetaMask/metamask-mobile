@@ -59,7 +59,6 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
         });
       }
     } else if (isSocialV1Treatment()) {
-      // The root-stack Social V1 screen has no tab bar or back button.
       popToSocialTab(navigation);
     } else {
       navigation.navigate(getFollowTradingHomeRoute());

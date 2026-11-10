@@ -689,9 +689,6 @@ const SocialPostComposerView: React.FC = () => {
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
       });
       if (openFeedAfterPost) {
-        // Pop the composer and select the Social tab. The root-stack Social V1
-        // screen has no bottom tab bar and no back button, which left the user
-        // stuck in Social (TSA-1636).
         popToSocialTab(navigation);
         return;
       }
