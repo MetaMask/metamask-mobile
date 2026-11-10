@@ -1,7 +1,8 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import type { Hex } from '@metamask/utils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import TokenView from './TokenView';
@@ -34,8 +35,15 @@ const mockInitialState = {
   engine: { backgroundState: { ...backgroundState } },
 };
 
-const renderComponent = () =>
-  renderWithProvider(<TokenView />, { state: mockInitialState });
+const mockOpenNetworkSelector = jest.fn();
+const renderComponent = (selectedNetwork: Hex | null = null) =>
+  renderWithProvider(
+    <TokenView
+      selectedNetwork={selectedNetwork}
+      openNetworkSelector={mockOpenNetworkSelector}
+    />,
+    { state: mockInitialState },
+  );
 
 const lastAutocompleteProps = () =>
   mockAutocomplete.mock.calls[mockAutocomplete.mock.calls.length - 1][0];
@@ -46,13 +54,13 @@ describe('TokenView', () => {
     mockUseHiddenAssetIds.mockReturnValue([]);
   });
 
-  it('shows the token list with no network pill by default', () => {
-    const { getByTestId, queryByTestId } = renderComponent();
+  it('shows the token list and the network filter by default', () => {
+    const { getByTestId } = renderComponent();
 
     expect(getByTestId('search-token-autocomplete')).toBeOnTheScreen();
     expect(
-      queryByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
-    ).toBeNull();
+      getByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
+    ).toBeOnTheScreen();
     expect(lastAutocompleteProps()).toMatchObject({
       selectedChainId: null,
       isSearching: false,
@@ -78,7 +86,7 @@ describe('TokenView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HIDDEN_TOKENS);
   });
 
-  it('enters search mode: the shortcut leaves and the network pill appears', () => {
+  it('hides the hidden tokens shortcut in search mode but keeps the network filter', () => {
     mockUseHiddenAssetIds.mockReturnValue(['eip155:1/erc20:0xabc']);
     const { getByTestId, queryByTestId } = renderComponent();
 
@@ -93,44 +101,36 @@ describe('TokenView', () => {
     expect(lastAutocompleteProps()).toMatchObject({ isSearching: true });
   });
 
-  it('opens the network sheet and applies the selected network', () => {
+  it('opens the network selector from the network filter', () => {
     const { getByTestId } = renderComponent();
-    fireEvent.press(getByTestId('explore-view-search-button'));
 
     fireEvent.press(
       getByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
     );
 
-    const [route, params] = mockNavigate.mock.calls[0];
-    expect(route).toBe(Routes.MODAL.TOKEN_NETWORK_FILTER);
-    expect(params.selectedNetwork).toBeNull();
+    expect(mockOpenNetworkSelector).toHaveBeenCalledTimes(1);
+  });
 
-    act(() => params.onSelect('eip155:1'));
+  it('searches the selected network', () => {
+    renderComponent('0x1');
 
     expect(lastAutocompleteProps()).toMatchObject({
       selectedChainId: 'eip155:1',
     });
   });
 
-  it('leaves search mode on Cancel and resets the network', () => {
+  it('leaves search mode on Cancel and keeps the selected network', () => {
     mockUseHiddenAssetIds.mockReturnValue(['eip155:1/erc20:0xabc']);
-    const { getByTestId, getByText, queryByTestId } = renderComponent();
+    const { getByTestId, getByText } = renderComponent('0x1');
     fireEvent.press(getByTestId('explore-view-search-button'));
-    fireEvent.press(
-      getByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
-    );
-    act(() => mockNavigate.mock.calls[0][1].onSelect('eip155:1'));
 
     fireEvent.press(getByText('Cancel'));
 
     expect(
       getByTestId(ImportTokenViewSelectorsIDs.HIDDEN_TOKENS_BUTTON),
     ).toBeOnTheScreen();
-    expect(
-      queryByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
-    ).toBeNull();
     expect(lastAutocompleteProps()).toMatchObject({
-      selectedChainId: null,
+      selectedChainId: 'eip155:1',
       isSearching: false,
     });
   });

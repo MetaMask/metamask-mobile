@@ -18,12 +18,17 @@ import {
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { getNetworkImageSource } from '../../../../../util/networks';
+import { getNetworkImageSource, isTestNet } from '../../../../../util/networks';
 import {
   MultichainNetworkConfiguration,
+  NON_EVM_TESTNET_IDS,
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
@@ -70,12 +75,19 @@ export default function NetworkListBottomSheet({
   setOpenNetworkSelector,
   sheetRef,
   displayEvmNetworksOnly = true,
+  hideTestnets = false,
+  onSelectAll,
+  allNetworksLabel,
 }: {
   selectedNetwork: SupportedCaipChainId | Hex | null;
   setSelectedNetwork: (network: SupportedCaipChainId | Hex) => void;
   setOpenNetworkSelector: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef | null>;
   displayEvmNetworksOnly?: boolean;
+  hideTestnets?: boolean;
+  /** With `allNetworksLabel`, adds an "all networks" row that calls this. */
+  onSelectAll?: () => void;
+  allNetworksLabel?: string;
 }) {
   const tw = useTailwind();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -95,6 +107,14 @@ export default function NetworkListBottomSheet({
         continue;
       }
 
+      if (
+        hideTestnets &&
+        (isTestNet(chainId) ||
+          NON_EVM_TESTNET_IDS.includes(chainId as CaipChainId))
+      ) {
+        continue;
+      }
+
       // Filter out non-EVM networks the current account group doesn't support
       if (
         isNonEvmChainId(chainId) &&
@@ -107,7 +127,12 @@ export default function NetworkListBottomSheet({
     }
 
     return configs;
-  }, [displayEvmNetworksOnly, networkConfigurations, getAccountByScope]);
+  }, [
+    displayEvmNetworksOnly,
+    hideTestnets,
+    networkConfigurations,
+    getAccountByScope,
+  ]);
 
   const handleSelectNetwork = useCallback(
     (chainId: SupportedCaipChainId | Hex) => {
@@ -118,6 +143,13 @@ export default function NetworkListBottomSheet({
     },
     [setSelectedNetwork, setOpenNetworkSelector, sheetRef],
   );
+
+  const handleSelectAll = useCallback(() => {
+    onSelectAll?.();
+    sheetRef.current?.onCloseBottomSheet(() => {
+      setOpenNetworkSelector(false);
+    });
+  }, [onSelectAll, setOpenNetworkSelector, sheetRef]);
 
   const renderItem = useCallback<
     ListRenderItem<MultichainNetworkConfiguration>
@@ -155,6 +187,25 @@ export default function NetworkListBottomSheet({
         )}
       >
         <FlashList
+          ListHeaderComponent={
+            onSelectAll && allNetworksLabel ? (
+              <Cell
+                variant={CellVariant.Select}
+                title={allNetworksLabel}
+                isSelected={selectedNetwork === null}
+                onPress={handleSelectAll}
+                avatarProps={{
+                  variant: AvatarVariant.Icon,
+                  name: IconName.Global,
+                  size: AvatarSize.Sm,
+                }}
+              >
+                {selectedNetwork === null && (
+                  <Icon name={IconName.Check} size={IconSize.Md} />
+                )}
+              </Cell>
+            ) : null
+          }
           data={filteredNetworkConfigurations}
           renderItem={renderItem}
           keyExtractor={keyExtractor}

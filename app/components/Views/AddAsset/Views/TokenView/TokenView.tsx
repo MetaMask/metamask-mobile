@@ -21,7 +21,9 @@ import {
   SelectButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { CaipChainId } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -34,36 +36,35 @@ import SearchTokenAutocomplete from '../../components/SearchTokenAutoComplete/Se
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 
 /**
- * Import tokens: search first, then (when not searching and the user has
- * hidden tokens) a Hidden tokens shortcut, then the importable token list.
- * Tapping the search pill enters search mode (keyboard opens, the shortcut
- * fades away) and Cancel leaves it. While searching,
- * a network pill under the search filters the results (all networks by
- * default).
+ * Import tokens: search, network filter, a Hidden tokens shortcut (only when
+ * there are hidden tokens) and the importable token list.
  */
-const TokenView = () => {
+interface TokenViewProps {
+  /** `null` means all networks. */
+  selectedNetwork: SupportedCaipChainId | Hex | null;
+  openNetworkSelector: () => void;
+}
+
+const TokenView = ({
+  selectedNetwork,
+  openNetworkSelector,
+}: TokenViewProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] = useState<CaipChainId | null>(
-    null,
+  const selectedChainId = selectedNetwork
+    ? formatChainIdToCaip(selectedNetwork)
+    : null;
+  const selectedNetworkName = useNetworkName(
+    selectedChainId ? [selectedChainId] : null,
   );
-
-  const networkName = useNetworkName(
-    selectedNetwork ? [selectedNetwork] : null,
-  );
-  // Matches the Tokens list control bar, which says "Popular networks".
-  const selectedNetworkName = selectedNetwork
-    ? networkName
-    : strings('wallet.popular_networks');
   const hasHiddenTokens = useHiddenAssetIds().length > 0;
 
   const placeholder = strings('token.search_tokens_placeholder');
   const handleCancel = useCallback(() => {
     setSearchQuery('');
-    setSelectedNetwork(null);
     setIsSearchActive(false);
   }, []);
 
@@ -73,7 +74,7 @@ const TokenView = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        twClassName={`px-4 pt-2 ${isSearchActive ? '' : 'pb-2'}`}
+        twClassName="px-4 pt-2"
         testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
       >
         <Box twClassName="h-12 flex-1">
@@ -95,38 +96,28 @@ const TokenView = () => {
         </Box>
       </Box>
 
-      {isSearchActive ? (
-        <Animated.View
-          key="network-pill"
-          entering={FadeIn.duration(200)}
-          exiting={FadeOut.duration(150)}
-          style={tw.style('flex-row px-4 py-3')}
-        >
-          <SelectButton
-            testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
-            variant={SelectButtonVariant.Primary}
-            placeholder={selectedNetworkName}
-            value={selectedNetworkName}
-            startAccessory={
-              selectedNetwork ? (
-                <AvatarNetwork
-                  src={getNetworkImageSource({ chainId: selectedNetwork })}
-                  size={AvatarNetworkSize.Xs}
-                  name={selectedNetworkName}
-                />
-              ) : undefined
-            }
-            textProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
-            twClassName="shrink-0"
-            onPress={() =>
-              navigation.navigate(Routes.MODAL.TOKEN_NETWORK_FILTER, {
-                selectedNetwork,
-                onSelect: setSelectedNetwork,
-              })
-            }
-          />
-        </Animated.View>
-      ) : hasHiddenTokens ? (
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 py-3">
+        <SelectButton
+          testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
+          variant={SelectButtonVariant.Primary}
+          placeholder={selectedNetworkName}
+          value={selectedNetworkName}
+          startAccessory={
+            selectedNetwork ? (
+              <AvatarNetwork
+                src={getNetworkImageSource({ chainId: selectedNetwork })}
+                size={AvatarNetworkSize.Xs}
+                name={selectedNetworkName}
+              />
+            ) : undefined
+          }
+          textProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
+          twClassName="shrink-0"
+          onPress={openNetworkSelector}
+        />
+      </Box>
+
+      {!isSearchActive && hasHiddenTokens ? (
         <Animated.View
           key="shortcuts"
           entering={FadeIn.duration(200)}
@@ -160,7 +151,7 @@ const TokenView = () => {
       >
         <SearchTokenAutocomplete
           navigation={navigation}
-          selectedChainId={selectedNetwork}
+          selectedChainId={selectedChainId}
           searchQuery={searchQuery}
           isSearching={isSearchActive}
           onAddCustomToken={() =>

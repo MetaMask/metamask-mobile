@@ -50,7 +50,6 @@ import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import ContractSecurityScreen from '../../UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
-import NetworkFilterSheet from '../../Views/AddAsset/components/NetworkFilterSheet/NetworkFilterSheet';
 import HiddenTokensView from '../../Views/AddAsset/Views/HiddenTokensView/HiddenTokensView';
 import AddCustomTokenView from '../../Views/AddAsset/Views/AddCustomTokenView/AddCustomTokenView';
 import NftFullView from '../../Views/NftFullView';
@@ -1228,12 +1227,6 @@ const MainNavigator = () => {
         component={HiddenTokensView}
         options={slideFromRightNativeOptions}
       />
-      <NativeStack.Group screenOptions={transparentModalStackOptions}>
-        <NativeStack.Screen
-          name={Routes.MODAL.TOKEN_NETWORK_FILTER}
-          component={NetworkFilterSheet}
-        />
-      </NativeStack.Group>
       <NativeStack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}

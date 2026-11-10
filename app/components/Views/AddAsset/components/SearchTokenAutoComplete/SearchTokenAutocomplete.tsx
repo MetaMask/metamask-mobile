@@ -84,10 +84,7 @@ interface Props {
   onAddCustomToken?: () => void;
 }
 
-/**
- * Address part of the already-added key. Non-EVM import assets use the CAIP-19
- * id as `address`; EVM uses the contract address from the CAIP asset id.
- */
+// Non-EVM import assets use the full CAIP-19 id as `address`, EVM the contract.
 function addressKeyFromAssetId(
   assetId: string,
   isNonEvm: boolean,
@@ -202,8 +199,7 @@ const SearchTokenAutocomplete = ({
   const assetsBalance = useSelector(getAssetsBalance);
   const assetPreferences = useSelector(getAssetPreferences);
 
-  // Set of already added tokens (custom + detected, excluding hidden) keyed
-  // per network, for quick lookup across every network in scope.
+  // Already added tokens (custom + detected, not hidden), keyed by chain and address.
   const alreadyAddedTokens = useMemo(() => {
     const keys = new Set<string>();
     const scope = selectedChainIds ? new Set<string>(selectedChainIds) : null;
@@ -386,7 +382,7 @@ const SearchTokenAutocomplete = ({
   };
 
   const renderTokenDetectionBanner = useCallback(() => {
-    if (isTokenDetectionEnabled || isSearching) {
+    if (isTokenDetectionEnabled || isSearching || !selectedChainId) {
       return null;
     }
     return (
@@ -404,7 +400,9 @@ const SearchTokenAutocomplete = ({
       >
         <>
           <Text style={tw.style('text-default')}>
-            {strings('add_asset.banners.search_desc_generic')}
+            {strings('add_asset.banners.search_desc', {
+              network: networkName,
+            })}
           </Text>
           <Text
             suppressHighlighting
@@ -423,7 +421,15 @@ const SearchTokenAutocomplete = ({
         </>
       </Alert>
     );
-  }, [navigation, isSearching, isTokenDetectionEnabled, colors, tw]);
+  }, [
+    navigation,
+    isSearching,
+    isTokenDetectionEnabled,
+    selectedChainId,
+    networkName,
+    colors,
+    tw,
+  ]);
 
   return (
     <Box twClassName="flex-1">

@@ -15,11 +15,7 @@ import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 export type ImportAsset = Token & { chainId: Hex | CaipChainId };
 
-/**
- * Stable per-network identity for an import asset. The same contract address
- * can exist on several networks, so address alone is not a safe key once the
- * list can span networks.
- */
+/** The same address can exist on several networks, so key by chain too. */
 export const getImportAssetKey = (
   chainId: Hex | CaipChainId,
   address: string,

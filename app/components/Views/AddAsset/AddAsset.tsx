@@ -51,7 +51,7 @@ const AddAsset = () => {
   );
   const [selectedNetwork, setSelectedNetwork] = useState<
     SupportedCaipChainId | Hex | null
-  >(enabledChainId as Hex);
+  >(assetType === 'token' ? null : (enabledChainId as Hex));
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -84,7 +84,12 @@ const AddAsset = () => {
         }
       />
 
-      {assetType === 'token' && <TokenView />}
+      {assetType === 'token' && (
+        <TokenView
+          openNetworkSelector={() => setOpenNetworkSelector(true)}
+          selectedNetwork={selectedNetwork}
+        />
+      )}
 
       {assetType === 'collectible' && (
         <NFTView
@@ -95,13 +100,18 @@ const AddAsset = () => {
         />
       )}
 
-      {assetType === 'collectible' && openNetworkSelector ? (
+      {openNetworkSelector ? (
         <NetworkListBottomSheet
           selectedNetwork={selectedNetwork}
           setSelectedNetwork={setSelectedNetwork}
           setOpenNetworkSelector={setOpenNetworkSelector}
           sheetRef={sheetRef}
-          displayEvmNetworksOnly
+          displayEvmNetworksOnly={assetType === 'collectible'}
+          hideTestnets={assetType === 'token'}
+          onSelectAll={
+            assetType === 'token' ? () => setSelectedNetwork(null) : undefined
+          }
+          allNetworksLabel={strings('trending.all_networks')}
         />
       ) : null}
     </SafeAreaView>

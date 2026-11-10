@@ -6,10 +6,7 @@ import { selectMultichainAssetsAllIgnoredAssets } from '../../../../selectors/mu
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 
-/**
- * Ids of the assets the user hid, across all networks. Reads state only.
- * Per-asset equivalent: `useAssetVisibility().isHidden`.
- */
+/** Ids of all hidden assets. Per-asset version: `useAssetVisibility`. */
 export const useHiddenAssetIds = (): string[] => {
   const assetPreferences = useSelector(getAssetPreferences);
   const allIgnoredAssets = useSelector(selectMultichainAssetsAllIgnoredAssets);
@@ -23,7 +20,7 @@ export const useHiddenAssetIds = (): string[] => {
         .filter(([, preference]) => preference?.hidden === true)
         .map(([assetId]) => assetId),
     );
-    // Non-EVM ignored assets only count for the account that owns the chain.
+    // Non-EVM ignored assets count only for the account that owns the chain.
     Object.entries(allIgnoredAssets).forEach(([accountId, assetIds]) =>
       assetIds.forEach((assetId) => {
         const chain = getCaipChainIdFromAssetId(assetId);

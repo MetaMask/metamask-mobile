@@ -4944,6 +4944,7 @@
   "add_asset": {
     "title": "Import tokens",
     "title_nft": "Import NFT",
+    "search_token": "Search",
     "custom_token": "Custom token",
     "hidden_tokens": "Hidden tokens",
     "unhide": "Unhide",
@@ -4958,7 +4959,7 @@
       "add_collectible": "Import"
     },
     "banners": {
-      "search_desc_generic": "Turn on improved token detection to find more tokens automatically. ",
+      "search_desc": "Improved token detection is currently available on {{network}} network. ",
       "search_link": "Enable it from Settings.",
       "custom_warning_desc": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
       "custom_warning_link": "scams and security risks.",

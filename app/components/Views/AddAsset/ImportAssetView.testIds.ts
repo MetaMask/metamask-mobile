@@ -35,6 +35,7 @@ export const ImportTokenViewSelectorsText = {
   CANCEL_IMPORT_TOKEN: enContent.confirmation_modal.cancel_cta,
   CONFIRM_CANCEL_IMPORT_TOKEN: enContent.confirmation_modal.confirm_cta,
   TOKEN_SYMBOL: enContent.token.token_symbol,
+  CUSTOM_TOKEN_TAB: enContent.add_asset.custom_token,
 };
 
 export const NFTImportScreenSelectorsIDs = {

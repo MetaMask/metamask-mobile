@@ -157,6 +157,20 @@ describe('AddAsset', () => {
     });
   });
 
+  describe('network selector', () => {
+    it('offers an all networks row for tokens', () => {
+      mockUseParamsValues.assetType = 'token';
+      const { getByTestId, getAllByText } = renderComponent();
+
+      fireEvent.press(
+        getByTestId(ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON),
+      );
+
+      // The pill and the sheet row
+      expect(getAllByText('All networks')).toHaveLength(2);
+    });
+  });
+
   describe('EVM and non-EVM chain handling', () => {
     it('shows AddCustomCollectible for EVM chains', () => {
       mockUseParamsValues.assetType = 'collectible';

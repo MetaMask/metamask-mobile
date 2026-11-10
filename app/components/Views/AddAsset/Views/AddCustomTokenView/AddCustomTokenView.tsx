@@ -21,11 +21,7 @@ import NetworkListBottomSheet from '../../components/NetworkListBottomSheet/Netw
 import AddCustomToken from '../../components/AddCustomToken/AddCustomToken';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 
-/**
- * Dedicated screen for importing a token by contract address. Custom tokens
- * are EVM-only and always belong to exactly one network, so this screen owns
- * its own network picker instead of sharing the import list's filters.
- */
+/** Import a token by contract address on a single EVM network. */
 const AddCustomTokenView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
@@ -39,7 +35,6 @@ const AddCustomTokenView = () => {
   const [isNetworkSheetOpen, setIsNetworkSheetOpen] = useState(false);
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  // Networks covered by token search are the ones with token detection.
   const isTokenDetectionSupported = TRENDING_NETWORKS_LIST.some(
     (network) => network.caipChainId === formatChainIdToCaip(selectedNetwork),
   );

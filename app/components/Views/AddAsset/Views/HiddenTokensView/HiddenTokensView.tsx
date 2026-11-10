@@ -43,23 +43,15 @@ interface HiddenAssetRow {
   asset: ImportAsset;
 }
 
-/** Short, human readable stand-in when metadata cannot be resolved. */
-const getShortAssetLabel = (assetId: string): string => {
-  try {
-    const { assetReference } = parseCaipAssetType(assetId as CaipAssetType);
-    return assetReference.length > 12
-      ? `${assetReference.slice(0, 6)}...${assetReference.slice(-4)}`
-      : assetReference;
-  } catch {
-    return assetId;
-  }
+const getShortAssetLabel = (assetId: CaipAssetType): string => {
+  const { assetReference } = parseCaipAssetType(assetId);
+  return assetReference.length > 12
+    ? `${assetReference.slice(0, 6)}...${assetReference.slice(-4)}`
+    : assetReference;
 };
 
-/**
- * Hidden assets are excluded from balance and price refreshes, so only
- * metadata (name, symbol, icon) is shown, from `assetsInfo`, then the
- * multichain metadata, then a short id.
- */
+// Hidden assets aren't refreshed, so only stored metadata is available.
+
 const useHiddenAssetRows = (): HiddenAssetRow[] => {
   const assetsInfo = useSelector(getAssetsInfo);
   const multichainMetadata = useSelector(selectMultichainAssetsMetadata);
@@ -96,9 +88,6 @@ const useHiddenAssetRows = (): HiddenAssetRow[] => {
   );
 };
 
-/**
- * Tokens the user hid, across all networks, with an Unhide action.
- */
 const HiddenTokensView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();

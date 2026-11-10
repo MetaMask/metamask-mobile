@@ -268,9 +268,30 @@ describe('SearchTokenAutocomplete', () => {
 
     const { getByText } = renderComponent({
       state: stateWithDetectionDisabled,
+      selectedChainId: 'eip155:1',
     });
 
     expect(getByText(/token detection/i)).toBeOnTheScreen();
+  });
+
+  it('hides token detection banner when all networks are selected', () => {
+    const stateWithDetectionDisabled = {
+      ...mockInitialState,
+      engine: {
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          PreferencesController: {
+            useTokenDetection: false,
+          },
+        },
+      },
+    };
+
+    const { queryByText } = renderComponent({
+      state: stateWithDetectionDisabled,
+    });
+
+    expect(queryByText(/token detection/i)).toBeNull();
   });
 
   it('hides token detection banner while searching', () => {
