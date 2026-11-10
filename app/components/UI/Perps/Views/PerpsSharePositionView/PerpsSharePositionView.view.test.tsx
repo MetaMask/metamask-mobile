@@ -196,8 +196,8 @@ const renderSharePositionSheet = ({
           : createParamsProbe(Routes.SOCIAL.POST_COMPOSER),
       },
       {
-        name: Routes.SOCIAL.V1,
-        Component: createParamsProbe(Routes.SOCIAL.V1),
+        name: Routes.HOME_TABS,
+        Component: createParamsProbe(Routes.HOME_TABS),
       },
     ],
   });
@@ -325,9 +325,14 @@ describe('PerpsSharePositionView', () => {
       await screen.findByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
 
+    // Lands on the Social tab under Home, which keeps the bottom tab bar
+    // (TSA-1636), not on the root-stack Social V1 screen.
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
+    expect(routeParamsByName[Routes.HOME_TABS]).toEqual({
+      screen: Routes.SOCIAL.TAB,
+    });
     expect(messengerSpy).toHaveBeenCalledWith(
       'SocialService:createSwapComment',
       expect.objectContaining({ positionUid: socialEthLong.positionId }),
