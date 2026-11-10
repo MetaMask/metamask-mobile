@@ -5,11 +5,16 @@ import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBad
 import { PerpsFeeDiscountLabelSelectorsIDs } from '../../Perps.testIds';
 import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';
 
+const mockUseVipTier = jest.fn();
 jest.mock('../../../Rewards/hooks/useVipTier', () => ({
-  useVipTier: () => 1,
+  useVipTier: () => mockUseVipTier(),
 }));
 
 describe('PerpsFeeDiscountLabel', () => {
+  beforeEach(() => {
+    mockUseVipTier.mockReturnValue(1);
+  });
+
   it('renders verified VIP treatment for rewards attribution', () => {
     render(
       <PerpsFeeDiscountLabel
@@ -23,7 +28,9 @@ describe('PerpsFeeDiscountLabel', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders member treatment for subscription attribution', () => {
+  it('renders member treatment for subscription attribution when there is no VIP tier', () => {
+    mockUseVipTier.mockReturnValue(null);
+
     render(
       <PerpsFeeDiscountLabel
         feeDiscountPercentage={75}
@@ -36,6 +43,22 @@ describe('PerpsFeeDiscountLabel', () => {
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders VIP treatment for subscription attribution when a VIP tier is set', () => {
+    render(
+      <PerpsFeeDiscountLabel
+        feeDiscountPercentage={75}
+        feeDiscountKind="member"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.MEMBER_BADGE),
     ).not.toBeOnTheScreen();
   });
 
