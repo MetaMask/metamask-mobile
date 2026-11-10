@@ -42,6 +42,16 @@ jest.mock('react-native-share', () => ({
   },
 }));
 
+jest.mock('../navigation/socialOgImageService', () => ({
+  createSocialOgImage: jest
+    .fn()
+    .mockResolvedValue(
+      'https://social.dev-api.cx.metamask.io/api/v1/og-images/card.png?v=1',
+    ),
+  getSocialOgDefaultImageUrl: () =>
+    'https://social.dev-api.cx.metamask.io/api/v1/og-images/default.jpg',
+}));
+
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
 const mockNavigationGetState = jest.fn();
@@ -833,14 +843,12 @@ describe('MyProfileView', () => {
     expect(createPostButton).toHaveProp('accessibilityLabel', 'Create post');
   });
 
-  it('shares the owner profile deeplink from the share profile button', () => {
+  it('shares the owner profile deeplink from the share profile button', async () => {
     renderWithProvider(<MyProfileView />);
 
     const shareProfileButton = screen.getByTestId(
       MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON,
     );
-
-    fireEvent.press(shareProfileButton);
 
     expect(
       within(shareProfileButton).UNSAFE_getByProps({ name: IconName.Share }),
@@ -851,12 +859,24 @@ describe('MyProfileView', () => {
       left: 12,
       right: 12,
     });
-    expect(Share.open).toHaveBeenCalledWith({
-      message: 'https://link.metamask.io/social/profile?traderId=current-user',
-      url: 'https://link.metamask.io/social/profile?traderId=current-user',
-      failOnCancel: false,
+
+    fireEvent.press(shareProfileButton);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_SPINNER),
+    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message:
+          'https://link.metamask.io/social/profile?traderId=current-user&share=1',
+        url: 'https://link.metamask.io/social/profile?traderId=current-user&share=1',
+        failOnCancel: false,
+      });
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByTestId(MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('does not render a reset profile button on the owner profile header', () => {
@@ -1195,7 +1215,7 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('shares the profile deeplink from another profile header', () => {
+  it('shares the profile deeplink from another profile header', async () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
       traderName: 'alpha.eth',
@@ -1207,10 +1227,13 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON),
     );
 
-    expect(Share.open).toHaveBeenCalledWith({
-      message: 'https://link.metamask.io/social/profile?traderId=trader-1',
-      url: 'https://link.metamask.io/social/profile?traderId=trader-1',
-      failOnCancel: false,
+    await waitFor(() => {
+      expect(Share.open).toHaveBeenCalledWith({
+        message:
+          'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
+        url: 'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
+        failOnCancel: false,
+      });
     });
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
