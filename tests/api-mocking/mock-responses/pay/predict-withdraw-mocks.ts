@@ -335,86 +335,91 @@ async function mockAccountsApiTransactions(
   mockServer: Mockttp,
   includeMoneyDeposit = false,
 ) {
-  await mockAccountsApiTransactionRoutes(mockServer, {
-    unprocessedNetworks: [],
-    pageInfo: {
-      count: includeMoneyDeposit ? 2 : 1,
-      hasNextPage: false,
-      endCursor: '',
-    },
-    data: [
-      ...(includeMoneyDeposit
-        ? [
-            {
-              hash: PREDICT_MONEY_DEPOSIT_TX_HASH,
-              timestamp: new Date().toISOString(),
-              chainId: 143,
-              blockNumber: 1234568,
-              blockHash:
-                '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-              gas: 21000,
-              gasUsed: 21000,
-              gasPrice: '1000000000',
-              effectiveGasPrice: '1000000000',
-              nonce: 2,
-              cumulativeGasUsed: 21000,
-              value: '0',
-              to: MONEY_ACCOUNT_TELLER_ADDRESS,
-              from: DEFAULT_FIXTURE_ACCOUNT,
-              isError: false,
-              transactionType: 'deposit',
-              transactionCategory: 'money',
-              valueTransfers: [
-                {
-                  from: MONEY_ACCOUNT_TELLER_ADDRESS,
-                  to: DEFAULT_FIXTURE_ACCOUNT,
-                  amount: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
-                  decimal: 6,
-                  contractAddress: MUSD_MONAD_ADDRESS,
-                  symbol: 'mUSD',
-                  name: 'mUSD',
-                  transferType: 'ERC20',
-                },
-              ],
-            },
-          ]
-        : []),
-      {
-        hash: PREDICT_WITHDRAW_TX_HASH,
-        timestamp: new Date().toISOString(),
-        chainId: 137,
-        blockNumber: 1234568,
-        blockHash:
-          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 1,
-        cumulativeGasUsed: 21000,
-        value: '0',
-        to: PREDICT_PUSD_ADDRESS,
-        from: DEFAULT_FIXTURE_ACCOUNT,
-        isError: false,
-        transactionType: 'withdraw',
-        transactionCategory: 'predict',
-        valueTransfers: [
-          {
-            from: DEFAULT_FIXTURE_ACCOUNT,
-            to: includeMoneyDeposit
-              ? MONEY_ACCOUNT_TELLER_ADDRESS
-              : DEFAULT_FIXTURE_ACCOUNT,
-            amount: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
-            decimal: 6,
-            contractAddress: PREDICT_PUSD_ADDRESS,
-            symbol: 'pUSD',
-            name: 'Polymarket USD',
-            transferType: 'ERC20',
-          },
-        ],
+  const handler = () => ({
+    statusCode: 200,
+    json: {
+      unprocessedNetworks: [],
+      pageInfo: {
+        count: includeMoneyDeposit ? 2 : 1,
+        hasNextPage: false,
+        endCursor: '',
       },
-    ],
+      data: [
+        ...(includeMoneyDeposit
+          ? [
+              {
+                hash: PREDICT_MONEY_DEPOSIT_TX_HASH,
+                timestamp: new Date().toISOString(),
+                chainId: 143,
+                blockNumber: 1234568,
+                blockHash:
+                  '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+                gas: 21000,
+                gasUsed: 21000,
+                gasPrice: '1000000000',
+                effectiveGasPrice: '1000000000',
+                nonce: 2,
+                cumulativeGasUsed: 21000,
+                value: '0',
+                to: MONEY_ACCOUNT_TELLER_ADDRESS,
+                from: DEFAULT_FIXTURE_ACCOUNT,
+                isError: false,
+                transactionType: 'deposit',
+                transactionCategory: 'money',
+                valueTransfers: [
+                  {
+                    from: MONEY_ACCOUNT_TELLER_ADDRESS,
+                    to: DEFAULT_FIXTURE_ACCOUNT,
+                    amount: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
+                    decimal: 6,
+                    contractAddress: MUSD_MONAD_ADDRESS,
+                    symbol: 'mUSD',
+                    name: 'mUSD',
+                    transferType: 'ERC20',
+                  },
+                ],
+              },
+            ]
+          : []),
+        {
+          hash: PREDICT_WITHDRAW_TX_HASH,
+          timestamp: new Date().toISOString(),
+          chainId: 137,
+          blockNumber: 1234568,
+          blockHash:
+            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          gas: 21000,
+          gasUsed: 21000,
+          gasPrice: '1000000000',
+          effectiveGasPrice: '1000000000',
+          nonce: 1,
+          cumulativeGasUsed: 21000,
+          value: '0',
+          to: PREDICT_PUSD_ADDRESS,
+          from: DEFAULT_FIXTURE_ACCOUNT,
+          isError: false,
+          transactionType: 'withdraw',
+          transactionCategory: 'predict',
+          valueTransfers: [
+            {
+              from: DEFAULT_FIXTURE_ACCOUNT,
+              to: includeMoneyDeposit
+                ? MONEY_ACCOUNT_TELLER_ADDRESS
+                : DEFAULT_FIXTURE_ACCOUNT,
+              amount: PREDICT_WITHDRAW_AMOUNT_BASE_UNITS,
+              decimal: 6,
+              contractAddress: PREDICT_PUSD_ADDRESS,
+              symbol: 'pUSD',
+              name: 'Polymarket USD',
+              transferType: 'ERC20',
+            },
+          ],
+        },
+      ],
+    },
   });
+
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 async function mockAccountsApiActiveNetworks(

@@ -23,7 +23,10 @@ function isAccountsTransactionsUrl(url: string) {
   );
 }
 
-function transactionsResponse(request: CompletedRequest, v4Json: object) {
+function transactionsResponse(
+  request: CompletedRequest,
+  v4Handler: () => { statusCode: number; json: object },
+) {
   const target = proxiedUrl(request.url) || request.url;
   // Activity's v5 select reads transaction.tx. A v4 body throws and errors the query.
   if (target.includes('/v5/')) {
@@ -32,23 +35,23 @@ function transactionsResponse(request: CompletedRequest, v4Json: object) {
       json: ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE,
     };
   }
-  return { statusCode: 200, json: v4Json };
+  return v4Handler();
 }
 
 export async function mockAccountsApiTransactionRoutes(
   mockServer: Mockttp,
-  v4Json: object,
+  v4Handler: () => { statusCode: number; json: object },
 ) {
   await mockServer
     .forGet('/proxy')
     .asPriority(1001)
     .matching((request) => isAccountsTransactionsUrl(proxiedUrl(request.url)))
-    .thenCallback((request) => transactionsResponse(request, v4Json));
+    .thenCallback((request) => transactionsResponse(request, v4Handler));
 
   await mockServer
     .forGet(v4TransactionsPath)
     .asPriority(1001)
-    .thenCallback(() => ({ statusCode: 200, json: v4Json }));
+    .thenCallback(v4Handler);
 
   await mockServer
     .forGet(v5TransactionsPath)

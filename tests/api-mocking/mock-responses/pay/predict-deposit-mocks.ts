@@ -16,8 +16,8 @@ import {
   POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS,
 } from '../polymarket/polymarket-mocks.js';
 import { USDC_MAINNET } from '../../../constants/musd-mainnet.js';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock.js';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks.js';
-import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 export const POLYGON_USDC =
   '0x2791bca1f2de4661ed88a30c99a7a9449aa84174' as const;
@@ -542,48 +542,53 @@ async function mockPriceApis(mockServer: Mockttp) {
  * Mocks the accounts API transaction endpoint to return a predict deposit transaction.
  */
 async function mockAccountsApiTransactions(mockServer: Mockttp) {
-  await mockAccountsApiTransactionRoutes(mockServer, {
-    unprocessedNetworks: [],
-    pageInfo: {
-      count: 1,
-      hasNextPage: false,
-      endCursor: '',
-    },
-    data: [
-      {
-        hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-        timestamp: new Date().toISOString(),
-        chainId: 137,
-        blockNumber: 1234568,
-        blockHash:
-          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 1,
-        cumulativeGasUsed: 21000,
-        value: '0',
-        to: '0x0000000000000000000000000000000000000000',
-        from: DEFAULT_FIXTURE_ACCOUNT,
-        isError: false,
-        transactionType: 'deposit',
-        transactionCategory: 'predict',
-        valueTransfers: [
-          {
-            from: DEFAULT_FIXTURE_ACCOUNT,
-            to: DEFAULT_FIXTURE_ACCOUNT,
-            amount: '50000000',
-            decimal: 6,
-            contractAddress: POLYGON_USDC,
-            symbol: 'USDC',
-            name: 'USD Coin',
-            transferType: 'ERC20',
-          },
-        ],
+  const handler = () => ({
+    statusCode: 200,
+    json: {
+      unprocessedNetworks: [],
+      pageInfo: {
+        count: 1,
+        hasNextPage: false,
+        endCursor: '',
       },
-    ],
+      data: [
+        {
+          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          timestamp: new Date().toISOString(),
+          chainId: 137,
+          blockNumber: 1234568,
+          blockHash:
+            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          gas: 21000,
+          gasUsed: 21000,
+          gasPrice: '1000000000',
+          effectiveGasPrice: '1000000000',
+          nonce: 1,
+          cumulativeGasUsed: 21000,
+          value: '0',
+          to: '0x0000000000000000000000000000000000000000',
+          from: DEFAULT_FIXTURE_ACCOUNT,
+          isError: false,
+          transactionType: 'deposit',
+          transactionCategory: 'predict',
+          valueTransfers: [
+            {
+              from: DEFAULT_FIXTURE_ACCOUNT,
+              to: DEFAULT_FIXTURE_ACCOUNT,
+              amount: '50000000',
+              decimal: 6,
+              contractAddress: POLYGON_USDC,
+              symbol: 'USDC',
+              name: 'USD Coin',
+              transferType: 'ERC20',
+            },
+          ],
+        },
+      ],
+    },
   });
+
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 /**

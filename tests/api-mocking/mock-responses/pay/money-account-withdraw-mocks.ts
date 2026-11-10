@@ -1076,48 +1076,53 @@ async function mockAccountsApiTransactions(
   mockServer: Mockttp,
   amountBaseUnits: string,
 ) {
-  await mockAccountsApiTransactionRoutes(mockServer, {
-    unprocessedNetworks: [],
-    pageInfo: {
-      count: 1,
-      hasNextPage: false,
-      endCursor: '',
-    },
-    data: [
-      {
-        hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-        timestamp: new Date().toISOString(),
-        chainId: 143,
-        blockNumber: 1234568,
-        blockHash:
-          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 1,
-        cumulativeGasUsed: 21000,
-        value: '0',
-        to: '0x0000000000000000000000000000000000000000',
-        from: DEFAULT_FIXTURE_ACCOUNT,
-        isError: false,
-        transactionType: 'withdraw',
-        transactionCategory: 'money',
-        valueTransfers: [
-          {
-            from: DEFAULT_FIXTURE_ACCOUNT,
-            to: DEFAULT_FIXTURE_ACCOUNT,
-            amount: amountBaseUnits,
-            decimal: 6,
-            contractAddress: MUSD_MONAD,
-            symbol: 'mUSD',
-            name: 'mUSD',
-            transferType: 'ERC20',
-          },
-        ],
+  const handler = () => ({
+    statusCode: 200,
+    json: {
+      unprocessedNetworks: [],
+      pageInfo: {
+        count: 1,
+        hasNextPage: false,
+        endCursor: '',
       },
-    ],
+      data: [
+        {
+          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          timestamp: new Date().toISOString(),
+          chainId: 143,
+          blockNumber: 1234568,
+          blockHash:
+            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          gas: 21000,
+          gasUsed: 21000,
+          gasPrice: '1000000000',
+          effectiveGasPrice: '1000000000',
+          nonce: 1,
+          cumulativeGasUsed: 21000,
+          value: '0',
+          to: '0x0000000000000000000000000000000000000000',
+          from: DEFAULT_FIXTURE_ACCOUNT,
+          isError: false,
+          transactionType: 'withdraw',
+          transactionCategory: 'money',
+          valueTransfers: [
+            {
+              from: DEFAULT_FIXTURE_ACCOUNT,
+              to: DEFAULT_FIXTURE_ACCOUNT,
+              amount: amountBaseUnits,
+              decimal: 6,
+              contractAddress: MUSD_MONAD,
+              symbol: 'mUSD',
+              name: 'mUSD',
+              transferType: 'ERC20',
+            },
+          ],
+        },
+      ],
+    },
   });
+
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {

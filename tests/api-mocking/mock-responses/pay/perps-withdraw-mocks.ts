@@ -17,8 +17,8 @@ import {
 } from '../tx-sentinel-networks-map';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks';
-import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 import { MUSD_MAINNET } from '../../../constants/musd-mainnet';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const PERPS_ARBITRUM_USDC = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
 const PERPS_WITHDRAW_TELLER = '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117';
@@ -915,48 +915,53 @@ async function mockAccountsApiTransactions(
   mockServer: Mockttp,
   txHash: string,
 ) {
-  await mockAccountsApiTransactionRoutes(mockServer, {
-    unprocessedNetworks: [],
-    pageInfo: {
-      count: 1,
-      hasNextPage: false,
-      endCursor: '',
-    },
-    data: [
-      {
-        hash: txHash,
-        timestamp: new Date().toISOString(),
-        chainId: PERPS_SOURCE_CHAIN_ID,
-        blockNumber: 1234568,
-        blockHash:
-          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 1,
-        cumulativeGasUsed: 21000,
-        value: '0',
-        to: DEFAULT_FIXTURE_ACCOUNT,
-        from: DEFAULT_FIXTURE_ACCOUNT,
-        isError: false,
-        transactionType: 'withdrawal',
-        transactionCategory: 'perps',
-        valueTransfers: [
-          {
-            from: DEFAULT_FIXTURE_ACCOUNT,
-            to: DEFAULT_FIXTURE_ACCOUNT,
-            amount: PERPS_WITHDRAW_AMOUNT_BASE_UNITS,
-            decimal: 6,
-            contractAddress: PERPS_ARBITRUM_USDC,
-            symbol: 'USDC',
-            name: 'USD Coin',
-            transferType: 'ERC20',
-          },
-        ],
+  const handler = () => ({
+    statusCode: 200,
+    json: {
+      unprocessedNetworks: [],
+      pageInfo: {
+        count: 1,
+        hasNextPage: false,
+        endCursor: '',
       },
-    ],
+      data: [
+        {
+          hash: txHash,
+          timestamp: new Date().toISOString(),
+          chainId: PERPS_SOURCE_CHAIN_ID,
+          blockNumber: 1234568,
+          blockHash:
+            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          gas: 21000,
+          gasUsed: 21000,
+          gasPrice: '1000000000',
+          effectiveGasPrice: '1000000000',
+          nonce: 1,
+          cumulativeGasUsed: 21000,
+          value: '0',
+          to: DEFAULT_FIXTURE_ACCOUNT,
+          from: DEFAULT_FIXTURE_ACCOUNT,
+          isError: false,
+          transactionType: 'withdrawal',
+          transactionCategory: 'perps',
+          valueTransfers: [
+            {
+              from: DEFAULT_FIXTURE_ACCOUNT,
+              to: DEFAULT_FIXTURE_ACCOUNT,
+              amount: PERPS_WITHDRAW_AMOUNT_BASE_UNITS,
+              decimal: 6,
+              contractAddress: PERPS_ARBITRUM_USDC,
+              symbol: 'USDC',
+              name: 'USD Coin',
+              transferType: 'ERC20',
+            },
+          ],
+        },
+      ],
+    },
   });
+
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {
