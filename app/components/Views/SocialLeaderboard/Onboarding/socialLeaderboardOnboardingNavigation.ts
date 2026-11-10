@@ -233,6 +233,9 @@ export const navigateToSocialTab = (
  * onboarding screen off the stack and selects the Social tab under Home, so the
  * bottom tab bar stays visible and Back returns to the previous screen.
  *
+ * The pop uses the onboarding screen's animation. The ready step sets that to
+ * `slide_from_left` before Let's go, so the ready screen leaves to the left.
+ *
  * @param navigation - The onboarding screen's navigation object.
  */
 export const finishProfileOnboardingToSocialTab = (

@@ -1534,6 +1534,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}
             component={MyProfileView}
+            options={{
+              // A push replace would bring this screen in from the right. Pop
+              // uses the screen being replaced, so onboarding can leave to the left.
+              animationTypeForReplace: 'pop',
+            }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.V1_PROFILE}
