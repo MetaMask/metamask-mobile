@@ -720,7 +720,14 @@ const SocialProfileOnboardingView: React.FC = () => {
     acceptSocialTerms().catch(() => undefined);
     if (pendingTermsOnly) {
       setPendingTermsOnly(false);
-      navigation.goBack();
+      // The termsOnly route is pushed by a Social entry gate that expects to
+      // return to its caller. An existing profile found on open has no caller
+      // to return to, so it opens the Social tab instead.
+      if (isTermsOnlyRoute) {
+        navigation.goBack();
+      } else {
+        finishProfileOnboardingToSocialTab(navigation);
+      }
       return;
     }
     const path = pendingTermsPath;
@@ -732,6 +739,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     }
   }, [
     beginConnectX,
+    isTermsOnlyRoute,
     navigation,
     pendingTermsOnly,
     pendingTermsPath,

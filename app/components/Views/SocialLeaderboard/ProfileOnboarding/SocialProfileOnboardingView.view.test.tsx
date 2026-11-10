@@ -74,6 +74,17 @@ const leaveReadyStep = async () => {
   );
 };
 
+const agreeToTerms = () => {
+  fireEvent(
+    screen.getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW),
+    'message',
+    { nativeEvent: { data: 'social-terms-scroll-end' } },
+  );
+  fireEvent.press(
+    screen.getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON),
+  );
+};
+
 const FeedExitStackProbe = () => {
   const route = useRoute();
   const tabName =
@@ -429,17 +440,6 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   describe('Social Terms of Use', () => {
-    const agreeToTerms = () => {
-      fireEvent(
-        screen.getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW),
-        'message',
-        { nativeEvent: { data: 'social-terms-scroll-end' } },
-      );
-      fireEvent.press(
-        screen.getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON),
-      );
-    };
-
     beforeEach(async () => {
       await resetSocialTermsAcceptance();
     });
@@ -527,6 +527,29 @@ describe('SocialProfileOnboardingView', () => {
       expect(
         screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
       ).toBeOnTheScreen();
+    });
+
+    it('returns to the caller instead of opening Social after agreeing on the termsOnly route', async () => {
+      renderSocialProfileOnboarding(
+        [{ name: Routes.HOME_TABS, Component: FeedExitStackProbe }],
+        { initialParams: { termsOnly: true } },
+      );
+
+      expect(
+        await screen.findByTestId(SocialTermsSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+
+      agreeToTerms();
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(SocialTermsSheetSelectorsIDs.SHEET),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).not.toBeOnTheScreen();
+      expect(hasAcceptedSocialTerms()).toBe(true);
     });
   });
 
@@ -1967,6 +1990,31 @@ describe('SocialProfileOnboardingView', () => {
       expect(
         screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
       ).not.toBeOnTheScreen();
+      expect(
+        Engine.context.ProfileController.createProfile,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('opens the Social tab once the terms are agreed for an existing profile', async () => {
+      await resetSocialTermsAcceptance();
+      jest
+        .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
+        .mockResolvedValue(EXISTING_PROFILE);
+
+      renderSocialProfileOnboarding([
+        { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
+      ]);
+
+      expect(
+        await screen.findByTestId(SocialTermsSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+
+      agreeToTerms();
+
+      expect(
+        await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).toHaveTextContent(Routes.SOCIAL.TAB);
+      expect(hasAcceptedSocialTerms()).toBe(true);
       expect(
         Engine.context.ProfileController.createProfile,
       ).not.toHaveBeenCalled();
