@@ -61,7 +61,6 @@ describe('getMembershipBannerModel', () => {
       status: SUBSCRIPTION_STATUSES.active,
       trialPeriodDays: 14,
       trialEnd: '2026-10-04T12:00:00.000Z',
-      cancelAtPeriodEnd: true,
     });
 
     const model = getMembershipBannerModel(subscription);
@@ -169,6 +168,62 @@ describe('getMembershipBannerModel', () => {
       });
     },
   );
+
+  it('shows Cancelled and the renew-before date when an active plan ends at period end', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
+      cancelAtPeriodEnd: true,
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.statusKind).toBe(MembershipStatusKind.Cancelled);
+    expect(model.statusKey).toBe('pro_hub.membership_status.cancelled');
+    expect(model.iconColor).toBe(IconColor.WarningDefault);
+    expect(model.alert).toEqual({
+      severity: BannerAlertSeverity.Warning,
+      titleKey: 'pro_hub.membership_alert.cancelled.title',
+      descriptionKey: 'pro_hub.membership_alert.cancelled.description',
+      descriptionValues: { date: 'Oct 12, 2026' },
+      actionKey: 'pro_hub.membership_alert.cancelled.action',
+      action: MembershipAlertAction.Renew,
+    });
+  });
+
+  it('shows Cancelled instead of Free trial when a trialing plan ends at period end', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.trialing,
+      trialPeriodDays: 14,
+      trialEnd: '2026-10-04T12:00:00.000Z',
+      cancelAtPeriodEnd: true,
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.statusKind).toBe(MembershipStatusKind.Cancelled);
+    expect(model.statusKey).toBe('pro_hub.membership_status.cancelled');
+    expect(model.alert?.descriptionValues).toEqual({ date: 'Oct 12, 2026' });
+    expect(model.alert?.action).toBe(MembershipAlertAction.Renew);
+  });
+
+  it('shows Cancelled instead of the renewal-failed alert when cancellation is scheduled', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.active,
+      cancelAtPeriodEnd: true,
+      lastInvoice: {
+        id: 'inv-failed',
+        status: INVOICE_PAYMENT_STATUSES.FAILED,
+      },
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.statusKind).toBe(MembershipStatusKind.Cancelled);
+    expect(model.alert?.titleKey).toBe(
+      'pro_hub.membership_alert.cancelled.title',
+    );
+    expect(model.alert?.action).toBe(MembershipAlertAction.Renew);
+  });
 
   it('shows Cancelled and the renew-before date for a canceled plan', () => {
     const subscription = createSubscription({

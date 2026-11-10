@@ -99,6 +99,28 @@ const cancelledAlert = (date: string | undefined): MembershipAlert => {
   };
 };
 
+const cancelledModel = (subscription: Subscription): MembershipBannerModel => ({
+  statusKind: MembershipStatusKind.Cancelled,
+  statusKey: 'pro_hub.membership_status.cancelled',
+  iconColor: IconColor.WarningDefault,
+  alert: cancelledAlert(
+    subscription.currentPeriodEnd || subscription.canceledAt,
+  ),
+});
+
+/**
+ * A period-end cancellation stays `active` or `trialing` until the period
+ * ends. That still ends the membership, so the banner uses the Cancelled
+ * model instead of Active or Free trial.
+ *
+ * @param subscription - The displayed Plus subscription.
+ * @returns Whether cancel-at-period-end should show as Cancelled.
+ */
+const isScheduledCancellation = (subscription: Subscription): boolean =>
+  subscription.cancelAtPeriodEnd === true &&
+  (subscription.status === SUBSCRIPTION_STATUSES.active ||
+    subscription.status === SUBSCRIPTION_STATUSES.trialing);
+
 const addFundsAlert = (date: string | undefined): MembershipAlert => {
   const formattedDate = formatSubscriptionPeriodEnd(date);
 
@@ -158,8 +180,12 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
  * trial shows Active, as do `active` and `awaiting_funds`. A plan waiting
  * for funds, or an active plan whose latest invoice failed, also shows the
  * existing add-funds or renewal-failed alert. `past_due` shows Overdue.
- * `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled.
- * A missing plan, or a status this screen does not map, shows Unavailable.
+ * `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled, as
+ * does an `active` or `trialing` plan with `cancelAtPeriodEnd`. That
+ * scheduled cancellation wins over Free trial and the active alerts, and
+ * uses `currentPeriodEnd`, or `canceledAt` when that is missing, for the
+ * renew-before date. A missing plan, or a status this screen does not map,
+ * shows Unavailable.
  *
  * @param subscription - The displayed Plus subscription. Current wins over the last one.
  * @returns The status label, icon color, and alert for that status.
@@ -171,19 +197,15 @@ export const getMembershipBannerModel = (
     return UNAVAILABLE_MODEL;
   }
 
-  if (isMoneyAccountPlusFreeTrial(subscription)) {
-    return FREE_TRIAL_MODEL;
+  if (
+    subscription.status === SUBSCRIPTION_STATUSES.canceled ||
+    isScheduledCancellation(subscription)
+  ) {
+    return cancelledModel(subscription);
   }
 
-  if (subscription.status === SUBSCRIPTION_STATUSES.canceled) {
-    return {
-      statusKind: MembershipStatusKind.Cancelled,
-      statusKey: 'pro_hub.membership_status.cancelled',
-      iconColor: IconColor.WarningDefault,
-      alert: cancelledAlert(
-        subscription.currentPeriodEnd || subscription.canceledAt,
-      ),
-    };
+  if (isMoneyAccountPlusFreeTrial(subscription)) {
+    return FREE_TRIAL_MODEL;
   }
 
   if (subscription.status === SUBSCRIPTION_STATUSES.pastDue) {
