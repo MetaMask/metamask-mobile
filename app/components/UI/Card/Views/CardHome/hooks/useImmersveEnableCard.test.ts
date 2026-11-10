@@ -152,6 +152,41 @@ describe('useImmersveEnableCard', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('does not start a Money account approval while setup is being rechecked', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectImmersveMoneyAccountMode) {
+        return true;
+      }
+      return undefined;
+    });
+    mockUseImmersveCardProvisioning.mockReturnValue({
+      isProvisioning: true,
+      isReconciling: true,
+      pendingAction: { type: 'funding', write: {} as never },
+      resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard({
+        alerts: [{ type: 'card_provisioning', dismissable: false }],
+      } as never),
+    );
+
+    act(() => {
+      result.current.enableCard();
+    });
+
+    expect(mockApproveFunding).not.toHaveBeenCalled();
+    expect(mockResumePendingAction).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
   it('uses the Money home entrypoint when approval starts outside Card', () => {
     mockUseSelector.mockImplementation((selector) => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
