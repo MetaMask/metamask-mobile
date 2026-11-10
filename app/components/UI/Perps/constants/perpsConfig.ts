@@ -537,5 +537,7 @@ export const MOBILE_PRO_LAYOUT_DEFAULTS = {
   orderBookExpanded: true,
   orderBookPosition: 'right',
 } as const;
+/** Order form "available to trade" update throttle, matching its other live values. */
+export const PERPS_AVAILABLE_TO_TRADE_THROTTLE_MS = 1000;
 /** Maximum retained development submission/cancellation records and Scale form lifetimes. */
 export const PERPS_UI_OBSERVATION_LIMIT = 50;

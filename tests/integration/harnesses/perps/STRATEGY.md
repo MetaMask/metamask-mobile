@@ -50,6 +50,15 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Returns:** `{ provider, setCachedPrice, mocks: { client, wallet, subscription } }`
 - **Use cases:** see [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration
 
+### Perps Controller Streams — [`perps.ts`](perps.ts)
+
+- **Shape:** focused Shape D — real controller live-stream contract built on the Shape A I/O mocks
+- **Real:** `PerpsController` routing and `HyperLiquidProvider` stream mapping (e.g. `subscribeToAvailableToTrade` → `activeAssetData`)
+- **Mocked:** Shape A SDK/wallet/subscription I/O; tests shim Engine, the connection manager and account lookup to reach Mobile stream channels
+- **Factory:** `buildPerpsControllerHarness()`
+- **Returns:** `{ controller, subscription }`
+- **Use when:** a Mobile stream channel must be proven against Core's controller → provider subscription chain
+
 ### Perps Fee Resolution — [`perps.ts`](perps.ts)
 
 - **Shape:** focused Shape D — real controller fee preview built on the Shape A I/O mocks

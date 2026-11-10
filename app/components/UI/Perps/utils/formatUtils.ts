@@ -1610,40 +1610,40 @@ export const formatDateSection = (timestamp: number): string => {
 /**
  * Formats a limit price for display while preserving in-progress input — a
  * trailing "." or trailing zeros after the decimal survive, which
- * `formatPerpsFiat` alone would collapse.
+ * `formatPerpsFiat` alone would collapse. The draft follows the app locale's
+ * decimal separator and currency placement; the stored price stays canonical.
  */
 export const formatLimitPriceInput = (price: string): string => {
   if (!price || price === '0') {
     return '';
   }
 
-  if (price.endsWith('.') || /\.\d*0$/.test(price)) {
-    const parts = price.split('.');
-    const integerPart = parts[0] || '0';
-    const decimalPart = parts.length > 1 ? `.${parts[1]}` : '.';
-
-    const formatted = formatPerpsFiat(integerPart, {
-      ranges: [
-        {
-          condition: () => true,
-          threshold: 0,
-          maximumDecimals: 0,
-          minimumDecimals: 0,
-        },
-      ],
-    });
-
-    return `${formatted}${decimalPart}`;
-  }
-
-  return formatPerpsFiat(price, {
+  const isTrailingDecimal = price.endsWith('.');
+  const typedDecimals = Math.min(price.split('.')[1]?.length || 0, 7);
+  // A trailing "." has no digit to format: format one placeholder decimal and
+  // drop that digit below, so the separator lands where the locale puts it.
+  const formatted = formatPerpsFiat(isTrailingDecimal ? `${price}0` : price, {
     ranges: [
       {
         condition: () => true,
         threshold: 0.00000001,
         maximumDecimals: 7,
-        minimumDecimals: Math.min(price.split('.')[1]?.length || 0, 7),
+        minimumDecimals: isTrailingDecimal ? 1 : typedDecimals,
       },
     ],
+    stripTrailingZeros: false,
   });
+
+  if (!isTrailingDecimal) {
+    return formatted;
+  }
+
+  const { decimal } = getPerpsLocaleSeparators();
+  const placeholder = `${decimal}${getPerpsLocaleGrouping().localizedDigits[0]}`;
+  const placeholderIndex = formatted.lastIndexOf(placeholder);
+  return placeholderIndex === -1
+    ? formatted
+    : `${formatted.slice(0, placeholderIndex + decimal.length)}${formatted.slice(
+        placeholderIndex + placeholder.length,
+      )}`;
 };

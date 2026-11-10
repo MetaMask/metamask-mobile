@@ -2876,5 +2876,21 @@ describe('formatUtils', () => {
     it('formats a complete number', () => {
       expect(formatLimitPriceInput('3000')).toBe('$3,000');
     });
+
+    it.each([
+      ['1234.', '1.234,\u00a0$'],
+      ['1234.50', '1.234,50\u00a0$'],
+      ['1234.5', '1.234,5\u00a0$'],
+    ])('keeps the draft %s in German number order', (draft, expected) => {
+      // Arrange
+      I18n.locale = 'de';
+
+      // Act
+      const formatted = formatLimitPriceInput(draft);
+      I18n.locale = 'en-US';
+
+      // Assert
+      expect(formatted).toBe(expected);
+    });
   });
 });

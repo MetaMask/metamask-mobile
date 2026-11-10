@@ -437,6 +437,7 @@ export function buildPerpsIntegrationHarness(
     subscribeToOrderBook: jest.fn().mockReturnValue(jest.fn()),
     subscribeToTwapOrders: jest.fn().mockReturnValue(jest.fn()),
     subscribeToOICaps: jest.fn().mockReturnValue(jest.fn()),
+    subscribeToActiveAssetData: jest.fn().mockReturnValue(jest.fn()),
     clearAll: jest.fn(),
     restoreSubscriptions: jest.fn().mockResolvedValue(undefined),
     updateFeatureFlags: jest.fn().mockResolvedValue(undefined),
@@ -548,6 +549,21 @@ function buildHarnessController(
     infrastructure,
     deferEligibilityCheck: true,
   });
+}
+
+/**
+ * Builds a real PerpsController around the Shape A I/O mocks for live-stream
+ * contracts that run controller → HyperLiquidProvider → subscription service.
+ */
+export function buildPerpsControllerHarness(): {
+  controller: PerpsController;
+  subscription: jest.Mocked<HyperLiquidSubscriptionService>;
+} {
+  const { mocks } = buildPerpsIntegrationHarness();
+  return {
+    controller: buildHarnessController(mocks.infrastructure),
+    subscription: mocks.subscription,
+  };
 }
 
 /**

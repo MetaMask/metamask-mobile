@@ -87,7 +87,8 @@ export const formatTwapElapsedClock = (
 };
 
 /**
- * Render basis points as a percent string, e.g. 2500 -> `25%`.
+ * Render basis points as a percent string at shared percentage precision,
+ * e.g. 2500 -> `25.00%`.
  * The controller reports TWAP fill and time progress in bps.
  */
 export const formatTwapProgressPercent = (bps: number): string => {

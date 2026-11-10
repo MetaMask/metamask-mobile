@@ -1002,6 +1002,7 @@ class PerpsConnectionManagerClass {
               streamManager.topOfBook.clearCache();
               streamManager.focusedPrice.clearCache();
               streamManager.candles.clearCache();
+              streamManager.availableToTrade.clearCache();
               this.setInitializedMarketContextKey(null);
               // Hard teardown (streams torn down, caches cleared): abandon any
               // pending confirmation CUF as `disconnected`, or a later reconnect
@@ -1576,6 +1577,7 @@ class PerpsConnectionManagerClass {
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
       streamManager.fills.clearCache();
+      streamManager.availableToTrade.clearCache();
       if (!skipMarketNotify) {
         streamManager.prices.clearCache();
         streamManager.marketData.clearCache();
@@ -1699,6 +1701,7 @@ class PerpsConnectionManagerClass {
       streamManager.topOfBook.reconnect();
       streamManager.focusedPrice.reconnect();
       streamManager.candles.reconnect();
+      streamManager.availableToTrade.reconnect();
 
       // Stage 4: Pre-load subscriptions again with new account
       const preloadStart = performance.now();

@@ -71,7 +71,7 @@ describe('formatTwapProgressPercent', () => {
     expect(result).toBe('99.99%');
   });
 
-  it('keeps fractional progress without fixed-width trailing zeros', () => {
+  it('keeps fractional progress at shared percentage precision', () => {
     // Arrange / Act
     const result = formatTwapProgressPercent(2505);
 

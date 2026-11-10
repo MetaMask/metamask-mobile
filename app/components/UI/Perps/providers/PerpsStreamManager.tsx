@@ -255,8 +255,7 @@ abstract class StreamChannel<T> {
     sourceProviderId?: PerpsProviderType,
   ) {
     if (source === 'fresh') {
-      this.providerErrors.delete(sourceProviderId ?? 'default');
-      this.streamError = this.providerErrors.values().next().value ?? null;
+      this.clearProviderError(sourceProviderId);
     }
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
@@ -288,6 +287,18 @@ abstract class StreamChannel<T> {
    */
   public getLastDeliveredAt(): number | null {
     return this.lastDeliveredAt;
+  }
+
+  /** A fresh delivery from a provider ends that provider's failure. */
+  protected clearProviderError(sourceProviderId?: PerpsProviderType): void {
+    this.providerErrors.delete(sourceProviderId ?? 'default');
+    this.streamError = this.providerErrors.values().next().value ?? null;
+  }
+
+  /** Forget every provider failure, e.g. when the channel moves to another stream. */
+  protected clearProviderErrors(): void {
+    this.providerErrors.clear();
+    this.streamError = null;
   }
 
   /** Current provider failure, retained while other providers keep delivering. */
@@ -778,8 +789,7 @@ abstract class StreamChannel<T> {
   }
 
   public clearCache(): void {
-    this.providerErrors.clear();
-    this.streamError = null;
+    this.clearProviderErrors();
     this.invalidateSubscriptionContext();
     // End any first-data trace still open, so clearing the cache before first
     // data doesn't leave a span running until the 5-minute auto-clean.
@@ -2464,6 +2474,7 @@ class AvailableToTradeStreamChannel extends StreamChannel<
             return;
           }
           this.cache.set(key, value);
+          this.clearProviderError(route.providerId);
           this.notifySubscribersForSymbols(value, [key]);
         },
         onError: (error: Error) => {
@@ -2471,6 +2482,8 @@ class AvailableToTradeStreamChannel extends StreamChannel<
             return;
           }
           this.cache.delete(key);
+          // A value queued before the failure must not bring it back.
+          this.cancelPendingDeliveries(key);
           this.notifyError(error, route.providerId);
         },
       });
@@ -2507,8 +2520,7 @@ class AvailableToTradeStreamChannel extends StreamChannel<
 
     if (this.currentKey !== key) {
       // One venue stream at a time: an order form shows one market.
-      this.disconnect();
-      this.currentKey = key;
+      this.switchRoute(key);
     }
 
     const unsubscribe = this.subscribe({
@@ -2539,9 +2551,29 @@ class AvailableToTradeStreamChannel extends StreamChannel<
     if (!nextKey) {
       return;
     }
-    this.disconnect();
-    this.currentKey = nextKey;
+    this.switchRoute(nextKey);
     this.connect();
+  }
+
+  /** Errors belong to the route that reported them, not to the next one. */
+  private switchRoute(key: string): void {
+    this.disconnect();
+    this.clearProviderErrors();
+    this.currentKey = key;
+  }
+
+  private cancelPendingDeliveries(key: string): void {
+    this.symbolSubscribers.get(key)?.forEach((id) => {
+      const subscriber = this.subscribers.get(id);
+      if (!subscriber) {
+        return;
+      }
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+    });
   }
 
   public reconnect(): void {

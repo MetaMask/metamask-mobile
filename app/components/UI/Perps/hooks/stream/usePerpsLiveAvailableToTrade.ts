@@ -4,13 +4,14 @@ import type {
   PerpsProviderType,
 } from '@metamask/perps-controller';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import { PERPS_AVAILABLE_TO_TRADE_THROTTLE_MS } from '../../constants/perpsConfig';
 
 export interface UsePerpsLiveAvailableToTradeOptions {
   /** Market to read, including any routing prefix (e.g. `BTC`, `xyz:TSLA`). */
   symbol?: string;
   /** Provider that lists the market; aggregated mode routes by it. */
   providerId?: PerpsProviderType;
-  /** Throttle delay in milliseconds (default: 1000ms, as other order-form values). */
+  /** Throttle delay in milliseconds (default: `PERPS_AVAILABLE_TO_TRADE_THROTTLE_MS`). */
   throttleMs?: number;
 }
 
@@ -24,7 +25,7 @@ export interface UsePerpsLiveAvailableToTradeOptions {
 export function usePerpsLiveAvailableToTrade({
   symbol,
   providerId,
-  throttleMs = 1000,
+  throttleMs = PERPS_AVAILABLE_TO_TRADE_THROTTLE_MS,
 }: UsePerpsLiveAvailableToTradeOptions): PerpsAvailableToTrade | undefined {
   const streamManager = usePerpsStream();
   const [availableToTrade, setAvailableToTrade] = useState<
