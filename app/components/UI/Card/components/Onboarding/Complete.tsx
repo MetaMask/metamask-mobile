@@ -139,6 +139,24 @@ const Complete = () => {
   const descriptionStyle = useCascadeStyle(1, cascadeState);
   const buttonStyle = useCascadeStyle(2, cascadeState);
 
+  // A view at zero opacity still takes taps, so the button only becomes
+  // pressable once its fade-in starts (straight away under Reduce Motion).
+  const [isButtonInteractive, setIsButtonInteractive] = useState(false);
+  useEffect(() => {
+    if (cascadeState === 'static') {
+      setIsButtonInteractive(true);
+      return undefined;
+    }
+    if (cascadeState !== 'play') {
+      return undefined;
+    }
+    const timeout = setTimeout(
+      () => setIsButtonInteractive(true),
+      CASCADE_LEAD_MS + 2 * CASCADE_STAGGER_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [cascadeState]);
+
   let checkMode: 'pending' | 'animate' | 'static' = 'pending';
   if (reduceMotion === true) {
     checkMode = 'static';
@@ -277,7 +295,11 @@ const Complete = () => {
           }
         />
       </ScrollView>
-      <Animated.View style={buttonStyle}>
+      <Animated.View
+        style={buttonStyle}
+        pointerEvents={isButtonInteractive ? 'auto' : 'none'}
+        testID={CompleteSelectors.FOOTER}
+      >
         <Box twClassName="gap-2 px-4 pb-2 pt-4">
           <Button
             variant={ButtonVariant.Primary}
