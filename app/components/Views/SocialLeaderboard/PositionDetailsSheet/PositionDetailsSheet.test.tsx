@@ -237,8 +237,8 @@ const tagFill = (label: string) => {
   let node: { parent?: unknown; props?: { style?: unknown } } | null =
     screen.getByText(label);
   while (node) {
-    const backgroundColor = StyleSheet.flatten(
-      node.props?.style,
+    const backgroundColor = (
+      StyleSheet.flatten(node.props?.style) as ViewStyle | undefined
     )?.backgroundColor;
     if (backgroundColor) return backgroundColor;
     node = (node.parent as typeof node) ?? null;
