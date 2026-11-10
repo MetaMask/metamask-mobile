@@ -706,7 +706,7 @@ export function BatchSellTokenSelect() {
           />
         ) : (
           <>
-            <Box twClassName="px-4 pt-2">
+            <Box twClassName="px-4 pt-3">
               <Text
                 variant={TextVariant.HeadingLg}
                 color={TextColor.TextDefault}
@@ -721,7 +721,7 @@ export function BatchSellTokenSelect() {
                 {strings('bridge.batch_sell_select_subtitle')}
               </Text>
             </Box>
-            <Box twClassName="py-4 pl-4">
+            <Box twClassName="pt-3 pb-4 pl-4">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
