@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -19,6 +18,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from '../../hooks/useLaunchSumSub';
+import VbaFoxLoader from '../../../Ramp/Views/VirtualBankAccount/VbaFoxLoader';
 import type { VbaIdentityVerificationCompletion } from './types';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
@@ -29,12 +29,13 @@ export const VbaSumSubKycSelectorsIDs = {
   BACK_BUTTON: 'vba-sumsub-kyc-back-button',
   ERROR: 'vba-sumsub-kyc-error',
   RETRY_BUTTON: 'vba-sumsub-kyc-retry-button',
+  LOADER: 'vba-sumsub-kyc-loader',
 } as const;
 
 /**
  * Host screen for the `KycRequired` stage. It opens the SumSub SDK on mount
  * (via {@link useLaunchSumSub}) and reports the KYC outcome. While
- * launching it shows a spinner (the SDK presents itself over this screen); if
+ * launching it shows the fox loader (the SDK presents itself over this screen); if
  * the launch fails it surfaces a retryable error instead of bouncing back to
  * the previous screen. Closing the provider before submitting returns to the
  * caller (money home); re-entry relaunches the provider directly. Provider
@@ -130,7 +131,7 @@ const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
         >
-          <ActivityIndicator />
+          <VbaFoxLoader testID={VbaSumSubKycSelectorsIDs.LOADER} />
         </Box>
       )}
     </SafeAreaView>

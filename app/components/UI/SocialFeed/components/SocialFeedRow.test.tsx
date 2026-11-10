@@ -153,4 +153,15 @@ describe('areSocialFeedRowPropsEqual', () => {
 
     expect(equal).toBe(false);
   });
+
+  it('rerenders when the viewer profile ID changes', () => {
+    const previous = rowProps({ viewerProfileId: 'profile-1' });
+
+    const equal = areSocialFeedRowPropsEqual(previous, {
+      ...previous,
+      viewerProfileId: 'profile-2',
+    });
+
+    expect(equal).toBe(false);
+  });
 });

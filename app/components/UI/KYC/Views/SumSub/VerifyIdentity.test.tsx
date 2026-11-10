@@ -8,9 +8,9 @@ import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import {
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
-} from '../../../Ramp/Views/VirtualBankAccount/constants';
+} from '../../constants';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
-import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
+import { trackKycEvent } from '../../utils/trackKycEvent';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_CONTENT_STATE,
@@ -18,9 +18,8 @@ import {
   KYC_SCREEN_PERFORMANCE_CONFIG,
 } from '../../kycScreenPerformance';
 
-jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaAnalytics', () => ({
-  ...jest.requireActual('../../../Ramp/Views/VirtualBankAccount/vbaAnalytics'),
-  trackVbaEvent: jest.fn(),
+jest.mock('../../utils/trackKycEvent', () => ({
+  trackKycEvent: jest.fn(),
 }));
 
 jest.mock('../../hooks/useKycSessionDisclaimers');
@@ -244,7 +243,7 @@ describe('VbaVerifyIdentity', () => {
   describe('analytics', () => {
     const identityTermsProperties = () =>
       jest
-        .mocked(trackVbaEvent)
+        .mocked(trackKycEvent)
         .mock.calls.filter(
           ([event]) => event.category === 'KYC Identity Terms Updated',
         )
@@ -287,7 +286,7 @@ describe('VbaVerifyIdentity', () => {
         'page1_accepted',
       ]);
       expect(
-        jest.mocked(trackVbaEvent).mock.invocationCallOrder.at(-1),
+        jest.mocked(trackKycEvent).mock.invocationCallOrder.at(-1),
       ).toBeLessThan(mockOnContinue.mock.invocationCallOrder[0]);
     });
   });
