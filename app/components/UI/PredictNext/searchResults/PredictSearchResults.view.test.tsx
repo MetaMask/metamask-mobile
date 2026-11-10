@@ -47,6 +47,11 @@ import {
   PredictSearchResultRowTestIds,
 } from './PredictSearchResultRow.testIds';
 
+/** The mocked token search answers with the trending fixture's BTC row. */
+const bitcoinSearchResults = mockTrendingTokensData.filter(
+  ({ symbol }) => symbol === 'BTC',
+);
+
 const LEGACY_LANE: PredictConfig = {
   enabled: false,
   venues: { polymarket: { enabled: false }, kalshi: { enabled: false } },
@@ -333,11 +338,6 @@ const waitForTokenSearch = async (
   );
   await view.findByText(String(bitcoinToken?.name), HIDDEN);
 };
-
-/** The mocked token search answers with the trending fixture's BTC row. */
-const bitcoinSearchResults = mockTrendingTokensData.filter(
-  ({ symbol }) => symbol === 'BTC',
-);
 
 describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
   /** What Kalshi search answers, read at call time. */
