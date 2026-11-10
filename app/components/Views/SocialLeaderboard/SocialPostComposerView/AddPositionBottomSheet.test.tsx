@@ -50,6 +50,18 @@ const closedSpot: Position = {
   currentValueUSD: 0,
 };
 
+const createTraderPositions = (overrides: Record<string, unknown> = {}) => ({
+  openPositions: [openSpot, openPerp],
+  closedPositions: [closedSpot],
+  isLoadingOpen: false,
+  isLoadingClosed: false,
+  error: null,
+  openError: null,
+  closedError: null,
+  refetch: mockRefetch,
+  ...overrides,
+});
+
 const mockUseTraderPositions = jest.fn();
 
 jest.mock('../TraderProfileView/hooks', () => ({
@@ -209,7 +221,7 @@ describe('AddPositionBottomSheet', () => {
     ).toHaveTextContent('social_leaderboard.composer.empty_help');
   });
 
-  it('opens hidden position info from the empty state link', () => {
+  it('opens hidden position info from the link when both lists are empty', () => {
     mockUseTraderPositions.mockReturnValue({
       openPositions: [],
       closedPositions: [],
@@ -301,5 +313,118 @@ describe('AddPositionBottomSheet', () => {
     expect(
       screen.queryByTestId(AddPositionBottomSheetSelectorsIDs.ERROR),
     ).toBeNull();
+  });
+});
+
+describe('AddPositionBottomSheet hidden position link', () => {
+  const onSelect = jest.fn();
+  const onClose = jest.fn();
+  const address = '0x1111111111111111111111111111111111111111';
+
+  const renderSheet = () =>
+    renderWithProvider(
+      <AddPositionBottomSheet
+        address={address}
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
+    );
+
+  it('shows the link below a populated open list', () => {
+    mockUseTraderPositions.mockReturnValue(createTraderPositions());
+
+    renderSheet();
+
+    expect(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY_HELP),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the link below a populated closed list', () => {
+    mockUseTraderPositions.mockReturnValue(createTraderPositions());
+
+    renderSheet();
+    fireEvent.press(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.CLOSED_TAB),
+    );
+
+    expect(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY_HELP),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the link on the empty closed tab while open positions exist', () => {
+    mockUseTraderPositions.mockReturnValue(
+      createTraderPositions({ closedPositions: [] }),
+    );
+
+    renderSheet();
+    fireEvent.press(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.CLOSED_TAB),
+    );
+
+    expect(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY_HELP),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the link while open positions are loading', () => {
+    mockUseTraderPositions.mockReturnValue(
+      createTraderPositions({ openPositions: [], isLoadingOpen: true }),
+    );
+
+    renderSheet();
+
+    expect(
+      screen.queryByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY_HELP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the link when open positions fail to load', () => {
+    mockUseTraderPositions.mockReturnValue(
+      createTraderPositions({
+        openPositions: [],
+        error: 'network',
+        openError: 'network',
+      }),
+    );
+
+    renderSheet();
+
+    expect(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY_HELP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the link when open positions fail but some are still listed', () => {
+    mockUseTraderPositions.mockReturnValue(
+      createTraderPositions({
+        openPositions: [openPerp],
+        error: 'network',
+        openError: 'network',
+      }),
+    );
+
+    renderSheet();
+
+    expect(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY_HELP),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the visible positions title when the link is pressed', () => {
+    mockUseTraderPositions.mockReturnValue(createTraderPositions());
+
+    renderSheet();
+    fireEvent.press(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY_HELP),
+    );
+
+    expect(
+      screen.getByText('social_leaderboard.composer.hidden_position_title'),
+    ).toBeOnTheScreen();
   });
 });

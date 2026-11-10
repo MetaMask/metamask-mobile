@@ -73,6 +73,9 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
     openPositions.length === 0 &&
     closedPositions.length === 0;
   const showPostEmptyCopy = tab === 'open' || bothEmpty;
+  const showHiddenPositionLink =
+    !(error && positions.length === 0) &&
+    !(isLoading && positions.length === 0);
 
   const openTokens = useMemo(
     () => openPositions.filter((position) => !isPerpPosition(position)),
@@ -264,16 +267,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                       }}
                       twClassName="bg-transparent"
                       testID={AddPositionBottomSheetSelectorsIDs.EMPTY}
-                    >
-                      {showPostEmptyCopy ? (
-                        <TextButton
-                          onPress={handleShowHiddenPositionInfo}
-                          testID={AddPositionBottomSheetSelectorsIDs.EMPTY_HELP}
-                        >
-                          {strings('social_leaderboard.composer.empty_help')}
-                        </TextButton>
-                      ) : null}
-                    </TabEmptyState>
+                    />
                   </Box>
                 ) : tab === 'open' ? (
                   renderOpenSections()
@@ -281,6 +275,16 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                   renderClosedList()
                 )}
               </ScrollView>
+              {showHiddenPositionLink ? (
+                <Box twClassName="items-center px-4 pt-2 pb-4">
+                  <TextButton
+                    onPress={handleShowHiddenPositionInfo}
+                    testID={AddPositionBottomSheetSelectorsIDs.EMPTY_HELP}
+                  >
+                    {strings('social_leaderboard.composer.empty_help')}
+                  </TextButton>
+                </Box>
+              ) : null}
             </BottomSheet>
             {isHiddenPositionInfoOpen ? (
               <HiddenPositionInfo onDismiss={handleHideHiddenPositionInfo} />
