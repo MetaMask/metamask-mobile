@@ -41,6 +41,7 @@ import {
   ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
   resetSocialTermsAcceptance,
+  takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { SocialTermsSheetSelectorsIDs } from '../terms/SocialTermsSheet';
 
@@ -262,6 +263,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   afterEach(async () => {
+    takePendingSocialEntry();
     await resetSocialTermsAcceptance();
     clearLocalSocialProfile();
     netInfoMock.__resetMockNetInfo();
@@ -486,6 +488,34 @@ describe('SocialProfileOnboardingView', () => {
 
       expect(hasAcceptedSocialTerms()).toBe(false);
       expect(openBlockedEntry).not.toHaveBeenCalled();
+    });
+
+    it('forgets the blocked Social entry when onboarding closes', () => {
+      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+      const { unmount } = renderSocialProfileOnboarding([], {
+        initialParams: { termsOnly: true },
+      });
+
+      unmount();
+
+      expect(takePendingSocialEntry()).toBeUndefined();
+    });
+
+    it('opens the blocked Social entry instead of the feed after a new profile', async () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      await acceptSocialTerms();
+      renderSocialProfileOnboarding([
+        { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
+      ]);
+
+      await reachReadyStep();
+      await leaveReadyStep();
+
+      expect(openBlockedEntry).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).not.toBeOnTheScreen();
     });
 
     it('skips the sheet when the current terms were already accepted', async () => {

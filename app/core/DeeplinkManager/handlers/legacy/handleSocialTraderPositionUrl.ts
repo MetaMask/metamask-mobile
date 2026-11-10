@@ -106,18 +106,29 @@ export const handleSocialTraderPositionUrl = ({
     const openedFromNotification = notificationSubtype !== undefined;
 
     const isV1Treatment = isSocialV1Treatment();
-    const openPosition = () =>
-      NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
-        positionId,
-        traderId,
-        source: openedFromNotification ? 'notification' : 'deep_link',
-        originalEntryPoint: openedFromNotification
-          ? 'notification'
-          : 'deep_link',
-        notificationSubtype,
-        notificationTemplateVariant,
-        isSocialV1: isV1Treatment,
-      });
+    // Catches on its own because the terms screen can run it after this
+    // handler's try/catch has returned.
+    const openPosition = () => {
+      try {
+        NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
+          positionId,
+          traderId,
+          source: openedFromNotification ? 'notification' : 'deep_link',
+          originalEntryPoint: openedFromNotification
+            ? 'notification'
+            : 'deep_link',
+          notificationSubtype,
+          notificationTemplateVariant,
+          isSocialV1: isV1Treatment,
+        });
+      } catch (error) {
+        DevLogger.log(
+          '[handleSocialTraderPositionUrl] Failed to open the position:',
+          error,
+        );
+        navigateToFallback();
+      }
+    };
     if (
       isV1Treatment &&
       !ensureSocialTermsAccepted(

@@ -52,7 +52,9 @@ const mockGoBack = jest.fn();
 const mockOpenPerpsOrder = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
-const mockEnsureSocialTermsAccepted = jest.fn(() => true);
+const mockEnsureSocialTermsAccepted = jest.fn<boolean, [(() => void)?]>(
+  () => true,
+);
 let mockParams: PositionDetailsSheetParams;
 let mockSheetData: PositionSheetData;
 let mockProfile: { profileId: string; linkedAccountAddress?: string } | null;
@@ -1072,6 +1074,21 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+    });
+
+    it('copies the trade once social terms are accepted', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
+      );
+      expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+      act(() => mockEnsureSocialTermsAccepted.mock.calls[0][0]?.());
+
+      expect(mockOpenPerpsOrder).toHaveBeenCalledTimes(1);
     });
 
     it('skips copy trade when there is no linked social wallet', () => {

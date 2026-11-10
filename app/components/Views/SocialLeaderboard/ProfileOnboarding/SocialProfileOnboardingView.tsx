@@ -407,6 +407,14 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   useEffect(() => cancelConnectX, [cancelConnectX]);
 
+  // A declined entry must not run after a later, unrelated onboarding.
+  useEffect(
+    () => () => {
+      takePendingSocialEntry();
+    },
+    [],
+  );
+
   const handleClose = useCallback(() => {
     cancelConnectX();
     setIsConnectingX(false);
@@ -941,6 +949,12 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleFinish = useCallback(() => {
     if (!profileCreatedRef.current) {
+      return;
+    }
+    const openPendingEntry = takePendingSocialEntry();
+    if (openPendingEntry) {
+      navigation.goBack();
+      openPendingEntry();
       return;
     }
     if (draft.path === 'x') {

@@ -319,24 +319,30 @@ const PositionDetailsSheet = () => {
     [data.perpTradeSymbol, openPerpsOrder],
   );
 
-  const handleCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsAccepted() || !ensureSocialProfileOnboarding()) {
-      return;
-    }
-    if (data.isPerp) {
-      handlePerpsOrder(data.perpDirection ?? 'long', data.leverage);
-      return;
-    }
-    openQuickBuy('buy');
-  }, [
-    data.isPerp,
-    data.perpDirection,
-    data.leverage,
-    ensureSocialProfileOnboarding,
-    ensureSocialTermsAccepted,
-    handlePerpsOrder,
-    openQuickBuy,
-  ]);
+  const handleCopyTrade = useCallback(
+    function copyTrade(): void {
+      if (
+        !ensureSocialTermsAccepted(copyTrade) ||
+        !ensureSocialProfileOnboarding()
+      ) {
+        return;
+      }
+      if (data.isPerp) {
+        handlePerpsOrder(data.perpDirection ?? 'long', data.leverage);
+        return;
+      }
+      openQuickBuy('buy');
+    },
+    [
+      data.isPerp,
+      data.perpDirection,
+      data.leverage,
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      handlePerpsOrder,
+      openQuickBuy,
+    ],
+  );
 
   const fillMarketCapPerPrice =
     !data.isPerp && position ? deriveMarketCapPerPrice(position) : null;

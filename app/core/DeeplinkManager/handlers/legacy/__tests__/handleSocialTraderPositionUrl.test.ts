@@ -113,6 +113,24 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(mockBuild).toHaveBeenCalledTimes(1);
   });
 
+  it('falls back to Social home when the position fails to open after Accept', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
+    handleSocialTraderPositionUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+    mockNavigate.mockImplementationOnce(() => {
+      throw new Error('Navigator not ready');
+    });
+    const onAccepted = jest.mocked(ensureSocialTermsAccepted).mock
+      .calls[0]?.[1];
+
+    expect(() => onAccepted?.()).not.toThrow();
+    expect(mockNavigate).toHaveBeenLastCalledWith('SocialV0View', undefined, {
+      pop: true,
+    });
+  });
+
   it('does not open the fallback when the Social terms are not accepted', () => {
     mockIsSocialV1Treatment.mockReturnValue(true);
     jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
