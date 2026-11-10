@@ -7,6 +7,7 @@ import { driverFixture } from './driver.fixture.ts';
 import { performanceTrackerFixture } from './performanceTracker.fixture.ts';
 import { phaseTimerFixture } from './phaseTimer.fixture.ts';
 import { appProfilingFixture } from './appProfiling.fixture.ts';
+import { androidDeviceLogsFixture } from './androidDeviceLogs.fixture.ts';
 
 export type {
   CurrentDeviceDetails,
@@ -25,6 +26,10 @@ export const test = base.extend<TestLevelFixtures, WorkerLevelFixtures>({
   ...currentDeviceDetailsFixture,
   ...driverFixture,
   ...performanceTrackerFixture,
+  // Registered before `phaseTimer` so its `adb logcat -c` runs before the
+  // `driver` fixture creates the session: app launch / Fabric mount logs from
+  // session creation are then inside the captured window.
+  ...androidDeviceLogsFixture,
   ...phaseTimerFixture,
   ...appProfilingFixture,
 });

@@ -44,6 +44,13 @@ export interface WorkerLevelFixtures {
 
 export interface TestLevelFixtures {
   /**
+   * Android device log capture. Auto fixture: clears the logcat buffer before
+   * each test and attaches a filtered dump on failure (Android local devices
+   * only; iOS and cloud devices are a no-op).
+   */
+  androidDeviceLogs: void;
+
+  /**
    * Opt-in Hermes `.cpuprofile` harvest for performance specs
    * (`COLLECT_HERMES_CPUPROFILES=true`).
    */
