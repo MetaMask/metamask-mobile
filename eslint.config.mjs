@@ -17,21 +17,37 @@ const compat = new FlatCompat({
 // checks that are on today. Fast checks that are off stay off.
 const legacy = require('./.eslintrc.js');
 const typescriptExtend = '@metamask/eslint-config-typescript';
-const typescriptOverride = legacy.overrides.find((override) =>
+const typescriptOverrideIndex = legacy.overrides.findIndex((override) =>
   override.extends?.includes(typescriptExtend),
 );
-const legacyWithoutTypescriptExtend = {
+if (typescriptOverrideIndex === -1) {
+  throw new Error(
+    'Expected .eslintrc.js to extend @metamask/eslint-config-typescript for TypeScript files.',
+  );
+}
+const typescriptOverride = legacy.overrides[typescriptOverrideIndex];
+// The *.{ts,tsx} override replaces rules such as no-restricted-syntax for
+// every TypeScript file. Overrides after it in .eslintrc.js put the narrower
+// fences back (view-test jest.mock, component-view fake timers, confirmations
+// selectors, page-object FrameworkDetector). Flat config keeps the last
+// matching block, so those overrides are appended after the TypeScript rules.
+const overridesBeforeTypescript = legacy.overrides.slice(
+  0,
+  typescriptOverrideIndex,
+);
+const overridesAfterTypescript = legacy.overrides.slice(
+  typescriptOverrideIndex + 1,
+);
+const legacyBeforeTypescript = {
   ...legacy,
   plugins: legacy.plugins.filter((plugin) => plugin !== '@typescript-eslint'),
-  overrides: legacy.overrides.filter(
-    (override) => override !== typescriptOverride,
-  ),
+  overrides: overridesBeforeTypescript,
 };
 
 // v15 is a flat config. The old `extends` key cannot load it. Apply it only
-// to TypeScript, then re-apply the overrides from .eslintrc.js so rules that
-// are off today stay off. Drop projectService so type-aware parsing stays on
-// today's `parserOptions.project`.
+// to TypeScript, then re-apply the *.{ts,tsx} override so rules that are off
+// today stay off. Drop projectService so type-aware parsing stays on today's
+// `parserOptions.project`.
 const typescriptBlocks = (
   Array.isArray(typescriptConfig) ? typescriptConfig : [typescriptConfig]
 ).map((block) => {
@@ -72,7 +88,7 @@ const ignores = [
 
 const config = [
   { ignores },
-  ...compat.config(legacyWithoutTypescriptExtend),
+  ...compat.config(legacyBeforeTypescript),
   ...typescriptBlocks,
   {
     files: ['**/*.{ts,tsx}'],
@@ -81,24 +97,35 @@ const config = [
 ];
 
 // typescript-eslint's recommended and recommended-type-checked configs each
-// register the same plugin. Flat config rejects the second registration.
+// register the same plugin, and the overrides reapplied below load plugins
+// the base config already loaded. Flat config rejects the second registration.
 const seenPlugins = new Set();
-const flatConfig = config.map((block) => {
-  if (!block.plugins) {
-    return block;
-  }
-  const plugins = {};
-  let dropped = false;
-  for (const [name, plugin] of Object.entries(block.plugins)) {
-    if (seenPlugins.has(name)) {
-      dropped = true;
-      continue;
+const withoutDuplicatePlugins = (blocks) =>
+  blocks.map((block) => {
+    if (!block.plugins) {
+      return block;
     }
-    seenPlugins.add(name);
-    plugins[name] = plugin;
-  }
-  return dropped ? { ...block, plugins } : block;
-});
+    const plugins = {};
+    let dropped = false;
+    for (const [name, plugin] of Object.entries(block.plugins)) {
+      if (seenPlugins.has(name)) {
+        dropped = true;
+        continue;
+      }
+      seenPlugins.add(name);
+      plugins[name] = plugin;
+    }
+    if (!dropped) {
+      return block;
+    }
+    if (Object.keys(plugins).length === 0) {
+      const rest = { ...block };
+      delete rest.plugins;
+      return rest;
+    }
+    return { ...block, plugins };
+  });
+const flatConfig = withoutDuplicatePlugins(config);
 
 // v15 and ESLint 9 turn some checks on, and turn a few off, compared with
 // ESLint 8. Pin those back so this commit keeps today's rules.
@@ -153,6 +180,12 @@ const typescriptEslintPlugin = typescriptBlocks.find(
   (block) => block.plugins?.['@typescript-eslint'],
 )?.plugins['@typescript-eslint'];
 
+// After typescriptOverride.rules and the TypeScript pins. Both match every
+// ts/tsx file, and flat config replaces a rule instead of merging it.
+const overridesAfterTypescriptBlocks = withoutDuplicatePlugins(
+  compat.config({ overrides: overridesAfterTypescript }),
+);
+
 export default [
   ...flatConfig,
   {
@@ -162,6 +195,7 @@ export default [
   { rules: pinToToday },
   { files: ['**/*.{js,jsx}'], rules: pinJavascriptToToday },
   { files: ['**/*.{ts,tsx}'], rules: pinTypescriptToToday },
+  ...overridesAfterTypescriptBlocks,
   // ESLint 9 warns on unused eslint-disable comments. ESLint 8 did not.
   { linterOptions: { reportUnusedDisableDirectives: 'off' } },
 ];
