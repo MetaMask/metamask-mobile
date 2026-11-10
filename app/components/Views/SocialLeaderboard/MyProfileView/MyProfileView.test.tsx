@@ -1696,12 +1696,18 @@ describe('MyProfileView', () => {
       trades: [],
       lastTradeAt: 1,
     };
+    const ownerItem = mockOpenPerpsFeedItem({ id: 'spot-post' });
+    ownerItem.author = { ...ownerItem.author, id: 'current-user' };
     const spotPost = mockMyProfilePost({
       id: 'spot-post',
+      commentId: 'comment-1',
+      item: ownerItem,
       position: spotPosition,
     });
     const perpPost = mockMyProfilePost({
       id: 'perp-post',
+      commentId: 'comment-2',
+      item: ownerItem,
       position: {
         ...spotPosition,
         positionId: 'btc-perp',
@@ -1721,6 +1727,21 @@ describe('MyProfileView', () => {
 
     expect(mockSocialFeedProps.current?.filterPost?.(spotPost)).toBe(true);
     expect(mockSocialFeedProps.current?.filterPost?.(perpPost)).toBe(false);
+    expect(
+      mockSocialFeedProps.current?.filterPost?.({
+        ...spotPost,
+        item: {
+          ...ownerItem,
+          author: { ...ownerItem.author, id: 'someone-else' },
+        },
+      }),
+    ).toBe(false);
+    expect(
+      mockSocialFeedProps.current?.filterPost?.({
+        ...spotPost,
+        commentId: undefined,
+      }),
+    ).toBe(false);
     expect(screen.getByText('No token activity')).toBeOnTheScreen();
   });
 

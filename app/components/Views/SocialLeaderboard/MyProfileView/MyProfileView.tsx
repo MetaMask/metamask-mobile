@@ -577,8 +577,10 @@ const MyProfileView: React.FC = () => {
   }, []);
   const filterProfilePost = useCallback(
     (post: SocialV1FeedPost) =>
+      post.item.author.id === displayProfile?.profileId &&
+      Boolean(post.commentId) &&
       matchesProfileAssetFilter(post.position, assetFilter),
-    [assetFilter],
+    [assetFilter, displayProfile?.profileId],
   );
   const postsEmptyState = useMemo(
     () => (
