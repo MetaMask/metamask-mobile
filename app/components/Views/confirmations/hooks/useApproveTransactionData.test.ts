@@ -363,9 +363,12 @@ describe('useApproveTransactionData', () => {
       expect(expiration).toBe('1746696740');
     });
 
-    it.each([TokenStandard.ERC721, undefined])(
-      'does not treat a zero permit2 amount as revoke if token standard is %s',
-      (standard) => {
+    it.each([
+      [TokenStandard.ERC721, false],
+      [undefined, true],
+    ])(
+      'returns isRevoke for a zero permit2 amount with token standard %s as %s',
+      (standard, expectedIsRevoke) => {
         mockUseGetTokenStandardAndDetails.mockReturnValue({
           details: { standard, decimalsNumber: undefined },
           isPending: false,
@@ -379,7 +382,7 @@ describe('useApproveTransactionData', () => {
         expect(result.current.approveMethod).toBe(
           ApproveMethod.PERMIT2_APPROVE,
         );
-        expect(result.current.isRevoke).toBe(false);
+        expect(result.current.isRevoke).toBe(expectedIsRevoke);
       },
     );
   });

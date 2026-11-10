@@ -222,7 +222,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         result.rawAmount = rawAmount;
         result.expiration = expiration?.toString();
         result.isRevoke =
-          tokenStandard === TokenStandard.ERC20 &&
+          tokenStandard !== TokenStandard.ERC721 &&
           amount?.toString() === ZERO_AMOUNT;
         result.approveMethod = ApproveMethod.PERMIT2_APPROVE;
         result.tokenBalance = calculateTokenBalance(
