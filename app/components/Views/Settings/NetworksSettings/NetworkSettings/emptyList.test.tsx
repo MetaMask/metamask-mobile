@@ -17,9 +17,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
-        background: { default: 'white' },
-        text: { default: 'black' },
-        primary: { default: 'blue' },
+      background: { default: 'white' },
+      text: { default: 'black' },
+      primary: { default: 'blue' },
     },
   }),
 }));

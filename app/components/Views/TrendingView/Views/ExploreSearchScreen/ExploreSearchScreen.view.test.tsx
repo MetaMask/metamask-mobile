@@ -6,7 +6,10 @@ import {
   renderExploreSearchScreenWithBackStack,
   renderExploreSearchScreenWithRoutes,
 } from '../../../../../../tests/component-view/renderers/trending';
-import { getRouteParamsProbeTestId, getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import {
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setupTrendingApiFetchMock,
@@ -570,9 +573,8 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     ).toBeOnTheScreen();
     expect(
       JSON.parse(
-        (
-          await findByTestId(getRouteParamsProbeTestId(Routes.BROWSER.HOME))
-        ).props.children,
+        (await findByTestId(getRouteParamsProbeTestId(Routes.BROWSER.HOME)))
+          .props.children,
       ),
     ).toEqual(
       expect.objectContaining({
