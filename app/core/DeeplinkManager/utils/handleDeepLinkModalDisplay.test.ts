@@ -34,14 +34,14 @@ describe('handleDeepLinkModalDisplay', () => {
     jest.clearAllMocks();
   });
 
-  it('shows a required private-link confirmation even when reminders are disabled', async () => {
+  it('shows a required private-link confirmation even when reminders are disabled', () => {
     const state = {
       settings: { deepLinkModalDisabled: true },
     } as RootState;
     jest.mocked(mockReduxService.store.getState).mockReturnValue(state);
     const onContinue = jest.fn();
 
-    await handleDeepLinkModalDisplay(
+    const result = handleDeepLinkModalDisplay(
       {
         linkType: DeepLinkModalLinkType.PRIVATE,
         pageTitle: 'MetaMask',
@@ -53,6 +53,7 @@ describe('handleDeepLinkModalDisplay', () => {
 
     expect(NavigationService.navigation.navigate).toHaveBeenCalled();
     expect(onContinue).not.toHaveBeenCalled();
+    expect(result).toBeUndefined();
   });
 
   it.each`
@@ -65,13 +66,13 @@ describe('handleDeepLinkModalDisplay', () => {
     ${'invalid'} | ${false}                | ${true}
   `(
     'redirects to $shouldRedirect when linkType is $linkType & isDeepLinkModalDisabled is $isDeepLinkModalDisabled',
-    async ({ linkType, isDeepLinkModalDisabled, shouldRedirect }) => {
+    ({ linkType, isDeepLinkModalDisabled, shouldRedirect }) => {
       const mockedState = {
         settings: { deepLinkModalDisabled: isDeepLinkModalDisabled },
       } as RootState;
       jest.mocked(mockReduxService.store.getState).mockReturnValue(mockedState);
 
-      await handleDeepLinkModalDisplay({
+      handleDeepLinkModalDisplay({
         linkType,
         pageTitle: 'MetaMask',
         onContinue: jest.fn(),

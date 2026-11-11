@@ -53,16 +53,16 @@ export interface UniversalLinkRoute {
   acceptsPathPayload?: boolean;
 }
 
-const PATH_PAYLOAD_ACTIONS: readonly SupportedAction[] = [
+const PATH_PAYLOAD_ACTIONS: ReadonlySet<SupportedAction> = new Set([
   ACTIONS.DAPP,
   ACTIONS.SEND,
-];
+]);
 
 export const UNIVERSAL_LINK_ROUTES: readonly UniversalLinkRoute[] = [
   ...Object.values(SUPPORTED_ACTIONS).map((action) => ({
     pathname: `/${action}`,
     action,
-    acceptsPathPayload: PATH_PAYLOAD_ACTIONS.includes(action),
+    acceptsPathPayload: PATH_PAYLOAD_ACTIONS.has(action),
   })),
   { pathname: '/social/profile', action: ACTIONS.SOCIAL },
   { pathname: '/social/profile/position', action: ACTIONS.SOCIAL },
