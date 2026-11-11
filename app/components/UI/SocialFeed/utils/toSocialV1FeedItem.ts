@@ -15,6 +15,7 @@ import {
   formatTradeUnitPrice,
   formatUsd,
 } from './formatters';
+import { getPerpPositionDirection, isPerpPosition } from './perp';
 import { isEntryAction } from './tradeAction';
 import { tradeTimestampToMs } from './tradeTimestamp';
 import { buildLivePriceSource } from '../live/buildLivePriceSource';
@@ -95,14 +96,33 @@ export const deriveExitPrice = (core: Position): number | null => {
 };
 
 /**
- * Current unit price of an open position: what the remaining holdings are
- * worth over how many there are. `null` once the position is closed, or when
- * the row omitted its current value.
+ * A perp's `currentValueUSD` is equity (margin + unrealized P&L), not
+ * size × price, so its mark is backed out of the API's unrealized P&L on the
+ * leveraged size instead.
  */
-export const deriveCurrentPrice = (core: Position): number | null =>
-  isPresentNumber(core.currentValueUSD) && core.positionAmount > 0
+const derivePerpMarkPrice = (core: Position): number | null => {
+  const entryPrice = deriveAverageEntryPrice(core);
+  const size = Math.abs(core.positionAmountWithLeverage ?? core.positionAmount);
+  if (entryPrice == null || !(size > 0) || !isPresentNumber(core.pnlValueUsd)) {
+    return null;
+  }
+  const unrealizedUsd = core.pnlValueUsd - (core.realizedPnl ?? 0);
+  const direction = getPerpPositionDirection(core) === 'short' ? -1 : 1;
+  return entryPrice + (direction * unrealizedUsd) / size;
+};
+
+/**
+ * Current unit price of an open position. `null` once the position is closed,
+ * or when the row omitted the figures it is derived from.
+ */
+export const deriveCurrentPrice = (core: Position): number | null => {
+  if (isPerpPosition(core)) {
+    return derivePerpMarkPrice(core);
+  }
+  return isPresentNumber(core.currentValueUSD) && core.positionAmount > 0
     ? core.currentValueUSD / core.positionAmount
     : null;
+};
 
 /**
  * Market cap per unit of price, read off the latest fill that recorded both.
