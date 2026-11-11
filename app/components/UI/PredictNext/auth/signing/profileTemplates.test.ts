@@ -3,8 +3,12 @@ import {
   TemplateError,
   type RequestTemplate,
 } from './profileTemplates';
-import { loadVenueProfile } from '../venueSigningProfiles';
-import type { SigningProfile } from '../venueSigningProfiles';
+import {
+  loadVenueProfile,
+  type BodyField,
+  type HttpRfc9421Payload,
+  type SigningProfile,
+} from '../venueSigningProfiles';
 
 // The bundled trading profile document; `loadVenueProfile` verifies it.
 let profile: SigningProfile;
@@ -14,6 +18,17 @@ beforeAll(async () => {
 });
 
 const NOW = 1_700_000_000_000;
+
+/** The bundled mutation payloads all carry a body; the document type allows
+ * a bodyless GET, so narrow once here instead of at every field. */
+const payloadBody = (
+  payload: HttpRfc9421Payload,
+): { readonly json: readonly BodyField[]; readonly maxBytes: number } => {
+  if (!payload.body) {
+    throw new Error(`${payload.path} carries no body`);
+  }
+  return payload.body;
+};
 
 /** The create_order template, as the renderer receives it. */
 const createOrder = (): RequestTemplate => {
@@ -25,7 +40,10 @@ const createOrder = (): RequestTemplate => {
     class: 'mutation',
     method: payload.method,
     path: payload.path,
-    body: { json: payload.body.json, maxBytes: payload.body.maxBytes },
+    body: {
+      json: payloadBody(payload).json,
+      maxBytes: payloadBody(payload).maxBytes,
+    },
     idempotencyKey: payload.idempotencyKey,
     invariants: payload.invariants,
   };
@@ -41,7 +59,10 @@ const walletRegister = (): RequestTemplate => {
     class: 'mutation',
     method: payload.method,
     path: payload.path,
-    body: { json: payload.body.json, maxBytes: payload.body.maxBytes },
+    body: {
+      json: payloadBody(payload).json,
+      maxBytes: payloadBody(payload).maxBytes,
+    },
     idempotencyKey: payload.idempotencyKey,
   };
 };
@@ -53,21 +74,17 @@ const orderValues = {
 
 describe('renderRequest for order.place', () => {
   it('renders the create_order body with values and inputs resolved', () => {
-    const rendered = renderRequest(
-      'create_order',
-      createOrder(),
-      {
-        inputs: {
-          action: 'buy',
-          outcome: 'yes',
-          marketId: 'MKT-XYZ',
-          idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
-          amountCents: 470,
-        },
-        values: orderValues,
-        nowMs: NOW,
+    const rendered = renderRequest('create_order', createOrder(), {
+      inputs: {
+        action: 'buy',
+        outcome: 'yes',
+        marketId: 'MKT-XYZ',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        amountCents: 470,
       },
-    );
+      values: orderValues,
+      nowMs: NOW,
+    });
 
     expect(rendered.name).toBe('create_order');
     expect(rendered.class).toBe('mutation');
@@ -89,41 +106,33 @@ describe('renderRequest for order.place', () => {
   });
 
   it('maps the sell legs through the side table', () => {
-    const rendered = renderRequest(
-      'create_order',
-      createOrder(),
-      {
-        inputs: {
-          action: 'sell',
-          outcome: 'no',
-          marketId: 'MKT-XYZ',
-          idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
-          contracts: '10.00',
-        },
-        values: orderValues,
-        nowMs: NOW,
+    const rendered = renderRequest('create_order', createOrder(), {
+      inputs: {
+        action: 'sell',
+        outcome: 'no',
+        marketId: 'MKT-XYZ',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        contracts: '10.00',
       },
-    );
+      values: orderValues,
+      nowMs: NOW,
+    });
 
     expect(JSON.parse(rendered.body).side).toBe('bid');
   });
 
   it('derives the venue display figures from the invariant', () => {
-    const rendered = renderRequest(
-      'create_order',
-      createOrder(),
-      {
-        inputs: {
-          action: 'buy',
-          outcome: 'yes',
-          marketId: 'MKT-XYZ',
-          idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
-          amountCents: 470,
-        },
-        values: orderValues,
-        nowMs: NOW,
+    const rendered = renderRequest('create_order', createOrder(), {
+      inputs: {
+        action: 'buy',
+        outcome: 'yes',
+        marketId: 'MKT-XYZ',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        amountCents: 470,
       },
-    );
+      values: orderValues,
+      nowMs: NOW,
+    });
 
     // 10 contracts at a 45-cent limit with a 2-cent fee ceiling: worst cost
     // is 10 x 47 cents = 4.70; worst proceeds (for the mirrored sell) are
@@ -204,19 +213,15 @@ describe('renderRequest for order.place', () => {
 
 describe('renderRequest for account.activate', () => {
   it('renders the wallet_register body', () => {
-    const rendered = renderRequest(
-      'wallet_register',
-      walletRegister(),
-      {
-        inputs: {
-          walletAddress: '0xabc',
-          network: 'eip155:1',
-          idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
-        },
-        values: {},
-        nowMs: NOW,
+    const rendered = renderRequest('wallet_register', walletRegister(), {
+      inputs: {
+        walletAddress: '0xabc',
+        network: 'eip155:1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
       },
-    );
+      values: {},
+      nowMs: NOW,
+    });
 
     expect(rendered.path).toBe('/trade-api/v2/isv/wallet/register');
     expect(JSON.parse(rendered.body)).toStrictEqual({

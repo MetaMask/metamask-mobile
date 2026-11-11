@@ -20,11 +20,13 @@ import {
 import {
   loadVenueProfile,
   VENUE_AUTHORIZATION_HEADER,
+  type SigningProfile,
 } from '../auth/venueSigningProfiles';
 import {
   renderRequest,
   TemplateError,
   type InvariantDisplay,
+  type RenderedRequest,
   type RequestTemplate,
 } from '../auth/signing/profileTemplates';
 import { buildVenueAuthorization } from '../auth/signing/venueAuthorization';

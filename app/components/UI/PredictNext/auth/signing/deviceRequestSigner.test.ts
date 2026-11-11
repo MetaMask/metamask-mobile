@@ -1,13 +1,13 @@
 import { p256 } from '@noble/curves/nist';
 
-import { loadVenueProfile } from '../venueSigningProfiles';
+import { loadVenueProfile, type SigningProfile } from '../venueSigningProfiles';
+import type { RenderedRequest } from './profileTemplates';
 import {
   contentDigest,
   deviceSigningBase,
   signDeviceRequest,
   type DeviceSigningContext,
 } from './deviceRequestSigner';
-import type { RenderedRequest, SigningProfile } from '../venueSigningProfiles';
 
 const KEY = 'a1b2c3d4-1111-4222-8333-444455556666';
 

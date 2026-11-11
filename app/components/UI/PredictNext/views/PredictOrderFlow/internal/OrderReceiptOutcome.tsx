@@ -308,6 +308,41 @@ export const OrderReceiptOutcome = ({
           </Button>
         </Box>
       );
+    case 'needs_manual_review':
+      // Terminal and unresolved: the scan is too old to sign, so re-POSTing
+      // cannot observe the outcome. Point at History instead of offering it.
+      return (
+        <Box
+          twClassName="items-center gap-3 py-6"
+          testID={PredictOrderFlowTestIds.RECEIPT_NEEDS_REVIEW}
+        >
+          <StatusIcon
+            iconName={IconName.ClockFilled}
+            color={IconColor.WarningDefault}
+            background="bg-warning-muted"
+          />
+          <Text variant={TextVariant.HeadingSm}>
+            {strings('predict_next.order_receipt.needs_review_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('predict_next.order_receipt.needs_review_description')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={onDone}
+            isDisabled={areActionsDisabled}
+            testID={PredictOrderFlowTestIds.DONE}
+          >
+            {strings('predict_next.order_receipt.done')}
+          </Button>
+        </Box>
+      );
     case 'pending':
     case 'submitted':
     case 'reconciliation_required':

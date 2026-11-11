@@ -16,7 +16,12 @@ import type { RootState } from '../../../../reducers';
 import type { PredictConfig } from '../config/predictConfig';
 import { subscribeToActiveVenueChanges } from '../implementation/subscribeToActiveVenueChanges';
 import type { PredictConfiguredVenue } from '../implementation/types';
-import type { PredictOrderServiceOrderResolvedEvent } from './PredictOrderService';
+import { amountToCents, venueOrderValues } from '../auth/signing/orderCommit';
+import type { PredictOrderPreview } from '../types';
+import type {
+  PredictOrderCommitSigning,
+  PredictOrderServiceOrderResolvedEvent,
+} from './PredictOrderService';
 
 const previewResponse = {
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -24,17 +29,18 @@ const previewResponse = {
   marketId: 'KXTEST-26-A',
   side: 'yes',
   requestedAmount: '20.00',
-  orderAmount: '20.00',
-  estimatedContracts: 43,
+  orderAmount: '19.07',
+  estimatedContracts: 41,
   averagePrice: '0.4651',
-  fee: '0.86',
+  limitPrice: '0.4651',
+  fee: '0.82',
   feeBreakdown: [
-    { source: 'venue', amount: '0.43' },
-    { source: 'metamask', amount: '0.43' },
+    { source: 'venue', amount: '0.41' },
+    { source: 'metamask', amount: '0.41' },
   ],
-  totalDebit: '20.86',
-  potentialPayout: '43.00',
-  potentialProfit: '22.14',
+  totalDebit: '19.89',
+  potentialPayout: '41.00',
+  potentialProfit: '21.11',
   expiresAt: '2026-03-01T12:00:30.000Z',
 };
 
@@ -196,6 +202,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'buy',
       amount: '20.00' as never,
+      idempotencyKey: previewResponse.previewId,
     });
 
   const quoteSell = (orderService: PredictOrderService) =>
@@ -204,7 +211,44 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'sell',
       contracts: '70' as never,
+      idempotencyKey: sellPreviewResponse.previewId,
     });
+
+  /** The exact bodies POSTed to the commit route, in send order. */
+  const commitBodies = (
+    harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+  ): unknown[] =>
+    harness.fetchMock.mock.calls
+      .filter(([url]) => String(url).endsWith('/orders/commit'))
+      .map(([, init]) => JSON.parse(String(init?.body)));
+
+  /** The intent the Order sheet hands the service at approval: the amount or
+   * contract count the User saw quoted, plus the wire figures the venue order
+   * signs. A Commit is refused without it, so every Commit here passes one. */
+  const commitSigning = (
+    action: 'buy' | 'sell',
+    preview: PredictOrderPreview,
+    amountOrContracts: { amount: string } | { contracts: string },
+  ): PredictOrderCommitSigning => {
+    const values = venueOrderValues(action, preview.side, preview);
+    if (!values) {
+      throw new Error('preview lacks the wire figures to sign');
+    }
+    const common = {
+      marketId: preview.marketId,
+      idempotencyKey: preview.previewId,
+      action,
+      outcome: preview.side,
+    };
+    const inputs =
+      'amount' in amountOrContracts
+        ? {
+            ...common,
+            amountCents: amountToCents(amountOrContracts.amount) as number,
+          }
+        : { ...common, contracts: amountOrContracts.contracts };
+    return { inputs, values, confirmed: true };
+  };
 
   it('requests a Preview through the authenticated transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness((url, init) =>
@@ -219,10 +263,11 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'buy',
       amount: '20.00' as never,
+      idempotencyKey: previewResponse.previewId,
     });
 
     expect(result.previewId).toBe(previewResponse.previewId);
-    expect(result).toMatchObject({ totalDebit: '20.86' });
+    expect(result).toMatchObject({ totalDebit: '19.89' });
     expect(result.feeBreakdown).toEqual(previewResponse.feeBreakdown);
     expect(harness.getBearerTokenMock).toHaveBeenCalledTimes(1);
     expect(harness.fetchMock).toHaveBeenCalledWith(
@@ -233,10 +278,13 @@ describe('PredictNext Order Preview request', () => {
           Authorization: 'Bearer test-bearer-token',
           'Content-Type': 'application/json',
         }),
+        // The key rides the preview body: it becomes the Order's
+        // `client_order_id`, so a re-quote reuses one idempotent operation.
         body: JSON.stringify({
           marketId: 'KXTEST-26-A',
           side: 'yes',
           amount: '20.00',
+          idempotencyKey: previewResponse.previewId,
         }),
       }),
     );
@@ -261,6 +309,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '999.00' as never,
+        idempotencyKey: previewResponse.previewId,
       }),
     ).rejects.toMatchObject({ code: 'INSUFFICIENT_BALANCE' });
   });
@@ -283,6 +332,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '20.00' as never,
+        idempotencyKey: previewResponse.previewId,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
@@ -302,6 +352,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '20.00' as never,
+        idempotencyKey: previewResponse.previewId,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
@@ -321,6 +372,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '20.00' as never,
+        idempotencyKey: previewResponse.previewId,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
@@ -337,6 +389,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'buy',
       amount: '20' as never,
+      idempotencyKey: previewResponse.previewId,
     });
 
     expect(result.previewId).toBe(previewResponse.previewId);
@@ -355,6 +408,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'sell',
       contracts: '70' as never,
+      idempotencyKey: sellPreviewResponse.previewId,
     });
 
     expect(result.previewId).toBe(sellPreviewResponse.previewId);
@@ -371,6 +425,7 @@ describe('PredictNext Order Preview request', () => {
           side: 'yes',
           action: 'sell',
           contracts: '70',
+          idempotencyKey: sellPreviewResponse.previewId,
         }),
       }),
     );
@@ -447,6 +502,7 @@ describe('PredictNext Order Preview request', () => {
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       sellReceiptResponse.previewId,
+      commitSigning('sell', sellPreviewResponse as never, { contracts: '70' }),
     );
 
     expect(receipt).toMatchObject({
@@ -454,13 +510,20 @@ describe('PredictNext Order Preview request', () => {
       status: 'filled',
       netProceeds: '30.89',
     });
-    expect(harness.fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/v1/venues/kalshi/orders/commit',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ previewId: sellReceiptResponse.previewId }),
-      }),
-    );
+    // The device signs the venue create_order payload; those exact bytes go
+    // on the wire with the approved Preview reference merged in.
+    expect(commitBodies(harness)).toEqual([
+      {
+        ticker: 'KXTEST-26-A',
+        client_order_id: expect.any(String),
+        side: 'ask',
+        count: '70.00',
+        price: '0.4000',
+        time_in_force: 'immediate_or_cancel',
+        self_trade_prevention_type: 'taker_at_cross',
+        previewId: sellReceiptResponse.previewId,
+      },
+    ]);
 
     // The terminal receipt's invalidation must reach cache listeners with
     // the SECOND read's body — the UI-visible contract: a mounted query
@@ -548,6 +611,7 @@ describe('PredictNext Order Preview request', () => {
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       buyReceiptResponse.previewId,
+      commitSigning('buy', previewResponse as never, { amount: '20.00' }),
     );
 
     expect(receipt).toMatchObject({
@@ -556,13 +620,18 @@ describe('PredictNext Order Preview request', () => {
       actualSpend: '20.86',
       payoutExposure: '43.00',
     });
-    expect(harness.fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/v1/venues/kalshi/orders/commit',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ previewId: buyReceiptResponse.previewId }),
-      }),
-    );
+    expect(commitBodies(harness)).toEqual([
+      {
+        ticker: 'KXTEST-26-A',
+        client_order_id: expect.any(String),
+        side: 'bid',
+        count: '41.00',
+        price: '0.4651',
+        time_in_force: 'immediate_or_cancel',
+        self_trade_prevention_type: 'taker_at_cross',
+        previewId: buyReceiptResponse.previewId,
+      },
+    ]);
 
     // Let the fire-and-forget invalidation settle before re-reading.
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -646,6 +715,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         buyReceiptResponse.previewId,
+        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
       );
       await until(() => commitCalls === 2);
 
@@ -864,6 +934,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
+        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
       );
       await until(() => commits === 1);
       // The Commit is on the wire when the Active Venue changes.
@@ -877,13 +948,21 @@ describe('PredictNext Order Preview request', () => {
       // original Venue, with the original Preview and the same person.
       const commitCalls = callsTo(harness, '/orders/commit');
       expect(commitCalls.length).toBe(6);
+      // Every re-POST of the operation re-sends the exact signed bytes: a
+      // byte difference would break the signature's content digest.
+      const firstBody = commitCalls[0]?.[1]?.body;
+      expect(JSON.parse(String(firstBody))).toMatchObject({
+        ticker: 'KXTEST-26-A',
+        side: 'bid',
+        count: '41.00',
+        price: '0.4651',
+        previewId: previewResponse.previewId,
+      });
       for (const [url, init] of commitCalls) {
         expect(url).toBe(
           'https://predict.example/v1/venues/kalshi/orders/commit',
         );
-        expect(init?.body).toBe(
-          JSON.stringify({ previewId: previewResponse.previewId }),
-        );
+        expect(init?.body).toBe(firstBody);
         expect(init?.headers).toMatchObject({
           Authorization: 'Bearer test-bearer-token',
         });
@@ -944,6 +1023,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
+        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
       );
       store.selectVenue('polymarket');
       await expect(commit).rejects.toMatchObject({ code: 'NETWORK_ERROR' });
@@ -958,9 +1038,14 @@ describe('PredictNext Order Preview request', () => {
 
       await until(() => resolutions.length === 1, 5_000);
       expect(commits).toBe(2);
-      expect(callsTo(harness, '/orders/commit')[1][1]?.body).toBe(
-        JSON.stringify({ previewId: previewResponse.previewId }),
-      );
+      // The re-quote is the same signed bytes: one operation, one payload.
+      const commitBodiesSent = callsTo(harness, '/orders/commit');
+      expect(commitBodiesSent[1][1]?.body).toBe(commitBodiesSent[0][1]?.body);
+      expect(JSON.parse(String(commitBodiesSent[1][1]?.body))).toMatchObject({
+        ticker: 'KXTEST-26-A',
+        count: '41.00',
+        previewId: previewResponse.previewId,
+      });
       expect(callsTo(harness, '/orders/preview')).toHaveLength(1);
       expect(resolutions[0]).toMatchObject({
         previewId: previewResponse.previewId,
@@ -997,6 +1082,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
+        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
       );
       store.selectVenue('polymarket');
       await expect(commit).rejects.toMatchObject({ code: 'NETWORK_ERROR' });
@@ -1033,6 +1119,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
+        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
       );
       orderService.abandonCommits();
       issueToken('next-person-token');

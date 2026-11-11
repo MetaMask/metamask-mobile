@@ -780,12 +780,14 @@ describe('KalshiRemoteAdapter', () => {
       side: 'yes' as const,
       action: 'buy' as const,
       amount: '20' as never,
+      idempotencyKey: 'b3c2a1d0-1111-4222-8333-444455556666',
     };
     const sellPreviewParams = {
       marketId,
       side: 'yes' as const,
       action: 'sell' as const,
       contracts: '70' as never,
+      idempotencyKey: 'c4d5e6f0-1111-4222-8333-444455556666',
     };
 
     it('sends the sell intent through the transport unchanged', async () => {

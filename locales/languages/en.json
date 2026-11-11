@@ -4012,7 +4012,10 @@
       "reconciling_title": "Still confirming your order",
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
-      "requote": "Try again"
+      "requote": "Try again",
+      "needs_review_title": "We couldn't confirm this order",
+      "needs_review_description": "This order is too old for us to check again. Look for the outcome in your History.",
+      "done": "Done"
     },
     "order_notification": {
       "not_placed_title": "Order not placed",

@@ -185,43 +185,10 @@ const SellPreviewRows = ({
   );
 };
 
-/** Server-quoted preview rows: distinct canonical values, verbatim, for the
- * quoted Order Action. When the profile's invariant produced a signed bound
- * (`display`), the emphasized Total shows that bound — the worst case the
- * phone actually signs — and profit is measured against it. */
-export const OrderPreviewRows = ({
-  preview,
-  display,
-}: {
-  preview: PredictOrderPreview;
-  display?: InvariantDisplay;
-}) => {
-  if (preview.action === 'buy') {
-    return (
-      <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
-        <BuyPreviewRows preview={preview} withTotal={display === undefined} />
-        {display ? <BuySignedTail display={display} /> : null}
-      </Box>
-    );
-  }
-  return (
-    <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
-      <SellPreviewRows preview={preview} withTotal={display === undefined} />
-      {display ? <SellSignedTail display={display} /> : null}
-    </Box>
-  );
-};
-
 /** The signed buy tail: the invariant's worst-case cost the phone signs,
  * replacing the quoted Total; profit is measured against it. */
-const BuySignedTail = ({
-  display,
-}: {
-  display: InvariantDisplay;
-}) => {
-  const profit = (
-    Number(display.payout) - Number(display.maxCost)
-  ).toFixed(2);
+const BuySignedTail = ({ display }: { display: InvariantDisplay }) => {
+  const profit = (Number(display.payout) - Number(display.maxCost)).toFixed(2);
   return (
     <>
       <EmphasizedTotalRow
@@ -252,3 +219,30 @@ const SellSignedTail = ({ display }: { display: InvariantDisplay }) => (
     testID={PredictOrderFlowTestIds.NET_PROCEEDS}
   />
 );
+
+/** Server-quoted preview rows: distinct canonical values, verbatim, for the
+ * quoted Order Action. When the profile's invariant produced a signed bound
+ * (`display`), the emphasized Total shows that bound — the worst case the
+ * phone actually signs — and profit is measured against it. */
+export const OrderPreviewRows = ({
+  preview,
+  display,
+}: {
+  preview: PredictOrderPreview;
+  display?: InvariantDisplay;
+}) => {
+  if (preview.action === 'buy') {
+    return (
+      <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+        <BuyPreviewRows preview={preview} withTotal={display === undefined} />
+        {display ? <BuySignedTail display={display} /> : null}
+      </Box>
+    );
+  }
+  return (
+    <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+      <SellPreviewRows preview={preview} withTotal={display === undefined} />
+      {display ? <SellSignedTail display={display} /> : null}
+    </Box>
+  );
+};

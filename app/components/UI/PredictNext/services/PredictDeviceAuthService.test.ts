@@ -420,9 +420,7 @@ describe('PredictDeviceAuthService.signOperation', () => {
     expect(signed?.header.name).toBe('Venue-Authorization');
     // The header value is the base64 v1 envelope document.
     expect(signed?.header.value).toEqual(expect.stringContaining('eyJ2Ijox'));
-    expect(signed?.idempotencyKey).toBe(
-      'a1b2c3d4-1111-4222-8333-444455556666',
-    );
+    expect(signed?.idempotencyKey).toBe('a1b2c3d4-1111-4222-8333-444455556666');
     const body = JSON.parse(signed?.body ?? '{}');
     expect(body).toEqual({
       ticker: 'MKT-1',

@@ -140,7 +140,7 @@ describe('sendSigned', () => {
     await expect(
       sendSigned(
         { signOperation: sign, invalidateSigningSession: jest.fn() },
-        'onboarding.link',
+        'order.place',
         undefined,
         send,
         () => ({ status: 200 }),

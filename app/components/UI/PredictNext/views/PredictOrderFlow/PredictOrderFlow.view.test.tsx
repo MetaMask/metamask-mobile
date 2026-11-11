@@ -111,11 +111,15 @@ const stubFetch = (
     const { status = 200, body } = isCommit
       ? (commit?.() ?? { status: 200, body: makeReceipt() })
       : reply(String(url), init);
-    return {
+    const response = {
       ok: status >= 200 && status < 300,
       status,
       json: async () => body,
     } as Response;
+    // The signed exchange inspects an error response and then may still
+    // return it, so it reads the body twice; a real Response supports that.
+    response.clone = () => response;
+    return response;
   });
 };
 
@@ -202,23 +206,28 @@ const sellProbeWithMax =
 const renderProbe = (Component: React.ComponentType = BuyProbe) =>
   renderPredictOrderFlow(Component);
 
+/** A $20 buy whose total debit fits the entered amount: 41 contracts for
+ * $19.07 plus a $0.82 fee is a $19.89 debit, so it is quoted in one pass. The
+ * worst per-contract price the quote walked is the average, so the signed
+ * venue order never exceeds the $20 the user approved. */
 const makePreview = (overrides: Record<string, unknown> = {}) => ({
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
   venueId: 'kalshi',
   marketId: 'KXTEST-26-A',
   side: 'yes',
   requestedAmount: '20.00',
-  orderAmount: '20.00',
-  estimatedContracts: 43,
+  orderAmount: '19.07',
+  estimatedContracts: 41,
   averagePrice: '0.4651',
-  fee: '0.86',
+  limitPrice: '0.4651',
+  fee: '0.82',
   feeBreakdown: [
-    { source: 'venue', amount: '0.43' },
-    { source: 'metamask', amount: '0.43' },
+    { source: 'venue', amount: '0.41' },
+    { source: 'metamask', amount: '0.41' },
   ],
-  totalDebit: '20.86',
-  potentialPayout: '43.00',
-  potentialProfit: '22.14',
+  totalDebit: '19.89',
+  potentialPayout: '41.00',
+  potentialProfit: '21.11',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
   ...overrides,
 });
@@ -401,7 +410,7 @@ describe('PredictOrderFlow', () => {
     );
 
     expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
-      '$20.86',
+      '$19.89',
     );
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO));
@@ -432,6 +441,8 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '20',
+      // Phone-generated per quote; the preview stores it as `client_order_id`.
+      idempotencyKey: expect.any(String),
     });
   });
 
@@ -536,6 +547,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '5',
+      idempotencyKey: expect.any(String),
     });
   });
 
@@ -574,6 +586,7 @@ describe('PredictOrderFlow', () => {
       marketId: 'KXTEST-26-A',
       side: 'yes',
       amount: '15',
+      idempotencyKey: expect.any(String),
     });
   });
 
@@ -662,10 +675,10 @@ describe('PredictOrderFlow', () => {
 
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.ESTIMATED_CONTRACTS),
-    ).toHaveTextContent('43');
+    ).toHaveTextContent('41');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
-    ).toHaveTextContent('$20.86');
+    ).toHaveTextContent('$19.89');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.EXPIRY),
     ).toBeOnTheScreen();
@@ -733,7 +746,7 @@ describe('PredictOrderFlow', () => {
     expect(commitCalls()).toHaveLength(1);
   }, 30000);
 
-  it('commits only the previewId and renders the full Fill receipt with the reported execution values', async () => {
+  it('commits the signed venue order with the approved previewId and renders the full Fill receipt with the reported execution values', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     await approveOrder();
@@ -749,7 +762,18 @@ describe('PredictOrderFlow', () => {
     expect(commitCalls()).toEqual([
       {
         url: expect.stringContaining('/orders/commit'),
-        body: { previewId: 'b3c2a1d0-1111-4222-8333-444455556666' },
+        // The device signs the venue `create_order` payload and sends those
+        // exact bytes with the approved Preview reference merged in.
+        body: {
+          previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+          ticker: 'KXTEST-26-A',
+          client_order_id: expect.any(String),
+          side: 'bid',
+          count: '41.00',
+          price: '0.4651',
+          time_in_force: 'immediate_or_cancel',
+          self_trade_prevention_type: 'taker_at_cross',
+        },
       },
     ]);
     expect(
@@ -1113,6 +1137,13 @@ describe('PredictOrderFlow', () => {
     await waitFor(() => expect(commitCalls()).toHaveLength(2));
     expect(commitCalls()[0]?.body).toEqual({
       previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+      ticker: 'KXTEST-26-A',
+      client_order_id: expect.any(String),
+      side: 'bid',
+      count: '41.00',
+      price: '0.4651',
+      time_in_force: 'immediate_or_cancel',
+      self_trade_prevention_type: 'taker_at_cross',
     });
     expect(commitCalls()[1]?.body).toEqual(commitCalls()[0]?.body);
   }, 30000);
@@ -1265,6 +1296,7 @@ describe('PredictOrderFlow', () => {
         side: 'yes',
         action: 'sell',
         contracts: '70',
+        idempotencyKey: expect.any(String),
       });
     });
 
@@ -1299,6 +1331,7 @@ describe('PredictOrderFlow', () => {
         side: 'yes',
         action: 'sell',
         contracts: '75',
+        idempotencyKey: expect.any(String),
       });
     });
 

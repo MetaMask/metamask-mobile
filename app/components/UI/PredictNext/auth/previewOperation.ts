@@ -12,5 +12,5 @@ import type { VenueIntentName } from './venueSigningProfiles';
 export const previewOperation = (
   intent: VenueIntentName,
   input: SignOperationInput,
-): InvariantDisplay | undefined =>
+): Promise<InvariantDisplay | undefined> =>
   Engine.context.PredictDeviceAuthService.previewOperation(intent, input);

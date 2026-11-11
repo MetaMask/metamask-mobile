@@ -5,6 +5,7 @@ import {
 } from '@metamask/messenger';
 
 import { PredictError, PredictErrorCode } from '../errors';
+import type { SignOperationInput } from '../auth/signing/signOperationTypes';
 import {
   isPreviewExpired,
   PREDICT_ORDER_SERVICE_NAME,
@@ -47,6 +48,7 @@ const preview: PredictOrderPreview = {
   totalDebit: '4.20' as PredictAmount,
   potentialPayout: '10.00' as PredictAmount,
   potentialProfit: '5.80' as PredictSignedAmount,
+  limitPrice: '0.4000' as PredictDecimal,
   expiresAt: '2099-03-01T12:00:30.000Z' as PredictTimestamp,
 };
 
@@ -115,7 +117,7 @@ const previewOrder = jest.fn<
 >();
 const commitOrder = jest.fn<
   Promise<PredictOrderReceipt>,
-  [string, { signal?: AbortSignal }?]
+  [string, SignOperationInput, { signal?: AbortSignal }?]
 >();
 const invalidateQueries = jest.fn<Promise<void>, []>();
 const trading = { previewOrder, commitOrder };
@@ -189,17 +191,22 @@ afterEach(() => {
 
 const service = () => serviceWith(0);
 
+const BUY_IDEMPOTENCY_KEY = 'b3c2a1d0-1111-4222-8333-444455556666';
+const SELL_IDEMPOTENCY_KEY = 'c4d5e6f0-1111-4222-8333-444455556666';
+
 const buyQuoteParams = {
   marketId: 'KXTEST-26-A' as PredictEntityId,
   side: 'yes' as const,
   action: 'buy' as const,
   amount: '4.00' as PredictAmount,
+  idempotencyKey: BUY_IDEMPOTENCY_KEY,
 };
 const sellQuoteParams = {
   marketId: 'KXTEST-26-A' as PredictEntityId,
   side: 'yes' as const,
   action: 'sell' as const,
   contracts: '70' as PredictAmount,
+  idempotencyKey: SELL_IDEMPOTENCY_KEY,
 };
 
 /** Quotes `quote` so the service may commit it: a Commit is only ever sent
@@ -267,7 +274,7 @@ describe('PredictOrderService', () => {
 
     expect(result).toBe(preview);
     expect(trading.previewOrder).toHaveBeenCalledWith(
-      { marketId: 'KXTEST-26-A', side: 'yes', action: 'buy', amount: '4.00' },
+      { ...buyQuoteParams },
       { signal: expect.any(AbortSignal) },
     );
   });
@@ -282,7 +289,7 @@ describe('PredictOrderService', () => {
 
     expect(result).toBe(sellPreview);
     expect(trading.previewOrder).toHaveBeenCalledWith(
-      { marketId: 'KXTEST-26-A', side: 'yes', action: 'sell', contracts: '70' },
+      { ...sellQuoteParams },
       { signal: expect.any(AbortSignal) },
     );
   });
@@ -296,7 +303,11 @@ describe('PredictOrderService', () => {
 
   it('rejects commits for another venue', async () => {
     await expect(
-      service().commitPreview('polymarket' as PredictVenueId, 'preview-1', SIGNING),
+      service().commitPreview(
+        'polymarket' as PredictVenueId,
+        'preview-1',
+        SIGNING,
+      ),
     ).rejects.toMatchObject({ code: PredictErrorCode.UNSUPPORTED_VENUE });
     expect(trading.commitOrder).toHaveBeenCalledTimes(0);
   });
@@ -471,7 +482,11 @@ describe('PredictOrderService', () => {
       );
 
       await expect(
-        (await quotedService()).commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+        (await quotedService()).commitPreview(
+          KALSHI_VENUE_ID,
+          'preview-1',
+          SIGNING,
+        ),
       ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_UNAVAILABLE });
       expect(invalidateQueries).toHaveBeenCalledTimes(0);
     });
@@ -501,7 +516,11 @@ describe('PredictOrderService', () => {
       const pending = deferredCommit();
       const orderService = await quote(serviceWith(60_000));
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+        SIGNING,
+      );
       await settle();
       orderService.abandonCommits();
 
@@ -526,7 +545,11 @@ describe('PredictOrderService', () => {
       const pending = deferredCommit();
       const orderService = await quotedService();
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+        SIGNING,
+      );
       await settle();
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
 
@@ -573,14 +596,18 @@ describe('PredictOrderService', () => {
     it('aborts the transport of a Commit still resolving its bearer token', async () => {
       let signal: AbortSignal | undefined;
       trading.commitOrder.mockImplementation(
-        (_previewId, _signing, options) => {
+        (_previewId: string, _signing: SignOperationInput, options) => {
           signal = options?.signal;
           return new Promise<PredictOrderReceipt>(() => undefined);
         },
       );
       const orderService = await quotedService();
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+        SIGNING,
+      );
       expect(signal?.aborted).toBe(false);
       orderService.abandonCommits();
 
@@ -613,7 +640,11 @@ describe('PredictOrderService', () => {
       const pending = deferredCommit();
       const orderService = await quotedService();
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+        SIGNING,
+      );
       await settle();
       orderService.destroy();
 
@@ -702,7 +733,11 @@ describe('PredictOrderService', () => {
       );
       const orderService = await quotedService();
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+        SIGNING,
+      );
       // The boundary is crossed synchronously with the approval.
       expect(trading.commitOrder).toHaveBeenCalledWith(
         'preview-1',
@@ -823,7 +858,11 @@ describe('PredictOrderService', () => {
       const orderService = await quotedService();
       const unregister = orderService.presentOperation('preview-1', presenter);
 
-      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING);
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+        SIGNING,
+      );
       unregister();
       release(receiptWith({ status: 'filled' }));
       await commit;

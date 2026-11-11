@@ -157,9 +157,7 @@ describe('PredictApiReadClient', () => {
   it('sends the two-phase signed read for Balance and parses the result', async () => {
     const signRead = makeSignRead();
     fetchMock
-      .mockResolvedValueOnce(
-        signRequired('/trade-api/v2/portfolio/balance'),
-      )
+      .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
       .mockResolvedValueOnce(
         createResponse({
           json: { kind: 'result', balance: { available: '1.0000' } },
@@ -260,9 +258,7 @@ describe('PredictApiReadClient', () => {
   it('sends the Positions status filter as a comma-separated list', async () => {
     const signRead = makeSignRead();
     fetchMock
-      .mockResolvedValueOnce(
-        signRequired('/trade-api/v2/portfolio/positions'),
-      )
+      .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/positions'))
       .mockResolvedValueOnce(
         createResponse({ json: { kind: 'result', positions: [] } }),
       );
@@ -289,9 +285,7 @@ describe('PredictApiReadClient', () => {
   it('follows the next proposal token across pages on the same path', async () => {
     const signRead = makeSignRead();
     fetchMock
-      .mockResolvedValueOnce(
-        signRequired('/trade-api/v2/portfolio/positions'),
-      )
+      .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/positions'))
       // A page without the payload key but with `next` proposes the
       // follow-up instead of answering.
       .mockResolvedValueOnce(
@@ -334,9 +328,7 @@ describe('PredictApiReadClient', () => {
   it('returns the partial page without an error when the follow-up cap trips', async () => {
     const signRead = makeSignRead();
     fetchMock
-      .mockResolvedValueOnce(
-        signRequired('/trade-api/v2/portfolio/positions'),
-      )
+      .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/positions'))
       // The queue's first response is the only sign_required; every later
       // phase one meets the bare result (always `next`, never the payload
       // key), so the loop keeps following pages until the cap trips.
@@ -555,9 +547,7 @@ describe('PredictApiReadClient', () => {
 
     it('surfaces a non-renewable venue error from the signed re-call', async () => {
       fetchMock
-        .mockResolvedValueOnce(
-          signRequired('/trade-api/v2/portfolio/balance'),
-        )
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
         .mockResolvedValueOnce(errorResponse(403, 'venue_account_not_enabled'));
 
       await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
@@ -571,13 +561,9 @@ describe('PredictApiReadClient', () => {
       // The renewal repeats the WHOLE two-phase exchange: the second attempt
       // proposes again (phase one) before signing again (phase two).
       fetchMock
-        .mockResolvedValueOnce(
-          signRequired('/trade-api/v2/portfolio/balance'),
-        )
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
         .mockResolvedValueOnce(errorResponse(409, 'venue_signature_expired'))
-        .mockResolvedValueOnce(
-          signRequired('/trade-api/v2/portfolio/balance'),
-        )
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
         .mockResolvedValueOnce(
           createResponse({
             json: { kind: 'result', balance: { available: '2' } },
@@ -593,13 +579,9 @@ describe('PredictApiReadClient', () => {
 
     it('surfaces the second renewal failure instead of looping', async () => {
       fetchMock
-        .mockResolvedValueOnce(
-          signRequired('/trade-api/v2/portfolio/balance'),
-        )
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
         .mockResolvedValueOnce(errorResponse(409, 'venue_signature_expired'))
-        .mockResolvedValueOnce(
-          signRequired('/trade-api/v2/portfolio/balance'),
-        )
+        .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
         .mockResolvedValueOnce(errorResponse(409, 'venue_signature_expired'));
 
       await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
@@ -721,12 +703,7 @@ describe('PredictApiReadClient', () => {
       fetchMock.mockResolvedValue(createResponse());
       const signal = new AbortController().signal;
 
-      await client.commitOrder(
-        venueId,
-        { previewId },
-        { signal },
-        signing,
-      );
+      await client.commitOrder(venueId, { previewId }, { signal }, signing);
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(fetchMock).toHaveBeenCalledWith(
@@ -795,9 +772,7 @@ describe('PredictApiReadClient', () => {
         getBearerToken: async () => 'secret-token',
         signOperation,
       });
-      fetchMock.mockResolvedValueOnce(
-        errorResponse(410, 'preview_expired'),
-      );
+      fetchMock.mockResolvedValueOnce(errorResponse(410, 'preview_expired'));
 
       await expect(
         client.commitOrder(venueId, { previewId }, undefined, signing),

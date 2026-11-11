@@ -19,6 +19,7 @@ import { sha256 } from '@noble/hashes/sha2';
 
 import profileDocument from './venue-profiles/kalshi-trading-1.json';
 import type {
+  BodyField,
   HttpRfc9421Payload,
   Intent,
   ReadPattern,
@@ -28,7 +29,16 @@ import type {
   Transform,
 } from './signing/profileSchema';
 
-export type { HttpRfc9421Payload, Intent, ReadPattern, Shape, SigningProfile, Source, Transform };
+export type {
+  BodyField,
+  HttpRfc9421Payload,
+  Intent,
+  ReadPattern,
+  Shape,
+  SigningProfile,
+  Source,
+  Transform,
+};
 
 /** The payload kinds the DSL renders. Only `http-rfc9421` renders today. */
 export type RenderedPayloadKind = 'http-rfc9421';
@@ -336,8 +346,7 @@ const verifyDocumentSignature = (
   }
   const payloadBytes = new TextEncoder().encode(document.payload);
   const digest = sha256(payloadBytes);
-  const pem =
-    document.keyId === 'primary' ? keys.primary : keys.backup;
+  const pem = document.keyId === 'primary' ? keys.primary : keys.backup;
   if (!pem) {
     throw new ProfileDocumentValidationError('profile_document_unknown_key');
   }
@@ -364,14 +373,17 @@ const verifyDocumentSignature = (
   const signature = new p256.Signature(toBig(r), toBig(s));
   let ok: boolean;
   try {
-    ok = p256.verify(signature.normalizeS(), digest, point, { lowS: true });
+    ok = p256.verify(
+      signature.normalizeS().toCompactRawBytes(),
+      digest,
+      point,
+      { lowS: true },
+    );
   } catch {
     ok = false;
   }
   if (!ok) {
-    throw new ProfileDocumentValidationError(
-      'profile_document_bad_signature',
-    );
+    throw new ProfileDocumentValidationError('profile_document_bad_signature');
   }
 };
 
@@ -380,12 +392,12 @@ const verifyDocumentSignature = (
  * enforces monotonicity (a remote profile may not roll back); the bundled
  * copy loads with 0.
  */
-export const verifyProfileDocument = async (input: {
+export async function verifyProfileDocument(input: {
   raw: string;
   keys: ProfileKeys;
   lastAcceptedVersion: number;
   minDslSupported: readonly string[];
-}): Promise<SigningProfile> => {
+}): Promise<SigningProfile> {
   const document = parseDocument(input.raw);
   verifyDocumentSignature(document, input.keys);
   let profileJson: unknown;
@@ -418,7 +430,7 @@ export const verifyProfileDocument = async (input: {
     );
   }
   return parsed;
-};
+}
 
 /* ------------------------------------------------------------------ */
 /* Payload validation                                                  */
@@ -452,9 +464,7 @@ const validateShape = (value: unknown): boolean => {
         (value.max === undefined || typeof value.max === 'number')
       );
     case 'oneOf':
-      return (
-        Array.isArray(value.values) && value.values.every(isScalar)
-      );
+      return Array.isArray(value.values) && value.values.every(isScalar);
     case 'time':
       return (
         (value.unit === 's' || value.unit === 'ms') &&
@@ -541,12 +551,13 @@ const validateHttpRfc9421Payload = (
   if (
     value.query !== undefined &&
     (!Array.isArray(value.query) ||
-      !value.query.every((entry: unknown) =>
-        isRecord(entry) &&
-        typeof entry.key === 'string' &&
-        entry.key.length > 0 &&
-        validateSource(entry.value) &&
-        (entry.optional === undefined || typeof entry.optional === 'boolean'),
+      !value.query.every(
+        (entry: unknown) =>
+          isRecord(entry) &&
+          typeof entry.key === 'string' &&
+          entry.key.length > 0 &&
+          validateSource(entry.value) &&
+          (entry.optional === undefined || typeof entry.optional === 'boolean'),
       ))
   ) {
     return false;
@@ -556,11 +567,12 @@ const validateHttpRfc9421Payload = (
       !isRecord(value.body) ||
       !Array.isArray(value.body.json) ||
       value.body.json.length === 0 ||
-      !value.body.json.every((field: unknown) =>
-        isRecord(field) &&
-        typeof field.key === 'string' &&
-        field.key.length > 0 &&
-        validateSource(field.value),
+      !value.body.json.every(
+        (field: unknown) =>
+          isRecord(field) &&
+          typeof field.key === 'string' &&
+          field.key.length > 0 &&
+          validateSource(field.value),
       ) ||
       typeof value.body.maxBytes !== 'number' ||
       value.body.maxBytes <= 0
@@ -593,7 +605,7 @@ const validatePayload = (value: unknown): boolean => {
   }
 };
 
-const validateSigningProfile = (value: unknown): SigningProfile | undefined => {
+function validateSigningProfile(value: unknown): SigningProfile | undefined {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -694,4 +706,4 @@ const validateSigningProfile = (value: unknown): SigningProfile | undefined => {
     }
   }
   return value as unknown as SigningProfile;
-};
+}

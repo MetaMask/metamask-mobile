@@ -8,6 +8,7 @@ import type {
   SignOperationInput,
   SignedOperation,
 } from '../../auth/signing/signOperationTypes';
+import type { VenueIntentName } from '../../auth/venueSigningProfiles';
 
 /** Signs one canonical operation. Provided by the Engine. Returns the
  * envelope header plus the exact body bytes the signature covers; the

@@ -41,6 +41,7 @@ export const PredictOrderFlowTestIds = {
   RECEIPT_NOT_FILLED: 'predict-order-flow-receipt-not-filled',
   RECEIPT_REJECTED: 'predict-order-flow-receipt-rejected',
   RECEIPT_RECONCILING: 'predict-order-flow-receipt-reconciling',
+  RECEIPT_NEEDS_REVIEW: 'predict-order-flow-receipt-needs-review',
   FILLED_CONTRACTS: 'predict-order-flow-filled-contracts',
   ACTUAL_SPEND: 'predict-order-flow-actual-spend',
   AVERAGE_FILL_PRICE: 'predict-order-flow-average-fill-price',

@@ -18,10 +18,7 @@ export const createKalshiTradingAdapter = (): KalshiRemoteAdapter =>
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
       signOperation: (operation, input) =>
-        Engine.context.PredictDeviceAuthService.signOperation(
-          operation,
-          input,
-        ),
+        Engine.context.PredictDeviceAuthService.signOperation(operation, input),
       signRead: (proposed) =>
         Engine.context.PredictDeviceAuthService.signRead(proposed),
       invalidateSigningSession: () =>

@@ -233,7 +233,6 @@ export class KalshiRemoteAdapter {
     };
 
     this.portfolio = {
-      clearAccountState: () => client.clearAccountState?.(),
       fetchBalance: async (options) => {
         try {
           const value = await client.fetchBalance(this.venueId, options);

@@ -8,6 +8,7 @@ import type {
 import {
   loadVenueProfile,
   readAllowed,
+  type VenueIntentName,
 } from '../../auth/venueSigningProfiles';
 import type {
   FetchFeedParams,
@@ -31,7 +32,6 @@ import {
   type SignOperation,
   type SignRead,
 } from './signedVenueCall';
-import type { VenueIntentName } from '../../auth/venueSigningProfiles';
 
 export interface PredictApiReadTransport {
   fetchVenueStatus(
@@ -376,10 +376,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
     for (let calls = 0; calls < MAX_SIGNED_PAGE_CALLS; calls += 1) {
+      const pageParams = params;
       const response = await this.#getSignedOnce((deviceAuth, proposal) =>
         this.#fetchRead(
           segments,
-          params,
+          pageParams,
           options,
           bearerToken,
           deviceAuth,
@@ -591,7 +592,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       aborted.name = 'AbortError';
       throw aborted;
     }
-    return this.#parseBody(await this.#post(segments, body, bearerToken, options));
+    return this.#parseBody(
+      await this.#post(segments, body, bearerToken, options),
+    );
   }
 
   async #post(

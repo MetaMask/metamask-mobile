@@ -92,7 +92,6 @@ describe('approved intent ledger', () => {
       body: undefined,
       confirmed: false,
     });
-
   });
 
   it('lets only the sign limit of concurrent claims through', async () => {

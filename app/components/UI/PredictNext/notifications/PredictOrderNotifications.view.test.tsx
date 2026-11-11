@@ -64,23 +64,26 @@ const toastRef = {
  * Engine.controllerMessenger. */
 let rootMessenger: Messenger<MockAnyNamespace, never, never>;
 
+/** A $20 buy the device can actually sign: 41 contracts at 0.4651 plus the
+ * 2¢/contract fee ceiling is $19.89, inside the approved $20. */
 const makePreview = () => ({
   previewId: PREVIEW_ID,
   venueId: 'kalshi',
   marketId: 'KXTEST-26-A',
   side: 'yes',
   requestedAmount: '20.00',
-  orderAmount: '20.00',
-  estimatedContracts: 43,
+  orderAmount: '19.07',
+  estimatedContracts: 41,
   averagePrice: '0.4651',
-  fee: '0.86',
+  limitPrice: '0.4651',
+  fee: '0.82',
   feeBreakdown: [
-    { source: 'venue', amount: '0.43' },
-    { source: 'metamask', amount: '0.43' },
+    { source: 'venue', amount: '0.41' },
+    { source: 'metamask', amount: '0.41' },
   ],
-  totalDebit: '20.86',
-  potentialPayout: '43.00',
-  potentialProfit: '22.14',
+  totalDebit: '19.89',
+  potentialPayout: '41.00',
+  potentialProfit: '21.11',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
 });
 

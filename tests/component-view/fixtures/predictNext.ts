@@ -7,6 +7,15 @@ import {
 import Engine from '../../../app/core/Engine';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
+import type {
+  SignOperation,
+  SignRead,
+} from '../../../app/components/UI/PredictNext/adapters/remote/signedVenueCall';
+import {
+  loadVenueProfile,
+  VENUE_AUTHORIZATION_HEADER,
+} from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
+import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
 import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
 import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
@@ -678,6 +687,47 @@ export interface PredictNextPositionsPageFixture {
   nextCursor?: string;
 }
 
+// Deterministic test envelopes; the real client still performs the exchange
+// and sends exactly the profile-rendered bytes, including the commit overlay.
+const signRead: SignRead = async ({ method, path, query }) => ({
+  name: VENUE_AUTHORIZATION_HEADER,
+  value: JSON.stringify({ method, path, query }),
+});
+
+const signOperation: SignOperation = async (operation, input) => {
+  const profile = await loadVenueProfile();
+  const intent = profile?.intents.find(({ id }) => id === operation);
+  const payloadName = intent?.payloads[0];
+  const payload = payloadName && profile?.payloads[payloadName];
+  if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+    throw new Error(`Missing fixture signing template for ${operation}`);
+  }
+  const rendered = renderRequest(
+    payloadName,
+    {
+      class: 'mutation',
+      method: payload.method,
+      path: payload.path,
+      body: payload.body
+        ? { json: payload.body.json, maxBytes: payload.body.maxBytes }
+        : undefined,
+      idempotencyKey: payload.idempotencyKey,
+      invariants: payload.invariants,
+    },
+    {
+      inputs: input?.inputs ?? {},
+      values: input?.values ?? {},
+      nowMs: Date.now(),
+    },
+    input?.bodyOverlay,
+  );
+  return {
+    header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
+    body: rendered.body,
+    idempotencyKey: rendered.idempotencyKey,
+  };
+};
+
 /**
  * Composes the real Order workflow service the way the Engine init does,
  * against whatever `globalThis.fetch` is installed when called: the concrete
@@ -700,6 +750,9 @@ export const composePredictNextOrderService = (
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
   );
   return new PredictOrderService({
@@ -726,6 +779,9 @@ export const composePredictNextPortfolioTrading = () => {
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
   );
   const portfolioService = new PredictPortfolioService({

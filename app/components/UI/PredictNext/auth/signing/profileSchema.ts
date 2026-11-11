@@ -9,51 +9,21 @@
 /** The DSL level a profile is written for. */
 export type DslVersion = 'dsl-1';
 
-/** A JSON scalar. */
-export type Scalar = string | number | boolean;
+/**
+ * The DSL value types live in the renderer, which is the one place that
+ * must agree with predict-api's `venue-profile/profile-schema.ts` zod
+ * union. Re-exported here so the document shape and the renderer cannot
+ * drift apart.
+ */
+export type {
+  Scalar,
+  Shape,
+  Source,
+  TemplateValues,
+  Transform,
+} from './profileTemplates';
 
-/** Values the phone supplies locally; never serialized into the envelope. */
-export type TemplateValues = Readonly<Record<string, unknown>>;
-
-/** Where a rendered field's value comes from. */
-export type Source =
-  | { readonly const: Scalar | readonly Scalar[] }
-  /** A value the user typed or the app holds; optionally transformed and
-   * shape-checked as rendered. */
-  | {
-      readonly input: string;
-      readonly shape?: Shape;
-      readonly transform?: Transform;
-    }
-  /** Maps N inputs through a lookup table keyed `a:b`. */
-  | {
-      readonly map: {
-        readonly inputs: readonly string[];
-        readonly table: Readonly<Record<string, string>>;
-      };
-    }
-  /** A value the flow computed locally (`price`, `count`, cursors). */
-  | { readonly value: string; readonly shape?: Shape };
-
-export type Shape =
-  | { readonly kind: 'opaque'; readonly maxLength: number }
-  | {
-      readonly kind: 'decimal';
-      readonly scale: number;
-      readonly min?: string;
-      readonly max?: string;
-    }
-  | { readonly kind: 'int'; readonly min?: number; readonly max?: number }
-  | {
-      readonly kind: 'oneOf';
-      readonly values: readonly string[];
-    }
-  | { readonly kind: 'time'; readonly unit: 's' | 'ms'; readonly maxAgeSec: number; readonly maxAheadSec: number }
-  | { readonly kind: 'uuid-v4' }
-  | { readonly kind: 'array'; readonly of: Shape; readonly maxItems: number };
-
-/** Applied to an input before it is shape-checked as rendered. */
-export type Transform = 'trim' | 'decimal-fixed-2' | 'decimal-fixed-4';
+import type { Source } from './profileTemplates';
 
 /** One JSON body field: key plus the source that renders its value. */
 export interface BodyField {
@@ -130,12 +100,14 @@ export interface SigningProfile {
   readonly intents: readonly Intent[];
   /** Payload registry the intents name. */
   readonly payloads: Readonly<Record<string, Payload>>;
-  /** L1 read allowlist for phone-initiated GETs. */
-  readonly reads?: {
+  /** L1 read allowlist for phone-initiated GETs. Required: predict-api's
+   * profile schema rejects a document without it, and every signer needs it. */
+  readonly reads: {
     readonly allow: readonly ReadPattern[];
     readonly maxPathLength: number;
   };
-  readonly implementation?: {
+  /** Required for the same reason: signing is impossible without it. */
+  readonly implementation: {
     readonly id: 'device-p256-rfc9421-v1';
     readonly params: ImplementationParams;
   };
