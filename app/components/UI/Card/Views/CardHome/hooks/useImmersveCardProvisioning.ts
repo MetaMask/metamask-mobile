@@ -101,6 +101,10 @@ export function useImmersveCardProvisioning(
     options?.pollIntervalMs === undefined
       ? POLL_INTERVAL_MS
       : options.pollIntervalMs;
+  // Latest interval for the settling retry. The reconcile effect must not
+  // depend on it, or a network change cancels the request in flight.
+  const pollIntervalMsRef = useRef(pollIntervalMs);
+  pollIntervalMsRef.current = pollIntervalMs;
   const navigateFromOutsideCard = options?.navigateFromOutsideCard === true;
   const recheckOnFocus = options?.recheckOnFocus === true;
   const [focusRecheckCount, setFocusRecheckCount] = useState(0);
@@ -159,6 +163,31 @@ export function useImmersveCardProvisioning(
     return () => clearInterval(interval);
   }, [isProvisioning, isFocused, pendingAction, isReconciling, pollIntervalMs]);
 
+  // Going offline drops a waiting retry. Coming back starts one, unless a
+  // reconcile is already running or a retry is already waiting.
+  const wasOfflineRef = useRef(pollIntervalMs === null);
+  useEffect(() => {
+    const wasOffline = wasOfflineRef.current;
+    wasOfflineRef.current = pollIntervalMs === null;
+    if (pollIntervalMs === null) {
+      if (settleTimerRef.current) {
+        clearTimeout(settleTimerRef.current);
+        settleTimerRef.current = null;
+      }
+      return;
+    }
+    if (
+      !wasOffline ||
+      !isProvisioning ||
+      !isFundingSettling ||
+      isReconciling ||
+      settleTimerRef.current
+    ) {
+      return;
+    }
+    setRecheckCount((count) => count + 1);
+  }, [pollIntervalMs, isProvisioning, isFundingSettling, isReconciling]);
+
   useEffect(() => {
     const regainedFocus = isFocused && !wasFocusedRef.current;
     wasFocusedRef.current = isFocused;
@@ -193,7 +222,8 @@ export function useImmersveCardProvisioning(
         clearTimeout(settleTimerRef.current);
       }
       // Offline callers pass null and must not keep asking.
-      if (pollIntervalMs === null) {
+      const intervalMs = pollIntervalMsRef.current;
+      if (intervalMs === null) {
         return;
       }
       settleTimerRef.current = setTimeout(() => {
@@ -201,7 +231,7 @@ export function useImmersveCardProvisioning(
         if (!cancelled) {
           setRecheckCount((count) => count + 1);
         }
-      }, pollIntervalMs);
+      }, intervalMs);
     };
 
     (async () => {
@@ -404,7 +434,6 @@ export function useImmersveCardProvisioning(
     dispatch,
     focusRecheckCount,
     recheckCount,
-    pollIntervalMs,
   ]);
 
   const resumePendingAction = useCallback(() => {

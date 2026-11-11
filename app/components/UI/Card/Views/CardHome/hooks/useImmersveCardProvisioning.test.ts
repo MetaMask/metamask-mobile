@@ -293,6 +293,64 @@ describe('useImmersveCardProvisioning', () => {
   });
 
   describe('reconcile', () => {
+    it('keeps an in-flight reconcile running when the poll interval changes', async () => {
+      let resolvePrereqs!: (value: { prerequisites: never[] }) => void;
+      controller.getSpendingPrerequisites.mockReturnValue(
+        new Promise((resolve) => {
+          resolvePrereqs = resolve;
+        }),
+      );
+
+      const { rerender } = renderHook(
+        ({ pollIntervalMs }: { pollIntervalMs: number | null }) =>
+          useImmersveCardProvisioning(provisioningData, { pollIntervalMs }),
+        { initialProps: { pollIntervalMs: 5_000 as number | null } },
+      );
+
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1),
+      );
+
+      rerender({ pollIntervalMs: null });
+      rerender({ pollIntervalMs: 15_000 });
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolvePrereqs({ prerequisites: [] });
+      });
+
+      await waitFor(() =>
+        expect(controller.createCard).toHaveBeenCalledTimes(1),
+      );
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries a settling recheck that was skipped while offline', async () => {
+      mockFundingSettling = true;
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: fundingPrerequisites,
+      });
+
+      const { result, rerender } = renderHook(
+        ({ pollIntervalMs }: { pollIntervalMs: number | null }) =>
+          useImmersveCardProvisioning(provisioningData, { pollIntervalMs }),
+        { initialProps: { pollIntervalMs: null as number | null } },
+      );
+
+      await waitFor(() => {
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+        expect(result.current.isReconciling).toBe(false);
+      });
+
+      rerender({ pollIntervalMs: 5_000 });
+
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2),
+      );
+      expect(controller.createCard).not.toHaveBeenCalled();
+    });
+
     it('starts reconciling and clears once status is resolved', async () => {
       let resolvePrereqs!: (value: {
         prerequisites: typeof kycPrerequisites;
