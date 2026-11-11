@@ -115,6 +115,21 @@ describe('Settings', () => {
     expect(advancedSettings).toBeDefined();
   });
 
+  it('does not render root list row subtitles', () => {
+    const { getByText, queryByText } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+
+    expect(
+      getByText(strings('app_settings.notifications_title')),
+    ).toBeOnTheScreen();
+    expect(getByText(strings('backupAndSync.title'))).toBeOnTheScreen();
+    expect(queryByText('Manage your notifications')).not.toBeOnTheScreen();
+    expect(
+      queryByText('Back up your accounts and sync settings.'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders settings group headings', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
