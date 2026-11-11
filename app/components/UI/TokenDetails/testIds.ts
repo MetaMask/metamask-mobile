@@ -42,4 +42,14 @@ export const TokenDetailsIds = {
     POSITION_VALUE: 'token-holder-row-position-value',
     PNL_PERCENT: 'token-holder-row-pnl-percent',
   },
+  graduation: {
+    rail: 'token-details-graduation-rail',
+    fill: 'token-details-graduation-fill',
+    rider: 'token-details-graduation-rider',
+    percentPill: 'token-details-graduation-percent-pill',
+    percentText: 'token-details-graduation-percent-text',
+    spark: 'token-details-graduation-spark',
+    dexCap: 'token-details-graduation-dex-cap',
+    moneyRow: 'token-details-graduation-money-row',
+  },
 };

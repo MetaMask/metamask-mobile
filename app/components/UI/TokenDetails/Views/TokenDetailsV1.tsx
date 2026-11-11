@@ -79,6 +79,7 @@ import TokenAgeChip from '../components/V1/TokenAgeChip/TokenAgeChip';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
+import { GraduationProgress } from '../components/GraduationProgressC/GraduationProgress';
 import {
   TokenDetailsScrollProvider,
   useTokenDetailsScroll,
@@ -916,7 +917,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     isLoading={isPriceLoading}
                     hasInsufficientCoverage={hasInsufficientCoverage}
                   >
-                    <Price.Header showPeriodLabel={false} />
+                    <GraduationProgress
+                      launchpadData={tokenAsset?.launchpadData ?? null}
+                      token={token}
+                    >
+                      <Price.Header showPeriodLabel={false} />
+                    </GraduationProgress>
 
                     <Box twClassName="px-4">
                       <SecuritySocialSection

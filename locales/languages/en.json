@@ -6760,7 +6760,16 @@
     "contract_security": {
       "title": "Contract security"
     },
-    "tab_placeholder": "Coming soon"
+    "tab_placeholder": "Coming soon",
+    "graduation": {
+      "dex_label": "DEX",
+      "remaining_phrase": "to graduation",
+      "bonded": "{{percent}}% bonded",
+      "raised": "{{amount}} raised",
+      "to_graduation": "{{amount}} to graduation",
+      "accessibility_bonding": "Bonding curve progress, {{percent}} percent bonded, {{raised}} raised, {{remaining}} to graduation",
+      "accessibility_created": "Launch progress, {{percent}} percent to graduation"
+    }
   },
   "account_details": {
     "title": "Account details",
