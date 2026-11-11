@@ -18,7 +18,10 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
-import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  getPaymentTokenKey,
+  getTokenAddress,
+} from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../components/confirm/confirm-component';
 import { debounce } from 'lodash';
@@ -141,10 +144,10 @@ export function useTransactionCustomAmount({
   const skipFiatRateConversion =
     isMoneyAccountDeposit || isMoneyAccountWithdraw;
   const { balanceUsd } = useTransactionPayBalance({ currency });
-  const { payToken } = useTransactionPayToken();
-  const payTokenKey = `${payToken?.chainId ?? ''}:${
-    payToken?.address.toLowerCase() ?? ''
-  }`;
+  const { nonEvmPayToken, payToken } = useTransactionPayToken();
+  const payTokenKey = nonEvmPayToken
+    ? getPaymentTokenKey(nonEvmPayToken)
+    : `${payToken?.chainId ?? ''}:${payToken?.address.toLowerCase() ?? ''}`;
 
   useEffect(() => {
     userHasEditedRef.current = false;
@@ -153,7 +156,7 @@ export function useTransactionCustomAmount({
     prefetchedQuotePayTokenKeyRef.current = undefined;
     setPrefetchedQuoteAmountHuman(undefined);
     setPrefetchedQuotePayTokenKey(undefined);
-  }, [payToken?.address, payToken?.chainId]);
+  }, [payTokenKey]);
 
   const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();

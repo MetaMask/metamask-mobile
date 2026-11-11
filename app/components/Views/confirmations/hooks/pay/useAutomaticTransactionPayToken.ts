@@ -11,7 +11,6 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
@@ -34,6 +33,10 @@ import {
   isSubsidizedSource,
   RelayFixedSpreadConfig,
 } from '../../utils/relayFixedSpread';
+import {
+  isMoneyAccountFunding,
+  isSolanaPayAsset,
+} from '../../utils/transaction-pay';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { RootState } from '../../../../../reducers';
@@ -63,7 +66,8 @@ export function useAutomaticTransactionPayToken({
   preferredToken?: SetPayTokenRequest;
 } = {}) {
   const isUpdated = useRef<string | undefined>(undefined);
-  const { payToken, setPayToken } = useTransactionPayToken();
+  const { nonEvmPayToken, payToken, setPayToken } = useTransactionPayToken();
+  const paymentToken = payToken ?? nonEvmPayToken;
   const fiatPayment = useTransactionPayFiatPayment();
   const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -114,8 +118,13 @@ export function useAutomaticTransactionPayToken({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
-  const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount;
+  // A Money Account deposit funded from Solana carries the Money Account
+  // override for its second leg; it must not re-select the Money Account token.
+  const isMoneyPaymentOverride = isMoneyAccountFunding({
+    paymentOverride,
+    payToken: paymentToken,
+    transactionMeta,
+  });
   const isMoneyAccountFlagDefault = useIsMoneyAccountFlagDefault();
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
@@ -127,7 +136,8 @@ export function useAutomaticTransactionPayToken({
     () =>
       isWithdraw
         ? withdrawTokenFilter(availableTokens)
-        : availableTokens.filter((t) => !t.disabled),
+        : // Solana sources are only ever selected explicitly by the user.
+          availableTokens.filter((t) => !t.disabled && !isSolanaPayAsset(t)),
     [availableTokens, isWithdraw, withdrawTokenFilter],
   );
 
@@ -139,7 +149,7 @@ export function useAutomaticTransactionPayToken({
     availableTokens: tokens,
     disable,
     hasFiatPaymentSelected,
-    payTokenSelected: Boolean(payToken),
+    payTokenSelected: Boolean(paymentToken),
   });
 
   const selectBestToken = useCallback(
@@ -183,7 +193,7 @@ export function useAutomaticTransactionPayToken({
   useEffect(() => {
     if (
       disable ||
-      payToken ||
+      paymentToken ||
       hasFiatPaymentSelected ||
       !transactionId ||
       isUpdated.current === transactionId
@@ -259,8 +269,8 @@ export function useAutomaticTransactionPayToken({
     isMoneyAccountPayPending,
     isMoneyPaymentOverride,
     maxDelayMinutesForPaymentMethods,
-    payToken,
     paymentMethods,
+    paymentToken,
     requiredTokens,
     setPayToken,
     shouldSelectMoneyAccount,
@@ -271,7 +281,7 @@ export function useAutomaticTransactionPayToken({
   // In fiat flows a pay token only exists once the user explicitly selects an
   // ERC-20; the latch survives the token reset that an account change causes.
   const payTokenEverSelectedRef = useRef(false);
-  if (payToken) {
+  if (paymentToken) {
     payTokenEverSelectedRef.current = true;
   }
 

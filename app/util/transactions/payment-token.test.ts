@@ -1,14 +1,20 @@
 import type { AssetsControllerState } from '@metamask/assets-controller';
-import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
-import type { Hex } from '@metamask/utils';
+import type {
+  TransactionPayQuote,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
+import type { Hex, Json } from '@metamask/utils';
 import {
   getEvmAsset,
   getEvmPaymentToken,
   getEvmPaymentTokenAssetId,
+  getNonEvmPaymentToken,
+  isEvmTransactionPayQuote,
+  isNonEvmPaymentToken,
 } from './payment-token';
 
-const NON_EVM_ASSET_ID =
-  'bip122:000000000019d6689c085ae165831e93/slip44:0' as const;
+const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const SOL_ASSET_ID = `${SOLANA_CHAIN_ID}/slip44:501` as const;
 const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const USDC_ASSET_ID = `eip155:1/erc20:${USDC_ADDRESS}` as const;
 
@@ -20,6 +26,13 @@ const PAYMENT_TOKEN_MOCK: TransactionPaymentToken = {
   balanceUsd: '1',
   decimals: 6,
   symbol: 'USDC',
+};
+
+const SOL_PAYMENT_TOKEN_MOCK: TransactionPaymentToken = {
+  ...PAYMENT_TOKEN_MOCK,
+  assetId: SOL_ASSET_ID,
+  decimals: 9,
+  symbol: 'SOL',
 };
 
 function buildAssetsInfo(
@@ -54,7 +67,14 @@ describe('payment-token', () => {
     });
 
     it('returns undefined for a non-EVM asset', () => {
-      expect(getEvmAsset(NON_EVM_ASSET_ID)).toBeUndefined();
+      expect(getEvmAsset(SOL_ASSET_ID)).toBeUndefined();
+    });
+  });
+
+  describe('isNonEvmPaymentToken', () => {
+    it('derives the protocol from the asset ID', () => {
+      expect(isNonEvmPaymentToken(SOL_PAYMENT_TOKEN_MOCK)).toBe(true);
+      expect(isNonEvmPaymentToken(PAYMENT_TOKEN_MOCK)).toBe(false);
     });
   });
 
@@ -68,13 +88,22 @@ describe('payment-token', () => {
     });
 
     it('returns undefined for a non-EVM or missing token', () => {
-      expect(
-        getEvmPaymentToken({
-          ...PAYMENT_TOKEN_MOCK,
-          assetId: NON_EVM_ASSET_ID,
-        }),
-      ).toBeUndefined();
+      expect(getEvmPaymentToken(SOL_PAYMENT_TOKEN_MOCK)).toBeUndefined();
       expect(getEvmPaymentToken(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('getNonEvmPaymentToken', () => {
+    it('adds the CAIP-2 chain ID to a non-EVM token', () => {
+      expect(getNonEvmPaymentToken(SOL_PAYMENT_TOKEN_MOCK)).toStrictEqual({
+        ...SOL_PAYMENT_TOKEN_MOCK,
+        chainId: SOLANA_CHAIN_ID,
+      });
+    });
+
+    it('returns undefined for an EVM or missing token', () => {
+      expect(getNonEvmPaymentToken(PAYMENT_TOKEN_MOCK)).toBeUndefined();
+      expect(getNonEvmPaymentToken(undefined)).toBeUndefined();
     });
   });
 
@@ -128,6 +157,27 @@ describe('payment-token', () => {
           buildAssetsInfo({}),
         ),
       ).toBe(`eip155:10/erc20:${USDC_ADDRESS}`);
+    });
+  });
+
+  describe('quote source protocol', () => {
+    const EVM_QUOTE_MOCK = {
+      request: {
+        sourceAccountId: 'eip155:1:0x123',
+        sourceAssetId: USDC_ASSET_ID,
+      },
+    } as unknown as TransactionPayQuote<Json>;
+
+    const NON_EVM_QUOTE_MOCK = {
+      request: {
+        sourceAccountId: `${SOLANA_CHAIN_ID}:SoLAddress`,
+        sourceAssetId: SOL_ASSET_ID,
+      },
+    } as unknown as TransactionPayQuote<Json>;
+
+    it('identifies EVM quotes from the source asset ID', () => {
+      expect(isEvmTransactionPayQuote(EVM_QUOTE_MOCK)).toBe(true);
+      expect(isEvmTransactionPayQuote(NON_EVM_QUOTE_MOCK)).toBe(false);
     });
   });
 });

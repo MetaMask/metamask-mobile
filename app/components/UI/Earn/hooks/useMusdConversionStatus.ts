@@ -22,10 +22,15 @@ import { store } from '../../../../store';
 import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
 import { getNetworkName } from '../utils/network';
 import { getMusdConversionQuoteTrackingData } from '../utils/analytics';
+import { isEvmTransactionPayQuote } from '../../../../util/transactions/payment-token';
 
 function getTransactionPayQuotes(transactionId: string) {
   const state = store.getState();
-  return selectTransactionPayQuotesByTransactionId(state, transactionId) ?? [];
+  // mUSD conversion analytics read Hex source fields, so only EVM-source
+  // quotes apply. Non-EVM quotes, such as Solana sources, have no Hex chain ID.
+  return (
+    selectTransactionPayQuotesByTransactionId(state, transactionId) ?? []
+  ).filter(isEvmTransactionPayQuote);
 }
 
 /**

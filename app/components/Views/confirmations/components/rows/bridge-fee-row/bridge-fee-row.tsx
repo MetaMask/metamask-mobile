@@ -30,7 +30,14 @@ import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
-import { Hex, Json } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  Json,
+  parseCaipAssetType,
+} from '@metamask/utils';
+import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import Icon, {
   IconColor,
@@ -44,7 +51,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { NonEvmTokenIcon, TokenIcon, TokenIconVariant } from '../../token-icon';
 import { getEvmAsset } from '../../../../../../util/transactions/payment-token';
 
 export function BridgeFeeRow() {
@@ -263,6 +270,7 @@ function Tooltip({
  * since post-quote flows (withdrawals) treat the payment token as the
  * destination. Defaults to the native token of the source chain, unless a gas
  * fee token is used, which the gas station always prices in the source token.
+ * A non-EVM source, such as Solana, always pays in its native asset.
  */
 function getNetworkFeeToken({
   quotes,
@@ -272,9 +280,16 @@ function getNetworkFeeToken({
   quotes?: TransactionPayQuote<Json>[];
   totals: TransactionPayTotals;
   transactionMeta: TransactionMeta;
-}): { address: Hex; chainId: Hex } {
+}): NetworkFeeToken {
   const request = quotes?.[0]?.request;
   const sourceAsset = request && getEvmAsset(request.sourceAssetId);
+
+  if (request && !sourceAsset) {
+    const { chainId } = parseCaipAssetType(request.sourceAssetId);
+    const { assetId, symbol } = getNativeAssetForChainId(chainId);
+    return { assetId, chainId, symbol };
+  }
+
   const chainId = sourceAsset?.chainId ?? transactionMeta.chainId;
 
   const address =
@@ -284,6 +299,10 @@ function getNetworkFeeToken({
 
   return { address, chainId };
 }
+
+type NetworkFeeToken =
+  | { address: Hex; chainId: Hex }
+  | { assetId: CaipAssetType; chainId: CaipChainId; symbol: string };
 
 function FeesTooltip({
   message,
@@ -343,13 +362,21 @@ function FeesTooltip({
           alignItems={AlignItems.center}
           gap={6}
         >
-          {showNetworkFeeToken && (
-            <TokenIcon
-              address={networkFeeToken.address}
-              chainId={networkFeeToken.chainId}
-              variant={TokenIconVariant.Row}
-            />
-          )}
+          {showNetworkFeeToken &&
+            ('assetId' in networkFeeToken ? (
+              <NonEvmTokenIcon
+                assetId={networkFeeToken.assetId}
+                chainId={networkFeeToken.chainId}
+                symbol={networkFeeToken.symbol}
+                variant={TokenIconVariant.Row}
+              />
+            ) : (
+              <TokenIcon
+                address={networkFeeToken.address}
+                chainId={networkFeeToken.chainId}
+                variant={TokenIconVariant.Row}
+              />
+            ))}
           <Text color={TextColor.TextAlternative}>{networkFeeUsd}</Text>
         </Box>
       </Box>

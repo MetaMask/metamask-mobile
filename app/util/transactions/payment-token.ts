@@ -1,12 +1,16 @@
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
-import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import type {
+  TransactionPayQuote,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
 import {
   KnownCaipNamespace,
   numberToHex,
   parseCaipAssetType,
   toCaipChainId,
   type CaipAssetType,
+  type CaipChainId,
   type Hex,
 } from '@metamask/utils';
 
@@ -14,6 +18,11 @@ import {
 export type EvmPaymentToken = TransactionPaymentToken & {
   address: Hex;
   chainId: Hex;
+};
+
+/** Payment token on a non-EVM chain, such as Solana, with its CAIP-2 chain ID. */
+export type NonEvmPaymentToken = TransactionPaymentToken & {
+  chainId: CaipChainId;
 };
 
 /**
@@ -44,6 +53,18 @@ export function getEvmAsset(
 }
 
 /**
+ * Whether a payment token is on a non-EVM chain, derived from its asset ID.
+ *
+ * @param paymentToken - Payment token.
+ * @returns True for a non-EVM payment token.
+ */
+export function isNonEvmPaymentToken(
+  paymentToken: TransactionPaymentToken,
+): boolean {
+  return !getEvmAsset(paymentToken.assetId);
+}
+
+/**
  * Add the chain ID and address derived from its asset ID to an EVM payment
  * token.
  *
@@ -57,6 +78,26 @@ export function getEvmPaymentToken(
   const evmAsset = paymentToken && getEvmAsset(paymentToken.assetId);
 
   return evmAsset && { ...paymentToken, ...evmAsset };
+}
+
+/**
+ * Add the CAIP-2 chain ID derived from its asset ID to a non-EVM payment token.
+ *
+ * @param paymentToken - Payment token, if any.
+ * @returns The non-EVM payment token, or undefined if none is selected or it is
+ * an EVM token.
+ */
+export function getNonEvmPaymentToken(
+  paymentToken: TransactionPaymentToken | undefined,
+): NonEvmPaymentToken | undefined {
+  if (!paymentToken || !isNonEvmPaymentToken(paymentToken)) {
+    return undefined;
+  }
+
+  return {
+    ...paymentToken,
+    chainId: parseCaipAssetType(paymentToken.assetId).chainId,
+  };
 }
 
 /**
@@ -105,4 +146,17 @@ export function getEvmPaymentTokenAssetId(
     matches[0] ??
     derivedAssetId
   );
+}
+
+/**
+ * Whether a quote pays with an EVM source token, from the protocol of its
+ * source asset.
+ *
+ * @param quote - Transaction pay quote.
+ * @returns True for a quote with an EVM source.
+ */
+export function isEvmTransactionPayQuote<OriginalQuote>(
+  quote: TransactionPayQuote<OriginalQuote>,
+): boolean {
+  return Boolean(getEvmAsset(quote.request.sourceAssetId));
 }

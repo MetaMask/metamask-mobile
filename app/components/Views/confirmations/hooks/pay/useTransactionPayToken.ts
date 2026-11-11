@@ -4,7 +4,8 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -15,17 +16,57 @@ import { selectTransactionPaymentTokenByTransactionId } from '../../../../../sel
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import {
   EvmPaymentToken,
+  NonEvmPaymentToken,
   getEvmPaymentToken,
   getEvmPaymentTokenAssetId,
+  getNonEvmPaymentToken,
 } from '../../../../../util/transactions/payment-token';
 import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Logger from '../../../../../util/Logger';
 
+export interface SetNonEvmPayTokenRequest {
+  /** CAIP-19 asset type of the non-EVM token. */
+  assetId: CaipAssetType;
+}
+
+/**
+ * Configures a Money Account deposit for a non-EVM source, or clears that
+ * configuration when switching back to an EVM token.
+ *
+ * Core runs the vault deposit as a non-atomic second leg only for a request
+ * with the Money Account override and `atomic: false`, so it must be set before
+ * the non-EVM token is selected for the first quote to include it. An armed Max
+ * deposit keeps its own atomic hint (see `useTransactionCustomAmount`).
+ *
+ * @param transactionId - ID of the Money Account deposit.
+ * @param isNonEvmSource - Whether the newly selected payment token is non-EVM.
+ */
+function setMoneyAccountDepositNonEvmSource(
+  transactionId: string,
+  isNonEvmSource: boolean,
+): void {
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config) => {
+      config.paymentOverride = isNonEvmSource
+        ? PaymentOverride.MoneyAccount
+        : undefined;
+
+      if (isNonEvmSource || !config.isMaxAmount) {
+        config.atomic = isNonEvmSource ? false : undefined;
+      }
+    },
+  );
+}
+
 export function useTransactionPayToken(): {
   isNative?: boolean;
+  /** Selected payment token when it is an EVM token. */
   payToken: EvmPaymentToken | undefined;
+  /** Selected payment token when it is a non-EVM token, such as Solana. */
+  nonEvmPayToken?: NonEvmPaymentToken;
   setPayToken: (newPayToken: { address: Hex; chainId: Hex }) => void;
 } {
   const transactionMeta = useTransactionMetadataRequest();
@@ -33,6 +74,11 @@ export function useTransactionPayToken(): {
 
   const paymentToken = useSelector((state: RootState) =>
     selectTransactionPaymentTokenByTransactionId(state, transactionId),
+  );
+
+  const nonEvmPayToken = useMemo(
+    () => getNonEvmPaymentToken(paymentToken),
+    [paymentToken],
   );
 
   const payToken = useMemo(
@@ -48,6 +94,10 @@ export function useTransactionPayToken(): {
   const isNative =
     payToken && payToken?.address === getNativeTokenAddress(payToken?.chainId);
 
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+
   const setPayToken = useCallback(
     (newPayToken: { address: Hex; chainId: Hex }) => {
       const {
@@ -56,6 +106,10 @@ export function useTransactionPayToken(): {
         NetworkController,
         TransactionPayController,
       } = Engine.context;
+
+      if (isMoneyAccountDeposit && nonEvmPayToken) {
+        setMoneyAccountDepositNonEvmSource(transactionId as string, false);
+      }
 
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         newPayToken.chainId,
@@ -107,6 +161,8 @@ export function useTransactionPayToken(): {
       EngineService.flushState();
     },
     [
+      isMoneyAccountDeposit,
+      nonEvmPayToken,
       transactionId,
       transactionMeta,
       primaryRequiredToken?.chainId,
@@ -116,7 +172,47 @@ export function useTransactionPayToken(): {
 
   return {
     isNative,
+    nonEvmPayToken,
     payToken,
     setPayToken,
   };
+}
+
+/**
+ * Selects a non-EVM payment token, such as Solana SOL or an SPL token, on the
+ * current transaction by CAIP-19 asset type. Core resolves the balance, quotes
+ * and submission from the account in the transaction account group that
+ * supports the asset chain, which is the group the token list is built from,
+ * so no account override is needed.
+ *
+ * @returns Callback that selects the non-EVM payment token.
+ */
+export function useSetNonEvmPayToken(): (
+  request: SetNonEvmPayTokenRequest,
+) => void {
+  const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+
+  return useCallback(
+    ({ assetId }: SetNonEvmPayTokenRequest) => {
+      if (isMoneyAccountDeposit) {
+        setMoneyAccountDepositNonEvmSource(transactionId, true);
+      }
+
+      try {
+        Engine.context.TransactionPayController.updatePaymentToken({
+          transactionId,
+          assetId,
+        });
+      } catch (error) {
+        Logger.error(error as Error, 'Error updating payment token');
+      }
+
+      EngineService.flushState();
+    },
+    [isMoneyAccountDeposit, transactionId],
+  );
 }
