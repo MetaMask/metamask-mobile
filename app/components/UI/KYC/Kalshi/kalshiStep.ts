@@ -11,6 +11,7 @@ import type { KycVendorSessionState } from '@metamask/kyc-controller';
 export type KalshiStep =
   | 'terms'
   | 'email'
+  | 'confirm'
   | 'email_code'
   | 'phone'
   | 'phone_code'
@@ -95,8 +96,14 @@ const deriveFromServerStep = (
   switch (entry?.nextStep) {
     case 'vendor_terms':
       return 'terms';
-    case 'verify_email':
+    // Kalshi's account comes first: the email starts Kalshi's link, and
+    // MetaMask confirms the email when the UKYC session is opened.
+    case 'account_link':
       return 'email';
+    case 'account_link_code':
+      return 'link_code';
+    case 'verify_email':
+      return 'confirm';
     case 'identity_verification':
       return relayCodeStep(entry, context) ?? 'sumsub';
     case 'kyc_retry':
@@ -105,8 +112,9 @@ const deriveFromServerStep = (
       return 'waiting';
     case 'kyc_rejected':
       return 'rejected';
+    // Activation (wallet/register) belongs to Predict; KYC ends at approval.
     case 'approved':
-      return accountStep(entry);
+      return 'done';
     default:
       return undefined;
   }

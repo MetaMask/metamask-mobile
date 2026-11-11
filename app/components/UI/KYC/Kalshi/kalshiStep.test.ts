@@ -30,7 +30,10 @@ describe('deriveKalshiStep', () => {
   describe('with a step from kyc-api', () => {
     it.each([
       ['vendor_terms', 'terms'],
-      ['verify_email', 'email'],
+      ['account_link', 'email'],
+      ['account_link_code', 'link_code'],
+      ['verify_email', 'confirm'],
+      ['approved', 'done'],
       ['kyc_pending', 'waiting'],
       ['kyc_retry', 'sumsub'],
       ['kyc_rejected', 'rejected'],
@@ -87,26 +90,6 @@ describe('deriveKalshiStep', () => {
       // Assert
       expect(beforeSend).toBe('phone');
       expect(afterSend).toBe('phone_code');
-    });
-
-    it('moves to the Kalshi account half once approved', () => {
-      // Arrange
-      const linked = entry({
-        nextStep: 'approved',
-        vendorAccount: {
-          state: 'approved',
-          updatedAt: '2026-11-10T00:00:00.000Z',
-        },
-      });
-      const fresh = entry({ nextStep: 'approved' });
-
-      // Act
-      const linkedStep = deriveKalshiStep(linked, visit);
-      const freshStep = deriveKalshiStep(fresh, visit);
-
-      // Assert
-      expect(linkedStep).toBe('activate');
-      expect(freshStep).toBe('link');
     });
   });
 

@@ -74,7 +74,11 @@ const STEP_COPY: Record<KalshiStep, { title: string; body: string }> = {
   },
   email: {
     title: 'Your email',
-    body: 'Kalshi creates your account with this email. MetaMask confirms it first.',
+    body: 'Kalshi creates your account with this email and sends you a code.',
+  },
+  confirm: {
+    title: 'Confirm with MetaMask',
+    body: 'MetaMask confirms your email, then idOS opens your identity check for Kalshi.',
   },
   email_code: {
     title: 'Check your email',
@@ -106,7 +110,7 @@ const STEP_COPY: Record<KalshiStep, { title: string; body: string }> = {
   },
   link_code: {
     title: 'Confirm the link',
-    body: 'Enter the code Kalshi sent to confirm it’s your account. Demo: 888888.',
+    body: 'Enter the code Kalshi emailed you. Demo: 888888.',
   },
   link_waiting: {
     title: 'Kalshi is finishing your account',
@@ -117,8 +121,8 @@ const STEP_COPY: Record<KalshiStep, { title: string; body: string }> = {
     body: 'Set the wallet Kalshi pays withdrawals to, and finish setup.',
   },
   done: {
-    title: 'You’re all set',
-    body: 'Your Kalshi account is active.',
+    title: 'Identity verified',
+    body: 'Kalshi has your verified identity. Predict activates your account when you start trading.',
   },
   unsupported: {
     title: 'Can’t finish setup',
@@ -165,24 +169,27 @@ const KalshiOnboarding = () => {
     refreshServerStep();
   }, [refreshServerStep]);
 
-  const run = useCallback(async (action: () => Promise<unknown>) => {
-    setBusy(true);
-    setError(undefined);
-    try {
-      await action();
-      await refreshServerStep();
-    } catch (caught) {
-      if (getMfaErrorCode(caught) === 'flow_cancelled') {
-        return;
+  const run = useCallback(
+    async (action: () => Promise<unknown>) => {
+      setBusy(true);
+      setError(undefined);
+      try {
+        await action();
+        await refreshServerStep();
+      } catch (caught) {
+        if (getMfaErrorCode(caught) === 'flow_cancelled') {
+          return;
+        }
+        Logger.error(caught as Error, {
+          tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
+        });
+        setError(errorMessage(caught));
+      } finally {
+        setBusy(false);
       }
-      Logger.error(caught as Error, {
-        tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
-      });
-      setError(errorMessage(caught));
-    } finally {
-      setBusy(false);
-    }
-  }, [refreshServerStep]);
+    },
+    [refreshServerStep],
+  );
 
   // Terms catalog.
   useEffect(() => {
@@ -232,9 +239,24 @@ const KalshiOnboarding = () => {
       await KycController.recordVendorDisclaimers({ vendor: VENDOR });
     });
 
+  // Kalshi's account comes first: the phone signs Kalshi's intent and link,
+  // kyc-api passes them on, and Kalshi emails a code.
   const submitEmail = () =>
+    run(() =>
+      KycController.startVendorAccountLink({
+        vendor: VENDOR,
+        email: input.trim(),
+      }),
+    );
+
+  // Then MetaMask confirms the email and kyc-api opens the UKYC session for
+  // the Kalshi user it recorded.
+  const confirmWithMetaMask = () =>
     run(async () => {
-      const email = input.trim();
+      const email = entry?.vendorAccount?.email;
+      if (!email) {
+        throw new Error('Enter your email again to link Kalshi.');
+      }
       const result = await verifyOrEnroll({
         methods: ['email_otp'],
         verifyWith: 'email_otp',
@@ -351,6 +373,8 @@ const KalshiOnboarding = () => {
           : undefined;
       case 'email':
         return { label: 'Continue', onPress: submitEmail };
+      case 'confirm':
+        return { label: 'Confirm with MetaMask', onPress: confirmWithMetaMask };
       case 'email_code':
         return { label: 'Verify email', onPress: submitEmailCode };
       case 'phone':

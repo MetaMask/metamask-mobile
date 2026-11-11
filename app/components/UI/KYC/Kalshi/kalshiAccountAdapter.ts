@@ -104,7 +104,9 @@ export const createKalshiAccountAdapter = (): KycVendorAccountAdapter => {
       invalidateA2t: () => {
         a2t = undefined;
         if (!KALSHI_A2T_URL) {
-          getEngine().controllerMessenger.call('PredictDeviceAuthService:clear');
+          getEngine().controllerMessenger.call(
+            'PredictDeviceAuthService:clear',
+          );
         }
       },
     });

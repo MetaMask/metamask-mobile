@@ -28,6 +28,9 @@ const VBA_DESTINATION_FOR_KYC_STEP: Record<
 > = {
   vendor_terms: 'vendorTerms',
   verify_email: 'email',
+  // Kalshi-only steps. kyc-api never returns them for Iron.
+  account_link: 'error',
+  account_link_code: 'error',
   identity_verification: 'identityVerification',
   kyc_pending: 'kycPending',
   kyc_retry: 'kycRejected',
