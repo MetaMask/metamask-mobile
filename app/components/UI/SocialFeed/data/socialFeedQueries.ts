@@ -45,6 +45,30 @@ export const buildSocialFeedQueryKey = (
 ];
 
 /**
+ * Partial key matching every cached `following` feed, whatever its chains,
+ * page size, or whether `useSocialFeed` or V0's `useTraderFeed` built it.
+ */
+export const FOLLOWING_FEED_QUERY_KEY_PREFIX = [
+  'SocialService:fetchFeed',
+  { scope: 'following' },
+] as const;
+
+/**
+ * Refetches the viewer's `following` feed after their follow graph changes.
+ * The UI client forwards the invalidation to `SocialService`, so its own cache
+ * cannot serve the old page back. `ReactQueryService` is imported lazily to
+ * keep it out of this module's load-time import graph.
+ */
+export const invalidateFollowingFeed = async (): Promise<void> => {
+  const { default: ReactQueryService } = await import(
+    '../../../../core/ReactQueryService'
+  );
+  await ReactQueryService.queryClient.invalidateQueries({
+    queryKey: FOLLOWING_FEED_QUERY_KEY_PREFIX,
+  });
+};
+
+/**
  * Fetches one feed page for a resolved request.
  *
  * Call as a member expression so the messenger keeps its `this` binding;

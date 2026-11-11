@@ -581,7 +581,7 @@ const ExploreSearchHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="h-12 px-4"
+        twClassName="h-12 px-4 pb-3"
       >
         <Box twClassName="flex-1">{exploreSearchBar}</Box>
       </Box>

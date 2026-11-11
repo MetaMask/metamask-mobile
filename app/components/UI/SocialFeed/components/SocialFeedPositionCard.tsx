@@ -72,19 +72,9 @@ const priceOrMarketCapRow = (
   };
 };
 
-export const closedAgeLabel = (
-  closedAtMs: number | undefined,
-  verb: 'closed' | 'sold',
-  now: number = Date.now(),
-): string | undefined =>
-  closedAtMs == null
-    ? undefined
-    : strings(
-        verb === 'sold'
-          ? 'social_leaderboard.feed.position_card.sold_ago'
-          : 'social_leaderboard.feed.position_card.closed_ago',
-        { age: formatFeedPostAge(closedAtMs, now) },
-      );
+/** The closed-card age, or nothing when the row did not report a close time. */
+const closedAge = (closedAtMs: number | undefined): string | undefined =>
+  closedAtMs == null ? undefined : formatFeedPostAge(closedAtMs);
 
 /**
  * Wash hue for the figures the card actually shows as P&L. An open card's
@@ -147,8 +137,8 @@ const closedStats = (item: {
  * closed card adds entry, exit and cost. A card without a comment stays
  * header-only: a live open card, or a closed card that captions when it
  * settled. Spot quotes entry and exit as market cap when the fills recorded
- * one. Perps quote a price, and a closed spot card drops the side tag. Composer
- * spot shares reuse the open layout and gate Copy trade with `showCopyTrade`.
+ * one. Perps quote a price, and a closed card puts Closed or Sold in a neutral
+ * tag. Composer spot shares reuse the open layout and gate Copy trade with `showCopyTrade`.
  *
  * Dark mode washes the card with the P&L hue. Open and closed cards share the
  * muted 1px border.
@@ -268,10 +258,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
         leverageLabel={
           item.variant === 'perpsClosed' ? item.leverageLabel : undefined
         }
-        subtitleLabel={closedAgeLabel(
-          item.closedAtMs,
-          item.variant === 'spotClosed' ? 'sold' : 'closed',
-        )}
+        subtitleLabel={closedAge(item.closedAtMs)}
         pnlLabel={item.pnlLabel}
         pnlValueLabel={item.valueLabel}
         isPnlPositive={item.isPnlPositive}

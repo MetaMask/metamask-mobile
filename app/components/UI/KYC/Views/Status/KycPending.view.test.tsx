@@ -15,16 +15,17 @@ import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
-import { VbaKycPendingAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
+import {
+  VbaIdentityVerifiedAdapter,
+  VbaKycPendingAdapter,
+} from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import { KycPendingSelectorsIDs } from './KycPending';
-import KycIdentityVerified, {
-  KycIdentityVerifiedSelectorsIDs,
-} from './IdentityVerified';
+import { KycIdentityVerifiedSelectorsIDs } from './IdentityVerified';
 
 const KycPendingViewSelectorsIDs = {
   OPEN_PENDING: 'kyc-pending-open-from-previous-screen',
@@ -86,7 +87,7 @@ const OnboardingNavigator = () => (
     />
     <OnboardingStack.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
-      component={KycIdentityVerified}
+      component={VbaIdentityVerifiedAdapter}
     />
     <OnboardingStack.Screen
       name={VbaOnboardingRoutes.KYC_REJECTED}

@@ -45,6 +45,7 @@ jest.mock('../Bridge/providers/SwapQuotesProvider', () => ({
 }));
 
 let storedOnOpenCallback: (() => void) | undefined;
+let storedKeyboardAvoidingViewEnabled: boolean | undefined;
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockOnOpenBottomSheet = jest.fn();
 
@@ -61,14 +62,17 @@ jest.mock('@metamask/design-system-react-native', () => {
           children,
           onClose,
           onOpen,
+          keyboardAvoidingViewEnabled,
         }: {
           children: unknown;
           onClose?: () => void;
           onOpen?: () => void;
+          keyboardAvoidingViewEnabled?: boolean;
         },
         ref: unknown,
       ) => {
         storedOnOpenCallback = onOpen;
+        storedKeyboardAvoidingViewEnabled = keyboardAvoidingViewEnabled;
         ReactMock.useImperativeHandle(ref, () => ({
           onOpenBottomSheet: mockOnOpenBottomSheet,
           onCloseBottomSheet: mockOnCloseBottomSheet,
@@ -310,6 +314,7 @@ describe('QuickBuyRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
+    storedKeyboardAvoidingViewEnabled = undefined;
     mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
     (useQuickBuyController as jest.Mock).mockReturnValue(buildHookResult());
     (useQuickBuySetup as jest.Mock).mockReturnValue({
@@ -338,6 +343,20 @@ describe('QuickBuyRoot', () => {
     unmount();
 
     expect(store.getState().bridge.tokenSelectorNetworkFilter).toBeUndefined();
+  });
+
+  it('disables keyboard avoidance so the fullscreen sheet does not shift off-screen', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
+      />,
+    );
+
+    expect(storedKeyboardAvoidingViewEnabled).toBe(false);
   });
 
   it('renders default AmountScreen content when no children are passed', () => {
