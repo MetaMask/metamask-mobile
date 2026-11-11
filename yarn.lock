@@ -9248,6 +9248,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/mfa-recovery-controller@npm:0.0.0-preview-8df707a0a":
+  version: 0.0.0-preview-8df707a0a
+  resolution: "@metamask-previews/mfa-recovery-controller@npm:0.0.0-preview-8df707a0a"
+  dependencies:
+    "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/cryptography": "npm:^1.1.2"
+    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.1.1"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.1"
+    json-stable-stringify: "npm:^1.3.0"
+  checksum: 10/c7bc6e6ad49f6d914345ee4c4fdb894d109c31ffdcc5235e4454c7e7a6fe8946b3f1790169e8065a75b6b1e3b1aba8e0a1fdac14acbd59d019a8f906058c9539
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^1.0.0":
   version: 1.0.0
   resolution: "@metamask/7715-permission-types@npm:1.0.0"
@@ -38374,6 +38391,7 @@ __metadata:
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
     "@margelo/hermes-profile-transformer": "npm:^0.0.10"
+    "@metamask-previews/mfa-recovery-controller": "npm:0.0.0-preview-8df707a0a"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^2.0.0"
     "@metamask/account-tree-controller": "npm:^11.1.0"
