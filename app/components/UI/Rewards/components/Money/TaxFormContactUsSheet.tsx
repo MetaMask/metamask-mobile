@@ -1,5 +1,10 @@
 import React, { useCallback } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -12,17 +17,22 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { getBetaSupportUrl } from '../../utils';
+import { openContactSupportWebview } from '../../utils/openContactSupportWebview';
 import { TAX_FORM_CONTACT_US_SHEET_TEST_IDS } from './TaxFormContactUsSheet.testIds';
 
 export interface TaxFormContactUsSheetParams {
   title: string;
   description: string;
   contactLabel: string;
+  /**
+   * Set once support has opened. Backing out of support focuses this sheet
+   * again, and the sheet closes. Absent until then, so dismissing the consent
+   * sheet leaves this sheet up.
+   */
+  closeOnSupportReturn?: boolean;
 }
 
 const TaxFormContactUsSheet: React.FC = () => {
@@ -31,20 +41,26 @@ const TaxFormContactUsSheet: React.FC = () => {
   const params = route.params as TaxFormContactUsSheetParams;
   const { openSupportWithConsent } = useSupportConsent();
 
+  useFocusEffect(
+    useCallback(() => {
+      if (params.closeOnSupportReturn) {
+        navigation.goBack();
+      }
+    }, [navigation, params.closeOnSupportReturn]),
+  );
+
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleContactSupport = useCallback(() => {
     const betaSupportUrl = getBetaSupportUrl();
-    const openWebview = (url: string) =>
-      navigation.navigate(Routes.WEBVIEW.MAIN, {
-        screen: Routes.WEBVIEW.SIMPLE,
-        params: {
-          url,
-          title: strings('app_settings.contact_support'),
-        },
-      });
+    const openWebview = (url: string) => {
+      navigation.dispatch(
+        CommonActions.setParams({ closeOnSupportReturn: true }),
+      );
+      openContactSupportWebview(navigation, url);
+    };
 
     if (betaSupportUrl) {
       openWebview(betaSupportUrl);

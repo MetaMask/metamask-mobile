@@ -9,6 +9,8 @@ import { ButtonVariant } from '@metamask/design-system-react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { WebView } from '@metamask/react-native-webview';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { getBetaSupportUrl } from '../../../../../../util/support/betaSupportUrl';
+import { strings } from '../../../../../../../locales/i18n';
 import ReduxService from '../../../../../../core/redux';
 import {
   RewardsMoneyClaimRefusalError,
@@ -21,8 +23,10 @@ import type {
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
 import {
   renderEarningsTab as renderEarningsTabScreen,
+  REWARDS_ROOT_MODAL_BACK_TEST_ID,
   type RenderRewardsMoneyOptions,
 } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
+import { SUPPORT_CONSENT_SHEET_TEST_IDS } from '../../../../SupportConsentSheet/SupportConsentSheet.testIds';
 import {
   earningsSummaryFixture,
   REFERRAL_LOCALIZED_TEXT,
@@ -1044,11 +1048,13 @@ describe('EarningsTab tax documentation', () => {
     ).toHaveLength(1);
   });
 
+  // The beta fence is stripped by Metro only. Jest still runs it, so support
+  // opens the Intercom URL directly. The consent sheet stays in the unit
+  // tests, which can stub getBetaSupportUrl.
   it('opens support from the US activity block', async () => {
     const view = renderEarningsTab({
       persona: 'referee',
       summary: HELD_ONLY,
-      supportPreferenceSaved: true,
       handlers: {
         'RewardsMoneyController:getTaxMe': () =>
           Promise.resolve(
@@ -1071,7 +1077,27 @@ describe('EarningsTab tax documentation', () => {
 
     expect(
       await view.findByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent(
+      JSON.stringify({
+        url: getBetaSupportUrl(),
+        title: strings('app_settings.contact_support'),
+        isModal: false,
+      }),
+    );
+    expect(
+      view.queryByTestId(SUPPORT_CONSENT_SHEET_TEST_IDS.CONTAINER),
+    ).toBeNull();
+    // Support covers the sheet. Backing out of support closes the sheet.
+    fireEvent.press(view.getByTestId(REWARDS_ROOT_MODAL_BACK_TEST_ID));
+
+    await waitFor(() => {
+      expect(
+        view.queryByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      view.queryByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
+    ).not.toBeOnTheScreen();
   });
 
   it('claims and shows the renewal question when the answer is about to expire', async () => {
