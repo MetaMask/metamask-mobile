@@ -3855,6 +3855,10 @@
       "politics": "Politics",
       "sports": "Sports"
     },
+    "get_started_banner": {
+      "title": "Get started in a few steps",
+      "body": "Verify your identity and sign in with Kalshi to trade prediction markets."
+    },
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
