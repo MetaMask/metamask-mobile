@@ -85,7 +85,6 @@ interface ChartPanResponder {
   setHandlers: (next: ChartPanHandlers) => void;
 }
 
-// PanResponder.create cannot take refs during render ("Cannot access refs during render").
 const createChartPanResponder = (): ChartPanResponder => {
   const handlers: ChartPanHandlers = {
     updatePosition: () => undefined,
@@ -314,7 +313,6 @@ const PriceChart = ({
     ],
   );
 
-  // One responder for the chart lifetime; handlers refresh after commit so a drag survives parent re-renders.
   const [chartPan] = useState(() => createChartPanResponder());
   useEffect(() => {
     chartPan.setHandlers({
