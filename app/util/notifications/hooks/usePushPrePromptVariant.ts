@@ -155,6 +155,7 @@ export function usePushPrePromptVariant(): {
   nativeOsPermissionEnabled: boolean | null;
   variant: PushPrePromptVariant;
   markShown: () => Promise<void>;
+  unmarkShown: () => Promise<void>;
   dismiss: () => void;
 } {
   // Two independent gates:

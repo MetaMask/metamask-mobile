@@ -187,6 +187,26 @@ describe('PushNotificationOnboardingRoot', () => {
     expect(mockUnmarkPrePromptShown).not.toHaveBeenCalled();
   });
 
+  it('keeps the shown flag when home is obstructed after the user answers and before the sheet completes', () => {
+    mockPrePromptState({
+      nativeOsPermissionEnabled: true,
+      variant: 'push_permission',
+    });
+    const { rerender } = render(<PushNotificationOnboardingRoot />);
+
+    act(() => {
+      getLatestProps().onUserAnswered();
+    });
+    mockPrePromptState({ isHomeUnobstructed: false, variant: null });
+    rerender(<PushNotificationOnboardingRoot />);
+
+    expect(mockUnmarkPrePromptShown).not.toHaveBeenCalled();
+    mockPushNotificationOnboarding.mockClear();
+    rerender(<PushNotificationOnboardingRoot />);
+
+    expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
+  });
+
   it('latches the native OS permission status for the visible pre-prompt', () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,

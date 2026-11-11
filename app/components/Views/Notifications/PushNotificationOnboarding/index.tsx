@@ -26,6 +26,7 @@ interface PushNotificationOnboardingProps {
   markPrePromptShown: () => Promise<void>;
   nativeOsPermissionEnabled: boolean | null;
   onComplete: (reason: PushPrePromptCompletionReason) => void;
+  onUserAnswered: () => void;
   prePromptVariant: PushPrePromptVariant;
 }
 
@@ -37,6 +38,7 @@ const PushNotificationOnboarding = ({
   markPrePromptShown,
   nativeOsPermissionEnabled,
   onComplete,
+  onUserAnswered,
   prePromptVariant,
 }: PushNotificationOnboardingProps) => {
   // Helpers to request OS push permission and finish wiring up notifications once granted.
@@ -154,6 +156,10 @@ const PushNotificationOnboarding = ({
   );
 
   const handlePushPermissionYes = useCallback(async () => {
+    // The sheet is already closed, and onComplete waits until the permission
+    // request finishes. Record the answer now so a navigation during that
+    // wait does not hand the shown flag back.
+    onUserAnswered();
     let nativePermissionEnabled = nativeOsPermissionEnabled === true;
     // Skip the "notifications are off" toast when we just sent the user to Settings.
     let didRouteToSystemSettings = false;
@@ -200,6 +206,7 @@ const PushNotificationOnboarding = ({
     identifyPushNotificationsEnabled,
     nativeOsPermissionEnabled,
     onComplete,
+    onUserAnswered,
     requestPushPermission,
     showPushPermissionToast,
     trackOsPromptResponse,

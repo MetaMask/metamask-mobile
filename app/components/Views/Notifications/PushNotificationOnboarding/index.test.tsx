@@ -35,6 +35,7 @@ const mockTrackOsPromptResponse = jest.fn();
 const mockIdentifyMarketingConsent = jest.fn();
 const mockIdentifyPushNotificationsEnabled = jest.fn();
 const mockOnComplete = jest.fn();
+const mockOnUserAnswered = jest.fn();
 
 jest.mock(
   '../../../../util/notifications/hooks/usePushPermissionNotificationSetup',
@@ -172,6 +173,7 @@ const renderPushNotificationOnboarding = ({
       markPrePromptShown={mockMarkPrePromptShown}
       nativeOsPermissionEnabled={nativeOsPermissionEnabled}
       onComplete={mockOnComplete}
+      onUserAnswered={mockOnUserAnswered}
       prePromptVariant={prePromptVariant}
     />,
     {
@@ -304,6 +306,9 @@ describe('PushNotificationOnboarding', () => {
     expectNotificationsOnToast();
     expect(mockOnComplete.mock.invocationCallOrder[0]).toBeLessThan(
       mockEnableNotificationsInBackground.mock.invocationCallOrder[0],
+    );
+    expect(mockOnUserAnswered.mock.invocationCallOrder[0]).toBeLessThan(
+      mockEnableMarketingConsent.mock.invocationCallOrder[0],
     );
   });
 
