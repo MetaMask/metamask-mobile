@@ -10543,26 +10543,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gator-permissions-controller@npm:^6.0.0":
-  version: 6.1.0
-  resolution: "@metamask/gator-permissions-controller@npm:6.1.0"
-  dependencies:
-    "@metamask/7715-permission-types": "npm:^1.0.0"
-    "@metamask/abi-utils": "npm:^2.0.4"
-    "@metamask/base-controller": "npm:^10.1.0"
-    "@metamask/delegation-core": "npm:^2.2.1"
-    "@metamask/delegation-deployments": "npm:^1.4.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/network-controller": "npm:^37.1.1"
-    "@metamask/snaps-controllers": "npm:^19.0.1"
-    "@metamask/snaps-sdk": "npm:^11.0.0"
-    "@metamask/snaps-utils": "npm:^12.1.2"
-    "@metamask/transaction-controller": "npm:^73.0.0"
-    "@metamask/utils": "npm:^12.0.1"
-  checksum: 10/323d0cc10b407331b8ee670b429f949cf8dc001dc0d2e5df42b7f7b349bc2b40517bd336f1efedf87645517fb20cfe9694abedb2cefa57499ad2cf4e623e41a2
-  languageName: node
-  linkType: hard
-
 "@metamask/gator-permissions-controller@npm:^6.1.1":
   version: 6.1.1
   resolution: "@metamask/gator-permissions-controller@npm:6.1.1"
@@ -10766,26 +10746,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-sdk@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@metamask/keyring-sdk@npm:4.0.0"
-  dependencies:
-    "@ethereumjs/tx": "npm:^5.4.0"
-    "@metamask/eth-sig-util": "npm:^9.0.0"
-    "@metamask/keyring-api": "npm:^24.2.0"
-    "@metamask/keyring-utils": "npm:^5.0.0"
-    "@metamask/scure-bip39": "npm:^2.1.1"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^11.11.0"
-    "@noble/hashes": "npm:^1.8.0"
-    async-mutex: "npm:^0.5.0"
-    ethereum-cryptography: "npm:^2.2.1"
-    uuid: "npm:^9.0.1"
-  checksum: 10/36137f174ac10518fd072df8688d85fbb28a2e1c6621b9376fc28e5cf0138c65a0f10fe7a68c45fff8dfd4609eb6e30325b4683013367459de9e9be40b1342af
-  languageName: node
-  linkType: hard
-
-"@metamask/keyring-sdk@npm:^4.1.0":
+"@metamask/keyring-sdk@npm:^4.0.0, @metamask/keyring-sdk@npm:^4.1.0":
   version: 4.2.0
   resolution: "@metamask/keyring-sdk@npm:4.2.0"
   dependencies:
@@ -11037,7 +10998,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-api-data-service@npm:^2.1.0, @metamask/money-account-api-data-service@npm:^2.3.1":
+"@metamask/money-account-api-data-service@npm:^2.3.1":
   version: 2.3.1
   resolution: "@metamask/money-account-api-data-service@npm:2.3.1"
   dependencies:
@@ -11051,26 +11012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-balance-service@npm:^3.1.2":
-  version: 3.1.2
-  resolution: "@metamask/money-account-balance-service@npm:3.1.2"
-  dependencies:
-    "@ethersproject/contracts": "npm:^5.7.0"
-    "@ethersproject/providers": "npm:^5.8.0"
-    "@metamask/base-data-service": "npm:^2.1.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/metamask-eth-abis": "npm:^3.1.1"
-    "@metamask/money-account-api-data-service": "npm:^2.1.0"
-    "@metamask/network-controller": "npm:^37.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
-  checksum: 10/4e25b48037e586abb5ccb54a62c69f3f845f5d362b7c86fc3551f960d68e9d6767e0a526c125518e08c586fbdf7a6fa92843c6aa873a9da34a3955c650e7dd8d
-  languageName: node
-  linkType: hard
-
-"@metamask/money-account-balance-service@npm:^3.2.0":
+"@metamask/money-account-balance-service@npm:^3.1.2, @metamask/money-account-balance-service@npm:^3.2.0":
   version: 3.2.0
   resolution: "@metamask/money-account-balance-service@npm:3.2.0"
   dependencies:
@@ -11970,29 +11912,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/signature-controller@npm:^40.0.0":
-  version: 40.0.0
-  resolution: "@metamask/signature-controller@npm:40.0.0"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^40.0.0"
-    "@metamask/approval-controller": "npm:^10.0.0"
-    "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/eth-sig-util": "npm:^9.0.0"
-    "@metamask/gator-permissions-controller": "npm:^6.0.0"
-    "@metamask/keyring-controller": "npm:^28.0.0"
-    "@metamask/logging-controller": "npm:^10.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/network-controller": "npm:^37.0.0"
-    "@metamask/utils": "npm:^11.12.0"
-    jsonschema: "npm:^1.4.1"
-    lodash-es: "npm:^4.17.21"
-    uuid: "npm:^8.3.2"
-  checksum: 10/166ae738a17def84b1a1bba392ddd0e375de4a02cdf4e7a73ad0aed74f693cf1f029752878e09f73c6639a943e78b5d63c48702b4d5fb913b80bda6e3df50122
-  languageName: node
-  linkType: hard
-
-"@metamask/signature-controller@npm:^40.1.0":
+"@metamask/signature-controller@npm:^40.0.0, @metamask/signature-controller@npm:^40.1.0":
   version: 40.1.0
   resolution: "@metamask/signature-controller@npm:40.1.0"
   dependencies:
