@@ -1200,6 +1200,9 @@ export const ACCOUNTS_API_TRANSACTIONS_RESPONSE = {
   pageInfo: { hasNextPage: false, cursor: null, count: 34 },
 };
 
+export const ACCOUNTS_API_V5_TRANSACTIONS_URL =
+  /^https:\/\/accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/transactions(\?.*)?$/;
+
 export const ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE = {
   data: [],
   pageInfo: { count: 0, hasNextPage: false },
@@ -1247,8 +1250,7 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
       response: ACCOUNTS_API_TRANSACTIONS_RESPONSE,
     },
     {
-      urlEndpoint:
-        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/transactions(\?.*)?$/,
+      urlEndpoint: ACCOUNTS_API_V5_TRANSACTIONS_URL,
       responseCode: 200,
       response: ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE,
     },

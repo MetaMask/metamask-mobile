@@ -1,10 +1,11 @@
 import type { CompletedRequest, Mockttp } from 'mockttp';
-import { ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE } from '../defaults/accounts';
+import {
+  ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE,
+  ACCOUNTS_API_V5_TRANSACTIONS_URL,
+} from '../defaults/accounts';
 
 const v4TransactionsPath =
   /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/;
-const v5TransactionsPath =
-  /^https:\/\/accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/transactions(\?.*)?$/;
 
 function proxiedUrl(requestUrl: string) {
   try {
@@ -23,16 +24,17 @@ function isAccountsTransactionsUrl(url: string) {
   );
 }
 
+function v5TransactionsResponse() {
+  return { statusCode: 200, json: ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE };
+}
+
 function transactionsResponse(
   request: CompletedRequest,
   v4Handler: () => { statusCode: number; json: object },
 ) {
   const target = proxiedUrl(request.url) || request.url;
   if (target.includes('/v5/')) {
-    return {
-      statusCode: 200,
-      json: ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE,
-    };
+    return v5TransactionsResponse();
   }
   return v4Handler();
 }
@@ -53,10 +55,7 @@ export async function mockAccountsApiTransactionRoutes(
     .thenCallback(v4Handler);
 
   await mockServer
-    .forGet(v5TransactionsPath)
+    .forGet(ACCOUNTS_API_V5_TRANSACTIONS_URL)
     .asPriority(1001)
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE,
-    }));
+    .thenCallback(v5TransactionsResponse);
 }
