@@ -330,7 +330,7 @@ describe('EventCardStandard', () => {
 });
 
 describe('EventCardStandard variants', () => {
-  it.each(['compact', 'small'] as const)(
+  it.each([undefined, 'default'] as const)(
     'renders the default card for the %s variant',
     (variant) => {
       render(
@@ -357,7 +357,7 @@ describe('EventCardStandard variants', () => {
   );
 });
 
-describe('EventCardStandard featured', () => {
+describe('EventCardStandard trending', () => {
   const EVENT_ID = 'KXGRAMMYAOTY-27';
   const SWIFT = `${EVENT_ID}-TS`;
   const EILISH = `${EVENT_ID}-BE`;
@@ -415,7 +415,7 @@ describe('EventCardStandard featured', () => {
     render(
       <EventCardStandard
         event={albumOfTheYear()}
-        variant="featured"
+        variant="trending"
         onPress={jest.fn()}
         {...props}
       />,
@@ -479,17 +479,20 @@ describe('EventCardStandard featured', () => {
       ).toBeOnTheScreen();
     });
 
-    it('has no LIVE marker outside the featured presentation', () => {
-      mockIsEventLive.mockReturnValue(true);
+    it.each([undefined, 'default'] as const)(
+      'has no LIVE marker or header with the %s variant',
+      (variant) => {
+        mockIsEventLive.mockReturnValue(true);
 
-      renderCard({ variant: undefined });
+        renderCard({ variant });
 
-      expect(screen.queryByTestId(liveTestId)).not.toBeOnTheScreen();
-      expect(screen.queryByText('LIVE')).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(`predict-next-event-header-${EVENT_ID}`),
-      ).not.toBeOnTheScreen();
-    });
+        expect(screen.queryByTestId(liveTestId)).not.toBeOnTheScreen();
+        expect(screen.queryByText('LIVE')).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(`predict-next-event-header-${EVENT_ID}`),
+        ).not.toBeOnTheScreen();
+      },
+    );
   });
 
   describe('title', () => {

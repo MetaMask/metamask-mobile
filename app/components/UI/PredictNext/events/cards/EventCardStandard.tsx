@@ -15,19 +15,20 @@ import { OutcomeRow as SharedOutcomeRow } from '../shared/ui';
 import {
   EVENT_CARD_VISIBLE_MARKET_COUNT,
   EventCard,
-  type EventCardVariant,
 } from './internal/EventCard';
 import { formatEventCardSubtitle } from './internal/formatEventCardSubtitle';
 import { isEventLive } from './internal/isEventLive';
 
+/**
+ * 'default' is the feed card. 'trending' is the Trending carousel card, with
+ * the Category header, the LIVE marker while live, and two compact rows.
+ */
+export type EventCardStandardVariant = 'default' | 'trending';
+
 export interface EventCardStandardProps {
   event: PredictEvent;
-  /**
-   * 'featured' renders the featured presentation. Non-game cards have no
-   * compact or small presentation, so any other value, or none, renders the
-   * default card.
-   */
-  variant?: EventCardVariant;
+  /** Defaults to 'default'. */
+  variant?: EventCardStandardVariant;
   onPress: () => void;
   onOrder?: (
     event: PredictEvent,
@@ -110,32 +111,32 @@ const DefaultStandardCard = ({
   );
 };
 
-/** The featured card's height fits two rows. */
-const FEATURED_VISIBLE_MARKET_COUNT = 2;
+/** The trending card's height fits two rows. */
+const TRENDING_VISIBLE_MARKET_COUNT = 2;
 
 /**
- * Design-slice placeholders for each featured row's second line, by row
+ * Design-slice placeholders for each trending row's second line, by row
  * position. Where an Event's ranking comes from is still an open question in
  * PRED-1483. It must come from the backend; never compute it on the client,
  * for example by sorting rows on price.
  */
-const FEATURED_ROW_LABELS: readonly [string, string] = ['Leads', 'Second'];
+const TRENDING_ROW_LABELS: readonly [string, string] = ['Leads', 'Second'];
 
-const FEATURED_PRICE_CLASS_NAME = 'min-w-[64px] h-[37px] px-3';
+const TRENDING_PRICE_CLASS_NAME = 'min-w-[64px] h-[37px] px-3';
 
-interface FeaturedRow {
+interface TrendingRow {
   market: PredictMarket;
   outcome: PredictOutcome;
 }
 
 /** The first Markets that have a yes Outcome, each priced by that Outcome. */
-const getFeaturedRows = (markets: readonly PredictMarket[]): FeaturedRow[] =>
+const getTrendingRows = (markets: readonly PredictMarket[]): TrendingRow[] =>
   markets
     .flatMap((market) => {
       const outcome = market.outcomes.find(({ side }) => side === 'yes');
       return outcome ? [{ market, outcome }] : [];
     })
-    .slice(0, FEATURED_VISIBLE_MARKET_COUNT);
+    .slice(0, TRENDING_VISIBLE_MARKET_COUNT);
 
 const LiveMarker = ({ eventId }: { eventId: string }) => (
   <Box
@@ -156,8 +157,8 @@ const LiveMarker = ({ eventId }: { eventId: string }) => (
   </Box>
 );
 
-interface FeaturedMarketRowProps
-  extends FeaturedRow,
+interface TrendingMarketRowProps
+  extends TrendingRow,
     Pick<StandardCompositionProps, 'event' | 'onOrder'> {
   /** The muted second line under the name. */
   rank: string;
@@ -167,13 +168,13 @@ interface FeaturedMarketRowProps
  * One Market: its yes Outcome's name over a muted second line, and a 64x37
  * pill that opens an Order for that Outcome. No avatar and no price bar.
  */
-const FeaturedMarketRow = ({
+const TrendingMarketRow = ({
   event,
   market,
   outcome,
   rank,
   onOrder,
-}: FeaturedMarketRowProps) => {
+}: TrendingMarketRowProps) => {
   const { colors } = useTheme();
   const price = formatAskPrice(outcome.askPrice);
 
@@ -212,25 +213,25 @@ const FeaturedMarketRow = ({
           },
         )}
         testID={`predict-next-outcome-${event.id}-${market.id}-yes`}
-        twClassName={FEATURED_PRICE_CLASS_NAME}
+        twClassName={TRENDING_PRICE_CLASS_NAME}
       />
     </SharedOutcomeRow.Root>
   );
 };
 
 /**
- * The featured presentation: a header row with the Category in caps and,
+ * The Trending carousel presentation: a header row with the Category in caps and,
  * while the Event is live, a LIVE marker, over a dashed divider; then the
  * title and subtitle, which open the Event, and up to two Markets.
  */
-const FeaturedStandardCard = ({
+const TrendingStandardCard = ({
   event,
   onPress,
   onOrder,
 }: StandardCompositionProps) => {
   const category = (event.category ?? event.title).toUpperCase();
   const subtitle = event.subtitle ?? formatEventCardSubtitle(event);
-  const rows = getFeaturedRows(event.markets);
+  const rows = getTrendingRows(event.markets);
 
   return (
     <EventCard.Root
@@ -270,12 +271,12 @@ const FeaturedStandardCard = ({
 
       <EventCard.Body twClassName="gap-3 px-4 pt-1">
         {rows.map(({ market, outcome }, index) => (
-          <FeaturedMarketRow
+          <TrendingMarketRow
             key={market.id}
             event={event}
             market={market}
             outcome={outcome}
-            rank={FEATURED_ROW_LABELS[index]}
+            rank={TRENDING_ROW_LABELS[index]}
             onOrder={onOrder}
           />
         ))}
@@ -284,13 +285,13 @@ const FeaturedStandardCard = ({
   );
 };
 
-/** A non-game Event on a feed surface, in its default or featured presentation. */
+/** A non-game Event, as a feed card or as a Trending carousel card. */
 export const EventCardStandard = ({
-  variant,
+  variant = 'default',
   ...props
 }: EventCardStandardProps) =>
-  variant === 'featured' ? (
-    <FeaturedStandardCard {...props} />
+  variant === 'trending' ? (
+    <TrendingStandardCard {...props} />
   ) : (
     <DefaultStandardCard {...props} />
   );

@@ -1,18 +1,22 @@
 import React from 'react';
 import type { PredictEvent, PredictMarket, PredictOutcome } from '../../types';
 import { getEventGame } from '../game';
-import { EventCardGame } from './EventCardGame';
+import { EventCardGame, type EventCardGameVariant } from './EventCardGame';
 import { EventCardStandard } from './EventCardStandard';
-import type { EventCardVariant } from './internal/EventCard';
+
+/**
+ * The card's presentation. 'compact', 'featured' and 'small' style game
+ * Events only; a non-game Event renders its default feed card for them.
+ * 'trending' is the Trending carousel card for both: the featured game card
+ * for a game Event, and the Category header, LIVE marker and two compact rows
+ * for a non-game Event.
+ */
+export type PredictEventCardVariant = EventCardGameVariant | 'trending';
 
 export interface PredictEventCardProps {
   event: PredictEvent;
-  /**
-   * The presentation, the same for both card families. A game Event has
-   * 'compact' (the default), 'featured' and 'small'. A non-game Event has
-   * only 'featured'; any other value renders its default card.
-   */
-  variant?: EventCardVariant;
+  /** Defaults to 'compact'. */
+  variant?: PredictEventCardVariant;
   onPress: () => void;
   onOrder?: (
     event: PredictEvent,
@@ -35,14 +39,14 @@ export const PredictEventCard = ({
   getEventGame(event) ? (
     <EventCardGame
       event={event}
-      variant={variant}
+      variant={variant === 'trending' ? 'featured' : variant}
       onPress={onPress}
       onOrder={onOrder}
     />
   ) : (
     <EventCardStandard
       event={event}
-      variant={variant}
+      variant={variant === 'trending' ? 'trending' : 'default'}
       onPress={onPress}
       onOrder={onOrder}
     />

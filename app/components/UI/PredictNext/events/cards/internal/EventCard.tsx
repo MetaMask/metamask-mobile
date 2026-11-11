@@ -37,13 +37,6 @@ import { OutcomeRow as SharedOutcomeRow } from '../../shared/ui';
 
 export const EVENT_CARD_VISIBLE_MARKET_COUNT = 3;
 
-/**
- * How a feed surface presents an Event card. Game cards have all three
- * presentations. Non-game cards have only 'featured'; any other value renders
- * the default standard card.
- */
-export type EventCardVariant = 'compact' | 'featured' | 'small';
-
 interface RootProps {
   children: React.ReactNode;
   testID?: string;

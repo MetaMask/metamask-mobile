@@ -785,29 +785,43 @@ describe('PredictFeedScreen', () => {
       homeQuote: /^PIT\s*· 42¢$/,
     });
 
-    // The Feed asks for the featured presentation, so a non-game Event gets
-    // the featured standard card: Category header and one row per Market.
     const propsCard = view.getByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
     );
     expect(within(propsCard).getByText(propsEvent.title)).toBeOnTheScreen();
     expect(
-      within(propsCard).getByTestId(PredictHomeTestIds.category(propsEvent.id)),
-    ).toHaveTextContent('SPORTS');
-    expect(
       within(propsCard).getByTestId(
-        PredictHomeTestIds.marketOutcome(
-          propsEvent.id,
-          propsEvent.markets[0].id,
-        ),
+        PredictHomeTestIds.outcome(propsEvent.id, 'yes'),
+      ),
+    ).toBeOnTheScreen();
+    expect(within(propsCard).queryByText('Sports')).not.toBeOnTheScreen();
+    expect(within(propsCard).getByText('$1.5M')).toBeOnTheScreen();
+  });
+
+  it('shows a binary non-game Event as the default card with Yes and No rows', async () => {
+    configureFeeds({
+      [NFL_GAMES_FEED_ID]: [propsEvent],
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+
+    const card = await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
+    );
+    expect(
+      within(card).getByTestId(
+        PredictHomeTestIds.outcome(propsEvent.id, 'yes'),
       ),
     ).toBeOnTheScreen();
     expect(
-      within(propsCard).queryByTestId(
-        PredictHomeTestIds.outcome(propsEvent.id, 'no'),
-      ),
+      within(card).getByTestId(PredictHomeTestIds.outcome(propsEvent.id, 'no')),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).queryByTestId(PredictHomeTestIds.category(propsEvent.id)),
     ).not.toBeOnTheScreen();
-    expect(within(propsCard).getByText('$1.5M')).toBeOnTheScreen();
   });
 
   it('opens the Order flow from a tradeable Outcome row', async () => {
@@ -821,12 +835,7 @@ describe('PredictFeedScreen', () => {
     });
 
     fireEvent.press(
-      await view.findByTestId(
-        PredictHomeTestIds.marketOutcome(
-          propsEvent.id,
-          propsEvent.markets[0].id,
-        ),
-      ),
+      await view.findByTestId(PredictHomeTestIds.outcome(propsEvent.id, 'yes')),
     );
 
     expect(
@@ -860,10 +869,7 @@ describe('PredictFeedScreen', () => {
     // The row stays visible (a missing Ask Price is not a zero price) but
     // cannot start the Order flow.
     const row = await view.findByTestId(
-      PredictHomeTestIds.marketOutcome(
-        quoteLessEvent.id,
-        quoteLessEvent.markets[0].id,
-      ),
+      PredictHomeTestIds.outcome(quoteLessEvent.id, 'yes'),
     );
     expect(row).toBeDisabled();
     fireEvent.press(row);
