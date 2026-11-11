@@ -8,9 +8,9 @@ import {
   PaymentOverride,
   TransactionPayRequiredToken,
   TransactionPayTotals,
-  TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { merge } from 'lodash';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -53,7 +53,7 @@ const PAY_TOKEN_MOCK = {
   chainId: '0x1' as Hex,
   balanceUsd: '1.23',
   balanceRaw: '1000',
-} as TransactionPaymentToken;
+} as EvmPaymentToken;
 
 const REQUIRED_TOKEN_MOCK = {
   amountUsd: '1.23',

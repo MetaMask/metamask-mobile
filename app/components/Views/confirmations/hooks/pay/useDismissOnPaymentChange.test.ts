@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { Hex } from '@metamask/utils';
 import { useDismissOnPaymentChange } from './useDismissOnPaymentChange';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
@@ -12,7 +12,8 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayToken');
 
-const TOKEN_A: TransactionPaymentToken = {
+const TOKEN_A: EvmPaymentToken = {
+  assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
   address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
   balanceFiat: '$12.34',
   balanceHuman: '12.34',
@@ -23,7 +24,8 @@ const TOKEN_A: TransactionPaymentToken = {
   symbol: 'USDC',
 };
 
-const TOKEN_B: TransactionPaymentToken = {
+const TOKEN_B: EvmPaymentToken = {
+  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
   address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
   balanceFiat: '$20.00',
   balanceHuman: '20',

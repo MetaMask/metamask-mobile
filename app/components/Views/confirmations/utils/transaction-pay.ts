@@ -10,7 +10,6 @@ import {
   TransactionFiatPayment,
   TransactionPayRequiredToken,
   TransactionPayTotals,
-  TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { Hex } from '@metamask/utils';
@@ -28,6 +27,7 @@ import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { isTransactionPayWithdraw } from './transaction';
+import { EvmPaymentToken } from '../../../../util/transactions/payment-token';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -166,7 +166,7 @@ export function getAvailableTokens({
   blockedTokens,
   fiatPayment,
 }: {
-  payToken?: TransactionPaymentToken;
+  payToken?: EvmPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
   blockedTokens?: BlockedTokensListConfig;
