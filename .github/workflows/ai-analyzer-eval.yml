@@ -108,6 +108,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      # Plain npm ci (not --omit=optional): the eval needs promptfoo, an optional dependency.
       - name: Install AI Analyzer dependencies
         run: |
           (cd .analyzer-current && npm ci)
