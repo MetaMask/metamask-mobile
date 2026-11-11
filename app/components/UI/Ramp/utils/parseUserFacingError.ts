@@ -1,18 +1,9 @@
 import { strings } from '../../../../../locales/i18n';
+import { isCircuitBreakerOpenError } from './isCircuitBreakerOpenError';
 
-const CIRCUIT_BREAKER_OPEN_ERROR_KEY = 'CIRCUIT_BREAKER_OPEN';
 const CIRCUIT_BREAKER_OPEN_MESSAGE_KEY = 'fiat_on_ramp.circuit_breaker_open';
 const UNEXPECTED_SERVICE_RESPONSE =
   /^(?:Query|Mutation) function for "(?:RampsService|NeoBankService):/u;
-
-function getErrorKey(error: unknown): string | null {
-  if (typeof error !== 'object' || error === null || !('errorKey' in error)) {
-    return null;
-  }
-
-  const errorKey = (error as { errorKey?: unknown }).errorKey;
-  return typeof errorKey === 'string' && errorKey.trim() ? errorKey : null;
-}
 
 function getRawMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -44,7 +35,7 @@ function getRawMessage(error: unknown): string {
  * @returns A user-facing error message string
  */
 export function parseUserFacingError(error: unknown, fallback: string): string {
-  if (getErrorKey(error) === CIRCUIT_BREAKER_OPEN_ERROR_KEY) {
+  if (isCircuitBreakerOpenError(error)) {
     return strings(CIRCUIT_BREAKER_OPEN_MESSAGE_KEY);
   }
 

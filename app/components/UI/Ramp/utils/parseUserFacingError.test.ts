@@ -5,6 +5,7 @@ jest.mock('../../../../../locales/i18n', () => ({
       : key,
 }));
 
+import { BrokenCircuitError } from '@metamask/controller-utils';
 import { parseUserFacingError } from './parseUserFacingError';
 
 const FALLBACK = 'Something went wrong';
@@ -89,6 +90,24 @@ describe('parseUserFacingError', () => {
 
   it('returns fallback for Error with empty message', () => {
     expect(parseUserFacingError(new Error(''), FALLBACK)).toBe(FALLBACK);
+  });
+
+  it('maps a BrokenCircuitError that has no errorKey', () => {
+    const error = new BrokenCircuitError();
+
+    expect(error).not.toHaveProperty('errorKey');
+    expect(parseUserFacingError(error, FALLBACK)).toBe(
+      'This service is temporarily unavailable. Please try again in about 30 minutes.',
+    );
+  });
+
+  it('returns the raw message when only the circuit breaker sentence is present', () => {
+    expect(
+      parseUserFacingError(
+        new Error('Execution prevented because the circuit breaker is open'),
+        FALLBACK,
+      ),
+    ).toBe('Execution prevented because the circuit breaker is open');
   });
 
   it('returns fallback for circuit breaker errors with errorKey metadata', () => {

@@ -125,7 +125,6 @@ describe('accountCreateError', () => {
       Object.assign(new Error('rejected'), {
         errorKey: 'CIRCUIT_BREAKER_OPEN',
       }),
-      new Error('Execution prevented because the circuit breaker is open'),
     ])('maps an open circuit to unavailable: %p', (error) => {
       expect(getAccountCreateResultFromError(error)).toEqual({
         kind: 'unavailable',
@@ -133,6 +132,14 @@ describe('accountCreateError', () => {
       expect(
         JSON.stringify(getAccountCreateResultFromError(error)),
       ).not.toContain('circuit breaker');
+    });
+
+    it('leaves the circuit breaker sentence alone as unknown', () => {
+      expect(
+        getAccountCreateResultFromError(
+          new Error('Execution prevented because the circuit breaker is open'),
+        ),
+      ).toEqual(unknown);
     });
 
     it.each([null, 'response', {}, { status: 3 }, { status: 'Unknown' }])(
