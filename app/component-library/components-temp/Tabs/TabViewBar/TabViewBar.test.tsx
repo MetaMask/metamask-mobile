@@ -63,11 +63,13 @@ describe('TabViewBar', () => {
       key: `tab${i}`,
       title: `Long tab label ${i}`,
     }));
-    const { getByTestId, UNSAFE_getByProps } = renderBar({
+    const { getByTestId, UNSAFE_getAllByProps } = renderBar({
       navigationState: { index: 0, routes: manyRoutes },
     });
 
     expect(getByTestId('tabs-tab-9')).toBeOnTheScreen();
-    expect(UNSAFE_getByProps({ horizontal: true })).toBeTruthy();
+    expect(UNSAFE_getAllByProps({ horizontal: true }).length).toBeGreaterThan(
+      0,
+    );
   });
 });

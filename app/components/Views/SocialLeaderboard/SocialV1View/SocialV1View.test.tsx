@@ -211,6 +211,10 @@ let mockPagerProps:
     }
   | undefined;
 
+beforeEach(() => {
+  mockPagerProps = undefined;
+});
+
 const settlePager = () => {
   act(() => {
     mockPagerProps?.onPageScrollStateChanged?.({
