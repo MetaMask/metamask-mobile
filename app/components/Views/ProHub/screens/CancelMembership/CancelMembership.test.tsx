@@ -21,6 +21,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import configureStore from '../../../../../util/test/configureStore';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { POST_CANCELLATION_PRO_HUB_SOURCE } from './CancelMembership.utils';
+import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
+import { strings } from '../../../../../../locales/i18n';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -130,6 +132,24 @@ const expectPostCancellationReset = () => {
   );
 };
 
+const expectHomeCancellationReset = () => {
+  expect(mockDispatch).toHaveBeenCalledTimes(1);
+  const stackReducer = mockDispatch.mock.calls[0][0] as (
+    state: typeof mockProFlowState,
+  ) => unknown;
+
+  expect(typeof stackReducer).toBe('function');
+  expect(stackReducer(mockProFlowState)).toEqual(
+    expect.objectContaining({
+      type: 'RESET',
+      payload: expect.objectContaining({
+        index: 0,
+        routes: [{ key: 'home', name: 'Home' }],
+      }),
+    }),
+  );
+};
+
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -137,6 +157,50 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
     style: (..._args: unknown[]) => ({}),
   }),
 }));
+
+// ─── Native animated event emitter ───────────────────────────────────────────
+// Re-rendering after a successful cancellation re-runs the native-driven
+// animation effects of the design-system buttons, which read
+// NativeAnimatedHelper.nativeEventEmitter.addListener. Give the animation
+// helper a no-op emitter for this suite. The path is the one React Native
+// currently ships; the shared test setup points at a stale path.
+
+const nativeAnimatedHelper = (
+  jest.requireActual(
+    'react-native/src/private/animated/NativeAnimatedHelper',
+  ) as { default: object }
+).default;
+const nativeAnimatedEmitter = {
+  addListener: (): { remove: () => void } => ({ remove: () => undefined }),
+  removeAllListeners: (): void => undefined,
+  removeSubscription: (): void => undefined,
+};
+Object.defineProperty(nativeAnimatedHelper, 'nativeEventEmitter', {
+  get: () => nativeAnimatedEmitter,
+  configurable: true,
+  enumerable: true,
+});
+
+// ─── Design system BottomSheet ───────────────────────────────────────────────
+// The real sheet animates with native events that jest does not provide. The
+// post-cancel sheet's content and buttons are still rendered and queryable.
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactNative = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { View } = ReactNative;
+
+  return {
+    ...actual,
+    BottomSheet: ({
+      children,
+      testID,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => <View testID={testID}>{children}</View>,
+  };
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -383,7 +447,12 @@ describe('CancelMembership', () => {
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
-    await waitFor(() => expect(mockDispatch).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      ).toBeOnTheScreen(),
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
 
     expect(mockGetSubscriptionByProduct).toHaveBeenCalledWith(
       PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
@@ -399,6 +468,11 @@ describe('CancelMembership', () => {
       'cancellationFeedback',
     );
     expect(mockGoBack).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+    );
+
     expectPostCancellationReset();
   });
 
@@ -446,7 +520,7 @@ describe('CancelMembership', () => {
     );
   });
 
-  it('cancels immediately and resets the stack to Pro Hub', async () => {
+  it('cancels immediately and returns to home without Pro Hub once the sheet is confirmed', async () => {
     mockGetSubscriptionByProduct.mockReturnValue({
       ...PLUS_SUBSCRIPTION,
       cancelType: CANCEL_TYPES.ALLOWED_IMMEDIATE,
@@ -461,22 +535,36 @@ describe('CancelMembership', () => {
         cancelAtPeriodEnd: false,
       }),
     );
-    await waitFor(() => expect(mockDispatch).toHaveBeenCalled());
-    expectPostCancellationReset();
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      ).toBeOnTheScreen(),
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+    );
+
+    expectHomeCancellationReset();
   });
 
-  it('does not cancel or reset the stack again once cancellation has navigated away', async () => {
+  it('does not cancel again while the post-cancel sheet is shown', async () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
-    await waitFor(() => expect(mockDispatch).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      ).toBeOnTheScreen(),
+    );
 
     expect(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON)).toBeDisabled();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
     expect(mockCancelSubscription).toHaveBeenCalledTimes(1);
-    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('shows an error and allows retry when cancellation fails', async () => {
@@ -496,8 +584,17 @@ describe('CancelMembership', () => {
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
-    await waitFor(() => expect(mockDispatch).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      ).toBeOnTheScreen(),
+    );
     expect(mockCancelSubscription).toHaveBeenCalledTimes(2);
+
+    fireEvent.press(
+      getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+    );
+
     expectPostCancellationReset();
   });
 
@@ -636,7 +733,7 @@ describe('CancelMembership', () => {
       await finishCancel();
     });
 
-    it('does not block the reset to Pro Hub once the request succeeds', async () => {
+    it('keeps the screen open after success and does not block the reset once Got it is pressed', async () => {
       let beforeRemoveHandler:
         | ((e: { preventDefault: () => void }) => void)
         | undefined;
@@ -652,14 +749,24 @@ describe('CancelMembership', () => {
         },
       );
 
-      await startCancel();
+      const screen = await startCancel();
       await waitFor(() => expect(beforeRemoveHandler).toBeDefined());
       await finishCancel();
 
+      // The post-cancel sheet is shown on this screen, so leaving is still blocked.
+      const blockedPreventDefault = jest.fn();
+      beforeRemoveHandler?.({ preventDefault: blockedPreventDefault });
+      expect(blockedPreventDefault).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalled();
+
+      fireEvent.press(
+        screen.getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      );
+
       expectPostCancellationReset();
-      const mockPreventDefault = jest.fn();
-      beforeRemoveHandler?.({ preventDefault: mockPreventDefault });
-      expect(mockPreventDefault).not.toHaveBeenCalled();
+      const resetPreventDefault = jest.fn();
+      beforeRemoveHandler?.({ preventDefault: resetPreventDefault });
+      expect(resetPreventDefault).not.toHaveBeenCalled();
     });
 
     it('re-enables leaving after the request fails', async () => {
@@ -675,6 +782,78 @@ describe('CancelMembership', () => {
       fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ── Post-cancel sheet ─────────────────────────────────────────────────────
+
+  describe('post-cancel sheet', () => {
+    it('shows the renewal date for a period-end cancellation', async () => {
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE),
+      ).toHaveTextContent(
+        strings('pro_hub.cancel_membership.post_cancel_sheet.period_end_title'),
+      );
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+      ).toHaveTextContent(
+        strings(
+          'pro_hub.cancel_membership.post_cancel_sheet.period_end_description',
+          { date: formatSubscriptionPeriodEnd(CURRENT_PERIOD_END) ?? '' },
+        ),
+      );
+    });
+
+    it('shows the immediate copy without a renewal date for an immediate cancellation', async () => {
+      mockGetSubscriptionByProduct.mockReturnValue({
+        ...PLUS_SUBSCRIPTION,
+        cancelType: CANCEL_TYPES.ALLOWED_IMMEDIATE,
+      });
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE),
+      ).toHaveTextContent(
+        strings('pro_hub.cancel_membership.post_cancel_sheet.immediate_title'),
+      );
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+      ).toHaveTextContent(
+        strings(
+          'pro_hub.cancel_membership.post_cancel_sheet.immediate_description',
+        ),
+      );
+    });
+
+    it('ignores the header back button while the sheet is shown', async () => {
+      const { getByTestId } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+        ).toBeOnTheScreen(),
+      );
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 
