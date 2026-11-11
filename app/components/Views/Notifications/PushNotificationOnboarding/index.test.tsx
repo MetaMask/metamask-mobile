@@ -374,7 +374,7 @@ describe('PushNotificationOnboarding', () => {
       await waitFor(() => {
         expect(mockOnComplete).toHaveBeenCalledWith('engage');
       });
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockToast).not.toHaveBeenCalled();
     });
 
     it('does not route to settings when the OS permission is already granted', async () => {
