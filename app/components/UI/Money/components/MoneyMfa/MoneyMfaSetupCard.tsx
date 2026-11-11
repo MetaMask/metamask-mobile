@@ -1,14 +1,11 @@
 import React from 'react';
 import {
-  AvatarIcon,
-  AvatarIconSeverity,
   Box,
   Button,
   ButtonSize,
   ButtonVariant,
   Card,
   FontWeight,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -16,6 +13,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useActiveMfaFlow } from '../../../../../util/identity/mfa/engine/useActiveMfaFlow';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
+import MoneyMfaShieldAnimation from './MoneyMfaShieldAnimation';
 
 interface MoneyMfaSetupCardProps {
   onSetUp: () => void;
@@ -33,13 +31,9 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
 
   return (
     <Card
-      twClassName="mx-4 mt-2 mb-2 flex-row gap-4 bg-muted"
+      twClassName="mx-4 mt-2 mb-2 flex-row items-center gap-4 bg-muted"
       testID={MoneyMfaTestIds.SETUP_CARD}
     >
-      <AvatarIcon
-        iconName={IconName.SecurityTick}
-        severity={AvatarIconSeverity.Success}
-      />
       <Box twClassName="flex-1 items-start gap-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('money.mfa.card_title')}
@@ -48,7 +42,7 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
           {strings('money.mfa.card_description')}
         </Text>
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Md}
           onPress={onSetUp}
           isLoading={isStarting}
@@ -59,6 +53,7 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
           {strings('money.mfa.card_cta')}
         </Button>
       </Box>
+      <MoneyMfaShieldAnimation size={96} />
     </Card>
   );
 };
