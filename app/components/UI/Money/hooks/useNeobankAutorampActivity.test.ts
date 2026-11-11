@@ -58,10 +58,7 @@ function setupPollingHook(enabled = true) {
     ];
   });
   mockUseIsFocused.mockReturnValue(true);
-  mockUseNetworkTierState.mockReturnValue({
-    tier: 'WIFI',
-    isResolved: true,
-  });
+  mockUseNetworkTierState.mockReturnValue({ tier: 'WIFI', isResolved: true });
   mockGetHardwareTier.mockReturnValue('MID');
 }
 
