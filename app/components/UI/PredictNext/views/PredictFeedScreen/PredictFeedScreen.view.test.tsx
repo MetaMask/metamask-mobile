@@ -4,6 +4,7 @@ import {
   PREDICT_NEXT_FEED_IDS,
   answerPredictNextCatalog,
   configurePredictNextCatalog,
+  expectPredictNextGameCard,
   publishPredictNextGameLiveUpdate,
   resetPredictNextCatalog,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
@@ -775,12 +776,14 @@ describe('PredictFeedScreen', () => {
     const gameCard = view.getByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
     );
-    // A featured card shows the Team abbreviation only. The Team name is on the
-    // quote's accessibility label ("Team name, price, buy").
-    expect(within(gameCard).getByLabelText(/^Packers, /)).toBeOnTheScreen();
-    expect(within(gameCard).getByLabelText(/^Steelers, /)).toBeOnTheScreen();
-    expect(within(gameCard).getByText('17')).toBeOnTheScreen();
-    expect(within(gameCard).getByText('21')).toBeOnTheScreen();
+    expectPredictNextGameCard(gameCard, gameEvent.id, {
+      away: 'Packers',
+      home: 'Steelers',
+      awayScore: '17',
+      homeScore: '21',
+      awayQuote: /^GB\s*· 42¢$/,
+      homeQuote: /^PIT\s*· 42¢$/,
+    });
 
     const propsCard = view.getByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
