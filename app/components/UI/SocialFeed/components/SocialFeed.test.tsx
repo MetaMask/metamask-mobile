@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Text, View } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -291,7 +291,9 @@ describe('SocialFeed', () => {
       filterPost: undefined,
       realtime: true,
     });
-    await refreshRef.current?.refresh();
+    await act(async () => {
+      await refreshRef.current?.refresh();
+    });
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 
