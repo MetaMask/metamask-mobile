@@ -640,9 +640,7 @@ const VbaDetails = () => {
             navigation,
             destinationId,
             undefined,
-            circuitOpen
-              ? undefined
-              : getAccountCreateFailureLogFields(error.result),
+            getAccountCreateFailureLogFields(error.result),
             sourceCurrency,
             circuitOpen ? true : undefined,
             circuitOpen ? 'fiat_on_ramp.circuit_breaker_open' : undefined,
