@@ -50,6 +50,15 @@ const homeRoot = (tabsState: NavigationState): NavigationState =>
     },
   ]);
 
+/**
+ * NavigationProvider wraps the app navigator in one native-stack screen.
+ * The name matches NavigationProvider, which does not take it from Routes.
+ */
+const NAVIGATION_CHILDREN_ROUTE = 'NavigationChildren';
+
+const wrapped = (appState: NavigationState): NavigationState =>
+  stack([{ name: NAVIGATION_CHILDREN_ROUTE, state: appState }]);
+
 const walletTab = (
   walletStack: NavigationState = stack([{ name: Routes.WALLET_VIEW }]),
 ) => tabs(Routes.WALLET.HOME, walletStack);
@@ -57,6 +66,10 @@ const walletTab = (
 describe('isHomeUnobstructedState', () => {
   it('is true on the wallet home with nothing presented over it', () => {
     expect(isHomeUnobstructedState(homeRoot(walletTab()))).toBe(true);
+  });
+
+  it('is true on the wallet home under the NavigationChildren wrapper', () => {
+    expect(isHomeUnobstructedState(wrapped(homeRoot(walletTab())))).toBe(true);
   });
 
   it('is true on another tab with nothing pushed onto it', () => {
@@ -124,6 +137,35 @@ describe('isHomeUnobstructedState', () => {
     expect(isHomeUnobstructedState(root)).toBe(false);
   });
 
+  it('is false when a screen is pushed above home inside the NavigationChildren wrapper', () => {
+    const app = stack([
+      {
+        name: Routes.ONBOARDING.HOME_NAV,
+        state: stack([
+          { name: Routes.HOME_TABS, state: walletTab() },
+          { name: Routes.REWARDS_VIEW },
+        ]),
+      },
+    ]);
+
+    expect(isHomeUnobstructedState(wrapped(app))).toBe(false);
+  });
+
+  it('is false when a modal flow is the focused route under NavigationChildren', () => {
+    const app = stack([
+      {
+        name: Routes.ONBOARDING.HOME_NAV,
+        state: stack([{ name: Routes.HOME_TABS, state: walletTab() }]),
+      },
+      {
+        name: Routes.MODAL.ROOT_MODAL_FLOW,
+        state: stack([{ name: Routes.MODAL.TRADE_WALLET_ACTIONS }]),
+      },
+    ]);
+
+    expect(isHomeUnobstructedState(wrapped(app))).toBe(false);
+  });
+
   it('is false for an unlisted screen pushed onto the wallet tab', () => {
     const pushed = stack([
       { name: Routes.WALLET_VIEW },
@@ -158,18 +200,29 @@ describe('useIsHomeUnobstructed', () => {
     expect(result.current).toBe(true);
   });
 
-  it('follows navigation state changes', () => {
-    mockGetRootState.mockReturnValue(homeRoot(walletTab()));
+  it('follows getRootState when navigation changes', () => {
+    mockGetRootState.mockReturnValue(wrapped(homeRoot(walletTab())));
     const { result } = renderHook(() => useIsHomeUnobstructed());
     const listener = mockAddListener.mock.calls[0][1];
 
+    const pushedWallet = stack([
+      { name: Routes.WALLET_VIEW },
+      { name: 'RevealPrivateCredential' },
+    ]);
+    mockGetRootState.mockReturnValue(
+      wrapped(homeRoot(walletTab(pushedWallet))),
+    );
     act(() => {
-      listener({ data: { state: stack([{ name: 'OnboardingSuccess' }]) } });
+      // The event payload is one route short of the hydrated root.
+      listener({
+        data: { state: wrapped(homeRoot(walletTab())) },
+      });
     });
     expect(result.current).toBe(false);
 
+    mockGetRootState.mockReturnValue(wrapped(homeRoot(walletTab())));
     act(() => {
-      listener({ data: { state: homeRoot(walletTab()) } });
+      listener({ data: { state: stack([{ name: 'OnboardingSuccess' }]) } });
     });
     expect(result.current).toBe(true);
   });

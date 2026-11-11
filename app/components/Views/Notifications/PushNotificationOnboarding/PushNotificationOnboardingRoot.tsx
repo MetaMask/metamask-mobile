@@ -39,10 +39,10 @@ const PushNotificationOnboardingRootContent = () => {
   // presented over home (a deeplink, say) takes it down, so it never sits over
   // the screen the user moved to.
   useEffect(() => {
-    if (!isHomeUnobstructed) {
+    if (!isHomeUnobstructed && visiblePrePrompt) {
       setVisiblePrePrompt(null);
     }
-  }, [isHomeUnobstructed]);
+  }, [isHomeUnobstructed, visiblePrePrompt]);
 
   const currentPrePrompt =
     visiblePrePrompt ??
