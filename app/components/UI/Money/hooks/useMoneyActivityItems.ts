@@ -61,6 +61,7 @@ export interface UseMoneyActivityItemsResult {
    * merchant enrichment land in place once the index catches up.
    */
   isSettling: boolean;
+  isValuationSettling: boolean;
   moneyAddress: string | undefined;
   cardEnrichmentByHash: Map<string, CardTransaction>;
 }
@@ -88,6 +89,7 @@ export interface UseMoneyActivityItemsOptions {
   fill?: {
     bucket: MoneyActivityFilter;
     count: number;
+    maxPages?: number;
   };
 }
 
@@ -247,6 +249,7 @@ export function useMoneyActivityItems({
     loadMore,
     isLoadingMore,
     pageCount,
+    isValuationSettling,
     error,
     refetch: refetchApiActivity,
   } = useMoneyAccountApiActivity();
@@ -407,7 +410,7 @@ export function useMoneyActivityItems({
     fill !== undefined &&
     hasMore &&
     fillCount < fill.count &&
-    pageCount < AUTO_FILL_MAX_PAGES;
+    pageCount < (fill.maxPages ?? AUTO_FILL_MAX_PAGES);
   useEffect(() => {
     if (wantsMorePages && !isLoadingMore) {
       loadMore();
@@ -420,6 +423,7 @@ export function useMoneyActivityItems({
   // visible — enrichment updates land in place.
   const isSettling =
     isLoading ||
+    isValuationSettling ||
     (fillCount === 0 &&
       ((enrichmentEnabled && isEnrichmentSettling) ||
         ((completedActivityEnabled || pendingActivityEnabled) &&
@@ -436,6 +440,7 @@ export function useMoneyActivityItems({
     error,
     refetch,
     isSettling,
+    isValuationSettling,
     moneyAddress,
     cardEnrichmentByHash: enrichmentReady
       ? bySettlementHash

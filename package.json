@@ -188,6 +188,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/money-account-api-data-service": {
+      "type": "non-breaking",
+      "previewVersion": "2.3.1-preview-e1e83cae0"
+    }
+  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",

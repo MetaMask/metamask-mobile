@@ -11056,9 +11056,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-api-data-service@npm:^2.1.0, @metamask/money-account-api-data-service@npm:^2.3.1":
-  version: 2.3.1
-  resolution: "@metamask/money-account-api-data-service@npm:2.3.1"
+"@metamask/money-account-api-data-service@npm:@metamask-previews/money-account-api-data-service@2.3.1-preview-e1e83cae0":
+  version: 2.3.1-preview-e1e83cae0
+  resolution: "@metamask-previews/money-account-api-data-service@npm:2.3.1-preview-e1e83cae0"
   dependencies:
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
@@ -11066,7 +11066,7 @@ __metadata:
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.1"
     "@tanstack/query-core": "npm:^5.103.2"
-  checksum: 10/ccf1b5a8ef53d82de12e889eb66fe39966e06af5c27711e91268dcc1691960f4d822058b613c0b060e57638b2634acd34c33d69d67d20b05faa10593c77457f1
+  checksum: 10/55b67c0be99f7c9ce34949f08f42045ec115e893d8bad76d9b5ee9c8f3cd64f1f01973009b0512ddf43ee82de1ce47544bc8452c8f422e0d995d9cc1f11b59d1
   languageName: node
   linkType: hard
 

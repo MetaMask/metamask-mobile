@@ -4,6 +4,8 @@ const MONEY_ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
 const REWARDER_ADDRESS = '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0';
 const CASHBACK_MULTISEND_TO = '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb';
+const STANDARD_VAULT_ADDRESS = '0x1111111111111111111111111111111111111111';
+const PREMIUM_VAULT_ADDRESS = '0x2222222222222222222222222222222222222222';
 
 const cardPaymentRow = {
   hash: '0x2b45bda071d8feff265c541e251a5e035e5f55270f8ad288dcd80f6740793847',
@@ -136,6 +138,90 @@ describe('parseAccountsApiActivity', () => {
         receivedFrom: REWARDER_ADDRESS,
       },
     ]);
+  });
+
+  it.each([
+    ['standard vmUSD', STANDARD_VAULT_ADDRESS],
+    ['premium pvmUSD', PREMIUM_VAULT_ADDRESS],
+  ])(
+    'maps %s cashback when the share token is configured',
+    (_label, address) => {
+      const response = {
+        data: [
+          {
+            ...cashbackRow,
+            valueTransfers: [
+              {
+                ...cashbackRow.valueTransfers[0],
+                contractAddress: address,
+                symbol: 'vmUSD',
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = parseAccountsApiActivity(
+        response,
+        MONEY_ADDRESS,
+        [],
+        [
+          { chainId: '0x8f', address: STANDARD_VAULT_ADDRESS },
+          { chainId: '0x8f', address: PREMIUM_VAULT_ADDRESS },
+        ],
+      );
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          kind: 'cashback',
+          token: expect.objectContaining({ address, decimals: 6 }),
+        }),
+      ]);
+    },
+  );
+
+  it('drops share cashback when its token is not configured', () => {
+    const response = {
+      data: [
+        {
+          ...cashbackRow,
+          valueTransfers: [
+            {
+              ...cashbackRow.valueTransfers[0],
+              contractAddress: STANDARD_VAULT_ADDRESS,
+              symbol: 'vmUSD',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = parseAccountsApiActivity(
+      response,
+      MONEY_ADDRESS,
+      [],
+      [{ chainId: '0x1', address: STANDARD_VAULT_ADDRESS }],
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it('retains a valid block number and omits an invalid one', () => {
+    const response = {
+      data: [
+        { ...cardPaymentRow, blockNumber: 123 },
+        {
+          ...cardPaymentRow,
+          hash: '0x1111111111111111111111111111111111111111111111111111111111111111',
+          blockNumber: -1,
+        },
+      ],
+    };
+
+    const result = parseAccountsApiActivity(response, MONEY_ADDRESS);
+
+    expect(result[0]).toMatchObject({ blockNumber: 123 });
+    expect(result[1]).not.toHaveProperty('blockNumber');
   });
 
   it('parses card and cashback rows from the same response, in input order', () => {

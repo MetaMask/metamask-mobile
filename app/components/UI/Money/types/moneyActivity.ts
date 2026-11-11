@@ -2,6 +2,15 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
+export type AccountsApiDisplayAmount =
+  | {
+      type: 'historical' | 'approximate';
+      /** Raw, minimal-unit mUSD amount. */
+      value: string;
+      decimals: number;
+    }
+  | { type: 'unavailable' };
+
 /**
  * Card spends and musdback from the accounts API
  * These aren't created in this client, so they never reach the
@@ -13,6 +22,7 @@ interface AccountsApiSettlement {
   /** Settlement time, epoch ms (parsed from the API's ISO timestamp). */
   time: number;
   chainId: Hex;
+  blockNumber?: number;
   /** The settlement token. */
   token: {
     address: Hex;
@@ -21,6 +31,7 @@ interface AccountsApiSettlement {
   };
   /** Raw, minimal-unit amount of the settlement transfer. */
   amount: string;
+  displayAmount?: AccountsApiDisplayAmount;
 }
 
 export type AccountsApiActivity =
