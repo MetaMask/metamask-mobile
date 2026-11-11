@@ -35,6 +35,7 @@ const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
 const mockSocialFeed = jest.fn();
+const mockFeedScrollToOffset = jest.fn();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   profile: null,
   isLoading: false,
@@ -111,12 +112,19 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     scrollTestID?: string;
     testID?: string;
     onScroll?: import('react-native').ScrollViewProps['onScroll'];
+    pageRef?: React.MutableRefObject<unknown>;
   }
 
   return {
     __esModule: true,
     default: (props: MockSocialFeedProps) => {
       mockSocialFeed(props);
+      if (props.pageRef) {
+        props.pageRef.current = {
+          scrollToOffset: (...args: unknown[]) =>
+            mockFeedScrollToOffset(props.location, ...args),
+        };
+      }
       return ReactActual.createElement(
         View,
         { testID: props.testID },
@@ -436,6 +444,34 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER),
     ).toHaveStyle({ opacity: 1 });
+  });
+
+  it('scrolls the active page to the top when its tab is tapped again', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      true,
+    );
+  });
+
+  it('does not scroll the page to the top when a different tab is tapped', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(mockFeedScrollToOffset).not.toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      true,
+    );
   });
 
   it('omits tab sub-navigation pills', () => {

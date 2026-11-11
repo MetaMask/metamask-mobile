@@ -674,12 +674,23 @@ const SocialV1ViewContent: React.FC = () => {
     }
   }, [activeIndex, navigation, requestedTab, selectTab, tabOrder]);
 
-  // Marks the next index change as a tap. Pressing the active tab changes nothing.
+  // Marks the next index change as a tap. Pressing the active tab instead
+  // scrolls its page back to the top.
   const handleTabPress = useCallback(
     (index: number) => {
       programmaticTabChangeRef.current = index !== activeIndex;
+      if (index !== activeIndex) {
+        return;
+      }
+      const pageRef = {
+        trending: trendingPageRef,
+        following: followingPageRef,
+        live: livePageRef,
+        leaderboard: leaderboardPageRef,
+      }[tabOrder[index]];
+      pageRef?.current?.scrollToOffset(0, true);
     },
-    [activeIndex],
+    [activeIndex, tabOrder],
   );
 
   const renderTabBar = useCallback(
