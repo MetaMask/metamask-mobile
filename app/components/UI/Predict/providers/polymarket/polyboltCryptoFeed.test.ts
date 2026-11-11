@@ -2,6 +2,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   POLYBOLT_WS_URL,
   PolyBoltCryptoFeed,
+  toPolyboltChannel,
   toPolyboltFilter,
   toPolyboltWireSymbol,
   type PolyBoltCredentials,
@@ -72,7 +73,41 @@ describe('toPolyboltWireSymbol', () => {
   });
 });
 
+describe('toPolyboltChannel', () => {
+  it.each(['xauusd', 'xagusd'])(
+    'serves %s spot prices on price.equity',
+    (symbol) => {
+      expect(toPolyboltChannel('price.crypto', symbol)).toBe('price.equity');
+    },
+  );
+
+  it.each(['btcusd', 'ethusd', 'solusd', 'hypeusd'])(
+    'keeps %s on price.crypto',
+    (symbol) => {
+      expect(toPolyboltChannel('price.crypto', symbol)).toBe('price.crypto');
+    },
+  );
+
+  it('keeps the TWAP channel as requested', () => {
+    expect(toPolyboltChannel('price.crypto.twap', 'btcusd')).toBe(
+      'price.crypto.twap',
+    );
+    expect(toPolyboltChannel('price.crypto.twap', 'xauusd')).toBe(
+      'price.crypto.twap',
+    );
+  });
+});
+
 describe('toPolyboltFilter', () => {
+  it('sends only the symbol on price.equity, where metals default to Chainlink', () => {
+    expect(toPolyboltFilter('price.equity', 'xauusd')).toEqual({
+      symbol: 'xauusd',
+    });
+    expect(toPolyboltFilter('price.equity', 'xauusd', 'binance')).toEqual({
+      symbol: 'xauusd',
+    });
+  });
+
   it('sends no provider for a Chainlink market', () => {
     expect(toPolyboltFilter('price.crypto', 'btcusd')).toEqual({
       symbol: 'btcusd',
@@ -1021,6 +1056,198 @@ describe('PolyBoltCryptoFeed', () => {
         timestamp: 2_000,
         twapWindowSeconds: 60,
       });
+    });
+  });
+
+  describe('price.equity', () => {
+    const connectGold = (): {
+      socket: MockSocket;
+      handlers: ReturnType<typeof listener>;
+    } => {
+      const handlers = listener();
+      const feed = new PolyBoltCryptoFeed(handlers);
+      feed.setCredentials(credentials);
+      feed.setSubscriptions([
+        {
+          channel: 'price.equity',
+          callerSymbol: 'xau/usd',
+          wireSymbol: 'xauusd',
+        },
+      ]);
+      const socket = mockSockets[0];
+      socket.open();
+      socket.receive({ op: 'authed', rid: 'a1' });
+      return { socket, handlers };
+    };
+
+    it('subscribes gold on price.equity without a provider pin', () => {
+      const { socket } = connectGold();
+
+      expect(JSON.parse(socket.send.mock.calls[1][0] as string)).toEqual({
+        op: 'subscribe',
+        rid: 's2',
+        subscriptions: [
+          { channel: 'price.equity', filter: { symbol: 'xauusd' } },
+        ],
+      });
+    });
+
+    it('emits a live gold point from full_accuracy_value', () => {
+      const { socket, handlers } = connectGold();
+
+      socket.receive({
+        v: 1,
+        channel: 'price.equity',
+        seq: 5,
+        ts: 1_788_973_001_200,
+        payload: {
+          symbol: 'xauusd',
+          value: 4029.9,
+          full_accuracy_value: '4029.91',
+          timestamp: 1_788_973_001_200,
+          received_at: 1_788_973_001_207,
+          is_carried_forward: false,
+          market_status: 'open',
+          source: 'chainlink',
+        },
+      });
+
+      expect(handlers.onLive).toHaveBeenCalledWith('price.equity', {
+        symbol: 'xau/usd',
+        price: 4029.91,
+        timestamp: 1_788_973_001_200,
+      });
+    });
+
+    it('falls back to value when full_accuracy_value is missing', () => {
+      const { socket, handlers } = connectGold();
+
+      socket.receive({
+        channel: 'price.equity',
+        payload: {
+          symbol: 'xauusd',
+          value: 4030.36,
+          timestamp: 2_000,
+          source: 'chainlink',
+        },
+      });
+
+      expect(handlers.onLive).toHaveBeenCalledWith('price.equity', {
+        symbol: 'xau/usd',
+        price: 4030.36,
+        timestamp: 2_000,
+      });
+    });
+
+    it('keeps a carried-forward price while the market reads open', () => {
+      const { socket, handlers } = connectGold();
+
+      socket.receive({
+        channel: 'price.equity',
+        payload: {
+          symbol: 'xauusd',
+          value: 4030.1,
+          full_accuracy_value: '4030.1',
+          timestamp: 3_000,
+          is_carried_forward: true,
+          market_status: 'open',
+          source: 'chainlink',
+        },
+      });
+
+      expect(handlers.onLive).toHaveBeenCalledTimes(1);
+    });
+
+    it('paints no price while the market is closed', () => {
+      const { socket, handlers } = connectGold();
+
+      socket.receive({
+        channel: 'price.equity',
+        payload: {
+          symbol: 'xauusd',
+          value: 4012.35,
+          full_accuracy_value: '4012.35',
+          timestamp: 1_788_973_001_200,
+          is_carried_forward: true,
+          market_status: 'closed',
+          source: 'chainlink',
+        },
+      });
+      socket.receive({
+        channel: 'price.equity',
+        snapshot: true,
+        payload: {
+          symbol: 'xauusd',
+          source: 'chainlink',
+          market_status: 'closed',
+          data: [{ timestamp: 1, full_accuracy_value: '4012.35' }],
+        },
+      });
+
+      expect(handlers.onLive).not.toHaveBeenCalled();
+      expect(handlers.onSnapshot).not.toHaveBeenCalled();
+    });
+
+    it('emits an open snapshot oldest first and drops malformed points', () => {
+      const { socket, handlers } = connectGold();
+
+      socket.receive({
+        channel: 'price.equity',
+        snapshot: true,
+        payload: {
+          symbol: 'xauusd',
+          source: 'chainlink',
+          market_status: 'open',
+          data: [
+            { timestamp: 30, full_accuracy_value: '4030.36' },
+            { timestamp: 10, value: 4029.91 },
+            null,
+            { timestamp: '20', full_accuracy_value: '4030' },
+            { timestamp: 40, full_accuracy_value: 'abc' },
+            { timestamp: 50, value: 0 },
+            { timestamp: Number.NaN, full_accuracy_value: '4030' },
+          ],
+        },
+      });
+
+      expect(handlers.onSnapshot).toHaveBeenCalledWith('price.equity', [
+        { symbol: 'xau/usd', price: 4029.91, timestamp: 10 },
+        { symbol: 'xau/usd', price: 4030.36, timestamp: 30 },
+      ]);
+    });
+
+    it('drops live gold points without a usable timestamp or price', () => {
+      const { socket, handlers } = connectGold();
+
+      socket.receive({
+        channel: 'price.equity',
+        payload: { symbol: 'xauusd', full_accuracy_value: '4030' },
+      });
+      socket.receive({
+        channel: 'price.equity',
+        payload: { symbol: 'xauusd', timestamp: 1, value: -1 },
+      });
+      socket.receive({
+        channel: 'price.equity',
+        payload: { symbol: 'xauusd', timestamp: 1, full_accuracy_value: '' },
+      });
+
+      expect(handlers.onLive).not.toHaveBeenCalled();
+    });
+
+    it('does not hand gold frames on price.crypto to the equity subscription', () => {
+      const { socket, handlers } = connectGold();
+
+      socket.receive({
+        channel: 'price.crypto',
+        payload: {
+          symbol: 'xauusd',
+          timestamp: 1,
+          full_accuracy_value: '4030',
+        },
+      });
+
+      expect(handlers.onLive).not.toHaveBeenCalled();
     });
   });
 });
