@@ -5,7 +5,6 @@ import type {
 import {
   EM_DASH,
   formatPercent,
-  formatSignedFullUsdNoDecimals,
   formatSignedUsd,
   formatUsd,
 } from '../../../../UI/SocialFeed/utils/formatters';
@@ -52,8 +51,9 @@ const roundsToZeroCents = (value: number): boolean =>
   Math.round(value * 100) === 0;
 
 /**
- * Signed USD for the performance grid, always with two fractional digits
- * (`-$6.00`, `+$1,200.50`). A value that rounds to zero cents stays unsigned.
+ * Signed USD for the compact header and the performance grid, always with
+ * two fractional digits (`-$4.00`, `+$1,200.50`). A value that rounds to
+ * zero cents stays unsigned.
  */
 const formatPerformanceSignedUsd = (value: number): string =>
   roundsToZeroCents(value) ? formatUsd(0) : formatSignedUsd(value);
@@ -139,7 +139,8 @@ export const overlayMyProfileLiveStats = (
     ? formatPercent(liveWinRate * 100, { showSign: false, decimals: 0 })
     : formatLocalWinRate(local.winRatePercent);
   const pnlValue = hasLivePnl ? livePnl : local.pnlUsd;
-  const pnlRaw = formatSignedFullUsdNoDecimals(pnlValue);
+  const pnlRaw =
+    pnlValue == null ? EM_DASH : formatPerformanceSignedUsd(pnlValue);
 
   return {
     rankingTag: (live?.rankingTag ?? local.rankingTag) as
@@ -151,7 +152,7 @@ export const overlayMyProfileLiveStats = (
     isWinRatePositive: winRateValue > 0,
     pnlLabel: hasLivePnl ? pnlRaw : markFakeStat(pnlRaw),
     hasPnl: pnlValue != null,
-    isPnlPositive: pnlValue != null && Math.round(pnlValue) >= 0,
+    isPnlPositive: pnlValue != null && Math.round(pnlValue * 100) >= 0,
     performanceCells: buildPerformanceCells(live, openPositions),
   };
 };

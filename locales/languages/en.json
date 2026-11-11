@@ -1392,9 +1392,12 @@
       "trade": "Trade",
       "just_now": "Just now",
       "age": {
-        "minutes": "{{count}} min ago",
-        "hours": "{{count}} hr ago",
-        "days": "{{count}} d ago"
+        "minutes": "{{count}}m ago",
+        "hours": "{{count}}h ago",
+        "days": "{{count}}d ago",
+        "weeks": "{{count}}w ago",
+        "months": "{{count}}mo ago",
+        "years": "{{count}}y ago"
       },
       "action": {
         "perps_opened": "opened",
@@ -1515,8 +1518,9 @@
       "section_tokens": "Tokens",
       "section_perps": "Perps",
       "empty_title": "No positions to post yet",
-      "empty_help": "Why don't I see a position?",
-      "hidden_position_body": "Positions only appear here if they include at least one trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
+      "empty_help": "Why aren't all positions visible?",
+      "hidden_position_title": "About visible positions",
+      "hidden_position_body": "Positions only appear here if they include a trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
       "got_it": "Got it",
       "empty_description": "Create a position to share it here.",
       "empty_open": "No open positions",
@@ -3889,7 +3893,11 @@
         "buy_price_unavailable": "Buy, price unavailable",
         "holding": "{{shares}} shares at {{price}}",
         "holding_shares": "{{shares}} shares"
-      }
+      },
+      "game_quote_price": "· {{price}}",
+      "game_quote_buy_accessibility_label": "{{team}}, {{price}}, buy",
+      "game_quote_price_accessibility_label": "{{team}}, {{price}}",
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable"
     },
     "trending": {
       "search_row_chance": "{{probability}} chance on {{outcome}}"
@@ -3967,10 +3975,15 @@
       "total_debit": "Total debit",
       "to_win": "To win {{amount}}",
       "pay_with": "Pay with",
-      "predict_balance": "Predict balance",
-      "total": "Total",
-      "price_details": "Price details",
+      "predictions_balance": "Predictions balance",
+      "odds": "Odds",
+      "contracts_row": "Contracts",
+      "fees": "Fees",
+      "you_will_receive": "You'll receive",
+      "you_will_receive_value": "{{amount}} ({{price}} avg)",
+      "estimated_payout": "Est. payout",
       "terms": "By continuing, you accept the platform terms.",
+      "venue_terms": "By continuing, you accept {{venue}}'s terms.",
       "learn_more": "Learn more",
       "submitting": "Submitting your order…",
       "done": "Done",
@@ -3980,6 +3993,7 @@
       "refresh": "Refresh",
       "retry": "Try again",
       "review": "Review order",
+      "buy": "Buy",
       "venue_changed": "Your prediction market changed. Close this order to continue."
     },
     "order_approval": {
@@ -9797,7 +9811,7 @@
       "unlink_card_sheet_another_money_account": "another Money account",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
-      "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+      "verification_pending": "Your identity verification is being reviewed. Most applications are reviewed within a few hours."
     },
     "what_you_get": {
       "title": "Benefits",
@@ -10556,7 +10570,8 @@
     "tabs": {
       "market": "Market",
       "limit": "Limit",
-      "recurring": "Recurring"
+      "recurring": "Recurring",
+      "new_badge": "New"
     },
     "generic_error_toast_title": "Something went wrong",
     "generic_error_toast_body": "Please try again in a few minutes.",
@@ -11510,9 +11525,11 @@
       "verify_identity": {
         "title": "Verify your identity",
         "description": "Our partner, Crypto Life, uses a service called Veriff to keep your account secure. ",
-        "terms_1": "Your info goes directly to Veriff and Crypto Life. MetaMask never sees it.",
-        "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
-        "terms_2_us": "Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.",
+        "terms_1_title": "MetaMask never sees your info",
+        "terms_1_description": "It goes straight to Veriff and Crypto Life.",
+        "terms_2_title": "Have your ID and proof of address ready",
+        "terms_2_description": "This usually takes 5 minutes.",
+        "terms_2_us_description": "Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.",
         "verify_button": "Next",
         "start_verification_error": "Error starting verification. Try again shortly."
       },
@@ -11537,7 +11554,9 @@
       "verifying_veriff_kyc": {
         "title": "Awaiting approval",
         "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Do not close the app."
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
+        "in_progress_title": "Verifying your identity",
+        "in_progress_description": "This usually takes a few seconds. Don't close the app."
       },
       "immersve_kyc_processing": {
         "title": "Awaiting approval",
@@ -11591,12 +11610,6 @@
         "description": "Eligibility is determined by our partner's regulatory and verification checks.",
         "close_button": "Back to home"
       },
-      "kyc_pending": {
-        "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
-        "footer_text": "Approvals usually take around 12 hours.\nWe'll notify you when a decision is made.",
-        "got_it_button": "Got it"
-      },
       "personal_details": {
         "title": "Add your info",
         "description": "Enter your personal details. We'll use this info for verification purposes.",
@@ -11642,7 +11655,7 @@
         "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
-        "title": "You're in!",
+        "title": "You're verified",
         "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "Finish setup"
       },
@@ -11745,8 +11758,8 @@
           "description": "Contact support to unblock your card"
         },
         "kyc_pending": {
-          "title": "Verification in progress",
-          "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+          "title": "Verifying your identity",
+          "description": "Most applications are reviewed within a few hours."
         }
       },
       "messages": {
@@ -12041,6 +12054,10 @@
       "location_button_text_uk": "United Kingdom",
       "email_label": "Email",
       "password_label": "Password",
+      "show_password": "Show password",
+      "hide_password": "Hide password",
+      "email_code_label": "Email code",
+      "request_email_code_button": "Email me a code",
       "login_button": "Sign in",
       "money_account_required": {
         "title": "Set up Money account",
@@ -12083,6 +12100,7 @@
       "banner_resume_soft_body": "Finish it by {{deadline}}. You can still use your current card until then.",
       "banner_bad_creds_title": "We couldn't sign you in",
       "banner_bad_creds_body": "Check your email address and password and try again.",
+      "banner_bad_code_body": "Check the code and try again.",
       "sign_in_help_title": "Which one is mine?",
       "sign_in_help_email_title": "You made a password",
       "sign_in_help_email_body": "Sign in with email. UK cards are moving to a new setup, so we'll walk you through the switch once you're in.",
@@ -12136,7 +12154,9 @@
     },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
+      "title_authenticator": "Confirm your authenticator",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
+      "description_authenticator": "Enter the code from your authenticator app.",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "Confirmation code",
       "confirm_button": "Confirm",

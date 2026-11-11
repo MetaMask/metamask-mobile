@@ -202,7 +202,7 @@ describe('usePositionSheetData', () => {
       );
 
       expect(result.current.summaryTitle).toBe('7 PEPE');
-      expect(result.current.summarySubtitle).toBe('2 d ago');
+      expect(result.current.summarySubtitle).toBe('2d ago');
       expect(result.current.summaryTagLabel).toBe('Sold');
     });
 
@@ -215,7 +215,7 @@ describe('usePositionSheetData', () => {
         }),
       );
 
-      expect(result.current.summarySubtitle).toBe('5 hr ago');
+      expect(result.current.summarySubtitle).toBe('5h ago');
       expect(result.current.summaryTagLabel).toBeUndefined();
     });
 
@@ -270,7 +270,7 @@ describe('usePositionSheetData', () => {
       expect(result.current.perpTradeSymbol).toBe('BTC');
       expect(result.current.summaryTitle).toBe('2 BTC');
       expect(result.current.summaryTagLabel).toBe('40x Short');
-      expect(result.current.summarySubtitle).toBe('2 hr ago');
+      expect(result.current.summarySubtitle).toBe('2h ago');
       expect(result.current.markers[0].actionLabel).toBe('Opened');
       expect(result.current.markers[0].valueLabel).toBe('+$107,469.00');
       expect(result.current.markers[0].isValuePositive).toBe(true);
@@ -338,7 +338,7 @@ describe('usePositionSheetData', () => {
         true,
       );
 
-      expect(result.current.summarySubtitle).toBe('3 d ago');
+      expect(result.current.summarySubtitle).toBe('3d ago');
       expect(result.current.summaryTagLabel).toBe('Closed 40x Short');
     });
 

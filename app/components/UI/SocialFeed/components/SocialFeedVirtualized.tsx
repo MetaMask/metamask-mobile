@@ -65,7 +65,7 @@ import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testId
 /** Scroll offset under which the list counts as at the top. */
 const NEAR_TOP_OFFSET_PX = 4;
 
-/** How often relative post ages ("3 min ago") are recomputed. */
+/** How often relative post ages ("3m ago") are recomputed. */
 const AGE_TICK_MS = 60_000;
 
 /** Hold the refresh spinner for a beat so a fast refetch does not flicker. */
@@ -131,6 +131,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   commentedOnly,
   location,
   analyticsSource,
+  analyticsEnabled,
   showMockedFields,
   isActive,
   title,
@@ -139,6 +140,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   emptyState,
   realtime = false,
   paused = false,
+  comparePosts,
   inlineRows = NO_INLINE_ROWS,
   onRefresh,
   performance,
@@ -220,19 +222,18 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     isActive,
   );
 
-  const visiblePosts = useMemo(
-    () =>
-      posts.filter(
-        (post) =>
-          !isEntryHidden({
-            postId: post.id,
-            authorId: post.item.author.id,
-            authorHandle: post.authorHandle,
-            commentId: post.commentId,
-          }),
-      ),
-    [isEntryHidden, posts],
-  );
+  const visiblePosts = useMemo(() => {
+    const shown = posts.filter(
+      (post) =>
+        !isEntryHidden({
+          postId: post.id,
+          authorId: post.item.author.id,
+          authorHandle: post.authorHandle,
+          commentId: post.commentId,
+        }),
+    );
+    return comparePosts ? shown.sort(comparePosts) : shown;
+  }, [comparePosts, isEntryHidden, posts]);
   const { showSkeleton, showEmpty, showRetry } = getSocialFeedListState({
     postCount: visiblePosts.length,
     // Offline, the query is off: placeholders until a first page exists,
@@ -432,6 +433,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     <SocialFeedSurfaceProvider
       location={location}
       analyticsSource={analyticsSource}
+      analyticsEnabled={analyticsEnabled}
       showMockedFields={showMockedFields}
     >
       <SocialFeedRealtimeContext.Provider value={realtimeState}>
