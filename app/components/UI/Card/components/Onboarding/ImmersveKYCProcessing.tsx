@@ -30,7 +30,7 @@ import {
 import OnboardingStep from './OnboardingStep';
 
 // While the user waits on this screen, poll spending-prerequisites; give up after
-// this window and send them to the "we'll notify you" pending screen. Immersve
+// this window, send them to Card home (KYC still pending). Immersve
 // permits 2-3 min of direct-integration polling — we keep the 30s used by the
 // Veriff progress screen since real background checks take minutes to days.
 const POLLING_TIMEOUT_MS = 30000;
@@ -41,7 +41,7 @@ const POLLING_TIMEOUT_MS = 30000;
  * `spending-prerequisites`: opens the hosted KYC webview, then polls to a
  * terminal state.
  * - kyc (+url) → open the Immersve KYC webview modal (once)
- * - pending    → spinner + auto-poll; 30s timeout → KYC_PENDING
+ * - pending    → spinner + auto-poll; 30s timeout → Card home (pending)
  * - rejected   → KYC_FAILED (blocked / kyc_check_failed)
  * - active/funding (approved) → interim terminus (branch 6b wires SpendingLimit)
  */
@@ -161,7 +161,7 @@ const ImmersveKYCProcessing = () => {
       );
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     }, POLLING_TIMEOUT_MS);
     return () => clearTimeout(id);
