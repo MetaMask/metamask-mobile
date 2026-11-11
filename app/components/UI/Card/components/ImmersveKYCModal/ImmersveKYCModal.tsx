@@ -161,7 +161,8 @@ const isAnyPermissionBlocked = (
 /**
  * Hosted Immersve-conducted KYC webview. Completion is detected by watching for navigation to `redirectUrl`
  * — the URL Immersve sends the user to on exit — after which the modal closes
- * and the progress screen re-polls spending-prerequisites.
+ * back onto the KYC screen. That screen re-polls spending-prerequisites and
+ * shows the result in place.
  *
  * On Android, Sumsub's getUserMedia only works after the app already holds
  * CAMERA + RECORD_AUDIO; otherwise WebView silently denies PermissionRequest

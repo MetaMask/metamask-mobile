@@ -59,12 +59,14 @@ function destinationForAction(
 /**
  * Maps a derived `ImmersveNextAction` to the screen where the user resumes
  * onboarding. Shared by SignUp (post-SIWE entry) and ImmersveKYCProcessing
- * (terminal transitions after polling) so the action→destination mapping lives
- * in one place.
+ * (Finish setup after an approved KYC) so the action→destination mapping
+ * lives in one place.
  *
- * Note: `kyc` and `pending` are handled in-screen by ImmersveKYCProcessing
- * (open the webview / keep polling); it must not pass those here or it would
- * navigate to itself. From SignUp they legitimately route to KYC_PROCESSING.
+ * Note: `kyc`, `pending`, and `rejected` are handled in-screen by
+ * ImmersveKYCProcessing (open the webview, keep polling, or show the
+ * rejection). It must not pass `kyc` or `pending` here or it would navigate
+ * to itself. From SignUp they legitimately route to KYC_PROCESSING, and
+ * `rejected` routes to KYC_FAILED.
  *
  * Returning users with an existing card and a `funding` next-action are sent
  * to Card Home so Enable card / transaction history remain available; first-time

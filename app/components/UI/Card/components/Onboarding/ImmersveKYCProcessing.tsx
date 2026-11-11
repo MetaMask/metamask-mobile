@@ -1,8 +1,10 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, StatusBar } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ScrollView, StatusBar, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { AnimationDuration } from '@metamask/design-tokens';
 import {
   Box,
   BoxAlignItems,
@@ -10,18 +12,17 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  IconSize,
-  Spinner,
-  Text,
-  TextColor,
-  TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  resetOnboardingState,
+  selectImmersveFundingSourceId,
+} from '../../../../../core/redux/slices/card';
 import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendingPrerequisites';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -29,42 +30,208 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { KYC_REDIRECT_URL } from '../../constants';
+import type { ImmersveNextAction } from '../../util/immersvePrerequisites';
 import {
   setImmersveKycOnClose,
   clearImmersveKycOnClose,
 } from '../ImmersveKYCModal/ImmersveKYCModal';
-import OnboardingStep from './OnboardingStep';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { useReduceMotion } from '../../../Money/hooks/useReduceMotion';
 import ImmersveVerifyingIdentityAnimation from './ImmersveVerifyingIdentityAnimation';
+import CardVerifiedContent from './CardVerifiedContent';
+import KYCFailedContent from './KYCFailedContent';
 
 // While the user waits on this screen, poll spending-prerequisites; give up after
-// this window, send them to Card home (KYC still pending). Immersve
-// permits 2-3 min of direct-integration polling — we keep the 30s used by the
-// Veriff progress screen since real background checks take minutes to days.
-const POLLING_TIMEOUT_MS = 30000;
+// this window and send them to Card home (KYC still pending). Immersve permits
+// 2-3 min of direct-integration polling — we keep the 30s used by the Veriff
+// progress screen since real background checks take minutes to days.
+export const POLLING_TIMEOUT_MS = 30000;
 
 /**
- * Immersve KYC progress orchestrator (Immersve-conducted, direct integration).
- * After contact details are submitted, this screen drives
- * `spending-prerequisites`: opens the hosted KYC webview, then polls to a
- * terminal state.
- * - kyc (+url) → open the Immersve KYC webview modal (once)
- * - pending    → spinner + auto-poll; 30s timeout → Card home (pending)
- * - rejected   → KYC_FAILED (blocked / kyc_check_failed)
- * - active/funding (approved) → interim terminus (branch 6b wires SpendingLimit)
+ * After the webview closes, hold "Verifying your identity" at least this long
+ * so a fast poll result doesn't flash past the animation. Cold entries (resume)
+ * skip it: only a webview close starts the hold.
+ */
+export const IMMERSVE_KYC_RESULT_MIN_DWELL_MS = 2000;
+
+type WebviewPhase = 'none' | 'open' | 'closed';
+
+type ImmersveKycView =
+  | 'blank'
+  | 'verifying'
+  | 'verified'
+  | 'failed'
+  | 'reopen'
+  | 'pollError'
+  | 'expired';
+
+interface DeriveViewInput {
+  webviewPhase: WebviewPhase;
+  holdVerifying: boolean;
+  nextAction: ImmersveNextAction | null;
+  isLoading: boolean;
+  error: string | null;
+  promptHint: boolean;
+  isExpiring: boolean;
+}
+
+/**
+ * What the screen shows. The webview covers this screen while it is open, so
+ * that phase stays blank — a stale result must not flash as the webview closes.
+ */
+export const deriveImmersveKycView = ({
+  webviewPhase,
+  holdVerifying,
+  nextAction,
+  isLoading,
+  error,
+  promptHint,
+  isExpiring,
+}: DeriveViewInput): ImmersveKycView => {
+  if (webviewPhase === 'open') {
+    return 'blank';
+  }
+  // The minimum only applies to the close that just happened. A result that
+  // arrives later replaces Verifying immediately, because the hold has ended.
+  if (webviewPhase === 'closed' && holdVerifying) {
+    return 'verifying';
+  }
+  if (error) {
+    return 'pollError';
+  }
+  if (isExpiring) {
+    return 'expired';
+  }
+  if (!nextAction) {
+    return 'blank';
+  }
+
+  switch (nextAction.type) {
+    case 'funding':
+    case 'active':
+      return 'verified';
+    case 'rejected':
+      return 'failed';
+    case 'pending':
+    case 'expected_spend':
+      return 'verifying';
+    case 'kyc':
+      // A re-poll still in flight must not flash "Finish verifying" before the
+      // completed result arrives. A cold entry with a backend hint shows the
+      // prompt as soon as that poll settles.
+      if (webviewPhase === 'closed' && isLoading) {
+        return 'verifying';
+      }
+      if (webviewPhase === 'closed' || (promptHint && !isLoading)) {
+        return 'reopen';
+      }
+      return 'blank';
+    default:
+      return 'blank';
+  }
+};
+
+interface KycIdentityLayoutProps {
+  title: string;
+  description: string;
+  descriptionTestID?: string;
+  alertDescription?: boolean;
+  buttonLabel?: string;
+  onButtonPress?: () => void;
+  buttonTestID?: string;
+}
+
+/** Verifying, Finish verifying, and the two error states share this layout. */
+const KycIdentityLayout = ({
+  title,
+  description,
+  descriptionTestID = 'onboarding-description',
+  alertDescription = false,
+  buttonLabel,
+  onButtonPress,
+  buttonTestID,
+}: KycIdentityLayoutProps) => {
+  const tw = useTailwind();
+
+  return (
+    <View style={tw.style('flex-1')}>
+      <ScrollView
+        contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
+      >
+        <TitleStandard
+          title={title}
+          bottomLabel={description}
+          titleProps={{
+            twClassName: 'text-center',
+            testID: 'onboarding-title',
+          }}
+          titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
+          bottomLabelProps={{
+            twClassName: 'text-center',
+            testID: descriptionTestID,
+            ...(alertDescription
+              ? {
+                  accessibilityRole: 'alert' as const,
+                  accessibilityLiveRegion: 'polite' as const,
+                }
+              : {}),
+          }}
+          bottomLabelWrapperProps={{
+            justifyContent: BoxJustifyContent.Center,
+          }}
+          topAccessory={
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="mb-5 w-full overflow-hidden"
+              testID="immersve-kyc-processing-illustration"
+            >
+              <ImmersveVerifyingIdentityAnimation />
+            </Box>
+          }
+        />
+      </ScrollView>
+      {buttonLabel ? (
+        <Box twClassName="gap-2 px-4 pb-2 pt-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={onButtonPress}
+            testID={buttonTestID}
+          >
+            {buttonLabel}
+          </Button>
+        </Box>
+      ) : null}
+    </View>
+  );
+};
+
+/**
+ * Immersve KYC orchestrator (Immersve-conducted, direct integration).
+ * One screen for the whole post-webview wait: it opens the hosted KYC webview,
+ * then polls spending-prerequisites and swaps the result in place.
+ * - before and during the webview → blank
+ * - pending / expected_spend, and the minimum after close → Verifying
+ * - funding / active → You're verified; Finish setup routes onward
+ * - rejected → Not eligible, in place
+ * - kyc still outstanding → Finish verifying (never auto-reopens)
+ * - poll failure → Try again; KYC_EXPIRING → Back to home
+ * - still pending after 30s → Card home
  */
 const ImmersveKYCProcessing = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const tw = useTailwind();
+  const reduceMotion = useReduceMotion();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const headerHandlers = useCardHeaderHandlers('close-direct');
   const isDarkTheme = useTheme().themeAppearance === AppThemeKey.dark;
-  // The reopen prompt does not use OnboardingStep, so it has to set the status
-  // bar itself. The spinner path's OnboardingStep sets the same style.
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle(
@@ -80,18 +247,16 @@ const ImmersveKYCProcessing = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
   const route = useImmersveOnboardingRouter();
-  const hasOpenedWebview = useRef(false);
+  const [webviewPhase, setWebviewPhase] = useState<WebviewPhase>('none');
+  const [holdVerifying, setHoldVerifying] = useState(false);
+  const dwellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const openKycWebview = useCallback(
-    (url: string) => {
-      hasOpenedWebview.current = true;
-      navigation.navigate(Routes.CARD.ONBOARDING.IMMERSVE_KYC, {
-        url,
-        redirectUrl: KYC_REDIRECT_URL,
-      });
-    },
-    [navigation],
-  );
+  const clearDwellTimer = useCallback(() => {
+    if (dwellTimerRef.current) {
+      clearTimeout(dwellTimerRef.current);
+      dwellTimerRef.current = null;
+    }
+  }, []);
 
   const { nextAction, error, isLoading, refresh } =
     useImmersveSpendingPrerequisites({
@@ -106,17 +271,34 @@ const ImmersveKYCProcessing = () => {
   const promptHint = ctaHint === 'KYC_NOT_COMPLETED' || isInfoNeeded;
   const isExpiring = ctaHint === 'KYC_EXPIRING';
 
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
-            screen: CardScreens.KYC_PROCESSING,
-          }),
-        )
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
+  const view = deriveImmersveKycView({
+    webviewPhase,
+    holdVerifying,
+    nextAction,
+    isLoading,
+    error,
+    promptHint,
+    isExpiring,
+  });
+
+  const openKycWebview = useCallback(
+    (url: string) => {
+      // A reopen must not let the previous close's dwell reveal a result
+      // underneath the webview that is about to cover the screen.
+      clearDwellTimer();
+      setHoldVerifying(false);
+      setWebviewPhase('open');
+      navigation.navigate(Routes.CARD.ONBOARDING.IMMERSVE_KYC, {
+        url,
+        redirectUrl: KYC_REDIRECT_URL,
+      });
+    },
+    [navigation, clearDwellTimer],
+  );
+
+  const navigateToWalletHome = useCallback(() => {
+    navigation.navigate(Routes.WALLET.HOME);
+  }, [navigation]);
 
   // Initial poll (needed for the resume/no-url entry).
   useEffect(() => {
@@ -124,53 +306,96 @@ const ImmersveKYCProcessing = () => {
   }, [refresh]);
 
   // Entry shortcut: SignUp already derived the KYC url, so open the webview
-  // immediately instead of re-polling and flashing the spinner first.
+  // immediately instead of waiting for a poll.
   useEffect(() => {
-    if (kycUrl && !hasOpenedWebview.current) {
-      openKycWebview(kycUrl);
+    if (webviewPhase !== 'none' || !kycUrl) {
+      return;
     }
-  }, [kycUrl, openKycWebview]);
+    openKycWebview(kycUrl);
+  }, [webviewPhase, kycUrl, openKycWebview]);
+
+  // Auto-open the webview the first time only, and only when the backend
+  // hasn't told us to prompt instead (KYC_NOT_COMPLETED / KYC_INFORMATION_NEEDED
+  // ⇒ show the button, never silently reopen; KYC_EXPIRING ⇒ expired state).
+  useEffect(() => {
+    if (webviewPhase !== 'none' || kycUrl) {
+      return;
+    }
+    if (nextAction?.type === 'kyc' && !promptHint && !isExpiring) {
+      openKycWebview(nextAction.url ?? '');
+    }
+  }, [
+    webviewPhase,
+    kycUrl,
+    nextAction,
+    promptHint,
+    isExpiring,
+    openKycWebview,
+  ]);
 
   // Re-poll when the webview closes back onto this screen. Exit to the wallet
   // tears this screen down before focus returns, so useFocusEffect cannot be
-  // the signal — the webview invokes this callback instead. The poll then
-  // decides: kyc still action-required ⇒ the user bailed (show a reopen
-  // prompt); otherwise route.
-  useEffect(() => {
-    setImmersveKycOnClose(() => {
-      refresh().catch(() => undefined);
-    });
-    return () => clearImmersveKycOnClose();
-  }, [refresh]);
+  // the signal — the webview invokes this callback instead.
+  const handleWebviewClosed = useCallback(() => {
+    clearDwellTimer();
+    setWebviewPhase('closed');
+    setHoldVerifying(true);
+    dwellTimerRef.current = setTimeout(() => {
+      dwellTimerRef.current = null;
+      setHoldVerifying(false);
+    }, IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    refresh().catch(() => undefined);
+  }, [clearDwellTimer, refresh]);
 
   useEffect(() => {
-    if (!nextAction) {
+    setImmersveKycOnClose(handleWebviewClosed);
+    return () => clearImmersveKycOnClose();
+  }, [handleWebviewClosed]);
+
+  useEffect(() => clearDwellTimer, [clearDwellTimer]);
+
+  useEffect(() => {
+    if (view !== 'failed') {
       return;
     }
-    const { type } = nextAction;
-    if (type === 'kyc') {
-      // Auto-open the webview the first time only, and only when the backend
-      // hasn't told us to prompt instead (KYC_NOT_COMPLETED / KYC_INFORMATION_NEEDED
-      // ⇒ show the button, never silently reopen; KYC_EXPIRING ⇒ error).
-      if (!hasOpenedWebview.current && !promptHint && !isExpiring) {
-        openKycWebview(nextAction.url ?? '');
-      }
-    } else if (type === 'funding' || type === 'active' || type === 'rejected') {
-      route(nextAction, { countryKey });
-    }
-  }, [
-    nextAction,
-    navigation,
-    route,
-    countryKey,
-    openKycWebview,
-    promptHint,
-    isExpiring,
-  ]);
+    dispatch(resetOnboardingState());
+  }, [view, dispatch]);
 
-  // 30s cutoff only while background checks are pending (not during the webview).
+  const viewedScreen =
+    view === 'verifying'
+      ? CardScreens.KYC_PROCESSING
+      : view === 'verified'
+        ? CardScreens.COMPLETE
+        : view === 'failed'
+          ? CardScreens.KYC_FAILED
+          : null;
+
   useEffect(() => {
-    if (nextAction?.type !== 'pending') {
+    if (!viewedScreen) {
+      return;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            screen: viewedScreen,
+          }),
+        )
+        .build(),
+    );
+  }, [viewedScreen, trackEvent, createEventBuilder]);
+
+  // 30s cutoff while background checks are pending, and when Immersve asks for
+  // an expected spend amount (no form on this screen, so it must not sit on
+  // Verifying forever). Not while the webview is open, and not over an error
+  // the user can retry.
+  const isWaitingOnReview =
+    !error &&
+    webviewPhase !== 'open' &&
+    (nextAction?.type === 'pending' || nextAction?.type === 'expected_spend');
+
+  useEffect(() => {
+    if (!isWaitingOnReview) {
       return undefined;
     }
     const id = setTimeout(() => {
@@ -190,57 +415,7 @@ const ImmersveKYCProcessing = () => {
       });
     }, POLLING_TIMEOUT_MS);
     return () => clearTimeout(id);
-  }, [nextAction?.type, navigation, trackEvent, createEventBuilder]);
-
-  // User came back from the webview with KYC still outstanding ⇒ prompt to reopen
-  // (never auto-reopen — they may have closed it deliberately). The backend
-  // ctaHint (promptHint) forces the prompt even on a fresh mount; !isLoading gates
-  // the in-flight re-poll after a *completed* KYC so it shows the spinner, not a
-  // flash of this prompt.
-  const isReopenPrompt =
-    !isLoading &&
-    nextAction?.type === 'kyc' &&
-    (hasOpenedWebview.current || promptHint) &&
-    !isExpiring;
-
-  const errorMessage =
-    error ??
-    (isExpiring
-      ? strings('card.card_onboarding.immersve_kyc_processing.expiring_error')
-      : null);
-
-  const renderFormFields = () => (
-    <Box twClassName="flex flex-1 items-center justify-center">
-      {errorMessage ? (
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.ErrorDefault}
-          twClassName="text-center px-4"
-          accessibilityRole="alert"
-          accessibilityLiveRegion="polite"
-          testID="immersve-kyc-processing-error"
-        >
-          {errorMessage}
-        </Text>
-      ) : (
-        <>
-          <Spinner
-            testID="immersve-kyc-processing-spinner"
-            spinnerIconProps={{ size: IconSize.Xl }}
-          />
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center mt-4 px-4"
-          >
-            {strings(
-              'card.card_onboarding.immersve_kyc_processing.helper_text',
-            )}
-          </Text>
-        </>
-      )}
-    </Box>
-  );
+  }, [isWaitingOnReview, navigation, trackEvent, createEventBuilder]);
 
   const handleReopen = useCallback(() => {
     trackEvent(
@@ -256,89 +431,147 @@ const ImmersveKYCProcessing = () => {
     openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '');
   }, [trackEvent, createEventBuilder, ctaHint, openKycWebview, nextAction]);
 
-  if (isReopenPrompt) {
-    const title = strings(
-      isInfoNeeded
-        ? 'card.card_onboarding.immersve_kyc_processing.info_needed_title'
-        : 'card.card_onboarding.immersve_kyc_processing.incomplete_title',
-    );
-    const description = strings(
-      isInfoNeeded
-        ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
-        : 'card.card_onboarding.immersve_kyc_processing.incomplete_description',
-    );
-    const buttonLabel = strings(
-      isInfoNeeded
-        ? 'card.card_onboarding.immersve_kyc_processing.info_needed_button'
-        : 'card.card_onboarding.immersve_kyc_processing.continue_button',
-    );
+  const handleRetry = useCallback(() => {
+    refresh().catch(() => undefined);
+  }, [refresh]);
 
-    return (
-      <SafeAreaView
-        edges={['right', 'bottom', 'left']}
-        style={tw.style('flex-1 bg-default')}
-      >
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          includesTopInset
-          twClassName="bg-background-default"
-          {...headerHandlers}
+  const handleFinishSetup = useCallback(() => {
+    if (nextAction?.type !== 'funding' && nextAction?.type !== 'active') {
+      return;
+    }
+    route(nextAction, { countryKey, showAccountExistsToast: false });
+  }, [nextAction, route, countryKey]);
+
+  const renderBody = () => {
+    if (view === 'verified') {
+      return <CardVerifiedContent onContinue={handleFinishSetup} />;
+    }
+    if (view === 'failed') {
+      return <KYCFailedContent onClose={navigateToWalletHome} />;
+    }
+    if (view === 'blank') {
+      return null;
+    }
+    if (view === 'reopen') {
+      return (
+        <KycIdentityLayout
+          title={strings(
+            isInfoNeeded
+              ? 'card.card_onboarding.immersve_kyc_processing.info_needed_title'
+              : 'card.card_onboarding.immersve_kyc_processing.incomplete_title',
+          )}
+          description={strings(
+            isInfoNeeded
+              ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
+              : 'card.card_onboarding.immersve_kyc_processing.incomplete_description',
+          )}
+          buttonLabel={strings(
+            isInfoNeeded
+              ? 'card.card_onboarding.immersve_kyc_processing.info_needed_button'
+              : 'card.card_onboarding.immersve_kyc_processing.continue_button',
+          )}
+          onButtonPress={handleReopen}
+          buttonTestID="immersve-kyc-processing-reopen-button"
         />
-        <ScrollView
-          contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
-        >
-          <TitleStandard
-            title={title}
-            bottomLabel={description}
-            titleProps={{
-              twClassName: 'text-center',
-              testID: 'onboarding-title',
-            }}
-            titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
-            bottomLabelProps={{
-              twClassName: 'text-center',
-              testID: 'onboarding-description',
-            }}
-            bottomLabelWrapperProps={{
-              justifyContent: BoxJustifyContent.Center,
-            }}
-            topAccessory={
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                twClassName="mb-5 w-full overflow-hidden"
-                testID="immersve-kyc-processing-illustration"
-              >
-                <ImmersveVerifyingIdentityAnimation />
-              </Box>
-            }
-          />
-        </ScrollView>
-        <Box twClassName="gap-2 px-4 pb-2 pt-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleReopen}
-            testID="immersve-kyc-processing-reopen-button"
-          >
-            {buttonLabel}
-          </Button>
-        </Box>
-      </SafeAreaView>
+      );
+    }
+    if (view === 'pollError') {
+      return (
+        <KycIdentityLayout
+          title={strings(
+            'card.card_onboarding.immersve_kyc_processing.error_title',
+          )}
+          description={error ?? ''}
+          descriptionTestID="immersve-kyc-processing-error"
+          alertDescription
+          buttonLabel={strings(
+            'card.card_onboarding.immersve_kyc_processing.try_again_button',
+          )}
+          onButtonPress={handleRetry}
+          buttonTestID="immersve-kyc-processing-retry-button"
+        />
+      );
+    }
+    if (view === 'expired') {
+      return (
+        <KycIdentityLayout
+          title={strings(
+            'card.card_onboarding.immersve_kyc_processing.expired_title',
+          )}
+          description={strings(
+            'card.card_onboarding.immersve_kyc_processing.expiring_error',
+          )}
+          descriptionTestID="immersve-kyc-processing-error"
+          alertDescription
+          buttonLabel={strings(
+            'card.card_onboarding.immersve_kyc_processing.back_to_home_button',
+          )}
+          onButtonPress={navigateToWalletHome}
+          buttonTestID="immersve-kyc-processing-back-home-button"
+        />
+      );
+    }
+    return (
+      <KycIdentityLayout
+        title={strings(
+          'card.card_onboarding.immersve_kyc_processing.in_progress_title',
+        )}
+        description={strings(
+          'card.card_onboarding.immersve_kyc_processing.in_progress_description',
+        )}
+      />
     );
-  }
+  };
+
+  const header =
+    view === 'verified' ? (
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+      />
+    ) : view === 'failed' ? (
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+        onBack={navigateToWalletHome}
+        backButtonProps={{ testID: 'kyc-failed-back-button' }}
+      />
+    ) : (
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
+    );
 
   return (
-    <OnboardingStep
-      title={strings('card.card_onboarding.immersve_kyc_processing.title')}
-      description={strings(
-        'card.card_onboarding.immersve_kyc_processing.description',
-      )}
-      formFields={renderFormFields()}
-      headerMode="close-direct"
-    />
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={tw.style('flex-1 bg-default')}
+      testID="immersve-kyc-processing"
+    >
+      {header}
+      <Animated.View
+        key={view}
+        style={tw.style('flex-1')}
+        entering={
+          reduceMotion
+            ? undefined
+            : FadeIn.duration(AnimationDuration.Regularly)
+        }
+        exiting={
+          reduceMotion
+            ? undefined
+            : FadeOut.duration(AnimationDuration.Regularly)
+        }
+      >
+        {renderBody()}
+      </Animated.View>
+    </SafeAreaView>
   );
 };
 
