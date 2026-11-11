@@ -1,33 +1,20 @@
-import {
-  type Identifier,
-  type MfaRecoveryController,
+import type {
+  Identifier,
+  MfaRecoveryController,
 } from '@metamask/mfa-recovery-controller';
+import { RecoveryIdentifierRouter } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
 import { bytesToHex, sha256 } from '@metamask/utils';
 import { RECOVERY_SECRET_LENGTH } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
-import { RecoveryIdentifierRouter } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
-import { createSiweIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   getMfaRecoveryErrorCode,
   getMfaRecoveryErrorDetail,
   MfaRecoveryControllerError,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
-import { TestPasskeyIdentifierAuthProvider } from './mfaRecoveryTestProviders';
 
 export {
   getMfaRecoveryErrorCode,
   getMfaRecoveryErrorDetail,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
-
-const TEST_PROVIDER_BY_ROUTER = new WeakMap<
-  RecoveryIdentifierRouter,
-  TestIdentifierState
->();
-
-interface TestIdentifierState {
-  address: string;
-  siweIdentifier: Identifier;
-  passkeyProvider: TestPasskeyIdentifierAuthProvider;
-}
 
 export interface MfaRecoveryTestDependencies {
   controller: MfaRecoveryController;
@@ -36,6 +23,8 @@ export interface MfaRecoveryTestDependencies {
   randomBytes: (length: number) => Uint8Array;
   /** Starts the verification session recovery approvals require. */
   verifyMfa: () => Promise<void>;
+  /** Returns the recovery identifiers Auth holds for the canonical profile. */
+  getAuthIdentifiers: () => Promise<Identifier[]>;
 }
 
 export type MfaRecoveryTestStep =
@@ -48,7 +37,7 @@ export type MfaRecoveryTestStep =
   | 'authenticating_identifier'
   | 'reading_recovery_secret'
   | 'updating_recovery_secret'
-  | 'updating_identifiers'
+  | 'restoring_recovery_secret'
   | 'completed';
 
 export interface MfaRecoveryTestResult {
@@ -63,11 +52,13 @@ export interface MfaRecoveryRecoverResult {
 }
 
 let lastRegisteredSecret: Uint8Array | undefined;
+let lastRegisteredAddress: string | undefined;
 
-interface TestIdentifierSet extends TestIdentifierState {
+/** The identifiers a run reads and writes with. */
+export interface MfaRecoveryRunIdentifiers {
+  siweIdentifier: Identifier;
+  /** The passkey Auth approved; proven with the platform passkey sheet. */
   passkeyIdentifier: Identifier;
-  createPasskeyIdentifier: () => Identifier;
-  setPasskeyIdentifier: (identifier: Identifier) => void;
 }
 
 /** Runs the same live registration/recovery round trip in the app or Node. */
@@ -92,8 +83,8 @@ export async function runMfaRecoveryCubistTest(
 
   let secret: Uint8Array;
   let result: MfaRecoveryTestResult;
-  // Prefer SIWE for mutations when recovery already exists — the local passkey
-  // may not match the enrolled one after a prior run or process restart.
+  // Prefer SIWE for mutations when recovery already exists — the platform
+  // passkey may not match the enrolled one after a prior run or restart.
   let mutationIdentifier: Identifier = passkeyIdentifier;
 
   try {
@@ -115,26 +106,27 @@ export async function runMfaRecoveryCubistTest(
   }
 
   if (result.matches) {
+    // Test a new secret, then put the original back so the escrow keeps the
+    // secret the other runs and recoveries expect.
+    const originalSecret = secret;
     onStep('updating_recovery_secret');
-    secret = newSecret();
+    const testSecret = newSecret();
     await controller.updateRecoverySecret(
       mutationIdentifier,
-      secret,
+      testSecret,
       result.epoch,
     );
-    lastRegisteredSecret = new Uint8Array(secret);
-    result = await readAndCompare(mutationIdentifier, secret);
-  }
-  if (result.matches) {
-    onStep('updating_identifiers');
-    const replacementPasskey = identifiers.createPasskeyIdentifier();
-    await controller.updateIdentifiers(
-      siweIdentifier,
-      [siweIdentifier, replacementPasskey],
+    result = await readAndCompare(mutationIdentifier, testSecret);
+
+    onStep('restoring_recovery_secret');
+    await controller.updateRecoverySecret(
+      mutationIdentifier,
+      originalSecret,
       result.epoch,
     );
-    identifiers.setPasskeyIdentifier(replacementPasskey);
-    result = await readAndCompare(replacementPasskey, secret);
+    secret = originalSecret;
+    lastRegisteredSecret = new Uint8Array(originalSecret);
+    result = await readAndCompare(mutationIdentifier, originalSecret);
   }
   onStep('completed');
   return result;
@@ -200,9 +192,9 @@ export async function prepareRecoveryRun(
   onStep: (step: MfaRecoveryTestStep) => void,
 ): Promise<{
   controller: MfaRecoveryController;
-  identifiers: TestIdentifierSet;
+  identifiers: MfaRecoveryRunIdentifiers;
 }> {
-  const { controller, identifierRouter } = dependencies;
+  const { controller } = dependencies;
   if (!dependencies.address) {
     throw new MfaRecoveryControllerError(
       'The primary account is unavailable',
@@ -220,40 +212,43 @@ export async function prepareRecoveryRun(
   onStep('requesting_oidc_token');
   onStep('creating_cubist_session');
 
-  let state = TEST_PROVIDER_BY_ROUTER.get(identifierRouter);
-  if (state?.address !== dependencies.address) {
+  if (lastRegisteredAddress !== dependencies.address) {
     lastRegisteredSecret = undefined;
-    const passkeyProvider = new TestPasskeyIdentifierAuthProvider();
-    identifierRouter.registerProvider('passkey', passkeyProvider);
-    state = {
-      address: dependencies.address,
-      siweIdentifier: createSiweIdentifier(dependencies.address),
-      passkeyProvider,
-    };
-    TEST_PROVIDER_BY_ROUTER.set(identifierRouter, state);
+    lastRegisteredAddress = dependencies.address;
   }
-  const currentState = state;
+  const authIdentifiers = await dependencies.getAuthIdentifiers();
   return {
     controller,
     identifiers: {
-      ...currentState,
-      passkeyIdentifier: currentState.passkeyProvider.passkeyIdentifier,
-      createPasskeyIdentifier: () =>
-        currentState.passkeyProvider.createPasskeyIdentifier(),
-      setPasskeyIdentifier: (identifier) =>
-        currentState.passkeyProvider.setPasskeyIdentifier(identifier),
+      siweIdentifier: findAuthIdentifier(authIdentifiers, 'siwe'),
+      passkeyIdentifier: findAuthIdentifier(authIdentifiers, 'passkey'),
     },
   };
 }
 
-async function readRecoverySecret(
+/** Picks the identifier of the given type that Auth approved for this profile. */
+function findAuthIdentifier(
+  identifiers: readonly Identifier[],
+  type: Identifier['type'],
+): Identifier {
+  const identifier = identifiers.find((candidate) => candidate.type === type);
+  if (identifier === undefined) {
+    throw new MfaRecoveryControllerError(
+      `Auth has no approved ${type} identifier for this profile`,
+      'identifier_not_approved',
+    );
+  }
+  return identifier;
+}
+
+/** Authenticates the identifier and reads the Recovery Secret from the escrow. */
+export async function readRecoverySecret(
   controller: MfaRecoveryController,
-  siweIdentifier: Identifier,
+  identifier: Identifier,
   onStep: (step: MfaRecoveryTestStep) => void,
 ) {
   onStep('authenticating_identifier');
-  const identifierSession =
-    await controller.authenticateIdentifier(siweIdentifier);
+  const identifierSession = await controller.authenticateIdentifier(identifier);
   onStep('reading_recovery_secret');
   return await controller.getRecoverySecret(identifierSession);
 }

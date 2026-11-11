@@ -92,6 +92,19 @@ jest.mock('./runToprfRecoverySecretTest', () => ({
   ) => mockRunToprfRecoverySecretTest(dependencies, onStep),
 }));
 
+const mockRunMfaRecoveryFullRetrieval = jest.fn();
+
+jest.mock('./runMfaRecoveryFullRetrieval', () => ({
+  runMfaRecoveryFullRetrieval: (
+    dependencies: unknown,
+    onStep: (step: string) => void,
+  ) => mockRunMfaRecoveryFullRetrieval(dependencies, onStep),
+}));
+
+const FULL_RETRIEVAL_BUTTON_TEST_ID = 'mfa-recovery-dev-full-retrieval-button';
+const FULL_RETRIEVAL_PASSWORD_TEST_ID =
+  'mfa-recovery-dev-full-retrieval-password';
+
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
 const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button-siwe';
 const RECOVER_BUTTON_TEST_ID_PREFIX = 'mfa-recovery-dev-recover-secret-button';
@@ -450,6 +463,33 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       expect(
         getByText(
           /Recovery test failed: escrow_request_failed \(escrow failed\)/,
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it('runs the full retrieval with the entered password and displays the SRP check', async () => {
+    mockRunMfaRecoveryFullRetrieval.mockResolvedValue({
+      expectedSrpCount: 2,
+      recoveredSrpCount: 2,
+      matchedSrpCount: 2,
+      allSrpsRecovered: true,
+    });
+    const { getByTestId, getByText } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    fireEvent.changeText(getByTestId(FULL_RETRIEVAL_PASSWORD_TEST_ID), 'pw');
+    fireEvent.press(getByTestId(FULL_RETRIEVAL_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(mockRunMfaRecoveryFullRetrieval).toHaveBeenCalledWith(
+        expect.objectContaining({ password: 'pw' }),
+        expect.any(Function),
+      );
+      expect(
+        getByText(
+          'Full retrieval finished: SRPs before 2, recovered 2, matched 2; all recovered: yes.',
         ),
       ).toBeOnTheScreen();
     });

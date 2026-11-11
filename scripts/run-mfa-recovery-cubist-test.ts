@@ -354,7 +354,7 @@ export async function main(): Promise<void> {
     });
     console.log(`Authentication token source: ${tokenSource}`);
     console.log(
-      'Running live Cubist recovery test: register, updateRecoverySecret, and updateIdentifiers with MPC request-bound authorization.',
+      'Running live Cubist recovery test: register and updateRecoverySecret with MPC request-bound authorization.',
     );
     const result = await runMfaRecoveryCubistTest(
       {
@@ -363,6 +363,12 @@ export async function main(): Promise<void> {
         address: wallet.address,
         randomBytes: wallet.randomBytes,
         verifyMfa: async () => undefined,
+        getAuthIdentifiers: async () => {
+          throw new MfaRecoveryControllerError(
+            'Recovery approvals need an AuthenticationController MFA verification; run this flow from Developer Options',
+            'mfa_approval_unavailable',
+          );
+        },
       },
       (nextStep) => {
       step = nextStep;

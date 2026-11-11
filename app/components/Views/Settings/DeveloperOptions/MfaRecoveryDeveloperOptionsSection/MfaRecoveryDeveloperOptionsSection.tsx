@@ -9,6 +9,7 @@ import {
   ButtonVariant,
   Text,
   TextColor,
+  TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -45,6 +46,11 @@ import {
   type MfaRecoverySetupResult,
   type MfaRecoverySetupStep,
 } from './runMfaRecoverySetup';
+import {
+  runMfaRecoveryFullRetrieval,
+  type MfaRecoveryFullRetrievalResult,
+  type MfaRecoveryFullRetrievalStep,
+} from './runMfaRecoveryFullRetrieval';
 import {
   runToprfRecoverySecretTest,
   type ToprfRecoverySecretTestResult,
@@ -89,18 +95,25 @@ const SETUP_COMBINATIONS = Object.keys(
 ) as MfaRecoveryIdentifierCombination[];
 const TOPRF_TEST_BUTTON_TEST_ID =
   'mfa-recovery-dev-toprf-recovery-secret-button';
+const FULL_RETRIEVAL_BUTTON_TEST_ID = 'mfa-recovery-dev-full-retrieval-button';
+const FULL_RETRIEVAL_PASSWORD_TEST_ID =
+  'mfa-recovery-dev-full-retrieval-password';
 const RESET_PENDING_BUTTON_TEST_ID = 'mfa-recovery-dev-reset-pending-button';
 const RESUME_BUTTON_TEST_ID = 'mfa-recovery-dev-resume-button';
 const ABORT_BUTTON_TEST_ID = 'mfa-recovery-dev-abort-button';
 const AAL2_APPROVAL_OPERATION = 'mfaRecovery.devOptions';
 const AAL2_APPROVAL_AUDIENCES = [TOPRF_AAL2_AUDIENCE];
 
-type MfaRecoveryStep = MfaRecoverySetupStep | ToprfRecoverySecretTestStep;
+type MfaRecoveryStep =
+  | MfaRecoverySetupStep
+  | ToprfRecoverySecretTestStep
+  | MfaRecoveryFullRetrievalStep;
 type MfaRecoveryRunResult =
   | MfaRecoveryTestResult
   | MfaRecoveryRecoverResult
   | MfaRecoverySetupResult
-  | ToprfRecoverySecretTestResult;
+  | ToprfRecoverySecretTestResult
+  | MfaRecoveryFullRetrievalResult;
 type MfaRecoveryRunner = (
   dependencies: MfaRecoverySetupDependencies,
   onStep: (step: MfaRecoveryStep) => void,
@@ -133,6 +146,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [phase, setPhase] = useState<string | null>(null);
+  const [fullRetrievalPassword, setFullRetrievalPassword] = useState('');
   const { verifyOrEnroll } = useMfa();
 
   // requestMfaApproval with requireVerification needs a live verification
@@ -279,7 +293,11 @@ const MfaRecoveryDeveloperOptionsSection = () => {
 
   const handleRunCubistTest = useCallback(() => {
     handleRun(runMfaRecoveryCubistTest, (recoveryResult) => {
-      if ('fingerprint' in recoveryResult || 'after' in recoveryResult) {
+      if (
+        'fingerprint' in recoveryResult ||
+        'after' in recoveryResult ||
+        'allSrpsRecovered' in recoveryResult
+      ) {
         throw new Error('Unexpected recovery result');
       }
       return strings('app_settings.developer_options.mfa_recovery.success', {
@@ -340,6 +358,34 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       },
     );
   }, [handleRun]);
+
+  const handleFullRetrieval = useCallback(() => {
+    handleRun(
+      (dependencies, onStep) =>
+        runMfaRecoveryFullRetrieval(
+          {
+            ...dependencies,
+            seedless: Engine.context.SeedlessOnboardingController,
+            password: fullRetrievalPassword,
+          },
+          onStep,
+        ),
+      (recoveryResult) => {
+        if (!('allSrpsRecovered' in recoveryResult)) {
+          throw new Error('Unexpected recovery result');
+        }
+        return strings(
+          'app_settings.developer_options.mfa_recovery.full_retrieval_success',
+          {
+            expected: recoveryResult.expectedSrpCount,
+            recovered: recoveryResult.recoveredSrpCount,
+            matched: recoveryResult.matchedSrpCount,
+            allRecovered: recoveryResult.allSrpsRecovered ? 'yes' : 'no',
+          },
+        );
+      },
+    );
+  }, [fullRetrievalPassword, handleRun]);
 
   const handleRecoverSecret = useCallback(
     (identifierType: RecoveryReadIdentifierType) => {
@@ -463,6 +509,37 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       >
         {strings(
           'app_settings.developer_options.mfa_recovery.toprf_test_button',
+        )}
+      </Button>
+      <TextField
+        value={fullRetrievalPassword}
+        onChangeText={setFullRetrievalPassword}
+        placeholder={strings(
+          'app_settings.developer_options.mfa_recovery.full_retrieval_password_placeholder',
+        )}
+        inputProps={{
+          secureTextEntry: true,
+          autoCapitalize: 'none',
+          autoCorrect: false,
+          testID: FULL_RETRIEVAL_PASSWORD_TEST_ID,
+        }}
+      />
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleFullRetrieval}
+        isDisabled={
+          isRunning ||
+          !__DEV__ ||
+          !isMfaRecoveryAvailable ||
+          fullRetrievalPassword.length === 0
+        }
+        isFullWidth
+        style={styles.accessory}
+        testID={FULL_RETRIEVAL_BUTTON_TEST_ID}
+      >
+        {strings(
+          'app_settings.developer_options.mfa_recovery.full_retrieval_button',
         )}
       </Button>
       <Button
