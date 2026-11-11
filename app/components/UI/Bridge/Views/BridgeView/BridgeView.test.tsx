@@ -2755,12 +2755,12 @@ describe('BridgeView', () => {
     const spyOnPagerRenders = () => {
       const renders: { pager: PagerView; initialPage?: number }[] = [];
       const originalRender = PagerView.prototype.render;
-      jest
-        .spyOn(PagerView.prototype, 'render')
-        .mockImplementation(function (this: PagerView) {
-          renders.push({ pager: this, initialPage: this.props.initialPage });
-          return originalRender.call(this);
-        });
+      jest.spyOn(PagerView.prototype, 'render').mockImplementation(function (
+        this: PagerView,
+      ) {
+        renders.push({ pager: this, initialPage: this.props.initialPage });
+        return originalRender.call(this);
+      });
       return renders;
     };
 
@@ -2912,12 +2912,12 @@ describe('BridgeView', () => {
       // The native pager only reads `initialPage` from its first render.
       const renderedInitialPages: (number | undefined)[] = [];
       const originalRender = PagerView.prototype.render;
-      jest
-        .spyOn(PagerView.prototype, 'render')
-        .mockImplementation(function (this: PagerView) {
-          renderedInitialPages.push(this.props.initialPage);
-          return originalRender.call(this);
-        });
+      jest.spyOn(PagerView.prototype, 'render').mockImplementation(function (
+        this: PagerView,
+      ) {
+        renderedInitialPages.push(this.props.initialPage);
+        return originalRender.call(this);
+      });
 
       const { getByTestId } = renderScreen(
         BridgeView,
