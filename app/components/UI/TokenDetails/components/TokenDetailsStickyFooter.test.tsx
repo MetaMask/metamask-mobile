@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
@@ -439,6 +440,82 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(getByText('Buy ETH')).toBeOnTheScreen();
       expect(getByTestId('token-details-footer-quick-sell')).toBeOnTheScreen();
+    });
+  });
+
+  describe('collapsed position sheet edge', () => {
+    const getSheetStyle = (
+      getByTestId: ReturnType<typeof render>['getByTestId'],
+    ) => {
+      const dialog = getByTestId('token-details-sticky-footer');
+      const gestureDetector = dialog.props.children as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      const sheet = gestureDetector.props.children as React.ReactElement<{
+        style?: unknown;
+      }>;
+      const styleArray = sheet.props.style as unknown[];
+      // The design-system dialog builds its sheet style as an array whose last
+      // entry is Reanimated's animated-style registry (a jest mock object here).
+      // Flattening the static entries applies the same later-wins resolution
+      // React Native performs on the real sheet.
+      const staticStyles = styleArray.filter(
+        (entry): entry is Record<string, unknown> =>
+          typeof entry === 'object' &&
+          entry !== null &&
+          !('viewDescriptors' in entry),
+      );
+      return StyleSheet.flatten(staticStyles) as Record<string, unknown>;
+    };
+
+    it('drops the top hairline on the collapsed position sheet', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31' }}
+        />,
+      );
+
+      expect(getSheetStyle(getByTestId).borderWidth).toBe(0);
+      expect(getSheetStyle(getByTestId).borderTopLeftRadius).toBe(0);
+    });
+
+    it('separates the collapsed sheet from the page with an upward soft edge', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31' }}
+        />,
+      );
+
+      expect(getSheetStyle(getByTestId).overflow).toBe('visible');
+      expect(getSheetStyle(getByTestId).shadowOffset).toStrictEqual({
+        width: 0,
+        height: -2,
+      });
+      expect(getSheetStyle(getByTestId).shadowColor).toBe('#0000001a');
+      expect(getSheetStyle(getByTestId).shadowOpacity).toBe(1);
+      expect(getSheetStyle(getByTestId).shadowRadius).toBe(8);
+      expect(getSheetStyle(getByTestId).elevation).toBe(8);
+    });
+
+    it('keeps the expanded sheet clipped with the default shadow direction', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31', isExpanded: true }}
+        />,
+      );
+
+      expect(getSheetStyle(getByTestId).borderTopLeftRadius).toBe(38);
+      expect(getSheetStyle(getByTestId).borderTopRightRadius).toBe(38);
+      expect(getSheetStyle(getByTestId).overflow).toBe('hidden');
+      expect(getSheetStyle(getByTestId).shadowOffset).toStrictEqual({
+        width: 0,
+        height: 2,
+      });
+      expect(getSheetStyle(getByTestId).shadowRadius).toBe(40);
+      expect(getSheetStyle(getByTestId).elevation).toBeUndefined();
     });
   });
 

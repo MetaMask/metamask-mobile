@@ -17,7 +17,12 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  type LayoutChangeEvent,
+  type ViewStyle,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -202,7 +207,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
-  const { colors, themeAppearance } = useTheme();
+  const { colors, shadows, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
   const { indicators: indicatorsActive } = useTokenChartPreferences();
@@ -554,28 +559,27 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     }),
     [colors.background.default, insets.bottom, skipBottomInset],
   );
-  const bottomSheetStyle = useMemo(
+  const bottomSheetStyle = useMemo<ViewStyle>(
     () => ({
-      // Design spec: expanded sheet uses a 38px top corner radius (ASSETS-4183).
+      // Design spec: expanded sheet uses a 38px top corner radius and relies on
+      // the dim overlay for separation (ASSETS-4183).
       borderTopLeftRadius: traderPositionPnl?.isExpanded ? 38 : 0,
       borderTopRightRadius: traderPositionPnl?.isExpanded ? 38 : 0,
-      // The design-system dialog paints a faint `border-muted` hairline on
-      // top/left/right. When collapsed the top edge is flat, so keep that top
-      // line as the divider shown in the design. When expanded, the large 38px
-      // corner + `overflow-hidden` renders the stroke unevenly around the curve
-      // (broken border), and the design has no border there — so drop it and
-      // rely on the shadow + overlay for separation (ASSETS-4183).
       borderWidth: 0,
-      borderTopColor: colors.border.muted,
-      borderTopWidth: traderPositionPnl?.isExpanded ? 0 : 1,
+      // Collapsed, the sheet floats over the page content, so an upward soft
+      // edge replaces the top hairline: the boundary reads as layering instead
+      // of a border crossing the action buttons (TSA-1482).
+      ...(traderPositionPnl?.isExpanded
+        ? {}
+        : {
+            elevation: 8,
+            overflow: 'visible',
+            ...shadows.size.sm,
+            shadowOffset: { width: 0, height: -2 },
+          }),
       paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
     }),
-    [
-      colors.border.muted,
-      insets.bottom,
-      skipBottomInset,
-      traderPositionPnl?.isExpanded,
-    ],
+    [insets.bottom, shadows, skipBottomInset, traderPositionPnl?.isExpanded],
   );
   if (!tradingOpen && !isTokenDetailsV1) return null;
 
