@@ -84,6 +84,7 @@ import TraderMuteChip, {
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import { useSpotCopyTradeQuickBuy } from '../hooks/useSpotCopyTradeQuickBuy';
 import { PostTradeShareOwner } from '../PostTradeShareBottomSheet';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
@@ -97,10 +98,7 @@ import SocialFeed, {
   type SocialFeedRefreshHandle,
 } from '../../../UI/SocialFeed/components/SocialFeed';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
-import type {
-  SocialV1FeedAuthor,
-  SocialV1FeedPost,
-} from '../../../UI/SocialFeed/types';
+import type { SocialV1FeedAuthor } from '../../../UI/SocialFeed/types';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
@@ -121,7 +119,7 @@ import type { MySocialProfile } from './hooks/useMyProfile';
 import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
 import {
   filterPositionsByAsset,
-  matchesProfileAssetFilter,
+  profileAssetFilterChains,
   type ProfileAssetFilter,
 } from './utils/splitPositionsByType';
 import {
@@ -250,6 +248,8 @@ const MyProfileView: React.FC = () => {
       postTradeShareOwner: PostTradeShareOwner.socialV1Profile,
       isActive: isFocused && !isOwner,
     });
+  const { onPositionPress: handlePostPositionPress } =
+    useSocialFeedPostNavigation('my_profile');
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
       return myProfile;
@@ -486,7 +486,6 @@ const MyProfileView: React.FC = () => {
     if (!traderId) {
       return;
     }
-    playSelection().catch(() => undefined);
     runShare(() =>
       shareSocialProfile(
         traderId,
@@ -529,7 +528,6 @@ const MyProfileView: React.FC = () => {
     if (!profileId) {
       return;
     }
-    playSelection().catch(() => undefined);
     const displayName = myProfile?.displayName;
     const handle = myProfile?.handle;
     runShare(() =>
@@ -662,6 +660,7 @@ const MyProfileView: React.FC = () => {
           position,
           author: positionSheetAuthor(displayProfile, traderAddress),
           isClosed,
+          shareSource: 'profile_position',
         });
         return;
       }
@@ -718,13 +717,7 @@ const MyProfileView: React.FC = () => {
     [activeTab, loadMorePositions, positionsHasMore],
   );
   const isAwaitingPrivacy = isPrivacyPending && !privacyLoadError;
-  const filterProfilePost = useCallback(
-    (post: SocialV1FeedPost) =>
-      post.item.author.id === displayProfile?.profileId &&
-      Boolean(post.commentId) &&
-      matchesProfileAssetFilter(post.position, assetFilter),
-    [assetFilter, displayProfile?.profileId],
-  );
+  const postsChains = profileAssetFilterChains(assetFilter);
   const postsEmptyMessage =
     assetFilter !== 'all'
       ? strings(filteredPostsEmptyKey(assetFilter))
@@ -1173,14 +1166,15 @@ const MyProfileView: React.FC = () => {
                   <Box paddingTop={4}>
                     <SocialFeed
                       scope="all"
+                      chains={postsChains}
                       profileId={displayProfile.profileId}
                       commentedOnly
                       location="my_profile"
                       analyticsEnabled={isOwner}
                       realtime
                       refreshRef={postsFeedRef}
-                      filterPost={filterProfilePost}
                       onCopyTrade={handleSpotCopyTrade}
+                      onPositionPress={handlePostPositionPress}
                       emptyState={
                         <ProfilePostsEmptyState message={postsEmptyMessage} />
                       }

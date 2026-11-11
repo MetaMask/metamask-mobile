@@ -192,6 +192,59 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
     assert.equal(result, null);
   });
 
+  it('selects SmokeWalletPlatform when state log generation changes', () => {
+    const evaluation = evaluate(['app/util/logs/index.ts']);
+    const result = resultOf(evaluation);
+    assert.equal(evaluation!.continue, true);
+    assert.deepEqual(result.selected_tags, ['SmokeWalletPlatform']);
+    assert.equal(result.confidence, 100);
+    assert.match(String(result.reasoning), /state-log-export-change/);
+  });
+
+  it('selects SmokeWalletPlatform when the state export command changes', () => {
+    const result = resultOf(evaluate(['app/util/test/e2eStateExport.ts']));
+    assert.deepEqual(result.selected_tags, ['SmokeWalletPlatform']);
+    assert.match(String(result.reasoning), /state-log-export-change/);
+  });
+
+  it('selects SmokeWalletPlatform when export-app-state dispatch changes', () => {
+    const result = resultOf(evaluate(['app/util/test/e2eCommandPolling.ts']));
+    assert.deepEqual(result.selected_tags, ['SmokeWalletPlatform']);
+    assert.match(String(result.reasoning), /state-log-export-change/);
+  });
+
+  it('selects SmokeWalletPlatform when the state export smoke helper changes', () => {
+    const result = resultOf(
+      evaluate([
+        'tests/smoke-appium/wallet/state-export-sanitization.helpers.ts',
+      ]),
+    );
+    assert.deepEqual(result.selected_tags, ['SmokeWalletPlatform']);
+  });
+
+  it('does not force state-log smoke for a logs unit test alone', () => {
+    assert.equal(evaluate(['app/util/logs/index.test.ts']), null);
+  });
+
+  it('keeps the state-log smoke floor when logs change beside other app code', () => {
+    const evaluation = evaluate([
+      'app/util/logs/index.ts',
+      'app/components/Views/ActivityDetails/ActivityDetails.tsx',
+    ]);
+    const result = resultOf(evaluation);
+    assert.equal(evaluation!.continue, true);
+    assert.deepEqual(result.selected_tags, ['SmokeWalletPlatform']);
+    assert.match(String(result.reasoning), /state-log-export-change/);
+  });
+
+  it('still runs all tags when state logs change together with global infrastructure', () => {
+    const result = resultOf(
+      evaluate(['app/util/logs/index.ts', 'app/store/index.ts']),
+    );
+    assert.deepEqual(result.selected_tags, ['ALL']);
+    assert.match(String(result.reasoning), /global-infrastructure-change/);
+  });
+
   it('selects SmokeConfirmations when ActivityDetails component changes', () => {
     const evaluation = evaluate([
       'app/components/Views/ActivityDetails/ActivityDetails.tsx',
