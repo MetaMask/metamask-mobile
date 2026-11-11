@@ -929,6 +929,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   const {
     DesignSystemBottomSheetMockSelectorsIDs,
   } = require('../../../tests/component-view/designSystemBottomSheetMock.testIds');
+  const {
+    publishDesignSystemToast,
+  } = require('../../../tests/component-view/designSystemToastBridge');
 
   const BottomSheet = React.forwardRef(
     (
@@ -1053,9 +1056,18 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     BottomSheet,
     BottomSheetDialog,
-    toast: Object.assign(jest.fn(), {
-      dismiss: jest.fn(),
-    }),
+    // Record the call and publish copy for includeToasts hosts. A mounted
+    // <Toaster /> is what normally paints this; view tests do not mount one.
+    toast: Object.assign(
+      jest.fn((options) => {
+        publishDesignSystemToast(options ?? null);
+      }),
+      {
+        dismiss: jest.fn(() => {
+          publishDesignSystemToast(null);
+        }),
+      },
+    ),
   };
 });
 
@@ -1079,3 +1091,11 @@ jest.mock('@braze/react-native-sdk', () => ({
     dismissBanner: jest.fn(),
   },
 }));
+
+const {
+  resetDesignSystemToastListeners,
+} = require('../../../tests/component-view/designSystemToastBridge');
+
+global.afterEach(() => {
+  resetDesignSystemToastListeners();
+});

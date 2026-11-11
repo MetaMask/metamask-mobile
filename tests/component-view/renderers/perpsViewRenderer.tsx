@@ -60,6 +60,10 @@ import {
   Text as DesignSystemText,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import {
+  subscribeToDesignSystemToast,
+  type DesignSystemToastCopy,
+} from '../designSystemToastBridge';
 import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
 import type {
   ToastRef,
@@ -163,14 +167,38 @@ const PerpsChaseDiscoveryConsumer = () => {
   return null;
 };
 
+function renderDesignSystemToastCopy(
+  copy: React.ReactNode,
+  key: string,
+): React.ReactElement | null {
+  if (typeof copy === 'string' || typeof copy === 'number') {
+    if (copy === '') {
+      return null;
+    }
+    return <Text key={key}>{copy}</Text>;
+  }
+  if (React.isValidElement(copy)) {
+    return <React.Fragment key={key}>{copy}</React.Fragment>;
+  }
+  return null;
+}
+
 const PerpsTestToastHost = ({ children }: { children: React.ReactNode }) => {
   const [options, setOptions] = React.useState<ToastOptions | null>(null);
+  const [designSystemToast, setDesignSystemToast] =
+    React.useState<DesignSystemToastCopy | null>(null);
   const api = React.useMemo<ToastRef>(
     () => ({ showToast: setOptions, closeToast: () => setOptions(null) }),
     [],
   );
   const toastRef = React.useRef<ToastRef | null>(api);
   const value = React.useMemo(() => ({ toastRef }), []);
+  // Perps toasts go through the design-system `toast()` stub, which does not
+  // paint. includeToasts still needs that title and description on screen.
+  React.useEffect(
+    () => subscribeToDesignSystemToast(setDesignSystemToast),
+    [],
+  );
   return (
     <ToastContext.Provider value={value}>
       {children}
@@ -183,6 +211,15 @@ const PerpsTestToastHost = ({ children }: { children: React.ReactNode }) => {
           ))}
         </Toast>
       )}
+      {designSystemToast
+        ? renderDesignSystemToastCopy(designSystemToast.title, 'title')
+        : null}
+      {designSystemToast
+        ? renderDesignSystemToastCopy(
+            designSystemToast.description,
+            'description',
+          )
+        : null}
     </ToastContext.Provider>
   );
 };
