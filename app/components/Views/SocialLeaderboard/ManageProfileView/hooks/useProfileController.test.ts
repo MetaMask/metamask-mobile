@@ -6,6 +6,9 @@ import {
 
 const mockUpdateProfile = jest.fn().mockResolvedValue(undefined);
 const mockCheckUsernameAvailability = jest.fn().mockResolvedValue({});
+const mockCheckDisplayNameValidity = jest
+  .fn()
+  .mockResolvedValue({ valid: true });
 const mockFetchAndUpdateProfile = jest.fn().mockResolvedValue({});
 const mockFetchAndUpdateXAccount = jest.fn().mockResolvedValue({});
 const mockDisconnectX = jest.fn().mockResolvedValue(undefined);
@@ -31,6 +34,8 @@ jest.mock('../../../../../core/Engine', () => ({
       disconnectX: (...args: unknown[]) => mockDisconnectX(...args),
       checkUsernameAvailability: (...args: unknown[]) =>
         mockCheckUsernameAvailability(...args),
+      checkDisplayNameValidity: (...args: unknown[]) =>
+        mockCheckDisplayNameValidity(...args),
     },
     ProfileService: {
       invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
@@ -52,12 +57,14 @@ describe('useProfileController', () => {
 
     await result.current.updateProfile({ username: 'bob' });
     await result.current.checkUsernameAvailability('bob');
+    await result.current.checkDisplayNameValidity('Bob');
     await result.current.fetchAndUpdateProfile('profile-123');
     await result.current.fetchAndUpdateXAccount();
     await result.current.disconnectX('profile-123');
 
     expect(mockUpdateProfile).toHaveBeenCalledWith({ username: 'bob' });
     expect(mockCheckUsernameAvailability).toHaveBeenCalledWith('bob');
+    expect(mockCheckDisplayNameValidity).toHaveBeenCalledWith('Bob');
     expect(mockFetchAndUpdateProfile).toHaveBeenCalledWith('profile-123');
     expect(mockFetchAndUpdateXAccount).toHaveBeenCalledTimes(1);
     expect(mockDisconnectX).toHaveBeenCalledWith('profile-123');

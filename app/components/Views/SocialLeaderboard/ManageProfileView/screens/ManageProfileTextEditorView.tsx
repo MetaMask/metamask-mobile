@@ -1,3 +1,4 @@
+import type { FieldValidityResponse } from '@metamask/profile-controller';
 import {
   type NavigationProp,
   type RouteProp,
@@ -15,7 +16,10 @@ import {
 } from './handleAvailabilityError';
 import { MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG } from './manageProfileTextEditorFields';
 import { getProfileSaveError } from './saveProfileError';
-import { normalizeUsername } from '../../ProfileOnboarding/profileOnboardingDraft';
+import {
+  MAX_DISPLAY_NAME_LENGTH,
+  normalizeUsername,
+} from '../../ProfileOnboarding/profileOnboardingDraft';
 import { useProfileController } from '../hooks/useProfileController';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
@@ -24,8 +28,12 @@ const ManageProfileTextEditorView: React.FC = () => {
   const route =
     useRoute<RouteProp<RootStackParamList, 'ManageProfileTextEditorView'>>();
   const { profile } = useMyProfile();
-  const { isControllerBacked, updateProfile, checkUsernameAvailability } =
-    useProfileController();
+  const {
+    isControllerBacked,
+    updateProfile,
+    checkUsernameAvailability,
+    checkDisplayNameValidity,
+  } = useProfileController();
   const trackProfileEdited = useManageProfileAnalytics();
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -42,9 +50,39 @@ const ManageProfileTextEditorView: React.FC = () => {
 
       try {
         switch (route.params.field) {
-          case 'displayName':
-            await updateProfile({ display_name: value.trim() });
+          case 'displayName': {
+            const displayName = value.trim();
+            if (displayName.length > MAX_DISPLAY_NAME_LENGTH) {
+              setErrorMessage(
+                strings(
+                  'social_leaderboard.manage_profile.display_name_too_long',
+                  { max: MAX_DISPLAY_NAME_LENGTH },
+                ),
+              );
+              return;
+            }
+            let validity: FieldValidityResponse;
+            try {
+              validity = await checkDisplayNameValidity(displayName);
+            } catch {
+              setErrorMessage(
+                strings(
+                  'social_leaderboard.manage_profile.display_name_check_error',
+                ),
+              );
+              return;
+            }
+            if (!validity.valid) {
+              setErrorMessage(
+                strings(
+                  'social_leaderboard.manage_profile.display_name_unavailable',
+                ),
+              );
+              return;
+            }
+            await updateProfile({ display_name: displayName });
             break;
+          }
           case 'handle': {
             const username = normalizeUsername(value);
             if (username !== profile?.handle) {
@@ -81,6 +119,7 @@ const ManageProfileTextEditorView: React.FC = () => {
       }
     },
     [
+      checkDisplayNameValidity,
       checkUsernameAvailability,
       isControllerBacked,
       navigation,

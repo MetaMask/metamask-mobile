@@ -79,6 +79,7 @@ import {
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
   createInitialOnboardingDraft,
+  MAX_DISPLAY_NAME_LENGTH,
   displayNameFromUsername,
   getUsernameStatus,
   isUneditedXUsername,
@@ -517,6 +518,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   const {
     profile: controllerProfile,
     checkUsernameAvailability,
+    checkDisplayNameValidity,
     createProfile,
     updateProfile,
     fetchAndUpdateProfile,
@@ -555,6 +557,13 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [usernameClaimError, setUsernameClaimError] = useState<string | null>(
     null,
   );
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
+  const displayNameCheckId = useRef(0);
+
+  useEffect(() => {
+    displayNameCheckId.current += 1;
+    setDisplayNameError(null);
+  }, [draft.displayName]);
   const [finishError, setFinishError] = useState<string | null>(null);
   // Path the user picked while the terms sheet is open; null when it is closed.
   const [pendingTermsPath, setPendingTermsPath] =
@@ -796,6 +805,49 @@ const SocialProfileOnboardingView: React.FC = () => {
     trackInteraction,
   ]);
 
+  const checkDisplayName = useCallback(
+    async (displayName: string): Promise<boolean> => {
+      const trimmed = displayName.trim();
+      const requestId = ++displayNameCheckId.current;
+      if (trimmed.length > MAX_DISPLAY_NAME_LENGTH) {
+        setDisplayNameError(
+          strings(
+            'social_leaderboard.profile_onboarding.display_name_too_long',
+            { max: MAX_DISPLAY_NAME_LENGTH },
+          ),
+        );
+        return false;
+      }
+      try {
+        const validity = await checkDisplayNameValidity(trimmed);
+        if (requestId !== displayNameCheckId.current) {
+          return false;
+        }
+        if (!validity.valid) {
+          setDisplayNameError(
+            strings(
+              'social_leaderboard.profile_onboarding.display_name_invalid',
+            ),
+          );
+          return false;
+        }
+        setDisplayNameError(null);
+        return true;
+      } catch {
+        if (requestId !== displayNameCheckId.current) {
+          return false;
+        }
+        setDisplayNameError(
+          strings(
+            'social_leaderboard.profile_onboarding.display_name_check_error',
+          ),
+        );
+        return false;
+      }
+    },
+    [checkDisplayNameValidity],
+  );
+
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
       ...current,
@@ -1020,11 +1072,21 @@ const SocialProfileOnboardingView: React.FC = () => {
       if (outcome !== 'available') {
         return;
       }
+      if (!(await checkDisplayName(draft.displayName))) {
+        return;
+      }
       setStep(step === 'x-identity' ? 'account' : 'avatar');
     } finally {
       setIsSubmitting(false);
     }
-  }, [checkHandle, clearUsernameCheckTimer, draft, playSelection, step]);
+  }, [
+    checkDisplayName,
+    checkHandle,
+    clearUsernameCheckTimer,
+    draft,
+    playSelection,
+    step,
+  ]);
 
   const fingerprintForDraft = (
     current: ProfileOnboardingDraft,
@@ -1366,6 +1428,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <XProfileIdentityStep
                   draft={draft}
                   usernameFeedback={usernameFeedback}
+                  displayNameError={displayNameError}
                   onToggleUsername={handleToggleXUsername}
                   onToggleAvatar={handleToggleXAvatar}
                   onUsernameChange={handleUsernameChange}
@@ -1441,8 +1504,9 @@ const SocialProfileOnboardingView: React.FC = () => {
                     <TextField
                       value={draft.displayName}
                       onChangeText={handleDisplayNameChange}
+                      isError={Boolean(displayNameError)}
                       endAccessory={
-                        draft.displayName.trim() ? (
+                        draft.displayName.trim() && !displayNameError ? (
                           <Icon
                             name={IconName.Check}
                             size={IconSize.Sm}
@@ -1452,10 +1516,19 @@ const SocialProfileOnboardingView: React.FC = () => {
                       }
                       inputProps={{
                         autoCapitalize: 'words',
+                        maxLength: MAX_DISPLAY_NAME_LENGTH,
                         testID:
                           SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
                       }}
                     />
+                    {displayNameError ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.ErrorDefault}
+                      >
+                        {displayNameError}
+                      </Text>
+                    ) : null}
                   </Box>
                 </Box>
               ) : null}

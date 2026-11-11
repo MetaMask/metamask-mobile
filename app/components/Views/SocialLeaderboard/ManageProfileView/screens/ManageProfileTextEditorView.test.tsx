@@ -60,6 +60,7 @@ describe('ManageProfileTextEditorView', () => {
         normalized: 'giga-whale',
         errors: [],
       }),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
   });
 
@@ -95,6 +96,9 @@ describe('ManageProfileTextEditorView', () => {
 
   it('updates the display name for a controller-backed profile', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const checkDisplayNameValidity = jest
+      .fn()
+      .mockResolvedValue({ valid: true });
     mockUseProfileController.mockReturnValue({
       isControllerBacked: true,
       profile: undefined,
@@ -106,6 +110,7 @@ describe('ManageProfileTextEditorView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity,
     });
     mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
 
@@ -122,10 +127,54 @@ describe('ManageProfileTextEditorView', () => {
       );
     });
 
+    expect(checkDisplayNameValidity).toHaveBeenCalledWith('Laser Gains');
     expect(updateProfile).toHaveBeenCalledWith({
       display_name: 'Laser Gains',
     });
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('does not save a display name the profile API rejects', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const checkDisplayNameValidity = jest
+      .fn()
+      .mockResolvedValue({ valid: false });
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: undefined,
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity,
+    });
+    mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_INPUT),
+      'Bad Name',
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_SAVE),
+      );
+    });
+
+    expect(checkDisplayNameValidity).toHaveBeenCalledWith('Bad Name');
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.display_name_unavailable'),
+      ),
+    ).toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('preserves username casing when checking availability and updating the handle', async () => {
@@ -409,6 +458,7 @@ describe('ManageProfileTextEditorView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
     mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
 
@@ -461,6 +511,7 @@ describe('ManageProfileTextEditorView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
     mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
 
@@ -506,6 +557,7 @@ describe('ManageProfileTextEditorView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
     });
     mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
 

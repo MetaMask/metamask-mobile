@@ -305,6 +305,12 @@ const restoreProfileControllerMocks = () => {
       errors: [],
     });
   jest
+    .mocked(Engine.context.ProfileController.checkDisplayNameValidity)
+    .mockReset();
+  jest
+    .mocked(Engine.context.ProfileController.checkDisplayNameValidity)
+    .mockResolvedValue({ valid: true });
+  jest
     .mocked(Engine.context.AuthenticationController.getSessionProfile)
     .mockReset();
   signIn();
@@ -997,6 +1003,50 @@ describe('SocialProfileOnboardingView', () => {
         'This handle is unavailable. Choose another one.',
       ),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+  });
+
+  it('checks the display name only when continue is pressed', async () => {
+    await renderOnboarding();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.changeText(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
+      ),
+      'Bad Name',
+    );
+
+    await act(async () => {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 500);
+      });
+    });
+
+    expect(
+      Engine.context.ProfileController.checkDisplayNameValidity,
+    ).not.toHaveBeenCalled();
+
+    jest
+      .mocked(Engine.context.ProfileController.checkDisplayNameValidity)
+      .mockResolvedValueOnce({ valid: false });
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.checkDisplayNameValidity,
+    ).toHaveBeenCalledWith('Bad Name');
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
     ).toBeOnTheScreen();

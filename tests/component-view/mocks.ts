@@ -253,6 +253,7 @@ jest.mock('../../app/core/Engine', () => {
           normalized: 'wen_cat',
           errors: [],
         }),
+        checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
         connectX: jest.fn().mockResolvedValue({
           xUserId: 'x-user-1',
           xProfileUrl: 'https://x.com/degangirl',
