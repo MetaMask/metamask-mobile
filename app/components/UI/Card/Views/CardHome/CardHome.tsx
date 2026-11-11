@@ -1027,7 +1027,6 @@ const CardHome = () => {
         )}
 
         <CardHomeFooter
-          isAuthenticated={isAuthenticated}
           isLoading={isLoading}
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
@@ -1050,7 +1049,6 @@ const CardHome = () => {
               : undefined
           }
           onNavigateToCardTos={actions.navigateToCardTosPage}
-          onLogout={actions.logoutAction}
         />
 
         <CardScreenshotDeterrent

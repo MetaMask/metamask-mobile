@@ -1171,7 +1171,7 @@ describe('SocialPostComposerView', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('replaces the composer with Social V1 when openFeedAfterPost is set', async () => {
+  it('pops the composer to the Social tab when openFeedAfterPost is set', async () => {
     mockRouteParams = {
       position: openSpot,
       entryPoint: 'perps',
@@ -1188,10 +1188,13 @@ describe('SocialPostComposerView', () => {
     );
 
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1),
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB },
+        { pop: true },
       );
     });
+    expect(mockDispatch).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(1);
     expect(consumePostsTabFocus()).toBe(false);
     expect(mockGoBack).not.toHaveBeenCalled();

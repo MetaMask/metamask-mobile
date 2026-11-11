@@ -8,7 +8,12 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import OnboardingStep from './OnboardingStep';
 import AnimatedSpinner from '../../../AnimatedSpinner';
 
@@ -88,7 +93,8 @@ const VerifyingVeriffKYC = () => {
       <AnimatedSpinner testID="verifying-veriff-kyc-spinner" />
       <Text
         variant={TextVariant.BodyMd}
-        twClassName="text-center text-text-alternative mt-4 px-4"
+        color={TextColor.TextAlternative}
+        twClassName="text-center mt-4 px-4"
       >
         {strings('card.card_onboarding.verifying_veriff_kyc.helper_text')}
       </Text>
@@ -102,7 +108,6 @@ const VerifyingVeriffKYC = () => {
         'card.card_onboarding.verifying_veriff_kyc.description',
       )}
       formFields={renderFormFields()}
-      actions={null}
       headerMode="close-direct"
     />
   );
