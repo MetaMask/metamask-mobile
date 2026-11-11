@@ -14,11 +14,17 @@ import type {
 } from 'react-native-pager-view';
 
 export interface UseTabPagerOptions<TabKey extends string> {
-  /** Keys of the visible tabs, in pager order. */
+  /** 
+   * Keys of the visible tabs, in pager order. 
+   */
   tabKeys: readonly TabKey[];
-  /** Tab highlighted in the tabs bar. Follows a drag before it settles. */
+  /** 
+   * Tab highlighted in the tabs bar. Follows a drag before it settles. 
+   */
   selectedTab: TabKey;
-  /** Tab whose page content is committed. Only changes once the pager settles. */
+  /** 
+   * Tab whose page content is committed. Only changes once the pager settles. 
+   */
   renderedTab: TabKey;
   setSelectedTab: (tab: TabKey) => void;
   setRenderedTab: (tab: TabKey) => void;

@@ -9,13 +9,24 @@ const MIN_SWIPE_DISTANCE = 50;
 const MIN_SWIPE_VELOCITY = 500;
 
 export interface UseFirstPageSwipeGestureOptions {
-  /** Whether the pager is showing its first page. */
+  /** 
+   * Whether the pager is showing its first page. 
+   * This is used to know if a swipe/back action needs to navigate
+   * back to homepage.
+   */
   isOnFirstPage: boolean;
-  /** Whether the pager has more than one page to swipe to. */
+  /** 
+   * Whether the pager has more than one page to swipe to. 
+   * Used to know if we should register the page transition.
+   */
   hasMultiplePages: boolean;
-  /** Leaves the screen. Called on a right swipe on Android. */
+  /** 
+   * Leaves the screen. Called on a right swipe on Android. 
+   */
   onSwipeBack: () => void;
-  /** Moves to the second page. Called on a left swipe on iOS. */
+  /** 
+   * Moves to the second page. Called on a left swipe on iOS. 
+   */
   onSwipeToNextPage: () => void;
   testID?: string;
 }
