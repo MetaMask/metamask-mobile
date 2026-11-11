@@ -70,8 +70,6 @@ export interface SocialFeedPostShellProps {
    * pass this so they cannot copy their own trade.
    */
   showCopyTrade?: boolean;
-  /** Clock for the relative timestamp. Defaults to `Date.now()`. */
-  now?: number;
 }
 
 const useShellCopyTrade = (
@@ -237,7 +235,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   requireSocialTerms = false,
   requireSocialProfile = false,
   showCopyTrade = true,
-  now,
 }) => {
   const tracked = useSocialFeedTracking();
   const { location } = useSocialFeedSurface();
@@ -438,7 +435,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         handle={post.authorHandle}
         imageUrl={post.authorImageUrl}
         timestampMs={post.timestampMs}
-        now={now}
         recyclingKey={post.id}
         onMorePress={openOptions}
         onIdentityPress={onAuthorPress ? handleIdentityPress : undefined}
@@ -474,7 +470,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
                 item={post.item}
                 onCopyTrade={copyTradeHandler}
                 showCopyTrade={showCopyTrade}
-                now={now}
               />
             </Pressable>
           ) : (
@@ -482,7 +477,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
               item={post.item}
               onCopyTrade={copyTradeHandler}
               showCopyTrade={showCopyTrade}
-              now={now}
             />
           )}
 

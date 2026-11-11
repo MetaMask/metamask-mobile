@@ -127,4 +127,23 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
   );
 };
 
-export default PositionCardStats;
+/** The card rebuilds its rows on every price tick; skip when none changed. */
+export const arePositionCardStatsPropsEqual = (
+  previous: PositionCardStatsProps,
+  next: PositionCardStatsProps,
+): boolean =>
+  previous.cardId === next.cardId &&
+  previous.layout === next.layout &&
+  previous.rows.length === next.rows.length &&
+  previous.rows.every((row, index) => {
+    const other = next.rows[index];
+    return (
+      row.key === other.key &&
+      row.label === other.label &&
+      row.value === other.value &&
+      row.testID === other.testID &&
+      row.leadingValueAccessory === other.leadingValueAccessory
+    );
+  });
+
+export default React.memo(PositionCardStats, arePositionCardStatsPropsEqual);
