@@ -327,6 +327,9 @@ export const selectStakedAssets = createDeepEqualSelector(
     selectEvmNetworkConfigurationsByChainId,
     selectCurrencyRates,
     selectCurrentCurrency,
+    selectAssetsBySelectedAccountGroup,
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define -- tron staking selectors are defined below, resolved at call time
+    (state: RootState) => selectTronStakedAssetsBySelectedAccountGroup(state),
   ],
   (
     internalAccounts,
@@ -334,6 +337,8 @@ export const selectStakedAssets = createDeepEqualSelector(
     networkConfigurationsByChainId,
     currencyRates,
     currentCurrency,
+    bip44Assets,
+    tronStakedAssets,
   ) => {
     const stakedAssets = Object.entries(accountsByChainId)
       // Only include mainnet and hoodi
@@ -407,6 +412,42 @@ export const selectStakedAssets = createDeepEqualSelector(
           .filter((item): item is NonNullable<typeof item> => Boolean(item)),
       );
 
+    for (const { accountId, chainId, balance, fiat } of tronStakedAssets) {
+      const nativeAsset = (bip44Assets[chainId] ?? []).find(
+        (asset) =>
+          asset.isNative &&
+          asset.assetId === `${chainId}/slip44:195` &&
+          asset.accountId === accountId,
+      );
+
+      if (!nativeAsset) {
+        continue;
+      }
+
+      stakedAssets.push({
+        chainId,
+        accountId,
+        stakedAsset: {
+          accountType: nativeAsset.accountType,
+          assetId: nativeAsset.assetId,
+          isNative: true,
+          isStaked: true,
+          address: nativeAsset.assetId,
+          image: nativeAsset.image ?? '',
+          name: 'Staked TRX',
+          symbol: 'TRX',
+          accountId,
+          decimals: nativeAsset.decimals,
+          rawBalance: new BigNumber(balance)
+            .shiftedBy(nativeAsset.decimals)
+            .toFixed(0),
+          balance,
+          fiat,
+          chainId,
+        } as Asset,
+      });
+    }
+
     return stakedAssets;
   },
 );
@@ -463,6 +504,9 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         filteredAssets,
         stakedAssets,
         tokenSortConfig,
+        buildAllowedAccountChainKeys(bip44Assets, (chainId) =>
+          enabledNetworks.includes(chainId),
+        ),
       );
     },
   );
@@ -491,21 +535,16 @@ function mergeStakedSortAndDedupeAssets(
   filteredChainAssets: Asset[],
   stakedAssets: StakedAssetEntry[],
   tokenSortConfig: ReturnType<typeof selectTokenSortConfig>,
+  allowedAccountChainKeys: ReadonlySet<string>,
 ): SortedAssetItem[] {
-  const assets = [...filteredChainAssets];
-  const stakedAssetsArray: Asset[] = [];
-  for (const asset of assets) {
-    if (asset.isNative) {
-      const stakedAsset = stakedAssets.find(
-        (item) =>
-          item.chainId === asset.chainId && item.accountId === asset.accountId,
-      );
-      if (stakedAsset) {
-        stakedAssetsArray.push({ ...stakedAsset.stakedAsset } as Asset);
-      }
-    }
-  }
-  assets.push(...stakedAssetsArray);
+  const assets = [
+    ...filteredChainAssets,
+    ...stakedAssets
+      .filter((item) =>
+        allowedAccountChainKeys.has(`${item.chainId}:${item.accountId}`),
+      )
+      .map((item) => ({ ...item.stakedAsset }) as Asset),
+  ];
 
   const tokensSorted = sortAssetsWithPriority(
     assets.map((asset) => ({
@@ -546,6 +585,30 @@ function buildAllowedNetworkIdSet(chainIds: string[]): Set<string> {
   return set;
 }
 
+/**
+ * Builds the `${chainId}:${accountId}` keys of the selected group's assets, so
+ * staked rows stay paired with the account that holds them even when the
+ * liquid native row is filtered out (zero balance).
+ */
+function buildAllowedAccountChainKeys(
+  bip44Assets: AccountGroupAssets,
+  isAllowedChain: (chainId: string) => boolean,
+): Set<string> {
+  const keys = new Set<string>();
+
+  for (const [chainId, chainAssets] of Object.entries(bip44Assets)) {
+    if (!isAllowedChain(chainId)) {
+      continue;
+    }
+
+    for (const asset of chainAssets) {
+      keys.add(`${chainId}:${asset.accountId}`);
+    }
+  }
+
+  return keys;
+}
+
 /** Sort config for "by balance" (fiat value descending). Used for homepage so it always shows balance order; View all uses user preference. */
 const BALANCE_SORT_CONFIG = {
   key: 'tokenFiatAmount',
@@ -579,6 +642,9 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIds =
         filteredAssets,
         stakedAssets,
         tokenSortConfig,
+        buildAllowedAccountChainKeys(bip44Assets, (chainId) =>
+          allowedIds.has(chainId),
+        ),
       );
     },
   );
@@ -612,6 +678,9 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         filteredAssets,
         stakedAssets,
         BALANCE_SORT_CONFIG,
+        buildAllowedAccountChainKeys(bip44Assets, (chainId) =>
+          allowedIds.has(chainId),
+        ),
       );
     },
   );
@@ -906,6 +975,102 @@ const applyTronBalanceMetadata = (
   );
 };
 
+const TRON_SPECIAL_ASSET_MAP_KEYS = [
+  ...new Set(Object.values(TRON_SPECIAL_ASSET_KEYS)),
+] as TronSpecialAssetKey[];
+
+const createEmptyTronSpecialAssetsMap = (): TronSpecialAssetsMap => ({
+  status: TronSpecialAssetsStatus.Ready,
+  energy: undefined,
+  bandwidth: undefined,
+  maxEnergy: undefined,
+  maxBandwidth: undefined,
+  stakedTrxForEnergy: undefined,
+  stakedTrxForBandwidth: undefined,
+  totalStakedTrx: 0,
+  trxReadyForWithdrawal: undefined,
+  trxStakingRewards: undefined,
+  trxInLockPeriod: undefined,
+});
+
+const getTronSpecialAssetsByChain = (
+  accountBalances: Record<string, { amount?: string; metadata?: unknown }>,
+  enabledTronNetworks: ReadonlySet<string>,
+  assetsPrice: Record<string, { price?: number } | undefined>,
+  selectedCurrency: string,
+): Map<string, TronSpecialAssetsMap> => {
+  const specialAssetsByChain = new Map<string, TronSpecialAssetsMap>();
+
+  for (const chainId of enabledTronNetworks) {
+    specialAssetsByChain.set(chainId, createEmptyTronSpecialAssetsMap());
+  }
+
+  for (const [assetId, key] of Object.entries(TRON_SPECIAL_ASSET_KEYS)) {
+    const { chainId } = parseCaipAssetType(assetId as CaipAssetType);
+    const specialAssetsMap = specialAssetsByChain.get(chainId);
+    if (!specialAssetsMap) {
+      continue;
+    }
+
+    const read = readTronValue(
+      accountBalances[assetId as CaipAssetType]?.amount,
+    );
+    if (read.kind !== 'value') {
+      continue;
+    }
+
+    const price = assetsPrice[assetId as CaipAssetType]?.price;
+    specialAssetsMap[key] = {
+      assetId,
+      balance: read.amount,
+      fiat:
+        price === undefined
+          ? undefined
+          : {
+              balance: new BigNumber(read.amount)
+                .multipliedBy(price)
+                .toNumber(),
+              currency: selectedCurrency,
+            },
+    };
+  }
+
+  for (const [chainId, specialAssetsMap] of specialAssetsByChain) {
+    applyTronBalanceMetadata(
+      specialAssetsMap,
+      accountBalances,
+      chainId,
+      assetsPrice,
+      selectedCurrency,
+    );
+    specialAssetsMap.totalStakedTrx = new BigNumber(
+      specialAssetsMap.stakedTrxForEnergy?.balance ?? 0,
+    )
+      .plus(specialAssetsMap.stakedTrxForBandwidth?.balance ?? 0)
+      .toNumber();
+  }
+
+  return specialAssetsByChain;
+};
+
+const mergeTronSpecialAssets = (
+  target: TronSpecialAssetsMap,
+  source: TronSpecialAssetsMap,
+) => {
+  for (const key of TRON_SPECIAL_ASSET_MAP_KEYS) {
+    const entry = source[key];
+    if (!entry) {
+      continue;
+    }
+
+    if (entry.unknown && target[key]) {
+      continue;
+    }
+
+    target[key] = entry;
+  }
+};
+
 /**
  * Selects Tron special assets for the currently selected account group.
  *
@@ -979,44 +1144,14 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
           continue;
         }
 
-        // Legacy source: each special asset is its own entry in assetsBalance.
-        // Look up each known Tron special asset id directly rather than
-        // scanning every balance the account holds.
-        for (const [assetId, key] of Object.entries(TRON_SPECIAL_ASSET_KEYS)) {
-          const { chainId } = parseCaipAssetType(assetId as CaipAssetType);
-          if (!enabledTronNetworksSet.has(chainId)) {
-            continue;
-          }
+        const specialAssetsByChain = getTronSpecialAssetsByChain(
+          accountBalances,
+          enabledTronNetworksSet,
+          assetsPrice,
+          selectedCurrency,
+        );
 
-          const balanceData = accountBalances[assetId as CaipAssetType];
-          const read = readTronValue(balanceData?.amount);
-          if (read.kind !== 'value') {
-            // No legacy entry, or one without a readable amount: the metadata
-            // source (or an `unknown` entry) decides the field.
-            continue;
-          }
-
-          const price = assetsPrice[assetId as CaipAssetType]?.price;
-          const fiat =
-            price !== undefined
-              ? {
-                  balance: new BigNumber(read.amount)
-                    .multipliedBy(price)
-                    .toNumber(),
-                  currency: selectedCurrency,
-                }
-              : undefined;
-
-          specialAssetsMap[key] = {
-            assetId,
-            balance: read.amount,
-            fiat,
-          };
-        }
-
-        // Migration source: metadata nested in the TRX native asset balance,
-        // merged on top of the legacy entries per field (metadata wins).
-        for (const chainId of enabledTronNetworksSet) {
+        for (const [chainId, chainSpecialAssets] of specialAssetsByChain) {
           // A fetched Tron account always has a TRX native balance entry, so
           // its presence marks the balance request as complete. Without it the
           // map stays in the `loading` state.
@@ -1024,13 +1159,7 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
             specialAssetsMap.status = TronSpecialAssetsStatus.Ready;
           }
 
-          applyTronBalanceMetadata(
-            specialAssetsMap,
-            accountBalances,
-            chainId,
-            assetsPrice,
-            selectedCurrency,
-          );
+          mergeTronSpecialAssets(specialAssetsMap, chainSpecialAssets);
         }
       }
 
@@ -1052,5 +1181,112 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
       specialAssetsMap.totalStakedTrx = totalStakedTrxBN.toNumber();
 
       return specialAssetsMap;
+    },
+  );
+
+export interface TronStakedAsset {
+  accountId: string;
+  chainId: string;
+  balance: string;
+  fiat: { balance: number; currency: string } | undefined;
+}
+
+const EMPTY_TRON_STAKED_ASSETS: TronStakedAsset[] = [];
+
+/**
+ * Staked TRX per Tron account and chain, keeping the account/chain pairing the
+ * group-level {@link selectTronSpecialAssetsBySelectedAccountGroup} flattens.
+ */
+export const selectTronStakedAssetsBySelectedAccountGroup =
+  createDeepEqualSelector(
+    [
+      selectSelectedAccountGroup,
+      selectEnabledNetworks,
+      getAssetsBalance,
+      getAssetsPrice,
+      getSelectedCurrency,
+    ],
+    (
+      selectedGroup,
+      enabledNetworks,
+      assetsBalance,
+      assetsPrice,
+      selectedCurrency,
+    ): TronStakedAsset[] => {
+      const enabledTronNetworks = enabledNetworks.filter((networkId) =>
+        networkId.startsWith('tron:'),
+      );
+
+      if (!selectedGroup || enabledTronNetworks.length === 0) {
+        return EMPTY_TRON_STAKED_ASSETS;
+      }
+
+      const enabledTronNetworksSet = new Set(enabledTronNetworks);
+      const stakedAssets: TronStakedAsset[] = [];
+
+      for (const accountId of selectedGroup.accounts) {
+        const accountBalances = assetsBalance[accountId];
+        if (!accountBalances) {
+          continue;
+        }
+
+        const specialAssetsByChain = getTronSpecialAssetsByChain(
+          accountBalances,
+          enabledTronNetworksSet,
+          assetsPrice,
+          selectedCurrency,
+        );
+
+        for (const [chainId, specialAssetsMap] of specialAssetsByChain) {
+          let balance = new BigNumber(0);
+          let fiat: { balance: number; currency: string } | undefined;
+
+          for (const entry of [
+            specialAssetsMap.stakedTrxForEnergy,
+            specialAssetsMap.stakedTrxForBandwidth,
+          ]) {
+            if (!entry || entry.unknown) {
+              continue;
+            }
+
+            const entryBalance = new BigNumber(entry.balance);
+            if (!entryBalance.isGreaterThan(0)) {
+              continue;
+            }
+
+            balance = balance.plus(entryBalance);
+            if (entry.fiat) {
+              fiat = {
+                balance: (fiat?.balance ?? 0) + entry.fiat.balance,
+                currency: entry.fiat.currency,
+              };
+            }
+          }
+
+          if (!balance.isGreaterThan(0)) {
+            continue;
+          }
+
+          if (!fiat) {
+            const trxPrice =
+              assetsPrice[`${chainId}/slip44:195` as CaipAssetType]?.price;
+            if (trxPrice !== undefined) {
+              fiat = {
+                balance: balance.multipliedBy(trxPrice).toNumber(),
+                currency: selectedCurrency,
+              };
+            }
+          }
+
+          stakedAssets.push({
+            accountId,
+            chainId,
+            balance: balance.toString(),
+            fiat,
+          });
+        }
+      }
+
+      return stakedAssets;
     },
   );

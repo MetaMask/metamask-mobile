@@ -928,6 +928,67 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
   });
 
+  describe('staked Tron row navigation', () => {
+    const stakedTrxAsset = {
+      ...defaultAsset,
+      address: 'tron:728126428/slip44:195',
+      chainId: 'tron:728126428',
+      symbol: 'TRX',
+      ticker: 'TRX',
+      name: 'Staked TRX',
+      balance: '7',
+      balanceFiat: '$0.84',
+      isNative: true,
+      isStaked: true,
+      decimals: 6,
+    } as TokenI;
+    const stakedTrxKey: FlashListAssetKey = {
+      address: stakedTrxAsset.address,
+      chainId: stakedTrxAsset.chainId,
+      isStaked: true,
+    };
+    const liquidTrxAsset = {
+      ...stakedTrxAsset,
+      name: 'TRON',
+      balance: '0',
+      balanceFiat: '$0.00',
+      isStaked: false,
+    } as TokenI;
+
+    it('navigates to the liquid TRX token detail when the staked TRX row is pressed', () => {
+      prepareMocks({ asset: stakedTrxAsset });
+      const defaultImplementation = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((selector) =>
+        selector.toString().includes('isStaked: false')
+          ? liquidTrxAsset
+          : defaultImplementation?.(selector),
+      );
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={stakedTrxKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      fireEvent.press(getByText('Staked TRX'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({
+          chainId: 'tron:728126428',
+          symbol: 'TRX',
+          ticker: 'TRX',
+          name: 'TRON',
+          balance: '0',
+          isStaked: false,
+        }),
+      );
+    });
+  });
+
   describe('Token Price in Fiat', () => {
     it('displays token fiat price from multichain rates for non-EVM assets', () => {
       const solAddress = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';

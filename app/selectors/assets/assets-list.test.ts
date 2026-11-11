@@ -6,6 +6,7 @@ import {
 import {
   EthAccountType,
   SolAccountType,
+  TrxAccountType,
   TrxScope,
 } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
@@ -1140,7 +1141,446 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
   });
 });
 
+const TRON_ACCOUNT_ID = '3f1e2d0c-8b7a-4c99-9d61-5a2c4f8e7b10';
+const TRON_NATIVE_ASSET_ID = `${TrxScope.Mainnet}/slip44:195`;
+const TRON_LEGACY_STAKED_ASSET_ID = `${TrxScope.Mainnet}/slip44:195-staked-for-energy`;
+
+interface TronStakeStateOptions {
+  stakingMetadata?: {
+    energy?: string | null;
+    bandwidth?: string | null;
+  } | null;
+  legacyStakedBalance?: string;
+  nileStakingEnergy?: string;
+  secondTronAccountStakingMetadata?: { energy?: string | null };
+  trxPrice?: number;
+  tronEnabled?: boolean;
+}
+
+// WPN-2498 repro: liquid TRX is 0 and 7 TRX is staked for energy.
+const createTronStakeState = ({
+  stakingMetadata = { energy: '7000000' },
+  legacyStakedBalance,
+  nileStakingEnergy,
+  secondTronAccountStakingMetadata,
+  trxPrice,
+  tronEnabled = true,
+}: TronStakeStateOptions = {}): RootState => {
+  const state = mockState();
+  const { backgroundState } = state.engine;
+  const walletId = 'entropy:01K1TJY9QPSCKNBSVGZNG510GJ';
+  const groupId = `${walletId}/0`;
+  const wallet =
+    backgroundState.AccountTreeController.accountTree.wallets[walletId];
+  const group = wallet.groups[groupId];
+  const secondTronAccountId = 'a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6d';
+  const nileNativeAssetId = `${TrxScope.Nile}/slip44:195`;
+  const tronAccountBalances = {
+    ...(legacyStakedBalance
+      ? { [TRON_LEGACY_STAKED_ASSET_ID]: { amount: legacyStakedBalance } }
+      : {}),
+    [TRON_NATIVE_ASSET_ID]: {
+      amount: '0',
+      ...(stakingMetadata ? { metadata: { staking: stakingMetadata } } : {}),
+    },
+    ...(nileStakingEnergy
+      ? {
+          [nileNativeAssetId]: {
+            amount: '0',
+            metadata: { staking: { energy: nileStakingEnergy } },
+          },
+        }
+      : {}),
+  };
+
+  return {
+    ...state,
+    settings: { hideZeroBalanceTokens: true },
+    engine: {
+      ...state.engine,
+      backgroundState: {
+        ...backgroundState,
+        AccountTreeController: {
+          ...backgroundState.AccountTreeController,
+          accountTree: {
+            ...backgroundState.AccountTreeController.accountTree,
+            wallets: {
+              [walletId]: {
+                ...wallet,
+                groups: {
+                  [groupId]: {
+                    ...group,
+                    accounts: [
+                      ...group.accounts,
+                      TRON_ACCOUNT_ID,
+                      ...(secondTronAccountStakingMetadata
+                        ? [secondTronAccountId]
+                        : []),
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        AccountsController: {
+          ...backgroundState.AccountsController,
+          internalAccounts: {
+            ...backgroundState.AccountsController.internalAccounts,
+            accounts: {
+              ...backgroundState.AccountsController.internalAccounts.accounts,
+              [TRON_ACCOUNT_ID]: {
+                id: TRON_ACCOUNT_ID,
+                type: TrxAccountType.Eoa,
+                address: 'TQ5NMqJjvHw5Hh4k7sXoB8mZ1uY2rW3nVc',
+                options: { scope: TrxScope.Mainnet },
+                methods: ['signMessage', 'signTransaction'],
+                scopes: [TrxScope.Mainnet],
+                metadata: {
+                  name: 'Tron Account',
+                  importTime: 1754312681246,
+                  keyring: { type: 'Snap Keyring' },
+                },
+              },
+              ...(secondTronAccountStakingMetadata
+                ? {
+                    [secondTronAccountId]: {
+                      id: secondTronAccountId,
+                      type: TrxAccountType.Eoa,
+                      address: 'TW4rYq8kPz3nJ6mB1vC7xL9sH2dF5gK0uQ',
+                      options: { scope: TrxScope.Mainnet },
+                      methods: [],
+                      scopes: [TrxScope.Mainnet],
+                      metadata: {
+                        name: 'Second Tron Account',
+                        keyring: { type: 'Snap Keyring' },
+                      },
+                    },
+                  }
+                : {}),
+            },
+          },
+        },
+        AssetsController: {
+          ...backgroundState.AssetsController,
+          assetsInfo: {
+            ...backgroundState.AssetsController.assetsInfo,
+            [TRON_NATIVE_ASSET_ID]: {
+              type: 'native',
+              symbol: 'TRX',
+              name: 'TRON',
+              decimals: 6,
+            },
+            ...(nileStakingEnergy
+              ? {
+                  [nileNativeAssetId]: {
+                    type: 'native',
+                    symbol: 'TRX',
+                    name: 'TRON Nile',
+                    decimals: 6,
+                  },
+                }
+              : {}),
+          },
+          assetsBalance: {
+            ...backgroundState.AssetsController.assetsBalance,
+            [TRON_ACCOUNT_ID]: tronAccountBalances,
+            ...(secondTronAccountStakingMetadata
+              ? {
+                  [secondTronAccountId]: {
+                    [TRON_NATIVE_ASSET_ID]: {
+                      amount: '0',
+                      metadata: {
+                        staking: secondTronAccountStakingMetadata,
+                      },
+                    },
+                  },
+                }
+              : {}),
+          },
+          assetsPrice:
+            trxPrice === undefined
+              ? backgroundState.AssetsController.assetsPrice
+              : {
+                  ...backgroundState.AssetsController.assetsPrice,
+                  [TRON_NATIVE_ASSET_ID]: {
+                    assetPriceType: 'fungible',
+                    price: trxPrice,
+                    lastUpdated: 0,
+                  },
+                },
+        },
+        NetworkEnablementController: {
+          enabledNetworkMap: {
+            ...backgroundState.NetworkEnablementController.enabledNetworkMap,
+            [KnownCaipNamespace.Tron]: {
+              [TrxScope.Mainnet]: tronEnabled,
+              ...(nileStakingEnergy ? { [TrxScope.Nile]: true } : {}),
+            },
+          },
+        },
+      },
+    },
+  } as unknown as RootState;
+};
+
 describe('createSelectSortedAssetsBySelectedAccountGroup', () => {
+  it('includes a staked TRX row when liquid TRX is zero and staking metadata reports 7 TRX', () => {
+    const state = createTronStakeState();
+
+    const result = selectSortedAssetsBySelectedAccountGroup(state);
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        {
+          address: TRON_NATIVE_ASSET_ID,
+          chainId: TrxScope.Mainnet,
+          isStaked: false,
+        },
+        {
+          address: TRON_NATIVE_ASSET_ID,
+          chainId: TrxScope.Mainnet,
+          isStaked: true,
+        },
+      ]),
+    );
+  });
+
+  it('resolves the staked TRX row to a token carrying the 7 TRX staked balance', () => {
+    const state = createTronStakeState();
+
+    const stakedToken = selectAsset(state, {
+      address: TRON_NATIVE_ASSET_ID,
+      chainId: TrxScope.Mainnet,
+      isStaked: true,
+    });
+
+    expect(stakedToken?.name).toBe('Staked TRX');
+    expect(stakedToken?.balance).toBe('7');
+  });
+
+  it('sums staked energy and bandwidth into one staked TRX row with its fiat value', () => {
+    const state = createTronStakeState({
+      stakingMetadata: { energy: '7000000', bandwidth: '3000000' },
+      trxPrice: 0.12,
+    });
+
+    const stakedRows = selectSortedAssetsBySelectedAccountGroup(state).filter(
+      (asset) => asset.chainId === TrxScope.Mainnet && asset.isStaked,
+    );
+
+    expect(stakedRows).toHaveLength(1);
+    expect(
+      selectAsset(state, {
+        address: TRON_NATIVE_ASSET_ID,
+        chainId: TrxScope.Mainnet,
+        isStaked: true,
+      }),
+    ).toEqual(expect.objectContaining({ balance: '10', balanceFiat: '$1.20' }));
+  });
+
+  it('omits the staked TRX row when both staking energy and bandwidth are null', () => {
+    const state = createTronStakeState({
+      stakingMetadata: { energy: null, bandwidth: null },
+    });
+
+    const stakedRows = selectSortedAssetsBySelectedAccountGroup(state).filter(
+      (asset) => asset.chainId === TrxScope.Mainnet && asset.isStaked,
+    );
+
+    expect(stakedRows).toEqual([]);
+  });
+
+  it('includes the staked TRX row on the by-balance home list when liquid TRX is zero', () => {
+    const state = createTronStakeState();
+
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      [TrxScope.Mainnet],
+    );
+
+    expect(result).toContainEqual({
+      address: TRON_NATIVE_ASSET_ID,
+      chainId: TrxScope.Mainnet,
+      isStaked: true,
+    });
+    expect(result).not.toContainEqual({
+      address: TRON_NATIVE_ASSET_ID,
+      chainId: TrxScope.Mainnet,
+      isStaked: false,
+    });
+  });
+
+  it('resolves the liquid native TRX token used as the staked row navigation target', () => {
+    const state = createTronStakeState();
+
+    const liquidToken = selectAsset(state, {
+      address: TRON_NATIVE_ASSET_ID,
+      chainId: TrxScope.Mainnet,
+      isStaked: false,
+    });
+
+    expect(liquidToken).toEqual(
+      expect.objectContaining({
+        ticker: 'TRX',
+        isStaked: false,
+        balance: '0',
+      }),
+    );
+  });
+
+  it('keeps staked TRX per Tron chain instead of merging chains', () => {
+    const state = createTronStakeState({ nileStakingEnergy: '2000000' });
+    const nileNativeAssetId = `${TrxScope.Nile}/slip44:195`;
+
+    const result = selectSortedAssetsBySelectedAccountGroup(state);
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        {
+          address: TRON_NATIVE_ASSET_ID,
+          chainId: TrxScope.Mainnet,
+          isStaked: true,
+        },
+        {
+          address: nileNativeAssetId,
+          chainId: TrxScope.Nile,
+          isStaked: true,
+        },
+      ]),
+    );
+    expect(
+      selectAsset(state, {
+        address: TRON_NATIVE_ASSET_ID,
+        chainId: TrxScope.Mainnet,
+        isStaked: true,
+      })?.balance,
+    ).toBe('7');
+    expect(
+      selectAsset(state, {
+        address: nileNativeAssetId,
+        chainId: TrxScope.Nile,
+        isStaked: true,
+      })?.balance,
+    ).toBe('2');
+  });
+
+  it('keeps known staked TRX when another account reports null staking energy', () => {
+    const state = createTronStakeState({
+      secondTronAccountStakingMetadata: { energy: null },
+    });
+
+    const details = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+    expect(details.stakedTrxForEnergy).toEqual(
+      expect.objectContaining({ balance: '7' }),
+    );
+    expect(details.stakedTrxForEnergy?.unknown).toBeFalsy();
+    expect(
+      selectAsset(state, {
+        address: TRON_NATIVE_ASSET_ID,
+        chainId: TrxScope.Mainnet,
+        isStaked: true,
+      })?.balance,
+    ).toBe('7');
+  });
+
+  it('excludes staked assets of accounts outside the selected group on a shared chain', () => {
+    const baseState = createTronStakeState();
+    const { backgroundState } = baseState.engine;
+    const outsideAccountId = '7c9d5a12-6f4b-4f2a-9d3e-1a2b3c4d5e6f';
+    const outsideAccountAddress = '0x9999999999999999999999999999999999999999';
+    const stakedEthVaultAssetId =
+      'eip155:1/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df';
+    const selectedEvmAccountId = 'd7f11451-9d79-4df4-a012-afd253443639';
+    const selectedBalances = {
+      ...backgroundState.AssetsController.assetsBalance[selectedEvmAccountId],
+    };
+    delete selectedBalances[stakedEthVaultAssetId];
+    const state = {
+      ...baseState,
+      engine: {
+        ...baseState.engine,
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: {
+            ...backgroundState.AccountsController,
+            internalAccounts: {
+              ...backgroundState.AccountsController.internalAccounts,
+              accounts: {
+                ...backgroundState.AccountsController.internalAccounts.accounts,
+                [outsideAccountId]: {
+                  id: outsideAccountId,
+                  address: outsideAccountAddress,
+                  type: EthAccountType.Eoa,
+                  options: {},
+                  methods: [],
+                  scopes: ['eip155:0'],
+                  metadata: {
+                    name: 'Outside account',
+                    keyring: { type: 'HD Key Tree' },
+                  },
+                },
+              },
+            },
+          },
+          AssetsController: {
+            ...backgroundState.AssetsController,
+            assetsBalance: {
+              ...backgroundState.AssetsController.assetsBalance,
+              [selectedEvmAccountId]: selectedBalances,
+              [outsideAccountId]: {
+                [stakedEthVaultAssetId]: { amount: '1' },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroup(state);
+
+    expect(result).toContainEqual({
+      address: TRON_NATIVE_ASSET_ID,
+      chainId: TrxScope.Mainnet,
+      isStaked: true,
+    });
+    expect(
+      result.some((asset) => asset.chainId === '0x1' && asset.isStaked),
+    ).toBe(false);
+  });
+
+  it('adds the staked TRX row from the legacy staked special asset when metadata is absent', () => {
+    const state = createTronStakeState({
+      stakingMetadata: null,
+      legacyStakedBalance: '5',
+      trxPrice: 0.12,
+    });
+
+    const stakedRows = selectSortedAssetsBySelectedAccountGroup(state).filter(
+      (asset) => asset.chainId === TrxScope.Mainnet && asset.isStaked,
+    );
+
+    expect(stakedRows).toHaveLength(1);
+    expect(
+      selectAsset(state, {
+        address: TRON_NATIVE_ASSET_ID,
+        chainId: TrxScope.Mainnet,
+        isStaked: true,
+      }),
+    ).toEqual(expect.objectContaining({ balance: '5', balanceFiat: '$0.60' }));
+  });
+
+  it('omits the staked TRX row when the Tron network is disabled', () => {
+    const state = createTronStakeState({ tronEnabled: false });
+
+    const stakedRows = selectSortedAssetsBySelectedAccountGroup(state).filter(
+      (asset) => asset.chainId === TrxScope.Mainnet && asset.isStaked,
+    );
+
+    expect(stakedRows).toEqual([]);
+  });
+
   it('returns selector that filters by custom enabled-networks selector', () => {
     const onlyMainnetSelector = createDeepEqualSelector(
       [selectEnabledNetworksByNamespace],
