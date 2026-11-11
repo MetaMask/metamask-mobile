@@ -8,17 +8,25 @@ import {
   screen,
 } from '@testing-library/react-native';
 import React from 'react';
-import { type TextStyle, type ViewStyle } from 'react-native';
+import { type TextStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import {
+  LinearGradient as SvgLinearGradient,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 import { ThemeContext } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
+  getPerpsProPillBorderGradientColors,
   getPerpsProPillGradientColors,
-  PERPS_PRO_GOLD,
+  PRO_PILL_BORDER_GRADIENT_END,
+  PRO_PILL_BORDER_GRADIENT_LOCATIONS,
+  PRO_PILL_BORDER_GRADIENT_START,
 } from '../../constants/perpsModeColors';
 import PerpsModeSwitchPill, {
-  BORDER_WIDTH,
   GLOW_TOTAL_MS,
+  PRO_BORDER_WIDTH,
 } from './PerpsModeSwitchPill';
 
 jest.mock('../../../../../util/haptics');
@@ -69,12 +77,18 @@ const renderPill = ({
   return { ...view, onSwitchRequest };
 };
 
+/** The gold stroke mounts once the pill has been measured. */
+const layoutPill = () => {
+  fireEvent(screen.getByTestId(`${PILL_TEST_ID}-shell`), 'layout', {
+    nativeEvent: { layout: { width: 80, height: 40, x: 0, y: 0 } },
+  });
+};
+
 /** Token colors resolved by the preset, so assertions stay theme-agnostic. */
 const useTokenColors = () => {
   const { result } = renderHook(() => useTailwind());
   const tw = result.current;
   return {
-    borderDefault: (tw.style('border-default') as ViewStyle).borderColor,
     textDefault: (tw.style('text-default') as TextStyle).color,
   };
 };
@@ -84,35 +98,41 @@ describe('PerpsModeSwitchPill', () => {
     jest.useRealTimers();
   });
 
-  it('outlines the Lite pill with the default border and text tokens', () => {
-    const { borderDefault, textDefault } = useTokenColors();
+  it('draws no outline on the Lite pill and uses the default text token', () => {
+    const { textDefault } = useTokenColors();
 
     renderPill();
 
-    expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({
-      borderColor: borderDefault,
-    });
+    expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({ borderWidth: 0 });
     expect(screen.getByText('Lite')).toHaveStyle({ color: textDefault });
   });
 
-  it('outlines the Pro pill with the Perps gold accent', () => {
-    renderPill({ isPro: true });
+  it('outlines the Pro pill with a gold gradient in the glass sheen direction', () => {
+    const { UNSAFE_getAllByType } = renderPill({ isPro: true });
+    layoutPill();
 
-    expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({
-      borderColor: PERPS_PRO_GOLD,
-    });
-  });
+    const stops = UNSAFE_getAllByType(Stop);
+    const stroke = UNSAFE_getAllByType(Rect)[0];
 
-  it.each([
-    ['Lite', false],
-    ['Pro', true],
-  ])('outlines the %s pill at the 2px spec thickness', (_label, isPro) => {
-    renderPill({ isPro });
-
-    expect(BORDER_WIDTH).toBe(2);
-    expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({
-      borderWidth: BORDER_WIDTH,
-    });
+    expect(screen.queryByTestId(`${PILL_TEST_ID}-border`)).toBeOnTheScreen();
+    expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({ borderWidth: 0 });
+    expect(stops.map((stop) => stop.props.stopColor)).toEqual(
+      getPerpsProPillBorderGradientColors(false),
+    );
+    expect(stops.map((stop) => stop.props.offset)).toEqual([
+      ...PRO_PILL_BORDER_GRADIENT_LOCATIONS,
+    ]);
+    expect(stroke.props.stroke).toBe(`url(#${PILL_TEST_ID}-border-gradient)`);
+    expect(stroke.props.strokeWidth).toBe(PRO_BORDER_WIDTH);
+    expect(stroke.props.fill).toBe('none');
+    expect(UNSAFE_getAllByType(SvgLinearGradient)[0].props).toEqual(
+      expect.objectContaining({
+        x1: PRO_PILL_BORDER_GRADIENT_START.x,
+        y1: PRO_PILL_BORDER_GRADIENT_START.y,
+        x2: PRO_PILL_BORDER_GRADIENT_END.x,
+        y2: PRO_PILL_BORDER_GRADIENT_END.y,
+      }),
+    );
   });
 
   it.each([
@@ -129,11 +149,11 @@ describe('PerpsModeSwitchPill', () => {
   });
 
   describe('capsule', () => {
-    it('keeps the Lite outline in the capsule', () => {
+    it('draws no outline on the Lite pill in the capsule', () => {
       renderPill({ isCapsule: true });
 
       expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({
-        borderWidth: BORDER_WIDTH,
+        borderWidth: 0,
         height: 40,
       });
     });
@@ -146,13 +166,20 @@ describe('PerpsModeSwitchPill', () => {
       });
     });
 
-    it('keeps the Pro gold outline in the capsule', () => {
-      renderPill({ isPro: true, isCapsule: true });
-
-      expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({
-        borderColor: PERPS_PRO_GOLD,
-        borderWidth: BORDER_WIDTH,
+    it('keeps the Pro gold gradient outline in the capsule', () => {
+      const { UNSAFE_getAllByType } = renderPill({
+        isPro: true,
+        isCapsule: true,
+        isDark: true,
       });
+      layoutPill();
+
+      const stops = UNSAFE_getAllByType(Stop);
+
+      expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({ borderWidth: 0 });
+      expect(stops.map((stop) => stop.props.stopColor)).toEqual(
+        getPerpsProPillBorderGradientColors(true),
+      );
     });
   });
 

@@ -1124,8 +1124,12 @@ export const expectPredictNextGameCard = (
     home: string;
     awayScore: string;
     homeScore: string;
-    awayQuote: string;
-    homeQuote: string;
+    /**
+     * The quote's text. A compact card reads "ABBR · price"; a featured card
+     * reads "Team name · price" across two Texts, so pass a RegExp for it.
+     */
+    awayQuote: string | RegExp;
+    homeQuote: string | RegExp;
     competition?: string;
     volume?: string;
   },
@@ -1139,8 +1143,12 @@ export const expectPredictNextGameCard = (
   expect(scoped.getByText(home)).toBeOnTheScreen();
   expect(scoped.getByText(awayScore)).toBeOnTheScreen();
   expect(scoped.getByText(homeScore)).toBeOnTheScreen();
-  expect(scoped.getByText(awayQuote)).toBeOnTheScreen();
-  expect(scoped.getByText(homeQuote)).toBeOnTheScreen();
+  expect(
+    scoped.getByTestId(`predict-next-game-quote-${eventId}-away`),
+  ).toHaveTextContent(awayQuote);
+  expect(
+    scoped.getByTestId(`predict-next-game-quote-${eventId}-home`),
+  ).toHaveTextContent(homeQuote);
   if (competition) {
     expect(scoped.getByText(competition)).toBeOnTheScreen();
   }

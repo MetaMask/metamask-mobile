@@ -1580,6 +1580,30 @@ describe('useCryptoUpDownChartData', () => {
         expect.any(Function),
       );
     });
+
+    it('streams the provider the market settles against', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        series: {
+          id: 'series-1',
+          slug: 'btc-up-or-down-hourly',
+          title: 'BTC Series',
+          recurrence: 'hourly',
+        },
+        cryptoPriceProvider: 'binance',
+      });
+
+      renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      expect(mockUseLiveCryptoPrices).toHaveBeenCalledWith(
+        'btc/usd',
+        expect.any(Function),
+        undefined,
+        'binance',
+      );
+    });
   });
 
   describe('historical path', () => {

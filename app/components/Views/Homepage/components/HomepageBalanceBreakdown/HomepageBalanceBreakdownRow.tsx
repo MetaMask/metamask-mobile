@@ -42,7 +42,7 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../../../UI/Money/constants/moneyEvents';
-import { useMoneyDepositNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../../../UI/Money/hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics';
 import type { SliceData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
