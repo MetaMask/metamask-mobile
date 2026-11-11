@@ -497,7 +497,7 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
-    openComposer();
+    openComposer({ composerEntry: SocialEvent.ComposerEntry.SOCIAL_FEED });
   }, [openComposer]);
 
   const handleOpenRewards = useCallback(() => {
@@ -522,6 +522,7 @@ const SocialV1ViewContent: React.FC = () => {
       copyTradeOrigin?: CopyTradeOrigin,
       tradeMode: QuickBuyTradeMode = 'buy',
       source?: QuickBuySheetSource,
+      traderAddress?: string,
     ) => {
       const resolvedSource = source ?? quickBuySourceRef.current;
       quickBuySourceRef.current = resolvedSource;
@@ -530,7 +531,10 @@ const SocialV1ViewContent: React.FC = () => {
         copyTradeOrigin,
         features: TOP_TRADERS_QUICK_BUY_FEATURES,
         initialTradeMode: tradeMode,
-        analyticsContext: { source: resolvedSource },
+        analyticsContext: {
+          source: resolvedSource,
+          ...(traderAddress ? { traderAddress } : {}),
+        },
         postTradeShare: true,
         postTradeShareOwner: PostTradeShareOwner.socialV1Feed,
       });
@@ -568,6 +572,7 @@ const SocialV1ViewContent: React.FC = () => {
         commentId ? { commentId } : undefined,
         'buy',
         source,
+        item.author.address,
       );
     },
     [openQuickBuy],

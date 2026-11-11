@@ -1571,7 +1571,10 @@ describe('TokenDetailsV1', () => {
         },
         copyTradeOrigin: { commentId: 'comment-1' },
         initialTradeMode: 'buy',
-        analyticsContext: { source: 'trader_feed' },
+        analyticsContext: {
+          source: 'trader_feed',
+          traderAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        },
         postTradeShare: true,
         postTradeShareOwner: PostTradeShareOwner.tokenDetails,
       }),

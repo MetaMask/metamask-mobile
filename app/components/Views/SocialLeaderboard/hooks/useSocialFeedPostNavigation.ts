@@ -4,7 +4,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { playSelection } from '../../../../util/haptics';
 import type { SocialFeedPositionPressContext } from '../../../UI/SocialFeed/components/SocialFeed.types';
-import { socialFeedSurfaceOrderSource } from '../../../UI/SocialFeed/socialFeedOrderSource';
+import {
+  socialFeedSurfaceAnalyticsSource,
+  socialFeedSurfaceOrderSource,
+} from '../../../UI/SocialFeed/socialFeedOrderSource';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
@@ -26,6 +29,7 @@ export const useSocialFeedPostNavigation = (
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
   const orderSource = socialFeedSurfaceOrderSource(location);
+  const analyticsSource = socialFeedSurfaceAnalyticsSource(location);
 
   const onAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
@@ -59,9 +63,10 @@ export const useSocialFeedPostNavigation = (
           post.item.variant === 'spotClosed',
         isSnapshotLive: context?.isSnapshotLive === true,
         ...(orderSource ? { orderSource } : {}),
+        ...(analyticsSource ? { analyticsSource } : {}),
       });
     },
-    [navigation, orderSource],
+    [analyticsSource, navigation, orderSource],
   );
 
   return useMemo(

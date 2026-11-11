@@ -67,6 +67,17 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
 }));
 
+const mockTrackInteraction = jest.fn();
+const mockUseSocialScreenAnalytics = jest.fn(
+  (..._args: unknown[]) => mockTrackInteraction,
+);
+
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics'),
+  useSocialScreenAnalytics: (...args: unknown[]) =>
+    mockUseSocialScreenAnalytics(...args),
+}));
+
 jest.mock('../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../util/navigation/navUtils'),
   useParams: () => mockParams,
@@ -1002,6 +1013,53 @@ describe('PositionDetailsSheet', () => {
     });
   });
 
+  describe('analytics', () => {
+    it('views a spot position with the trader and the opening surface', () => {
+      mockParams = { ...mockParams, analyticsSource: 'trader_profile' };
+
+      render(<PositionDetailsSheet />);
+
+      expect(mockUseSocialScreenAnalytics).toHaveBeenCalledWith(
+        'position_details_sheet',
+        {
+          source: 'trader_profile',
+          outcome: undefined,
+          properties: {
+            trade_type: 'spot',
+            asset: 'PEPE',
+            position_status: 'open',
+            trader_address: '0xTrader',
+            trader_username: 'satoshi',
+          },
+        },
+      );
+    });
+
+    it('views a closed perp with its side and falls back to the order source', () => {
+      mockParams = {
+        ...mockParams,
+        position: buildPerpPosition(),
+        orderSource: 'social_trending',
+      };
+      mockSheetData = perpData({ isClosed: true });
+
+      render(<PositionDetailsSheet />);
+
+      expect(mockUseSocialScreenAnalytics).toHaveBeenCalledWith(
+        'position_details_sheet',
+        expect.objectContaining({
+          source: 'social_trending',
+          properties: expect.objectContaining({
+            trade_type: 'perps',
+            asset: 'BTC',
+            direction: 'short',
+            position_status: 'closed',
+          }),
+        }),
+      );
+    });
+  });
+
   describe('footer', () => {
     it.each([
       ['profile id', { profileId: 'trader-1' }],
@@ -1057,6 +1115,7 @@ describe('PositionDetailsSheet', () => {
       });
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('PerpsModals');
+      expect(mockTrackInteraction).toHaveBeenCalledWith('copy_trade_tapped');
     });
 
     it('dismisses the sheet and copies an open spot position through QuickBuy', () => {
@@ -1095,6 +1154,9 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+      expect(mockTrackInteraction).toHaveBeenCalledWith('copy_trade_blocked', {
+        blocked_reason: 'terms',
+      });
     });
 
     it('skips copy trade when there is no linked social wallet', () => {
@@ -1108,6 +1170,9 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+      expect(mockTrackInteraction).toHaveBeenCalledWith('copy_trade_blocked', {
+        blocked_reason: 'profile_onboarding',
+      });
     });
 
     it('offers Long and Short on a closed perp', () => {
@@ -1131,6 +1196,9 @@ describe('PositionDetailsSheet', () => {
         direction: 'long',
         asset: 'BTC',
         leverage: undefined,
+      });
+      expect(mockTrackInteraction).toHaveBeenCalledWith('button_clicked', {
+        direction: 'long',
       });
     });
 
@@ -1160,6 +1228,7 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+      expect(mockTrackInteraction).toHaveBeenCalledWith('button_clicked');
     });
 
     it('offers only Buy on a closed spot position the viewer does not hold', () => {

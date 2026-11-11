@@ -1673,6 +1673,7 @@ export function useQuickBuyController(
             ? { [QuickBuyEventProperties.AMOUNT_USD]: amountUsd }
             : {}),
           [QuickBuyEventProperties.TRADE_TYPE]: tradeMode,
+          [QuickBuyEventProperties.IS_COPY_TRADE]: Boolean(copyTradeOrigin),
           ...(submittedPayWith
             ? {
                 [QuickBuyEventProperties.PAY_WITH_TOKEN]: submittedPayWith,

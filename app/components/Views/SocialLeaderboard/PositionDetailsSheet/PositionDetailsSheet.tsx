@@ -45,6 +45,8 @@ import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProf
 import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import { buildSocialPositionAnalytics } from '../../../UI/SocialFeed/utils/socialPositionAnalytics';
 import { playSelection } from '../../../../util/haptics';
 import {
   formatAbbreviatedUsd,
@@ -68,6 +70,8 @@ import { useChartLineReveal } from './hooks/useChartLineReveal';
 import { formatChartTimestamp, type ChartPeriod } from './utils/chartWindow';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
+
+const { BlockedReason, Interaction, Screen } = SocialEvent;
 
 const addressesMatch = (
   left: string | null | undefined,
@@ -94,6 +98,7 @@ const PositionDetailsSheet = () => {
     isClosed: isClosedParam,
     isSnapshotLive,
     orderSource,
+    analyticsSource,
   } = useParams<PositionDetailsSheetParams>();
 
   const live = useLivePosition({
@@ -126,6 +131,30 @@ const PositionDetailsSheet = () => {
   const isOwnPost =
     (Boolean(profile?.profileId) && author.id === profile?.profileId) ||
     addressesMatch(author.address, profile?.linkedAccountAddress);
+
+  const analyticsAsset = data.isPerp
+    ? data.perpTradeSymbol
+    : position?.tokenSymbol;
+  const positionAnalytics = useMemo(
+    () =>
+      buildSocialPositionAnalytics({
+        isPerp: data.isPerp,
+        asset: analyticsAsset,
+        direction: data.perpDirection,
+        isClosed: data.isClosed,
+        author,
+      }),
+    [analyticsAsset, author, data.isClosed, data.isPerp, data.perpDirection],
+  );
+  // The view waits for the position so it carries the asset and state.
+  const trackInteraction = useSocialScreenAnalytics(
+    Screen.POSITION_DETAILS_SHEET,
+    {
+      source: analyticsSource ?? orderSource,
+      properties: positionAnalytics,
+      outcome: position ? undefined : null,
+    },
+  );
 
   const [scrubPoint, setScrubPoint] = useState<TokenPrice | null>(null);
   const [headlineChoice, setHeadlineChoice] =
@@ -207,7 +236,7 @@ const PositionDetailsSheet = () => {
               symbol,
               name: getPerpsDisplaySymbol(symbol),
             } as PerpsMarketData,
-            source: 'trader_feed',
+            source: orderSource ?? 'trader_feed',
           },
         });
       });
@@ -255,7 +284,7 @@ const PositionDetailsSheet = () => {
         isNative,
       });
     });
-  }, [closeThen, data, navigation, position]);
+  }, [closeThen, data, navigation, orderSource, position]);
 
   const handleOpenTraderProfile = useCallback(() => {
     void playSelection()?.catch(() => undefined);
@@ -311,7 +340,7 @@ const PositionDetailsSheet = () => {
     [closeThen],
   );
 
-  const handlePerpsOrder = useCallback(
+  const openPerpsMarketOrder = useCallback(
     (direction: PerpDirection, leverage?: number) => {
       if (!data.perpTradeSymbol) return;
       openPerpsOrder({ direction, asset: data.perpTradeSymbol, leverage });
@@ -319,12 +348,43 @@ const PositionDetailsSheet = () => {
     [data.perpTradeSymbol, openPerpsOrder],
   );
 
+  const handlePerpsOrder = useCallback(
+    (direction: PerpDirection, leverage?: number) => {
+      trackInteraction(Interaction.BUTTON_CLICKED, {
+        direction:
+          direction === 'short'
+            ? SocialEvent.Direction.SHORT
+            : SocialEvent.Direction.LONG,
+      });
+      openPerpsMarketOrder(direction, leverage);
+    },
+    [openPerpsMarketOrder, trackInteraction],
+  );
+
+  const handleSpotTrade = useCallback(
+    (mode: QuickBuyTradeMode) => {
+      trackInteraction(Interaction.BUTTON_CLICKED);
+      openQuickBuy(mode);
+    },
+    [openQuickBuy, trackInteraction],
+  );
+
   const handleCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsAccepted() || !ensureSocialProfileOnboarding()) {
+    if (!ensureSocialTermsAccepted()) {
+      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+        blocked_reason: BlockedReason.TERMS,
+      });
       return;
     }
+    if (!ensureSocialProfileOnboarding()) {
+      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+        blocked_reason: BlockedReason.PROFILE_ONBOARDING,
+      });
+      return;
+    }
+    trackInteraction(Interaction.COPY_TRADE_TAPPED);
     if (data.isPerp) {
-      handlePerpsOrder(data.perpDirection ?? 'long', data.leverage);
+      openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage);
       return;
     }
     openQuickBuy('buy');
@@ -334,8 +394,9 @@ const PositionDetailsSheet = () => {
     data.leverage,
     ensureSocialProfileOnboarding,
     ensureSocialTermsAccepted,
-    handlePerpsOrder,
+    openPerpsMarketOrder,
     openQuickBuy,
+    trackInteraction,
   ]);
 
   const fillMarketCapPerPrice =
@@ -399,7 +460,7 @@ const PositionDetailsSheet = () => {
         canSell={Boolean(heldBalance)}
         onCopyTrade={handleCopyTrade}
         onPerpsOrder={handlePerpsOrder}
-        onSpotTrade={openQuickBuy}
+        onSpotTrade={handleSpotTrade}
       />
     );
 

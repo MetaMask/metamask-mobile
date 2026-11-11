@@ -3759,6 +3759,34 @@ export const runQuickBuyControllerCases = ({
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ caip19: expect.any(String) }),
           );
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: false }),
+          );
+        });
+
+        it('marks trade submitted and completed as a copy trade with a copy-trade origin', async () => {
+          mockSuccessfulSubmit();
+
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            { source: 'trader_feed', traderAddress: '0xTRADER' },
+            undefined,
+            undefined,
+            undefined,
+            { commentId: 'comment-1' },
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
         });
 
         it('reports submit execution time from the start timestamp', async () => {

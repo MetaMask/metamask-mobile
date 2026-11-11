@@ -2129,6 +2129,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      analyticsSource: 'trader_profile',
     });
   });
 
@@ -2176,6 +2177,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: true,
+      analyticsSource: 'trader_profile',
     });
   });
 
@@ -2297,6 +2299,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      analyticsSource: 'trader_profile',
     });
 
     fireEvent.press(
@@ -2385,6 +2388,7 @@ describe('MyProfileView', () => {
         xHandle: null,
       },
       isClosed: false,
+      analyticsSource: 'trader_profile',
     });
   });
 });
