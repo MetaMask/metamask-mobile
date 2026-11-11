@@ -1,4 +1,11 @@
-import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -6,7 +13,6 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import Svg, { Circle, ClipPath, Defs, G, Line, Path } from 'react-native-svg';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import {
   Box,
   BoxFlexDirection,
@@ -31,10 +37,16 @@ import {
   measurePolylineLength,
 } from '../utils/chartGeometry';
 import { formatChartTimestamp } from '../utils/chartWindow';
+import {
+  CHART_SCRUB_ACTIVATION,
+  CHART_VERTICAL_RELEASE,
+} from '../utils/sheetGesture';
+import { useSheetChartFrame } from './sheetChartFrame';
 import type { PositionSheetMarker } from '../hooks/usePositionSheetData';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 
-export const POSITION_SHEET_CHART_HEIGHT = 280;
+/** Floor so a short screen still shows a readable line. */
+const CHART_MIN_HEIGHT = 160;
 const CHART_INSET_TOP = 24;
 const CHART_INSET_BOTTOM = 24;
 const LINE_WIDTH = 2;
@@ -47,8 +59,8 @@ const TOOLTIP_EDGE_INSET = 8;
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 /** Full-height band between two x positions, for the scrub clip paths. */
-const rectPath = (fromX: number, toX: number): string =>
-  `M${fromX},0 H${Math.max(toX, fromX)} V${POSITION_SHEET_CHART_HEIGHT} H${fromX} Z`;
+const rectPath = (fromX: number, toX: number, height: number): string =>
+  `M${fromX},0 H${Math.max(toX, fromX)} V${height} H${fromX} Z`;
 
 export interface PositionSheetChartProps {
   prices: TokenPrice[];
@@ -60,6 +72,10 @@ export interface PositionSheetChartProps {
   overlayStyle: React.ComponentProps<typeof Animated.View>['style'];
   /** Called with the scrubbed point, or `null` when the finger lifts. */
   onScrub: (point: TokenPrice | null) => void;
+  /** Fires once the chart's box has stopped changing size. */
+  onFrameReady?: () => void;
+  /** The line stays hidden until the sheet's open animation finishes. */
+  isSheetOpen: boolean;
 }
 
 /**
@@ -75,11 +91,17 @@ const PositionSheetChart = ({
   lineProgress,
   overlayStyle,
   onScrub,
+  onFrameReady,
+  isSheetOpen,
 }: PositionSheetChartProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const clipId = useId().replace(/[^a-zA-Z0-9]/g, '');
   const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
+  const [isFrameReady, setIsFrameReady] = useState(false);
+  const onFrameReadyRef = useRef(onFrameReady);
+  onFrameReadyRef.current = onFrameReady;
   const [scrubIndex, setScrubIndex] = useState(-1);
 
   const values = useMemo(() => prices.map((point) => point[1]), [prices]);
@@ -89,12 +111,12 @@ const PositionSheetChart = ({
         values,
         frame: {
           width,
-          height: POSITION_SHEET_CHART_HEIGHT,
+          height,
           insetTop: CHART_INSET_TOP,
           insetBottom: CHART_INSET_BOTTOM,
         },
       }),
-    [values, width],
+    [values, width, height],
   );
 
   const points = useMemo(
@@ -113,11 +135,27 @@ const PositionSheetChart = ({
     [markers, scale],
   );
 
+  const chartFrame = useSheetChartFrame();
+  const chartRef = useRef<View>(null);
+
+  const publishFrame = useCallback(() => {
+    const chartNode = chartRef.current;
+    const hostNode = chartFrame?.hostRef.current;
+    if (!chartFrame || !chartNode || !hostNode) return;
+    chartNode.measureInWindow((_x, y, _width, height) => {
+      hostNode.measureInWindow((_hostX, hostY) => {
+        chartFrame.contentY.value = y - hostY + chartFrame.scrollY.value;
+        chartFrame.height.value = height;
+      });
+    });
+  }, [chartFrame]);
+
   // The gesture is built once; its handlers read the latest data from here.
   const scrubStateRef = useRef({ scale, prices, onScrub });
   scrubStateRef.current = { scale, prices, onScrub };
 
-  // Horizontal-only activation so a vertical drag still swipes the sheet.
+  // A sideways lean scrubs and stays a scrub. A straight vertical swipe
+  // fails here so the list can scroll, or the sheet can dismiss.
   const scrubGesture = useMemo(() => {
     const updateScrub = (x: number) => {
       const state = scrubStateRef.current;
@@ -126,22 +164,46 @@ const PositionSheetChart = ({
       setScrubIndex(index);
       state.onScrub(state.prices[index] ?? null);
     };
-    return Gesture.Pan()
+    const pan = Gesture.Pan()
       .withTestId(PositionDetailsSheetSelectorsIDs.CHART_SCRUB)
       .runOnJS(true)
-      .activeOffsetX([-6, 6])
-      .failOffsetY([-12, 12])
+      .activeOffsetX([-CHART_SCRUB_ACTIVATION, CHART_SCRUB_ACTIVATION])
+      .failOffsetY([-CHART_VERTICAL_RELEASE, CHART_VERTICAL_RELEASE])
       .onStart((event) => updateScrub(event.x))
       .onUpdate((event) => updateScrub(event.x))
       .onFinalize(() => {
         setScrubIndex(-1);
         scrubStateRef.current.onScrub(null);
       });
-  }, []);
+    const gestures = chartFrame?.gestures ?? [];
+    return gestures.length > 0 ? pan.blocksExternalGesture(...gestures) : pan;
+  }, [chartFrame?.gestures]);
 
-  const handleLayout = useCallback((event: LayoutChangeEvent) => {
-    setWidth(event.nativeEvent.layout.width);
-  }, []);
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      publishFrame();
+      if (isFrameReady) return;
+      const { width: nextWidth, height: nextHeight } = event.nativeEvent.layout;
+      if (nextWidth <= 0 || nextHeight <= 0) return;
+      setWidth((current) => (current === nextWidth ? current : nextWidth));
+      setHeight((current) => (current === nextHeight ? current : nextHeight));
+    },
+    [isFrameReady, publishFrame],
+  );
+
+  // The box can settle across a couple of layouts as the sheet measures
+  // itself. Wait until the sheet has opened and one frame passes without a
+  // new size, then draw once.
+  useEffect(() => {
+    if (!isSheetOpen || isFrameReady || width <= 0 || height <= 0) {
+      return undefined;
+    }
+    const frame = requestAnimationFrame(() => {
+      setIsFrameReady(true);
+      onFrameReadyRef.current?.();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [height, isFrameReady, isSheetOpen, width]);
 
   const lineColor = isTrendPositive
     ? colors.success.default
@@ -197,37 +259,25 @@ const PositionSheetChart = ({
 
   const renderChartBody = () => {
     if (isLoading) {
-      return (
-        <View testID={PositionDetailsSheetSelectorsIDs.CHART_LOADING}>
-          <SkeletonPlaceholder
-            backgroundColor={colors.background.section}
-            highlightColor={colors.background.subsection}
-          >
-            <SkeletonPlaceholder.Item
-              width={Math.max(width - CHART_HORIZONTAL_INSET * 2, 0)}
-              height={POSITION_SHEET_CHART_HEIGHT}
-              marginLeft={CHART_HORIZONTAL_INSET}
-              borderRadius={6}
-            />
-          </SkeletonPlaceholder>
-        </View>
-      );
+      // Stay empty until prices land, so the line draws in once with no
+      // skeleton → blank → line sequence.
+      return <View testID={PositionDetailsSheetSelectorsIDs.CHART_LOADING} />;
     }
-    if (!scale) return null;
+    if (!scale || !isFrameReady) return null;
 
     return (
       <>
         <Svg
           width={width}
-          height={POSITION_SHEET_CHART_HEIGHT}
+          height={height}
           testID={PositionDetailsSheetSelectorsIDs.CHART_LINE}
         >
           <Defs>
             <ClipPath id={`${clipId}-active`}>
-              <Path d={rectPath(0, scrubX)} />
+              <Path d={rectPath(0, scrubX, height)} />
             </ClipPath>
             <ClipPath id={`${clipId}-inactive`}>
-              <Path d={rectPath(scrubX, width)} />
+              <Path d={rectPath(scrubX, width, height)} />
             </ClipPath>
           </Defs>
           <AnimatedPath
@@ -238,6 +288,7 @@ const PositionSheetChart = ({
             strokeLinecap="round"
             fill="none"
             strokeDasharray={`${lineLength} ${lineLength}`}
+            strokeDashoffset={lineLength}
             animatedProps={lineAnimatedProps}
             clipPath={isScrubbing ? `url(#${clipId}-active)` : undefined}
           />
@@ -256,7 +307,7 @@ const PositionSheetChart = ({
                 x1={scrubPoint.x}
                 x2={scrubPoint.x}
                 y1={0}
-                y2={POSITION_SHEET_CHART_HEIGHT}
+                y2={height}
                 stroke={colors.icon.alternative}
                 strokeWidth={1}
                 strokeDasharray="4 4"
@@ -314,12 +365,13 @@ const PositionSheetChart = ({
   };
 
   return (
-    <Box>
+    <Box twClassName="flex-1">
       <GestureDetector gesture={scrubGesture}>
         <View
+          ref={chartRef}
           testID={PositionDetailsSheetSelectorsIDs.CHART}
           onLayout={handleLayout}
-          style={{ height: POSITION_SHEET_CHART_HEIGHT }}
+          style={[tw.style('flex-1'), { minHeight: CHART_MIN_HEIGHT }]}
         >
           {width > 0 ? renderChartBody() : null}
         </View>
@@ -346,4 +398,4 @@ const PositionSheetChart = ({
   );
 };
 
-export default PositionSheetChart;
+export default React.memo(PositionSheetChart);

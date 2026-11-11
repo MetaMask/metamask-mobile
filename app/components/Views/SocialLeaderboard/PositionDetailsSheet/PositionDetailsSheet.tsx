@@ -1,22 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  Platform,
-  View,
-  type LayoutChangeEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import {
-  useSafeAreaFrame,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import {
-  BottomSheet,
-  Box,
-  type BottomSheetRef,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
   type PerpsMarketData,
@@ -55,16 +40,18 @@ import PositionSheetChart from './components/PositionSheetChart';
 import PositionSheetChartControls, {
   type HeadlineValueMode,
 } from './components/PositionSheetChartControls';
+import PositionSheetContainer, {
+  type PositionSheetContainerRef,
+} from './components/PositionSheetContainer';
 import PositionSheetFooter from './components/PositionSheetFooter';
 import PositionSheetHeader from './components/PositionSheetHeader';
 import PositionSheetPriceHeader from './components/PositionSheetPriceHeader';
-import PositionSheetTabs, {
-  SWIPE_THRESHOLD,
-} from './components/PositionSheetTabs';
+import PositionSheetTabs from './components/PositionSheetTabs';
 import PositionSheetTradeSummary from './components/PositionSheetTradeSummary';
 import { useLivePosition } from './hooks/useLivePosition';
 import { usePositionSheetData } from './hooks/usePositionSheetData';
 import { useChartLineReveal } from './hooks/useChartLineReveal';
+import { useHeldWhileDragging } from './hooks/useHeldWhileDragging';
 import { formatChartTimestamp, type ChartPeriod } from './utils/chartWindow';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
@@ -86,7 +73,7 @@ const addressesMatch = (
  */
 const PositionDetailsSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const sheetRef = useRef<PositionSheetContainerRef>(null);
   const {
     positionId,
     position: positionParam,
@@ -101,22 +88,33 @@ const PositionDetailsSheet = () => {
     snapshot: positionParam,
     isSnapshotLive,
   });
-  const { position } = live;
-
   // `null` (unknown) is treated as online; only a confirmed `NONE` skips the
   // price fetch and the line draw.
   const networkTier = useNetworkTier();
   const isNetworkAvailable = networkTier !== 'NONE';
 
   // The caller's flag describes its snapshot; a newer copy carries its own.
-  const data = usePositionSheetData(
-    position,
+  const liveData = usePositionSheetData(
+    live.position,
     live.isRefreshed ? undefined : isClosedParam,
     { isNetworkAvailable },
   );
-  const isChartLoading = data.isPricesLoading || live.isLoading;
+  const sheetState = useHeldWhileDragging({
+    position: live.position,
+    data: liveData,
+    isChartLoading: liveData.isPricesLoading || live.isLoading,
+  });
+  const { position, data, isChartLoading } = sheetState.value;
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isChartFrameReady, setIsChartFrameReady] = useState(false);
+  const handleChartFrameReady = useCallback(() => {
+    setIsChartFrameReady(true);
+  }, []);
+  const handleSheetOpened = useCallback(() => {
+    setIsSheetOpen(true);
+  }, []);
   const reveal = useChartLineReveal({
-    isChartReady: !isChartLoading,
+    isChartReady: !isChartLoading && isChartFrameReady,
     hasChartData: data.prices.length >= 2,
   });
 
@@ -137,56 +135,9 @@ const PositionDetailsSheet = () => {
     setHeadlinePositionId(position?.positionId);
     setHeadlineChoice(null);
   }
-  const [isTabsExpanded, setIsTabsExpanded] = useState(false);
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const [pinnedFooterHeight, setPinnedFooterHeight] = useState(0);
-  const { height: frameHeight } = useSafeAreaFrame();
-  const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();
-  // Matches the padding the design-system sheet adds under its content.
-  const sheetBottomPadding =
-    Platform.OS === 'ios' || Platform.OS === 'macos'
-      ? bottomInset
-      : bottomInset + 16;
-  const maxScrollHeight = Math.max(
-    0,
-    frameHeight -
-      topInset -
-      sheetBottomPadding -
-      headerHeight -
-      (isTabsExpanded ? pinnedFooterHeight : 0),
-  );
-
-  const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
-    setHeaderHeight(Math.ceil(event.nativeEvent.layout.height));
-  }, []);
-  const handlePinnedFooterLayout = useCallback((event: LayoutChangeEvent) => {
-    setPinnedFooterHeight(Math.ceil(event.nativeEvent.layout.height));
-  }, []);
-
-  // Scrolling up past the threshold opens the active tab. The sheet's own
-  // pan still dismisses on a downward drag.
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (event.nativeEvent.contentOffset.y > SWIPE_THRESHOLD) {
-        setIsTabsExpanded(true);
-      }
-    },
-    [],
-  );
-
-  // iOS bounce: pulling the open sheet down past its top closes the tab.
-  const handleScrollEndDrag = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (event.nativeEvent.contentOffset.y < -SWIPE_THRESHOLD * 2) {
-        setIsTabsExpanded(false);
-      }
-    },
-    [],
-  );
-
   const closeThen = useCallback((next: () => void) => {
     if (sheetRef.current) {
-      sheetRef.current.onCloseBottomSheet(next);
+      sheetRef.current.close(next);
     } else {
       next();
     }
@@ -403,59 +354,26 @@ const PositionDetailsSheet = () => {
       />
     );
 
-  const details = (
-    <View>
-      <Box twClassName="px-4 py-3" gap={2}>
-        <PositionSheetTradeSummary
-          title={data.summaryTitle}
-          tagLabel={data.summaryTagLabel}
-          direction={data.perpDirection}
-          isClosed={data.isClosed}
-          subtitle={data.summarySubtitle}
-          pnlPercentLabel={data.pnlPercentLabel}
-          pnlValueLabel={data.pnlValueLabel}
-          isPnlPositive={data.isPnlPositive}
-        />
-      </Box>
-      <PositionSheetTabs
-        position={position}
-        author={author}
-        isExpanded={isTabsExpanded}
-        onExpandedChange={setIsTabsExpanded}
-      />
-      {isTabsExpanded ? null : footer}
-    </View>
-  );
-
   return (
     <SocialFeedSurfaceProvider showMockedFields>
       {isSheetDismissed ? null : (
-        <BottomSheet
+        <PositionSheetContainer
           ref={sheetRef}
-          isInteractable
-          goBack={handleSheetClosed}
+          onClosed={handleSheetClosed}
+          onOpened={handleSheetOpened}
+          onDragStart={sheetState.onDragStart}
+          onDragEnd={sheetState.onDragEnd}
           testID={PositionDetailsSheetSelectorsIDs.CONTAINER}
-        >
-          <View onLayout={handleHeaderLayout}>
+          header={
             <PositionSheetHeader
               author={author}
               isOwnPost={isOwnPost}
               onPressTrader={handleOpenTraderProfile}
             />
-          </View>
-          {/* Bounded so content past the screen scrolls instead of being clipped. */}
-          <ScrollView
-            style={
-              headerHeight > 0 ? { maxHeight: maxScrollHeight } : undefined
-            }
-            scrollEnabled
-            nestedScrollEnabled
-            scrollEventThrottle={16}
-            showsVerticalScrollIndicator={false}
-            onScroll={handleScroll}
-            onScrollEndDrag={handleScrollEndDrag}
-            testID={PositionDetailsSheetSelectorsIDs.SCROLL}
-          >
+          }
+          footer={footer}
+        >
+          <PositionSheetTabs position={position} author={author}>
             <PositionSheetPriceHeader
               assetName={data.assetName}
               isPerp={data.isPerp}
@@ -482,15 +400,25 @@ const PositionDetailsSheet = () => {
               lineProgress={reveal.lineProgress}
               overlayStyle={reveal.overlayStyle}
               onScrub={setScrubPoint}
+              onFrameReady={handleChartFrameReady}
+              isSheetOpen={isSheetOpen}
             />
             <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
-              {details}
+              <Box twClassName="px-4 py-3" gap={2}>
+                <PositionSheetTradeSummary
+                  title={data.summaryTitle}
+                  tagLabel={data.summaryTagLabel}
+                  direction={data.perpDirection}
+                  isClosed={data.isClosed}
+                  subtitle={data.summarySubtitle}
+                  pnlPercentLabel={data.pnlPercentLabel}
+                  pnlValueLabel={data.pnlValueLabel}
+                  isPnlPositive={data.isPnlPositive}
+                />
+              </Box>
             </View>
-          </ScrollView>
-          {isTabsExpanded ? (
-            <View onLayout={handlePinnedFooterLayout}>{footer}</View>
-          ) : null}
-        </BottomSheet>
+          </PositionSheetTabs>
+        </PositionSheetContainer>
       )}
 
       {!data.isPerp && position ? (

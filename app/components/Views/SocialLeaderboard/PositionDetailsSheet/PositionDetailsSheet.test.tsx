@@ -9,14 +9,14 @@ import {
   within,
 } from '@testing-library/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  fireGestureHandler,
-  getByGestureTestId,
-} from 'react-native-gesture-handler/jest-utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import type { UseOpenPerpsOrderOptions } from '../../../UI/SocialFeed/hooks/useOpenPerpsOrder';
 import type { PositionSheetData } from './hooks/usePositionSheetData';
+import type {
+  PositionSheetContainerProps,
+  PositionSheetContainerRef,
+} from './components/PositionSheetContainer';
 import PositionDetailsSheet from './PositionDetailsSheet';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
 import { fireImpact, ImpactMoment } from '../../../../util/haptics';
@@ -166,6 +166,40 @@ jest.mock('../../../UI/QuickBuy/hooks/useQuickBuySetup', () => ({
 jest.mock('../../../UI/QuickBuy/hooks/usePositionTokenBalance', () => ({
   usePositionTokenBalance: () => mockHeldBalance,
 }));
+
+let mockContainerProps: PositionSheetContainerProps | undefined;
+
+// The real sheet springs closed on the UI thread; its gestures are covered in
+// PositionSheetContainer.test.tsx. Here a close completes synchronously.
+jest.mock('./components/PositionSheetContainer', () => {
+  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: forwardRef(
+      (
+        props: PositionSheetContainerProps,
+        ref: React.Ref<PositionSheetContainerRef>,
+      ) => {
+        mockContainerProps = props;
+        useImperativeHandle(ref, () => ({
+          close: (callback?: () => void) => {
+            props.onClosed();
+            callback?.();
+          },
+          dismiss: () => props.onClosed(),
+        }));
+        return (
+          <View testID={props.testID}>
+            {props.header}
+            <View testID="position-details-sheet-scroll">{props.children}</View>
+            {props.footer}
+          </View>
+        );
+      },
+    ),
+  };
+});
 
 jest.mock('./components/PositionSheetChart', () => {
   const { Pressable, View } = jest.requireActual('react-native');
@@ -748,127 +782,55 @@ describe('PositionDetailsSheet', () => {
     });
   });
 
+  describe('sheet', () => {
+    it('holds the live price while the sheet is dragged', () => {
+      render(<PositionDetailsSheet />);
+      const price = () =>
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE);
+
+      act(() => mockContainerProps?.onDragStart?.());
+      mockSheetData = buildSheetData({ currentPrice: 150 });
+      screen.rerender(<PositionDetailsSheet />);
+
+      expect(price()).toHaveTextContent('$120');
+
+      act(() => mockContainerProps?.onDragEnd?.());
+
+      expect(price()).toHaveTextContent('$150');
+    });
+  });
+
   describe('tabs', () => {
-    const swipe = (gestureTestId: string, translationY: number) =>
-      act(() => {
-        fireGestureHandler(getByGestureTestId(gestureTestId), [
-          { translationY: 0 },
-          { translationY },
-        ]);
-      });
-
-    it('opens collapsed so the footer stays in view', () => {
-      render(<PositionDetailsSheet />);
-
-      expect(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
-      ).toBeNull();
-      expect(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('toggles the active tab open and closed on tap', () => {
-      render(<PositionDetailsSheet />);
-      const postsTab = screen.getByTestId(
-        PositionDetailsSheetSelectorsIDs.POSTS_TAB,
-      );
-
-      fireEvent.press(postsTab);
-      expect(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
-      ).toBeOnTheScreen();
-
-      fireEvent.press(postsTab);
-      expect(
-        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
-      ).toBeNull();
-    });
-
-    it('stays open when switching to the other tab', () => {
-      render(<PositionDetailsSheet />);
-
-      fireEvent.press(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
-      );
-      fireEvent.press(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRANSACTIONS_TAB),
-      );
-
-      expect(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRANSACTIONS_LIST),
-      ).toBeOnTheScreen();
-    });
-
-    const scrollBy = (y: number) =>
-      fireEvent.scroll(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SCROLL),
-        { nativeEvent: { contentOffset: { x: 0, y } } },
-      );
-
-    it('opens on a scroll up and closes on a swipe down over the tab bar', async () => {
-      render(<PositionDetailsSheet />);
-
-      scrollBy(40);
-      expect(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
-      ).toBeOnTheScreen();
-      // GestureDetector swaps in the re-enabled gesture on a microtask.
-      await act(async () => undefined);
-
-      swipe(PositionDetailsSheetSelectorsIDs.TABS_COLLAPSE_GESTURE, 40);
-      expect(
-        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
-      ).toBeNull();
-    });
-
-    it('ignores a scroll shorter than the threshold', () => {
-      render(<PositionDetailsSheet />);
-
-      scrollBy(10);
-
-      expect(
-        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
-      ).toBeNull();
-    });
-
-    it('scrolls the sheet from the start and pins the footer only while open', () => {
+    it('opens on Posts with the footer pinned below the list', () => {
       render(<PositionDetailsSheet />);
       const scroll = screen.getByTestId(
         PositionDetailsSheetSelectorsIDs.SCROLL,
       );
       const copyTradeId = PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON;
 
-      expect(scroll).toHaveProp('scrollEnabled', true);
-      expect(within(scroll).getByTestId(copyTradeId)).toBeOnTheScreen();
-
-      fireEvent.press(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
-      );
-
-      expect(scroll).toHaveProp('scrollEnabled', true);
+      expect(
+        within(scroll).getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+      ).toBeOnTheScreen();
       expect(within(scroll).queryByTestId(copyTradeId)).toBeNull();
       expect(screen.getByTestId(copyTradeId)).toBeOnTheScreen();
     });
 
-    it('closes when the sheet is pulled down past its top', () => {
+    it('switches between Posts and Transactions on tap', () => {
       render(<PositionDetailsSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRANSACTIONS_TAB),
+      );
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.TRANSACTIONS_LIST),
+      ).toBeOnTheScreen();
+
       fireEvent.press(
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
       );
-
-      fireEvent(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SCROLL),
-        'scrollEndDrag',
-        { nativeEvent: { contentOffset: { x: 0, y: -80 } } },
-      );
-
       expect(
-        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
-      ).toBeNull();
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
+      ).toBeOnTheScreen();
     });
 
     it('lists every comment on the position under Posts', () => {

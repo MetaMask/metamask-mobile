@@ -41,6 +41,7 @@ const renderChart = (
       lineProgress={lineProgress}
       overlayStyle={undefined}
       onScrub={onScrub}
+      isSheetOpen
       {...props}
     />,
   );
@@ -51,10 +52,31 @@ const renderChart = (
       nativeEvent: { layout: { width: 300, height: 280 } },
     },
   );
+  act(() => {
+    jest.runAllTimers();
+  });
   return { onScrub };
 };
 
 describe('PositionSheetChart', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('keeps the line hidden until the sheet has opened', () => {
+    const onFrameReady = jest.fn();
+    renderChart({ isSheetOpen: false, onFrameReady });
+
+    expect(onFrameReady).not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CHART_LINE),
+    ).toBeNull();
+  });
+
   it('draws the line and a marker per fill', () => {
     renderChart();
 
@@ -69,7 +91,7 @@ describe('PositionSheetChart', () => {
     expect(screen.getByText('Wed')).toBeOnTheScreen();
   });
 
-  it('shows the skeleton while prices load', () => {
+  it('stays empty while prices load', () => {
     renderChart({ isLoading: true });
 
     expect(

@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import React, { useMemo, useState } from 'react';
+import { View } from 'react-native';
 import {
   Box,
   FontWeight,
@@ -18,31 +18,29 @@ import {
 } from '../utils/positionPosts';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 import PositionSheetPostRow from './PositionSheetPostRow';
-
-/** Vertical travel that counts as a deliberate expand / collapse swipe. */
-export const SWIPE_THRESHOLD = 24;
+import { useSheetScrollViewport } from './sheetScrollViewport';
 
 const POSTS_TAB_INDEX = 0;
 
 interface PositionSheetTabsProps {
   position: Position | undefined;
   author: SocialV1FeedAuthor;
-  /** Collapsed, only the tab bar shows so the footer stays in view. */
-  isExpanded: boolean;
-  onExpandedChange: (isExpanded: boolean) => void;
+  /** Price, chart and trade summary. The tab bar sits directly under these. */
+  children: React.ReactNode;
 }
 
 /**
- * Posts (author comments) and Transactions (fills) for one position. Tapping
- * a tab opens its list; tapping the open tab again or swiping down on the tab
- * bar closes it. The open list scrolls with the sheet, not on its own.
+ * Posts (author comments) and Transactions (fills) for one position. The
+ * tab bar stays at the bottom of the first screen, and the active list
+ * continues below it. The list always renders, so nothing mounts while the
+ * sheet is being dragged, and it scrolls with the sheet.
  */
 const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
   position,
   author,
-  isExpanded,
-  onExpandedChange,
+  children,
 }) => {
+  const scrollViewportHeight = useSheetScrollViewport();
   const [activeIndex, setActiveIndex] = useState(POSTS_TAB_INDEX);
   const posts = useMemo(() => getPositionPosts(position), [position]);
   const transactions = useMemo(
@@ -70,33 +68,6 @@ const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
       },
     ],
     [posts.length, transactions.length],
-  );
-
-  const handleTabPress = useCallback(
-    (index: number) => {
-      if (isExpanded && index === activeIndex) {
-        onExpandedChange(false);
-        return;
-      }
-      setActiveIndex(index);
-      if (!isExpanded) onExpandedChange(true);
-    },
-    [isExpanded, activeIndex, onExpandedChange],
-  );
-
-  // Downward-only so a swipe on the collapsed bar still drags the sheet.
-  const collapseGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .withTestId(PositionDetailsSheetSelectorsIDs.TABS_COLLAPSE_GESTURE)
-        .runOnJS(true)
-        .enabled(isExpanded)
-        .activeOffsetY(6)
-        .failOffsetY(-6)
-        .onEnd((event) => {
-          if (event.translationY > SWIPE_THRESHOLD) onExpandedChange(false);
-        }),
-    [isExpanded, onExpandedChange],
   );
 
   const isPostsTab = activeIndex === POSTS_TAB_INDEX;
@@ -131,29 +102,28 @@ const PositionSheetTabs: React.FC<PositionSheetTabsProps> = ({
     ));
 
   return (
-    <Box testID={PositionDetailsSheetSelectorsIDs.TABS}>
-      <GestureDetector gesture={collapseGesture}>
-        <Box>
+    <>
+      <View style={{ minHeight: scrollViewportHeight }}>
+        {children}
+        <Box testID={PositionDetailsSheetSelectorsIDs.TABS}>
           <TabsBar
             tabs={tabs}
             activeIndex={activeIndex}
-            onTabPress={handleTabPress}
+            onTabPress={setActiveIndex}
           />
         </Box>
-      </GestureDetector>
-      {isExpanded ? (
-        <Box
-          twClassName="mt-3"
-          testID={
-            isPostsTab
-              ? PositionDetailsSheetSelectorsIDs.POSTS_LIST
-              : PositionDetailsSheetSelectorsIDs.TRANSACTIONS_LIST
-          }
-        >
-          {isPostsTab ? renderPosts() : renderTransactions()}
-        </Box>
-      ) : null}
-    </Box>
+      </View>
+      <Box
+        twClassName="mt-3 pb-4"
+        testID={
+          isPostsTab
+            ? PositionDetailsSheetSelectorsIDs.POSTS_LIST
+            : PositionDetailsSheetSelectorsIDs.TRANSACTIONS_LIST
+        }
+      >
+        {isPostsTab ? renderPosts() : renderTransactions()}
+      </Box>
+    </>
   );
 };
 

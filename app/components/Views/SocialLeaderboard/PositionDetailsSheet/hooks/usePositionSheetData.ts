@@ -299,6 +299,11 @@ export function usePositionSheetData(
       lastChartPrice !== undefined &&
       lastChartPrice >= firstChartPrice);
 
+  const timeAxisLabels = useMemo(
+    () => buildTimeAxisLabels(chartWindow, TIME_AXIS_LABEL_COUNT, chartPeriod),
+    [chartWindow, chartPeriod],
+  );
+
   return {
     isPerp,
     isClosed: base.isClosed,
@@ -312,11 +317,7 @@ export function usePositionSheetData(
         : undefined,
     prices,
     isPricesLoading,
-    timeAxisLabels: buildTimeAxisLabels(
-      chartWindow,
-      TIME_AXIS_LABEL_COUNT,
-      chartPeriod,
-    ),
+    timeAxisLabels,
     isTrendPositive,
     markers,
     isMarketCapMode,

@@ -5955,7 +5955,8 @@
           "pull_to_refresh_engage": "Impact — Pull to refresh (engage)",
           "pull_to_refresh": "Impact — Pull to refresh (release)",
           "chart_crosshair": "Impact — Chart crosshair",
-          "follow_toggle": "Impact — Follow toggle"
+          "follow_toggle": "Impact — Follow toggle",
+          "sheet_dismiss": "Impact — Sheet dismiss"
         },
         "raw_styles": {
           "light": "Raw impact — Light",

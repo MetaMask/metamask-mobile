@@ -1,5 +1,8 @@
 export const PositionDetailsSheetSelectorsIDs = {
   CONTAINER: 'position-details-sheet',
+  OVERLAY: 'position-details-sheet-overlay',
+  DRAG_GESTURE: 'position-details-sheet-drag-gesture',
+  HANDLE: 'position-details-sheet-handle',
   HEADER: 'position-details-sheet-header',
   IDENTITY: 'position-details-sheet-identity',
   TITLE: 'position-details-sheet-title',
@@ -22,7 +25,6 @@ export const PositionDetailsSheetSelectorsIDs = {
   CHART_SCRUB: 'position-details-sheet-chart-scrub',
   SCROLL: 'position-details-sheet-scroll',
   DETAILS: 'position-details-sheet-details',
-  TABS_COLLAPSE_GESTURE: 'position-details-sheet-tabs-collapse-gesture',
   TRADE_SUMMARY: 'position-details-sheet-trade-summary',
   TABS: 'position-details-sheet-tabs',
   POSTS_TAB: 'position-details-sheet-posts-tab',

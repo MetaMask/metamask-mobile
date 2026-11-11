@@ -4,14 +4,11 @@ import {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
-  withDelay,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 
-/** Lets the sheet's own slide-up (~300ms) land before the line starts. */
-export const LINE_DRAW_DELAY_MS = 300;
 export const LINE_DRAW_DURATION_MS = 700;
 export const OVERLAY_FADE_DURATION_MS = 200;
 
@@ -54,18 +51,15 @@ export function useChartLineReveal({
       overlayOpacity.value = 1;
       return;
     }
-    lineProgress.value = withDelay(
-      LINE_DRAW_DELAY_MS,
-      withTiming(
-        1,
-        { duration: LINE_DRAW_DURATION_MS, easing: EASE_OUT },
-        (finished) => {
-          if (!finished) return;
-          overlayOpacity.value = withTiming(1, {
-            duration: OVERLAY_FADE_DURATION_MS,
-          });
-        },
-      ),
+    lineProgress.value = withTiming(
+      1,
+      { duration: LINE_DRAW_DURATION_MS, easing: EASE_OUT },
+      (finished) => {
+        if (!finished) return;
+        overlayOpacity.value = withTiming(1, {
+          duration: OVERLAY_FADE_DURATION_MS,
+        });
+      },
     );
   }, [isAnimated, isChartReady, hasChartData, lineProgress, overlayOpacity]);
 

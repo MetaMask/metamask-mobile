@@ -2,7 +2,6 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import {
-  LINE_DRAW_DELAY_MS,
   LINE_DRAW_DURATION_MS,
   useChartLineReveal,
 } from './useChartLineReveal';
@@ -82,7 +81,7 @@ describe('useChartLineReveal', () => {
     const { result } = renderReveal({ isChartReady: true, hasChartData: true });
 
     act(() => {
-      jest.advanceTimersByTime(LINE_DRAW_DELAY_MS + LINE_DRAW_DURATION_MS);
+      jest.advanceTimersByTime(LINE_DRAW_DURATION_MS);
     });
 
     expect(result.current.lineProgress.value).toBe(1);
@@ -97,7 +96,7 @@ describe('useChartLineReveal', () => {
 
     rerender({ isChartReady: true, hasChartData: true });
     act(() => {
-      jest.advanceTimersByTime(LINE_DRAW_DELAY_MS + LINE_DRAW_DURATION_MS);
+      jest.advanceTimersByTime(LINE_DRAW_DURATION_MS);
     });
 
     expect(result.current.lineProgress.value).toBe(1);
