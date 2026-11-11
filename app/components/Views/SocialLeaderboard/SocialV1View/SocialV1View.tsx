@@ -61,7 +61,7 @@ import {
   SOCIAL_V1_EXPOSURE_METADATA,
   SOCIAL_V1_VARIANTS,
 } from './abTestConfig';
-import EmptyShellTabPage from '../shell/EmptyShellTabPage';
+import FollowingView from '../FollowingView';
 import LeaderboardShellTabPage from '../shell/LeaderboardShellTabPage';
 import {
   SOCIAL_V1_TAB_ORDER,
@@ -584,16 +584,11 @@ const SocialV1ViewContent: React.FC = () => {
     },
     [handleCopyTrade],
   );
-  const openFollowingQuickBuy = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
-      openQuickBuy(
-        target,
-        copyTradeOrigin,
-        'buy',
-        SocialEvent.Source.SOCIAL_FOLLOWING,
-      );
+  const handleFollowingCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      handleCopyTrade(item, commentId, SocialEvent.Source.SOCIAL_FOLLOWING);
     },
-    [openQuickBuy],
+    [handleCopyTrade],
   );
 
   useEffect(() => {
@@ -897,22 +892,21 @@ const SocialV1ViewContent: React.FC = () => {
                           scrollTestID={testIds.scroll}
                         />
                       ) : (
-                        <EmptyShellTabPage
-                          tab={tab}
-                          source={analyticsSource}
-                          performance={socialPerformanceByTab[tab]}
+                        <FollowingView
                           isActive={activeIndex === followingIndex}
+                          source={analyticsSource}
+                          performance={socialPerformanceByTab.following}
                           onScroll={scrollHandlers[tab]}
                           pageRef={pageRef}
-                          containerTestID={testIds.container}
-                          scrollTestID={testIds.scroll}
+                          onCopyTrade={handleFollowingCopyTrade}
                           onOpenFilters={handleOpenFollowingFilters}
                           isFilterActive={hasActiveFilters('following')}
                           onClearFilters={() =>
                             clearAppliedFilters('following')
                           }
                           appliedFilters={applied.following}
-                          onQuickBuy={openFollowingQuickBuy}
+                          testID={testIds.container}
+                          scrollTestID={testIds.scroll}
                         />
                       )}
                     </SocialFeedPageProviders>

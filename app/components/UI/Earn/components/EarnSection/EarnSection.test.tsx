@@ -16,13 +16,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import {
-  useMoneyNavigation,
-  type NavigateToMoneyHomeOptions,
-} from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../Money/hooks/useMoneyHomeNavigation';
 import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
-import { MONEY_BUTTON_INTENTS } from '../../../Money/constants/moneyButtonEvents';
-import { SCREEN_NAMES } from '../../../Money/constants/moneyEventLocations';
 import type { MoneyEntryContext } from '../../../Money/navigation/moneyEntryDecision';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
@@ -47,7 +42,11 @@ const mockMoneyTrackSurfaceClicked = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
 const mockNavigateToMoneyHomeFromCta = jest.fn();
 
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+  useIsFocused: jest.fn(),
+}));
 jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: () => ({
     Navigator: ({ children }: { children?: React.ReactNode }) =>
@@ -77,7 +76,7 @@ jest.mock('../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
     trackSurfaceClicked: mockMoneyTrackSurfaceClicked,
   })),
 }));
-jest.mock('../../../../UI/Money/hooks/useMoneyNavigation');
+jest.mock('../../../../UI/Money/hooks/useMoneyHomeNavigation');
 jest.mock('../../../../UI/Earn/hooks/useEarnAnalytics', () => ({
   useEarnAnalytics: jest.fn(() => ({
     trackButtonClicked: mockEarnTrackButtonClicked,
@@ -106,9 +105,8 @@ const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseMoneyNavigation = useMoneyNavigation as jest.MockedFunction<
-  typeof useMoneyNavigation
->;
+const mockUseMoneyHomeNavigation =
+  useMoneyHomeNavigation as jest.MockedFunction<typeof useMoneyHomeNavigation>;
 const mockLoggerError = jest.mocked(Logger.error);
 type Tailwind = ReturnType<typeof useTailwind>;
 
@@ -303,26 +301,38 @@ describe('EarnSection', () => {
       isBalanceLoading: false,
       refetchBalance: mockRefetchBalance,
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
-    const trackMoneyHomeEntry = (options: NavigateToMoneyHomeOptions = {}) => {
-      options.track?.({
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      track?.({
         redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
-          ? SCREEN_NAMES.MONEY_SPLASH
+          ? 'money_splash'
           : mockMoneyEntryContext.isOnboardingRedirectNeeded
-            ? SCREEN_NAMES.MONEY_ONBOARDING
-            : SCREEN_NAMES.MONEY_HOME,
+            ? 'money_onboarding'
+            : 'money_home',
         button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
-          ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH
+          ? 'go_to_money_splash'
           : mockMoneyEntryContext.isOnboardingRedirectNeeded
-            ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
-            : MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+            ? 'go_to_money_onboarding'
+            : 'go_to_money_home',
       });
-    };
-    mockNavigateToMoneyHome.mockImplementation(trackMoneyHomeEntry);
-    mockNavigateToMoneyHomeFromCta.mockImplementation(trackMoneyHomeEntry);
-    mockUseMoneyNavigation.mockReturnValue({
+    });
+    mockNavigateToMoneyHomeFromCta.mockImplementation(({ track } = {}) => {
+      track?.({
+        redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
+          ? 'money_splash'
+          : mockMoneyEntryContext.isOnboardingRedirectNeeded
+            ? 'money_onboarding'
+            : 'money_home',
+        button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
+          ? 'go_to_money_splash'
+          : mockMoneyEntryContext.isOnboardingRedirectNeeded
+            ? 'go_to_money_onboarding'
+            : 'go_to_money_home',
+      });
+    });
+    mockUseMoneyHomeNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
       navigateToMoneyHomeFromCta: mockNavigateToMoneyHomeFromCta,
-    } as ReturnType<typeof useMoneyNavigation>);
+    } as ReturnType<typeof useMoneyHomeNavigation>);
     mockEarnOpportunityNavigation();
     mockSectionResult();
   });

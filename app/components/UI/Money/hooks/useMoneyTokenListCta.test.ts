@@ -13,7 +13,7 @@ import {
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyCtaDepositNavigation } from './useMoneyNavigation';
+import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
 import { useMoneyTokenListCta } from './useMoneyTokenListCta';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -24,7 +24,7 @@ jest.mock('./useMoneyAccount');
 jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
-jest.mock('./useMoneyNavigation');
+jest.mock('./useMoneyDepositNavigation');
 
 const mockInitiateDeposit = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();

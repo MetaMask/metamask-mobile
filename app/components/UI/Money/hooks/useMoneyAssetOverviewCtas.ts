@@ -19,15 +19,9 @@ import { calculateProjectedEarnings } from '../utils/projections';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyCtaDepositNavigation } from './useMoneyNavigation';
+import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
 import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
-import { useABTest } from '../../../../hooks/useABTest';
-import {
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_EXPOSURE_METADATA,
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_VARIANTS,
-} from '../../TokenDetails/components/abTestConfig';
 
 const FOOTER_LABEL_KEY = 'money.asset_overview.cta.earn_apy';
 const BALANCE_BUTTON_LABEL_KEY = 'money.asset_overview.cta.start_earning';
@@ -70,17 +64,6 @@ export const useMoneyAssetOverviewCtas = ({
     isFooterCtaEligible: isFooterCtaEligibleFromVisibility,
   } = useMoneyAssetOverviewCtaVisibility(asset, hasBalance, balanceFiatUsd);
 
-  const { variant: balanceCtaVariant } = useABTest(
-    EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
-    EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_VARIANTS,
-    {
-      ...EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_EXPOSURE_METADATA,
-      trackExposure: isBalanceCtaEligible,
-    },
-  );
-  const isBalanceCtaEnabled =
-    isBalanceCtaEligible && balanceCtaVariant.showMoneyDepositBalanceCta;
-
   // Only aTokens with Money deposit fee subsidized are eligible for the footer CTA
   const isFooterCtaEligible =
     isFooterCtaEligibleFromVisibility &&
@@ -92,7 +75,7 @@ export const useMoneyAssetOverviewCtas = ({
 
   const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({
-    enabled: isBalanceCtaEnabled || isFooterCtaEligible,
+    enabled: isBalanceCtaEligible || isFooterCtaEligible,
   });
   const { trackTokenButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ASSET_DETAIL,
@@ -223,8 +206,8 @@ export const useMoneyAssetOverviewCtas = ({
   return {
     footerLabelLocalized,
     isFooterCtaEligible,
-    isBalanceCtaLoading: isBalanceCtaEnabled && isApyLoading,
-    isBalanceCtaVisible: isBalanceCtaEnabled && hasApy,
+    isBalanceCtaLoading: isBalanceCtaEligible && isApyLoading,
+    isBalanceCtaVisible: isBalanceCtaEligible && hasApy,
     isFooterCtaLoading: isFooterCtaEligible && isApyLoading,
     isFooterCtaVisible: isFooterCtaEligible && hasApy,
     onBalancePress,

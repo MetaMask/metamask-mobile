@@ -11,11 +11,11 @@ import {
   IconColor,
   IconName,
   IconSize,
+  HelpText,
+  HelpTextSeverity,
   Text,
+  TextColor,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
@@ -173,7 +173,8 @@ const VerifyIdentity = () => {
         />
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="flex-1 flex-shrink text-text-alternative"
+          color={TextColor.TextAlternative}
+          twClassName="flex-1 flex-shrink"
         >
           {strings('card.card_onboarding.verify_identity.terms_1')}
         </Text>
@@ -186,7 +187,8 @@ const VerifyIdentity = () => {
         />
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="flex-1 flex-shrink text-text-alternative"
+          color={TextColor.TextAlternative}
+          twClassName="flex-1 flex-shrink"
         >
           {selectedCountry?.key === 'US'
             ? strings('card.card_onboarding.verify_identity.terms_2_us')
@@ -195,48 +197,43 @@ const VerifyIdentity = () => {
       </Box>
 
       {startVerificationIsError ? (
-        <Text
-          variant={TextVariant.BodySm}
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
           testID="verify-identity-start-verification-error"
-          twClassName="text-error-default text-center"
+          twClassName="text-center"
         >
           {startVeriricationErr}
-        </Text>
+        </HelpText>
       ) : !sessionUrl && !startVerificationIsLoading ? (
-        <Text
-          variant={TextVariant.BodySm}
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
           testID="verify-identity-start-verification-error"
-          twClassName="text-error-default text-center"
+          twClassName="text-center"
         >
           {strings(
             'card.card_onboarding.verify_identity.start_verification_error',
           )}
-        </Text>
-      ) : (
-        <></>
-      )}
+        </HelpText>
+      ) : null}
     </>
   );
 
-  const renderActions = () => (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      isFullWidth
-      isDisabled={!sessionUrl || isLaunchingVeriff}
-      isLoading={isLaunchingVeriff}
-      testID="verify-identity-continue-button"
-    >
-      {strings('card.card_onboarding.continue_button')}
-    </Button>
-  );
   return (
     <OnboardingStep
       title={strings('card.card_onboarding.verify_identity.title')}
       description={strings('card.card_onboarding.verify_identity.description')}
       formFields={renderFormFields()}
-      actions={renderActions()}
+      primaryButtonProps={{
+        children: strings('card.card_onboarding.continue_button'),
+        onPress: handleContinue,
+        isDisabled: !sessionUrl || isLaunchingVeriff,
+        isLoading: isLaunchingVeriff,
+        testID: 'verify-identity-continue-button',
+      }}
       headerMode="close-with-confirmation"
     />
   );

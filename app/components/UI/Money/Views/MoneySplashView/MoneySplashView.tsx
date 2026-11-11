@@ -40,7 +40,7 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMountEffect from '../../hooks/useMountEffect';
 import { selectMoneyNoFeeDepositTokens } from '../../selectors/featureFlags';
@@ -116,7 +116,7 @@ const MoneySplashView = () => {
   const showHero = !(hardwareTier === 'LOW' && isOffline);
   const { apyPercent } = useMoneyVaultApy({ enabled: !isOffline });
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
   const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
 

@@ -8,15 +8,8 @@ import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
-import {
-  useMoneyNavigation,
-  type NavigateToMoneyHomeOptions,
-} from '../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../UI/Money/hooks/useMoneyHomeNavigation';
 import { useMoneyAnalytics } from '../../../UI/Money/hooks/useMoneyAnalytics';
-import {
-  MONEY_BUTTON_INTENTS,
-  SCREEN_NAMES,
-} from '../../../UI/Money/constants/moneyEvents';
 import { useEarnAnalytics } from '../../../UI/Earn/hooks/useEarnAnalytics';
 import { selectMoneyCtaEntryContext } from '../../../UI/Money/selectors/entry';
 import type { MoneyEntryContext } from '../../../UI/Money/navigation/moneyEntryDecision';
@@ -33,8 +26,8 @@ import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => false),
 }));
-jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(),
+jest.mock('../../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: jest.fn(),
 }));
 jest.mock('../../../UI/Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -151,26 +144,38 @@ describe('EarnSearchRow', () => {
       .mockImplementation((selector) =>
         selector === selectMoneyCtaEntryContext ? mockMoneyEntryContext : false,
       );
-    const trackMoneyHomeEntry = (options: NavigateToMoneyHomeOptions = {}) => {
-      options.track?.({
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      track?.({
         redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
-          ? SCREEN_NAMES.MONEY_SPLASH
+          ? 'money_splash'
           : mockMoneyEntryContext.isOnboardingRedirectNeeded
-            ? SCREEN_NAMES.MONEY_ONBOARDING
-            : SCREEN_NAMES.MONEY_HOME,
+            ? 'money_onboarding'
+            : 'money_home',
         button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
-          ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH
+          ? 'go_to_money_splash'
           : mockMoneyEntryContext.isOnboardingRedirectNeeded
-            ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
-            : MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+            ? 'go_to_money_onboarding'
+            : 'go_to_money_home',
       });
-    };
-    mockNavigateToMoneyHome.mockImplementation(trackMoneyHomeEntry);
-    mockNavigateToMoneyHomeFromCta.mockImplementation(trackMoneyHomeEntry);
-    jest.mocked(useMoneyNavigation).mockReturnValue({
+    });
+    mockNavigateToMoneyHomeFromCta.mockImplementation(({ track } = {}) => {
+      track?.({
+        redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
+          ? 'money_splash'
+          : mockMoneyEntryContext.isOnboardingRedirectNeeded
+            ? 'money_onboarding'
+            : 'money_home',
+        button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
+          ? 'go_to_money_splash'
+          : mockMoneyEntryContext.isOnboardingRedirectNeeded
+            ? 'go_to_money_onboarding'
+            : 'go_to_money_home',
+      });
+    });
+    jest.mocked(useMoneyHomeNavigation).mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
       navigateToMoneyHomeFromCta: mockNavigateToMoneyHomeFromCta,
-    } as unknown as ReturnType<typeof useMoneyNavigation>);
+    } as unknown as ReturnType<typeof useMoneyHomeNavigation>);
     jest.mocked(useEarnOpportunityNavigation).mockReturnValue({
       navigateFromEarnAsset: mockNavigateFromEarnAsset,
       navigateToDepositForExperience: jest.fn(),

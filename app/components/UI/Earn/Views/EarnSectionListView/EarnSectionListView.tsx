@@ -44,10 +44,8 @@ import useMountEffect from '../../../Money/hooks/useMountEffect';
 import { useProjectedEarnings } from '../../../Money/hooks/useProjectedEarnings';
 import type { MoneyDepositAsset } from '../../../Money/selectors/depositTokens';
 import PotentialEarningsTokenRow from '../../../Money/components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
-import {
-  useMoneyNavigation,
-  useMoneyCtaDepositNavigation,
-} from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../Money/hooks/useMoneyHomeNavigation';
+import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import { isPositiveNumber } from '../../../Money/utils/number';
 import useEarnOpportunityNavigation, {
@@ -261,7 +259,7 @@ const EarnSectionListView = () => {
     isBalanceLoading: isMoneyAccountBalanceLoading,
     refetchBalance: refetchMoneyAccountBalance,
   } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
-  const { navigateToMoneyHomeFromCta } = useMoneyNavigation();
+  const { navigateToMoneyHomeFromCta } = useMoneyHomeNavigation();
   const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
   const { destination: moneyHomeDestination } = getMoneyEntryDecision(
