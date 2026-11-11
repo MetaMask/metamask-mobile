@@ -478,10 +478,16 @@ jest.mock('../components/TokenDetailsStickyFooter', () => {
     __esModule: true,
     default: (props: {
       traderPositionPnl?: React.ComponentProps<typeof TraderPositionPnl>;
+      onFooterLayout?: (height: number) => void;
     }) => {
       mockStickyFooterProps.push(props);
       return (
-        <View testID="mock-sticky-footer">
+        <View
+          testID="mock-sticky-footer"
+          onLayout={(event: LayoutChangeEvent) => {
+            props.onFooterLayout?.(event.nativeEvent.layout.height);
+          }}
+        >
           {props.traderPositionPnl && (
             <TraderPositionPnl {...props.traderPositionPnl} />
           )}
@@ -972,10 +978,10 @@ describe('TokenDetailsV1', () => {
     });
   });
 
-  it('keeps room at the end of the page for the sticky footer', () => {
+  it('keeps the page scroll clear of the sticky footer', () => {
     // The footer is an absolutely positioned BottomSheetDialog, so it covers
-    // the end of the scroll. Without this padding a short tab -- a token with
-    // two holders -- has no scroll range to lift its rows clear of it.
+    // the end of the scroll. The reserved space is the footer's own height:
+    // a fixed pad either hides the last rows or leaves a blank scroll.
     const { getByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -983,16 +989,27 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    const { contentContainerStyle } = getByTestId(
-      TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID,
-    ).props;
+    const scrollView = getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID);
 
-    expect(contentContainerStyle).toEqual(
-      expect.objectContaining({
-        paddingBottom: expect.any(Number) as unknown as number,
-      }),
+    expect(scrollView.props.contentContainerStyle).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          paddingBottom: 190,
+        }),
+      ]),
     );
-    expect(contentContainerStyle.paddingBottom).toBeGreaterThan(0);
+
+    fireEvent(getByTestId('mock-sticky-footer'), 'layout', {
+      nativeEvent: { layout: { height: 240, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(scrollView.props.contentContainerStyle).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          paddingBottom: 240,
+        }),
+      ]),
+    );
   });
 
   it('renders a stacked tab content container where only the active page is laid out', () => {
@@ -1706,8 +1723,17 @@ describe('TokenDetailsV1', () => {
     });
 
     // Viewport, less the tab bar and the room kept for the sticky footer.
+    // The footer has not reported a height yet, so the fallback 190 is used.
     expect(getByTestId(TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID)).toHaveStyle({
       minHeight: 900 - 48 - 190,
+    });
+
+    fireEvent(getByTestId('mock-sticky-footer'), 'layout', {
+      nativeEvent: { layout: { height: 240, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(getByTestId(TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID)).toHaveStyle({
+      minHeight: 900 - 48 - 240,
     });
   });
 
