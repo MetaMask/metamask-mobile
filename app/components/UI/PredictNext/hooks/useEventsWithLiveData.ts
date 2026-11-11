@@ -31,6 +31,14 @@ const uniqueIds = (ids: readonly PredictEntityId[]): PredictEntityId[] => [
 export type LiveMarketWatchScope = PredictLiveMarketScope;
 
 /**
+ * Code-unit order, so the key never depends on the device locale.
+ */
+const compareIds = (a: PredictEntityId, b: PredictEntityId): number => {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
+};
+
+/**
  * A scope as a string that is equal for equal scopes: `all`, `card`, or the
  * sorted, de-duplicated `visible` ids as JSON. The service orders a `visible`
  * list by the Event's own Markets, so order here carries no meaning and a
@@ -39,7 +47,7 @@ export type LiveMarketWatchScope = PredictLiveMarketScope;
 const scopeKeyOf = (scope: LiveMarketWatchScope): string =>
   typeof scope === 'string'
     ? scope
-    : JSON.stringify([...new Set(scope.marketIds)].sort());
+    : JSON.stringify([...new Set(scope.marketIds)].sort(compareIds));
 
 const scopeFromKey = (key: string): LiveMarketWatchScope =>
   key === 'all' || key === 'card'
