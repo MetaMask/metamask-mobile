@@ -47,6 +47,11 @@ export interface TokenWarningModalParams {
   features: SecurityFeature[];
   mode: TokenWarningModalMode;
   location: MetaMetricsSwapsEventSource;
+  /**
+   * Execution mode only: runs on Proceed instead of the Bridge confirm, for
+   * flows that submit outside the Bridge screens (e.g. Quick Buy).
+   */
+  onProceed?: () => Promise<void>;
 }
 
 export const getTokenWarningContent = (
@@ -102,6 +107,7 @@ const TokenWarningModalSheet = ({
     features = [],
     mode,
     location,
+    onProceed,
   } = useParams<TokenWarningModalParams>();
 
   const destToken = useSelector(selectDestToken);
@@ -111,14 +117,15 @@ const TokenWarningModalSheet = ({
   }, []);
 
   const handleProceed = useCallback(async () => {
-    if (hasMissingPriceData(activeQuote)) {
+    // An `onProceed` caller runs its own quote checks.
+    if (!onProceed && hasMissingPriceData(activeQuote)) {
       navigation.replace(Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL, {
         location,
       });
       return;
     }
 
-    if (shouldShowPriceImpactError) {
+    if (!onProceed && shouldShowPriceImpactError) {
       navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
         type: PriceImpactModalType.Execution,
         location,
@@ -126,11 +133,12 @@ const TokenWarningModalSheet = ({
       return;
     }
 
+    const confirm = onProceed ?? confirmBridge;
     setLoading(true);
     if (sheetRef.current?.onCloseBottomSheet) {
-      sheetRef.current.onCloseBottomSheet(confirmBridge);
+      sheetRef.current.onCloseBottomSheet(confirm);
     } else {
-      await confirmBridge?.();
+      await confirm?.();
     }
   }, [
     activeQuote,
@@ -138,6 +146,7 @@ const TokenWarningModalSheet = ({
     navigation,
     location,
     shouldShowPriceImpactError,
+    onProceed,
   ]);
 
   const {
@@ -309,8 +318,8 @@ const TokenWarningModalSheet = ({
 };
 
 // Quote data and confirm only exist inside the Bridge providers, so they are
-// read only in Execution mode. Info mode can open from outside them (e.g.
-// Quick Buy).
+// read only in Execution mode without `onProceed`. The other cases can open
+// from outside them (e.g. Quick Buy).
 const TokenWarningExecutionModal = () => {
   const { location } = useParams<TokenWarningModalParams>();
   const { activeQuote, shouldShowPriceImpactError } =
@@ -327,8 +336,8 @@ const TokenWarningExecutionModal = () => {
 };
 
 export const TokenWarningModal = () => {
-  const { mode } = useParams<TokenWarningModalParams>();
-  return mode === TokenWarningModalMode.Execution ? (
+  const { mode, onProceed } = useParams<TokenWarningModalParams>();
+  return mode === TokenWarningModalMode.Execution && !onProceed ? (
     <TokenWarningExecutionModal />
   ) : (
     <TokenWarningModalSheet />

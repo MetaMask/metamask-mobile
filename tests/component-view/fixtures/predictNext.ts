@@ -1,4 +1,5 @@
 import { within } from '@testing-library/react-native';
+import { escapeRegExp } from 'lodash';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
@@ -1232,8 +1233,12 @@ export const expectPredictNextGameCard = (
     home: string;
     awayScore: string;
     homeScore: string;
-    awayQuote: string;
-    homeQuote: string;
+    /**
+     * The quote's text, "ABBR · price". A featured card renders it across two
+     * Texts, so this matches the quote's text content, not a single Text.
+     */
+    awayQuote: string | RegExp;
+    homeQuote: string | RegExp;
     competition?: string;
     volume?: string;
   },
@@ -1243,12 +1248,22 @@ export const expectPredictNextGameCard = (
   );
   const scoped = within(card);
 
-  expect(scoped.getByText(away)).toBeOnTheScreen();
-  expect(scoped.getByText(home)).toBeOnTheScreen();
+  // A featured card shows the Team abbreviation only, so the Team name is read
+  // from the quote's accessibility label ("Team name, price, buy").
+  expect(
+    scoped.getByLabelText(new RegExp(`^${escapeRegExp(away)}, `)),
+  ).toBeOnTheScreen();
+  expect(
+    scoped.getByLabelText(new RegExp(`^${escapeRegExp(home)}, `)),
+  ).toBeOnTheScreen();
   expect(scoped.getByText(awayScore)).toBeOnTheScreen();
   expect(scoped.getByText(homeScore)).toBeOnTheScreen();
-  expect(scoped.getByText(awayQuote)).toBeOnTheScreen();
-  expect(scoped.getByText(homeQuote)).toBeOnTheScreen();
+  expect(
+    scoped.getByTestId(`predict-next-game-quote-${eventId}-away`),
+  ).toHaveTextContent(awayQuote);
+  expect(
+    scoped.getByTestId(`predict-next-game-quote-${eventId}-home`),
+  ).toHaveTextContent(homeQuote);
   if (competition) {
     expect(scoped.getByText(competition)).toBeOnTheScreen();
   }

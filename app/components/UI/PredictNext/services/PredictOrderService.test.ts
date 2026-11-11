@@ -126,7 +126,7 @@ const venueCall = jest.fn<
 const commitOrder = jest.fn(
   (
     previewId: string,
-    signing: SignOperationInput,
+    signing: SignOperationInput | undefined,
     options?: { signal?: AbortSignal },
   ) => venueCall(previewId, signing, options),
 );
@@ -632,7 +632,11 @@ describe('PredictOrderService', () => {
     it('aborts the transport of a Commit still resolving its bearer token', async () => {
       let signal: AbortSignal | undefined;
       venueCall.mockImplementation(
-        (_previewId: string, _signing: SignOperationInput, options) => {
+        (
+          _previewId: string,
+          _signing: SignOperationInput | undefined,
+          options,
+        ) => {
           signal = options?.signal;
           return new Promise<PredictOrderReceipt>(() => undefined);
         },
