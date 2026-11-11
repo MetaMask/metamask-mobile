@@ -171,11 +171,22 @@ const blockedStatuses = {
 };
 
 const getTrackedProperties = () => {
-  const { createEventBuilder } = useAnalytics();
-  return (createEventBuilder as jest.Mock).mock.results.flatMap((result) => {
-    const addProperties = result.value?.addProperties as jest.Mock | undefined;
-    return addProperties?.mock.calls.map((call) => call[0]) ?? [];
-  });
+  // Read the Jest mock directly. Calling useAnalytics() here is not a component
+  // or a hook, so react-hooks/rules-of-hooks rejects it.
+  const createEventBuilder = jest
+    .mocked(useAnalytics)
+    .getMockImplementation()?.().createEventBuilder;
+
+  return (
+    (createEventBuilder as jest.Mock | undefined)?.mock.results.flatMap(
+      (result) => {
+        const addProperties = result.value?.addProperties as
+          | jest.Mock
+          | undefined;
+        return addProperties?.mock.calls.map((call) => call[0]) ?? [];
+      },
+    ) ?? []
+  );
 };
 
 const getBeforeRemoveListener = () => {
