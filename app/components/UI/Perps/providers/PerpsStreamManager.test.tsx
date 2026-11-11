@@ -6297,6 +6297,53 @@ describe('PerpsStreamManager', () => {
       expect(accountCallback).not.toHaveBeenCalled();
     });
 
+    it('does not report a context-changed user snapshot to Logger.error', async () => {
+      const getUserDataSnapshot = jest
+        .fn()
+        .mockRejectedValue(new Error('User data snapshot context changed'));
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = getUserDataSnapshot;
+      const streamManager = new PerpsStreamManager();
+
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      streamManager.orders.subscribe({ callback: jest.fn() });
+      streamManager.account.subscribe({ callback: jest.fn() });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(getUserDataSnapshot).toHaveBeenCalledTimes(1);
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'PerpsStreamManager: User data snapshot aborted because the context changed',
+      );
+      expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('reports other user snapshot rejections with Logger.error', async () => {
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getUserDataSnapshot = jest
+        .fn()
+        .mockRejectedValue(new Error('snapshot rejected'));
+      const streamManager = new PerpsStreamManager();
+
+      streamManager.positions.subscribe({ callback: jest.fn() });
+      streamManager.orders.subscribe({ callback: jest.fn() });
+      streamManager.account.subscribe({ callback: jest.fn() });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockLogger.error).toHaveBeenCalledTimes(1);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'snapshot rejected' }),
+        { context: 'PerpsStreamManager.getUserDataSnapshot' },
+      );
+    });
+
     it('discards an in-flight snapshot after account caches are cleared', async () => {
       let resolveSnapshot!: (snapshot: typeof mockAcceptedUserSnapshot) => void;
       (
