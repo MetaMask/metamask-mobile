@@ -1,11 +1,4 @@
-import {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  useContext,
-  useRef,
-} from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   useFocusEffect,
   useNavigation,
@@ -14,7 +7,6 @@ import {
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
-import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
@@ -50,11 +42,7 @@ import useMoneyAccountCardLinkage from './useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../Money/hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import { useCardHomeData } from './useCardHomeData';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -149,8 +137,6 @@ const useSpendingLimit = ({
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
   const navigation = useNavigation<AppNavigationProp>();
-  const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const { sdk } = useCardSDK();
@@ -618,33 +604,22 @@ const useSpendingLimit = ({
 
   // Toast helpers
   const showSuccessToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        { label: strings('card.card_spending_limit.update_success') },
-      ],
-      iconName: IconName.Confirmation,
-      iconColor: theme.colors.success.default,
+    toast({
+      title: strings('card.card_spending_limit.update_success'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
-  }, [toastRef, theme]);
+  }, []);
 
-  const showErrorToast = useCallback(
-    (message?: string) => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: message || strings('card.card_spending_limit.update_error'),
-          },
-        ],
-        iconName: IconName.Danger,
-        iconColor: theme.colors.error.default,
-        hasNoTimeout: false,
-      });
-    },
-    [toastRef, theme],
-  );
+  const showErrorToast = useCallback((message?: string) => {
+    toast({
+      title: message || strings('card.card_spending_limit.update_error'),
+      severity: ToastSeverity.Danger,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
+  }, []);
 
   // Navigation helpers
   const navigateToCardHome = useCallback(() => {

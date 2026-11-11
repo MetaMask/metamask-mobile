@@ -95,7 +95,7 @@ import type { TokenI } from '../../../Tokens/types';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { ToastContext } from '../../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -141,6 +141,14 @@ import {
   StackActions,
   CommonActions,
 } from '@react-navigation/native';
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -713,15 +721,6 @@ const BAANX_CAPABILITIES = {
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
   typeof isSolanaChainId
 >;
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: mockCloseToast,
-  },
-};
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) => {
     const strings: { [key: string]: string } = {
@@ -1266,11 +1265,7 @@ function overrideCardHomeDataBalance(
   }
 }
 
-const CardHomeWithToast = () => (
-  <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-    <CardHome />
-  </ToastContext.Provider>
-);
+const CardHomeWithToast = () => <CardHome />;
 
 // Helper: Render component with proper wrapper
 function render() {
@@ -1300,11 +1295,7 @@ const CardHomeAuthTransitionProbe = () => {
       authTransitionListeners.delete(listener);
     };
   }, []);
-  return (
-    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      <CardHome />
-    </ToastContext.Provider>
-  );
+  return <CardHome />;
 };
 
 function renderAuthTransition() {
@@ -1558,13 +1549,12 @@ describe('CardHome Component', () => {
         routes: [{ name: Routes.CARD.AUTHENTICATION }],
       },
     });
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [
-          {
-            label: strings('card.card_home.onboarding_token_revoked'),
-          },
-        ],
+        title: strings('card.card_home.onboarding_token_revoked'),
+        severity: 'warning',
+        hasNoTimeout: false,
+        showCloseButton: false,
       }),
     );
     expect(mockClearLastUnauthenticatedReason).toHaveBeenCalledTimes(1);

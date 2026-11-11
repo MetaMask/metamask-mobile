@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -14,17 +14,12 @@ import {
   Text,
   TextVariant,
   IconName as IconNameComponent,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
-import {
-  ToastContext,
-  ToastVariants,
-  ButtonIconVariant,
-} from '../../../../../component-library/components/Toast';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 export interface WaitlistFormModalParams {
   url: string;
@@ -49,8 +44,6 @@ const WaitlistFormModal: React.FC = () => {
   const { url } = useParams<WaitlistFormModalParams>();
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { colors } = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
@@ -84,28 +77,13 @@ const WaitlistFormModal: React.FC = () => {
       try {
         const data = JSON.parse(event.nativeEvent.data);
         if (data?.type === 'hs_form_submitted') {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            labelOptions: [
-              {
-                label: strings(
-                  'card.card_onboarding.waitlist_form.success_toast',
-                ),
-              },
-            ],
-            descriptionOptions: {
-              description: strings(
-                'card.card_onboarding.waitlist_form.success_toast_description',
-              ),
-            },
-            iconName: IconName.Confirmation,
-            iconColor: colors.success.default,
+          toast({
+            title: strings('card.card_onboarding.waitlist_form.success_toast'),
+            description: strings(
+              'card.card_onboarding.waitlist_form.success_toast_description',
+            ),
+            severity: ToastSeverity.Success,
             hasNoTimeout: true,
-            closeButtonOptions: {
-              variant: ButtonIconVariant.Icon,
-              iconName: IconName.Close,
-              onPress: () => toastRef?.current?.closeToast(),
-            },
           });
           navigation.navigate(Routes.WALLET.HOME as never);
         }
@@ -113,7 +91,7 @@ const WaitlistFormModal: React.FC = () => {
         // ignore non-JSON messages
       }
     },
-    [toastRef, navigation, colors],
+    [navigation],
   );
 
   return (

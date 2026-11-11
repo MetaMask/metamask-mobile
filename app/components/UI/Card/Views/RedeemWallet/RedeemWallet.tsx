@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -17,19 +17,15 @@ import {
   IconName,
   KeyValueRow,
   KeyValueRowVariant,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
-import { IconName as ToastIconName } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
 import I18n, { strings } from '../../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import useRedeemableWallet, {
   type RedeemableWalletMode,
@@ -74,8 +70,6 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
 
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -246,12 +240,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     if (monitoringStatus === 'monitoring' || isWithdrawing) return;
 
     if (isSuccess) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalSuccess) }],
-        iconName: ToastIconName.Confirmation,
-        iconColor: theme.colors.success.default,
+      toast({
+        title: strings(config.strings.withdrawalSuccess),
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
       resetWithdraw();
       navigation.goBack();
@@ -259,12 +252,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     }
 
     if (isFailed || submitFailed) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalFailed) }],
-        iconName: ToastIconName.Danger,
-        iconColor: theme.colors.error.default,
+      toast({
+        title: strings(config.strings.withdrawalFailed),
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
       if (isFailed) {
         resetWithdraw();
@@ -275,8 +267,6 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     monitoringError,
     withdrawError,
     isWithdrawing,
-    toastRef,
-    theme,
     navigation,
     config,
     resetWithdraw,

@@ -1,14 +1,9 @@
-import { useCallback, useContext } from 'react';
+import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
@@ -72,8 +67,6 @@ function destinationForAction(
  */
 export const useImmersveOnboardingRouter = () => {
   const navigation = useNavigation();
-  const { toastRef } = useContext(ToastContext);
-  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   return useCallback(
@@ -161,18 +154,13 @@ export const useImmersveOnboardingRouter = () => {
             address: fundingAddress,
           }).catch(() => undefined);
           if (showAccountExistsToast !== false) {
-            toastRef?.current?.showToast({
-              variant: ToastVariants.Icon,
-              labelOptions: [
-                {
-                  label: strings(
-                    'card.card_onboarding.sign_up.account_exists_toast',
-                  ),
-                },
-              ],
-              iconName: IconName.Confirmation,
-              iconColor: colors.success.default,
+            toast({
+              title: strings(
+                'card.card_onboarding.sign_up.account_exists_toast',
+              ),
+              severity: ToastSeverity.Success,
               hasNoTimeout: false,
+              showCloseButton: false,
             });
           }
           goToCardHome();
@@ -181,6 +169,6 @@ export const useImmersveOnboardingRouter = () => {
           break;
       }
     },
-    [navigation, toastRef, colors, trackEvent, createEventBuilder],
+    [navigation, trackEvent, createEventBuilder],
   );
 };

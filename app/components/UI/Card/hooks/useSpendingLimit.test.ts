@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
 import {
   useNavigation,
@@ -12,8 +11,8 @@ import { useCardSDK } from '../sdk';
 import { FundingStatus, CardFundingToken, CardType } from '../types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
+import { toast } from '@metamask/design-system-react-native';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
@@ -72,6 +71,14 @@ jest.mock('../../../../util/theme', () => {
   return {
     ...actual,
     useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 
@@ -280,8 +287,6 @@ describe('useSpendingLimit', () => {
   let mockCreateEventBuilder: jest.Mock;
   let mockBuild: jest.Mock;
   let mockAddProperties: jest.Mock;
-  let mockShowToast: jest.Mock;
-  let mockToastRef: { current: { showToast: jest.Mock } };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -333,18 +338,6 @@ describe('useSpendingLimit', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     } as never);
-
-    // Setup toast mock
-    mockShowToast = jest.fn();
-    mockToastRef = { current: { showToast: mockShowToast } };
-
-    // Mock React.useContext for ToastContext
-    jest.spyOn(React, 'useContext').mockImplementation((context) => {
-      if (context === ToastContext) {
-        return { toastRef: mockToastRef };
-      }
-      return undefined;
-    });
 
     // Setup asset selection navigation details mock
     mockCreateAssetSelectionModalNavigationDetails.mockReturnValue([
@@ -789,7 +782,7 @@ describe('useSpendingLimit', () => {
       });
 
       expect(Logger.error).toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalled();
+      expect(toast).toHaveBeenCalled();
     });
 
     it('shows error toast when no token is available', async () => {
@@ -805,7 +798,7 @@ describe('useSpendingLimit', () => {
         await submitPromise;
       });
 
-      expect(mockShowToast).toHaveBeenCalled();
+      expect(toast).toHaveBeenCalled();
     });
 
     it('calls submitDelegation with full limit amount', async () => {
@@ -878,7 +871,7 @@ describe('useSpendingLimit', () => {
         await submitPromise;
       });
 
-      expect(mockShowToast).toHaveBeenCalled();
+      expect(toast).toHaveBeenCalled();
     });
 
     it('navigates back for non-onboarding flow', async () => {
@@ -935,7 +928,7 @@ describe('useSpendingLimit', () => {
       expect(Logger.log).toHaveBeenCalledWith(
         'User cancelled the delegation transaction',
       );
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('shows error toast on submission failure', async () => {
@@ -950,7 +943,7 @@ describe('useSpendingLimit', () => {
       });
 
       expect(Logger.error).toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalled();
+      expect(toast).toHaveBeenCalled();
     });
 
     it('tracks button click event', async () => {

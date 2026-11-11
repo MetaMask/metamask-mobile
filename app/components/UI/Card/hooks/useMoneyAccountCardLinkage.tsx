@@ -1,30 +1,19 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Icon,
   IconColor,
   IconSize,
   Spinner,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../util/theme';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
@@ -188,8 +177,6 @@ export interface UseMoneyAccountCardLinkageReturn {
  */
 export const useMoneyAccountCardLinkage =
   (): UseMoneyAccountCardLinkageReturn => {
-    const { toastRef } = useContext(ToastContext);
-    const theme = useTheme();
     const navigation = useNavigation<AppNavigationProp>();
     const dispatch = useDispatch();
     const { trackEvent, createEventBuilder } = useAnalytics();
@@ -331,75 +318,37 @@ export const useMoneyAccountCardLinkage =
       primaryMoneyAccount?.address,
     ]);
 
-    const showPendingToast = useCallback(
-      (action: LinkageAction) => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings(PENDING_TITLE_BY_ACTION[action]),
-            },
-          ],
-          iconName: IconName.Loading,
-          hasNoTimeout: true,
-          startAccessory: (
-            <Spinner
-              color={IconColor.IconDefault}
-              spinnerIconProps={{ size: IconSize.Lg }}
-            />
-          ),
-        });
-      },
-      [toastRef],
-    );
+    const showPendingToast = useCallback((action: LinkageAction) => {
+      toast({
+        title: strings(PENDING_TITLE_BY_ACTION[action]),
+        hasNoTimeout: true,
+        showCloseButton: false,
+        startAccessory: (
+          <Spinner
+            color={IconColor.IconDefault}
+            spinnerIconProps={{ size: IconSize.Lg }}
+          />
+        ),
+      });
+    }, []);
 
-    const showSuccessToast = useCallback(
-      (action: LinkageAction) => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings(SUCCESS_TITLE_BY_ACTION[action]),
-            },
-          ],
-          iconName: IconName.Confirmation,
-          iconColor: theme.colors.success.default,
-          hasNoTimeout: false,
-          startAccessory: (
-            <Icon
-              name={IconName.Confirmation}
-              color={IconColor.SuccessDefault}
-              size={IconSize.Lg}
-            />
-          ),
-        });
-      },
-      [theme.colors.success.default, toastRef],
-    );
+    const showSuccessToast = useCallback((action: LinkageAction) => {
+      toast({
+        title: strings(SUCCESS_TITLE_BY_ACTION[action]),
+        severity: ToastSeverity.Success,
+        hasNoTimeout: false,
+        showCloseButton: false,
+      });
+    }, []);
 
-    const showErrorToast = useCallback(
-      (action: LinkageAction = 'link') => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings(ERROR_TITLE_BY_ACTION[action]),
-            },
-          ],
-          iconName: IconName.Error,
-          iconColor: theme.colors.error.default,
-          hasNoTimeout: false,
-          startAccessory: (
-            <Icon
-              name={IconName.Error}
-              color={IconColor.ErrorDefault}
-              size={IconSize.Lg}
-            />
-          ),
-        });
-      },
-      [theme.colors.error.default, toastRef],
-    );
+    const showErrorToast = useCallback((action: LinkageAction = 'link') => {
+      toast({
+        title: strings(ERROR_TITLE_BY_ACTION[action]),
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+        showCloseButton: false,
+      });
+    }, []);
 
     const trackMoneyAccountLinkingEvent = useCallback(
       (
