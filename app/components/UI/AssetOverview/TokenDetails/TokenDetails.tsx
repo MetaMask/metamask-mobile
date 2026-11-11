@@ -67,7 +67,6 @@ interface TokenDetailsProps {
   marketData?: FungibleAssetPrice | null;
 }
 
-// Extracted because React Compiler cannot lower value blocks (ternary, `?.`) written inside a try/catch.
 const toCaipChainId = (chainId: string) =>
   isNonEvmChainId(chainId)
     ? (chainId as `${string}:${string}`)
