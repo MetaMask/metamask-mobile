@@ -99,16 +99,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     children,
     onPress,
     testID,
-    disabled,
+    isDisabled,
   }: {
     children?: React.ReactNode;
     onPress?: () => void;
     testID?: string;
-    disabled?: boolean;
+    isDisabled?: boolean;
   }) =>
     ReactActual.createElement(
       Pressable,
-      { onPress: disabled ? undefined : onPress, testID, disabled },
+      { onPress: isDisabled ? undefined : onPress, testID, disabled: isDisabled },
       ReactActual.createElement(Text, null, children),
     );
 
