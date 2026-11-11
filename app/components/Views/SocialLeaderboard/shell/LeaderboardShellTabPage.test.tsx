@@ -7,13 +7,11 @@ import LeaderboardShellTabPage from './LeaderboardShellTabPage';
 import { DEFAULT_FILTERS } from './filters';
 import { TopTradersViewSelectorsIDs } from '../TopTradersView/TopTradersView.testIds';
 import { getTypeFilterOptionTestId } from '../components/Filters';
-import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 
 const LEADERBOARD_TEST_ID = 'social-leaderboard-mock';
 
 const mockLeaderboardProps = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
-const mockScrollToOffset = jest.fn();
 const mockTrack = jest.fn();
 let mockIsPerpsEnabled = true;
 
@@ -23,33 +21,13 @@ jest.mock('../../../UI/SocialLeaderboard', () => {
   return {
     SocialLeaderboard: ({
       ref,
-      virtualizedListProps,
       ...props
-    }: Record<string, unknown> & {
-      ref?: React.Ref<unknown>;
-      virtualizedListProps?: Record<string, unknown>;
-    }) => {
-      mockLeaderboardProps({ ...props, virtualizedListProps });
-      ReactActual.useImperativeHandle(ref, () => ({
-        refresh: mockRefresh,
-        scrollToOffset: mockScrollToOffset,
-      }));
-      return ReactActual.createElement(
-        View,
-        { testID: 'social-leaderboard-mock' },
-        ReactActual.createElement(
-          View,
-          {
-            testID: virtualizedListProps?.testID,
-            style: virtualizedListProps?.style,
-            contentContainerStyle: virtualizedListProps?.contentContainerStyle,
-            refreshControl: virtualizedListProps?.refreshControl,
-            onScroll: virtualizedListProps?.onScroll,
-            scrollEventThrottle: virtualizedListProps?.scrollEventThrottle,
-          },
-          virtualizedListProps?.listHeaderComponent,
-        ),
-      );
+    }: Record<string, unknown> & { ref?: React.Ref<unknown> }) => {
+      mockLeaderboardProps(props);
+      ReactActual.useImperativeHandle(ref, () => ({ refresh: mockRefresh }));
+      return ReactActual.createElement(View, {
+        testID: 'social-leaderboard-mock',
+      });
     },
   };
 });
@@ -251,19 +229,5 @@ describe('LeaderboardShellTabPage', () => {
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
     jest.useRealTimers();
-  });
-
-  it('forwards imperative scrolling to the virtualized leaderboard', () => {
-    const pageRef = React.createRef<SocialTabPageHandle>();
-    renderWithProvider(
-      <LeaderboardShellTabPage
-        pageRef={pageRef}
-        containerTestID="leaderboard-page"
-      />,
-    );
-
-    pageRef.current?.scrollToOffset(24, true);
-
-    expect(mockScrollToOffset).toHaveBeenCalledWith(24, true);
   });
 });

@@ -7,7 +7,6 @@ import {
 } from '@testing-library/react-native';
 import { useIsFocused } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
-import type { FlashListProps } from '@shopify/flash-list';
 import React from 'react';
 import { FlatList, RefreshControl, Text } from 'react-native';
 import {
@@ -27,9 +26,7 @@ import type { SocialFeedInlineRow } from './SocialFeed.types';
 import { useSocialFeedRealtime } from './SocialFeedRealtime/SocialFeedRealtimeContext';
 import SocialFeedVirtualized, {
   REFRESH_MIN_DURATION_MS,
-  getSocialFeedListItemType,
 } from './SocialFeedVirtualized';
-import type { SocialFeedListItem } from '../utils/buildSocialFeedListItems';
 
 const RealtimeProbe = () => {
   const realtime = useSocialFeedRealtime();
@@ -43,26 +40,6 @@ const RealtimeProbe = () => {
 jest.mock('../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
 }));
-
-jest.mock('@shopify/flash-list', () => {
-  const ReactMock = jest.requireActual<typeof import('react')>('react');
-  const { FlatList: MockFlashList } =
-    jest.requireActual<typeof import('react-native')>('react-native');
-
-  return {
-    FlashList: ReactMock.forwardRef(
-      (
-        props: FlashListProps<unknown>,
-        ref: React.ForwardedRef<FlatList<unknown>>,
-      ) =>
-        ReactMock.createElement(MockFlashList, {
-          ...props,
-          initialNumToRender: props.data?.length,
-          ref,
-        } as unknown as React.ComponentPropsWithRef<typeof MockFlashList>),
-    ),
-  };
-});
 
 jest.mock('../../../../util/social/useSocialProfileId', () => ({
   useSocialProfileId: () => ({
@@ -414,7 +391,7 @@ describe('SocialFeedVirtualized', () => {
     expect(screen.queryByTestId(getSocialFeedPostSkeletonTestId(2))).toBeNull();
   });
 
-  it('uses a smaller draw distance and reduced motion on low-end hardware', () => {
+  it('uses a smaller window and reduced motion on low-end hardware', () => {
     mockGetHardwareTier.mockReturnValue('LOW');
     mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
 
@@ -422,8 +399,10 @@ describe('SocialFeedVirtualized', () => {
 
     expect(getList().props).toEqual(
       expect.objectContaining({
-        drawDistance: 200,
-        maintainVisibleContentPosition: { disabled: true },
+        initialNumToRender: 4,
+        maxToRenderPerBatch: 1,
+        windowSize: 3,
+        itemLayoutAnimation: 'row-layout-transition-low',
       }),
     );
     expect(mockFeedItemEntryAnimation.mock.lastCall?.[0]).toEqual(
@@ -431,15 +410,17 @@ describe('SocialFeedVirtualized', () => {
     );
   });
 
-  it('keeps the default draw distance and skeleton while tiers are unknown', () => {
+  it('keeps the default window, skeleton, and motion while tiers are unknown', () => {
     mockUseSocialFeed.mockReturnValue(feedState({ isLoading: true }));
 
     renderFeed();
 
     expect(getList().props).toEqual(
       expect.objectContaining({
-        drawDistance: 400,
-        maintainVisibleContentPosition: { disabled: true },
+        initialNumToRender: 6,
+        maxToRenderPerBatch: 1,
+        windowSize: 5,
+        itemLayoutAnimation: 'row-layout-transition',
       }),
     );
     expect(
@@ -447,36 +428,6 @@ describe('SocialFeedVirtualized', () => {
     ).toBeOnTheScreen();
     expect(lastFeedOptions()).toEqual(
       expect.objectContaining({ enabled: true, holdNewPosts: false }),
-    );
-  });
-
-  it('uses separate recycling pools for each row shape', () => {
-    const items: SocialFeedListItem[] = [
-      { kind: 'post', post: post('one') },
-      { kind: 'inline', row: inlineRow('rail', 1) },
-      { kind: 'placeholder' },
-    ];
-
-    const itemTypes = items.map(getSocialFeedListItemType);
-
-    expect(itemTypes).toEqual(['post-perpsOpen', 'inline-rail', 'placeholder']);
-  });
-
-  it('keys each rendered subtree by item identity before recycling it', () => {
-    renderFeed();
-    const renderItem = getList().props.renderItem as (info: {
-      item: SocialFeedListItem;
-      index: number;
-    }) => React.ReactElement;
-    const items: SocialFeedListItem[] = [
-      { kind: 'post', post: post('one') },
-      { kind: 'post', post: post('two') },
-      { kind: 'inline', row: inlineRow('rail', 1) },
-      { kind: 'placeholder' },
-    ];
-
-    expect(items.map((item, index) => renderItem({ item, index }).key)).toEqual(
-      ['one', 'two', 'inline-rail', 'placeholder'],
     );
   });
 
