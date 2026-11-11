@@ -9,6 +9,7 @@ import {
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
   type SetOnboardingStepperStepAction,
+  type SetBridgeLimitTabSeenAction,
 } from '../../actions/user/types';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import { DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL } from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
@@ -25,6 +26,10 @@ describe('user reducer', () => {
 
     it('has moneySplashSeen as false', () => {
       expect(userInitialState.moneySplashSeen).toBe(false);
+    });
+
+    it('has bridgeLimitTabSeen as false', () => {
+      expect(userInitialState.bridgeLimitTabSeen).toBe(false);
     });
 
     it('has onboardingStepperProgress as empty object', () => {
@@ -115,6 +120,18 @@ describe('user reducer', () => {
       const newState = userReducer(currentState, action);
 
       expect(newState.moneySplashSeen).toBe(false);
+    });
+  });
+
+  describe('SET_BRIDGE_LIMIT_TAB_SEEN', () => {
+    it('sets bridgeLimitTabSeen to true', () => {
+      const action: SetBridgeLimitTabSeenAction = {
+        type: UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN,
+      };
+
+      const newState = userReducer(userInitialState, action);
+
+      expect(newState.bridgeLimitTabSeen).toBe(true);
     });
   });
 

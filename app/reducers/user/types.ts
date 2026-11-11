@@ -67,4 +67,6 @@ export interface UserState {
   appInstallEventFired: boolean;
   /** Install awaiting a consent decision, or `null` when nothing is pending. */
   pendingAppInstall: PendingAppInstall | null;
+  /** Whether the Swaps Limit tab has been opened, hiding its discovery dot. */
+  bridgeLimitTabSeen: boolean;
 }

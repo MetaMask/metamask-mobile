@@ -5,6 +5,7 @@ export const CardHomeSelectors = {
   ADD_FUNDS_BUTTON_SKELETON: 'add-funds-button-skeleton',
   PRIVACY_TOGGLE_BUTTON: 'privacy-toggle-button',
   ADD_FUNDS_BUTTON: 'add-funds-button',
+  CARD_ART: 'card-home-card-art',
   CHANGE_ASSET_BUTTON: 'change-asset-button',
   TRAVEL_ITEM: 'travel-item',
   CARD_TOS_ITEM: 'card-tos-item',

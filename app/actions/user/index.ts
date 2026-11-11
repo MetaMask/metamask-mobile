@@ -36,6 +36,7 @@ import {
   type SetAppInstallEventFiredAction,
   type SetPendingAppInstallAction,
   type ClearPendingAppInstallAction,
+  type SetBridgeLimitTabSeenAction,
   UserActionType,
 } from './types';
 import { type PendingAppInstall } from '../../reducers/user/types';
@@ -342,5 +343,14 @@ export function setPendingAppInstall(
 export function clearPendingAppInstall(): ClearPendingAppInstallAction {
   return {
     type: UserActionType.CLEAR_PENDING_APP_INSTALL,
+  };
+}
+
+/**
+ * Action to mark the Swaps Limit tab as opened, dismissing its discovery dot.
+ */
+export function setBridgeLimitTabSeen(): SetBridgeLimitTabSeenAction {
+  return {
+    type: UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN,
   };
 }

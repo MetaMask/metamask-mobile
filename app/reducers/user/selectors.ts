@@ -116,3 +116,9 @@ export const selectAppInstallEventFired = (state: RootState) =>
  */
 export const selectPendingAppInstall = (state: RootState) =>
   state.user?.pendingAppInstall ?? null;
+
+/**
+ * Selects whether the Swaps Limit tab has been opened
+ */
+export const selectBridgeLimitTabSeen = (state: RootState) =>
+  state.user?.bridgeLimitTabSeen ?? false;

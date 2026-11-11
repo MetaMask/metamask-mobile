@@ -21,7 +21,10 @@ import { ProfileOptionsSheetSelectorsIDs } from '../TraderProfileView/components
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import type { UseMyProfilePostsResult } from './hooks/useMyProfilePosts';
-import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import {
+  mockOpenPerpsFeedItem,
+  mockOpenSpotFeedItem,
+} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import type {
   UseTraderPositionsOptions,
@@ -193,6 +196,14 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (effect: () => void) => {
     mockFocusEffect.current = effect;
   },
+  useIsFocused: () => true,
+}));
+
+const mockSpotCopyTrade = jest.fn();
+const mockUseSpotCopyTradeQuickBuy = jest.fn();
+jest.mock('../hooks/useSpotCopyTradeQuickBuy', () => ({
+  useSpotCopyTradeQuickBuy: (options: unknown) =>
+    mockUseSpotCopyTradeQuickBuy(options),
 }));
 
 jest.mock('../../../../util/haptics', () => ({
@@ -276,22 +287,30 @@ jest.mock('../TraderProfileView/components/PositionRow', () => {
 });
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const { Pressable, View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       post,
       showCopyTrade = true,
+      onCopyTrade,
     }: {
-      post: { id: string };
+      post: SocialV1FeedPost;
       showCopyTrade?: boolean;
+      onCopyTrade?: (
+        item: SocialV1FeedPost['item'],
+        commentId?: string,
+      ) => void;
     }) => (
       <View testID={`my-profile-post-${post.id}`}>
         <Text>{post.id}</Text>
         {showCopyTrade ? (
-          <Text testID={`my-profile-post-copy-trade-${post.id}`}>
-            Copy trade
-          </Text>
+          <Pressable
+            testID={`my-profile-post-copy-trade-${post.id}`}
+            onPress={() => onCopyTrade?.(post.item, post.commentId)}
+          >
+            <Text>Copy trade</Text>
+          </Pressable>
         ) : null}
       </View>
     ),
@@ -418,6 +437,10 @@ describe('MyProfileView', () => {
     mockHasNotificationPreferences = true;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockProfileRouteParams = undefined;
+    mockUseSpotCopyTradeQuickBuy.mockReturnValue({
+      onCopyTrade: mockSpotCopyTrade,
+      quickBuySheet: null,
+    });
     mockUseMyProfile.mockReturnValue({
       profile,
       isLoading: false,
@@ -927,6 +950,79 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId('my-profile-post-copy-trade-post-1'),
     ).toBeOnTheScreen();
+  });
+
+  describe('spot copy trade', () => {
+    const spotPost = () =>
+      mockMyProfilePost({
+        commentId: 'comment-1',
+        item: mockOpenSpotFeedItem({ id: 'post-1' }),
+      });
+
+    const showForeignTraderPosts = (posts: SocialV1FeedPost[]) => {
+      mockProfileRouteParams = {
+        traderId: 'trader-1',
+        traderName: 'alpha.eth',
+        traderAddress: '0xabc',
+      };
+      mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+      mockUseMyProfilePosts.mockReturnValue({
+        posts,
+        rows: [],
+        isLoading: false,
+        isFetchingNextPage: false,
+        hasNextPage: false,
+        loadMore: jest.fn(),
+        error: null,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+    };
+
+    it('opens Quick Buy for a spot post on another trader profile', () => {
+      const post = spotPost();
+      showForeignTraderPosts([post]);
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+      fireEvent.press(screen.getByTestId('my-profile-post-copy-trade-post-1'));
+
+      expect(mockSpotCopyTrade).toHaveBeenCalledWith(post.item, 'comment-1');
+    });
+
+    it('attributes profile Quick Buy to trader_feed with the profile owner', () => {
+      showForeignTraderPosts([spotPost()]);
+
+      renderWithProvider(<MyProfileView />);
+
+      expect(mockUseSpotCopyTradeQuickBuy).toHaveBeenLastCalledWith({
+        source: 'trader_feed',
+        postTradeShareOwner: 'social-v1-profile',
+        isActive: true,
+      });
+    });
+
+    it('keeps Quick Buy reopen inactive on the owner profile', () => {
+      renderWithProvider(<MyProfileView />);
+
+      expect(mockUseSpotCopyTradeQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isActive: false }),
+      );
+    });
+
+    it('renders the Quick Buy sheet on the profile screen', () => {
+      const { View } = jest.requireActual('react-native');
+      mockUseSpotCopyTradeQuickBuy.mockReturnValue({
+        onCopyTrade: mockSpotCopyTrade,
+        quickBuySheet: <View testID="my-profile-quick-buy-sheet" />,
+      });
+      showForeignTraderPosts([spotPost()]);
+
+      renderWithProvider(<MyProfileView />);
+
+      expect(
+        screen.getByTestId('my-profile-quick-buy-sheet'),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('renders a centered Posts empty line without a create action', () => {

@@ -1240,7 +1240,6 @@ export type RootStackParamList = {
   CardOnboardingPhysicalAddress: CardOnboardingStackParamList['CardOnboardingPhysicalAddress'];
   CardOnboardingComplete: CardOnboardingStackParamList['CardOnboardingComplete'];
   CardOnboardingKYCFailed: CardOnboardingStackParamList['CardOnboardingKYCFailed'];
-  CardOnboardingKYCPending: CardOnboardingStackParamList['CardOnboardingKYCPending'];
   CardOnboardingImmersveKYC: CardOnboardingStackParamList['CardOnboardingImmersveKYC'];
   CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
   CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
