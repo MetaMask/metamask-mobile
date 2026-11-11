@@ -4,6 +4,7 @@ import type {
 } from '@metamask/mfa-recovery-controller';
 import { RecoveryIdentifierRouter } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
 import { bytesToHex, sha256 } from '@metamask/utils';
+import { createSiweIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import { RECOVERY_SECRET_LENGTH } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
 import {
   getMfaRecoveryErrorCode,
@@ -220,7 +221,11 @@ export async function prepareRecoveryRun(
   return {
     controller,
     identifiers: {
-      siweIdentifier: findAuthIdentifier(authIdentifiers, 'siwe'),
+      // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
+      // signature, so fall back to the primary account's identifier.
+      siweIdentifier:
+        authIdentifiers.find((identifier) => identifier.type === 'siwe') ??
+        createSiweIdentifier(dependencies.address),
       passkeyIdentifier: findAuthIdentifier(authIdentifiers, 'passkey'),
     },
   };
