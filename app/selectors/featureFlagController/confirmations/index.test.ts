@@ -30,6 +30,7 @@ import {
   getPreferredTokensForTransactionType,
   selectRelayFixedSpread,
   selectRelayAtomicMaxEnabled,
+  selectSolanaPayEnabled,
   selectPerpsMoneyAccountNoFeeRouteEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
@@ -109,6 +110,35 @@ describe('selectRelayAtomicMaxEnabled', () => {
       },
     } as unknown as RootState;
   }
+});
+
+describe('selectSolanaPayEnabled', () => {
+  function buildState(solana: unknown) {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: { payStrategies: { relay: { solana } } },
+      } as typeof state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags;
+
+    return state;
+  }
+
+  it('returns true only when the Relay Solana flag is enabled', () => {
+    expect(selectSolanaPayEnabled(buildState({ enabled: true }))).toBe(true);
+  });
+
+  it.each([
+    ['missing', undefined],
+    ['false', { enabled: false }],
+    ['a string', { enabled: 'true' }],
+  ])('fails closed when the flag is %s', (_title, solana) => {
+    expect(selectSolanaPayEnabled(buildState(solana))).toBe(false);
+  });
+
+  it('returns false when no feature flags are set', () => {
+    expect(selectSolanaPayEnabled(mockedEmptyFlagsState)).toBe(false);
+  });
 });
 
 describe('MetaMask Pay Feature Flags', () => {

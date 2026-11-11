@@ -39,6 +39,7 @@ export function useInsufficientPayTokenBalanceAlert({
 } = {}): Alert[] {
   const { payToken } = useTransactionPayToken();
   const payTokenAsset = decodePaymentTokenAssetId(payToken);
+  const isNonEvmPayToken = Boolean(payToken) && !payTokenAsset;
   const requiredTokens = useTransactionPayRequiredTokens();
   const totals = useTransactionPayTotals();
   const isLoading = useIsTransactionPayLoading();
@@ -136,12 +137,15 @@ export function useInsufficientPayTokenBalanceAlert({
   // reduced to leave room for gas). Quote rounding and adding source-network
   // fees on top of that amount can make source+fees > live balance even
   // though Max is valid — same class of false positive as money-account Max.
+  // Non-EVM sources report fee and native-reserve shortfalls through the Core
+  // quote error, so only the amount check above applies to them.
   const isInsufficientForFees = useMemo(
     () =>
+      !isNonEvmPayToken &&
       !isMax &&
       !isPendingAlert &&
       totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
-    [balanceRaw, isMax, isPendingAlert, totalSourceAmountRaw],
+    [balanceRaw, isMax, isPendingAlert, isNonEvmPayToken, totalSourceAmountRaw],
   );
 
   // Quoted source-network fees are empty when the source is execute or
@@ -164,6 +168,7 @@ export function useInsufficientPayTokenBalanceAlert({
   // native token to pay for gas on the source network (e.g., POL for Polygon).
   const isInsufficientForSourceNetwork = useMemo(
     () =>
+      !isNonEvmPayToken &&
       !isGaslessSourceChain &&
       !isPayTokenNative &&
       !isPendingAlert &&
@@ -175,6 +180,7 @@ export function useInsufficientPayTokenBalanceAlert({
       isPendingAlert,
       isSourceGasFeeToken,
       nativeToken?.balanceRaw,
+      isNonEvmPayToken,
       totalSourceNetworkFeeRaw,
     ],
   );

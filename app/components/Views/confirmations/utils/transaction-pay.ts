@@ -12,8 +12,9 @@ import {
   TransactionPayRequiredToken,
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
+import { SolScope } from '@metamask/keyring-api';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
 import { BigNumber } from 'bignumber.js';
@@ -28,7 +29,10 @@ import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { isTransactionPayWithdraw } from './transaction';
-import { isSameAssetId } from '../../../../util/transactions/payment-token';
+import {
+  decodeEvmAssetId,
+  isSameAssetId,
+} from '../../../../util/transactions/payment-token';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -166,30 +170,42 @@ export function getAvailableTokens({
   tokens,
   blockedTokens,
   fiatPayment,
+  isSolanaPayEnabled = false,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
   blockedTokens?: BlockedTokensListConfig;
   fiatPayment?: TransactionFiatPayment;
+  /** Whether Solana SOL and SPL balances may be offered as new sources. */
+  isSolanaPayEnabled?: boolean;
 }): AssetType[] {
   const hasFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return tokens
-    .filter((token) => {
+    .flatMap((token): AssetType[] => {
+      if (isSolanaPayAsset(token)) {
+        const isSelected = isSelectedPayToken(token, payToken);
+
+        // Solana assets carry no address, so the CAIP-19 asset ID stands in
+        // for it wherever the token list compares addresses.
+        return isSelected ||
+          (isSolanaPayEnabled && new BigNumber(token.balance).gt(0))
+          ? [{ ...token, address: token.assetId }]
+          : [];
+      }
+
       if (
         !token.address ||
         token.standard !== TokenStandard.ERC20 ||
         !token.accountType?.includes('eip155') ||
         (token.chainId && isTestNet(token.chainId))
       ) {
-        return false;
+        return [];
       }
 
-      const isSelected = isSameAssetId(payToken?.assetId, token.caipAssetId);
-
-      if (isSelected) {
-        return true;
+      if (isSelectedPayToken(token, payToken)) {
+        return [token];
       }
 
       const isRequiredToken = (requiredTokens ?? []).some(
@@ -200,10 +216,10 @@ export function getAvailableTokens({
       );
 
       if (isRequiredToken) {
-        return true;
+        return [token];
       }
 
-      return new BigNumber(token.balance).gt(0);
+      return new BigNumber(token.balance).gt(0) ? [token] : [];
     })
     .map((token) => {
       const blocked = isTokenBlocked(token, blockedTokens);
@@ -216,7 +232,7 @@ export function getAvailableTokens({
 
       const isSelected = hasFiatPayment
         ? false
-        : isSameAssetId(payToken?.assetId, token.caipAssetId);
+        : isSelectedPayToken(token, payToken);
 
       return {
         ...token,
@@ -226,6 +242,86 @@ export function getAvailableTokens({
       };
     })
     .sort((a, b) => Number(a.disabled) - Number(b.disabled));
+}
+
+/**
+ * Stable identity of a payment token: its CAIP-19 asset ID, lowercased since
+ * EVM addresses are case-insensitive.
+ *
+ * @param token - Payment token.
+ * @returns Identity key, or an empty string when no token is selected.
+ */
+export function getPaymentTokenKey(
+  token: TransactionPaymentToken | undefined,
+): string {
+  return token?.assetId.toLowerCase() ?? '';
+}
+
+/**
+ * Whether the confirmation is funded from the Money Account. A Money Account
+ * deposit funded from Solana also carries the Money Account override, so Core
+ * runs the vault deposit as a second leg, but the funds come from the Solana
+ * account.
+ *
+ * @param options - Options.
+ * @param options.paymentOverride - Payment override on the transaction.
+ * @param options.payToken - Selected payment token, if any.
+ * @param options.transactionMeta - Current confirmation metadata.
+ * @returns True if the Money Account funds the confirmation.
+ */
+export function isMoneyAccountFunding({
+  paymentOverride,
+  payToken,
+  transactionMeta,
+}: {
+  paymentOverride?: PaymentOverride | string;
+  payToken?: TransactionPaymentToken;
+  transactionMeta?: TransactionMeta;
+}): boolean {
+  if (paymentOverride !== PaymentOverride.MoneyAccount) {
+    return false;
+  }
+
+  const isSolanaPayDeposit =
+    payToken !== undefined &&
+    !decodeEvmAssetId(payToken.assetId) &&
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit]);
+
+  return !isSolanaPayDeposit;
+}
+
+/**
+ * Whether a token-list asset is a Solana mainnet SOL or SPL balance held by a
+ * Solana account, which MetaMask Pay can use as a non-EVM payment source.
+ *
+ * @param token - Token-list asset.
+ * @returns True for Solana SOL and SPL assets.
+ */
+export function isSolanaPayAsset(
+  token: AssetType,
+): token is AssetType & { accountId: string; assetId: CaipAssetType } {
+  return (
+    token.chainId === SolScope.Mainnet &&
+    Boolean(token.accountId) &&
+    Boolean(token.accountType?.startsWith(`${KnownCaipNamespace.Solana}:`)) &&
+    (token.assetId === `${SolScope.Mainnet}/slip44:501` ||
+      Boolean(token.assetId?.startsWith(`${SolScope.Mainnet}/token:`)))
+  );
+}
+
+/**
+ * Whether a token-list asset is the selected payment token, by the
+ * `AssetsController` asset ID both carry.
+ *
+ * @param token - Token-list asset.
+ * @param payToken - Selected payment token.
+ * @returns True when the asset is the selected payment token.
+ */
+export function isSelectedPayToken(
+  token: AssetType,
+  payToken: TransactionPaymentToken | undefined,
+): boolean {
+  return isSameAssetId(payToken?.assetId, token.caipAssetId);
 }
 
 export function getBlockedTokensForTransactionType(

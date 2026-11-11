@@ -2,7 +2,10 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import type {
+  TransactionPayQuote,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
 import {
   KnownCaipNamespace,
   numberToHex,
@@ -182,4 +185,17 @@ export function encodeEvmAssetId(
   return (
     index.byLowercaseAssetId.get(derivedAssetId.toLowerCase()) ?? derivedAssetId
   );
+}
+
+/**
+ * Whether a quote pays with an EVM source token, from the protocol of its
+ * source asset.
+ *
+ * @param quote - Transaction pay quote.
+ * @returns True for a quote with an EVM source.
+ */
+export function isEvmTransactionPayQuote<OriginalQuote>(
+  quote: TransactionPayQuote<OriginalQuote>,
+): boolean {
+  return Boolean(decodeEvmAssetId(quote.request.sourceAssetId));
 }
