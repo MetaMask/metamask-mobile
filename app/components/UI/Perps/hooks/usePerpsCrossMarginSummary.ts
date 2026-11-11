@@ -22,7 +22,7 @@ export interface UsePerpsCrossMarginSummaryReturn
   isCrossMarginEnabled: boolean;
   /** Whether the account holds cross margin exposure. */
   hasCrossExposure: boolean;
-  /** Colour tone for the account ratio. */
+  /** Color tone for the account ratio. */
   tone?: CrossMarginRatioTone;
   /** Whether we're waiting for the first account update. */
   isInitialLoading: boolean;
@@ -57,8 +57,10 @@ export const usePerpsCrossMarginSummary = (
     const summary = calculateCrossMarginAccountSummaryFromAccount(
       isActive ? account : null,
     );
+    const hasMaintenanceMargin =
+      summary.maintenanceMargin !== undefined && summary.maintenanceMargin > 0;
     const hasCrossExposure =
-      isActive && (hasCrossPosition || (summary.maintenanceMargin ?? 0) > 0);
+      isActive && (hasCrossPosition || hasMaintenanceMargin);
 
     return {
       ...summary,
