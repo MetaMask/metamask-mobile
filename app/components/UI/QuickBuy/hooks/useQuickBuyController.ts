@@ -22,12 +22,10 @@ import {
   isNumberValue,
 } from '../../../../util/number/bigint';
 import { useDisplayCurrencyValue } from '../../Bridge/hooks/useDisplayCurrencyValue';
+import { useFormatters } from '../../../hooks/useFormatters';
 import { useFormattedNetworkFee } from '../../Bridge/hooks/useFormattedNetworkFee';
 import type { BridgeToken } from '../../Bridge/types';
-import {
-  formatCurrency,
-  formatMinimumReceived,
-} from '../../Bridge/utils/currencyUtils';
+import { formatMinimumReceived } from '../../Bridge/utils/currencyUtils';
 import { FIAT_INPUT_DECIMALS } from '../../Bridge/utils/sourceAmountInputMode';
 import { isGaslessQuote } from '../../Bridge/utils/isGaslessQuote';
 import { useFeeDisclaimer } from '../../Bridge/hooks/useFeeDisclaimer';
@@ -53,6 +51,7 @@ import { getSocialEventSource } from '../../../Views/SocialLeaderboard/analytics
 import { resolveQuickBuySubmittedTxHash } from '../resolveQuickBuySubmittedTxHash';
 import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { isSpotPostTradeShareEligible } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
@@ -126,6 +125,7 @@ import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
 import { useInitialSlippage } from '../../Bridge/hooks/useInitialSlippage';
 import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance';
+import { useInsufficientNativeReserveError } from '../../Bridge/hooks/useInsufficientNativeReserveError';
 import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useIsNetworkFeeUnavailable } from '../../Bridge/hooks/useIsNetworkFeeUnavailable';
@@ -153,11 +153,14 @@ import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
+  | 'insufficient_native_reserve'
   | 'insufficient_gas'
   | 'no_quotes';
 
 const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
   insufficient_balance: 'bridge.insufficient_funds',
+  insufficient_native_reserve:
+    'social_leaderboard.quick_buy.insufficient_native_reserve',
   insufficient_gas: 'bridge.insufficient_gas',
   no_quotes: 'social_leaderboard.quick_buy.no_quotes',
 };
@@ -303,6 +306,7 @@ export function useQuickBuyController(
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
+  const formatters = useFormatters();
   const navigation = useNavigation<AppNavigationProp>();
   const { goToBuy } = useRampNavigation();
   const resolvePostTradePrompt = usePostTradePromptResolver();
@@ -1061,6 +1065,16 @@ export function useQuickBuyController(
     quoteOverride: activeQuote ?? null,
   });
 
+  const hasInsufficientNativeReserve = Boolean(
+    useInsufficientNativeReserveError({
+      amount: sourceTokenAmount,
+      token: sourceToken,
+      latestAtomicBalance: latestSourceBalance?.atomicBalance,
+      walletAddress,
+      activeQuote,
+    }),
+  );
+
   const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientGas =
@@ -1088,8 +1102,8 @@ export function useQuickBuyController(
   }, [latestSourceBalance?.displayBalance, liveSourceCurrencyExchangeRate]);
 
   const sourceBalanceFiat = useMemo(
-    () => formatCurrency(sourceBalanceFiatValue, currentCurrency),
-    [sourceBalanceFiatValue, currentCurrency],
+    () => formatters.formatCurrency(sourceBalanceFiatValue, currentCurrency),
+    [sourceBalanceFiatValue, currentCurrency, formatters],
   );
 
   const sourceBalanceDisplay = useMemo(() => {
@@ -1188,7 +1202,10 @@ export function useQuickBuyController(
   // price for the dest token and renders $0.00 without one.
   const quoteDestValueInCurrency = activeQuote?.quote?.dest?.valueInCurrency;
   const quoteDestFiat = quoteDestValueInCurrency
-    ? formatCurrency(Number(quoteDestValueInCurrency), currentCurrency)
+    ? formatters.formatCurrency(
+        Number(quoteDestValueInCurrency),
+        currentCurrency,
+      )
     : undefined;
   const estimatedReceiveFiat =
     activeQuote && estimatedReceiveAmount
@@ -1717,7 +1734,10 @@ export function useQuickBuyController(
       tokenSymbol: target.tokenSymbol,
       counterTokenSymbol:
         (tradeMode === 'buy' ? sourceToken?.symbol : destToken?.symbol) ?? '',
-      fiatAmountLabel: formatCurrency(fiatAmountNumber, currentCurrency),
+      fiatAmountLabel: formatters.formatCurrency(
+        fiatAmountNumber,
+        currentCurrency,
+      ),
       rate: formattedRate,
       isNonEvmSwap,
     };
@@ -1737,7 +1757,9 @@ export function useQuickBuyController(
     // Public copy-trades always share. Private profiles use the normal
     // Quick Buy toasts instead. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
-    const canPostTradeShare = isSpotPostTradeShareEligible(amountUsdValue);
+    const canPostTradeShare =
+      isSpotPostTradeShareEligible(amountUsdValue) &&
+      !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
     const isForcedPostTradeShare =
       postTradeShare && !isProfileTradingActivityPrivate;
     const shouldForcePostTradeShare =
@@ -1974,6 +1996,7 @@ export function useQuickBuyController(
     toAmountUsd,
     currentCurrency,
     formattedRate,
+    formatters,
     traderAddress,
     caip19,
     tradeMode,
@@ -1999,8 +2022,8 @@ export function useQuickBuyController(
   // placement + separators for any locale/currency). The view renders this
   // string directly instead of concatenating a hardcoded "$".
   const fiatAmountLabel = useMemo(
-    () => formatCurrency(Number(fiatAmount) || 0, currentCurrency),
-    [fiatAmount, currentCurrency],
+    () => formatters.formatCurrency(Number(fiatAmount) || 0, currentCurrency),
+    [fiatAmount, currentCurrency, formatters],
   );
 
   const hasError = Boolean(quoteFetchError || isNoQuotesAvailable);
@@ -2119,6 +2142,7 @@ export function useQuickBuyController(
         isQuoteRequestStale ||
         isBlockingQuoteLoad ||
         hasInsufficientBalance ||
+        hasInsufficientNativeReserve ||
         isNetworkFeeUnavailable ||
         hasInsufficientGas ||
         isSubmittingTx ||
@@ -2138,6 +2162,8 @@ export function useQuickBuyController(
   if (!isPresetAddFundsMode && !hasNoPayWithFunds && !isOverBalanceSell) {
     if (hasInsufficientBalance || isNetworkFeeUnavailable) {
       buttonError = 'insufficient_balance';
+    } else if (hasInsufficientNativeReserve) {
+      buttonError = 'insufficient_native_reserve';
     } else if (hasInsufficientGas) {
       buttonError = 'insufficient_gas';
     } else if (hasError) {
@@ -2161,13 +2187,18 @@ export function useQuickBuyController(
     if (isPresetAddFundsMode || hasNoPayWithFunds) {
       return strings('social_leaderboard.quick_buy.add_funds');
     }
-    if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
+    if (buttonError) {
+      return strings(BUTTON_ERROR_LABELS[buttonError], {
+        ticker: sourceToken?.symbol,
+      });
+    }
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     return tradeMode === 'sell'
       ? strings('social_leaderboard.trader_position.sell')
       : strings('social_leaderboard.trader_position.buy');
   }, [
     buttonError,
+    sourceToken?.symbol,
     isPresetAddFundsMode,
     hasNoPayWithFunds,
     isSubmittingTx,

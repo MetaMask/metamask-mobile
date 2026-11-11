@@ -20,12 +20,12 @@ import {
   StackActions,
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -43,7 +43,10 @@ import {
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import type {
+  AppStackNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { useHaptics } from '../../../../util/haptics';
 import socialTermsOfUseContent from '../../../../util/termsOfUse/socialTermsOfUseContent';
 import {
@@ -56,6 +59,7 @@ import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderbo
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
+import ProfileVerifiedBadge from '../shared/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -278,7 +282,8 @@ const ReadyCardFallback: React.FC<{
   avatarBackgroundId: string | null | undefined;
   imageUrl?: string | null;
   handle: string;
-}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle }) => (
+  isVerified: boolean;
+}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle, isVerified }) => (
   <>
     <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
       🦊
@@ -310,20 +315,31 @@ const ReadyCardFallback: React.FC<{
           size="xl"
         />
       </Box>
-      <Text
-        variant={TextVariant.BodyMd}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
         twClassName="pt-3"
-        testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
       >
-        @{handle}
-      </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
+        >
+          @{handle}
+        </Text>
+        {isVerified ? (
+          <ProfileVerifiedBadge
+            testID={SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE}
+          />
+        ) : null}
+      </Box>
     </Box>
   </>
 );
 
 const SocialProfileOnboardingView: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'SocialProfileOnboardingView'>>();
   const tw = useTailwind();
@@ -336,8 +352,12 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
-  const { checkUsernameAvailability, createProfile, updateProfile } =
-    useProfileController();
+  const {
+    profile: controllerProfile,
+    checkUsernameAvailability,
+    createProfile,
+    updateProfile,
+  } = useProfileController();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
@@ -356,6 +376,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
+  const isProfileCreatedAndVerified =
+    profileCreated && controllerProfile?.verified === true;
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
   const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
     step: analyticsStep,
@@ -954,13 +976,22 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const createOnboardingProfile = useCallback(() => startSyncRef.current(), []);
 
+  // Set before Let's go. The native stack reads this screen's animation when
+  // the transition starts, and a pop with the default option leaves to the right.
+  useLayoutEffect(() => {
+    if (step !== 'ready') {
+      return;
+    }
+    navigation.setOptions({ animation: 'slide_from_left' });
+  }, [navigation, step]);
+
   const handleFinish = useCallback(() => {
     if (!profileCreatedRef.current) {
       return;
     }
     if (draft.path === 'x') {
-      // Replace drops onboarding from the stack. navigate() would leave it under
-      // the profile, so a later back swipe could reopen it.
+      // Replace drops onboarding from the stack. My Profile's replace is a pop,
+      // so this screen's slide_from_left plays and it leaves toward the left.
       navigation.dispatch(StackActions.replace(Routes.SOCIAL.MY_PROFILE));
       return;
     }
@@ -1105,7 +1136,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   gap={4}
                   testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STEP}
                 >
-                  <OnboardingTitle twClassName="pt-2">
+                  <OnboardingTitle twClassName="pt-4 pb-5">
                     {strings(
                       'social_leaderboard.profile_onboarding.claim_username',
                     )}
@@ -1185,7 +1216,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'avatar' ? (
                 <Box alignItems={BoxAlignItems.Center}>
-                  <OnboardingTitle twClassName="pt-2 pb-14">
+                  <OnboardingTitle twClassName="m-0.5 pt-3 pb-8">
                     {strings(
                       'social_leaderboard.profile_onboarding.customize_avatar',
                     )}
@@ -1206,7 +1237,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
                   <OnboardingTitle
-                    twClassName="pt-2"
+                    twClassName="m-0.5 pt-3 px-3 pb-3"
                     textStyle={DISPLAY_LG_LINE_STYLE}
                   >
                     {strings(
@@ -1266,13 +1297,14 @@ const SocialProfileOnboardingView: React.FC = () => {
                       avatarPresetId={draft.avatarPresetId}
                       avatarBackgroundId={draft.avatarBackgroundId}
                       imageUrl={readyImageUrl}
-                      isVerified={draft.path === 'x'}
+                      isVerified={isProfileCreatedAndVerified}
                       fallback={
                         <ReadyCardFallback
                           avatarPresetId={draft.avatarPresetId}
                           avatarBackgroundId={draft.avatarBackgroundId}
                           imageUrl={readyImageUrl}
                           handle={username}
+                          isVerified={isProfileCreatedAndVerified}
                         />
                       }
                     />

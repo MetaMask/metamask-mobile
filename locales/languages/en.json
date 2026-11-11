@@ -1210,6 +1210,8 @@
       "bank_name_label": "Bank name",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
+      "copy_all_button": "Copy all details",
+      "copied_all_label": "Copied bank details",
       "button": "Done",
       "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
@@ -1653,6 +1655,13 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "share_link": {
+      "profile_title": "{{trader}} on MetaMask",
+      "profile_description": "See {{trader}}'s trades on MetaMask",
+      "position_title": "{{trader}}'s {{asset}} trade",
+      "position_description": "{{trader}} is trading {{asset}}",
+      "position_title_no_asset": "{{trader}}'s trade"
+    },
     "popular_traders": "Popular traders",
     "profiles_to_follow": {
       "title": "Profiles to follow",
@@ -1723,6 +1732,11 @@
       "unblock": "Unblock",
       "blocked_title": "You blocked @{{name}}",
       "blocked_description": "Their posts and positions are hidden on this device for this session.",
+      "private_title": "This profile is private",
+      "private_description": "@{{name}} keeps their performance, positions and posts hidden.",
+      "private_title_own": "Your profile is private",
+      "private_description_own": "Your performance, positions and posts are hidden from everyone.",
+      "privacy_settings": "Privacy settings",
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
@@ -1978,6 +1992,7 @@
       "price_impact": "Price impact",
       "est_points": "Est. points",
       "no_quotes": "No quotes available for this token",
+      "insufficient_native_reserve": "Reduce {{ticker}} amount to maintain reserve",
       "quote_details_empty_no_amount": "Enter an amount to see quote details.",
       "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Loading...",
@@ -1998,7 +2013,8 @@
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
       "toast_failed_sell": "Couldn't sell {{symbol}}"
-    }
+    },
+    "share_preparing": "Preparing link"
   },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
@@ -3483,11 +3499,24 @@
     },
     "margin_mode": {
       "title": "Choose margin mode",
+      "title_with_market": "{{market}} margin mode",
       "isolated_title": "Isolated",
-      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "isolated_description": "Each position uses only its allocated margin. If used up, that position liquidates, others are unaffected.",
       "cross_title": "Cross",
-      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon.",
-      "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
+      "cross_description": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs. Coming soon.",
+      "cross_description_available": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs."
+    },
+    "cross_margin_confirm": {
+      "title": "Confirm cross margin",
+      "description": "You selected cross margin for this order.\nCheck this list to confirm you understand:",
+      "collateral_title": "Collateral:",
+      "collateral_description": "All positions will share your full perps balance.",
+      "liquidation_title": "Liquidation:",
+      "liquidation_description": "If liquidation occurs, this will draw from your entire perps balance.",
+      "margin_title": "Margin:",
+      "margin_description": "Margin cannot be added or removed from a cross position.",
+      "go_back": "Go back",
+      "confirm": "Confirm"
     },
     "cross_position": {
       "badge": "Cross",
@@ -3499,6 +3528,9 @@
       "title": "Cross margin not supported",
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
       "dismiss": "Got it"
+    },
+    "crossMarginRatio": {
+      "description": "Cross margin ratio is {{ratio}}."
     },
     "sort": {
       "volume": "Volume (24h)",
@@ -3526,6 +3558,9 @@
     },
     "provider_selector": {
       "title": "Select Provider"
+    },
+    "selection_sheet": {
+      "save": "Save"
     },
     "market_type": {
       "filter_by": "Filter by"
@@ -3815,12 +3850,19 @@
       "retry": "Retry",
       "unavailable": "No markets are available right now."
     },
+    "home_categories": {
+      "title": "Categories",
+      "politics": "Politics",
+      "sports": "Sports"
+    },
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
       "outcomes": "Outcomes",
       "view_all_markets": "View all {{count}} markets",
       "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
+      "card_closes": "Closes {{date}}",
+      "card_volume": "${{volume}}",
       "market_layout": {
         "markets": "Markets",
         "moneyline": "Moneyline",
@@ -3847,7 +3889,11 @@
         "buy_price_unavailable": "Buy, price unavailable",
         "holding": "{{shares}} shares at {{price}}",
         "holding_shares": "{{shares}} shares"
-      }
+      },
+      "game_quote_price": "· {{price}}",
+      "game_quote_buy_accessibility_label": "{{team}}, {{price}}, buy",
+      "game_quote_price_accessibility_label": "{{team}}, {{price}}",
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable"
     },
     "trending": {
       "search_row_chance": "{{probability}} chance on {{outcome}}"
@@ -5350,16 +5396,6 @@
     "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
     "x_account_disconnect_success": "X account has been disconnected"
-  },
-  "profile_drawer": {
-    "close": "Close",
-    "scan": "Scan QR code",
-    "create_profile": "Create profile",
-    "notifications": "Notifications",
-    "activity": "Activity",
-    "subscriptions": "Subscriptions",
-    "settings": "Settings",
-    "help_and_support": "Help and support"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
@@ -8038,7 +8074,10 @@
     "card_title": "Always show MetaMask Card button",
     "card_desc": "MetaMask Card is only available to residents of select countries.",
     "daimo_demo_title": "Use DaimoPay demo environment",
-    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments."
+    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments.",
+    "card_logout_title": "MetaMask Card",
+    "card_logout_desc": "Log out of your MetaMask Card account on this device. Use this for troubleshooting or if MetaMask Support asks you to.",
+    "card_logout_cta": "Log out of MetaMask Card"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
@@ -11532,7 +11571,8 @@
           "title": "Set up card funding",
           "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
           "confirm_button": "Approve funding"
-        }
+        },
+        "token_value": "USDC on Base"
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -11568,6 +11608,7 @@
         "last_name_label": "Last name",
         "date_of_birth_label": "Date of birth",
         "nationality_label": "Nationality",
+        "nationality_placeholder": "Select your nationality",
         "ssn_label": "Social Security Number",
         "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Invalid SSN",
@@ -11581,6 +11622,7 @@
         "address_line_2_label": "Address line 2",
         "city_label": "City",
         "state_label": "State",
+        "state_placeholder": "Select your state",
         "zip_code_label": "Zip code",
         "country_label": "Country",
         "electronic_consent_1": "I agree to the ",
@@ -11604,7 +11646,7 @@
         "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
-        "title": "You're in!",
+        "title": "You're verified",
         "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "Finish setup"
       },
@@ -11630,7 +11672,9 @@
         "success_toast_description": "We'll let you know when the card is available in your country."
       },
       "region_selector": {
-        "title": "Select your Region"
+        "title": "Select your region",
+        "search_label": "Search regions",
+        "search_placeholder": "Search by country"
       },
       "errors": {
         "no_region_results": "No region matches {{searchString}}",
@@ -11664,7 +11708,6 @@
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "spending_limit_available": "available",
-      "logout": "Log out",
       "contact_support": "Contact support",
       "logout_confirmation_title": "Log out of Card?",
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
@@ -12002,6 +12045,10 @@
       "location_button_text_uk": "United Kingdom",
       "email_label": "Email",
       "password_label": "Password",
+      "show_password": "Show password",
+      "hide_password": "Hide password",
+      "email_code_label": "Email code",
+      "request_email_code_button": "Email me a code",
       "login_button": "Sign in",
       "money_account_required": {
         "title": "Set up Money account",
@@ -12044,6 +12091,7 @@
       "banner_resume_soft_body": "Finish it by {{deadline}}. You can still use your current card until then.",
       "banner_bad_creds_title": "We couldn't sign you in",
       "banner_bad_creds_body": "Check your email address and password and try again.",
+      "banner_bad_code_body": "Check the code and try again.",
       "sign_in_help_title": "Which one is mine?",
       "sign_in_help_email_title": "You made a password",
       "sign_in_help_email_body": "Sign in with email. UK cards are moving to a new setup, so we'll walk you through the switch once you're in.",
@@ -12097,7 +12145,9 @@
     },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
+      "title_authenticator": "Confirm your authenticator",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
+      "description_authenticator": "Enter the code from your authenticator app.",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "Confirmation code",
       "confirm_button": "Confirm",
