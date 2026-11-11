@@ -29,6 +29,8 @@ import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 
+const toastMock = toast as unknown as jest.Mock;
+
 const Browser = BrowserComponent as React.ComponentType<
   Record<string, unknown>
 >;
@@ -500,7 +502,7 @@ describe('Browser - Rendering and Initialization', () => {
     expect(toast).not.toHaveBeenCalled();
 
     // Verify toast is shown when changing to site2
-    (toast as jest.Mock).mockReset();
+    toastMock.mockReset();
     const newHostnameResult = checkIfActiveAccountChanged(newHostname);
     expect(newHostnameResult).toBe(true);
     expect(toast).toHaveBeenCalled();
@@ -690,7 +692,7 @@ describe('Browser - Rendering and Initialization', () => {
       });
       // Toast for initial.com
       expect(toast).toHaveBeenCalledTimes(1);
-      (toast as jest.Mock).mockClear();
+      toastMock.mockClear();
 
       rerender(
         browserTree({
@@ -714,7 +716,7 @@ describe('Browser - Rendering and Initialization', () => {
         route: { params: { url: 'https://samesite.com' } },
       });
       expect(toast).toHaveBeenCalledTimes(1); // Initial toast
-      (toast as jest.Mock).mockClear();
+      toastMock.mockClear();
 
       // Rerender with same URL (e.g., due to some other state change not affecting URL or accounts)
       rerender(

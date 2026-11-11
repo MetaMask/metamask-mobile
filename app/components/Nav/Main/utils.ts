@@ -4,6 +4,7 @@ import {
   AvatarNetwork,
   AvatarNetworkSize,
   toast,
+  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { consumeSuppressedNetworkAddedToast } from '../../../util/networks/networkToastSuppression';
@@ -17,7 +18,7 @@ export const handleShowNetworkActiveToast = (
     toast({
       title: `${networkName} ${strings('toast.now_active')}`,
       startAccessory: React.createElement(AvatarNetwork, {
-        src: networkImage,
+        src: networkImage as ImageOrSvgSrc,
         size: AvatarNetworkSize.Md,
       }),
       showCloseButton: false,
