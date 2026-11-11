@@ -2427,6 +2427,18 @@ describe('PerpsHomeView', () => {
 });
 
 describe('Perps home cross margin risk', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    clearExploreSessionTab();
+    setupPerpsOutreachApiMock();
+  });
+
+  afterEach(() => {
+    cleanup();
+    clearExploreSessionTab();
+    clearPerpsOutreachApiMocks();
+  });
+
   const fundedCrossAccount = (
     maintenanceMargin: string,
     marginUsed: string,
