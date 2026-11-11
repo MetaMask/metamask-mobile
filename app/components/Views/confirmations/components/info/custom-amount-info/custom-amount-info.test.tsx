@@ -72,12 +72,12 @@ const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const React = require('react');
-  const PropTypes = require('prop-types');
-  const { View } = require('react-native');
+  const ReactActual = jest.requireActual('react');
+  const PropTypes = jest.requireActual('prop-types');
+  const { View } = jest.requireActual('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
 
-  const BottomSheet = React.forwardRef(
+  const BottomSheet = ReactActual.forwardRef(
     (
       {
         children,
@@ -89,7 +89,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         testID,
         accessibilityLabel,
       }: {
-        children?: React.ReactNode;
+        children?: ReactActual.ReactNode;
         onClose?: (hasCallback?: boolean) => void;
         onOpen?: () => void;
         goBack?: () => void;
@@ -98,12 +98,12 @@ jest.mock('@metamask/design-system-react-native', () => {
         testID?: string;
         accessibilityLabel?: string;
       },
-      ref: React.Ref<{
+      ref: ReactActual.Ref<{
         onOpenBottomSheet: (callback?: () => void) => void;
         onCloseBottomSheet: (callback?: () => void) => void;
       }>,
     ) => {
-      React.useImperativeHandle(ref, () => ({
+      ReactActual.useImperativeHandle(ref, () => ({
         onOpenBottomSheet: (callback?: () => void) => {
           onOpen?.();
           callback?.();
@@ -115,7 +115,7 @@ jest.mock('@metamask/design-system-react-native', () => {
           callback?.();
         },
       }));
-      return React.createElement(
+      return ReactActual.createElement(
         View,
         {
           testID: testID || 'design-system-bottom-sheet-mock',
