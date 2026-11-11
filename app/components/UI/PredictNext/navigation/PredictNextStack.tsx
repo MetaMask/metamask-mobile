@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { PredictDeviceAuthBootstrap } from '../auth/PredictDeviceAuthBootstrap';
-import { KalshiDemoOnboardingGate } from '../onboarding/KalshiDemoOnboardingGate';
+import KalshiOnboarding from '../../KYC/Kalshi/KalshiOnboarding';
 import { PredictHome } from '../views/PredictHome/PredictHome';
 import { PredictOrderFlowProvider } from '../views/PredictOrderFlow';
 import { PredictEventScreen } from '../views/PredictEvent/PredictEventScreen';
@@ -15,32 +15,35 @@ const Stack = createNativeStackNavigator<PredictNextStackParamList>();
 
 const PredictNextStack = () => (
   <PredictDeviceAuthBootstrap>
-    <KalshiDemoOnboardingGate>
-      <PredictOrderFlowProvider>
-        <Stack.Navigator
-          initialRouteName={PredictNextRoutes.HOME}
-          screenOptions={{ headerShown: false }}
-        >
-          <Stack.Screen name={PredictNextRoutes.HOME} component={PredictHome} />
-          <Stack.Screen
-            name={PredictNextRoutes.FEED}
-            component={PredictFeedScreen}
-          />
-          <Stack.Screen
-            name={PredictNextRoutes.EVENT}
-            component={PredictEventScreen}
-          />
-          <Stack.Screen
-            name={PredictNextRoutes.PORTFOLIO}
-            component={PredictPortfolioScreen}
-          />
-          <Stack.Screen
-            name={PredictNextRoutes.SEARCH}
-            component={PredictSearchScreen}
-          />
-        </Stack.Navigator>
-      </PredictOrderFlowProvider>
-    </KalshiDemoOnboardingGate>
+    {/* Kalshi onboarding runs through KycFlowController (KalshiOnboarding) and replaces the demo sheet. */}
+    <PredictOrderFlowProvider>
+      <Stack.Navigator
+        initialRouteName={PredictNextRoutes.HOME}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name={PredictNextRoutes.HOME} component={PredictHome} />
+        <Stack.Screen
+          name={PredictNextRoutes.FEED}
+          component={PredictFeedScreen}
+        />
+        <Stack.Screen
+          name={PredictNextRoutes.EVENT}
+          component={PredictEventScreen}
+        />
+        <Stack.Screen
+          name={PredictNextRoutes.PORTFOLIO}
+          component={PredictPortfolioScreen}
+        />
+        <Stack.Screen
+          name={PredictNextRoutes.SEARCH}
+          component={PredictSearchScreen}
+        />
+        <Stack.Screen
+          name={PredictNextRoutes.KALSHI_ONBOARDING}
+          component={KalshiOnboarding}
+        />
+      </Stack.Navigator>
+    </PredictOrderFlowProvider>
   </PredictDeviceAuthBootstrap>
 );
 

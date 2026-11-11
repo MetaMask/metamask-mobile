@@ -796,6 +796,9 @@
     "isUiOpen": false
   },
   "ComplianceController": {},
+  "KycFlowController": {
+    "vendors": {}
+  },
   "KycController": {
     "email": null,
     "vendor": null,

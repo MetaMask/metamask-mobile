@@ -143,6 +143,7 @@ import { getComplianceServiceMessenger } from './compliance/compliance-service-m
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 import { getKycServiceMessenger } from './kyc/kyc-service-messenger';
 import { getKycControllerMessenger } from './kyc/kyc-controller-messenger';
+import { getKycFlowControllerMessenger } from './kyc/kyc-flow-controller-messenger';
 import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
@@ -485,6 +486,10 @@ export const MESSENGER_FACTORIES = {
   },
   KycController: {
     getMessenger: getKycControllerMessenger,
+    getInitMessenger: noop,
+  },
+  KycFlowController: {
+    getMessenger: getKycFlowControllerMessenger,
     getInitMessenger: noop,
   },
   ChompApiService: {

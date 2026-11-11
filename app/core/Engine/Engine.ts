@@ -177,6 +177,7 @@ import { complianceServiceInit } from './controllers/compliance/compliance-servi
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
 import { kycServiceInit } from './controllers/kyc/kyc-service-init';
 import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
+import { kycFlowControllerInit } from './controllers/kyc/kyc-flow-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
@@ -390,6 +391,7 @@ export class Engine {
         ComplianceController: complianceControllerInit,
         KycService: kycServiceInit,
         KycController: kycControllerInit,
+        KycFlowController: kycFlowControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
       },
@@ -478,6 +480,7 @@ export class Engine {
     const complianceController = messengerClientsByName.ComplianceController;
     const kycService = messengerClientsByName.KycService;
     const kycController = messengerClientsByName.KycController;
+    const kycFlowController = messengerClientsByName.KycFlowController;
     const qrSyncProvisioningService =
       messengerClientsByName.QrSyncProvisioningService;
 
@@ -689,6 +692,7 @@ export class Engine {
       ComplianceController: complianceController,
       KycService: kycService,
       KycController: kycController,
+      KycFlowController: kycFlowController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
     };
@@ -1334,6 +1338,7 @@ export class Engine {
       ShieldController,
       ClaimsController,
       KycController,
+      KycFlowController,
       PredictOrderService,
       PredictPortfolioService,
       PredictDeviceAuthService,
@@ -1380,6 +1385,7 @@ export class Engine {
 
     // KYC:
     KycController.clearState();
+    KycFlowController.reset();
 
     // PredictNext account state. A wallet reset replaces the Predict User
     // within one process, so the previous person's account reads and their
@@ -1590,6 +1596,7 @@ export default {
       ProfileController,
       ComplianceController,
       KycController,
+      KycFlowController,
       AuthenticationController,
       CronjobController,
       NotificationServicesController,
@@ -1669,6 +1676,7 @@ export default {
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       KycController: KycController.state,
+      KycFlowController: KycFlowController.state,
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,
       NotificationServicesController: NotificationServicesController.state,
