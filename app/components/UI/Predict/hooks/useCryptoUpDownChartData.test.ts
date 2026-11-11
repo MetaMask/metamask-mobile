@@ -2,6 +2,7 @@ import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
+  appendTickHistoryPoint,
   getHistoricalPollInterval,
   useCryptoUpDownChartData,
 } from './useCryptoUpDownChartData';
@@ -299,6 +300,82 @@ describe('useCryptoUpDownChartData', () => {
       // Even with many failures recorded, a disabled poll stays disabled.
       await recordFailures(99);
       expect(evaluateRefetchInterval()).toBe(false);
+    });
+  });
+
+  describe('appendTickHistoryPoint', () => {
+    const bounds = { startSecs: 100, endSecs: 1000 };
+
+    it('appends ticks in time order', () => {
+      const points = appendTickHistoryPoint(
+        [{ time: 100, value: 1 }],
+        { time: 101, value: 2 },
+        bounds,
+      );
+
+      expect(points).toEqual([
+        { time: 100, value: 1 },
+        { time: 101, value: 2 },
+      ]);
+    });
+
+    it('keeps one point per second, replacing it with the newest tick', () => {
+      const points = appendTickHistoryPoint(
+        [{ time: 101.2, value: 1 }],
+        { time: 101.8, value: 2 },
+        bounds,
+      );
+
+      expect(points).toEqual([{ time: 101.8, value: 2 }]);
+    });
+
+    it('returns the same series for a tick outside the window or not finite', () => {
+      const points = [{ time: 200, value: 1 }];
+
+      expect(
+        appendTickHistoryPoint(points, { time: 99, value: 2 }, bounds),
+      ).toBe(points);
+      expect(
+        appendTickHistoryPoint(points, { time: 1001, value: 2 }, bounds),
+      ).toBe(points);
+      expect(
+        appendTickHistoryPoint(points, { time: 300, value: NaN }, bounds),
+      ).toBe(points);
+    });
+
+    it('fills a gap with an older tick but never overwrites a second it has', () => {
+      const points = [
+        { time: 100, value: 1 },
+        { time: 300, value: 3 },
+      ];
+
+      expect(
+        appendTickHistoryPoint(points, { time: 200, value: 2 }, bounds),
+      ).toEqual([
+        { time: 100, value: 1 },
+        { time: 200, value: 2 },
+        { time: 300, value: 3 },
+      ]);
+      expect(
+        appendTickHistoryPoint(points, { time: 100.5, value: 9 }, bounds),
+      ).toBe(points);
+    });
+
+    it('drops the oldest points past the cap', () => {
+      const points = appendTickHistoryPoint(
+        [
+          { time: 100, value: 1 },
+          { time: 101, value: 2 },
+        ],
+        { time: 102, value: 3 },
+        bounds,
+        2,
+      );
+
+      expect(points).toEqual([
+        { time: 101, value: 2 },
+        { time: 102, value: 3 },
+      ]);
     });
   });
 
@@ -1596,6 +1673,135 @@ describe('useCryptoUpDownChartData', () => {
         'xau/usd',
         expect.any(Function),
       );
+    });
+
+    describe('metal tick history', () => {
+      const goldMarket = (overrides: Partial<TestMarket> = {}): TestMarket =>
+        createMarket({
+          slug: 'xau-updown-15m-1794338100',
+          tags: ['finance', 'gold', 'up-or-down'],
+          ...overrides,
+        });
+      const eventStartSecs =
+        new Date('2025-12-31T23:55:30.000Z').getTime() / 1000;
+
+      const sendGoldTicks = (ticks: [number, number][]): void => {
+        act(() => {
+          ticks.forEach(([price, timestamp]) => {
+            liveUpdateHandler?.({ symbol: 'xau/usd', price, timestamp });
+          });
+        });
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+      };
+
+      beforeEach(() => {
+        mockGetCryptoSymbol.mockReturnValue('XAU');
+      });
+
+      it('draws the chart from ticks once two points exist, from the price to beat', () => {
+        const { Wrapper } = createWrapper();
+        const nowMs = Date.now();
+        const { result } = renderHook(
+          () => useCryptoUpDownChartData(goldMarket(), 4030),
+          { wrapper: Wrapper },
+        );
+
+        sendGoldTicks([
+          [4029.91, nowMs - 2000],
+          [4030.12, nowMs - 1000],
+          [4030.36, nowMs],
+        ]);
+
+        expect(result.current.data).toEqual([
+          { time: eventStartSecs, value: 4030 },
+          { time: nowMs / 1000 - 2, value: 4029.91 },
+          { time: nowMs / 1000 - 1, value: 4030.12 },
+          { time: nowMs / 1000, value: 4030.36 },
+        ]);
+        expect(result.current.value).toBe(4030.36);
+        expect(result.current.loading).toBe(false);
+        expect(result.current.connectionError).toBe(false);
+      });
+
+      it('starts a new series when the market changes', () => {
+        const { Wrapper } = createWrapper();
+        const nowMs = Date.now();
+        const { result, rerender } = renderHook(
+          ({ market }: { market: TestMarket }) =>
+            useCryptoUpDownChartData(market, 4030),
+          {
+            wrapper: Wrapper,
+            initialProps: { market: goldMarket() },
+          },
+        );
+        sendGoldTicks([
+          [4029.5, nowMs - 100_000],
+          [4029.6, nowMs - 99_000],
+        ]);
+        expect(result.current.data).toEqual(
+          expect.arrayContaining([{ time: nowMs / 1000 - 100, value: 4029.5 }]),
+        );
+
+        rerender({ market: goldMarket({ id: 'market-2' }) });
+        sendGoldTicks([[4030.36, Date.now()]]);
+
+        expect(result.current.data).not.toEqual(
+          expect.arrayContaining([{ time: nowMs / 1000 - 100, value: 4029.5 }]),
+        );
+        expect(result.current.data.at(-1)?.value).toBe(4030.36);
+      });
+
+      it('streams ticks for a history-only caller and returns them as its data', () => {
+        const { Wrapper } = createWrapper();
+        const nowMs = Date.now();
+        const { result } = renderHook(
+          () =>
+            useCryptoUpDownChartData(goldMarket(), 4030, {
+              liveUpdatesEnabled: false,
+              historicalWindow: { startDate: '2025-12-31T23:45:00.000Z' },
+            }),
+          { wrapper: Wrapper },
+        );
+
+        expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+          'xau/usd',
+          expect.any(Function),
+        );
+        expect(result.current.data).toEqual([]);
+
+        sendGoldTicks([
+          [4029.91, nowMs - 1000],
+          [4030.36, nowMs],
+        ]);
+
+        expect(result.current.data).toEqual([
+          { time: nowMs / 1000 - 1, value: 4029.91 },
+          { time: nowMs / 1000, value: 4030.36 },
+        ]);
+        expect(result.current.value).toBe(4030.36);
+        expect(result.current.loading).toBe(false);
+      });
+
+      it('keeps a BTC history-only caller off the live stream', () => {
+        mockGetCryptoSymbol.mockReturnValue('BTC');
+        const { Wrapper } = createWrapper();
+
+        renderHook(
+          () =>
+            useCryptoUpDownChartData(createMarket(), 50000, {
+              liveUpdatesEnabled: false,
+              historicalWindow: { startDate: '2025-12-31T23:45:00.000Z' },
+            }),
+          { wrapper: Wrapper },
+        );
+
+        expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+          '',
+          expect.any(Function),
+        );
+      });
     });
 
     it('passes the lowercase websocket symbol to useLiveCryptoPrices', () => {
