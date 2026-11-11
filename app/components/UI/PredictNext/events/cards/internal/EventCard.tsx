@@ -4,9 +4,9 @@ import {
   type PressableProps,
 } from 'react-native';
 import {
+  AvatarBase,
+  AvatarBaseSize,
   Box,
-  Button,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -20,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import type {
   PredictEvent,
@@ -33,35 +34,8 @@ import {
 } from '../../shared/formatting';
 import { isOutcomeTradeable } from '../../shared/tradeable';
 import { OutcomeRow as SharedOutcomeRow } from '../../shared/ui';
-import { formatMultiplier } from './formatMultiplier';
 
 export const EVENT_CARD_VISIBLE_MARKET_COUNT = 3;
-
-export type OutcomeRowColor = 'green' | 'indigo' | 'red';
-
-export const BINARY_OUTCOME_ROW_COLORS: Record<'yes' | 'no', OutcomeRowColor> =
-  {
-    yes: 'green',
-    no: 'red',
-  };
-
-export const MULTI_OUTCOME_ROW_COLORS: readonly OutcomeRowColor[] = [
-  'green',
-  'indigo',
-  'red',
-];
-
-const OUTCOME_ROW_FILL: Record<OutcomeRowColor, string> = {
-  green: 'bg-success-default',
-  indigo: 'bg-info-default',
-  red: 'bg-error-default',
-};
-
-const OUTCOME_ROW_TEXT: Record<OutcomeRowColor, TextColor> = {
-  green: TextColor.SuccessInverse,
-  indigo: TextColor.InfoInverse,
-  red: TextColor.ErrorInverse,
-};
 
 interface RootProps {
   children: React.ReactNode;
@@ -108,19 +82,23 @@ const Title = ({
   </Text>
 );
 
-const Image = ({ source, testID }: { source: string; testID?: string }) => {
-  const tw = useTailwind();
-  return (
-    <Box testID={testID}>
-      <ExpoImage
-        source={source}
-        style={tw.style('h-10 w-10 rounded-lg')}
-        contentFit="cover"
-        recyclingKey={source}
-      />
-    </Box>
-  );
-};
+const Subtitle = ({
+  children,
+  testID,
+}: {
+  children: React.ReactNode;
+  testID?: string;
+}) => (
+  <Text
+    variant={TextVariant.BodySm}
+    fontWeight={FontWeight.Medium}
+    color={TextColor.TextAlternative}
+    numberOfLines={1}
+    testID={testID}
+  >
+    {children}
+  </Text>
+);
 
 const Body = ({
   children,
@@ -214,12 +192,95 @@ const MoreMarkets = ({
     </NativePressable>
   ) : null;
 
+/**
+ * A card's top row: leading content on the left, trailing content on the
+ * right, and a full-width dashed divider below. The row pads its own sides,
+ * so render it in a Root without horizontal padding and the divider reaches
+ * both card edges. Compose the sides from `HeaderRow.Title`, `HeaderRow.Meta`
+ * or any other element.
+ */
+const HeaderRowRoot = ({
+  children,
+  testID,
+}: {
+  children: React.ReactNode;
+  testID?: string;
+}) => (
+  <Box twClassName="gap-3" testID={testID}>
+    <Box
+      twClassName="flex-row items-center justify-between gap-3 px-4"
+      testID={testID ? `${testID}-row` : undefined}
+    >
+      {children}
+    </Box>
+    {/* iOS draws a one-sided dashed border solid, so clip a dashed box to its top edge. */}
+    <Box twClassName="h-px overflow-hidden">
+      <Box
+        twClassName="h-1 border border-dashed border-muted"
+        testID={testID ? `${testID}-divider` : undefined}
+      />
+    </Box>
+  </Box>
+);
+
+/**
+ * Leading header text. It fills the row beside the Meta and never narrows
+ * below 60% of it, so a long Meta truncates at 40% instead of squeezing the
+ * Title away. Both sides truncate on one line.
+ */
+const HeaderRowTitle = ({
+  children,
+  testID,
+}: {
+  children: React.ReactNode;
+  testID?: string;
+}) => (
+  <Text
+    variant={TextVariant.BodySm}
+    fontWeight={FontWeight.Bold}
+    numberOfLines={1}
+    twClassName="min-w-[60%] flex-1"
+    testID={testID}
+  >
+    {children}
+  </Text>
+);
+
+/**
+ * Trailing header text. It may shrink and truncates on one line, so it gives
+ * way to a Title beside it and, without one, keeps its full width.
+ */
+const HeaderRowMeta = ({
+  children,
+  testID,
+}: {
+  children: React.ReactNode;
+  testID?: string;
+}) => (
+  <Text
+    variant={TextVariant.BodyXs}
+    fontWeight={FontWeight.Medium}
+    color={TextColor.TextAlternative}
+    numberOfLines={1}
+    twClassName="shrink"
+    testID={testID}
+  >
+    {children}
+  </Text>
+);
+
+const HeaderRow = Object.assign(HeaderRowRoot, {
+  Title: HeaderRowTitle,
+  Meta: HeaderRowMeta,
+});
+
 interface OutcomeRowProps {
   event: PredictEvent;
   market: PredictMarket;
   outcome: PredictOutcome;
-  color: OutcomeRowColor;
   label?: string;
+  /** Avatar image; a token-coloured placeholder when absent. */
+  imageUrl?: string;
   onOrder?: (
     event: PredictEvent,
     market: PredictMarket,
@@ -228,59 +289,62 @@ interface OutcomeRowProps {
   testID?: string;
 }
 
+/**
+ * One Outcome on a feed card: an avatar, the label over a neutral quote bar,
+ * and a muted price pill that opens an Order.
+ */
 const OutcomeRow = ({
   event,
   market,
   outcome,
-  color,
   label = outcome.label,
+  imageUrl,
   onOrder,
   testID,
 }: OutcomeRowProps) => {
+  const tw = useTailwind();
   const { colors } = useTheme();
   const price = formatAskPrice(outcome.askPrice);
-  const multiplier = formatMultiplier(outcome.askPrice);
-  const percent = getAskPricePercent(outcome.askPrice);
-  const lineColor = {
-    green: colors.success.default,
-    indigo: colors.info.default,
-    red: colors.error.default,
-  }[color];
 
   return (
     <SharedOutcomeRow.Root>
-      <SharedOutcomeRow.Label
-        label={label}
-        percent={percent}
-        color={lineColor}
-        lineTestID={testID ? `${testID}-bar` : undefined}
-      />
-      {multiplier ? (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          twClassName="text-right"
+      <Box twClassName="min-w-0 flex-1 flex-row items-center gap-2">
+        <AvatarBase
+          size={AvatarBaseSize.Lg}
+          testID={testID ? `${testID}-avatar` : undefined}
         >
-          {multiplier}
-        </Text>
-      ) : null}
-      {/* Feed rows keep a filled price; Market cards use OutcomeRow.Price. */}
-      <Button
-        testID={testID}
-        variant={ButtonVariant.Secondary}
+          {imageUrl ? (
+            <ExpoImage
+              source={imageUrl}
+              style={tw.style('h-full w-full')}
+              contentFit="cover"
+              recyclingKey={imageUrl}
+              testID={testID ? `${testID}-avatar-image` : undefined}
+            />
+          ) : null}
+        </AvatarBase>
+        <SharedOutcomeRow.Label
+          label={label}
+          percent={getAskPricePercent(outcome.askPrice)}
+          color={colors.icon.alternative}
+          lineTestID={testID ? `${testID}-bar` : undefined}
+        />
+      </Box>
+      <SharedOutcomeRow.Price
+        price={price}
+        color={colors.text.default}
         isDisabled={!onOrder || !isOutcomeTradeable(market, outcome)}
         onPress={() => onOrder?.(event, market, outcome)}
-        twClassName={`w-16 px-0 ${OUTCOME_ROW_FILL[color]}`}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={OUTCOME_ROW_TEXT[color]}
-        >
-          {price ?? '-'}
-        </Text>
-      </Button>
+        accessibilityLabel={strings(
+          'predict_next.event.standard_outcome_accessibility_label',
+          {
+            title: event.title,
+            outcome: label,
+            price: price ?? strings('predict.market_groups.price_unavailable'),
+          },
+        )}
+        testID={testID}
+      />
     </SharedOutcomeRow.Root>
   );
 };
@@ -290,7 +354,7 @@ export const EventCard = {
   Pressable,
   Header,
   Title,
-  Image,
+  Subtitle,
   Body,
   Actions,
   Action,
@@ -300,4 +364,5 @@ export const EventCard = {
   Volume,
   MoreMarkets,
   OutcomeRow,
+  HeaderRow,
 };

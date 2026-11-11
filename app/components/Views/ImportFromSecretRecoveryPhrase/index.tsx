@@ -3,7 +3,6 @@ import React, {
   useState,
   useCallback,
   useRef,
-  useContext,
   useMemo,
 } from 'react';
 import { Alert, Animated, Dimensions, Keyboard, TextInput } from 'react-native';
@@ -75,6 +74,8 @@ import {
   TextField,
   TextVariant,
   TitleStandard,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
@@ -90,12 +91,6 @@ import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
-import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
-import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
-import {
-  IconName as ToastIconName,
-  IconColor as ToastIconColor,
-} from '../../../component-library/components/Icons/Icon';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
@@ -250,7 +245,6 @@ const ImportFromSecretRecoveryPhrase = () => {
 
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
 
-  const { toastRef } = useContext(ToastContext);
   const passwordSetupAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const [password, setPassword] = useState('');
@@ -508,14 +502,11 @@ const ImportFromSecretRecoveryPhrase = () => {
       .filter((item) => item !== '');
     const phrase = trimmedWords.join(SPACE_CHAR);
     if (!SRP_LENGTHS.includes(trimmedWords.length)) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('import_from_seed.seed_phrase_length_error') },
-        ],
+      toast({
+        title: strings('import_from_seed.seed_phrase_length_error'),
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
-        iconName: ToastIconName.Error,
-        iconColor: ToastIconColor.Error,
+        showCloseButton: false,
       });
       return false;
     }

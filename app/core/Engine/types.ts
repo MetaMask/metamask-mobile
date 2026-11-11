@@ -1189,7 +1189,6 @@ export type MessengerClientsToInitialize =
   | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
-  | 'NetworkEnablementController'
   | 'RewardsController'
   | 'RewardsDataService'
   | 'RewardsMoneyController'

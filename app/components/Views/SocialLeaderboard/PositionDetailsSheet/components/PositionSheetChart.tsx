@@ -30,7 +30,6 @@ import {
   findNearestMarkerIndex,
   measurePolylineLength,
 } from '../utils/chartGeometry';
-import { formatChartTimestamp } from '../utils/chartWindow';
 import type { PositionSheetMarker } from '../hooks/usePositionSheetData';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 
@@ -41,7 +40,13 @@ const LINE_WIDTH = 2;
 const CHART_HORIZONTAL_INSET = 16;
 const MARKER_SIZE = 16;
 const MARKER_HIT_SLOP = 16;
-const TOOLTIP_OFFSET = 64;
+/** Space between the marker edge and the active ring. */
+const MARKER_RING_GAP = 2;
+const MARKER_RING_WIDTH = 2;
+const MARKER_RING_SIZE =
+  MARKER_SIZE + (MARKER_RING_GAP + MARKER_RING_WIDTH) * 2;
+/** Space between the active ring's outer edge and the tooltip. */
+const TOOLTIP_GAP = 8;
 const TOOLTIP_EDGE_INSET = 8;
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -81,6 +86,11 @@ const PositionSheetChart = ({
   const clipId = useId().replace(/[^a-zA-Z0-9]/g, '');
   const [width, setWidth] = useState(0);
   const [scrubIndex, setScrubIndex] = useState(-1);
+  const [tooltipFrame, setTooltipFrame] = useState<{
+    id: string;
+    width: number;
+    height: number;
+  } | null>(null);
 
   const values = useMemo(() => prices.map((point) => point[1]), [prices]);
   const scale = useMemo(
@@ -160,36 +170,63 @@ const PositionSheetChart = ({
 
   const renderTooltip = () => {
     if (!activeMarker || !activeMarkerPoint) return null;
-    const anchorLeft = activeMarkerPoint.x < width / 2;
+    const measured = tooltipFrame?.id === activeMarker.id ? tooltipFrame : null;
+    const tooltipWidth = measured?.width ?? 0;
+    const tooltipHeight = measured?.height ?? 0;
+    const unclampedLeft = activeMarkerPoint.x - tooltipWidth / 2;
+    const left = Math.min(
+      Math.max(unclampedLeft, TOOLTIP_EDGE_INSET),
+      Math.max(width - tooltipWidth - TOOLTIP_EDGE_INSET, TOOLTIP_EDGE_INSET),
+    );
     return (
       <View
         testID={PositionDetailsSheetSelectorsIDs.CHART_TOOLTIP}
         pointerEvents="none"
+        onLayout={(event) => {
+          const { width: nextWidth, height: nextHeight } =
+            event.nativeEvent.layout;
+          setTooltipFrame((current) =>
+            current?.id === activeMarker.id &&
+            current.width === nextWidth &&
+            current.height === nextHeight
+              ? current
+              : { id: activeMarker.id, width: nextWidth, height: nextHeight },
+          );
+        }}
         style={[
-          tw.style('absolute rounded-lg px-3 py-2 bg-default shadow-md'),
+          tw.style(
+            'absolute rounded-lg border border-muted bg-background-subsection',
+            measured ? 'opacity-100' : 'opacity-0',
+            {
+              paddingHorizontal: 10,
+              paddingVertical: 8,
+            },
+          ),
           {
-            top: Math.max(activeMarkerPoint.y - TOOLTIP_OFFSET, 0),
-            ...(anchorLeft
-              ? {
-                  left: Math.max(
-                    activeMarkerPoint.x - MARKER_SIZE,
-                    TOOLTIP_EDGE_INSET,
-                  ),
-                }
-              : {
-                  right: Math.max(
-                    width - activeMarkerPoint.x - MARKER_SIZE,
-                    TOOLTIP_EDGE_INSET,
-                  ),
-                }),
+            top: Math.max(
+              activeMarkerPoint.y -
+                MARKER_RING_SIZE / 2 -
+                TOOLTIP_GAP -
+                tooltipHeight,
+              0,
+            ),
+            left,
           },
         ]}
       >
-        <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-          {activeMarker.tooltipLabel}
-        </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {formatChartTimestamp(activeMarker.timestampMs)}
+          {activeMarker.actionLabel}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          twClassName={
+            activeMarker.isValuePositive
+              ? 'text-success-default'
+              : 'text-error-default'
+          }
+        >
+          {activeMarker.valueLabel}
         </Text>
       </View>
     );
@@ -281,28 +318,48 @@ const PositionSheetChart = ({
             const point = points[marker.index];
             if (!point) return null;
             const isEnter = marker.intent === 'enter';
+            const isActive = activeMarker?.id === marker.id;
             return (
-              <View
-                key={marker.id}
-                testID={`${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${marker.id}`}
-                style={[
-                  tw.style(
-                    'absolute items-center justify-center rounded-full border-2 border-default',
-                    isEnter ? 'bg-success-default' : 'bg-error-default',
-                  ),
-                  {
-                    width: MARKER_SIZE,
-                    height: MARKER_SIZE,
-                    left: markerXs[index] - MARKER_SIZE / 2,
-                    top: point.y - MARKER_SIZE / 2,
-                  },
-                ]}
-              >
-                <Icon
-                  name={isEnter ? IconName.Add : IconName.Minus}
-                  size={IconSize.Xs}
-                  color={IconColor.PrimaryInverse}
-                />
+              <View key={marker.id}>
+                {isActive ? (
+                  <View
+                    pointerEvents="none"
+                    testID={`${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-ring-${marker.id}`}
+                    style={[
+                      tw.style('absolute rounded-full border-2'),
+                      {
+                        width: MARKER_RING_SIZE,
+                        height: MARKER_RING_SIZE,
+                        borderColor: isEnter
+                          ? colors.success.default
+                          : colors.error.default,
+                        left: markerXs[index] - MARKER_RING_SIZE / 2,
+                        top: point.y - MARKER_RING_SIZE / 2,
+                      },
+                    ]}
+                  />
+                ) : null}
+                <View
+                  testID={`${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${marker.id}`}
+                  style={[
+                    tw.style(
+                      'absolute items-center justify-center rounded-full',
+                      isEnter ? 'bg-success-default' : 'bg-error-default',
+                    ),
+                    {
+                      width: MARKER_SIZE,
+                      height: MARKER_SIZE,
+                      left: markerXs[index] - MARKER_SIZE / 2,
+                      top: point.y - MARKER_SIZE / 2,
+                    },
+                  ]}
+                >
+                  <Icon
+                    name={isEnter ? IconName.Add : IconName.Minus}
+                    size={IconSize.Xs}
+                    color={IconColor.PrimaryInverse}
+                  />
+                </View>
               </View>
             );
           })}
