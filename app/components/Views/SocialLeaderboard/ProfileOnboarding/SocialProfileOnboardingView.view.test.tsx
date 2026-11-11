@@ -23,7 +23,9 @@ import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
+import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
 import Engine from '../../../../core/Engine';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { updateBgState } from '../../../../core/redux/slices/engine';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import {
@@ -247,6 +249,22 @@ const EXISTING_PROFILE: Profile = {
 
 /** A ProfileController read that finds no profile, like a 404. */
 const NO_PROFILE: Profile = { ...EXISTING_PROFILE, profileId: '' };
+
+let storageReadSpy: jest.SpyInstance | undefined;
+
+/**
+ * View tests run with test overrides, where `getItemSync` always returns null,
+ * so the stored older version is supplied at the storage read.
+ */
+const storeOlderTermsVersion = async () => {
+  await resetSocialTermsAcceptance();
+  const readItem = StorageWrapper.getItemSync.bind(StorageWrapper);
+  storageReadSpy = jest
+    .spyOn(StorageWrapper, 'getItemSync')
+    .mockImplementation((key: string) =>
+      key === SOCIAL_TERMS_ACCEPTED ? 'v0' : readItem(key),
+    );
+};
 
 const introActionDisabled = (testID: string): boolean =>
   screen.getByTestId(testID).props.accessibilityState?.disabled === true;
@@ -2126,6 +2144,11 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   describe('existing profile on a fresh install', () => {
+    afterEach(() => {
+      storageReadSpy?.mockRestore();
+      storageReadSpy = undefined;
+    });
+
     it('opens the Social tab without creating a profile when the session already has one', async () => {
       jest
         .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
@@ -2149,8 +2172,30 @@ describe('SocialProfileOnboardingView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows only the terms sheet when the existing profile has not accepted the current terms', async () => {
+    it('records the terms and opens the Social tab when nothing is stored for an existing profile', async () => {
       await resetSocialTermsAcceptance();
+      jest
+        .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
+        .mockResolvedValue(EXISTING_PROFILE);
+
+      renderSocialProfileOnboarding([
+        { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
+      ]);
+
+      expect(
+        await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).toHaveTextContent(Routes.SOCIAL.TAB);
+      expect(hasAcceptedSocialTerms()).toBe(true);
+      expect(
+        screen.queryByTestId(SocialTermsSheetSelectorsIDs.SHEET),
+      ).not.toBeOnTheScreen();
+      expect(
+        Engine.context.ProfileController.createProfile,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('shows only the terms sheet when the existing profile has not accepted the current terms', async () => {
+      await storeOlderTermsVersion();
       jest
         .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
         .mockResolvedValue(EXISTING_PROFILE);
@@ -2171,7 +2216,7 @@ describe('SocialProfileOnboardingView', () => {
     });
 
     it('opens the Social tab once the terms are agreed for an existing profile', async () => {
-      await resetSocialTermsAcceptance();
+      await storeOlderTermsVersion();
       jest
         .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
         .mockResolvedValue(EXISTING_PROFILE);

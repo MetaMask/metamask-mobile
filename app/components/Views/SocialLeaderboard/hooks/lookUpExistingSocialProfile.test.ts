@@ -56,6 +56,7 @@ describe('lookUpExistingSocialProfile', () => {
     expect(result).toBe('found');
     expect(fetchAndUpdateProfile).toHaveBeenCalledWith('profile-1');
     expect(mockRecordTerms).toHaveBeenCalledTimes(1);
+    expect(mockRecordTerms).toHaveBeenCalledWith({ profileLoaded: true });
   });
 
   it('returns not-found when the read has no profile id', async () => {

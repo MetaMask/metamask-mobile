@@ -42,6 +42,6 @@ export const lookUpExistingSocialProfile = async (
     }
     throw error;
   }
-  recordSocialTermsAcceptanceForExistingProfile();
+  recordSocialTermsAcceptanceForExistingProfile({ profileLoaded: true });
   return 'found';
 };
