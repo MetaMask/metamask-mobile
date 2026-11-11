@@ -8,10 +8,17 @@ import {
   popToSocialTab,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import {
   parseSocialNotificationDeeplinkParams,
   trackSocialNotificationClick,
 } from './socialNotificationDeeplink';
+import {
+  fetchSocialPosition,
+  resolveSocialPositionAuthor,
+} from './socialPositionSheetDeeplink';
+
+const LOG_PREFIX = '[handleSocialTraderPositionUrl]';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -40,7 +47,42 @@ const logPositionQueryInvalidationError = (invalidationError: unknown) => {
 };
 
 /**
- * Handles notification-approved TraderPosition deeplinks.
+ * A shared position opens like a profile row tap: the trader's Social V1
+ * profile, with the position sheet over it. A position that can no longer be
+ * fetched leaves the user on the profile.
+ */
+const openSharedPositionOnProfile = (
+  positionId: string,
+  traderId: string,
+): void => {
+  navigateToSocialV1Profile(NavigationService.navigation, {
+    traderId,
+    source: 'deep_link',
+  });
+  Promise.all([
+    fetchSocialPosition(positionId, LOG_PREFIX),
+    resolveSocialPositionAuthor(traderId, LOG_PREFIX),
+  ])
+    .then(([position, author]) => {
+      if (!position) {
+        return;
+      }
+      NavigationService.navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+        positionId,
+        position,
+        author,
+        shareSource: 'deep_link',
+      });
+    })
+    .catch((error: unknown) => {
+      DevLogger.log(`${LOG_PREFIX} Failed to open the position sheet:`, error);
+    });
+};
+
+/**
+ * Handles TraderPosition deeplinks. On Social V1, a shared link opens the
+ * position sheet on the trader's profile; a notification still opens the
+ * position screen.
  *
  * Supported URL formats:
  * - https://link.metamask.io/social/profile/position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
@@ -109,6 +151,10 @@ export const handleSocialTraderPositionUrl = ({
       isV1Treatment &&
       !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
     ) {
+      return;
+    }
+    if (isV1Treatment && !openedFromNotification) {
+      openSharedPositionOnProfile(positionId, traderId);
       return;
     }
     NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {

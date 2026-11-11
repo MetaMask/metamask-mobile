@@ -76,7 +76,6 @@ import ProfilePostsEmptyState from '../MyProfileView/components/ProfilePostsEmpt
 import SocialFeed, {
   type SocialFeedRefreshHandle,
 } from '../../../UI/SocialFeed/components/SocialFeed';
-import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import {
   HYPERLIQUID_CHAIN_NAME,
   isPerpPosition,
@@ -91,7 +90,6 @@ import {
 } from './components/Skeletons';
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
-import TraderProfileCompactStats from './components/TraderProfileCompactStats';
 import TraderStatsSheet from './components/TraderStatsSheet';
 import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
@@ -397,13 +395,6 @@ const TraderProfileView = () => {
         : sortPositions(positions, currentSortKey, activeTab),
     [activeTab, positions, currentSortKey],
   );
-  const filterProfilePost = useCallback(
-    (post: SocialV1FeedPost) =>
-      post.item.author.id === profile?.profile.profileId &&
-      Boolean(post.commentId),
-    [profile?.profile.profileId],
-  );
-
   const handleSortPress = useCallback(() => {
     // Fire-and-forget haptic; ignore rejection (unsupported platforms).
     playSelection().catch(() => undefined);
@@ -452,11 +443,6 @@ const TraderProfileView = () => {
               variant="compact"
               testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
             />
-          ) : undefined
-        }
-        subtitle={
-          headlineStats ? (
-            <TraderProfileCompactStats stats={headlineStats} />
           ) : undefined
         }
         onBack={handleBack}
@@ -615,7 +601,6 @@ const TraderProfileView = () => {
                         location="trader_profile"
                         realtime
                         refreshRef={postsFeedRef}
-                        filterPost={filterProfilePost}
                         emptyState={<ProfilePostsEmptyState />}
                       />
                     </Box>

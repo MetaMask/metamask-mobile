@@ -49,6 +49,7 @@ import type {
 } from '../types';
 import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
+import { formatPostTradePairLabel } from '../utils/formatPostTradePairLabel';
 import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMapping';
 import {
   beginPostTradeShareSession,
@@ -1816,7 +1817,12 @@ export function useQuickBuyController(
               : {}),
             pairLabel:
               sourceToken?.symbol && destToken?.symbol
-                ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
+                ? formatPostTradePairLabel({
+                    sourceAmount: sourceTokenAmount,
+                    sourceSymbol: sourceToken.symbol,
+                    destAmount: estimatedReceiveAmount,
+                    destSymbol: destToken.symbol,
+                  })
                 : undefined,
             tradeInFlightChain,
             copyTradeOrigin,
