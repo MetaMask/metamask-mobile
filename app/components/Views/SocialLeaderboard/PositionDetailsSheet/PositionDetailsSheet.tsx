@@ -15,6 +15,8 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { useIsMemeToken } from '../../../UI/TokenDetails/hooks/useIsMemeToken';
+import { toFeedAssetId } from '../../../UI/SocialFeed/data/socialFeedSource';
 import TraderPositionQuickBuy, {
   positionToQuickBuyTarget,
 } from '../../../UI/QuickBuy';
@@ -113,6 +115,20 @@ const PositionDetailsSheet = () => {
   const handleSheetOpened = useCallback(() => {
     setIsSheetOpen(true);
   }, []);
+  // One lookup per opened spot position. Perps and a confirmed offline tier
+  // skip it. The query aborts when this sheet unmounts.
+  const spotAssetId =
+    data.isPerp || !position
+      ? null
+      : toFeedAssetId({
+          chain: position.chain,
+          tokenAddress: position.tokenAddress,
+          tokenSymbol: position.tokenSymbol,
+        });
+  const { isMeme } = useIsMemeToken({
+    assetId: spotAssetId,
+    enabled: isNetworkAvailable && spotAssetId != null,
+  });
   const reveal = useChartLineReveal({
     isChartReady: !isChartLoading && isChartFrameReady,
     hasChartData: data.prices.length >= 2,
@@ -294,8 +310,10 @@ const PositionDetailsSheet = () => {
   const cardQuotesMarketCap = fillMarketCapPerPrice != null;
   const showMarketCapToggle =
     !data.isPerp && ((data.marketCap ?? 0) > 0 || cardQuotesMarketCap);
+  // Price until the meme check returns. A meme coin then opens on market cap.
+  // A choice the user already made stays put.
   const headlineMode: HeadlineValueMode =
-    headlineChoice ?? (cardQuotesMarketCap ? 'marketCap' : 'price');
+    headlineChoice ?? (isMeme && showMarketCapToggle ? 'marketCap' : 'price');
   const headlineIsMarketCap =
     showMarketCapToggle && headlineMode === 'marketCap';
   const quotedMarketCap =
@@ -377,6 +395,7 @@ const PositionDetailsSheet = () => {
             <PositionSheetPriceHeader
               assetName={data.assetName}
               isPerp={data.isPerp}
+              leverage={data.leverage}
               valueLabel={headerLabel}
               isMarketCapMode={headlineIsMarketCap}
               changePercent={headerChange}

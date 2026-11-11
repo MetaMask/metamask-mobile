@@ -170,17 +170,6 @@ const TokenDetailsV1TabPlaceholder = ({
   </Box>
 );
 
-/**
- * Room kept at the end of the page for the sticky footer.
- *
- * The footer is a design-system `BottomSheetDialog`, positioned `absolute
- * inset-0` rather than laid out, so it covers the end of the scroll instead
- * of shortening it. Without this the last screenful of a tab sits under the
- * footer, and a short tab -- a token with a handful of holders -- has no
- * scroll range to lift it clear, so the page reads as unscrollable.
- */
-const STICKY_FOOTER_RESERVED_HEIGHT = 190;
-
 /** Shown when the remote tab config and the runtime gates between them leave nothing. */
 const FALLBACK_TAB: TokenDetailsV1TabKey = 'overview';
 
@@ -207,9 +196,6 @@ const styleSheet = (params: { theme: Theme }) => {
       top: 0,
       left: 0,
       right: 0,
-    },
-    scrollContent: {
-      paddingBottom: STICKY_FOOTER_RESERVED_HEIGHT,
     },
   });
 };
@@ -510,13 +496,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     },
     [handleTabBarLayout, onTabBarOffsetY],
   );
+  const [footerHeight, setFooterHeight] = useState(0);
+  const handleFooterLayout = useCallback((height: number) => {
+    setFooterHeight((current) => (current === height ? current : height));
+  }, []);
   const tabContentStyle = useMemo(() => {
-    const minHeight =
-      viewportHeight - tabBarHeight - STICKY_FOOTER_RESERVED_HEIGHT;
+    const minHeight = viewportHeight - tabBarHeight - footerHeight;
     return {
       minHeight: Number.isFinite(minHeight) ? Math.max(0, minHeight) : 0,
     };
-  }, [viewportHeight, tabBarHeight]);
+  }, [viewportHeight, tabBarHeight, footerHeight]);
 
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isTechnicalIndicatorsEnabled = useSelector(
@@ -633,36 +622,13 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     setFeedIsEmpty((current) => (current === isEmpty ? current : isEmpty));
   }, []);
   const isEmptyFeed = activeTab === 'feed' && feedIsEmpty;
-  const [balanceFooterHeight, setBalanceFooterHeight] = useState(0);
-  const handleBalanceFooterLayout = useCallback((height: number) => {
-    setBalanceFooterHeight((current) =>
-      current === height ? current : height,
-    );
-  }, []);
-  const emptyFeedBottomPadding = hasBalanceValue
-    ? balanceFooterHeight + 48
-    : 48;
-  const scrollContentStyle = useMemo(() => {
-    if (!isGlassHeader) {
-      return isEmptyFeed
-        ? [styles.scrollContent, { paddingBottom: emptyFeedBottomPadding }]
-        : styles.scrollContent;
-    }
-
-    return [
-      styles.scrollContent,
-      {
-        paddingTop: headerInset,
-        ...(isEmptyFeed ? { paddingBottom: emptyFeedBottomPadding } : {}),
-      },
-    ];
-  }, [
-    emptyFeedBottomPadding,
-    headerInset,
-    isGlassHeader,
-    isEmptyFeed,
-    styles.scrollContent,
-  ]);
+  const scrollContentStyle = useMemo(
+    () => ({
+      paddingBottom: isEmptyFeed ? footerHeight + 48 : footerHeight,
+      ...(isGlassHeader ? { paddingTop: headerInset } : {}),
+    }),
+    [footerHeight, headerInset, isGlassHeader, isEmptyFeed],
+  );
 
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
@@ -1019,7 +985,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           // Measured on the first layout. Attaching this only after the feed
           // is known empty misses that layout, leaves the height at 0, and the
           // create-post button stays under the position bar.
-          onFooterLayout={handleBalanceFooterLayout}
+          onFooterLayout={handleFooterLayout}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design

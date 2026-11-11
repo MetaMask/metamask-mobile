@@ -41,7 +41,6 @@ import {
   darkTheme,
   lightTheme,
 } from '@metamask/design-tokens';
-import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 import {
   SHEET_SPRING,
@@ -58,7 +57,7 @@ const ANDROID_BOTTOM_PADDING = 16;
 export interface PositionSheetContainerRef {
   /** Slides the sheet away, then calls `onClosed` followed by `callback`. */
   close: (callback?: () => void) => void;
-  /** User-initiated close: the same slide, with the dismiss haptic. */
+  /** User-initiated close: the same slide as `close`. */
   dismiss: () => void;
 }
 
@@ -161,10 +160,6 @@ const PositionSheetContainer = forwardRef<
     );
     const notifyDragEnd = useCallback((): void => onDragEnd?.(), [onDragEnd]);
     const notifyOpened = useCallback((): void => onOpened?.(), [onOpened]);
-    const fireDismissHaptic = useCallback(
-      (): void => fireImpact(ImpactMoment.SheetDismiss),
-      [],
-    );
 
     const animateClose = useCallback(
       (velocityY: number) => {
@@ -202,9 +197,8 @@ const PositionSheetContainer = forwardRef<
 
     const dismiss = useCallback(() => {
       if (isClosing.value) return;
-      fireDismissHaptic();
       close();
-    }, [close, fireDismissHaptic, isClosing]);
+    }, [close, isClosing]);
 
     useImperativeHandle(ref, () => ({ close, dismiss }), [close, dismiss]);
 
@@ -357,7 +351,6 @@ const PositionSheetContainer = forwardRef<
               });
             if (isDismiss) {
               isClosing.value = true;
-              scheduleOnRN(fireDismissHaptic);
               animateClose(event.velocityY);
               return;
             }
@@ -380,7 +373,6 @@ const PositionSheetContainer = forwardRef<
         didMoveSheet,
         didStartAtTop,
         dragOrigin,
-        fireDismissHaptic,
         isClosing,
         isTouchInContent,
         notifyDragEnd,

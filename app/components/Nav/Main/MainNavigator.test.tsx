@@ -223,9 +223,9 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
 
 const mockSelectIsMoneyAccountVisible = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
   selectIsMoneyAccountVisible: (state: unknown) =>
     mockSelectIsMoneyAccountVisible(state),
-  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 describe('MainNavigator', () => {

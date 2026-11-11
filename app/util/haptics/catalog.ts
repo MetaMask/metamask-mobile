@@ -113,12 +113,6 @@ export const ImpactMoment = {
 
   /** Social follow / unfollow toggle — Light impact. */
   FollowToggle: 'followToggle',
-
-  /**
-   * Swipeable bottom sheet dismiss committed (flick, drag past the threshold,
-   * close button) — Light impact, once per dismiss.
-   */
-  SheetDismiss: 'sheetDismiss',
 } as const;
 
 export type HapticImpactMoment =

@@ -140,11 +140,6 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
-    it('playImpact(SheetDismiss) calls impactAsync with Light', async () => {
-      await playImpact(ImpactMoment.SheetDismiss);
-      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
-    });
-
     it('playSelection calls selectionAsync', async () => {
       await playSelection();
       expect(selectionAsync).toHaveBeenCalled();

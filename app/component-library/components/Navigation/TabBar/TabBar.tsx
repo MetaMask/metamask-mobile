@@ -31,7 +31,7 @@ import {
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
-import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../../components/UI/Money/hooks/useMoneyHomeNavigation';
 
 const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
   [TabBarIconKey.Wallet]: IconName.HomeFilled,
@@ -47,7 +47,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const tabBarRef = useRef(null);
   const previousTabIndexRef = useRef<number>(state.index);
   const tw = useTailwind();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
 
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {

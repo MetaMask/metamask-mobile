@@ -7,7 +7,6 @@ import {
 } from 'react-native-gesture-handler/jest-utils';
 import { State } from 'react-native-gesture-handler';
 import { useReducedMotion } from 'react-native-reanimated';
-import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 import PositionSheetContainer, {
   type PositionSheetContainerRef,
@@ -18,8 +17,6 @@ jest.mock('react-native-reanimated', () => ({
   ...jest.requireActual('react-native-reanimated'),
   useReducedMotion: jest.fn(() => false),
 }));
-
-jest.mock('../../../../../util/haptics');
 
 const HEADER_Y = 20;
 const CONTENT_TOP = 100;
@@ -128,14 +125,12 @@ describe('PositionSheetContainer', () => {
     expect(screen.getByText('Footer')).toBeOnTheScreen();
   });
 
-  it('dismisses on a quick flick down from the header, with one light haptic', () => {
+  it('dismisses on a quick flick down from the header', () => {
     const { onClosed } = renderSheet();
 
     drag({ y: HEADER_Y, translationY: 40, velocityY: 1500 });
 
     expect(onClosed).toHaveBeenCalledTimes(1);
-    expect(fireImpact).toHaveBeenCalledTimes(1);
-    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.SheetDismiss);
   });
 
   it('dismisses when dragged past a quarter of the sheet', () => {
@@ -152,7 +147,6 @@ describe('PositionSheetContainer', () => {
     drag({ y: HEADER_Y, translationY: 120 });
 
     expect(onClosed).not.toHaveBeenCalled();
-    expect(fireImpact).not.toHaveBeenCalled();
     expect(onDragStart).toHaveBeenCalledTimes(1);
     expect(onDragEnd).toHaveBeenCalledTimes(1);
   });
@@ -193,10 +187,9 @@ describe('PositionSheetContainer', () => {
     act(() => jest.runAllTimers());
 
     expect(onClosed).toHaveBeenCalledTimes(1);
-    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.SheetDismiss);
   });
 
-  it('runs the close callback after the sheet has closed, without a haptic', () => {
+  it('runs the close callback after the sheet has closed', () => {
     const { ref, onClosed } = renderSheet();
     const next = jest.fn(() => expect(onClosed).toHaveBeenCalled());
 
@@ -204,7 +197,6 @@ describe('PositionSheetContainer', () => {
     act(() => jest.runAllTimers());
 
     expect(next).toHaveBeenCalledTimes(1);
-    expect(fireImpact).not.toHaveBeenCalled();
   });
 
   it('closes once when dismissed twice', () => {
@@ -217,7 +209,6 @@ describe('PositionSheetContainer', () => {
     act(() => jest.runAllTimers());
 
     expect(onClosed).toHaveBeenCalledTimes(1);
-    expect(fireImpact).toHaveBeenCalledTimes(1);
   });
 
   it('fades instead of sliding when reduced motion is on', () => {
