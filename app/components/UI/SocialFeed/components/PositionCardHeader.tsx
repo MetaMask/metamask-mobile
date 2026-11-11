@@ -19,7 +19,6 @@ import PositionTokenAvatar, {
   type PositionTokenAvatarData,
 } from './PositionTokenAvatar';
 import type { SocialV1PerpDirection, SocialV1SpotSide } from '../types';
-import FeedPostAge from './FeedPostAge';
 
 const DIRECTION_I18N: Record<SocialV1PerpDirection, string> = {
   long: 'social_leaderboard.trader_position.long',
@@ -56,8 +55,6 @@ export interface PositionCardHeaderProps {
   leverageLabel?: string;
   /** Current price, market cap, or the closed-card age caption. */
   subtitleLabel?: string;
-  /** Closed layout: the close time, shown as a self-refreshing age. */
-  subtitleAgeMs?: number;
   side?: SocialV1SpotSide;
   /** Open layout only: roll the figures as live ticks arrive. */
   live?: PositionCardHeaderLiveState;
@@ -117,7 +114,6 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     pnlValueLabel,
     isPnlPositive,
     subtitleLabel,
-    subtitleAgeMs,
     live,
   } = props;
   const tagLabel =
@@ -179,15 +175,6 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
           >
             {subtitleLabel}
           </Text>
-        ) : null}
-        {subtitleAgeMs != null && !live ? (
-          <FeedPostAge
-            timestampMs={subtitleAgeMs}
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
-          />
         ) : null}
       </Box>
       {/* Capped rather than free-growing: a six-figure P&L would otherwise take

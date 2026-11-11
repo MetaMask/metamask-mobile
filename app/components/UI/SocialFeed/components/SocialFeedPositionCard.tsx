@@ -4,7 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useLiveCardHeader } from '../live/useLiveCardHeader';
 import type { SocialV1FeedItem } from '../types';
-import { formatHoldDuration } from '../utils/formatters';
+import { formatFeedPostAge, formatHoldDuration } from '../utils/formatters';
 import { isCopyTradeable } from '../utils/copyTrade';
 import { getPositionCardMode } from '../utils/positionCardMode';
 import CopyTradeButton from './CopyTradeButton';
@@ -76,6 +76,10 @@ const priceOrMarketCapRow = (
     testID: statId(id, key),
   };
 };
+
+/** The closed-card age, or nothing when the row did not report a close time. */
+const closedAge = (closedAtMs: number | undefined): string | undefined =>
+  closedAtMs == null ? undefined : formatFeedPostAge(closedAtMs);
 
 /**
  * Wash hue for the figures the card actually shows as P&L. An open card's
@@ -275,7 +279,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
         leverageLabel={
           item.variant === 'perpsClosed' ? item.leverageLabel : undefined
         }
-        subtitleAgeMs={item.closedAtMs}
+        subtitleLabel={closedAge(item.closedAtMs)}
         pnlLabel={item.pnlLabel}
         pnlValueLabel={item.valueLabel}
         isPnlPositive={item.isPnlPositive}
