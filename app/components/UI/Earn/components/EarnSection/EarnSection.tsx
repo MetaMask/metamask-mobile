@@ -42,7 +42,7 @@ import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../Money/hooks/useMoneyHomeNavigation';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
 import { getMoneyEntryDecision } from '../../../Money/navigation/moneyEntryDecision';
@@ -177,7 +177,7 @@ const EarnSection = ({
     enabled: enabled && isMoneyAccountVisible,
   });
 
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const moneyEntryContext = useSelector(selectMoneyEntryContext);
   const isMoneyOnboardingRedirectNeeded =
     getMoneyEntryDecision('home', moneyEntryContext).destination ===
