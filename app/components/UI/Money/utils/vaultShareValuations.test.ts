@@ -6,7 +6,7 @@ import {
   getApproximateVaultShareDisplayAmount,
   getHistoricalVaultShareDisplayAmount,
   getVaultShareValuationCacheIdentity,
-  isVaultShareCardActivity,
+  getVaultShareValuationTarget,
   toCachedVaultShareValuation,
 } from './vaultShareValuations';
 
@@ -59,11 +59,18 @@ function valuation(
 }
 
 describe('vaultShareValuations', () => {
-  describe('isVaultShareCardActivity', () => {
+  describe('getVaultShareValuationTarget', () => {
+    const target = (activity: AccountsApiActivity) =>
+      getVaultShareValuationTarget({
+        activity,
+        moneyAddress: ACCOUNT,
+        vaultShareTokens: vaultTokens,
+      });
+
     it('matches card and cashback rows from either configured vault', () => {
-      expect(isVaultShareCardActivity(cardActivity(), vaultTokens)).toBe(true);
+      expect(target(cardActivity())).toBeDefined();
       expect(
-        isVaultShareCardActivity(
+        target(
           cardActivity({
             token: {
               address: PREMIUM_VAULT,
@@ -71,13 +78,17 @@ describe('vaultShareValuations', () => {
               decimals: 6,
             },
           }),
-          vaultTokens,
         ),
-      ).toBe(true);
+      ).toBeDefined();
+    });
+
+    it('keeps a missing block number on the valuation path for fallback display', () => {
+      expect(target(cardActivity({ blockNumber: undefined }))).toEqual(
+        expect.objectContaining({ activity: expect.any(Object) }),
+      );
     });
 
     it.each([
-      ['missing block', { blockNumber: undefined }],
       [
         'wrong chain',
         {
@@ -90,9 +101,7 @@ describe('vaultShareValuations', () => {
         { token: { address: UNRELATED_VAULT, symbol: 'vmUSD', decimals: 6 } },
       ],
     ])('rejects %s rows', (_label, override) => {
-      expect(
-        isVaultShareCardActivity(cardActivity(override), vaultTokens),
-      ).toBe(false);
+      expect(target(cardActivity(override))).toBeUndefined();
     });
 
     it('rejects refund and bank transfer rows', () => {
@@ -116,8 +125,8 @@ describe('vaultShareValuations', () => {
         status: 'confirmed',
       };
 
-      expect(isVaultShareCardActivity(refund, vaultTokens)).toBe(false);
-      expect(isVaultShareCardActivity(bankTransfer, vaultTokens)).toBe(false);
+      expect(target(refund)).toBeUndefined();
+      expect(target(bankTransfer)).toBeUndefined();
     });
   });
 

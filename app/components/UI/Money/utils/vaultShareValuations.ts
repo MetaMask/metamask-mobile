@@ -36,6 +36,13 @@ export interface VaultShareValuationCacheEntry
   valuations: CachedVaultShareValuation[];
 }
 
+export interface VaultShareValuationTarget {
+  activity: Extract<AccountsApiActivity, { kind: 'card' | 'cashback' }>;
+  vaultKey: string;
+  key?: VaultShareValuationCacheKey;
+  identity?: string;
+}
+
 export function getVaultShareValuationCacheIdentity(
   key: VaultShareValuationCacheKey,
 ): string {
@@ -47,22 +54,52 @@ export function getVaultShareValuationCacheIdentity(
   ].join(':');
 }
 
-export function isVaultShareCardActivity(
-  activity: AccountsApiActivity,
-  vaultShareTokens: readonly VaultShareToken[],
-): activity is Extract<AccountsApiActivity, { kind: 'card' | 'cashback' }> {
-  if (
-    (activity.kind !== 'card' && activity.kind !== 'cashback') ||
-    activity.blockNumber === undefined
-  ) {
-    return false;
+export function getVaultShareVaultKey(
+  chainId: Hex,
+  vaultAddress: string,
+): string {
+  return `${chainId.toLowerCase()}:${vaultAddress.toLowerCase()}`;
+}
+
+export function getVaultShareValuationTarget({
+  activity,
+  moneyAddress,
+  vaultShareTokens,
+}: {
+  activity: AccountsApiActivity;
+  moneyAddress: string;
+  vaultShareTokens: readonly VaultShareToken[];
+}): VaultShareValuationTarget | undefined {
+  if (activity.kind !== 'card' && activity.kind !== 'cashback') {
+    return undefined;
   }
 
-  return vaultShareTokens.some(
-    (token) =>
-      token.chainId.toLowerCase() === activity.chainId.toLowerCase() &&
-      areAddressesEqual(token.address, activity.token.address),
+  const token = vaultShareTokens.find(
+    (candidate) =>
+      candidate.chainId.toLowerCase() === activity.chainId.toLowerCase() &&
+      areAddressesEqual(candidate.address, activity.token.address),
   );
+  if (!token) {
+    return undefined;
+  }
+
+  const vaultKey = getVaultShareVaultKey(token.chainId, token.address);
+  if (activity.blockNumber === undefined) {
+    return { activity, vaultKey };
+  }
+
+  const key: VaultShareValuationCacheKey = {
+    account: moneyAddress.toLowerCase(),
+    chainId: Number.parseInt(activity.chainId, 16),
+    vaultAddress: activity.token.address.toLowerCase(),
+    txHash: activity.hash.toLowerCase(),
+  };
+  return {
+    activity,
+    vaultKey,
+    key,
+    identity: getVaultShareValuationCacheIdentity(key),
+  };
 }
 
 export function toCachedVaultShareValuation(

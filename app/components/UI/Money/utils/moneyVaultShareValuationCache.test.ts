@@ -106,6 +106,16 @@ describe('moneyVaultShareValuationCache', () => {
     expect(readCachedVaultShareValuations()).toEqual([replacement, entry(2)]);
   });
 
+  it('keeps identical chain, vault and hash entries isolated by account', async () => {
+    const accountB = '0xbbbbbb0123456789012345678901234567890123';
+    const first = entry();
+    const second = { ...entry(), account: accountB };
+
+    await writeCachedVaultShareValuations([first, second]);
+
+    expect(readCachedVaultShareValuations()).toEqual([first, second]);
+  });
+
   it('keeps at most the cache limit and evicts the oldest entries first', async () => {
     const entries = Array.from(
       { length: VAULT_SHARE_VALUATION_CACHE_LIMIT + 1 },

@@ -131,6 +131,7 @@ function queryResult(overrides: Record<string, unknown> = {}) {
   return {
     data: undefined,
     isLoading: false,
+    isFetching: false,
     isError: false,
     ...overrides,
   };
@@ -251,6 +252,20 @@ describe('useMoneyActivityValuations', () => {
     );
   });
 
+  it('skips the request when another writer filled the cache before query execution', async () => {
+    const row = activity(TX_HASH);
+    mockReadCache
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([cacheEntry(row)]);
+    renderValuations({ pages: [[row]] });
+
+    const [query] = getQueryOptions(0);
+    await query.queryFn?.();
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+    expect(mockWriteCache).not.toHaveBeenCalled();
+  });
+
   it('does not persist an ambiguous valuation that cannot resolve the row', async () => {
     const row = activity(TX_HASH);
     const response = valuationResponse([row]);
@@ -298,7 +313,7 @@ describe('useMoneyActivityValuations', () => {
     const row = activity(TX_HASH);
     mockUseQueries
       .mockReturnValueOnce([
-        { ...queryResult(), isLoading: true },
+        { ...queryResult(), isFetching: true },
       ] as unknown as ReturnType<typeof useQueries>)
       .mockReturnValueOnce([
         queryResult({ data: { rate: '1.017488' } }),
@@ -334,6 +349,24 @@ describe('useMoneyActivityValuations', () => {
       value: '968399999',
       decimals: 6,
     });
+  });
+
+  it('uses the approximate fallback when a target row has no block number', () => {
+    const row = activity(TX_HASH);
+    row.blockNumber = undefined;
+    mockUseQueries
+      .mockReturnValueOnce([] as unknown as ReturnType<typeof useQueries>)
+      .mockReturnValueOnce([
+        queryResult({ data: { rate: '1.017488' } }),
+      ] as unknown as ReturnType<typeof useQueries>);
+    const { result } = renderValuations({ pages: [[row]] });
+
+    expect(result.current.getDisplayAmount(row)).toEqual({
+      type: 'approximate',
+      value: '968399999',
+      decimals: 6,
+    });
+    expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
   it('leaves non-target rows on their legacy display path', () => {

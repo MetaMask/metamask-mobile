@@ -1343,6 +1343,58 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  describe('historical activity fetch cap', () => {
+    it('does not auto-fill page two when historical valuations are enabled', () => {
+      const loadMore = jest.fn();
+      mockSelectHistoricalValuationsEnabled.mockReturnValue(true);
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+      });
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({
+          activity: [CARD_TX],
+          hasMore: true,
+          isComplete: false,
+          pageCount: 1,
+          loadMore,
+        }),
+      );
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(loadMore).not.toHaveBeenCalled();
+    });
+
+    it('keeps the existing auto-fill when historical valuations are disabled', () => {
+      const loadMore = jest.fn();
+      mockSelectHistoricalValuationsEnabled.mockReturnValue(false);
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+      });
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({
+          activity: [],
+          hasMore: true,
+          isComplete: false,
+          pageCount: 1,
+          loadMore,
+        }),
+      );
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(loadMore).toHaveBeenCalled();
+    });
+  });
+
   describe('time to content telemetry', () => {
     it('marks historical activity ready when the preview has resolved amounts', () => {
       mockSelectHistoricalValuationsEnabled.mockReturnValue(true);
