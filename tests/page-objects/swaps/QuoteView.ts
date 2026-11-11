@@ -184,9 +184,12 @@ class QuoteView {
 
   async tapToken(chainId: string, symbol: string): Promise<void> {
     let tokenElement = this.getTokenElement(chainId, symbol);
+    // When the row is mounted but iOS reports displayed:false (keyboard /
+    // FlatList clip), require existence then tap without a displayed gate.
+    let allowClippedTap = false;
 
-    // Prefer waiting first. Forced scroll on a not-yet-displayed iOS search
-    // hit burns maxScrolls against a stale element (CI fail).
+    // Prefer waiting first. Forced scroll on a not-yet-mounted search hit
+    // burns maxScrolls against a stale element (CI fail).
     try {
       await Assertions.expectElementToBeVisible(tokenElement, {
         timeout: 5000,
@@ -194,35 +197,50 @@ class QuoteView {
       });
     } catch {
       // Keyboard / FlatList clipping can leave rows displayed:false even
-      // after search — force blur again, then wait.
+      // after search — force blur again, then scroll + wait for hierarchy.
       await Gestures.dismissKeyboardAfterTokenSearch();
-      if (PlatformDetector.isAndroid()) {
-        try {
-          tokenElement = this.getTokenElement(chainId, symbol);
-          // Gestures.scrollToElement uses Detox direction semantics and inverts
-          // for Appium scrollIntoView. Pass 'down' so Appium receives 'up'
-          // (matches prior AppiumGestures.scrollIntoView direction: 'up').
-          await Gestures.scrollToElement(
-            tokenElement,
-            Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
-            {
-              direction: 'down',
-              elemDescription: `Scroll to token symbol ${symbol}`,
-            },
-          );
-        } catch {
-          // Token may already be visible after search filters the list.
-        }
+      tokenElement = this.getTokenElement(chainId, symbol);
+      // Brief existence probe so we do not burn the full scroll budget while
+      // search results are still mounting (late Base token list).
+      try {
+        await Assertions.expectElementToExist(tokenElement, {
+          timeout: 10000,
+          description: `Token ${symbol} in hierarchy before scroll`,
+        });
+      } catch {
+        // FlatList may still need a scroll pass to mount the filtered row.
+      }
+      try {
+        tokenElement = this.getTokenElement(chainId, symbol);
+        // Gestures.scrollToElement uses Detox direction semantics and inverts
+        // for Appium scrollIntoView. Pass 'down' so Appium receives 'up'
+        // (matches prior AppiumGestures.scrollIntoView direction: 'up').
+        // iOS bridge smoke hits the same clip — do not gate scroll on Android.
+        await Gestures.scrollToElement(
+          tokenElement,
+          Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
+          {
+            direction: 'down',
+            timeout: 15000,
+            elemDescription: `Scroll to token symbol ${symbol}`,
+          },
+        );
+      } catch {
+        // Token may already be in view after search filters the list.
       }
       tokenElement = this.getTokenElement(chainId, symbol);
-      await Assertions.expectElementToBeVisible(tokenElement, {
+      // Prefer hierarchy over isDisplayed — clipped Bridge token rows on iOS
+      // stay displayed:false for the full TOKEN_SELECT budget (CI: ~1.5–2s
+      // waitForDisplayed remnant after a 30s poll).
+      await Assertions.expectElementToExist(tokenElement, {
         timeout: TIMEOUT.TOKEN_SELECT,
-        description: `Token ${symbol} should be visible`,
+        description: `Token ${symbol} should be in hierarchy`,
       });
+      allowClippedTap = true;
     }
     await Gestures.waitAndTap(tokenElement, {
-      checkForDisplayed: true,
-      checkEnabled: true,
+      checkForDisplayed: !allowClippedTap,
+      checkEnabled: !allowClippedTap,
       delay: 1000,
       elemDescription: `Select token symbol ${symbol}`,
     });
