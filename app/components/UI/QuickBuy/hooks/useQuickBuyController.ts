@@ -29,12 +29,10 @@ import {
   isNumberValue,
 } from '../../../../util/number/bigint';
 import { useDisplayCurrencyValue } from '../../Bridge/hooks/useDisplayCurrencyValue';
+import { useFormatters } from '../../../hooks/useFormatters';
 import { useFormattedNetworkFee } from '../../Bridge/hooks/useFormattedNetworkFee';
 import type { BridgeToken } from '../../Bridge/types';
-import {
-  formatCurrency,
-  formatMinimumReceived,
-} from '../../Bridge/utils/currencyUtils';
+import { formatMinimumReceived } from '../../Bridge/utils/currencyUtils';
 import { FIAT_INPUT_DECIMALS } from '../../Bridge/utils/sourceAmountInputMode';
 import { isGaslessQuote } from '../../Bridge/utils/isGaslessQuote';
 import { useFeeDisclaimer } from '../../Bridge/hooks/useFeeDisclaimer';
@@ -51,6 +49,7 @@ import type {
 } from '../types';
 import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
+import { formatPostTradePairLabel } from '../utils/formatPostTradePairLabel';
 import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMapping';
 import {
   beginPostTradeShareSession,
@@ -316,6 +315,7 @@ export function useQuickBuyController(
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
+  const formatters = useFormatters();
   const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -1113,8 +1113,8 @@ export function useQuickBuyController(
   }, [latestSourceBalance?.displayBalance, liveSourceCurrencyExchangeRate]);
 
   const sourceBalanceFiat = useMemo(
-    () => formatCurrency(sourceBalanceFiatValue, currentCurrency),
-    [sourceBalanceFiatValue, currentCurrency],
+    () => formatters.formatCurrency(sourceBalanceFiatValue, currentCurrency),
+    [sourceBalanceFiatValue, currentCurrency, formatters],
   );
 
   const sourceBalanceDisplay = useMemo(() => {
@@ -1213,7 +1213,10 @@ export function useQuickBuyController(
   // price for the dest token and renders $0.00 without one.
   const quoteDestValueInCurrency = activeQuote?.quote?.dest?.valueInCurrency;
   const quoteDestFiat = quoteDestValueInCurrency
-    ? formatCurrency(Number(quoteDestValueInCurrency), currentCurrency)
+    ? formatters.formatCurrency(
+        Number(quoteDestValueInCurrency),
+        currentCurrency,
+      )
     : undefined;
   const estimatedReceiveFiat =
     activeQuote && estimatedReceiveAmount
@@ -1742,7 +1745,10 @@ export function useQuickBuyController(
       tokenSymbol: target.tokenSymbol,
       counterTokenSymbol:
         (tradeMode === 'buy' ? sourceToken?.symbol : destToken?.symbol) ?? '',
-      fiatAmountLabel: formatCurrency(fiatAmountNumber, currentCurrency),
+      fiatAmountLabel: formatters.formatCurrency(
+        fiatAmountNumber,
+        currentCurrency,
+      ),
       rate: formattedRate,
       isNonEvmSwap,
     };
@@ -1811,7 +1817,12 @@ export function useQuickBuyController(
               : {}),
             pairLabel:
               sourceToken?.symbol && destToken?.symbol
-                ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
+                ? formatPostTradePairLabel({
+                    sourceAmount: sourceTokenAmount,
+                    sourceSymbol: sourceToken.symbol,
+                    destAmount: estimatedReceiveAmount,
+                    destSymbol: destToken.symbol,
+                  })
                 : undefined,
             tradeInFlightChain,
             copyTradeOrigin,
@@ -2010,6 +2021,7 @@ export function useQuickBuyController(
     toAmountUsd,
     currentCurrency,
     formattedRate,
+    formatters,
     traderAddress,
     caip19,
     tradeMode,
@@ -2035,8 +2047,8 @@ export function useQuickBuyController(
   // placement + separators for any locale/currency). The view renders this
   // string directly instead of concatenating a hardcoded "$".
   const fiatAmountLabel = useMemo(
-    () => formatCurrency(Number(fiatAmount) || 0, currentCurrency),
-    [fiatAmount, currentCurrency],
+    () => formatters.formatCurrency(Number(fiatAmount) || 0, currentCurrency),
+    [fiatAmount, currentCurrency, formatters],
   );
 
   const hasError = Boolean(quoteFetchError || isNoQuotesAvailable);

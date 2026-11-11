@@ -7,8 +7,8 @@ import {
   RecurringOrderState,
   type CancelRecurringOrderResponse,
   type GetRecurringOrdersByAssetResponse,
-  type GetRecurringOrdersResponse,
-  type GetRecurringSwapsResponse,
+  type ListRecurringOrdersResponse,
+  type ListRecurringSwapsResponse,
 } from '../../../app/components/UI/Bridge/api/recurringOrders.types';
 import type {
   RecurringOrdersByAssetQueryParams,
@@ -42,14 +42,22 @@ function recurringAssetIdsMatch(left: string, right: string): boolean {
 function getMockOrders() {
   return MOCK_RECURRING_ORDERS.map((order) =>
     cancelledOrderIds.has(order.id)
-      ? { ...order, state: RecurringOrderState.Cancelled }
+      ? {
+          ...order,
+          state: RecurringOrderState.Cancelled,
+          isCancellable: false,
+          timingData: {
+            ...order.timingData,
+            closedAt: order.timingData.closedAt ?? order.timingData.endsAt,
+          },
+        }
       : order,
   );
 }
 
 export async function getMockRecurringOrders(
   params: RecurringOrdersQueryParams & { cursor?: string },
-): Promise<GetRecurringOrdersResponse> {
+): Promise<ListRecurringOrdersResponse> {
   const orders = getMockOrders()
     .filter((order) => {
       const sourceAssetId = order.src.asset.assetId;
@@ -75,12 +83,12 @@ export async function getMockRecurringOrders(
   const limit = params.limit ?? 20;
   const page = orders.slice(pageStart, pageStart + limit);
   const nextPageStart = pageStart + page.length;
+  const hasNextPage = nextPageStart < orders.length;
 
   return {
     orders: page,
-    ...(nextPageStart < orders.length
-      ? { nextCursor: String(nextPageStart) }
-      : {}),
+    ...(hasNextPage ? { endCursor: String(nextPageStart) } : {}),
+    hasNextPage,
   };
 }
 
@@ -109,7 +117,7 @@ export async function getMockRecurringOrdersByAsset(
 export async function getMockRecurringSwaps(
   orderId: string,
   params: RecurringSwapsQueryParams & { cursor?: string },
-): Promise<GetRecurringSwapsResponse> {
+): Promise<ListRecurringSwapsResponse> {
   const swaps = [...(MOCK_RECURRING_SWAPS_BY_ORDER_ID[orderId] ?? [])].sort(
     (left, right) =>
       Date.parse(right.timingData.executedAt ?? right.timingData.scheduledAt) -
@@ -119,12 +127,12 @@ export async function getMockRecurringSwaps(
   const limit = params.limit ?? 20;
   const page = swaps.slice(pageStart, pageStart + limit);
   const nextPageStart = pageStart + page.length;
+  const hasNextPage = nextPageStart < swaps.length;
 
   return {
     swaps: page,
-    ...(nextPageStart < swaps.length
-      ? { nextCursor: String(nextPageStart) }
-      : {}),
+    ...(hasNextPage ? { endCursor: String(nextPageStart) } : {}),
+    hasNextPage,
   };
 }
 
@@ -136,13 +144,27 @@ export async function cancelMockRecurringOrder(
   if (!order) {
     throw new Error('order_not_found');
   }
-  if (order.state !== RecurringOrderState.Open) {
+  if (order.state === RecurringOrderState.Cancelled) {
+    return { order };
+  }
+  if (
+    order.state === RecurringOrderState.Completed ||
+    order.state === RecurringOrderState.Expired
+  ) {
     throw new Error('order_not_cancellable');
   }
 
   cancelledOrderIds.add(orderId);
   return {
-    order: { ...order, state: RecurringOrderState.Cancelled },
+    order: {
+      ...order,
+      state: RecurringOrderState.Cancelled,
+      isCancellable: false,
+      timingData: {
+        ...order.timingData,
+        closedAt: order.timingData.closedAt ?? order.timingData.endsAt,
+      },
+    },
   };
 }
 

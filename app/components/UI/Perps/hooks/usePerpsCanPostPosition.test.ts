@@ -236,7 +236,6 @@ describe('postPerpsPositionToFeed', () => {
     expect(openComposer).toHaveBeenCalledWith({
       position: indexedEthLong,
       entryPoint: 'perps',
-      openFeedAfterPost: true,
     });
   });
 });

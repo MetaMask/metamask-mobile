@@ -14,9 +14,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You are approaching your spending limit. Consider closing it.',
       'card.card_home.warnings.close_spending_limit.confirm_button_label':
         'Close Limit',
-      'card.card_home.warnings.kyc_pending.title': 'Verification in Progress',
+      'card.card_home.warnings.kyc_pending.title': 'Verifying your identity',
       'card.card_home.warnings.kyc_pending.description':
-        'Your identity verification is still being reviewed.',
+        'Most applications are reviewed within a few hours.',
       'card.card_home.messages.card_provisioning.title':
         'Card being provisioned',
       'card.card_home.messages.card_provisioning.description':
@@ -154,8 +154,8 @@ describe('CardMessageBox', () => {
     });
   });
 
-  describe('KYCPending warning', () => {
-    it('renders warning banner', () => {
+  describe('KYCPending info', () => {
+    it('renders info banner', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
@@ -168,9 +168,9 @@ describe('CardMessageBox', () => {
         <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
 
-      expect(getByText('Verification in Progress')).toBeOnTheScreen();
+      expect(getByText('Verifying your identity')).toBeOnTheScreen();
       expect(
-        getByText('Your identity verification is still being reviewed.'),
+        getByText('Most applications are reviewed within a few hours.'),
       ).toBeOnTheScreen();
     });
 

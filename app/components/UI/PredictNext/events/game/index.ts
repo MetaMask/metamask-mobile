@@ -1,5 +1,6 @@
 export {
   createGamePresentation,
+  formatGameStartShort,
   getEventGame,
   getGameTeamOrder,
   getTeamAbbreviation,

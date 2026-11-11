@@ -1,4 +1,4 @@
-import { formatCurrency } from '../../Bridge/utils/currencyUtils';
+import { getFormatters } from '../../../hooks/useFormatters';
 import {
   formatQuickBuyPillLabel,
   getBuyQuickAmounts,
@@ -8,14 +8,21 @@ import {
   USD_QUICK_BUY_BASE,
 } from './quickBuyQuickAmounts';
 
-jest.mock('../../Bridge/utils/currencyUtils', () => ({
-  formatCurrency: jest.fn(
+jest.mock('../../../hooks/useFormatters', () => {
+  const formatCurrency = jest.fn(
     (amount: number, currency: string) => `${currency}:${amount}`,
-  ),
-}));
+  );
+  const formatters = { formatCurrency };
+  return {
+    getFormatters: () => formatters,
+    useFormatters: () => formatters,
+  };
+});
 
 const defaultFormatCurrencyMock = (amount: number, currency: string) =>
   `${currency}:${amount}`;
+
+const { formatCurrency } = getFormatters();
 
 describe('quickBuyQuickAmounts', () => {
   beforeEach(() => {

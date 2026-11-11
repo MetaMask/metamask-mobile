@@ -7,9 +7,12 @@ import type {
   PredictEvent,
   PredictMarket,
   PredictOutcome,
+  PredictTimestamp,
   PredictVenueId,
 } from '../../types';
 import { EventCardStandard } from './EventCardStandard';
+
+const IMAGE_URL = 'https://example.com/event.png';
 
 const outcome = (
   side: 'yes' | 'no',
@@ -22,7 +25,11 @@ const outcome = (
   askPrice: askPrice as PredictDecimal | undefined,
 });
 
-const market = (id: string, askPrice = '0.42'): PredictMarket => ({
+const market = (
+  id: string,
+  askPrice = '0.42',
+  overrides: Partial<PredictMarket> = {},
+): PredictMarket => ({
   id: id as PredictEntityId,
   question: `Question ${id}`,
   status: 'active',
@@ -30,6 +37,7 @@ const market = (id: string, askPrice = '0.42'): PredictMarket => ({
     outcome('yes', askPrice, `Candidate ${id}`),
     outcome('no', '0.58'),
   ],
+  ...overrides,
 });
 
 const event = (
@@ -39,162 +47,267 @@ const event = (
   id: 'event-1' as PredictEntityId,
   venueId: 'kalshi' as PredictVenueId,
   title: 'Election winner',
+  closesAt: '2028-07-15T12:00:00Z' as PredictTimestamp,
+  volume: '4200000',
+  category: 'Politics',
+  imageUrl: IMAGE_URL,
   markets,
   ...overrides,
 });
 
+const threeMarkets = () => [
+  market('market-1', '0.31'),
+  market('market-2', '0.24'),
+  market('market-3', '0.18'),
+  market('market-4', '0.1'),
+];
+
 describe('EventCardStandard', () => {
-  it('shows the title and image when an image URL is present', () => {
-    render(
-      <EventCardStandard
-        event={event([market('market-1')], {
-          imageUrl: 'https://example.com/event.png',
-        })}
-        onPress={jest.fn()}
-      />,
-    );
+  describe('binary Event', () => {
+    it('shows the title, the close date and volume line, and Yes and No rows', () => {
+      render(
+        <EventCardStandard
+          event={event([market('market-1')])}
+          onPress={jest.fn()}
+        />,
+      );
 
-    expect(screen.getByText('Election winner')).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('predict-next-event-image-event-1'),
-    ).toBeOnTheScreen();
+      expect(screen.getByText('Election winner')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-event-subtitle-event-1'),
+      ).toHaveTextContent('Closes Jul 2028 · $4.2M');
+      expect(screen.getByText('Yes')).toBeOnTheScreen();
+      expect(screen.getByText('42¢')).toBeOnTheScreen();
+      expect(screen.getByText('No')).toBeOnTheScreen();
+      expect(screen.getByText('58¢')).toBeOnTheScreen();
+    });
+
+    it('repeats the Event image as each row avatar', () => {
+      render(
+        <EventCardStandard
+          event={event([market('market-1')])}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByTestId('predict-next-outcome-event-1-yes-avatar-image'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-outcome-event-1-no-avatar-image'),
+      ).toBeOnTheScreen();
+    });
+
+    it('draws neutral quote bars sized to each price', () => {
+      render(
+        <EventCardStandard
+          event={event([market('market-1')])}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
+      ).toHaveStyle({
+        width: '42%',
+        backgroundColor: lightTheme.colors.icon.alternative,
+      });
+      expect(
+        screen.getByTestId('predict-next-outcome-event-1-no-bar'),
+      ).toHaveStyle({
+        width: '58%',
+        backgroundColor: lightTheme.colors.icon.alternative,
+      });
+    });
+
+    it('has no image beside the title, no footer and no multiplier', () => {
+      render(
+        <EventCardStandard
+          event={event([market('market-1')])}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.queryByTestId('predict-next-event-image-event-1'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-next-event-footer-kalshi-event-1'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText('Politics')).not.toBeOnTheScreen();
+      expect(screen.queryByText(/Vol$/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/x$/)).not.toBeOnTheScreen();
+    });
   });
 
-  it('omits the image when the event has no image URL', () => {
-    render(
-      <EventCardStandard
-        event={event([market('market-1')])}
-        onPress={jest.fn()}
-      />,
-    );
+  describe('multi-market Event', () => {
+    it('shows the Yes row of the first three Markets only', () => {
+      render(
+        <EventCardStandard event={event(threeMarkets())} onPress={jest.fn()} />,
+      );
 
-    expect(screen.getByText('Election winner')).toBeOnTheScreen();
-    expect(screen.queryByTestId('predict-next-event-image-event-1')).toBeNull();
+      expect(screen.getByText('Candidate market-1')).toBeOnTheScreen();
+      expect(screen.getByText('Candidate market-2')).toBeOnTheScreen();
+      expect(screen.getByText('Candidate market-3')).toBeOnTheScreen();
+      expect(screen.queryByText('Candidate market-4')).not.toBeOnTheScreen();
+      expect(screen.getByText('31¢')).toBeOnTheScreen();
+      expect(screen.getByText('24¢')).toBeOnTheScreen();
+      expect(screen.getByText('18¢')).toBeOnTheScreen();
+      expect(screen.queryByText('Question market-1')).not.toBeOnTheScreen();
+    });
+
+    it('has no hidden Market count', () => {
+      render(
+        <EventCardStandard event={event(threeMarkets())} onPress={jest.fn()} />,
+      );
+
+      expect(screen.queryByText(/more$/)).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-next-event-more-event-1'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('uses the same neutral bar on every row', () => {
+      render(
+        <EventCardStandard event={event(threeMarkets())} onPress={jest.fn()} />,
+      );
+
+      ['market-1', 'market-2', 'market-3'].forEach((id) => {
+        expect(
+          screen.getByTestId(`predict-next-outcome-event-1-${id}-yes-bar`),
+        ).toHaveStyle({ backgroundColor: lightTheme.colors.icon.alternative });
+      });
+    });
+
+    it('falls back to the Event image for every row avatar', () => {
+      render(
+        <EventCardStandard event={event(threeMarkets())} onPress={jest.fn()} />,
+      );
+
+      ['market-1', 'market-2', 'market-3'].forEach((id) => {
+        expect(
+          screen.getByTestId(
+            `predict-next-outcome-event-1-${id}-yes-avatar-image`,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('shows a placeholder avatar when the Event has no image', () => {
+      render(
+        <EventCardStandard
+          event={event(threeMarkets(), { imageUrl: undefined })}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByTestId('predict-next-outcome-event-1-market-1-yes-avatar'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          'predict-next-outcome-event-1-market-1-yes-avatar-image',
+        ),
+      ).not.toBeOnTheScreen();
+    });
   });
 
-  it('shows Yes and No rows for one Market', () => {
-    render(
-      <EventCardStandard
-        event={event([market('market-1')])}
-        onPress={jest.fn()}
-      />,
-    );
+  describe('subtitle', () => {
+    it('shows only the volume when the close date is missing', () => {
+      render(
+        <EventCardStandard
+          event={event([market('market-1')], { closesAt: undefined })}
+          onPress={jest.fn()}
+        />,
+      );
 
-    expect(screen.getByText('Yes')).toBeOnTheScreen();
-    expect(screen.getByText('42¢')).toBeOnTheScreen();
-    expect(screen.getByText('No')).toBeOnTheScreen();
-    expect(screen.getByText('58¢')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-event-subtitle-event-1'),
+      ).toHaveTextContent('$4.2M');
+    });
+
+    it('omits the line when close date and volume are both missing', () => {
+      render(
+        <EventCardStandard
+          event={event([market('market-1')], {
+            closesAt: undefined,
+            volume: undefined,
+          })}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.queryByTestId('predict-next-event-subtitle-event-1'),
+      ).not.toBeOnTheScreen();
+    });
   });
 
-  it('omits the hidden market count for a single-market Event', () => {
-    render(
-      <EventCardStandard
-        event={event([market('market-1')])}
-        onPress={jest.fn()}
-      />,
-    );
+  describe('actions', () => {
+    it('keeps card navigation independent from an Outcome action', () => {
+      const onPress = jest.fn();
+      const onOrder = jest.fn();
+      const value = event([market('market-1')]);
 
-    expect(screen.queryByTestId('predict-next-event-more-event-1')).toBeNull();
-  });
+      render(
+        <EventCardStandard event={value} onPress={onPress} onOrder={onOrder} />,
+      );
+      fireEvent.press(
+        screen.getByTestId('predict-next-event-content-kalshi-event-1'),
+      );
+      fireEvent.press(screen.getByTestId('predict-next-outcome-event-1-no'));
 
-  it('paints binary rows green and red', () => {
-    render(
-      <EventCardStandard
-        event={event([market('market-1')])}
-        onPress={jest.fn()}
-      />,
-    );
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onOrder).toHaveBeenCalledTimes(1);
+      expect(onOrder).toHaveBeenCalledWith(
+        value,
+        value.markets[0],
+        value.markets[0].outcomes[1],
+      );
+    });
 
-    expect(
-      screen.getByTestId('predict-next-outcome-event-1-yes-bar'),
-    ).toHaveStyle({ backgroundColor: lightTheme.colors.success.default });
-    expect(
-      screen.getByTestId('predict-next-outcome-event-1-no-bar'),
-    ).toHaveStyle({ backgroundColor: lightTheme.colors.error.default });
-  });
+    it('orders the Yes Outcome of the tapped Market', () => {
+      const onOrder = jest.fn();
+      const value = event(threeMarkets());
 
-  it('shows three market rows with green, indigo, and red', () => {
-    render(
-      <EventCardStandard
-        event={event([
-          market('market-1'),
-          market('market-2', '0.5'),
-          market('market-3', '0.2'),
-          market('market-4'),
-        ])}
-        onPress={jest.fn()}
-      />,
-    );
+      render(
+        <EventCardStandard
+          event={value}
+          onPress={jest.fn()}
+          onOrder={onOrder}
+        />,
+      );
+      fireEvent.press(
+        screen.getByTestId('predict-next-outcome-event-1-market-2-yes'),
+      );
 
-    expect(screen.getByText('Candidate market-1')).toBeOnTheScreen();
-    expect(screen.getByText('Candidate market-2')).toBeOnTheScreen();
-    expect(screen.getByText('Candidate market-3')).toBeOnTheScreen();
-    expect(screen.queryByText('Candidate market-4')).toBeNull();
-    expect(screen.getByLabelText('+1 more')).toBeOnTheScreen();
-    expect(screen.queryByText('Question market-1')).toBeNull();
-    expect(
-      screen.getByTestId('predict-next-outcome-event-1-market-1-yes-bar'),
-    ).toHaveStyle({ backgroundColor: lightTheme.colors.success.default });
-    expect(
-      screen.getByTestId('predict-next-outcome-event-1-market-2-yes-bar'),
-    ).toHaveStyle({ backgroundColor: lightTheme.colors.info.default });
-    expect(
-      screen.getByTestId('predict-next-outcome-event-1-market-3-yes-bar'),
-    ).toHaveStyle({ backgroundColor: lightTheme.colors.error.default });
-  });
+      expect(onOrder).toHaveBeenCalledWith(
+        value,
+        value.markets[1],
+        value.markets[1].outcomes[0],
+      );
+    });
 
-  it('omits the hidden market count when three markets fit', () => {
-    render(
-      <EventCardStandard
-        event={event([
-          market('market-1'),
-          market('market-2'),
-          market('market-3'),
-        ])}
-        onPress={jest.fn()}
-      />,
-    );
+    it('disables the price of an Outcome that is not tradeable', () => {
+      const onOrder = jest.fn();
 
-    expect(screen.queryByTestId('predict-next-event-more-event-1')).toBeNull();
-  });
+      render(
+        <EventCardStandard
+          event={event([
+            market('market-1', '0.31', { status: 'closed' }),
+            market('market-2', '0.24'),
+          ])}
+          onPress={jest.fn()}
+          onOrder={onOrder}
+        />,
+      );
 
-  it('renders category and volume in the composed footer', () => {
-    render(
-      <EventCardStandard
-        event={event([market('market-1')], {
-          category: 'Politics',
-          volume: '1500000',
-        })}
-        onPress={jest.fn()}
-      />,
-    );
-
-    expect(
-      screen.getByTestId('predict-next-event-category-event-1'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('predict-next-event-volume-event-1'),
-    ).toHaveTextContent('$1.5M Vol');
-  });
-
-  it('keeps card navigation independent from an Outcome action', () => {
-    const onPress = jest.fn();
-    const onOrder = jest.fn();
-    const value = event([market('market-1')]);
-
-    render(
-      <EventCardStandard event={value} onPress={onPress} onOrder={onOrder} />,
-    );
-    fireEvent.press(
-      screen.getByTestId('predict-next-event-content-kalshi-event-1'),
-    );
-    fireEvent.press(screen.getByTestId('predict-next-outcome-event-1-yes'));
-
-    expect(onPress).toHaveBeenCalledTimes(1);
-    expect(onOrder).toHaveBeenCalledWith(
-      value,
-      value.markets[0],
-      value.markets[0].outcomes[0],
-    );
+      expect(
+        screen.getByTestId('predict-next-outcome-event-1-market-1-yes'),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId('predict-next-outcome-event-1-market-2-yes'),
+      ).toBeEnabled();
+    });
   });
 });

@@ -34,8 +34,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  type LayoutChangeEvent,
   type TextStyle,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import {
   SafeAreaInsetsContext,
   SafeAreaView,
@@ -59,6 +67,7 @@ import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderbo
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
+import ProfileVerifiedBadge from '../shared/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -187,6 +196,154 @@ const OnboardingTitle: React.FC<{
   </Box>
 );
 
+const INTRO_TITLE_KEYS = {
+  1: 'social_leaderboard.profile_onboarding.intro_title_activity',
+  2: 'social_leaderboard.profile_onboarding.intro_title',
+  3: 'social_leaderboard.profile_onboarding.intro_title_post',
+} as const;
+
+const INTRO_TITLE_STEPS = [1, 2, 3] as const;
+
+/** How long the outgoing and incoming intro titles crossfade. */
+const INTRO_TITLE_FADE_MS = 280;
+
+const INTRO_TITLE_FADE_EASING = Easing.out(Easing.cubic);
+
+const introTitleStep = (step: number | undefined): 1 | 2 | 3 =>
+  step === 2 || step === 3 ? step : 1;
+
+const IntroTitleText: React.FC<{
+  step: 1 | 2 | 3;
+  testID?: string;
+}> = ({ step, testID }) => (
+  <MarketingMomentTitle
+    variant={TextVariant.DisplayLg}
+    twClassName="w-full text-center"
+    testID={testID}
+  >
+    {strings(INTRO_TITLE_KEYS[step])}
+  </MarketingMomentTitle>
+);
+
+/**
+ * Scene title. Hidden copies of the three lines are measured, and the slot
+ * stays as tall as the tallest one, so a longer title or a larger text size
+ * stays clear of the animation. A scene change crossfades the outgoing line
+ * out while the incoming line fades in. The first paint and Reduce Motion
+ * swap the line with no fade.
+ */
+const IntroStepTitle: React.FC<{ step: 1 | 2 | 3 }> = ({ step }) => {
+  const tw = useTailwind();
+  const reducedMotion = useReducedMotion();
+  const shownStepRef = useRef(step);
+  const skipFade = useRef(true);
+  const measuredHeights = useRef<Partial<Record<1 | 2 | 3, number>>>({});
+  const [slotHeight, setSlotHeight] = useState(0);
+  const [currentStep, setCurrentStep] = useState(step);
+  const [previousStep, setPreviousStep] = useState<1 | 2 | 3 | null>(null);
+  const incomingOpacity = useSharedValue(1);
+  const outgoingOpacity = useSharedValue(0);
+
+  const handleSizerLayout = useCallback(
+    (sizerStep: 1 | 2 | 3, event: LayoutChangeEvent) => {
+      const nextHeight = event.nativeEvent.layout.height;
+      if (measuredHeights.current[sizerStep] === nextHeight) {
+        return;
+      }
+      measuredHeights.current[sizerStep] = nextHeight;
+      const tallest = Math.max(
+        ...INTRO_TITLE_STEPS.map(
+          (titleStep) => measuredHeights.current[titleStep] ?? 0,
+        ),
+      );
+      setSlotHeight((current) => (current === tallest ? current : tallest));
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (skipFade.current) {
+      skipFade.current = false;
+      shownStepRef.current = step;
+      setCurrentStep(step);
+      return;
+    }
+
+    const outgoing = shownStepRef.current;
+    if (outgoing === step) {
+      return;
+    }
+    shownStepRef.current = step;
+
+    if (reducedMotion) {
+      setPreviousStep(null);
+      setCurrentStep(step);
+      incomingOpacity.value = 1;
+      outgoingOpacity.value = 0;
+      return;
+    }
+
+    setPreviousStep(outgoing);
+    setCurrentStep(step);
+    outgoingOpacity.value = 1;
+    incomingOpacity.value = 0;
+    const timing = {
+      duration: INTRO_TITLE_FADE_MS,
+      easing: INTRO_TITLE_FADE_EASING,
+    };
+    outgoingOpacity.value = withTiming(0, timing);
+    incomingOpacity.value = withTiming(1, timing);
+  }, [incomingOpacity, outgoingOpacity, reducedMotion, step]);
+
+  const incomingStyle = useAnimatedStyle(() => ({
+    opacity: incomingOpacity.value,
+  }));
+  const outgoingStyle = useAnimatedStyle(() => ({
+    opacity: outgoingOpacity.value,
+  }));
+
+  return (
+    <Box
+      twClassName="relative w-full"
+      style={slotHeight > 0 ? { minHeight: slotHeight } : undefined}
+      testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SLOT}
+    >
+      {INTRO_TITLE_STEPS.map((sizerStep) => (
+        <Box
+          key={sizerStep}
+          twClassName="absolute left-0 right-0 top-0 w-full opacity-0"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          pointerEvents="none"
+          onLayout={(event) => handleSizerLayout(sizerStep, event)}
+          testID={`${SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SIZER}-${sizerStep}`}
+        >
+          <IntroTitleText step={sizerStep} />
+        </Box>
+      ))}
+      {previousStep !== null && (
+        <Animated.View
+          style={[tw.style('absolute left-0 right-0 top-0'), outgoingStyle]}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_OUTGOING}
+        >
+          <IntroTitleText step={previousStep} />
+        </Animated.View>
+      )}
+      <Animated.View
+        style={[tw.style('absolute left-0 right-0 top-0'), incomingStyle]}
+        testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_INCOMING}
+      >
+        <IntroTitleText
+          step={currentStep}
+          testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE}
+        />
+      </Animated.View>
+    </Box>
+  );
+};
+
 /**
  * "Connect [X logo] account". The logo stands in for the word X, so the
  * label is built from parts instead of one string. The button's text color
@@ -281,7 +438,8 @@ const ReadyCardFallback: React.FC<{
   avatarBackgroundId: string | null | undefined;
   imageUrl?: string | null;
   handle: string;
-}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle }) => (
+  isVerified: boolean;
+}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle, isVerified }) => (
   <>
     <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
       🦊
@@ -313,13 +471,24 @@ const ReadyCardFallback: React.FC<{
           size="xl"
         />
       </Box>
-      <Text
-        variant={TextVariant.BodyMd}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
         twClassName="pt-3"
-        testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
       >
-        @{handle}
-      </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
+        >
+          @{handle}
+        </Text>
+        {isVerified ? (
+          <ProfileVerifiedBadge
+            testID={SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE}
+          />
+        ) : null}
+      </Box>
     </Box>
   </>
 );
@@ -339,9 +508,19 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
-  const { checkUsernameAvailability, createProfile, updateProfile } =
-    useProfileController();
+  const {
+    profile: controllerProfile,
+    checkUsernameAvailability,
+    createProfile,
+    updateProfile,
+  } = useProfileController();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
+  const [introSceneStep, setIntroSceneStep] = useState<number | undefined>(
+    undefined,
+  );
+  const handleIntroSceneStep = useCallback((nextStep: number) => {
+    setIntroSceneStep(nextStep);
+  }, []);
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
   );
@@ -359,6 +538,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
+  const isProfileCreatedAndVerified =
+    profileCreated && controllerProfile?.verified === true;
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
   const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
     step: analyticsStep,
@@ -1040,17 +1221,15 @@ const SocialProfileOnboardingView: React.FC = () => {
             <SafeAreaInsetsContext.Provider value={introInsets}>
               <MarketingMoment
                 testID={SocialProfileOnboardingSelectorsIDs.INTRO}
-                title={strings(
-                  'social_leaderboard.profile_onboarding.intro_title',
-                )}
-                titleProps={{
-                  testID: SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
-                  twClassName: 'px-1',
-                  variant: TextVariant.DisplayLg,
-                }}
+                title={<IntroStepTitle step={introTitleStep(introSceneStep)} />}
+                // 20px matches "Claim a username": that step's progress bar
+                // is an 8px inset plus a 4px track, then pt-2. The intro has
+                // no progress bar, so this margin makes up the difference.
+                copyClassName="mt-5"
                 artwork={
                   <ProfileOnboardingIntroAnimation
                     fallback={<LiveActivityFallback />}
+                    onStepChange={handleIntroSceneStep}
                   />
                 }
                 artworkWrapperProps={{
@@ -1117,7 +1296,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   gap={4}
                   testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STEP}
                 >
-                  <OnboardingTitle twClassName="pt-2">
+                  <OnboardingTitle twClassName="pt-4 pb-5">
                     {strings(
                       'social_leaderboard.profile_onboarding.claim_username',
                     )}
@@ -1197,7 +1376,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'avatar' ? (
                 <Box alignItems={BoxAlignItems.Center}>
-                  <OnboardingTitle twClassName="pt-2 pb-14">
+                  <OnboardingTitle twClassName="m-0.5 pt-3 pb-8">
                     {strings(
                       'social_leaderboard.profile_onboarding.customize_avatar',
                     )}
@@ -1218,7 +1397,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
                   <OnboardingTitle
-                    twClassName="pt-2"
+                    twClassName="m-0.5 pt-3 px-3 pb-3"
                     textStyle={DISPLAY_LG_LINE_STYLE}
                   >
                     {strings(
@@ -1278,13 +1457,14 @@ const SocialProfileOnboardingView: React.FC = () => {
                       avatarPresetId={draft.avatarPresetId}
                       avatarBackgroundId={draft.avatarBackgroundId}
                       imageUrl={readyImageUrl}
-                      isVerified={draft.path === 'x'}
+                      isVerified={isProfileCreatedAndVerified}
                       fallback={
                         <ReadyCardFallback
                           avatarPresetId={draft.avatarPresetId}
                           avatarBackgroundId={draft.avatarBackgroundId}
                           imageUrl={readyImageUrl}
                           handle={username}
+                          isVerified={isProfileCreatedAndVerified}
                         />
                       }
                     />
