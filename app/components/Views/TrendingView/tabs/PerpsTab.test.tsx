@@ -169,28 +169,29 @@ const mockTopTradersMounted = jest.fn();
 jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
   const MockReact = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
+  function MockTopTradersSection({
+    source,
+    prefetchProfiles,
+  }: {
+    source?: string;
+    prefetchProfiles?: boolean;
+  }) {
+    MockReact.useEffect(() => {
+      mockTopTradersMounted();
+    }, []);
+    return MockReact.createElement(
+      View,
+      {
+        testID: 'top-traders-section',
+        accessibilityHint: source,
+        accessibilityLabel: String(prefetchProfiles),
+      },
+      MockReact.createElement(Text, null, 'Top traders'),
+    );
+  }
   return {
     __esModule: true,
-    default: ({
-      source,
-      prefetchProfiles,
-    }: {
-      source?: string;
-      prefetchProfiles?: boolean;
-    }) => {
-      MockReact.useEffect(() => {
-        mockTopTradersMounted();
-      }, []);
-      return MockReact.createElement(
-        View,
-        {
-          testID: 'top-traders-section',
-          accessibilityHint: source,
-          accessibilityLabel: String(prefetchProfiles),
-        },
-        MockReact.createElement(Text, null, 'Top traders'),
-      );
-    },
+    default: MockTopTradersSection,
   };
 });
 
