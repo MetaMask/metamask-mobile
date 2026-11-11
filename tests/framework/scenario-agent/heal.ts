@@ -559,7 +559,9 @@ export function completeSlackNotices(
         ...notice,
         prUrl: opened.prUrl,
         commitSha: opened.commitSha,
-        commitUrl: `${opened.repositoryUrl.replace(/\/$/, '')}/commit/${opened.commitSha}`,
+        commitUrl: opened.repositoryUrl
+          ? `${opened.repositoryUrl.replace(/\/$/, '')}/commit/${opened.commitSha}`
+          : '',
       },
     ];
   });

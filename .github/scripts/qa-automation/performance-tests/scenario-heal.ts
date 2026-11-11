@@ -337,8 +337,12 @@ export function main(argv = process.argv.slice(2), env = process.env): void {
           repositoryUrl,
         }
       : undefined;
+  // A dry run has no PR yet. Show the message with placeholders instead of posting.
+  const preview = dryRun && !opened
+    ? { prUrl: '(the draft PR this run would open)', commitSha: '(the heal commit)', repositoryUrl: '' }
+    : opened;
   const slackText = renderHealSlackMessage(
-    completeSlackNotices(result.slackNotices, opened),
+    completeSlackNotices(result.slackNotices, preview),
   );
 
   const fillingInOpenedPr = Boolean(opened);
