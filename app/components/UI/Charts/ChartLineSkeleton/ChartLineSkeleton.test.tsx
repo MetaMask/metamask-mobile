@@ -4,6 +4,7 @@
 import React from 'react';
 import { Dimensions } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import ChartLineSkeleton from './ChartLineSkeleton';
 
@@ -11,7 +12,13 @@ jest.mock('../../../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(() => 'HIGH'),
 }));
 
+jest.mock('react-native-reanimated', () => ({
+  ...jest.requireActual('react-native-reanimated'),
+  useReducedMotion: jest.fn(() => false),
+}));
+
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
+const mockUseReducedMotion = jest.mocked(useReducedMotion);
 
 const ID = 'chart-line-skeleton';
 const HEIGHT = 180;
@@ -33,6 +40,7 @@ const flatStyle = (style: unknown): Record<string, unknown> => {
 describe('ChartLineSkeleton', () => {
   beforeEach(() => {
     mockGetHardwareTier.mockReturnValue('HIGH');
+    mockUseReducedMotion.mockReturnValue(false);
   });
 
   it('adds no progressbar role or accessibility label', () => {
@@ -94,4 +102,16 @@ describe('ChartLineSkeleton', () => {
       expect(getByTestId(`${ID}-line`)).toBeOnTheScreen();
     },
   );
+
+  it('renders the line static when Reduce Motion is on', () => {
+    mockUseReducedMotion.mockReturnValue(true);
+
+    const { getByTestId, queryByTestId } = render(
+      <ChartLineSkeleton height={HEIGHT} />,
+    );
+
+    expect(queryByTestId(`${ID}-pulse`)).toBeNull();
+    expect(getByTestId(`${ID}-static`)).toBeOnTheScreen();
+    expect(getByTestId(`${ID}-line`)).toBeOnTheScreen();
+  });
 });

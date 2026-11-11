@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Dimensions, StyleSheet } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { Box } from '@metamask/design-system-react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { hasTestOverrides } from '../../../../util/test/utils';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useTheme } from '../../../../util/theme';
@@ -92,7 +93,9 @@ const ChartLineSkeleton = ({
   testID = 'chart-line-skeleton',
 }: ChartLineSkeletonProps) => {
   const { colors } = useTheme();
-  const [canAnimate] = useState(() => getHardwareTier() !== 'LOW');
+  const prefersReducedMotion = useReducedMotion() === true;
+  const [hardwareCanAnimate] = useState(() => getHardwareTier() !== 'LOW');
+  const canAnimate = hardwareCanAnimate && !prefersReducedMotion;
   const [width, setWidth] = useState(() => Dimensions.get('window').width);
   const opacity = useRef(new Animated.Value(PULSE_MAX_OPACITY)).current;
   const geometry = useMemo(() => lineGeometry(width, height), [width, height]);
