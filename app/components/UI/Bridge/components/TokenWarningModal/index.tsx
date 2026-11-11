@@ -117,19 +117,15 @@ const TokenWarningModalSheet = ({
   }, []);
 
   const handleProceed = useCallback(async () => {
-    if (onProceed) {
-      sheetRef.current?.onCloseBottomSheet(onProceed);
-      return;
-    }
-
-    if (hasMissingPriceData(activeQuote)) {
+    // An `onProceed` caller runs its own quote checks.
+    if (!onProceed && hasMissingPriceData(activeQuote)) {
       navigation.replace(Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL, {
         location,
       });
       return;
     }
 
-    if (shouldShowPriceImpactError) {
+    if (!onProceed && shouldShowPriceImpactError) {
       navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
         type: PriceImpactModalType.Execution,
         location,
@@ -137,11 +133,12 @@ const TokenWarningModalSheet = ({
       return;
     }
 
+    const confirm = onProceed ?? confirmBridge;
     setLoading(true);
     if (sheetRef.current?.onCloseBottomSheet) {
-      sheetRef.current.onCloseBottomSheet(confirmBridge);
+      sheetRef.current.onCloseBottomSheet(confirm);
     } else {
-      await confirmBridge?.();
+      await confirm?.();
     }
   }, [
     activeQuote,

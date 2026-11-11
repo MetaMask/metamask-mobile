@@ -11,13 +11,19 @@ import {
   type UseQuickBuyControllerResult,
 } from './hooks/useQuickBuyController';
 import type { QuickBuyFeatures, QuickBuyTarget } from './types';
+import { useSelector } from 'react-redux';
+import Routes from '../../../constants/navigation/Routes';
+import { SecurityDataType } from '../Bridge/types';
+import { TokenWarningModalMode } from '../Bridge/components/TokenWarningModal/constants';
+import { getQuickBuyEntryPoint } from './utils/getQuickBuyEntryPoint';
 
 jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -243,6 +249,92 @@ describe('QuickBuyProvider — handleBuy', () => {
 
     expect(handleConfirm).toHaveBeenCalledTimes(1);
     expect(setActiveScreen).not.toHaveBeenCalled();
+  });
+});
+
+describe('QuickBuyProvider — handleBuy with a flagged destination token', () => {
+  const securityData = {
+    type: SecurityDataType.Malicious,
+    metadata: {
+      features: [
+        {
+          featureId: 'honeypot',
+          type: SecurityDataType.Malicious,
+          description: 'Honeypot',
+        },
+      ],
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(useSelector).mockReturnValue({ securityData });
+  });
+
+  afterEach(() => {
+    jest.mocked(useSelector).mockReset();
+  });
+
+  it('opens the token warning modal instead of confirming', async () => {
+    const handleConfirm = jest.fn();
+    (useQuickBuyController as jest.Mock).mockReturnValue(
+      buildController({ handleConfirm }),
+    );
+
+    const setActiveScreen = jest.fn();
+    const ctx = renderProvider(featuresWithModal, setActiveScreen);
+
+    await act(async () => {
+      await ctx.current.handleBuy();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+      params: {
+        warningType: SecurityDataType.Malicious,
+        features: securityData.metadata.features,
+        mode: TokenWarningModalMode.Execution,
+        location: getQuickBuyEntryPoint('profile_position'),
+        onProceed: expect.any(Function),
+      },
+    });
+    expect(handleConfirm).not.toHaveBeenCalled();
+    expect(setActiveScreen).not.toHaveBeenCalled();
+  });
+
+  it('continues to confirm when the modal calls onProceed', async () => {
+    const handleConfirm = jest.fn().mockResolvedValue(undefined);
+    (useQuickBuyController as jest.Mock).mockReturnValue(
+      buildController({ handleConfirm }),
+    );
+
+    const ctx = renderProvider(featuresWithModal);
+
+    await act(async () => {
+      await ctx.current.handleBuy();
+    });
+    const { onProceed } = mockNavigate.mock.calls[0][1].params;
+    await act(async () => {
+      await onProceed();
+    });
+
+    expect(handleConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('confirms without the modal in preset add-funds mode', async () => {
+    const handleConfirm = jest.fn().mockResolvedValue(undefined);
+    (useQuickBuyController as jest.Mock).mockReturnValue(
+      buildController({ isPresetAddFundsMode: true, handleConfirm }),
+    );
+
+    const ctx = renderProvider(featuresWithModal);
+
+    await act(async () => {
+      await ctx.current.handleBuy();
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(handleConfirm).toHaveBeenCalledTimes(1);
   });
 });
 
