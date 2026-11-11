@@ -3629,6 +3629,44 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('marks the Card flow when Link card is pressed', () => {
+      const markCardFlowOpened = jest.fn();
+      mockUseCardEnableCard.mockReturnValue({
+        canEnableCard: false,
+        enableCard: null,
+        provisioningView: 'provisioning',
+        setupStep: null,
+        isEnableCardPending: false,
+        markCardFlowOpened,
+      });
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        hasMoneyAccountBaseRequirements: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: { symbol: 'veda' },
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+
+      expect(markCardFlowOpened).toHaveBeenCalledTimes(1);
+      expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
+      expect(markCardFlowOpened.mock.invocationCallOrder[0]).toBeLessThan(
+        mockStartLinkFlow.mock.invocationCallOrder[0],
+      );
+    });
+
     it('selects mode="link" for unauthenticated cardholder when base requirements are met but VEDA is unavailable', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
@@ -4102,7 +4140,7 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows the MetaMask Card link section for an unresolved Money account cardholder', () => {
+    it('shows the card upsell for a signed-in provider with no card', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockSelectIsCardStateResolved.mockReturnValue(false);
       mockUseMoneyAccountCardLinkage.mockReturnValue(
@@ -4126,14 +4164,46 @@ describe('MoneyHomeView', () => {
 
       expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
       expect(
-        getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+
+    it('shows the link section once the provider reports a card', () => {
+      mockSelectIsCardholder.mockReturnValue(false);
+      mockUseCardHomeData.mockReturnValue({
+        data: { card: { id: 'card-1' }, alerts: [] },
+        isLoading: false,
+        isRefreshing: false,
+        isError: false,
+        refetch: jest.fn(),
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
+      } as unknown as ReturnType<typeof useCardHomeData>);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+          isCardAuthenticated: true,
+          isCardVerified: false,
+          isCardLinkedToMoneyAccount: false,
+          isMoneyCardSectionAvailable: true,
+          reportsVerificationStatus: false,
+          primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
+          moneyAccountCardToken: MOCK_CARD_FUNDING_TOKEN,
+          canLink: true,
+        }),
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
       expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
-      ).not.toBeOnTheScreen();
+        getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('hides the MetaMask Card section when the authenticated provider cannot link a Money account', () => {

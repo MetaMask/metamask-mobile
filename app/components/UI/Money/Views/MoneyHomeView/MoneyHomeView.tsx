@@ -384,6 +384,7 @@ const MoneyHomeView = () => {
     hasCardHomeDataFailed: cardHomeDataStatus === 'error',
     isMoneyCardSectionAvailable,
     reportsVerificationStatus,
+    hasProviderCard: Boolean(cardHomeData?.card),
     cardSetupView,
   });
   let displayState: MoneyBalanceDisplayState;
@@ -729,11 +730,12 @@ const MoneyHomeView = () => {
   );
 
   const handleLinkCardPress = useCallback(() => {
+    markCardFlowOpened();
     startLinkFlow({
       ...MONEY_HOME_CARD_ORIGIN,
       entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
     });
-  }, [startLinkFlow]);
+  }, [markCardFlowOpened, startLinkFlow]);
 
   useEffect(() => {
     if (hasTrackedCardActionRowViewRef.current) return;

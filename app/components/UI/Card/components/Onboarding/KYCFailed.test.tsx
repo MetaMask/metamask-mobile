@@ -6,9 +6,17 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useSelector } from 'react-redux';
 
 const mockExitCardFlow = jest.fn();
+const mockNotifyKycRejected = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../hooks/useExitCardFlow', () => ({
   useExitCardFlow: () => mockExitCardFlow,
+}));
+
+jest.mock('../../hooks/useImmersveKycOutcome', () => ({
+  useImmersveKycOutcome: () => ({
+    notifyKycRejected: (...args: unknown[]) => mockNotifyKycRejected(...args),
+    notifyKycInReview: jest.fn(),
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -315,6 +323,20 @@ describe('KYCFailed Component', () => {
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
 
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+      expect(mockNotifyKycRejected).not.toHaveBeenCalled();
+    });
+
+    it('signs out of Immersve when leaving, without a second toast', () => {
+      mockUseSelector.mockReturnValue('immersve');
+      const { getByTestId } = render(<KYCFailed />);
+
+      fireEvent.press(getByTestId('kyc-failed-close-button'));
+
+      expect(mockNotifyKycRejected).toHaveBeenCalledWith(
+        { type: 'rejected', canRetry: false, reasons: [] },
+        { source: 'kyc_failed', toast: false },
+      );
       expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
 

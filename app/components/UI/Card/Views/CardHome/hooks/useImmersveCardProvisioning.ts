@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
@@ -36,6 +37,7 @@ import {
 import { resolveImmersveFundingSourceId } from '../../../util/immersveResume';
 import { CardActions, withCardProvider } from '../../../util/metrics';
 import { useImmersveOnboardingRouter } from '../../../hooks/useImmersveOnboardingRouter';
+import { useImmersveKycOutcome } from '../../../hooks/useImmersveKycOutcome';
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -70,10 +72,12 @@ export function useImmersveCardProvisioning(
     ? safeToChecksumAddress(primaryMoneyAccount?.address)
     : undefined;
   const route = useImmersveOnboardingRouter();
+  const { notifyKycRejected } = useImmersveKycOutcome();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const trackEventRef = useRef(trackEvent);
   const createEventBuilderRef = useRef(createEventBuilder);
+  const notifyKycRejectedRef = useRef(notifyKycRejected);
   const handled = useRef(false);
   // Read via ref so persisting the resolved id does not re-run reconcile and
   // cancel the in-flight attempt (which previously left handled=true forever).
@@ -84,19 +88,29 @@ export function useImmersveCardProvisioning(
   const wasProvisioningRef = useRef(isProvisioning);
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [recheckCount, setRecheckCount] = useState(0);
-
-  useEffect(() => {
-    trackEventRef.current = trackEvent;
-    createEventBuilderRef.current = createEventBuilder;
-    reduxFundingSourceIdRef.current = reduxFundingSourceId;
-    isFundingSettlingRef.current = isFundingSettling;
-  }, [trackEvent, createEventBuilder, reduxFundingSourceId, isFundingSettling]);
   const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
     null,
   );
   const [hasResolvedStatus, setHasResolvedStatus] = useState(false);
   const isReconciling = isProvisioning && !hasResolvedStatus;
   const isFocused = useIsFocused();
+  const isFocusedRef = useRef(isFocused);
+
+  useEffect(() => {
+    trackEventRef.current = trackEvent;
+    createEventBuilderRef.current = createEventBuilder;
+    notifyKycRejectedRef.current = notifyKycRejected;
+    reduxFundingSourceIdRef.current = reduxFundingSourceId;
+    isFundingSettlingRef.current = isFundingSettling;
+    isFocusedRef.current = isFocused;
+  }, [
+    trackEvent,
+    createEventBuilder,
+    reduxFundingSourceId,
+    isFundingSettling,
+    isFocused,
+    notifyKycRejected,
+  ]);
   const pollIntervalMs =
     options?.pollIntervalMs === undefined
       ? POLL_INTERVAL_MS
@@ -169,7 +183,16 @@ export function useImmersveCardProvisioning(
     // this view opened should recheck the left-off step.
     const openedCardFlow = hasOpenedCardFlowRef.current;
     hasOpenedCardFlowRef.current = false;
-    if (!openedCardFlow || !isProvisioning || !hasResolvedStatus) {
+    // Under review, and a permanent rejection, can change without the user
+    // opening another Card screen. Recheck those on every return.
+    const reviewsKyc =
+      pendingAction?.type === 'pending' ||
+      (pendingAction?.type === 'rejected' && !pendingAction.canRetry);
+    if (
+      (!openedCardFlow && !reviewsKyc) ||
+      !isProvisioning ||
+      !hasResolvedStatus
+    ) {
       return;
     }
     // Drop the resolved flag before the recheck so Continue stays disabled
@@ -177,7 +200,37 @@ export function useImmersveCardProvisioning(
     // failed recheck can still resume it.
     setHasResolvedStatus(false);
     setFocusRecheckCount((count) => count + 1);
-  }, [isFocused, recheckOnFocus, isProvisioning, hasResolvedStatus]);
+  }, [
+    isFocused,
+    recheckOnFocus,
+    isProvisioning,
+    hasResolvedStatus,
+    pendingAction,
+  ]);
+
+  // A manual review outlives this visit. One check when the app comes back,
+  // instead of a timer, matches Immersve's direct-integration guidance.
+  useEffect(() => {
+    if (!recheckOnFocus) {
+      return undefined;
+    }
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState !== 'active') {
+        return;
+      }
+      if (
+        !isFocusedRef.current ||
+        !isProvisioning ||
+        !hasResolvedStatus ||
+        pendingAction?.type !== 'pending'
+      ) {
+        return;
+      }
+      setHasResolvedStatus(false);
+      setFocusRecheckCount((count) => count + 1);
+    });
+    return () => subscription.remove();
+  }, [recheckOnFocus, isProvisioning, hasResolvedStatus, pendingAction?.type]);
 
   useEffect(() => {
     if (!isProvisioning || handled.current) {
@@ -317,6 +370,18 @@ export function useImmersveCardProvisioning(
           clearFundingSettling();
           // Mid-onboarding — no Funding Process STARTED (avoids orphan starts).
           setPendingAction(action);
+          if (
+            !cancelled &&
+            action.type === 'rejected' &&
+            !action.canRetry &&
+            isFocusedRef.current
+          ) {
+            notifyKycRejectedRef
+              .current(action, {
+                source: 'reconcile',
+              })
+              .catch(() => undefined);
+          }
           if (cancelled) return;
           trackEventRef.current(
             createEventBuilderRef
