@@ -12,9 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
-// Stands in for the design's Kalshi Security illustration, which is pending an
-// export. Replace it once the asset is in the repo.
-import securityIllustration from '../../../../../../images/mfa-shield.png';
+import securityIllustration from '../../../../../../images/secure_wallet_dark.png';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
 
 interface GetStartedBannerProps {
