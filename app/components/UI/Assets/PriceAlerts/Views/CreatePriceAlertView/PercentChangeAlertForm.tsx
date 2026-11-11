@@ -3,6 +3,7 @@ import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
+  FontFamily,
   FontWeight,
   Icon,
   IconColor,
@@ -205,6 +206,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   const percentSuffix = (
     <Text
       variant={TextVariant.HeadingLg}
+      fontFamily={FontFamily.Hero}
       fontWeight={FontWeight.Bold}
       color={TextColor.TextAlternative}
       twClassName="ml-[3px]"
