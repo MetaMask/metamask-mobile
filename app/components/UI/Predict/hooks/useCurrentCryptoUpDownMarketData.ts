@@ -120,6 +120,7 @@ export const useCurrentCryptoUpDownMarketData = ({
     symbol,
     enabled: shouldFetchMarketData && !withChartData,
     twapWindowSeconds: market.twapWindowSeconds,
+    provider: market.cryptoPriceProvider,
     updateIntervalMs: priceUpdateIntervalMs,
   });
   const chartDerivedPrice = useMemo(() => {
