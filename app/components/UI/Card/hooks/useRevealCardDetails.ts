@@ -1,14 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Engine from '../../../../core/Engine';
+import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
   selectCardActiveProviderId,
 } from '../../../../selectors/cardController';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
@@ -36,6 +41,8 @@ export function useRevealCardDetails({
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const theme = useTheme();
+  const { toastRef } = useContext(ToastContext);
   const { reauthenticate } = useAuthentication();
 
   const {
@@ -63,24 +70,32 @@ export function useRevealCardDetails({
 
   useEffect(() => () => clearCardDetails(), [clearCardDetails]);
 
-  const copyCardDetail = useCallback((value: string) => {
-    ClipboardManager.setString(value);
-    toast({
-      title: strings('card.card_home.card_details.copied'),
-      severity: ToastSeverity.Default,
-      hasNoTimeout: false,
-      showCloseButton: false,
-    });
-  }, []);
+  const copyCardDetail = useCallback(
+    (value: string) => {
+      ClipboardManager.setString(value);
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('card.card_home.card_details.copied') },
+        ],
+        iconName: IconName.Copy,
+        iconColor: theme.colors.icon.default,
+        hasNoTimeout: false,
+      });
+    },
+    [toastRef, theme],
+  );
 
   const showCardDetailsErrorToast = useCallback(() => {
-    toast({
-      title: strings('card.card_home.view_card_details_error'),
-      severity: ToastSeverity.Warning,
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        { label: strings('card.card_home.view_card_details_error') },
+      ],
       hasNoTimeout: false,
-      showCloseButton: false,
+      iconName: IconName.Warning,
     });
-  }, []);
+  }, [toastRef]);
 
   const onCardDetailsImageError = useCallback(() => {
     clearCardDetailsImageUrl();
@@ -160,6 +175,7 @@ export function useRevealCardDetails({
       await withBiometricAuth({
         reauthenticate,
         navigation,
+        toastRef,
         onSuccess: () => fetchAndShowSensitiveDetails(),
       });
       return;
@@ -168,6 +184,7 @@ export function useRevealCardDetails({
     await withBiometricAuth({
       reauthenticate,
       navigation,
+      toastRef,
       onSuccess: () => fetchAndShowCardDetails(),
     });
   }, [
@@ -177,6 +194,7 @@ export function useRevealCardDetails({
     capabilities?.supportsSensitiveDetailsView,
     reauthenticate,
     navigation,
+    toastRef,
     fetchAndShowSensitiveDetails,
     fetchAndShowCardDetails,
   ]);
@@ -204,6 +222,7 @@ export function useRevealCardDetails({
       await withBiometricAuth({
         reauthenticate,
         navigation,
+        toastRef,
         onSuccess: () => fetchAndShowSensitiveDetails(),
       });
       return;
@@ -217,6 +236,7 @@ export function useRevealCardDetails({
     await withBiometricAuth({
       reauthenticate,
       navigation,
+      toastRef,
       onSuccess: () => fetchAndShowCardDetails(),
     });
   }, [
@@ -232,6 +252,7 @@ export function useRevealCardDetails({
     reauthenticate,
     fetchAndShowCardDetails,
     navigation,
+    toastRef,
   ]);
 
   return {

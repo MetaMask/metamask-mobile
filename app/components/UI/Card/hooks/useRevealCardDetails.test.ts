@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { toast } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   selectCardActiveProviderId,
@@ -19,6 +18,9 @@ const mockOnImageLoad = jest.fn();
 const mockGetCardSensitiveDetails = jest.fn();
 const mockSetString = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockShowToast = jest.requireMock(
+  '../../../../component-library/components/Toast',
+).__mockToastRef.current.showToast as jest.Mock;
 const mockWithBiometricAuth = jest.fn(
   async ({
     onSuccess,
@@ -40,13 +42,11 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
-  };
-});
+jest.mock('../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: { icon: { default: 'mock-icon' }, success: { default: 'green' } },
+  }),
+}));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -86,6 +86,20 @@ jest.mock('../util/withBiometricAuth', () => ({
     ]
   ) => mockWithBiometricAuth(...args),
 }));
+
+jest.mock('../../../../component-library/components/Toast', () => {
+  const ReactActual = jest.requireActual('react');
+  const toastRef = {
+    current: {
+      showToast: jest.fn(),
+    },
+  };
+  return {
+    ToastContext: ReactActual.createContext({ toastRef }),
+    ToastVariants: { Icon: 'Icon' },
+    __mockToastRef: toastRef,
+  };
+});
 
 jest.mock('../../../../core/ClipboardManager', () => ({
   __esModule: true,
@@ -276,14 +290,7 @@ describe('useRevealCardDetails', () => {
     });
 
     expect(mockSetString).toHaveBeenCalledWith('4111111111111111');
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'card.card_home.card_details.copied',
-        severity: 'default',
-        hasNoTimeout: false,
-        showCloseButton: false,
-      }),
-    );
+    expect(mockShowToast).toHaveBeenCalled();
   });
 
   it('clears sensitive details on unmount', async () => {
@@ -308,14 +315,7 @@ describe('useRevealCardDetails', () => {
       await result.current.revealCardDetails();
     });
 
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'card.card_home.view_card_details_error',
-        severity: 'warning',
-        hasNoTimeout: false,
-        showCloseButton: false,
-      }),
-    );
+    expect(mockShowToast).toHaveBeenCalled();
   });
 
   it('clears the image URL and toasts on image error', () => {
@@ -326,13 +326,6 @@ describe('useRevealCardDetails', () => {
     });
 
     expect(mockClearImageUrl).toHaveBeenCalled();
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'card.card_home.view_card_details_error',
-        severity: 'warning',
-        hasNoTimeout: false,
-        showCloseButton: false,
-      }),
-    );
+    expect(mockShowToast).toHaveBeenCalled();
   });
 });

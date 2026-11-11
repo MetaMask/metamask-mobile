@@ -1,8 +1,15 @@
+import React from 'react';
 import { Platform } from 'react-native';
 import { renderHook } from '@testing-library/react-native';
-import { toast } from '@metamask/design-system-react-native';
+import {
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
+import type { ToastRef } from '../../../../../../component-library/components/Toast/Toast.types';
 import {
   resolveWalletEntry,
   useCardWalletProvisioning,
@@ -20,6 +27,8 @@ import {
 
 const mockUsePushProvisioning = jest.fn();
 const mockReplace = jest.fn();
+const showToast = jest.fn();
+const closeToast = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ replace: mockReplace }),
@@ -34,11 +43,11 @@ jest.mock('../../../pushProvisioning', () => ({
       : 'Google Wallet',
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
+jest.mock('../../../../../../component-library/components/Toast', () => {
+  const react = jest.requireActual<typeof import('react')>('react');
   return {
-    ...actual,
-    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+    ToastContext: react.createContext({ toastRef: { current: null } }),
+    ToastVariants: { Plain: 'Plain', Icon: 'Icon' },
   };
 });
 
@@ -95,16 +104,28 @@ function accountWithAddress(
 
 function renderProvisioning(
   data: CardHomeData,
+  toastRef: React.RefObject<ToastRef | null> = {
+    current: { showToast, closeToast },
+  },
   options?: {
     onSuccess?: () => void;
     platformWalletSupported?: boolean;
   },
 ) {
-  return renderHook(() =>
-    useCardWalletProvisioning(data, {
-      platformWalletSupported: true,
-      ...options,
-    }),
+  return renderHook(
+    () =>
+      useCardWalletProvisioning(data, {
+        platformWalletSupported: true,
+        ...options,
+      }),
+    {
+      wrapper: ({ children }) =>
+        React.createElement(
+          ToastContext.Provider,
+          { value: { toastRef } },
+          children,
+        ),
+    },
   );
 }
 
@@ -158,13 +179,13 @@ describe('useCardWalletProvisioning', () => {
     expect(mockReplace).toHaveBeenCalledWith(
       Routes.CARD.APPLE_PAY_CONFIRMATION,
     );
-    expect(toast).not.toHaveBeenCalled();
+    expect(showToast).not.toHaveBeenCalled();
   });
 
   it('runs the caller success callback after opening the confirmation screen', () => {
     const onSuccess = jest.fn();
 
-    renderProvisioning(homeData(walletProvisioning), { onSuccess });
+    renderProvisioning(homeData(walletProvisioning), undefined, { onSuccess });
 
     const passedOptions = mockUsePushProvisioning.mock.calls[0][0] as {
       onSuccess: () => void;
@@ -174,7 +195,7 @@ describe('useCardWalletProvisioning', () => {
     expect(mockReplace).toHaveBeenCalledWith(
       Routes.CARD.APPLE_PAY_CONFIRMATION,
     );
-    expect(toast).not.toHaveBeenCalled();
+    expect(showToast).not.toHaveBeenCalled();
     expect(onSuccess).toHaveBeenCalledTimes(1);
   });
 
@@ -182,7 +203,7 @@ describe('useCardWalletProvisioning', () => {
     Platform.OS = 'android';
     const onSuccess = jest.fn();
 
-    renderProvisioning(homeData(walletProvisioning), { onSuccess });
+    renderProvisioning(homeData(walletProvisioning), undefined, { onSuccess });
 
     const passedOptions = mockUsePushProvisioning.mock.calls[0][0] as {
       onSuccess: () => void;
@@ -190,14 +211,22 @@ describe('useCardWalletProvisioning', () => {
     passedOptions.onSuccess();
 
     expect(mockReplace).not.toHaveBeenCalled();
-    expect(toast).toHaveBeenCalledWith(
+    expect(showToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: strings('card.push_provisioning.success_message', {
-          walletName: 'Google Wallet',
+        labelOptions: [
+          {
+            label: strings('card.push_provisioning.success_message', {
+              walletName: 'Google Wallet',
+            }),
+          },
+        ],
+        startAccessory: expect.objectContaining({
+          props: {
+            name: IconName.Confirmation,
+            color: IconColor.SuccessDefault,
+            size: IconSize.Lg,
+          },
         }),
-        severity: 'success',
-        hasNoTimeout: false,
-        showCloseButton: false,
       }),
     );
     expect(onSuccess).toHaveBeenCalledTimes(1);
@@ -211,7 +240,7 @@ describe('useCardWalletProvisioning', () => {
     };
     onSuccess({ activationState: 'requires_activation' });
 
-    expect(toast).not.toHaveBeenCalled();
+    expect(showToast).not.toHaveBeenCalled();
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
@@ -226,7 +255,7 @@ describe('useCardWalletProvisioning', () => {
       code: ProvisioningErrorCode.WALLET_DECLINED,
     });
 
-    expect(toast).not.toHaveBeenCalled();
+    expect(showToast).not.toHaveBeenCalled();
   });
 
   it('hides every wallet entry when Immersve Apple Pay is switched off', () => {
@@ -302,12 +331,16 @@ describe('useCardWalletProvisioning', () => {
     };
     onError({ message: 'Wallet rejected the card' });
 
-    expect(toast).toHaveBeenCalledWith(
+    expect(showToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Wallet rejected the card',
-        severity: 'danger',
-        hasNoTimeout: false,
-        showCloseButton: false,
+        labelOptions: [{ label: 'Wallet rejected the card' }],
+        startAccessory: expect.objectContaining({
+          props: {
+            name: IconName.Danger,
+            color: IconColor.ErrorDefault,
+            size: IconSize.Lg,
+          },
+        }),
       }),
     );
   });
@@ -320,18 +353,17 @@ describe('useCardWalletProvisioning', () => {
     };
     onError({ message: '' });
 
-    expect(toast).toHaveBeenCalledWith(
+    expect(showToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: strings('card.push_provisioning.error_unknown'),
-        severity: 'danger',
-        hasNoTimeout: false,
-        showCloseButton: false,
+        labelOptions: [
+          { label: strings('card.push_provisioning.error_unknown') },
+        ],
       }),
     );
   });
 
-  it('still shows the error toast without a component-library toast host', () => {
-    renderProvisioning(homeData(walletProvisioning));
+  it('skips the toast when no toast host is mounted', () => {
+    renderProvisioning(homeData(walletProvisioning), { current: null });
 
     const { onSuccess, onError } = mockUsePushProvisioning.mock.calls[0][0] as {
       onSuccess: () => void;
@@ -343,12 +375,7 @@ describe('useCardWalletProvisioning', () => {
     expect(mockReplace).toHaveBeenCalledWith(
       Routes.CARD.APPLE_PAY_CONFIRMATION,
     );
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Wallet rejected the card',
-        severity: 'danger',
-      }),
-    );
+    expect(showToast).not.toHaveBeenCalled();
   });
 });
 
