@@ -133,8 +133,9 @@ const Root = ({ foxCode }: RootProps) => {
                                 />
                                 <App />
                                 <ScreenTtcProbeHost />
-                                {/* Embedded device builds have __DEV__ false. The square stays on so latency can be read without Metro. */}
-                                <LatencyDebugSquare enabled />
+                                {__DEV__ ? (
+                                  <LatencyDebugSquare enabled />
+                                ) : null}
                               </HardwareWalletProvider>
                             </ToastContextWrapper>
                           </UIMessengerProvider>
