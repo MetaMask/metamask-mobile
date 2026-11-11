@@ -166,6 +166,7 @@ describe('useMusdConversion', () => {
         TransactionPayController: mockTransactionPayController,
         GasFeeController: mockGasFeeController,
         ApprovalController: mockApprovalController,
+        AssetsController: { state: { assetsInfo: {} } },
       },
       writable: true,
       configurable: true,
@@ -822,8 +823,7 @@ describe('useMusdConversion', () => {
         mockTransactionPayController.updatePaymentToken,
       ).toHaveBeenCalledWith({
         transactionId: 'tx-max-123',
-        tokenAddress: mockToken.address,
-        chainId: mockToken.chainId,
+        assetId: `eip155:1/erc20:${mockToken.address}`,
       });
     });
 

@@ -1,12 +1,10 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  PaymentOverride,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { EvmPaymentToken } from '../../../../../../util/transactions/payment-token';
 import {
   Icon,
   IconColor,
@@ -77,7 +75,8 @@ jest.mock('../usePayWithSelectedToken');
 jest.mock('../useTransactionPayData');
 jest.mock('../useTransactionPayToken');
 
-const TOKEN_MOCK: TransactionPaymentToken = {
+const TOKEN_MOCK: EvmPaymentToken = {
+  assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
   address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
   balanceFiat: '$12.34',
   balanceHuman: '12.34',
@@ -1434,7 +1433,7 @@ describe('usePayWithCryptoSection', () => {
         symbol: 'USDT',
         balanceUsd: '10',
       };
-      const noFeeTokenFullMock: TransactionPaymentToken = {
+      const noFeeTokenFullMock: EvmPaymentToken = {
         ...TOKEN_MOCK,
         address: noFeeTokenMock.address,
         chainId: noFeeTokenMock.chainId,

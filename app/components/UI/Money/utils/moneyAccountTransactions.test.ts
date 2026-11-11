@@ -24,7 +24,7 @@ import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
-  selectAccountOverrideByTransactionId,
+  selectAccountOverrideAddressByTransactionId,
   selectTransactionPaymentTokenByTransactionId,
 } from '../../../../selectors/transactionPayController';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -71,7 +71,7 @@ jest.mock('../../../../selectors/accountsController', () => ({
 }));
 
 jest.mock('../../../../selectors/transactionPayController', () => ({
-  selectAccountOverrideByTransactionId: jest.fn(),
+  selectAccountOverrideAddressByTransactionId: jest.fn(),
   selectTransactionPaymentTokenByTransactionId: jest.fn(),
 }));
 
@@ -648,8 +648,7 @@ describe('moneyAccountTransactions', () => {
       'transfers the mUSD to the money account when receiving %s',
       async (_, address, chainId) => {
         mockSelectPaymentToken.mockReturnValue({
-          address,
-          chainId,
+          assetId: `eip155:${parseInt(chainId, 16)}/erc20:${address}`,
         } as ReturnType<typeof selectTransactionPaymentTokenByTransactionId>);
 
         const result = await updateMoneyAccountWithdrawTokenAmount(
@@ -665,8 +664,7 @@ describe('moneyAccountTransactions', () => {
 
     it('transfers the mUSD to the recipient when receiving mUSD on the same chain', async () => {
       mockSelectPaymentToken.mockReturnValue({
-        address: MOCK_MUSD_ADDRESS,
-        chainId: MOCK_CHAIN_ID,
+        assetId: `eip155:${parseInt(MOCK_CHAIN_ID, 16)}/erc20:${MOCK_MUSD_ADDRESS}`,
       } as ReturnType<typeof selectTransactionPaymentTokenByTransactionId>);
 
       const result = await updateMoneyAccountWithdrawTokenAmount(
@@ -682,8 +680,7 @@ describe('moneyAccountTransactions', () => {
     it('uses the receive token selected while the rate loads', async () => {
       mockGetRate.mockImplementation(async () => {
         mockSelectPaymentToken.mockReturnValue({
-          address: MOCK_OTHER_TOKEN_ADDRESS,
-          chainId: MOCK_CHAIN_ID,
+          assetId: `eip155:${parseInt(MOCK_CHAIN_ID, 16)}/erc20:${MOCK_OTHER_TOKEN_ADDRESS}`,
         } as ReturnType<typeof selectTransactionPaymentTokenByTransactionId>);
         return ethers.BigNumber.from('1000000');
       });
@@ -701,7 +698,7 @@ describe('moneyAccountTransactions', () => {
 
   describe('syncMoneyAccountWithdrawTransfer', () => {
     const mockSelectAccountOverride = jest.mocked(
-      selectAccountOverrideByTransactionId,
+      selectAccountOverrideAddressByTransactionId,
     );
     const mockUpdateAtomicBatchData = jest.mocked(updateAtomicBatchData);
 

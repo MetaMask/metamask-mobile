@@ -27,10 +27,10 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { AssetType, TokenStandard } from '../types/token';
 import {
   TransactionPayRequiredToken,
-  TransactionPaymentToken,
   PaymentOverride,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
+import { EvmPaymentToken } from '../../../../util/transactions/payment-token';
 import type {
   BlockedTokensListConfig,
   BlockedTokensConfig,
@@ -276,7 +276,7 @@ describe('Transaction Pay Utils', () => {
         payToken: {
           address: TOKEN_MOCK.address as Hex,
           chainId: TOKEN_MOCK.chainId as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       });
 
       expect(result).toMatchObject([tokenWithZeroBalance]);
@@ -411,7 +411,7 @@ describe('Transaction Pay Utils', () => {
           payToken: {
             address: TOKEN_MOCK.address as Hex,
             chainId: TOKEN_MOCK.chainId as Hex,
-          } as TransactionPaymentToken,
+          } as EvmPaymentToken,
           fiatPayment: { selectedPaymentMethodId: 'pm-card' },
         });
 
@@ -425,7 +425,7 @@ describe('Transaction Pay Utils', () => {
           payToken: {
             address: TOKEN_MOCK.address as Hex,
             chainId: TOKEN_MOCK.chainId as Hex,
-          } as TransactionPaymentToken,
+          } as EvmPaymentToken,
           fiatPayment: {},
         });
 
