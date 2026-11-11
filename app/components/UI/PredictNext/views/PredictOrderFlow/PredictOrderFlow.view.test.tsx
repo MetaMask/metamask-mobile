@@ -7,7 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { Text, Button } from '@metamask/design-system-react-native';
 
 import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
@@ -135,13 +135,16 @@ const previewCalls = (): { url: string; body: unknown }[] =>
       body: init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     }));
 
-const stubBalance = (venueStatus?: { termsUrl?: string }) =>
+const stubBalance = (
+  venueStatus?: { termsUrl?: string },
+  available = '123.12',
+) =>
   mockPredictNextMessenger((action: string) => {
     if (action === 'PredictPortfolioService:getBalance') {
       return Promise.resolve({
         venueId: 'kalshi',
         currency: 'USD',
-        available: '123.12',
+        available,
       });
     }
     if (action === 'PredictMarketDataService:getVenueStatus') {
@@ -202,26 +205,100 @@ const sellProbeWithMax =
 const renderProbe = (Component: React.ComponentType = BuyProbe) =>
   renderPredictOrderFlow(Component);
 
+/** A $20 buy whose total debit fits the entered amount: 41 contracts for
+ * $19.07 plus a $0.82 fee is a $19.89 debit, so it is quoted in one pass. */
 const makePreview = (overrides: Record<string, unknown> = {}) => ({
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
   venueId: 'kalshi',
   marketId: 'KXTEST-26-A',
   side: 'yes',
   requestedAmount: '20.00',
-  orderAmount: '20.00',
-  estimatedContracts: 43,
+  orderAmount: '19.07',
+  estimatedContracts: 41,
   averagePrice: '0.4651',
-  fee: '0.86',
+  fee: '0.82',
   feeBreakdown: [
-    { source: 'venue', amount: '0.43' },
-    { source: 'metamask', amount: '0.43' },
+    { source: 'venue', amount: '0.41' },
+    { source: 'metamask', amount: '0.41' },
   ],
-  totalDebit: '20.86',
-  potentialPayout: '43.00',
-  potentialProfit: '22.14',
+  totalDebit: '19.89',
+  potentialPayout: '41.00',
+  potentialProfit: '21.11',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
   ...overrides,
 });
+
+const centsToUsd = (cents: number) => (cents / 100).toFixed(2);
+
+/**
+ * The predict-api buy quote against a flat order book, with the amount as a
+ * maximum spend fees included (va-mmcx-predict-api#82): whole contracts at
+ * `priceCents`, a fee of one venue cent and one MetaMask cent per contract
+ * (fee-schedule.ts), and when that debit exceeds the request, one more walk
+ * at the request minus that fee. A debit above the balance is rejected the
+ * way order-preview.service.ts rejects it: HTTP 422 `insufficient_balance`,
+ * with no quoted fee.
+ */
+const quoteFlatBook = (
+  amount: string,
+  { priceCents, balance }: { priceCents: number; balance: string },
+): FetchReply => {
+  const requestedCents = Math.round(Number(amount) * 100);
+  const walk = (spendCents: number) => Math.floor(spendCents / priceCents);
+  const firstContracts = walk(requestedCents);
+  const contracts =
+    firstContracts * (priceCents + 2) > requestedCents
+      ? walk(requestedCents - firstContracts * 2)
+      : firstContracts;
+  const costCents = contracts * priceCents;
+  const feeCents = contracts * 2;
+  const debitCents = costCents + feeCents;
+  if (debitCents > Math.round(Number(balance) * 100)) {
+    return {
+      status: 422,
+      body: {
+        code: 'insufficient_balance',
+        message: 'Estimated total debit exceeds the available balance.',
+      },
+    };
+  }
+  return {
+    body: makePreview({
+      requestedAmount: centsToUsd(requestedCents),
+      orderAmount: centsToUsd(costCents),
+      estimatedContracts: contracts,
+      averagePrice: (priceCents / 100).toFixed(2),
+      fee: centsToUsd(feeCents),
+      feeBreakdown: [
+        { source: 'venue', amount: centsToUsd(contracts) },
+        { source: 'metamask', amount: centsToUsd(contracts) },
+      ],
+      totalDebit: centsToUsd(debitCents),
+      potentialPayout: centsToUsd(contracts * 100),
+      potentialProfit: centsToUsd(contracts * 100 - debitCents),
+    }),
+  };
+};
+
+/** Serves every preview from the flat-book quote, with the balance the
+ * sheet reads. */
+const stubFlatBook = ({
+  priceCents,
+  balance = '123.12',
+}: {
+  priceCents: number;
+  balance?: string;
+}) => {
+  stubBalance(undefined, balance);
+  stubFetch((_url, init) => {
+    const { amount } = JSON.parse(String(init?.body)) as { amount: string };
+    return quoteFlatBook(amount, { priceCents, balance });
+  });
+};
+
+/** The amounts the preview route was asked to quote, in order. */
+const requestedAmounts = () =>
+  previewCalls().map((call) => (call.body as { amount: string }).amount);
 
 const typeAmount = (amount: string) => {
   fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
@@ -357,33 +434,136 @@ describe('PredictOrderFlow', () => {
     );
   };
 
+  /** A USD figure as rendered, in cents: '$1,234.56' or '$19.00 (50¢ avg)'. */
+  const shownCents = (node: { props: { children?: unknown } }) => {
+    const text = [node.props.children].flat().join('');
+    const match = /\$([\d,]+\.\d{2})/u.exec(text);
+    if (!match) {
+      throw new Error(`No USD amount in '${text}'`);
+    }
+    return Math.round(Number(match[1].replace(/,/gu, '')) * 100);
+  };
+
+  /**
+   * Opens the details sheet for the current quote and checks the money
+   * story: Fees plus You'll receive is the Total debit, that debit is
+   * within the entered amount, and the approval step charges exactly it.
+   * Ends on the approval step and returns the details figures in cents.
+   */
+  const expectBreakdownReconciles = async (entered: string) => {
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+    const details = within(
+      screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+    );
+    const fee = shownCents(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_FEES),
+    );
+    const contracts = shownCents(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_RECEIVE),
+    );
+    const total = shownCents(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_TOTAL),
+    );
+    expect(fee + contracts).toBe(total);
+    expect(total).toBeLessThanOrEqual(Math.round(Number(entered) * 100));
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+    await screen.findByTestId(PredictOrderFlowTestIds.APPROVAL);
+    expect(
+      shownCents(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT)),
+    ).toBe(total);
+    return { fee, contracts, total };
+  };
+
+  describe('the entered amount is the maximum spend, fees included', () => {
+    it('keeps a typed $20 within $20: contracts plus fee is the approval debit', async () => {
+      // 40 contracts at 50 cents and their fee would be $20.80, so the API
+      // quotes 38: $19.00 plus a $0.76 fee.
+      stubFlatBook({ priceCents: 50 });
+
+      await openSheet();
+      typeAmount('20');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('20');
+
+      expect(breakdown).toEqual({ fee: 76, contracts: 1900, total: 1976 });
+      expect(requestedAmounts()).toEqual(['20']);
+    });
+
+    it('reconciles the $1 minimum', async () => {
+      // Two contracts at 50 cents and their fee would be $1.04, so the API
+      // quotes one: $0.50 plus a $0.02 fee.
+      stubFlatBook({ priceCents: 50 });
+
+      await openSheet();
+      typeAmount('1');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('1');
+
+      expect(breakdown).toEqual({ fee: 2, contracts: 50, total: 52 });
+      expect(requestedAmounts()).toEqual(['1']);
+    });
+
+    it('reconciles a cent-sized fee to the cent', async () => {
+      // $1.50 at 47 cents: three contracts for $1.41 and a $0.06 fee fit
+      // the amount, so nothing is taken back.
+      stubFlatBook({ priceCents: 47 });
+
+      await openSheet();
+      typeAmount('1.5');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('1.5');
+
+      expect(breakdown).toEqual({ fee: 6, contracts: 141, total: 147 });
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.FEE_COMPONENT('venue')),
+      ).toHaveTextContent('$0.03');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.FEE_COMPONENT('metamask')),
+      ).toHaveTextContent('$0.03');
+    });
+  });
+
   /** Drives the flow through approval into the commit. */
   const approveOrder = async () => {
     await reviewOrder();
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
   };
 
-  it('renders the event snapshot with the outcome priced in cents', async () => {
+  it('renders the event snapshot with the outcome label, the swap icon and no price', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     await openSheet();
     expect(
       screen.getByText('Buffalo Bills vs. Kansas City Chiefs'),
     ).toBeOnTheScreen();
+    const outcomeLabel = screen.getByTestId(
+      PredictOrderFlowTestIds.OUTCOME_LABEL,
+    );
+    expect(outcomeLabel).toHaveTextContent('Buffalo Bills', { exact: true });
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
-    ).toHaveTextContent('Buffalo Bills · 53¢');
+      within(outcomeLabel).getByTestId(
+        PredictOrderFlowTestIds.OUTCOME_SWAP_ICON,
+      ),
+    ).toBeOnTheScreen();
 
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
-      ).toHaveTextContent('Buffalo Bills · 46.5¢'),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+    ).toHaveTextContent('Buffalo Bills', { exact: true });
   });
 
-  it('shows the Predict balance on the Pay with row', async () => {
+  it('shows the Predictions balance on the Pay with row', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     await openSheet();
@@ -392,11 +572,24 @@ describe('PredictOrderFlow', () => {
     await waitFor(() =>
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
-      ).toHaveTextContent('Predict balance ($123.12)'),
+      ).toHaveTextContent('Predictions balance ($123.12)'),
     );
   });
 
-  it('requests a quote for the entered amount and renders the distinct canonical values in the breakdown', async () => {
+  it('formats the Pay with balance with a thousands separator', async () => {
+    stubBalance(undefined, '1000');
+    stubFetch(() => ({ body: makePreview() }));
+
+    await openSheet();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
+      ).toHaveTextContent('Predictions balance ($1,000.00)'),
+    );
+  });
+
+  it('shows no Total row and labels the primary action Buy', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
     await openSheet();
@@ -406,20 +599,104 @@ describe('PredictOrderFlow', () => {
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
-    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
-      '$20.86',
-    );
-
-    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO));
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Price details')).toBeOnTheScreen();
+      screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+    ).toHaveTextContent('Buy', { exact: true });
+    expect(screen.queryByText('Total')).toBeNull();
+    expect(screen.queryByText('Review order')).toBeNull();
+  });
+
+  it('opens the details sheet from To win with the quoted rows and their total', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+
+    await openSheet();
+    typeAmount('20');
+    await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    expect(
+      screen.queryByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+
+    const breakdown = screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN);
+    expect(breakdown).toBeOnTheScreen();
+    const details = within(breakdown);
+    expect(
+      details
+        .getAllByText(
+          /^(Odds|Contracts|Fees|You'll receive|Total debit|Est\. payout)$/u,
+        )
+        .map((label) => label.props.children),
+    ).toEqual([
+      'Odds',
+      'Contracts',
+      'Fees',
+      "You'll receive",
+      'Total debit',
+      'Est. payout',
+    ]);
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_ODDS),
+    ).toHaveTextContent('46.5%');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_CONTRACTS),
+    ).toHaveTextContent('41');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_FEES),
+    ).toHaveTextContent('$0.82');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_RECEIVE),
+    ).toHaveTextContent('$19.07 (46.5¢ avg)');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_TOTAL),
+    ).toHaveTextContent('$19.89');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_PAYOUT),
+    ).toHaveTextContent('$41.00');
+
+    // No title, no close button, and none of the approval-only rows.
+    expect(details.queryByText('Price details')).toBeNull();
+    expect(details.queryByLabelText('Close')).toBeNull();
+    expect(details.queryByText('Potential profit')).toBeNull();
+    expect(details.queryByText('Exchange fee')).toBeNull();
+    expect(details.queryByText('MetaMask fee')).toBeNull();
+  });
+
+  it('keeps To win inert until a quote exists', async () => {
+    stubEchoingPreview();
+
+    await openSheet();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+    expect(
+      screen.queryByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+    ).not.toBeOnTheScreen();
+
+    typeAmount('20');
+    await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    replaceAmount('20', '50');
+    // While the changed amount re-quotes, the line is a skeleton.
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
+  });
+
+  it('shows the full fee breakdown and total debit on the approval step', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+
+    await reviewOrder();
+
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.AVERAGE_PRICE),
     ).toHaveTextContent('46.5¢');
     expect(screen.getByText('Exchange fee')).toBeOnTheScreen();
     expect(screen.getByText('MetaMask fee')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
+    ).toHaveTextContent('$19.89');
   });
 
   it('sends the exact intent with the authenticated request', async () => {
@@ -462,17 +739,15 @@ describe('PredictOrderFlow', () => {
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
-      ).toBeOnTheScreen(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
     expect(previewCalls()).toHaveLength(1);
 
     replaceAmount('20', '50');
-    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
-      '$50.00',
-    );
-    expect(screen.queryByTestId(PredictOrderFlowTestIds.TOTAL_INFO)).toBeNull();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+    ).toHaveTextContent('$50');
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
 
     await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
@@ -521,9 +796,9 @@ describe('PredictOrderFlow', () => {
     });
 
     expect(previewCalls()).toHaveLength(1);
-    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
-      '$0.50',
-    );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.TO_WIN),
+    ).toHaveTextContent('To win $0.00');
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
     expect(screen.getByText(/Enter at least \$1/)).toBeOnTheScreen();
   });
@@ -555,31 +830,201 @@ describe('PredictOrderFlow', () => {
     expect(previewCalls()).toHaveLength(0);
   });
 
-  it('adds quick amounts to the entered amount and quotes the sum', async () => {
-    stubEchoingPreview();
+  describe('quick amounts', () => {
+    const pressQuickAmount = (key: string) =>
+      fireEvent.press(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT(key)),
+      );
 
-    await openSheet();
-    fireEvent.press(
-      screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('5')),
-    );
-    fireEvent.press(
-      screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('10')),
-    );
-    expect(
-      screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
-    ).toHaveTextContent('$15');
+    /** Opens the sheet and waits for the balance to enable the chips. */
+    const openSheetWithBalance = async () => {
+      await openSheet();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('max')),
+        ).toBeEnabled(),
+      );
+    };
 
-    await flushDebounce();
-    await waitFor(() =>
+    it('renders 25%, 50%, 75% and Max, and no additive chips', async () => {
+      stubEchoingPreview();
+
+      await openSheetWithBalance();
+
+      for (const label of ['25%', '50%', '75%', 'Max']) {
+        expect(screen.getByText(label)).toBeOnTheScreen();
+      }
+      for (const label of ['+5', '+10', '+50', '+100']) {
+        expect(screen.queryByText(label)).toBeNull();
+      }
+    });
+
+    it('sets the amount to a fraction of the balance instead of adding to it', async () => {
+      stubEchoingPreview();
+
+      await openSheetWithBalance();
+      pressQuickAmount('25');
       expect(
-        screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
-      ).toBeOnTheScreen(),
-    );
-    expect(previewCalls()).toHaveLength(1);
-    expect(previewCalls()[0]?.body).toEqual({
-      marketId: 'KXTEST-26-A',
-      side: 'yes',
-      amount: '15',
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$30.78');
+      pressQuickAmount('50');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$61.56');
+      pressQuickAmount('75');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$92.34');
+
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      expect(previewCalls()).toHaveLength(1);
+      expect(previewCalls()[0]?.body).toEqual({
+        marketId: 'KXTEST-26-A',
+        side: 'yes',
+        amount: '92.34',
+      });
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.TO_WIN),
+      ).toHaveTextContent('To win $41.00');
+    });
+
+    it('replaces a typed amount and re-quotes', async () => {
+      stubEchoingPreview();
+
+      await openSheetWithBalance();
+      typeAmount('5');
+      await flushDebounce();
+      await waitFor(() => expect(previewCalls()).toHaveLength(1));
+
+      pressQuickAmount('50');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$61.56');
+      await flushDebounce();
+      await waitFor(() => expect(previewCalls()).toHaveLength(2));
+      expect(previewCalls()[1]?.body).toEqual({
+        marketId: 'KXTEST-26-A',
+        side: 'yes',
+        amount: '61.56',
+      });
+    });
+
+    it('sets Max to the whole balance and quotes a debit within it, fee included', async () => {
+      // The reviewer's case: $123.12 at 50 cents. The amount buys 246
+      // contracts whose $4.92 fee would make a $127.92 debit, so the API
+      // quotes 236 contracts for $118.00 plus a $4.72 fee.
+      stubFlatBook({ priceCents: 50, balance: '123.12' });
+
+      await openSheetWithBalance();
+      pressQuickAmount('max');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$123.12');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('123.12');
+
+      expect(breakdown).toEqual({ fee: 472, contracts: 11800, total: 12272 });
+      expect(requestedAmounts()).toEqual(['123.12']);
+    });
+
+    it('renders a Max rejected with insufficient_balance once, with a Refresh, and never loops', async () => {
+      // Defensive: the balance can drop between the read behind Max and the
+      // quote. The API then answers with its real 422, which carries no fee.
+      stubBalance(undefined, '123.12');
+      stubFetch(() => ({
+        status: 422,
+        body: {
+          code: 'insufficient_balance',
+          message: 'Estimated total debit exceeds the available balance.',
+        },
+      }));
+
+      await openSheetWithBalance();
+      pressQuickAmount('max');
+      await flushDebounce();
+
+      expect(
+        await screen.findByText('Not enough balance for this order.'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$123.12');
+
+      // Nothing re-requests on its own, and pressing Max again keeps the
+      // same amount without another request.
+      pressQuickAmount('max');
+      await flushDebounce();
+      await flushDebounce();
+      expect(requestedAmounts()).toEqual(['123.12']);
+
+      // Refresh asks once more for the same amount, never a smaller one.
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
+      await flushDebounce();
+      await waitFor(() =>
+        expect(requestedAmounts()).toEqual(['123.12', '123.12']),
+      );
+      await flushDebounce();
+      expect(requestedAmounts()).toEqual(['123.12', '123.12']);
+    });
+
+    it('keeps Max at the whole balance on a balance just above the minimum', async () => {
+      // $1.02 at 50 cents: two contracts and their fee would be $1.04, so
+      // the API quotes one. The amount stays $1.02: never below the $1
+      // minimum and never negative.
+      stubFlatBook({ priceCents: 50, balance: '1.02' });
+
+      await openSheetWithBalance();
+      pressQuickAmount('max');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('1.02');
+
+      expect(breakdown).toEqual({ fee: 2, contracts: 50, total: 52 });
+      expect(requestedAmounts()).toEqual(['1.02']);
+    });
+
+    it('disables chips whose value falls below the minimum amount', async () => {
+      stubBalance(undefined, '2.00');
+      stubEchoingPreview();
+
+      await openSheetWithBalance();
+
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('25')),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('50')),
+      ).toBeEnabled();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('75')),
+      ).toBeEnabled();
+    });
+
+    it('disables every chip while the balance is unknown', async () => {
+      mockPredictNextMessenger((action: string) =>
+        action === 'PredictPortfolioService:getBalance'
+          ? new Promise(() => undefined)
+          : Promise.resolve(undefined),
+      );
+      stubEchoingPreview();
+
+      await openSheet();
+
+      for (const key of ['25', '50', '75', 'max']) {
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT(key)),
+        ).toBeDisabled();
+      }
     });
   });
 
@@ -595,6 +1040,21 @@ describe('PredictOrderFlow', () => {
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
     ).toHaveTextContent('$0');
+  });
+
+  it('puts the period and backspace keys on the same filled tile as the digits', async () => {
+    stubEchoingPreview();
+
+    await openSheet();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+
+    const background = (key: string) =>
+      StyleSheet.flatten(
+        screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)).props.style,
+      ).backgroundColor;
+    expect(background('1')).toBeDefined();
+    expect(background('.')).toBe(background('1'));
+    expect(background('delete')).toBe(background('1'));
   });
 
   it('refuses to quote below the minimum amount', async () => {
@@ -668,10 +1128,10 @@ describe('PredictOrderFlow', () => {
 
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.ESTIMATED_CONTRACTS),
-    ).toHaveTextContent('43');
+    ).toHaveTextContent('41');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
-    ).toHaveTextContent('$20.86');
+    ).toHaveTextContent('$19.89');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.EXPIRY),
     ).toBeOnTheScreen();
@@ -1148,7 +1608,9 @@ describe('PredictOrderFlow', () => {
     await flushDebounce();
 
     expect(screen.queryByText('Learn more')).toBeNull();
-    expect(screen.getByText(/platform terms/)).toBeOnTheScreen();
+    expect(
+      screen.getByText("By continuing, you accept Kalshi's terms."),
+    ).toBeOnTheScreen();
   });
 
   it('does not break the Order flow when the terms URL fails to open', async () => {
@@ -1233,6 +1695,32 @@ describe('PredictOrderFlow', () => {
         screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS_LINE),
       ).toHaveTextContent('Net proceeds $0.00');
       expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
+    });
+
+    it('keeps the Cash Out sheet as it was: no swap icon, Review order, generic terms, bare backspace', async () => {
+      stubEchoingSellPreview();
+
+      await openSheet(SellProbe);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.OUTCOME_SWAP_ICON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+      ).toHaveTextContent('Review order', { exact: true });
+      expect(screen.getByText(/platform terms/)).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('75')),
+      ).toBeNull();
+
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+      const background = (key: string) =>
+        StyleSheet.flatten(
+          screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)).props
+            .style,
+        ).backgroundColor;
+      expect(background('1')).toBeDefined();
+      expect(background('delete')).toBeUndefined();
     });
 
     it('enters whole contracts only: no decimal key and no leading zeros', async () => {
