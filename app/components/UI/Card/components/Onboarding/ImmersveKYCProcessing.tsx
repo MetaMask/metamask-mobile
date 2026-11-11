@@ -27,6 +27,9 @@ import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendin
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import { useImmersveMoneyAccountFundingApproval } from '../../hooks/useImmersveMoneyAccountFundingApproval';
 import { useIsImmersveMoneyAccountCountry } from '../../hooks/useImmersveFundingChannel';
+import { useExitCardFlow } from '../../hooks/useExitCardFlow';
+import { useImmersveKycOutcome } from '../../hooks/useImmersveKycOutcome';
+import { describeImmersveKycRejection } from '../../util/immersveKycReasons';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -49,21 +52,20 @@ import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import ImmersveVerifyingIdentityAnimation from './ImmersveVerifyingIdentityAnimation';
 
-// While the user waits on this screen, poll spending-prerequisites; give up after
-// this window, send them to Card home (KYC still pending). Immersve
-// permits 2-3 min of direct-integration polling — we keep the 30s used by the
-// Veriff progress screen since real background checks take minutes to days.
-const POLLING_TIMEOUT_MS = 30000;
+// A result that is still pending after this window is a manual review.
+// Immersve asks for short polling only while the user is waiting here.
+const POLLING_TIMEOUT_MS = 15000;
+const POLL_INTERVAL_MS = 3000;
 
 /**
  * Immersve KYC progress orchestrator (Immersve-conducted, direct integration).
  * After contact details are submitted, this screen drives
  * `spending-prerequisites`: opens the hosted KYC webview, then polls to a
  * terminal state.
- * - kyc (+url) → open the Immersve KYC webview modal (once)
- * - pending    → spinner + auto-poll; 30s timeout → Card home (pending)
- * - rejected   → KYC_FAILED (blocked / kyc_check_failed)
- * - active/funding (approved) → interim terminus (branch 6b wires SpendingLimit)
+ * - kyc (+url): open the Immersve KYC webview modal once.
+ * - pending: spinner and poll every 3s. Still pending at 15s leaves with an in-progress toast.
+ * - rejected: leave with a toast that gives the reason. A permanent rejection also signs out.
+ * - active/funding (approved): route forward.
  */
 const ImmersveKYCProcessing = () => {
   const navigation = useNavigation();
@@ -93,8 +95,11 @@ const ImmersveKYCProcessing = () => {
     useIsImmersveMoneyAccountCountry(fundingCountry);
   const { approveFunding } = useImmersveMoneyAccountFundingApproval();
   const route = useImmersveOnboardingRouter();
+  const exitCardFlow = useExitCardFlow();
+  const { notifyKycRejected, notifyKycInReview } = useImmersveKycOutcome();
   const hasOpenedWebview = useRef(false);
   const hasStartedFundingApproval = useRef(false);
+  const hasLeftRef = useRef(false);
 
   const openKycWebview = useCallback(
     (url: string) => {
@@ -112,7 +117,7 @@ const ImmersveKYCProcessing = () => {
       fundingSourceId: fundingSourceId ?? undefined,
       kycRegion: countryKey,
       kycRedirectUrl: KYC_REDIRECT_URL,
-      pollIntervalMs: 2000,
+      pollIntervalMs: POLL_INTERVAL_MS,
     });
 
   const ctaHint = nextAction?.type === 'kyc' ? nextAction.ctaHint : undefined;
@@ -169,7 +174,16 @@ const ImmersveKYCProcessing = () => {
       if (!hasOpenedWebview.current && !promptHint && !isExpiring) {
         openKycWebview(nextAction.url ?? '');
       }
-    } else if (type === 'funding' || type === 'active' || type === 'rejected') {
+    } else if (type === 'rejected') {
+      if (hasLeftRef.current) {
+        return;
+      }
+      hasLeftRef.current = true;
+      exitCardFlow({ fallback: 'card-home-pending' });
+      notifyKycRejected(nextAction, { source: 'processing' }).catch(
+        () => undefined,
+      );
+    } else if (type === 'funding' || type === 'active') {
       // Money account approval has no screen of its own. Start it before
       // leaving so Card Home mounts with the link already in progress.
       if (
@@ -192,14 +206,21 @@ const ImmersveKYCProcessing = () => {
     openKycWebview,
     promptHint,
     isExpiring,
+    exitCardFlow,
+    notifyKycRejected,
   ]);
 
-  // 30s cutoff only while background checks are pending (not during the webview).
+  // 15s cutoff only while background checks are pending (not during the webview).
+  // Past that, the review is manual. Leave and let the home screens show it.
   useEffect(() => {
     if (nextAction?.type !== 'pending') {
       return undefined;
     }
     const id = setTimeout(() => {
+      if (hasLeftRef.current) {
+        return;
+      }
+      hasLeftRef.current = true;
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties(
@@ -210,13 +231,17 @@ const ImmersveKYCProcessing = () => {
           )
           .build(),
       );
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
-      });
+      exitCardFlow({ fallback: 'card-home-pending' });
+      notifyKycInReview();
     }, POLLING_TIMEOUT_MS);
     return () => clearTimeout(id);
-  }, [nextAction?.type, navigation, trackEvent, createEventBuilder]);
+  }, [
+    nextAction?.type,
+    exitCardFlow,
+    notifyKycInReview,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   // User came back from the webview with KYC still outstanding ⇒ prompt to reopen
   // (never auto-reopen — they may have closed it deliberately). The backend
@@ -228,6 +253,12 @@ const ImmersveKYCProcessing = () => {
     nextAction?.type === 'kyc' &&
     (hasOpenedWebview.current || promptHint) &&
     !isExpiring;
+  const reasonLine =
+    isInfoNeeded &&
+    nextAction?.type === 'kyc' &&
+    (nextAction.reasons?.length ?? 0) > 0
+      ? describeImmersveKycRejection(nextAction.reasons, true)
+      : null;
 
   const errorMessage =
     error ??
@@ -340,6 +371,16 @@ const ImmersveKYCProcessing = () => {
               </Box>
             }
           />
+          {reasonLine ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="mt-4 text-center"
+              testID="immersve-kyc-processing-reason"
+            >
+              {reasonLine}
+            </Text>
+          ) : null}
         </ScrollView>
         <Box twClassName="gap-2 px-4 pb-2 pt-4">
           <Button

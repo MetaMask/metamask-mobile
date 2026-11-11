@@ -27,8 +27,6 @@ import {
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import { showCardExitConfirmation } from '../../hooks/useCardHeaderHandlers';
-import { useExitCardFlow } from '../../hooks/useExitCardFlow';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
@@ -175,7 +173,6 @@ const ImmersveKYCModal: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
   const navigation = useNavigation<AppNavigationProp>();
-  const exitCardFlow = useExitCardFlow();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -344,65 +341,51 @@ const ImmersveKYCModal: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [status, retryKey, reportError]);
 
-  // Completion redirect re-polls the opener so it can route forward. A
-  // confirmed exit returns to the screen that started setup.
-  const closeModal = useCallback(() => {
-    // WebView can fire multiple navigation updates for the same redirect URL.
-    if (hasClosed.current) {
-      return;
-    }
-    hasClosed.current = true;
+  // Every close returns to the processing screen, which re-polls. The header
+  // X and the completion redirect call goBack. Android back and swipe are
+  // already that goBack, so they only notify — a second goBack would also
+  // pop the processing screen.
+  const closeWebview = useCallback(
+    (completed: boolean) => {
+      if (hasClosed.current) {
+        return;
+      }
+      hasClosed.current = true;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
-            action: CardActions.KYC_WEBVIEW_COMPLETED,
-          }),
-        )
-        .build(),
-    );
-    onCloseCallback?.();
-    navigation.goBack();
-  }, [navigation, trackEvent, createEventBuilder]);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action: completed
+                ? CardActions.KYC_WEBVIEW_COMPLETED
+                : CardActions.KYC_WEBVIEW_CLOSE,
+            }),
+          )
+          .build(),
+      );
+      onCloseCallback?.();
+    },
+    [trackEvent, createEventBuilder],
+  );
 
-  const exitWebview = useCallback(() => {
-    if (hasClosed.current) {
-      return;
-    }
-    hasClosed.current = true;
+  const dismissWebview = useCallback(
+    (completed: boolean) => {
+      closeWebview(completed);
+      navigation.goBack();
+    },
+    [closeWebview, navigation],
+  );
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
-            action: CardActions.KYC_WEBVIEW_CLOSE,
-          }),
-        )
-        .build(),
-    );
-    exitCardFlow();
-  }, [exitCardFlow, trackEvent, createEventBuilder]);
-
-  const confirmExit = useCallback(() => {
-    showCardExitConfirmation(exitWebview);
-  }, [exitWebview]);
-
-  // Hardware back and swipe skip the header X. Ask the same way, unless we
-  // already started a close (redirect goBack or a confirmed exit). A reset or
-  // navigate from the screen underneath (pending timeout, next onboarding
-  // step) must go through, or the exit alert replaces that navigation.
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
       const { type } = event.data.action;
-      if (hasClosed.current || (type !== 'GO_BACK' && type !== 'POP')) {
+      if (type !== 'GO_BACK' && type !== 'POP') {
         return;
       }
-      event.preventDefault();
-      confirmExit();
+      closeWebview(false);
     });
     return unsubscribe;
-  }, [navigation, confirmExit]);
+  }, [navigation, closeWebview]);
 
   const handleRetry = useCallback(() => {
     trackEvent(
@@ -508,10 +491,10 @@ const ImmersveKYCModal: React.FC = () => {
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
       if (redirectUrl && navState.url.startsWith(redirectUrl)) {
-        closeModal();
+        dismissWebview(true);
       }
     },
-    [redirectUrl, closeModal],
+    [redirectUrl, dismissWebview],
   );
 
   const isErrorStatus = status === 'error' || status === 'permission-error';
@@ -532,7 +515,7 @@ const ImmersveKYCModal: React.FC = () => {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        onClose={confirmExit}
+        onClose={() => dismissWebview(false)}
         closeButtonProps={{ testID: 'immersve-kyc-close-button' }}
         title={
           <ImmersveLogo
