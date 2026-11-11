@@ -93,7 +93,10 @@ import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/kli
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
 import { withCreateSwapCommentTimeout } from './createSwapCommentTimeout';
-import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
+import {
+  COMPOSER_COMMENT_MAX_LENGTH,
+  countComposerCharacters,
+} from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
@@ -291,7 +294,9 @@ const TABULAR_NUMS_STYLE: TextStyle = { fontVariant: ['tabular-nums'] };
 // HeaderBase re-renders when its end accessory's width changes, so use
 // equal-width digits to keep the count's width stable while typing.
 const ComposerCharacterCount = ({ store }: { store: ComposerTextStore }) => {
-  const count = useComposerText(store, (value) => value.length);
+  const count = useComposerText(store, (value) =>
+    countComposerCharacters(value),
+  );
 
   return (
     <Text
@@ -326,7 +331,8 @@ const ComposerPostButton = ({
   const hasPostableText = useComposerText(
     store,
     (value) =>
-      value.trim().length > 0 && value.length <= COMPOSER_COMMENT_MAX_LENGTH,
+      value.trim().length > 0 &&
+      countComposerCharacters(value) <= COMPOSER_COMMENT_MAX_LENGTH,
   );
 
   return (
@@ -575,7 +581,7 @@ const SocialPostComposerView: React.FC = () => {
     const caption = rawText.trim();
     if (
       (!selectedPosition && !tradeInFlightParams) ||
-      rawText.length > COMPOSER_COMMENT_MAX_LENGTH ||
+      countComposerCharacters(rawText) > COMPOSER_COMMENT_MAX_LENGTH ||
       caption.length === 0 ||
       isSubmitting
     ) {
