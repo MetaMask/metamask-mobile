@@ -14,6 +14,7 @@ import {
   selectTokenOverviewChartInterval,
   selectTokenIndicators,
   selectOnboardingStepperProgress,
+  selectBridgeLimitTabSeen,
 } from './selectors';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import { DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL } from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
@@ -32,6 +33,7 @@ const mockState = {
     tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
     tokenIndicators: [] as string[],
     onboardingStepperProgress: {} as Record<string, number>,
+    bridgeLimitTabSeen: false,
   },
 };
 
@@ -307,6 +309,29 @@ describe('user state selectors', () => {
       );
 
       expect(result.current).toEqual({ money: 1, earn: 2 });
+    });
+  });
+
+  describe('selectBridgeLimitTabSeen', () => {
+    it('returns true when the Limit tab has been seen', () => {
+      mockState.user.bridgeLimitTabSeen = true;
+
+      const { result } = renderHook(() =>
+        useSelector(selectBridgeLimitTabSeen),
+      );
+
+      expect(result.current).toBe(true);
+    });
+
+    it('defaults to false when bridgeLimitTabSeen is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.bridgeLimitTabSeen = undefined;
+
+      const { result } = renderHook(() =>
+        useSelector(selectBridgeLimitTabSeen),
+      );
+
+      expect(result.current).toBe(false);
     });
   });
 });
