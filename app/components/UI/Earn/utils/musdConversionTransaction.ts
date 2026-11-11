@@ -15,6 +15,7 @@ import { parseStandardTokenTransactionData } from '../../../Views/confirmations/
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
+import { getEvmPaymentTokenAssetId } from '../../../../util/transactions/payment-token';
 
 interface PayTokenSelection {
   address: Hex;
@@ -283,8 +284,12 @@ export async function replaceMusdConversionTransactionForPayToken(
         amountHex,
       });
 
-    const { GasFeeController, TransactionPayController, ApprovalController } =
-      Engine.context;
+    const {
+      AssetsController,
+      GasFeeController,
+      TransactionPayController,
+      ApprovalController,
+    } = Engine.context;
 
     GasFeeController.fetchGasFeeEstimates({ networkClientId }).catch(
       () => undefined,
@@ -292,8 +297,10 @@ export async function replaceMusdConversionTransactionForPayToken(
 
     TransactionPayController.updatePaymentToken({
       transactionId: newTransactionId,
-      tokenAddress: newPayToken.address,
-      chainId: newPayToken.chainId,
+      assetId: getEvmPaymentTokenAssetId(
+        newPayToken,
+        AssetsController.state.assetsInfo,
+      ),
     });
 
     EngineService.flushState();

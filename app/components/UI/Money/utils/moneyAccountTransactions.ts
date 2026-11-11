@@ -21,7 +21,7 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
-  selectAccountOverrideByTransactionId,
+  selectAccountOverrideAddressByTransactionId,
   selectTransactionPaymentTokenByTransactionId,
 } from '../../../../selectors/transactionPayController';
 import Logger from '../../../../util/Logger';
@@ -29,6 +29,7 @@ import { getProviderByChainId } from '../../../../util/notifications/methods/com
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { calcTokenValue } from '../../../../util/transactions';
 import { decodeErc20Transfer } from '../../../../util/transactions/erc20-transfer';
+import { getEvmPaymentToken } from '../../../../util/transactions/payment-token';
 
 const LENS_ABI = [
   'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
@@ -327,7 +328,7 @@ export function syncMoneyAccountWithdrawTransfer(
     return;
   }
 
-  const recipient = selectAccountOverrideByTransactionId(
+  const recipient = selectAccountOverrideAddressByTransactionId(
     ReduxService.store.getState() as RootState,
     transactionMeta.id,
   );
@@ -394,9 +395,11 @@ export async function updateMoneyAccountWithdrawTokenAmount(
   if (!withdrawData) return [];
 
   // Read after the rate await, since the receive token can change meanwhile.
-  const paymentToken = selectTransactionPaymentTokenByTransactionId(
-    ReduxService.store.getState() as RootState,
-    transactionMeta.id,
+  const paymentToken = getEvmPaymentToken(
+    selectTransactionPaymentTokenByTransactionId(
+      ReduxService.store.getState() as RootState,
+      transactionMeta.id,
+    ),
   );
   const transferData = buildErc20TransferData(
     getWithdrawTransferTarget(transactionMeta, recipient as Hex, paymentToken),

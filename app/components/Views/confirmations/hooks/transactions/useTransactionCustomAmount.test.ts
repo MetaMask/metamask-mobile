@@ -31,10 +31,8 @@ import {
 import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
-import {
-  PaymentOverride,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import Engine from '../../../../../core/Engine';
 
@@ -257,7 +255,7 @@ describe('useTransactionCustomAmount', () => {
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '1234.56',
         chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+      } as EvmPaymentToken,
     } as ReturnType<typeof useTransactionPayToken>);
 
     useParamsMock.mockReturnValue({});
@@ -583,7 +581,7 @@ describe('useTransactionCustomAmount', () => {
         address: '0x9876543210987654321098765432109876543210' as Hex,
         balanceUsd: '1234.56',
         chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+      } as EvmPaymentToken,
     } as ReturnType<typeof useTransactionPayToken>);
     await act(async () => {
       rerender(undefined);
@@ -779,6 +777,7 @@ describe('useTransactionCustomAmount', () => {
     });
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
+        assetId: `eip155:1/erc20:${TOKEN_ADDRESS_MOCK}`,
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '500',
         chainId: '0x1',
@@ -885,7 +884,7 @@ describe('useTransactionCustomAmount', () => {
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '500',
         chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+      } as EvmPaymentToken,
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result } = runHook({
@@ -920,7 +919,7 @@ describe('useTransactionCustomAmount', () => {
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '500',
         chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+      } as EvmPaymentToken,
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result, rerender } = runHook({
@@ -940,7 +939,7 @@ describe('useTransactionCustomAmount', () => {
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '9999',
         chainId: '0x1' as Hex,
-      } as TransactionPaymentToken,
+      } as EvmPaymentToken,
     } as ReturnType<typeof useTransactionPayToken>);
 
     await act(async () => {
@@ -1102,7 +1101,7 @@ describe('useTransactionCustomAmount', () => {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook();
@@ -1122,7 +1121,7 @@ describe('useTransactionCustomAmount', () => {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0.004',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook();
@@ -1166,7 +1165,7 @@ describe('useTransactionCustomAmount', () => {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '58.841171',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook();
@@ -1593,7 +1592,7 @@ describe('useTransactionCustomAmount', () => {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1623,7 +1622,7 @@ describe('useTransactionCustomAmount', () => {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '9999',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -1640,7 +1639,7 @@ describe('useTransactionCustomAmount', () => {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1696,7 +1695,7 @@ describe('useTransactionCustomAmount', () => {
           balanceRaw: '1123456',
           decimals: 6,
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1723,7 +1722,7 @@ describe('useTransactionCustomAmount', () => {
           balanceRaw: '1123456',
           decimals: 6,
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1751,7 +1750,7 @@ describe('useTransactionCustomAmount', () => {
           balanceRaw: '1123456',
           decimals: 6,
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -1782,7 +1781,7 @@ describe('useTransactionCustomAmount', () => {
           balanceRaw: '1123456',
           decimals: 6,
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook(); // default = simpleSend
@@ -1808,7 +1807,7 @@ describe('useTransactionCustomAmount', () => {
           balanceRaw: '1123456',
           decimals: 6,
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -1827,7 +1826,7 @@ describe('useTransactionCustomAmount', () => {
           balanceRaw: '1123456',
           decimals: 6,
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2264,7 +2263,7 @@ describe('useTransactionCustomAmount', () => {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -2292,7 +2291,7 @@ describe('useTransactionCustomAmount', () => {
             balanceRaw: '500000000',
             decimals: 6,
             chainId: chainId as Hex,
-          } as TransactionPaymentToken,
+          } as EvmPaymentToken,
         } as ReturnType<typeof useTransactionPayToken>);
 
         const { result } = runHook({
@@ -2331,7 +2330,7 @@ describe('useTransactionCustomAmount', () => {
           balanceRaw: '500000000',
           decimals: 18,
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -2373,7 +2372,7 @@ describe('useTransactionCustomAmount', () => {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '1000',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -2406,7 +2405,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '200000',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
@@ -2459,7 +2458,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2477,7 +2476,7 @@ describe('useTransactionCustomAmount', () => {
           address: '0xdifferent' as Hex,
           balanceUsd: '0',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2494,7 +2493,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2514,7 +2513,7 @@ describe('useTransactionCustomAmount', () => {
           address: '0xdifferent' as Hex,
           balanceUsd: '0.005',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2534,7 +2533,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2552,7 +2551,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2572,7 +2571,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2590,7 +2589,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '9999',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2607,7 +2606,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2634,7 +2633,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '0',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2647,7 +2646,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {
@@ -2664,7 +2663,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result, rerender } = runHook({
@@ -2689,7 +2688,7 @@ describe('useTransactionCustomAmount', () => {
           address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
           chainId: '0x1' as Hex,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       await act(async () => {

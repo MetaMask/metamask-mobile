@@ -3,8 +3,11 @@ import {
   TransactionPayQuote,
   TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
+import { getEvmPaymentToken } from '../util/transactions/payment-token';
+import { selectInternalAccountsById } from './accountsController';
 
 /**
  * Check whether a quote is a no-op quote. The controller stores one when a
@@ -28,7 +31,7 @@ export function isNoOpQuote(
  * @returns Whether direct submission is safe.
  */
 function isValidatedDirectDeposit(data: TransactionData | undefined): boolean {
-  const paymentToken = data?.paymentToken;
+  const paymentToken = getEvmPaymentToken(data?.paymentToken);
 
   if (!paymentToken) {
     return false;
@@ -172,9 +175,25 @@ export const selectTransactionPayTransactionData = createSelector(
   (state) => state.transactionData,
 );
 
+/** ID of the `InternalAccount` overriding the pay account of a transaction. */
 export const selectAccountOverrideByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.accountOverride,
+);
+
+/**
+ * Address of the account override of a transaction, resolved from its
+ * `InternalAccount` ID. Mobile only sets EVM account overrides.
+ */
+export const selectAccountOverrideAddressByTransactionId = createSelector(
+  selectAccountOverrideByTransactionId,
+  // Wrapped because this module is loaded inside an import cycle with the
+  // accounts selectors, where `selectInternalAccountsById` is not yet defined.
+  (state: RootState) => selectInternalAccountsById(state),
+  (accountOverride, internalAccountsById) =>
+    accountOverride
+      ? (internalAccountsById[accountOverride]?.address as Hex | undefined)
+      : undefined,
 );
 
 export const selectPaymentOverrideByTransactionId = createSelector(
