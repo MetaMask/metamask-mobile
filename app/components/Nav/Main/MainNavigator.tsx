@@ -180,6 +180,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
+import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
@@ -703,14 +704,12 @@ const SettingsFlow = () => {
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
       />
-      {}
       {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
         />
       ) : null}
-      {}
     </NativeStack.Navigator>
   );
 };
@@ -1411,6 +1410,11 @@ const MainNavigator = () => {
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
             options={fadeNativeOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.SPLASH}
+            component={MoneySplashView}
+            options={{ ...fadeNativeOptions, gestureEnabled: false }}
           />
           <NativeStack.Screen
             name={Routes.MONEY.FIRST_TIME_DEPOSIT}

@@ -22,6 +22,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
 import React, {
   useCallback,
   useEffect,
@@ -34,8 +35,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  type LayoutChangeEvent,
   type TextStyle,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import {
   SafeAreaInsetsContext,
   SafeAreaView,
@@ -59,11 +68,11 @@ import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderbo
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
+import ProfileVerifiedBadge from '../shared/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
-  SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
   applyXOnboardingProfile,
   startManualOnboarding,
   buildCreateProfileParams,
@@ -87,6 +96,7 @@ import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
+import { lookUpExistingSocialProfile } from '../hooks/lookUpExistingSocialProfile';
 import ProfileAvatarPicker from './ProfileAvatarPicker';
 import {
   generateUsername,
@@ -110,6 +120,11 @@ const { Interaction, Outcome, Screen, Step } = SocialEvent;
 // Future live source: https://metamask.com/terms-of-use
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
+
+const EXISTING_PROFILE_LOOKUP_QUERY_KEY = [
+  'social',
+  'profileOnboardingExistingProfile',
+] as const;
 
 /**
  * `superseded` means a newer check started before this one finished. That is
@@ -186,6 +201,154 @@ const OnboardingTitle: React.FC<{
     </MarketingMomentTitle>
   </Box>
 );
+
+const INTRO_TITLE_KEYS = {
+  1: 'social_leaderboard.profile_onboarding.intro_title_activity',
+  2: 'social_leaderboard.profile_onboarding.intro_title',
+  3: 'social_leaderboard.profile_onboarding.intro_title_post',
+} as const;
+
+const INTRO_TITLE_STEPS = [1, 2, 3] as const;
+
+/** How long the outgoing and incoming intro titles crossfade. */
+const INTRO_TITLE_FADE_MS = 280;
+
+const INTRO_TITLE_FADE_EASING = Easing.out(Easing.cubic);
+
+const introTitleStep = (step: number | undefined): 1 | 2 | 3 =>
+  step === 2 || step === 3 ? step : 1;
+
+const IntroTitleText: React.FC<{
+  step: 1 | 2 | 3;
+  testID?: string;
+}> = ({ step, testID }) => (
+  <MarketingMomentTitle
+    variant={TextVariant.DisplayLg}
+    twClassName="w-full text-center"
+    testID={testID}
+  >
+    {strings(INTRO_TITLE_KEYS[step])}
+  </MarketingMomentTitle>
+);
+
+/**
+ * Scene title. Hidden copies of the three lines are measured, and the slot
+ * stays as tall as the tallest one, so a longer title or a larger text size
+ * stays clear of the animation. A scene change crossfades the outgoing line
+ * out while the incoming line fades in. The first paint and Reduce Motion
+ * swap the line with no fade.
+ */
+const IntroStepTitle: React.FC<{ step: 1 | 2 | 3 }> = ({ step }) => {
+  const tw = useTailwind();
+  const reducedMotion = useReducedMotion();
+  const shownStepRef = useRef(step);
+  const skipFade = useRef(true);
+  const measuredHeights = useRef<Partial<Record<1 | 2 | 3, number>>>({});
+  const [slotHeight, setSlotHeight] = useState(0);
+  const [currentStep, setCurrentStep] = useState(step);
+  const [previousStep, setPreviousStep] = useState<1 | 2 | 3 | null>(null);
+  const incomingOpacity = useSharedValue(1);
+  const outgoingOpacity = useSharedValue(0);
+
+  const handleSizerLayout = useCallback(
+    (sizerStep: 1 | 2 | 3, event: LayoutChangeEvent) => {
+      const nextHeight = event.nativeEvent.layout.height;
+      if (measuredHeights.current[sizerStep] === nextHeight) {
+        return;
+      }
+      measuredHeights.current[sizerStep] = nextHeight;
+      const tallest = Math.max(
+        ...INTRO_TITLE_STEPS.map(
+          (titleStep) => measuredHeights.current[titleStep] ?? 0,
+        ),
+      );
+      setSlotHeight((current) => (current === tallest ? current : tallest));
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (skipFade.current) {
+      skipFade.current = false;
+      shownStepRef.current = step;
+      setCurrentStep(step);
+      return;
+    }
+
+    const outgoing = shownStepRef.current;
+    if (outgoing === step) {
+      return;
+    }
+    shownStepRef.current = step;
+
+    if (reducedMotion) {
+      setPreviousStep(null);
+      setCurrentStep(step);
+      incomingOpacity.value = 1;
+      outgoingOpacity.value = 0;
+      return;
+    }
+
+    setPreviousStep(outgoing);
+    setCurrentStep(step);
+    outgoingOpacity.value = 1;
+    incomingOpacity.value = 0;
+    const timing = {
+      duration: INTRO_TITLE_FADE_MS,
+      easing: INTRO_TITLE_FADE_EASING,
+    };
+    outgoingOpacity.value = withTiming(0, timing);
+    incomingOpacity.value = withTiming(1, timing);
+  }, [incomingOpacity, outgoingOpacity, reducedMotion, step]);
+
+  const incomingStyle = useAnimatedStyle(() => ({
+    opacity: incomingOpacity.value,
+  }));
+  const outgoingStyle = useAnimatedStyle(() => ({
+    opacity: outgoingOpacity.value,
+  }));
+
+  return (
+    <Box
+      twClassName="relative w-full"
+      style={slotHeight > 0 ? { minHeight: slotHeight } : undefined}
+      testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SLOT}
+    >
+      {INTRO_TITLE_STEPS.map((sizerStep) => (
+        <Box
+          key={sizerStep}
+          twClassName="absolute left-0 right-0 top-0 w-full opacity-0"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          pointerEvents="none"
+          onLayout={(event) => handleSizerLayout(sizerStep, event)}
+          testID={`${SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_SIZER}-${sizerStep}`}
+        >
+          <IntroTitleText step={sizerStep} />
+        </Box>
+      ))}
+      {previousStep !== null && (
+        <Animated.View
+          style={[tw.style('absolute left-0 right-0 top-0'), outgoingStyle]}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_OUTGOING}
+        >
+          <IntroTitleText step={previousStep} />
+        </Animated.View>
+      )}
+      <Animated.View
+        style={[tw.style('absolute left-0 right-0 top-0'), incomingStyle]}
+        testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_INCOMING}
+      >
+        <IntroTitleText
+          step={currentStep}
+          testID={SocialProfileOnboardingSelectorsIDs.INTRO_TITLE}
+        />
+      </Animated.View>
+    </Box>
+  );
+};
 
 /**
  * "Connect [X logo] account". The logo stands in for the word X, so the
@@ -281,7 +444,8 @@ const ReadyCardFallback: React.FC<{
   avatarBackgroundId: string | null | undefined;
   imageUrl?: string | null;
   handle: string;
-}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle }) => (
+  isVerified: boolean;
+}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle, isVerified }) => (
   <>
     <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
       🦊
@@ -313,13 +477,24 @@ const ReadyCardFallback: React.FC<{
           size="xl"
         />
       </Box>
-      <Text
-        variant={TextVariant.BodyMd}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
         twClassName="pt-3"
-        testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
       >
-        @{handle}
-      </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
+        >
+          @{handle}
+        </Text>
+        {isVerified ? (
+          <ProfileVerifiedBadge
+            testID={SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE}
+          />
+        ) : null}
+      </Box>
     </Box>
   </>
 );
@@ -339,9 +514,40 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
-  const { checkUsernameAvailability, createProfile, updateProfile } =
-    useProfileController();
+  const {
+    profile: controllerProfile,
+    checkUsernameAvailability,
+    createProfile,
+    updateProfile,
+    fetchAndUpdateProfile,
+  } = useProfileController();
+  const isTermsOnlyRoute = route.params?.termsOnly === true;
+  // The entry gates only read ProfileController, which is empty on a fresh
+  // install until the profile is fetched. Ask the server before offering to
+  // create one, so an existing profile is never replaced.
+  const existingProfileLookup = useQuery({
+    queryKey: EXISTING_PROFILE_LOOKUP_QUERY_KEY,
+    queryFn: async () =>
+      lookUpExistingSocialProfile(
+        await getSocialProfileId(),
+        fetchAndUpdateProfile,
+      ),
+    enabled: !isTermsOnlyRoute,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
+    retry: false,
+  });
+  const isCheckingExistingProfile =
+    !isTermsOnlyRoute && existingProfileLookup.isPending;
+  const existingProfileLookupResult = existingProfileLookup.data;
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
+  const [introSceneStep, setIntroSceneStep] = useState<number | undefined>(
+    undefined,
+  );
+  const handleIntroSceneStep = useCallback((nextStep: number) => {
+    setIntroSceneStep(nextStep);
+  }, []);
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
   );
@@ -353,12 +559,12 @@ const SocialProfileOnboardingView: React.FC = () => {
   // Path the user picked while the terms sheet is open; null when it is closed.
   const [pendingTermsPath, setPendingTermsPath] =
     useState<ProfileOnboardingPath | null>(null);
-  const [pendingTermsOnly, setPendingTermsOnly] = useState(
-    () => route.params?.termsOnly === true,
-  );
+  const [pendingTermsOnly, setPendingTermsOnly] = useState(isTermsOnlyRoute);
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
+  const isProfileCreatedAndVerified =
+    profileCreated && controllerProfile?.verified === true;
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
   const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
     step: analyticsStep,
@@ -377,12 +583,16 @@ const SocialProfileOnboardingView: React.FC = () => {
   const previousStepRef = useRef(step);
   const createProfileRef = useRef(createProfile);
   const updateProfileRef = useRef(updateProfile);
+  const fetchAndUpdateProfileRef = useRef(fetchAndUpdateProfile);
+  const existingProfileLookupResultRef = useRef(existingProfileLookupResult);
   const trackInteractionRef = useRef(trackInteraction);
   draftRef.current = draft;
   accountsRef.current = accounts;
   stepRef.current = step;
   createProfileRef.current = createProfile;
   updateProfileRef.current = updateProfile;
+  fetchAndUpdateProfileRef.current = fetchAndUpdateProfile;
+  existingProfileLookupResultRef.current = existingProfileLookupResult;
   trackInteractionRef.current = trackInteraction;
 
   const clearUsernameCheckTimer = useCallback(() => {
@@ -403,6 +613,26 @@ const SocialProfileOnboardingView: React.FC = () => {
       trackInteraction(Interaction.SHEET_DISPLAYED, { step: Step.TERMS });
     }
   }, [pendingTermsOnly, trackInteraction]);
+
+  // An existing profile skips creation. An older accepted terms version still
+  // has to be accepted again, so that case keeps only the terms sheet.
+  const openExistingProfile = useCallback(() => {
+    if (hasAcceptedSocialTerms()) {
+      finishProfileOnboardingToSocialTab(navigation);
+      return;
+    }
+    setPendingTermsOnly(true);
+  }, [navigation]);
+
+  useEffect(() => {
+    if (
+      existingProfileLookupResult !== 'found' ||
+      stepRef.current !== 'intro'
+    ) {
+      return;
+    }
+    openExistingProfile();
+  }, [existingProfileLookupResult, openExistingProfile]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -676,7 +906,14 @@ const SocialProfileOnboardingView: React.FC = () => {
     acceptSocialTerms().catch(() => undefined);
     if (pendingTermsOnly) {
       setPendingTermsOnly(false);
-      navigation.goBack();
+      // The termsOnly route is pushed by a Social entry gate that expects to
+      // return to its caller. An existing profile found on open has no caller
+      // to return to, so it opens the Social tab instead.
+      if (isTermsOnlyRoute) {
+        navigation.goBack();
+      } else {
+        finishProfileOnboardingToSocialTab(navigation);
+      }
       return;
     }
     const path = pendingTermsPath;
@@ -688,6 +925,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     }
   }, [
     beginConnectX,
+    isTermsOnlyRoute,
     navigation,
     pendingTermsOnly,
     pendingTermsPath,
@@ -800,12 +1038,20 @@ const SocialProfileOnboardingView: React.FC = () => {
     );
   };
 
-  const writeOnboardingProfile = async (current: ProfileOnboardingDraft) => {
+  /**
+   * @returns `existing` when the session already owns a profile, so nothing
+   * was written.
+   */
+  const writeOnboardingProfile = async (
+    current: ProfileOnboardingDraft,
+  ): Promise<'saved' | 'existing'> => {
     const linkedAccount = accountsRef.current.find(
       (account) => account.id === current.linkedAccountId,
     );
-    const profileId =
-      (await getSocialProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
+    const profileId = await getSocialProfileId();
+    if (!profileId) {
+      throw new Error('Social profile id is not available');
+    }
     const params = buildCreateProfileParams(
       current,
       profileId,
@@ -823,9 +1069,22 @@ const SocialProfileOnboardingView: React.FC = () => {
         avatar_url: params.avatar_url,
         trading_privacy: params.trading_privacy,
       });
-      return;
+      return 'saved';
+    }
+    // The check on open ends without an answer when sign-in or the profile
+    // read fails. Ask again now that there is a profile id, so a profile that
+    // already exists is never replaced.
+    if (
+      existingProfileLookupResultRef.current !== 'not-found' &&
+      (await lookUpExistingSocialProfile(
+        profileId,
+        fetchAndUpdateProfileRef.current,
+      )) === 'found'
+    ) {
+      return 'existing';
     }
     await createProfileRef.current(params);
+    return 'saved';
   };
 
   const publishCreatedProfile = (current: ProfileOnboardingDraft) => {
@@ -852,8 +1111,9 @@ const SocialProfileOnboardingView: React.FC = () => {
       setFinishError(null);
       setIsSubmitting(true);
       const hadProfile = serverProfileFingerprintRef.current !== null;
+      let writeResult: 'saved' | 'existing';
       try {
-        await writeOnboardingProfile(currentDraft);
+        writeResult = await writeOnboardingProfile(currentDraft);
       } catch {
         if (stepRef.current === 'ready') {
           setFinishError(
@@ -861,6 +1121,13 @@ const SocialProfileOnboardingView: React.FC = () => {
           );
         }
         setIsSubmitting(false);
+        return;
+      }
+      if (writeResult === 'existing') {
+        setIsSubmitting(false);
+        if (navigation.isFocused()) {
+          openExistingProfile();
+        }
         return;
       }
       serverProfileFingerprintRef.current = fingerprint;
@@ -1040,17 +1307,15 @@ const SocialProfileOnboardingView: React.FC = () => {
             <SafeAreaInsetsContext.Provider value={introInsets}>
               <MarketingMoment
                 testID={SocialProfileOnboardingSelectorsIDs.INTRO}
-                title={strings(
-                  'social_leaderboard.profile_onboarding.intro_title',
-                )}
-                titleProps={{
-                  testID: SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
-                  twClassName: 'px-1',
-                  variant: TextVariant.DisplayLg,
-                }}
+                title={<IntroStepTitle step={introTitleStep(introSceneStep)} />}
+                // 20px matches "Claim a username": that step's progress bar
+                // is an 8px inset plus a 4px track, then pt-2. The intro has
+                // no progress bar, so this margin makes up the difference.
+                copyClassName="mt-5"
                 artwork={
                   <ProfileOnboardingIntroAnimation
                     fallback={<LiveActivityFallback />}
+                    onStepChange={handleIntroSceneStep}
                   />
                 }
                 artworkWrapperProps={{
@@ -1076,8 +1341,8 @@ const SocialProfileOnboardingView: React.FC = () => {
                     'social_leaderboard.profile_onboarding.connect_x',
                   ),
                   onPress: handleConnectX,
-                  isLoading: isConnectingX,
-                  isDisabled: isConnectingX,
+                  isLoading: isConnectingX || isCheckingExistingProfile,
+                  isDisabled: isConnectingX || isCheckingExistingProfile,
                   testID: SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
                 }}
                 secondaryAction={{
@@ -1085,7 +1350,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     'social_leaderboard.profile_onboarding.create_manually',
                   ),
                   onPress: handleCreateManually,
-                  isDisabled: isConnectingX,
+                  isDisabled: isConnectingX || isCheckingExistingProfile,
                   testID:
                     SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
                 }}
@@ -1278,13 +1543,14 @@ const SocialProfileOnboardingView: React.FC = () => {
                       avatarPresetId={draft.avatarPresetId}
                       avatarBackgroundId={draft.avatarBackgroundId}
                       imageUrl={readyImageUrl}
-                      isVerified={draft.path === 'x'}
+                      isVerified={isProfileCreatedAndVerified}
                       fallback={
                         <ReadyCardFallback
                           avatarPresetId={draft.avatarPresetId}
                           avatarBackgroundId={draft.avatarBackgroundId}
                           imageUrl={readyImageUrl}
                           handle={username}
+                          isVerified={isProfileCreatedAndVerified}
                         />
                       }
                     />

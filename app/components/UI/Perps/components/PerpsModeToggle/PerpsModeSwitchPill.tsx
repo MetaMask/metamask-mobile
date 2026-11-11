@@ -14,6 +14,12 @@ import React, {
 } from 'react';
 import { StyleSheet, Text, type ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Svg, {
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 import Animated, {
   Easing,
   interpolate,
@@ -26,9 +32,12 @@ import Animated, {
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
+  getPerpsProPillBorderGradientColors,
   getPerpsProPillGradientColors,
   getPerpsProPillShimmerColors,
-  PERPS_PRO_GOLD,
+  PRO_PILL_BORDER_GRADIENT_END,
+  PRO_PILL_BORDER_GRADIENT_LOCATIONS,
+  PRO_PILL_BORDER_GRADIENT_START,
 } from '../../constants/perpsModeColors';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
@@ -37,7 +46,8 @@ export const GLOW_TOTAL_MS = 680;
 const GLOW_SWEEP_MS = 630;
 const GLOW_FADE_MS = 120;
 const GLOW_HOLD_MS = GLOW_TOTAL_MS - GLOW_FADE_MS * 2;
-export const BORDER_WIDTH = 2;
+// Lite uses glass borders; Pro draws a hairline gold gradient outline.
+export const PRO_BORDER_WIDTH = 0.65;
 
 // Holds one width across the Lite/Pro label swap; CJK labels can still exceed it.
 const MIN_WIDTH = 56;
@@ -68,12 +78,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
     opacity: 0,
-  },
-  border: {
-    borderWidth: BORDER_WIDTH,
-  },
-  proBorder: {
-    borderColor: PERPS_PRO_GOLD,
   },
 });
 
@@ -149,7 +153,8 @@ const PerpsModeSwitchPill = ({
   const tw = useTailwind();
   const isDark = useIsDarkTheme();
   const { playImpact } = useHaptics();
-  const [width, setWidth] = useState(0);
+  const [frame, setFrame] = useState({ width: 0, height: 0 });
+  const width = frame.width;
   const [isShimmering, setIsShimmering] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sweepProgress = useSharedValue(0);
@@ -215,17 +220,19 @@ const PerpsModeSwitchPill = ({
     handleModeSwitch();
   }, [handleModeSwitch, overlayOpacity, sweepProgress]);
 
-  // Pro outlines in the accent gold; Lite follows `border/default`, which the
-  // preset resolves per theme. `tw.color` is not usable here — it does not
-  // resolve border token names.
-  const borderStyle = [
-    styles.border,
-    isPro ? styles.proBorder : tw.style('border-default'),
-  ];
+  // Lite draws no outline. Pro's gold is an SVG stroke so the glass shows
+  // through the pill; a view border can only be a flat color.
+  const borderWidth = isPro ? PRO_BORDER_WIDTH : 0;
+  const borderStyle = { borderWidth: 0 };
+  const borderGradientColors = useMemo(
+    () => getPerpsProPillBorderGradientColors(isDark),
+    [isDark],
+  );
+  const borderGradientId = `${testID}-border-gradient`;
   const pillBorderRadius = (tw.style('rounded-full') as ViewStyle).borderRadius;
   const innerBorderRadius =
     typeof pillBorderRadius === 'number'
-      ? Math.max(0, pillBorderRadius - BORDER_WIDTH)
+      ? Math.max(0, pillBorderRadius - borderWidth)
       : pillBorderRadius;
 
   const button = (
@@ -263,7 +270,13 @@ const PerpsModeSwitchPill = ({
     <Box
       accessible={false}
       twClassName={isCapsule ? 'relative h-10' : 'relative h-8'}
-      onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+      onLayout={(event) =>
+        setFrame({
+          width: event.nativeEvent.layout.width,
+          height: event.nativeEvent.layout.height,
+        })
+      }
+      testID={`${testID}-shell`}
     >
       {isCapsule ? (
         <CapsuleGlass nonGlassClassName="border-0" testID={`${testID}-capsule`}>
@@ -272,6 +285,42 @@ const PerpsModeSwitchPill = ({
       ) : (
         button
       )}
+
+      {isPro && frame.width > 0 && frame.height > 0 ? (
+        <Svg
+          pointerEvents="none"
+          style={tw.style('absolute inset-0')}
+          testID={`${testID}-border`}
+        >
+          <Defs>
+            <SvgLinearGradient
+              id={borderGradientId}
+              x1={PRO_PILL_BORDER_GRADIENT_START.x}
+              y1={PRO_PILL_BORDER_GRADIENT_START.y}
+              x2={PRO_PILL_BORDER_GRADIENT_END.x}
+              y2={PRO_PILL_BORDER_GRADIENT_END.y}
+            >
+              {borderGradientColors.map((color, index) => (
+                <Stop
+                  key={`${color}-${PRO_PILL_BORDER_GRADIENT_LOCATIONS[index]}`}
+                  offset={PRO_PILL_BORDER_GRADIENT_LOCATIONS[index]}
+                  stopColor={color}
+                />
+              ))}
+            </SvgLinearGradient>
+          </Defs>
+          <Rect
+            x={borderWidth / 2}
+            y={borderWidth / 2}
+            width={frame.width - borderWidth}
+            height={frame.height - borderWidth}
+            rx={frame.height / 2}
+            fill="none"
+            stroke={`url(#${borderGradientId})`}
+            strokeWidth={borderWidth}
+          />
+        </Svg>
+      ) : null}
 
       {isShimmering && width > 0 ? (
         <Animated.View
@@ -299,10 +348,10 @@ const PerpsModeSwitchPill = ({
               accessible={false}
               twClassName="absolute bg-default"
               style={{
-                top: BORDER_WIDTH,
-                right: BORDER_WIDTH,
-                bottom: BORDER_WIDTH,
-                left: BORDER_WIDTH,
+                top: borderWidth,
+                right: borderWidth,
+                bottom: borderWidth,
+                left: borderWidth,
                 borderRadius: innerBorderRadius,
               }}
             />

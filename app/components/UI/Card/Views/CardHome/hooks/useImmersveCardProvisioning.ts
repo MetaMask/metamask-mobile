@@ -15,7 +15,9 @@ import {
 } from '../../../../../../selectors/featureFlagController/card';
 import { useImmersveFundingChannel } from '../../../hooks/useImmersveFundingChannel';
 import {
+  selectImmersveFundingSettling,
   selectImmersveFundingSourceId,
+  setImmersveFundingSettling,
   setImmersveFundingSourceId,
 } from '../../../../../../core/redux/slices/card';
 import {
@@ -48,6 +50,7 @@ export function useImmersveCardProvisioning(
     );
 
   const reduxFundingSourceId = useSelector(selectImmersveFundingSourceId);
+  const isFundingSettling = useSelector(selectImmersveFundingSettling);
   const kycRegion = useSelector(selectCardSelectedCountry) ?? undefined;
   const immersveConfig = useSelector(selectCardImmersveConfig);
   const fundingChannel = useImmersveFundingChannel(kycRegion);
@@ -67,12 +70,19 @@ export function useImmersveCardProvisioning(
   // Read via ref so persisting the resolved id does not re-run reconcile and
   // cancel the in-flight attempt (which previously left handled=true forever).
   const reduxFundingSourceIdRef = useRef(reduxFundingSourceId);
+  // Read via ref so clearing the flag does not cancel an in-flight createCard.
+  const isFundingSettlingRef = useRef(isFundingSettling);
+  const wasFundingSettlingRef = useRef(isFundingSettling);
+  const wasProvisioningRef = useRef(isProvisioning);
+  const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [recheckCount, setRecheckCount] = useState(0);
 
   useEffect(() => {
     trackEventRef.current = trackEvent;
     createEventBuilderRef.current = createEventBuilder;
     reduxFundingSourceIdRef.current = reduxFundingSourceId;
-  }, [trackEvent, createEventBuilder, reduxFundingSourceId]);
+    isFundingSettlingRef.current = isFundingSettling;
+  }, [trackEvent, createEventBuilder, reduxFundingSourceId, isFundingSettling]);
   const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
     null,
   );
@@ -85,8 +95,27 @@ export function useImmersveCardProvisioning(
       setHasResolvedStatus(false);
       setPendingAction(null);
       handled.current = false;
+      // Only a real card (provisioning just ended) clears the wait. A home
+      // screen that has not loaded its provisioning alert yet must not.
+      if (wasProvisioningRef.current && isFundingSettlingRef.current) {
+        isFundingSettlingRef.current = false;
+        dispatch(setImmersveFundingSettling(false));
+      }
     }
-  }, [isProvisioning]);
+    wasProvisioningRef.current = isProvisioning;
+  }, [isProvisioning, dispatch]);
+
+  // The approval finished after this screen had already shown Enable card.
+  // Drop that action and reconcile again without flashing the skeleton.
+  useEffect(() => {
+    const startedSettling = isFundingSettling && !wasFundingSettlingRef.current;
+    wasFundingSettlingRef.current = isFundingSettling;
+    if (!startedSettling || !isProvisioning) {
+      return;
+    }
+    setPendingAction(null);
+    setRecheckCount((count) => count + 1);
+  }, [isFundingSettling, isProvisioning]);
 
   useEffect(() => {
     if (!isProvisioning || !isFocused || pendingAction || isReconciling) {
@@ -109,6 +138,19 @@ export function useImmersveCardProvisioning(
     handled.current = true;
     let cancelled = false;
     const existingId = reduxFundingSourceIdRef.current;
+    // Shared by the funding-still-pending path and a failed recheck. A throw
+    // used to leave "Card being created" with nothing scheduled to try again.
+    const scheduleSettlingRecheck = () => {
+      if (settleTimerRef.current) {
+        clearTimeout(settleTimerRef.current);
+      }
+      settleTimerRef.current = setTimeout(() => {
+        settleTimerRef.current = null;
+        if (!cancelled) {
+          setRecheckCount((count) => count + 1);
+        }
+      }, POLL_INTERVAL_MS);
+    };
 
     (async () => {
       try {
@@ -145,7 +187,15 @@ export function useImmersveCardProvisioning(
         );
         if (cancelled) return;
         const action = deriveNextImmersveAction(prerequisites);
+        const clearFundingSettling = () => {
+          if (!isFundingSettlingRef.current) {
+            return;
+          }
+          isFundingSettlingRef.current = false;
+          dispatch(setImmersveFundingSettling(false));
+        };
         if (action.type === 'active') {
+          clearFundingSettling();
           // Funding lifecycle only when we actually create the card.
           trackEventRef.current(
             createEventBuilderRef
@@ -207,7 +257,13 @@ export function useImmersveCardProvisioning(
               },
             });
           }
+        } else if (isFundingSettlingRef.current && action.type === 'funding') {
+          // The allowance is submitted. Stay on "Card being created" and ask
+          // again once Immersve has had time to observe it. One reconcile at
+          // a time: the next run starts only after this one has finished.
+          scheduleSettlingRecheck();
         } else {
+          clearFundingSettling();
           // Mid-onboarding — no Funding Process STARTED (avoids orphan starts).
           setPendingAction(action);
           if (cancelled) return;
@@ -249,6 +305,9 @@ export function useImmersveCardProvisioning(
           return;
         }
         handled.current = false;
+        if (isFundingSettlingRef.current) {
+          scheduleSettlingRecheck();
+        }
         trackEventRef.current(
           createEventBuilderRef
             .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -277,6 +336,10 @@ export function useImmersveCardProvisioning(
     return () => {
       cancelled = true;
       handled.current = false;
+      if (settleTimerRef.current) {
+        clearTimeout(settleTimerRef.current);
+        settleTimerRef.current = null;
+      }
     };
   }, [
     isProvisioning,
@@ -285,6 +348,7 @@ export function useImmersveCardProvisioning(
     isMoneyAccountChannel,
     moneyAccountAddress,
     dispatch,
+    recheckCount,
   ]);
 
   const resumePendingAction = useCallback(() => {

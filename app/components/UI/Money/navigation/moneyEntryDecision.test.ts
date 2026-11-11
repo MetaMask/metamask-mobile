@@ -88,6 +88,47 @@ describe('getMoneyEntryDecision', () => {
     });
   });
 
+  it('routes an unseen CTA entry to the splash', () => {
+    const result = getMoneyEntryDecision(
+      'deposit',
+      createContext({ isSplashRedirectNeeded: true }),
+    );
+
+    expect(result).toStrictEqual({
+      destination: 'splash',
+      redirect_target: SCREEN_NAMES.MONEY_SPLASH,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
+    });
+  });
+
+  it('prioritizes the splash over onboarding when both are unseen', () => {
+    const result = getMoneyEntryDecision(
+      'home',
+      createContext({
+        isOnboardingRedirectNeeded: true,
+        isSplashRedirectNeeded: true,
+      }),
+    );
+
+    expect(result.destination).toBe('splash');
+    expect(result.redirect_target).toBe(SCREEN_NAMES.MONEY_SPLASH);
+  });
+
+  it('prioritizes access blocking over the splash', () => {
+    const result = getMoneyEntryDecision(
+      'deposit',
+      createContext({
+        accessBlockReason: 'feature_disabled',
+        isSplashRedirectNeeded: true,
+      }),
+    );
+
+    expect(result.destination).toBe('featureDisabled');
+    expect(result.redirect_target).toBe(
+      BOTTOM_SHEET_NAMES.MONEY_DEEPLINK_MODAL,
+    );
+  });
+
   it('keeps entry metadata aligned with navigation destinations', () => {
     expect(MONEY_ENTRIES).toStrictEqual({
       home: {

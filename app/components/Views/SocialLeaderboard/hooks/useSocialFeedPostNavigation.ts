@@ -59,6 +59,7 @@ export const useSocialFeedPostNavigation = (
           post.item.variant === 'spotClosed',
         isSnapshotLive: context?.isSnapshotLive === true,
         ...(orderSource ? { orderSource } : {}),
+        shareSource: orderSource ?? 'trader_feed',
       });
     },
     [navigation, orderSource],

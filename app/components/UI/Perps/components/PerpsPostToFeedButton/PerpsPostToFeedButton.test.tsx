@@ -60,7 +60,6 @@ describe('PerpsPostToFeedButton', () => {
     expect(mockOpenComposer).toHaveBeenCalledWith({
       position: socialPosition,
       entryPoint: 'perps',
-      openFeedAfterPost: true,
     });
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
