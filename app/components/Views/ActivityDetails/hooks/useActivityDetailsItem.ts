@@ -201,11 +201,12 @@ export function useActivityDetailsItem(
       return chainId && activity.chainId !== chainId ? undefined : activity;
     }
 
-    // v1 participation gate. Without it, by-hash results whose top-level
+    // Participation gate only. Without it, by-hash results whose top-level
     // from/to are not the subject (relayer gasless txs, unrelated hashes) still
-    // map to a plausible "Sent" with the native value fallback.
+    // map to a plausible "Sent" with the native value fallback. The list's
+    // inbound-transfer filtering is deliberately not applied here: this request
+    // always includes value transfers, so it would drop genuine receives.
     const subjectAddress = evmAddress.toLowerCase();
-
     if (
       shouldSkipUnrelatedTransaction(
         subjectAddress,

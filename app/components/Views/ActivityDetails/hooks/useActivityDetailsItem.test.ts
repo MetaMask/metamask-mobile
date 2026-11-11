@@ -458,8 +458,6 @@ describe('useActivityDetailsItem', () => {
       transaction: {
         chainId: 1,
         hash: '0xnotours',
-        // Relayer / unrelated sender: subject only appears (if at all) in
-        // valueTransfers.
         from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         timestamp: '2026-05-13T14:34:23.000Z',

@@ -10,6 +10,14 @@ import { selectApiEvmTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
 import { selectExcludedActivityTransactionHashes } from '../../../selectors/transactionController';
 
+type TransactionQueryOptions = ReturnType<
+  typeof apiClient.accounts.getV5MultiAccountTransactionsInfiniteQueryOptions
+>;
+type QueryOptions = Extract<
+  TransactionQueryOptions,
+  { getNextPageParam: unknown }
+>;
+
 export const useTransactionsQuery = () => {
   const groupEvmAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
@@ -35,14 +43,13 @@ export const useTransactionsQuery = () => {
       accountIds,
       networks,
       includeTxMetadata: true,
-    });
+    }) as QueryOptions;
 
   const selectFn = useMemo(
     () => selectApiEvmTransactions({ address: evmAddress, excludedTxHashes }),
     [evmAddress, excludedTxHashes],
   );
 
-  // @ts-expect-error v5 query options satisfy runtime; select maps to ActivityListItem pages
   return useInfiniteQuery({
     ...queryOptions,
     select: selectFn,

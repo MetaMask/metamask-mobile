@@ -81,7 +81,7 @@ export function shouldSkipUnrelatedTransaction(
   );
 }
 
-/** Matches the extension: a zero-value call to yourself that moves nothing. */
+// Ported from Extension
 export function isZeroValueSelfSend(
   transaction: V5TransactionRecord,
   subjectAddress: string,
@@ -97,6 +97,7 @@ export function isZeroValueSelfSend(
   );
 }
 
+// Ported from Extension
 export function isExcludedTransactionHash(
   transaction: V5TransactionRecord,
   txHashes?: Set<string>,
@@ -106,13 +107,7 @@ export function isExcludedTransactionHash(
   );
 }
 
-/**
- * Maps a v5 record, then applies the mobile-only pooled staking
- * classification that client-utils leaves as a contract interaction.
- */
-export function mapV5ActivityItem(
-  transaction: V5TransactionRecord,
-): ActivityListItem {
+export function mapV5ActivityItem(transaction: V5TransactionRecord) {
   const activity = mapV5ApiTransaction({ transaction }) as ActivityListItem;
   const { chainId, to, methodId } = transaction.tx;
 
