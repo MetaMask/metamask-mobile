@@ -7,8 +7,8 @@ import { isUncountedPosition } from './partitionUncountedPositions';
  *
  * Flagged (insider / developer / unsupported) rows are excluded. Positions
  * missing a finite `pnlValueUsd` or `realizedPnl` are skipped. Returns `null`
- * when nothing in the list can be priced, so the UI can leave the cell empty
- * instead of inventing `$0`.
+ * when nothing in the list can be priced. The performance grid treats that
+ * as `$0.00` so the cell stays visible.
  */
 export const sumUnrealizedFromOpenPositions = (
   positions: readonly Position[] | null | undefined,

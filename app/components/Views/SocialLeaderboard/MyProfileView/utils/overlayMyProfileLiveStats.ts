@@ -39,7 +39,10 @@ export interface OverlayedMyProfileStats {
   pnlLabel: string;
   hasPnl: boolean;
   isPnlPositive: boolean;
-  /** Live-only stats for the Performance grid; cells without data are omitted. */
+  /**
+   * Live Performance (30d) grid. Every stat is shown once a live profile
+   * exists. A missing number renders as zero (`$0.00`, `0%`, or `0m`).
+   */
   performanceCells: PerformanceCell[];
 }
 
@@ -61,6 +64,23 @@ const formatPerformanceSignedUsd = (value: number): string =>
 const signedUsdTone = (value: number): PerformanceCell['tone'] =>
   Math.round(value * 100) < 0 ? 'error' : 'success';
 
+/** Hold label when the API has no positive median (`null` or `0`). */
+const ZERO_HOLD_LABEL = '0m';
+
+const presentOrZero = (value: number | null | undefined): number =>
+  isPresentNumber(value) ? value : 0;
+
+/**
+ * Hold label for the performance grid. `0` and missing minutes both read as
+ * `0m`; a positive median keeps the compact duration (`3h`, `1d 20h`).
+ */
+const formatPerformanceHold = (minutes: number | null | undefined): string => {
+  const label = isPresentNumber(minutes)
+    ? formatSheetHoldFromMinutes(minutes)
+    : '';
+  return label || ZERO_HOLD_LABEL;
+};
+
 export const buildPerformanceCells = (
   live: TraderProfileResponse | null,
   openPositions: readonly Position[] = [],
@@ -69,47 +89,46 @@ export const buildPerformanceCells = (
   if (!stats) {
     return [];
   }
-  const cells: PerformanceCell[] = [];
-  if (isPresentNumber(stats.pnl30d)) {
-    cells.push({
+
+  const pnl = presentOrZero(stats.pnl30d);
+  const unrealized = presentOrZero(
+    sumUnrealizedFromOpenPositions(openPositions),
+  );
+  const winRate = presentOrZero(stats.winRate30d);
+  const volume = presentOrZero(stats.volumeUsd30d);
+
+  return [
+    {
       id: 'pnl',
-      value: formatPerformanceSignedUsd(stats.pnl30d),
-      tone: signedUsdTone(stats.pnl30d),
-    });
-  }
-  const unrealized = sumUnrealizedFromOpenPositions(openPositions);
-  if (isPresentNumber(unrealized)) {
-    cells.push({
+      value: formatPerformanceSignedUsd(pnl),
+      tone: signedUsdTone(pnl),
+    },
+    {
       id: 'unrealizedPnl',
       value: formatPerformanceSignedUsd(unrealized),
       tone: roundsToZeroCents(unrealized)
         ? 'default'
         : signedUsdTone(unrealized),
-    });
-  }
-  if (isPresentNumber(stats.winRate30d)) {
-    cells.push({
+    },
+    {
       id: 'winRate',
-      value: formatPercent(stats.winRate30d * 100, {
+      value: formatPercent(winRate * 100, {
         showSign: false,
         decimals: 0,
       }),
       tone: 'default',
-    });
-  }
-  const holdTime = isPresentNumber(stats.medianHoldMinutes)
-    ? formatSheetHoldFromMinutes(stats.medianHoldMinutes)
-    : '';
-  if (holdTime) {
-    cells.push({ id: 'holdTime', value: holdTime, tone: 'default' });
-  }
-  const volume = isPresentNumber(stats.volumeUsd30d)
-    ? formatUsd(Math.abs(stats.volumeUsd30d))
-    : '';
-  if (volume) {
-    cells.push({ id: 'volume', value: volume, tone: 'default' });
-  }
-  return cells;
+    },
+    {
+      id: 'holdTime',
+      value: formatPerformanceHold(stats.medianHoldMinutes),
+      tone: 'default',
+    },
+    {
+      id: 'volume',
+      value: formatUsd(Math.abs(volume)),
+      tone: 'default',
+    },
+  ];
 };
 
 export const markFakeStat = (label: string): string =>

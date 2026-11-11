@@ -737,10 +737,8 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
     ).toHaveTextContent('+$1,200.00');
     expect(
-      screen.queryByTestId(
-        MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL,
-      ),
-    ).toBeNull();
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_UNREALIZED_PNL),
+    ).toHaveTextContent('$0.00');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_HOLD_TIME),
     ).toHaveTextContent('3h');
