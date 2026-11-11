@@ -38,7 +38,6 @@ function toFormRpcEndpoints(
   if (!endpoints) return [];
   return endpoints.map((ep) => ({
     url: ep.url,
-    failoverUrls: 'failoverUrls' in ep ? ep.failoverUrls : undefined,
     name:
       ep.type === RpcEndpointType.Infura
         ? 'Infura'
@@ -80,12 +79,7 @@ export interface UseNetworkFormReturn
   onRpcUrlAdd: (url: string) => void;
   onRpcNameAdd: (name: string) => void;
   onRpcItemAdd: (url: string, name: string) => void;
-  onRpcUrlChangeWithName: (
-    url: string,
-    failoverUrls: string[] | undefined,
-    name: string,
-    type: string,
-  ) => void;
+  onRpcUrlChangeWithName: (url: string, name: string, type: string) => void;
   onRpcUrlDelete: (url: string) => void;
 
   // Block explorer handlers
@@ -114,7 +108,6 @@ export const useNetworkForm = (
   // ---- Form state ----------------------------------------------------------
   const [form, setForm] = useState<NetworkFormState>({
     rpcUrl: undefined,
-    failoverRpcUrls: undefined,
     rpcName: undefined,
     rpcUrlForm: '',
     rpcNameForm: '',
@@ -248,10 +241,6 @@ export const useNetworkForm = (
         ] ?? fallbackExplorerUrl;
 
       const rpcUrl = defaultRpcEndpoint?.url;
-      const failoverRpcUrls =
-        defaultRpcEndpoint && 'failoverUrls' in defaultRpcEndpoint
-          ? defaultRpcEndpoint.failoverUrls
-          : undefined;
       const rpcName = getRpcEndpointName(defaultRpcEndpoint);
       const rpcUrls = toFormRpcEndpoints(networkConfiguration?.rpcEndpoints);
       const nickname = networkConfiguration?.name;
@@ -261,7 +250,6 @@ export const useNetworkForm = (
 
       const nextForm: NetworkFormState = {
         rpcUrl,
-        failoverRpcUrls,
         rpcName,
         rpcUrlForm: '',
         rpcNameForm: '',
@@ -284,7 +272,6 @@ export const useNetworkForm = (
       const prefill = params?.prefill;
       const newForm: NetworkFormState = {
         rpcUrl: prefill?.rpcUrl,
-        failoverRpcUrls: undefined,
         rpcName: undefined,
         rpcUrlForm: prefill?.rpcUrl ?? '',
         rpcNameForm: '',
@@ -427,15 +414,8 @@ export const useNetworkForm = (
   );
 
   const onRpcUrlChangeWithName = useCallback(
-    (
-      url: string,
-      failoverUrls: string[] | undefined,
-      name: string,
-      type: string,
-    ) => {
-      setForm((prev) =>
-        applyRpcSelectionToFormState(prev, url, failoverUrls, name, type),
-      );
+    (url: string, name: string, type: string) => {
+      setForm((prev) => applyRpcSelectionToFormState(prev, url, name, type));
       getCurrentState();
       requestValidation.current?.();
     },

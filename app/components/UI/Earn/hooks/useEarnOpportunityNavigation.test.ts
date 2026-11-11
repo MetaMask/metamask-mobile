@@ -9,7 +9,7 @@ import { TokenDetailsSource } from '../../TokenDetails/constants/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnAsset, EarnExperience } from '../types/earnAssets';
-import { useMoneyDepositNavigation } from '../../Money/hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../Money/hooks/useMoneyDepositNavigation';
 import { selectMoneyEntryContext } from '../../Money/selectors/entry';
 import type { MoneyEntryContext } from '../../Money/navigation/moneyEntryDecision';
 import useStakingChain from '../../Stake/hooks/useStakingChain';
@@ -77,7 +77,7 @@ jest.mock('../../Stake/hooks/useStakingChain', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-jest.mock('../../Money/hooks/useMoneyNavigation', () => ({
+jest.mock('../../Money/hooks/useMoneyDepositNavigation', () => ({
   __esModule: true,
   useMoneyDepositNavigation: jest.fn(),
 }));

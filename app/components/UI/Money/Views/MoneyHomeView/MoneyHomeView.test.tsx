@@ -43,7 +43,7 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
 import {
   getMoneyHomeCardDevOverrideById,
@@ -463,7 +463,7 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 

@@ -11,7 +11,6 @@ import {
   PRICE_RANGE_MISSING_VALUE,
   sanitizePriceInput,
   tokenPairRateFromFiatRates,
-  USD_PRICE_RANGE_CURRENCY,
 } from './priceRange';
 import { formatCurrency } from './currencyUtils';
 
@@ -74,7 +73,7 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toEqual({
       side: 'dest',
-      currency: USD_PRICE_RANGE_CURRENCY,
+      currency: 'usd',
       min: '0.1087654321',
       max: '1342.77451853376',
     });
@@ -93,7 +92,7 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toEqual({
       side: 'src',
-      currency: USD_PRICE_RANGE_CURRENCY,
+      currency: 'usd',
       min: '108',
       max: undefined,
     });
@@ -112,7 +111,7 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toEqual({
       side: 'dest',
-      currency: USD_PRICE_RANGE_CURRENCY,
+      currency: 'usd',
       min: '1800.25',
       max: '2200.75',
     });
