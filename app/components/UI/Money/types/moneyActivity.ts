@@ -9,7 +9,7 @@ export type AccountsApiDisplayAmount =
       value: string;
       decimals: number;
     }
-  | { type: 'unavailable' };
+  | { type: 'pending' | 'unavailable' };
 
 /**
  * Card spends and musdback from the accounts API

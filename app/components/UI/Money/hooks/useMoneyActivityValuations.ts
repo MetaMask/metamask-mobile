@@ -166,7 +166,20 @@ export function useMoneyActivityValuations({
     [pageActivities, vaultShareTokens, moneyAddress, cachedEntries],
   );
 
-  const valuationQueries = useQueries({
+  const combineValuationQueries = useCallback(
+    (
+      results: {
+        data?: VaultShareValuationCacheEntry[];
+        isFetching: boolean;
+      }[],
+    ) => ({
+      entries: results.flatMap((result) => result.data ?? []),
+      isFetching: results.some((result) => result.isFetching),
+    }),
+    [],
+  );
+
+  const valuationState = useQueries({
     queries: pages.map((page, pageIndex) => {
       const missing = missingHashesByChain(page.targets, page.cachedByIdentity);
 
@@ -198,6 +211,7 @@ export function useMoneyActivityValuations({
               let entryMap = entriesByIdentity(entries);
               let requestedCount = 0;
               let chunkCount = 0;
+              let failedChunkCount = 0;
               const freshMissing = missingHashesByChain(page.targets, entryMap);
 
               for (const [chainId, hashes] of freshMissing) {
@@ -216,26 +230,30 @@ export function useMoneyActivityValuations({
 
                 for (const txHashes of chunks) {
                   requestedCount += txHashes.length;
-                  const response = await Engine.controllerMessenger.call(
-                    'MoneyAccountApiDataService:fetchVaultShareValuations',
-                    moneyAddress,
-                    { txHashes, chainId },
-                  );
-                  const newEntries = usableEntries(
-                    page.targets,
-                    cacheEntriesFromResponse({
-                      response,
-                      account: moneyAddress,
-                      chainId: chainIdHex,
-                      vaultAddresses: configuredVaults.map(
-                        (token) => token.address,
-                      ),
-                    }),
-                  );
-                  if (newEntries.length > 0) {
-                    await writeCachedVaultShareValuations(newEntries);
-                    entries = [...entries, ...newEntries];
-                    entryMap = entriesByIdentity(entries);
+                  try {
+                    const response = await Engine.controllerMessenger.call(
+                      'MoneyAccountApiDataService:fetchVaultShareValuations',
+                      moneyAddress,
+                      { txHashes, chainId },
+                    );
+                    const newEntries = usableEntries(
+                      page.targets,
+                      cacheEntriesFromResponse({
+                        response,
+                        account: moneyAddress,
+                        chainId: chainIdHex,
+                        vaultAddresses: configuredVaults.map(
+                          (token) => token.address,
+                        ),
+                      }),
+                    );
+                    if (newEntries.length > 0) {
+                      await writeCachedVaultShareValuations(newEntries);
+                      entries = [...entries, ...newEntries];
+                      entryMap = entriesByIdentity(entries);
+                    }
+                  } catch {
+                    failedChunkCount += 1;
                   }
                 }
               }
@@ -246,12 +264,14 @@ export function useMoneyActivityValuations({
                   hasHistoricalValue(target, page.cachedByIdentity),
                 ).length,
                 chunk_count: chunkCount,
+                failed_chunk_count: failedChunkCount,
               });
               return usableEntries(page.targets, entries);
             },
           ),
       } as const;
     }),
+    combine: combineValuationQueries,
   });
 
   const unresolvedVaultTokens = useMemo(() => {
@@ -268,7 +288,20 @@ export function useMoneyActivityValuations({
     );
   }, [pages, vaultShareTokens]);
 
-  const rateQueries = useQueries({
+  const combineRateQueries = useCallback(
+    (
+      results: {
+        data?: VaultRateResponse;
+        isFetching: boolean;
+      }[],
+    ) => ({
+      data: results.flatMap((result) => (result.data ? [result.data] : [])),
+      isFetching: results.some((result) => result.isFetching),
+    }),
+    [],
+  );
+
+  const rateState = useQueries({
     queries: unresolvedVaultTokens.map((token) => ({
       queryKey: [
         MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
@@ -285,28 +318,27 @@ export function useMoneyActivityValuations({
       staleTime: 5 * MINUTE,
       retry: false,
     })),
+    combine: combineRateQueries,
   });
 
   const valuationsByIdentity = useMemo(() => {
     const map = entriesByIdentity(cachedEntries);
-    for (const query of valuationQueries) {
-      for (const entry of query.data ?? []) {
-        map.set(getVaultShareValuationCacheIdentity(entry), entry);
-      }
+    for (const entry of valuationState.entries) {
+      map.set(getVaultShareValuationCacheIdentity(entry), entry);
     }
     return map;
-  }, [cachedEntries, valuationQueries]);
+  }, [cachedEntries, valuationState.entries]);
 
   const ratesByVault = useMemo(() => {
     const map = new Map<string, VaultRateResponse>();
     unresolvedVaultTokens.forEach((token, index) => {
-      const data = rateQueries[index]?.data;
+      const data = rateState.data[index];
       if (data) {
         map.set(getVaultShareVaultKey(token.chainId, token.address), data);
       }
     });
     return map;
-  }, [rateQueries, unresolvedVaultTokens]);
+  }, [rateState.data, unresolvedVaultTokens]);
 
   const getDisplayAmount = useCallback(
     (activity: AccountsApiActivity): AccountsApiDisplayAmount | undefined => {
@@ -330,10 +362,11 @@ export function useMoneyActivityValuations({
         return historical;
       }
 
-      return getApproximateVaultShareDisplayAmount(
-        activity,
-        ratesByVault.get(target.vaultKey)?.rate,
-      );
+      const rate = ratesByVault.get(target.vaultKey);
+      if (!rate && rateState.isFetching) {
+        return { type: 'pending' };
+      }
+      return getApproximateVaultShareDisplayAmount(activity, rate?.rate);
     },
     [
       enabled,
@@ -341,14 +374,14 @@ export function useMoneyActivityValuations({
       vaultShareTokens,
       valuationsByIdentity,
       ratesByVault,
+      rateState.isFetching,
     ],
   );
 
   const isSettling =
     enabled &&
     pages.some((page) => page.targets.length > 0) &&
-    (valuationQueries.some((query) => query.isFetching) ||
-      rateQueries.some((query) => query.isFetching));
+    (valuationState.isFetching || rateState.isFetching);
 
   return { getDisplayAmount, isSettling };
 }

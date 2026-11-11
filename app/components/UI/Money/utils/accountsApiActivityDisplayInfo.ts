@@ -30,7 +30,9 @@ export function accountsApiActivityDisplayInfo(
       ? activity.displayAmount
       : undefined;
   const usdValue =
-    displayAmount && displayAmount.type !== 'unavailable'
+    displayAmount &&
+    (displayAmount.type === 'historical' ||
+      displayAmount.type === 'approximate')
       ? new BigNumber(displayAmount.value).shiftedBy(-displayAmount.decimals)
       : new BigNumber(activity.amount).shiftedBy(-activity.token.decimals);
   const approximatePrefix = displayAmount?.type === 'approximate' ? '≈' : '';
@@ -38,12 +40,14 @@ export function accountsApiActivityDisplayInfo(
     displayAmount?.type === 'unavailable'
       ? strings('money.api_activity_details.amount_unavailable')
       : undefined;
+  const isAmountPending = displayAmount?.type === 'pending';
 
-  const primaryAmount =
-    amountUnavailable ??
-    `${approximatePrefix}${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`;
+  const primaryAmount = isAmountPending
+    ? '—'
+    : (amountUnavailable ??
+      `${approximatePrefix}${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`);
   const fiatAmount =
-    amountUnavailable === undefined
+    amountUnavailable === undefined && !isAmountPending
       ? `${approximatePrefix}${sign}${moneyFormatUsd(usdValue)}`
       : '';
 
@@ -60,6 +64,7 @@ export function accountsApiActivityDisplayInfo(
     status: 'confirmed',
     showPrimaryAmount:
       activity.kind === 'bank_transfer' || displayAmount !== undefined,
+    isPrimaryAmountPending: isAmountPending,
     isFiatAmountMuted:
       activity.kind === 'bank_transfer' ||
       (displayAmount !== undefined && activity.kind === 'card'),

@@ -33,6 +33,10 @@ import {
 } from '../utils/moneyActivityCache';
 import { useMoneyActivityValuations } from './useMoneyActivityValuations';
 
+interface UseMoneyAccountApiActivityOptions {
+  enabled?: boolean;
+}
+
 export interface UseMoneyAccountApiActivityResult {
   activity: AccountsApiActivity[];
   /**
@@ -81,7 +85,9 @@ const ACCOUNT_ACTIVITY_QUERY_OPTIONS = {
  * scrolled. The `watermark` tells the consumer how far down the merged list is
  * complete and safe to display.
  */
-export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
+export function useMoneyAccountApiActivity({
+  enabled: callerEnabled = true,
+}: UseMoneyAccountApiActivityOptions = {}): UseMoneyAccountApiActivityResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const cashbackMultisendContracts = useSelector(
     selectMoneyCardActivityCashbackMultisendContracts,
@@ -113,7 +119,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   }, [historicalValuationsEnabled, premiumVault, standardVault]);
   const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
-  const enabled = moneyAddress !== '';
+  const enabled = moneyAddress !== '' && callerEnabled;
 
   // Reuse the client's query key (cursor-free) so all pages share one cache
   // entry and the home preview and full list don't refetch each other's pages.
@@ -203,7 +209,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
       pageActivities,
       moneyAddress,
       vaultShareTokens,
-      enabled: historicalValuationsEnabled && enabled,
+      enabled: Boolean(historicalValuationsEnabled && enabled),
     });
 
   const activity = useMemo(() => {

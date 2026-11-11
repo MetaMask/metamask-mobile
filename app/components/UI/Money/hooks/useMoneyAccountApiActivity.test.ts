@@ -190,6 +190,18 @@ describe('useMoneyAccountApiActivity', () => {
     );
   });
 
+  it('stays disabled when the caller has no activity to resolve', () => {
+    renderHook(() => useMoneyAccountApiActivity({ enabled: false }));
+
+    expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockReadCachedFirstPage).not.toHaveBeenCalled();
+    expect(mockUseMoneyActivityValuations).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
   it('queryFn fetches the next page using the cursor pageParam', async () => {
     mockFetchV1AccountTransactions.mockResolvedValue(PAGE_MOCK);
     renderHook(() => useMoneyAccountApiActivity());

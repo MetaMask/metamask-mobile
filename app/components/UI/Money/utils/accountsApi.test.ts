@@ -384,6 +384,36 @@ describe('parseAccountsApiActivity', () => {
     expect(cashback.token.symbol).toBe('mUSD');
   });
 
+  it('classifies unclassified multisend share cashback only for configured vaults', () => {
+    const row = {
+      ...unclassifiedCashbackRow,
+      valueTransfers: [
+        {
+          ...unclassifiedCashbackRow.valueTransfers[0],
+          contractAddress: STANDARD_VAULT_ADDRESS,
+          symbol: 'vmUSD',
+        },
+      ],
+    };
+
+    expect(parseAccountsApiActivity({ data: [row] }, MONEY_ADDRESS)).toEqual(
+      [],
+    );
+    expect(
+      parseAccountsApiActivity(
+        { data: [row] },
+        MONEY_ADDRESS,
+        [CASHBACK_MULTISEND_TO],
+        [{ chainId: '0x8f', address: STANDARD_VAULT_ADDRESS }],
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        kind: 'cashback',
+        token: expect.objectContaining({ address: STANDARD_VAULT_ADDRESS }),
+      }),
+    ]);
+  });
+
   it('uses the provided cashback multisend contract list instead of defaults', () => {
     const customContract = '0x00000000000000000000000000000000000000aa';
 

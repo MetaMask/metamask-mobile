@@ -172,9 +172,13 @@ describe('useMoneyActivityValuations', () => {
     mockNetworkTier.mockReturnValue('WIFI');
     mockReadCache.mockReturnValue([]);
     mockWriteCache.mockResolvedValue(undefined);
-    mockUseQueries.mockReturnValue(
-      [] as unknown as ReturnType<typeof useQueries>,
-    );
+    mockUseQueries.mockImplementation(((options: {
+      queries: unknown[];
+      combine?: (results: unknown[]) => unknown;
+    }) => {
+      const results = options.queries.map(() => queryResult());
+      return options.combine ? options.combine(results) : results;
+    }) as typeof useQueries);
   });
 
   it('requests each page once and returns historical amounts from the response', async () => {
@@ -183,10 +187,7 @@ describe('useMoneyActivityValuations', () => {
     renderValuations({ pages: [[row]] });
 
     const [query] = getQueryOptions(0);
-    const entries = await query.queryFn?.();
-    mockUseQueries.mockReturnValue([
-      queryResult({ data: entries }),
-    ] as unknown as ReturnType<typeof useQueries>);
+    await query.queryFn?.();
 
     expect(mockEngineCall).toHaveBeenCalledWith(
       'MoneyAccountApiDataService:fetchVaultShareValuations',
@@ -205,6 +206,7 @@ describe('useMoneyActivityValuations', () => {
       requested_count: 1,
       cache_hit_count: 0,
       chunk_count: 1,
+      failed_chunk_count: 0,
     });
   });
 
@@ -252,6 +254,33 @@ describe('useMoneyActivityValuations', () => {
     );
   });
 
+  it('builds one independent valuation query per loaded page', async () => {
+    const first = activity(TX_HASH, '1');
+    const second = activity(TX_HASH_2, '2');
+    mockEngineCall
+      .mockResolvedValueOnce(valuationResponse([first]))
+      .mockResolvedValueOnce(valuationResponse([second]));
+    renderValuations({ pages: [[first], [second]] });
+
+    const queries = getQueryOptions(0);
+    await Promise.all(queries.map((query) => query.queryFn?.()));
+
+    expect(queries).toHaveLength(2);
+    expect(mockEngineCall).toHaveBeenCalledTimes(2);
+    expect(mockEngineCall).toHaveBeenNthCalledWith(
+      1,
+      'MoneyAccountApiDataService:fetchVaultShareValuations',
+      ACCOUNT,
+      { chainId: 143, txHashes: [TX_HASH] },
+    );
+    expect(mockEngineCall).toHaveBeenNthCalledWith(
+      2,
+      'MoneyAccountApiDataService:fetchVaultShareValuations',
+      ACCOUNT,
+      { chainId: 143, txHashes: [TX_HASH_2] },
+    );
+  });
+
   it('skips the request when another writer filled the cache before query execution', async () => {
     const row = activity(TX_HASH);
     mockReadCache
@@ -264,6 +293,25 @@ describe('useMoneyActivityValuations', () => {
 
     expect(mockEngineCall).not.toHaveBeenCalled();
     expect(mockWriteCache).not.toHaveBeenCalled();
+  });
+
+  it('keeps successful chunks when a later chunk fails', async () => {
+    const rows = Array.from({ length: 51 }, (_, index) =>
+      activity(txHash(index), `${index + 1}`),
+    );
+    mockEngineCall
+      .mockResolvedValueOnce(valuationResponse(rows.slice(0, 50)))
+      .mockRejectedValueOnce(new Error('batch failed'));
+    renderValuations({ pages: [rows] });
+
+    const [query] = getQueryOptions(0);
+    await expect(query.queryFn?.()).resolves.toHaveLength(50);
+
+    expect(mockWriteCache).toHaveBeenCalledTimes(1);
+    expect(mockAnnotateTrace).toHaveBeenCalledWith(
+      undefined,
+      expect.objectContaining({ failed_chunk_count: 1 }),
+    );
   });
 
   it('does not persist an ambiguous valuation that cannot resolve the row', async () => {
@@ -312,12 +360,11 @@ describe('useMoneyActivityValuations', () => {
   it('uses the current rate while historical data is unresolved', () => {
     const row = activity(TX_HASH);
     mockUseQueries
-      .mockReturnValueOnce([
-        { ...queryResult(), isFetching: true },
-      ] as unknown as ReturnType<typeof useQueries>)
-      .mockReturnValueOnce([
-        queryResult({ data: { rate: '1.017488' } }),
-      ] as unknown as ReturnType<typeof useQueries>);
+      .mockReturnValueOnce({ entries: [], isFetching: true } as never)
+      .mockReturnValueOnce({
+        data: [{ rate: '1.017488' }],
+        isFetching: false,
+      } as never);
     const { result } = renderValuations({ pages: [[row]] });
 
     expect(result.current.getDisplayAmount(row)).toEqual({
@@ -325,6 +372,17 @@ describe('useMoneyActivityValuations', () => {
       value: '968399999',
       decimals: 6,
     });
+    expect(result.current.isSettling).toBe(true);
+  });
+
+  it('returns pending while the current rate is still loading', () => {
+    const row = activity(TX_HASH);
+    mockUseQueries
+      .mockReturnValueOnce({ entries: [], isFetching: true } as never)
+      .mockReturnValueOnce({ data: [], isFetching: true } as never);
+    const { result } = renderValuations({ pages: [[row]] });
+
+    expect(result.current.getDisplayAmount(row)).toEqual({ type: 'pending' });
     expect(result.current.isSettling).toBe(true);
   });
 
@@ -355,10 +413,11 @@ describe('useMoneyActivityValuations', () => {
     const row = activity(TX_HASH);
     row.blockNumber = undefined;
     mockUseQueries
-      .mockReturnValueOnce([] as unknown as ReturnType<typeof useQueries>)
-      .mockReturnValueOnce([
-        queryResult({ data: { rate: '1.017488' } }),
-      ] as unknown as ReturnType<typeof useQueries>);
+      .mockReturnValueOnce({ entries: [], isFetching: false } as never)
+      .mockReturnValueOnce({
+        data: [{ rate: '1.017488' }],
+        isFetching: false,
+      } as never);
     const { result } = renderValuations({ pages: [[row]] });
 
     expect(result.current.getDisplayAmount(row)).toEqual({

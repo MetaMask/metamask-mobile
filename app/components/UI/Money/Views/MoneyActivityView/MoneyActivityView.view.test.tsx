@@ -195,6 +195,14 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
     );
     expect(within(cashbackRow).getByText('+533.86 mUSD')).toBeOnTheScreen();
     expect(valuationCallCount()).toBe(1);
+    expect(engineCall).toHaveBeenCalledWith(
+      'MoneyAccountApiDataService:fetchVaultShareValuations',
+      MONEY_ACTIVITY_ACCOUNT,
+      {
+        chainId: 143,
+        txHashes: [CASHBACK_HASH, CARD_HASH],
+      },
+    );
 
     fireEvent.press(cardRow);
 

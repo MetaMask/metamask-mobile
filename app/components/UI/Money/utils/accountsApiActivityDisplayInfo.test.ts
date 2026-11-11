@@ -121,6 +121,18 @@ describe('accountsApiActivityDisplayInfo', () => {
     expect(info.showPrimaryAmount).toBe(true);
   });
 
+  it('renders a muted pending placeholder until the rate is available', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...card,
+      displayAmount: { type: 'pending' },
+    });
+
+    expect(info.primaryAmount).toBe('—');
+    expect(info.fiatAmount).toBe('');
+    expect(info.showPrimaryAmount).toBe(true);
+    expect(info.isPrimaryAmountPending).toBe(true);
+  });
+
   it('shows unavailable instead of relabeling raw shares', () => {
     const info = accountsApiActivityDisplayInfo({
       ...card,
