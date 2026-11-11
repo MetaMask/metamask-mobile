@@ -1,26 +1,20 @@
 import React, { forwardRef } from 'react';
-import {
-  BottomSheet,
-  BottomSheetHeader,
-  Box,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../locales/i18n';
-import type { PredictOrderPreview } from '../../../types';
+import { BottomSheet, Box } from '@metamask/design-system-react-native';
+import type { PredictBuyOrderPreview } from '../../../types';
 
-import { OrderPreviewRows } from './OrderPreviewRows';
+import { OrderDetailsRows } from './OrderDetailsRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 interface OrderBreakdownSheetProps {
-  preview: PredictOrderPreview;
+  preview: PredictBuyOrderPreview;
   onClose: () => void;
 }
 
 /**
- * The Total row's 'i' details: the full quoted Preview rows stacked above
- * the Order sheet. All values are backend-owned and rendered verbatim by
- * OrderPreviewRows.
+ * The buy details sheet opened from the "To win" line, stacked above the
+ * Order sheet. It has no title and no close button: only the drag handle,
+ * and it dismisses by drag or backdrop tap. All values are backend-owned and
+ * rendered verbatim by OrderDetailsRows.
  */
 export const OrderBreakdownSheet = forwardRef<
   React.ComponentRef<typeof BottomSheet>,
@@ -31,13 +25,8 @@ export const OrderBreakdownSheet = forwardRef<
     onClose={onClose}
     testID={PredictOrderFlowTestIds.BREAKDOWN}
   >
-    <BottomSheetHeader onClose={onClose}>
-      <Text variant={TextVariant.HeadingSm}>
-        {strings('predict_next.order_preview.price_details')}
-      </Text>
-    </BottomSheetHeader>
-    <Box twClassName="px-4 pb-6 pt-2">
-      <OrderPreviewRows preview={preview} />
+    <Box twClassName="px-4 pb-6">
+      <OrderDetailsRows preview={preview} />
     </Box>
   </BottomSheet>
 ));
