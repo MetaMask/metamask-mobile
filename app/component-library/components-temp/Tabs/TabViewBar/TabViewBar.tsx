@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useMemo } from 'react';
-import { Dimensions } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Dimensions, type TextLayoutEvent } from 'react-native';
 import {
   TabBar,
   type NavigationState,
@@ -35,25 +35,60 @@ export interface TabViewBarProps extends SceneRendererProps {
 }
 
 // The library renders the label twice and crossfades the copies while swiping.
-// Same weight on both so the text doesn't ghost. Only the unfocused copy gets
-// the test ID, otherwise it would be duplicated.
+// Bold glyphs are wider, so the regular copy is letter-spaced out to the bold
+// width to keep both copies lined up and avoid a ghosted look. A hidden bold
+// copy sizes the tab. Only the unfocused copy gets the test ID, otherwise it
+// would be duplicated.
 const TabLabel: React.FC<{
   title: string;
   focused: boolean;
   testID: string;
-}> = ({ title, focused, testID }) => (
-  <Box twClassName="flex-1 items-center justify-center">
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      twClassName={focused ? 'text-default' : 'text-alternative'}
-      numberOfLines={1}
-      testID={focused ? undefined : testID}
-    >
-      {title}
-    </Text>
-  </Box>
-);
+}> = ({ title, focused, testID }) => {
+  const tw = useTailwind();
+  const [boldWidth, setBoldWidth] = useState(0);
+  const [regularWidth, setRegularWidth] = useState(0);
+  const letterSpacing =
+    boldWidth > regularWidth ? (boldWidth - regularWidth) / title.length : 0;
+
+  const measure = (setWidth: (width: number) => void) => (e: TextLayoutEvent) =>
+    setWidth(e.nativeEvent.lines[0]?.width ?? 0);
+
+  return (
+    <Box twClassName="items-center justify-center">
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Bold}
+        numberOfLines={1}
+        style={tw.style('opacity-0')}
+        onTextLayout={measure(setBoldWidth)}
+      >
+        {title}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Regular}
+        numberOfLines={1}
+        style={tw.style('absolute opacity-0')}
+        onTextLayout={measure(setRegularWidth)}
+      >
+        {title}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={focused ? FontWeight.Bold : FontWeight.Regular}
+        twClassName={focused ? 'text-default' : 'text-alternative'}
+        numberOfLines={1}
+        testID={focused ? undefined : testID}
+        style={[
+          tw.style('absolute inset-0 flex items-center justify-center'),
+          focused ? null : { letterSpacing },
+        ]}
+      >
+        {title}
+      </Text>
+    </Box>
+  );
+};
 
 /**
  * `react-native-tab-view` tab bar styled to match `TabsBar`. Scrolls when the
