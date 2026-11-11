@@ -353,6 +353,7 @@ jest.mock('./hooks/useCardEnableCard', () => ({
     canEnableCard: mockCanEnableCard,
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
+    isEnableCardPending: false,
   }),
 }));
 

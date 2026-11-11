@@ -287,8 +287,10 @@ describe('useMoneyAccountCardLinkage', () => {
     params: { entrypoint },
   });
 
-  const renderLinkageHook = () =>
-    renderHook(() => useMoneyAccountCardLinkage(), {
+  const renderLinkageHook = (
+    options?: Parameters<typeof useMoneyAccountCardLinkage>[0],
+  ) =>
+    renderHook(() => useMoneyAccountCardLinkage(options), {
       wrapper: ({ children }: { children: React.ReactNode }) => (
         <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
           {children}
@@ -1227,6 +1229,18 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         ...expectedLinkCardSheetRoute(),
       });
+    });
+
+    it('does not consume a pending link when consumesPendingLink is false', () => {
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+        }),
+      );
+      renderLinkageHook({ consumesPendingLink: false });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('opens the Link Card sheet and clears the flag when authenticated and canLink', () => {
