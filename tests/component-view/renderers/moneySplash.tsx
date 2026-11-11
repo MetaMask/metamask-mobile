@@ -22,6 +22,7 @@ function installNetworkClientMock() {
 export interface RenderMoneySplashViewOptions {
   splashSeen?: boolean;
   onboardingSeen?: boolean;
+  onboardingEnabled?: boolean;
   /** APY decimal, or null to simulate a missing APY. */
   apy?: number | null;
   /** Omit the vault config so deposit setup fails and falls back to Money home. */
@@ -65,6 +66,7 @@ const MoneySplashScreen = () => {
 export function renderMoneySplashView({
   splashSeen = false,
   onboardingSeen = false,
+  onboardingEnabled = false,
   apy = 0.062,
   hasVaultConfig = true,
   params,
@@ -85,6 +87,7 @@ export function renderMoneySplashView({
   const state = moneySplashViewState({
     splashSeen,
     onboardingSeen,
+    onboardingEnabled,
     hasVaultConfig,
   });
   const routes = [
@@ -93,6 +96,7 @@ export function renderMoneySplashView({
       Component: createRouteParamsProbe(Routes.MONEY.CONFIRMATIONS_ROOT),
     },
     { name: Routes.HOME_TABS },
+    { name: Routes.MONEY.ONBOARDING },
   ];
 
   if (pushedOverHost) {

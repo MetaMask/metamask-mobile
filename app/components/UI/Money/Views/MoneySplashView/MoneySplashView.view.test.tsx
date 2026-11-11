@@ -163,6 +163,22 @@ describeForPlatforms('MoneySplashView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('returns to Money home without Rive onboarding when the splash has no deposit redirect', async () => {
+    const { getByTestId, queryByTestId, findByTestId } = renderMoneySplashView({
+      onboardingSeen: false,
+      onboardingEnabled: true,
+    });
+
+    fireEvent.press(getByTestId(MoneySplashViewTestIds.CTA));
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getRouteProbeTestId(Routes.MONEY.ONBOARDING)),
+    ).not.toBeOnTheScreen();
+  });
+
   it('marks the splash as seen on mount', async () => {
     const { store } = renderMoneySplashView();
 

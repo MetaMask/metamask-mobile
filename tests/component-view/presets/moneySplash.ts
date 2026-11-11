@@ -38,6 +38,7 @@ function moneyAccount(): MoneyAccount {
 export interface MoneySplashViewStateOptions {
   splashSeen?: boolean;
   onboardingSeen?: boolean;
+  onboardingEnabled?: boolean;
   /** Omit the vault config so deposit setup fails and the fallback path runs. */
   hasVaultConfig?: boolean;
 }
@@ -45,6 +46,7 @@ export interface MoneySplashViewStateOptions {
 export function moneySplashViewState({
   splashSeen = false,
   onboardingSeen = false,
+  onboardingEnabled = false,
   hasVaultConfig = true,
 }: MoneySplashViewStateOptions = {}) {
   const account = moneyAccount();
@@ -62,6 +64,10 @@ export function moneySplashViewState({
       },
       moneyEnableSplash: {
         enabled: true,
+        minimumVersion: '0.0.0',
+      },
+      moneyEnableOnboardingStepperAnimation: {
+        enabled: onboardingEnabled,
         minimumVersion: '0.0.0',
       },
       ...(hasVaultConfig ? { moneyAccountVaultConfig: MONAD_VAULT } : {}),
