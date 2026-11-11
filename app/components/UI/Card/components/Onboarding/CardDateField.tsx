@@ -5,7 +5,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   Icon,
   IconName,
@@ -22,6 +21,9 @@ import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import SelectField from './SelectField';
 import CardFormField from './CardFormField';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MAXIMUM_DATE = new Date(Date.now());
 const MINIMUM_DATE = new Date(1900, 0, 1);
@@ -62,6 +64,7 @@ const CardDateField = ({
   testID,
   errorTestID,
 }: CardDateFieldProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const theme = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -173,14 +176,15 @@ const CardDateField = ({
                   onClose={closePicker}
                   testID={testID ? `${testID}-sheet` : undefined}
                 >
-                  <BottomSheetHeader
+                  <BottomSheetHeaderGlass
+                    isGlass={isGlassHeader}
                     onClose={dismissSheet}
                     closeButtonProps={{
                       testID: testID ? `${testID}-sheet-close` : undefined,
                     }}
                   >
                     {label}
-                  </BottomSheetHeader>
+                  </BottomSheetHeaderGlass>
                   <Box twClassName="items-center px-4">
                     <DateTimePicker
                       value={pendingDate ?? valueAsDate ?? DEFAULT_DATE}
