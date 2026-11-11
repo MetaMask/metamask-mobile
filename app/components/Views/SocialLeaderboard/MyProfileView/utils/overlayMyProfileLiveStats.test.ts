@@ -77,7 +77,7 @@ describe('overlayMyProfileLiveStats', () => {
     const result = overlayMyProfileLiveStats(localProfile, null);
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
+    expect(result.pnlLabel).toBe(`${FAKE_STATS_PREFIX}+$7,100.00`);
     expect(result.performanceCells).toEqual([]);
     expect(result.rankingTag).toBe('whale');
     expect(result.followerCount).toBe(4);
@@ -87,7 +87,8 @@ describe('overlayMyProfileLiveStats', () => {
     const result = overlayMyProfileLiveStats(localProfile, liveProfile());
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
+    expect(result.pnlLabel).toBe('+$1,200.00');
+    expect(result.isPnlPositive).toBe(true);
     expect(result.rankingTag).toBe('dolphin');
     expect(result.followerCount).toBe(88);
     expect(result.performanceCells.map((cell) => cell.id)).toEqual([
@@ -117,13 +118,29 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
   });
 
-  it('uses the non-negative tone when a live P&L loss rounds to zero', () => {
-    const result = overlayMyProfileLiveStats(
+  it('keeps two decimal places on the compact header P&L', () => {
+    const loss = overlayMyProfileLiveStats(
       localProfile,
-      liveProfile({ stats: { pnl30d: -0.4 } }),
+      liveProfile({ stats: { pnl30d: -4 } }),
+    );
+    const cents = overlayMyProfileLiveStats(
+      localProfile,
+      liveProfile({ stats: { pnl30d: -6.38 } }),
     );
 
-    expect(result.pnlLabel).toBe('$0');
+    expect(loss.pnlLabel).toBe('-$4.00');
+    expect(loss.isPnlPositive).toBe(false);
+    expect(cents.pnlLabel).toBe('-$6.38');
+    expect(cents.isPnlPositive).toBe(false);
+  });
+
+  it('uses the non-negative tone when a live P&L loss rounds to zero cents', () => {
+    const result = overlayMyProfileLiveStats(
+      localProfile,
+      liveProfile({ stats: { pnl30d: -0.004 } }),
+    );
+
+    expect(result.pnlLabel).toBe('$0.00');
     expect(result.isPnlPositive).toBe(true);
   });
 });

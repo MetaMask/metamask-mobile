@@ -86,7 +86,6 @@ export const useTokenSelection = (type: TokenSelectorType) => {
               rpcEndpoints: [
                 {
                   url: popularNetwork.rpcUrl,
-                  failoverUrls: popularNetwork.failoverRpcUrls,
                   name: popularNetwork.nickname,
                   type: RpcEndpointType.Custom,
                 },

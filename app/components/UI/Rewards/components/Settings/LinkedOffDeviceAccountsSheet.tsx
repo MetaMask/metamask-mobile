@@ -32,6 +32,7 @@ import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { getBetaSupportUrl } from '../../utils';
+import { openContactSupportWebview } from '../../utils/openContactSupportWebview';
 
 const styles = StyleSheet.create({
   list: {
@@ -73,13 +74,7 @@ const LinkedOffDeviceAccountsSheet: React.FC<
     const betaSupportUrl = getBetaSupportUrl();
 
     const openWebview = (url: string) =>
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url,
-          title: strings('app_settings.contact_support'),
-        },
-      });
+      openContactSupportWebview(navigation, url);
 
     if (betaSupportUrl) {
       openWebview(betaSupportUrl);

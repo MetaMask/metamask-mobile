@@ -1276,6 +1276,16 @@ export const PerpsMarginModeBottomSheetSelectorsIDs = {
   CROSS_OPTION: 'perps-margin-mode-cross',
 } as const;
 
+export const PerpsCrossMarginConfirmBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-cross-margin-confirm-bottom-sheet',
+  CLOSE_BUTTON: 'perps-cross-margin-confirm-bottom-sheet-close',
+  COLLATERAL_ITEM: 'perps-cross-margin-confirm-collateral',
+  LIQUIDATION_ITEM: 'perps-cross-margin-confirm-liquidation',
+  MARGIN_ITEM: 'perps-cross-margin-confirm-margin',
+  GO_BACK_BUTTON: 'perps-cross-margin-confirm-go-back',
+  CONFIRM_BUTTON: 'perps-cross-margin-confirm-confirm',
+} as const;
+
 export const PerpsLeverageBottomSheetSelectorsIDs = {
   PICKER: 'perps-leverage-picker',
   PICKER_ITEM: 'perps-leverage-picker-item',
