@@ -122,6 +122,7 @@ export type CardOnboardingStackParamList = {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
+  CardOnboardingImmersveKYC: { url: string; redirectUrl: string };
 };
 
 /**
@@ -145,7 +146,6 @@ export type CardModalsNavigationParamList = {
     callerParams?: Record<string, unknown>;
   };
   CardWaitlistFormModal: { url: string };
-  CardImmersveKYCModal: { url: string; redirectUrl: string };
   CardForgotPasswordModal: { location?: 'us' | 'international' } | undefined;
   CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
   CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;

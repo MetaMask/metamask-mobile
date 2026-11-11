@@ -132,7 +132,6 @@ describe('useEnsureCardNetworkExists', () => {
               url: expect.stringContaining(
                 'https://monad-mainnet.infura.io/v3/',
               ),
-              failoverUrls: expect.any(Array),
               name: 'Monad',
               type: RpcEndpointType.Custom,
             },
@@ -246,7 +245,6 @@ describe('useEnsureCardNetworkExists', () => {
               url: expect.stringContaining(
                 'https://base-sepolia.infura.io/v3/',
               ),
-              failoverUrls: undefined,
               name: 'Base Sepolia',
               type: RpcEndpointType.Custom,
             },

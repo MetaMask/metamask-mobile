@@ -1,9 +1,7 @@
 import React from 'react';
 import { Pressable } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
-import styleSheet, {
-  getFontSizeForConfirmationAmount,
-} from './custom-amount.styles';
+import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useSelector } from 'react-redux';
@@ -11,6 +9,7 @@ import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateC
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import {
   AnimatedAmountDisplay,
+  getFontSizeForInputLength,
   useAmountCursorStyle,
 } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import {
@@ -20,6 +19,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { parseAmountWithAssistiveDecimals } from './custom-amount.utils';
 import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
+
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -54,9 +55,12 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     isEditing,
   );
 
-  const amountLength = typedText.length + assistiveText.length;
+  const amountLength =
+    typedText.length +
+    assistiveText.length +
+    INPUT_SIDE_MARGIN_CHARACTER_RESERVE;
   const amountCursorStyle = useAmountCursorStyle(
-    getFontSizeForConfirmationAmount(amountLength),
+    getFontSizeForInputLength(amountLength),
   );
 
   const { styles } = useStyles(styleSheet, {

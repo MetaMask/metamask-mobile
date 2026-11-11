@@ -8,9 +8,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 
 interface Props {
@@ -27,9 +25,7 @@ export const QuoteList = ({ data }: Props) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   let nonEvmMultichainAssetRates = {};
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
   return data.map(({ provider, ...quote }) => (
     <QuoteRowView

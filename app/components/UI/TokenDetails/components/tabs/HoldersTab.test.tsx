@@ -24,6 +24,24 @@ jest.mock(
   }),
 );
 
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+  useIsFocused: () => true,
+}));
+
+const mockHasAcceptedSocialTerms = jest.fn(() => true);
+const mockEnsureSocialTermsAccepted = jest.fn((_navigate: unknown) => false);
+jest.mock(
+  '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance',
+  () => ({
+    hasAcceptedSocialTerms: () => mockHasAcceptedSocialTerms(),
+    ensureSocialTermsAccepted: (navigate: unknown) =>
+      mockEnsureSocialTermsAccepted(navigate),
+  }),
+);
+
 jest.mock('./holders/useTokenHolders', () => ({
   useTokenHolders: jest.fn(),
 }));
@@ -94,6 +112,7 @@ const textColor = (node: {
 describe('TokenDetailsHoldersTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasAcceptedSocialTerms.mockReturnValue(true);
     mockSelectEnabled.mockReturnValue(true);
     mockState();
   });
@@ -266,5 +285,32 @@ describe('TokenDetailsHoldersTab', () => {
     expect(mockLoadMoreOptions).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
+  });
+
+  describe('social onboarding', () => {
+    it('opens Social terms / onboarding when a row is tapped before onboarding', () => {
+      mockHasAcceptedSocialTerms.mockReturnValue(false);
+      mockState({ rows: [toRow(0), toRow(1)] });
+
+      renderTab();
+      const rows = screen.getAllByTestId(TokenHolderRowSelectorsIDs.PRESS);
+      fireEvent.press(rows[1]);
+
+      expect(rows).toHaveLength(2);
+      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledTimes(1);
+      expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    });
+
+    it('keeps rows inert once the user has onboarded', () => {
+      mockState({ rows: [toRow(0)] });
+
+      renderTab();
+
+      expect(
+        screen.getByTestId(TokenHolderRowSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(TokenHolderRowSelectorsIDs.PRESS)).toBeNull();
+      expect(mockEnsureSocialTermsAccepted).not.toHaveBeenCalled();
+    });
   });
 });

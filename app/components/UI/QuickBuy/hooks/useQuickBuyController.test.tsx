@@ -115,6 +115,10 @@ jest.mock('../../../../util/theme', () => ({
   useTheme: jest.fn(() => ({ colors: {} })),
 }));
 
+jest.mock('../../Bridge/hooks/useInsufficientNativeReserveError', () => ({
+  useInsufficientNativeReserveError: jest.fn(),
+}));
+
 jest.mock('../../Bridge/hooks/useHasSufficientGas', () => ({
   useHasSufficientGas: jest.fn(),
 }));
@@ -246,6 +250,8 @@ jest.mock('../../Bridge/hooks/usePriceImpactViewData', () => ({
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 
@@ -289,6 +295,11 @@ jest.mock('../resolveQuickBuyTerminalToast', () => ({
 jest.mock(
   '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
   () => ({ usePostTradePromptResolver: jest.fn() }),
+);
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens',
+  () => ({ isUnsupportedPostTradeAsset: jest.fn(() => false) }),
 );
 
 jest.mock('../../../../util/haptics', () => ({
