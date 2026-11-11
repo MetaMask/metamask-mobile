@@ -480,7 +480,7 @@ const RewardsDashboard: React.FC = () => {
                   <TabEmptyState
                     icon={
                       <AvatarIcon
-                        iconName={IconName.Activity}
+                        iconName={IconName.People}
                         size={AvatarIconSize.Xl}
                         severity={AvatarIconSeverity.Neutral}
                         iconProps={{ color: IconColor.IconDefault }}
