@@ -33,6 +33,7 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../UI/Money/constants/moneyEvents';
+import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -155,6 +156,10 @@ jest.mock('../../../selectors/cardController', () => ({
   selectCardActiveProviderId: jest.fn(),
 }));
 
+jest.mock('../../UI/Money/selectors/eligibility', () => ({
+  selectIsMoneyAccountGeoEligible: jest.fn(),
+}));
+
 jest.mock('../../../selectors/notifications', () => ({
   selectIsMetamaskNotificationsEnabled: jest.fn(),
   getMetamaskNotificationsUnreadCount: jest.fn(),
@@ -176,6 +181,8 @@ const mockUseHasProMembership = jest.fn(() => false);
 jest.mock('../../../hooks/useHasProMembership', () => ({
   useHasProMembership: () => mockUseHasProMembership(),
 }));
+
+let mockIsMoneyAccountGeoEligible = true;
 
 const mockTrackButtonClicked = jest.fn();
 jest.mock('../../UI/Money/hooks/useMoneyAnalytics', () => ({
@@ -224,6 +231,7 @@ describe('AccountsMenu', () => {
       isProSubscriptionEnabled: false,
     });
     mockUseHasProMembership.mockReturnValue(false);
+    mockIsMoneyAccountGeoEligible = true;
     mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
     mockActiveProviderId = 'baanx';
     mockUseCardUkMigrationState.mockReturnValue({
@@ -245,6 +253,10 @@ describe('AccountsMenu', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectCardActiveProviderId) {
         return mockActiveProviderId;
+      }
+
+      if (selector === selectIsMoneyAccountGeoEligible) {
+        return mockIsMoneyAccountGeoEligible;
       }
 
       const mockState = {
@@ -824,6 +836,33 @@ describe('AccountsMenu', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
         source: 'accounts_menu',
       });
+    });
+
+    it('hides the join row when the country is geo-blocked', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockIsMoneyAccountGeoEligible = false;
+
+      const { queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the member row when the country is geo-blocked', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockUseHasProMembership.mockReturnValue(true);
+      mockIsMoneyAccountGeoEligible = false;
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).toHaveTextContent('accounts_menu.metamask_orange');
     });
 
     it('labels a member MetaMask Orange and opens the hub', () => {

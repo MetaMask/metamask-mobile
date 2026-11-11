@@ -4,7 +4,15 @@ import type { NavigationState } from '@react-navigation/native';
 import ProSubscription from './ProSubscription';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
+import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
+import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import Routes from '../../../constants/navigation/Routes';
+
+const mockUseSelector = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
 
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
@@ -146,6 +154,15 @@ describe('ProSubscription', () => {
     jest.clearAllMocks();
     mockRoute.params = {};
     mockGetSubscriptions.mockResolvedValue([]);
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectIsMoneyAccountGeoEligible) {
+        return true;
+      }
+      if (selector === getDetectedGeolocation) {
+        return 'US';
+      }
+      return undefined;
+    });
     mockUseMoneyAccountPlusAccess.mockReturnValue(
       MoneyAccountPlusAccess.Eligible,
     );
@@ -167,6 +184,57 @@ describe('ProSubscription', () => {
       render(<ProSubscription />);
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('navigates back when a resolved country is geo-blocked', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectIsMoneyAccountGeoEligible) {
+          return false;
+        }
+        if (selector === getDetectedGeolocation) {
+          return 'GB';
+        }
+        return undefined;
+      });
+
+      render(<ProSubscription />);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps Benefits visible while geolocation is still unknown', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectIsMoneyAccountGeoEligible) {
+          return false;
+        }
+        if (selector === getDetectedGeolocation) {
+          return undefined;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = render(<ProSubscription />);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getByTestId('mock-benefits')).toBeOnTheScreen();
+    });
+
+    it('sends a geo-blocked member to the hub', () => {
+      mockUseHasProMembership.mockReturnValue(true);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectIsMoneyAccountGeoEligible) {
+          return false;
+        }
+        if (selector === getDetectedGeolocation) {
+          return 'GB';
+        }
+        return undefined;
+      });
+
+      render(<ProSubscription />);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expectProHubReplacesSubscriptionModal();
     });
 
     it('sends an existing member straight to the hub', () => {
