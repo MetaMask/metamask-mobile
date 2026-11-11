@@ -1251,6 +1251,8 @@ describe('PredictOrderFlow', () => {
           price: '0.4651',
           time_in_force: 'immediate_or_cancel',
           self_trade_prevention_type: 'taker_at_cross',
+          // A buy opens YES; only a sell is reduce-only.
+          reduce_only: false,
         },
       },
     ]);
@@ -1625,6 +1627,7 @@ describe('PredictOrderFlow', () => {
       price: '0.4651',
       time_in_force: 'immediate_or_cancel',
       self_trade_prevention_type: 'taker_at_cross',
+      reduce_only: false,
     });
     expect(commitCalls()[1]?.body).toEqual(commitCalls()[0]?.body);
   }, 30000);
