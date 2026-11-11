@@ -1,6 +1,9 @@
-import type { FeedResponse } from '@metamask/social-controllers';
+import type {
+  FeedResponse,
+  FetchFeedOptions,
+} from '@metamask/social-controllers';
 import Engine from '../../../../core/Engine';
-import type { SocialFeedRequest } from './socialFeedSource';
+import type { FeedScope, SocialFeedRequest } from './socialFeedSource';
 
 /** Page size requested per feed page. */
 export const FEED_PAGE_LIMIT = 30;
@@ -45,27 +48,30 @@ export const buildSocialFeedQueryKey = (
 ];
 
 /**
- * Partial key matching every cached `following` feed, whatever its chains,
- * page size, or whether `useSocialFeed` or V0's `useTraderFeed` built it.
+ * Partial keys matching every cached feed of the viewer's follow graph,
+ * whatever its chains or page size: V0's `following` (`useTraderFeed`) and
+ * V1's `following_v1`.
  */
-export const FOLLOWING_FEED_QUERY_KEY_PREFIX = [
-  'SocialService:fetchFeed',
-  { scope: 'following' },
-] as const;
+export const FOLLOWING_FEED_QUERY_KEY_PREFIXES = (
+  ['following', 'following_v1'] as const satisfies readonly FeedScope[]
+).map((scope) => ['SocialService:fetchFeed', { scope }] as const);
 
 /**
- * Refetches the viewer's `following` feed after their follow graph changes.
- * The UI client forwards the invalidation to `SocialService`, so its own cache
- * cannot serve the old page back. `ReactQueryService` is imported lazily to
+ * Refetches the viewer's following feeds after their follow graph changes.
+ * The UI client forwards each invalidation to `SocialService`, so its own
+ * cache cannot serve the old page back. A key, not a predicate, because only
+ * the key crosses the messenger. `ReactQueryService` is imported lazily to
  * keep it out of this module's load-time import graph.
  */
 export const invalidateFollowingFeed = async (): Promise<void> => {
   const { default: ReactQueryService } = await import(
     '../../../../core/ReactQueryService'
   );
-  await ReactQueryService.queryClient.invalidateQueries({
-    queryKey: FOLLOWING_FEED_QUERY_KEY_PREFIX,
-  });
+  await Promise.all(
+    FOLLOWING_FEED_QUERY_KEY_PREFIXES.map((queryKey) =>
+      ReactQueryService.queryClient.invalidateQueries({ queryKey }),
+    ),
+  );
 };
 
 /**
@@ -82,9 +88,12 @@ export const fetchSocialFeedPage = (
   const paging = olderThan ? { limit, olderThan } : { limit };
   switch (request.action) {
     case 'SocialService:fetchFeed': {
-      const { chains, assetIds, ...options } = request.options;
+      const { scope, chains, assetIds, ...options } = request.options;
       return Engine.controllerMessenger.call('SocialService:fetchFeed', {
         ...options,
+        // `fetchFeed` sends the scope as given; the installed types predate
+        // `following_v1`.
+        scope: scope as NonNullable<FetchFeedOptions['scope']>,
         chains: [...chains],
         ...(assetIds ? { assetIds: [...assetIds] } : {}),
         ...paging,

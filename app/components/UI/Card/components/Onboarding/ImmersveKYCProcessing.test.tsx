@@ -1,4 +1,5 @@
 import React from 'react';
+import { StatusBar } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import ImmersveKYCProcessing from './ImmersveKYCProcessing';
@@ -13,6 +14,7 @@ import {
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useFocusEffect: (effect: () => void) => effect(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -92,10 +94,63 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn((className?: string) => ({ className })),
+  }),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../hooks/useCardHeaderHandlers', () => ({
+  useCardHeaderHandlers: () => ({
+    onClose: jest.fn(),
+    closeButtonProps: { testID: 'card-header-close-button' },
+  }),
+}));
+
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () =>
+        ReactActual.createElement(View, { testID: 'header-standard-glass' }),
+    };
+  },
+);
+
+jest.mock('./ImmersveVerifyingIdentityAnimation', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'immersve-verifying-identity-animation',
+      }),
+  };
+});
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    Box: ({
+      children,
+      testID,
+      ...p
+    }: React.PropsWithChildren<{ testID?: string }>) =>
+      ReactActual.createElement(View, { testID, ...p }, children),
+    BoxAlignItems: { Center: 'Center' },
+    BoxJustifyContent: { Center: 'Center', End: 'End' },
     // Added for the CARD-682 layout pass (CardFormField / HelpText / TextButton).
     HelpText: ({
       children,
@@ -132,10 +187,32 @@ jest.mock('@metamask/design-system-react-native', () => {
       ErrorDefault: 'ErrorDefault',
     },
     FontWeight: { Medium: '500', Regular: '400' },
-    Box: ({ children, ...p }: React.PropsWithChildren<object>) =>
-      ReactActual.createElement(View, p, children),
     Text: ({ children, ...p }: React.PropsWithChildren<object>) =>
       ReactActual.createElement(Text, p, children),
+    TitleStandard: ({
+      title,
+      bottomLabel,
+      titleProps,
+      bottomLabelProps,
+      topAccessory,
+    }: {
+      title?: string;
+      bottomLabel?: string;
+      titleProps?: { testID?: string };
+      bottomLabelProps?: { testID?: string };
+      topAccessory?: React.ReactNode;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'title-standard' },
+        topAccessory,
+        ReactActual.createElement(Text, { testID: titleProps?.testID }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: bottomLabelProps?.testID },
+          bottomLabel,
+        ),
+      ),
     Button: ({
       children,
       onPress,
@@ -163,6 +240,7 @@ const POLLING_TIMEOUT_MS = 30000;
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockDispatch = jest.fn();
 
 const setNextAction = (
   nextAction: ImmersveNextAction | null,
@@ -187,6 +265,7 @@ describe('ImmersveKYCProcessing', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,
+      dispatch: mockDispatch,
     });
     (useImmersveOnboardingRouter as jest.Mock).mockReturnValue(mockRoute);
     setNextAction(null);
@@ -197,9 +276,14 @@ describe('ImmersveKYCProcessing', () => {
   });
 
   it('polls on mount and renders the spinner', () => {
+    const setBarStyle = jest
+      .spyOn(StatusBar, 'setBarStyle')
+      .mockImplementation(() => undefined);
     const { getByTestId } = render(<ImmersveKYCProcessing />);
     expect(mockRefresh).toHaveBeenCalled();
     expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(setBarStyle).toHaveBeenCalledWith('dark-content', true);
+    setBarStyle.mockRestore();
   });
 
   it('opens the KYC webview modal once when action is kyc', () => {
@@ -245,7 +329,7 @@ describe('ImmersveKYCProcessing', () => {
     expect(mockRoute).not.toHaveBeenCalled();
   });
 
-  it('holds a pending KYC on this screen instead of funding, then times out to KYC_PENDING', () => {
+  it('holds a pending KYC on this screen instead of funding, then times out to Card home', () => {
     const nextAction = deriveNextImmersveAction([
       {
         stage: 'funding',
@@ -274,21 +358,23 @@ describe('ImmersveKYCProcessing', () => {
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+      routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
     });
     expect(mockRoute).not.toHaveBeenCalled();
   });
 
-  it('resets to KYC_PENDING after the pending timeout', () => {
+  it('goes to Card home after the pending timeout', () => {
     setNextAction({ type: 'pending' });
     render(<ImmersveKYCProcessing />);
 
+    jest.advanceTimersByTime(POLLING_TIMEOUT_MS - 1);
     expect(mockReset).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+
+    jest.advanceTimersByTime(1);
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+      routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
     });
   });
 
@@ -395,7 +481,7 @@ describe('ImmersveKYCProcessing', () => {
     );
   });
 
-  it('prompts (with the illustration) instead of auto-opening for KYC_NOT_COMPLETED', () => {
+  it('prompts instead of auto-opening for KYC_NOT_COMPLETED', () => {
     setNextAction({
       type: 'kyc',
       url: 'https://verify.immersve.com/abc',
@@ -406,6 +492,7 @@ describe('ImmersveKYCProcessing', () => {
     // Backend told us the user bailed → prompt, never silently reopen.
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(getByTestId('immersve-kyc-processing-illustration')).toBeTruthy();
+    expect(getByTestId('immersve-verifying-identity-animation')).toBeTruthy();
     expect(getByTestId('immersve-kyc-processing-reopen-button')).toBeTruthy();
     expect(getByTestId('onboarding-title').props.children).toBe(
       'card.card_onboarding.immersve_kyc_processing.incomplete_title',

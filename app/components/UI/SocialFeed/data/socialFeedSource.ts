@@ -18,8 +18,13 @@ import {
 import { chainNameToId } from '../utils/chainMapping';
 import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 
-/** The feed `SocialService:fetchFeed` serves: `following`, `leaderboard`, `all`, or `trending`. */
-export type FeedScope = NonNullable<FetchFeedOptions['scope']>;
+/**
+ * The feed `SocialService:fetchFeed` serves: `following`, `following_v1`,
+ * `leaderboard`, `all`, or `trending`. `following_v1` is the following feed in
+ * the shape of `all`: one item per post, ordered by `occurredAt`. The installed
+ * `@metamask/social-controllers` does not list it yet.
+ */
+export type FeedScope = NonNullable<FetchFeedOptions['scope']> | 'following_v1';
 
 /**
  * A slice of the social feed, as `SocialService:fetchFeed` filters it. Plain
@@ -73,8 +78,10 @@ type Paged = 'limit' | 'olderThan' | 'newerThan';
 export type SocialFeedRequest =
   | {
       action: 'SocialService:fetchFeed';
-      options: Required<Pick<FetchFeedOptions, 'scope'>> &
-        Pick<FetchFeedOptions, 'profileId' | 'commentedOnly'> & {
+      options: { scope: FeedScope } & Pick<
+        FetchFeedOptions,
+        'profileId' | 'commentedOnly'
+      > & {
           chains: readonly CaipChainId[];
           assetIds?: readonly CaipAssetType[];
         };
@@ -272,10 +279,12 @@ const coversEveryFeedChain = (chains: readonly CaipChainId[]): boolean =>
   FEED_CAIP2_CHAINS.every((chain) => chains.includes(chain));
 
 /**
- * The socket channel that streams a request, or `null` when none does. Only
- * an unnarrowed `all` or `trending` feed qualifies: socket events are not
- * filtered by chain, asset or trader, so a narrowed feed would receive rows
- * it should not show. There is no channel for `following` or `leaderboard`.
+ * The socket channel that streams a request, or `null` when none does.
+ *
+ * An unnarrowed `all` or `trending` feed uses its own channel. A commented
+ * profile feed has no channel, so it leases `all` and the reader drops every
+ * other trader. Asset and chain filters stay off the socket: those events are
+ * not narrowed, and there is no channel for `following` or `leaderboard`.
  */
 export const toSocialFeedRealtimeScope = (
   request: SocialFeedRequest | null,
@@ -284,12 +293,13 @@ export const toSocialFeedRealtimeScope = (
     return null;
   }
   const { scope, chains, assetIds, profileId, commentedOnly } = request.options;
-  if (
-    assetIds !== undefined ||
-    profileId !== undefined ||
-    commentedOnly === true ||
-    !coversEveryFeedChain(chains)
-  ) {
+  if (assetIds !== undefined || !coversEveryFeedChain(chains)) {
+    return null;
+  }
+  if (profileId !== undefined) {
+    return scope === 'all' && commentedOnly === true ? 'all' : null;
+  }
+  if (commentedOnly === true) {
     return null;
   }
   return scope === 'all' || scope === 'trending' ? scope : null;

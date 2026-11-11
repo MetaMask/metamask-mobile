@@ -269,6 +269,11 @@ describe('toSocialFeedRealtimeScope', () => {
       'all',
     ],
     ['an empty asset filter', { scope: 'all', assetIds: [] }, 'all'],
+    [
+      "one trader's comments",
+      { scope: 'all', profileId: 'profile-1', commentedOnly: true },
+      'all',
+    ],
   ])('streams %s', (_label, query, expected) => {
     expect(realtimeScopeOf(query)).toBe(expected);
   });
@@ -284,7 +289,19 @@ describe('toSocialFeedRealtimeScope', () => {
       'a feed filtered by asset',
       { scope: 'trending', assetIds: ['eip155:999/perp:BTC'] },
     ],
-    ['one trader', { scope: 'all', profileId: 'profile-1' }],
+    [
+      'one trader on a narrowed chain list',
+      { scope: 'all', profileId: 'profile-1', chains: ['eip155:999'] },
+    ],
+    ['one trader without comments', { scope: 'all', profileId: 'profile-1' }],
+    [
+      'one trader filtered by asset',
+      {
+        scope: 'all',
+        profileId: 'profile-1',
+        assetIds: ['eip155:999/perp:BTC'],
+      },
+    ],
     ['commented positions only', { scope: 'all', commentedOnly: true }],
     ['a perp market', { kind: 'perp', symbol: 'BTC' }],
     ['a trader', { kind: 'trader', addressOrId: 'profile-1' }],

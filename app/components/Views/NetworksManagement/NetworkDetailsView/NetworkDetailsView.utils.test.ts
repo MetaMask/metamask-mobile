@@ -111,7 +111,6 @@ describe('NetworkDetailsView.utils', () => {
     const editFormFixture = (): NetworkFormState =>
       ({
         rpcUrl: 'https://existing.com',
-        failoverRpcUrls: ['https://failover.com'],
         rpcName: 'Old',
         rpcUrlForm: 'typed',
         rpcNameForm: 'typedName',
@@ -133,7 +132,7 @@ describe('NetworkDetailsView.utils', () => {
         addMode: false,
       }) as NetworkFormState;
 
-    it('appends endpoint, selects it, clears sheet fields and failover', () => {
+    it('appends endpoint, selects it, clears sheet fields', () => {
       const prev = editFormFixture();
       const next = appendRpcItemToFormState(prev, 'https://new.com', 'New');
 
@@ -145,7 +144,6 @@ describe('NetworkDetailsView.utils', () => {
       });
       expect(next.rpcUrl).toBe('https://new.com');
       expect(next.rpcName).toBe('New');
-      expect(next.failoverRpcUrls).toBeUndefined();
       expect(next.rpcUrlForm).toBe('');
       expect(next.rpcNameForm).toBe('');
     });
@@ -164,18 +162,15 @@ describe('NetworkDetailsView.utils', () => {
           { url: 'https://a.com', name: 'A', type: RpcEndpointType.Custom },
         ],
         rpcName: 'A',
-        failoverRpcUrls: undefined,
       } as NetworkFormState;
       const next = applyRpcSelectionToFormState(
         prev,
         'https://b.com',
-        ['https://f.com'],
         '',
         'Custom',
       );
       expect(next.rpcUrl).toBe('https://b.com');
       expect(next.rpcName).toBe('Custom');
-      expect(next.failoverRpcUrls).toEqual(['https://f.com']);
     });
   });
 
@@ -199,7 +194,6 @@ describe('NetworkDetailsView.utils', () => {
       const prev = {
         rpcUrl: 'https://only.com',
         rpcName: 'Only',
-        failoverRpcUrls: ['https://fail.com'],
         rpcUrls: [
           {
             url: 'https://only.com',
@@ -212,7 +206,6 @@ describe('NetworkDetailsView.utils', () => {
       expect(next.rpcUrls).toEqual([]);
       expect(next.rpcUrl).toBeUndefined();
       expect(next.rpcName).toBeUndefined();
-      expect(next.failoverRpcUrls).toBeUndefined();
     });
   });
 
@@ -279,7 +272,6 @@ describe('NetworkDetailsView.utils', () => {
     ): NetworkFormState =>
       ({
         rpcUrl: 'https://rpc.example.com',
-        failoverRpcUrls: undefined,
         rpcName: 'R',
         rpcUrlForm: '',
         rpcNameForm: '',
