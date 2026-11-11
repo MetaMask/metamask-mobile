@@ -1486,7 +1486,7 @@ describe('SocialPostComposerView', () => {
       mockIsProfileTradingActivityPrivate = false;
     });
 
-    it('handles a private profile by rendering the private state instead of the editor', () => {
+    it('shows the private state instead of the editor for a private profile', () => {
       renderWithProvider(<SocialPostComposerView />);
 
       expect(
@@ -1503,7 +1503,7 @@ describe('SocialPostComposerView', () => {
       ).toBeNull();
     });
 
-    it('handles the privacy settings CTA by opening trading activity settings', () => {
+    it('opens trading activity settings from the privacy settings button', () => {
       renderWithProvider(<SocialPostComposerView />);
 
       fireEvent.press(
@@ -1522,7 +1522,7 @@ describe('SocialPostComposerView', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('handles close by going back', () => {
+    it('goes back when the close button is pressed', () => {
       renderWithProvider(<SocialPostComposerView />);
 
       fireEvent.press(
@@ -1536,7 +1536,7 @@ describe('SocialPostComposerView', () => {
       );
     });
 
-    it('handles a post-trade entry without resolving the trade or submitting', () => {
+    it('shows the private state for a post-trade entry without submitting', () => {
       mockRouteParams = {
         tradeInFlight: {
           orderId: '42',
@@ -1552,6 +1552,21 @@ describe('SocialPostComposerView', () => {
       ).toBeOnTheScreen();
       expect(mockCreateSwapComment).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('shows the editor when the composer opens again after the profile goes public', () => {
+      const { unmount } = renderWithProvider(<SocialPostComposerView />);
+
+      unmount();
+      mockIsProfileTradingActivityPrivate = false;
+      renderWithProvider(<SocialPostComposerView />);
+
+      expect(
+        screen.queryByTestId(SocialPostComposerViewSelectorsIDs.PRIVATE_STATE),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      ).toBeOnTheScreen();
     });
   });
 });
