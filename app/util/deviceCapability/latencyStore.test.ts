@@ -112,7 +112,7 @@ describe('latencyStore', () => {
     emitAppState('active');
 
     expect(store.getLatencySnapshot()).toBe('unknown');
-    expect(store.getLatencyDebugSnapshot(NOW_MS).sampleCount).toBe(0);
+    expect(store.getLatencyDebugSnapshot().sampleCount).toBe(0);
   });
 
   it('keeps samples through inactive', () => {
@@ -147,13 +147,13 @@ describe('latencyStore', () => {
 
     expect(store.isLatencyTransportNone()).toBe(true);
     expect(store.getLatencySnapshot()).toBe('unknown');
-    expect(store.getLatencyDebugSnapshot(NOW_MS).sampleCount).toBe(0);
+    expect(store.getLatencyDebugSnapshot().sampleCount).toBe(0);
   });
 
   it('reports the debug values for the hardware row in use', () => {
     [300, 8000, 500].forEach((duration) => record(duration));
 
-    const result = store.getLatencyDebugSnapshot(NOW_MS);
+    const result = store.getLatencyDebugSnapshot();
 
     expect(result).toEqual({
       bucket: 'ok',
@@ -171,16 +171,16 @@ describe('latencyStore', () => {
 
   it('reports cellular generation and other NetInfo types', () => {
     emitNetInfo(netInfoState('cellular', true, { cellularGeneration: '5g' }));
-    expect(store.getLatencyDebugSnapshot(NOW_MS).transportLabel).toBe('5g');
+    expect(store.getLatencyDebugSnapshot().transportLabel).toBe('5g');
 
     emitNetInfo(netInfoState('vpn'));
-    expect(store.getLatencyDebugSnapshot(NOW_MS).transportLabel).toBe('vpn');
+    expect(store.getLatencyDebugSnapshot().transportLabel).toBe('vpn');
   });
 
   it('uses the MID row for unknown hardware', () => {
     store.startLatencyMonitoring(null);
 
-    const result = store.getLatencyDebugSnapshot(NOW_MS);
+    const result = store.getLatencyDebugSnapshot();
 
     expect(result.hardwareRow).toBe('MID');
     expect(store.getLatencyThresholds()).toEqual({

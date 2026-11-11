@@ -64,7 +64,6 @@ export function recordFetchSample(sample: LatencySample): void {
     computeLatencyBucket({
       previous: bucket,
       samples,
-      nowMs: sample.atMs,
       thresholds,
     }),
   );
@@ -90,12 +89,9 @@ export function isLatencyTransportNone(): boolean {
   return isTransportNone;
 }
 
-export function getLatencyDebugSnapshot(
-  nowMs: number = Date.now(),
-): LatencyDebugSnapshot {
+export function getLatencyDebugSnapshot(): LatencyDebugSnapshot {
   const { recent, hungCount, medianMs } = summarizeLatencySamples({
     samples,
-    nowMs,
     thresholds,
   });
   return {

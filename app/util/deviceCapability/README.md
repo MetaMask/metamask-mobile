@@ -38,7 +38,7 @@ Maps `useNetInfo()` in the calling component, then folds in measured fetch laten
 
 **Transport tier** (`transportTier`) comes from NetInfo: 2g / 3g are `SLOW_CELLULAR`, `wifi` / `ethernet` are `WIFI`, 4g / 5g are `FAST_CELLULAR`.
 
-**Measured latency** (`latency`: `'unknown' | 'ok' | 'slow'`) comes from an in-memory window over production `global.fetch` (`app/core/NitroFetchSetup.ts`, `latencyStore.ts`). `slow` is entered when two of the newest five calls in the last 60 s pass the hardware row's `hungMs`, or when at least three calls have a median above its `slowMs`. It is left only after three good calls in a row, and never on age-out. Backgrounding then resuming, or a NetInfo transport change, resets it to `unknown`. Samples hold only `{ atMs, durationMs }` — no URL, hostname, headers, or body — and never go to Redux, Sentry, or analytics.
+**Measured latency** (`latency`: `'unknown' | 'ok' | 'slow'`) comes from the newest in-memory samples over production `global.fetch` (`app/core/NitroFetchSetup.ts`, `latencyStore.ts`). The newest five decide, however far apart they are. `slow` is entered when two of those calls pass the hardware row's `hungMs`, or when at least three calls have a median above its `slowMs`. It is left only after three good calls in a row. Samples leave only when a newer one replaces them or a clear runs. Backgrounding then resuming, or a NetInfo transport change, resets it to `unknown`. Samples hold only `{ atMs, durationMs }` — no URL, hostname, headers, or body — and never go to Redux, Sentry, or analytics.
 
 **Fold** (`tier`): `NONE` transport stays `NONE` (latency reported `unknown`). Latency `slow` forces `SLOW_CELLULAR` on every other transport, including `WIFI`, `FAST_CELLULAR`, and `null`, on every hardware tier, in every country. Otherwise `tier` is the transport tier. A trace that needs the cause reads `transportTier` and `latency`; `latency === 'slow'` is the measured-latency trigger, since `tier === 'SLOW_CELLULAR'` also matches 2g / 3g.
 
@@ -107,7 +107,7 @@ Not sampled: `stream: true` fetches, `nitroPrefetched` cache hits, an `AbortErro
 | `latencyStore.ts`                                  | In-memory samples, bucket, and reset listeners |
 | `index.ts`                                         | `getHardwareTier()`                            |
 | `app/hooks/useNetworkTier.ts`                      | Hook over `useNetInfo()` and the latency store |
-| `app/components/Views/Root/LatencyDebugSquare.tsx` | `__DEV__` overlay with the latency window      |
+| `app/components/Views/Root/LatencyDebugSquare.tsx` | `__DEV__` overlay with the latency samples     |
 
 ## Out of scope (this module)
 

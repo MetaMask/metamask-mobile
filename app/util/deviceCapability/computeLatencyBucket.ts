@@ -3,13 +3,11 @@ import {
   LATENCY_HUNG_TO_ENTER,
   LATENCY_MIN_SAMPLES,
   LATENCY_SAMPLE_SIZE,
-  LATENCY_WINDOW_MS,
 } from './thresholds';
 import type { LatencyBucket, LatencySample, LatencyThresholds } from './types';
 
-interface LatencyWindowInput {
+interface LatencySamplesInput {
   samples: readonly LatencySample[];
-  nowMs: number;
   thresholds: LatencyThresholds;
 }
 
@@ -20,17 +18,14 @@ export interface LatencySummary {
 }
 
 /**
- * Newest `LATENCY_SAMPLE_SIZE` samples inside the last `LATENCY_WINDOW_MS`,
- * with their hung count and median. `samples` must be oldest first.
+ * Newest `LATENCY_SAMPLE_SIZE` samples, with their hung count and median.
+ * `samples` must be oldest first. Age does not drop a sample.
  */
 export function summarizeLatencySamples({
   samples,
-  nowMs,
   thresholds,
-}: LatencyWindowInput): LatencySummary {
-  const recent = samples
-    .filter(({ atMs }) => nowMs - atMs <= LATENCY_WINDOW_MS)
-    .slice(-LATENCY_SAMPLE_SIZE);
+}: LatencySamplesInput): LatencySummary {
+  const recent = samples.slice(-LATENCY_SAMPLE_SIZE);
   const hungCount = recent.filter(
     ({ durationMs }) => durationMs >= thresholds.hungMs,
   ).length;
@@ -52,16 +47,15 @@ export function summarizeLatencySamples({
 
 /**
  * Next latency bucket. `slow` is entered on two hung samples or a slow median,
- * and left only when the newest three recent samples are all good. Ageing out
- * never releases `slow`.
+ * and left only when the newest three recent samples are all good.
  */
 export function computeLatencyBucket({
   previous,
-  ...latencyWindow
-}: LatencyWindowInput & { previous: LatencyBucket }): LatencyBucket {
+  ...latencySamples
+}: LatencySamplesInput & { previous: LatencyBucket }): LatencyBucket {
   const { recent, hungCount, medianMs } =
-    summarizeLatencySamples(latencyWindow);
-  const { slowMs } = latencyWindow.thresholds;
+    summarizeLatencySamples(latencySamples);
+  const { slowMs } = latencySamples.thresholds;
 
   if (previous === 'slow') {
     const newest = recent.slice(-LATENCY_GOOD_TO_EXIT);

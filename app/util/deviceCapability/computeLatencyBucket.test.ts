@@ -7,10 +7,10 @@ import type { LatencyBucket, LatencySample } from './types';
 
 const NOW_MS = 1_000_000;
 
-/** Samples one second apart, oldest first, ending at `NOW_MS`. */
-const samplesOf = (durations: number[]): LatencySample[] =>
+/** Samples spaced by `gapMs`, oldest first, ending at `NOW_MS`. */
+const samplesOf = (durations: number[], gapMs = 1000): LatencySample[] =>
   durations.map((durationMs, index) => ({
-    atMs: NOW_MS - (durations.length - 1 - index) * 1000,
+    atMs: NOW_MS - (durations.length - 1 - index) * gapMs,
     durationMs,
   }));
 
@@ -18,11 +18,11 @@ const bucketFor = (
   durations: number[],
   previous: LatencyBucket = 'unknown',
   thresholds = LATENCY_THRESHOLDS.HIGH,
+  gapMs = 1000,
 ) =>
   computeLatencyBucket({
     previous,
-    samples: samplesOf(durations),
-    nowMs: NOW_MS,
+    samples: samplesOf(durations, gapMs),
     thresholds,
   });
 
@@ -34,6 +34,17 @@ describe('computeLatencyBucket', () => {
 
     it('enters slow on three 2600 ms samples', () => {
       expect(bucketFor([2600, 2600, 2600])).toBe('slow');
+    });
+
+    it('enters slow on three 2600 ms samples one minute apart', () => {
+      expect(
+        bucketFor(
+          [2600, 2600, 2600],
+          'unknown',
+          LATENCY_THRESHOLDS.HIGH,
+          60_000,
+        ),
+      ).toBe('slow');
     });
 
     it('gives ok on three 2400 ms samples', () => {
@@ -74,19 +85,14 @@ describe('computeLatencyBucket', () => {
       expect(bucketFor([8000, 8000, 300, 300, 300], 'slow')).toBe('ok');
     });
 
-    it('stays slow with fewer than three samples', () => {
-      expect(bucketFor([300, 300], 'slow')).toBe('slow');
+    it('gives ok on three good samples one minute apart', () => {
+      expect(
+        bucketFor([300, 300, 300], 'slow', LATENCY_THRESHOLDS.HIGH, 60_000),
+      ).toBe('ok');
     });
 
-    it('stays slow when every sample has aged out', () => {
-      const result = computeLatencyBucket({
-        previous: 'slow',
-        samples: samplesOf([300, 300, 300]),
-        nowMs: NOW_MS + 120_000,
-        thresholds: LATENCY_THRESHOLDS.HIGH,
-      });
-
-      expect(result).toBe('slow');
+    it('stays slow with fewer than three samples', () => {
+      expect(bucketFor([300, 300], 'slow')).toBe('slow');
     });
   });
 
@@ -99,7 +105,6 @@ describe('summarizeLatencySamples', () => {
   it('returns the median of an odd count', () => {
     const result = summarizeLatencySamples({
       samples: samplesOf([900, 100, 500]),
-      nowMs: NOW_MS,
       thresholds: LATENCY_THRESHOLDS.HIGH,
     });
 
@@ -109,7 +114,6 @@ describe('summarizeLatencySamples', () => {
   it('returns the mean of the two middle values for an even count', () => {
     const result = summarizeLatencySamples({
       samples: samplesOf([100, 400, 600, 9000]),
-      nowMs: NOW_MS,
       thresholds: LATENCY_THRESHOLDS.HIGH,
     });
 
@@ -118,27 +122,30 @@ describe('summarizeLatencySamples', () => {
     );
   });
 
-  it('drops samples outside the 60 second window', () => {
+  it('keeps samples older than sixty seconds among the newest five', () => {
     const result = summarizeLatencySamples({
       samples: [
-        { atMs: NOW_MS - 60_001, durationMs: 9000 },
+        { atMs: NOW_MS - 180_000, durationMs: 9000 },
+        { atMs: NOW_MS - 120_000, durationMs: 9000 },
         { atMs: NOW_MS - 60_000, durationMs: 100 },
       ],
-      nowMs: NOW_MS,
       thresholds: LATENCY_THRESHOLDS.HIGH,
     });
 
     expect(result).toEqual({
-      recent: [{ atMs: NOW_MS - 60_000, durationMs: 100 }],
-      hungCount: 0,
-      medianMs: 100,
+      recent: [
+        { atMs: NOW_MS - 180_000, durationMs: 9000 },
+        { atMs: NOW_MS - 120_000, durationMs: 9000 },
+        { atMs: NOW_MS - 60_000, durationMs: 100 },
+      ],
+      hungCount: 2,
+      medianMs: 9000,
     });
   });
 
   it('returns a null median without samples', () => {
     const result = summarizeLatencySamples({
       samples: [],
-      nowMs: NOW_MS,
       thresholds: LATENCY_THRESHOLDS.HIGH,
     });
 

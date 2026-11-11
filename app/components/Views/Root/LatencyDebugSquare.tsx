@@ -15,7 +15,7 @@ interface LatencyDebugSquareProps {
   enabled: boolean;
 }
 
-/** `__DEV__` overlay. Reports the measured window. It does not delay fetches. */
+/** `__DEV__` overlay. Reports the measured samples. It does not delay fetches. */
 const LatencyDebugSquare = ({ enabled }: LatencyDebugSquareProps) => {
   const [snapshot, setSnapshot] = useState(getLatencyDebugSnapshot);
 

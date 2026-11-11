@@ -318,7 +318,7 @@ describe('NitroFetchSetup', () => {
     });
 
     describe('latency sampling', () => {
-      const sampleCount = () => getLatencyDebugSnapshot(Date.now()).sampleCount;
+      const sampleCount = () => getLatencyDebugSnapshot().sampleCount;
 
       beforeEach(() => {
         clearLatencySamples();
@@ -342,9 +342,7 @@ describe('NitroFetchSetup', () => {
 
         await expect(global.fetch('https://example.com')).rejects.toBe(failure);
 
-        const { sampleCount: count, hungCount } = getLatencyDebugSnapshot(
-          Date.now(),
-        );
+        const { sampleCount: count, hungCount } = getLatencyDebugSnapshot();
         expect(count).toBe(1);
         expect(hungCount).toBe(1);
       });
