@@ -16,6 +16,14 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: jest.fn() }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 const mockTarget: QuickBuyTarget = {
   tokenAddress: '0x1234567890123456789012345678901234567890',
   tokenSymbol: 'PEPE',
