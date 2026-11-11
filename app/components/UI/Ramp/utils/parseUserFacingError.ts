@@ -2,6 +2,8 @@ import { strings } from '../../../../../locales/i18n';
 
 const CIRCUIT_BREAKER_OPEN_ERROR_KEY = 'CIRCUIT_BREAKER_OPEN';
 const CIRCUIT_BREAKER_OPEN_MESSAGE_KEY = 'fiat_on_ramp.circuit_breaker_open';
+const UNEXPECTED_SERVICE_RESPONSE =
+  /^(?:Query|Mutation) function for "(?:RampsService|NeoBankService):/u;
 
 function getErrorKey(error: unknown): string | null {
   if (typeof error !== 'object' || error === null || !('errorKey' in error)) {
@@ -49,6 +51,10 @@ export function parseUserFacingError(error: unknown, fallback: string): string {
   const rawMessage = getRawMessage(error);
 
   if (!rawMessage) {
+    return fallback;
+  }
+
+  if (UNEXPECTED_SERVICE_RESPONSE.test(rawMessage)) {
     return fallback;
   }
 

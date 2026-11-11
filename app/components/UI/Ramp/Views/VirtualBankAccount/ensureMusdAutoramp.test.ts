@@ -1,3 +1,4 @@
+import { BrokenCircuitError } from '@metamask/controller-utils';
 import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
@@ -307,6 +308,17 @@ describe('ensureMusdAutoramp', () => {
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
       expect.objectContaining({
         result: { kind: 'unknown' },
+      }),
+    );
+  });
+
+  it('maps an open circuit on createAutoramp to an unavailable account error', async () => {
+    mockCreate.mockRejectedValue(new BrokenCircuitError());
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
+        message: 'VBA account creation failed',
+        result: { kind: 'unavailable' },
       }),
     );
   });

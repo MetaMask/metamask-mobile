@@ -634,7 +634,20 @@ const VbaDetails = () => {
           if (!destinationId) {
             return;
           }
+          const circuitOpen = error.result.kind === 'unavailable';
           pollingDoneRef.current = true;
+          if (circuitOpen) {
+            navigateToVbaOnboardingDestination(
+              navigation,
+              destinationId,
+              undefined,
+              undefined,
+              sourceCurrency,
+              true,
+              'fiat_on_ramp.circuit_breaker_open',
+            );
+            return;
+          }
           navigateToVbaOnboardingDestination(
             navigation,
             destinationId,

@@ -1,3 +1,4 @@
+import { BrokenCircuitError } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import {
@@ -44,6 +45,7 @@ describe('accountCreateError', () => {
     ['missing customer', http(404), 'generic'],
     ['server failure', http(500), 'generic'],
     ['unknown failure', unknown, 'generic'],
+    ['open circuit', { kind: 'unavailable' }, 'generic'],
     ['existing account', http(409), null],
     ['pending account', fiat('RegistrationPending'), null],
     ['registered account', fiat('Registered'), null],
@@ -116,6 +118,21 @@ describe('accountCreateError', () => {
       { httpStatus: 200, fiatStatus: 'Unknown' },
     ])('returns unknown for unsupported error %p', (error) => {
       expect(getAccountCreateResultFromError(error)).toEqual(unknown);
+    });
+
+    it.each([
+      new BrokenCircuitError(),
+      Object.assign(new Error('rejected'), {
+        errorKey: 'CIRCUIT_BREAKER_OPEN',
+      }),
+      new Error('Execution prevented because the circuit breaker is open'),
+    ])('maps an open circuit to unavailable: %p', (error) => {
+      expect(getAccountCreateResultFromError(error)).toEqual({
+        kind: 'unavailable',
+      });
+      expect(
+        JSON.stringify(getAccountCreateResultFromError(error)),
+      ).not.toContain('circuit breaker');
     });
 
     it.each([null, 'response', {}, { status: 3 }, { status: 'Unknown' }])(

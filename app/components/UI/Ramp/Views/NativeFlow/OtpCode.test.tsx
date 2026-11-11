@@ -1,3 +1,4 @@
+import { BrokenCircuitError } from '@metamask/controller-utils';
 import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import V2OtpCode, { type V2OtpCodeParams } from './OtpCode';
@@ -580,6 +581,30 @@ describe('V2OtpCode', () => {
     await waitFor(() => {
       expect(getByText('deposit.otp_code.resend_cooldown')).toBeOnTheScreen();
     });
+  });
+
+  it('shows the circuit breaker message when verifyUserOtp is blocked', async () => {
+    jest.useRealTimers();
+    mockVerifyUserOtp.mockRejectedValue(
+      Object.assign(new BrokenCircuitError(), {
+        errorKey: 'CIRCUIT_BREAKER_OPEN',
+      }),
+    );
+
+    const { getByTestId, getByText, queryByText } = renderWithTheme(
+      <V2OtpCode />,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(getByText('fiat_on_ramp.circuit_breaker_open')).toBeOnTheScreen();
+    });
+    expect(
+      queryByText('Execution prevented because the circuit breaker is open'),
+    ).toBeNull();
   });
 
   it('shows error when verifyUserOtp returns null', async () => {

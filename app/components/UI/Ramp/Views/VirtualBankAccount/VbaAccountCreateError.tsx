@@ -36,6 +36,7 @@ interface VbaAccountCreateErrorProps {
   onPrimary: () => void | Promise<void>;
   onSecondary: () => void | Promise<void>;
   onBack?: () => void;
+  descriptionKey?: string;
 }
 
 type PendingAction = 'primary' | 'secondary';
@@ -50,6 +51,7 @@ const VbaAccountCreateError = ({
   onPrimary,
   onSecondary,
   onBack,
+  descriptionKey,
 }: VbaAccountCreateErrorProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
@@ -85,9 +87,10 @@ const VbaAccountCreateError = ({
   );
 
   const description = strings(
-    primaryActionType === 'retry'
-      ? 'virtual_bank_account.account_create_error.generic.description'
-      : 'virtual_bank_account.account_create_error.details.description',
+    descriptionKey ??
+      (primaryActionType === 'retry'
+        ? 'virtual_bank_account.account_create_error.generic.description'
+        : 'virtual_bank_account.account_create_error.details.description'),
   );
   const primaryLabel = strings(
     primaryActionType === 'retry'

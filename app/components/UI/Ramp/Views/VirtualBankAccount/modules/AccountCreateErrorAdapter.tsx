@@ -36,7 +36,8 @@ const VbaAccountCreateErrorAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<VbaOnboardingParamList, 'VbaAccountCreateError'>>();
-  const { variant, failure, sourceCurrency, retryable } = route.params;
+  const { variant, failure, sourceCurrency, retryable, descriptionKey } =
+    route.params;
   useScreenPerformance({
     config: VBA_SCREEN_PERFORMANCE_CONFIG,
     screenId:
@@ -91,6 +92,7 @@ const VbaAccountCreateErrorAdapter = () => {
         onPrimary={contactSupport}
         onSecondary={leave}
         onBack={leave}
+        descriptionKey={descriptionKey}
       />
     );
   }
@@ -102,6 +104,7 @@ const VbaAccountCreateErrorAdapter = () => {
       onPrimary={primaryActionType === 'retry' ? retry : contactSupport}
       onSecondary={leave}
       onBack={leave}
+      descriptionKey={descriptionKey}
     />
   );
 };

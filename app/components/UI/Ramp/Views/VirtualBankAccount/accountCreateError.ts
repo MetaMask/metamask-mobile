@@ -1,3 +1,4 @@
+import { BrokenCircuitError } from '@metamask/controller-utils';
 import Logger from '../../../../../util/Logger';
 
 export const ACCOUNT_CREATE_ERROR_VARIANTS = ['details', 'generic'] as const;
@@ -58,8 +59,35 @@ export type AccountCreateRegistrationResult =
       status: FiatAddressStatus;
     }
   | {
+      kind: 'unavailable';
+    }
+  | {
       kind: 'unknown';
     };
+
+const CIRCUIT_BREAKER_OPEN_ERROR_KEY = 'CIRCUIT_BREAKER_OPEN';
+const CIRCUIT_BREAKER_OPEN_MESSAGE =
+  'Execution prevented because the circuit breaker is open';
+
+const isOpenCircuitError = (error: unknown): boolean => {
+  if (error instanceof BrokenCircuitError) {
+    return true;
+  }
+  if (typeof error !== 'object' || error === null) {
+    return false;
+  }
+  if (
+    'errorKey' in error &&
+    (error as { errorKey?: unknown }).errorKey ===
+      CIRCUIT_BREAKER_OPEN_ERROR_KEY
+  ) {
+    return true;
+  }
+  return (
+    error instanceof Error &&
+    error.message.includes(CIRCUIT_BREAKER_OPEN_MESSAGE)
+  );
+};
 
 export class AccountCreateRegistrationError extends Error {
   readonly result: AccountCreateRegistrationResult;
@@ -122,6 +150,10 @@ export const getAccountCreateResultFromError = (
     return error.result;
   }
 
+  if (isOpenCircuitError(error)) {
+    return { kind: 'unavailable' };
+  }
+
   const context =
     error && typeof error === 'object'
       ? (error as {
@@ -163,7 +195,7 @@ export const accountCreateErrorVariantForDestination = (
 export const getAccountCreateErrorVariant = (
   result: AccountCreateRegistrationResult,
 ): AccountCreateErrorVariant | null => {
-  if (result.kind === 'unknown') {
+  if (result.kind === 'unknown' || result.kind === 'unavailable') {
     return 'generic';
   }
 
@@ -198,7 +230,7 @@ const SUPPORT_PARAM_TRACE_ID = 'trace_id';
 export const getAccountCreateFailureLogFields = (
   result: AccountCreateRegistrationResult,
 ): AccountCreateFailureFields | undefined => {
-  if (result.kind === 'unknown') {
+  if (result.kind === 'unknown' || result.kind === 'unavailable') {
     return undefined;
   }
 

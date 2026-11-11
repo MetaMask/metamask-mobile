@@ -62,6 +62,25 @@ describe('VbaAccountCreateError', () => {
     },
   );
 
+  it('shows the circuit breaker copy when account creation is blocked', () => {
+    const { getByText, queryByText } = renderError({
+      variant: 'generic',
+      primaryActionType: 'retry',
+      descriptionKey: 'fiat_on_ramp.circuit_breaker_open',
+    });
+
+    expect(
+      getByText(strings('fiat_on_ramp.circuit_breaker_open')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(
+        strings(
+          'virtual_bank_account.account_create_error.generic.description',
+        ),
+      ),
+    ).toBeNull();
+  });
+
   it('calls the primary and secondary actions', async () => {
     const { getByTestId } = renderError({ onBack: mockOnBack });
 

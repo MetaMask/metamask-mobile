@@ -282,6 +282,7 @@ export const navigateToVbaOnboardingDestination = (
   failure?: AccountCreateFailureFields,
   sourceCurrency?: VbaSourceCurrency,
   retryable?: boolean,
+  descriptionKey?: string,
 ): void => {
   if (destinationId === 'complete') {
     openCompletedVbaAccount(navigation);
@@ -313,6 +314,7 @@ export const navigateToVbaOnboardingDestination = (
         ...(failure ? { failure } : {}),
         ...(sourceCurrency ? { sourceCurrency } : {}),
         ...(retryable ? { retryable } : {}),
+        ...(descriptionKey ? { descriptionKey } : {}),
       },
     );
     return;

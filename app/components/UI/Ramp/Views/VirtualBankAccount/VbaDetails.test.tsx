@@ -3,6 +3,7 @@ import { AccessibilityInfo, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Share from 'react-native-share';
+import { BrokenCircuitError } from '@metamask/controller-utils';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import renderWithProvider, {
   type ProviderValues,
@@ -1449,6 +1450,29 @@ describe('VbaDetails', () => {
         }),
       );
     });
+  });
+
+  it('shows the temporarily unavailable message when createAutoramp is blocked', async () => {
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
+    mockCreateAutoramp.mockRejectedValue(new BrokenCircuitError());
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        undefined,
+        'BRL',
+        true,
+        'fiat_on_ramp.circuit_breaker_open',
+      );
+    });
+    expect(
+      JSON.stringify(mockNavigateToVbaOnboardingDestination.mock.calls),
+    ).not.toContain('Execution prevented because the circuit breaker is open');
   });
 
   it('opens the generic error when account creation fails', async () => {
