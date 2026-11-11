@@ -767,16 +767,27 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityLabel,
-    ).toBe('BTC, $120, +3.49%, Today');
-    expect(
-      within(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
-      ).queryByText('40x'),
-    ).toBeNull();
+    ).toContain('40x');
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityHint,
     ).toBe('Opens market details');
+  });
+
+  it('omits the leverage tag when a perp has none', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPerpPosition(),
+    };
+    mockSheetData = perpData({ leverage: undefined });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
+        .accessibilityLabel,
+    ).toBe('BTC, $120, +3.49%, Today');
+    expect(screen.queryByText(/\dx/)).toBeNull();
   });
 
   it('keeps the sheet open when a perp has no trade symbol', () => {
