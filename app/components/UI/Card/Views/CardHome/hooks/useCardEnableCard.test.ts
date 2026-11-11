@@ -32,6 +32,7 @@ function mockImmersveState(
     isKycUnderReview: false,
     hasPendingAction: false,
     provisioningView: 'hidden',
+    isEnableCardPending: false,
     ...overrides,
   });
 }
@@ -79,5 +80,15 @@ describe('useCardEnableCard', () => {
     expect(result.current.provisioningView).toBe('provisioning');
     expect(result.current.canEnableCard).toBe(false);
     expect(result.current.enableCard).toBeNull();
+    expect(result.current.isEnableCardPending).toBe(false);
+  });
+
+  it('does not report a pending Enable card for a non-Immersve provider', () => {
+    mockActiveProvider(CardProviderIds.Baanx);
+    mockImmersveState({ isEnableCardPending: true, canEnableCard: true });
+
+    const { result } = renderHook(() => useCardEnableCard(PROVISIONING_DATA));
+
+    expect(result.current.isEnableCardPending).toBe(false);
   });
 });
