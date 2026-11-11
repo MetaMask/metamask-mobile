@@ -30,13 +30,18 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import {
   selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -88,7 +93,6 @@ import {
 import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
-import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
 import {
@@ -177,8 +181,12 @@ const Transactions = (props) => {
     tokenChainId,
     skipScrollOnClick,
     location,
+    contentBottomInset,
+    refreshControlOffset,
     hardwareWallet = DEFAULT_HARDWARE_WALLET,
-    isActivityRedesignEnabled,
+    accountImportTime,
+    networkConfigurationsByChainId,
+    bridgeHistory,
   } = props;
   const theme = useContext(ThemeContext) || mockTheme;
   const { colors } = theme;
@@ -695,6 +703,8 @@ const Transactions = (props) => {
     />
   );
 
+  const transactionByActivityItem = new Map();
+
   const renderGroupedActivityItem = ({ item, index }) => {
     if (item.type === 'pending-header') {
       return <ActivityListDateHeader label={strings('transaction.pending')} />;
@@ -702,10 +712,7 @@ const Transactions = (props) => {
     if (item.type === 'date-header') {
       return <ActivityListDateHeader timestamp={item.date} />;
     }
-    const tx =
-      item.item.raw?.type === 'localTransaction'
-        ? item.item.raw.data.primaryTransaction
-        : undefined;
+    const tx = transactionByActivityItem.get(item.item);
     return tx ? (
       <AssetDetailsActivityListItem
         transaction={tx}
@@ -714,8 +721,9 @@ const Transactions = (props) => {
         chainId={chainId}
         tokenChainId={tokenChainId}
         navigation={navigation}
-        onSpeedUpAction={onSpeedUpAction}
-        onCancelAction={onCancelAction}
+        accountImportTime={accountImportTime}
+        networkConfigurations={networkConfigurationsByChainId}
+        bridgeHistory={bridgeHistory}
       />
     ) : null;
   };
@@ -730,18 +738,19 @@ const Transactions = (props) => {
   const filteredTransactions =
     filterDuplicateOutgoingTransactions(listTransactions);
   const shouldUseActivityRedesign =
-    isActivityRedesignEnabled &&
     location === TransactionDetailLocation.AssetDetails;
   const activityListData = shouldUseActivityRedesign
     ? groupActivityListItems(
-        filteredTransactions.map((transaction) =>
-          mapTransactionToActivityItem({
+        filteredTransactions.map((transaction) => {
+          const activityItem = mapTransactionToActivityItem({
             transaction,
             assetSymbol,
             currentChainId: chainId,
             tokenChainId,
-          }),
-        ),
+          });
+          transactionByActivityItem.set(activityItem, transaction);
+          return activityItem;
+        }),
       )
     : filteredTransactions;
   const useAssetOnlyExplorer = isAssetDetailsExplorer || Boolean(tokenChainId);
@@ -775,6 +784,7 @@ const Transactions = (props) => {
                     <RefreshControl
                       colors={[colors.primary.default]}
                       tintColor={colors.icon.default}
+                      progressViewOffset={refreshControlOffset}
                       refreshing={refreshing}
                       onRefresh={async () => {
                         setRefreshing(true);
@@ -805,7 +815,12 @@ const Transactions = (props) => {
                       renderEmpty()
                     )
                   }
-                  contentContainerStyle={styles.listContentContainer}
+                  contentContainerStyle={[
+                    styles.listContentContainer,
+                    contentBottomInset !== undefined && {
+                      paddingBottom: contentBottomInset,
+                    },
+                  ]}
                   style={baseStyles.flexGrow}
                   showsVerticalScrollIndicator={false}
                   scrollIndicatorInsets={{ right: 1 }}
@@ -922,6 +937,14 @@ Transactions.propTypes = {
    * Location context for analytics tracking (home or asset_details)
    */
   location: PropTypes.string,
+  /**
+   * (optional) Bottom padding for the list, e.g. to clear a footer floating over it
+   */
+  contentBottomInset: PropTypes.number,
+  /**
+   * Moves the pull-to-refresh spinner down, e.g. below a floating header
+   */
+  refreshControlOffset: PropTypes.number,
   hardwareWallet: PropTypes.shape({
     ensureDeviceReady: PropTypes.func,
     setPendingOperationAddress: PropTypes.func,
@@ -929,7 +952,9 @@ Transactions.propTypes = {
     hideAwaitingConfirmation: PropTypes.func,
     showHardwareWalletError: PropTypes.func,
   }),
-  isActivityRedesignEnabled: PropTypes.bool,
+  accountImportTime: PropTypes.number,
+  networkConfigurationsByChainId: PropTypes.object,
+  bridgeHistory: PropTypes.object,
 };
 
 Transactions.defaultProps = {
@@ -952,6 +977,15 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     accounts: selectAccounts(state),
+    accountImportTime: isAssetDetails
+      ? selectSelectedInternalAccount(state)?.metadata.importTime
+      : undefined,
+    networkConfigurationsByChainId: isAssetDetails
+      ? selectEvmNetworkConfigurationsByChainId(state)
+      : undefined,
+    bridgeHistory: isAssetDetails
+      ? selectBridgeHistoryForAccount(state)
+      : undefined,
     chainId: isAssetDetails ? ownProps.tokenChainId : selectChainId(state),
     networkClientId: isAssetDetails ? undefined : selectNetworkClientId(state),
     collectibleContracts: collectibleContractsSelector(state),
@@ -965,7 +999,6 @@ const mapStateToProps = (state, ownProps) => {
     primaryCurrency: selectPrimaryCurrency(state),
     gasEstimateType: selectGasFeeControllerEstimateType(state),
     networkType: isAssetDetails ? undefined : selectProviderType(state),
-    isActivityRedesignEnabled: selectIsActivityRedesignEnabled(state),
   };
 };
 

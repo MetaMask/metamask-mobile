@@ -10,8 +10,11 @@ import {
 import React from 'react';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import PerpBadges from '../../components/PerpBadges';
-import { EM_DASH, formatPercent } from '../../utils/formatters';
-import type { PerpDirection } from '../../utils/perp';
+import {
+  EM_DASH,
+  formatPercent,
+} from '../../../../UI/SocialFeed/utils/formatters';
+import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 
 export interface TraderPositionCompactTokenStatsProps {
@@ -21,6 +24,7 @@ export interface TraderPositionCompactTokenStatsProps {
   traderName: string;
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
   perpDirection?: PerpDirection | null;
   perpLeverage?: number | null;
   onTraderPress: () => void;
@@ -35,6 +39,7 @@ const TraderPositionCompactTokenStats: React.FC<
   traderName,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
   perpDirection,
   perpLeverage,
   onTraderPress,
@@ -57,6 +62,7 @@ const TraderPositionCompactTokenStats: React.FC<
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderProfileId}
             variant="breadcrumb"
             onPress={onTraderPress}
             testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TRADER_LINK}

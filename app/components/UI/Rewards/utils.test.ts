@@ -29,6 +29,8 @@ jest.mock('@metamask/keyring-api', () => ({
 }));
 jest.mock('../../../core/Multichain/utils', () => ({
   isSolanaAccount: jest.fn(),
+  isBtcAccount: jest.fn(),
+  isTronAccount: jest.fn(),
 }));
 jest.mock('../../../util/address', () => ({
   getAddressAccountType: jest.fn(),
@@ -42,7 +44,9 @@ const mockToCaipAccountId = toCaipAccountId as jest.MockedFunction<
 >;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
 const { isEvmAccountType } = jest.requireMock('@metamask/keyring-api');
-const { isSolanaAccount } = jest.requireMock('../../../core/Multichain/utils');
+const { isSolanaAccount, isBtcAccount, isTronAccount } = jest.requireMock(
+  '../../../core/Multichain/utils',
+);
 const { getAddressAccountType } = jest.requireMock('../../../util/address');
 
 describe('Rewards Utils', () => {
@@ -285,7 +289,7 @@ describe('Rewards Utils', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to the rewards tab when there is no back route', () => {
+    it('opens rewards home when there is no back route', () => {
       const mockGoBack = jest.fn();
       const mockNavigate = jest.fn();
       const navigation = {
@@ -297,18 +301,14 @@ describe('Rewards Utils', () => {
       exitRewardsFlow(navigation as never);
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.REWARDS_VIEW,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
   });
 
   describe('getBetaSupportUrl', () => {
     it('returns a string', () => {
-      // The `///: ONLY_INCLUDE_IF(beta)` fence is stripped by Metro at build
-      // time only, so under Jest this always resolves to the beta URL; the
-      // empty-string (non-beta) branch is exercised via call-site mocking in
-      // the components that consume this helper.
+      // The non-beta (empty-string) branch is exercised via call-site
+      // mocking in the components that consume this helper.
       expect(typeof getBetaSupportUrl()).toBe('string');
     });
   });
@@ -317,7 +317,7 @@ describe('Rewards Utils', () => {
     it('exports the correct message for Solana signup not supported', () => {
       // Arrange & Act & Assert
       expect(SOLANA_SIGNUP_NOT_SUPPORTED).toBe(
-        'Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.',
+        'Signing in to Rewards with Solana accounts is not supported yet. Use an Ethereum account instead.',
       );
     });
   });
@@ -332,7 +332,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message for string error', () => {
@@ -343,7 +343,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message for number error', () => {
@@ -354,7 +354,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message for boolean error', () => {
@@ -365,7 +365,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
     });
 
@@ -378,7 +378,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message when both data.message and message are undefined', () => {
@@ -389,7 +389,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message when data.message is empty string', () => {
@@ -400,7 +400,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
     });
 
@@ -416,7 +416,7 @@ describe('Rewards Utils', () => {
 
         // Assert
         expect(result).toBe(
-          'This account is already registered with another Rewards profile. Please switch account to continue.',
+          'This account is already registered with another Rewards profile. Switch account to continue.',
         );
       });
 
@@ -429,7 +429,7 @@ describe('Rewards Utils', () => {
 
         // Assert
         expect(result).toBe(
-          'This account is already registered with another Rewards profile. Please switch account to continue.',
+          'This account is already registered with another Rewards profile. Switch account to continue.',
         );
       });
     });
@@ -496,7 +496,7 @@ describe('Rewards Utils', () => {
 
         // Assert
         expect(result).toBe(
-          'Service is not available at the moment. Please try again shortly.',
+          'Service is not available at the moment. Try again shortly.',
         );
       });
 
@@ -509,7 +509,7 @@ describe('Rewards Utils', () => {
 
         // Assert
         expect(result).toBe(
-          'Service is not available at the moment. Please try again shortly.',
+          'Service is not available at the moment. Try again shortly.',
         );
       });
     });
@@ -523,9 +523,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe(
-          'Invalid referral code. Please check and try again.',
-        );
+        expect(result).toBe('Invalid referral code. Check and try again.');
       });
 
       it('returns invalid referral code message case-insensitively', () => {
@@ -536,9 +534,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe(
-          'Invalid referral code. Please check and try again.',
-        );
+        expect(result).toBe('Invalid referral code. Check and try again.');
       });
 
       it('returns already referred message for "Already referred by another user"', () => {
@@ -716,9 +712,54 @@ describe('Rewards Utils', () => {
       expect(result).toEqual({ scope: 'solana', account_type: 'solana' });
     });
 
-    it('falls back to account.type when neither evm nor solana', () => {
+    it('returns bitcoin scope when isBtcAccount returns true', () => {
       (isEvmAccountType as jest.Mock).mockReturnValue(false);
       (isSolanaAccount as jest.Mock).mockReturnValue(false);
+      (isBtcAccount as jest.Mock).mockReturnValue(true);
+      (isTronAccount as jest.Mock).mockReturnValue(false);
+      (getAddressAccountType as jest.Mock).mockReturnValue('bip122:p2wpkh');
+
+      const bitcoinAccount: InternalAccount = {
+        ...baseAccount,
+        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+        scopes: ['bip122:000000000019d6689c085ae165831e93'],
+        type: 'bip122:p2wpkh',
+      };
+
+      const result = deriveAccountMetricProps(bitcoinAccount);
+
+      expect(isBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
+      expect(result).toEqual({
+        scope: 'bitcoin',
+        account_type: 'bip122:p2wpkh',
+      });
+    });
+
+    it('returns tron scope when isTronAccount returns true', () => {
+      (isEvmAccountType as jest.Mock).mockReturnValue(false);
+      (isSolanaAccount as jest.Mock).mockReturnValue(false);
+      (isBtcAccount as jest.Mock).mockReturnValue(false);
+      (isTronAccount as jest.Mock).mockReturnValue(true);
+      (getAddressAccountType as jest.Mock).mockReturnValue('tron:eoa');
+
+      const tronAccount: InternalAccount = {
+        ...baseAccount,
+        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
+        scopes: ['tron:728126428'],
+        type: 'tron:eoa',
+      };
+
+      const result = deriveAccountMetricProps(tronAccount);
+
+      expect(isTronAccount).toHaveBeenCalledWith(tronAccount);
+      expect(result).toEqual({ scope: 'tron', account_type: 'tron:eoa' });
+    });
+
+    it('falls back to account.type when account is not evm, solana, bitcoin, or tron', () => {
+      (isEvmAccountType as jest.Mock).mockReturnValue(false);
+      (isSolanaAccount as jest.Mock).mockReturnValue(false);
+      (isBtcAccount as jest.Mock).mockReturnValue(false);
+      (isTronAccount as jest.Mock).mockReturnValue(false);
       (getAddressAccountType as jest.Mock).mockReturnValue('other');
 
       const otherAccount: InternalAccount = {

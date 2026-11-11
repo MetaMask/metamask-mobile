@@ -42,6 +42,7 @@ const TIME_PERIOD_TO_MARKET_DATA_KEY: Record<
   TimePeriod,
   keyof NonNullable<MarketData['pricePercentChange']>
 > = {
+  '1h': 'PT1H',
   '1d': 'P1D',
   '1w': 'P7D',
   '7d': 'P7D',

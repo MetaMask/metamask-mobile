@@ -5,11 +5,11 @@ import Box from '../../../Ramp/Aggregator/components/Box';
 import { StyleSheet, View } from 'react-native';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
 } from '@metamask/design-system-react-native';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
@@ -34,7 +34,7 @@ const createStyles = (colors: Colors) =>
     },
     boxContent: {
       backgroundColor: colors.background.default,
-      paddingBottom: 21,
+      paddingBottom: 24,
       paddingTop: 0,
       borderWidth: 0,
     },

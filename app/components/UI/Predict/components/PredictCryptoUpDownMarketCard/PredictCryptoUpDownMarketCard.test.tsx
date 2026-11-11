@@ -287,6 +287,8 @@ describe('PredictCryptoUpDownMarketCard', () => {
   const mockUseCryptoTargetPrice = useCryptoTargetPrice as jest.Mock;
 
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-06-01T12:00:00.000Z'));
     jest.clearAllMocks();
     __resetCardClockForTest();
     const liveMarket = createMarket();
@@ -332,6 +334,8 @@ describe('PredictCryptoUpDownMarketCard', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockOpenBuySheet.mockClear();
+    __resetCardClockForTest();
+    jest.useRealTimers();
   });
 
   it('renders the live series card with buttons, reset copy, and sparkline', () => {
@@ -357,8 +361,10 @@ describe('PredictCryptoUpDownMarketCard', () => {
     );
     const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][2];
     expect(chartOptions.historicalWindow.endDate).toBeUndefined();
+    // Frozen clock — same Date.now() the component used at render time.
+    const now = Date.now();
     const requestAgeMs =
-      Math.floor(Date.now() / (60 * 1000)) * 60 * 1000 -
+      Math.floor(now / (60 * 1000)) * 60 * 1000 -
       new Date(chartOptions.historicalWindow.startDate).getTime();
     expect(requestAgeMs).toBe(5 * 60 * 1000);
     expect(mockUsePredictSeries).toHaveBeenCalledWith(
@@ -423,8 +429,9 @@ describe('PredictCryptoUpDownMarketCard', () => {
 
       const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][2];
       const bucketMs = Math.max(60_000, Math.floor(displayDurationMs / 12));
+      const now = Date.now();
       const requestAgeMs =
-        Math.floor(Date.now() / bucketMs) * bucketMs -
+        Math.floor(now / bucketMs) * bucketMs -
         new Date(chartOptions.historicalWindow.startDate).getTime();
       expect(requestAgeMs).toBe(sourceDurationMs);
     },
@@ -451,8 +458,9 @@ describe('PredictCryptoUpDownMarketCard', () => {
     expect(chartOptions.historicalWindow.endDate).toBeUndefined();
     const dailyDisplayMs = 24 * 60 * 60 * 1000;
     const dailyBucketMs = Math.max(60_000, Math.floor(dailyDisplayMs / 12));
+    const now = Date.now();
     const requestAgeMs =
-      Math.floor(Date.now() / dailyBucketMs) * dailyBucketMs -
+      Math.floor(now / dailyBucketMs) * dailyBucketMs -
       new Date(chartOptions.historicalWindow.startDate).getTime();
     expect(requestAgeMs).toBe(24 * 60 * 60 * 1000);
   });
@@ -500,16 +508,6 @@ describe('PredictCryptoUpDownMarketCard', () => {
         image: 'https://example.com/btc.png',
       },
     });
-  });
-
-  it('does not navigate when cardPressDisabled is true', () => {
-    renderCard(createMarket(), { cardPressDisabled: true });
-
-    fireEvent.press(
-      screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.CARD),
-    );
-
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('includes transactionActiveAbTests when navigating to the live market details', () => {
@@ -764,6 +762,64 @@ describe('PredictCryptoUpDownMarketCard', () => {
     const secondResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
     expect(secondResolved).not.toBe(firstResolved);
     expect(secondResolved?.id).toBe('market-next');
+  });
+
+  describe('REST price polling', () => {
+    const disconnectedPrices = {
+      getPrice: () => undefined,
+      isConnected: false,
+    };
+    const connectedPrices = {
+      getPrice: () => undefined,
+      isConnected: true,
+    };
+
+    it('polls REST prices every 2 seconds when live market prices are disconnected', () => {
+      mockUseLiveMarketPrices.mockReturnValue(disconnectedPrices);
+
+      renderCard();
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+    });
+
+    it('keeps REST prices enabled without polling when live market prices are connected', () => {
+      mockUseLiveMarketPrices.mockReturnValue(connectedPrices);
+
+      renderCard();
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: undefined,
+        }),
+      );
+    });
+
+    it('restores two-second REST polling when live market prices disconnect', () => {
+      mockUseLiveMarketPrices.mockReturnValue(connectedPrices);
+      const { rerender } = renderCard();
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          pollingInterval: undefined,
+        }),
+      );
+
+      mockUseLiveMarketPrices.mockReturnValue(disconnectedPrices);
+      rerender(<PredictCryptoUpDownMarketCard market={createMarket()} />);
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+    });
   });
 
   describe('compact (isCarousel) variant', () => {

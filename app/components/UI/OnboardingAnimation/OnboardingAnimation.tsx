@@ -1,217 +1,102 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { View, Animated, Easing, StyleSheet } from 'react-native';
-import {
-  Alignment,
-  Fit,
-  RiveErrorType,
-  RiveView,
-  useRive,
-  useRiveFile,
-} from '@rive-app/react-native';
+import React, { useEffect, useRef } from 'react';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Box } from '@metamask/design-system-react-native';
 
-import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
-import { hasTestOverrides } from '../../../util/test/utils';
-import Logger from '../../../util/Logger';
-import { OnboardingRiveAnimationIds } from '../../../hooks/performance/onboardingPerformanceIds';
-import { useRivePerformance } from '../../../hooks/performance/useRivePerformance';
-
-import { useAppThemeFromContext } from '../../../util/theme';
+import MetaMaskWordmark from '../../../images/branding/metamask-wordmark.svg';
 import Device from '../../../util/device';
+import { useTheme } from '../../../util/theme';
+import { OnboardingAnimationSelectorIDs } from './OnboardingAnimation.testIds';
 
-const createStyles = () =>
-  StyleSheet.create({
-    image: {
-      alignSelf: 'center',
-      width: Device.isMediumDevice() ? 180 : 240,
-      height: Device.isMediumDevice() ? 180 : 240,
-    },
-    largeFoxWrapper: {
-      width: Device.isMediumDevice() ? 180 : 240,
-      height: Device.isMediumDevice() ? 180 : 240,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginHorizontal: 'auto',
-      padding: Device.isMediumDevice() ? 30 : 40,
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      marginLeft: -(Device.isMediumDevice() ? 90 : 120),
-      marginTop: -(Device.isMediumDevice() ? 90 : 120),
-    },
-    createWrapper: {
-      flexDirection: 'column',
-      rowGap: Device.isMediumDevice() ? 12 : 16,
-      marginBottom: 16,
-      position: 'absolute',
-      top: '50%',
-      left: Device.isMediumDevice() ? 26 : 36,
-      right: Device.isMediumDevice() ? 26 : 36,
-      marginTop: 180,
-      alignItems: 'stretch',
-    },
-    titleWrapper: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '100%',
-      flex: 1,
-      rowGap: Device.isMediumDevice() ? 24 : 32,
-    },
-  });
+const WORDMARK_ASPECT_RATIO = 280.21 / 152;
+const WORDMARK_LIFT = 180;
+const WORDMARK_HEIGHT = {
+  medium: 78,
+  regular: 104,
+} as const;
+const WORDMARK_NUDGE = {
+  medium: 6,
+  regular: 8,
+} as const;
 
+/**
+ * Shared layout for the onboarding landing and login screens: the MetaMask
+ * wordmark lifted above the vertical center with the call-to-action column
+ * anchored at the center below it.
+ */
 const OnboardingAnimation = ({
   children,
   startOnboardingAnimation,
   setStartFoxAnimation,
   onInteractiveContentReady,
+  renderWordmark = (wordmark) => wordmark,
 }: {
   children: React.ReactNode;
   startOnboardingAnimation: boolean;
   setStartFoxAnimation: (value: boolean) => void;
   // Must be referentially stable; it feeds the animation callbacks' dependencies.
   onInteractiveContentReady?: () => void;
+  // Lets a screen wrap the wordmark, e.g. with a long-press target.
+  renderWordmark?: (wordmark: React.ReactElement) => React.ReactNode;
 }) => {
-  const { riveFile } = useRiveFile(MetaMaskWordmarkAnimation);
-  const { riveViewRef, setHybridRef } = useRive();
-  const logoPosition = useMemo(() => new Animated.Value(0), []);
-  const buttonsOpacity = useMemo(
-    () => new Animated.Value(hasTestOverrides ? 1 : 0),
-    [],
-  );
+  const tw = useTailwind();
+  const { colors } = useTheme();
+  const isMedium = Device.isMediumDevice();
+  const wordmarkHeight = isMedium
+    ? WORDMARK_HEIGHT.medium
+    : WORDMARK_HEIGHT.regular;
+  const wordmarkWidth = Math.round(wordmarkHeight * WORDMARK_ASPECT_RATIO);
+  const wordmarkNudge = isMedium
+    ? WORDMARK_NUDGE.medium
+    : WORDMARK_NUDGE.regular;
 
-  const { themeAppearance } = useAppThemeFromContext();
-  const styles = createStyles();
+  const hasStarted = useRef(false);
 
-  const hasReportedInteractiveContent = useRef(false);
-  const { riveHandlers } = useRivePerformance({
-    animationId: OnboardingRiveAnimationIds.ONBOARDING_WORDMARK,
-    timeoutMs: 5_000,
-    enabled: !hasTestOverrides,
-  });
-
-  const reportInteractiveContentReady = useCallback(() => {
-    if (hasReportedInteractiveContent.current) {
+  useEffect(() => {
+    if (!startOnboardingAnimation || hasStarted.current) {
       return;
     }
-    hasReportedInteractiveContent.current = true;
+    hasStarted.current = true;
+    setStartFoxAnimation(true);
     onInteractiveContentReady?.();
-  }, [onInteractiveContentReady]);
-
-  const moveLogoUp = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(logoPosition, {
-        toValue: -180,
-        duration: 1200,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonsOpacity, {
-        toValue: 1,
-        duration: 1200,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        useNativeDriver: true,
-      }),
-    ]).start(({ finished }) => {
-      if (finished) {
-        reportInteractiveContentReady();
-      }
-    });
-  }, [logoPosition, buttonsOpacity, reportInteractiveContentReady]);
-
-  const startRiveAnimation = useCallback(() => {
-    if (hasTestOverrides) {
-      logoPosition.setValue(-180);
-      buttonsOpacity.setValue(1);
-      setStartFoxAnimation(true);
-      reportInteractiveContentReady();
-      return;
-    }
-
-    try {
-      if (riveViewRef) {
-        const isDarkMode = themeAppearance === 'dark';
-        riveViewRef.setBooleanInputValue('Dark', isDarkMode);
-        riveViewRef.triggerInput('Start');
-        setTimeout(() => {
-          moveLogoUp();
-        }, 1000);
-
-        setTimeout(() => {
-          setStartFoxAnimation(true);
-        }, 1200);
-      }
-    } catch (error) {
-      Logger.error(error as Error, 'Error triggering Rive animation');
-    }
   }, [
-    themeAppearance,
-    moveLogoUp,
-    riveViewRef,
+    startOnboardingAnimation,
     setStartFoxAnimation,
-    logoPosition,
-    buttonsOpacity,
-    reportInteractiveContentReady,
+    onInteractiveContentReady,
   ]);
-
-  // Report the performance "play" milestone once the view is ready.
-  useEffect(() => {
-    if (riveViewRef) {
-      riveHandlers.onPlay();
-    }
-  }, [riveViewRef, riveHandlers]);
-
-  useEffect(() => {
-    if (startOnboardingAnimation && (riveViewRef || hasTestOverrides)) {
-      startRiveAnimation();
-    }
-  }, [startRiveAnimation, startOnboardingAnimation, riveViewRef]);
 
   return (
     <>
-      <View style={styles.titleWrapper} pointerEvents="box-none">
-        <Animated.View
-          style={[
-            styles.largeFoxWrapper,
-            {
-              transform: [{ translateY: logoPosition }],
-            },
-          ]}
-          pointerEvents="none"
+      <Box twClassName="w-full flex-1" pointerEvents="box-none">
+        <Box
+          pointerEvents="box-none"
+          twClassName="absolute left-1/2"
+          style={tw.style({
+            top: '50%',
+            marginLeft: -(wordmarkWidth / 2),
+            marginTop: -(WORDMARK_LIFT + wordmarkNudge + wordmarkHeight / 2),
+          })}
         >
-          {!hasTestOverrides && riveFile && (
-            <RiveView
-              hybridRef={setHybridRef}
-              style={styles.image}
-              file={riveFile}
-              autoPlay
-              fit={Fit.Contain}
-              alignment={Alignment.Center}
-              stateMachineName="WordmarkBuildUp"
-              testID="metamask-wordmark-animation"
-              onError={(riveError) => {
-                riveHandlers.onError({
-                  message: riveError.message,
-                  type: RiveErrorType[riveError.type],
-                });
-              }}
-            />
+          {renderWordmark(
+            <MetaMaskWordmark
+              name="metamask-wordmark"
+              width={wordmarkWidth}
+              height={wordmarkHeight}
+              color={colors.text.default}
+              testID={OnboardingAnimationSelectorIDs.WORDMARK}
+            />,
           )}
-        </Animated.View>
-      </View>
-
-      <Animated.View
-        style={[
-          styles.createWrapper,
-          {
-            opacity: buttonsOpacity,
-            transform: [{ translateY: logoPosition }],
-          },
-        ]}
+        </Box>
+      </Box>
+      <Box
         pointerEvents="box-none"
+        twClassName="absolute left-0 right-0 flex-col px-4"
+        style={tw.style({
+          top: '50%',
+          rowGap: isMedium ? 12 : 16,
+        })}
       >
         {children}
-      </Animated.View>
+      </Box>
     </>
   );
 };

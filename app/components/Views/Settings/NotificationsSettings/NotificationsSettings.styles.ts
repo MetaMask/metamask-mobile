@@ -15,6 +15,9 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingBottom: 48,
       backgroundColor: params.theme.colors.background.default,
     },
+    notificationsList: {
+      paddingTop: 12,
+    },
     contentContainer: {
       flexGrow: 1,
     },
@@ -32,6 +35,11 @@ const styleSheet = (params: { theme: Theme }) =>
       borderTopColor: params.theme.colors.border.muted,
       marginTop: 16,
       marginHorizontal: -16,
+    },
+    lineSpacer: {
+      // Vertical stand-in for `line` where the divider is not drawn: same
+      // footprint (16 top margin + 1 border) so the spacing is unchanged.
+      height: 17,
     },
     heading: {
       marginTop: 16,
@@ -55,6 +63,9 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     selectAllButton: {
       marginLeft: 16,
+    },
+    accountsLoadError: {
+      marginTop: 12,
     },
     marketingDisclaimer: {
       marginTop: 'auto',
@@ -80,6 +91,14 @@ const styleSheet = (params: { theme: Theme }) =>
       flexDirection: 'row',
       alignItems: 'center',
       marginTop: 16,
+    },
+    notificationRow: {
+      // Every settings section row is at least as tall as the two-line rows
+      // (title + status line), so a row without a status — wallet activity —
+      // keeps the same height. switchElement centers children vertically.
+      minHeight:
+        params.theme.typography.sBodyMD.lineHeight +
+        params.theme.typography.sBodySM.lineHeight,
     },
     switch: {
       alignSelf: 'flex-end',

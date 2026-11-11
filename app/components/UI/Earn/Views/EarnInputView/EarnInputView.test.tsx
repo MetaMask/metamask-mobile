@@ -1,4 +1,3 @@
-import { BNToHex } from '@metamask/controller-utils';
 import {
   ChainId,
   LendingProvider,
@@ -52,7 +51,12 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { useEarnMetadata } from '../../hooks/useEarnMetadata';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import EarnInputView from './EarnInputView';
 import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
@@ -197,7 +201,9 @@ const mockPooledStakingContractService: PooledStakingContract = {
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(),
+  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag: jest.fn(),
 }));
 
 const mockLendingContracts = {
@@ -310,30 +316,6 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      TokenBalancesController: {
-        tokenBalances: {
-          [MOCK_ADDRESS_2.toLowerCase()]: {
-            [CHAIN_IDS.MAINNET]: {
-              [MOCK_USDC_MAINNET_ASSET.address]: BNToHex(
-                new BigNumber('1000000'),
-              ),
-            },
-          },
-        },
-      },
-      CurrencyRateController: {
-        currentCurrency: 'USD',
-        currencyRates: {
-          ETH: { conversionRate: 2000 },
-        },
-      },
-      TokenRatesController: {
-        marketData: {
-          [CHAIN_IDS.MAINNET]: {
-            [MOCK_USDC_MAINNET_ASSET.address]: { price: 1 },
-          },
-        },
-      },
       AssetsController: {
         selectedCurrency: 'usd',
         assetsInfo: {
@@ -359,13 +341,13 @@ const mockInitialState: DeepPartial<RootState> = {
         },
         assetsPrice: {
           'eip155:1/slip44:60': {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: 2000,
             usdPrice: 2000,
             lastUpdated: 1717334400000,
           },
           [`eip155:1/erc20:${MOCK_USDC_MAINNET_ASSET.address}`]: {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: 1,
             usdPrice: 1,
             lastUpdated: 1717334400000,
@@ -378,9 +360,16 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('EarnInputView', () => {
   const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
+  const selectPooledStakingEnabledFlagMock = jest.mocked(
+    selectPooledStakingEnabledFlag,
+  );
+  const selectPooledStakingServiceInterruptionBannerEnabledFlagMock =
+    jest.mocked(selectPooledStakingServiceInterruptionBannerEnabledFlag);
   const selectStablecoinLendingEnabledFlagMock = jest.mocked(
     selectStablecoinLendingEnabledFlag,
   );
+  const selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock =
+    jest.mocked(selectStablecoinLendingServiceInterruptionBannerEnabledFlag);
 
   const selectConversionRateMock = jest.mocked(selectConversionRate);
   const mockTrace = jest.mocked(trace);
@@ -410,7 +399,14 @@ describe('EarnInputView', () => {
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useAnalytics>);
 
+    selectPooledStakingEnabledFlagMock.mockReturnValue(true);
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+    selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+      false,
+    );
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+      false,
+    );
     selectConversionRateMock.mockReturnValue(mockConversionRate);
     mockUseTronStakeApy.mockReturnValue({
       apyPercent: null,
@@ -512,9 +508,171 @@ describe('EarnInputView', () => {
 
   const renderComponent = () => render(EarnInputView);
 
+  const createLendingEarnToken = () => {
+    const experience = {
+      type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+      apr: '2.5%',
+      estimatedAnnualRewardsFormatted: '$3.00',
+      estimatedAnnualRewardsFiatNumber: 3,
+      estimatedAnnualRewardsTokenMinimalUnit: '3000000',
+      estimatedAnnualRewardsTokenFormatted: '3 USDC',
+      market: {
+        protocol: 'AAVE v3',
+        underlying: {
+          address: MOCK_USDC_MAINNET_ASSET.address,
+        },
+      },
+    };
+
+    return {
+      ...MOCK_USDC_MAINNET_ASSET,
+      chainId: CHAIN_IDS.MAINNET,
+      address: '0x123232',
+      balance: '100',
+      balanceFiat: '$100',
+      balanceWei: new BN4('100000000'),
+      balanceMinimalUnit: '100000000',
+      balanceFiatNumber: 100,
+      balanceFormatted: '100 USDC',
+      tokenUsdExchangeRate: 1,
+      isETH: false,
+      experiences: [experience],
+      experience,
+    };
+  };
+
+  const renderLendingComponent = () => {
+    const lendingEarnToken = createLendingEarnToken();
+
+    (useEarnTokens as jest.Mock).mockReturnValue({
+      getEarnToken: jest.fn(() => lendingEarnToken),
+      getOutputToken: jest.fn(() => ({
+        ...MOCK_USDC_MAINNET_ASSET,
+        chainId: CHAIN_IDS.MAINNET,
+      })),
+    });
+
+    return render(EarnInputView, {
+      params: {
+        ...baseProps.route.params,
+        token: MOCK_USDC_MAINNET_ASSET,
+      },
+      key: Routes.STAKING.STAKE,
+      name: 'params',
+    });
+  };
+
+  const renderTronComponent = (balance = '100') => {
+    const tronToken = {
+      ...MOCK_ETH_MAINNET_ASSET,
+      name: 'TRON',
+      symbol: 'TRX',
+      ticker: 'TRX',
+      chainId: 'tron:728126428',
+      isNative: true,
+      isETH: false,
+      decimals: 6,
+      address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+      balance,
+      balanceFiat: `$${balance}`,
+      balanceMinimalUnit: new BigNumber(balance).shiftedBy(6).toFixed(0),
+      balanceFormatted: `${balance} TRX`,
+      balanceFiatNumber: Number(balance),
+      tokenUsdExchangeRate: 1,
+      experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
+      experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
+    } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+    (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+    (useEarnTokens as jest.Mock).mockReturnValue({
+      getEarnToken: jest.fn(() => tronToken),
+      getOutputToken: jest.fn(() => undefined),
+    });
+
+    return render(EarnInputView, {
+      params: { token: tronToken },
+      key: Routes.STAKING.STAKE,
+      name: 'params',
+    });
+  };
+
+  const getMaintenanceMessage = (experienceName: string) =>
+    strings('earn.service_interruption_banner.maintenance_message', {
+      experienceName,
+    });
+
   it('renders stake ETH heading', () => {
     const { getByText } = renderComponent();
     expect(getByText(strings('stake.stake_eth'))).toBeOnTheScreen();
+  });
+
+  describe('service interruption banners', () => {
+    it('renders pooled staking maintenance message for ETH when enabled', () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText } = renderComponent();
+
+      expect(
+        getByText(getMaintenanceMessage('Pooled Staking')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders stablecoin lending maintenance message when enabled', () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText } = renderLendingComponent();
+
+      expect(
+        getByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides pooled staking maintenance message when disabled', () => {
+      const { queryByText } = renderComponent();
+
+      expect(
+        queryByText(getMaintenanceMessage('Pooled Staking')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides stablecoin lending maintenance message when disabled', () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { queryByText } = renderLendingComponent();
+
+      expect(
+        queryByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render lending maintenance message for pooled staking ETH', () => {
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { queryByText } = renderComponent();
+
+      expect(
+        queryByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render pooled staking maintenance message for stablecoin lending', () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { queryByText } = renderLendingComponent();
+
+      expect(
+        queryByText(getMaintenanceMessage('Pooled Staking')),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('when erc20 token is selected', () => {
@@ -556,7 +714,7 @@ describe('EarnInputView', () => {
         })),
       });
 
-      const { getByText, getAllByText } = render(EarnInputView, {
+      const { getByText, getAllByText, queryByText } = render(EarnInputView, {
         params: {
           ...baseProps.route.params,
           token: MOCK_USDC_MAINNET_ASSET,
@@ -577,20 +735,100 @@ describe('EarnInputView', () => {
       // Token Selector should display USDC as selected token
       expect(getByText('2.5% APR')).toBeOnTheScreen();
       expect(getByText('100 USDC')).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.press(getByText('1'));
-      });
+      expect(getByText('Max')).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('Max'));
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(getByText('Review')).toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
     });
   });
 
   describe('TRON staking flow', () => {
+    it('keeps TRON stake enabled when pooled staking is disabled', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(false);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { getByText, getByRole } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('stake.review')));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.stake') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps TRON stake enabled when stablecoin lending is disabled', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+
+      const { getByText, getByRole } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('stake.review')));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.stake') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps TRON stake enabled during pooled staking service interruption', async () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { getByText, getByRole } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('stake.review')));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.stake') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps TRON stake enabled during stablecoin lending service interruption', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText, getByRole } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('stake.review')));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.stake') }),
+      ).not.toBeDisabled();
+    });
+
     it('constructs TRX earnToken and shows the ResourceToggle when staking enabled', () => {
       (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
 
@@ -685,7 +923,7 @@ describe('EarnInputView', () => {
       expect(getByTestId('resource-toggle-bandwidth')).toBeOnTheScreen();
     });
 
-    it('replaces Max button with Done when non-zero amount is entered', async () => {
+    it('replaces quick amounts with Review when a non-zero amount is entered', async () => {
       (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
 
       const TRX_TOKEN = {
@@ -723,16 +961,52 @@ describe('EarnInputView', () => {
       });
 
       expect(getByText('Max')).toBeOnTheScreen();
-      expect(
-        queryByText(strings('onboarding_success.done')),
-      ).not.toBeOnTheScreen();
+      expect(queryByText(strings('stake.review'))).not.toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
 
       expect(queryByText('Max')).not.toBeOnTheScreen();
-      expect(getByText(strings('onboarding_success.done'))).toBeOnTheScreen();
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(getByText(strings('stake.review'))).toBeOnTheScreen();
+    });
+
+    it('shows Not enough TRX in the button when the amount exceeds the balance', async () => {
+      const { getByRole, getByText } = renderTronComponent('0.5');
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', {
+          name: strings('stake.not_enough_token', { ticker: 'TRX' }),
+        }),
+      ).toBeDisabled();
+    });
+
+    it('reopens keypad editing when the amount is pressed during preview', async () => {
+      const { getByRole, getByText, queryByText } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('stake.review')));
+      });
+
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByRole('button', { name: '1 TRX' }));
+      });
+
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(getByText(strings('stake.review'))).toBeOnTheScreen();
+      expect(queryByText(strings('stake.stake'))).not.toBeOnTheScreen();
     });
 
     it('does not show MaxInputModal when Max button is pressed for TRX', async () => {
@@ -866,39 +1140,136 @@ describe('EarnInputView', () => {
     });
   });
 
-  describe('quick amount buttons', () => {
-    it('handles 25% quick amount button press correctly', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(getByText('25%'));
-
-      expect(getByText('0.375')).toBeOnTheScreen();
-    });
-  });
-
   describe('stake button states', () => {
-    it('displays `Enter amount` if input is 0', () => {
-      const { getByText } = renderComponent();
+    it('hides the review button and keeps quick amounts when the amount is zero', () => {
+      const { getByText, queryByText } = renderComponent();
 
-      expect(getByText('Enter amount')).toBeOnTheScreen();
+      expect(queryByText('Enter amount')).not.toBeOnTheScreen();
+      expect(getByText('25%')).toBeOnTheScreen();
     });
 
-    it('displays `Review` on stake button if input is valid', () => {
-      const { getByText } = renderComponent();
+    it('replaces quick amounts with Review when the amount is greater than zero', () => {
+      const { getByText, queryByText } = renderComponent();
 
       fireEvent.press(getByText('1'));
+
       expect(getByText('Review')).toBeOnTheScreen();
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
+    });
+
+    it('disables pooled staking review button during service interruption', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText, getByRole } = renderComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).toBeDisabled();
+    });
+
+    it('disables stablecoin lending review button during service interruption', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText, getByRole } = renderLendingComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).toBeDisabled();
+    });
+
+    it('keeps pooled staking review enabled when stablecoin lending is disabled', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+
+      const { getByText, getByRole } = renderComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps stablecoin lending review enabled when pooled staking is disabled', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(false);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { getByText, getByRole } = renderLendingComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps stablecoin lending review enabled during pooled staking service interruption', async () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { getByText, getByRole } = renderLendingComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps pooled staking review enabled during stablecoin lending service interruption', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText, getByRole } = renderComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).not.toBeDisabled();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
       const { getByText, queryAllByText } = renderComponent();
 
       fireEvent.press(getByText('4'));
-      expect(queryAllByText('Not enough ETH')).toHaveLength(2);
+      expect(queryAllByText('Not enough ETH')).toHaveLength(1);
     });
   });
 
   describe('navigates to ', () => {
+    beforeEach(() => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+    });
+
     it('gas impact modal when gas cost is 30% or more of deposit amount', async () => {
       const mockUseStakingGasFee = jest.spyOn(useEarnGasFee, 'default');
       const mockUseBalance = jest.spyOn(useBalance, 'default');
@@ -1753,6 +2124,10 @@ describe('EarnInputView', () => {
     });
 
     describe('Pooled Staking flow tracing', () => {
+      beforeEach(() => {
+        selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      });
+
       it('calls trace with EarnDepositConfirmationScreen', async () => {
         const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
         usePoolStakedDepositMock.mockReturnValue({
@@ -2057,7 +2432,7 @@ describe('EarnInputView', () => {
           symbol: 'USDC',
           experience: {
             type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-            apr: '4.5',
+            apr: '4.25',
           },
         })),
         getOutputToken: jest.fn(() => ({
@@ -2096,7 +2471,7 @@ describe('EarnInputView', () => {
             tooltip_name: 'Lending Historic Market APY Graph',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             token: 'USDC',
-            apr: '4.5%',
+            apr: '4.3%',
           }),
         }),
       );

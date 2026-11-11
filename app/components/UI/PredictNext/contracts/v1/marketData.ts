@@ -1,6 +1,8 @@
 import {
   array,
+  coerce,
   enums,
+  literal,
   mask,
   number,
   object,
@@ -9,35 +11,22 @@ import {
   string,
   tuple,
   type Struct,
+  type as structType,
+  unknown,
+  union,
 } from '@metamask/superstruct';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PredictError, PredictErrorCode } from '../../errors';
+import { amount, decimal, httpsUrl, timestamp } from './primitives';
 import type {
   FetchFeedParams,
   PredictEvent,
   PredictFeed,
   PredictMarket,
   PredictMarketHistory,
+  PredictSearchResults,
   PredictVenueStatus,
 } from '../../types';
-
-const timestamp = refine(string(), 'PredictTimestamp', (value) => {
-  const match =
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?Z$/.exec(
-      value,
-    );
-  if (!match) {
-    return false;
-  }
-
-  const [, year, month, day, hour, minute, second, fraction = ''] = match;
-  const milliseconds = fraction.padEnd(3, '0').slice(0, 3);
-  const parsed = Date.parse(value);
-  return (
-    !Number.isNaN(parsed) &&
-    new Date(parsed).toISOString() ===
-      `${year}-${month}-${day}T${hour}:${minute}:${second}.${milliseconds}Z`
-  );
-});
 
 const venueId = refine(string(), 'PredictVenueId', (value) => value.length > 0);
 const entityId = refine(
@@ -45,29 +34,9 @@ const entityId = refine(
   'PredictEntityId',
   (value) => value.length > 0,
 );
-const decimal = refine(
-  string(),
-  'PredictDecimal',
-  (value) => /^(?:0(?:\.\d+)?|1(?:\.0+)?)$/.test(value) && Number(value) <= 1,
-);
-const amount = refine(string(), 'PredictAmount', (value) =>
-  /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value),
-);
 const hexColor = refine(string(), 'PredictHexColor', (value) =>
   /^#[0-9a-f]{6}$/i.test(value),
 );
-const httpsUrl = refine(string(), 'PredictHttpsUrl', (value) => {
-  if (!/^https:\/\//i.test(value)) {
-    return false;
-  }
-
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && url.hostname.length > 0;
-  } catch {
-    return false;
-  }
-});
 const settlementSourceName = refine(
   string(),
   'PredictSettlementSourceName',
@@ -109,10 +78,12 @@ const teamSchema = object({
   abbreviation: optional(string()),
   logoUrl: optional(httpsUrl),
   primaryColor: optional(hexColor),
+  logoFacing: optional(enums(['left', 'right'] as const)),
 });
 
 const gameSchema = object({
   status: gameStatus,
+  teamOrder: optional(enums(['away_first', 'home_first'] as const)),
   homeTeam: teamSchema,
   awayTeam: teamSchema,
   score: optional(
@@ -146,6 +117,149 @@ const outcomeSchema = object({
   gameSelection: optional(gameSelection),
 });
 
+export const PredictMarketOptionSchema = object({
+  type: literal('number'),
+  value: refine(number(), 'PredictMarketOptionValue', Number.isFinite),
+});
+
+const nonEmptyGroupString = (name: string) =>
+  refine(string(), name, (value) => value.trim().length > 0);
+
+const pickGroupProperties = (value: unknown, keys: readonly string[]) => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  return Object.fromEntries(
+    keys.filter((key) => key in record).map((key) => [key, record[key]]),
+  );
+};
+
+/** A group's card title, such as a Player's name; never blank when sent. */
+const groupLabel = optional(nonEmptyGroupString('PredictMarketGroupLabel'));
+
+const displayOrder = optional(
+  refine(
+    number(),
+    'PredictMarketDisplayOrder',
+    (value) => Number.isInteger(value) && value >= 0,
+  ),
+);
+
+const marketSelectorGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: literal('marketSelector'),
+    marketType: nonEmptyGroupString('PredictMarketType'),
+    option: PredictMarketOptionSchema,
+    displayOrder,
+    label: groupLabel,
+  }),
+  unknown(),
+  (value) =>
+    pickGroupProperties(value, [
+      'key',
+      'groupType',
+      'marketType',
+      'option',
+      'displayOrder',
+      'label',
+    ]),
+);
+
+/**
+ * A card of rows, one Market per row priced by its yes side, such as a
+ * moneyline's options. Titled with `label` when the backend sends one.
+ */
+const choiceGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: literal('choice'),
+    displayOrder,
+    label: groupLabel,
+  }),
+  unknown(),
+  (value) =>
+    pickGroupProperties(value, ['key', 'groupType', 'displayOrder', 'label']),
+);
+
+const unsupportedMarketGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: refine(
+      string(),
+      'PredictMarketGroupType',
+      (value) => value.trim().length > 0 && value !== 'marketSelector',
+    ),
+    label: groupLabel,
+  }),
+  unknown(),
+  (value) => pickGroupProperties(value, ['key', 'groupType', 'label']),
+);
+
+export const PredictMarketGroupSchema = union([
+  marketSelectorGroupSchema,
+  choiceGroupSchema,
+  unsupportedMarketGroupSchema,
+]);
+
+/**
+ * A Market's group. Presentation only, so a malformed group is dropped and the
+ * Market renders as a standard card, rather than one bad line rejecting the
+ * whole Event.
+ */
+const marketGroupSchema = coerce(
+  optional(PredictMarketGroupSchema),
+  unknown(),
+  (value) => {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    try {
+      return mask(value, PredictMarketGroupSchema);
+    } catch (error) {
+      const key =
+        typeof value === 'object' && value !== null && 'key' in value
+          ? String(value.key)
+          : '';
+      DevLogger.log(
+        `[PredictNext] Dropped malformed Market group "${key}"; its Market renders as a standard card`,
+        error instanceof Error ? error.message : error,
+      );
+      return undefined;
+    }
+  },
+);
+
+const layoutLevelSchema = object({
+  key: nonEmptyGroupString('PredictMarketLayoutKey'),
+  order: refine(number(), 'PredictMarketLayoutOrder', Number.isInteger),
+});
+
+const marketLayoutStruct = object({
+  tab: layoutLevelSchema,
+  section: layoutLevelSchema,
+  subgroup: optional(layoutLevelSchema),
+});
+
+/**
+ * Event screen placement. Presentation only, so a malformed layout is dropped
+ * rather than rejecting the response; unknown keys are valid.
+ */
+const marketLayoutSchema = coerce(
+  optional(marketLayoutStruct),
+  unknown(),
+  (value) => {
+    try {
+      return mask(value, marketLayoutStruct);
+    } catch {
+      return undefined;
+    }
+  },
+);
+
 const binaryOutcomes = refine(
   tuple([outcomeSchema, outcomeSchema]),
   'BinaryOutcomes',
@@ -158,6 +272,8 @@ const marketSchema = object({
   rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
+  group: marketGroupSchema,
+  layout: marketLayoutSchema,
   volume: optional(amount),
   volume24h: optional(amount),
   createdAt: optional(timestamp),
@@ -200,10 +316,17 @@ const feedSchema = object({
   nextCursor: optional(string()),
 });
 
+const searchResultsSchema = object({
+  venueId,
+  events: array(eventSchema),
+});
+
 const venueStatusSchema = object({
   venueId,
   status: venueStatus,
   checkedAt: timestamp,
+  // Backend-owned venue metadata; absent when the venue has no agreement.
+  termsUrl: optional(httpsUrl),
 });
 
 const marketHistoryPointSchema = refine(
@@ -266,6 +389,11 @@ export const parsePredictEvent = (value: unknown): PredictEvent =>
 
 export const parsePredictFeed = (value: unknown): PredictFeed =>
   parse(value, feedSchema) as unknown as PredictFeed;
+
+export const parsePredictSearchResults = (
+  value: unknown,
+): PredictSearchResults =>
+  parse(value, searchResultsSchema) as unknown as PredictSearchResults;
 
 export const parsePredictMarket = (value: unknown): PredictMarket =>
   parse(value, marketSchema) as unknown as PredictMarket;

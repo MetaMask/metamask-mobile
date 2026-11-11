@@ -165,7 +165,7 @@ describe('GameCache', () => {
       const update = createMockGameUpdate();
 
       cache.updateGame('game-123', update);
-      jest.advanceTimersByTime(4 * 60 * 1000);
+      jest.advanceTimersByTime(30 * 1000);
 
       expect(cache.getGame('game-123')).toEqual(update);
     });
@@ -237,6 +237,50 @@ describe('GameCache', () => {
       });
 
       expect(result.game?.score).toEqual({ away: 1, home: 2, raw: '2-1' });
+    });
+
+    it('does not overlay cached data once it ages past the live TTL', () => {
+      // Regression for PRED-1334 review: the overlay must expire on the same
+      // window as usePredictGame's mergeCachedGame, otherwise a REST refetch
+      // inside the window keeps serving the frozen WebSocket fields and the
+      // scoreboard cannot recover after the sports socket dies.
+      const cache = GameCache.getInstance();
+      const update = createMockGameUpdate({
+        gameId: 'game-123',
+        score: '28-21',
+        elapsed: '08:42',
+        period: 'Q3',
+        status: 'ongoing',
+      });
+      const market = createMockMarketWithGame();
+
+      cache.updateGame('game-123', update);
+      jest.advanceTimersByTime(90 * 1000);
+
+      const result = cache.overlayOnMarket(market);
+
+      expect(result.game?.score).toBeNull();
+      expect(result.game?.elapsed).toBeNull();
+      expect(result.game?.period).toBeNull();
+      expect(result.game?.status).toBe('scheduled');
+    });
+
+    it('keeps overlaying cached data within the live TTL', () => {
+      const cache = GameCache.getInstance();
+      const update = createMockGameUpdate({
+        gameId: 'game-123',
+        score: '28-21',
+        elapsed: '08:42',
+      });
+      const market = createMockMarketWithGame();
+
+      cache.updateGame('game-123', update);
+      jest.advanceTimersByTime(30 * 1000);
+
+      const result = cache.overlayOnMarket(market);
+
+      expect(result.game?.score).toEqual({ away: 28, home: 21, raw: '28-21' });
+      expect(result.game?.elapsed).toBe('08:42');
     });
 
     it('preserves non-overlaid game properties', () => {
@@ -330,7 +374,7 @@ describe('GameCache', () => {
       const cache = GameCache.getInstance();
       cache.updateGame('game-1', createMockGameUpdate({ gameId: 'game-1' }));
 
-      jest.advanceTimersByTime(4 * 60 * 1000);
+      jest.advanceTimersByTime(30 * 1000);
       cache.pruneStaleEntries();
 
       expect(cache.getCacheSize()).toBe(1);
@@ -343,13 +387,13 @@ describe('GameCache', () => {
         createMockGameUpdate({ gameId: 'game-old' }),
       );
 
-      jest.advanceTimersByTime(4 * 60 * 1000);
+      jest.advanceTimersByTime(30 * 1000);
       cache.updateGame(
         'game-new',
         createMockGameUpdate({ gameId: 'game-new' }),
       );
 
-      jest.advanceTimersByTime(2 * 60 * 1000);
+      jest.advanceTimersByTime(31 * 1000);
       cache.pruneStaleEntries();
 
       expect(cache.getCacheSize()).toBe(1);

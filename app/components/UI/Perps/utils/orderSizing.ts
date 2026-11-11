@@ -42,6 +42,8 @@ export interface DeriveOrderSizingInput {
   maxSlippageBps?: number;
   /** True while market data is still loading (defers derived values). */
   isLoadingMarketData: boolean;
+  /** Exact base size to use instead of deriving it from `amount`. */
+  size?: string;
 }
 
 export interface DeriveOrderSizingResult {
@@ -194,6 +196,7 @@ export const deriveOrderSizing = ({
   isBuy = true,
   maxSlippageBps,
   isLoadingMarketData,
+  size,
 }: DeriveOrderSizingInput): DeriveOrderSizingResult => {
   const parsedLimitPrice = isLimitExecutionOrderType(orderType)
     ? Number.parseFloat(limitPrice ?? '')
@@ -231,11 +234,12 @@ export const deriveOrderSizing = ({
 
   const positionSize = isLoadingMarketData
     ? PERPS_CONSTANTS.FallbackDataDisplay
-    : calculatePositionSize({
+    : (size ??
+      calculatePositionSize({
         amount,
         price: effectivePrice,
         szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
-      });
+      }));
 
   let marginRequired: string | undefined;
   if (!isLoadingMarketData && amount) {
@@ -278,4 +282,46 @@ export const getReduceOnlyMaxUsdAmount = ({
   }
 
   return new BigNumber(absSize).times(price).toNumber();
+};
+
+export interface PayWithTokenDepositAmountInput {
+  /** Margin from `deriveOrderSizing`, priced at mark for market orders. */
+  marginRequired: string | undefined;
+  /** Estimated taker + builder fees for the order, in USD. */
+  estimatedFeesUsd: number;
+  orderType: OrderType;
+  maxSlippageBps: number;
+}
+
+/**
+ * USD amount to deposit before a pay-with-token order. HyperLiquid reserves
+ * margin at the submitted price and charges fees on top, so depositing the
+ * bare mark-price margin fails with "Insufficient margin". Market orders are
+ * submitted up to `maxSlippageBps` away from mid, so their margin gets that
+ * buffer; limit and trigger orders already size margin at their own price.
+ * Rounded up to cents so rounding never eats the headroom.
+ *
+ * @param input - Margin, fees, order type, and max slippage.
+ * @returns The deposit amount in USD, or `''` while margin is unknown.
+ */
+export const getPayWithTokenDepositAmount = ({
+  marginRequired,
+  estimatedFeesUsd,
+  orderType,
+  maxSlippageBps,
+}: PayWithTokenDepositAmountInput): string => {
+  if (marginRequired == null) {
+    return '';
+  }
+
+  const isMarketOrder =
+    !isLimitExecutionOrderType(orderType) && !isTriggerOrderType(orderType);
+  const slippageBufferBps = isMarketOrder ? maxSlippageBps : 0;
+  const fees = Number.isFinite(estimatedFeesUsd) ? estimatedFeesUsd : 0;
+
+  return new BigNumber(marginRequired)
+    .times(1 + slippageBufferBps / 10_000)
+    .plus(fees)
+    .decimalPlaces(2, BigNumber.ROUND_UP)
+    .toString(10);
 };

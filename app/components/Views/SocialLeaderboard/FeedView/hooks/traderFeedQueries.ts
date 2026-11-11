@@ -1,0 +1,95 @@
+import type { QueryClient } from '@tanstack/react-query';
+import type {
+  FeedResponse,
+  FetchFeedOptions,
+} from '@metamask/social-controllers';
+import Engine from '../../../../../core/Engine';
+import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
+import {
+  FEED_PAGE_LIMIT,
+  SOCIAL_FEED_INFINITE_QUERY_KIND,
+} from '../../../../UI/SocialFeed/data/socialFeedQueries';
+import type { FeedAudience } from '../../../../UI/SocialFeed/types';
+
+/** The scopes V0 reads, as the installed `fetchFeed` types them. */
+type FeedScope = NonNullable<FetchFeedOptions['scope']>;
+
+/** The feed scope V0's All / Following toggle reads. */
+export const toFeedScope = (audience: FeedAudience): FeedScope =>
+  audience === 'following' ? 'following' : 'leaderboard';
+
+/** Audiences whose first page is warmed when Follow Trading opens. */
+export const PREFETCH_FEED_AUDIENCES: readonly FeedAudience[] = [
+  'following',
+  'all',
+];
+
+/**
+ * Same shape as `buildSocialFeedQueryKey` for an `all` source at
+ * {@link FEED_PAGE_LIMIT}, so this feed and `useSocialFeed` share one cache.
+ */
+export const buildTraderFeedQueryKey = (
+  scope: FeedScope,
+): [
+  string,
+  { scope: FeedScope; chains: typeof FEED_CAIP2_CHAINS; limit: number },
+  typeof SOCIAL_FEED_INFINITE_QUERY_KIND,
+] => [
+  'SocialService:fetchFeed',
+  { scope, chains: FEED_CAIP2_CHAINS, limit: FEED_PAGE_LIMIT },
+  SOCIAL_FEED_INFINITE_QUERY_KIND,
+];
+
+/**
+ * Fetches one feed page via `SocialService:fetchFeed`.
+ *
+ * Call as a member expression so the messenger keeps its `this` binding;
+ * aliasing `.call` into a local detaches it and breaks action lookup.
+ */
+export const fetchTraderFeedPage = (
+  scope: FeedScope,
+  pageParam?: string,
+): Promise<FeedResponse> => {
+  const messenger = Engine.controllerMessenger as unknown as {
+    call: (
+      action: 'SocialService:fetchFeed',
+      fetchOptions: FetchFeedOptions,
+    ) => Promise<FeedResponse>;
+  };
+  return messenger.call('SocialService:fetchFeed', {
+    scope,
+    limit: FEED_PAGE_LIMIT,
+    chains: [...FEED_CAIP2_CHAINS],
+    ...(pageParam ? { olderThan: pageParam } : {}),
+  });
+};
+
+/**
+ * react-query only stops paginating on `undefined`; guard the empty cursor
+ * so an exhausted feed doesn't loop back to the first page.
+ */
+export const getTraderFeedNextPageParam = (
+  lastPage: FeedResponse,
+): string | undefined => lastPage.pagination?.olderCursor ?? undefined;
+
+/**
+ * Warms the first page of each feed audience into the shared React Query
+ * cache so the Feed tab and audience toggle can render without waiting on
+ * a network round trip.
+ */
+export const prefetchTraderFeeds = async (
+  queryClient: QueryClient,
+): Promise<void> => {
+  await Promise.allSettled(
+    PREFETCH_FEED_AUDIENCES.map((audience) => {
+      const scope = toFeedScope(audience);
+      return queryClient.infiniteQuery({
+        queryKey: buildTraderFeedQueryKey(scope),
+        queryFn: ({ pageParam }: { pageParam?: string }) =>
+          fetchTraderFeedPage(scope, pageParam),
+        initialPageParam: undefined as string | undefined,
+        retry: false,
+      });
+    }),
+  );
+};

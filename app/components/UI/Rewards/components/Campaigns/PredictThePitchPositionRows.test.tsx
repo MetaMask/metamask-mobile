@@ -5,13 +5,21 @@ import {
   PREDICT_THE_PITCH_POSITION_ROW_TEST_ID,
 } from './PredictThePitchPositionRows';
 import type { PredictThePitchPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { PredictEventValues } from '../../../Predict/constants/eventNames';
 
-const mockNavigateToMarketDetails = jest.fn();
+const mockOpenPredict = jest.fn();
+const mockCanOpenPredict = jest.fn();
+let mockIsPredictAvailable = true;
 
-jest.mock('../../../Predict/hooks/usePredictNavigation', () => ({
-  usePredictNavigation: () => ({
-    navigateToMarketDetails: mockNavigateToMarketDetails,
+jest.mock('../../../PredictNext', () => ({
+  PredictEventValues: { ENTRY_POINT: { REWARDS: 'rewards' } },
+  createPredictCampaignEventRef: (campaign: string, eventId: string) => ({
+    campaign,
+    eventId,
+  }),
+  usePredictAvailability: () => mockIsPredictAvailable,
+  usePredictEntryActions: () => ({
+    openPredict: mockOpenPredict,
+    canOpenPredict: mockCanOpenPredict,
   }),
 }));
 
@@ -62,29 +70,59 @@ const basePosition: PredictThePitchPositionDto = {
 };
 
 describe('PredictThePitchPositionRows', () => {
+  const rowTestId = (index: number) =>
+    `${PREDICT_THE_PITCH_POSITION_ROW_TEST_ID}-${index}`;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsPredictAvailable = true;
+    mockCanOpenPredict.mockReturnValue(true);
   });
 
-  it('navigates to Predict market details when a row with eventId is pressed', () => {
+  it('opens the campaign Event with the Rewards entry point and the title and image snapshots', () => {
     const { getByTestId } = render(
       <PredictThePitchOpenPositionRow position={basePosition} index={0} />,
     );
 
-    fireEvent.press(getByTestId(`${PREDICT_THE_PITCH_POSITION_ROW_TEST_ID}-0`));
+    fireEvent.press(getByTestId(rowTestId(0)));
 
-    expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
-      {
-        marketId: 'event-1',
-        entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
-        title: 'Match winner',
-        image: 'https://example.com/icon.png',
-      },
-      { throughRoot: true },
+    expect(mockOpenPredict).toHaveBeenCalledTimes(1);
+    expect(mockOpenPredict).toHaveBeenCalledWith({
+      type: 'event',
+      eventRef: { campaign: 'predict-the-pitch', eventId: 'event-1' },
+      entryPoint: 'rewards',
+      titleSnapshot: 'Match winner',
+      imageSnapshot: 'https://example.com/icon.png',
+    });
+  });
+
+  it('omits the image snapshot when the position has no icon', () => {
+    const { getByTestId } = render(
+      <PredictThePitchOpenPositionRow
+        position={{ ...basePosition, iconUrl: null }}
+        index={0}
+      />,
+    );
+
+    fireEvent.press(getByTestId(rowTestId(0)));
+
+    expect(mockOpenPredict).toHaveBeenCalledWith(
+      expect.not.objectContaining({ imageSnapshot: expect.anything() }),
     );
   });
 
-  it('does not navigate when eventId is missing', () => {
+  it('asks whether the campaign can open Predict, scoped to the campaign', () => {
+    render(
+      <PredictThePitchOpenPositionRow position={basePosition} index={0} />,
+    );
+
+    expect(mockCanOpenPredict).toHaveBeenCalledWith({
+      type: 'home',
+      campaign: 'predict-the-pitch',
+    });
+  });
+
+  it('keeps a disabled button that opens nothing when eventId is missing', () => {
     const { getByTestId } = render(
       <PredictThePitchOpenPositionRow
         position={{ ...basePosition, eventId: null }}
@@ -92,8 +130,30 @@ describe('PredictThePitchPositionRows', () => {
       />,
     );
 
-    fireEvent.press(getByTestId(`${PREDICT_THE_PITCH_POSITION_ROW_TEST_ID}-1`));
+    fireEvent.press(getByTestId(rowTestId(1)));
 
-    expect(mockNavigateToMarketDetails).not.toHaveBeenCalled();
+    expect(getByTestId(rowTestId(1))).toHaveProp('accessibilityRole', 'button');
+    expect(mockOpenPredict).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['the campaign Venue is not active', true, false],
+    ['Predict is unavailable', false, true],
+  ])(
+    'renders the row without an action when %s',
+    (_case, isAvailable, canOpen) => {
+      mockIsPredictAvailable = isAvailable;
+      mockCanOpenPredict.mockReturnValue(canOpen);
+      const { getByTestId, getByText } = render(
+        <PredictThePitchOpenPositionRow position={basePosition} index={0} />,
+      );
+
+      fireEvent.press(getByTestId(rowTestId(0)));
+
+      expect(getByText('Match winner')).toBeOnTheScreen();
+      expect(getByTestId(rowTestId(0))).not.toHaveProp('accessibilityRole');
+      expect(getByTestId(rowTestId(0))).not.toHaveProp('onPress');
+      expect(mockOpenPredict).not.toHaveBeenCalled();
+    },
+  );
 });

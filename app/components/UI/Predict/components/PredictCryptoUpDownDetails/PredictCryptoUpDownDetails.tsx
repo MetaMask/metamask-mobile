@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -28,6 +29,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
 import {
@@ -48,6 +51,7 @@ import {
   getVariant,
   resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
+import { resolveReferencePriceWindow } from '../../utils/referencePriceWindow';
 import { TimeSlotPicker } from '../TimeSlotPicker';
 import { findLiveMarket, getCurrentSeriesWindowMs } from '../../utils/series';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
@@ -135,6 +139,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const { height: windowHeight } = useWindowDimensions();
   const [selectedMarket, setSelectedMarket] =
     useState<PredictMarketWithSeries>(market);
@@ -265,6 +270,9 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     selectedMarket.endDate,
     selectedMarket.series.recurrence,
   );
+  const referenceWindowSeconds = resolveReferencePriceWindow(
+    selectedMarket.twapWindowSeconds,
+  );
   const { data: targetPrice, isFetching: isTargetPriceFetching } =
     useCryptoTargetPrice({
       eventId: selectedMarket.id,
@@ -272,7 +280,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       eventStartTime: targetPriceEventStartTime ?? '',
       variant: getVariant(selectedMarket.series.recurrence),
       endDate: selectedMarket.endDate ?? '',
-      twapWindowSeconds: selectedMarket.twapWindowSeconds,
+      twapWindowSeconds: referenceWindowSeconds,
       enabled:
         !!targetPriceSymbol &&
         !!targetPriceEventStartTime &&
@@ -499,7 +507,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const currentPriceAccentColor =
     CRYPTO_SYMBOL_TO_ACCENT_COLOR[targetPriceSymbol ?? ''] ??
     DEFAULT_CRYPTO_ACCENT_COLOR;
-  const twapWindowSeconds = selectedMarket.twapWindowSeconds;
+  const twapWindowSeconds = referenceWindowSeconds;
   const bottomAccessory = twapWindowSeconds ? (
     <Box flexDirection={BoxFlexDirection.Row} twClassName="items-center gap-1">
       <Text
@@ -527,26 +535,32 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     </Box>
   ) : undefined;
 
+  const headerProps = {
+    onBack,
+    backButtonProps: {
+      testID: PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON,
+    },
+    endButtonIconProps: [
+      {
+        iconName: IconName.Share,
+        onPress: handleSharePress,
+        testID: PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON,
+      },
+    ],
+    testID: PredictCryptoUpDownDetailsSelectorsIDs.HEADER,
+  };
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       edges={['left', 'right', 'top']}
       testID={PredictCryptoUpDownDetailsSelectorsIDs.SCREEN}
     >
-      <HeaderCompactStandard
-        onBack={onBack}
-        backButtonProps={{
-          testID: PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON,
-        }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Share,
-            onPress: handleSharePress,
-            testID: PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON,
-          },
-        ]}
-        testID={PredictCryptoUpDownDetailsSelectorsIDs.HEADER}
-      />
+      {isBrandRefresh ? (
+        <HeaderStandardGlass isFloating={false} {...headerProps} />
+      ) : (
+        <HeaderCompactStandard {...headerProps} />
+      )}
 
       <ScrollView
         testID={PredictCryptoUpDownDetailsSelectorsIDs.SCROLL_VIEW}

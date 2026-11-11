@@ -33,6 +33,16 @@ on:
         required: false
         type: boolean
         default: false
+      build_attribution:
+        description: >-
+          Optional analytics build attribution, exported as METAMASK_BUILD_ATTRIBUTION and
+          inlined into the JS bundle. Nightly jobs pass 'nightly' (`-rc-nightly` /
+          `-exp-nightly`). Official release-channel RC jobs pass 'official'
+          (`-release-candidate`). Any other rc build reports `-rc-unofficial`.
+          Distinct from builds.yml build names (main-rc, etc.).
+        required: false
+        type: string
+        default: ''
       runner_provider:
         description: >-
           Runner provider forwarded from the caller. Leave empty to defer to the repo
@@ -40,6 +50,14 @@ on:
         required: false
         type: string
         default: ''
+      cache_mode:
+        description: >-
+          The caller's effective `cache-mode` (none, read, write or write-only). Namespace runners
+          do not expose ACTIONS_CACHE_MODE, so callers that may use caches must pass it. The
+          default, `none`, disables every cache in this workflow.
+        required: false
+        type: string
+        default: 'none'
     outputs:
       build_name:
         description: 'build_name input passed to this workflow'
@@ -98,6 +116,14 @@ on:
         required: false
         type: boolean
         default: false
+      build_attribution:
+        description: "Analytics build attribution. Use 'nightly' for -rc-nightly / -exp-nightly. Leave unofficial for ad-hoc rc builds (`-rc-unofficial`). Official RC attribution is not available here."
+        required: false
+        type: choice
+        options:
+          - unofficial
+          - nightly
+        default: unofficial
       runner_provider:
         description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: false
@@ -110,7 +136,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   # Load config
@@ -139,20 +164,36 @@ jobs:
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
       checkout_ref_for_setup: ${{ inputs.source_branch }}
-      should_cache: ${{ startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch' }}
+      should_cache: ${{ (startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch') && steps.cache-mode.outputs.mode == 'write' }}
+      cache_mode: ${{ steps.cache-mode.outputs.mode }}
     steps:
+      # Callers can restrict cache access with `cache-mode`. The node_modules cache handoff
+      # needs full access. The Namespace cache is not governed by `cache-mode` and always both
+      # restores and commits, so it only runs when the mode is `write`.
+      - name: Resolve cache mode
+        id: cache-mode
+        env:
+          CACHE_MODE_INPUT: ${{ inputs.cache_mode }}
+        run: |
+          mode="${ACTIONS_CACHE_MODE:-${CACHE_MODE_INPUT:-none}}"
+          case "$mode" in
+            none|read|write|write-only) ;;
+            *) echo "::error::Unknown cache mode '${mode}'"; exit 1 ;;
+          esac
+          echo "Cache mode: ${mode}"
+          echo "mode=${mode}" >> "$GITHUB_OUTPUT"
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
       - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.cache-mode.outputs.mode == 'write' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -161,7 +202,7 @@ jobs:
             node_modules
             .yarn/cache
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -179,12 +220,14 @@ jobs:
 
       - name: Load config
         id: config
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
           node -e "
           const yaml = require('js-yaml');
           const fs = require('fs');
           const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
-          const build = config.builds['${{ inputs.build_name }}'];
+          const build = config.builds[process.env.BUILD_NAME];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           const env = build.env || {};
@@ -193,7 +236,7 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || '${{ inputs.build_name }}') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || process.env.BUILD_NAME) + '\n');
           "
 
   # Setup dependencies (no secrets) - uses reusable workflow on platform-specific runner
@@ -204,6 +247,9 @@ jobs:
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    permissions:
+      contents: read
+      id-token: write # requested by setup-node-modules.yml
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
@@ -217,6 +263,7 @@ jobs:
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
       runner_provider: ${{ inputs.runner_provider }}
+      cache_mode: ${{ needs.prepare.outputs.cache_mode }}
 
   # Build
   build:
@@ -233,10 +280,13 @@ jobs:
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
          vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
+        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' || 'namespace-profile-metamask-android-build') ||
         (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
       }}
     environment: ${{ needs.prepare.outputs.github_environment }}
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC role assumption for signing certificates
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
       # directly, or a provider set through the repo variables would be ignored.
@@ -264,7 +314,7 @@ jobs:
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           ref: ${{ inputs.source_branch }}
@@ -292,23 +342,28 @@ jobs:
 
       # Node first so we can download/extract/verify; no yarn install here.
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
-      # release/* branches and manual workflow_dispatch: restore node_modules from GitHub Actions cache (fast, no artifact download).
+      # release/* branches and manual workflow_dispatch, when the caller's `cache-mode` is `write`:
+      # restore node_modules from GitHub Actions cache (fast, no artifact download).
       - name: Compute node_modules cache key
         id: cache-key
         if: ${{ needs.prepare.outputs.should_cache == 'true' }}
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
+          PLATFORM: ${{ matrix.platform }}
+          DEPS_HASH: ${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}
         run: |
           NODE_VERSION=$(node --version | sed 's/v//')
-          KEY="node-modules-${{ env.CACHE_GENERATION }}-${{ inputs.build_name }}-${{ matrix.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
+          KEY="node-modules-${CACHE_GENERATION}-${BUILD_NAME}-${PLATFORM}-${RUNNER_OS}-${NODE_VERSION}-${DEPS_HASH}"
           echo "key=${KEY}" >> "$GITHUB_OUTPUT"
           echo "Cache key: ${KEY}"
 
       - name: Restore node_modules cache
         if: ${{ needs.prepare.outputs.should_cache == 'true' }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             node_modules
@@ -321,7 +376,7 @@ jobs:
       # All other branches: download tarball artifact from setup-dependencies job.
       - name: Download node_modules tarball
         if: ${{ needs.prepare.outputs.should_cache != 'true' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
@@ -341,10 +396,12 @@ jobs:
 
       - name: Extract tarball (preserves symlinks)
         if: ${{ needs.prepare.outputs.should_cache != 'true' }}
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
           echo "📦 Extracting tarball..."
-          tar --use-compress-program 'zstd -d' -xf node-modules-${{ matrix.platform }}.tar.zst
-          rm node-modules-${{ matrix.platform }}.tar.zst
+          tar --use-compress-program 'zstd -d' -xf "node-modules-${PLATFORM}.tar.zst"
+          rm "node-modules-${PLATFORM}.tar.zst"
           echo "✅ Tarball extracted"
 
       - name: Verify artifacts and symlinks
@@ -399,7 +456,7 @@ jobs:
       - name: Select Xcode (iOS)
         if: matrix.platform == 'ios'
         run: |
-          sudo xcodes select 26.3
+          sudo xcodes select 26.6
           xcodebuild -version
 
       # TapAndPay SDK Setup (Android only)
@@ -433,13 +490,15 @@ jobs:
           TAP_AND_PAY_SDK_REPO_SSH: ${{ needs.prepare.outputs.tap_and_pay_sdk_repo_ssh }}
 
       - name: Apply build config
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
           # Load env vars from builds.yml (this step only)
-          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
+          eval "$(node scripts/apply-build-config.js "${BUILD_NAME}" --export)"
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js "${BUILD_NAME}" --export-github-env >> "$GITHUB_ENV"
           # Generate build-env.json capturing actual env values used in this build (non-critical)
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env || true
+          node scripts/apply-build-config.js "${BUILD_NAME}" --write-build-env || true
 
       - name: Validate secrets
         env:
@@ -452,7 +511,7 @@ jobs:
         if: matrix.platform == 'ios'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -478,7 +537,7 @@ jobs:
 
       - name: Setup Java
         if: matrix.platform == 'android'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -487,8 +546,18 @@ jobs:
         if: matrix.platform == 'android'
         run: cp android/gradle.properties.release android/gradle.properties
 
+      - name: Configure Namespace Gradle cache (Android)
+        if: ${{ matrix.platform == 'android' && env.RESOLVED_RUNNER_PROVIDER == 'namespace' && needs.prepare.outputs.cache_mode == 'write' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
+        with:
+          cache: gradle
+          path: |
+            ${{ env.GRADLE_USER_HOME }}/caches
+            ${{ env.GRADLE_USER_HOME }}/wrapper
+
+      # Rollback (`current`) arm only; Namespace runners use the cache volume above.
       - name: Restore Gradle dependencies from branch cache (Android)
-        if: matrix.platform == 'android'
+        if: ${{ matrix.platform == 'android' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare.outputs.cache_mode != 'none' }}
         id: gradle-cache-restore
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -498,7 +567,7 @@ jobs:
           key: gradle-release-${{ github.ref_name }}-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore Gradle dependencies from main cache (Android)
-        if: matrix.platform == 'android' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main'
+        if: ${{ matrix.platform == 'android' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare.outputs.cache_mode != 'none' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
@@ -559,13 +628,16 @@ jobs:
           # builds.yml entry (e.g. main-e2e-bs-with-srp), not generic main-e2e (sim-only).
           BUILD_CONFIG_NAME: ${{ inputs.build_name }}
           GIT_BRANCH: ${{ inputs.source_branch }}
+          # Deliberately absent from builds.yml: build.sh's loadBuildConfig re-evals the
+          # builds.yml exports, so a name defined there would overwrite this value.
+          METAMASK_BUILD_ATTRIBUTION: ${{ inputs.build_attribution }}
           # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
           # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
           # only ships CMake 3.22.1 in /opt/android-sdk/cmake/ and AGP cannot auto-
           # download missing components, causing CXX1300. RN's CMakeLists.txt files
           # only require >= 3.13, so 3.22.1 is fully sufficient.
           CMAKE_VERSION: '3.22.1'
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 55
           max_attempts: 2
@@ -593,27 +665,21 @@ jobs:
                 find "$SDK_ROOT/.temp" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
               fi
             fi
-            export NODE_OPTIONS='--max-old-space-size=4096'
-            export METRO_MAX_WORKERS='4'
+            # Each Metro transform worker on this codebase grows to a ~7GB working
+            # set and holds it (measured locally with --trace-gc). Two consequences:
+            #   1. A 4096 cap sits below that, so every worker pins at the ceiling,
+            #      GC utilisation collapses, and serialization dies without ever
+            #      writing a bundle. That is the 8.11.0 stall.
+            #   2. NODE_OPTIONS is inherited by every worker, so peak demand is
+            #      workers x heap. 6 workers x 8GB exceeds both runners and forces
+            #      swapping, which costs far more than the lost parallelism.
+            # Runners are 28GB (iOS) / 32GB (Android); keep workers low enough that
+            # workers x heap still leaves room for clang/Gradle running alongside.
+            export NODE_OPTIONS='--max-old-space-size=8192'
+            export METRO_MAX_WORKERS='2'
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
-
-      # Android Play Store checks: Gradle lint (all main release builds) + bundletool AAB validation (production only).
-      # The lint + Slack report run for every main release build so RC gets Slack feedback.
-      # bundletool cache is gated on production because non-prod builds don't produce an AAB.
-      - name: Cache bundletool (Android Play bundle validation)
-        id: bundletool-cache-play-check
-        if: >-
-          success() &&
-          matrix.platform == 'android' &&
-          env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT == 'production'
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/bundletool-all.jar
-          key: bundletool-1.18.3-jar
 
       - name: Android Play Store lint and bundle validation (prodRelease, non-blocking)
         if: >-
@@ -632,7 +698,7 @@ jobs:
           inputs.build_name == 'main-rc' &&
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_BUILD_TYPE == 'main'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-play-store-check-slack
           path: android-play-store-check-slack.md
@@ -643,12 +709,14 @@ jobs:
       - name: Rename ${{ matrix.platform }} artifacts
         if: success()
         id: rename
-        run: node scripts/rename-artifacts.js ${{ matrix.platform }}
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: node scripts/rename-artifacts.js "${PLATFORM}"
 
       # Upload build artifacts (only if build succeeded)
       - name: Upload iOS simulator app
         if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-app-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_simulator_path }}
@@ -656,7 +724,7 @@ jobs:
 
       - name: Upload iOS IPA
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-ipa-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_ipa_path }}
@@ -664,7 +732,7 @@ jobs:
 
       - name: Upload iOS xcarchive
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-xcarchive-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_archive_path }}
@@ -672,7 +740,7 @@ jobs:
 
       - name: Upload iOS sourcemap
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_sourcemap_path }}
@@ -681,7 +749,7 @@ jobs:
       # Dev builds (CONFIGURATION=Debug): APK + test APK (for E2E)
       - name: Upload Android APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
@@ -689,7 +757,7 @@ jobs:
 
       - name: Upload Android test APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug' && steps.rename.outputs.android_test_apk_path != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-test-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_test_apk_path }}
@@ -698,7 +766,7 @@ jobs:
       # Release builds: APK and AAB as separate artifacts
       - name: Upload Android APK (release)
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
@@ -710,7 +778,7 @@ jobs:
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_ENVIRONMENT == 'production' &&
           steps.rename.outputs.android_aab_path != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-aab-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_aab_path }}
@@ -718,7 +786,7 @@ jobs:
 
       - name: Upload Android sourcemaps
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
@@ -726,7 +794,7 @@ jobs:
 
       - name: Upload build environment JSON
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-env-${{ inputs.build_name }}-${{ matrix.platform }}
           path: build-env.json
@@ -763,7 +831,7 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
@@ -784,7 +852,7 @@ jobs:
         run: ./scripts/set-build-version.sh "$BUILD_NUMBER"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 

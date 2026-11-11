@@ -15,7 +15,14 @@ import {
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
-import { getCategoryIconName } from '../../constants/categoryIcons';
+import {
+  getCategoryIconName,
+  MEMECOIN_CATEGORY_ID,
+} from '../../constants/categoryIcons';
+import PerpsSentimentSatisfiedIcon, {
+  PERPS_SENTIMENT_ICON_SIZE_SM,
+} from '../PerpsSentimentSatisfiedIcon/PerpsSentimentSatisfiedIcon';
+import { useTheme } from '../../../../../util/theme';
 
 const WATCHLIST_FILTER_VALUE = 'watchlist';
 
@@ -38,6 +45,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
 }) => {
   const categories = usePerpsCategories();
   const hasNewMarkets = useHasNewMarkets();
+  const { colors } = useTheme();
 
   const displayCategories = useMemo(
     () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
@@ -70,17 +78,40 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     [isWatchlistSelected, onCategorySelect, onWatchlistToggle],
   );
 
-  const renderCategoryFilterButton = (category: PerpsCategory) => (
-    <FilterButton
-      key={category.id}
-      value={category.id}
-      startIconName={getCategoryIconName(category.id)}
-      startIconProps={{ size: IconSize.Sm }}
-      testID={testID ? `${testID}-${category.id}` : undefined}
-    >
-      {category.label}
-    </FilterButton>
-  );
+  const renderCategoryFilterButton = (category: PerpsCategory) => {
+    const isMemecoin = category.id === MEMECOIN_CATEGORY_ID;
+    const isSelected = groupValue === category.id;
+
+    return (
+      <FilterButton
+        key={category.id}
+        value={category.id}
+        // `startIconName` and `startAccessory` are mutually exclusive in
+        // ButtonBase — it only renders the accessory when no icon name is set.
+        startIconName={
+          isMemecoin ? undefined : getCategoryIconName(category.id)
+        }
+        startIconProps={isMemecoin ? undefined : { size: IconSize.Sm }}
+        startAccessory={
+          isMemecoin ? (
+            <PerpsSentimentSatisfiedIcon
+              size={PERPS_SENTIMENT_ICON_SIZE_SM}
+              // FilterButton recolours `startIconName` but passes
+              // `startAccessory` through untouched, so mirror its variants:
+              // selected renders ButtonPrimary (`text-primary-inverse`),
+              // unselected renders ButtonTertiary (`IconColor.IconAlternative`).
+              color={
+                isSelected ? colors.primary.inverse : colors.icon.alternative
+              }
+            />
+          ) : undefined
+        }
+        testID={testID ? `${testID}-${category.id}` : undefined}
+      >
+        {category.label}
+      </FilterButton>
+    );
+  };
 
   return (
     <FilterButtonGroup

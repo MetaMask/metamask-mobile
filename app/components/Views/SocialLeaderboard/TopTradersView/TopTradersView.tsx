@@ -21,7 +21,7 @@ import {
   type FlatList,
   type ScrollView,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { Easing, LinearTransition } from 'react-native-reanimated';
 import {
   useNavigation,
   useRoute,
@@ -36,6 +36,7 @@ import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -46,28 +47,43 @@ import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
+import { useMyProfile } from '../MyProfileView/hooks';
+import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import {
   TraderRow,
   TraderRowSkeleton,
 } from '../../Homepage/Sections/TopTraders/components';
-import {
-  TRADER_ROW_HEIGHT,
-  type TraderRowMetric,
-} from '../../Homepage/Sections/TopTraders/components/TraderRow';
+import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
+import type {
+  TopTrader,
+  TraderRowMetric,
+  TraderRowProps,
+} from '../../Homepage/Sections/TopTraders/types';
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import {
   ALL_CHAINS,
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../shared/top-traders-constants';
-import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
+import {
+  filterLeaderboardTraders,
+  toLeaderboardTimeframe,
+  toLeaderboardTypeFilter,
+  type SocialShellFilters,
+} from '../shell/filters';
 import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
+import { RANK_CHANGE_DURATION } from './components/useRankChangeAnimation';
+import { useLeaderboardReveal } from './components/useLeaderboardReveal';
 import {
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,
+  DEFAULT_V1_LEADERBOARD_RANKING,
+  RankingFilterSelector,
+  RankingFilterSheet,
   SortFilterSelector,
   SortFilterSheet,
   TimeframeFilterSelector,
@@ -78,6 +94,7 @@ import {
   type LeaderboardSort,
   type SocialTimeframe,
   type SocialTypeFilter,
+  type V1LeaderboardRanking,
 } from '../components/Filters';
 
 type TabFilter = SocialTypeFilter;
@@ -108,6 +125,15 @@ const buildQueryEnabledTabs = (
   tokens: activeTab === 'tokens',
   perps: activeTab === 'perps',
 });
+
+/**
+ * Slide a row runs when the ranking reshuffles. Eased out so rows leave quickly
+ * and settle gently, and matched to `RANK_CHANGE_DURATION` so the row's own
+ * pulse resolves exactly as it lands.
+ */
+const rowLayoutTransition = LinearTransition.duration(
+  RANK_CHANGE_DURATION,
+).easing(Easing.out(Easing.ease));
 
 const LEADERBOARD_LIMIT = 50;
 const INITIAL_TRADER_ROWS_TO_RENDER = 6;
@@ -156,6 +182,57 @@ export interface TopTradersViewProps {
    * title stays put when the user switches tabs.
    */
   pageRef?: React.Ref<SocialTabPageHandle>;
+  /**
+   * Fires once the visible leaderboard query is no longer in flight (success
+   * or error). The parent uses this to start feed prefetch only after the
+   * landing list has loaded, so those requests never contend with it.
+   */
+  onVisibleLeaderboardSettled?: () => void;
+  /**
+   * Row component rendered for each trader. Defaults to the legacy
+   * Follow-button row; the Social V1 leaderboard injects its metrics-first row
+   * instead. Pass `SkeletonComponent` and `rowHeight` to match.
+   */
+  RowComponent?: React.ComponentType<TraderRowProps>;
+  /** Loading placeholder matching `RowComponent`. */
+  SkeletonComponent?: React.ComponentType;
+  /**
+   * Height of a single `RowComponent`, used to size the skeleton count to the
+   * viewport. Must match the injected row or the placeholder count drifts.
+   */
+  rowHeight?: number;
+  /**
+   * Pins the position type to a single value and hides its filter pill, so the
+   * host owns that axis. Used when a parent supplies its own type control.
+   * `tokens` and `perps` still require the perps flag.
+   */
+  pinnedTypeFilter?: SocialTypeFilter;
+  /**
+   * Social V1 leaderboard chrome: All types by default, trader-cohort chip,
+   * Profit/Volume ranking, and a single horizontal chip row.
+   */
+  useV1Filters?: boolean;
+  /**
+   * Slides rows to their new offsets when the ranking changes, instead of
+   * snapping. Rows pair this with their own rank-change pulse. Off by default
+   * so the legacy leaderboard keeps its instant re-sort.
+   */
+  animateReorder?: boolean;
+  /**
+   * Opens on the ranking the user last saw and animates to the current one, so
+   * the reorder animation summarises what moved since their last visit rather
+   * than waiting for a live change nobody is watching for. Requires
+   * `animateReorder` to be visible. Off by default.
+   */
+  revealPreviousOrder?: boolean;
+  /**
+   * Applied Custom filters from the V1 shell. Type and timeframe drive
+   * `useTopTraders`; shrimp / dolphin / whale / following filter the loaded
+   * page client-side. Verified is hidden until a real field exists.
+   */
+  v1AppliedFilters?: SocialShellFilters;
+  onOpenCustomFilters?: () => void;
+  isCustomFilterActive?: boolean;
 }
 
 /**
@@ -166,10 +243,22 @@ export interface TopTradersViewProps {
 const TopTradersView: React.FC<TopTradersViewProps> = ({
   onScroll,
   pageRef,
+  onVisibleLeaderboardSettled,
+  RowComponent = TraderRow,
+  SkeletonComponent = TraderRowSkeleton,
+  rowHeight = TRADER_ROW_HEIGHT,
+  pinnedTypeFilter,
+  useV1Filters = false,
+  animateReorder = false,
+  revealPreviousOrder = false,
+  v1AppliedFilters,
+  onOpenCustomFilters,
+  isCustomFilterActive = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -178,26 +267,44 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const { followWithSetup } = useFollowWithNotificationSetup();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
+  const defaultTypeFilter: TabFilter =
+    pinnedTypeFilter ?? (useV1Filters ? 'all' : DEFAULT_TYPE_TAB);
 
-  const [renderedTab, setRenderedTab] = useState<TabFilter>(DEFAULT_TYPE_TAB);
+  const [renderedTab, setRenderedTab] = useState<TabFilter>(defaultTypeFilter);
   // Only the landing tab's query starts enabled; the others are switched on
   // when the user picks them, or by the idle prefetch below. Perps being off
   // pins the whole screen to the spot-only "all" query.
   const [queryEnabledTabs, setQueryEnabledTabs] = useState<
     Record<TabFilter, boolean>
-  >(() => buildQueryEnabledTabs(isPerpsEnabled ? DEFAULT_TYPE_TAB : 'all'));
+  >(() =>
+    buildQueryEnabledTabs(
+      pinnedTypeFilter ??
+        (useV1Filters || !isPerpsEnabled ? 'all' : DEFAULT_TYPE_TAB),
+    ),
+  );
   const [timeframe, setTimeframe] =
     useState<SocialTimeframe>(DEFAULT_TIMEFRAME);
   const [sort, setSort] = useState<LeaderboardSort>(DEFAULT_LEADERBOARD_SORT);
+  const [ranking, setRanking] = useState<V1LeaderboardRanking>(
+    DEFAULT_V1_LEADERBOARD_RANKING,
+  );
+
+  const shellTypeFilter = v1AppliedFilters
+    ? toLeaderboardTypeFilter(v1AppliedFilters.type)
+    : undefined;
+  const queryTimeframe = v1AppliedFilters
+    ? toLeaderboardTimeframe(v1AppliedFilters.timeframe)
+    : timeframe;
   const [, startTabTransition] = useTransition();
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [isTimeframeSheetOpen, setIsTimeframeSheetOpen] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  const [isRankingSheetOpen, setIsRankingSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
-  const selectedTabRef = useRef<TabFilter>(DEFAULT_TYPE_TAB);
+  const selectedTabRef = useRef<TabFilter>(defaultTypeFilter);
   // Tracks whether the user has explicitly chosen a tab. Once they have, late
   // feature-flag hydration must not override their selection with the default.
   const hasUserSelectedTabRef = useRef(false);
@@ -221,9 +328,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   // Render enough skeleton rows to cover the visible list area. Add a couple of
   // extras so users can see the shimmer continue past the fold while scrolling.
   const skeletonKeys = useMemo(() => {
-    const count = Math.ceil(windowHeight / TRADER_ROW_HEIGHT) + 2;
+    const count = Math.ceil(windowHeight / rowHeight) + 2;
     return Array.from({ length: count }, (_, i) => `top-trader-skeleton-${i}`);
-  }, [windowHeight]);
+  }, [rowHeight, windowHeight]);
 
   const allChains = isPerpsEnabled ? ALL_CHAINS : SPOT_CHAINS;
 
@@ -231,21 +338,21 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     limit: LEADERBOARD_LIMIT,
     chains: allChains,
     sort,
-    timeframe,
+    timeframe: queryTimeframe,
     enabled: isEnabled && queryEnabledTabs.all,
   });
   const tokensResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: SPOT_CHAINS,
     sort,
-    timeframe,
+    timeframe: queryTimeframe,
     enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.tokens,
   });
   const perpsResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: PERP_CHAINS,
     sort,
-    timeframe,
+    timeframe: queryTimeframe,
     enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.perps,
   });
 
@@ -258,12 +365,14 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     [allResult, tokensResult, perpsResult],
   );
 
-  const activeTab = isPerpsEnabled ? renderedTab : 'all';
+  const activeTab =
+    pinnedTypeFilter ??
+    (isPerpsEnabled ? (shellTypeFilter ?? renderedTab) : 'all');
   const activeResult = resultsByTab[activeTab];
   const { traders: loadedTraders, isLoading, toggleFollow } = activeResult;
   // The API ranks on its own (30-day) window, so the selected time frame is
   // only honoured once the loaded page is re-ranked here.
-  const traders = useMemo<RankedTrader[]>(
+  const freshTraders = useMemo<RankedTrader[]>(
     () =>
       rankTradersByMetric(loadedTraders, sort).map((trader) => ({
         ...trader,
@@ -271,16 +380,129 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       })),
     [loadedTraders, sort],
   );
+
+  // Rebuilds a persisted row into a renderable one. `displayMetric` depends on
+  // the active sort and `isFollowing` on live controller state, so both are
+  // recomputed here rather than restored from disk.
+  const hydrateSnapshotRow = useCallback(
+    (trader: TopTrader): RankedTrader => ({
+      ...trader,
+      displayMetric: getTraderMetricDisplay(trader, sort),
+    }),
+    [sort],
+  );
+
+  const snapshotKeyParts = useMemo(
+    () => ({ type: activeTab, sort, timeframe: queryTimeframe }),
+    [activeTab, sort, queryTimeframe],
+  );
+
+  const { profile: myProfile } = useMyProfile();
+
+  const { rows: traders, isShowingSnapshot } = useLeaderboardReveal({
+    freshTraders,
+    hasFetched: activeResult.hasFetched,
+    keyParts: snapshotKeyParts,
+    enabled: revealPreviousOrder,
+    hydrateRow: hydrateSnapshotRow,
+  });
+
+  const isViewerTrader = useCallback(
+    (trader: TopTrader) => {
+      if (!myProfile) {
+        return false;
+      }
+      if (trader.id === myProfile.profileId) {
+        return true;
+      }
+      const linked = myProfile.linkedAccountAddress;
+      return Boolean(
+        linked && trader.address.toLowerCase() === linked.toLowerCase(),
+      );
+    },
+    [myProfile],
+  );
+
+  const matchedViewer = useMemo(
+    () => (useV1Filters ? traders.find(isViewerTrader) : undefined),
+    [isViewerTrader, traders, useV1Filters],
+  );
+
+  const cohortFilteredTraders = useMemo(
+    () =>
+      useV1Filters && v1AppliedFilters
+        ? filterLeaderboardTraders(traders, v1AppliedFilters)
+        : traders,
+    [traders, useV1Filters, v1AppliedFilters],
+  );
+
+  const listTraders = useMemo(
+    () =>
+      useV1Filters && matchedViewer
+        ? cohortFilteredTraders.filter(
+            (trader) => trader.id !== matchedViewer.id,
+          )
+        : cohortFilteredTraders,
+    [cohortFilteredTraders, matchedViewer, useV1Filters],
+  );
+
+  const viewerRow = useMemo(() => {
+    if (!useV1Filters || !myProfile) {
+      return null;
+    }
+    if (matchedViewer) {
+      return { trader: matchedViewer, hideRank: false };
+    }
+    const synthetic: RankedTrader = {
+      id: myProfile.profileId,
+      address: myProfile.linkedAccountAddress ?? '',
+      rank: 0,
+      overallRank: 0,
+      username: myProfile.handle || myProfile.displayName,
+      avatarUri: myProfile.imageUrl ?? undefined,
+      percentageChange: 0,
+      pnlValue: myProfile.pnlUsd ?? 0,
+      winRatePercent: myProfile.winRatePercent ?? null,
+      pnlPerChain: {},
+      followerCount: myProfile.followerCount ?? 0,
+      isFollowing: false,
+      xHandle: myProfile.xHandle ?? null,
+      displayMetric: getTraderMetricDisplay(
+        {
+          id: myProfile.profileId,
+          address: myProfile.linkedAccountAddress ?? '',
+          rank: 0,
+          overallRank: 0,
+          username: myProfile.handle || myProfile.displayName,
+          percentageChange: 0,
+          pnlValue: myProfile.pnlUsd ?? 0,
+          winRatePercent: myProfile.winRatePercent ?? null,
+          pnlPerChain: {},
+          followerCount: myProfile.followerCount ?? 0,
+          isFollowing: false,
+        },
+        sort,
+      ),
+    };
+    return { trader: synthetic, hideRank: true };
+  }, [matchedViewer, myProfile, sort, useV1Filters]);
   // The visible tab always fetches alone first; the other two are prefetched
   // behind it so switching pills is instant. Gate on `isFetching` rather than
   // `isLoading`: arriving with a warm cache (the homepage carousel shares the
   // Tokens query key) leaves `isLoading` false while the tab still revalidates,
   // which would let the secondary fetches ride along instead of waiting.
+  // A pinned instance can never switch type, so there is nothing to warm.
   const shouldPrefetchSecondaryTabs =
+    !pinnedTypeFilter &&
     isEnabled &&
     isPerpsEnabled &&
     !activeResult.isFetching &&
     TYPE_FILTER_OPTIONS.some((tab) => !queryEnabledTabs[tab]);
+  // Gate on `isFetching` (not `isLoading`) for the same warm-cache reason as
+  // secondary-tab prefetch: a homepage-warmed Tokens query paints immediately
+  // but still revalidates, and feed fetches must wait until that finishes.
+  const isVisibleLeaderboardSettled =
+    !activeResult.isFetching && activeResult.hasFetched;
   const shouldRefreshAll = queryEnabledTabs.all;
   const shouldRefreshTokens = isPerpsEnabled && queryEnabledTabs.tokens;
   const shouldRefreshPerps = isPerpsEnabled && queryEnabledTabs.perps;
@@ -292,6 +514,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   }, [isEnabled, navigation]);
 
   useEffect(() => {
+    if (pinnedTypeFilter) {
+      return;
+    }
     if (!isPerpsEnabled) {
       if (selectedTabRef.current !== 'all') {
         selectedTabRef.current = 'all';
@@ -300,6 +525,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           current.all ? current : { ...current, all: true },
         );
       }
+      return;
+    }
+    if (useV1Filters) {
       return;
     }
     // Remote flags can hydrate `false -> true` after mount. With perps off the
@@ -315,7 +543,20 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       setRenderedTab(DEFAULT_TYPE_TAB);
       setQueryEnabledTabs(buildQueryEnabledTabs(DEFAULT_TYPE_TAB));
     }
-  }, [isPerpsEnabled]);
+  }, [isPerpsEnabled, pinnedTypeFilter, useV1Filters]);
+
+  useEffect(() => {
+    if (!useV1Filters || !shellTypeFilter) {
+      return;
+    }
+    selectedTabRef.current = shellTypeFilter;
+    setRenderedTab(shellTypeFilter);
+    setQueryEnabledTabs((current) =>
+      current[shellTypeFilter]
+        ? current
+        : { ...current, [shellTypeFilter]: true },
+    );
+  }, [shellTypeFilter, useV1Filters]);
 
   useEffect(() => {
     if (!isEnabled || hasFiredScreenViewedRef.current) return;
@@ -337,6 +578,13 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       setQueryEnabledTabs({ all: true, tokens: true, perps: true });
     });
   }, [shouldPrefetchSecondaryTabs]);
+
+  useEffect(() => {
+    if (!isVisibleLeaderboardSettled) {
+      return;
+    }
+    onVisibleLeaderboardSettled?.();
+  }, [isVisibleLeaderboardSettled, onVisibleLeaderboardSettled]);
 
   const handleTabPress = useCallback(
     (next: TabFilter) => {
@@ -366,10 +614,22 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     (next: LeaderboardSort) => {
       setSort(next);
       setQueryEnabledTabs(
-        buildQueryEnabledTabs(isPerpsEnabled ? selectedTabRef.current : 'all'),
+        buildQueryEnabledTabs(
+          pinnedTypeFilter ?? (isPerpsEnabled ? selectedTabRef.current : 'all'),
+        ),
       );
     },
-    [isPerpsEnabled],
+    [isPerpsEnabled, pinnedTypeFilter],
+  );
+
+  const handleRankingChange = useCallback(
+    (next: V1LeaderboardRanking) => {
+      setRanking(next);
+      if (next === 'pnl') {
+        handleSortChange('pnl');
+      }
+    },
+    [handleSortChange],
   );
 
   const openTypeSheet = useCallback(() => setIsTypeSheetOpen(true), []);
@@ -384,6 +644,8 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   );
   const openSortSheet = useCallback(() => setIsSortSheetOpen(true), []);
   const closeSortSheet = useCallback(() => setIsSortSheetOpen(false), []);
+  const openRankingSheet = useCallback(() => setIsRankingSheetOpen(true), []);
+  const closeRankingSheet = useCallback(() => setIsRankingSheetOpen(false), []);
 
   const handleFollowPress = useCallback(
     async (traderId: string) => {
@@ -447,7 +709,20 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           [SocialLeaderboardEventProperties.CHAIN_FILTER]: activeTab,
         });
       }
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      if (useV1Filters) {
+        navigateToSocialV1Profile(navigation, {
+          traderId,
+          traderName,
+          traderAddress: trader?.address,
+          traderAvatarUri: trader?.avatarUri,
+          source: 'leaderboard',
+          traderRank: trader?.rank,
+          viewerProfileId: myProfile?.profileId ?? undefined,
+          viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
+        });
+        return;
+      }
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
         traderAddress: trader?.address,
@@ -455,12 +730,19 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         traderRank: trader?.rank,
       });
     },
-    [navigation, traders, activeTab, track],
+    [activeTab, myProfile, navigation, traders, track, useV1Filters],
   );
+
+  const handleViewerPress = useCallback(() => {
+    navigateToSocialV1Profile(navigation, {
+      viewerProfileId: myProfile?.profileId ?? undefined,
+      viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
+    });
+  }, [myProfile, navigation]);
 
   const renderTraderRow = useCallback(
     ({ item }: { item: RankedTrader }) => (
-      <TraderRow
+      <RowComponent
         trader={item}
         metric={item.displayMetric}
         onFollowPress={handleFollowPress}
@@ -471,6 +753,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       />
     ),
     [
+      RowComponent,
       handleFollowPress,
       handleTraderPress,
       showMuteChip,
@@ -481,51 +764,89 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   // Filters ride in the list header so they scroll away with the rows; the
   // parent tabs container owns the collapsing title and pinned tabs bar.
+  const showTypeFilter = isPerpsEnabled && !pinnedTypeFilter;
   const listHeader = useMemo(
-    () => (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pt-4 pb-4"
-      >
-        <Box flexDirection={BoxFlexDirection.Row} gap={2}>
-          {isPerpsEnabled && (
-            <TypeFilterSelector
-              value={activeTab}
-              onPress={openTypeSheet}
-              testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
+    () =>
+      useV1Filters ? (
+        <Box>
+          <SocialTabFilterBar
+            onOpenFilters={onOpenCustomFilters}
+            isFilterActive={isCustomFilterActive}
+            filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
+          >
+            <RankingFilterSelector
+              value={ranking}
+              onPress={openRankingSheet}
+              testID={TopTradersViewSelectorsIDs.RANKING_SELECTOR}
             />
-          )}
-          <TimeframeFilterSelector
-            value={timeframe}
-            onPress={openTimeframeSheet}
-            testID={TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR}
+          </SocialTabFilterBar>
+          {viewerRow ? (
+            <Box twClassName="pb-2">
+              <RowComponent
+                trader={viewerRow.trader}
+                metric={viewerRow.trader.displayMetric}
+                onFollowPress={handleFollowPress}
+                onTraderPress={handleViewerPress}
+                highlighted
+                hideRank={viewerRow.hideRank}
+                testID={TopTradersViewSelectorsIDs.VIEWER_CARD}
+              />
+            </Box>
+          ) : null}
+        </Box>
+      ) : (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4 pt-4 pb-4"
+        >
+          <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+            {showTypeFilter && (
+              <TypeFilterSelector
+                value={activeTab}
+                onPress={openTypeSheet}
+                testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
+              />
+            )}
+            <TimeframeFilterSelector
+              value={timeframe}
+              onPress={openTimeframeSheet}
+              testID={TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR}
+            />
+          </Box>
+          <SortFilterSelector
+            value={sort}
+            onPress={openSortSheet}
+            testID={TopTradersViewSelectorsIDs.SORT_SELECTOR}
           />
         </Box>
-        <SortFilterSelector
-          value={sort}
-          onPress={openSortSheet}
-          testID={TopTradersViewSelectorsIDs.SORT_SELECTOR}
-        />
-      </Box>
-    ),
+      ),
     [
       activeTab,
-      isPerpsEnabled,
+      handleFollowPress,
+      handleViewerPress,
+      isCustomFilterActive,
+      onOpenCustomFilters,
       openSortSheet,
       openTimeframeSheet,
       openTypeSheet,
+      openRankingSheet,
+      ranking,
+      RowComponent,
+      showTypeFilter,
       sort,
       timeframe,
+      useV1Filters,
+      viewerRow,
     ],
   );
 
-  const contentContainerStyle = tw.style('pb-6');
+  const contentContainerStyle = tw.style(`pb-[${24 + floatingTabBarInset}px]`);
 
   return (
     <Box twClassName="flex-1">
-      {isLoading && traders.length === 0 ? (
+      {isLoading && traders.length === 0 && !isShowingSnapshot ? (
         <Animated.ScrollView
           ref={skeletonScrollRef}
           // `flex-1` matches FlatList's default behavior so the list area sits
@@ -546,14 +867,18 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         >
           {listHeader}
           {skeletonKeys.map((key) => (
-            <TraderRowSkeleton key={key} />
+            <SkeletonComponent key={key} />
           ))}
         </Animated.ScrollView>
       ) : (
         <Animated.FlatList<RankedTrader>
           ref={listRef}
-          data={traders}
+          data={listTraders}
           keyExtractor={(item) => item.id}
+          // Stable keys are what let a reorder read as movement rather than a
+          // re-render: the cell for a given trader survives the sort, so
+          // Reanimated has an old and new offset to interpolate between.
+          itemLayoutAnimation={animateReorder ? rowLayoutTransition : undefined}
           renderItem={renderTraderRow}
           ListHeaderComponent={listHeader}
           showsVerticalScrollIndicator={false}
@@ -575,26 +900,39 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         />
       )}
 
-      <TypeFilterSheet
-        isOpen={isTypeSheetOpen}
-        value={activeTab}
-        onChange={handleTabPress}
-        onClose={closeTypeSheet}
-      />
+      {!pinnedTypeFilter && !useV1Filters && (
+        <TypeFilterSheet
+          isOpen={isTypeSheetOpen}
+          value={activeTab}
+          onChange={handleTabPress}
+          onClose={closeTypeSheet}
+        />
+      )}
 
-      <TimeframeFilterSheet
-        isOpen={isTimeframeSheetOpen}
-        value={timeframe}
-        onChange={setTimeframe}
-        onClose={closeTimeframeSheet}
-      />
+      {!useV1Filters ? (
+        <TimeframeFilterSheet
+          isOpen={isTimeframeSheetOpen}
+          value={timeframe}
+          onChange={setTimeframe}
+          onClose={closeTimeframeSheet}
+        />
+      ) : null}
 
-      <SortFilterSheet
-        isOpen={isSortSheetOpen}
-        value={sort}
-        onChange={handleSortChange}
-        onClose={closeSortSheet}
-      />
+      {useV1Filters ? (
+        <RankingFilterSheet
+          isOpen={isRankingSheetOpen}
+          value={ranking}
+          onChange={handleRankingChange}
+          onClose={closeRankingSheet}
+        />
+      ) : (
+        <SortFilterSheet
+          isOpen={isSortSheetOpen}
+          value={sort}
+          onChange={handleSortChange}
+          onClose={closeSortSheet}
+        />
+      )}
     </Box>
   );
 };

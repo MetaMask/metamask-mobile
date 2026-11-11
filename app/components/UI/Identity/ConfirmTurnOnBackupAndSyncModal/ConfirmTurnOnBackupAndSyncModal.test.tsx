@@ -39,6 +39,7 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -46,7 +47,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
-      goBack: jest.fn(),
+      goBack: mockGoBack,
       reset: jest.fn(),
       getParent: () => ({
         pop: jest.fn(),
@@ -57,6 +58,10 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('ConfirmTurnOnBackupAndSyncModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders the title and confirm button', () => {
     const { getByText } = renderWithProvider(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -84,6 +89,38 @@ describe('ConfirmTurnOnBackupAndSyncModal', () => {
       expect(toggleBasicFunctionality).toHaveBeenCalledWith(true);
       expect(mockTrackEnableBackupAndSyncEvent).toHaveBeenCalled();
       expect(mockEnableBackupAndSync).toHaveBeenCalled();
+    });
+  });
+
+  it('dismisses the modal route after confirming', async () => {
+    const { getByText } = renderWithProvider(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      <ConfirmTurnOnBackupAndSyncModal navigation={useNavigation()} />,
+    );
+
+    fireEvent.press(
+      getByText(strings('default_settings.sheet.buttons.turn_on')),
+    );
+
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
+  it('dismisses the modal route after cancelling', async () => {
+    const { getByText } = renderWithProvider(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      <ConfirmTurnOnBackupAndSyncModal navigation={useNavigation()} />,
+    );
+
+    fireEvent.press(
+      getByText(strings('default_settings.sheet.buttons.cancel')),
+    );
+
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 });

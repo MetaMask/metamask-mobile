@@ -93,7 +93,7 @@ describe('PredictEventCard', () => {
       screen.getByTestId('predict-next-game-team-routed-event-away'),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('predict-next-event-image-routed-event'),
+      screen.queryByTestId('predict-next-outcome-routed-event-yes'),
     ).not.toBeOnTheScreen();
   });
 
@@ -127,7 +127,7 @@ describe('PredictEventCard', () => {
     );
 
     expect(
-      screen.getByTestId('predict-next-event-image-routed-event'),
+      screen.getByTestId('predict-next-outcome-routed-event-yes'),
     ).toBeOnTheScreen();
     expect(onPress).toHaveBeenCalledTimes(1);
   });

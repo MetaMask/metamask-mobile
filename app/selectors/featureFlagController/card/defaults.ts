@@ -1,8 +1,13 @@
 import type {
   CardFeatureFlag,
   CardProviderChains,
+  CardUkMigrationFlag,
   ImmersveProgramConfig,
 } from './types';
+
+/** vmUSD (Veda vault share) on Monad. The Money account funding asset. */
+export const IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS =
+  '0x1C8a336051D2024E318A229d01F9F6CF96efD316';
 
 /**
  * Fallback for the `cardFeature` flag: provider-agnostic constants plus the
@@ -159,6 +164,7 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
   constants: {
     accountsApiUrl: 'https://accounts.api.cx.metamask.io',
     onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
+    applePayLearnMoreUrl: 'https://metamask.io/card',
   },
 };
 
@@ -171,10 +177,18 @@ export const DEFAULT_IMMERSVE_CONFIG: ImmersveProgramConfig = {
   fundingChannelId: '',
   spenderAddress: '',
   secureApiBaseUrl: '',
+  reportTransactionUrl:
+    'https://help.immersve.com/hc/en-us/requests/new?ticket_form_id=22905679582745',
 };
 
 /** Fallback for the `cardImmersveCountries` flag. */
 export const DEFAULT_IMMERSVE_COUNTRIES: string[] = ['GB'];
+
+/** Fallback for the `cardUkMigration` flag (off until remote enables it). */
+export const defaultCardUkMigrationFlag: CardUkMigrationFlag = {
+  enabled: false,
+  minimumVersion: '0.0.0',
+};
 
 /**
  * Fallback for the `cardImmersveChains` flag — mirrors the networks and USDC
@@ -214,6 +228,16 @@ export const DEFAULT_IMMERSVE_CHAINS: CardProviderChains = {
       'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d': {
         decimals: 6,
         symbol: 'USDC',
+      },
+    },
+  },
+  'eip155:143': {
+    network: 'monad-mainnet',
+    fallbackRpcUrl: 'https://rpc.monad.xyz',
+    tokens: {
+      [`eip155:143/erc20:${IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS}`]: {
+        decimals: 6,
+        symbol: 'vmUSD',
       },
     },
   },

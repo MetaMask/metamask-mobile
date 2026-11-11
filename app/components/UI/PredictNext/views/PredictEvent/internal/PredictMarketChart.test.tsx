@@ -361,6 +361,28 @@ describe('PredictMarketChart', () => {
     expect(endpoint.props.strokeWidth).toBe(2);
   });
 
+  it('keeps plotted paths unchanged while scrubbing', () => {
+    const view = render(
+      <PredictMarketChart series={testSeries} testID="market-chart" />,
+    );
+    const chart = view.getByTestId('market-chart');
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 240 } },
+    });
+    const homePath = view.getByTestId('market-chart-line-home').props
+      .d as string;
+    const awayPath = view.getByTestId('market-chart-line-away').props
+      .d as string;
+
+    fireEvent(chart, 'responderGrant', createResponderEvent(90, 80));
+    const rendered = JSON.stringify(view.toJSON());
+
+    expect(homePath.length).toBeGreaterThan(0);
+    expect(awayPath.length).toBeGreaterThan(0);
+    expect(rendered).toContain(homePath);
+    expect(rendered).toContain(awayPath);
+  });
+
   it('removes the endpoint pulse while scrubbing and restores it on release', () => {
     const view = render(
       <PredictMarketChart series={testSeries} testID="market-chart" />,
@@ -451,6 +473,48 @@ describe('PredictMarketChart', () => {
       view.getByLabelText(
         'Market probability history. Vikings 61%, Ravens 38%',
       ),
+    ).toBeOnTheScreen();
+  });
+
+  it('labels a line end with its end value until scrubbed', () => {
+    const view = render(
+      <PredictMarketChart
+        series={[{ ...testSeries[0], endValue: 0.81 }]}
+        formatTime={(time) => `Time ${Math.round(time)}`}
+        testID="market-chart"
+      />,
+    );
+    const chart = view.getByTestId('market-chart');
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 240 } },
+    });
+
+    expect(
+      view.getByLabelText('Market probability history. Vikings 81%'),
+    ).toBeOnTheScreen();
+
+    fireEvent(chart, 'responderGrant', createResponderEvent(104, 80));
+
+    expect(
+      view.getByLabelText(
+        /Market probability history at Time 1[34][0-9]\. Vikings 58%/,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('labels a line end with a dash when its end value is gone', () => {
+    const view = render(
+      <PredictMarketChart
+        series={[{ ...testSeries[0], endValue: null }]}
+        testID="market-chart"
+      />,
+    );
+    fireEvent(view.getByTestId('market-chart'), 'layout', {
+      nativeEvent: { layout: { width: 343, height: 240 } },
+    });
+
+    expect(
+      view.getByLabelText('Market probability history. Vikings –'),
     ).toBeOnTheScreen();
   });
 });

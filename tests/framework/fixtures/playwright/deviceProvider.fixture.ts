@@ -1,11 +1,22 @@
 import type { Fixtures, FullProject, WorkerInfo } from '@playwright/test';
 import { createServiceProvider, type ServiceProvider } from '../../services';
-import type { WebDriverConfig } from '../../types.ts';
+import {
+  Platform,
+  type EmulatorConfig,
+  type WebDriverConfig,
+} from '../../types.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
-import UnifiedGestures from '../../UnifiedGestures.ts';
 import type { SharedAppiumSession, WorkerLevelFixtures } from './types.ts';
+import { applyAndroidDevicePoolToWorker } from '../../services/providers/emulator/android/androidDevicePool.ts';
+import { applyIosDevicePoolToWorker } from '../../services/providers/emulator/ios/iosDevicePool.ts';
 
 const logger = createAppiumLogger('deviceProvider');
+const IOS_WORKER_ENV_KEYS = [
+  'IOS_SIMULATOR_UDID',
+  'E2E_WORKER_INDEX',
+  'IOS_WDA_LOCAL_PORT',
+  'IOS_MJPEG_SERVER_PORT',
+] as const;
 
 /**
  * Worker-scoped provider + mutable session holder.
@@ -26,17 +37,65 @@ export const workerDeviceProviderFixture: Fixtures<
     ) => {
       const project = workerInfo.project as FullProject<WebDriverConfig>;
       const providerName = project.use.device?.provider ?? 'unknown';
+      const originalIosWorkerEnv =
+        project.use.platform === Platform.IOS
+          ? (Object.fromEntries(
+              IOS_WORKER_ENV_KEYS.map((key) => [key, process.env[key]]),
+            ) as Record<
+              (typeof IOS_WORKER_ENV_KEYS)[number],
+              string | undefined
+            >)
+          : undefined;
 
-      logger.info(
-        `Creating worker-scoped device provider "${providerName}" for project "${project.name}"`,
-      );
+      try {
+        if (project.use.platform === Platform.ANDROID) {
+          const assignment = applyAndroidDevicePoolToWorker(
+            workerInfo.parallelIndex,
+          );
+          if (assignment) {
+            (project.use.device as EmulatorConfig).udid = assignment.serial;
+            logger.info(
+              `Android pool worker ${workerInfo.parallelIndex}: ` +
+                `serial=${assignment.serial}, systemPort=${assignment.systemPort}`,
+            );
+          }
+        }
 
-      const deviceProvider = createServiceProvider(project);
-      await use(deviceProvider);
+        if (project.use.platform === Platform.IOS) {
+          const assignment = applyIosDevicePoolToWorker(
+            workerInfo.parallelIndex,
+          );
+          if (assignment) {
+            (project.use.device as EmulatorConfig).udid = assignment.udid;
+            logger.info(
+              `iOS pool worker ${workerInfo.parallelIndex}: ` +
+                `udid=${assignment.udid}, wdaLocalPort=${assignment.wdaLocalPort}`,
+            );
+          }
+        }
 
-      logger.info(
-        `Worker device provider "${providerName}" fixture ended (sessionId=${deviceProvider.sessionId ?? 'none'})`,
-      );
+        logger.info(
+          `Creating worker-scoped device provider "${providerName}" for project "${project.name}"`,
+        );
+
+        const deviceProvider = createServiceProvider(project);
+        await use(deviceProvider);
+
+        logger.info(
+          `Worker device provider "${providerName}" fixture ended (sessionId=${deviceProvider.sessionId ?? 'none'})`,
+        );
+      } finally {
+        if (originalIosWorkerEnv) {
+          for (const key of IOS_WORKER_ENV_KEYS) {
+            const originalValue = originalIosWorkerEnv[key];
+            if (originalValue === undefined) {
+              delete process.env[key];
+            } else {
+              process.env[key] = originalValue;
+            }
+          }
+        }
+      }
     },
     { scope: 'worker' },
   ],
@@ -67,7 +126,6 @@ export const workerDeviceProviderFixture: Fixtures<
 
       try {
         delete globalThis.driver;
-        UnifiedGestures.resetStrategy();
       } catch (error) {
         logger.error(
           'Failed to clear global driver on worker teardown:',

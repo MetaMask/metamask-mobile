@@ -22,13 +22,14 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const createWrapper = () => {
+const createWrapper = (options?: { retry?: number }) => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
-    logger: {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
+    defaultOptions: {
+      queries: {
+        retry: options?.retry ?? false,
+        gcTime: 0,
+        ...(options?.retry ? { retryDelay: 0 } : {}),
+      },
     },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -144,6 +145,56 @@ describe('usePredictSearchMarketData', () => {
       page: 1,
     });
     expect(result.current.marketData).toEqual(mockMarketData);
+  });
+
+  it('reports the initial search request outcome to the performance observer', async () => {
+    const requestEnd = jest.fn();
+    const performance = {
+      startRequest: jest.fn(() => ({ end: requestEnd })),
+    };
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(
+      () =>
+        usePredictSearchMarketData({
+          q: ' bitcoin ',
+          performance,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
+
+    expect(performance.startRequest).toHaveBeenCalledWith('bitcoin');
+    expect(requestEnd).toHaveBeenCalledWith('success');
+  });
+
+  it('reports each production-style retry attempt to the performance observer', async () => {
+    const requestEnds: string[] = [];
+    const performance = {
+      startRequest: jest.fn(() => ({
+        end: (outcome: string) => requestEnds.push(outcome),
+      })),
+    };
+    mockSearchMarkets
+      .mockRejectedValueOnce(new Error('First failure'))
+      .mockRejectedValueOnce(new Error('Second failure'))
+      .mockResolvedValueOnce(makeSearchResult(mockMarketData));
+
+    const { Wrapper } = createWrapper({ retry: 2 });
+    const { result } = renderHook(
+      () =>
+        usePredictSearchMarketData({
+          q: 'bitcoin',
+          performance,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
+
+    expect(mockSearchMarkets).toHaveBeenCalledTimes(3);
+    expect(performance.startRequest).toHaveBeenCalledTimes(3);
+    expect(requestEnds).toEqual(['error', 'error', 'success']);
   });
 
   it('exposes totalResults from the first page', async () => {

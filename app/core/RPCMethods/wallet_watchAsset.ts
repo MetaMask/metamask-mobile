@@ -12,6 +12,8 @@ import {
   selectNetworkClientId,
 } from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
+import { ApprovalType, ERC20 } from '@metamask/controller-utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import {
   getSafeJson,
   Json,
@@ -19,6 +21,8 @@ import {
   PendingJsonRpcResponse,
 } from '@metamask/utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
+import { toAssetId } from '../../components/UI/Bridge/hooks/useAssetMetadata/utils';
+import { safeToChecksumAddress } from '../../util/address';
 
 /**
  * Strips `undefined` properties (and any other non-JSON-serializable values
@@ -75,7 +79,8 @@ export const wallet_watchAsset = async ({
     };
   };
 }) => {
-  const { AssetsContractController } = Engine.context;
+  const { AssetsContractController, ApprovalController, AssetsController } =
+    Engine.context;
   if (!req.params) {
     throw new Error('wallet_watchAsset params is undefined');
   }
@@ -86,7 +91,6 @@ export const wallet_watchAsset = async ({
     },
   } = req;
 
-  const { TokensController } = Engine.context;
   const state = store.getState();
   const chainId = selectEvmChainId(state);
   const networkClientId = selectNetworkClientId(state);
@@ -110,6 +114,14 @@ export const wallet_watchAsset = async ({
     throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
   }
 
+  // AssetsController.addCustomAsset only supports fungible (ERC-20) assets
+  // today. wallet_watchAsset (EIP-747) is not defined for NFTs, but dapps
+  // have historically sent ERC721/ERC1155 type values; TokensController used
+  // to reject those explicitly, so keep doing the same here.
+  if (type !== ERC20) {
+    throw new Error(`Asset of type ${type} not supported`);
+  }
+
   const permittedAccounts = getPermittedAccounts(hostname);
   // This should return the current active account on the Dapp.
   const selectedInternalAccountAddress =
@@ -119,7 +131,6 @@ export const wallet_watchAsset = async ({
     permittedAccounts?.[0] || selectedInternalAccountAddress;
   // This variables are to override the value of decimals and symbol from the dapp
   // if they are wrong accordingly to the token address
-  // *This is an hotfix this logic should live on whatchAsset method on TokensController*
   let fetchedDecimals, fetchedSymbol;
   try {
     [fetchedDecimals, fetchedSymbol] = await Promise.all([
@@ -136,25 +147,60 @@ export const wallet_watchAsset = async ({
   const safePageMeta =
     _pageMeta !== undefined
       ? getSafeJson<Record<string, Json>>(stripNonJsonValues(_pageMeta))
-      : undefined;
+      : {};
 
-  await TokensController.watchAsset({
-    asset: {
-      address,
-      symbol: finalTokenSymbol,
-      // @ts-expect-error TODO: Fix decimal type
-      decimals: finalTokenDecimals,
-      image,
-    },
-    type,
-    interactingAddress,
-    networkClientId,
+  const asset = {
+    address,
+    symbol: finalTokenSymbol,
+    decimals: finalTokenDecimals,
+    image,
+  };
+
+  // Ask the user to confirm adding the suggested token before persisting it.
+  // *This is an hotfix, this logic previously lived inside TokensController.watchAsset*
+  await ApprovalController.addAndShowApprovalRequest({
     origin: requestOrigin,
-    pageMeta: safePageMeta,
-    requestMetadata: {
-      origin: requestOrigin,
+    type: ApprovalType.WatchAsset,
+    requestData: {
+      asset,
+      interactingAddress,
       pageMeta: safePageMeta,
     },
+  });
+
+  const interactingAccount =
+    Engine.context.AccountsController.getAccountByAddress(interactingAddress);
+
+  if (!interactingAccount) {
+    throw new Error(
+      `Could not find an account for address "${interactingAddress}"`,
+    );
+  }
+
+  // toAssetId embeds the address verbatim (no case normalization) and
+  // customAssets is keyed by the resulting CAIP-19 string via exact match,
+  // while other call sites (e.g. useAddressBalance) build the id from a
+  // checksummed address. Normalize here so the same token always resolves to
+  // a single canonical CAIP-19 id regardless of the casing the dapp sent.
+  const checksummedAddress = safeToChecksumAddress(address) ?? address;
+  const caipChainId = toEvmCaipChainId(chainId);
+  const caipAssetType = toAssetId(checksummedAddress, caipChainId);
+
+  if (!caipAssetType) {
+    throw new Error(`Could not build an asset id for address "${address}"`);
+  }
+
+  // The approval sheet already told the user (and the dapp will infer from
+  // `res.result`) that the token was imported, so a failure here must
+  // surface as an error rather than silently leaving `res.result = true`
+  // while nothing was actually persisted.
+  await AssetsController.addCustomAsset(interactingAccount.id, caipAssetType, {
+    address: checksummedAddress,
+    symbol: finalTokenSymbol,
+    decimals: Number(finalTokenDecimals),
+    name: finalTokenSymbol,
+    iconUrl: image,
+    chainId,
   });
 
   res.result = true;

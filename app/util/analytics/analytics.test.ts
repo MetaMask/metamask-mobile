@@ -79,6 +79,11 @@ import {
 } from '../../selectors/analyticsController';
 import Logger from '../Logger';
 import { getPerpsModeAnalyticsProperties } from '../../components/UI/Perps/utils/perpsModeAnalytics';
+import NavigationService from '../../core/NavigationService';
+import {
+  recordFocusedRoute,
+  resetNavigationAnalyticsAttributionForTests,
+} from './navigationAnalyticsAttribution';
 
 const mockedGetAnalyticsIdFromStorage =
   getAnalyticsIdFromStorage as jest.MockedFunction<
@@ -109,6 +114,7 @@ describe('analytics', () => {
     );
     mockedSelectAnalyticsEnabled.mockReturnValue(true);
     mockedSelectAnalyticsOptedIn.mockReturnValue(true);
+    resetNavigationAnalyticsAttributionForTests();
   });
 
   describe('trackEvent', () => {
@@ -123,6 +129,43 @@ describe('analytics', () => {
         'trackEvent',
         event,
       );
+    });
+
+    it('adds previous_screen from the focused route before queueing', () => {
+      const getCurrentRoute = jest
+        .spyOn(NavigationService, 'getCurrentRoute')
+        .mockReturnValue({
+          key: 'tokens',
+          name: 'TokensFullView',
+          params: { accountAddress: '0xabc' },
+        });
+      recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+      const event =
+        AnalyticsEventBuilder.createEventBuilder('Home Viewed').build();
+
+      try {
+        analytics.trackEvent(event);
+
+        expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+          'trackEvent',
+          expect.objectContaining({
+            name: 'Home Viewed',
+            properties: expect.objectContaining({
+              previous_screen: 'WalletView',
+            }),
+          }),
+        );
+        expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+          'trackEvent',
+          expect.objectContaining({
+            properties: expect.not.objectContaining({
+              accountAddress: '0xabc',
+            }),
+          }),
+        );
+      } finally {
+        getCurrentRoute.mockRestore();
+      }
     });
 
     it('injects Lite/Pro mode onto Perps events before queueing', () => {
@@ -350,6 +393,63 @@ describe('analytics', () => {
 
       expect(mockedLoggerLog).toHaveBeenCalledWith(
         'Analytics: Unhandled error in optOut',
+        error,
+      );
+    });
+  });
+
+  describe('marketing consent', () => {
+    it('queues optInToMarketing', () => {
+      analytics.optInToMarketing();
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optInToMarketing',
+      );
+    });
+
+    it('queues optOutOfMarketing', () => {
+      analytics.optOutOfMarketing();
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optOutOfMarketing',
+      );
+    });
+
+    it('queues resetMarketingConsentDecision', () => {
+      analytics.resetMarketingConsentDecision();
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'resetMarketingConsentDecision',
+      );
+    });
+
+    it('maps a true marketing preference to optInToMarketing', async () => {
+      await analytics.setDataCollectionForMarketing(true);
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optInToMarketing',
+      );
+      expect(
+        mockQueueManagerFromFactory.queueOperation,
+      ).not.toHaveBeenCalledWith('optOutOfMarketing');
+    });
+
+    it('maps a false marketing preference to optOutOfMarketing', async () => {
+      await analytics.setDataCollectionForMarketing(false);
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optOutOfMarketing',
+      );
+      expect(
+        mockQueueManagerFromFactory.queueOperation,
+      ).not.toHaveBeenCalledWith('optInToMarketing');
+    });
+
+    it('rejects when the marketing opt-out queue operation rejects', async () => {
+      const error = new Error('Queue operation failed');
+      mockQueueManagerFromFactory.queueOperation.mockRejectedValue(error);
+
+      await expect(analytics.setDataCollectionForMarketing(false)).rejects.toBe(
         error,
       );
     });

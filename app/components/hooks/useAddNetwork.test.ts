@@ -17,7 +17,6 @@ describe('useAddNetwork', () => {
         chainId: '0x1',
         nickname: 'Ethereum',
         rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY',
-        failoverRpcUrls: [],
         ticker: 'ETH',
         warning: false,
         rpcPrefs: {

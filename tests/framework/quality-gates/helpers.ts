@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { createHash } from 'crypto';
 import type { TestInfo } from '@playwright/test';
 import { createLogger } from '../logger';
 
@@ -9,49 +10,15 @@ const logger = createLogger({
   name: 'Quality Gates - helpers',
 });
 
-// File-based registry to track tests that failed due to quality gates
-// This persists across Playwright workers which run in separate processes
-const QUALITY_GATE_FAILURES_FILE = path.join(
+// One marker per test avoids cross-process read-modify-write races.
+const QUALITY_GATE_FAILURES_DIR = path.join(
   os.tmpdir(),
-  'playwright-quality-gate-failures.json',
+  'playwright-quality-gate-failures',
 );
 
-/**
- * Load quality gate failures from file
- * @returns The set of test IDs that failed due to quality gates
- */
-function loadFailures(): Set<string> {
-  try {
-    if (fs.existsSync(QUALITY_GATE_FAILURES_FILE)) {
-      const data = fs.readFileSync(QUALITY_GATE_FAILURES_FILE, 'utf-8');
-      return new Set(JSON.parse(data) as string[]);
-    }
-  } catch (error) {
-    logger.warn(
-      '⚠️ Could not load quality gate failures file:',
-      (error as Error).message,
-    );
-  }
-  return new Set();
-}
-
-/**
- * Save quality gate failures to file
- * @param failures - The set of test IDs that failed due to quality gates
- */
-function saveFailures(failures: Set<string>): void {
-  try {
-    fs.writeFileSync(
-      QUALITY_GATE_FAILURES_FILE,
-      JSON.stringify([...failures]),
-      'utf-8',
-    );
-  } catch (error) {
-    logger.warn(
-      '⚠️ Could not save quality gate failures file:',
-      (error as Error).message,
-    );
-  }
+function qualityGateFailureMarker(testId: string): string {
+  const markerName = createHash('sha256').update(testId).digest('hex');
+  return path.join(QUALITY_GATE_FAILURES_DIR, markerName);
 }
 
 /**
@@ -60,12 +27,18 @@ function saveFailures(failures: Set<string>): void {
  * @returns The set of test IDs that failed due to quality gates
  */
 export function markQualityGateFailure(testId: string): void {
-  const failures = loadFailures();
-  failures.add(testId);
-  saveFailures(failures);
-  logger.info(
-    `📝 Marked test "${testId}" as quality gate failure (file: ${QUALITY_GATE_FAILURES_FILE})`,
-  );
+  try {
+    fs.mkdirSync(QUALITY_GATE_FAILURES_DIR, { recursive: true });
+    fs.writeFileSync(qualityGateFailureMarker(testId), '', {
+      flag: 'a',
+    });
+    logger.info(`📝 Marked test "${testId}" as quality gate failure`);
+  } catch (error) {
+    logger.warn(
+      '⚠️ Could not mark quality gate failure:',
+      (error as Error).message,
+    );
+  }
 }
 
 /**
@@ -74,8 +47,7 @@ export function markQualityGateFailure(testId: string): void {
  * @returns True if the test previously failed due to quality gates
  */
 export function hasQualityGateFailure(testId: string): boolean {
-  const failures = loadFailures();
-  return failures.has(testId);
+  return fs.existsSync(qualityGateFailureMarker(testId));
 }
 
 /**
@@ -84,8 +56,11 @@ export function hasQualityGateFailure(testId: string): boolean {
  */
 export function clearQualityGateFailures(): void {
   try {
-    if (fs.existsSync(QUALITY_GATE_FAILURES_FILE)) {
-      fs.unlinkSync(QUALITY_GATE_FAILURES_FILE);
+    if (fs.existsSync(QUALITY_GATE_FAILURES_DIR)) {
+      fs.rmSync(QUALITY_GATE_FAILURES_DIR, {
+        recursive: true,
+        force: true,
+      });
       logger.info('Cleared quality gate failures file');
     }
   } catch (error) {

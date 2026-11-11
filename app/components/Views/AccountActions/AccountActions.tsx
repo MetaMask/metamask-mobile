@@ -11,12 +11,13 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 
 // External dependencies
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -35,16 +36,14 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import {
   isHardwareAccount,
   isHDOrFirstPartySnapAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
-  ///: END:ONLY_INCLUDE_IF
 } from '../../../util/address';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
 } from '../../../constants/keyringTypes';
-import { forgetLedger, getDeviceId } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
+import { removeAccount } from '../../../util/accounts/removeAccount';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -52,10 +51,6 @@ import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networ
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import { getMultichainBlockExplorer } from '../../../core/Multichain/networks';
-import {
-  forgetQrDevice,
-  withQrKeyring,
-} from '../../../core/QrKeyring/QrKeyring';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -67,7 +62,8 @@ const AccountActions = () => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { navigate } = navigation;
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { networkSupporting7702Present } = useEIP7702Networks(
@@ -75,6 +71,10 @@ const AccountActions = () => {
   );
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const controllers = useMemo(() => {
     const { KeyringController, PreferencesController } = Engine.context;
@@ -204,45 +204,6 @@ const AccountActions = () => {
   }, []);
 
   /**
-   * Remove the hardware account from the keyring
-   * @param keyring - The keyring object
-   * @param address - The address to remove
-   */
-  const removeHardwareAccount = useCallback(async () => {
-    if (selectedAddress) {
-      const hexSelectedAddress = toHex(selectedAddress);
-      await removeAccountsFromPermissions([hexSelectedAddress]);
-      await controllers.KeyringController.removeAccount(hexSelectedAddress);
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
-          .addProperties({
-            accountType: keyring?.type,
-            selectedAddress,
-          })
-          .build(),
-      );
-    }
-  }, [
-    controllers.KeyringController,
-    keyring?.type,
-    selectedAddress,
-    trackEvent,
-    createEventBuilder,
-  ]);
-
-  /**
-   * Selects the first account after removing the previous selected account
-   */
-  const selectFirstAccount = useCallback(async () => {
-    const accounts = await controllers.KeyringController.getAccounts();
-    if (accounts && accounts.length > 0) {
-      Engine.setSelectedAddress(accounts[0]);
-    }
-  }, [controllers.KeyringController]);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
-  /**
    * Remove the snap account from the keyring
    */
   const removeSnapAccount = useCallback(async () => {
@@ -287,69 +248,6 @@ const AccountActions = () => {
       ],
     );
   }, [removeSnapAccount]);
-  ///: END:ONLY_INCLUDE_IF
-
-  /**
-   * Forget the device if there are no more accounts in the keyring
-   * @param keyringType - The keyring type
-   */
-  const forgetDeviceIfRequired = useCallback(async () => {
-    // re-fetch the latest keyrings from KeyringController state.
-    const { keyrings } = controllers.KeyringController.state;
-    const keyringType = keyring?.type;
-    const updatedKeyring = keyrings.find((kr) => kr.type === keyringType);
-
-    // If there are no more accounts in the keyring, forget the device
-    let requestForgetDevice = false;
-
-    if (updatedKeyring) {
-      if (updatedKeyring.accounts.length === 0) {
-        requestForgetDevice = true;
-      }
-    } else {
-      requestForgetDevice = true;
-    }
-    if (requestForgetDevice) {
-      switch (keyringType) {
-        case ExtendedKeyringTypes.ledger: {
-          const ledgerDeviceId = await getDeviceId();
-          await forgetLedger();
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
-              .addProperties({
-                device_type: HardwareDeviceTypes.LEDGER,
-                device_model: ledgerDeviceId,
-              })
-              .build(),
-          );
-          break;
-        }
-        case ExtendedKeyringTypes.qr: {
-          const deviceName = await withQrKeyring(
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            async ({ keyring }) => await keyring.getName(),
-          );
-          await forgetQrDevice();
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
-              .addProperties({
-                device_type: HardwareDeviceTypes.QR,
-                device_model: deviceName,
-              })
-              .build(),
-          );
-          break;
-        }
-        default:
-          break;
-      }
-    }
-  }, [
-    controllers.KeyringController,
-    keyring?.type,
-    trackEvent,
-    createEventBuilder,
-  ]);
 
   /**
    * Trigger the remove hardware account action when user click on the remove account button
@@ -362,22 +260,44 @@ const AccountActions = () => {
       }
 
       sheetRef.current?.onCloseBottomSheet(async () => {
-        await removeHardwareAccount();
+        const result = await removeAccount({
+          address: selectedAddress,
+          keyringType: keyring.type,
+        });
 
-        await selectFirstAccount();
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
+            .addProperties({
+              accountType: keyring.type,
+              selectedAddress,
+            })
+            .build(),
+        );
 
-        await forgetDeviceIfRequired();
+        if (result.forgotDevice) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
+              .addProperties({
+                device_type:
+                  result.forgotDevice.keyringType ===
+                  ExtendedKeyringTypes.ledger
+                    ? HardwareDeviceTypes.LEDGER
+                    : HardwareDeviceTypes.QR,
+                device_model: result.forgotDevice.deviceModel,
+              })
+              .build(),
+          );
+        }
 
         setBlockingModalVisible(false);
       });
     }
   }, [
     blockingModalVisible,
-    forgetDeviceIfRequired,
     keyring,
-    removeHardwareAccount,
-    selectFirstAccount,
     selectedAddress,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const goToEditAccountName = () => {
@@ -394,7 +314,7 @@ const AccountActions = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View style={styles.actionsContainer}>
         <AccountAction
           actionTitle={strings('account_actions.edit_name')}
@@ -407,7 +327,7 @@ const AccountActions = () => {
             actionTitle={`${strings('drawer.view_in')} ${
               blockExplorer.blockExplorerName
             }`}
-            iconName={IconName.Export}
+            iconName={IconName.ArrowSquareOut}
             onPress={viewOnBlockExplorer}
             testID={AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN}
           />
@@ -446,18 +366,14 @@ const AccountActions = () => {
             }
           />
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          selectedAddress && isSnapAccount(selectedAddress) && (
-            <AccountAction
-              actionTitle={strings('accounts.remove_snap_account')}
-              iconName={IconName.Close}
-              onPress={showRemoveSnapAccountAlert}
-              testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT}
-            />
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
+        {selectedAddress && isSnapAccount(selectedAddress) && (
+          <AccountAction
+            actionTitle={strings('accounts.remove_snap_account')}
+            iconName={IconName.Close}
+            onPress={showRemoveSnapAccountAlert}
+            testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT}
+          />
+        )}
         {networkSupporting7702Present &&
           !isHardwareAccount(selectedAddress) && (
             <AccountAction

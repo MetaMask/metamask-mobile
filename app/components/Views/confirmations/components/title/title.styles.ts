@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () =>
+const styleSheet = ({ vars }: { vars: { forceBottomSheet?: boolean } }) =>
   StyleSheet.create({
     titleContainer: {
-      marginVertical: 24,
+      marginTop: vars.forceBottomSheet ? 12 : 24,
+      marginBottom: 24,
       paddingHorizontal: 16,
     },
     title: {

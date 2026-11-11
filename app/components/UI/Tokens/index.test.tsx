@@ -9,7 +9,12 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { clone } from 'lodash';
-import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  waitFor,
+  userEvent,
+} from '@testing-library/react-native';
 import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -19,41 +24,28 @@ import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
 import { MUSD_TOKEN_ADDRESS } from '../Earn/constants/musd';
-// eslint-disable-next-line import-x/no-namespace
-import * as MusdConversionAssetListCtaModule from '../Earn/components/Musd/MusdConversionAssetListCta';
-// eslint-disable-next-line import-x/no-namespace
-import * as TokenListControlBarModule from './TokenListControlBar/TokenListControlBar';
+import BaseControlBar from '../shared/BaseControlBar/BaseControlBar';
 // eslint-disable-next-line import-x/no-namespace
 import * as AssetsListSelectorsModule from '../../../selectors/assets/assets-list';
-// eslint-disable-next-line import-x/no-namespace
-import * as RefreshTokensModule from './util/refreshTokens';
 // eslint-disable-next-line import-x/no-namespace
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import-x/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
-const mockUseMusdConversionEligibility = jest.fn(() => ({
-  isEligible: true,
-  isLoading: false,
-  geolocation: 'US',
-  blockedCountries: [],
+
+const mockRefreshTokensForGroup = jest.fn().mockResolvedValue(undefined);
+const mockUseTokenListFilteringEvent = jest.fn();
+jest.mock('./hooks/useTokenListFilteringEvent', () => ({
+  useTokenListFilteringEvent: () => mockUseTokenListFilteringEvent,
 }));
-jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
+
+jest.mock('./hooks/useRefreshTokens', () => ({
+  useRefreshTokens: () => ({ refresh: mockRefreshTokensForGroup }),
 }));
 
 // Mocking versioning for some selectors
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
-
-// Mock MusdConversionAssetListCta to prevent deep dependency chain issues
-jest.mock('../Earn/components/Musd/MusdConversionAssetListCta', () => {
-  const { View: MockView } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => <MockView testID="musd-conversion-cta" />,
-  };
-});
 
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
@@ -72,8 +64,9 @@ jest.mock('./TokenList/TokenList', () => ({
   TokenList: jest.fn().mockImplementation(() => null),
 }));
 
-jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
-  TokenListControlBar: jest.fn().mockImplementation(() => null),
+jest.mock('../shared/BaseControlBar/BaseControlBar', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => null),
 }));
 
 /**
@@ -82,32 +75,13 @@ jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
  * @returns - Mocked components
  */
 const arrangeMockComponents = () => {
-  const mockMusdConversionAssetListCta = jest
-    .spyOn(MusdConversionAssetListCtaModule, 'default')
-    .mockImplementation(() => <View testID="musd-conversion-cta" />);
-
-  const mockTokenListControlBar = jest
-    .spyOn(TokenListControlBarModule, 'TokenListControlBar')
-    .mockImplementation(
-      ({
-        goToAddToken,
-        showAddToken = true,
-      }: {
-        goToAddToken: () => void;
-        showAddToken?: boolean;
-      }) => (
-        <View testID="token-list-control-bar">
-          {showAddToken && (
-            <Button
-              testID="MOCK_TEST_ADD_TOKEN_BUTTON"
-              title="Add Token"
-              onPress={goToAddToken}
-            />
-          )}
-          <Button testID="MOCK_NETWORK_FILTER" title="Network" />
-        </View>
-      ),
-    );
+  const mockBaseControlBar = jest
+    .mocked(BaseControlBar)
+    .mockImplementation(() => (
+      <View testID="token-list-control-bar">
+        <Button testID="MOCK_NETWORK_FILTER" title="Network" />
+      </View>
+    ));
 
   const mockTokensList = jest
     .mocked(TokenList)
@@ -137,8 +111,7 @@ const arrangeMockComponents = () => {
     ));
 
   return {
-    mockMusdConversionAssetListCta,
-    mockTokenListControlBar,
+    mockBaseControlBar,
     mockTokensList,
   };
 };
@@ -255,31 +228,13 @@ describe('Tokens', () => {
   });
 
   it('performs token refresh', async () => {
-    const mockRefreshTokens = jest
-      .spyOn(RefreshTokensModule, 'refreshTokens')
-      .mockResolvedValue();
     const { getByTestId } = renderComponent(initialState);
 
     fireEvent.press(getByTestId('MOCK_TEST_REFRESH_BUTTON'));
 
-    // Wait for async refresh to complete
     await waitFor(() => {
-      expect(mockRefreshTokens).toHaveBeenCalled();
+      expect(mockRefreshTokensForGroup).toHaveBeenCalled();
     });
-  });
-
-  it('performs token addition navigation', async () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    // Act - press add token button
-    await userEvent.press(getByTestId('MOCK_TEST_ADD_TOKEN_BUTTON'));
-
-    // Assert - navigation to add token screen
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
-        assetType: 'token',
-      }),
-    );
   });
 
   const removeTokenTests = [
@@ -398,25 +353,85 @@ describe('Tokens', () => {
     });
   });
 
-  describe('showOnlyMusd (Cash view)', () => {
-    it('does not render TokenListControlBar when showOnlyMusd', async () => {
-      const { mockSelectSortedAssetsBySelectedAccountGroup } =
-        arrangeMockSelectors();
-      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+  describe('search', () => {
+    it('does not render the search bar outside full view', () => {
+      const { queryByTestId } = renderComponent(initialState, false);
 
-      const { queryByTestId } = renderComponent(initialState, true, true);
-
-      await waitFor(() => {
-        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
-      });
-
-      expect(queryByTestId('token-list-control-bar')).toBeNull();
       expect(
-        TokenListControlBarModule.TokenListControlBar,
-      ).not.toHaveBeenCalled();
+        queryByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      ).not.toBeOnTheScreen();
     });
 
-    it('does not render add token button when showOnlyMusd', async () => {
+    it('does not render the search bar when showOnlyMusd', () => {
+      const { queryByTestId } = renderComponent(initialState, true, true);
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT),
+      ).not.toBeOnTheScreen();
+    });
+
+    describe('analytics', () => {
+      // Date.now is stubbed globally, so lodash debounce needs fake timers.
+      const settleDebounce = () =>
+        act(() => {
+          jest.advanceTimersByTime(250);
+        });
+
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('tracks one searched event once the query settles', () => {
+        const { getByTestId } = renderComponent(initialState, true);
+        const input = getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT);
+
+        fireEvent.changeText(input, 'z');
+        fireEvent.changeText(input, 'zz');
+        fireEvent.changeText(input, ' ZZ ');
+        settleDebounce();
+
+        expect(mockUseTokenListFilteringEvent).toHaveBeenCalledTimes(1);
+        expect(mockUseTokenListFilteringEvent).toHaveBeenCalledWith(
+          'searched',
+          {
+            searchQuery: 'zz',
+            extra: { query_length: 2, result_count: 0 },
+          },
+        );
+      });
+
+      it('does not track the same settled query twice', () => {
+        const { getByTestId } = renderComponent(initialState, true);
+        const input = getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT);
+
+        fireEvent.changeText(input, 'zz');
+        settleDebounce();
+        fireEvent.changeText(input, 'zz ');
+        settleDebounce();
+
+        expect(mockUseTokenListFilteringEvent).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not track an extra event when the search is cleared', () => {
+        const { getByTestId } = renderComponent(initialState, true);
+        const input = getByTestId(WalletViewSelectorsIDs.TOKENS_SEARCH_INPUT);
+
+        fireEvent.changeText(input, 'zz');
+        settleDebounce();
+        fireEvent.changeText(input, '');
+        settleDebounce();
+
+        expect(mockUseTokenListFilteringEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  describe('showOnlyMusd (Cash view)', () => {
+    it('does not render the control bar when showOnlyMusd', async () => {
       const { mockSelectSortedAssetsBySelectedAccountGroup } =
         arrangeMockSelectors();
       mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
@@ -427,7 +442,8 @@ describe('Tokens', () => {
         expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
       });
 
-      expect(queryByTestId('MOCK_TEST_ADD_TOKEN_BUTTON')).toBeNull();
+      expect(queryByTestId('token-list-control-bar')).not.toBeOnTheScreen();
+      expect(BaseControlBar).not.toHaveBeenCalled();
     });
 
     it('shows empty state when showOnlyMusd and no mUSD tokens', async () => {
@@ -463,13 +479,7 @@ describe('Tokens', () => {
       });
     });
 
-    it('includes mUSD in main token list when Cash section is disabled', async () => {
-      mockUseMusdConversionEligibility.mockReturnValueOnce({
-        isEligible: false,
-        isLoading: false,
-        geolocation: 'US',
-        blockedCountries: [],
-      });
+    it('includes mUSD in main token list when Money Hub is disabled', async () => {
       const { mockSelectSortedAssetsBySelectedAccountGroup } =
         arrangeMockSelectors();
       mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
@@ -496,60 +506,15 @@ describe('Tokens', () => {
       });
     });
 
-    it('includes mUSD when conversion flow is enabled but Money Hub is disabled', async () => {
-      const stateWithMusdEnabled = clone(initialRootState);
+    it('excludes mUSD from token list when Money Hub is enabled', async () => {
+      const stateWithMoneyHubEnabled = clone(initialRootState);
       (
-        stateWithMusdEnabled as Record<string, unknown> &
+        stateWithMoneyHubEnabled as Record<string, unknown> &
           typeof initialRootState
       ).engine.backgroundState.RemoteFeatureFlagController = {
-        ...stateWithMusdEnabled.engine.backgroundState
+        ...stateWithMoneyHubEnabled.engine.backgroundState
           .RemoteFeatureFlagController,
         remoteFeatureFlags: {
-          earnMusdConversionFlowEnabled: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-        },
-      };
-
-      const { mockSelectSortedAssetsBySelectedAccountGroup } =
-        arrangeMockSelectors();
-      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
-        { address: '0xToken1', chainId: '0x1', isStaked: false },
-        {
-          address: MUSD_TOKEN_ADDRESS,
-          chainId: '0x1',
-          isStaked: false,
-        },
-      ]);
-
-      renderComponent(stateWithMusdEnabled, false, false);
-
-      await waitFor(() => {
-        expect(TokenList).toHaveBeenCalledWith(
-          expect.objectContaining({
-            tokenKeys: expect.arrayContaining([
-              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
-            ]),
-          }),
-          undefined,
-        );
-      });
-    });
-
-    it('excludes mUSD from token list when conversion flow and Money Hub are enabled', async () => {
-      const stateWithBothEnabled = clone(initialRootState);
-      (
-        stateWithBothEnabled as Record<string, unknown> &
-          typeof initialRootState
-      ).engine.backgroundState.RemoteFeatureFlagController = {
-        ...stateWithBothEnabled.engine.backgroundState
-          .RemoteFeatureFlagController,
-        remoteFeatureFlags: {
-          earnMusdConversionFlowEnabled: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
           earnMoneyHubEnabled: {
             enabled: true,
             minimumVersion: '1.0.0',
@@ -568,7 +533,7 @@ describe('Tokens', () => {
         },
       ]);
 
-      renderComponent(stateWithBothEnabled, false, false);
+      renderComponent(stateWithMoneyHubEnabled, false, false);
 
       await waitFor(() => {
         expect(TokenList).toHaveBeenCalledWith(

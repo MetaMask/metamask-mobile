@@ -45,8 +45,8 @@ const RIVE_STATE_MACHINE = 'State Machine 1';
 const RIVE_ARTBOARD_ASPECT_RATIO = 620 / 400;
 
 /** Thumbnail size used by the Money home card rows. */
-const DEFAULT_WIDTH = 104;
-const DEFAULT_HEIGHT = 66;
+const DEFAULT_WIDTH = 120;
+const DEFAULT_HEIGHT = 76;
 
 interface MoneyCardTiltAnimationProps {
   /** Which card variant to show. */

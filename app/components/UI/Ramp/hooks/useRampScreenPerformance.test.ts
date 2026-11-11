@@ -1,0 +1,294 @@
+import { act, renderHook } from '@testing-library/react-native';
+import { AppState, type AppStateStatus } from 'react-native';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../constants/rampScreenPerformance';
+import { getRampsBuyCufParentContext } from '../utils/rampsBuyCufTrace';
+import {
+  getRampsBuyLifecycleContext,
+  resetRampsBuyLifecycleContextForTests,
+} from '../utils/rampsBuyLifecycleContext';
+import { useRampScreenPerformance } from './useRampScreenPerformance';
+
+jest.mock('uuid', () => ({
+  v4: jest
+    .fn()
+    .mockReturnValueOnce('screen-trace-1')
+    .mockReturnValueOnce('screen-trace-2')
+    .mockReturnValue('screen-trace-next'),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  getPerformanceTimestamp: jest.fn(() => 100),
+  TraceName: { RampScreenLoad: 'Ramp Screen Load' },
+  TraceOperation: { RampOperation: 'ramp.operation' },
+}));
+
+jest.mock('../utils/rampsBuyCufTrace', () => ({
+  ...jest.requireActual('../utils/rampsBuyCufTrace'),
+  getRampsBuyCufParentContext: jest.fn(() => ({ mocked: 'parent' })),
+}));
+
+const mockTrace = jest.mocked(trace);
+const mockEndTrace = jest.mocked(endTrace);
+const mockGetParentContext = jest.mocked(getRampsBuyCufParentContext);
+
+describe('useRampScreenPerformance', () => {
+  let appState: AppStateStatus;
+  let appStateListeners: ((state: AppStateStatus) => void)[];
+  const removeListener = jest.fn();
+
+  const emitAppState = (state: AppStateStatus) => {
+    appState = state;
+    appStateListeners.forEach((listener) => listener(state));
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetRampsBuyLifecycleContextForTests();
+    appState = 'active';
+    appStateListeners = [];
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      get: () => appState,
+    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_, listener) => {
+        appStateListeners.push(listener);
+        return { remove: removeListener };
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('ends when meaningful content becomes ready', () => {
+    const { rerender } = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
+    );
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.RampScreenLoad,
+        parentContext: { mocked: 'parent' },
+        forceTransaction: true,
+        tags: {
+          feature: 'buy',
+          ramp_type: 'UNIFIED_BUY_2',
+          lifecycle_context: 'cold_process',
+          screen_id: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
+        },
+      }),
+    );
+
+    rerender({ contentReady: true });
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.RampScreenLoad,
+        data: {
+          feature: 'buy',
+          ramp_type: 'UNIFIED_BUY_2',
+          lifecycle_context: 'cold_process',
+          screen_id: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
+          content_state: RAMP_SCREEN_CONTENT_STATE.POPULATED,
+          success: true,
+        },
+      }),
+    );
+  });
+
+  it('completes content that becomes ready during iOS inactive', () => {
+    const { rerender } = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
+    );
+
+    act(() => {
+      emitAppState('inactive');
+    });
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    rerender({ contentReady: true });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ success: true }),
+      }),
+    );
+  });
+
+  it('cancels on background and restarts on foreground', () => {
+    const { rerender } = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
+    );
+
+    act(() => {
+      emitAppState('background');
+    });
+    expect(mockEndTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          success: false,
+          reason: 'app_backgrounded',
+        }),
+      }),
+    );
+
+    rerender({ contentReady: true });
+    act(() => {
+      emitAppState('active');
+    });
+
+    expect(mockTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ success: true }),
+      }),
+    );
+  });
+
+  it('does not remeasure a screen that already reached content', () => {
+    const { rerender } = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
+    );
+
+    rerender({ contentReady: true });
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    rerender({ contentReady: false });
+
+    act(() => {
+      emitAppState('background');
+    });
+    act(() => {
+      emitAppState('active');
+    });
+
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps background_resume until a restarted screen settles', () => {
+    const settled = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.TOKEN_SELECTION,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
+    );
+    settled.rerender({ contentReady: true });
+
+    const loading = renderHook(
+      ({ contentReady }) =>
+        useRampScreenPerformance({
+          screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+          contentReady,
+        }),
+      { initialProps: { contentReady: false } },
+    );
+
+    act(() => {
+      emitAppState('background');
+    });
+    act(() => {
+      emitAppState('active');
+    });
+
+    expect(getRampsBuyLifecycleContext()).toBe('background_resume');
+    expect(mockTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          lifecycle_context: 'background_resume',
+          screen_id: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+        }),
+      }),
+    );
+
+    loading.rerender({ contentReady: true });
+    expect(getRampsBuyLifecycleContext()).toBe('warm');
+  });
+
+  it('cancels an unfinished span on unmount', () => {
+    const { unmount } = renderHook(() =>
+      useRampScreenPerformance({
+        screenId: RAMP_V2_SCREEN_ID.CHECKOUT,
+        contentReady: false,
+      }),
+    );
+
+    unmount();
+
+    expect(removeListener).toHaveBeenCalled();
+    expect(mockEndTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          success: false,
+          reason: 'unmounted',
+        }),
+      }),
+    );
+  });
+
+  it('stays a transaction while linked to an active Buy CUF', () => {
+    renderHook(() =>
+      useRampScreenPerformance({
+        screenId: RAMP_V2_SCREEN_ID.CHECKOUT,
+        contentReady: false,
+      }),
+    );
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        parentContext: { mocked: 'parent' },
+        forceTransaction: true,
+      }),
+    );
+  });
+
+  it('starts its own transaction when no Buy CUF is active', () => {
+    mockGetParentContext.mockReturnValueOnce(undefined);
+    appState = 'inactive';
+    renderHook(() =>
+      useRampScreenPerformance({
+        screenId: RAMP_V2_SCREEN_ID.ERROR_DETAILS_MODAL,
+        contentReady: true,
+        contentState: RAMP_SCREEN_CONTENT_STATE.ERROR,
+      }),
+    );
+    expect(mockTrace).not.toHaveBeenCalled();
+    act(() => {
+      emitAppState('active');
+    });
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        parentContext: undefined,
+        forceTransaction: true,
+      }),
+    );
+  });
+});

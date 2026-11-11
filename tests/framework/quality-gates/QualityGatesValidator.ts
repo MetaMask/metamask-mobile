@@ -2,7 +2,7 @@
  * Quality Gates Validator
  *
  * Validates performance metrics against thresholds defined in TimerHelper instances.
- * Each timer can have its own threshold (base + 10% margin).
+ * Each timer can have its own threshold (base + THRESHOLD_MARGIN_PERCENT margin).
  */
 
 import QualityGateError from './QualityGateError';
@@ -54,11 +54,14 @@ class QualityGatesValidator {
       const duration = timer.getDuration() || 0;
       const { threshold, baseThreshold } = timer;
 
-      totalDurationMs += duration;
-      if (threshold !== null) {
-        totalThresholdMs += threshold;
-      } else {
-        allTimersHaveThresholds = false;
+      const includeInTotal = timer.includeInTotal !== false;
+      if (includeInTotal) {
+        totalDurationMs += duration;
+        if (threshold !== null) {
+          totalThresholdMs += threshold;
+        } else {
+          allTimersHaveThresholds = false;
+        }
       }
 
       const passed = threshold === null || duration <= threshold;

@@ -2,8 +2,9 @@ import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useMoneyNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../../UI/Money/hooks/useMoneyHomeNavigation';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { usePredictEntryActions } from '../../../../UI/PredictNext';
 import { usePerpsNavigationHandlers } from '../../Sections/Perpetuals/hooks/usePerpsNavigationHandlers';
 import type { SliceKey } from '../../BalanceBreakdown/types';
 import { useHomepageScrollContext } from '../../context/HomepageScrollContext';
@@ -31,11 +32,12 @@ export function useHomepageBalanceBreakdownNavigation({
 }: UseHomepageBalanceBreakdownNavigationArgs = {}) {
   const navigation = useNavigation();
   const { entryPoint, appSessionId, visitId } = useHomepageScrollContext();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const { navigateToPerpsHome } = usePerpsNavigationHandlers({
     transactionActiveAbTests,
   });
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openPredict } = usePredictEntryActions();
 
   const openSlice = useCallback(
     (key: SliceKey, position: number) => {
@@ -58,7 +60,7 @@ export function useHomepageBalanceBreakdownNavigation({
 
       switch (key) {
         case 'money':
-          navigateToMoneyHome(analyticsContext);
+          navigateToMoneyHome({ analyticsContext });
           break;
         case 'tokens':
           navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, {
@@ -69,14 +71,10 @@ export function useHomepageBalanceBreakdownNavigation({
           navigateToPerpsHome(analyticsContext);
           break;
         case 'predict':
-          navigation.navigate(Routes.PREDICT.ROOT, {
-            screen: Routes.PREDICT.MARKET_LIST,
-            params: {
-              entryPoint: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
-              ...(transactionActiveAbTests?.length
-                ? { transactionActiveAbTests }
-                : {}),
-            },
+          openPredict({
+            type: 'home',
+            entryPoint: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+            transactionActiveAbTests,
           });
           break;
         case 'defi':
@@ -93,6 +91,7 @@ export function useHomepageBalanceBreakdownNavigation({
       navigateToPerpsHome,
       navigateToMoneyHome,
       navigation,
+      openPredict,
       trackEvent,
       transactionActiveAbTests,
       visitId,

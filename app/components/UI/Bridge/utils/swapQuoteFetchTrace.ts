@@ -1,12 +1,16 @@
 import { v4 as uuidv4 } from 'uuid';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  SwapFeatureTag,
+  type GenericQuoteRequest,
+  type QuoteStreamCompleteReason,
+} from '@metamask/bridge-controller';
 import {
   endTrace,
   trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import type { BridgeToken } from '../types';
 
 export type SwapQuoteFetchTraceResult =
   | 'success'
@@ -15,8 +19,8 @@ export type SwapQuoteFetchTraceResult =
   | 'error';
 
 interface StartSwapQuoteFetchTraceParams {
-  sourceToken?: BridgeToken;
-  destToken?: BridgeToken;
+  srcChainId?: GenericQuoteRequest['srcChainId'];
+  destChainId?: GenericQuoteRequest['destChainId'];
   isRefresh: boolean;
 }
 
@@ -25,6 +29,7 @@ let activeTraceId: string | undefined;
 const finishTrace = (
   result: SwapQuoteFetchTraceResult,
   id: string | undefined = activeTraceId,
+  reason?: QuoteStreamCompleteReason,
 ): void => {
   if (!id || activeTraceId !== id) {
     return;
@@ -34,15 +39,20 @@ const finishTrace = (
     name: TraceName.SwapQuoteFetch,
     id,
     timestamp: Date.now(),
-    data: { result },
+    data: {
+      result,
+      ...(result === 'no_quotes' || result === 'error'
+        ? { no_quote_reason: reason ?? 'generic_error' }
+        : {}),
+    },
   });
   activeTraceId = undefined;
 };
 
 export const swapQuoteFetchTrace = {
   start({
-    sourceToken,
-    destToken,
+    srcChainId,
+    destChainId,
     isRefresh,
   }: StartSwapQuoteFetchTraceParams): string {
     if (activeTraceId) {
@@ -50,15 +60,16 @@ export const swapQuoteFetchTrace = {
     }
 
     const id = uuidv4();
-    const srcChainId = sourceToken?.chainId
-      ? formatChainIdToCaip(sourceToken.chainId)
+    const srcChainIdInCaip = srcChainId
+      ? formatChainIdToCaip(srcChainId)
       : undefined;
-    const destChainId = destToken?.chainId
-      ? formatChainIdToCaip(destToken.chainId)
+    const destChainIdInCaip = destChainId
+      ? formatChainIdToCaip(destChainId)
       : undefined;
     let swapType: 'single_chain' | 'crosschain' | undefined;
-    if (srcChainId && destChainId) {
-      swapType = srcChainId === destChainId ? 'single_chain' : 'crosschain';
+    if (srcChainIdInCaip && destChainIdInCaip) {
+      swapType =
+        srcChainIdInCaip === destChainIdInCaip ? 'single_chain' : 'crosschain';
     }
     trace({
       name: TraceName.SwapQuoteFetch,
@@ -68,20 +79,25 @@ export const swapQuoteFetchTrace = {
         request_id: id,
         isRefresh,
         ...(swapType && { swap_type: swapType }),
-        ...(sourceToken?.chainId && {
-          src_chain_id: formatChainIdToCaip(sourceToken.chainId),
+        ...(srcChainIdInCaip && {
+          src_chain_id: srcChainIdInCaip,
         }),
-        ...(destToken?.chainId && {
-          dest_chain_id: formatChainIdToCaip(destToken.chainId),
+        ...(destChainIdInCaip && {
+          dest_chain_id: destChainIdInCaip,
         }),
       },
       startTime: Date.now(),
+      tags: { feature: SwapFeatureTag.SWAP },
     });
     activeTraceId = id;
     return id;
   },
 
-  finish(result: SwapQuoteFetchTraceResult, id?: string): void {
-    finishTrace(result, id);
+  finish(
+    result: SwapQuoteFetchTraceResult,
+    id?: string,
+    reason?: QuoteStreamCompleteReason,
+  ): void {
+    finishTrace(result, id, reason);
   },
 };
