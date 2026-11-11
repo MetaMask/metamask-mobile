@@ -21,6 +21,23 @@ function getRootMessenger(): RootMessenger {
 }
 
 describe('getMoneyAccountApiDataServiceMessenger', () => {
+  it('delegates KeyringController:signPersonalMessage to the service messenger', async () => {
+    const rootMessenger = getRootMessenger();
+    rootMessenger.registerActionHandler(
+      'KeyringController:signPersonalMessage',
+      jest.fn().mockResolvedValue('0xsignature'),
+    );
+    const serviceMessenger =
+      getMoneyAccountApiDataServiceMessenger(rootMessenger);
+
+    const signature = await serviceMessenger.call(
+      'KeyringController:signPersonalMessage',
+      { data: 'message', from: '0xaddress' },
+    );
+
+    expect(signature).toBe('0xsignature');
+  });
+
   it('delegates AuthenticationController:getBearerToken to the service messenger', async () => {
     const rootMessenger = getRootMessenger();
     rootMessenger.registerActionHandler(

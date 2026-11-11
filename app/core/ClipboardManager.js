@@ -3,19 +3,31 @@ import Device from '../util/device';
 import Logger from '../util/Logger';
 
 const EXPIRE_TIME_MS = 60000;
+let clipboardRevision = 0;
 
 const ClipboardManager = {
   async getString() {
     return await Clipboard.getString();
   },
+  async hasString() {
+    return await Clipboard.hasString();
+  },
+  getRevision() {
+    return clipboardRevision;
+  },
+  addListener(listener) {
+    return Clipboard.addListener(listener);
+  },
   async setString(string) {
     await Clipboard.setString(string);
+    clipboardRevision += 1;
   },
   expireTime: null,
   async setStringExpire(string) {
     if (Device.isIos()) {
       try {
         await Clipboard.setStringExpire(string);
+        clipboardRevision += 1;
       } catch (error) {
         // Fallback to regular setString if setStringExpire fails
         Logger.error(

@@ -49,15 +49,22 @@ export { default as AppiumMatchers } from './AppiumMatchers.ts';
 export { default as AppiumGestures } from './AppiumGestures.ts';
 export { default as AppiumAssertions } from './AppiumAssertions.ts';
 
-export {
-  EncapsulatedElement,
-  LocatorStrategy,
-  type LocatorConfig,
-  type PlatformLocator,
-} from './EncapsulatedElement.ts';
-
 export { resolve, isSelector, type Selector } from './Selector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
+export {
+  findWithSelfHealingLocator,
+  tapWithSelfHealingLocator,
+  type LocatorRecoveryContext,
+  type LocatorRecoveryProvider,
+  type RecoveredLocator,
+  type SelfHealingFindOptions,
+  type SelfHealingTapOptions,
+} from './ai-locator/SelfHealingLocator.ts';
+export { createClaudeLocatorRecoveryProvider } from './ai-locator/ClaudeLocatorRecoveryProvider.ts';
+export {
+  isPerformanceSuiteActive,
+  setPerformanceSuiteActive,
+} from './ai-locator/PerformanceLocatorRecovery.ts';
 export {
   DeviceCommandHandler,
   AndroidDeviceCommandHandler,
@@ -71,10 +78,3 @@ export {
   type ReinstallAppOptions,
   type UninstallAppOptions,
 } from './services/device-commands';
-export {
-  AppiumGestureStrategy,
-  type GestureStrategy,
-  type UnifiedGestureOptions,
-  type TapAtIndexElement,
-  type ScrollContainer,
-} from './GestureStrategy.ts';

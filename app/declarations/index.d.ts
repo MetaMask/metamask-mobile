@@ -12,8 +12,6 @@ declare module '@metamask/react-native-payments/lib/js/__mocks__';
 
 declare module 'react-native-fade-in-image';
 
-declare module 'react-native-fast-crypto';
-
 declare module 'react-native-minimizer';
 
 declare module 'xhr2';
@@ -325,117 +323,8 @@ interface Crypto {
   };
 }
 
-/**
- * @sentry/react-native types for v^6.10.0
- * Types are overridden to ensure captureException receives an Error type for more reliable stack traces
- * Reference - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
- */
-declare module '@sentry/react-native' {
-  export type {
-    Breadcrumb,
-    Request,
-    SdkInfo,
-    Event,
-    Exception,
-    SendFeedbackParams,
-    SeverityLevel,
-    Span,
-    StackFrame,
-    Stacktrace,
-    Thread,
-    User,
-    UserFeedback,
-  } from '@sentry/core';
+declare module '@sumsub/react-native-mobilesdk-module';
 
-  export {
-    addBreadcrumb,
-    captureEvent,
-    captureFeedback,
-    captureMessage,
-    Scope,
-    setContext,
-    setExtra,
-    setExtras,
-    setTag,
-    setTags,
-    setUser,
-    startInactiveSpan,
-    startSpan,
-    startSpanManual,
-    getActiveSpan,
-    getRootSpan,
-    withActiveSpan,
-    suppressTracing,
-    spanToJSON,
-    spanIsSampled,
-    setMeasurement,
-    getCurrentScope,
-    getGlobalScope,
-    getIsolationScope,
-    getClient,
-    setCurrentClient,
-    addEventProcessor,
-    metricsDefault as metrics,
-    lastEventId,
-  } from '@sentry/core';
-
-  export {
-    ErrorBoundary,
-    withErrorBoundary,
-    createReduxEnhancer,
-    Profiler,
-    useProfiler,
-    withProfiler,
-  } from '@sentry/react';
-
-  export * from '@sentry/react-native/dist/js/integrations/exports';
-  export { SDK_NAME, SDK_VERSION } from '@sentry/react-native/dist/js/version';
-  export type { ReactNativeOptions } from '@sentry/react-native/dist/js/options';
-  export { ReactNativeClient } from '@sentry/react-native/dist/js/client';
-  export {
-    init,
-    wrap,
-    nativeCrash,
-    flush,
-    close,
-    captureUserFeedback,
-    withScope,
-    crashedLastRun,
-  } from '@sentry/react-native/dist/js/sdk';
-  export {
-    TouchEventBoundary,
-    withTouchEventBoundary,
-  } from '@sentry/react-native/dist/js/touchevents';
-  export {
-    reactNativeTracingIntegration,
-    getCurrentReactNativeTracingIntegration,
-    getReactNativeTracingIntegration,
-    reactNavigationIntegration,
-    reactNativeNavigationIntegration,
-    sentryTraceGesture,
-    TimeToInitialDisplay,
-    TimeToFullDisplay,
-    startTimeToInitialDisplaySpan,
-    startTimeToFullDisplaySpan,
-    startIdleNavigationSpan,
-    startIdleSpan,
-    getDefaultIdleNavigationSpanOptions,
-    createTimeToFullDisplay,
-    createTimeToInitialDisplay,
-  } from '@sentry/react-native/dist/js/tracing';
-  export type { TimeToDisplayProps } from '@sentry/react-native/dist/js/tracing';
-  export { Mask, Unmask } from '@sentry/react-native/dist/js/replay/CustomMask';
-  export { FeedbackWidget } from '@sentry/react-native/dist/js/feedback/FeedbackWidget';
-  export { showFeedbackWidget } from '@sentry/react-native/dist/js/feedback/FeedbackWidgetManager';
-  export { getDataFromUri } from '@sentry/react-native/dist/js/wrapper';
-
-  // Enforce exception to be of type Error for more reliable stack traces - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
-  // Hint type matches @sentry/core captureException without deep imports (not in package "exports").
-  export function captureException(
-    exception: Error,
-    hint?: Parameters<typeof import('@sentry/core').captureException>[1],
-  ): string;
-}
 declare module '@tommasini/react-native-scrollable-tab-view';
 declare module '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 

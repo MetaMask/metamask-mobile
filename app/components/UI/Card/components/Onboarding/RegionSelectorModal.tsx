@@ -8,14 +8,7 @@ import React, {
 import { useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
+import { useNavigation } from '@react-navigation/native';
 import {
   createNavigationDetails,
   useParams,
@@ -24,11 +17,16 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  HeaderStandard,
+  BottomSheet,
+  BottomSheetHeader,
+  ContentVariant,
+  FontWeight,
+  ListItemSelect,
   Text,
+  TextColor,
+  TextFieldSearch,
   TextVariant,
+  BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import type { Region } from '../../types';
 
@@ -60,6 +58,7 @@ export const createRegionSelectorModalNavigationDetails =
   );
 
 function RegionSelectorModal() {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<Region>>(null);
   const { regions, renderAreaCode, selectedRegionKey } =
@@ -135,48 +134,62 @@ function RegionSelectorModal() {
 
       return (
         <ListItemSelect
+          variant={ContentVariant.OneLine}
           isSelected={selectedRegionKey === region.key}
           onPress={() => handleOnRegionPressCallback(region)}
-          accessibilityRole="button"
-          accessible
           testID="region-selector-item"
-        >
-          <ListItemColumn widthType={WidthType.Fill}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+          titleStartAccessory={
+            <Text
+              variant={TextVariant.BodyMd}
+              testID="region-selector-item-emoji"
             >
-              <Box twClassName="pr-2" testID="region-selector-item-emoji">
-                <Text variant={TextVariant.BodyLg}>{region.emoji}</Text>
-              </Box>
-              <Box testID="region-selector-item-name">
-                <Text variant={TextVariant.BodyLg}>{region.name}</Text>
-              </Box>
-              {renderAreaCode && region.areaCode && (
-                <Box testID="region-selector-item-area-code">
-                  <Text variant={TextVariant.BodyLg}>(+{region.areaCode})</Text>
-                </Box>
-              )}
-            </Box>
-          </ListItemColumn>
-        </ListItemSelect>
+              {region.emoji}
+            </Text>
+          }
+          title={
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+              testID="region-selector-item-name"
+            >
+              {region.name}
+            </Text>
+          }
+          titleEndAccessory={
+            renderAreaCode && region.areaCode ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                testID="region-selector-item-area-code"
+              >
+                (+{region.areaCode})
+              </Text>
+            ) : undefined
+          }
+        />
       );
     },
     [selectedRegionKey, renderAreaCode, handleOnRegionPressCallback],
   );
 
+  // The empty state answers a search. With no query there is nothing to
+  // report, so render nothing rather than "No region matches" over a blank
+  // list (e.g. while regions are unavailable).
+  const hasSearchQuery = searchString.trim().length > 0;
+
   const renderEmptyList = useCallback(
-    () => (
-      <Box twClassName="p-4 items-center" testID="region-selector-empty-list">
-        <Text variant={TextVariant.BodyMd}>
-          {strings('card.card_onboarding.errors.no_region_results', {
-            searchString,
-          })}
-        </Text>
-      </Box>
-    ),
-    [searchString],
+    () =>
+      hasSearchQuery ? (
+        <Box twClassName="p-4 items-center" testID="region-selector-empty-list">
+          <Text variant={TextVariant.BodyMd}>
+            {strings('card.card_onboarding.errors.no_region_results', {
+              searchString,
+            })}
+          </Text>
+        </Box>
+      ) : null,
+    [hasSearchQuery, searchString],
   );
 
   const handleSearchTextChange = useCallback(
@@ -204,24 +217,36 @@ function RegionSelectorModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       onClose={onModalHide}
       keyboardAvoidingViewEnabled={false}
       testID="region-selector-modal"
     >
-      <HeaderStandard
-        title={strings('card.card_onboarding.region_selector.title')}
+      <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: 'region-selector-close-button' }}
-      />
+      >
+        {strings('card.card_onboarding.region_selector.title')}
+      </BottomSheetHeader>
       <Box twClassName="px-4 pb-4">
         <TextFieldSearch
           value={searchString}
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
-          autoComplete="one-time-code"
-          testID="region-selector-search-input"
+          placeholder={strings(
+            'card.card_onboarding.region_selector.search_placeholder',
+          )}
+          inputAccessibilityLabel={strings(
+            'card.card_onboarding.region_selector.search_label',
+          )}
+          clearButtonProps={{ testID: 'search-clear-button' }}
+          inputProps={{
+            // 'one-time-code' stops iOS offering contact/address autofill for
+            // what is a list filter, not a personal-data field.
+            autoComplete: 'one-time-code',
+            testID: 'region-selector-search-input',
+          }}
         />
       </Box>
       <FlatList

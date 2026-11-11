@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
@@ -30,24 +29,24 @@ import {
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
-import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
 import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
+import { PerpsRecentActivityListSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
   isLoading?: boolean;
   iconSize?: number;
+  /** Render a stream error below the heading while retaining cached activity. */
+  errorContent?: React.ReactNode;
 }
 
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   transactions,
   isLoading,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  errorContent,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const isTransactionsRedesignEnabled = useSelector(
-    selectIsTransactionsRedesignEnabled,
-  );
   const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activityTitle = strings('perps.home.recent_activity');
@@ -75,30 +74,20 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
             .build(),
         );
 
-        navigateToPerpsTransactionDetails(
-          navigation,
-          transaction,
-          isTransactionsRedesignEnabled,
-          isTestnet,
-        );
+        navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
       }
     },
-    [
-      navigation,
-      isTransactionsRedesignEnabled,
-      isTestnet,
-      trackEvent,
-      createEventBuilder,
-    ],
+    [navigation, isTestnet, trackEvent, createEventBuilder],
   );
 
   const renderItem = useCallback(
-    (props: { item: PerpsTransaction }) => {
-      const { item } = props;
+    (props: { item: PerpsTransaction; index: number }) => {
+      const { item, index } = props;
       const fill = item.fill;
 
       return (
         <ListItem
+          testID={PerpsRecentActivityListSelectorsIDs.ROW(index)}
           isInteractive
           avatar={
             <PerpsTokenLogo
@@ -119,9 +108,12 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
           }
           value={fill?.amount}
           valueProps={{
-            color: fill?.isPositive
-              ? TextColor.SuccessDefault
-              : TextColor.ErrorDefault,
+            color:
+              fill?.isPositive === undefined
+                ? TextColor.TextDefault
+                : fill.isPositive
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault,
           }}
           onPress={() => handleTransactionPress(item)}
         />
@@ -134,12 +126,13 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     return (
       <Box>
         <SectionHeader title={activityTitle} />
+        {errorContent}
         <PerpsRowSkeleton count={3} />
       </Box>
     );
   }
 
-  if (transactions.length === 0) {
+  if (transactions.length === 0 && !errorContent) {
     return null;
   }
 
@@ -147,10 +140,12 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     <Box>
       <SectionHeader
         title={activityTitle}
-        isInteractive
+        isInteractive={transactions.length > 0}
         onPress={handleSeeAll}
       />
+      {errorContent}
       <FlatList
+        testID={PerpsRecentActivityListSelectorsIDs.LIST}
         data={transactions}
         renderItem={renderItem}
         keyExtractor={(item, index) => `${item.id || index}`}

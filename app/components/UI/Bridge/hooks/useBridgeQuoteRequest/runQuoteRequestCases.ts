@@ -1,6 +1,12 @@
 import { BigNumber } from 'ethers';
 import { act } from '@testing-library/react-native';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  formatAddressToCaipReference,
+  isSolanaChainId,
+  QuoteStreamCompleteReason,
+} from '@metamask/bridge-controller';
+import { getDecimalChainId } from '../../../../../util/networks';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 
 import Engine from '../../../../../core/Engine';
@@ -19,27 +25,26 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../../util/trace';
+import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import { useSwapQuotes } from '../useSwapQuotes';
+import type { TraceContext, TraceRequest } from '@metamask/controller-utils';
 
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
   'updateBridgeQuoteRequestParams',
 );
 
-const mockUseIsInsufficientBalance =
-  useIsInsufficientBalance as jest.MockedFunction<
-    typeof useIsInsufficientBalance
-  >;
-
-const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
-  typeof useLatestBalance
+const mockUseIsInsufficientBalance = jest.mocked(useIsInsufficientBalance);
+const mockUseLatestBalance = jest.mocked(useLatestBalance);
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+const mockUseInsufficientNativeReserveError = jest.mocked(
+  useInsufficientNativeReserveError,
+);
+const mockTrace = trace as jest.MockedFunction<
+  (request: TraceRequest) => TraceContext
 >;
-
-const mockUseInsufficientNativeReserveError =
-  useInsufficientNativeReserveError as jest.MockedFunction<
-    typeof useInsufficientNativeReserveError
-  >;
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
-const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+const mockEndTrace = jest.mocked(endTrace);
 
 const defaultWalletAddress = '0x1234567890123456789012345678901234567890';
 
@@ -77,20 +82,46 @@ export const mockContext = {
 export const runQuoteRequestCases = ({
   debounceMs,
   renderHook,
+  name,
+  featureId,
 }: {
   debounceMs: number;
-  renderHook: (options?: { latestSourceAtomicBalance?: BigNumber }) => {
+  renderHook: (options?: {
+    latestSourceAtomicBalance?: BigNumber;
+    quoteRequestIndex?: number;
+    quoteRequestCount?: number;
+    featureId: FeatureId;
+  }) => {
     result: {
-      current: ((opts?: { isRefresh?: boolean }) => Promise<void> | void) & {
+      current: ((opts?: {
+        isRefresh?: boolean;
+        traceId?: string;
+      }) => Promise<void> | void) & {
         flush?: () => Promise<void> | void;
         cancel?: () => void;
+        refreshQuotes?: () => void;
       };
     };
+    unmount: () => void;
+    rerender?: (props: undefined) => void;
   };
+  name: string;
+  featureId: FeatureId;
 }) => {
+  /**
+   * @deprecated only use to preserve coverage for old hooks
+   */
+  const isCombinedQuoteHook = name === 'useQuoteRequest';
+
   const renderUseBridgeQuoteRequest = (
     overrides: Partial<BridgeState> = {},
-    options?: { latestSourceAtomicBalance?: BigNumber },
+    options?: {
+      latestSourceAtomicBalance?: BigNumber;
+      walletAddress?: string;
+      quoteRequestIndex?: number;
+      quoteRequestCount?: number;
+      featureId: FeatureId;
+    },
   ) => {
     const bridge = { ...mockBridgeReducerState, ...overrides };
 
@@ -110,9 +141,12 @@ export const runQuoteRequestCases = ({
     jest
       .spyOn(bridgeSlice, 'selectDestAddress')
       .mockReturnValue(bridge.destAddress);
-    jest
-      .spyOn(bridgeSelectors, 'selectSourceWalletAddress')
-      .mockReturnValue(defaultWalletAddress);
+    jest.spyOn(bridgeSelectors, 'selectSourceWalletAddress').mockReturnValue(
+      // Allows undefined wallet address to be passed in for testing
+      options && 'walletAddress' in options
+        ? options.walletAddress
+        : defaultWalletAddress,
+    );
     jest
       .spyOn(bridgeSelectors, 'selectGasIncludedQuoteParams')
       .mockReturnValue(gasParamsFromBridgeState(bridge));
@@ -123,7 +157,7 @@ export const runQuoteRequestCases = ({
     };
   };
 
-  return describe('useBridgeQuoteRequest', () => {
+  return describe(name, () => {
     beforeEach(() => {
       jest.clearAllMocks();
       jest.useFakeTimers();
@@ -134,11 +168,14 @@ export const runQuoteRequestCases = ({
         atomicBalance: BigNumber.from('10000000000000000000'), // 10 ETH in wei
       });
 
+      mockUseSwapsFeatureId.mockReturnValue(featureId);
+
       mockUseIsInsufficientBalance.mockReturnValue(false);
       mockUseInsufficientNativeReserveError.mockReturnValue(undefined);
     });
 
     afterEach(() => {
+      swapQuoteFetchTrace.finish('cancelled');
       jest.useRealTimers();
     });
 
@@ -149,6 +186,8 @@ export const runQuoteRequestCases = ({
     });
 
     it('updates quote parameters with valid input', async () => {
+      const sourceToken = mockBridgeReducerState.sourceToken;
+      const destToken = mockBridgeReducerState.destToken;
       const { result } = renderUseBridgeQuoteRequest();
 
       act(() => {
@@ -156,32 +195,207 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
+      if (isCombinedQuoteHook) {
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcChainId: sourceToken?.chainId,
+            destChainId: mockBridgeReducerState.selectedDestChainId,
+            srcTokenAddress: sourceToken?.address ?? '',
+            destTokenAddress: destToken?.address ?? '',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      } else {
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcChainId: getDecimalChainId(sourceToken?.chainId),
+            destChainId: getDecimalChainId(
+              mockBridgeReducerState.selectedDestChainId,
+            ),
+            srcTokenAddress: formatAddressToCaipReference(
+              sourceToken?.address ?? '',
+            ),
+            destTokenAddress: formatAddressToCaipReference(
+              destToken?.address ?? '',
+            ),
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      }
     });
 
-    it('starts the quote trace before the debounce delay', async () => {
+    it('starts the quote trace after the debounce delay', async () => {
       const { result } = renderUseBridgeQuoteRequest();
 
       act(() => {
         result.current();
       });
 
-      expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.SwapQuoteFetch,
-        op: TraceOperation.BridgeDataFetch,
-        data: expect.objectContaining({
-          isRefresh: false,
-          request_id: expect.any(String),
-        }),
-        id: expect.any(String),
-        startTime: expect.any(Number),
-      });
+      expect(mockTrace).not.toHaveBeenCalled();
 
       await act(async () => {
         jest.advanceTimersByTime(debounceMs);
       });
 
+      const started: TraceRequest = mockTrace.mock.calls[0][0];
+
+      expect(started).toEqual({
+        name: TraceName.SwapQuoteFetch,
+        op: TraceOperation.BridgeDataFetch,
+        data: {
+          isRefresh: false,
+          request_id: started.id,
+          swap_type: 'crosschain',
+          src_chain_id: 'eip155:1',
+          dest_chain_id: 'eip155:10',
+        },
+        id: started.id,
+        startTime: Date.now(),
+        tags: {
+          feature: 'swap',
+        },
+      });
+
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
+    });
+
+    it('does not start the quote trace when canceled before the debounce delay', () => {
+      const { result } = renderUseBridgeQuoteRequest();
+
+      act(() => {
+        result.current();
+      });
+
+      act(() => {
+        result.current.cancel?.();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('preserves a no-quote result when an unused hook instance unmounts', async () => {
+      const owner = renderUseBridgeQuoteRequest();
+      const unused = renderUseBridgeQuoteRequest();
+
+      await act(async () => {
+        owner.result.current();
+        await owner.result.current.flush?.();
+      });
+      const startedTraceId = mockTrace.mock.calls[0][0].id;
+      unused.unmount();
+      swapQuoteFetchTrace.finish(
+        'no_quotes',
+        undefined,
+        QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+      );
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: startedTraceId,
+          data: {
+            result: 'no_quotes',
+            no_quote_reason: QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+          },
+        }),
+      );
+    });
+
+    it('cancels a dispatched quote trace when its owner unmounts', async () => {
+      const { result, unmount } = renderUseBridgeQuoteRequest();
+
+      await act(async () => {
+        result.current();
+        await result.current.flush?.();
+      });
+
+      const startedTraceId = mockTrace.mock.calls[0][0].id;
+      mockEndTrace.mockClear();
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: startedTraceId,
+          data: { result: 'cancelled' },
+        }),
+      );
+    });
+
+    it('preserves a dispatched trace across callback recreation and caller cleanup', async () => {
+      const { result, rerender } = renderUseBridgeQuoteRequest();
+      const previousRequest = result.current;
+      await act(async () => {
+        result.current();
+        await result.current.flush?.();
+      });
+      const startedTraceId = mockTrace.mock.calls[0][0].id;
+
+      jest.spyOn(bridgeSlice, 'selectSlippage').mockReturnValue('2');
+      rerender?.(undefined);
+      // BridgeMarketView also cancels the previous callback in effect cleanup.
+      previousRequest.cancel?.();
+      swapQuoteFetchTrace.finish(
+        'no_quotes',
+        undefined,
+        QuoteStreamCompleteReason.SLIPPAGE_TOO_LOW,
+      );
+
+      expect(result.current).not.toBe(previousRequest);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: startedTraceId,
+          data: {
+            result: 'no_quotes',
+            no_quote_reason: QuoteStreamCompleteReason.SLIPPAGE_TOO_LOW,
+          },
+        }),
+      );
+    });
+
+    it('does not end a quote trace on unmount when the quote source is inactive', async () => {
+      if (isCombinedQuoteHook) {
+        const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+        mockUseSwapsFeatureId
+          .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE)
+          .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE);
+
+        const { result, unmount } = renderUseBridgeQuoteRequest();
+
+        expect(result.current).toBeUndefined();
+        expect(mockTrace).not.toHaveBeenCalled();
+
+        mockEndTrace.mockClear();
+        unmount();
+
+        expect(mockUseSwapsFeatureId).toHaveBeenCalledTimes(2);
+      } else {
+        const mockUseSwapQuotes = jest.mocked(useSwapQuotes);
+        mockUseSwapQuotes.mockReturnValueOnce(
+          {} as NonNullable<ReturnType<typeof useSwapQuotes>>,
+        );
+
+        const { result, unmount } = renderUseBridgeQuoteRequest();
+        await act(async () => {
+          result.current();
+          await result.current.flush?.();
+        });
+
+        expect(mockTrace).toHaveBeenCalled();
+
+        mockEndTrace.mockClear();
+        unmount();
+
+        expect(mockUseSwapQuotes).toHaveBeenCalledTimes(1);
+      }
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
     it('marks manually requested quote refreshes in the quote trace', async () => {
@@ -201,6 +415,38 @@ export const runQuoteRequestCases = ({
         }),
         id: expect.any(String),
         startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
+      });
+    });
+
+    it('marks quote refreshes when refreshQuotes is used', () => {
+      const { result } = renderUseBridgeQuoteRequest();
+
+      const refreshQuotes =
+        result.current.refreshQuotes ??
+        (() => {
+          result.current({ isRefresh: true });
+        });
+
+      act(() => {
+        refreshQuotes();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.SwapQuoteFetch,
+        op: TraceOperation.BridgeDataFetch,
+        data: expect.objectContaining({
+          isRefresh: true,
+          request_id: expect.any(String),
+        }),
+        id: expect.any(String),
+        startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
       });
     });
 
@@ -221,8 +467,76 @@ export const runQuoteRequestCases = ({
         name: TraceName.SwapQuoteFetch,
         id: expect.any(String),
         timestamp: expect.any(Number),
-        data: { result: 'error' },
+        data: { result: 'error', no_quote_reason: 'generic_error' },
       });
+    });
+
+    it('ends the quote trace as error when update fails even if traceId is omitted', async () => {
+      const error = new Error('quote request failed');
+      spyUpdateBridgeQuoteRequestParams.mockRejectedValueOnce(error);
+
+      const { result } = renderUseBridgeQuoteRequest({});
+
+      await expect(
+        act(async () => {
+          result.current({ traceId: undefined });
+          await result.current.flush?.();
+        }),
+      ).rejects.toThrow(error);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.SwapQuoteFetch,
+        id: expect.any(String),
+        timestamp: expect.any(Number),
+        data: { result: 'error', no_quote_reason: 'generic_error' },
+      });
+    });
+
+    it('does not end the quote trace as error when source amount is a lone decimal and update fails', async () => {
+      const error = new Error('quote request failed');
+      spyUpdateBridgeQuoteRequestParams.mockRejectedValueOnce(error);
+
+      const { result } = renderUseBridgeQuoteRequest({
+        sourceAmount: '.',
+      });
+
+      await expect(
+        act(async () => {
+          result.current();
+          await result.current.flush?.();
+        }),
+      ).rejects.toThrow(error);
+
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { result: 'error' },
+        }),
+      );
+    });
+
+    it('does not end the quote trace as error when source amount is an empty string decimal and update fails', async () => {
+      const error = new Error('quote request failed');
+      spyUpdateBridgeQuoteRequestParams.mockRejectedValueOnce(error);
+
+      const { result } = renderUseBridgeQuoteRequest({
+        sourceAmount: '',
+      });
+
+      await expect(
+        act(async () => {
+          result.current();
+          await result.current.flush?.();
+        }),
+      ).rejects.toThrow(error);
+
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { result: 'error' },
+        }),
+      );
     });
 
     it('includes the custom slippage in quote parameters', async () => {
@@ -244,6 +558,25 @@ export const runQuoteRequestCases = ({
         0,
         1,
       );
+    });
+
+    it('normalizes non-numeric slippage in quote parameters', async () => {
+      const { result } = renderUseBridgeQuoteRequest({
+        slippage: 'not-a-number',
+        isSlippageUserOverride: true,
+      });
+
+      await act(async () => {
+        result.current();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
+      expect(
+        Number.isNaN(
+          spyUpdateBridgeQuoteRequestParams.mock.calls[0][0].slippage,
+        ),
+      ).toBe(!isCombinedQuoteHook);
     });
 
     it('omits slippage from quote parameters for Auto', async () => {
@@ -268,17 +601,29 @@ export const runQuoteRequestCases = ({
     });
 
     it('skips update when source token is missing', async () => {
+      swapQuoteFetchTrace.start({
+        srcChainId: mockBridgeReducerState.sourceToken?.chainId,
+        destChainId: mockBridgeReducerState.destToken?.chainId,
+        isRefresh: false,
+      });
+      const leftoverTraceId = mockTrace.mock.calls[0][0].id as string;
+
       const { result } = renderUseBridgeQuoteRequest({
         sourceToken: undefined,
       });
 
       await act(async () => {
         await result.current();
+      });
+      const cancelledAt = Date.now();
+
+      await act(async () => {
         jest.advanceTimersByTime(debounceMs);
       });
 
       expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
-      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
     it('skips update when destination token is missing', async () => {
@@ -292,6 +637,7 @@ export const runQuoteRequestCases = ({
       });
 
       expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalled();
     });
 
     it('skips update when source amount is missing', async () => {
@@ -304,13 +650,43 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
+      if (isCombinedQuoteHook) {
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '0',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      } else {
+        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      }
+      expect(mockTrace).not.toHaveBeenCalled();
+    });
+
+    it('skips update when wallet address is missing', async () => {
+      const { result } = renderUseBridgeQuoteRequest(
+        {},
+        { walletAddress: undefined, featureId: FeatureId.UNIFIED_SWAP_BRIDGE },
+      );
+
+      await act(async () => {
+        await result.current();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
       expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalled();
     });
 
     it('skips update when destination chain ID is missing', async () => {
       const { result } = renderUseBridgeQuoteRequest({
-        sourceToken: undefined,
         selectedDestChainId: undefined,
+        destToken: {
+          ...mockBridgeReducerState.destToken,
+          chainId: undefined,
+        } as unknown as BridgeState['destToken'],
       });
 
       await act(async () => {
@@ -319,7 +695,178 @@ export const runQuoteRequestCases = ({
       });
 
       expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalled();
     });
+
+    it('skips update when selectedDestChainId is missing even if destToken has a chainId', async () => {
+      const { result } = renderUseBridgeQuoteRequest({
+        selectedDestChainId: undefined,
+      });
+
+      await act(async () => {
+        result.current();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      if (isCombinedQuoteHook) {
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            destChainId: '0xa',
+            srcChainId: '0x1',
+            srcTokenAddress: '0x0000000000000000000000000000000000000000',
+            destTokenAddress: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+        expect(mockTrace).toHaveBeenCalled();
+      } else {
+        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+        expect(mockTrace).not.toHaveBeenCalled();
+      }
+    });
+
+    it('updates using selectedDestChainId when destToken.chainId is missing', async () => {
+      const { result } = renderUseBridgeQuoteRequest({
+        destToken: {
+          ...mockBridgeReducerState.destToken,
+          chainId: undefined,
+        } as unknown as BridgeState['destToken'],
+      });
+
+      await act(async () => {
+        result.current();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      if (isCombinedQuoteHook) {
+        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+        expect(mockTrace).not.toHaveBeenCalled();
+      } else {
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            destChainId: '10',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+        expect(mockTrace).toHaveBeenCalled();
+      }
+    });
+
+    // Public flush is a no-op unless a call is pending. Both request test
+    // files wrap lodash flush so this reaches updateQuoteParams's missing-field return.
+    it.each([
+      { field: 'source token', overrides: { sourceToken: undefined } },
+      { field: 'destination token', overrides: { destToken: undefined } },
+      { field: 'source amount', overrides: { sourceAmount: undefined } },
+      {
+        field: 'destination chain ID',
+        overrides: {
+          selectedDestChainId: undefined,
+          destToken: {
+            ...mockBridgeReducerState.destToken,
+            chainId: undefined,
+          } as unknown as BridgeState['destToken'],
+        },
+      },
+      { field: 'wallet address', overrides: {}, omitWallet: true },
+    ])(
+      'skips controller update when flush runs with a missing $field',
+      async ({ overrides, omitWallet }) => {
+        const { result } = renderUseBridgeQuoteRequest(
+          overrides,
+          omitWallet
+            ? {
+                walletAddress: undefined,
+                featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+              }
+            : undefined,
+        );
+
+        await act(async () => {
+          await result.current.flush?.();
+        });
+
+        if (isCombinedQuoteHook && !omitWallet) {
+          expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
+        } else {
+          expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+        }
+      },
+    );
+
+    it('cancels the started quote trace when source amount is 0', async () => {
+      const { result } = renderUseBridgeQuoteRequest({
+        sourceAmount: '0',
+      });
+
+      await act(async () => {
+        result.current();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
+      if (isCombinedQuoteHook) {
+        expect(mockTrace).not.toHaveBeenCalled();
+        expect(mockEndTrace).not.toHaveBeenCalled();
+      } else {
+        expect(mockTrace).toHaveBeenCalled();
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: TraceName.SwapQuoteFetch,
+          id: expect.any(String),
+          timestamp: expect.any(Number),
+          data: { result: 'cancelled' },
+        });
+      }
+    });
+
+    it.each(['0', ''])(
+      'cancels an in-flight quote trace when source amount becomes %s',
+      async (clearedSourceAmount) => {
+        const { result, rerender } = renderUseBridgeQuoteRequest({
+          sourceAmount: '1',
+        });
+
+        await act(async () => {
+          result.current();
+          await result.current.flush?.();
+        });
+
+        const startedTraceId = mockTrace.mock.calls[0][0].id as string;
+        mockEndTrace.mockClear();
+        spyUpdateBridgeQuoteRequestParams.mockClear();
+
+        jest
+          .spyOn(bridgeSlice, 'selectSourceAmount')
+          .mockReturnValue(clearedSourceAmount);
+        rerender?.(undefined);
+
+        await act(async () => {
+          result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '0',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.SwapQuoteFetch,
+            id: startedTraceId,
+            data: { result: 'cancelled' },
+          }),
+        );
+      },
+    );
 
     it('converts source amount to wei with 18 decimals', async () => {
       const { result } = renderUseBridgeQuoteRequest({
@@ -342,8 +889,65 @@ export const runQuoteRequestCases = ({
     });
 
     it('converts "." source amount to srcTokenAmount "0"', async () => {
+      swapQuoteFetchTrace.start({
+        srcChainId: mockBridgeReducerState.sourceToken?.chainId,
+        destChainId: mockBridgeReducerState.destToken?.chainId,
+        isRefresh: false,
+      });
+      const leftoverTraceId = mockTrace.mock.calls[0][0].id as string;
+
       const { result } = renderUseBridgeQuoteRequest({
         sourceAmount: '.',
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+      const cancelledAt = Date.now();
+
+      await act(async () => {
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '0',
+        }),
+        mockContext,
+        0,
+        1,
+      );
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('converts source amount to srcTokenAmount "0" when token decimals are missing', async () => {
+      const { result } = renderUseBridgeQuoteRequest({
+        sourceAmount: '1.5',
+        sourceToken: {
+          ...mockBridgeReducerState.sourceToken,
+          decimals: undefined,
+        } as unknown as BridgeState['sourceToken'],
+      });
+
+      await act(async () => {
+        result.current();
+        jest.advanceTimersByTime(debounceMs);
+      });
+
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '0',
+        }),
+        mockContext,
+        0,
+        1,
+      );
+    });
+
+    it('converts empty source amount to srcTokenAmount "0"', async () => {
+      const { result } = renderUseBridgeQuoteRequest({
+        sourceAmount: '',
       });
 
       await act(async () => {
@@ -396,12 +1000,12 @@ export const runQuoteRequestCases = ({
       const { result } = renderUseBridgeQuoteRequest();
 
       await act(async () => {
-        // Make multiple rapid calls
+        // Make multiple rapid calls before the debounce delay
         result.current();
         result.current();
         result.current();
 
-        // Advance timer by less than debounce time
+        expect(mockTrace).not.toHaveBeenCalled();
         jest.advanceTimersByTime(debounceMs - 100);
 
         // Should not have been called yet
@@ -412,6 +1016,7 @@ export const runQuoteRequestCases = ({
 
         // Should have been called exactly once
         expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
+        expect(mockTrace).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -686,7 +1291,10 @@ export const runQuoteRequestCases = ({
 
         const testState = renderUseBridgeQuoteRequest(
           { sourceAmount: '5.5' },
-          { latestSourceAtomicBalance: overriddenAtomicBalance },
+          {
+            latestSourceAtomicBalance: overriddenAtomicBalance,
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          },
         );
 
         expect(mockUseLatestBalance).toHaveBeenCalledWith({});
@@ -701,7 +1309,10 @@ export const runQuoteRequestCases = ({
       it('uses override path when latestSourceAtomicBalance key is provided as undefined', () => {
         const testState = renderUseBridgeQuoteRequest(
           { sourceAmount: '5.5' },
-          { latestSourceAtomicBalance: undefined },
+          {
+            latestSourceAtomicBalance: undefined,
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          },
         );
 
         expect(mockUseLatestBalance).toHaveBeenCalledWith({});
@@ -730,6 +1341,13 @@ export const runQuoteRequestCases = ({
           chainId: testState.bridge.sourceToken?.chainId,
           balance: testState.bridge.sourceToken?.balance,
         });
+        expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
+          amount: '5.5',
+          token: testState.bridge.sourceToken,
+          latestAtomicBalance: latestBalance,
+          ignoreGasFees: true,
+        });
+
         expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
           amount: '5.5',
           token: testState.bridge.sourceToken,

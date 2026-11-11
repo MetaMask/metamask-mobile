@@ -5,20 +5,14 @@ import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
-import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import Icon, {
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import {
   IconColor,
   IconName,
-  IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
 import {
   Text,
   TextColor,
@@ -27,6 +21,21 @@ import {
   ButtonVariant,
   ButtonBaseSize,
   IconName as DesignSystemIconName,
+  Icon as DesignSystemIcon,
+  IconSize as DesignSystemIconSize,
+  ListItem,
+  ListItemVariant,
+  AvatarIcon,
+  AvatarIconSize,
+  AvatarGroup,
+  AvatarGroupSize,
+  AvatarGroupVariant,
+  AvatarAccountVariant,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
@@ -66,11 +75,28 @@ import { NetworkAvatarProps } from '../../MultichainAccounts/shared/AccountConne
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../../reducers';
 
 const TAB_BAR_HORIZONTAL_PADDING = 0;
+
+const getNetworkAvatarSrc = (
+  imageSource?: ImageSourcePropType,
+): number | { uri: string } | undefined => {
+  if (typeof imageSource === 'number') {
+    return imageSource;
+  }
+  if (
+    imageSource &&
+    !Array.isArray(imageSource) &&
+    typeof imageSource === 'object' &&
+    'uri' in imageSource &&
+    typeof imageSource.uri === 'string'
+  ) {
+    return { uri: imageSource.uri };
+  }
+  return undefined;
+};
 
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
@@ -157,7 +183,7 @@ const MultichainPermissionsSummary = ({
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
-  let chainImage: ImageSourcePropType;
+  let chainImage: ImageSourcePropType | undefined;
   if (isNetworkSwitch && customNetworkInformation?.chainId) {
     chainName = customNetworkInformation?.chainName;
     chainImage = getNetworkImageSource({
@@ -289,13 +315,14 @@ const MultichainPermissionsSummary = ({
   const renderEndAccessory = () => (
     <View testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}>
       {isAlreadyConnected ? (
-        <Icon size={IconSize.Md} name={IconName.ArrowRight} />
+        <DesignSystemIcon
+          size={DesignSystemIconSize.Md}
+          name={DesignSystemIconName.ArrowRight}
+        />
       ) : (
-        <View style={styles.editTextContainer}>
-          <Text color={TextColor.PrimaryDefault} variant={TextVariant.BodyMd}>
-            {strings('permissions.edit')}
-          </Text>
-        </View>
+        <Text color={TextColor.PrimaryDefault} variant={TextVariant.BodyMd}>
+          {strings('permissions.edit')}
+        </Text>
       )}
     </View>
   );
@@ -359,140 +386,147 @@ const MultichainPermissionsSummary = ({
     selectIconSeedAddressesByAccountGroupIds(state, selectedAccountGroupIds),
   );
 
-  const renderAccountAvatar = useCallback(
-    (accountGroup: AccountGroupObject) => ({
-      variant: AvatarVariant.Account as const,
-      accountAddress: iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
-      size: AvatarSize.Xs,
-    }),
-    [iconSeedAddresses],
-  );
+  const networkLabel = getNetworkLabel();
+  const networkPermissionLabel =
+    typeof networkLabel === 'string' ? networkLabel : '';
+  const isSingleNetworkPermissionRequest =
+    isNetworkSwitch || isNonDappNetworkSwitch;
+  const singleNetworkName = isNonDappNetworkSwitch
+    ? networkName || providerConfig.nickname
+    : chainName;
+  const singleNetworkImage = isNonDappNetworkSwitch
+    ? getNetworkImageSource({ chainId })
+    : chainImage;
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity
+      <ListItem
+        isInteractive
         onPress={handleEditAccountsButtonPress}
-        style={styles.accountPermissionRequestInfoCard}
         testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
-      >
-        <Avatar
-          variant={AvatarVariant.Icon}
-          style={styles.walletIcon}
-          name={IconName.Wallet}
-          size={AvatarSize.Md}
-          backgroundColor={colors.shadow.default}
-          iconColor={colors.icon.alternative}
-        />
-        <View style={styles.accountPermissionRequestDetails}>
-          <Text variant={TextVariant.BodyMd}>
-            {strings('permissions.see_your_accounts')}
-          </Text>
-          <View style={styles.permissionRequestAccountInfo}>
-            <View style={styles.permissionRequestAccountName}>
-              <Text
-                testID={
-                  PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
-                }
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                <Text variant={TextVariant.BodySm}>
-                  {strings('permissions.requesting_for')}
-                </Text>
-              </Text>
-            </View>
-            <View style={styles.avatarGroup}>
+        variant={ListItemVariant.TwoLines}
+        style={styles.permissionRow}
+        accessoryGap={2}
+        avatar={
+          <AvatarIcon
+            iconName={DesignSystemIconName.Wallet}
+            size={AvatarIconSize.Md}
+          />
+        }
+        title={strings('permissions.see_your_accounts')}
+        description={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+            twClassName="w-full"
+          >
+            <Text
+              testID={
+                PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
+              }
+              variant={TextVariant.BodySm}
+              numberOfLines={1}
+              style={styles.permissionLabel}
+            >
+              {strings('permissions.requesting_for')}
+            </Text>
+            {selectedAccountGroups.length > 0 && (
               <AvatarGroup
-                avatarPropsList={selectedAccountGroups.map((accountGroup) =>
-                  renderAccountAvatar(accountGroup),
-                )}
+                testID="avatar-group-container"
+                variant={AvatarGroupVariant.Account}
+                size={AvatarGroupSize.Xs}
+                avatarPropsArr={selectedAccountGroups.map((accountGroup) => ({
+                  address:
+                    iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
+                  variant: AvatarAccountVariant.Maskicon,
+                }))}
               />
-            </View>
-          </View>
-        </View>
-        {renderEndAccessory()}
-      </TouchableOpacity>
+            )}
+          </Box>
+        }
+        endAccessory={renderEndAccessory()}
+      />
     );
   }
 
   function renderNetworkPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity
+      <ListItem
+        isInteractive
         onPress={handleEditNetworksButtonPress}
         testID={
           ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON
         }
-      >
-        <View style={styles.networkPermissionRequestInfoCard}>
-          <Avatar
-            style={styles.dataIcon}
-            variant={AvatarVariant.Icon}
-            name={IconName.Data}
-            size={AvatarSize.Md}
-            backgroundColor={colors.shadow.default}
-            iconColor={colors.icon.alternative}
+        variant={ListItemVariant.TwoLines}
+        style={styles.permissionRow}
+        accessoryGap={2}
+        avatar={
+          <AvatarIcon
+            iconName={DesignSystemIconName.Data}
+            size={AvatarIconSize.Md}
           />
-          <View style={styles.networkPermissionRequestDetails}>
-            <Text variant={TextVariant.BodyMd}>
-              {strings('permissions.use_enabled_networks')}
-            </Text>
-            <View style={styles.permissionRequestNetworkInfo}>
-              {(isNetworkSwitch || isNonDappNetworkSwitch) && (
-                <>
-                  <View style={styles.permissionRequestNetworkName}>
-                    <Text numberOfLines={1} ellipsizeMode="tail">
-                      <Text variant={TextVariant.BodySm}>
-                        {strings('permissions.requesting_for')}
-                      </Text>
-                      <Text variant={TextVariant.BodyMd}>
-                        {isNonDappNetworkSwitch
-                          ? networkName || providerConfig.nickname
-                          : chainName}
-                      </Text>
-                    </Text>
-                  </View>
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Xs}
-                    name={
-                      isNonDappNetworkSwitch
-                        ? networkName || providerConfig.nickname
-                        : chainName
-                    }
-                    imageSource={
-                      isNonDappNetworkSwitch
-                        ? getNetworkImageSource({
-                            chainId,
-                          })
-                        : chainImage
-                    }
+        }
+        title={strings('permissions.use_enabled_networks')}
+        description={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+            twClassName="w-full"
+          >
+            {isSingleNetworkPermissionRequest ? (
+              <>
+                <Text
+                  variant={TextVariant.BodySm}
+                  numberOfLines={1}
+                  style={styles.permissionLabel}
+                >
+                  {strings('permissions.requesting_for')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  numberOfLines={1}
+                  style={styles.permissionLabel}
+                >
+                  {singleNetworkName}
+                </Text>
+                <AvatarNetwork
+                  size={AvatarNetworkSize.Xs}
+                  name={singleNetworkName}
+                  src={getNetworkAvatarSrc(singleNetworkImage)}
+                />
+              </>
+            ) : (
+              <>
+                {networkPermissionLabel !== '' && (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    numberOfLines={1}
+                    style={styles.permissionLabel}
+                  >
+                    {networkPermissionLabel}
+                  </Text>
+                )}
+                {networkAvatars.length > 0 && (
+                  <AvatarGroup
+                    testID="avatar-group-container"
+                    variant={AvatarGroupVariant.Network}
+                    size={AvatarGroupSize.Xs}
+                    avatarPropsArr={networkAvatars.map((avatar) => ({
+                      name: avatar.name,
+                      src: getNetworkAvatarSrc(avatar.imageSource),
+                    }))}
                   />
-                </>
-              )}
-              {!isNetworkSwitch && !isNonDappNetworkSwitch && (
-                <>
-                  <View style={styles.permissionRequestNetworkName}>
-                    <Text numberOfLines={1} ellipsizeMode="tail">
-                      <Text variant={TextVariant.BodySm}>
-                        {getNetworkLabel()}
-                      </Text>
-                    </Text>
-                  </View>
-                  <View style={styles.avatarGroup}>
-                    <AvatarGroup
-                      avatarPropsList={networkAvatars.map((avatar) => ({
-                        ...avatar,
-                        variant: AvatarVariant.Network,
-                      }))}
-                    />
-                  </View>
-                </>
-              )}
-            </View>
-          </View>
-          {!isNetworkSwitch && !isNonDappNetworkSwitch && renderEndAccessory()}
-        </View>
-      </TouchableOpacity>
+                )}
+              </>
+            )}
+          </Box>
+        }
+        endAccessory={
+          isSingleNetworkPermissionRequest ? undefined : renderEndAccessory()
+        }
+      />
     );
   }
 
@@ -650,30 +684,35 @@ const MultichainPermissionsSummary = ({
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
             <View style={styles.actionButtonsContainer}>
-              <StyledButton
-                type={'cancel'}
+              <Button
+                variant={ButtonVariant.Secondary}
                 onPress={cancel}
-                containerStyle={[styles.buttonPositioning, styles.cancelButton]}
+                size={ButtonBaseSize.Lg}
+                twClassName="mr-4 flex-1"
                 testID={CommonSelectorsIDs.CANCEL_BUTTON}
               >
                 {strings('permissions.cancel')}
-              </StyledButton>
-              <StyledButton
-                type={isMaliciousDapp ? 'danger' : 'confirm'}
+              </Button>
+              <Button
+                variant={ButtonVariant.Primary}
                 onPress={confirm}
-                disabled={
+                isDanger={isMaliciousDapp && !isNetworkSwitch}
+                startIconName={
+                  isMaliciousDapp && !isNetworkSwitch
+                    ? DesignSystemIconName.Danger
+                    : undefined
+                }
+                isDisabled={
                   !isNetworkSwitch &&
                   (selectedAccountGroupIds.length === 0 ||
                     networkAvatars.length === 0)
                 }
-                containerStyle={[
-                  styles.buttonPositioning,
-                  styles.confirmButton,
-                ]}
+                size={ButtonBaseSize.Lg}
+                twClassName="flex-1"
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
                 {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
-              </StyledButton>
+              </Button>
             </View>
           )}
           {isNonDappNetworkSwitch && (

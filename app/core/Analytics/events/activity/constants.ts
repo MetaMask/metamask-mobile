@@ -13,6 +13,7 @@ export enum ActivityScreenInteractionType {
 export enum ActivityScreenEntryPoint {
   BottomNavClick = 'bottom_nav_click',
   WalletHomeHeader = 'wallet_home_header',
+  AccountsMenu = 'accounts_menu',
   Deeplink = 'deeplink',
 }
 
@@ -21,6 +22,7 @@ export enum ActivityScreenTabName {
   All = 'all',
   Transactions = 'transactions',
   BuySell = 'buy_sell',
+  LimitOrders = 'limit_orders',
   Perps = 'perps',
   Predictions = 'predictions',
   MetamaskCard = 'metamask_card',

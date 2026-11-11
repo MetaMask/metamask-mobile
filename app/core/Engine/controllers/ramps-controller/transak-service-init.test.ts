@@ -8,7 +8,12 @@ import {
 const mockTransakService = jest.fn().mockImplementation((opts) => opts);
 
 jest.mock('@metamask/ramps-controller', () => ({
-  TransakService: (...args: unknown[]) => mockTransakService(...args),
+  // Declared as a function (not an arrow) so `new TransakService()` works, and
+  // it forwards to `mockTransakService` rather than referencing it directly
+  // because the factory runs before that `const` is initialised.
+  TransakService: function TransakService(...args: unknown[]) {
+    return mockTransakService(...args);
+  },
   TransakServiceMessenger: jest.fn(),
   TransakEnvironment: {
     Production: 'PRODUCTION',
@@ -21,77 +26,43 @@ jest.mock('react-native-device-info', () => ({
   getBundleId: jest.fn().mockReturnValue('io.metamask'),
 }));
 
+jest.mock('./ramps-service-init', () => ({
+  getRampsClientIdentity: () => ({
+    clientProduct: 'metamask-mobile',
+    clientVersion: '8.9.0',
+  }),
+}));
+
 describe('transak-service-init', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('getTransakEnvironment', () => {
-    const originalEnv = process.env.METAMASK_ENVIRONMENT;
-    const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
-
-    beforeEach(() => {
-      delete process.env.RAMPS_ENVIRONMENT;
-    });
+    const originalApiEnv = process.env.MM_API_ENV;
 
     afterEach(() => {
-      process.env.METAMASK_ENVIRONMENT = originalEnv;
-      if (originalRampsEnvironment !== undefined) {
-        process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+      if (originalApiEnv !== undefined) {
+        process.env.MM_API_ENV = originalApiEnv;
       } else {
-        delete process.env.RAMPS_ENVIRONMENT;
+        delete process.env.MM_API_ENV;
       }
     });
 
-    describe('when RAMPS_ENVIRONMENT is set (builds.yml path)', () => {
-      it('returns Production when RAMPS_ENVIRONMENT is production', () => {
-        process.env.RAMPS_ENVIRONMENT = 'production';
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
-      });
+    it.each([
+      ['dev', TransakEnvironment.Development],
+      ['uat', TransakEnvironment.Staging],
+      ['prod', TransakEnvironment.Production],
+    ] as const)('maps MM_API_ENV=%s to %s', (apiEnv, expected) => {
+      process.env.MM_API_ENV = apiEnv;
 
-      it('returns Development when RAMPS_ENVIRONMENT is development', () => {
-        process.env.RAMPS_ENVIRONMENT = 'development';
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Development);
-      });
-
-      it('returns Staging when RAMPS_ENVIRONMENT is any other value', () => {
-        process.env.RAMPS_ENVIRONMENT = 'staging';
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
-      });
-
-      it('ignores METAMASK_ENVIRONMENT when RAMPS_ENVIRONMENT is set', () => {
-        process.env.METAMASK_ENVIRONMENT = 'production';
-        process.env.RAMPS_ENVIRONMENT = 'staging';
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
-      });
+      expect(getTransakEnvironment()).toBe(expected);
     });
 
-    describe('METAMASK_ENVIRONMENT fallback path', () => {
-      it.each(['production', 'beta', 'rc'])(
-        'returns Production for %s environment',
-        (env) => {
-          process.env.METAMASK_ENVIRONMENT = env;
-          expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
-        },
-      );
+    it('returns Production when MM_API_ENV is unset', () => {
+      delete process.env.MM_API_ENV;
 
-      it('returns Development for dev environment', () => {
-        process.env.METAMASK_ENVIRONMENT = 'dev';
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Development);
-      });
-
-      it.each(['exp', 'test', 'e2e', 'unknown'])(
-        'returns Staging for %s environment',
-        (env) => {
-          process.env.METAMASK_ENVIRONMENT = env;
-          expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
-        },
-      );
-
-      it('returns Staging for undefined environment', () => {
-        delete process.env.METAMASK_ENVIRONMENT;
-        expect(getTransakEnvironment()).toBe(TransakEnvironment.Staging);
-      });
+      expect(getTransakEnvironment()).toBe(TransakEnvironment.Production);
     });
   });
 
@@ -109,6 +80,8 @@ describe('transak-service-init', () => {
           messenger: mockMessenger,
           context: 'mobile-ios',
           fetch: expect.any(Function),
+          clientProduct: 'metamask-mobile',
+          clientVersion: '8.9.0',
         }),
       );
       expect(result).toEqual({ controller: expect.any(Object) });

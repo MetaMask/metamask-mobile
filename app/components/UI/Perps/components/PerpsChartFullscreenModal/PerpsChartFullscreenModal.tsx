@@ -8,14 +8,9 @@ import React, {
 import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ButtonIconSize, IconName } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import TradingViewChart, {
   type TradingViewChartRef,
   type TPSLLines,
@@ -31,6 +26,8 @@ import PerpsAdvancedChart from '../PerpsAdvancedChart/PerpsAdvancedChart';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import PerpsOHLCVBar from '../PerpsOHLCVBar';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { useScreenOrientation } from '../../../../../core/ScreenOrientation';
@@ -48,6 +45,8 @@ export interface PerpsChartFullscreenModalProps {
   visibleCandleCount?: number;
   onClose: () => void;
   onIntervalChange: (interval: CandlePeriod) => void;
+  /** Persist pinch-zoom candle count from the fullscreen chart. */
+  onVisibleCandleCountChange?: (count: number) => void;
   /** When true, renders PerpsAdvancedChart instead of TradingViewChart. */
   isAdvancedChartEnabled?: boolean;
   /** Market symbol — required when isAdvancedChartEnabled is true. */
@@ -68,6 +67,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   visibleCandleCount,
   onClose,
   onIntervalChange,
+  onVisibleCandleCountChange,
   isAdvancedChartEnabled,
   symbol,
   positionSize,
@@ -76,6 +76,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const chartRef = React.useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
@@ -255,10 +256,10 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
               onIntervalChange={onIntervalChange}
               style={styles.intervalSelectorWrapper}
             />
-            <ButtonIcon
+            <ButtonIconGlass
+              isCapsule={isBrandRefresh}
               iconName={IconName.Close}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
+              size={ButtonIconSize.Md}
               onPress={handleClose}
               accessibilityLabel="Close"
               testID="perps-chart-fullscreen-close-button"
@@ -329,6 +330,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 onCrosshairDataChange={setOhlcData}
                 onError={handleAdvancedChartError}
                 onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+                onVisibleCandleCountChange={onVisibleCandleCountChange}
                 fallbackCandleData={candleData ?? null}
                 fallbackFetchMoreHistory={fallbackFetchMoreHistory}
               />
@@ -347,6 +349,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 showOverlay={false}
                 coloredVolume
                 onOhlcDataChange={setOhlcData}
+                onVisibleCandleCountChange={onVisibleCandleCountChange}
                 testID="fullscreen-chart"
               />
             )}

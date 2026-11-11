@@ -1,20 +1,26 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   createNativeStackNavigator,
   NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
+import ApplePaySplash from '../Views/ApplePaySplash';
+import ApplePayConfirmation from '../Views/ApplePayConfirmation';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
+import CardMfaMethod from '../Views/CardMfa/CardMfaMethod';
+import CardMfaCode from '../Views/CardMfa/CardMfaCode';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
   selectIsCardAuthenticated,
-  selectIsCardholder,
+  selectCardEntryRouting,
+  selectHasCard,
 } from '../../../../selectors/cardController';
+import { switchToLinkedCardAccount } from '../../../../core/DeeplinkManager/handlers/legacy/switchToLinkedCardAccount';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
@@ -28,16 +34,25 @@ import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
 import SetCardPin, { ConfirmCardPin } from '../Views/SetCardPin';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
-import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
 import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswordModal';
 import MoneyUnlinkCardSheet from '../components/MoneyUnlinkCardSheet';
+import ImmersveRevokeAllowanceSheet from '../components/ImmersveRevokeAllowanceSheet';
+import UkMigrationBottomSheet from '../components/UkMigrationBottomSheet';
+import SignInHelpBottomSheet from '../components/SignInHelpBottomSheet/SignInHelpBottomSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import CreditRedeem from '../Views/CreditRedeem/CreditRedeem';
+import CardTransactionHistory from '../Views/CardTransactionHistory/CardTransactionHistory';
+import CardTransactionDetails from '../Views/CardTransactionDetails/CardTransactionDetails';
+import CardReportTransaction from '../Views/CardReportTransaction/CardReportTransaction';
+import ContactDetails from '../Views/ContactDetails/ContactDetails';
 import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
+import DigitalWalletInstructionsSheet from '../components/DigitalWalletInstructionsSheet';
+import ApplePayUsageSheet from '../components/ApplePayUsageSheet';
 import {
   clearNativeStackNavigatorOptions,
+  fullScreenModalSlideFromBottomNativeOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import type {
@@ -69,13 +84,26 @@ const spendingLimitScreenOptions = ({
 
 const MainRoutes = () => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
-  const isCardholder = useSelector(selectIsCardholder);
+  const cardEntryRouting = useSelector(selectCardEntryRouting);
+  const hasCard = useSelector(selectHasCard);
 
   const initialRouteName = useMemo(
-    () =>
-      isAuthenticated || isCardholder ? Routes.CARD.HOME : Routes.CARD.WELCOME,
-    [isAuthenticated, isCardholder],
+    () => (isAuthenticated || hasCard ? Routes.CARD.HOME : Routes.CARD.WELCOME),
+    [isAuthenticated, hasCard],
   );
+
+  // The deep links already land on the linked account. Opening Card from the
+  // app should do the same, and only once stored links — not the legacy label
+  // — say this profile has a card.
+  useEffect(() => {
+    if (
+      !isAuthenticated &&
+      cardEntryRouting.source === 'card_links' &&
+      cardEntryRouting.hasCard
+    ) {
+      switchToLinkedCardAccount();
+    }
+  }, [isAuthenticated, cardEntryRouting.source, cardEntryRouting.hasCard]);
 
   return (
     <ScreensStack.Navigator
@@ -83,6 +111,16 @@ const MainRoutes = () => {
       screenOptions={mainScreenOptions}
     >
       <ScreensStack.Screen name={Routes.CARD.HOME} component={CardHome} />
+      <ScreensStack.Screen
+        name={Routes.CARD.APPLE_PAY_SPLASH}
+        component={ApplePaySplash}
+        options={fullScreenModalSlideFromBottomNativeOptions}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.APPLE_PAY_CONFIRMATION}
+        component={ApplePayConfirmation}
+        options={{ gestureEnabled: false }}
+      />
       <ScreensStack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
       <ScreensStack.Screen
         name={Routes.CARD.CHOOSE_YOUR_CARD}
@@ -101,6 +139,22 @@ const MainRoutes = () => {
         name={Routes.CARD.CREDIT_REDEEM}
         component={CreditRedeem}
       />
+      <ScreensStack.Screen
+        name={Routes.CARD.TRANSACTION_HISTORY}
+        component={CardTransactionHistory}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.TRANSACTION_DETAILS}
+        component={CardTransactionDetails}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.REPORT_TRANSACTION}
+        component={CardReportTransaction}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.CONTACT_DETAILS}
+        component={ContactDetails}
+      />
       <ScreensStack.Screen name={Routes.CARD.SET_PIN} component={SetCardPin} />
       <ScreensStack.Screen
         name={Routes.CARD.CONFIRM_PIN}
@@ -109,6 +163,14 @@ const MainRoutes = () => {
       <ScreensStack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.MFA_METHOD}
+        component={CardMfaMethod}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.MFA_CODE}
+        component={CardMfaCode}
       />
       <ScreensStack.Screen
         name={Routes.CARD.SPENDING_LIMIT}
@@ -171,10 +233,6 @@ const CardModalsRoutes = () => (
       component={WaitlistFormModal}
     />
     <ModalsStack.Screen
-      name={Routes.CARD.MODALS.IMMERSVE_KYC}
-      component={ImmersveKYCModal}
-    />
-    <ModalsStack.Screen
       name={Routes.CARD.MODALS.FORGOT_PASSWORD}
       component={ForgotPasswordModal}
     />
@@ -189,6 +247,26 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT}
       component={MoneyUnlinkCardSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.REVOKE_ALLOWANCE}
+      component={ImmersveRevokeAllowanceSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.UK_MIGRATION}
+      component={UkMigrationBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.SIGN_IN_HELP}
+      component={SignInHelpBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS}
+      component={DigitalWalletInstructionsSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.APPLE_PAY_USAGE}
+      component={ApplePayUsageSheet}
     />
   </ModalsStack.Navigator>
 );

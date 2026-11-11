@@ -37,7 +37,7 @@ Playwright Appium runs on emulator/simulator **reuse one WDIO session per worker
 
 - **Disable reuse:** `APPIUM_SESSION_REUSE=false`
 - **BrowserStack:** reuse is always off
-- Details: [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md#session-reuse-and-soft-reload)
+- Details: [appium-smoke-testing.md](./appium-smoke-testing.md#session-reuse-and-soft-reload)
 
 ## Android device targeting
 

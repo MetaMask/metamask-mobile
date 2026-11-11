@@ -33,19 +33,20 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 - **skip-sonar-cloud**: The PR will be merged without running SonarCloud checks.
 - **skip-e2e**: The PR will be merged without running E2E tests.
-- **skip-e2e-flakiness-detection**: This label will disable the default test retries for E2E test files modified in a PR. Useful when making large refactors or when changes don't pose flakiness risk.
+- **skip-e2e-flakiness-detection**: This label will disable the default test retries for E2E test files modified in a PR targeting `main`. Useful when making large refactors or when changes don't pose flakiness risk.
 
 ### Skip Smart E2E Selection
 
-- **skip-smart-e2e-selection**: Bypasses the AI-powered Smart E2E Selection (level 2) so that the full E2E test suite (`ALL` tags) runs instead of an AI-picked subset on whichever platforms path filters (level 1) already require. It does **not** override path filters: ignorable-only PRs (e.g. docs-only), `skip-e2e`, and `pr-not-ready-for-e2e` still skip E2E entirely, and Android-only or iOS-only PRs still run only the platform indicated by path filters. When path filters already require iOS, this label also enables Appium iOS smoke on PRs. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **skip-smart-e2e-selection**: Bypasses the AI-powered Smart E2E Selection so that the full E2E test suite (`ALL` tags) runs for an eligible PR for the required platforms (Android or iOS or both). This label does **not** override global skip rules: ignorable-only PRs (e.g. docs-only), `skip-e2e`, and `pr-not-ready-for-e2e` still skip E2E entirely. Adding or removing this label re-triggers CI. Not honored on fork PRs.
 
 ### Force Performance Tests
 
-- **run-performance-tests**: Forces the PR performance E2E workflow to run (all performance tests on Android low-profile devices), even when Smart E2E Selection would skip them (e.g. no performance-relevant changes detected, `skip-e2e`, or `pr-not-ready-for-e2e`). Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **run-performance-tests**: Runs the full performance suite on a PR. Without a performance label, PR CI does not run performance tests. Adding or removing this label re-triggers CI. Not honored on fork PRs, or when the base branch is `stable`.
+- **run-performance-account-list-tests**, **run-performance-onboarding-tests**, **run-performance-login-tests**, **run-performance-swaps-tests**, **run-performance-launch-tests**, **run-performance-asset-loading-tests**, **run-performance-predict-tests**, **run-performance-perps-tests**, **run-performance-money-tests**, **run-performance-rewards-tests**: Each runs only the matching `@Performance*` area. Several labels run the union of those areas. `run-performance-tests` still runs the full suite when it is also present. Adding or removing any of these labels re-triggers CI. Not honored on fork PRs, or when the base branch is `stable`.
 
 ### Force Appium iOS Smoke Tests
 
-- **run-appium-ios-tests**: Opts into the iOS native build and Appium iOS smoke tests on a PR targeting `main` or `release/*` when path filters would otherwise skip iOS (e.g. Android-only PRs). Uses the same Smart E2E Selection tags as Appium Android. Does not bypass ignorable-only, `skip-e2e`, or `pr-not-ready-for-e2e` gates, and it is ignored for synchronization PRs targeting `stable`. Pushes to `main` and `release/*` run iOS automatically with the full `ALL` tag set. Remove `pr-not-ready-for-e2e` when the PR is ready for E2E validation. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **run-appium-ios-tests**: Add this label to a PR to request iOS E2E tests. Does not bypass ignorable-only, `skip-e2e`, or `pr-not-ready-for-e2e` gates. Adding or removing this label re-triggers CI. Not honored on fork PRs. A file under `tests/smoke-appium/**/*.spec.ts` requests both Android and iOS Appium smoke without this label only when the pull request files API reports it as `added` with no previous filename. Edits, renames, and copies do not trigger that added-spec rule. On a PR targeting `main`, a change under `tests/smoke-appium/**` can still select both platforms through the smoke-infrastructure override.
 
 ### Block merge if any is present
 

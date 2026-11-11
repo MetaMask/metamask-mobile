@@ -32,7 +32,9 @@ async function init({
 
   if (!instance.state.deeplinkingServiceStarted && Platform.OS === 'ios') {
     DevLogger.log(`SDKConnect::init() - starting deeplinking service`);
-    instance.state.deeplinkingService = new DeeplinkProtocolService();
+    const deeplinkingService = new DeeplinkProtocolService();
+    deeplinkingService.loadPersistedConnections();
+    instance.state.deeplinkingService = deeplinkingService;
     instance.state.deeplinkingServiceStarted = true;
   }
 

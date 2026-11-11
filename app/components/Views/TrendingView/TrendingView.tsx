@@ -34,11 +34,15 @@ import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectExploreBrandRefreshEnabled } from '../../../selectors/featureFlagController/exploreBrandRefresh';
+import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
+import BrowserTabsButton from './components/BrowserTabsButton/BrowserTabsButton';
 import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
+import { useIsExploreHeaderRefreshEnabled } from './hooks/useIsExploreHeaderRefreshEnabled';
 import NowTab from './tabs/NowTab';
 import MacroTab from './tabs/MacroTab';
 import RwasTab from './tabs/RwasTab';
@@ -230,6 +234,10 @@ export const ExploreFeed: React.FC = () => {
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
+  const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
+  const isSearchGlass = useIsGlassSurfaceEnabled(
+    selectExploreBrandRefreshEnabled,
+  );
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -258,7 +266,7 @@ export const ExploreFeed: React.FC = () => {
 
   const handleSearchPress = useCallback(() => {
     trackExploreSearchOpened('explore');
-    navigation.navigate(Routes.EXPLORE_SEARCH);
+    navigation.navigate(Routes.EXPLORE_SEARCH, { entryPoint: 'explore' });
   }, [navigation]);
 
   // Created once per `tabProps` identity (not on every render) so
@@ -326,23 +334,36 @@ export const ExploreFeed: React.FC = () => {
       />
 
       <Box twClassName="gap-4 flex-1">
-        <Box twClassName="mt-2 mb-2 flex-row items-center gap-2 px-4">
+        <Box twClassName="mt-4 mb-2 flex-row items-center gap-2 px-4">
           <Box twClassName="flex-1">
-            <ExploreSearchBar type="button" onPress={handleSearchPress} />
+            <ExploreSearchBar
+              type="button"
+              onPress={handleSearchPress}
+              isGlass={isSearchGlass}
+            />
           </Box>
 
-          <TouchableOpacity
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
-          >
-            {browserTabsCount > 0 ? (
-              <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
-                <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
-              </Box>
-            ) : (
-              <Icon name={IconName.Explore} size={IconSize.Xl} />
-            )}
-          </TouchableOpacity>
+          {isHeaderRefreshEnabled && browserTabsCount > 0 ? (
+            <BrowserTabsButton
+              tabCount={browserTabsCount}
+              onPress={handleBrowserPress}
+              testID="trending-view-browser-button"
+              isGlass={isSearchGlass}
+            />
+          ) : (
+            <TouchableOpacity
+              onPress={handleBrowserPress}
+              testID="trending-view-browser-button"
+            >
+              {browserTabsCount > 0 ? (
+                <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
+                  <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
+                </Box>
+              ) : (
+                <Icon name={IconName.Explore} size={IconSize.Xl} />
+              )}
+            </TouchableOpacity>
+          )}
         </Box>
 
         {!isBasicFunctionalityEnabled ? (

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import {
   mergeAssetViewedProperties,
   MetaMetricsEvents,
@@ -33,26 +34,41 @@ export const getExploreSearchResultCount = (
   return getTotalSectionResultCount(sections);
 };
 
+export const getSearchQueryLength = (query: string): number =>
+  query.trim().length;
+
 export type SearchInteractionType =
   | 'opened'
   | 'result_clicked'
   | 'scrolled'
   | 'tab_switched'
-  | 'searched';
+  | 'searched'
+  | 'paste'
+  | 'abandoned';
 
 /** 'all' = aggregated view; other values are a specific feed pill. */
 export type SearchFeedPill = SearchFeedId | 'all';
 
-/** Surface the user tapped to open search. Only set on `opened`. */
-export type SearchEntryPoint = 'home' | 'explore';
+/** Surface that opened search. Only set on `opened` and `abandoned`. */
+export type SearchEntryPoint = 'home' | 'explore' | 'deeplink' | 'nav_bar';
+
+/**
+ * How the user left search without clicking a result: `cancel` is the
+ * screen's own cancel/back button, `back` is system back (swipe or hardware),
+ * `navigate_away` is leaving without closing search (tab switch, browser tabs).
+ */
+export type SearchAbandonReason = 'cancel' | 'back' | 'navigate_away';
 
 export interface ExploreSearchInteractedProperties {
   interaction_type: SearchInteractionType;
   search_query: string;
-  /** Only set on `opened`. */
+  /** Set on `opened`, `abandoned`, and paste interactions initiated from a known surface. */
   entry_point?: SearchEntryPoint;
-  /** Only set on result_clicked when tab_name is 'all'. */
-  section_name?: SearchFeedId;
+  /**
+   * Only set on result_clicked: the feed section when tab_name is 'all', or
+   * 'search_footer' for the footer links on any tab.
+   */
+  section_name?: SearchFeedId | 'search_footer';
   tab_name?: SearchFeedPill;
   previous_tab?: SearchFeedPill;
   /** True when tab_switched came from a section header button, not the pill row. */
@@ -61,6 +77,18 @@ export interface ExploreSearchInteractedProperties {
   position?: number;
   /** Total number of results visible to the user at the time of the interaction. */
   result_count?: number;
+  /** Trimmed query length. Only set on `searched` and `result_clicked`. */
+  query_length?: number;
+  /** Only set on result_clicked for tokens and stocks. */
+  token_name?: string;
+  token_symbol?: string;
+  /** Only set on `abandoned`. */
+  abandon_reason?: SearchAbandonReason;
+  /** Predict market identity; only set on result_clicked for the predictions feed. */
+  market_id?: string;
+  market_slug?: string;
+  market_tags?: string[];
+  market_title?: string;
 }
 
 export type ExploreTabName =
@@ -164,25 +192,94 @@ export const trackExploreSectionSeeAll = ({
   }
 };
 
+interface ExploreSearchSession {
+  id?: string;
+  entryPoint?: SearchEntryPoint;
+  hasResultClick: boolean;
+  hasEnded: boolean;
+  lastTabName?: SearchFeedPill;
+  lastSearchedQuery?: string;
+  lastSearchedResultCount?: number;
+}
+
+// One search visit, from `opened` until the user clicks a result or leaves.
+let searchSession: ExploreSearchSession = {
+  hasResultClick: false,
+  hasEnded: false,
+};
+
+const updateSearchSession = ({
+  interaction_type,
+  entry_point,
+  tab_name,
+  search_query,
+  result_count,
+}: ExploreSearchInteractedProperties): void => {
+  if (interaction_type === 'opened') {
+    searchSession = {
+      id: uuidv4(),
+      entryPoint: entry_point,
+      hasResultClick: false,
+      hasEnded: false,
+    };
+    return;
+  }
+  if (tab_name) {
+    searchSession.lastTabName = tab_name;
+  }
+  if (interaction_type === 'result_clicked') {
+    searchSession.hasResultClick = true;
+  }
+  if (interaction_type === 'searched') {
+    searchSession.lastSearchedQuery = search_query;
+    searchSession.lastSearchedResultCount = result_count;
+  }
+};
+
+export const getExploreSearchSessionId = (): string | undefined =>
+  searchSession.id;
+
+/**
+ * Starts a new session when the user comes back to search after `abandoned`
+ * with no new `opened`, so later events don't join the visit that ended.
+ */
+export const renewEndedExploreSearchSession = (): void => {
+  if (!searchSession.hasEnded) {
+    return;
+  }
+  searchSession = {
+    id: uuidv4(),
+    entryPoint: searchSession.entryPoint,
+    hasResultClick: false,
+    hasEnded: false,
+  };
+};
+
 export const trackExploreSearchEvent = (
   properties: ExploreSearchInteractedProperties,
 ): void => {
+  updateSearchSession(properties);
+  const { id: searchSessionId } = searchSession;
   analytics.trackEvent(
     AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED,
     )
-      .addProperties(properties as unknown as Record<string, unknown>)
+      .addProperties({
+        ...properties,
+        ...(searchSessionId ? { search_session_id: searchSessionId } : {}),
+      })
       .build(),
   );
 };
 
 /**
  * Fired when the user opens the search screen, so opens can be attributed to
- * the surface they came from. Called from the tap handler rather than on screen
- * mount, so a remount (or a deeplink into search) never duplicates the event.
+ * the surface they came from. In-app entry points call this from their tap
+ * handlers; deeplinks call it when their route params are consumed.
  *
- * `search_query` is sent as an empty string: the schema requires the property
- * and the user has not typed anything yet.
+ * `search_query` is sent as an empty string because the opened-event schema
+ * requires it. A deeplink's prefilled query is reported by the settled
+ * `searched` event.
  */
 export const trackExploreSearchOpened = (
   entryPoint: SearchEntryPoint,
@@ -195,42 +292,101 @@ export const trackExploreSearchOpened = (
 };
 
 /**
+ * Fires `abandoned` when the user leaves search without clicking a result.
+ * One-shot per session: later calls are ignored until a new session starts.
+ * `result_count` is only sent when it belongs to the query being abandoned.
+ * `redactSearchQuery` blanks `search_query` for clipboard-pasted queries.
+ */
+export const trackExploreSearchAbandoned = (
+  reason: SearchAbandonReason,
+  searchQuery: string,
+  redactSearchQuery = false,
+): void => {
+  if (searchSession.hasResultClick || searchSession.hasEnded) {
+    return;
+  }
+  searchSession.hasEnded = true;
+
+  const {
+    entryPoint,
+    lastTabName,
+    lastSearchedQuery,
+    lastSearchedResultCount,
+  } = searchSession;
+  const sentSearchQuery = redactSearchQuery ? '' : searchQuery;
+  trackExploreSearchEvent({
+    interaction_type: 'abandoned',
+    search_query: sentSearchQuery,
+    query_length: getSearchQueryLength(searchQuery),
+    abandon_reason: reason,
+    ...(entryPoint ? { entry_point: entryPoint } : {}),
+    ...(lastTabName ? { tab_name: lastTabName } : {}),
+    ...(lastSearchedQuery === sentSearchQuery &&
+    lastSearchedResultCount !== undefined
+      ? { result_count: lastSearchedResultCount }
+      : {}),
+  });
+};
+
+/**
  * Side effect hook to invoke analytics when searching.
  * Fires the 'searched' event once per unique settled query (after loading
- * completes). Resets when the query is cleared.
+ * completes) in each search session. Bump `focusCount` on every screen focus
+ * so a query still on screen is reported again when a new session starts.
+ * Resets when the query is cleared.
  */
 export const useInstrumentedSearchEffect = ({
   searchQuery,
+  redactSearchQuery = false,
   isLoading,
+  focusCount = 0,
   getPill,
   getSections,
 }: {
   searchQuery: string;
+  redactSearchQuery?: boolean;
   isLoading: boolean;
+  focusCount?: number;
   getPill: () => SearchFeedPill;
   getSections: () => SearchFeedSection[];
 }): void => {
-  const instrumentedQueryRef = useRef<string | null>(null);
+  const instrumentedRef = useRef<{ query: string; sessionId?: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!searchQuery.trim()) {
-      instrumentedQueryRef.current = null;
+      instrumentedRef.current = null;
       return;
     }
     if (isLoading) return;
-    if (instrumentedQueryRef.current === searchQuery) return;
+    const sessionId = searchSession.id;
+    if (
+      instrumentedRef.current?.query === searchQuery &&
+      instrumentedRef.current.sessionId === sessionId
+    ) {
+      return;
+    }
 
     const pill = getPill();
     const resultCount = getExploreSearchResultCount(pill, getSections());
 
     trackExploreSearchEvent({
       interaction_type: 'searched',
-      search_query: searchQuery,
+      search_query: redactSearchQuery ? '' : searchQuery,
       tab_name: pill,
       result_count: resultCount,
+      query_length: getSearchQueryLength(searchQuery),
     });
-    instrumentedQueryRef.current = searchQuery;
-  }, [searchQuery, isLoading, getPill, getSections]);
+    instrumentedRef.current = { query: searchQuery, sessionId };
+  }, [
+    searchQuery,
+    redactSearchQuery,
+    isLoading,
+    focusCount,
+    getPill,
+    getSections,
+  ]);
 };
 
 /**

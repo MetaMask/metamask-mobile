@@ -4,6 +4,10 @@ import type {
   PerpsMarketData,
   Position,
 } from '@metamask/perps-controller';
+import {
+  PERPS_HOME_EXPLORE_AB_TEST_KEY,
+  type PerpsHomeExploreVariant,
+} from '../../../app/components/UI/Perps/abTestConfig';
 
 export const createFundedAccountForViews = (balance: string): AccountState => ({
   spendableBalance: balance,
@@ -122,4 +126,18 @@ export const createLimitOrderForViews = (
 ): Order => ({
   ...defaultLimitOrderForViews,
   ...overrides,
+});
+
+export const createHomeExploreAssignmentForViews = (
+  variant: PerpsHomeExploreVariant,
+) => ({
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          [PERPS_HOME_EXPLORE_AB_TEST_KEY]: variant,
+        },
+      },
+    },
+  },
 });

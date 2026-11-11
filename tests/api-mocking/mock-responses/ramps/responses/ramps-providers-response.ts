@@ -60,8 +60,12 @@ export const RAMPS_PROVIDERS_RESPONSE = {
         recurringBuy: {},
       },
       type: 'native',
+      // The mUSD-on-Monad entry is the load-bearing one while
+      // moneyHeadlessAllProviders is off: with the flag off the region gate
+      // only resolves when a native provider serves the deposit asset.
       supportedCryptoCurrencies: {
         'eip155:1/slip44:60': true,
+        'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da': true,
       },
       supportedFiatCurrencies: {
         '/currencies/fiat/eur': true,
@@ -128,8 +132,12 @@ export const RAMPS_PROVIDERS_RESPONSE = {
         },
       },
       type: 'aggregator',
+      // The same mUSD-on-Monad entry covers the widened
+      // moneyHeadlessAllProviders path, where aggregators serve the deposit
+      // asset too and the gate no longer requires a native provider.
       supportedCryptoCurrencies: {
         'eip155:1/slip44:60': true,
+        'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da': true,
       },
       supportedFiatCurrencies: {
         '/currencies/fiat/eur': true,

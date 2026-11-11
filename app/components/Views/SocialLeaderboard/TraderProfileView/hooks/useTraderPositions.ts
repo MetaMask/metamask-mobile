@@ -17,6 +17,8 @@ const EMPTY_POSITIONS: Position[] = [];
 const TRADER_POSITIONS_SOURCE = 'useTraderPositions';
 
 export interface UseTraderPositionsOptions {
+  /** Defaults to true. */
+  enabled?: boolean;
   refetchInterval?: number;
 }
 
@@ -25,7 +27,10 @@ export interface UseTraderPositionsResult {
   closedPositions: Position[];
   isLoadingOpen: boolean;
   isLoadingClosed: boolean;
+  /** First non-null open/closed fetch error (legacy combined signal). */
   error: string | null;
+  openError: string | null;
+  closedError: string | null;
   refetch: () => Promise<void>;
 }
 
@@ -34,6 +39,8 @@ export const useTraderPositions = (
   options?: UseTraderPositionsOptions,
 ): UseTraderPositionsResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
+  const enabled =
+    Boolean(addressOrId) && isUnlocked && (options?.enabled ?? true);
 
   const {
     data: openData,
@@ -42,7 +49,7 @@ export const useTraderPositions = (
     refetch: refetchOpen,
   } = useQuery<PositionsResponse>({
     queryKey: buildOpenPositionsQueryKey(addressOrId),
-    enabled: Boolean(addressOrId) && isUnlocked,
+    enabled,
     refetchInterval: options?.refetchInterval,
     refetchOnMount: 'always',
   });
@@ -54,7 +61,7 @@ export const useTraderPositions = (
     refetch: refetchClosed,
   } = useQuery<PositionsResponse>({
     queryKey: buildClosedPositionsQueryKey(addressOrId),
-    enabled: Boolean(addressOrId) && isUnlocked,
+    enabled,
     refetchInterval: options?.refetchInterval,
     refetchOnMount: 'always',
   });
@@ -77,7 +84,9 @@ export const useTraderPositions = (
 
   const openPositions = openData?.positions ?? EMPTY_POSITIONS;
   const closedPositions = closedData?.positions ?? EMPTY_POSITIONS;
-  const combinedError = openError ?? closedError;
+  const formattedOpenError = formatSocialQueryErrorMessage(openError);
+  const formattedClosedError = formatSocialQueryErrorMessage(closedError);
+  const combinedError = formattedOpenError ?? formattedClosedError;
 
   const refetch = useCallback(async () => {
     const results = await Promise.allSettled([refetchOpen(), refetchClosed()]);
@@ -107,7 +116,9 @@ export const useTraderPositions = (
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
-    error: formatSocialQueryErrorMessage(combinedError),
+    error: combinedError,
+    openError: formattedOpenError,
+    closedError: formattedClosedError,
     refetch,
   };
 };

@@ -1,5 +1,7 @@
 import React from 'react';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { View } from 'react-native';
+import { FadeInDown } from 'react-native-reanimated';
 import { render, within } from '@testing-library/react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProMarketLayout from './PerpsProMarketLayout';
@@ -9,6 +11,13 @@ import {
   PRO_TRADING_AREA_BOTTOM_INSET,
 } from './PerpsProMarketLayout.styles';
 
+jest.mock('react-native-reanimated', () => ({
+  ...jest.requireActual('react-native-reanimated/mock'),
+  FadeInDown: {
+    duration: jest.fn(() => 'fade-in-down-transition'),
+  },
+}));
+
 const renderLayout = (
   props: Partial<React.ComponentProps<typeof PerpsProMarketLayout>> = {},
 ) =>
@@ -16,37 +25,81 @@ const renderLayout = (
     <PerpsProMarketLayout
       orderForm={<View testID="mock-order-form" />}
       orderBook={<View testID="mock-order-book" />}
+      orderBookPosition="right"
       {...props}
     />,
   );
 
+/** Rendered left-to-right order of the two trading columns. */
+const getColumnOrder = (layout: ReturnType<typeof renderLayout>) =>
+  within(layout.getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT))
+    .getAllByTestId(/-column$/)
+    .map((column) => column.props.testID);
+
 describe('PerpsProMarketLayout', () => {
-  it('places the order form left and the order book right', () => {
+  it('renders each panel in its own column', () => {
     const { getByTestId } = renderLayout();
 
-    const leftColumn = getByTestId(PerpsProMarketViewSelectorsIDs.LEFT_COLUMN);
-    const rightColumn = getByTestId(
-      PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN,
+    const orderFormColumn = getByTestId(
+      PerpsProMarketViewSelectorsIDs.ORDER_FORM_COLUMN,
+    );
+    const orderBookColumn = getByTestId(
+      PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN,
     );
 
-    expect(within(leftColumn).getByTestId('mock-order-form')).toBeOnTheScreen();
     expect(
-      within(rightColumn).getByTestId('mock-order-book'),
+      within(orderFormColumn).getByTestId('mock-order-form'),
     ).toBeOnTheScreen();
-    expect(leftColumn).toHaveStyle({ flex: 1 });
-    expect(rightColumn).toHaveStyle({ width: PRO_ORDER_BOOK_COLUMN_WIDTH });
-  });
-
-  it('uses the correct width and padding for the order book column', () => {
-    const { getByTestId } = renderLayout();
-
     expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
-    ).toHaveStyle({
+      within(orderBookColumn).getByTestId('mock-order-book'),
+    ).toBeOnTheScreen();
+    expect(orderFormColumn).toHaveStyle({ flex: 1 });
+    expect(orderBookColumn).toHaveStyle({
       width: PRO_ORDER_BOOK_COLUMN_WIDTH,
-      paddingLeft: 0,
     });
   });
+
+  it('animates the order book upward into its expanded position', () => {
+    const { getByTestId } = renderLayout();
+    const enteringTransition = getByTestId(
+      PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN,
+    ).props.entering;
+
+    expect(FadeInDown.duration).toHaveBeenCalledWith(AnimationDuration.Fast);
+    expect(enteringTransition).toBe('fade-in-down-transition');
+  });
+
+  it('places the order book first when pinned left', () => {
+    const layout = renderLayout({ orderBookPosition: 'left' });
+
+    expect(getColumnOrder(layout)).toEqual([
+      PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN,
+      PerpsProMarketViewSelectorsIDs.ORDER_FORM_COLUMN,
+    ]);
+  });
+
+  it('places the order book last when pinned right', () => {
+    const layout = renderLayout({ orderBookPosition: 'right' });
+
+    expect(getColumnOrder(layout)).toEqual([
+      PerpsProMarketViewSelectorsIDs.ORDER_FORM_COLUMN,
+      PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN,
+    ]);
+  });
+
+  it.each(['left', 'right'] as const)(
+    'keeps the order book column width and padding when pinned %s',
+    (orderBookPosition) => {
+      const { getByTestId } = renderLayout({ orderBookPosition });
+
+      expect(
+        getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN),
+      ).toHaveStyle({
+        width: PRO_ORDER_BOOK_COLUMN_WIDTH,
+        paddingLeft: 0,
+      });
+    },
+  );
 
   it('uses content-driven column heights with bottom inset on each column', () => {
     const { getByTestId } = renderLayout();
@@ -54,14 +107,14 @@ describe('PerpsProMarketLayout', () => {
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT)).toHaveStyle({
       paddingHorizontal: PRO_SCREEN_HORIZONTAL_INSET,
     });
-    expect(getByTestId(PerpsProMarketViewSelectorsIDs.LEFT_COLUMN)).toHaveStyle(
-      {
-        alignSelf: 'flex-start',
-        paddingBottom: PRO_TRADING_AREA_BOTTOM_INSET,
-      },
-    );
     expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_COLUMN),
+    ).toHaveStyle({
+      alignSelf: 'flex-start',
+      paddingBottom: PRO_TRADING_AREA_BOTTOM_INSET,
+    });
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN),
     ).toHaveStyle({
       width: PRO_ORDER_BOOK_COLUMN_WIDTH,
       alignSelf: 'flex-start',
@@ -69,14 +122,18 @@ describe('PerpsProMarketLayout', () => {
     });
   });
 
-  it('hides the order book column when collapsed', () => {
-    const { getByTestId, queryByTestId } = renderLayout({
-      isOrderBookCollapsed: true,
-    });
+  it.each(['left', 'right'] as const)(
+    'hides the order book column when collapsed while pinned %s',
+    (orderBookPosition) => {
+      const { getByTestId, queryByTestId } = renderLayout({
+        isOrderBookCollapsed: true,
+        orderBookPosition,
+      });
 
-    expect(
-      queryByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
-    ).not.toBeOnTheScreen();
-    expect(getByTestId('mock-order-form')).toBeOnTheScreen();
-  });
+      expect(
+        queryByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId('mock-order-form')).toBeOnTheScreen();
+    },
+  );
 });

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -14,8 +14,12 @@ import BackupAndSyncFeaturesToggles from '../../../UI/Identity/BackupAndSyncFeat
 import { strings } from '../../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { BackupAndSyncSettingsSelectorsIDs } from './BackupAndSyncSettings.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const BackupAndSyncSettings = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
@@ -31,7 +35,9 @@ const BackupAndSyncSettings = () => {
       style={tw.style('flex-1 bg-default')}
       testID={BackupAndSyncSettingsSelectorsIDs.SAFE_AREA}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('backupAndSync.title')}
         onBack={handleBack}
         includesTopInset
