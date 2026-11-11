@@ -623,6 +623,7 @@ const MyProfileView: React.FC = () => {
           position,
           author: positionSheetAuthor(displayProfile, traderAddress),
           isClosed,
+          shareSource: 'profile_position',
         });
         return;
       }

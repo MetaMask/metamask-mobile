@@ -19,4 +19,9 @@ export interface PositionDetailsSheetParams {
    * tab. Profile and follow events keep their existing source.
    */
   orderSource?: 'social_trending' | 'social_following' | 'social_live_trades';
+  /**
+   * Shows the share button and attributes shares to this source. Set for a
+   * sheet opened from a profile position row or a shared position link.
+   */
+  shareSource?: 'profile_position' | 'deep_link';
 }

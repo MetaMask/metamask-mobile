@@ -122,6 +122,18 @@ jest.mock('../navigation/navigateToSocialV1Profile', () => ({
   navigateToSocialV1Profile: jest.fn(),
 }));
 
+const mockShareSocialTraderPosition = jest.fn();
+jest.mock('../navigation/socialTraderDeeplink', () => ({
+  shareSocialTraderPosition: (...args: unknown[]) =>
+    mockShareSocialTraderPosition(...args),
+}));
+
+const mockTrackSocialPost = jest.fn();
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics'),
+  useSocialAnalytics: () => ({ trackInteraction: mockTrackSocialPost }),
+}));
+
 jest.mock('../terms/useSocialTermsGate', () => ({
   useSocialTermsGate: () => ({
     ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
@@ -235,6 +247,9 @@ const buildSheetData = (
   pnlPercentLabel: '+20.00%',
   pnlValueLabel: '+$40.00',
   isPnlPositive: true,
+  pnlValue: 40,
+  pnlPercent: 20,
+  tokenImageUrl: undefined,
   ...overrides,
 });
 
@@ -856,6 +871,115 @@ describe('PositionDetailsSheet', () => {
       expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.FOLLOW_BUTTON),
       ).toBeNull();
+    });
+  });
+
+  describe('share button', () => {
+    beforeEach(() => {
+      // Stays pending so the spinner does not settle outside `act`.
+      mockShareSocialTraderPosition.mockReturnValue(
+        new Promise<void>(() => undefined),
+      );
+    });
+
+    it('is hidden without a share source', () => {
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      ).toBeNull();
+    });
+
+    it.each(['profile_position', 'deep_link'] as const)(
+      'shares the position link when opened from %s',
+      (shareSource) => {
+        mockParams = { ...mockParams, shareSource };
+        render(<PositionDetailsSheet />);
+
+        fireEvent.press(
+          screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+        );
+
+        expect(mockShareSocialTraderPosition).toHaveBeenCalledWith(
+          'position-1',
+          'trader-1',
+          expect.any(Function),
+          expect.objectContaining({ title: expect.stringContaining('PEPE') }),
+          expect.any(Function),
+        );
+        const onShared = mockShareSocialTraderPosition.mock
+          .calls[0][2] as () => void;
+        onShared();
+        expect(mockTrackSocialPost).toHaveBeenCalledWith({
+          interaction_type: 'post_shared',
+          screen_name: 'share_position_sheet',
+          share_destination: 'external',
+          source: shareSource,
+        });
+      },
+    );
+
+    it('shows a spinner while the link is created and ignores repeat taps', async () => {
+      let finishShare: () => void = () => undefined;
+      mockShareSocialTraderPosition.mockReturnValue(
+        new Promise<void>((resolve) => {
+          finishShare = resolve;
+        }),
+      );
+      mockParams = { ...mockParams, shareSource: 'profile_position' };
+      render(<PositionDetailsSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_SPINNER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      ).toBeNull();
+
+      await act(async () => {
+        finishShare();
+      });
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(mockShareSocialTraderPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('builds the trade card from the sheet figures', async () => {
+      mockSheetData = buildSheetData({
+        prices: [
+          ['1', 100],
+          ['2', 120],
+        ],
+      });
+      mockParams = { ...mockParams, shareSource: 'profile_position' };
+      render(<PositionDetailsSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      );
+      const buildOgImageRequest = mockShareSocialTraderPosition.mock
+        .calls[0][4] as () => Promise<unknown>;
+      const request = await buildOgImageRequest();
+
+      expect(request).toEqual(
+        expect.objectContaining({
+          kind: 'trade',
+          traderId: 'trader-1',
+          positionId: 'position-1',
+          trade: expect.objectContaining({
+            market: 'PEPE',
+            status: 'open',
+            pnlUsd: 40,
+            pnlPct: 20,
+          }),
+        }),
+      );
     });
   });
 

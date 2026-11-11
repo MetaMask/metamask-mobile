@@ -2261,6 +2261,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
   });
 
@@ -2308,6 +2309,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: true,
+      shareSource: 'profile_position',
     });
   });
 
@@ -2429,6 +2431,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
 
     fireEvent.press(
@@ -2517,6 +2520,7 @@ describe('MyProfileView', () => {
         xHandle: null,
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
   });
 });

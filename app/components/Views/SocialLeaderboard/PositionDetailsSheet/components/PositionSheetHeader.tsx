@@ -5,6 +5,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   Icon,
@@ -20,6 +22,7 @@ import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import type { SocialV1FeedAuthor } from '../../../../UI/SocialFeed/types';
 import { useFollowToggle } from '../../../../hooks/useFollowToggle';
 import { useFollowWithNotificationSetup } from '../../hooks/useFollowWithNotificationSetup';
+import ShareButtonSpinner from '../../components/ShareButtonSpinner';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 
 const AVATAR_SIZE = 24;
@@ -30,12 +33,18 @@ export interface PositionSheetHeaderProps {
   isOwnPost: boolean;
   /** Dismisses the sheet, then opens the trader profile page. */
   onPressTrader: () => void;
+  /** Shares a link to the position. No share button when absent. */
+  onShare?: () => void;
+  /** Shows a spinner in place of the share button while the link is made. */
+  isSharing?: boolean;
 }
 
 const PositionSheetHeader = ({
   author,
   isOwnPost,
   onPressTrader,
+  onShare,
+  isSharing = false,
 }: PositionSheetHeaderProps) => {
   const tw = useTailwind();
   const { isFollowing, toggleFollow } = useFollowToggle(author.id);
@@ -100,21 +109,41 @@ const PositionSheetHeader = ({
         </Box>
       </Pressable>
 
-      {isOwnPost ? null : (
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          onPress={handleFollowPress}
-          style={tw.style('shrink-0')}
-          testID={PositionDetailsSheetSelectorsIDs.FOLLOW_BUTTON}
-        >
-          {strings(
-            isFollowing
-              ? 'social_leaderboard.position_sheet.following'
-              : 'social_leaderboard.position_sheet.follow',
-          )}
-        </Button>
-      )}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="shrink-0"
+      >
+        {onShare && isSharing ? (
+          <ShareButtonSpinner
+            testID={PositionDetailsSheetSelectorsIDs.SHARE_SPINNER}
+          />
+        ) : onShare ? (
+          <ButtonIcon
+            iconName={IconName.Share}
+            iconProps={{ color: IconColor.IconDefault }}
+            size={ButtonIconSize.Md}
+            onPress={onShare}
+            accessibilityLabel={strings('social.profile.share_position')}
+            testID={PositionDetailsSheetSelectorsIDs.SHARE_BUTTON}
+          />
+        ) : null}
+        {isOwnPost ? null : (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            onPress={handleFollowPress}
+            testID={PositionDetailsSheetSelectorsIDs.FOLLOW_BUTTON}
+          >
+            {strings(
+              isFollowing
+                ? 'social_leaderboard.position_sheet.following'
+                : 'social_leaderboard.position_sheet.follow',
+            )}
+          </Button>
+        )}
+      </Box>
     </Box>
   );
 };
