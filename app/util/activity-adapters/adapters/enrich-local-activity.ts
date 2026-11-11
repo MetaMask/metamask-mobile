@@ -34,6 +34,7 @@ import {
 } from './environment';
 import { decodeErc20Transfer } from '../../transactions/erc20-transfer';
 import { decodePaymentTokenAssetId } from '../../transactions/payment-token';
+import { getSolanaPayOutcome } from '../../transactions/solana-pay';
 
 const tokenTransferTypes = new Set<TransactionType>([
   TransactionType.tokenMethodTransfer,
@@ -192,8 +193,11 @@ function getEoaFacingMoneyToken(
   environment: ActivityAdapterEnvironment,
 ): TokenAmount | undefined {
   const transaction = transactionGroup.initialTransaction;
-  const paymentToken = transactionGroup.transactionPayData?.paymentToken;
-  const paymentTokenAsset = decodePaymentTokenAssetId(paymentToken);
+  const selectedPaymentToken =
+    transactionGroup.transactionPayData?.paymentToken;
+  const paymentTokenAsset = decodePaymentTokenAssetId(selectedPaymentToken);
+  // A non-EVM source is never the EOA-facing Money token.
+  const paymentToken = paymentTokenAsset ? selectedPaymentToken : undefined;
   const tokenAddress =
     paymentTokenAsset?.address ?? transaction.metamaskPay?.tokenAddress;
   const tokenChainId =
@@ -720,6 +724,17 @@ function enrichPreparedFees(
   } as ActivityListItem;
 }
 
+function enrichPayOutcome(
+  activity: ActivityListItem,
+  transactionGroup: TransactionGroup,
+): ActivityListItem {
+  const execution =
+    transactionGroup.initialTransaction.metamaskPay?.solanaExecution;
+  const payOutcome = execution ? getSolanaPayOutcome(execution) : undefined;
+
+  return payOutcome ? { ...activity, payOutcome } : activity;
+}
+
 function enrichCancelledStatus(
   activity: ActivityListItem,
   transactionGroup: TransactionGroup,
@@ -748,6 +763,7 @@ export function enrichLocalActivity(
   next = enrichStakingDeposit(next, transactionGroup, environment);
   next = enrichMusdClaim(next, transactionGroup, environment);
   next = enrichCancelledStatus(next, transactionGroup, environment);
+  next = enrichPayOutcome(next, transactionGroup);
   next = enrichPreparedFees(next, transactionGroup);
   return next;
 }
