@@ -3,6 +3,7 @@ import { AccessibilityInfo, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Share from 'react-native-share';
+import { toast } from '@metamask/design-system-react-native';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import renderWithProvider, {
   type ProviderValues,
@@ -82,6 +83,19 @@ const mockMarkVbaAccountDetailsViewed = jest.mocked(
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('react-native-share', () => ({
   open: jest.fn(() => Promise.resolve()),
@@ -635,6 +649,27 @@ describe('VbaDetails', () => {
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
       'Copied Pix key',
     );
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Copied Pix key',
+      hasNoTimeout: false,
+    });
+  });
+
+  it('shows a toast after copying Pix Copia e Cola', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getByLabelText, getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByLabelText('Copy Pix Copia e Cola'));
+
+    expect(Clipboard.setString).toHaveBeenCalledWith('00020126');
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Copied Pix Copia e Cola',
+      hasNoTimeout: false,
+    });
   });
 
   describe('when NeoBankService reads every deposit rail', () => {
@@ -703,6 +738,10 @@ describe('VbaDetails', () => {
       fireEvent.press(getByLabelText('Copy Routing number'));
 
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
+      expect(toast).toHaveBeenCalledWith({
+        title: 'Copied Routing number',
+        hasNoTimeout: false,
+      });
     });
 
     it('copies every US bank row and opens the share sheet', async () => {
