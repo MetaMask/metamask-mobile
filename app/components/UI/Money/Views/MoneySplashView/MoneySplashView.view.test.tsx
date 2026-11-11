@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import NetInfo from '@react-native-community/netinfo';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import Engine from '../../../../../core/Engine';
 import { getTotalMemorySync } from 'react-native-device-info';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { strings } from '../../../../../../locales/i18n';
@@ -177,6 +178,35 @@ describeForPlatforms('MoneySplashView', () => {
     expect(
       queryByTestId(getRouteProbeTestId(Routes.MONEY.ONBOARDING)),
     ).not.toBeOnTheScreen();
+  });
+
+  it('starts only one deposit when the CTA is pressed twice', async () => {
+    const { getByTestId, findByTestId } = renderMoneySplashView({
+      params: {
+        postOnboardingRedirect: {
+          type: 'deposit',
+          preferredPaymentToken: PREFERRED_PAYMENT_TOKEN,
+        },
+      },
+    });
+    const addTransactionBatch = jest.mocked(
+      Engine.context.TransactionController.addTransactionBatch,
+    );
+    addTransactionBatch.mockClear();
+
+    const cta = getByTestId(MoneySplashViewTestIds.CTA);
+    act(() => {
+      fireEvent.press(cta);
+      fireEvent.press(cta);
+    });
+
+    await findByTestId(
+      getRouteParamsProbeTestId(Routes.MONEY.CONFIRMATIONS_ROOT),
+    );
+
+    await waitFor(() => {
+      expect(addTransactionBatch).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('marks the splash as seen on mount', async () => {
