@@ -308,7 +308,6 @@ const MoneyHomeView = () => {
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
     status: mfaStatus,
-    turnOn: turnOnMfa,
     retry: retryMfaSetup,
     isSettingUpBannerDismissed: isMfaBannerDismissed,
     dismissSettingUpBanner: dismissMfaBanner,
@@ -356,8 +355,8 @@ const MoneyHomeView = () => {
       label_key: 'money.mfa.card_cta',
       component_name: COMPONENT_NAMES.MONEY_MFA_SETUP_CARD,
     });
-    void turnOnMfa();
-  }, [trackButtonClicked, turnOnMfa]);
+    navigation.navigate(Routes.MONEY.MFA_INTRO);
+  }, [navigation, trackButtonClicked]);
 
   const handleMfaRetry = useCallback(() => {
     trackButtonClicked({

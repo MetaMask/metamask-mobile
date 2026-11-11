@@ -121,6 +121,7 @@ export enum COMPONENT_NAMES {
   MONEY_MORE_SHEET_MFA_TOGGLE = 'money_more_sheet_mfa_toggle',
 
   // — 2-step verification —
+  MONEY_MFA_INTRO = 'money_mfa_intro',
   MONEY_MFA_PASSKEY_INTRO = 'money_mfa_passkey_intro',
   MONEY_MFA_SETUP_CARD = 'money_mfa_setup_card',
   MONEY_MFA_STATUS_BANNER = 'money_mfa_status_banner',
