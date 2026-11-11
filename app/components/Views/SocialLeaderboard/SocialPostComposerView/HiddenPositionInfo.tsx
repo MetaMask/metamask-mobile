@@ -40,7 +40,7 @@ const HiddenPositionInfo: React.FC<HiddenPositionInfoProps> = ({
           testID: HiddenPositionInfoSelectorsIDs.BACK,
         }}
       >
-        {strings('social_leaderboard.composer.empty_help')}
+        {strings('social_leaderboard.composer.hidden_position_title')}
       </BottomSheetHeader>
       <Box twClassName="px-4 pt-2 pb-4">
         <Text
