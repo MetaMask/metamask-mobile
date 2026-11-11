@@ -4,7 +4,11 @@ import {
   clearLatencySamples,
   recordFetchSample,
 } from '../util/deviceCapability/latencyStore';
-import { useNetworkTier, useNetworkTierState } from './useNetworkTier';
+import {
+  useNetworkLatency,
+  useNetworkTier,
+  useNetworkTierState,
+} from './useNetworkTier';
 
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(),
@@ -37,60 +41,75 @@ describe('useNetworkTier', () => {
     clearLatencySamples();
   });
 
-  describe('latency fold', () => {
+  describe('useNetworkLatency', () => {
     it.each([
-      ['wifi', {}],
-      ['cellular', { cellularGeneration: '5g' }],
-      ['cellular', { cellularGeneration: '3g' }],
-      ['vpn', {}],
+      ['wifi', {}, 'WIFI'],
+      ['cellular', { cellularGeneration: '5g' }, 'FAST_CELLULAR'],
+      ['cellular', { cellularGeneration: '3g' }, 'SLOW_CELLULAR'],
+      ['vpn', {}, null],
     ])(
-      'returns SLOW_CELLULAR for %s %o when latency is slow',
-      (type, details) => {
+      'reports slow without changing the %s %o transport tier',
+      (type, details, expectedTier) => {
         mockNetInfoState({ type, isInternetReachable: true, details });
-        const { result } = renderHook(() => useNetworkTier());
+        const { result } = renderHook(() => ({
+          tier: useNetworkTier(),
+          latency: useNetworkLatency(),
+        }));
 
         recordSamples([MID_HUNG_MS, MID_HUNG_MS]);
 
-        expect(result.current).toBe('SLOW_CELLULAR');
+        expect(result.current).toEqual({
+          tier: expectedTier,
+          latency: 'slow',
+        });
       },
     );
 
-    it('reports the transport tier and latency separately', () => {
-      mockNetInfoState({ type: 'vpn', isInternetReachable: true, details: {} });
-      const { result } = renderHook(() => useNetworkTierState());
-
-      recordSamples([MID_HUNG_MS, MID_HUNG_MS]);
-
-      expect(result.current).toEqual({
-        tier: 'SLOW_CELLULAR',
-        transportTier: null,
-        latency: 'slow',
-        isResolved: true,
+    it('reports ok on 3g without changing SLOW_CELLULAR', () => {
+      mockNetInfoState({
+        type: 'cellular',
+        isInternetReachable: true,
+        details: { cellularGeneration: '3g' },
       });
-    });
-
-    it('keeps vpn at null when latency is ok', () => {
-      mockNetInfoState({ type: 'vpn', isInternetReachable: true, details: {} });
-      const { result } = renderHook(() => useNetworkTierState());
+      const { result } = renderHook(() => ({
+        tier: useNetworkTier(),
+        latency: useNetworkLatency(),
+      }));
 
       recordSamples([300, 300, 300]);
 
-      expect(result.current.tier).toBeNull();
-      expect(result.current.latency).toBe('ok');
+      expect(result.current).toEqual({ tier: 'SLOW_CELLULAR', latency: 'ok' });
     });
 
-    it('keeps NONE with unknown latency over a slow bucket', () => {
+    it('reports unknown latency while offline over a slow bucket', () => {
       mockNetInfoState({
         type: 'none',
         isInternetReachable: false,
         details: {},
       });
-      const { result } = renderHook(() => useNetworkTierState());
+      const { result } = renderHook(() => useNetworkLatency());
 
       recordSamples([MID_HUNG_MS, MID_HUNG_MS]);
 
-      expect(result.current.tier).toBe('NONE');
-      expect(result.current.latency).toBe('unknown');
+      expect(result.current).toBe('unknown');
+    });
+
+    it('does not re-render useNetworkTier when the latency bucket changes', () => {
+      mockNetInfoState({
+        type: 'wifi',
+        isInternetReachable: true,
+        details: {},
+      });
+      let renders = 0;
+      renderHook(() => {
+        renders += 1;
+        return useNetworkTier();
+      });
+      const rendersBefore = renders;
+
+      recordSamples([MID_HUNG_MS, MID_HUNG_MS]);
+
+      expect(renders).toBe(rendersBefore);
     });
 
     it('re-renders only when the latency bucket changes', () => {
@@ -102,7 +121,7 @@ describe('useNetworkTier', () => {
       let renders = 0;
       renderHook(() => {
         renders += 1;
-        return useNetworkTier();
+        return useNetworkLatency();
       });
       recordSamples([300, 300, 300]);
       const rendersAtOk = renders;
@@ -187,8 +206,6 @@ describe('useNetworkTier', () => {
 
     expect(result.current).toEqual({
       tier: null,
-      transportTier: null,
-      latency: 'unknown',
       isResolved: false,
     });
   });
@@ -204,8 +221,6 @@ describe('useNetworkTier', () => {
 
     expect(result.current).toEqual({
       tier: null,
-      transportTier: null,
-      latency: 'unknown',
       isResolved: true,
     });
   });
@@ -221,8 +236,6 @@ describe('useNetworkTier', () => {
 
     expect(result.current).toEqual({
       tier: 'NONE',
-      transportTier: 'NONE',
-      latency: 'unknown',
       isResolved: true,
     });
   });

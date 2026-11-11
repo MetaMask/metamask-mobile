@@ -8,7 +8,6 @@ import {
   getLatencySnapshot,
   subscribeLatency,
 } from '../util/deviceCapability/latencyStore';
-import { resolveNetworkTier } from '../util/deviceCapability/resolveNetworkTier';
 import type {
   LatencyBucket,
   NetworkTier,
@@ -17,42 +16,47 @@ import type {
 export type { LatencyBucket, NetworkTier };
 
 export interface NetworkTierState {
-  /** Transport tier folded with measured latency. */
   tier: NetworkTier | null;
-  /** NetInfo-only tier, before the latency fold. */
-  transportTier: NetworkTier | null;
-  latency: LatencyBucket;
-  /** Describes NetInfo only. */
   isResolved: boolean;
 }
 
 /**
- * Current network tier: the NetInfo transport tier, forced to `SLOW_CELLULAR` when
- * measured fetch latency is `slow` on any transport other than `NONE`.
+ * Current network tier derived from `useNetInfo()`. Transport / generation
+ * only; measured slowness is `useNetworkLatency()`.
+ *
+ * Adds no extra NetInfo listener beyond the calling component's subscription.
  */
 export function useNetworkTier(): NetworkTier | null {
   return useNetworkTierState().tier;
 }
 
 /**
- * Folded tier plus its causes, and whether NetInfo has moved past its initial
- * unknown state. A resolved `null` tier is still a valid unknown cohort, for
- * example VPN or cellular without a recognized generation.
+ * Current network tier and whether NetInfo has moved past its initial unknown
+ * state. A resolved `null` tier is still a valid unknown cohort, for example
+ * VPN or cellular without a recognized generation.
  */
 export function useNetworkTierState(): NetworkTierState {
   const { type, isInternetReachable, details } = useNetInfo();
-  const bucket = useSyncExternalStore(subscribeLatency, getLatencySnapshot);
-  const transportTier = computeNetworkTier({
+  const tier = computeNetworkTier({
     type,
     cellularGeneration: readCellularGeneration(details),
     isInternetReachable,
   });
-  const { tier, latency } = resolveNetworkTier(transportTier, bucket);
 
   return {
     tier,
-    transportTier,
-    latency,
-    isResolved: transportTier !== null || (type !== null && type !== 'unknown'),
+    isResolved: tier !== null || (type !== null && type !== 'unknown'),
   };
+}
+
+/**
+ * Measured fetch latency, independent of the transport tier. `unknown` while
+ * offline or without enough samples. Re-renders only when the bucket changes,
+ * so it stays separate from `useNetworkTier` to keep that hook as stable as
+ * the transport.
+ */
+export function useNetworkLatency(): LatencyBucket {
+  const { tier } = useNetworkTierState();
+  const bucket = useSyncExternalStore(subscribeLatency, getLatencySnapshot);
+  return tier === 'NONE' ? 'unknown' : bucket;
 }
