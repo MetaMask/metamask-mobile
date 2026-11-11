@@ -40,6 +40,11 @@ import StockBadge from '../../shared/StockBadge/StockBadge';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
+import {
+  GraduationProgress,
+  GraduationProgressDetail,
+} from './GraduationProgressB/GraduationProgress';
+import type { GraduationProgressViewModel } from './GraduationProgressB/graduationViewModel';
 import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 import { TokenDetailsIds } from '../testIds';
 
@@ -77,6 +82,7 @@ export const TokenDetailsInlineHeader = ({
   tdpVersion,
   hideContractAddress = false,
   isGlass = false,
+  graduationViewModel,
   onLayout,
   scrollY,
 }: {
@@ -111,6 +117,12 @@ export const TokenDetailsInlineHeader = ({
    * capsules, as on the brand refresh.
    */
   isGlass?: boolean;
+  /**
+   * The memecoin's graduation state. When set, a 3 dp fuse bar rides the
+   * header surface's bottom edge and the graduation microcopy joins the
+   * subtitle row after the ticker and live price.
+   */
+  graduationViewModel?: GraduationProgressViewModel | null;
   /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
   onLayout?: (event: LayoutChangeEvent) => void;
   /** The page's scroll offset, which fades the glass backdrop in. */
@@ -236,59 +248,87 @@ export const TokenDetailsInlineHeader = ({
   );
 
   // The trailing detail that sits next to the ticker: contract address at rest,
-  // live price once the user scrolls past the hero.
+  // live price once the user scrolls past the hero, then the graduation
+  // microcopy for tokens still on the bonding curve.
   const trailingDetail = useMemo(() => {
-    if (description) {
-      return (
-        <Animated.View
-          key="live-price"
-          entering={FadeIn.duration(AnimationDuration.Fast)}
-          exiting={FadeOut.duration(AnimationDuration.Fast)}
+    const primaryDetail = description ? (
+      <Animated.View
+        key="live-price"
+        entering={FadeIn.duration(AnimationDuration.Fast)}
+        exiting={FadeOut.duration(AnimationDuration.Fast)}
+      >
+        {description}
+      </Animated.View>
+    ) : contractAddress ? (
+      <Animated.View
+        key="contract-address"
+        entering={FadeIn.duration(AnimationDuration.Fast)}
+        exiting={FadeOut.duration(AnimationDuration.Fast)}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="shrink-0 gap-1"
+          testID={TokenDetailsIds.header.address}
         >
-          {description}
-        </Animated.View>
-      );
-    }
-
-    if (contractAddress) {
-      return (
-        <Animated.View
-          key="contract-address"
-          entering={FadeIn.duration(AnimationDuration.Fast)}
-          exiting={FadeOut.duration(AnimationDuration.Fast)}
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="shrink-0 gap-1"
-            testID={TokenDetailsIds.header.address}
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
           >
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-            >
-              {formatCompactContractAddress(contractAddress)}
-            </Text>
-            <ButtonIcon
-              iconName={IconName.Copy}
-              size={ButtonIconSize.Xs}
-              onPress={handleCopyContractAddress}
-              iconProps={{
-                color: IconColor.IconAlternative,
-                size: IconSize.Sm,
-              }}
-              testID={TokenDetailsIds.header.copyAddressButton}
-              accessibilityLabel={strings('token.contract_address')}
-            />
-          </Box>
-        </Animated.View>
-      );
+            {formatCompactContractAddress(contractAddress)}
+          </Text>
+          <ButtonIcon
+            iconName={IconName.Copy}
+            size={ButtonIconSize.Xs}
+            onPress={handleCopyContractAddress}
+            iconProps={{
+              color: IconColor.IconAlternative,
+              size: IconSize.Sm,
+            }}
+            testID={TokenDetailsIds.header.copyAddressButton}
+            accessibilityLabel={strings('token.contract_address')}
+          />
+        </Box>
+      </Animated.View>
+    ) : null;
+
+    const graduationDetail = graduationViewModel ? (
+      <GraduationProgressDetail viewModel={graduationViewModel} />
+    ) : null;
+
+    if (!primaryDetail && !graduationDetail) {
+      return null;
     }
 
-    return null;
-  }, [description, contractAddress, handleCopyContractAddress]);
+    return (
+      <Box
+        key="trailing-detail"
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="min-w-0"
+      >
+        {primaryDetail}
+        {primaryDetail && graduationDetail ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            twClassName="px-1"
+          >
+            {'·'}
+          </Text>
+        ) : null}
+        {graduationDetail}
+      </Box>
+    );
+  }, [
+    description,
+    contractAddress,
+    handleCopyContractAddress,
+    graduationViewModel,
+  ]);
 
   const hasSubtitle = showTickerBelowName || trailingDetail;
 
@@ -365,6 +405,11 @@ export const TokenDetailsInlineHeader = ({
       titleEndAccessory={titleEndAccessory ?? defaultTitleEndAccessory}
       description={headerDescription}
       descriptionEndAccessory={subtitleAccessory}
+      bottomAccessory={
+        graduationViewModel ? (
+          <GraduationProgress viewModel={graduationViewModel} />
+        ) : undefined
+      }
     />
   );
 };

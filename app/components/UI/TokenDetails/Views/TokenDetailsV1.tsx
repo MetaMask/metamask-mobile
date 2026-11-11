@@ -115,6 +115,7 @@ import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery'
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStats } from '../hooks/useTokenStats';
 import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
+import { getGraduationProgressViewModel } from '../components/GraduationProgressB/graduationViewModel';
 import { formatTokenAge } from '../utils/formatTokenAge';
 import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
@@ -297,6 +298,17 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     tokenApiBaseUrl,
   );
   const launchedAt = tokenAsset?.launchpadData?.launchedAt;
+  // Variant B of the graduation progress: the fuse bar pinned to the header
+  // surface's bottom edge plus the subtitle microcopy, only while the token is
+  // on the bonding curve.
+  const graduationViewModel = useMemo(
+    () =>
+      getGraduationProgressViewModel(
+        tokenAsset?.launchpadData ?? null,
+        tokenAsset?.launchpad ?? null,
+      ),
+    [tokenAsset?.launchpadData, tokenAsset?.launchpad],
+  );
 
   const shareUrl = useMemo(
     () =>
@@ -874,6 +886,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               isPriceAlertsSupported ? handlePriceAlertPress : undefined
             }
             description={headerDescription}
+            graduationViewModel={graduationViewModel}
             titleEndAccessory={
               formatTokenAge(launchedAt) != null ? (
                 <TokenAgeChip

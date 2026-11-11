@@ -813,6 +813,73 @@ describe('TokenDetailsV1', () => {
     );
   });
 
+  describe('graduation progress (variant B)', () => {
+    const renderMemecoin = () =>
+      render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+    it('passes no graduation view model without token API launchpad data', () => {
+      renderMemecoin();
+
+      expect(mockInlineHeaderProps[0]).toEqual(
+        expect.objectContaining({ graduationViewModel: null }),
+      );
+    });
+
+    it('derives the fuse bar view model from bonding launchpad data', () => {
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: {
+          launchpad: 'pumpfun',
+          launchpadData: {
+            protocol: 'pumpfun',
+            graduationStage: 'bonding',
+            graduationPercent: '94.2',
+          },
+        },
+        isLoading: false,
+        isError: false,
+      });
+
+      renderMemecoin();
+
+      expect(mockInlineHeaderProps[0]).toEqual(
+        expect.objectContaining({
+          graduationViewModel: {
+            stage: 'bonding',
+            percent: 94.2,
+            raisedUsd: 64998.00000000001,
+            remainingUsd: 4001.9999999999977,
+          },
+        }),
+      );
+    });
+
+    it('passes no graduation view model once the token has graduated', () => {
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: {
+          launchpad: 'pumpfun',
+          launchpadData: {
+            protocol: 'pumpfun',
+            graduationStage: 'migrated',
+            graduationPercent: 100,
+          },
+        },
+        isLoading: false,
+        isError: false,
+      });
+
+      renderMemecoin();
+
+      expect(mockInlineHeaderProps[0]).toEqual(
+        expect.objectContaining({ graduationViewModel: null }),
+      );
+    });
+  });
+
   describe('docked tab bar', () => {
     const TAB_BAR_OFFSET_Y = 400;
     // The copy that is not taking taps is also hidden from screen readers,

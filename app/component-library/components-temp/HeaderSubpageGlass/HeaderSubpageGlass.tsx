@@ -13,6 +13,11 @@ import {
 
 export type HeaderSubpageGlassProps = HeaderSubpageProps &
   HeaderGlassOptions & {
+    /**
+     * Pinned to the surface's bottom edge below the header content, e.g. the
+     * graduation fuse bar on the memecoin token details header.
+     */
+    bottomAccessory?: React.ReactNode;
     /** The content's scroll offset; fades the `animated` backdrop in. */
     scrollY?: SharedValue<number>;
   };
@@ -28,6 +33,7 @@ const HeaderSubpageGlass = ({
   backdrop,
   fadeInDistance,
   isFloating,
+  bottomAccessory,
   scrollY,
   onLayout,
   ...props
@@ -40,6 +46,7 @@ const HeaderSubpageGlass = ({
     <HeaderGlass
       onLayout={onLayout}
       backdrop={backdrop}
+      bottomAccessory={bottomAccessory}
       scrollDistance={scrollY}
       fadeInDistance={fadeInDistance}
       isFloating={isFloating}

@@ -48,6 +48,11 @@ export interface HeaderGlassProps {
   topInset?: number;
   /** Style for the floating wrapper around the header content. */
   containerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Pinned to the surface's bottom edge below the header content, e.g. the
+   * graduation fuse bar on the memecoin token details header.
+   */
+  bottomAccessory?: React.ReactNode;
   /** @default 'animated' */
   backdrop?: HeaderGlassBackdropMode;
   /** How far the content has scrolled from its resting top; drives `animated`. */
@@ -72,6 +77,7 @@ export const FLOATING_HEADER_FADE_TEST_ID = 'floating-header-fade';
 /** A JS header floating over the content on `HeaderGlassBackdrop`; pair with `useHeaderGlassInset`. */
 const HeaderGlass = ({
   children,
+  bottomAccessory,
   onLayout,
   topInset = 0,
   containerStyle,
@@ -104,6 +110,7 @@ const HeaderGlass = ({
         />
       )}
       {children}
+      {bottomAccessory}
     </View>
   );
 };
