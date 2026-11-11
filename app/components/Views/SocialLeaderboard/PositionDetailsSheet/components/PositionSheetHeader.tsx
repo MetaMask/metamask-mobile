@@ -115,20 +115,6 @@ const PositionSheetHeader = ({
         gap={2}
         twClassName="shrink-0"
       >
-        {onShare && isSharing ? (
-          <ShareButtonSpinner
-            testID={PositionDetailsSheetSelectorsIDs.SHARE_SPINNER}
-          />
-        ) : onShare ? (
-          <ButtonIcon
-            iconName={IconName.Share}
-            iconProps={{ color: IconColor.IconDefault }}
-            size={ButtonIconSize.Md}
-            onPress={onShare}
-            accessibilityLabel={strings('social.profile.share_position')}
-            testID={PositionDetailsSheetSelectorsIDs.SHARE_BUTTON}
-          />
-        ) : null}
         {isOwnPost ? null : (
           <Button
             variant={ButtonVariant.Secondary}
@@ -143,6 +129,20 @@ const PositionSheetHeader = ({
             )}
           </Button>
         )}
+        {onShare && isSharing ? (
+          <ShareButtonSpinner
+            testID={PositionDetailsSheetSelectorsIDs.SHARE_SPINNER}
+          />
+        ) : onShare ? (
+          <ButtonIcon
+            iconName={IconName.Share}
+            iconProps={{ color: IconColor.IconDefault }}
+            size={ButtonIconSize.Md}
+            onPress={onShare}
+            accessibilityLabel={strings('social.profile.share_position')}
+            testID={PositionDetailsSheetSelectorsIDs.SHARE_BUTTON}
+          />
+        ) : null}
       </Box>
     </Box>
   );
