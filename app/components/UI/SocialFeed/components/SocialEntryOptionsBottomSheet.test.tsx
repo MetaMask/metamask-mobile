@@ -279,7 +279,11 @@ describe('SocialEntryOptionsBottomSheet', () => {
       ),
     );
 
+    expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockOpenSocialSupport).toHaveBeenCalledTimes(1);
+    expect(onClose.mock.invocationCallOrder[0]).toBeLessThan(
+      mockOpenSocialSupport.mock.invocationCallOrder[0],
+    );
   });
 
   it.each([

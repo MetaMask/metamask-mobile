@@ -94,7 +94,7 @@ const ProfileOptionsSheet: React.FC<ProfileOptionsSheetProps> = ({
         {strings(titleKey)}
       </BottomSheetHeader>
       {step === 'support' ? (
-        <SocialImpersonationSupport />
+        <SocialImpersonationSupport onDismiss={dismiss} />
       ) : step === 'reasons' ? (
         <SocialReportReasonPicker
           selectedReason={selectedReason}

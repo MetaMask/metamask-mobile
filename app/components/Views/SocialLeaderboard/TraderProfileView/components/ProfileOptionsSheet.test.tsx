@@ -139,15 +139,27 @@ describe('ProfileOptionsSheet', () => {
 
     expect(onReport).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
-    expect(screen.getByText('Contact customer support')).toBeOnTheScreen();
     expect(
-      screen.getByText(
-        'Impersonation claims are handled by customer support. They will ask for your email address and follow up with you.',
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT_DESCRIPTION,
       ),
     ).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('Contact support'));
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT_CONTACT,
+      ),
+    );
 
+    expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockOpenSocialSupport).toHaveBeenCalledTimes(1);
+    expect(onClose.mock.invocationCallOrder[0]).toBeLessThan(
+      mockOpenSocialSupport.mock.invocationCallOrder[0],
+    );
   });
 });

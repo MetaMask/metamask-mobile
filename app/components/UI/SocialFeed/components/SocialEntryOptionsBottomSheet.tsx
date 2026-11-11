@@ -143,7 +143,7 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
               )}
             </BottomSheetHeader>
             {step === 'support' ? (
-              <SocialImpersonationSupport />
+              <SocialImpersonationSupport onDismiss={onClose} />
             ) : step === 'reasons' ? (
               <SocialReportReasonPicker
                 selectedReason={selectedReason}

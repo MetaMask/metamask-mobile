@@ -1691,7 +1691,11 @@ describe('MyProfileView', () => {
     );
 
     expect(mockBlock).not.toHaveBeenCalled();
-    expect(screen.getByText('Contact customer support')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('hides owner actions and shows follow for another trader', () => {
