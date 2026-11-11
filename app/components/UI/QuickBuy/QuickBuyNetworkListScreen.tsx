@@ -1,9 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  BottomSheetHeader,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
@@ -16,12 +12,15 @@ import {
 import type { RootState } from '../../../reducers';
 import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * In-sheet network filter for the Quick Buy token picker. Writes the shared
  * token-selector network filter and returns to the picker.
  */
 const QuickBuyNetworkListScreen: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const dispatch = useDispatch();
   const { setActiveScreen, tradeMode, payWithChainIds } = useQuickBuyContext();
   const chainRanking = useSelector((state: RootState) =>
@@ -47,7 +46,8 @@ const QuickBuyNetworkListScreen: React.FC = () => {
 
   return (
     <>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={handleBack}
         backButtonProps={{
           testID: QuickBuySheetSelectorsIDs.NETWORK_LIST_BACK,
@@ -57,7 +57,7 @@ const QuickBuyNetworkListScreen: React.FC = () => {
         <Text variant={TextVariant.HeadingSm}>
           {strings('bridge.select_network')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <NetworkList
         chainRanking={chainRanking}
         selectedChainId={selectedChainId}

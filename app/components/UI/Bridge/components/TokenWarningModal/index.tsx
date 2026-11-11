@@ -22,7 +22,6 @@ import { getBridgeTokenSecurityConfig } from '../../utils/tokenSecurityUtils';
 import { SecurityDataType, SecurityFeature } from '../../types';
 import {
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxBackgroundColor,
@@ -38,6 +37,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface TokenWarningModalParams {
   warningType:
@@ -98,6 +99,7 @@ const TokenWarningModalSheet = ({
   shouldShowPriceImpactError,
   confirmBridge,
 }: TokenWarningModalSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
@@ -173,7 +175,8 @@ const TokenWarningModalSheet = ({
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           size: ButtonIconSize.Md,

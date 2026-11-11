@@ -4,7 +4,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   ButtonIconSize,
@@ -20,6 +19,9 @@ import {
   useSwapBridgeNavigation,
 } from '../../hooks/useSwapBridgeNavigation';
 import { HighRateAlertModalSelectorsIDs } from './HighRateAlertModal.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface HighRateAlertModalParams {
   sourceToken: BridgeToken;
@@ -27,6 +29,7 @@ export interface HighRateAlertModalParams {
 }
 
 export function HighRateAlertModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const { goBack } = useNavigation<AppNavigationProp>();
   const { sourceToken, destToken } = useParams<HighRateAlertModalParams>();
@@ -50,7 +53,8 @@ export function HighRateAlertModal() {
       goBack={goBack}
       testID={HighRateAlertModalSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           size: ButtonIconSize.Md,
@@ -58,7 +62,7 @@ export function HighRateAlertModal() {
         }}
       >
         {strings('bridge.batch_sell_single_token_dialog_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
           {strings('bridge.batch_sell_single_token_dialog_description')}

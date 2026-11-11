@@ -3,7 +3,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import React from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   ButtonIconSize,
   Text,
@@ -15,6 +14,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { BatchSellPriceImpactInfoModalSelectorsIDs } from './BatchSellPriceImpactInfoModal.testIds';
 import { BatchSellPriceImpactInfoModalParams } from './BatchSellPriceImpactInfoModal.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 function formatPriceImpact(priceImpact: string) {
   const parsedPriceImpact = Number(priceImpact);
@@ -25,6 +27,7 @@ function formatPriceImpact(priceImpact: string) {
 }
 
 export function BatchSellPriceImpactInfoModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { priceImpact } = useParams<BatchSellPriceImpactInfoModalParams>();
   const formattedPriceImpact = formatPriceImpact(priceImpact);
@@ -34,7 +37,8 @@ export function BatchSellPriceImpactInfoModal() {
       testID={BatchSellPriceImpactInfoModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={navigation.goBack}
         closeButtonProps={{
           size: ButtonIconSize.Md,
@@ -42,7 +46,7 @@ export function BatchSellPriceImpactInfoModal() {
         }}
       >
         {strings('bridge.batch_sell_high_price_impact')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text
           variant={TextVariant.BodySm}
