@@ -11,6 +11,7 @@ export const MembershipTestIds = {
   PAYMENT_SECTION: 'membership-payment-section',
   TOTAL_ROW: 'membership-total-row',
   PAYING_WITH_ROW: 'membership-paying-with-row',
+  PAYING_WITH_MONEY_ICON: 'membership-paying-with-money-icon',
   RENEWS_ON_ROW: 'membership-renews-on-row',
   // Manage section
   MANAGE_SECTION: 'membership-manage-section',
