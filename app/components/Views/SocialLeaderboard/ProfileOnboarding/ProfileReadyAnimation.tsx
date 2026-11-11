@@ -13,6 +13,8 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import ProfileReadyRive from '../../../../animations/social_v1_profile-ready.riv';
 import Logger from '../../../../util/Logger';
+import { useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import {
   PROFILE_ONBOARDING_RIVE_ASSETS,
@@ -54,6 +56,7 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
   fallback,
 }) => {
   const tw = useTailwind();
+  const { themeAppearance } = useTheme();
   const skipAnimation = !useProfileOnboardingRiveEnabled();
   const [hasRiveError, setHasRiveError] = useState(false);
 
@@ -86,6 +89,15 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
     PROFILE_READY_RIVE_PATHS.IS_VERIFIED,
     instance,
   );
+  const { setValue: setLightMode } = useRiveBoolean(
+    PROFILE_READY_RIVE_PATHS.LIGHT_MODE,
+    instance,
+  );
+
+  useEffect(() => {
+    if (!instance) return;
+    setLightMode(themeAppearance === AppThemeKey.light);
+  }, [instance, setLightMode, themeAppearance]);
 
   useEffect(() => {
     if (!instance) return;
