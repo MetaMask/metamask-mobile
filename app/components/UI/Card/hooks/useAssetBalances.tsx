@@ -43,7 +43,7 @@ import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 30 * 1000; // 30 seconds
 
 /** Market data is keyed by checksum. Skip addresses that are not 20-byte hex. */
-const checksummedTokenAddress = (address?: string): string | undefined => {
+const checksummedTokenAddress = (address?: string | null): Hex | undefined => {
   if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
     return undefined;
   }

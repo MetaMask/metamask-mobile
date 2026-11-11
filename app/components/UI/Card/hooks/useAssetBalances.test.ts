@@ -120,6 +120,8 @@ const mockGetTokenRatesControllerMarketData =
   getTokenRatesControllerMarketData as jest.MockedFunction<
     typeof getTokenRatesControllerMarketData
   >;
+const mockGetCurrencyRateControllerCurrentCurrency =
+  getCurrencyRateControllerCurrentCurrency as unknown as jest.Mock;
 const mockGetMultichainAssetsRatesControllerConversionRates =
   getMultichainAssetsRatesControllerConversionRates as jest.MockedFunction<
     typeof getMultichainAssetsRatesControllerConversionRates
@@ -168,7 +170,7 @@ describe('useAssetBalances', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (getCurrencyRateControllerCurrentCurrency as jest.Mock).mockImplementation(
+    mockGetCurrencyRateControllerCurrentCurrency.mockImplementation(
       () => 'USD',
     );
     networkConfigsState = { '0xe708': { nativeCurrency: 'ETH' } };
@@ -249,9 +251,7 @@ describe('useAssetBalances', () => {
     });
 
     it('converts a USD-pegged balance into the selected currency', () => {
-      (getCurrencyRateControllerCurrentCurrency as jest.Mock).mockReturnValue(
-        'EUR',
-      );
+      mockGetCurrencyRateControllerCurrentCurrency.mockReturnValue('EUR');
       mockGetCurrencyRateControllerCurrencyRates.mockReturnValue({
         ETH: {
           conversionRate: 1800,
