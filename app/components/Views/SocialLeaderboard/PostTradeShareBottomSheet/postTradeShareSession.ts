@@ -20,6 +20,7 @@ export type PostTradeShareVariant = 'share' | 'create_profile';
  */
 export const PostTradeShareOwner = {
   socialV1Feed: 'social-v1-feed',
+  socialV1Profile: 'social-v1-profile',
   traderPosition: 'trader-position',
   tokenDetails: 'token-details',
 } as const;

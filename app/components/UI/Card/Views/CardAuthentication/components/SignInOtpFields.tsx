@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Platform, TextInput } from 'react-native';
+import { AccessibilityInfo, Platform, TextInput } from 'react-native';
 import {
   Box,
   HelpText,
@@ -27,6 +27,7 @@ interface SignInOtpFieldsProps {
   otpError: string | null;
   resendCooldown: number;
   otpLoading: boolean;
+  showResend?: boolean;
   isScreenTransitionComplete: boolean;
   onChangeCode: (text: string) => void;
   onResend: () => void;
@@ -40,6 +41,7 @@ const SignInOtpFields = ({
   otpError,
   resendCooldown,
   otpLoading,
+  showResend = true,
   isScreenTransitionComplete,
   onChangeCode,
   onResend,
@@ -53,6 +55,20 @@ const SignInOtpFields = ({
     }
     codeInputRef.current?.focus();
   }, [isScreenTransitionComplete]);
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(error);
+  }, [error]);
+
+  useEffect(() => {
+    if (!otpError) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(otpError);
+  }, [otpError]);
 
   return (
     <Box gap={2}>
@@ -84,37 +100,41 @@ const SignInOtpFields = ({
           {error}
         </HelpText>
       )}
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
-      >
-        {resendCooldown > 0 ? (
-          strings('card.card_otp_authentication.resend_cooldown', {
-            seconds: resendCooldown,
-          })
-        ) : (
-          <>
-            {strings('card.card_otp_authentication.didnt_receive_code')}
-            <TextButton
-              variant={TextVariant.BodySm}
-              onPress={resendCooldown > 0 ? undefined : onResend}
-              disabled={resendCooldown > 0 || otpLoading}
+      {showResend && (
+        <>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
+          >
+            {resendCooldown > 0 ? (
+              strings('card.card_otp_authentication.resend_cooldown', {
+                seconds: resendCooldown,
+              })
+            ) : (
+              <>
+                {strings('card.card_otp_authentication.didnt_receive_code')}
+                <TextButton
+                  variant={TextVariant.BodySm}
+                  onPress={resendCooldown > 0 ? undefined : onResend}
+                  disabled={resendCooldown > 0 || otpLoading}
+                >
+                  {resendLabel}
+                </TextButton>
+              </>
+            )}
+          </Text>
+          {otpError && (
+            <HelpText
+              severity={HelpTextSeverity.Danger}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+              testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
             >
-              {resendLabel}
-            </TextButton>
-          </>
-        )}
-      </Text>
-      {otpError && (
-        <HelpText
-          severity={HelpTextSeverity.Danger}
-          accessibilityRole="alert"
-          accessibilityLiveRegion="polite"
-          testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
-        >
-          {otpError}
-        </HelpText>
+              {otpError}
+            </HelpText>
+          )}
+        </>
       )}
     </Box>
   );

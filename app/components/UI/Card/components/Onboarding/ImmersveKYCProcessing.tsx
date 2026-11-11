@@ -42,7 +42,7 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import ImmersveVerifyingIdentityAnimation from './ImmersveVerifyingIdentityAnimation';
 
 // While the user waits on this screen, poll spending-prerequisites; give up after
-// this window and send them to the "we'll notify you" pending screen. Immersve
+// this window, send them to Card home (KYC still pending). Immersve
 // permits 2-3 min of direct-integration polling — we keep the 30s used by the
 // Veriff progress screen since real background checks take minutes to days.
 const POLLING_TIMEOUT_MS = 30000;
@@ -53,7 +53,7 @@ const POLLING_TIMEOUT_MS = 30000;
  * `spending-prerequisites`: opens the hosted KYC webview, then polls to a
  * terminal state.
  * - kyc (+url) → open the Immersve KYC webview modal (once)
- * - pending    → spinner + auto-poll; 30s timeout → KYC_PENDING
+ * - pending    → spinner + auto-poll; 30s timeout → Card home (pending)
  * - rejected   → KYC_FAILED (blocked / kyc_check_failed)
  * - active/funding (approved) → interim terminus (branch 6b wires SpendingLimit)
  */
@@ -85,9 +85,9 @@ const ImmersveKYCProcessing = () => {
   const openKycWebview = useCallback(
     (url: string) => {
       hasOpenedWebview.current = true;
-      navigation.navigate(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-        params: { url, redirectUrl: KYC_REDIRECT_URL },
+      navigation.navigate(Routes.CARD.ONBOARDING.IMMERSVE_KYC, {
+        url,
+        redirectUrl: KYC_REDIRECT_URL,
       });
     },
     [navigation],
@@ -131,10 +131,11 @@ const ImmersveKYCProcessing = () => {
     }
   }, [kycUrl, openKycWebview]);
 
-  // Re-poll when the webview closes. The transparentModal keeps this screen
-  // mounted without blurring it, so useFocusEffect can't detect the close — the
-  // modal invokes this callback instead. The poll then decides: kyc still
-  // action-required ⇒ the user bailed (show a reopen prompt); otherwise route.
+  // Re-poll when the webview closes back onto this screen. Exit to the wallet
+  // tears this screen down before focus returns, so useFocusEffect cannot be
+  // the signal — the webview invokes this callback instead. The poll then
+  // decides: kyc still action-required ⇒ the user bailed (show a reopen
+  // prompt); otherwise route.
   useEffect(() => {
     setImmersveKycOnClose(() => {
       refresh().catch(() => undefined);
@@ -185,7 +186,7 @@ const ImmersveKYCProcessing = () => {
       );
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     }, POLLING_TIMEOUT_MS);
     return () => clearTimeout(id);

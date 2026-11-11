@@ -17,7 +17,7 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../../core/Engine';
 import useStakingChain from '../../Stake/hooks/useStakingChain';
-import { useMoneyDepositNavigation } from '../../Money/hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../Money/hooks/useMoneyDepositNavigation';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import Logger from '../../../../util/Logger';
 import useEarnToasts from './useEarnToasts';
