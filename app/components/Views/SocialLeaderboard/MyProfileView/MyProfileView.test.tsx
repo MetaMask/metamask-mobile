@@ -23,6 +23,7 @@ import { ProfileOptionsSheetSelectorsIDs } from '../TraderProfileView/components
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import {
+  mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
 } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
@@ -265,6 +266,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     emptyState?: React.ReactNode;
     filterPost?: (post: SocialV1FeedPost) => boolean;
     onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
+    onPositionPress?: (post: SocialV1FeedPost) => void;
     refreshRef?: React.Ref<{ refresh: () => Promise<void> }>;
     testID?: string;
   }) => {
@@ -298,6 +300,14 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
           posts.map((post) => (
             <View key={post.id} testID={`my-profile-post-${post.id}`}>
               <Text>{post.id}</Text>
+              {props.onPositionPress && post.position ? (
+                <Pressable
+                  testID={`my-profile-post-position-${post.id}`}
+                  onPress={() => props.onPositionPress?.(post)}
+                >
+                  <Text>Position</Text>
+                </Pressable>
+              ) : null}
               {!props.analyticsEnabled ? (
                 <Pressable
                   testID={`my-profile-post-copy-trade-${post.id}`}
@@ -985,6 +995,76 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId('my-profile-post-copy-trade-post-1'),
     ).toBeOnTheScreen();
+  });
+
+  describe('post position press', () => {
+    const postPosition = { positionId: 'btc-perp' } as Position;
+    const setPosts = (posts: SocialV1FeedPost[]) =>
+      setMockSocialFeedState({
+        posts,
+        rows: [],
+        isLoading: false,
+        isFetchingNextPage: false,
+        hasNextPage: false,
+        loadMore: jest.fn(),
+        error: null,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+    it('opens the position sheet from an owner post', () => {
+      setPosts([mockMyProfilePost({ position: postPosition })]);
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+      fireEvent.press(screen.getByTestId('my-profile-post-position-post-1'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+        positionId: 'btc-perp',
+        position: postPosition,
+        author: expect.objectContaining({ id: 'current-user' }),
+        isClosed: false,
+        isSnapshotLive: false,
+      });
+    });
+
+    it('opens the position sheet from another trader post', () => {
+      mockProfileRouteParams = {
+        traderId: 'trader-1',
+        traderName: 'alpha.eth',
+        traderAddress: '0xabc',
+      };
+      mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+      setPosts([
+        mockMyProfilePost({
+          item: mockClosedPerpsFeedItem({ id: 'post-1' }),
+          position: postPosition,
+        }),
+      ]);
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+      fireEvent.press(screen.getByTestId('my-profile-post-position-post-1'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+        positionId: 'btc-perp',
+        position: postPosition,
+        author: expect.objectContaining({ id: 'foreign-profile-id' }),
+        isClosed: true,
+        isSnapshotLive: false,
+      });
+    });
+
+    it('leaves a post without a position unpressable', () => {
+      setPosts([mockMyProfilePost()]);
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+      expect(screen.getByTestId('my-profile-post-post-1')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('my-profile-post-position-post-1'),
+      ).toBeNull();
+    });
   });
 
   describe('spot copy trade', () => {
