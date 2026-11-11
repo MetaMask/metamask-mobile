@@ -102,8 +102,8 @@ const DEFAULT_PROPS: PerpsToggleBlockProps = {
   defaultPillKey: 'stock',
   onViewAll: jest.fn(),
   sortOptionId: 'volume',
-  tabName: 'RWAs',
-  sectionName: 'perps_markets',
+  tabName: 'Macro',
+  sectionName: 'perps_stocks_commodities',
   headerTestID: 'section-header-view-all-test',
   idPrefix: 'test',
   testIdPrefix: 'test-toggle',
@@ -306,8 +306,8 @@ describe('PerpsToggleBlock', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         expect.objectContaining({
           interaction_type: 'section_item_tapped',
-          tab_name: 'RWAs',
-          section_name: 'perps_markets',
+          tab_name: 'Macro',
+          section_name: 'perps_stocks_commodities',
           asset_type: 'perp',
           item_clicked: 'AAPL',
         }),
