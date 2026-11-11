@@ -197,8 +197,7 @@ const MOCK_MONEY_ACCOUNT = {
 const MOCK_RECIPIENT = '0xrecipient';
 
 const MOCK_PROVIDER = {} as ReturnType<typeof getProviderByChainId>;
-// What TransactionController throws when the user rejects a Pay-funded
-// transaction on the Ledger: no 4001 code, only the prefixed device message.
+// TransactionController rethrows it as an internal error, with no 4001 code.
 const createLedgerDeviceRejection = (): Error =>
   rpcErrors.internal(
     'MetaMask Pay: Relay: Ledger: User rejected action on device',
