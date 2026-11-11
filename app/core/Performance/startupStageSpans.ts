@@ -1093,7 +1093,7 @@ export const noteStartupLeg2Ended = () =>
     scheduleEvaluation();
   });
 
-/** The saga's seedless check, which runs before the credential request. */
+/** The seedless check in `tryBiometricUnlock`, which runs before the credential request. */
 export const noteStartupSeedlessPrecheck = ({
   startedAt,
   endedAt,
