@@ -1,6 +1,6 @@
 # Predict Available Balance - Complete Flow Performance [scenario shadow]
 
-Tags: @PerformanceShadow
+Tags: @PerformanceShadow @PerfHealTest
 Team: @team-predict
 Platforms: Android
 
@@ -10,7 +10,7 @@ Platforms: Android
 
 1. Secret: Log in to the wallet
 2. Tap the Predictions section header on the wallet home (testID homepage-section-title-predictions; scroll down to find it)
-3. Expect: the Predict home screen is visible [check: testID=predict-home-container]
+3. Expect: the Predict home screen is visible
 
 ## Timers
 

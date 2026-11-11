@@ -1,6 +1,6 @@
 # Asset View, SRP 1 + SRP 2 + SRP 3 [scenario shadow]
 
-Tags: @PerformanceShadow
+Tags: @PerformanceShadow @PerfHealTest
 Team: @assets-dev-team
 Platforms: Android
 

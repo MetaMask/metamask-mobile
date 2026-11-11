@@ -42,18 +42,34 @@ has_performance_type_tag() {
 
 include_scenarios=false
 include_specs=true
+# Test-branch only: @PerfHealTest selects the two deliberately broken scenarios.
+include_heal_test=false
 if [[ "$GREP_TAGS" == *@PerformanceShadow* ]]; then
   include_scenarios=true
 fi
+if [[ "$GREP_TAGS" == *@PerfHealTest* ]]; then
+  include_heal_test=true
+  include_scenarios=true
+fi
 # A scenarios-only selection would leave every other spec as an empty task.
-if [[ "$GREP_TAGS" == "@PerformanceShadow" ]]; then
+if [[ "$GREP_TAGS" == "@PerformanceShadow" || "$GREP_TAGS" == "@PerfHealTest" ]]; then
   include_specs=false
 fi
 
 found=0
 while IFS= read -r -d '' file; do
   if [[ "$file" == *.scenario.spec.ts ]]; then
-    selected="$include_scenarios"
+    if [[ "$include_heal_test" == true && "$GREP_TAGS" != *@PerformanceShadow* ]]; then
+      # The tag lives in the Markdown, not the thin spec.
+      scenario_md="${file%.spec.ts}.md"
+      if [[ -f "$scenario_md" ]] && grep -q '@PerfHealTest' "$scenario_md"; then
+        selected=true
+      else
+        selected=false
+      fi
+    else
+      selected="$include_scenarios"
+    fi
   elif [[ "$include_specs" == true ]] && has_performance_type_tag "$file"; then
     selected=true
   else
@@ -66,6 +82,10 @@ while IFS= read -r -d '' file; do
 done < <(find "${ROOTS[@]}" -type f -name '*.spec.ts' -print0 | LC_ALL=C sort -z)
 
 if [[ "$found" -eq 0 ]]; then
+  # The heal-test tag only matches login scenarios, so the onboarding lane is empty.
+  if [[ "$GREP_TAGS" == "@PerfHealTest" ]]; then
+    exit 0
+  fi
   echo "No @Performance specs found under ${ROOTS[*]} for BUILD_TYPE=$BUILD_TYPE" >&2
   exit 1
 fi
