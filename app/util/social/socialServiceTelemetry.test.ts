@@ -494,6 +494,28 @@ describe('useLogSocialQueryError', () => {
     rerender({ queryError: null });
     expect(mockLoggerError).toHaveBeenCalledTimes(1);
   });
+
+  describe('one query watched by two hooks', () => {
+    const context = {
+      surface: 'trader_feed' as const,
+      operation: 'fetch_feed',
+      extraMessage: 'Social feed fetch failed',
+      source: 'useSocialFeed',
+      endpoint: 'feed' as const,
+    };
+
+    it('reports the shared error once', () => {
+      const sharedError = new Error('feed down');
+
+      renderHook(() => {
+        useLogSocialQueryError(sharedError, context);
+        useLogSocialQueryError(sharedError, context);
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -568,6 +590,7 @@ describe('addSocialBreadcrumb', () => {
     const endpoints: SocialEndpoint[] = [
       'leaderboard',
       'following',
+      'followers',
       'open_positions',
       'closed_positions',
       'position_by_id',

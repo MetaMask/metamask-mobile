@@ -141,7 +141,6 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
       nickname: 'Ethereum Mainnet',
       ticker: 'ETH',
       rpcUrl: 'https://mainnet.infura.io/v3/test',
-      failoverRpcUrls: [],
       rpcPrefs: {
         blockExplorerUrl: 'https://etherscan.io',
         imageUrl: 'https://ethereum.png',
@@ -153,7 +152,6 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
       nickname: 'Base',
       ticker: 'ETH',
       rpcUrl: 'https://mainnet.base.org',
-      failoverRpcUrls: [],
       rpcPrefs: {
         blockExplorerUrl: 'https://basescan.org',
         imageUrl: 'https://base.png',
@@ -284,7 +282,6 @@ describe('TrendingTokenRowItem', () => {
         nickname: 'Ethereum Mainnet',
         ticker: 'ETH',
         rpcUrl: 'https://mainnet.infura.io/v3/test',
-        failoverRpcUrls: [],
         rpcPrefs: {
           blockExplorerUrl: 'https://etherscan.io',
           imageUrl: 'https://ethereum.png',
@@ -296,7 +293,6 @@ describe('TrendingTokenRowItem', () => {
         nickname: 'Base',
         ticker: 'ETH',
         rpcUrl: 'https://mainnet.base.org',
-        failoverRpcUrls: [],
         rpcPrefs: {
           blockExplorerUrl: 'https://basescan.org',
           imageUrl: 'https://base.png',
@@ -358,6 +354,58 @@ describe('TrendingTokenRowItem', () => {
     );
 
     expect(getByText(/\$76B cap • \$974\.2M vol/)).toBeTruthy();
+  });
+
+  it('renders the symbol and market cap subtitle for search rows', () => {
+    const token = createMockToken();
+
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} subtitle="search" />,
+      { state: mockState },
+      false,
+    );
+
+    expect(getByText('USDC · $76B cap')).toBeTruthy();
+  });
+
+  it('renders a dash market cap and omits volume when search rows have no market cap', () => {
+    const token = createMockToken({
+      marketCap: undefined,
+      aggregatedUsdVolume: 974248822.2,
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} subtitle="search" />,
+      { state: mockState },
+      false,
+    );
+
+    expect(getByText('USDC · - cap')).toBeTruthy();
+    expect(queryByText(/vol/)).toBeNull();
+  });
+
+  it('renders the search subtitle in the selected currency', () => {
+    const token = createMockToken();
+    const stateWithEur = {
+      ...mockState,
+      engine: {
+        ...mockState.engine,
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          AssetsController: {
+            selectedCurrency: 'eur',
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} subtitle="search" />,
+      { state: stateWithEur },
+      false,
+    );
+
+    expect(getByText('USDC · €76B cap')).toBeTruthy();
   });
 
   it('renders formatted price', () => {

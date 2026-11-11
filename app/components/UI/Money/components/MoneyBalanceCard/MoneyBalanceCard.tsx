@@ -27,38 +27,36 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../../component-library/hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import styleSheet from './MoneyBalanceCard.styles';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
+import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import Logger from '../../../../../util/Logger';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import {
-  BOTTOM_SHEET_NAMES,
+  MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
   COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 
-const MoneyBalanceCard = () => {
+export interface MoneyBalanceCardProps {
+  isGlass?: boolean;
+}
+
+const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const hasSeenMoneyCardRef = useRef(false);
-  const { styles } = useStyles(styleSheet, {});
   const {
     totalFiatRaw,
     totalFiatFormatted,
@@ -69,12 +67,7 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { apyPercent, vaultApyQuery } = useMoneyVaultApy();
   const { hasMoneyAccount } = useMoneyAccountInfo();
-  const { navigateToMoneyHome } = useMoneyNavigation();
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
-  const isOnboardingEnabled = useSelector(
-    selectMoneyOnboardingStepperAnimationEnabled,
-  );
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectHasWalletFundingPrimaryCta,
   );
@@ -92,6 +85,26 @@ const MoneyBalanceCard = () => {
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
   });
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const handleAddPress = useCallback(async () => {
+    try {
+      await navigateToMoneyDeposit({
+        track: ({ button_intent, redirect_target }) => {
+          trackButtonClicked({
+            button_type: MONEY_BUTTON_TYPES.TEXT,
+            button_intent,
+            label_key: 'money.balance_card.add',
+            redirect_target,
+          });
+        },
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[MoneyBalanceCard] Failed to initiate deposit',
+      );
+    }
+  }, [navigateToMoneyDeposit, trackButtonClicked]);
 
   const isBalanceFetching = isBalanceFetchError && moneyBalanceQuery.isFetching;
 
@@ -156,84 +169,13 @@ const MoneyBalanceCard = () => {
     trackComponentViewed();
   }, [shouldRenderCard, trackComponentViewed]);
 
-  const navigateToGeoBlockSheet = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-    });
-  }, [navigation]);
-
   const handleCardPress = useCallback(() => {
-    trackSurfaceClicked({
-      redirect_target: !isMoneyAccountGeoEligible
-        ? BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
-        : hasSeenMoneyOnboarding || !isOnboardingEnabled
-          ? SCREEN_NAMES.MONEY_HOME
-          : SCREEN_NAMES.MONEY_ONBOARDING,
+    navigateToMoneyHome({
+      track: ({ redirect_target }) => {
+        trackSurfaceClicked({ redirect_target });
+      },
     });
-
-    if (!isMoneyAccountGeoEligible) {
-      navigateToGeoBlockSheet();
-      return;
-    }
-
-    navigateToMoneyHome();
-  }, [
-    hasSeenMoneyOnboarding,
-    isMoneyAccountGeoEligible,
-    isOnboardingEnabled,
-    navigateToGeoBlockSheet,
-    navigateToMoneyHome,
-    trackSurfaceClicked,
-  ]);
-
-  const handleAddPress = useCallback(async () => {
-    const redirectedToGeoBlock = !isMoneyAccountGeoEligible;
-    const redirectedToOnboarding =
-      !redirectedToGeoBlock && !hasSeenMoneyOnboarding && isOnboardingEnabled;
-
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: redirectedToOnboarding
-        ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
-        : MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_key: buttonLabelKey,
-      redirect_target: redirectedToGeoBlock
-        ? BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
-        : redirectedToOnboarding
-          ? SCREEN_NAMES.MONEY_ONBOARDING
-          : SCREEN_NAMES.MONEY_DEPOSIT,
-    });
-
-    if (redirectedToGeoBlock) {
-      navigateToGeoBlockSheet();
-      return;
-    }
-
-    if (redirectedToOnboarding) {
-      navigation.navigate(Routes.MONEY.ONBOARDING, {
-        postOnboardingRedirect: {
-          type: MoneyPostOnboardingRedirectType.DEPOSIT,
-        },
-      });
-      return;
-    }
-
-    try {
-      await initiateDeposit();
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: '[MoneyBalanceCard] Failed to initiate deposit',
-      });
-    }
-  }, [
-    hasSeenMoneyOnboarding,
-    initiateDeposit,
-    isMoneyAccountGeoEligible,
-    isOnboardingEnabled,
-    navigation,
-    navigateToGeoBlockSheet,
-    trackButtonClicked,
-  ]);
+  }, [navigateToMoneyHome, trackSurfaceClicked]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({
@@ -313,18 +255,8 @@ const MoneyBalanceCard = () => {
     );
   };
 
-  return (
-    <Pressable
-      testID={containerTestId}
-      onPress={handleCardPress}
-      style={({ pressed }) => [
-        styles.container,
-        tw.style(
-          'flex-row items-center justify-between gap-3 bg-muted',
-          pressed && 'opacity-80',
-        ),
-      ]}
-    >
+  const content = (
+    <>
       <Box twClassName="w-0 min-w-0 flex-1 gap-1 pr-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -401,15 +333,50 @@ const MoneyBalanceCard = () => {
         justifyContent={BoxJustifyContent.End}
         twClassName="shrink-0"
       >
-        <Button
-          testID={buttonTestId}
-          variant={buttonVariant}
-          size={ButtonSize.Md}
-          onPress={handleAddPress}
-        >
-          {strings(buttonLabelKey)}
-        </Button>
+        {buttonVariant === ButtonVariant.Secondary ? (
+          <ButtonGlass
+            isGlass={isGlass}
+            testID={buttonTestId}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </ButtonGlass>
+        ) : (
+          <Button
+            testID={buttonTestId}
+            variant={buttonVariant}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </Button>
+        )}
       </Box>
+    </>
+  );
+
+  return (
+    <Pressable
+      testID={containerTestId}
+      onPress={handleCardPress}
+      style={({ pressed }) => [
+        tw.style('mx-4'),
+        !isGlass && pressed && tw.style('opacity-80'),
+      ]}
+    >
+      <BoxGlass
+        isGlass={isGlass}
+        radiusClassName="rounded-xl"
+        isInteractive
+        hasSheen
+        testID={MoneyBalanceCardTestIds.SURFACE}
+        style={tw.style(
+          'min-h-[82px] flex-row items-center justify-between gap-3 p-4',
+        )}
+      >
+        {content}
+      </BoxGlass>
     </Pressable>
   );
 };

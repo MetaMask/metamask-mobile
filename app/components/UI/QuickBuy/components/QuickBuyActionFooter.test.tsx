@@ -21,6 +21,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../../Bridge/components/SwapsRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('./QuickBuyQuickAmounts', () => {
   const ReactMock = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -197,6 +202,20 @@ describe('QuickBuyActionFooter', () => {
     expect(
       screen.queryByText('social_leaderboard.quick_buy.est_receive'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the Est. receive row height before a quote value is available', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      estimatedReceiveFiat: undefined,
+    });
+
+    render(<QuickBuyActionFooter />);
+
+    expect(screen.getByTestId('quick-buy-est-receive-row')).toHaveStyle({
+      minHeight: 24,
+      marginBottom: 16,
+    });
   });
 
   it('shows a loading skeleton while the quote is loading', () => {

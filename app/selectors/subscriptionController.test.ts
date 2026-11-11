@@ -15,8 +15,13 @@ import {
 import type { Hex } from '@metamask/utils';
 import type { RootState } from '../reducers';
 import {
+  isMoneyAccountPlusFreeTrial,
+  selectDisplayedMoneyAccountPlusSubscription,
   selectHasAnyMoneyAccountPlusEntitlement,
+  selectHasExistingMoneyAccountPlusSubscription,
+  selectHasMoneyAccountPlusMembership,
   selectIsMoneyAccountPlusSubscriber,
+  selectIsMoneyAccountPlusTrialing,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
   selectMoneyAccountPlusPricing,
@@ -134,7 +139,6 @@ const PRICING_FIXTURE: PricingResponse = {
               symbol: 'veda',
               address: VAULT_TOKEN_ADDRESS,
               decimals: 6,
-              isVaultShare: true,
               accountantAddress: ACCOUNTANT_ADDRESS,
             },
           ],
@@ -264,7 +268,7 @@ describe('subscriptionController selectors', () => {
           method.cryptoAuthMethod === CRYPTO_AUTH_METHODS.DELEGATION,
       );
       const vaultToken = cryptoMethod?.chains?.[0]?.tokens.find(
-        (token): token is VaultTokenPaymentInfo => token.isVaultShare === true,
+        (token): token is VaultTokenPaymentInfo => 'accountantAddress' in token,
       );
 
       expect(cardMethod?.type).toBe(PAYMENT_TYPES.byCard);
@@ -398,6 +402,133 @@ describe('subscriptionController selectors', () => {
 
     it('returns false when the controller slice is absent', () => {
       expect(selectIsMoneyAccountPlusSubscriber(createState())).toBe(false);
+    });
+  });
+
+  describe('selectHasMoneyAccountPlusMembership', () => {
+    it.each([
+      SUBSCRIPTION_STATUSES.active,
+      SUBSCRIPTION_STATUSES.trialing,
+      SUBSCRIPTION_STATUSES.provisional,
+      SUBSCRIPTION_STATUSES.pastDue,
+      SUBSCRIPTION_STATUSES.paused,
+      SUBSCRIPTION_STATUSES.awaitingFunds,
+      SUBSCRIPTION_STATUSES.unpaid,
+    ])('opens Pro Hub for a %s Money Account Plus subscription', (status) => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectHasMoneyAccountPlusMembership(state)).toBe(true);
+    });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.canceled,
+      SUBSCRIPTION_STATUSES.incomplete,
+      SUBSCRIPTION_STATUSES.incompleteExpired,
+    ])('keeps a %s subscription on Benefits', (status) => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectHasMoneyAccountPlusMembership(state)).toBe(false);
+    });
+
+    it('ignores a past-due subscription for another product', () => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-shield',
+            products: [createProduct(PRODUCT_TYPES.SHIELD)],
+            status: SUBSCRIPTION_STATUSES.pastDue,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectHasMoneyAccountPlusMembership(state)).toBe(false);
+    });
+
+    it('returns false when the controller slice is absent', () => {
+      expect(selectHasMoneyAccountPlusMembership(createState())).toBe(false);
+    });
+  });
+
+  describe('selectHasExistingMoneyAccountPlusSubscription', () => {
+    it.each([
+      SUBSCRIPTION_STATUSES.active,
+      SUBSCRIPTION_STATUSES.trialing,
+      SUBSCRIPTION_STATUSES.provisional,
+      SUBSCRIPTION_STATUSES.paused,
+    ])('treats a %s Money Account Plus subscription as existing', (status) => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectHasExistingMoneyAccountPlusSubscription(state)).toBe(true);
+    });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.canceled,
+      SUBSCRIPTION_STATUSES.pastDue,
+      SUBSCRIPTION_STATUSES.unpaid,
+      SUBSCRIPTION_STATUSES.incomplete,
+      SUBSCRIPTION_STATUSES.incompleteExpired,
+    ])('does not treat a %s subscription as existing', (status) => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-money-account-plus',
+            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+            status,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectHasExistingMoneyAccountPlusSubscription(state)).toBe(false);
+    });
+
+    it('ignores a paused subscription for another product', () => {
+      const state = createState({
+        subscriptions: [
+          createSubscription({
+            id: 'sub-shield',
+            products: [createProduct(PRODUCT_TYPES.SHIELD)],
+            status: SUBSCRIPTION_STATUSES.paused,
+          }),
+        ],
+        trialedProducts: [],
+      });
+
+      expect(selectHasExistingMoneyAccountPlusSubscription(state)).toBe(false);
+    });
+
+    it('returns false when the controller slice is absent', () => {
+      expect(selectHasExistingMoneyAccountPlusSubscription(createState())).toBe(
+        false,
+      );
     });
   });
 
@@ -665,6 +796,105 @@ describe('subscriptionController selectors', () => {
       });
     });
 
+    describe('selectIsMoneyAccountPlusTrialing', () => {
+      it('returns true when the Plus subscription status is trialing', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status: SUBSCRIPTION_STATUSES.trialing,
+            }),
+          ],
+          trialedProducts: [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS],
+        });
+
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(true);
+      });
+
+      it('returns true for a provisional Plus plan that still has trial days', () => {
+        const subscription = createSubscription({
+          id: 'sub-plus',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.provisional,
+          trialPeriodDays: 14,
+        });
+        const state = createState({
+          subscriptions: [subscription],
+          trialedProducts: [],
+        });
+
+        expect(isMoneyAccountPlusFreeTrial(subscription)).toBe(true);
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(true);
+      });
+
+      it('returns false for a provisional Plus plan with no trial days', () => {
+        const subscription = createSubscription({
+          id: 'sub-plus',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.provisional,
+          trialPeriodDays: 0,
+        });
+        const state = createState({
+          subscriptions: [subscription],
+          trialedProducts: [],
+        });
+
+        expect(isMoneyAccountPlusFreeTrial(subscription)).toBe(false);
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(false);
+      });
+
+      it('returns false when a paid Plus plan still carries trial days', () => {
+        const subscription = createSubscription({
+          id: 'sub-plus',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.active,
+          trialPeriodDays: 14,
+        });
+        const state = createState({
+          subscriptions: [subscription],
+          trialedProducts: [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS],
+        });
+
+        expect(isMoneyAccountPlusFreeTrial(subscription)).toBe(false);
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(false);
+      });
+
+      it('returns false when a paid Plus subscription remains in trialed products', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status: SUBSCRIPTION_STATUSES.active,
+            }),
+          ],
+          trialedProducts: [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS],
+        });
+
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(false);
+      });
+
+      it('returns false when only another product is trialing', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-shield',
+              products: [createProduct(PRODUCT_TYPES.SHIELD)],
+              status: SUBSCRIPTION_STATUSES.trialing,
+            }),
+          ],
+          trialedProducts: [PRODUCT_TYPES.SHIELD],
+        });
+
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(false);
+      });
+
+      it('returns false when the controller is absent', () => {
+        expect(selectIsMoneyAccountPlusTrialing(createState())).toBe(false);
+      });
+    });
+
     describe('selectMoneyAccountPlusSubscription', () => {
       it('returns the Plus subscription when present', () => {
         const plusSubscription = createSubscription({
@@ -693,6 +923,67 @@ describe('subscriptionController selectors', () => {
                 }),
               ],
               trialedProducts: [],
+            }),
+          ),
+        ).toBeUndefined();
+      });
+    });
+
+    describe('selectDisplayedMoneyAccountPlusSubscription', () => {
+      it('prefers the current Plus subscription over the last one', () => {
+        const current = createSubscription({
+          id: 'sub-current',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.paused,
+        });
+        const last = createSubscription({
+          id: 'sub-last',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.canceled,
+        });
+
+        expect(
+          selectDisplayedMoneyAccountPlusSubscription(
+            createState({
+              subscriptions: [current],
+              trialedProducts: [],
+              lastSubscription: last,
+            }),
+          ),
+        ).toEqual(current);
+      });
+
+      it('returns the last Plus subscription when the current list has none', () => {
+        const last = createSubscription({
+          id: 'sub-last',
+          products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+          status: SUBSCRIPTION_STATUSES.canceled,
+        });
+
+        expect(
+          selectDisplayedMoneyAccountPlusSubscription(
+            createState({
+              subscriptions: [],
+              trialedProducts: [],
+              lastSubscription: last,
+            }),
+          ),
+        ).toEqual(last);
+      });
+
+      it('returns undefined when neither current nor last is Plus', () => {
+        const last = createSubscription({
+          id: 'sub-shield',
+          products: [createProduct(PRODUCT_TYPES.SHIELD)],
+          status: SUBSCRIPTION_STATUSES.canceled,
+        });
+
+        expect(
+          selectDisplayedMoneyAccountPlusSubscription(
+            createState({
+              subscriptions: [],
+              trialedProducts: [],
+              lastSubscription: last,
             }),
           ),
         ).toBeUndefined();

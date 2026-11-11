@@ -73,40 +73,67 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/authenticated-user-storage',
   '@metamask/base-controller',
   '@metamask/base-data-service',
+  // ESM-only; split out of @metamask/utils 12.0.1.
+  '@metamask/byte-utils',
+  '@metamask/error-utils',
+  '@metamask/node-utils',
+  '@metamask/type-utils',
   '@metamask/address-book-controller',
   // 3.x ships ESM-only under dist/*.js (2.x used a CJS build).
   '@metamask/analytics-controller',
   '@metamask/bridge-controller',
   '@metamask/bridge-status-controller',
+  '@metamask/chain-agnostic-permission',
   '@metamask/client-controller',
   '@metamask/chomp-api-service',
   '@metamask/client-utils',
   '@metamask/claims-controller',
   '@metamask/config-registry-controller',
+  // ESM-only; pulled in via network-controller → subscription-controller.
+  '@metamask/connectivity-controller',
   '@metamask/controller-utils',
   '@metamask/core-backend',
+  '@metamask/cryptography',
+  '@metamask/eth-block-tracker',
+  '@metamask/eth-json-rpc-middleware',
+  '@metamask/eth-json-rpc-provider',
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
+  // 4.x ships ESM-only under dist/*.js.
+  '@metamask/eip-5792-middleware',
+  // ESM-only; the Money MPC keyring V2 adapter.
+  '@metamask/eth-money-mpc-keyring',
   '@metamask/gas-fee-controller',
   // 2.x ships ESM-only under dist/*.js.
   '@metamask/geolocation-controller',
+  // 6.x ships ESM-only under dist/*.js.
+  '@metamask/gator-permissions-controller',
   '@metamask/keyring-controller',
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
+  // 5.x ships ESM-only under dist/*.js (3.x used a CJS build).
+  '@metamask/money-account-upgrade-controller',
+  // 2.x ships ESM-only under dist/*.js (1.x used a CJS build).
+  '@metamask/money-account-controller',
   '@metamask/money-account-api-data-service',
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
   '@metamask/multichain-network-controller',
+  '@metamask/network-connection-banner-controller',
+  '@metamask/network-controller',
   '@metamask/network-enablement-controller',
   '@metamask/notification-services-controller',
   '@metamask/phishing-controller',
   '@metamask/polling-controller',
   '@metamask/preferences-controller',
   '@metamask/profile-metrics-controller',
+  '@metamask/profile-controller',
   '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
+  // 7.x ships ESM-only under dist/*.js.
+  '@metamask/remote-feature-flag-controller',
   '@metamask/sentinel-api-service',
   '@metamask/seedless-onboarding-controller',
   '@metamask/snap-account-service',
@@ -119,6 +146,9 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/messenger',
   '@metamask/native-utils',
   '@metamask/perps-controller',
+  '@metamask/json-rpc-engine',
+  '@metamask/permission-controller',
+  '@metamask/selected-network-controller',
   '@metamask/superstruct',
   '@metamask/react-native-acm',
   '@metamask/react-native-actionsheet',
@@ -132,6 +162,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
   // which cannot hoist onto the CJS v11 the rest of the repo resolves.
   '@metamask/utils',
+  // 2.1+ ships ESM-only under dist/*.js (2.0.x used a CJS build).
+  '@shopify/flash-list',
   '@tommasini/react-native-scrollable-tab-view',
   '@veriff/react-native-sdk',
   '@sumsub/react-native-mobilesdk-module',
@@ -158,7 +190,7 @@ const config = {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.mjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
-    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv)$':
+    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv|ttf|otf)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: [],
@@ -248,6 +280,8 @@ const config = {
       '<rootDir>/app/__mocks__/rive-app-react-native.tsx',
     '^react-native-qrcode-svg$':
       '<rootDir>/app/__mocks__/react-native-qrcode-svg.js',
+    '^react-native-laminar$':
+      '<rootDir>/app/__mocks__/react-native-laminar.tsx',
   },
   cache: true,
   ...(process.env.JEST_CACHE_DIRECTORY && {

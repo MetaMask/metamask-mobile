@@ -1,3 +1,4 @@
+import { strings } from '../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
@@ -56,6 +57,203 @@ describe('transactionTransforms', () => {
       ...overrides,
     });
 
+    it('keeps aggregate PnL unknown when one execution omits its amount', () => {
+      const fills = [
+        createFill({ pnl: '12' }),
+        createFill({ pnl: undefined, timestamp: 1700000000001 }),
+      ];
+
+      const [aggregate] = aggregateFillsByOrder(fills);
+
+      expect(aggregate.pnl).toBeUndefined();
+    });
+
+    it('displays an unknown sell amount without inventing zero PnL', () => {
+      const fills = [createFill({ direction: 'Sell', pnl: undefined })];
+
+      const [transaction] = transformFillsToTransactions(fills);
+
+      expect(transaction.fill?.pnl).toBeUndefined();
+      expect(transaction.fill?.amount).toBe(
+        strings('perps.transactions.unknown_pnl'),
+      );
+      expect(transaction.fill?.amountNumber).toBeUndefined();
+      expect(transaction.fill?.isPositive).toBeUndefined();
+    });
+
+    it.each(['Close Long', 'Close Short', 'Long > Short', 'Auto-Deleveraging'])(
+      'keeps missing PnL unknown for %s',
+      (direction) => {
+        const [transaction] = transformFillsToTransactions([
+          createFill({ direction, pnl: undefined, startPosition: '1' }),
+        ]);
+
+        expect(transaction.fill).toMatchObject({
+          amount: strings('perps.transactions.unknown_pnl'),
+        });
+        expect(transaction.fill?.pnl).toBeUndefined();
+        expect(transaction.fill?.amountNumber).toBeUndefined();
+        expect(transaction.fill?.isPositive).toBeUndefined();
+      },
+    );
+
+    it('keeps an order fee unknown when one execution omits its fee', () => {
+      const fills = [
+        createFill({ fee: '5' }),
+        createFill({ fee: '', timestamp: 1700000000001 }),
+      ];
+
+      const [aggregate] = aggregateFillsByOrder(fills);
+
+      expect(aggregate.fee).toBe('');
+      expect(aggregate.pnl).toBe('200');
+    });
+
+    it('shows closed PnL as unknown when the grouped order fee is unknown', () => {
+      const fills = [
+        createFill({ fee: '5' }),
+        createFill({ fee: '', timestamp: 1700000000001 }),
+      ];
+
+      const [transaction] = transformFillsToTransactions(fills);
+
+      // A missing fee is not read as 0, so 200 is never shown as the net PnL.
+      // A missing key would make both sides the same fallback, so reject it.
+      expect(transaction.fill?.amount).not.toMatch(
+        /\[missing ".*" translation\]/,
+      );
+      expect(transaction.fill?.amount).toBe(
+        strings('perps.transactions.unknown_pnl'),
+      );
+      expect(transaction.fill?.amountNumber).toBeUndefined();
+      expect(transaction.fill?.isPositive).toBeUndefined();
+    });
+
+    it('nets the grouped fees from the grouped PnL once', () => {
+      const fills = [
+        createFill({ pnl: '100', fee: '5' }),
+        createFill({ pnl: '50', fee: '2.5', timestamp: 1700000000001 }),
+      ];
+
+      const [transaction] = transformFillsToTransactions(fills);
+
+      // calculateNetClosedPnl: 150 - 7.5
+      expect(transaction.fill).toMatchObject({
+        pnl: '150',
+        fee: '7.5',
+        amount: '+$142.50',
+        amountNumber: 142.5,
+        isPositive: true,
+      });
+    });
+
+    it.each([
+      ['Open Long', 'an absent', ''],
+      ['Open Long', 'an invalid', 'not-a-number'],
+      ['Buy', 'an absent', ''],
+      ['Buy', 'an invalid', 'not-a-number'],
+    ])(
+      'shows the grouped %s fee as unknown when one execution has %s fee',
+      (direction, _label, missingFee) => {
+        const fills = [
+          createFill({ direction, side: 'buy', pnl: undefined, fee: '5' }),
+          createFill({
+            direction,
+            side: 'buy',
+            pnl: undefined,
+            fee: missingFee,
+            timestamp: 1700000000001,
+          }),
+        ];
+
+        const [transaction] = transformFillsToTransactions(fills);
+
+        // The known $5 alone is not shown, and the unknown total is not $0.00.
+        expect(transaction.fill?.amount).not.toMatch(
+          /\[missing ".*" translation\]/,
+        );
+        expect(transaction.fill?.amount).toBe(
+          strings('perps.transactions.unknown_pnl'),
+        );
+        expect(transaction.fill?.amountNumber).toBeUndefined();
+        expect(transaction.fill?.isPositive).toBeUndefined();
+      },
+    );
+
+    it.each(['Open Long', 'Buy'])(
+      'shows a genuine zero grouped %s fee as $0.00',
+      (direction) => {
+        const fills = [
+          createFill({ direction, side: 'buy', pnl: undefined, fee: '0' }),
+          createFill({
+            direction,
+            side: 'buy',
+            pnl: undefined,
+            fee: '0',
+            timestamp: 1700000000001,
+          }),
+        ];
+
+        const [transaction] = transformFillsToTransactions(fills);
+
+        expect(transaction.fill).toMatchObject({
+          fee: '0',
+          amount: '-$0.00',
+          amountNumber: 0,
+          isPositive: false,
+        });
+      },
+    );
+
+    it.each([
+      ['0.5', '-$0.50'],
+      ['1234.5', '-$1,234.50'],
+      ['0.004', '-<$0.01'],
+    ])(
+      'formats an opening fee of %s with the shared fiat formatter as %s',
+      (fee, amount) => {
+        const [transaction] = transformFillsToTransactions([
+          createFill({
+            direction: 'Open Long',
+            side: 'buy',
+            pnl: undefined,
+            fee,
+          }),
+        ]);
+
+        expect(transaction.fill?.amount).toBe(amount);
+        expect(transaction.fill?.isPositive).toBe(false);
+      },
+    );
+
+    it('preserves reported zero PnL', () => {
+      const [transaction] = transformFillsToTransactions([
+        createFill({ pnl: '0', fee: '0' }),
+      ]);
+
+      expect(transaction.fill).toMatchObject({
+        pnl: '0',
+        amount: '$0.00',
+        amountNumber: 0,
+        isPositive: true,
+      });
+    });
+
+    it.each(['', ' ', 'NaN', 'Infinity'])(
+      'displays unknown PnL for a non-numeric report (%s)',
+      (pnl) => {
+        const fills = [createFill({ pnl })];
+
+        const [transaction] = transformFillsToTransactions(fills);
+
+        expect(transaction.fill?.amount).toBe(
+          strings('perps.transactions.unknown_pnl'),
+        );
+        expect(transaction.fill?.amountNumber).toBeUndefined();
+        expect(transaction.fill?.isPositive).toBeUndefined();
+      },
+    );
+
     describe('split stop loss aggregation (bug fix)', () => {
       it('aggregates split stop loss fills into single fill with combined PnL', () => {
         // Simulating the reported bug: stop loss split into two fills
@@ -90,7 +288,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(0.24213, 5);
-        expect(parseFloat(result[0].pnl)).toBeCloseTo(716, 0);
+        expect(Number(result[0].pnl)).toBeCloseTo(716, 0);
         expect(parseFloat(result[0].fee)).toBeCloseTo(25, 0);
         expect(result[0].detailedOrderType).toBe('Stop Market');
         expect(result[0].direction).toBe('Close Long');
@@ -119,7 +317,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
-        expect(parseFloat(result[0].pnl)).toBe(1000);
+        expect(Number(result[0].pnl)).toBe(1000);
         expect(parseFloat(result[0].fee)).toBe(20);
         expect(result[0].detailedOrderType).toBe('Take Profit Market');
       });
@@ -191,7 +389,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(0.2);
-        expect(parseFloat(result[0].pnl)).toBe(200);
+        expect(Number(result[0].pnl)).toBe(200);
       });
     });
 
@@ -284,7 +482,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(43.23, 2);
-        expect(parseFloat(result[0].pnl)).toBeCloseTo(-9, 2);
+        expect(Number(result[0].pnl)).toBeCloseTo(-9, 2);
         expect(result[0].startPosition).toBe('37.66');
         expect(result[0].direction).toBe('Long > Short');
       });
@@ -488,7 +686,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(0.4, 5);
-        expect(parseFloat(result[0].pnl)).toBeCloseTo(6, 5);
+        expect(Number(result[0].pnl)).toBeCloseTo(6, 5);
         expect(parseFloat(result[0].fee)).toBeCloseTo(0.06, 5);
         expect(result[0].timestamp).toBe(1754639277416);
       });
@@ -541,7 +739,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(200);
-        expect(parseFloat(result[0].pnl)).toBe(100);
+        expect(Number(result[0].pnl)).toBe(100);
       });
 
       it('aggregates Auto-Deleveraging fills', () => {
@@ -565,7 +763,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
-        expect(parseFloat(result[0].pnl)).toBe(-200);
+        expect(Number(result[0].pnl)).toBe(-200);
       });
     });
 
@@ -744,7 +942,7 @@ describe('transactionTransforms', () => {
           throw new Error('Aggregated close fill not found');
         }
         expect(parseFloat(aggregatedClose.size)).toBe(1.0);
-        expect(parseFloat(aggregatedClose.pnl)).toBe(200);
+        expect(Number(aggregatedClose.pnl)).toBe(200);
       });
     });
   });

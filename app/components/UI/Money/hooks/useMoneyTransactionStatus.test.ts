@@ -42,8 +42,6 @@ jest.mock('./useMoneyAccount', () => ({
 jest.mock('../utils/firstTimeDeposit', () => ({
   shouldShowMoneyFirstTimeDepositAnimation: jest.fn(() => false),
 }));
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationMoment } from '../../../../util/haptics';
 import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../../Earn/constants/musd';
 
@@ -209,27 +207,19 @@ describe('useMoneyTransactionStatus', () => {
   const mockCloseToast = jest.fn();
 
   const baseInProgressToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.Loading,
     hasNoTimeout: true,
     hapticsType: NotificationMoment.Warning,
-    labelOptions: [{ label: 'In progress', isBold: true }],
+    title: 'In progress',
   };
   const baseSuccessToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.Confirmation,
     hasNoTimeout: false,
-    iconColor: '#success',
     hapticsType: NotificationMoment.Success,
-    labelOptions: [{ label: 'Success', isBold: true }],
+    title: 'Success',
   };
   const baseFailedToast = {
-    variant: ToastVariants.Icon as const,
-    iconName: IconName.CircleX,
     hasNoTimeout: false,
-    iconColor: '#error',
     hapticsType: NotificationMoment.Error,
-    labelOptions: [{ label: 'Failed', isBold: true }],
+    title: 'Failed',
   };
 
   const depositInProgressFn = jest.fn<
@@ -284,6 +274,11 @@ describe('useMoneyTransactionStatus', () => {
       inProgress: sendInProgressFn,
       success: sendSuccessFn,
       failed: sendFailedFn,
+    },
+    rescue: {
+      inProgress: jest.fn(() => baseInProgressToast),
+      success: jest.fn(() => baseSuccessToast),
+      failed: jest.fn(() => baseFailedToast),
     },
   };
 
@@ -1087,6 +1082,33 @@ describe('useMoneyTransactionStatus', () => {
         'your account',
       );
       expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
+    });
+
+    it('falls back to "your account" when the transfer keeps the mUSD on the money account', () => {
+      const moneyAccount = '0x2222222222222222222222222222222222222222';
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: moneyAccount,
+            data: encodeWithdrawData(BigInt(5_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(moneyAccount, BigInt(5_000_000)),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'your account',
+      );
     });
 
     it('failed → withdraw failed toast', () => {

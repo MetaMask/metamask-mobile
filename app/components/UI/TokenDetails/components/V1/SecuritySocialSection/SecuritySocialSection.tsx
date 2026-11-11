@@ -4,16 +4,18 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonBase,
-  ButtonBaseSize,
+  Button,
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   IconName,
 } from '@metamask/design-system-react-native';
 import type { TokenSecurityMetadata } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../../locales/i18n';
+import { formatAddress } from '../../../../../../util/address';
 import { useCopyTokenContractAddress } from '../../../hooks/useCopyTokenContractAddress';
 import {
   SecurityPill,
@@ -31,7 +33,7 @@ interface SocialLink {
 export interface SecuritySocialSectionProps {
   securityVerdict: SecurityVerdict;
   /** Only read when the verdict is `medium_risk`. */
-  securityFlagCount?: number;
+  securityRiskCount?: number;
   onSecurityPress?: () => void;
   /**
    * Official links from the token's security metadata. Every field is
@@ -48,18 +50,6 @@ const openUrl = (url: string) => {
 };
 
 /**
- * Renders an address as `0x...1933`.
- *
- * Deliberately shorter than the app-wide `formatAddress(_, 'short')`, which
- * keeps five characters each side: this chip shares one wrapping row with the
- * verdict pill and the social buttons, so the address gives up width to keep
- * the row on a single line. The full address still reaches the clipboard and
- * the accessibility label.
- */
-const truncateAddress = (address: string) =>
-  `${address.slice(0, 2)}...${address.slice(-4)}`;
-
-/**
  * Row below the Token Details V1 header: the security verdict pill, the
  * token's official links, and a chip that copies the contract address.
  *
@@ -69,7 +59,7 @@ const truncateAddress = (address: string) =>
  */
 export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
   securityVerdict,
-  securityFlagCount,
+  securityRiskCount,
   onSecurityPress,
   externalLinks,
   contractAddress,
@@ -127,22 +117,20 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
     >
       <SecurityPill
         verdict={securityVerdict}
-        flagCount={securityFlagCount}
+        riskCount={securityRiskCount}
         onPress={onSecurityPress}
       />
 
       {/* `ButtonIconSize.Xs` is picked for its 16px icon, then widened to the
-          28px circle the row uses; the size scale has no 28px step. The
-          background is restated because `Filled` resolves to the translucent
-          `bg-muted`, while the design calls for the solid alternative surface
-          the chip below also sits on. */}
+          28px circle the row uses; the size scale has no 28px step. `Filled`
+          is the icon-button counterpart of the secondary button below. */}
       {socialLinks.map(({ testID, iconName, accessibilityLabel, url }) => (
         <ButtonIcon
           key={testID}
           iconName={iconName}
           size={ButtonIconSize.Xs}
           variant={ButtonIconVariant.Filled}
-          twClassName="h-7 w-7 bg-alternative"
+          twClassName="h-7 w-7"
           onPress={() => openUrl(url)}
           accessibilityLabel={accessibilityLabel}
           testID={testID}
@@ -150,23 +138,22 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
       ))}
 
       {contractAddress ? (
-        <ButtonBase
-          size={ButtonBaseSize.Sm}
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
           startIconName={IconName.Copy}
           // An address is data, not a label, so it keeps the regular weight
-          // rather than the medium weight ButtonBase gives button text.
+          // rather than the medium weight buttons give their text.
           textProps={{ fontWeight: FontWeight.Regular }}
-          twClassName={(pressed) =>
-            `h-7 px-2 ${pressed ? 'bg-alternative-pressed' : 'bg-alternative'}`
-          }
+          twClassName="h-7 px-2"
           onPress={handleCopyAddress}
           accessibilityLabel={strings('token_details_v1.social.copy_address', {
             address: contractAddress,
           })}
           testID={SecuritySocialSectionSelectors.COPY_ADDRESS}
         >
-          {truncateAddress(contractAddress)}
-        </ButtonBase>
+          {formatAddress(contractAddress, 'short')}
+        </Button>
       ) : null}
     </Box>
   );

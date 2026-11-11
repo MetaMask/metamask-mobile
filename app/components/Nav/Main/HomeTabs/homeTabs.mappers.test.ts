@@ -65,6 +65,7 @@ describe('shouldHideRewardsTabBar', () => {
   it.each([
     [undefined, false],
     [Routes.REWARDS_DASHBOARD, false],
+    [Routes.REWARDS_MONEY_DASHBOARD, false],
     [Routes.REWARDS_ONBOARDING_FLOW, false],
     ['OndoCampaignDetails', true],
   ])('with active route %s hides: %s', (activeRouteName, expected) => {
@@ -84,6 +85,7 @@ describe('toJsTabOptions', () => {
       isSelected,
       isHidden: true,
       freezeOnBlur: false,
+      showNewBadge: true,
     });
 
     expect(options).toMatchObject({
@@ -93,6 +95,7 @@ describe('toJsTabOptions', () => {
       isSelected,
       isHidden: true,
       freezeOnBlur: false,
+      showNewBadge: true,
     });
   });
 
@@ -156,5 +159,31 @@ describe('toNativeTabOptions', () => {
       toNativeTabOptions(rewardsTab, rewardsRoute('OndoCampaignDetails'))
         .tabBarStyle,
     ).toBe(TAB_BAR_HIDDEN_STYLE);
+  });
+
+  it('turns off native selection when the tab asks the listener to decide', () => {
+    const options = toNativeTabOptions({
+      ...homeTab,
+      tabBarSelectionEnabled: false,
+    });
+
+    expect(options.tabBarSelectionEnabled).toBe(false);
+  });
+
+  it('leaves native selection on when the tab does not opt out', () => {
+    const options = toNativeTabOptions(homeTab);
+
+    expect(options.tabBarSelectionEnabled).toBeUndefined();
+  });
+
+  it('maps a new badge to the native tab icon', () => {
+    const options = toNativeTabOptions(
+      { ...homeTab, showNewBadge: true },
+      undefined,
+      'green',
+    );
+
+    expect(options.tabBarBadge).toBe('');
+    expect(options.tabBarBadgeStyle).toEqual({ backgroundColor: 'green' });
   });
 });

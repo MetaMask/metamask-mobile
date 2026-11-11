@@ -15,6 +15,7 @@ import type {
   VerificationChallenge,
   VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
+import type { MfaErrorCta, MfaTrackEvent } from './analytics';
 
 export type MfaMethod = MfaCredentialType;
 
@@ -57,6 +58,8 @@ export type SessionSnapshot = Pick<VerificationToken, 'obtainedAt'> & {
  * - `cooldown`: the server is rate limiting; wait before the next request.
  * - `failure`: the flow ends on the failure screen, or rejects upfront if
  * nothing was shown.
+ * - `support`: only support can help; the flow always ends on the failure
+ * screen, which offers to contact support.
  * - `transient`: a server or network error; the user can try again.
  */
 export type MfaErrorHandling =
@@ -65,6 +68,7 @@ export type MfaErrorHandling =
   | 'restart'
   | 'cooldown'
   | 'failure'
+  | 'support'
   | 'transient';
 
 /**
@@ -76,7 +80,8 @@ export type MfaKitErrorCode =
   | 'passkey_unsupported'
   | 'passkey_ceremony_cancelled'
   | 'invalid_request'
-  | 'email_already_enrolled';
+  | 'email_already_enrolled'
+  | 'totp_already_enrolled';
 
 /**
  * Every code `verifyOrEnroll` and `enroll` can reject with, as read by
@@ -84,11 +89,31 @@ export type MfaKitErrorCode =
  */
 export type MfaFlowErrorCode = MfaErrorCode | MfaKitErrorCode;
 
+/**
+ * The features that use the kit. A new one is added here, and to
+ * `entry_point` in segment-schema's `metamask-mfa-base.yaml`.
+ */
+export type MfaEntryPoint = 'vba' | 'ukyc' | 'settings' | 'qa';
+
 export interface MfaReason {
-  /** Sent to the controller (trace tags). */
-  operation: string;
-  /** Already-translated line explaining why the feature asks. UI only. */
-  description?: string;
+  /**
+   * The feature and what it does, as in `vba.verifyEmail`. Sent to the
+   * controller (trace tags); analytics report the feature as `entry_point`.
+   */
+  operation: `${MfaEntryPoint}.${string}`;
+  /** Mobile presentation for full-screen steps. Defaults to a modal. */
+  presentation?: 'card' | 'modal';
+  /**
+   * Already-translated line shown when the flow sets up missing methods,
+   * replacing the generic one. UI only.
+   */
+  enrollDescription?: string;
+  /**
+   * Already-translated line saying what the verification is for, shown when
+   * the user picks how to verify (for example "Verify it's you to send
+   * $20.00"). Not shown when confirming before a setup. UI only.
+   */
+  verifyDescription?: string;
 }
 
 /**
@@ -147,7 +172,7 @@ export interface EnrollOptions {
 }
 
 export type PlanStep =
-  | { kind: 'intro'; missing: MfaMethod[] }
+  | { kind: 'intro'; methods: MfaMethod[]; missing: MfaMethod[] }
   | { kind: 'confirm'; options: MfaMethod[] }
   | { kind: 'setup'; method: MfaMethod; prefillEmail?: string }
   | { kind: 'verify'; options: MfaMethod[] };
@@ -175,16 +200,43 @@ export type MfaPurpose = 'setup' | 'confirm' | 'verify';
 
 export type MfaFlowStep =
   | { name: 'idle' }
-  | { name: 'intro'; missing: MfaMethod[] }
+  | {
+      name: 'intro';
+      /** Every method the feature asked for; those not `missing` are set up. */
+      methods: MfaMethod[];
+      missing: MfaMethod[];
+      /** The email set up for codes, if any. */
+      email?: string;
+    }
   | {
       name: 'picker';
       purpose: Exclude<MfaPurpose, 'setup'>;
       options: MfaMethod[];
     }
   | { name: 'emailEntry'; prefillEmail?: string }
-  | { name: 'otp'; purpose: MfaPurpose; email?: string; codeSent: boolean }
+  | {
+      name: 'totpSetup';
+      /** Base32 secret, for typing into the authenticator app. */
+      secret: string;
+      /** PNG data URL of the QR code, for setting up another device. */
+      qrCode: string;
+      /** `otpauth://` link that opens an authenticator app on this device. */
+      setupUri: string;
+      /**
+       * The previous setup expired and this one has a new secret: an account
+       * already added to the app from the old one no longer works.
+       */
+      isRestart: boolean;
+    }
+  | {
+      name: 'otp';
+      purpose: MfaPurpose;
+      /** Where the code comes from: an email, or the authenticator app. */
+      method: 'email_otp' | 'totp';
+      email?: string;
+      codeSent: boolean;
+    }
   | { name: 'passkey'; purpose: MfaPurpose }
-  | { name: 'success' }
   | { name: 'failure'; code: MfaFlowErrorCode; canRetry: boolean };
 
 export interface MfaFlowState {
@@ -205,10 +257,12 @@ export type MfaFlowAction =
   | { type: 'choose'; method: MfaMethod }
   | { type: 'submitEmail'; email: string }
   | { type: 'submitCode'; code: string }
-  | { type: 'resend' }
+  | { type: 'resend'; trigger?: 'user' | 'auto' }
   | { type: 'retry' }
+  | { type: 'errorCtaClicked'; cta: MfaErrorCta }
   | { type: 'dismiss' }
-  | { type: 'cancel' };
+  | { type: 'cancel' }
+  | { type: 'back' };
 
 export interface MfaFlowResult {
   credentials: EnrolledCredential[];
@@ -222,6 +276,22 @@ export interface MfaFlowOptions {
   controller: MfaControllerAdapter;
   passkey?: PasskeyAdapter;
   now?: () => number;
+  /**
+   * Called when the flow fails because of a bug on our side (see `isReportable`),
+   * for error reporting. The context never holds an email address.
+   */
+  reportError?: (error: unknown, context: MfaErrorContext) => void;
+  /**
+   * Sends the kit's analytics events. Never receives an email address, a
+   * code or a secret.
+   */
+  trackEvent?: MfaTrackEvent;
+}
+
+export interface MfaErrorContext {
+  code: MfaFlowErrorCode;
+  operation: string;
+  step: MfaFlowStep['name'];
 }
 
 export interface MfaFlow {

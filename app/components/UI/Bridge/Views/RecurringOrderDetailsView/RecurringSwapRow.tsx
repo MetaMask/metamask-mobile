@@ -4,15 +4,13 @@ import {
   IconColor,
   IconName,
   IconSize,
-  Tag,
-  TagSeverity,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import OpenOrderRow from '../../components/OpenOrderRow';
 import {
   type RecurringSwap,
-  RecurringSwapStatus,
+  RecurringSwapState,
 } from '../../api/recurringOrders.types';
 import type { BridgeToken } from '../../types';
 import { formatRecurringTokenAmount } from '../../utils/recurringOrders';
@@ -25,30 +23,16 @@ interface RecurringSwapRowProps {
   onPress: () => void;
 }
 
-function getSwapAccessory(swap: RecurringSwap) {
-  if (swap.status === RecurringSwapStatus.Skipped) {
-    return (
-      <Icon
-        name={IconName.Warning}
-        color={IconColor.WarningDefault}
-        size={IconSize.Sm}
-      />
-    );
+function getSwapTitleColor(swap: RecurringSwap) {
+  if (swap.state === RecurringSwapState.Skipped) {
+    return TextColor.TextAlternative;
   }
 
-  if (swap.status === RecurringSwapStatus.Failed) {
-    return (
-      <Tag severity={TagSeverity.Danger}>
-        {strings('bridge.recurring.failed')}
-      </Tag>
-    );
+  if (swap.state === RecurringSwapState.Failed) {
+    return TextColor.ErrorDefault;
   }
 
-  return (
-    <Tag severity={TagSeverity.Success}>
-      {strings('bridge.recurring.filled')}
-    </Tag>
-  );
+  return TextColor.TextDefault;
 }
 
 function getSkippedSwapLabel(swap: RecurringSwap) {
@@ -59,14 +43,26 @@ function getSkippedSwapLabel(swap: RecurringSwap) {
   return strings(`bridge.recurring.${swap.skipReason}`);
 }
 
+function getSwapSubtitle(swap: RecurringSwap) {
+  if (swap.state === RecurringSwapState.Skipped) {
+    return getSkippedSwapLabel(swap);
+  }
+
+  if (swap.state === RecurringSwapState.Submitted) {
+    return strings('bridge.limit.submitted');
+  }
+
+  return '';
+}
+
 export function RecurringSwapRow({
   swap,
   sourceToken,
   destinationToken,
   onPress,
 }: RecurringSwapRowProps) {
-  const isSkipped = swap.status === RecurringSwapStatus.Skipped;
-  const hasZeroAmounts = swap.status !== RecurringSwapStatus.Filled;
+  const isSkipped = swap.state === RecurringSwapState.Skipped;
+  const hasZeroAmounts = swap.state !== RecurringSwapState.Filled;
   const sourceAmount = formatRecurringTokenAmount(
     hasZeroAmounts ? '0' : swap.src.amount,
     sourceToken.decimals,
@@ -83,19 +79,27 @@ export function RecurringSwapRow({
         source: sourceToken.symbol,
         dest: destinationToken.symbol,
       })}
-      subtitle={isSkipped ? getSkippedSwapLabel(swap) : ''}
+      subtitle={getSwapSubtitle(swap)}
       primaryValue={`+${destinationAmount} ${destinationToken.symbol}`}
       secondaryValue={`-${sourceAmount} ${sourceToken.symbol}`}
-      titleColor={isSkipped ? TextColor.WarningDefault : TextColor.TextDefault}
+      titleColor={getSwapTitleColor(swap)}
+      titleEndAccessory={
+        isSkipped ? (
+          <Icon
+            name={IconName.Warning}
+            color={IconColor.WarningDefault}
+            size={IconSize.Sm}
+          />
+        ) : undefined
+      }
       subtitleColor={
         isSkipped ? TextColor.WarningDefault : TextColor.TextAlternative
       }
       primaryColor={
         hasZeroAmounts ? TextColor.TextAlternative : TextColor.SuccessDefault
       }
-      titleEndAccessory={getSwapAccessory(swap)}
       onPress={onPress}
-      testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId)}
+      testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.id)}
     />
   );
 }

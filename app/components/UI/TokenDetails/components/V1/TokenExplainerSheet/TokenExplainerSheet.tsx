@@ -46,8 +46,10 @@ export const TokenExplainerSheet: React.FC<TokenExplainerSheetProps> = ({
   <BottomSheet onClose={onClose} testID={TokenExplainerSheetSelectors.SHEET}>
     {/* `pt-5` lands the title 24px below the drag handle, which the sheet
         chrome already pads by 4px. The sheet also owns the bottom inset, so
-        the prototype's 36px of bottom padding needs nothing here. */}
-    <Box twClassName="gap-2 px-5 pt-5">
+        the prototype's 36px of bottom padding needs nothing here. The
+        prototype splits the title-to-body gap across the title's 8px padding
+        and the body's 8px margin; one 16px gap is the same distance. */}
+    <Box twClassName="gap-4 px-5 pt-5">
       <Text
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Bold}

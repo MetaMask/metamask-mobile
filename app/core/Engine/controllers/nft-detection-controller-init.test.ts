@@ -29,6 +29,7 @@ function getInitRequestMock(): jest.Mocked<
     if (name === 'NftController') {
       return {
         addNfts: jest.fn(),
+        removeNft: jest.fn(),
         state: {},
       };
     }
@@ -53,6 +54,7 @@ describe('NftDetectionControllerInit', () => {
       messenger: expect.any(Object),
       disabled: false,
       addNfts: expect.any(Function),
+      removeNft: expect.any(Function),
       getNftState: expect.any(Function),
     });
   });

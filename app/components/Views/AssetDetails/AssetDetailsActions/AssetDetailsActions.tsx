@@ -44,6 +44,7 @@ export interface AssetDetailsActionsProps {
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
   containerTestID?: string;
+  isGlass?: boolean;
 }
 
 // TODO: Delete when TokenDetailsV2Buttons flag is fully rolled out
@@ -59,6 +60,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
   containerTestID,
+  isGlass = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -72,6 +74,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
+    // Homepage control row owns ACTION_BUTTON_CLICKED so MainView is not reported as navbar.
+    skipActionButtonClickTracking: true,
   });
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
@@ -137,8 +141,16 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   ]);
 
   const handleSwapPress = useCallback(() => {
-    withNavigationLock(goToSwaps);
-  }, [withNavigationLock, goToSwaps]);
+    withNavigationLock(() => {
+      trackActionButtonClick(trackEvent, createEventBuilder, {
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: strings('asset_overview.swap'),
+        location: ActionLocation.HOME,
+      });
+      goToSwaps();
+    });
+  }, [withNavigationLock, trackEvent, createEventBuilder, goToSwaps]);
 
   const handleSendPress = useCallback(() => {
     withNavigationLock(onSend);
@@ -162,6 +174,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isBuyingAvailable}
           testID={buyButtonActionID}
           containerStyle={styles.buttonContainer}
+          isGlass={isGlass}
         />
       )}
       {displaySwapsButton && (
@@ -172,6 +185,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isSwapsEnabled}
           testID={swapButtonActionID}
           containerStyle={styles.buttonContainer}
+          isGlass={isGlass}
         />
       )}
       <MainActionButton
@@ -181,6 +195,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         isDisabled={!canSignTransactions}
         testID={sendButtonActionID}
         containerStyle={styles.buttonContainer}
+        isGlass={isGlass}
       />
       <MainActionButton
         iconName={IconName.Received}
@@ -189,6 +204,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         isDisabled={false}
         testID={receiveButtonActionID}
         containerStyle={styles.buttonContainer}
+        isGlass={isGlass}
       />
     </View>
   );

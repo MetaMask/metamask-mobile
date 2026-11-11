@@ -1,8 +1,11 @@
 import React from 'react';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Linking, Platform } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import { RESULTS } from 'react-native-permissions';
 import Logger from '../../../../../util/Logger';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { CardActions } from '../../util/metrics';
 import ImmersveKYCModal, {
   IMMERSVE_KYC_LOAD_TIMEOUT_MS,
   setImmersveKycOnClose,
@@ -10,7 +13,22 @@ import ImmersveKYCModal, {
 } from './ImmersveKYCModal';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockAddListener = jest.fn(
+  (
+    _eventName: string,
+    _listener: (event: {
+      preventDefault: () => void;
+      data: { action: { type: string } };
+    }) => void,
+  ) => jest.fn(),
+);
 const mockRequestMultiple = jest.fn();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -18,7 +36,11 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+    addListener: mockAddListener,
+  }),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -40,6 +62,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   const ActualReact = jest.requireActual('react');
   const { Text: RNText, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Text: ({
       children,
       testID,
@@ -56,16 +81,19 @@ jest.mock('@metamask/design-system-react-native', () => {
         children,
       ),
     HeaderStandard: ({
-      onBack,
-      backButtonProps,
+      onClose,
+      closeButtonProps,
+      title,
     }: {
-      onBack?: () => void;
-      backButtonProps?: { testID?: string };
+      onClose?: () => void;
+      closeButtonProps?: { testID?: string };
+      title?: React.ReactNode;
     }) =>
       ActualReact.createElement(
         TouchableOpacity,
-        { onPress: onBack, testID: backButtonProps?.testID },
-        'Back',
+        { onPress: onClose, testID: closeButtonProps?.testID },
+        title,
+        'Close',
       ),
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Md: 'Md' },
@@ -113,6 +141,7 @@ let capturedProps: {
   onLoadEnd?: (e: { nativeEvent: { loading: boolean } }) => void;
   mediaPlaybackRequiresUserGesture?: boolean;
   injectedJavaScript?: string;
+  injectedJavaScriptBeforeContentLoaded?: string;
 } = {};
 
 jest.mock('@metamask/react-native-webview', () => {
@@ -141,10 +170,47 @@ const blockedStatuses = {
   'android.permission.RECORD_AUDIO': RESULTS.GRANTED,
 };
 
+const getTrackedProperties = () => {
+  // Read the Jest mock directly. Calling useAnalytics() here is not a component
+  // or a hook, so react-hooks/rules-of-hooks rejects it.
+  const createEventBuilder = jest
+    .mocked(useAnalytics)
+    .getMockImplementation()?.().createEventBuilder;
+
+  return (
+    (createEventBuilder as jest.Mock | undefined)?.mock.results.flatMap(
+      (result) => {
+        const addProperties = result.value?.addProperties as
+          | jest.Mock
+          | undefined;
+        return addProperties?.mock.calls.map((call) => call[0]) ?? [];
+      },
+    ) ?? []
+  );
+};
+
+const getBeforeRemoveListener = () => {
+  const listenerCall = mockAddListener.mock.calls.find(
+    (call) => call[0] === 'beforeRemove',
+  );
+  if (!listenerCall) {
+    throw new Error('beforeRemove listener was not registered');
+  }
+  return listenerCall[1];
+};
+
+const pressExitConfirmationButton = (index: number) => {
+  const buttons = (Alert.alert as jest.Mock).mock.calls[0][2] as {
+    onPress?: () => void;
+  }[];
+  buttons[index].onPress?.();
+};
+
 describe('ImmersveKYCModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useRealTimers();
+    jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     capturedProps = {};
     clearImmersveKycOnClose();
     Platform.OS = 'android';
@@ -153,6 +219,7 @@ describe('ImmersveKYCModal', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it('requests camera and microphone permissions before showing the WebView', async () => {
@@ -170,18 +237,36 @@ describe('ImmersveKYCModal', () => {
 
     expect(capturedProps.mediaPlaybackRequiresUserGesture).toBe(false);
     expect(capturedProps.injectedJavaScript).toContain('getUserMedia');
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      'session-progress-header',
+    );
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      'data-test="exit"',
+    );
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      '.logo',
+    );
+    expect(getByTestId('immersve-kyc-header-logo')).toBeTruthy();
   });
 
-  it('skips the permission request on iOS and shows the WebView', async () => {
+  it('renders the WebView on iOS without requesting permissions, hiding Immersve chrome', () => {
     Platform.OS = 'ios';
 
     const { getByTestId } = render(<ImmersveKYCModal />);
 
-    await waitFor(() => {
-      expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
-    });
-
     expect(mockRequestMultiple).not.toHaveBeenCalled();
+    expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
+    expect(capturedProps.injectedJavaScript).toBeUndefined();
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      'session-progress-header',
+    );
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      'data-test="exit"',
+    );
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      '.logo',
+    );
+    expect(getByTestId('immersve-kyc-header-logo')).toBeTruthy();
   });
 
   it('shows a permission error and does not mount the WebView when denied', async () => {
@@ -468,14 +553,110 @@ describe('ImmersveKYCModal', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('closes when the back button is pressed', async () => {
+  it('shows the exit confirmation when the close button is pressed', async () => {
     const { getByTestId } = render(<ImmersveKYCModal />);
 
     await waitFor(() => {
-      expect(getByTestId('immersve-kyc-back-button')).toBeTruthy();
+      expect(getByTestId('immersve-kyc-close-button')).toBeTruthy();
     });
 
-    fireEvent.press(getByTestId('immersve-kyc-back-button'));
+    fireEvent.press(getByTestId('immersve-kyc-close-button'));
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'card.card_onboarding.exit_confirmation.title',
+      'card.card_onboarding.exit_confirmation.message',
+      expect.any(Array),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('navigates to wallet home when exit is confirmed', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-close-button')).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId('immersve-kyc-close-button'));
+    pressExitConfirmationButton(1);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(getTrackedProperties()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
+      ]),
+    );
+  });
+
+  it('keeps the webview open when continue is pressed', async () => {
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-close-button')).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId('immersve-kyc-close-button'));
+    pressExitConfirmationButton(0);
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('asks for confirmation when the screen is removed before a close', () => {
+    render(<ImmersveKYCModal />);
+    const preventDefault = jest.fn();
+
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
+
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'card.card_onboarding.exit_confirmation.title',
+      'card.card_onboarding.exit_confirmation.message',
+      expect.any(Array),
+    );
+  });
+
+  it('lets a programmatic reset remove the screen without confirmation', () => {
+    render(<ImmersveKYCModal />);
+    const preventDefault = jest.fn();
+
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'RESET' } },
+    });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(Alert.alert).not.toHaveBeenCalled();
+  });
+
+  it('lets a redirect close through without confirmation', async () => {
+    render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(capturedProps.onNavigationStateChange).toBeDefined();
+    });
+
+    await act(async () => {
+      capturedProps.onNavigationStateChange?.({
+        url: 'https://metamask.io/card/kyc-complete?status=done',
+      });
+    });
+    const preventDefault = jest.fn();
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(Alert.alert).not.toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalled();
   });
 
@@ -493,20 +674,6 @@ describe('ImmersveKYCModal', () => {
         url: 'https://metamask.io/card/kyc-complete?status=done',
       });
     });
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('fires the registered onClose callback on back-button close', async () => {
-    const onClose = jest.fn();
-    setImmersveKycOnClose(onClose);
-    const { getByTestId } = render(<ImmersveKYCModal />);
-
-    await waitFor(() => {
-      expect(getByTestId('immersve-kyc-back-button')).toBeTruthy();
-    });
-
-    fireEvent.press(getByTestId('immersve-kyc-back-button'));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalled();
   });

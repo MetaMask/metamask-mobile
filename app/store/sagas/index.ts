@@ -1,7 +1,6 @@
 import {
   fork,
   take,
-  cancel,
   put,
   call,
   all,
@@ -20,10 +19,10 @@ import {
   CheckForDeeplinkAction,
 } from '../../actions/user';
 import { NavigationActionType } from '../../actions/navigation';
-import { EventChannel, Task, eventChannel } from 'redux-saga';
+import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
-import LockManagerService from '../../core/LockManagerService';
+import AppLockService from '../../core/AppLock/AppLockService';
 import {
   overrideXMLHttpRequest,
   restoreXMLHttpRequest,
@@ -35,16 +34,17 @@ import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/s
 import { getUnlockAppStartType } from '../../core/Performance/unlockTraces';
 import {
   markStartup,
-  noteStartupSeedlessPrecheck,
   timeStartupStep,
 } from '../../core/Performance/startupStageSpans';
 import AppConstants from '../../core/AppConstants';
 import {
+  CLEAR_ONBOARDING,
   SET_COMPLETED_ONBOARDING,
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
+import { hydrateSocialTermsAcceptance } from '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
@@ -52,10 +52,6 @@ import UrlParser from 'url-parse';
 import { isSDKServiceDeeplink } from '../../core/DeeplinkManager/util/deeplinks';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
-import type { SeedlessPasswordCheckTimings } from '../../core/Authentication/Authentication';
-import { AppState, AppStateStatus } from 'react-native';
-import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { providerErrors } from '@metamask/rpc-errors';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 import {
@@ -65,6 +61,11 @@ import {
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
 import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
+import {
+  setPendingReferralCode,
+  setReferralLinkPending,
+} from '../../reducers/rewardsMoney';
+import { parseMoneyReferralCodeFromUrl } from '../../components/UI/Rewards/utils/moneyReferralCode';
 
 /**
  * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
@@ -75,9 +76,24 @@ const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
 
 let hasMainNavigatorMounted = false;
 let sdkServicesInitializationTask: Task<void> | undefined;
+// The link a user opened before having a wallet. Wallet creation marks
+// onboarding complete while onboarding screens can still follow, so this link
+// waits for MainNavigator instead of the ready timeout.
+let deeplinkOpenedBeforeWallet: string | null = null;
+// Latest referral link parse. Only that parse ending releases
+// `isReferralLinkPending`, so an older link cannot release a newer one.
+let referralLinkParseId = 0;
 
 export const __setMainNavigatorReadyForTesting = (isReady: boolean) => {
   hasMainNavigatorMounted = isReady;
+};
+
+export const __resetDeeplinkOpenedBeforeWalletForTesting = () => {
+  deeplinkOpenedBeforeWallet = null;
+};
+
+export const __resetReferralLinkParseForTesting = () => {
+  referralLinkParseId = 0;
 };
 
 export const __resetSDKServicesInitializationForTesting = () => {
@@ -105,14 +121,22 @@ export function* parseDeeplink(
   deeplink: string,
   origin: string,
   appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
 ) {
   try {
-    yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
-      origin,
-      ...(appStartType === undefined ? {} : { appStartType }),
-    });
+    const accepted: boolean = yield call(
+      [SharedDeeplinkManager, SharedDeeplinkManager.parse],
+      deeplink,
+      {
+        origin,
+        ...(appStartType === undefined ? {} : { appStartType }),
+        ...(onHandled ? { onHandled } : {}),
+      },
+    );
+    return accepted;
   } catch (error) {
     Logger.error(error as Error, 'parseDeeplink: failed to parse deeplink');
+    return false;
   }
 }
 
@@ -151,6 +175,7 @@ export function* parseDeeplinkAfterNavReady(
   deeplink: string,
   origin: string,
   appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
 ) {
   if (!hasMainNavigatorMounted) {
     const { timedOut } = yield race({
@@ -167,125 +192,108 @@ export function* parseDeeplinkAfterNavReady(
     }
   }
 
-  yield call(parseDeeplink, deeplink, origin, appStartType);
-}
-
-/**
- * Creates a channel to listen to app state changes.
- */
-function appStateListenerChannel() {
-  return eventChannel<AppStateStatus>((emitter) => {
-    const appStateListener = AppState.addEventListener('change', emitter);
-    return () => {
-      appStateListener.remove();
-    };
-  });
-}
-
-/**
- * Checks seedless password status and performs the correct auth flow.
- */
-async function tryBiometricUnlock(): Promise<void> {
-  const seedlessCheckTimings: SeedlessPasswordCheckTimings = {};
-  const isSeedlessPasswordOutdated =
-    await Authentication.checkIsSeedlessPasswordOutdated({
-      skipCache: true,
-      captureSentryError: false,
-      timings: seedlessCheckTimings,
-    });
-  noteStartupSeedlessPrecheck(seedlessCheckTimings);
-  if (isSeedlessPasswordOutdated) {
-    NavigationService.navigation?.reset({
-      routes: [
-        {
-          name: Routes.ONBOARDING.REHYDRATE,
-          params: { isSeedlessPasswordOutdated: true },
-        },
-      ],
-    });
-    return;
-  }
-
-  // Prompt authentication.
-  await Authentication.unlockWallet();
-}
-
-/**
- * Prompts authentication, falling back to the Login screen on failure. The
- * lock screen has no affordances of its own, so every path off it runs this.
- */
-async function promptUnlockFromLockScreen(): Promise<void> {
-  // This is in a try catch since errors are not propogated in event channels.
-  try {
-    await tryBiometricUnlock();
-  } catch (error) {
-    // Navigate to login.
-    NavigationService.navigation?.reset({
-      routes: [{ name: Routes.ONBOARDING.LOGIN }],
-    });
-    trackErrorAsAnalytics(
-      'Lockscreen: Authentication failed',
-      (error as Error)?.message,
-    );
-  }
-}
-
-/**
- * Listens to app state changes and prompts authentication when the app is foregrounded.
- */
-export function* appStateListenerTask() {
-  // The lock can land after the app is already foregrounded: Android delivers a
-  // pending background timer and the `active` event together on resume, in no
-  // guaranteed order. Waiting on the channel here would block on an `active`
-  // event that has already been and gone, stranding the user on the lock
-  // screen, so prompt straight away instead.
-  if (AppState.currentState === 'active') {
-    yield call(promptUnlockFromLockScreen);
-    return;
-  }
-
-  // Create channel to listen to app state changes.
-  const channel: EventChannel<AppStateStatus> = yield call(
-    appStateListenerChannel,
+  const accepted: boolean = yield call(
+    parseDeeplink,
+    deeplink,
+    origin,
+    appStartType,
+    onHandled,
   );
+  return accepted;
+}
 
-  try {
-    while (true) {
-      const appState: AppStateStatus = yield take(channel);
-      if (appState === 'active') {
-        yield call(promptUnlockFromLockScreen);
-        // Close channel once authentication is prompted.
-        channel.close();
+/**
+ * Parses a link opened before the wallet existed once onboarding hands over
+ * to `MainNavigator`. The remaining onboarding steps can take any amount of
+ * time, and parsing before then drops main-stack targets such as Swap.
+ *
+ * An auto-lock in the meantime keeps the wait going: the pending link is
+ * already cleared, so the post-unlock Home is what mounts `MainNavigator`.
+ */
+export function* parseDeeplinkAfterOnboarding(
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
+) {
+  if (!hasMainNavigatorMounted) {
+    const { walletReset } = yield race({
+      ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
+      walletReset: take(CLEAR_ONBOARDING),
+    });
+
+    if (walletReset) {
+      // Drop the stale destination: a reset creates a new wallet and the old
+      // swap/dapp/home target must not fire into it. Keep the referral code:
+      // social-login/SRP retries call deleteWallet() -> CLEAR_ONBOARDING, and
+      // the user should still be offered the code they opened the app with.
+      const referralCode = parseMoneyReferralCodeFromUrl(deeplink);
+      if (referralCode) {
+        yield put(setPendingReferralCode(referralCode));
       }
+
+      Logger.log(
+        'parseDeeplinkAfterOnboarding: wallet reset before MainNavigator mounted, dropping deeplink destination',
+      );
+      return false;
+    }
+
+    hasMainNavigatorMounted = true;
+  }
+
+  const accepted: boolean = yield call(
+    parseDeeplink,
+    deeplink,
+    origin,
+    appStartType,
+    onHandled,
+  );
+  return accepted;
+}
+
+type DeeplinkParser = (
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+  onHandled?: () => void,
+) => Generator;
+
+/**
+ * Runs the parse of a link carrying a Money referral code, then releases
+ * `isReferralLinkPending`, which the caller set before forking. The invite
+ * sheet and the push pre-prompt wait on it, so it is released however the
+ * parse ends, including on cancellation.
+ *
+ * A parse that accepts the link returns before the interstitial is answered,
+ * and the code is only captured on Continue. The release therefore waits for
+ * `onHandled`, which the deeplink pipeline calls once that answer is known.
+ */
+export function* parseReferralDeeplink(
+  parseId: number,
+  parse: DeeplinkParser,
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+) {
+  let markHandled: () => void = () => undefined;
+  const handled = new Promise<void>((resolve) => {
+    markHandled = resolve;
+  });
+  try {
+    const accepted: boolean = yield call(
+      parse,
+      deeplink,
+      origin,
+      appStartType,
+      markHandled,
+    );
+    if (accepted) {
+      yield call(() => handled);
     }
   } finally {
-    // Unconditionally close channel to prevent memory leaks.
-    channel.close();
-  }
-}
-
-export function* appLockStateMachine() {
-  while (true) {
-    yield take(UserActionType.LOCKED_APP);
-
-    // Reject any pending confirmations so the user doesn't see a stale confirmation after unlock.
-    try {
-      const { ApprovalController } = Engine.context;
-      if (ApprovalController) {
-        ApprovalController.clearRequests(providerErrors.userRejectedRequest());
-      }
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'Failed to reject pending approvals on app lock',
-      );
+    if (parseId === referralLinkParseId) {
+      yield put(setReferralLinkPending(false));
     }
-
-    // Navigate to lock screen.
-    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
-
-    // App state listener for prompting authentication when the app is foregrounded.
-    yield call(appStateListenerTask);
   }
 }
 
@@ -305,7 +313,7 @@ export function* requestAuthOnAppStart() {
       }
     }
 
-    yield call(tryBiometricUnlock);
+    yield call(Authentication.tryBiometricUnlock);
   } catch (_) {
     // If authentication fails, navigate to login screen
     // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.
@@ -317,22 +325,16 @@ export function* requestAuthOnAppStart() {
 
 /**
  * The state machine for detecting when the app is logged vs logged out.
- * While on the Wallet screen, this state machine
- * will "listen" to the app lock state machine.
+ * `AppLockService` owns the background / foreground lifecycle (privacy screen,
+ * auto-lock timer, and resume authentication); this saga only scopes its
+ * auto-lock behavior to the logged-in session.
  */
 export function* authStateMachine() {
-  // Start when the user is logged in.
   while (true) {
     yield take(UserActionType.LOGIN);
-    // Listen to the app once it enters the locked state.
-    const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
-    // Handles locking the app when the app is backgrounded.
-    LockManagerService.startListening();
-    // Listen to app lock behavior.
+    AppLockService.start();
     yield take(UserActionType.LOGOUT);
-    LockManagerService.stopListening();
-    // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
-    yield cancel(appLockStateMachineTask);
+    AppLockService.stop();
   }
 }
 
@@ -408,6 +410,7 @@ export function* handleDeeplinkSaga() {
         if (utmPayload) {
           yield put(saveAttribution(utmPayload));
         }
+        deeplinkOpenedBeforeWallet = AppStateEventProcessor.pendingDeeplink;
       }
 
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
@@ -431,22 +434,23 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
-    // Resume can deliver the URL while Auto-lock is still scheduled or
-    // in-flight. Parsing now would clear the pending link, then the lock
-    // would reset navigation to Home.
-    if (LockManagerService.isAutoLockPending()) {
+    // Resume can deliver the URL while a lock decision is open or the unlock
+    // prompt has not finished. Parsing now would clear the pending link, then
+    // the lock or the post-unlock navigation would replace it.
+    if (AppLockService.isAutoLockPending()) {
       continue;
     }
 
-    // Password and biometric unlock dispatch SET_COMPLETED_ONBOARDING from the
-    // login or lock screen, before navigateToPostUnlockHome reads the pending
-    // link. Consuming it here clears the URL, then the home reset replaces any
-    // navigation this parse managed to start.
+    // Password unlock dispatches SET_COMPLETED_ONBOARDING from the Login
+    // screen, before navigateToPostUnlockHome reads the pending link.
+    // Consuming it here clears the URL, then the home reset replaces any
+    // navigation this parse managed to start. Resume biometric unlock is
+    // covered by `isAutoLockPending` above, which stays set until that
+    // prompt settles.
     const currentRouteName = NavigationService.getCurrentRoute()?.name;
     if (
       value.type === SET_COMPLETED_ONBOARDING &&
-      (currentRouteName === Routes.ONBOARDING.LOGIN ||
-        currentRouteName === Routes.LOCK_SCREEN)
+      currentRouteName === Routes.ONBOARDING.LOGIN
     ) {
       continue;
     }
@@ -461,13 +465,35 @@ export function* handleDeeplinkSaga() {
         yield call(waitForSDKServicesInitialization);
       }
 
-      // Fork so the loop keeps listening. Fallback captured here — inside parse, post-unlock nav has already cleared it.
-      yield fork(
-        parseDeeplinkAfterNavReady,
-        deeplink,
-        deeplinkSource,
-        consumeNextParseAppStartType() ?? getUnlockAppStartType(),
-      );
+      // SDK and WalletConnect requests only need an unlocked keychain, and a
+      // dapp waiting on one may give up before onboarding ends.
+      const shouldWaitForOnboarding =
+        deeplink === deeplinkOpenedBeforeWallet &&
+        !isSDKServiceDeeplink(deeplink);
+      deeplinkOpenedBeforeWallet = null;
+
+      const parse = shouldWaitForOnboarding
+        ? parseDeeplinkAfterOnboarding
+        : parseDeeplinkAfterNavReady;
+      // Fallback captured here — inside parse, post-unlock nav has already cleared it.
+      const appStartType =
+        consumeNextParseAppStartType() ?? getUnlockAppStartType();
+
+      // Fork so the loop keeps listening.
+      if (parseMoneyReferralCodeFromUrl(deeplink)) {
+        referralLinkParseId += 1;
+        yield put(setReferralLinkPending(true));
+        yield fork(
+          parseReferralDeeplink,
+          referralLinkParseId,
+          parse,
+          deeplink,
+          deeplinkSource,
+          appStartType,
+        );
+      } else {
+        yield fork(parse, deeplink, deeplinkSource, appStartType);
+      }
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }
@@ -503,7 +529,6 @@ export function* initializeSDKServicesSaga() {
   }
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /**
  * Handles updating the Snaps registry when the user has booted the app and is onboarded
  */
@@ -532,7 +557,6 @@ export function* handleSnapsRegistry() {
     }
   }
 }
-///: END:ONLY_INCLUDE_IF
 
 /**
  * Handles initializing app services on start up
@@ -566,6 +590,8 @@ export function* startAppServices() {
   // Apply vault initialization
   yield call(applyVaultInitialization);
 
+  yield call(hydrateSocialTermsAcceptance);
+
   markStartup('servicesReady');
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
@@ -597,7 +623,5 @@ export function* rootSaga() {
   yield fork(watchMarketingAttributionOnClearOnboarding);
 
   yield fork(promptIosGoogleWarningSheetSaga);
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   yield fork(handleSnapsRegistry);
-  ///: END:ONLY_INCLUDE_IF
 }

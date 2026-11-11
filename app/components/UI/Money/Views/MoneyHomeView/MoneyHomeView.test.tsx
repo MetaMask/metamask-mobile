@@ -9,6 +9,7 @@ import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -19,6 +20,7 @@ import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
+import { MONEY_VBA_HOME_CARD_TEST_IDS } from '../../components/MoneyVbaHomeCard/MoneyVbaHomeCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
@@ -40,6 +42,13 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
+import {
+  getMoneyHomeCardDevOverrideById,
+  setMoneyHomeCardDevOverride,
+} from '../../hooks/moneyHomeCardDevOverride';
 import {
   type MoneyHomeSegment,
   useMoneyHomePerformance,
@@ -50,6 +59,7 @@ import {
   selectHasMetalCard,
   selectIsCardholder,
   selectIsCardStateResolved,
+  selectIsCardHomeDataResolved,
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
@@ -79,10 +89,54 @@ import {
 import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
+import {
+  useVbaHomeCard,
+  useVbaHomeCardRefresh,
+  type VbaHomeCard,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import {
+  useVbaEligibility,
+  type VbaEligibility,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+
+let mockIsMoneyGlass = false;
+jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockIsMoneyGlass,
+}));
+// Glass surfaces also need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsMoneyGlass,
+    }),
+  };
+});
+
+let mockIsMoneyBrandRefresh = false;
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyBrandRefresh',
+  () => ({
+    selectMoneyBrandRefreshEnabled: () => mockIsMoneyBrandRefresh,
+  }),
+);
+
+let mockIsMoneyNativeHeader = false;
+jest.mock('../../components/MoneyHeader/useMoneyNativeHeader', () => ({
+  useMoneyNativeHeader: () => mockIsMoneyNativeHeader,
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockInitiateDeposit = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockRefetchBalance = jest.fn();
 const mockRefetchInterest = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -174,8 +228,30 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyMicrodeposits', () => ({
+  useMoneyMicrodeposits: jest.fn(() => ({
+    microdeposits: [],
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   useMoneyAccountApiActivity: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyVbaTransfers', () => ({
+  useMoneyVbaTransfers: jest.fn(() => ({
+    data: undefined,
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
+  useNeobankAutorampActivity: jest.fn(() => ({
+    activity: [],
+    refetch: jest.fn(),
+  })),
 }));
 
 jest.mock(
@@ -273,6 +349,7 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectHasMetalCard: jest.fn(),
   selectCardHomeDataStatus: jest.fn(() => 'idle'),
   selectIsCardStateResolved: jest.fn(() => true),
+  selectIsCardHomeDataResolved: jest.fn(() => true),
   selectCardActiveProviderId: jest.fn(() => null),
   selectIsMoneyAccountDelegatedForCard: jest.fn(() => false),
 }));
@@ -286,12 +363,11 @@ jest.mock('../../selectors/featureFlags', () => ({
 
 jest.mock('../../selectors/visibility', () => ({
   selectIsMoneyAccountVisible: jest.fn(() => true),
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
   isProSubscriptionEnabled: false,
-  variantName: 'control',
-  isActive: false,
 }));
 jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
@@ -313,6 +389,16 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+const mockSelectUsableVbaAutoramp = jest.fn(
+  (): { id: string } | undefined => undefined,
+);
+jest.mock('../../../../../selectors/rampsController', () => ({
+  ...jest.createMockFromModule<
+    typeof import('../../../../../selectors/rampsController')
+  >('../../../../../selectors/rampsController'),
+  selectUsableVbaAutoramp: () => mockSelectUsableVbaAutoramp(),
+}));
+
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
   useMoneyAccountCardLinkage: jest.fn(() => ({
@@ -325,6 +411,7 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
     moneyAccountCardToken: null,
     canLink: false,
     isMoneyAccountLinkingSupported: true,
+    isMoneyCardSectionAvailable: true,
     status: 'idle' as const,
     isLinking: false,
     error: null,
@@ -366,16 +453,18 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
     trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
     trackActivitySurfaceClicked: jest.fn(),
     trackScreenViewed: mockTrackScreenViewed,
+    trackComponentViewed: jest.fn(),
   })),
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: jest.fn(() => ({
-    initiateDeposit: mockInitiateDeposit,
-  })),
   useMoneyAccountWithdrawal: jest.fn(() => ({
     initiateWithdrawal: jest.fn().mockResolvedValue(undefined),
   })),
+}));
+
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
+  useMoneyDepositNavigation: jest.fn(),
 }));
 
 jest.mock('../../hooks/useOnboardingStep', () => ({
@@ -387,10 +476,79 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
   STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
+  () => ({
+    openVbaEntry: jest.fn(),
+  }),
+);
+jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  startVbaCufJourney: jest.fn(),
+}));
+
+const mockOpenVbaEntry = jest.mocked(openVbaEntry);
+const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
+
+const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
+const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
+const mockUseVbaTransactionRefresh = jest.mocked(useVbaTransactionRefresh);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
+const mockUseActiveGroupCryptoPresence = jest.mocked(
+  useActiveGroupCryptoPresence,
+);
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard',
+  () => ({
+    useVbaHomeCard: jest.fn(),
+    useVbaHomeCardRefresh: jest.fn(),
+  }),
+);
+
+jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
+  useVbaTransactionRefresh: jest.fn(),
+}));
+
+jest.mock('../../hooks/useActiveGroupCryptoPresence', () => ({
+  useActiveGroupCryptoPresence: jest.fn(),
+}));
+
+jest.mock('../../hooks/useActiveGroupCryptoPresence', () => ({
+  useActiveGroupCryptoPresence: jest.fn(),
+}));
+
+const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility',
+  () => ({
+    useVbaEligibility: jest.fn(),
+  }),
+);
+
+const VBA_ELIGIBILITY_NOT_ELIGIBLE: VbaEligibility = {
+  isEligible: false,
+  isLoading: false,
+  isFlagEnabled: false,
+  isRegionEligible: false,
+  isDevBypassEnabled: false,
+  location: undefined,
+};
+
+const VBA_ELIGIBILITY_ELIGIBLE: VbaEligibility = {
+  isEligible: true,
+  isLoading: false,
+  isFlagEnabled: true,
+  isRegionEligible: true,
+  isDevBypassEnabled: false,
+  location: 'BR',
+};
+
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
 const mockSelectCardHomeDataStatus = jest.mocked(selectCardHomeDataStatus);
 const mockSelectIsCardStateResolved = jest.mocked(selectIsCardStateResolved);
+const mockSelectIsCardHomeDataResolved = jest.mocked(
+  selectIsCardHomeDataResolved,
+);
 const mockSelectCardActiveProviderId = jest.mocked(selectCardActiveProviderId);
 const mockSelectIsMoneyAccountVisible = jest.mocked(
   selectIsMoneyAccountVisible,
@@ -446,6 +604,8 @@ const createLinkageMock = (
   moneyAccountCardToken: null,
   canLink: false,
   isMoneyAccountLinkingSupported: true,
+  isMoneyCardSectionAvailable: true,
+  reportsVerificationStatus: true,
   status: 'idle',
   isLinking: false,
   error: null,
@@ -577,6 +737,83 @@ const expectTestIdBefore = (
 };
 
 describe('MoneyHomeView', () => {
+  describe('brand refresh', () => {
+    afterEach(() => {
+      mockIsMoneyBrandRefresh = false;
+      mockIsMoneyGlass = false;
+      mockIsMoneyNativeHeader = false;
+    });
+
+    it('keeps the JS header and opaque surfaces by default', () => {
+      const { getByTestId, queryAllByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+    });
+
+    it('hands the header to the native bar and lets content scroll under it', () => {
+      mockIsMoneyNativeHeader = true;
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(queryByTestId(MoneyHeaderTestIds.CONTAINER)).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW).props
+          .contentInsetAdjustmentBehavior,
+      ).toBe('automatic');
+    });
+
+    it('puts the header backdrop under the native bar', () => {
+      mockIsMoneyBrandRefresh = true;
+      mockIsMoneyNativeHeader = true;
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
+      ).toBeOnTheScreen();
+    });
+
+    it('floats the JS header on its backdrop where the native bar is off', () => {
+      mockIsMoneyBrandRefresh = true;
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the header in place without a backdrop when brand refresh is off', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('draws the action tiles on glass when brand refresh glass is on', () => {
+      mockIsMoneyGlass = true;
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        within(
+          getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
+        ).getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID),
+      ).toHaveLength(3);
+    });
+  });
+
   let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
   let defaultMoneyVaultApy: ReturnType<typeof useMoneyVaultApy>;
 
@@ -590,8 +827,6 @@ describe('MoneyHomeView', () => {
     mockSelectPrivacyMode.mockReturnValue(false);
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
-      variantName: 'control',
-      isActive: false,
     });
     mockUsePlusAccess.mockReturnValue({
       isPlusSubscriber: false,
@@ -600,7 +835,15 @@ describe('MoneyHomeView', () => {
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
-    mockInitiateDeposit.mockResolvedValue(undefined);
+    mockNavigateToMoneyDeposit.mockImplementation(async ({ track }) => {
+      track?.({
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      });
+    });
+    mockUseMoneyDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
+    });
     mockRefetchInterest.mockResolvedValue(undefined);
     mockUseMoneyAccountInterest.mockReturnValue({
       last30DaysQuery: {
@@ -608,7 +851,6 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '11.37',
         },
         isLoading: false,
-        isInitialLoading: false,
         isError: false,
       },
       sinceInceptionQuery: {
@@ -616,7 +858,6 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '139.02',
         },
         isLoading: false,
-        isInitialLoading: false,
         isError: false,
       },
       refetchInterest: mockRefetchInterest,
@@ -626,6 +867,7 @@ describe('MoneyHomeView', () => {
     mockSelectHasMetalCard.mockReturnValue(false);
     mockSelectCardHomeDataStatus.mockReturnValue('idle');
     mockSelectIsCardStateResolved.mockReturnValue(true);
+    mockSelectIsCardHomeDataResolved.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(true);
     mockSelectMoneyEarningSectionEnabledFlag.mockReturnValue(true);
 
@@ -637,6 +879,17 @@ describe('MoneyHomeView', () => {
     mockGetLinkFlowRedirectTarget.mockReset();
     mockGetLinkFlowRedirectTarget.mockReturnValue(undefined);
     mockUseMoneyAccountCardLinkage.mockReturnValue(createLinkageMock());
+
+    // Default to no VBA card so variant tests cannot leak into others.
+    setMoneyHomeCardDevOverride(null);
+    mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
+    mockUseActiveGroupCryptoPresence.mockReturnValue({
+      hasCrypto: false,
+      isLoading: false,
+    });
+    mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+    mockSelectUsableVbaAutoramp.mockReturnValue(undefined);
+    mockOpenVbaEntry.mockClear();
 
     mockUseMoneyAccountInfo.mockReturnValue({
       hasMoneyAccount: true,
@@ -754,6 +1007,334 @@ describe('MoneyHomeView', () => {
     expect(queryByTestId(MoneyEarningsTestIds.CONTAINER)).not.toBeOnTheScreen();
   });
 
+  describe('VBA identity-status card', () => {
+    const VBA_CARD_CONTAINERS = Object.values(MONEY_VBA_HOME_CARD_TEST_IDS).map(
+      (testIds) => testIds.CONTAINER,
+    );
+
+    const expectOnlyVbaCard = (
+      rendered: ReturnType<typeof renderWithProvider>,
+      containerTestId: string,
+    ) => {
+      expect(rendered.getByTestId(containerTestId)).toBeOnTheScreen();
+      VBA_CARD_CONTAINERS.filter(
+        (testId) => testId !== containerTestId,
+      ).forEach((testId) => {
+        expect(rendered.queryByTestId(testId)).not.toBeOnTheScreen();
+      });
+      expect(
+        rendered.queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    };
+
+    it('renders the get_started card', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
+      );
+    });
+
+    it('renders the identity_verified card', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'identity_verified',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MONEY_VBA_HOME_CARD_TEST_IDS.identity_verified.CONTAINER,
+      );
+    });
+
+    it('renders the kyc_pending card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_pending',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CONTAINER,
+      );
+    });
+
+    it('renders the finish_verification card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'finish_verification',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MONEY_VBA_HOME_CARD_TEST_IDS.finish_verification.CONTAINER,
+      );
+    });
+
+    it('renders the kyc_decision card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_decision',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER,
+      );
+    });
+
+    it('renders the forced VBA card from the developer override', () => {
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      setMoneyHomeCardDevOverride(
+        getMoneyHomeCardDevOverrideById('get_started'),
+      );
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+      act(() => {
+        setMoneyHomeCardDevOverride(null);
+      });
+      devGlobal.__DEV__ = originalDev;
+    });
+
+    it('renders Add funds when the developer override forces that step on a funded account', () => {
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      setMoneyHomeCardDevOverride(getMoneyHomeCardDevOverrideById('add_funds'));
+
+      const { getByTestId, getByText } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.onboarding.step_1.cta')),
+      ).toBeOnTheScreen();
+      act(() => {
+        setMoneyHomeCardDevOverride(null);
+      });
+      devGlobal.__DEV__ = originalDev;
+    });
+
+    it('shows the onboarding card instead of Get started when the wallet has crypto', () => {
+      mockUseActiveGroupCryptoPresence.mockReturnValue({
+        hasCrypto: true,
+        isLoading: false,
+      });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('wires the one-shot KYC session refresh on mount', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'none',
+      } as VbaHomeCard);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseVbaHomeCardRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('wires the VBA autoramp transaction refresh on mount', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'none',
+      } as VbaHomeCard);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseVbaTransactionRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('remounts the card with fresh dismiss state when the variant changes', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...defaultMoneyAccountBalance,
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
+        tokenTotal: new BigNumber(0),
+      });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_decision',
+      } as VbaHomeCard);
+      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      fireEvent.press(
+        getByTestId(
+          MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.DISMISS_BUTTON as string,
+        ),
+      );
+      expect(
+        queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
+      ).toBeNull();
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+      rerender(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('renders no VBA card for the none variant', () => {
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      VBA_CARD_CONTAINERS.forEach((testId) => {
+        expect(queryByTestId(testId)).not.toBeOnTheScreen();
+      });
+    });
+  });
+
+  describe('VBA bank details action button', () => {
+    it('renders the Details button for every eligible user, card or not', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders no Details button when the user is not VBA eligible', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeNull();
+    });
+
+    it('renders the Details button for a usable autoramp even when not VBA eligible', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      mockSelectUsableVbaAutoramp.mockReturnValue({ id: 'ar-1' });
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('tracks and routes straight to the loading screen on press', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.BANK_DETAILS,
+        label_key: 'money.action.details',
+        component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+        redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+        button_position: 4,
+        button_row_button_count: 4,
+      });
+      expect(mockOpenVbaEntry).toHaveBeenCalledWith(
+        expect.objectContaining({ goBack: mockGoBack }),
+        { source: 'vba-action-row-details' },
+      );
+      expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
+        VBA_CUF_ENTRY_SURFACE.MONEY_ACTION_ROW,
+      );
+    });
+
+    it('ignores a repeat Details tap while the first is still presenting', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      const details = getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON);
+      fireEvent.press(details);
+      fireEvent.press(details);
+
+      expect(mockOpenVbaEntry).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not put the Details button into a busy state', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const details = getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON);
+
+      fireEvent.press(details);
+
+      expect(details.props.accessibilityState?.busy).toBeFalsy();
+      expect(details.props.accessibilityState?.disabled).toBeFalsy();
+    });
+
+    it('counts four buttons in the Add tracking payload when Details is shown', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_position: 1,
+          button_row_button_count: 4,
+        }),
+      );
+    });
+  });
+
   describe('time to content telemetry', () => {
     it('marks APY and earnings ready when cached content is visible during refetch', () => {
       mockUseMoneyVaultApy.mockReturnValue({
@@ -766,14 +1347,14 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -816,13 +1397,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -851,13 +1430,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -1180,12 +1757,12 @@ describe('MoneyHomeView', () => {
         });
       });
 
-      it('disables Transfer button for sub-cent (dust) balance', () => {
+      it('enables Transfer button for sub-cent (dust) balance', () => {
         const { getByTestId } = renderWithProvider(<MoneyHomeView />);
         const transferButton = getByTestId(
           MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
         );
-        expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+        expect(transferButton.props.accessibilityState?.disabled).toBeFalsy();
       });
 
       it('hides MoneyEarnings for dust balance', () => {
@@ -1498,6 +2075,18 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
     });
 
+    it('leaves the title to the native bar when it is on', () => {
+      mockRouteParams = { showBackButton: true };
+      mockIsMoneyNativeHeader = true;
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).not.toBeOnTheScreen();
+      mockIsMoneyNativeHeader = false;
+    });
+
     it('keeps the title in the header as the Money tab', () => {
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1592,7 +2181,7 @@ describe('MoneyHomeView', () => {
       expect(transferButton.props.accessibilityState?.disabled).toBe(true);
     });
 
-    it('disables Transfer button when account has zero balance', () => {
+    it('enables Transfer button when account has zero balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
@@ -1606,10 +2195,10 @@ describe('MoneyHomeView', () => {
         MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
       );
 
-      expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+      expect(transferButton.props.accessibilityState?.disabled).toBeFalsy();
     });
 
-    it('does not navigate to Transfer sheet when Transfer button is pressed while disabled', () => {
+    it('navigates to Transfer sheet when Transfer button is pressed with zero balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
@@ -1622,7 +2211,7 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
 
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
       });
     });
@@ -2024,18 +2613,16 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('+$139.02');
     });
 
-    it('falls back monthly to APY projection and lifetime to zero when interest fails', () => {
+    it('falls back monthly to APY projection and hides lifetime when interest fails', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -2045,14 +2632,41 @@ describe('MoneyHomeView', () => {
         return '$0.01';
       });
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
       expect(
         getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
       ).toHaveTextContent('+$0.01');
       expect(
+        queryByTestId(MoneyEarningsTestIds.SINCE_INCEPTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps previously fetched lifetime earnings when a refetch fails', () => {
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: undefined,
+          isLoading: false,
+          isError: false,
+        },
+        sinceInceptionQuery: {
+          data: { interest_earned_usd: '139.02' },
+          isLoading: false,
+          isError: true,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+      mockMoneyFormatUsd.mockImplementation((value) =>
+        String(value) === '139.02' ? '$139.02' : '$0.00',
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
         getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
-      ).toHaveTextContent(/^\$0\.00$/);
+      ).toHaveTextContent('+$139.02');
     });
 
     it('falls back monthly to projection and lifetime to zero for invalid interest values', () => {
@@ -2060,13 +2674,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: { interest_earned_usd: 'invalid' },
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: 'NaN' },
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -2090,13 +2702,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -2116,14 +2726,14 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -2817,7 +3427,7 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('initiates a deposit when a token Convert button is pressed', async () => {
+    it('navigates to deposit when a token Convert button is pressed', async () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const potentialEarnings = getByTestId(
@@ -2831,13 +3441,13 @@ describe('MoneyHomeView', () => {
         );
       });
 
-      expect(mockInitiateDeposit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          preferredPaymentToken: expect.objectContaining({
-            address: mockDepositTokens[0].address,
-          }),
-        }),
-      );
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: {
+          address: mockDepositTokens[0].address,
+          chainId: mockDepositTokens[0].chainId,
+        },
+        track: expect.any(Function),
+      });
     });
 
     it('tracks positive balance when a token Convert button is pressed', async () => {
@@ -2854,9 +3464,19 @@ describe('MoneyHomeView', () => {
         );
       });
 
-      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
-        expect.objectContaining({ token_has_balance: true }),
-      );
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        component_name:
+          COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
+        label_key: 'money.potential_earnings.add',
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: mockDepositTokens[0].symbol,
+        token_position_in_list: 1,
+        token_chain_id: mockDepositTokens[0].chainId,
+        tokens_in_list: mockDepositTokens.length,
+        token_has_balance: true,
+      });
     });
 
     it('tracks positive balance when a token row is pressed', async () => {
@@ -2866,13 +3486,29 @@ describe('MoneyHomeView', () => {
         fireEvent.press(getByText(mockDepositTokens[0].name));
       });
 
-      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith(
-        expect.objectContaining({ token_has_balance: true }),
-      );
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: {
+          address: mockDepositTokens[0].address,
+          chainId: mockDepositTokens[0].chainId,
+        },
+        track: expect.any(Function),
+      });
+      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith({
+        component_name:
+          COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: mockDepositTokens[0].symbol,
+        token_position_in_list: 1,
+        token_chain_id: mockDepositTokens[0].chainId,
+        tokens_in_list: mockDepositTokens.length,
+        token_has_balance: true,
+      });
     });
 
-    it('logs an error when initiateDeposit rejects', async () => {
-      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
+    it('logs an error when deposit navigation rejects', async () => {
+      mockNavigateToMoneyDeposit.mockRejectedValueOnce(
+        new Error('network failure'),
+      );
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const potentialEarnings = getByTestId(
@@ -2892,113 +3528,6 @@ describe('MoneyHomeView', () => {
           message: expect.stringContaining('MoneyHomeView'),
         }),
       );
-    });
-  });
-
-  describe('Pro entry point', () => {
-    beforeEach(() => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
-      });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: false,
-        isPlusAccessUnknown: false,
-      });
-    });
-
-    it('hides the Pro entry point while Plus access is unresolved', () => {
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: false,
-        isPlusAccessUnknown: true,
-      });
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
-    });
-
-    it('hides the Pro entry point while the Pro flow is disabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: false,
-      });
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
-    });
-
-    it('invites the user to join when they are not subscribed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
-      );
-    });
-
-    it('shows the Pro label when the user is already subscribed', () => {
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: true,
-        isPlusAccessUnknown: false,
-      });
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.pro'),
-      );
-    });
-
-    it('navigates to the subscription flow when the user is not subscribed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
-        component_name: COMPONENT_NAMES.MONEY_HEADER,
-        label_key: 'pro_subscription.join_pro',
-        redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
-        source: 'money_header',
-      });
-    });
-
-    it('navigates to the Pro hub when the user is already subscribed', () => {
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: true,
-        isPlusAccessUnknown: false,
-      });
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
-        component_name: COMPONENT_NAMES.MONEY_HEADER,
-        label_key: 'pro_subscription.pro',
-        redirect_target: SCREEN_NAMES.PRO_HUB,
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
-        source: 'money_header',
-      });
     });
   });
 
@@ -3396,6 +3925,70 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('hides the MetaMask Card section when the first card fetch fails for a provider without verification status', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      mockSelectIsCardHomeDataResolved.mockReturnValue(false);
+      mockSelectCardHomeDataStatus.mockReturnValue('error');
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+          isCardAuthenticated: true,
+          isCardVerified: false,
+          isCardLinkedToMoneyAccount: false,
+          isMoneyCardSectionAvailable: true,
+          reportsVerificationStatus: false,
+          primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
+          moneyAccountCardToken: MOCK_CARD_FUNDING_TOKEN,
+          canLink: true,
+        }),
+      );
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the MetaMask Card link section for an unresolved Money account cardholder', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+          isCardAuthenticated: true,
+          isCardVerified: false,
+          isCardLinkedToMoneyAccount: false,
+          isMoneyCardSectionAvailable: true,
+          reportsVerificationStatus: false,
+          primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
+          moneyAccountCardToken: MOCK_CARD_FUNDING_TOKEN,
+          canLink: true,
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
     it('hides the MetaMask Card section when the authenticated provider cannot link a Money account', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockSelectIsCardStateResolved.mockReturnValue(false);
@@ -3407,6 +4000,7 @@ describe('MoneyHomeView', () => {
           isCardVerified: true,
           isCardLinkedToMoneyAccount: true,
           isMoneyAccountLinkingSupported: false,
+          isMoneyCardSectionAvailable: false,
           primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
         }),
       );
@@ -3418,6 +4012,35 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the MetaMask Card section again for a logged-out cardholder', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockSelectIsCardStateResolved.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+          isCardAuthenticated: false,
+          isCardVerified: false,
+          isCardLinkedToMoneyAccount: false,
+          isMoneyAccountLinkingSupported: true,
+          isMoneyCardSectionAvailable: true,
+          primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
       ).not.toBeOnTheScreen();

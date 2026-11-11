@@ -5,7 +5,6 @@ import { type PendingAppInstall } from '../../reducers/user/types';
 
 // Action type enum
 export enum UserActionType {
-  LOCKED_APP = 'LOCKED_APP',
   CHECK_FOR_DEEPLINK = 'CHECK_FOR_DEEPLINK',
   LOGIN = 'LOGIN',
   LOGOUT = 'LOGOUT',
@@ -40,11 +39,10 @@ export enum UserActionType {
   SET_APP_INSTALL_EVENT_FIRED = 'SET_APP_INSTALL_EVENT_FIRED',
   SET_PENDING_APP_INSTALL = 'SET_PENDING_APP_INSTALL',
   CLEAR_PENDING_APP_INSTALL = 'CLEAR_PENDING_APP_INSTALL',
+  SET_BRIDGE_LIMIT_TAB_SEEN = 'SET_BRIDGE_LIMIT_TAB_SEEN',
 }
 
 // User actions
-export type LockAppAction = Action<UserActionType.LOCKED_APP>;
-
 export type CheckForDeeplinkAction = Action<UserActionType.CHECK_FOR_DEEPLINK>;
 
 export type LoginAction = Action<UserActionType.LOGIN>;
@@ -167,11 +165,13 @@ export type SetPendingAppInstallAction =
 export type ClearPendingAppInstallAction =
   Action<UserActionType.CLEAR_PENDING_APP_INSTALL>;
 
+export type SetBridgeLimitTabSeenAction =
+  Action<UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN>;
+
 /**
  * User actions union type
  */
 export type UserAction =
-  | LockAppAction
   | CheckForDeeplinkAction
   | LoginAction
   | LogoutAction
@@ -205,4 +205,5 @@ export type UserAction =
   | SetOnboardingStepperStepAction
   | SetAppInstallEventFiredAction
   | SetPendingAppInstallAction
-  | ClearPendingAppInstallAction;
+  | ClearPendingAppInstallAction
+  | SetBridgeLimitTabSeenAction;

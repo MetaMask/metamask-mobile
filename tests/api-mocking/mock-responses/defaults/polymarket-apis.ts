@@ -93,7 +93,7 @@ export const POLYMARKET_API_MOCKS = {
       responseCode: 200,
       response: {},
     },
-    // data-api: positions / activity / upnl
+    // data-api v1: positions / activity / upnl
     {
       urlEndpoint: /^https:\/\/data-api\.polymarket\.com\/positions(\?.*)?$/,
       responseCode: 200,
@@ -108,6 +108,27 @@ export const POLYMARKET_API_MOCKS = {
       urlEndpoint: /^https:\/\/data-api\.polymarket\.com\/upnl(\?.*)?$/,
       responseCode: 200,
       response: [],
+    },
+    // data-api v2 (PRED-1346): the app now fetches Data API v2 directly, so
+    // these defaults must cover /v2/* too or the requests fall through to the
+    // live server and fail the unmocked-request cleanup guard. Empty fixtures
+    // need no row conversion — only the v2 envelope (snake_case rows live in
+    // spec-level mocks; see toPolymarket*V2Rows in ../polymarket/polymarket-mocks.ts).
+    {
+      urlEndpoint:
+        /^https:\/\/data-api\.polymarket\.com\/v2\/positions(\?.*)?$/,
+      responseCode: 200,
+      response: { data: [], pagination: { next_cursor: null } },
+    },
+    {
+      urlEndpoint: /^https:\/\/data-api\.polymarket\.com\/v2\/activity(\?.*)?$/,
+      responseCode: 200,
+      response: { data: [], pagination: { next_cursor: null } },
+    },
+    {
+      urlEndpoint: /^https:\/\/data-api\.polymarket\.com\/v2\/user-pnl(\?.*)?$/,
+      responseCode: 200,
+      response: { data: null },
     },
   ],
   POST: [],

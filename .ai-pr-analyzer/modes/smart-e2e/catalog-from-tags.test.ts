@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { flaskTags, smokeTags } from '../../../tests/tags.js';
-import { performanceTags } from '../../../tests/tags.performance.js';
 import { buildSmartE2eCatalog, catalogEntries } from './catalog-from-tags';
 
 describe('buildSmartE2eCatalog', () => {
@@ -12,13 +11,6 @@ describe('buildSmartE2eCatalog', () => {
     const catalog = buildSmartE2eCatalog();
 
     assert.deepEqual(catalog.e2e, expected);
-  });
-
-  it('uses performance tag ids and descriptions from tests/tags.performance.js', () => {
-    const expected = catalogEntries(performanceTags);
-
-    const catalog = buildSmartE2eCatalog();
-
-    assert.deepEqual(catalog.performance, expected);
+    assert.equal('performance' in catalog, false);
   });
 });

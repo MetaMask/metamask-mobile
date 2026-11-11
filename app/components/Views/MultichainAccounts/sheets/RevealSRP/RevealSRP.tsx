@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Platform, StatusBar } from 'react-native';
+import { useSelector } from 'react-redux';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   SafeAreaView,
@@ -12,11 +13,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   Button,
-  ButtonIcon,
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
-  HeaderBase,
   IconName,
   Text,
   TextColor,
@@ -35,6 +34,8 @@ import SecurityQuizLockImage from '../../../../../images/security-quiz-intro-loc
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
 import { ExportCredentialsIds } from '../../AccountDetails/ExportCredentials.testIds';
 import { useKeyringId } from '../../../../hooks/useKeyringId';
+import HeaderBaseGlass from '../../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface RootNavigationParamList extends ParamListBase {
   RevealSRP: {
@@ -47,6 +48,7 @@ type RevealSRPProp = RouteProp<RootNavigationParamList, 'RevealSRP'>;
 export const RevealSRP = () => {
   const route = useRoute<RevealSRPProp>();
   const { account } = route.params;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const insets = useSafeAreaInsets();
   const tw = useTailwind();
   const { navigate, goBack } = useNavigation<AppNavigationProp>();
@@ -89,19 +91,19 @@ export const RevealSRP = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={containerStyle}>
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         twClassName="flex-row items-center px-4"
-        startAccessory={
-          <ButtonIcon
-            testID={AccountDetailsIds.BACK_BUTTON}
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Md}
-            onPress={handleBackClick}
-          />
-        }
+        startButtonIconProps={{
+          testID: AccountDetailsIds.BACK_BUTTON,
+          iconName: IconName.ArrowLeft,
+          size: ButtonIconSize.Md,
+          onPress: handleBackClick,
+        }}
       >
         {strings('multichain_accounts.reveal_srp.header')}
-      </HeaderBase>
+      </HeaderBaseGlass>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

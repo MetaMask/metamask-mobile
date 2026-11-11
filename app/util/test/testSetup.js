@@ -806,6 +806,7 @@ jest.mock('../../store/storage-wrapper', () => ({
   getItemSync: jest.fn(),
   removeItem: jest.fn(),
   setItem: jest.fn(),
+  onKeyChange: jest.fn(() => jest.fn()),
 }));
 
 // eslint-disable-next-line import/no-commonjs
@@ -1022,6 +1023,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     BottomSheet,
+    // toast() throws unless <Toaster /> is mounted. Unit tests do not mount
+    // App's Toaster, so stub the imperative API on the module mock above.
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
   };
 });
 
@@ -1188,6 +1194,11 @@ jest.mock('@sentry/react-native', () => ({
   setMeasurement: jest.fn(),
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
+  startInactiveSpan: jest.fn(() => ({ end: jest.fn() })),
+  extendAppStart: jest.fn(),
+  getExtendedAppStartSpan: jest.fn(),
+  finishExtendedAppStart: jest.fn(() => Promise.resolve()),
+  spanIsSampled: jest.fn(() => true),
   startTransaction: jest.fn(),
   reactNativeTracingIntegration: jest.fn(() => ({
     name: 'ReactNativeTracing',

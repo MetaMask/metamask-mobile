@@ -10,18 +10,20 @@ export type { UseSocialShellFiltersResult } from './useSocialShellFilters';
 export { default as SocialTabFilterBar } from './SocialTabFilterBar';
 export type { SocialTabFilterBarProps } from './SocialTabFilterBar';
 export { mapFiltersToApiParams } from './mapFiltersToApiParams';
+export { filterSocialV1FeedPosts } from './filterSocialV1FeedPosts';
+export { filterLeaderboardTraders } from './filterLeaderboardTraders';
 export {
   DEFAULT_FILTERS,
+  DEFAULT_LEADERBOARD_FILTERS,
   MARKET_CAP_RANGE,
   VOLUME_24H_RANGE,
   TYPE_OPTIONS,
   TYPE_OPTIONS_FOLLOWING,
   TYPE_LABEL_KEY,
   COHORT_OPTIONS_FOLLOWING,
-  COHORT_OPTIONS_LIVE_TRADES,
+  COHORT_OPTIONS_LIVE,
   COHORT_OPTIONS_LEADERBOARD,
   COHORT_LABEL_KEY,
-  COHORT_LEADING_EMOJI,
   VERIFICATION_OPTIONS,
   VERIFICATION_LABEL_KEY,
   TIMEFRAME_OPTIONS,

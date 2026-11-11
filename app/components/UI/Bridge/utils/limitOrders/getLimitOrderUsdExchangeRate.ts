@@ -2,13 +2,9 @@ import { BigNumber } from 'bignumber.js';
 import { formatAmountWithLocaleSeparators } from '../formatAmountWithLocaleSeparators';
 
 const USD_CURRENCY = 'usd';
-// A rate of at least one keeps two decimals, which is three or more
-// significant digits.
+// Like every other fiat value on the limit order screens, the rate keeps two
+// decimals at most.
 const RATE_DECIMALS = 2;
-// A rate below one keeps as many significant digits instead, since two decimals
-// would round it by up to half its value (e.g. 0.0149 to 0.01) and down to zero
-// for a display currency worth far more than a dollar.
-const RATE_SIGNIFICANT_DIGITS = 3;
 
 /**
  * Exchange rate of one US dollar in the user's display currency, e.g.
@@ -31,8 +27,9 @@ export interface LimitOrderUsdExchangeRate {
  *
  * @param currentCurrency - The user's display currency.
  * @param fiatToUsdRate - USD value of one unit of the display currency.
- * @returns The rate of one US dollar in the display currency, or `undefined`
- * when the display currency is USD or no rate can price it.
+ * @returns The rate of one US dollar in the display currency, to two decimal
+ * places, or `undefined` when the display currency is USD, no rate can price
+ * it, or two decimals cannot show it.
  */
 export const getLimitOrderUsdExchangeRate = (
   currentCurrency: string | undefined,
@@ -51,14 +48,18 @@ export const getLimitOrderUsdExchangeRate = (
     return undefined;
   }
 
-  const rate = usdToFiatRate.gte(1)
-    ? usdToFiatRate.toFixed(RATE_DECIMALS, BigNumber.ROUND_HALF_UP)
-    : usdToFiatRate
-        .precision(RATE_SIGNIFICANT_DIGITS, BigNumber.ROUND_HALF_UP)
-        .toFixed();
+  const rate = usdToFiatRate.decimalPlaces(
+    RATE_DECIMALS,
+    BigNumber.ROUND_HALF_UP,
+  );
+  // A rate that two decimals round to zero, e.g. for a display currency worth
+  // far more than a dollar, would read as "1 USD = 0.00", so it is left out.
+  if (rate.lte(0)) {
+    return undefined;
+  }
 
   return {
-    rate: formatAmountWithLocaleSeparators(rate),
+    rate: formatAmountWithLocaleSeparators(rate.toFixed(RATE_DECIMALS)),
     currency: currentCurrency.toUpperCase(),
   };
 };

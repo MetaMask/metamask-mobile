@@ -7,12 +7,15 @@ import {
 } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 import {
+  KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerSignTypedMessageAction,
+  KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
 import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/transaction-controller';
 import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 
 export function getTransactionPayControllerMessenger(
   rootMessenger: RootMessenger<
@@ -58,13 +61,15 @@ export function getTransactionPayControllerMessenger(
 
 type InitMessengerActions =
   | DelegationControllerSignDelegationAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignPersonalMessageAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetNetworkConfigurationByChainIdAction
+  | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerIsAtomicBatchSupportedAction;
 
-type InitMessengerEvents = never;
+type InitMessengerEvents = KeyringControllerUnlockEvent;
 
 export type TransactionPayControllerInitMessenger = Messenger<
   'TransactionPayControllerInit',
@@ -86,13 +91,15 @@ export function getTransactionPayControllerInitMessenger(
   rootMessenger.delegate({
     actions: [
       'DelegationController:signDelegation',
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signPersonalMessage',
       'KeyringController:signTypedMessage',
       'NetworkController:getNetworkConfigurationByChainId',
+      'RemoteFeatureFlagController:getState',
       'TransactionController:isAtomicBatchSupported',
     ],
-    events: [],
+    events: ['KeyringController:unlock'],
     messenger,
   });
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { isTPSLOrder, type Order } from '@metamask/perps-controller';
@@ -22,6 +22,8 @@ export interface UsePerpsLiveOrdersReturn {
   orders: Order[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  error?: Error | null;
+  retry: () => void;
   /** Deliveries accepted by this selected-account subscription. */
   deliveryRevision?: number;
 }
@@ -41,6 +43,7 @@ export function usePerpsLiveOrders(
 ): UsePerpsLiveOrdersReturn {
   const { throttleMs = 0, hideTpSl = false, hideReduceOnly = false } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
+  const [error, setError] = useState<Error | null>(null);
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelOrders = stream.orders.getSnapshot();
   const [orders, setOrders] = useState<Order[]>(() => {
@@ -65,7 +68,13 @@ export function usePerpsLiveOrders(
 
   useEffect(() => {
     const unsubscribe = stream.orders.subscribe({
+      onError: (failure) => {
+        setOrdersAddress(selectedAddress);
+        setError(failure);
+        setIsInitialLoading(false);
+      },
       callback: (newOrders) => {
+        setError(stream.orders.getError());
         acceptedDeliveryRef.current = false;
         if (newOrders === null || newOrders === undefined) {
           // Cleared on account switch — show skeleton until first update for new account
@@ -113,6 +122,10 @@ export function usePerpsLiveOrders(
     };
   }, [selectedAddress, stream, throttleMs]);
 
+  const retry = useCallback(() => {
+    stream.retryOrderStreams();
+  }, [stream]);
+
   // Filter orders based on requested display options
   const filteredOrders = useMemo(() => {
     if (!hideTpSl && !hideReduceOnly) {
@@ -138,6 +151,8 @@ export function usePerpsLiveOrders(
   }, [orders, hideTpSl, hideReduceOnly]);
 
   return {
+    error: ordersAddress === selectedAddress ? error : null,
+    retry,
     orders: ordersAddress === selectedAddress ? filteredOrders : EMPTY_ORDERS,
     isInitialLoading: ordersAddress !== selectedAddress || isInitialLoading,
     deliveryRevision,

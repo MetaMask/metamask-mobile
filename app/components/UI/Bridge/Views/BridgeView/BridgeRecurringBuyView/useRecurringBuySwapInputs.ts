@@ -9,10 +9,8 @@ import {
   selectDestToken,
   selectSourceAmount,
   selectSourceToken,
-  setDestToken,
   setSourceAmount,
   setSourceAmountAsMax,
-  setSourceToken,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFlagController';
@@ -26,7 +24,6 @@ import { useIsNetworkGasSponsored } from '../../../hooks/useIsNetworkGasSponsore
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
-import { getDefaultTokenPairForChains } from '../../../utils/tokenUtils';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
 export const useRecurringBuySwapInputs = () => {
@@ -45,31 +42,6 @@ export const useRecurringBuySwapInputs = () => {
     (state: RootState) =>
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
   );
-
-  // The view is unmounted/remounted each time its tab is switched away
-  // from/back to (see BridgeView's conditional rendering), so this effect runs
-  // exactly once per "switch into this tab" event as long as enabledChainIds is
-  // a stable reference (which is based on LD flags).
-  // sourceToken/destToken are shared bridge-wide Redux state and can be left
-  // over from another flow (e.g. Market order) whose chain isn't part of this
-  // flow's allowed chains, so always re-anchor both to this flow's default
-  // pair: Ethereum's ETH/mUSD when enabled, otherwise the default pair for the
-  // first enabled chain.
-  useEffect(() => {
-    if (!enabledChainIds) {
-      return;
-    }
-
-    const defaultPair = getDefaultTokenPairForChains(enabledChainIds);
-    if (!defaultPair) {
-      return;
-    }
-
-    dispatch(setSourceToken(defaultPair.sourceToken));
-    if (defaultPair.destToken) {
-      dispatch(setDestToken(defaultPair.destToken));
-    }
-  }, [enabledChainIds, dispatch]);
 
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {

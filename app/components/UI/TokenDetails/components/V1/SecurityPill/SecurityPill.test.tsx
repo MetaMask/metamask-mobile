@@ -37,7 +37,7 @@ describe('SecurityPill', () => {
     [3, '3 flags'],
   ])('renders medium_risk as the flag count: %i -> "%s"', (count, label) => {
     const { getByText } = render(
-      <SecurityPill verdict="medium_risk" flagCount={count} />,
+      <SecurityPill verdict="medium_risk" riskCount={count} />,
     );
 
     expect(getByText(label)).toBeOnTheScreen();
@@ -48,7 +48,7 @@ describe('SecurityPill', () => {
       ['medium_risk', 'screened', 'high_risk', 'pending'] as SecurityVerdict[]
     ).map((verdict) =>
       backgroundOf(
-        render(<SecurityPill verdict={verdict} flagCount={1} />).getByTestId(
+        render(<SecurityPill verdict={verdict} riskCount={1} />).getByTestId(
           SecurityPillSelectors.VERDICT,
         ),
       ),
@@ -57,9 +57,9 @@ describe('SecurityPill', () => {
     expect(new Set(backgrounds).size).toBe(backgrounds.length);
   });
 
-  it('ignores the flag count for verdicts with fixed labels', () => {
+  it('ignores the risk count for verdicts with fixed labels', () => {
     const { getByText } = render(
-      <SecurityPill verdict="screened" flagCount={7} />,
+      <SecurityPill verdict="screened" riskCount={7} />,
     );
 
     expect(getByText('Screened')).toBeOnTheScreen();

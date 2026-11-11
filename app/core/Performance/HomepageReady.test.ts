@@ -94,6 +94,29 @@ describe('HomepageReady', () => {
     });
   });
 
+  it('records device capability cohorts when ending the trace', () => {
+    startHomepageReadyTrace({
+      source: 'unlock',
+      appStartType: 'warm',
+    });
+
+    endHomepageReadyTrace({
+      contentState: 'filled',
+      hardwareTier: 'LOW',
+      networkTier: 'SLOW_CELLULAR',
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.HomepageReady,
+      data: {
+        success: true,
+        content_state: 'filled',
+        hardware_tier: 'LOW',
+        network_tier: 'SLOW_CELLULAR',
+      },
+    });
+  });
+
   it('does not end a trace that was never started', () => {
     endHomepageReadyTrace({ contentState: 'empty' });
 

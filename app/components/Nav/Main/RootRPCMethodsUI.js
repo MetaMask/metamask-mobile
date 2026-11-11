@@ -8,15 +8,12 @@ import ConnectApproval from '../../Approvals/ConnectApproval';
 import PermissionApproval from '../../Approvals/PermissionApproval';
 import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
+import ConfirmMembershipApproval from '../../Approvals/ConfirmMembershipApproval';
 import { ConfirmRoot } from '../../../components/Views/confirmations/components/confirm';
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapDialogApproval';
-///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
-///: END:ONLY_INCLUDE_IF
 
 const RootRPCMethodsUI = (props) => (
   <React.Fragment>
@@ -28,21 +25,10 @@ const RootRPCMethodsUI = (props) => (
     <PermissionApproval navigation={props.navigation} />
     <FlowLoaderModal />
     <TemplateConfirmationModal />
-    {
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-    }
+    <ConfirmMembershipApproval />
     <InstallSnapApproval />
     <SnapDialogApproval />
-    {
-      ///: END:ONLY_INCLUDE_IF
-    }
-    {
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    }
     <SnapAccountCustomNameApproval />
-    {
-      ///: END:ONLY_INCLUDE_IF
-    }
   </React.Fragment>
 );
 

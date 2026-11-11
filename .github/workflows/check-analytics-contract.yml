@@ -18,7 +18,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: check-deployed-analytics-contract
@@ -30,6 +29,9 @@ jobs:
     environment: default-branch
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    permissions:
+      contents: read
+      id-token: write # token exchange for the analytics contract download
     outputs:
       release-tag: ${{ steps.shared-contract.outputs.release-tag }}
       release-url: ${{ steps.shared-contract.outputs.release-url }}

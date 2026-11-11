@@ -7,6 +7,7 @@ import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { getVersion } from 'react-native-device-info';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { authEnv } from '../../../apiEnv';
+import { trace } from '../../../../util/trace';
 
 /**
  * Initialize the authentication controller.
@@ -37,6 +38,10 @@ export const authenticationControllerInit: MessengerClientInitFunction<
       getMetaMetricsId: async () => analyticsId ?? '',
       getAppVersion: () => getVersion(),
     },
+
+    trace: trace as unknown as ConstructorParameters<
+      typeof AuthenticationController
+    >[0]['trace'],
   });
 
   return {

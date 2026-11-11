@@ -43,16 +43,15 @@ import {
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
-  assetIdsMatch,
   FeatureId,
   formatChainIdToCaip,
+  isNativeAddress,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import {
   Box,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   IconColor,
   IconName,
   Text,
@@ -84,10 +83,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
-import {
-  ARC_NATIVE_ASSET_ID,
-  ARC_NATIVE_ASSET_ID_LEGACY,
-} from '../../../../hooks/useArcDefaultTokens';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
@@ -103,12 +98,9 @@ import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/track
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
-import {
-  ARC_HEX_CHAIN_ID,
-  isArcTokenUSDC,
-} from '../../../../../enablement/assets/arc';
-import { selectAsset } from '../../../../../selectors/assets/assets-list';
-import { ZERO_ADDRESS } from '../../../../../constants/address';
+import { isArcUsdcErc20AssetId } from '../../../../../enablement/assets/arc';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -299,13 +291,6 @@ export const BridgeTokenSelectorContent: React.FC<
   );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
-  const arcNativeAsset = useSelector((state: RootState) =>
-    selectAsset(state, {
-      address: ZERO_ADDRESS,
-      chainId: ARC_HEX_CHAIN_ID,
-      isStaked: false,
-    }),
-  );
 
   const { data: watchlistData, isLoading: isWatchlistLoading } =
     useTokenWatchlistQuery();
@@ -623,8 +608,7 @@ export const BridgeTokenSelectorContent: React.FC<
       )
       .filter(
         (token) =>
-          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID) &&
-          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY) &&
+          !isArcUsdcErc20AssetId(token.assetId) &&
           (!balanceOnly ||
             (token.balance !== undefined && parseFloat(token.balance) > 0)),
       );
@@ -924,22 +908,13 @@ export const BridgeTokenSelectorContent: React.FC<
       const tokenDetailsSource = isWatchlistListMode
         ? TokenDetailsSource.SwapWatchlistFilter
         : TokenDetailsSource.Swap;
-      const assetDetailsItem = isArcTokenUSDC(item)
-        ? {
-            ...item,
-            ...arcNativeAsset,
-            address: ZERO_ADDRESS,
-            assetId: ARC_NATIVE_ASSET_ID,
-            caipAssetId: ARC_NATIVE_ASSET_ID,
-            isNative: true,
-          }
-        : item;
 
       // Use push so we always open details for the tapped token.
       // navigate('Asset') can reuse an existing Asset route with stale params.
       navigation.dispatch(
         StackActions.push('Asset', {
-          ...assetDetailsItem,
+          ...item,
+          isNative: isNativeAddress(item.address),
           source: tokenDetailsSource,
         }),
       );
@@ -956,13 +931,7 @@ export const BridgeTokenSelectorContent: React.FC<
         },
       );
     },
-    [
-      arcNativeAsset,
-      navigation,
-      enabledChainRanking,
-      isWatchlistListMode,
-      featureId,
-    ],
+    [navigation, enabledChainRanking, isWatchlistListMode, featureId],
   );
 
   const renderToken = useCallback<ListRenderItem<BridgeToken | null>>(
@@ -1129,7 +1098,7 @@ export const BridgeTokenSelectorContent: React.FC<
 
   return (
     <>
-      <Box twClassName="px-4 pb-3">
+      <Box twClassName="px-4 pt-1 pb-3">
         <TextFieldSearch
           value={searchString}
           onChangeText={handleSearchTextChange}
@@ -1181,6 +1150,7 @@ export const BridgeTokenSelectorContent: React.FC<
 };
 
 export const BridgeTokenSelector: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
@@ -1201,7 +1171,9 @@ export const BridgeTokenSelector: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('bridge.select_token')}
         onBack={() => navigation.goBack()}
         includesTopInset

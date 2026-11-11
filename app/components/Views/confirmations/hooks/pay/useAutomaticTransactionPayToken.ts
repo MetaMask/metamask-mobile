@@ -136,9 +136,9 @@ export function useAutomaticTransactionPayToken({
     shouldSelect: shouldSelectMoneyAccount,
   } = useAutomaticMoneyAccountPayToken({
     autoSelectFiatPayment,
+    availableTokens: tokens,
     disable,
     hasFiatPaymentSelected,
-    hasTokenBalance: tokens.length > 0,
     payTokenSelected: Boolean(payToken),
   });
 

@@ -300,6 +300,57 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
     expect(arcAssets[0].isNative).toBe(true);
   });
 
+  it('treats an erc20-namespaced asset with native metadata as native', () => {
+    const mntAssetId =
+      'eip155:5000/erc20:0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000';
+    const tokenAddress = '0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9';
+    const tokenAssetId = `eip155:5000/erc20:${tokenAddress}`;
+
+    const state = buildStateWithAssets([
+      {
+        amount: '5',
+        assetId: mntAssetId,
+        info: {
+          type: 'native',
+          symbol: 'MNT',
+          name: 'Mantle',
+          decimals: 18,
+          image: '',
+        },
+      },
+      {
+        amount: '5',
+        assetId: tokenAssetId,
+        info: {
+          type: 'erc20',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+          image: '',
+        },
+      },
+    ]);
+
+    const mantleAssets = selectConfirmationAssetsByAccountGroupId(
+      state,
+      undefined,
+    ).filter((asset) => asset.chainId === '0x1388');
+
+    const mnt = mantleAssets.find((asset) => asset.symbol === 'MNT');
+    const token = mantleAssets.find((asset) => asset.symbol === 'USDC');
+
+    expect(mnt).toMatchObject({
+      address: '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000',
+      isETH: true,
+      isNative: true,
+    });
+    expect(token).toMatchObject({
+      address: tokenAddress,
+      isETH: false,
+      isNative: false,
+    });
+  });
+
   // `assetId` on an emitted asset is the address for EVM chains and the
   // CAIP-19 ID only for non-EVM, so each case matches on its own terms.
   it.each([
@@ -433,11 +484,15 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
 
     it('displays zero fiat for a zero balance with no price', () => {
       expect(findPricelessToken('0')?.balanceInSelectedCurrency).toBe('chf:0');
+      expect(findPricelessToken('0')?.balanceInSelectedCurrencyAmount).toBe(0);
     });
 
     it('displays no fiat for a non-zero balance with no price', () => {
       expect(
         findPricelessToken('5')?.balanceInSelectedCurrency,
+      ).toBeUndefined();
+      expect(
+        findPricelessToken('5')?.balanceInSelectedCurrencyAmount,
       ).toBeUndefined();
     });
   });
@@ -463,6 +518,9 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
       expect(findBaseUsdc()?.balanceInSelectedCurrency).toBe(
         `chf:${BALANCE * PREFERRED_RATE}`,
       );
+      expect(findBaseUsdc()?.balanceInSelectedCurrencyAmount).toBe(
+        BALANCE * PREFERRED_RATE,
+      );
     });
 
     it('formats the balance from usdPrice when overridden to USD', () => {
@@ -470,6 +528,9 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
       // CHF amount with a dollar sign.
       expect(findBaseUsdc('USD')?.balanceInSelectedCurrency).toBe(
         `USD:${BALANCE * USD_RATE}`,
+      );
+      expect(findBaseUsdc('USD')?.balanceInSelectedCurrencyAmount).toBe(
+        BALANCE * USD_RATE,
       );
     });
 
@@ -519,6 +580,7 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
       );
 
       expect(mainnetUsdc?.balanceInSelectedCurrency).toBe('USD:100');
+      expect(mainnetUsdc?.balanceInSelectedCurrencyAmount).toBe(100);
     });
   });
 

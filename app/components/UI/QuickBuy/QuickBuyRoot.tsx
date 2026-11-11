@@ -45,7 +45,12 @@ import type {
 } from './types';
 import { SwapsFeatureIdProvider } from '../Bridge/providers/SwapsFeatureIdProvider';
 import { getQuickBuyFeatureId } from './utils/getQuickBuyFeatureId';
+import { getQuickBuyEntryPoint } from './utils/getQuickBuyEntryPoint';
 import { setTokenSelectorNetworkFilter } from '../../../core/redux/slices/bridge';
+import { BridgeSessionProvider } from '../Bridge/providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../Bridge/providers/SwapQuotesProvider';
+import Engine from '../../../core/Engine';
+import { TokenDetailsSource } from '../TokenDetails/constants/constants';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -79,7 +84,10 @@ interface QuickBuyRootInnerProps {
   onClose: () => void;
   features: QuickBuyFeatures;
   initialTradeMode?: QuickBuyRootProps['initialTradeMode'];
-  analyticsContext?: QuickBuyAnalyticsContext;
+  analyticsContext: QuickBuyAnalyticsContext;
+  postTradeShare?: boolean;
+  postTradeShareOwner?: string;
+  copyTradeOrigin: QuickBuyRootProps['copyTradeOrigin'];
   children?: React.ReactNode;
 }
 
@@ -89,6 +97,9 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   features,
   initialTradeMode,
   analyticsContext,
+  postTradeShare,
+  postTradeShareOwner,
+  copyTradeOrigin,
   children,
 }) => {
   const tw = useTailwind();
@@ -181,6 +192,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       onClose={onClose}
       onOpen={handleSheetOpened}
       isFullscreen
+      keyboardAvoidingViewEnabled={false}
     >
       {isContentReady ? (
         <QuickBuyProvider
@@ -189,6 +201,9 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           features={features}
           initialTradeMode={openingTradeMode}
           analyticsContext={analyticsContext}
+          postTradeShare={postTradeShare}
+          postTradeShareOwner={postTradeShareOwner}
+          copyTradeOrigin={copyTradeOrigin}
           activeScreen={activeScreen}
           setActiveScreen={navigateToScreen}
         >
@@ -228,22 +243,49 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
   features = TOP_TRADERS_QUICK_BUY_FEATURES,
   initialTradeMode,
   analyticsContext,
+  postTradeShare,
+  postTradeShareOwner,
+  copyTradeOrigin,
   children,
 }) => {
+  useEffect(() => {
+    if (!isVisible || !target) {
+      return;
+    }
+    // When Token Details page is opened from the Bridge asset picker, skip updating
+    // the location on the bridge controller to preserve the original entry-point
+    // location from the session that opened QuickBuy (e.g. "Main View").
+    const isFromBridgeAssetPicker = target.source === TokenDetailsSource.Swap;
+    if (isFromBridgeAssetPicker) {
+      return;
+    }
+    const location = getQuickBuyEntryPoint(analyticsContext.source);
+    Engine.context.BridgeController.setLocation(location);
+  }, [analyticsContext.source, isVisible, target]);
+
   if (!isVisible || !target) {
     return null;
   }
 
   return (
-    <QuickBuyRootInner
-      target={target}
-      onClose={onClose}
-      features={features}
-      initialTradeMode={initialTradeMode}
-      analyticsContext={analyticsContext}
+    <BridgeSessionProvider
+      featureId={getQuickBuyFeatureId(analyticsContext.source)}
     >
-      {children}
-    </QuickBuyRootInner>
+      <SwapQuotesProvider>
+        <QuickBuyRootInner
+          target={target}
+          onClose={onClose}
+          features={features}
+          initialTradeMode={initialTradeMode}
+          analyticsContext={analyticsContext}
+          postTradeShare={postTradeShare}
+          postTradeShareOwner={postTradeShareOwner}
+          copyTradeOrigin={copyTradeOrigin}
+        >
+          {children}
+        </QuickBuyRootInner>
+      </SwapQuotesProvider>
+    </BridgeSessionProvider>
   );
 };
 

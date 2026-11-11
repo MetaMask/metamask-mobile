@@ -17,6 +17,9 @@ import {
 } from './tokenOverviewChart.constants';
 import { usePriceChartContext } from './Price.context';
 
+export const PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID =
+  'price-chart-indicator-bar-spacer';
+
 /** Interval selector in line mode, granularity selector in candle mode. */
 const IntervalBarRow = () => {
   const {
@@ -55,8 +58,15 @@ const IntervalBarRow = () => {
  * Below-chart controls: the time-range selector when technical indicators are
  * off, the indicator bar when they are on, and height-matched spacers so
  * switching modes never shifts the content underneath.
+ *
+ * With `uniformSpacing`, the spacers collapse to a fixed 16px and the
+ * indicator bar keeps 16px below it, so content underneath can shift when
+ * switching modes.
  */
-const BottomChrome = () => {
+const BottomChrome = ({
+  uniformSpacing = false,
+  isGlass = false,
+}: PriceChartSectionProps) => {
   const {
     activeIndicators,
     chartType,
@@ -77,11 +87,25 @@ const BottomChrome = () => {
     toggleChartType,
   } = usePriceChartContext();
 
+  const indicatorBarSpacing = uniformSpacing ? 'mt-4 mb-4' : 'mt-4 mb-6';
+
+  if (
+    uniformSpacing &&
+    isTechnicalIndicatorsEnabled &&
+    (isLineMode || showCandleEmptyState)
+  ) {
+    return <Box twClassName="pb-4" />;
+  }
+
   if (isLineMode) {
     if (isTechnicalIndicatorsEnabled) {
       // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
       return (
-        <Box twClassName="w-full mt-4 mb-6" style={styles.indicatorBarSpacer} />
+        <Box
+          testID={PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID}
+          twClassName="w-full mt-4 mb-6"
+          style={styles.indicatorBarSpacer}
+        />
       );
     }
     return (
@@ -103,18 +127,23 @@ const BottomChrome = () => {
   if (showCandleEmptyState && isTechnicalIndicatorsEnabled) {
     // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
     return (
-      <Box twClassName="w-full mt-4 mb-6" style={styles.indicatorBarSpacer} />
+      <Box
+        testID={PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID}
+        twClassName="w-full mt-4 mb-6"
+        style={styles.indicatorBarSpacer}
+      />
     );
   }
 
   if (shouldShowTechnicalIndicators && chartType === ChartType.Candles) {
     return (
-      <Box twClassName="w-full mt-4 mb-6">
+      <Box twClassName={`w-full ${indicatorBarSpacing}`}>
         <IndicatorBar
           maLabel={maLabel}
           onMAPress={handleMAPress}
           activeIndicators={activeIndicators}
           onIndicatorToggle={handleIndicatorToggle}
+          isGlass={isGlass}
         />
       </Box>
     );
@@ -126,7 +155,7 @@ const BottomChrome = () => {
     !shouldShowTechnicalIndicators
   ) {
     return (
-      <Box twClassName="w-full px-4 mt-4 mb-6">
+      <Box twClassName={`w-full px-4 ${indicatorBarSpacing}`}>
         <Skeleton height={37} width="100%" />
       </Box>
     );
@@ -157,7 +186,20 @@ const BottomChrome = () => {
  * even in line mode or the candle empty state so the WebView is not torn down
  * and rebuilt every time the user toggles.
  */
-export const PriceChartSection = () => {
+export interface PriceChartSectionProps {
+  /**
+   * Keep 12px between the interval bar and the chart, and a fixed 16px between
+   * the chart chrome and the content below.
+   */
+  uniformSpacing?: boolean;
+  /** Draws the controls under the chart as glass; the screen passes its flag. */
+  isGlass?: boolean;
+}
+
+export const PriceChartSection = ({
+  uniformSpacing = false,
+  isGlass = false,
+}: PriceChartSectionProps) => {
   const {
     activeIndicators,
     ambientSuccessGreen,
@@ -200,6 +242,12 @@ export const PriceChartSection = () => {
     visibleToMs,
   } = usePriceChartContext();
 
+  // The interval bar above the chart already adds 8px of bottom padding.
+  let chartMarginTop = 'mt-3 ';
+  if (isTechnicalIndicatorsEnabled) {
+    chartMarginTop = uniformSpacing ? 'mt-1 ' : '';
+  }
+
   const showVolume = isTechnicalIndicatorsEnabled
     ? chartType === ChartType.Candles && activeIndicators.has('Volume')
     : chartType === ChartType.Candles;
@@ -229,11 +277,7 @@ export const PriceChartSection = () => {
       {/* ── Chart area ─────────────────────────────────────────────────── */}
       {isLineMode && (
         <Box
-          twClassName={
-            isTechnicalIndicatorsEnabled
-              ? 'w-full overflow-hidden'
-              : 'mt-3 w-full overflow-hidden'
-          }
+          twClassName={`${chartMarginTop}w-full overflow-hidden`}
           style={{ height: chartHeight }}
         >
           <LinePriceChart
@@ -253,7 +297,7 @@ export const PriceChartSection = () => {
       {/* ── Candle empty state (no OHLCV data / chart error / init failed) ── */}
       {showCandleEmptyState && (
         <Box
-          twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
+          twClassName={`${chartMarginTop}w-full`}
           style={{ height: chartHeight }}
         >
           <NoDataOverlay
@@ -265,7 +309,7 @@ export const PriceChartSection = () => {
 
       {/* Keep AdvancedChart mounted but hidden in line mode or candle empty state */}
       <Box
-        twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
+        twClassName={`${chartMarginTop}w-full`}
         style={
           isLineMode || showCandleEmptyState
             ? styles.hiddenChartContainer
@@ -326,7 +370,7 @@ export const PriceChartSection = () => {
       </Box>
 
       {/* ── Bottom chrome ──────────────────────────────────────────────── */}
-      <BottomChrome />
+      <BottomChrome uniformSpacing={uniformSpacing} isGlass={isGlass} />
     </>
   );
 };

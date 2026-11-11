@@ -7,6 +7,7 @@ import { useConfirmNavigation } from '../useConfirmNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PayWithOption } from '../../components/confirm/confirm-component';
 import Logger from '../../../../../util/Logger';
+import { useMoneyAccountAvailability } from '../../../../UI/Money/hooks/useMoneyAccountAvailability';
 
 const LOG_TAG = '[MoneyPerpsDeposit]';
 
@@ -16,8 +17,11 @@ export function useMoneyPerpsDeposit() {
   );
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
 
   const initiatePerpsDeposit = useCallback(async () => {
+    assertMoneyAccountAccessible();
+
     navigateToConfirmation({
       stack: Routes.PERPS.ROOT,
       payWithOption: PayWithOption.MoneyAccount,
@@ -31,7 +35,11 @@ export function useMoneyPerpsDeposit() {
         `${LOG_TAG} Perps deposit initiation failed`,
       );
     }
-  }, [depositWithConfirmation, navigateToConfirmation]);
+  }, [
+    assertMoneyAccountAccessible,
+    depositWithConfirmation,
+    navigateToConfirmation,
+  ]);
 
   return {
     isEnabled: Boolean(

@@ -1,7 +1,7 @@
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { getBaseSemVerVersion } from '../../../../../util/version';
 import { getLimitOrdersBaseUrl } from '../limitOrders/getLimitOrdersBaseUrl';
-import type { SentinelFeeTokensByChain } from './types';
+import type { SentinelFeeTokensByChain } from './schema';
 import { parseSentinelFeeTokensResponse } from './validators';
 
 /**
@@ -30,4 +30,4 @@ export async function fetchSentinelFeeTokens(): Promise<SentinelFeeTokensByChain
   return parseSentinelFeeTokensResponse(await response.json());
 }
 
-export type { SentinelFeeToken, SentinelFeeTokensByChain } from './types';
+export type { SentinelFeeToken, SentinelFeeTokensByChain } from './schema';

@@ -17,16 +17,14 @@ import ListItem from '../../../../../component-library/components/List/ListItem'
 import Routes from '../../../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import {
-  Box,
-  HeaderStandard,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { ImportAsset } from '../../utils/utils';
 import AddAssetTokenRow from '../../components/AddAssetTokenRow/AddAssetTokenRow';
 import Logger from '../../../../../util/Logger';
 import { useAddNetworkIfMissingMutation } from '../../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface ConfirmAddAssetRowProps {
   asset: ImportAsset;
@@ -52,6 +50,7 @@ function ConfirmAddAssetRowComponent({
 const ConfirmAddAssetRow = React.memo(ConfirmAddAssetRowComponent);
 
 const ConfirmAddAsset = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { selectedAsset, networkName, addTokenList } = useParams<{
     selectedAsset: ImportAsset[];
     networkName: string;
@@ -116,7 +115,9 @@ const ConfirmAddAsset = () => {
       style={tw.style('flex-1 bg-default')}
       testID={ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('add_asset.title')}
         onBack={() => navigation.goBack()}
         includesTopInset
@@ -132,7 +133,7 @@ const ConfirmAddAsset = () => {
         <FlashList
           data={selectedAsset}
           style={tw.style('flex-1 bg-default')}
-          contentContainerStyle={tw.style('pt-6 px-6 pb-4')}
+          contentContainerStyle={tw.style('pt-6 px-4 pb-4')}
           renderItem={renderItem}
           keyExtractor={getAssetRowKey}
         />

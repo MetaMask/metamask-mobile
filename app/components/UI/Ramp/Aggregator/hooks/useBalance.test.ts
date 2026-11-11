@@ -325,6 +325,157 @@ describe('useBalance', () => {
 
     expect(result.current.balance).toBe('5.5 SOL');
     expect(result.current.balanceFiat).toBe(undefined);
-    expect(result.current.balanceBN).toBe(undefined);
+    // 5.5 * 10^8 (decimals) in minimal units, so it can be compared against the
+    // entered amount which is also converted via toTokenMinimalUnit.
+    expect(result.current.balanceBN?.toString()).toBe('550000000');
+  });
+
+  it.each([
+    ['decimals are missing', undefined],
+    ['the amount has more decimals than the asset', 0],
+  ])('returns a null minimal balance when %s', async (_scenario, decimals) => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue((scope) => {
+      if (scope === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
+        return {
+          ...MOCK_SOLANA_ACCOUNT,
+          scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+        };
+      }
+      return undefined;
+    });
+
+    mockSelectMultichainBalances.mockReturnValue({
+      [MOCK_SOLANA_ACCOUNT.id]: {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+          amount: '1.5',
+          unit: 'SOL',
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useBalance({
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          assetId: 'slip44:501',
+          decimals,
+        }),
+      {
+        state: {
+          ...initialState,
+          engine: {
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              AccountsController: {
+                ...initialState.engine.backgroundState.AccountsController,
+                internalAccounts: {
+                  selectedAccount: MOCK_SOLANA_ACCOUNT.id,
+                  accounts: {
+                    [MOCK_SOLANA_ACCOUNT.id]: {
+                      ...MOCK_SOLANA_ACCOUNT,
+                      scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+                    },
+                  },
+                },
+              },
+              AccountTreeController: {
+                accountTree: {
+                  wallets: {
+                    'entropy:test-wallet': {
+                      id: 'entropy:test-wallet',
+                      metadata: { name: 'Test Wallet' },
+                      groups: {
+                        'entropy:test-wallet/0': {
+                          id: 'entropy:test-wallet/0',
+                          accounts: [MOCK_SOLANA_ACCOUNT.id],
+                          metadata: { name: 'Test Group' },
+                        },
+                      },
+                    },
+                  },
+                },
+                selectedAccountGroup: 'entropy:test-wallet/0',
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current.balance).toBe('1.5 SOL');
+    expect(result.current.balanceBN).toBeNull();
+  });
+
+  describe('when the selected account is a non-EVM sibling', () => {
+    const evmAccount =
+      MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+        MOCK_ACCOUNT_ID_1
+      ];
+
+    const stateWithSolanaSelected = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountsController: {
+            ...initialState.engine.backgroundState.AccountsController,
+            internalAccounts: {
+              selectedAccount: MOCK_SOLANA_ACCOUNT.id,
+              accounts: {
+                ...initialState.engine.backgroundState.AccountsController
+                  .internalAccounts.accounts,
+                [MOCK_SOLANA_ACCOUNT.id]: MOCK_SOLANA_ACCOUNT,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    function mockEvmAccountInGroup() {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue((scope) =>
+        scope.startsWith('eip155:') ? evmAccount : undefined,
+      );
+    }
+
+    it('returns the native balance held by the EVM account in the group', () => {
+      mockEvmAccountInGroup();
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useBalance({
+            address: NATIVE_ADDRESS,
+            decimals: 18,
+            chainId: '1',
+            assetId: 'slip44:60',
+          }),
+        { state: stateWithSolanaSelected },
+      );
+
+      expect(result.current.balance).toBe('12.345');
+      expect(result.current.balanceBN).toStrictEqual(
+        hexToBigInt(toHex('12345000000000000000')),
+      );
+    });
+
+    it('returns the ERC20 balance held by the EVM account in the group', () => {
+      mockEvmAccountInGroup();
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useBalance({
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            decimals: 6,
+            chainId: '1',
+            assetId: 'erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          }),
+        { state: stateWithSolanaSelected },
+      );
+
+      expect(result.current.balance).toBe('22');
+      expect(result.current.balanceBN).toStrictEqual(
+        hexToBigInt(toHex('22000000')),
+      );
+    });
   });
 });

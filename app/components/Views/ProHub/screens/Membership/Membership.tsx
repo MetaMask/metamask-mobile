@@ -1,17 +1,19 @@
-import React, { useCallback, useMemo } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  AccessibilityInfo,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -24,13 +26,19 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import type { RootState } from '../../../../../reducers';
 import {
   selectMoneyAccountPlusPricing,
-  selectSubscriptionByProduct,
+  selectMoneyAccountPlusSubscription,
 } from '../../../../../selectors/subscriptionController';
+import { useResumeMembership } from '../../hooks/useResumeMembership';
+import {
+  getMembershipManageAction,
+  MembershipManageAction,
+} from '../../ProHub.utils';
 import { MembershipTestIds } from './Membership.testIds';
 import { getMembershipDetails } from './Membership.utils';
+import HeaderBaseGlass from '../../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -73,13 +81,26 @@ interface ManageRowProps {
   label: string;
   onPress: () => void;
   testID?: string;
+  isDisabled?: boolean;
+  isBusy?: boolean;
 }
 
-const ManageRow = ({ label, onPress, testID }: ManageRowProps) => (
+const ManageRow = ({
+  label,
+  onPress,
+  testID,
+  isDisabled,
+  isBusy,
+}: ManageRowProps) => (
   <TouchableOpacity
     onPress={onPress}
     testID={testID}
     accessibilityRole="button"
+    accessibilityState={{
+      disabled: Boolean(isDisabled),
+      busy: Boolean(isBusy),
+    }}
+    disabled={isDisabled}
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -103,14 +124,50 @@ const ManageRow = ({ label, onPress, testID }: ManageRowProps) => (
   </TouchableOpacity>
 );
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+interface MembershipActionRowProps {
+  action: MembershipManageAction;
+  isResuming: boolean;
+  onResume: () => void;
+  onCancel: () => void;
+}
 
-const selectMoneyAccountPlusSubscription = (state: RootState) =>
-  selectSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+const MembershipActionRow = ({
+  action,
+  isResuming,
+  onResume,
+  onCancel,
+}: MembershipActionRowProps) => {
+  if (action === MembershipManageAction.Resume) {
+    return (
+      <ManageRow
+        label={strings('pro_hub.membership.resume_membership')}
+        onPress={onResume}
+        testID={MembershipTestIds.RESUME_MEMBERSHIP_ROW}
+        isDisabled={isResuming}
+        isBusy={isResuming}
+      />
+    );
+  }
+
+  if (action === MembershipManageAction.Cancel) {
+    return (
+      <ManageRow
+        label={strings('pro_hub.membership.cancel_membership')}
+        onPress={onCancel}
+        testID={MembershipTestIds.CANCEL_MEMBERSHIP_ROW}
+      />
+    );
+  }
+
+  return null;
+};
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 
 const Membership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { top } = useSafeAreaInsets();
   const subscription = useSelector(selectMoneyAccountPlusSubscription);
   const plusPricing = useSelector(selectMoneyAccountPlusPricing);
@@ -118,6 +175,12 @@ const Membership = () => {
     () => getMembershipDetails(subscription, plusPricing),
     [plusPricing, subscription],
   );
+  const {
+    resumeMembership,
+    isResuming,
+    errorMessage: resumeErrorMessage,
+  } = useResumeMembership();
+  const manageAction = getMembershipManageAction(subscription);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -135,21 +198,40 @@ const Membership = () => {
     navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
   }, [navigation]);
 
+  // Live regions miss users whose focus stays on the row. Announce the
+  // in-flight and failure states so VoiceOver and TalkBack hear them
+  // (WCAG 4.1.3 status messages, 3.3.1 error identification).
+  useEffect(() => {
+    if (!isResuming) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('pro_hub.membership.resume_in_progress'),
+    );
+  }, [isResuming]);
+
+  useEffect(() => {
+    if (!resumeErrorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(resumeErrorMessage);
+  }, [resumeErrorMessage]);
+
   return (
     <View
       style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
       testID={MembershipTestIds.CONTAINER}
     >
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={MembershipTestIds.BACK_BUTTON}
-          />
-        }
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          onPress: handleBack,
+          accessibilityLabel: strings('navigation.back'),
+          testID: MembershipTestIds.BACK_BUTTON,
+        }}
       />
 
       <ScrollView
@@ -313,11 +395,23 @@ const Membership = () => {
             onPress={handleContactSupport}
             testID={MembershipTestIds.CONTACT_SUPPORT_ROW}
           />
-          <ManageRow
-            label={strings('pro_hub.membership.cancel_membership')}
-            onPress={handleCancelMembership}
-            testID={MembershipTestIds.CANCEL_MEMBERSHIP_ROW}
+          <MembershipActionRow
+            action={manageAction}
+            isResuming={isResuming}
+            onResume={resumeMembership}
+            onCancel={handleCancelMembership}
           />
+          {resumeErrorMessage ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              testID={MembershipTestIds.RESUME_ERROR}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
+              {resumeErrorMessage}
+            </Text>
+          ) : null}
         </Box>
       </ScrollView>
     </View>

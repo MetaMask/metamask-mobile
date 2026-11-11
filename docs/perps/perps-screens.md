@@ -447,8 +447,10 @@ State:
 Calculations:
   ├─ closeAmount = position.size * (closePercentage / 100)
   ├─ closingValue = positionValue * (closePercentage / 100)
-  ├─ effectivePnL = calculated based on effective price
-  └─ receiveAmount = margin + pnl - fees
+  └─ estimateCloseReceive (@metamask/perps-controller): margin returned,
+     PnL at the close price (limit price, else live price), fee at the
+     quoted rate, and receive; each undefined (shown as --) while an input
+     is missing
 
 User action: Confirm → handleClosePosition()
 ```
@@ -789,7 +791,6 @@ Celebratory card carousel for profitable positions. User can swipe through 4 the
 | `ScrollableTabView`      | Card carousel (swipe) |
 | `react-native-view-shot` | Capture card image    |
 | `react-native-share`     | Share to social apps  |
-| `RewardsReferralCodeTag` | Referral code display |
 | `PerpsTokenLogo`         | Market asset logo     |
 
 ### Hooks Consumed

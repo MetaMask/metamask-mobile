@@ -10,6 +10,11 @@ export const BridgeViewSelectorsIDs = {
   CONFIRM_BUTTON: 'bridge-confirm-button',
   CONFIRM_BUTTON_KEYPAD: 'bridge-confirm-button-keypad',
   BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
+  /**
+   * Countdown text beside Rate. Tapping Rate opens its tooltip, so keypad
+   * dismissal uses this plain text instead.
+   */
+  QUOTE_KEYPAD_DISMISS_TARGET: 'quote-keypad-dismiss-target',
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
@@ -21,6 +26,7 @@ export const BridgeViewSelectorsIDs = {
   TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
   MARKET_TAB: 'bridge-market-tab',
   LIMIT_TAB: 'bridge-limit-tab',
+  LIMIT_TAB_NEW_DOT: 'bridge-limit-tab-new-dot',
   RECURRING_TAB: 'bridge-recurring-tab',
   LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
   LIMIT_ORDER_SCROLL: 'bridge-limit-order-scroll',
@@ -35,6 +41,7 @@ export const BridgeViewSelectorsIDs = {
   LIMIT_FEE_TOKEN_RETRY_BUTTON: 'limit-fee-token-retry-button',
   RECURRING_BUY_CONTAINER: 'bridge-recurring-buy-container',
   RECURRING_BUY_SCROLL: 'bridge-recurring-buy-scroll',
+  RECURRING_BANNERS_WRAPPER: 'recurring-banners-wrapper',
   RECURRING_SOURCE_TOKEN_AREA: 'recurring-source-token-area',
   RECURRING_SOURCE_TOKEN_INPUT: 'recurring-source-token-area-input',
   RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE:
@@ -43,6 +50,11 @@ export const BridgeViewSelectorsIDs = {
   RECURRING_DEST_TOKEN_INPUT: 'recurring-dest-token-area-input',
   RECURRING_DEST_YOU_GET: 'recurring-dest-you-get',
   RECURRING_SPEND_SUMMARY: 'recurring-spend-summary',
+  RECURRING_FEE_TOKEN_UNSUPPORTED_BANNER:
+    'recurring-fee-token-unsupported-banner',
+  RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER:
+    'recurring-fee-tokens-unavailable-banner',
+  RECURRING_FEE_TOKEN_RETRY_BUTTON: 'recurring-fee-token-retry-button',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

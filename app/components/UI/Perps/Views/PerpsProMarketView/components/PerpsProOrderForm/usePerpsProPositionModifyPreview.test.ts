@@ -15,6 +15,7 @@ jest.mock('../../../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: [],
   PRICE_RANGES_UNIVERSAL: [],
   formatPerpsFiat: (value: number) => `$${value}`,
+  formatProPerpsFiat: (value: number | string) => `$${value}`,
 }));
 
 const mockUsePerpsPositionModifyPreview = jest.mocked(

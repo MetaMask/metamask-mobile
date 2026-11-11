@@ -213,6 +213,7 @@ describe('PredictCryptoUpDownPosition', () => {
       preview: null,
       isCalculating: false,
       isLoading: false,
+      refetchPreview: jest.fn(),
       error: null,
     });
   });
@@ -224,6 +225,7 @@ describe('PredictCryptoUpDownPosition', () => {
       preview: createOrderPreview({ minAmountReceived: 142.5 }),
       isCalculating: false,
       isLoading: false,
+      refetchPreview: jest.fn(),
       error: null,
     });
 
@@ -427,6 +429,7 @@ describe('PredictCryptoUpDownPositions', () => {
       preview: null,
       isCalculating: false,
       isLoading: false,
+      refetchPreview: jest.fn(),
       error: null,
     });
   });

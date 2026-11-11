@@ -52,12 +52,6 @@ const DURATION_STRING_KEYS: Record<DurationParts['unit'], string> = {
   minutes: 'bridge.limit.duration_minutes',
 };
 
-const TIME_LEFT_STRING_KEYS: Record<DurationParts['unit'], string> = {
-  days: 'bridge.limit.days_left',
-  hours: 'bridge.limit.hours_left',
-  minutes: 'bridge.limit.minutes_left',
-};
-
 /**
  * Formats how long an order was open for before it expired, e.g. "3d",
  * "1h" or "10m".
@@ -76,12 +70,13 @@ export function formatLimitOrderExpiredDuration(
 }
 
 /**
- * Formats the time remaining until an order expires, e.g. "4d left",
- * "1h left" or "10m left".
+ * Formats the time remaining until an order expires, e.g. "4d", "1h" or
+ * "10m". The surrounding label already says the order expires after that
+ * span, so the duration itself has no "left" suffix.
  *
  * @param expiresAt - The order's `expiresAt` timestamp.
  * @param now - The current time. Defaults to `new Date()`; overridable for tests.
- * @returns A localized "time left" string.
+ * @returns A localized duration string.
  */
 export function formatLimitOrderTimeLeft(
   expiresAt: string,
@@ -89,5 +84,5 @@ export function formatLimitOrderTimeLeft(
 ): string {
   const { unit, count } = getDurationParts(now.toISOString(), expiresAt);
 
-  return strings(TIME_LEFT_STRING_KEYS[unit], { count });
+  return strings(DURATION_STRING_KEYS[unit], { count });
 }

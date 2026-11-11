@@ -5,6 +5,13 @@ export interface ButtonPricePresetsSectionRef {
   blur: () => void;
   focus: () => void;
   isFocused: () => boolean;
+  /**
+   * Measures the custom percent input against the window. Does nothing while
+   * the input is not mounted (i.e. custom mode is inactive).
+   */
+  measureInWindow: (
+    callback: (x: number, y: number, width: number, height: number) => void,
+  ) => void;
 }
 
 export interface ButtonPricePresetsSectionProps {

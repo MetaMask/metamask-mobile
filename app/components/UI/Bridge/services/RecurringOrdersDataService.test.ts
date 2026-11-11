@@ -6,11 +6,12 @@ import {
   getRecurringSwaps,
 } from '../api/recurringOrders';
 import {
+  MOCK_RECURRING_ACCOUNT,
   MOCK_RECURRING_OPEN_ORDER,
   MOCK_RECURRING_OPEN_ORDER_2,
 } from '../api/recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../api/recurringSwaps.mock';
-import { RecurringOrderStatus } from '../api/recurringOrders.types';
+import { RecurringOrderState } from '../api/recurringOrders.types';
 import type {
   RecurringOrdersByAssetQueryParams,
   RecurringOrdersQueryParams,
@@ -34,7 +35,7 @@ const mockGetRecurringOrdersByAsset = jest.mocked(getRecurringOrdersByAsset);
 const mockGetRecurringSwaps = jest.mocked(getRecurringSwaps);
 const PARAMS: RecurringOrdersQueryParams = {
   walletAddress: '0x1234567890123456789012345678901234567890',
-  status: [RecurringOrderStatus.Open],
+  orderStates: [RecurringOrderState.Open],
   chainId: 'eip155:1',
   limit: 20,
 };
@@ -42,7 +43,10 @@ const ASSET_PARAMS: RecurringOrdersByAssetQueryParams = {
   walletAddress: '0x1234567890123456789012345678901234567890',
   assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
 };
-const SWAPS_PARAMS: RecurringSwapsQueryParams = { limit: 20 };
+const SWAPS_PARAMS: RecurringSwapsQueryParams = {
+  accountAddress: MOCK_RECURRING_ACCOUNT,
+  limit: 20,
+};
 
 function createService() {
   const messenger: RecurringOrdersDataServiceMessenger = new Messenger({
@@ -69,14 +73,17 @@ describe('RecurringOrdersDataService', () => {
   it('forwards query parameters to the recurring-orders transport', async () => {
     mockGetRecurringOrders.mockResolvedValue({
       orders: [MOCK_RECURRING_OPEN_ORDER],
+      hasNextPage: false,
     });
     const service = buildService();
 
     const result = await service.getRecurringOrders(PARAMS);
 
     expect(mockGetRecurringOrders).toHaveBeenCalledWith({
-      ...PARAMS,
-      cursor: undefined,
+      accountAddress: MOCK_RECURRING_ACCOUNT,
+      states: PARAMS.orderStates,
+      chainIds: [PARAMS.chainId],
+      limit: PARAMS.limit,
     });
     expect(result.orders).toStrictEqual([MOCK_RECURRING_OPEN_ORDER]);
   });
@@ -94,13 +101,23 @@ describe('RecurringOrdersDataService', () => {
   });
 
   it('forwards cancellation to the recurring-orders transport', async () => {
-    mockCancelRecurringOrder.mockResolvedValue(undefined);
+    mockCancelRecurringOrder.mockResolvedValue({
+      order: {
+        ...MOCK_RECURRING_OPEN_ORDER,
+        state: RecurringOrderState.Cancelled,
+        isCancellable: false,
+      },
+    });
     const service = buildService();
 
-    await service.cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.orderId);
+    await service.cancelRecurringOrder(
+      MOCK_RECURRING_OPEN_ORDER.id,
+      MOCK_RECURRING_OPEN_ORDER.accountAddress,
+    );
 
     expect(mockCancelRecurringOrder).toHaveBeenCalledWith(
-      MOCK_RECURRING_OPEN_ORDER.orderId,
+      MOCK_RECURRING_OPEN_ORDER.id,
+      { accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress },
     );
   });
 
@@ -109,7 +126,10 @@ describe('RecurringOrdersDataService', () => {
     const service = buildService();
 
     await expect(
-      service.cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.orderId),
+      service.cancelRecurringOrder(
+        MOCK_RECURRING_OPEN_ORDER.id,
+        MOCK_RECURRING_OPEN_ORDER.accountAddress,
+      ),
     ).rejects.toThrow('cancel failed');
   });
 
@@ -117,34 +137,42 @@ describe('RecurringOrdersDataService', () => {
     mockGetRecurringOrders
       .mockResolvedValueOnce({
         orders: [MOCK_RECURRING_OPEN_ORDER],
-        nextCursor: 'next-page',
+        endCursor: 'next-page',
+        hasNextPage: true,
       })
       .mockResolvedValueOnce({
         orders: [MOCK_RECURRING_OPEN_ORDER_2],
+        hasNextPage: false,
       });
     const service = buildService();
 
     const firstPage = await service.getRecurringOrders(PARAMS);
     const secondPage = await service.getRecurringOrders(
       PARAMS,
-      firstPage.nextCursor,
+      firstPage.endCursor,
     );
 
     expect(mockGetRecurringOrders).toHaveBeenNthCalledWith(1, {
-      ...PARAMS,
-      cursor: undefined,
+      accountAddress: MOCK_RECURRING_ACCOUNT,
+      states: PARAMS.orderStates,
+      chainIds: [PARAMS.chainId],
+      limit: PARAMS.limit,
     });
     expect(mockGetRecurringOrders).toHaveBeenNthCalledWith(2, {
-      ...PARAMS,
-      cursor: 'next-page',
+      accountAddress: MOCK_RECURRING_ACCOUNT,
+      states: PARAMS.orderStates,
+      chainIds: [PARAMS.chainId],
+      limit: PARAMS.limit,
+      after: 'next-page',
     });
     expect(secondPage.orders).toStrictEqual([MOCK_RECURRING_OPEN_ORDER_2]);
   });
 
   it('forwards order, query, and cursor parameters to the recurring-swaps transport', async () => {
-    const orderId = MOCK_RECURRING_OPEN_ORDER.orderId;
+    const orderId = MOCK_RECURRING_OPEN_ORDER.id;
     mockGetRecurringSwaps.mockResolvedValue({
       swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
+      hasNextPage: false,
     });
     const service = buildService();
 
@@ -155,21 +183,24 @@ describe('RecurringOrdersDataService', () => {
     );
 
     expect(mockGetRecurringSwaps).toHaveBeenCalledWith(orderId, {
-      ...SWAPS_PARAMS,
-      cursor: 'swap-cursor',
+      accountAddress: SWAPS_PARAMS.accountAddress,
+      limit: SWAPS_PARAMS.limit,
+      after: 'swap-cursor',
     });
     expect(result.swaps).toStrictEqual([MOCK_RECURRING_OPEN_ORDER_SWAPS[0]]);
   });
 
   it('fetches the recurring-swaps page identified by the previous cursor', async () => {
-    const orderId = MOCK_RECURRING_OPEN_ORDER.orderId;
+    const orderId = MOCK_RECURRING_OPEN_ORDER.id;
     mockGetRecurringSwaps
       .mockResolvedValueOnce({
         swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
-        nextCursor: 'next-swap-page',
+        endCursor: 'next-swap-page',
+        hasNextPage: true,
       })
       .mockResolvedValueOnce({
         swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[1]],
+        hasNextPage: false,
       });
     const service = buildService();
 
@@ -177,16 +208,17 @@ describe('RecurringOrdersDataService', () => {
     const secondPage = await service.getRecurringSwaps(
       orderId,
       SWAPS_PARAMS,
-      firstPage.nextCursor,
+      firstPage.endCursor,
     );
 
     expect(mockGetRecurringSwaps).toHaveBeenNthCalledWith(1, orderId, {
-      ...SWAPS_PARAMS,
-      cursor: undefined,
+      accountAddress: SWAPS_PARAMS.accountAddress,
+      limit: SWAPS_PARAMS.limit,
     });
     expect(mockGetRecurringSwaps).toHaveBeenNthCalledWith(2, orderId, {
-      ...SWAPS_PARAMS,
-      cursor: 'next-swap-page',
+      accountAddress: SWAPS_PARAMS.accountAddress,
+      limit: SWAPS_PARAMS.limit,
+      after: 'next-swap-page',
     });
     expect(secondPage.swaps).toStrictEqual([
       MOCK_RECURRING_OPEN_ORDER_SWAPS[1],

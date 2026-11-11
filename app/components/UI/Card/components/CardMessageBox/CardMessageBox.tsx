@@ -54,7 +54,7 @@ const CardMessageBox = ({
         ),
       },
       [CardMessageBoxType.KYCPending]: {
-        variant: CardMessageBoxVariant.Warning,
+        variant: CardMessageBoxVariant.Info,
         title: strings('card.card_home.warnings.kyc_pending.title'),
         description: strings('card.card_home.warnings.kyc_pending.description'),
       },
@@ -140,6 +140,17 @@ const CardMessageBox = ({
         description: strings('card.uk_migration_required.description'),
         confirmButtonLabel: strings(
           'card.uk_migration_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.WalletVerificationPending]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.push_provisioning.verification_pending_title'),
+        description: strings(
+          'card.push_provisioning.verification_pending_description',
+          values,
+        ),
+        confirmButtonLabel: strings(
+          'card.push_provisioning.open_in_apple_wallet',
         ),
       },
     }),

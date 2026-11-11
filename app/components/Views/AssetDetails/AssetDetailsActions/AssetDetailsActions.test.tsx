@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { MAINACTIONBUTTON_GLASS_TEST_ID } from '../../../../component-library/components-temp/MainActionButton/MainActionButton.constants';
 import AssetDetailsActions from './AssetDetailsActions';
 import { strings } from '../../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../UI/AssetOverview/TokenOverview.testIds';
@@ -13,6 +14,11 @@ import initialRootState from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import { SwapBridgeNavigationLocation } from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import {
+  ActionButtonType,
+  ActionLocation,
+  ActionPosition,
+} from '../../../../util/analytics/actionButtonTracking';
 
 const mockGoToSwaps = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
@@ -44,6 +50,7 @@ jest.mock('@react-navigation/native', () => {
 // Mock react-native-device-info to provide a valid version string
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.0.0'),
+  getTotalMemorySync: jest.fn(() => 4 * 1024 ** 3),
 }));
 
 // Mock the selectIsSwapsEnabled selector
@@ -111,6 +118,24 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
     expect(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('keeps opaque buttons by default', () => {
+    const { queryAllByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
+
+    expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
+  });
+
+  it('renders every button on glass when isGlass is set', () => {
+    const { getAllByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} isGlass />,
+      { state: initialRootState },
+    );
+
+    expect(getAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(4);
   });
 
   it('renders correctly with all buttons displayed', () => {
@@ -195,12 +220,36 @@ describe('AssetDetailsActions', () => {
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
       location: SwapBridgeNavigationLocation.MainView,
       sourcePage: 'MainView',
+      skipActionButtonClickTracking: true,
     });
 
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
 
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
     expect(mockGoToSwaps).toHaveBeenCalledWith();
+  });
+
+  it('tracks home location when the swap button is pressed', () => {
+    jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: createStateWithSigningCapability() },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    const mockEventBuilder = mockCreateEventBuilder.mock.results[0].value;
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+      action_name: ActionButtonType.SWAP,
+      action_position: ActionPosition.SECOND_POSITION,
+      button_label: strings('asset_overview.swap'),
+      location: ActionLocation.HOME,
+    });
+    expect(mockEventBuilder.build).toHaveBeenCalled();
+    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('calls onSend when the send button is pressed', () => {

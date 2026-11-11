@@ -14,9 +14,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You are approaching your spending limit. Consider closing it.',
       'card.card_home.warnings.close_spending_limit.confirm_button_label':
         'Close Limit',
-      'card.card_home.warnings.kyc_pending.title': 'Verification in Progress',
+      'card.card_home.warnings.kyc_pending.title': 'Verifying your identity',
       'card.card_home.warnings.kyc_pending.description':
-        'Your identity verification is still being reviewed.',
+        'Most applications are reviewed within a few hours.',
       'card.card_home.messages.card_provisioning.title':
         'Card being provisioned',
       'card.card_home.messages.card_provisioning.description':
@@ -55,6 +55,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.uk_migration_required.description':
         'Complete your MetaMask Card update to keep using your card.',
       'card.uk_migration_required.confirm_button_label': 'Update now',
+      'card.push_provisioning.verification_pending_title':
+        'Verification pending',
+      'card.push_provisioning.verification_pending_description':
+        'Open the card in Apple Wallet to verify it on {{devices}}.',
+      'card.push_provisioning.open_in_apple_wallet': 'Open in Apple Wallet',
     };
     let value = mockStrings[key] || key;
     if (params) {
@@ -149,8 +154,8 @@ describe('CardMessageBox', () => {
     });
   });
 
-  describe('KYCPending warning', () => {
-    it('renders warning banner', () => {
+  describe('KYCPending info', () => {
+    it('renders info banner', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
@@ -163,9 +168,9 @@ describe('CardMessageBox', () => {
         <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
 
-      expect(getByText('Verification in Progress')).toBeOnTheScreen();
+      expect(getByText('Verifying your identity')).toBeOnTheScreen();
       expect(
-        getByText('Your identity verification is still being reviewed.'),
+        getByText('Most applications are reviewed within a few hours.'),
       ).toBeOnTheScreen();
     });
 
@@ -301,6 +306,36 @@ describe('CardMessageBox', () => {
         <CardMessageBox
           messageType={CardMessageBoxType.CreditAvailable}
           values={{ amount: '$10.86' }}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('WalletVerificationPending warning', () => {
+    it('interpolates the devices into the description', () => {
+      const { getByText, queryByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.WalletVerificationPending}
+          values={{ devices: 'iPhone' }}
+        />
+      ));
+
+      expect(getByText('Verification pending')).toBeOnTheScreen();
+      expect(
+        getByText('Open the card in Apple Wallet to verify it on iPhone.'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
+    });
+
+    it('renders Open in Apple Wallet when onConfirm is provided', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.WalletVerificationPending}
+          values={{ devices: 'iPhone' }}
           onConfirm={mockOnConfirm}
         />
       ));

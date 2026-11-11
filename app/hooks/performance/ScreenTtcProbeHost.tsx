@@ -11,7 +11,7 @@ import {
 
 /**
  * Must stay in the Android accessibility / UiAutomator tree.
- * opacity:0 + 1×1 + collapsible Views are dropped by Appium on BrowserStack.
+ * opacity:0 + 1×1 + collapsible Views are dropped by Appium on real devices.
  */
 const styles = StyleSheet.create({
   probe: {

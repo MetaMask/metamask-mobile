@@ -56,7 +56,7 @@ import {
 } from '../../utils/recurringSchedule';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
@@ -453,7 +453,7 @@ const RecurringConfirmOrderSheet = ({
           <>
             <Box twClassName="mx-4 my-2 h-px bg-muted" />
             <ConfirmOrderRow
-              label={strings('bridge.recurring.delegation_fee_one_time')}
+              label={strings('bridge.recurring.account_upgrade_fee')}
               value={
                 delegationFee.status === 'ready'
                   ? delegationFee.displayFee
@@ -474,7 +474,7 @@ const RecurringConfirmOrderSheet = ({
                     RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO
                   }
                   accessibilityLabel={strings(
-                    'bridge.recurring.delegation_fee_info_title',
+                    'bridge.recurring.account_upgrade_fee_info_title',
                   )}
                 />
               }
@@ -516,7 +516,7 @@ const RecurringConfirmOrderSheet = ({
         >
           {discountBadge ? (
             isRewardsTierBadge ? (
-              <RewardsVipBadge
+              <MembershipVipBadge
                 hasProEntitlement={
                   discountBadge.type === DiscountType.SUBSCRIPTION
                 }

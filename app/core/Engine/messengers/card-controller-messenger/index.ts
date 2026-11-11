@@ -30,7 +30,10 @@ export function getCardControllerMessenger(
     actions: [
       'AccountsController:getState',
       'AccountTreeController:getAccountFromSelectedAccountGroup',
+      'AuthenticationController:getBearerToken',
+      'AuthenticationController:refreshCanonicalProfileId',
       'RemoteFeatureFlagController:getState',
+      'KeyringController:getState',
       'KeyringController:signPersonalMessage',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
@@ -42,6 +45,7 @@ export function getCardControllerMessenger(
       'AccountTreeController:stateChange',
       'RemoteFeatureFlagController:stateChange',
       'KeyringController:unlock',
+      'AuthenticationController:profileSignIn',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
     ],

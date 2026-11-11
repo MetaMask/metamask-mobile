@@ -57,7 +57,7 @@ describe('ActivityDetailsPerps.utils', () => {
   });
 
   describe('shouldShowPerpsPnl', () => {
-    it('is true only when pnl exists and the position closed/flipped', () => {
+    it('shows PnL for closed and flipped positions even when unreported', () => {
       expect(shouldShowPerpsPnl(fill({ pnl: '-$1', action: 'Closed' }))).toBe(
         true,
       );
@@ -67,7 +67,11 @@ describe('ActivityDetailsPerps.utils', () => {
       expect(shouldShowPerpsPnl(fill({ pnl: '-$1', action: 'Opened' }))).toBe(
         false,
       );
-      expect(shouldShowPerpsPnl(fill({ action: 'Closed' }))).toBe(false);
+      expect(shouldShowPerpsPnl(fill({ action: 'Closed' }))).toBe(true);
+      expect(shouldShowPerpsPnl(fill({ action: 'Flipped' }))).toBe(true);
+      expect(shouldShowPerpsPnl(fill({ action: 'Closed', pnl: '0' }))).toBe(
+        true,
+      );
       expect(shouldShowPerpsPnl(undefined)).toBe(false);
     });
   });

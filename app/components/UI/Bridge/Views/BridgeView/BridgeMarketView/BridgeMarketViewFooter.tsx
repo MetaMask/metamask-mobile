@@ -29,18 +29,22 @@ import {
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds.ts';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge';
+import MembershipVipBadge from '../../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../../Rewards/components/RewardsDiscountBadge';
 import { useFeeDisclaimer } from '../../../hooks/useFeeDisclaimer';
+import RebateBanner from '../../../../shared/RebateBanner';
+import { SWAPS_REBATE_BANNER_TEST_ID } from '../../../components/SwapsRebateBanner';
 
 interface Props {
   location: MetaMetricsSwapsEventSource;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  rebatePercent?: number | null;
 }
 
 export const BridgeMarketViewFooter = ({
   location,
   transactionActiveAbTests,
+  rebatePercent,
 }: Props) => {
   const { styles } = useStyles(createStyles);
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -86,6 +90,12 @@ export const BridgeMarketViewFooter = ({
       <Box style={footerContainerStyle}>
         <HardwareWalletSolanaSignUnsupportedBanner />
         <BlockaidErrorBanner />
+        {rebatePercent ? (
+          <RebateBanner
+            rebatePercent={rebatePercent}
+            testID={SWAPS_REBATE_BANNER_TEST_ID}
+          />
+        ) : null}
         <SwapsMarketOrderConfirmButton
           location={location}
           transactionActiveAbTests={transactionActiveAbTests}
@@ -100,7 +110,7 @@ export const BridgeMarketViewFooter = ({
           >
             {discountBadge ? (
               isRewardsTierBadge ? (
-                <RewardsVipBadge
+                <MembershipVipBadge
                   hasProEntitlement={
                     discountBadge.type === DiscountType.SUBSCRIPTION
                   }

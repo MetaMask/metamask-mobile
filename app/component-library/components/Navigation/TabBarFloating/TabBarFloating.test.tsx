@@ -39,11 +39,14 @@ jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
 jest.mock('../../../../util/haptics');
 
 const mockNavigateToMoneyHome = jest.fn();
-jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
-    navigateToMoneyHome: mockNavigateToMoneyHome,
+jest.mock(
+  '../../../../components/UI/Money/hooks/useMoneyHomeNavigation',
+  () => ({
+    useMoneyHomeNavigation: () => ({
+      navigateToMoneyHome: mockNavigateToMoneyHome,
+    }),
   }),
-}));
+);
 
 const mockNavigateToSocialTab = jest.fn();
 jest.mock(
@@ -70,6 +73,7 @@ interface TestTabDescriptor {
     isHidden?: boolean;
     isSelected?: (rootScreenName: string) => boolean;
     onLeave?: () => void;
+    showNewBadge?: boolean;
   };
 }
 
@@ -81,7 +85,7 @@ const navigation = {
 
 const mockInitialState = { engine: { backgroundState } };
 
-// Treatment tab set: Home / Explore / Money / Social. No Trade "+".
+// Treatment tab set. No Trade "+" route; the trailing button owns Trade.
 const state = {
   index: 0,
   routeNames: ['Home', 'Explore', 'Money', 'Social'],
@@ -116,6 +120,7 @@ const descriptors: Record<string, TestTabDescriptor> = {
     options: {
       tabBarIconKey: TabBarIconKey.Social,
       rootScreenName: Routes.SOCIAL.TAB,
+      showNewBadge: true,
     },
   },
 };
@@ -158,6 +163,14 @@ describe('TabBarFloating', () => {
     expect(FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY[TabBarIconKey.Social]).toBe(
       IconName.PeopleFilled,
     );
+  });
+
+  it('shows the Social discovery badge when the tab is new', () => {
+    const { getByTestId } = renderBar();
+
+    expect(
+      getByTestId(TAB_BAR_FLOATING_TEST_IDS.SOCIAL_NEW_BADGE),
+    ).toBeOnTheScreen();
   });
 
   it('renders the pill, the four treatment tabs, and the search button', () => {
@@ -313,7 +326,9 @@ describe('TabBarFloating', () => {
 
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(trackExploreSearchOpened).toHaveBeenCalledWith('nav_bar');
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH, {
+      entryPoint: 'nav_bar',
+    });
   });
 
   describe('with the trade trailing action', () => {

@@ -13,16 +13,9 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { TokenWarningModalMode } from './constants';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import {
-  selectDestToken,
-  selectBridgeFeatureFlags,
-} from '../../../../../core/redux/slices/bridge';
+import { selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  exceedsPriceImpactErrorThreshold,
-  parsePriceImpact,
-} from '../../utils/getPriceImpactViewData';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import { getNegativeFeatureLabels } from '../../../SecurityTrust/utils/securityUtils';
 import { getBridgeTokenSecurityConfig } from '../../utils/tokenSecurityUtils';
@@ -87,7 +80,19 @@ export const getTokenWarningContent = (
   };
 };
 
-export const TokenWarningModal = () => {
+type BridgeQuoteData = ReturnType<typeof useBridgeQuoteDataContext>;
+
+interface TokenWarningModalSheetProps {
+  activeQuote?: BridgeQuoteData['activeQuote'];
+  shouldShowPriceImpactError?: BridgeQuoteData['shouldShowPriceImpactError'];
+  confirmBridge?: ReturnType<typeof useBridgeConfirm>;
+}
+
+const TokenWarningModalSheet = ({
+  activeQuote,
+  shouldShowPriceImpactError,
+  confirmBridge,
+}: TokenWarningModalSheetProps) => {
   const navigation = useNavigation<AppStackNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
@@ -100,14 +105,6 @@ export const TokenWarningModal = () => {
   } = useParams<TokenWarningModalParams>();
 
   const destToken = useSelector(selectDestToken);
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-
-  const { activeQuote } = useBridgeQuoteDataContext();
-
-  const confirmBridge = useBridgeConfirm({
-    activeQuote,
-    location,
-  });
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -121,16 +118,7 @@ export const TokenWarningModal = () => {
       return;
     }
 
-    const priceImpact = parsePriceImpact(
-      activeQuote?.quote.priceData?.priceImpact?.amount,
-    );
-
-    if (
-      exceedsPriceImpactErrorThreshold(
-        priceImpact,
-        bridgeFeatureFlags?.priceImpactThreshold?.error,
-      )
-    ) {
+    if (shouldShowPriceImpactError) {
       navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
         type: PriceImpactModalType.Execution,
         location,
@@ -142,9 +130,15 @@ export const TokenWarningModal = () => {
     if (sheetRef.current?.onCloseBottomSheet) {
       sheetRef.current.onCloseBottomSheet(confirmBridge);
     } else {
-      await confirmBridge();
+      await confirmBridge?.();
     }
-  }, [activeQuote, bridgeFeatureFlags, confirmBridge, navigation, location]);
+  }, [
+    activeQuote,
+    confirmBridge,
+    navigation,
+    location,
+    shouldShowPriceImpactError,
+  ]);
 
   const {
     isMalicious,
@@ -158,6 +152,15 @@ export const TokenWarningModal = () => {
   } = getTokenWarningContent(warningType, destToken?.symbol ?? '');
 
   const negativeFeatureLabels = getNegativeFeatureLabels();
+  // Same rule as Token Details: only list features matching this severity.
+  const severityTypes: string[] = isMalicious
+    ? [SecurityDataType.Malicious]
+    : [SecurityDataType.Warning, SecurityDataType.Spam];
+  const shownFeatures = features.filter((feature) =>
+    severityTypes.includes(
+      negativeFeatureLabels[feature.featureId]?.type ?? feature.type,
+    ),
+  );
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -218,9 +221,9 @@ export const TokenWarningModal = () => {
               </Text>
             )}
           </Box>
-          {features.length > 0 ? (
+          {shownFeatures.length > 0 ? (
             <Box twClassName="w-full">
-              {features.map((feature) => (
+              {shownFeatures.map((feature) => (
                 <Box
                   key={feature.featureId}
                   flexDirection={BoxFlexDirection.Row}
@@ -302,5 +305,32 @@ export const TokenWarningModal = () => {
         />
       )}
     </BottomSheet>
+  );
+};
+
+// Quote data and confirm only exist inside the Bridge providers, so they are
+// read only in Execution mode. Info mode can open from outside them (e.g.
+// Quick Buy).
+const TokenWarningExecutionModal = () => {
+  const { location } = useParams<TokenWarningModalParams>();
+  const { activeQuote, shouldShowPriceImpactError } =
+    useBridgeQuoteDataContext();
+  const confirmBridge = useBridgeConfirm({ activeQuote, location });
+
+  return (
+    <TokenWarningModalSheet
+      activeQuote={activeQuote}
+      shouldShowPriceImpactError={shouldShowPriceImpactError}
+      confirmBridge={confirmBridge}
+    />
+  );
+};
+
+export const TokenWarningModal = () => {
+  const { mode } = useParams<TokenWarningModalParams>();
+  return mode === TokenWarningModalMode.Execution ? (
+    <TokenWarningExecutionModal />
+  ) : (
+    <TokenWarningModalSheet />
   );
 };

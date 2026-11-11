@@ -11,6 +11,8 @@ import {
   ORDER_SLIPPAGE_CONFIG,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  calculateSignedRoEForPrice,
+  estimateCloseReceive,
   type InputMethod,
   type OrdinaryOrderType,
   type Position,
@@ -45,6 +47,7 @@ import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { MAX_PERPS_INPUT_DIGITS } from '../constants/perpsConfig';
 import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../selectors/featureFlags';
+import { selectPerpsProvider } from '../selectors/perpsController';
 import {
   convertAssetAmountToUsd,
   limitAssetAmountDecimals,
@@ -58,6 +61,8 @@ import {
   formatCloseAmountUSD,
   validateCloseAmountLimits,
 } from '../utils/positionCalculations';
+import { resolveProviderId } from '../utils/perpsPostTradeShare';
+import { parsePositionRoePercentage } from '../utils/positionDisplay';
 
 /**
  * The keypad reports an unchanged value when deleting the digit after a
@@ -196,10 +201,21 @@ export interface UsePerpsClosePositionFormResult {
 
   feeResults: ReturnType<typeof usePerpsOrderFees>;
   rewardsState: ReturnType<typeof usePerpsRewards>;
-  summaryMargin: number;
-  summaryPnl: number;
-  summaryFees: number;
-  receiveAmount: number;
+  /** Margin returned including its PnL; undefined while an input is missing. */
+  summaryMargin: number | undefined;
+  /** PnL realized at the close price; undefined while an input is missing. */
+  summaryPnl: number | undefined;
+  /**
+   * %RoE shown beside the summary $PnL. Market closes show the position's
+   * actual %RoE (the same value the position card renders); limit closes
+   * show the RoE at the effective (limit) price so it agrees with the $PnL.
+   * Undefined when nothing is being closed or the value is unavailable.
+   */
+  summaryRoePercentage: number | undefined;
+  /** Close fee; undefined until the fee rate is quoted. */
+  summaryFees: number | undefined;
+  /** Cash the close returns; undefined while an input is missing. */
+  receiveAmount: number | undefined;
   filteredErrors: string[];
   isClosing: boolean;
   isConfirmDisabled: boolean;
@@ -225,13 +241,7 @@ export function usePerpsClosePositionForm(
     buttonClicked: entryButtonClicked,
     buttonLocation: entryButtonLocation,
     enableHaptics = false,
-  } = route.params as {
-    position: Position;
-    source?: string;
-    buttonClicked?: string;
-    buttonLocation?: string;
-    enableHaptics?: boolean;
-  };
+  } = route.params;
   const { playImpact: playHapticImpact } = useHaptics();
 
   // Ref so an inline closure from the caller cannot re-run the latched
@@ -259,6 +269,7 @@ export function usePerpsClosePositionForm(
     traceName: TraceName.PerpsClosePositionView,
   });
 
+  const activeProvider = useSelector(selectPerpsProvider);
   // Feature flag gating the Market/Limit order-type selector on the close screen.
   // Defaults to off so it can be rolled out/rolled back independently of the release.
   const isClosePositionLimitOrderEnabled = useSelector(
@@ -304,6 +315,10 @@ export function usePerpsClosePositionForm(
   const effectiveOrderType: OrdinaryOrderType = isClosePositionLimitOrderEnabled
     ? orderType
     : 'market';
+  const effectiveMaxSlippageBps =
+    effectiveOrderType === 'limit'
+      ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+      : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
@@ -524,15 +539,10 @@ export function usePerpsClosePositionForm(
       ? closeAmountUSDString
       : liveCalculatedUSDString;
 
-  // Use live position data which includes real-time funding fees
-  // HyperLiquid's marginUsed already includes accumulated PnL
+  // Live position figures for the screen-view event; the close amounts come
+  // from Core's `estimateCloseReceive` below.
   const marginUsed = Number.parseFloat(livePosition.marginUsed);
-
-  // Use unrealizedPnl from live position (includes funding fees)
-  const unrealizedPnl = Number.parseFloat(livePosition.unrealizedPnl);
-
-  // Keep pnl reference for backwards compatibility with event tracking
-  const pnl = unrealizedPnl;
+  const pnl = Number.parseFloat(livePosition.unrealizedPnl);
 
   // Position value at the effective price (limit price for limit orders)
   const positionValue = useMemo(
@@ -540,36 +550,7 @@ export function usePerpsClosePositionForm(
     [absSize, effectivePrice],
   );
 
-  // P&L at the effective price. For limit orders this recomputes when the
-  // effective (limit or mark) price changes; for market orders it uses the
-  // live unrealized PnL.
   const entryPrice = Number.parseFloat(position.entryPrice);
-  const effectivePnL = useMemo(() => {
-    // For long positions: (effectivePrice - entryPrice) * absSize
-    // For short positions: (entryPrice - effectivePrice) * absSize
-    if (effectiveOrderType === 'market') {
-      return pnl;
-    }
-    const priceDiff = isLong
-      ? effectivePrice - entryPrice
-      : entryPrice - effectivePrice;
-    return priceDiff * absSize;
-  }, [entryPrice, absSize, isLong, effectiveOrderType, effectivePrice, pnl]);
-
-  // Margin returned on close, adjusted for the price the order will settle at.
-  // marginUsed embeds unrealized PnL at the current mark price, so for limit
-  // orders we swap that current-price PnL for the limit-price PnL (effectivePnL).
-  // For market orders effectivePnL equals unrealizedPnl, so this is a no-op.
-  //
-  // "You'll receive" is intentionally an estimate: this swaps out the full
-  // current unrealizedPnl (price + accrued funding) and adds back only the
-  // limit-price price spread. Funding that accrues between now and when the
-  // limit order fills is unknowable, so we deliberately do not project it here.
-  const effectiveMargin = useMemo(
-    () => marginUsed - unrealizedPnl + effectivePnL,
-    [marginUsed, unrealizedPnl, effectivePnL],
-  );
-
   // Calculate fees using the unified fee hook
   const closingValue = useMemo(
     () => positionValue * (closePercentage / 100),
@@ -611,17 +592,38 @@ export function usePerpsClosePositionForm(
 
   const vipTier = useVipTier();
 
-  // Calculate what user will receive (margin - fees)
-  // Round each component separately to match what user sees in UI
-  // This ensures: displayed margin - displayed fees = displayed receive amount
-  const receiveAmount = useMemo(() => {
-    const marginPortion = (closePercentage / 100) * effectiveMargin;
-    // Round margin and fees to 2 decimals (what user sees)
-    const roundedMargin = Math.round(marginPortion * 100) / 100;
-    const roundedFees = Math.round(feeResults.totalFee * 100) / 100;
-    // Subtract rounded values for transparent calculation
-    return roundedMargin - roundedFees;
-  }, [closePercentage, effectiveMargin, feeResults.totalFee]);
+  // Price the close executes at: the limit price of a limit close, else the
+  // live price. Undefined until known, so the estimate shows as unavailable
+  // instead of being priced at the entry price.
+  const livePrice = priceData[position.symbol]?.price;
+  let closePrice: number | string | undefined = livePrice;
+  if (effectiveOrderType === 'limit') {
+    closePrice = limitPrice || undefined;
+  }
+
+  // Margin returned, PnL realized at the close price, fee and the cash the
+  // close returns, from Core so every client shows the same amounts. Each is
+  // undefined while an input it needs is missing.
+  const closeEstimate = useMemo(
+    () =>
+      estimateCloseReceive({
+        position: livePosition,
+        providerId:
+          livePosition.providerId ?? resolveProviderId(activeProvider),
+        // The size the order sends, rounded to the market's size decimals.
+        closeSize: closeAmount,
+        price: closePrice,
+        feeRate: feeResults.totalFeeRate,
+      }),
+    [
+      livePosition,
+      activeProvider,
+      closeAmount,
+      closePrice,
+      feeResults.totalFeeRate,
+    ],
+  );
+  const receiveAmount = closeEstimate.receive;
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -740,7 +742,10 @@ export function usePerpsClosePositionForm(
       hasConfirmedCloseRef.current ||
       isClosing ||
       isCloseInFlight ||
-      isPositionGone
+      isPositionGone ||
+      // Core tracking takes a numeric fee, so wait for the quote instead of
+      // reporting an unknown fee as 0. A quoted 0 rate still submits.
+      feeResults.totalFeeRate === undefined
     ) {
       return;
     }
@@ -783,7 +788,7 @@ export function usePerpsClosePositionForm(
         totalFee: feeResults.totalFee,
         marketPrice: currentPrice,
         receivedAmount: receiveAmount,
-        realizedPnl: effectivePnL * (closePercentage / 100),
+        realizedPnl: closeEstimate.realizedPnl,
         metamaskFeeRate: feeResults.metamaskFeeRate,
         feeDiscountPercentage: feeResults.feeDiscountPercentage,
         metamaskFee: feeResults.metamaskFee,
@@ -796,6 +801,12 @@ export function usePerpsClosePositionForm(
           : {}),
         vipTier: vipTier ?? undefined,
         vipDiscount: feeResults.feeDiscountPercentage,
+        ...(effectiveOrderType === 'market'
+          ? {
+              maxSlippageBps: effectiveMaxSlippageBps,
+              maxSlippageSource: PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT,
+            }
+          : {}),
       },
       marketPrice: priceData[position.symbol]?.price,
       // Always pass slippage parameters for price context
@@ -803,10 +814,7 @@ export function usePerpsClosePositionForm(
       slippage: {
         usdAmount: isFullClose ? undefined : closingValueString,
         priceAtCalculation: effectivePrice,
-        maxSlippageBps:
-          effectiveOrderType === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-            : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
+        maxSlippageBps: effectiveMaxSlippageBps,
       },
     });
   }, [
@@ -821,16 +829,18 @@ export function usePerpsClosePositionForm(
     handleClosePosition,
     livePosition,
     feeResults.totalFee,
+    feeResults.totalFeeRate,
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.metamaskFee,
     feeResults.protocolFeeRate,
     currentPrice,
     receiveAmount,
-    effectivePnL,
+    closeEstimate.realizedPnl,
     rewardsState.estimatedPoints,
     routeSource,
     vipTier,
+    effectiveMaxSlippageBps,
     priceData,
     position.symbol,
     closingValueString,
@@ -995,14 +1005,46 @@ export function usePerpsClosePositionForm(
     );
   }, [validationResult.errors]);
 
-  const summaryMargin = (closePercentage / 100) * effectiveMargin;
-  const summaryPnl = effectivePnL * (closePercentage / 100);
-  const summaryFees = feeResults.totalFee;
+  const summaryPnl = closeEstimate.realizedPnl;
+  const summaryMargin =
+    closeEstimate.marginReturned === undefined || summaryPnl === undefined
+      ? undefined
+      : closeEstimate.marginReturned + summaryPnl;
+  // %RoE beside the summary $PnL. Market closes show the position's actual
+  // %RoE (`returnOnEquity × 100`) — the same value the position card renders.
+  // Limit closes recompute the RoE at the effective (limit) price via
+  // `calculateSignedRoEForPrice`: the live position RoE is measured at the mark
+  // price and can disagree with the limit-price $PnL in both sign and size
+  // (#37377 rejected it for limit closes for exactly this reason). Omitted
+  // when nothing is being closed or the value is unavailable; a computed
+  // 0.00% (for example a limit at the entry price) is still shown.
+  let summaryRoePercentage: number | undefined;
+  if (closePercentage === 0) {
+    summaryRoePercentage = undefined;
+  } else if (effectiveOrderType === 'limit') {
+    const roeAtLimitPrice = Number.parseFloat(
+      calculateSignedRoEForPrice(String(effectivePrice), {
+        currentPrice,
+        direction: isLong ? 'long' : 'short',
+        leverage: livePosition.leverage?.value,
+        entryPrice,
+      }),
+    );
+    summaryRoePercentage = Number.isNaN(roeAtLimitPrice)
+      ? undefined
+      : roeAtLimitPrice;
+  } else {
+    summaryRoePercentage = parsePositionRoePercentage(
+      livePosition.returnOnEquity,
+    );
+  }
+  const summaryFees = closeEstimate.fee;
 
   const isConfirmDisabled =
     isClosing ||
     isCloseInFlight ||
     isPositionGone ||
+    feeResults.totalFeeRate === undefined ||
     (effectiveOrderType === 'limit' &&
       (!limitPrice || Number.parseFloat(limitPrice) <= 0)) ||
     (effectiveOrderType === 'market' && closePercentage === 0) ||
@@ -1073,6 +1115,7 @@ export function usePerpsClosePositionForm(
     rewardsState,
     summaryMargin,
     summaryPnl,
+    summaryRoePercentage,
     summaryFees,
     receiveAmount,
     filteredErrors,

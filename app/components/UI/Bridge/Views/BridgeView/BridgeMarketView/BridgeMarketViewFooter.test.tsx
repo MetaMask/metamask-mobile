@@ -37,6 +37,16 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../shared/RebateBanner', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'mock-swaps-rebate-banner' }),
+  };
+});
+
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest
     .fn()
@@ -80,18 +90,15 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () =>
-        MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
-    };
-  },
-);
+jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+  };
+});
 
 jest.mock(
   '../../../../Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge',
@@ -152,9 +159,12 @@ function buildActiveQuoteState(
   });
 }
 
-function renderFooter(state: DeepPartial<RootState>) {
+function renderFooter(
+  state: DeepPartial<RootState>,
+  props: Partial<React.ComponentProps<typeof BridgeMarketViewFooter>> = {},
+) {
   return renderWithProvider(
-    <BridgeMarketViewFooter location={mockLocation} />,
+    <BridgeMarketViewFooter location={mockLocation} {...props} />,
     { state },
   );
 }
@@ -223,6 +233,28 @@ describe('BridgeMarketViewFooter', () => {
       await waitFor(() => {
         expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeTruthy();
       });
+    });
+
+    it('renders the rebate banner when a rebate percent is provided', async () => {
+      const { getByTestId } = renderFooter(buildActiveQuoteState(), {
+        rebatePercent: 5,
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('mock-swaps-rebate-banner')).toBeTruthy();
+      });
+    });
+
+    it('omits the rebate banner without a rebate percent', async () => {
+      const { getByTestId, queryByTestId } = renderFooter(
+        buildActiveQuoteState(),
+        { rebatePercent: null },
+      );
+
+      await waitFor(() => {
+        expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeTruthy();
+      });
+      expect(queryByTestId('mock-swaps-rebate-banner')).toBeNull();
     });
   });
 

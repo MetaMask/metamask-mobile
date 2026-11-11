@@ -1,9 +1,12 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { IconColor, IconName } from '@metamask/design-system-react-native';
-import { SECURITY_EMPTY_VALUE } from '../SecurityTab.constants';
+import {
+  STAT_EMPTY_VALUE,
+  TokenStatKey,
+} from '../../../../constants/tokenStats';
 import { SecurityTabSelectors } from '../SecurityTab.testIds';
-import { SecurityCheckKey, SecurityStatKey } from '../SecurityTab.types';
+import { ContractCheckKey } from '../SecurityTab.types';
 import SecurityRow from './SecurityRow';
 
 const PASS_ICON = {
@@ -15,7 +18,7 @@ describe('SecurityRow', () => {
   it('renders the formatted value', () => {
     const { getByTestId } = render(
       <SecurityRow
-        rowKey={SecurityStatKey.TotalLiquidity}
+        rowKey={TokenStatKey.Liquidity}
         label="Total liquidity"
         value="$560.0K"
         onExplain={jest.fn()}
@@ -23,16 +26,14 @@ describe('SecurityRow', () => {
     );
 
     expect(
-      getByTestId(
-        SecurityTabSelectors.rowValue(SecurityStatKey.TotalLiquidity),
-      ),
+      getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.Liquidity)),
     ).toHaveTextContent('$560.0K');
   });
 
   it('renders a dash when the value is missing', () => {
     const { getByTestId } = render(
       <SecurityRow
-        rowKey={SecurityStatKey.PrimaryPool}
+        rowKey={TokenStatKey.PrimaryPool}
         label="Primary pool"
         value={null}
         onExplain={jest.fn()}
@@ -40,8 +41,8 @@ describe('SecurityRow', () => {
     );
 
     expect(
-      getByTestId(SecurityTabSelectors.rowValue(SecurityStatKey.PrimaryPool)),
-    ).toHaveTextContent(SECURITY_EMPTY_VALUE);
+      getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.PrimaryPool)),
+    ).toHaveTextContent(STAT_EMPTY_VALUE);
   });
 
   // The whole reason the row takes `string | null` rather than a raw number is
@@ -52,26 +53,24 @@ describe('SecurityRow', () => {
     (value) => {
       const { getByTestId } = render(
         <SecurityRow
-          rowKey={SecurityStatKey.BuySellTax}
+          rowKey={TokenStatKey.Tax}
           label="Buy/sell tax"
           value={value}
           onExplain={jest.fn()}
         />,
       );
 
-      const node = getByTestId(
-        SecurityTabSelectors.rowValue(SecurityStatKey.BuySellTax),
-      );
+      const node = getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.Tax));
 
       expect(node).toHaveTextContent(value);
-      expect(node).not.toHaveTextContent(SECURITY_EMPTY_VALUE);
+      expect(node).not.toHaveTextContent(STAT_EMPTY_VALUE);
     },
   );
 
   it('renders the label text it is given', () => {
     const { getByText } = render(
       <SecurityRow
-        rowKey={SecurityStatKey.LiquidityToMarketCap}
+        rowKey={TokenStatKey.LiquidityToMarketCap}
         label="Liq/MC"
         value="4.52%"
         onExplain={jest.fn()}
@@ -85,7 +84,7 @@ describe('SecurityRow', () => {
     const onExplain = jest.fn();
     const { getByTestId } = render(
       <SecurityRow
-        rowKey={SecurityStatKey.Holders}
+        rowKey={TokenStatKey.Holders}
         label="Holders"
         value="12.9K"
         onExplain={onExplain}
@@ -93,10 +92,32 @@ describe('SecurityRow', () => {
     );
 
     fireEvent.press(
-      getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.Holders)),
+      getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Holders)),
     );
 
-    expect(onExplain).toHaveBeenCalledWith(SecurityStatKey.Holders);
+    expect(onExplain).toHaveBeenCalledWith(TokenStatKey.Holders);
+  });
+
+  // The target used to wrap the underlined label on its own, which `BodySm`
+  // makes 22px tall against the 24px WCAG 2.5.8 minimum. The whole row carries
+  // the press now, so a tap on the far side of the row — previously a sibling
+  // of the target, with no handler above it — has to reach the same handler.
+  it('reports the row when pressed away from the label', () => {
+    const onExplain = jest.fn();
+    const { getByTestId } = render(
+      <SecurityRow
+        rowKey={TokenStatKey.Holders}
+        label="Holders"
+        value="12.9K"
+        onExplain={onExplain}
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.Holders)),
+    );
+
+    expect(onExplain).toHaveBeenCalledWith(TokenStatKey.Holders);
   });
 
   // The dotted underline is the only visual hint that the label is tappable,
@@ -105,7 +126,7 @@ describe('SecurityRow', () => {
   it('announces the label as a button that explains the term', () => {
     const { getByLabelText } = render(
       <SecurityRow
-        rowKey={SecurityStatKey.PrimaryPool}
+        rowKey={TokenStatKey.PrimaryPool}
         label="Primary pool"
         value={null}
         onExplain={jest.fn()}
@@ -115,11 +136,83 @@ describe('SecurityRow', () => {
     expect(getByLabelText('What does Primary pool mean?')).toBeOnTheScreen();
   });
 
+  // Liq/MC and Total liquidity wait on the price API while every other row is
+  // already resolved, so "still fetching" and "nothing to report" have to look
+  // different. Both used to render the same dash.
+  describe('loading', () => {
+    it('renders a skeleton instead of the dash while loading', () => {
+      const { getByTestId, queryByTestId } = render(
+        <SecurityRow
+          rowKey={TokenStatKey.LiquidityToMarketCap}
+          label="Liq/MC"
+          value={null}
+          isLoading
+          onExplain={jest.fn()}
+        />,
+      );
+
+      expect(
+        getByTestId(
+          SecurityTabSelectors.rowSkeleton(TokenStatKey.LiquidityToMarketCap),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          SecurityTabSelectors.rowValue(TokenStatKey.LiquidityToMarketCap),
+        ),
+      ).toBeNull();
+    });
+
+    // A value that arrived from cache has nothing to wait for, so the skeleton
+    // must not replace a reading the row already has.
+    it('renders the value rather than a skeleton once one arrived', () => {
+      const { getByTestId, queryByTestId } = render(
+        <SecurityRow
+          rowKey={TokenStatKey.LiquidityToMarketCap}
+          label="Liq/MC"
+          value="4.52%"
+          isLoading
+          onExplain={jest.fn()}
+        />,
+      );
+
+      expect(
+        getByTestId(
+          SecurityTabSelectors.rowValue(TokenStatKey.LiquidityToMarketCap),
+        ),
+      ).toHaveTextContent('4.52%');
+      expect(
+        queryByTestId(
+          SecurityTabSelectors.rowSkeleton(TokenStatKey.LiquidityToMarketCap),
+        ),
+      ).toBeNull();
+    });
+
+    it('still reports the row when its value is a skeleton', () => {
+      const onExplain = jest.fn();
+      const { getByTestId } = render(
+        <SecurityRow
+          rowKey={TokenStatKey.Liquidity}
+          label="Total liquidity"
+          value={null}
+          isLoading
+          onExplain={onExplain}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Liquidity)),
+      );
+
+      expect(onExplain).toHaveBeenCalledWith(TokenStatKey.Liquidity);
+    });
+  });
+
   describe('glyph', () => {
     it('draws the glyph it is given', () => {
       const { getByTestId } = render(
         <SecurityRow
-          rowKey={SecurityCheckKey.NoHoneypot}
+          rowKey={ContractCheckKey.NoHoneypot}
           label="No honeypot"
           value="Sells work"
           icon={PASS_ICON}
@@ -128,14 +221,14 @@ describe('SecurityRow', () => {
       );
 
       expect(
-        getByTestId(SecurityTabSelectors.rowIcon(SecurityCheckKey.NoHoneypot)),
+        getByTestId(SecurityTabSelectors.rowIcon(ContractCheckKey.NoHoneypot)),
       ).toBeOnTheScreen();
     });
 
     it('draws no glyph when none is given', () => {
       const { queryByTestId } = render(
         <SecurityRow
-          rowKey={SecurityStatKey.Holders}
+          rowKey={TokenStatKey.Holders}
           label="Holders"
           value="12.9K"
           onExplain={jest.fn()}
@@ -143,7 +236,7 @@ describe('SecurityRow', () => {
       );
 
       expect(
-        queryByTestId(SecurityTabSelectors.rowIcon(SecurityStatKey.Holders)),
+        queryByTestId(SecurityTabSelectors.rowIcon(TokenStatKey.Holders)),
       ).toBeNull();
     });
 
@@ -152,7 +245,7 @@ describe('SecurityRow', () => {
     it('suppresses the glyph when the value is missing', () => {
       const { getByTestId, queryByTestId } = render(
         <SecurityRow
-          rowKey={SecurityCheckKey.NoBlacklist}
+          rowKey={ContractCheckKey.NoBlacklist}
           label="No blacklist"
           value={null}
           icon={PASS_ICON}
@@ -162,12 +255,12 @@ describe('SecurityRow', () => {
 
       expect(
         getByTestId(
-          SecurityTabSelectors.rowValue(SecurityCheckKey.NoBlacklist),
+          SecurityTabSelectors.rowValue(ContractCheckKey.NoBlacklist),
         ),
-      ).toHaveTextContent(SECURITY_EMPTY_VALUE);
+      ).toHaveTextContent(STAT_EMPTY_VALUE);
       expect(
         queryByTestId(
-          SecurityTabSelectors.rowIcon(SecurityCheckKey.NoBlacklist),
+          SecurityTabSelectors.rowIcon(ContractCheckKey.NoBlacklist),
         ),
       ).toBeNull();
     });

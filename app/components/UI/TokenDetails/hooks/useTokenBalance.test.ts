@@ -7,6 +7,7 @@ import {
   selectAsset,
   selectTronSpecialAssetsBySelectedAccountGroup,
   TronSpecialAssetsMap,
+  TronSpecialAssetsStatus,
 } from '../../../../selectors/assets/assets-list';
 import {
   selectCurrencyRateForChainId,
@@ -40,6 +41,7 @@ const createEmptySpecialAssetsMap = (): TronSpecialAssetsMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  status: TronSpecialAssetsStatus.Ready,
   trxReadyForWithdrawal: undefined,
   trxStakingRewards: undefined,
   trxInLockPeriod: undefined,
@@ -56,11 +58,16 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
       stakedTrxForEnergy: undefined,
       stakedTrxForBandwidth: undefined,
       totalStakedTrx: 0,
+      status: 'ready',
       trxReadyForWithdrawal: undefined,
       trxStakingRewards: undefined,
       trxInLockPeriod: undefined,
     }),
   ),
+  TronSpecialAssetsStatus: {
+    Loading: 'loading',
+    Ready: 'ready',
+  },
 }));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({

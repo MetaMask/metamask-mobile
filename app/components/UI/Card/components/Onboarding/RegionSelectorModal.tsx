@@ -18,11 +18,12 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   Box,
   BottomSheet,
+  BottomSheetHeader,
   ContentVariant,
   FontWeight,
-  HeaderStandard,
   ListItemSelect,
   Text,
+  TextColor,
   TextFieldSearch,
   TextVariant,
   BottomSheetRef,
@@ -136,8 +137,6 @@ function RegionSelectorModal() {
           variant={ContentVariant.OneLine}
           isSelected={selectedRegionKey === region.key}
           onPress={() => handleOnRegionPressCallback(region)}
-          accessibilityRole="button"
-          accessible
           testID="region-selector-item"
           titleStartAccessory={
             <Text
@@ -161,7 +160,7 @@ function RegionSelectorModal() {
             renderAreaCode && region.areaCode ? (
               <Text
                 variant={TextVariant.BodyMd}
-                twClassName="text-text-alternative"
+                color={TextColor.TextAlternative}
                 testID="region-selector-item-area-code"
               >
                 (+{region.areaCode})
@@ -174,17 +173,23 @@ function RegionSelectorModal() {
     [selectedRegionKey, renderAreaCode, handleOnRegionPressCallback],
   );
 
+  // The empty state answers a search. With no query there is nothing to
+  // report, so render nothing rather than "No region matches" over a blank
+  // list (e.g. while regions are unavailable).
+  const hasSearchQuery = searchString.trim().length > 0;
+
   const renderEmptyList = useCallback(
-    () => (
-      <Box twClassName="p-4 items-center" testID="region-selector-empty-list">
-        <Text variant={TextVariant.BodyMd}>
-          {strings('card.card_onboarding.errors.no_region_results', {
-            searchString,
-          })}
-        </Text>
-      </Box>
-    ),
-    [searchString],
+    () =>
+      hasSearchQuery ? (
+        <Box twClassName="p-4 items-center" testID="region-selector-empty-list">
+          <Text variant={TextVariant.BodyMd}>
+            {strings('card.card_onboarding.errors.no_region_results', {
+              searchString,
+            })}
+          </Text>
+        </Box>
+      ) : null,
+    [hasSearchQuery, searchString],
   );
 
   const handleSearchTextChange = useCallback(
@@ -217,19 +222,28 @@ function RegionSelectorModal() {
       keyboardAvoidingViewEnabled={false}
       testID="region-selector-modal"
     >
-      <HeaderStandard
-        title={strings('card.card_onboarding.region_selector.title')}
+      <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: 'region-selector-close-button' }}
-      />
+      >
+        {strings('card.card_onboarding.region_selector.title')}
+      </BottomSheetHeader>
       <Box twClassName="px-4 pb-4">
         <TextFieldSearch
           value={searchString}
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
+          placeholder={strings(
+            'card.card_onboarding.region_selector.search_placeholder',
+          )}
+          inputAccessibilityLabel={strings(
+            'card.card_onboarding.region_selector.search_label',
+          )}
           clearButtonProps={{ testID: 'search-clear-button' }}
           inputProps={{
+            // 'one-time-code' stops iOS offering contact/address autofill for
+            // what is a list filter, not a personal-data field.
             autoComplete: 'one-time-code',
             testID: 'region-selector-search-input',
           }}

@@ -1,0 +1,169 @@
+import React, { useContext, useMemo } from 'react';
+import { Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../../component-library/components/Toast';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
+import {
+  getWalletName,
+  usePushProvisioning,
+  type ProvisioningError,
+} from '../../../pushProvisioning';
+import { ProvisioningErrorCode } from '../../../pushProvisioning/types';
+import { buildProvisioningUserAddress } from '../../../util/buildUserAddress';
+import {
+  CardStatus,
+  type CardHomeData,
+} from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+
+export type WalletEntry = 'push' | 'instructions' | 'none';
+
+export function resolveWalletEntry({
+  cardStatus,
+  isEligibilityLoading,
+  canAddToWallet,
+  isCardInWallet,
+  platformWalletSupported,
+}: {
+  cardStatus: CardStatus | undefined;
+  isEligibilityLoading: boolean;
+  canAddToWallet: boolean;
+  isCardInWallet: boolean;
+  platformWalletSupported: boolean;
+}): WalletEntry {
+  if (cardStatus !== CardStatus.ACTIVE) return 'none';
+  if (canAddToWallet) return 'push';
+  if (!platformWalletSupported) return 'instructions';
+  if (isEligibilityLoading || isCardInWallet) return 'none';
+  return 'instructions';
+}
+
+export function useCardWalletProvisioning(
+  data: CardHomeData | null | undefined,
+  options?: {
+    onSuccess?: () => void;
+    platformWalletSupported?: boolean;
+  },
+) {
+  const navigation = useNavigation<AppStackNavigationProp>();
+  const { toastRef } = useContext(ToastContext);
+  const walletProvisioning = data?.walletProvisioning ?? null;
+
+  const userAddressForProvisioning = useMemo(() => {
+    const addr = data?.account?.shippingAddress;
+    if (!addr || !walletProvisioning) {
+      return undefined;
+    }
+    return buildProvisioningUserAddress(
+      {
+        addressLine1: addr.line1,
+        addressLine2: addr.line2 ?? null,
+        city: addr.city,
+        usState: addr.state ?? null,
+        zip: addr.postalCode,
+        phoneNumber: null,
+        phoneCountryCode: null,
+      },
+      walletProvisioning.cardholderName,
+    );
+  }, [data?.account?.shippingAddress, walletProvisioning]);
+
+  const {
+    initiateProvisioning,
+    isProvisioning,
+    isLoading,
+    canAddToWallet,
+    isCardInWallet,
+    pendingVerificationDevices,
+    canOpenInWallet,
+    openInWallet,
+    hideProvisioningUi,
+  } = usePushProvisioning({
+    cardId: data?.card?.id,
+    walletProvisioning,
+    userAddress: userAddressForProvisioning,
+    onSuccess: (result) => {
+      if (result?.activationState === 'requires_activation') {
+        return;
+      }
+      if (Platform.OS === 'ios') {
+        navigation.replace(Routes.CARD.APPLE_PAY_CONFIRMATION);
+      } else {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: strings('card.push_provisioning.success_message', {
+                walletName: getWalletName(),
+              }),
+            },
+          ],
+          startAccessory: (
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
+          ),
+          hasNoTimeout: false,
+        });
+      }
+      options?.onSuccess?.();
+    },
+    onError: (provisioningError: ProvisioningError) => {
+      if (provisioningError.code === ProvisioningErrorCode.WALLET_DECLINED) {
+        return;
+      }
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label:
+              provisioningError.message ||
+              strings('card.push_provisioning.error_unknown'),
+          },
+        ],
+        startAccessory: (
+          <Icon
+            name={IconName.Danger}
+            color={IconColor.ErrorDefault}
+            size={IconSize.Lg}
+          />
+        ),
+        hasNoTimeout: false,
+      });
+    },
+  });
+
+  const walletEntry = hideProvisioningUi
+    ? 'none'
+    : resolveWalletEntry({
+        cardStatus: data?.card?.status,
+        isEligibilityLoading: isLoading,
+        canAddToWallet,
+        isCardInWallet,
+        platformWalletSupported: options?.platformWalletSupported ?? false,
+      });
+
+  return {
+    initiateProvisioning,
+    isProvisioning,
+    isLoading,
+    canAddToWallet,
+    isCardInWallet,
+    pendingVerificationDevices,
+    canOpenInWallet,
+    openInWallet,
+    walletEntry,
+  };
+}

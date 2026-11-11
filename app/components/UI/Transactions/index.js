@@ -48,8 +48,6 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
-import { selectAllTokens } from '../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import Logger from '../../../util/Logger';
@@ -183,11 +181,11 @@ const Transactions = (props) => {
     tokenChainId,
     skipScrollOnClick,
     location,
+    contentBottomInset,
+    refreshControlOffset,
     hardwareWallet = DEFAULT_HARDWARE_WALLET,
     accountImportTime,
-    groupEvmAccountAddress,
     networkConfigurationsByChainId,
-    allTokens,
     bridgeHistory,
   } = props;
   const theme = useContext(ThemeContext) || mockTheme;
@@ -723,12 +721,8 @@ const Transactions = (props) => {
         chainId={chainId}
         tokenChainId={tokenChainId}
         navigation={navigation}
-        onSpeedUpAction={onSpeedUpAction}
-        onCancelAction={onCancelAction}
         accountImportTime={accountImportTime}
-        groupEvmAccountAddress={groupEvmAccountAddress}
         networkConfigurations={networkConfigurationsByChainId}
-        allTokens={allTokens}
         bridgeHistory={bridgeHistory}
       />
     ) : null;
@@ -790,6 +784,7 @@ const Transactions = (props) => {
                     <RefreshControl
                       colors={[colors.primary.default]}
                       tintColor={colors.icon.default}
+                      progressViewOffset={refreshControlOffset}
                       refreshing={refreshing}
                       onRefresh={async () => {
                         setRefreshing(true);
@@ -820,7 +815,12 @@ const Transactions = (props) => {
                       renderEmpty()
                     )
                   }
-                  contentContainerStyle={styles.listContentContainer}
+                  contentContainerStyle={[
+                    styles.listContentContainer,
+                    contentBottomInset !== undefined && {
+                      paddingBottom: contentBottomInset,
+                    },
+                  ]}
                   style={baseStyles.flexGrow}
                   showsVerticalScrollIndicator={false}
                   scrollIndicatorInsets={{ right: 1 }}
@@ -937,6 +937,14 @@ Transactions.propTypes = {
    * Location context for analytics tracking (home or asset_details)
    */
   location: PropTypes.string,
+  /**
+   * (optional) Bottom padding for the list, e.g. to clear a footer floating over it
+   */
+  contentBottomInset: PropTypes.number,
+  /**
+   * Moves the pull-to-refresh spinner down, e.g. below a floating header
+   */
+  refreshControlOffset: PropTypes.number,
   hardwareWallet: PropTypes.shape({
     ensureDeviceReady: PropTypes.func,
     setPendingOperationAddress: PropTypes.func,
@@ -945,9 +953,7 @@ Transactions.propTypes = {
     showHardwareWalletError: PropTypes.func,
   }),
   accountImportTime: PropTypes.number,
-  groupEvmAccountAddress: PropTypes.string,
   networkConfigurationsByChainId: PropTypes.object,
-  allTokens: PropTypes.object,
   bridgeHistory: PropTypes.object,
 };
 
@@ -974,13 +980,9 @@ const mapStateToProps = (state, ownProps) => {
     accountImportTime: isAssetDetails
       ? selectSelectedInternalAccount(state)?.metadata.importTime
       : undefined,
-    groupEvmAccountAddress: isAssetDetails
-      ? selectSelectedAccountGroupEvmInternalAccount(state)?.address
-      : undefined,
     networkConfigurationsByChainId: isAssetDetails
       ? selectEvmNetworkConfigurationsByChainId(state)
       : undefined,
-    allTokens: isAssetDetails ? selectAllTokens(state) : undefined,
     bridgeHistory: isAssetDetails
       ? selectBridgeHistoryForAccount(state)
       : undefined,

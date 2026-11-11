@@ -1,5 +1,6 @@
 export const OpenOrderRowSelectorsIDs = {
   CONTAINER: 'bridge-open-order-row',
+  TITLE_ROW: 'bridge-open-order-row-title-row',
   TITLE: 'bridge-open-order-row-title',
   TITLE_END_ACCESSORY: 'bridge-open-order-row-title-end-accessory',
   SUBTITLE: 'bridge-open-order-row-subtitle',

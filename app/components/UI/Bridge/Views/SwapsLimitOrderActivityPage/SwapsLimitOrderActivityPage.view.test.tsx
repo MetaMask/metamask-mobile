@@ -23,6 +23,7 @@ import {
 } from '../../api/limitOrders/getLimitOrders/mock';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 import { OpenOrderRowSelectorsIDs } from '../../components/OpenOrderRow/OpenOrderRow.testIds';
+import { TokenAmountValueSelectorsIDs } from '../../components/LimitOrderConfirmationModal/TokenAmountValue/testIds';
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
 /* eslint-disable-next-line import-x/no-restricted-paths -- the page reuses the shared Activity Details footer */
 import { ActivityDetailsSelectorsIDs } from '../../../../Views/ActivityDetails/ActivityDetails.testIds';
@@ -30,6 +31,7 @@ import { SwapsLimitOrderActivityPageSelectorsIDs } from './SwapsLimitOrderActivi
 
 const {
   SCREEN,
+  AMOUNT_DIVIDER,
   BACK_BUTTON,
   STATUS_ROW,
   DATE_CREATED_ROW,
@@ -102,6 +104,25 @@ const MOCK_LIMIT_FILLED_BUY_ORDER: LimitOrder = {
 };
 
 const BLOCK_EXPLORER_LABEL = strings('activity_details.view_on_block_explorer');
+const DUPLICATE_ORDER_LABEL = strings('bridge.limit.duplicate_order');
+
+function withLimitOrderFlags(
+  enabledChainIds: string[],
+  bridge: DeepPartial<RootState['bridge']> = {},
+): DeepPartial<RootState> {
+  return {
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            swapsLimitOrder: { enabled: true, enabledChainIds },
+          },
+        },
+      },
+    },
+    bridge,
+  } as DeepPartial<RootState>;
+}
 
 const titleParams = { source: 'ETH', dest: 'USDC' };
 
@@ -201,6 +222,11 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     expect(
       within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('2200 USDC'),
     ).toBeOnTheScreen();
+    expect(
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByTestId(
+        TokenAmountValueSelectorsIDs.PREFIX,
+      ),
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_above'));
     expect(getByTestId(NETWORK_ROW)).toHaveTextContent('Ethereum', {
       exact: false,
     });
@@ -275,13 +301,41 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     const networkFeeRow = await findByTestId(NETWORK_FEE_ROW);
 
     expect(
-      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$2160'),
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$2,160.00'),
     ).toBeOnTheScreen();
     expect(within(networkFeeRow).getByText('$1.23')).toBeOnTheScreen();
     // 0.1 ETH at $2160.
     expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$216.00', {
       exact: false,
     });
+  });
+
+  it('condenses the leading zeros of tiny amounts and a tiny trigger price', async () => {
+    const { findByTestId, getByTestId, getByText } = await openActivityPage(
+      {
+        ...MOCK_LIMIT_FILLED_ORDER,
+        trigger: {
+          kind: 'src_price',
+          threshold: 'above',
+          price: '0.000003747',
+        },
+      },
+      [
+        {
+          ...FILL_TRANSACTION,
+          src: { ...FILL_TRANSACTION.src, amount: '12345678900' },
+          dest: { ...FILL_TRANSACTION.dest, amount: '1' },
+        },
+      ],
+    );
+
+    await findByTestId(ActivityDetailsSelectorsIDs.TRANSACTION_ID_COPY);
+
+    expect(getByText('-0.0₇1234 ETH')).toBeOnTheScreen();
+    expect(getByText('+0.0₅1 USDC')).toBeOnTheScreen();
+    expect(
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$0.0₅3747'),
+    ).toBeOnTheScreen();
   });
 
   it('shows the network fee as a token amount when the fill reports no USD value for it', async () => {
@@ -339,6 +393,155 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     });
   });
 
+  it('offers no duplicate of an order that filled', async () => {
+    const { findByText, queryByText } = await openActivityPage(
+      MOCK_LIMIT_FILLED_ORDER,
+      [FILL_TRANSACTION],
+    );
+
+    await findByText(BLOCK_EXPLORER_LABEL);
+
+    expect(queryByText(DUPLICATE_ORDER_LABEL)).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    {
+      name: 'expired',
+      order: MOCK_LIMIT_EXPIRED_ORDER,
+      transactions: [],
+      expirationMinutes: 4320,
+    },
+    {
+      name: 'canceled',
+      order: MOCK_LIMIT_CANCELLED_ORDER,
+      transactions: [],
+      expirationMinutes: 10080,
+    },
+    {
+      name: 'failed',
+      order: MOCK_LIMIT_FAILED_ORDER,
+      transactions: [REVERTED_TRANSACTION],
+      expirationMinutes: 10080,
+    },
+  ])(
+    'returns to the limit orders tab with a duplicate of an $name order filled in',
+    async ({ order, transactions, expirationMinutes }) => {
+      const { getByText, findByTestId, store } = await openActivityPage(
+        order,
+        transactions,
+        {
+          overrides: withLimitOrderFlags(['eip155:1'], {
+            limitOrderCostTolerance: '2',
+          }),
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
+      });
+
+      expect(
+        await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      const { bridge } = store.getState();
+      expect(bridge.sourceToken).toMatchObject({
+        symbol: 'ETH',
+        chainId: '0x1',
+      });
+      expect(bridge.destToken).toMatchObject({
+        symbol: 'USDC',
+        chainId: '0x1',
+      });
+      expect(bridge.isDestTokenManuallySet).toBe(true);
+      expect(bridge.sourceAmount).toBe('0.1');
+      expect(bridge.limitOrderExpirationMinutes).toBe(expirationMinutes);
+      expect(bridge.limitOrderCostTolerance).toBe('0.5');
+    },
+  );
+
+  it('duplicates an order with the default cost tolerance when it carries none', async () => {
+    const { priceTolerance: _priceTolerance, ...order } =
+      MOCK_LIMIT_EXPIRED_ORDER;
+    const { getByText, findByTestId, store } = await openActivityPage(
+      order,
+      [],
+      {
+        overrides: withLimitOrderFlags(['eip155:1'], {
+          limitOrderCostTolerance: '2',
+        }),
+      },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
+    });
+
+    expect(
+      await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    const { bridge } = store.getState();
+    expect(bridge.sourceAmount).toBe('0.1');
+    expect(bridge.limitOrderCostTolerance).toBeUndefined();
+  });
+
+  it('duplicates an order with the default expiration when its lifetime matches no preset', async () => {
+    const { getByText, findByTestId, store } = await openActivityPage(
+      {
+        ...MOCK_LIMIT_EXPIRED_ORDER,
+        timingData: {
+          ...MOCK_LIMIT_EXPIRED_ORDER.timingData,
+          expiresAt: '2027-09-03T12:00:00.000Z',
+        },
+      },
+      [],
+      {
+        overrides: withLimitOrderFlags(['eip155:1'], {
+          limitOrderExpirationMinutes: 1440,
+          limitOrderCostTolerance: '2',
+        }),
+      },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
+    });
+
+    expect(
+      await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    const { bridge } = store.getState();
+    expect(bridge.sourceAmount).toBe('0.1');
+    expect(bridge.limitOrderExpirationMinutes).toBe(60);
+    expect(bridge.limitOrderCostTolerance).toBe('0.5');
+  });
+
+  it('leaves the limit orders tab as it was when it no longer supports the order network', async () => {
+    const { getByText, findByTestId, store } = await openActivityPage(
+      MOCK_LIMIT_EXPIRED_ORDER,
+      [],
+      {
+        overrides: withLimitOrderFlags(['eip155:10'], {
+          sourceAmount: '5',
+          limitOrderExpirationMinutes: 1440,
+          limitOrderCostTolerance: '2',
+        }),
+      },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(DUPLICATE_ORDER_LABEL));
+    });
+
+    expect(
+      await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    const { bridge } = store.getState();
+    expect(bridge.sourceToken).toBeUndefined();
+    expect(bridge.sourceAmount).toBe('5');
+    expect(bridge.limitOrderExpirationMinutes).toBe(1440);
+    expect(bridge.limitOrderCostTolerance).toBe('2');
+  });
+
   it('returns to the orders list from the back button', async () => {
     const { getByTestId, findByTestId } = await openActivityPage(
       MOCK_LIMIT_FILLED_ORDER,
@@ -378,6 +581,17 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
         await openActivityPage(order);
 
       expect(getByText(title)).toBeOnTheScreen();
+      // The details frame already separates sections by 8px, so this 8px
+      // margin leaves 16px above and below the divider.
+      expect(getByTestId(AMOUNT_DIVIDER)).toHaveStyle({
+        marginTop: 8,
+        marginBottom: 8,
+      });
+      expect(
+        within(getByTestId(TRIGGER_CONDITION_ROW)).getByTestId(
+          TokenAmountValueSelectorsIDs.AMOUNT,
+        ),
+      ).toHaveStyle({ fontFamily: 'Inter-Medium' });
       expect(
         within(getByTestId(STATUS_ROW)).getByText(status),
       ).toBeOnTheScreen();

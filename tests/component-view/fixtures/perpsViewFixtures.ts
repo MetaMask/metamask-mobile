@@ -5,8 +5,8 @@ import type {
   Position,
 } from '@metamask/perps-controller';
 import {
-  PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
-  type ScreenVsBottomSheetVariant,
+  PERPS_HOME_EXPLORE_AB_TEST_KEY,
+  type PerpsHomeExploreVariant,
 } from '../../../app/components/UI/Perps/abTestConfig';
 
 export const createFundedAccountForViews = (balance: string): AccountState => ({
@@ -128,14 +128,14 @@ export const createLimitOrderForViews = (
   ...overrides,
 });
 
-export const createScreenVsBottomSheetAssignmentForViews = (
-  variant: ScreenVsBottomSheetVariant,
+export const createHomeExploreAssignmentForViews = (
+  variant: PerpsHomeExploreVariant,
 ) => ({
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: variant,
+          [PERPS_HOME_EXPLORE_AB_TEST_KEY]: variant,
         },
       },
     },

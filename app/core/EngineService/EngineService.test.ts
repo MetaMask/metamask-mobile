@@ -19,6 +19,7 @@ import {
   setStartupPersistedStateStats,
   timeStartupStep,
 } from '../Performance/startupStageSpans';
+import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -39,6 +40,10 @@ jest.mock('../BackupVault', () => ({
 }));
 
 jest.mock('../../util/test/network-store.js', () => jest.fn());
+
+jest.mock('../Engine/controllers/social-controller-hydration', () => ({
+  hydrateSocialFollowing: jest.fn(),
+}));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
 jest.mock('../../util/analytics/whenEngineReady', () => ({
@@ -418,6 +423,29 @@ describe('EngineService', () => {
       expect(NavigationService.navigation?.reset).toHaveBeenCalledWith({
         routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
       });
+    });
+  });
+
+  describe('social following hydration', () => {
+    it('schedules hydrateSocialFollowing once after Engine.init', async () => {
+      const initSpy = jest.spyOn(Engine, 'init');
+
+      await engineService.start();
+
+      expect(hydrateSocialFollowing).toHaveBeenCalledTimes(1);
+      expect(initSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        (hydrateSocialFollowing as jest.Mock).mock.invocationCallOrder[0],
+      );
+    });
+
+    it('does not schedule hydrateSocialFollowing when Engine.init fails', async () => {
+      jest.spyOn(Engine, 'init').mockImplementation(() => {
+        throw new Error('Failed to initialize Engine');
+      });
+
+      await engineService.start();
+
+      expect(hydrateSocialFollowing).not.toHaveBeenCalled();
     });
   });
 

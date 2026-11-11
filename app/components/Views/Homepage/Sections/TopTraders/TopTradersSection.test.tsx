@@ -130,7 +130,6 @@ jest.mock(
       mockNavigateToSocialLeaderboard(...args),
   }),
 );
-
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
@@ -646,9 +645,10 @@ describe('TopTradersSection', () => {
       fireEvent.press(screen.getByText('Follow'));
     });
 
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL.TRADING_SIGNALS_SETUP,
-      expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+      expect.objectContaining({ onSetupComplete: undefined }),
     );
   });
 
@@ -670,7 +670,7 @@ describe('TopTradersSection', () => {
       fireEvent.press(screen.getByText('Follow'));
     });
 
-    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
@@ -678,7 +678,7 @@ describe('TopTradersSection', () => {
     });
   });
 
-  it('intercepts the follow without calling toggleFollow when both channels are off', async () => {
+  it('follows when both channels are off', async () => {
     const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -703,7 +703,7 @@ describe('TopTradersSection', () => {
       fireEvent.press(screen.getByText('Follow'));
     });
 
-    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
   });
 
   it('fires an error haptic when the follow is intercepted', async () => {
@@ -750,7 +750,7 @@ describe('TopTradersSection', () => {
     );
   });
 
-  it('defers the follow to the setup sheet via the onSetupComplete param', async () => {
+  it('does not follow again when the setup sheet completes', async () => {
     const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
     mockNotificationPreferences = channelsDisabledPreferences;
     mockUseTopTraders.mockReturnValue({
@@ -768,8 +768,6 @@ describe('TopTradersSection', () => {
       fireEvent.press(screen.getByText('Follow'));
     });
 
-    expect(mockToggleFollow).not.toHaveBeenCalled();
-
     const setupCall = mockNavigate.mock.calls.find(
       ([route]) => route === Routes.SOCIAL.TRADING_SIGNALS_SETUP,
     );
@@ -780,6 +778,7 @@ describe('TopTradersSection', () => {
     });
 
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+    expect(onSetupComplete).toBeUndefined();
   });
 
   it('renders the error state instead of the carousel when the fetch fails', () => {

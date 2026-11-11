@@ -27,15 +27,7 @@ jest.mock('./components/QuickBuySubScreenHeader', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      title,
-      onBack,
-      onClose,
-    }: {
-      title: string;
-      onBack: () => void;
-      onClose: () => void;
-    }) =>
+    default: ({ title, onBack }: { title: string; onBack: () => void }) =>
       ReactMock.createElement(
         ReactMock.Fragment,
         null,
@@ -43,11 +35,6 @@ jest.mock('./components/QuickBuySubScreenHeader', () => {
         ReactMock.createElement(
           TouchableOpacity,
           { testID: 'mock-back-button', onPress: onBack },
-          null,
-        ),
-        ReactMock.createElement(
-          TouchableOpacity,
-          { testID: 'mock-close-button', onPress: onClose },
           null,
         ),
       ),
@@ -82,10 +69,6 @@ jest.mock('../../../component-library/components-temp/KeyValueRow', () => {
   };
 });
 
-jest.mock('../../../component-library/components/Icons/Icon', () => ({
-  IconName: { Info: 'Info' },
-}));
-
 const buildContext = (overrides = {}) => ({
   sourceToken: undefined,
   destToken: undefined,
@@ -100,7 +83,6 @@ const buildContext = (overrides = {}) => ({
   isPriceImpactError: false,
   quotesLastFetchedAt: Date.now(),
   quoteRefreshRateMs: 30000,
-  onClose: jest.fn(),
   setActiveScreen: jest.fn(),
   ...overrides,
 });
@@ -121,6 +103,33 @@ describe('QuickBuyQuoteDetailsScreen', () => {
   it('always renders the countdown timer inline with the rate row', () => {
     render(<QuickBuyQuoteDetailsScreen />);
     expect(screen.getByTestId('mock-countdown')).toBeOnTheScreen();
+  });
+
+  it('names the tooltip control with its title and a localized hint', () => {
+    render(<QuickBuyQuoteDetailsScreen />);
+
+    expect(screen.getByLabelText('bridge.slippage_info_title')).toHaveProp(
+      'accessibilityHint',
+      'bridge.tooltip_accessibility_hint',
+    );
+  });
+
+  it('opens the tooltip when a dotted label is pressed', () => {
+    render(<QuickBuyQuoteDetailsScreen />);
+
+    fireEvent.press(screen.getByText('social_leaderboard.quick_buy.slippage'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.TOOLTIP_MODAL,
+      params: {
+        title: 'bridge.slippage_info_title',
+        tooltip: 'bridge.slippage_info_description',
+        footerText: undefined,
+        buttonText: undefined,
+        onButtonPress: undefined,
+        dismissOnButtonPress: undefined,
+      },
+    });
   });
 
   it('shows a loading state while the first quote is blocking', () => {
@@ -170,16 +179,6 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     render(<QuickBuyQuoteDetailsScreen />);
     fireEvent.press(screen.getByTestId('mock-back-button'));
     expect(setActiveScreen).toHaveBeenCalledWith('amount');
-  });
-
-  it('calls onClose when close is pressed', () => {
-    const onClose = jest.fn();
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({ onClose }),
-    );
-    render(<QuickBuyQuoteDetailsScreen />);
-    fireEvent.press(screen.getByTestId('mock-close-button'));
-    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('does not show a "Get new quote" button', () => {

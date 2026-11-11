@@ -1,5 +1,9 @@
-import { parseVolume } from '@metamask/perps-controller';
-import { createE2EMockStreamManager } from './perps-controller-mixin';
+import { parseVolume, type OrderBookData } from '@metamask/perps-controller';
+import { calculateMarketOrderLiquidity } from '../../../app/components/UI/Perps/utils/slippageCalculation';
+import {
+  createE2EMockStreamManager,
+  E2EControllerOverrides,
+} from './perps-controller-mixin';
 
 /**
  * Contract tests for the E2E Perps stream manager stub.
@@ -128,5 +132,57 @@ describe('createE2EMockStreamManager', () => {
         return parseVolume(market.openInterest) > 0;
       }),
     ).toBe(true);
+  });
+});
+
+describe('E2EControllerOverrides.subscribeToOrderBook', () => {
+  let mockConsoleLog: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockConsoleLog = jest
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    mockConsoleLog.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it.each([true, false])(
+    'emits a book deep enough for market orders to pass the liquidity guard (isBuy=%s)',
+    (isBuy) => {
+      const overrides = new E2EControllerOverrides({});
+      const callback = jest.fn<void, [OrderBookData]>();
+
+      overrides.subscribeToOrderBook({ symbol: 'BTC', levels: 10, callback });
+      jest.runAllTimers();
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      const orderBook = callback.mock.calls[0][0];
+      expect(orderBook.bids).toHaveLength(10);
+      expect(orderBook.asks).toHaveLength(10);
+      expect(
+        calculateMarketOrderLiquidity({
+          orderBook,
+          sizeUsd: 100_000,
+          isBuy,
+          currentPrice: Number(orderBook.midPrice),
+          maxSlippageBps: 300,
+          szDecimals: 5,
+        }).canFillWithinSlippage,
+      ).toBe(true);
+    },
+  );
+
+  it('emits nothing for a symbol without a mock price', () => {
+    const overrides = new E2EControllerOverrides({});
+    const callback = jest.fn();
+
+    overrides.subscribeToOrderBook({ symbol: 'UNKNOWN', callback });
+    jest.runAllTimers();
+
+    expect(callback).not.toHaveBeenCalled();
   });
 });

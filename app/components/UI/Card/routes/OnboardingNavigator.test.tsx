@@ -78,14 +78,6 @@ jest.mock('@react-navigation/native-stack', () => {
   };
 });
 
-jest.mock('../../../../core/LockManagerService', () => ({
-  __esModule: true,
-  default: {
-    stopListening: jest.fn(),
-    startListening: jest.fn(),
-  },
-}));
-
 // Mock navigation components
 jest.mock('../components/Onboarding/SignUp', () => 'SignUp');
 jest.mock('../components/Onboarding/ConfirmEmail', () => 'ConfirmEmail');
@@ -104,11 +96,14 @@ jest.mock(
   () => 'ImmersveKYCProcessing',
 );
 jest.mock(
+  '../components/ImmersveKYCModal/ImmersveKYCModal',
+  () => 'ImmersveKYCModal',
+);
+jest.mock(
   '../components/Onboarding/ImmersveFundingApproval',
   () => 'ImmersveFundingApproval',
 );
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
-jest.mock('../components/Onboarding/KYCPending', () => 'KYCPending');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
@@ -138,6 +133,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: React.PropsWithChildren<Record<string, unknown>>) => (
       <View {...props}>{children}</View>
     ),
+    Spinner: (props: Record<string, unknown>) => <View {...props} />,
+    IconSize: { Xl: 'Xl' },
   };
 });
 

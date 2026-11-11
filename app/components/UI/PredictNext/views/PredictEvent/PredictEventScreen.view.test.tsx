@@ -1,9 +1,19 @@
 import '../../../../../../tests/component-view/mocks';
+import { lightTheme } from '@metamask/design-tokens';
 import {
+  composePredictNextOrderService,
+  composePredictNextPortfolioTrading,
+  configurePredictNextFeeds,
   makePredictNextCompositeGameEvent,
+  makePredictNextLaidOutGameEvent,
   makePredictNextMultiMarketEvent,
+  makePredictNextPlayerPropsEvent,
+  makePredictNextPosition,
+  makePredictNextSellPreview,
+  makePredictNextSellReceipt,
   makePredictNextSpreadsEvent,
   makePredictNextTotalsEvent,
+  mockPredictNextMessenger,
   publishPredictNextGameLiveUpdate,
   publishPredictNextQuoteUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
@@ -11,14 +21,14 @@ import { renderPredictEventScreen } from '../../../../../../tests/component-view
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import {
   processColor,
   StyleSheet,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { MarketListTestIds } from '../../events/markets/MarketList.testIds';
-import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { MarketStandardCardTestIds } from '../../events/markets/MarketStandardCard.testIds';
 import { MarketGroupCardTestIds } from '../../events/markets/MarketGroupCard.testIds';
 import type {
@@ -35,6 +45,8 @@ import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrd
 import { PredictMarketHistoryTestIds } from './internal/PredictMarketHistory.testIds';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 import { RulesBottomSheetTestIds } from './internal/RulesBottomSheet.testIds';
+import { EventMarketListTestIds } from './internal/EventMarketList.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event-1' as PredictEntityId;
@@ -82,6 +94,14 @@ const createMultiMarketEvent = (): PredictEvent => ({
   id: eventId,
 });
 
+type GameTeamLogoUrl = NonNullable<
+  NonNullable<
+    NonNullable<PredictEvent['sports']>['game']
+  >['homeTeam']['logoUrl']
+>;
+const headerAwayLogoUrl = 'https://example.com/ari.png' as GameTeamLogoUrl;
+const headerHomeLogoUrl = 'https://example.com/car.png' as GameTeamLogoUrl;
+
 const createGameEvent = (
   overrides: Partial<
     NonNullable<NonNullable<PredictEvent['sports']>['game']>
@@ -107,11 +127,13 @@ const createGameEvent = (
               NonNullable<PredictEvent['sports']>['game']
             >['awayTeam']['logoUrl']
           >,
+          logoFacing: 'right',
         },
         homeTeam: {
           name: 'Carolina Panthers',
           abbreviation: 'CAR',
           primaryColor: homeTeamColor,
+          logoFacing: 'right',
         },
         score: { away: '17', home: '21' },
         period: 'Q4',
@@ -162,6 +184,7 @@ const createGameEventWithTeamMarkets = () => {
 };
 
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 const expectMessengerCalledWith = (...prefix: unknown[]) => {
   expect(messengerCall.mock.calls).toEqual(
@@ -180,14 +203,95 @@ const createHistory = (marketId: string, range = 'ALL', pointCount = 2) => ({
   ].slice(0, pointCount),
 });
 
+const createTopMarket = (
+  id: string,
+  label: string,
+  yesAskPrice?: string,
+  status: PredictEvent['markets'][number]['status'] = 'active',
+): PredictEvent['markets'][number] => ({
+  id: id as PredictEntityId,
+  question: `Will ${label} win?`,
+  status,
+  outcomes: [
+    {
+      id: `${id}-yes` as PredictEntityId,
+      side: 'yes',
+      label,
+      askPrice: yesAskPrice as PredictDecimal | undefined,
+    },
+    { id: `${id}-no` as PredictEntityId, side: 'no', label: `Not ${label}` },
+  ],
+});
+
+// Drake, Ella Langley and Taylor Swift lead; the closed and unpriced Markets
+// never chart, and Kacey Musgraves ranks fourth.
+const createTopMarketsEvent = () =>
+  createEvent({
+    markets: [
+      createTopMarket('taylor', 'Taylor Swift', '0.05'),
+      createTopMarket('drake', 'Drake', '0.81'),
+      createTopMarket('closed', 'Closed Act', '0.9', 'closed'),
+      createTopMarket('ella', 'Ella Langley', '0.14'),
+      createTopMarket('kacey', 'Kacey Musgraves', '0.03'),
+      createTopMarket('unpriced', 'Unpriced Act'),
+    ],
+  });
+
+const TOP_MARKET_IDS = ['drake', 'ella', 'taylor'] as const;
+// Theme colors of the top Markets, in rank order.
+const topMarketColors = [
+  lightTheme.colors.success.default,
+  lightTheme.colors.primary.default,
+  lightTheme.colors.warning.default,
+];
+
+const publishTopMarketQuote = ({
+  marketId,
+  yesAskPrice,
+  lastPrice,
+  updatedAt = '2026-08-17T21:00:00.000Z',
+}: {
+  marketId: string;
+  yesAskPrice?: string;
+  lastPrice?: string;
+  updatedAt?: string;
+}) =>
+  act(() => {
+    publishPredictNextQuoteUpdate({
+      venueId,
+      marketId: marketId as PredictEntityId,
+      outcomes: [
+        {
+          id: `${marketId}-yes` as PredictEntityId,
+          side: 'yes',
+          askPrice: yesAskPrice as PredictDecimal | undefined,
+        },
+        { id: `${marketId}-no` as PredictEntityId, side: 'no' },
+      ],
+      lastPrice: lastPrice as PredictDecimal | undefined,
+      updatedAt: updatedAt as PredictTimestamp,
+    });
+  });
+
+const getHistoryCalls = (marketId: string, range = 'ALL') =>
+  messengerCall.mock.calls.filter(
+    ([action, , id, callRange]) =>
+      action === 'PredictMarketDataService:getMarketHistory' &&
+      id === marketId &&
+      callRange === range,
+  );
+
 const resolveEvent = (event: PredictEvent = createEvent()) => {
-  messengerCall.mockImplementation(
+  mockPredictNextMessenger(
     (action: string, _venueId: string, id: string, range?: string) => {
       if (action === 'PredictMarketDataService:getEvent') {
         return Promise.resolve(event);
       }
       if (action === 'PredictMarketDataService:getMarketHistory') {
         return Promise.resolve(createHistory(id, range));
+      }
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId, positions: [] });
       }
       return Promise.resolve(undefined);
     },
@@ -197,6 +301,8 @@ const resolveEvent = (event: PredictEvent = createEvent()) => {
 const resolveEventForRoute = (event: PredictEvent): void => {
   resolveEvent({ ...event, venueId, id: eventId });
 };
+
+const HIDDEN = { includeHiddenElements: true };
 
 describe('PredictEventScreen', () => {
   beforeEach(() => {
@@ -221,66 +327,268 @@ describe('PredictEventScreen', () => {
     expect(view.getByTestId(PredictEventScreenTestIds.TITLE)).toHaveTextContent(
       routeParams.titleSnapshot,
     );
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
+    ).not.toBeOnTheScreen();
   });
 
-  it('renders all standard Event header fields from the immutable Event', async () => {
-    resolveEvent();
+  it('renders the standard Event header as one bar: back, image, title over category', async () => {
+    resolveEvent(createEvent({ category: 'Politics' }));
     const view = renderPredictEventScreen(routeParams);
-
-    await waitFor(() =>
-      expect(
-        view.queryByTestId(PredictEventScreenTestIds.LOADING),
-      ).not.toBeOnTheScreen(),
-    );
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,
     );
 
-    expect(view.getByTestId(PredictEventScreenTestIds.TITLE)).toHaveTextContent(
-      'Canonical Event title',
-    );
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.SUBTITLE),
-    ).toHaveTextContent('Canonical Event subtitle');
-    expect(view.getByTestId(PredictEventScreenTestIds.IMAGE)).toBeOnTheScreen();
+      within(header).getByTestId(PredictEventScreenTestIds.BACK),
+    ).toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.IMAGE),
+    ).toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.TITLE),
+    ).toHaveTextContent('Canonical Event title');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.CATEGORY),
+    ).toHaveTextContent('Politics');
+    expect(view.getAllByTestId(PredictEventScreenTestIds.TITLE)).toHaveLength(
+      1,
+    );
+    // The subtitle row under the bar is gone.
+    expect(view.queryByText('Canonical Event subtitle')).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.LOADING),
+    ).not.toBeOnTheScreen();
   });
 
-  it('selects a Market and fetches its history', async () => {
-    const firstMarket = createEvent().markets[0];
-    const secondMarket = {
-      ...firstMarket,
-      id: 'market-2' as PredictEntityId,
-      question: 'Will the other thing happen?',
-      outcomes: [
-        { ...firstMarket.outcomes[0], id: 'yes-2' as PredictEntityId },
-        { ...firstMarket.outcomes[1], id: 'no-2' as PredictEntityId },
-      ] as typeof firstMarket.outcomes,
-    };
-    resolveEvent(createEvent({ markets: [firstMarket, secondMarket] }));
+  it('shows a long standard Event title in full and lets the bar grow', async () => {
+    const longTitle =
+      'Will the winner of the next United States presidential election be ' +
+      'inaugurated before January 20, 2029, after a contested certification?';
+    expect(longTitle.length).toBeGreaterThan(130);
+    resolveEvent(createEvent({ title: longTitle, category: 'Politics' }));
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
-    messengerCall.mockClear();
-    fireEvent.press(
-      view.getByTestId(PredictEventScreenTestIds.market(secondMarket.id)),
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
     );
+    const title = within(header).getByTestId(PredictEventScreenTestIds.TITLE);
 
-    await waitFor(() =>
-      expectMessengerCalledWith(
-        'PredictMarketDataService:getMarketHistory',
-        venueId,
-        secondMarket.id,
-        'ALL',
-      ),
-    );
-    expect(
-      view.getByTestId(PredictEventScreenTestIds.market(secondMarket.id)).props
-        .accessibilityState,
-    ).toEqual(expect.objectContaining({ selected: true }));
+    expect(title).toHaveTextContent(longTitle);
+    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.ellipsizeMode).toBeUndefined();
+    const headerStyle = StyleSheet.flatten(header.props.style);
+    expect(headerStyle.height).not.toBe(56);
+    expect(headerStyle.minHeight).toBe(56);
   });
 
-  it('selects a history range for the same Market', async () => {
+  describe('standard Event top Markets chart', () => {
+    const renderTopMarkets = async () => {
+      resolveEvent(createTopMarketsEvent());
+      const view = renderPredictEventScreen(routeParams);
+      const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+      fireEvent(chart, 'layout', {
+        nativeEvent: { layout: { width: 343, height: 150 } },
+      });
+      return view;
+    };
+    const getLegendValues = (
+      view: Awaited<ReturnType<typeof renderTopMarkets>>,
+    ) =>
+      within(view.getByTestId(PredictMarketHistoryTestIds.LEGEND))
+        .getAllByTestId(/^predict-market-history-legend-value-/)
+        .map((value) => value.props.testID);
+
+    it('charts the three highest yes asks with a legend in rank order', async () => {
+      const view = await renderTopMarkets();
+
+      const legend = view.getByTestId(PredictMarketHistoryTestIds.LEGEND);
+      expect(legend).toHaveTextContent('Drake81%Ella Langley14%Taylor Swift5%');
+      expect(getLegendValues(view)).toEqual(
+        TOP_MARKET_IDS.map(PredictMarketHistoryTestIds.legendValue),
+      );
+      TOP_MARKET_IDS.forEach((marketId, index) => {
+        expect(getHistoryCalls(marketId)).not.toHaveLength(0);
+        expect(
+          view.getByTestId(
+            `${PredictMarketHistoryTestIds.CHART}-line-${marketId}`,
+          ).props.stroke.payload,
+        ).toEqual(processColor(topMarketColors[index]));
+      });
+      ['closed', 'kacey', 'unpriced'].forEach((marketId) => {
+        expect(getHistoryCalls(marketId)).toHaveLength(0);
+        expect(
+          view.queryByTestId(PredictMarketHistoryTestIds.legendItem(marketId)),
+        ).not.toBeOnTheScreen();
+      });
+      // Line ends show the legend's live yes ask, not the last history point.
+      await waitFor(() =>
+        expect(
+          view.getByLabelText(/Drake 81%, Ella Langley 14%, Taylor Swift 5%/),
+        ).toBeOnTheScreen(),
+      );
+    });
+
+    it('charts as many Markets as are eligible', async () => {
+      resolveEvent(
+        createEvent({
+          markets: [
+            createTopMarket('drake', 'Drake', '0.81'),
+            createTopMarket('closed', 'Closed Act', '0.9', 'closed'),
+            createTopMarket('unpriced', 'Unpriced Act'),
+          ],
+        }),
+      );
+      const view = renderPredictEventScreen(routeParams);
+
+      await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+      expect(getLegendValues(view)).toEqual([
+        PredictMarketHistoryTestIds.legendValue('drake'),
+      ]);
+    });
+
+    it('renders no chart when no Market is eligible', async () => {
+      resolveEvent(
+        createEvent({
+          markets: [
+            createTopMarket('closed', 'Closed Act', '0.9', 'closed'),
+            createTopMarket('unpriced', 'Unpriced Act'),
+          ],
+        }),
+      );
+      const view = renderPredictEventScreen(routeParams);
+
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+
+      expect(
+        view.queryByTestId(PredictMarketHistoryTestIds.VIEW),
+      ).not.toBeOnTheScreen();
+      expect(messengerCall).not.toHaveBeenCalledWith(
+        'PredictMarketDataService:getMarketHistory',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('keeps the charted Markets when a live quote reorders them', async () => {
+      const view = await renderTopMarkets();
+
+      publishTopMarketQuote({ marketId: 'kacey', yesAskPrice: '0.95' });
+      publishTopMarketQuote({ marketId: 'drake', yesAskPrice: '0.7' });
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictMarketHistoryTestIds.legendValue('drake')),
+        ).toHaveTextContent('70%'),
+      );
+      expect(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('kacey')),
+      ).toHaveTextContent(/95¢/);
+      expect(getLegendValues(view)).toEqual(
+        TOP_MARKET_IDS.map(PredictMarketHistoryTestIds.legendValue),
+      );
+      expect(view.getByLabelText(/Drake 70%/)).toBeOnTheScreen();
+      expect(getHistoryCalls('kacey')).toHaveLength(0);
+    });
+
+    it('shows a dash in the legend when a charted ask disappears', async () => {
+      const view = await renderTopMarkets();
+
+      publishTopMarketQuote({ marketId: 'ella' });
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictMarketHistoryTestIds.legendValue('ella')),
+        ).toHaveTextContent('–'),
+      );
+      expect(
+        view.getByTestId(PredictMarketHistoryTestIds.legendItem('ella')),
+      ).toBeOnTheScreen();
+      // The line end agrees with the legend, not the last plotted price.
+      expect(view.getByLabelText(/Ella Langley –/)).toBeOnTheScreen();
+    });
+
+    it('moves a line end to the last trade on the ALL range', async () => {
+      const view = await renderTopMarkets();
+      const drakeLine = () =>
+        view.getByTestId(`${PredictMarketHistoryTestIds.CHART}-line-drake`)
+          .props.d as string;
+      const beforeQuote = drakeLine();
+
+      publishTopMarketQuote({
+        marketId: 'drake',
+        yesAskPrice: '0.81',
+        lastPrice: '0.9',
+      });
+
+      await waitFor(() => expect(drakeLine()).not.toBe(beforeQuote));
+    });
+
+    it('offers 1D, 1W, 1M and ALL and refetches every line per range', async () => {
+      const view = await renderTopMarkets();
+
+      expect(
+        (['1D', '1W', '1M', 'ALL'] as const).map((range) =>
+          view.getByTestId(PredictMarketHistoryTestIds.range(range)),
+        ),
+      ).toHaveLength(4);
+      expect(
+        view.queryByTestId(PredictMarketHistoryTestIds.range('LIVE')),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        view.getByTestId(PredictMarketHistoryTestIds.range('1W')),
+      );
+
+      await waitFor(() =>
+        TOP_MARKET_IDS.forEach((marketId) =>
+          expect(getHistoryCalls(marketId, '1W')).toHaveLength(1),
+        ),
+      );
+    });
+
+    it('retries every line after a history error', async () => {
+      let ellaAttempts = 0;
+      mockPredictNextMessenger(
+        (action: string, _venueId: string, id: string, range?: string) => {
+          if (action === 'PredictMarketDataService:getEvent') {
+            return Promise.resolve(createTopMarketsEvent());
+          }
+          if (action === 'PredictMarketDataService:getMarketHistory') {
+            if (id === 'ella') {
+              ellaAttempts += 1;
+              if (ellaAttempts === 1) {
+                return Promise.reject(new Error('unsafe history detail'));
+              }
+            }
+            return Promise.resolve(createHistory(id, range));
+          }
+          return action.startsWith('PredictPortfolioService:getPositions')
+            ? Promise.resolve({ venueId, positions: [] })
+            : Promise.resolve(undefined);
+        },
+      );
+      const view = renderPredictEventScreen(routeParams);
+      const error = await view.findByTestId(PredictMarketHistoryTestIds.ERROR);
+      const drakeCallsBeforeRetry = getHistoryCalls('drake').length;
+
+      fireEvent.press(
+        within(error).getByTestId(PredictMarketHistoryTestIds.RETRY),
+      );
+
+      expect(
+        await view.findByTestId(PredictMarketHistoryTestIds.CHART),
+      ).toBeOnTheScreen();
+      expect(getHistoryCalls('drake').length).toBeGreaterThan(
+        drakeCallsBeforeRetry,
+      );
+    });
+  });
+
+  it('selects a history range for a single-Market standard Event', async () => {
     resolveEvent();
     const view = renderPredictEventScreen(routeParams);
 
@@ -290,10 +598,13 @@ describe('PredictEventScreen', () => {
         .accessibilityState,
     ).toEqual(expect.objectContaining({ selected: true }));
     expect(
-      (['LIVE', '1D', '1W', '1M', 'ALL'] as const).map((range) =>
+      (['1D', '1W', '1M', 'ALL'] as const).map((range) =>
         view.getByTestId(PredictMarketHistoryTestIds.range(range)),
       ),
-    ).toHaveLength(5);
+    ).toHaveLength(4);
+    expect(
+      view.queryByTestId(PredictMarketHistoryTestIds.range('LIVE')),
+    ).not.toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictMarketHistoryTestIds.range('1Y')),
     ).not.toBeOnTheScreen();
@@ -311,20 +622,6 @@ describe('PredictEventScreen', () => {
     expect(
       await view.findByTestId(PredictMarketHistoryTestIds.CHART),
     ).toBeOnTheScreen();
-
-    messengerCall.mockClear();
-    fireEvent.press(
-      view.getByTestId(PredictMarketHistoryTestIds.range('LIVE')),
-    );
-
-    await waitFor(() =>
-      expectMessengerCalledWith(
-        'PredictMarketDataService:getMarketHistory',
-        venueId,
-        'market-1',
-        'LIVE',
-      ),
-    );
   });
 
   it('renders complete Market history after async load', async () => {
@@ -354,7 +651,7 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('adds a chart entry for every live quote on the live range', async () => {
+  it('adds a chart entry for every live quote on the live range of a Game', async () => {
     const publishQuote = (lastPrice: string, updatedAt: string) =>
       act(() => {
         publishPredictNextQuoteUpdate({
@@ -378,7 +675,7 @@ describe('PredictEventScreen', () => {
           updatedAt: updatedAt as PredictTimestamp,
         });
       });
-    resolveEvent();
+    resolveEvent(createGameEvent());
     const view = renderPredictEventScreen(routeParams);
     const yesLinePath = () =>
       view.getByTestId(`${PredictMarketHistoryTestIds.CHART}-line-yes`).props
@@ -425,7 +722,7 @@ describe('PredictEventScreen', () => {
     ).toContain('No 23%');
   });
 
-  it('keeps the chart on the REST snapshot outside the live range while cards stay live', async () => {
+  it('moves a standard Event line end to the last trade outside the live range', async () => {
     resolveEvent();
     const view = renderPredictEventScreen(routeParams);
     const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
@@ -473,15 +770,15 @@ describe('PredictEventScreen', () => {
     expect(
       view.getByTestId(PredictMarketHistoryTestIds.CHART).props
         .accessibilityLabel,
-    ).toContain('Yes 42%');
+    ).toContain('Yes 67%, No 33%');
     expect(
       view.getByTestId(`${PredictMarketHistoryTestIds.CHART}-line-yes`).props.d,
-    ).toBe(beforeQuote);
+    ).not.toBe(beforeQuote);
   });
 
   it('retries Market history after an initial error', async () => {
     let historyAttempts = 0;
-    messengerCall.mockImplementation(
+    mockPredictNextMessenger(
       (action: string, _venueId: string, id: string, range?: string) => {
         if (action === 'PredictMarketDataService:getEvent') {
           return Promise.resolve(createEvent());
@@ -492,7 +789,9 @@ describe('PredictEventScreen', () => {
             ? Promise.reject(new Error('unsafe history detail'))
             : Promise.resolve(createHistory(id, range));
         }
-        return Promise.resolve(undefined);
+        return action.startsWith('PredictPortfolioService:getPositions')
+          ? Promise.resolve({ venueId, positions: [] })
+          : Promise.resolve(undefined);
       },
     );
     const view = renderPredictEventScreen(routeParams);
@@ -511,7 +810,7 @@ describe('PredictEventScreen', () => {
   });
 
   it('shows an empty state when Market history has fewer than two points', async () => {
-    messengerCall.mockImplementation(
+    mockPredictNextMessenger(
       (action: string, _venueId: string, id: string, range?: string) => {
         if (action === 'PredictMarketDataService:getEvent') {
           return Promise.resolve(createEvent());
@@ -519,7 +818,9 @@ describe('PredictEventScreen', () => {
         if (action === 'PredictMarketDataService:getMarketHistory') {
           return Promise.resolve(createHistory(id, range, 1));
         }
-        return Promise.resolve(undefined);
+        return action.startsWith('PredictPortfolioService:getPositions')
+          ? Promise.resolve({ venueId, positions: [] })
+          : Promise.resolve(undefined);
       },
     );
     const view = renderPredictEventScreen(routeParams);
@@ -536,14 +837,19 @@ describe('PredictEventScreen', () => {
   });
 
   it('reserves the chart height while Market history loads', async () => {
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictMarketDataService:getEvent') {
         return Promise.resolve(createEvent());
       }
       if (action === 'PredictMarketDataService:getMarketHistory') {
         return new Promise(() => undefined);
       }
-      return Promise.resolve(undefined);
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId, positions: [] });
+      }
+      return action.startsWith('PredictPortfolioService:getPositions')
+        ? Promise.resolve({ venueId, positions: [] })
+        : Promise.resolve(undefined);
     });
     const view = renderPredictEventScreen(routeParams);
 
@@ -561,11 +867,17 @@ describe('PredictEventScreen', () => {
     const historyCallsBeforeRefetch = messengerCall.mock.calls.filter(
       ([action]) => action === 'PredictMarketDataService:getMarketHistory',
     ).length;
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictMarketDataService:getMarketHistory') {
         return Promise.reject(new Error('Market history refetch failed'));
       }
-      return Promise.resolve(createEvent());
+      if (action === 'PredictMarketDataService:getEvent') {
+        return Promise.resolve(createEvent());
+      }
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId, positions: [] });
+      }
+      return Promise.resolve(undefined);
     });
 
     await act(async () => {
@@ -632,9 +944,6 @@ describe('PredictEventScreen', () => {
         ]),
       ]),
     );
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
   });
 
   it('plots a Team history from the Outcome that carries Game Selection', async () => {
@@ -662,9 +971,6 @@ describe('PredictEventScreen', () => {
     expect(
       view.getByLabelText(/Panthers 42%, Cardinals 58%/),
     ).toBeOnTheScreen();
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
   });
 
   it('plots both Team lines when Game Selections share one Market', async () => {
@@ -711,7 +1017,7 @@ describe('PredictEventScreen', () => {
 
   it('omits a Team chart line whose history has fewer than two points', async () => {
     const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
-    messengerCall.mockImplementation(
+    mockPredictNextMessenger(
       (action: string, _venueId: string, id: string, range?: string) => {
         if (action === 'PredictMarketDataService:getEvent') {
           return Promise.resolve(event);
@@ -721,7 +1027,9 @@ describe('PredictEventScreen', () => {
             createHistory(id, range, id === homeMarket.id ? 1 : 2),
           );
         }
-        return Promise.resolve(undefined);
+        return action.startsWith('PredictPortfolioService:getPositions')
+          ? Promise.resolve({ venueId, positions: [] })
+          : Promise.resolve(undefined);
       },
     );
     const view = renderPredictEventScreen(routeParams);
@@ -746,28 +1054,7 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders winner Markets as footer buttons instead of standard cards', async () => {
-    const { event } = createGameEventWithTeamMarkets();
-    resolveEvent(event);
-    const view = renderPredictEventScreen(routeParams);
-
-    expect(
-      await view.findByTestId(MarketFooterCardTestIds.ROOT),
-    ).toBeOnTheScreen();
-    expect(view.getByText('ARI · 47¢')).toBeOnTheScreen();
-    expect(view.getByText('CAR · 53¢')).toBeOnTheScreen();
-    expect(
-      view.queryByTestId(MarketStandardCardTestIds.card('away-market')),
-    ).not.toBeOnTheScreen();
-    expect(
-      view.queryByTestId(MarketStandardCardTestIds.card('home-market')),
-    ).not.toBeOnTheScreen();
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('keeps non-winner Markets in the Predict list', async () => {
+  it('lists winner and non-winner Markets under Game lines', async () => {
     const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
     const totalMarket = {
       ...awayMarket,
@@ -793,18 +1080,17 @@ describe('PredictEventScreen', () => {
     });
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(MarketFooterCardTestIds.ROOT);
-
     expect(
-      view.getByTestId(MarketStandardCardTestIds.card('total-market')),
+      within(
+        await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
+      ).getAllByText(strings('predict_next.event.game_lines'))[0],
     ).toBeOnTheScreen();
+    for (const marketId of ['away-market', 'home-market', 'total-market']) {
+      expect(
+        view.getByTestId(MarketStandardCardTestIds.card(marketId)),
+      ).toBeOnTheScreen();
+    }
     expect(view.getByText('Over')).toBeOnTheScreen();
-    expect(
-      view.queryByTestId(MarketStandardCardTestIds.card('away-market')),
-    ).not.toBeOnTheScreen();
-    expect(
-      view.queryByTestId(MarketStandardCardTestIds.card('home-market')),
-    ).not.toBeOnTheScreen();
   });
 
   it('opens the Order flow from a Team control and keeps dual-line history', async () => {
@@ -819,7 +1105,9 @@ describe('PredictEventScreen', () => {
       `${PredictMarketHistoryTestIds.CHART}-line-${awayMarket.outcomes[0].id}`,
     );
 
-    fireEvent.press(view.getByTestId(MarketFooterCardTestIds.button('away')));
+    fireEvent.press(
+      view.getByTestId(MarketStandardCardTestIds.yesButton('away-market')),
+    );
 
     expect(
       await view.findByTestId(PredictOrderFlowTestIds.SHEET),
@@ -843,20 +1131,7 @@ describe('PredictEventScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps standard cards when winner quotes are missing', async () => {
-    const { event, homeMarket } = createGameEventWithTeamMarkets();
-    resolveEvent({ ...event, markets: [homeMarket] });
-    const view = renderPredictEventScreen(routeParams);
-
-    expect(
-      await view.findByTestId(MarketStandardCardTestIds.card('home-market')),
-    ).toBeOnTheScreen();
-    expect(
-      view.queryByTestId(MarketFooterCardTestIds.ROOT),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('resolves the winner footer when grouped spreads also carry Game Selection', async () => {
+  it('lists winner Markets beside grouped spreads that also carry Game Selection', async () => {
     const { event, awayMarket, homeMarket } = createGameEventWithTeamMarkets();
     const spreadMarket = {
       ...awayMarket,
@@ -883,18 +1158,18 @@ describe('PredictEventScreen', () => {
     });
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(MarketFooterCardTestIds.ROOT);
-
-    expect(view.getByText('ARI · 47¢')).toBeOnTheScreen();
+    expect(
+      await view.findByTestId(MarketStandardCardTestIds.card('away-market')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.card('home-market')),
+    ).toBeOnTheScreen();
     expect(
       view.getByTestId(MarketGroupCardTestIds.card('spread-1')),
     ).toBeOnTheScreen();
-    expect(
-      view.queryByTestId(MarketStandardCardTestIds.card('away-market')),
-    ).not.toBeOnTheScreen();
   });
 
-  it('uses the Game header for a non-football Event with a Game snapshot', async () => {
+  it('uses the Game header for a basketball Game', async () => {
     resolveEvent(
       createEvent({
         title: 'Lakers vs Celtics',
@@ -905,8 +1180,16 @@ describe('PredictEventScreen', () => {
           },
           game: {
             status: 'in_progress',
-            awayTeam: { name: 'Lakers', abbreviation: 'LAL' },
-            homeTeam: { name: 'Celtics', abbreviation: 'BOS' },
+            awayTeam: {
+              name: 'Lakers',
+              abbreviation: 'LAL',
+              logoUrl: 'https://example.com/lal.png' as PredictHttpsUrl,
+            },
+            homeTeam: {
+              name: 'Celtics',
+              abbreviation: 'BOS',
+              logoUrl: 'https://example.com/bos.png' as PredictHttpsUrl,
+            },
             score: { away: '88', home: '91' },
             observedAt: '2026-09-11T02:30:00Z' as PredictTimestamp,
           },
@@ -915,11 +1198,36 @@ describe('PredictEventScreen', () => {
     );
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
 
     expect(
       view.queryByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
     ).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictEventScreenTestIds.TITLE)).toHaveTextContent(
+      'Lakers vs Celtics',
+    );
+    expect(view.getByTestId(PredictEventScreenTestIds.TITLE)).toHaveProp(
+      'numberOfLines',
+      1,
+    );
+    expect(view.getByTestId(PredictEventScreenTestIds.BACK)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.IMAGE),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.CATEGORY),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamAbbreviation('home'),
+      ),
+    ).toHaveTextContent('BOS');
+    expect(within(header).queryByText('Celtics')).not.toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.LIVE_DOT),
+    ).toBeOnTheScreen();
   });
 
   it('renders complete Market data in backend order', async () => {
@@ -927,9 +1235,9 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
 
     expect(
-      await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
+      await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
     ).toBeOnTheScreen();
-    const list = within(view.getByTestId(MarketListTestIds.ROOT));
+    const list = within(view.getByTestId(EventMarketListTestIds.ROOT));
     const titles = list.getAllByTestId(MarketStandardCardTestIds.TITLE_PATTERN);
     expect(titles.map(({ props }) => props.children)).toEqual([
       'Dodgers',
@@ -940,38 +1248,52 @@ describe('PredictEventScreen', () => {
     const dodgersCard = within(
       view.getByTestId(MarketStandardCardTestIds.card('dodgers')),
     );
-    expect(dodgersCard.getByText('$3.2M Vol.')).toBeOnTheScreen();
-    expect(dodgersCard.getByText('38%')).toBeOnTheScreen();
-    expect(dodgersCard.getByText('Yes · 38¢')).toBeOnTheScreen();
-    expect(dodgersCard.getByText('No · 62¢')).toBeOnTheScreen();
+    expect(dodgersCard.getByText('Yes')).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('dodgers')),
+      ).getByText('38¢'),
+    ).toBeOnTheScreen();
+    expect(dodgersCard.getByText('No')).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.noButton('dodgers')),
+      ).getByText('62¢'),
+    ).toBeOnTheScreen();
 
     const fieldCard = within(
       view.getByTestId(MarketStandardCardTestIds.card('field')),
     );
-    expect(fieldCard.queryByText(/ Vol\.$/)).not.toBeOnTheScreen();
-    expect(fieldCard.getByText('0%')).toBeOnTheScreen();
-    expect(fieldCard.getByText('Yes · 0¢')).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('field')),
+      ).getByText('0¢'),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        view.getByTestId(MarketStandardCardTestIds.noButton('field')),
+      ).getByText('—'),
+    ).toBeOnTheScreen();
     expect(fieldCard.getByText('No')).toBeOnTheScreen();
   });
 
-  it('renders winner footer with total and spread cards in one Game Event', async () => {
+  it('lists winner, total, and spread cards in one Game Event', async () => {
     resolveEventForRoute(makePredictNextCompositeGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
-    await view.findByTestId(MarketFooterCardTestIds.ROOT);
-    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
 
     expect(
-      view.queryByTestId(
+      view.getByTestId(
         MarketStandardCardTestIds.card('nfl-composite-away-market'),
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeOnTheScreen();
     expect(
-      view.queryByTestId(
+      view.getByTestId(
         MarketStandardCardTestIds.card('nfl-composite-home-market'),
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeOnTheScreen();
     expect(
       view.getByTestId(MarketGroupCardTestIds.card('nfl-total-points')),
     ).toBeOnTheScreen();
@@ -1020,14 +1342,42 @@ describe('PredictEventScreen', () => {
     );
   });
 
+  it('loads Game history from the full-game choice group when period moneylines come first', async () => {
+    resolveEventForRoute(makePredictNextLaidOutGameEvent());
+
+    const view = renderPredictEventScreen(routeParams);
+    await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+    expect(messengerCall.mock.calls).toEqual(
+      expect.arrayContaining([
+        [
+          'PredictMarketDataService:getMarketHistory',
+          venueId,
+          'nfl-composite-away-market',
+          'ALL',
+        ],
+        [
+          'PredictMarketDataService:getMarketHistory',
+          venueId,
+          'nfl-composite-home-market',
+          'ALL',
+        ],
+      ]),
+    );
+    const requestedMarketIds = messengerCall.mock.calls
+      .filter(
+        ([action]) => action === 'PredictMarketDataService:getMarketHistory',
+      )
+      .map(([, , marketId]) => marketId);
+    expect(requestedMarketIds).not.toContain('nfl-composite-1h-away');
+    expect(requestedMarketIds).not.toContain('nfl-composite-1h-home');
+  });
+
   it('keeps winner Market history when a grouped Game line is selected', async () => {
     resolveEventForRoute(makePredictNextCompositeGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictMarketHistoryTestIds.CHART);
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -1065,9 +1415,6 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictMarketHistoryTestIds.CHART);
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -1162,15 +1509,36 @@ describe('PredictEventScreen', () => {
     ).toHaveTextContent('Total points');
   });
 
+  it('names a threshold line in the Order flow by its card and line', async () => {
+    const event = makePredictNextPlayerPropsEvent();
+    resolveEventForRoute(event);
+    const view = renderPredictEventScreen(routeParams);
+    const groupKey = `${event.id}:rushing_yards:Rhamondre Stevenson`;
+    const marketId = `${event.id}-rushing_yards-Rhamondre Stevenson-40`;
+
+    fireEvent.press(
+      await view.findByTestId(EventMarketListTestIds.layoutTab('player_props')),
+    );
+    fireEvent.press(
+      view.getByTestId(
+        MarketGroupCardTestIds.outcomeButton(groupKey, marketId, 'no'),
+      ),
+    );
+
+    expect(
+      await view.findByTestId(PredictOrderFlowTestIds.SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+    ).toHaveTextContent(/^No · Rhamondre Stevenson · 40\+/);
+  });
+
   it('does not reload history when a grouped non-Game line is selected', async () => {
     const event = makePredictNextTotalsEvent();
     resolveEventForRoute(event);
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(MarketGroupCardTestIds.card('nfl-total-points'));
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -1192,20 +1560,6 @@ describe('PredictEventScreen', () => {
       'nfl-total-220-5',
       'ALL',
     );
-  });
-
-  it('omits the top Market filter for grouped-only Events', async () => {
-    const event = makePredictNextTotalsEvent();
-    resolveEventForRoute(event);
-    const view = renderPredictEventScreen(routeParams);
-
-    await view.findByTestId(MarketGroupCardTestIds.card('nfl-total-points'));
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
-    ).not.toBeOnTheScreen();
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.market('nfl-total-220-5')),
-    ).not.toBeOnTheScreen();
   });
 
   it('renders a grouped Market without a selector when it has one option', async () => {
@@ -1411,9 +1765,9 @@ describe('PredictEventScreen', () => {
     });
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
     fireEvent.press(
-      view.getByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+      view.getByTestId(MarketStandardCardTestIds.title('dodgers')),
     );
 
     expect(
@@ -1435,9 +1789,11 @@ describe('PredictEventScreen', () => {
     resolveEvent(createEvent({ rules: 'Event-only rule.' }));
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON);
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
+    );
     fireEvent.press(
-      view.getByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON),
+      within(header).getByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON),
     );
 
     expect(
@@ -1462,9 +1818,9 @@ describe('PredictEventScreen', () => {
     });
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
     fireEvent.press(
-      view.getByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+      view.getByTestId(MarketStandardCardTestIds.title('dodgers')),
     );
 
     expect(
@@ -1487,9 +1843,9 @@ describe('PredictEventScreen', () => {
     });
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
     fireEvent.press(
-      view.getByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+      view.getByTestId(MarketStandardCardTestIds.title('dodgers')),
     );
 
     await view.findByTestId(RulesBottomSheetTestIds.MARKET_RULES);
@@ -1503,14 +1859,14 @@ describe('PredictEventScreen', () => {
     resolveEvent(createMultiMarketEvent());
     const view = renderPredictEventScreen(routeParams);
 
-    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
 
     expect(
       view.queryByTestId(PredictEventScreenTestIds.EVENT_RULES_BUTTON),
     ).not.toBeOnTheScreen();
     expect(
-      view.queryByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
-    ).not.toBeOnTheScreen();
+      view.getByTestId(MarketStandardCardTestIds.title('dodgers')),
+    ).not.toHaveProp('accessibilityRole', 'button');
     expect(
       view.queryByTestId(RulesBottomSheetTestIds.SHEET),
     ).not.toBeOnTheScreen();
@@ -1519,7 +1875,7 @@ describe('PredictEventScreen', () => {
   it('keeps Outcome presses inside the Event Screen', async () => {
     resolveEvent(createMultiMarketEvent());
     const view = renderPredictEventScreen(routeParams);
-    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    await view.findByTestId(EventMarketListTestIds.MARKETS_TAB);
     const serviceCallCount = messengerCall.mock.calls.length;
 
     fireEvent.press(
@@ -1530,13 +1886,15 @@ describe('PredictEventScreen', () => {
     );
 
     expect(view.getByTestId(PredictEventScreenTestIds.VIEW)).toBeOnTheScreen();
-    // Opening the Order Flow reads venue Balance and Venue Status (cached
-    // across the two opens); pressing Outcomes must not leave the Event Screen
-    // or request anything else from the services.
+    // Opening the Order Flow reads the Venue catalog (to admit the action),
+    // venue Balance, and Venue Status (cached across the two opens); pressing
+    // Outcomes must not leave the Event Screen or request anything else from
+    // the services.
     const newCalls = messengerCall.mock.calls.slice(serviceCallCount);
     expect(newCalls.length).toBeGreaterThan(0);
     for (const [action] of newCalls) {
       expect([
+        'PredictMarketDataService:getVenueCatalog',
         'PredictPortfolioService:getBalance',
         'PredictMarketDataService:getVenueStatus',
       ]).toContain(action);
@@ -1582,14 +1940,25 @@ describe('PredictEventScreen', () => {
       within(header).getByTestId(PredictEventScreenTestIds.GAME_STATUS),
     ).toHaveTextContent('SCHEDULED');
     expect(
-      within(header).queryByTestId(PredictEventScreenTestIds.teamScore('away')),
+      within(header).queryByTestId(
+        PredictEventScreenTestIds.teamScore('away'),
+        HIDDEN,
+      ),
     ).not.toBeOnTheScreen();
+    expect(
+      within(header).queryByTestId(PredictEventScreenTestIds.LIVE_DOT),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamAbbreviation('home'),
+      ),
+    ).toHaveTextContent('CAR');
     expect(
       within(header).getByTestId(PredictEventScreenTestIds.GAME_METADATA),
     ).toBeOnTheScreen();
   });
 
-  it('renders the observed score, period, and clock for an in-progress Game', async () => {
+  it('shows the abbreviation when a Team has no logo', async () => {
     resolveEvent(createGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
@@ -1598,16 +1967,116 @@ describe('PredictEventScreen', () => {
     );
 
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamName('away')),
-    ).toHaveTextContent('Arizona Cardinals');
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamLogoFallback('home'),
+        HIDDEN,
+      ),
+    ).toHaveTextContent('CAR');
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamName('home')),
-    ).toHaveTextContent('Carolina Panthers');
+      within(header).queryByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('faces both 40px helmets toward the centre from their logo facing', async () => {
+    resolveEvent(
+      createGameEvent({
+        awayTeam: {
+          name: 'Arizona Cardinals',
+          abbreviation: 'ARI',
+          logoUrl: headerAwayLogoUrl,
+          logoFacing: 'left',
+        },
+        homeTeam: {
+          name: 'Carolina Panthers',
+          abbreviation: 'CAR',
+          logoUrl: headerHomeLogoUrl,
+          logoFacing: 'left',
+        },
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
+    const awayLogo = within(header).getByTestId(
+      PredictEventScreenTestIds.teamLogo('away'),
+      HIDDEN,
+    );
+    const homeLogo = within(header).getByTestId(
+      PredictEventScreenTestIds.teamLogo('home'),
+      HIDDEN,
+    );
+
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamScore('away')),
+      within(header)
+        .getAllByTestId(/^predict-next-event-team-(away|home)$/)
+        .map((team) => team.props.testID),
+    ).toEqual([
+      PredictEventScreenTestIds.team('away'),
+      PredictEventScreenTestIds.team('home'),
+    ]);
+    // Left-facing helmets: only the left slot (away) is mirrored.
+    expect(awayLogo).toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(homeLogo).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(awayLogo).toHaveStyle({ width: 40, height: 40 });
+    expect(homeLogo).toHaveStyle({ width: 40, height: 40 });
+  });
+
+  it('renders the observed score, period, and clock for an in-progress Game', async () => {
+    resolveEvent(
+      createGameEvent({
+        homeTeam: {
+          name: 'Carolina Panthers',
+          abbreviation: 'CAR',
+          primaryColor: homeTeamColor,
+          logoUrl: 'https://example.com/car.png' as NonNullable<
+            NonNullable<
+              NonNullable<PredictEvent['sports']>['game']
+            >['homeTeam']['logoUrl']
+          >,
+          logoFacing: 'right',
+        },
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
+
+    expect(
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamAbbreviation('away'),
+      ),
+    ).toHaveTextContent('ARI');
+    expect(
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamAbbreviation('home'),
+      ),
+    ).toHaveTextContent('CAR');
+    expect(
+      within(header).queryByText('Arizona Cardinals'),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.LIVE_DOT),
+    ).toBeOnTheScreen();
+    expect(
+      within(header).queryByTestId(PredictEventScreenTestIds.teamScore('away')),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamScore('away'),
+        HIDDEN,
+      ),
     ).toHaveTextContent('17');
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamScore('home')),
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamScore('home'),
+        HIDDEN,
+      ),
     ).toHaveTextContent('21');
     expect(
       within(header).getByTestId(PredictEventScreenTestIds.GAME_STATUS),
@@ -1615,17 +2084,125 @@ describe('PredictEventScreen', () => {
     expect(
       within(header).getByTestId(PredictEventScreenTestIds.GAME_METADATA),
     ).toHaveTextContent('Q4 · 12:22');
+  });
+
+  it('lists the home Team first in the header of a home_first Game', async () => {
+    resolveEvent(
+      createGameEvent({
+        teamOrder: 'home_first',
+        homeTeam: {
+          name: 'Carolina Panthers',
+          abbreviation: 'CAR',
+          logoUrl: headerHomeLogoUrl,
+          logoFacing: 'right',
+        },
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
+
     expect(
-      within(header).getByTestId(
-        PredictEventScreenTestIds.teamLogoFallback('home'),
-      ),
-    ).toHaveTextContent('CAR');
+      within(header)
+        .getAllByTestId(/^predict-next-event-team-(away|home)$/)
+        .map((team) => team.props.testID),
+    ).toEqual([
+      PredictEventScreenTestIds.team('home'),
+      PredictEventScreenTestIds.team('away'),
+    ]);
+    // Right-facing helmets: the right slot (away) is mirrored.
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('away'), {
+        includeHiddenElements: true,
+      }),
+    ).toHaveStyle({ transform: [{ scaleX: -1 }] });
+  });
+
+  it('never mirrors a header logo without a facing', async () => {
+    resolveEvent(
+      createGameEvent({
+        awayTeam: {
+          name: 'Arizona Cardinals',
+          abbreviation: 'ARI',
+          logoUrl: headerAwayLogoUrl,
+        },
+        homeTeam: {
+          name: 'Carolina Panthers',
+          abbreviation: 'CAR',
+          logoUrl: headerHomeLogoUrl,
+        },
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
+
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('away'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+  });
+
+  it('shows an unmirrored abbreviation when a mirrored header logo fails to load', async () => {
+    resolveEvent(
+      createGameEvent({
+        homeTeam: {
+          name: 'Carolina Panthers',
+          abbreviation: 'CAR',
+          logoUrl: headerHomeLogoUrl,
+          logoFacing: 'right',
+        },
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
+
+    fireEvent(
+      within(header).getByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+      'error',
+    );
+
+    const fallback = within(header).getByTestId(
+      PredictEventScreenTestIds.teamLogoFallback('home'),
+      { includeHiddenElements: true },
+    );
+    expect(fallback).toHaveTextContent('CAR');
+    expect(fallback).not.toHaveStyle({ transform: [{ scaleX: -1 }] });
+    expect(
+      within(header).queryByTestId(PredictEventScreenTestIds.teamLogo('home'), {
+        includeHiddenElements: true,
+      }),
+    ).not.toBeOnTheScreen();
   });
 
   it('applies live Game updates to the Event header', async () => {
-    resolveEvent(createGameEvent());
+    resolveEvent(createGameEvent({ status: 'scheduled', score: undefined }));
     const view = renderPredictEventScreen(routeParams);
-    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
+    const scheduledHeader = await view.findByTestId(
+      PredictEventScreenTestIds.GAME_HEADER,
+    );
+    expect(
+      within(scheduledHeader).queryByTestId(PredictEventScreenTestIds.LIVE_DOT),
+    ).not.toBeOnTheScreen();
 
     act(() => {
       publishPredictNextGameLiveUpdate({
@@ -1642,14 +2219,26 @@ describe('PredictEventScreen', () => {
 
     const header = view.getByTestId(PredictEventScreenTestIds.GAME_HEADER);
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamScore('away')),
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamScore('away'),
+        HIDDEN,
+      ),
     ).toHaveTextContent('28');
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamScore('home')),
+      within(header).getByTestId(
+        PredictEventScreenTestIds.teamScore('home'),
+        HIDDEN,
+      ),
     ).toHaveTextContent('24');
     expect(
       within(header).getByTestId(PredictEventScreenTestIds.GAME_METADATA),
     ).toHaveTextContent('Q4 · 01:12');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.LIVE_DOT),
+    ).toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.team('away')),
+    ).toHaveProp('accessibilityLabel', 'Arizona Cardinals, 28');
   });
 
   it('watches the Event for live updates and stops on unmount', async () => {
@@ -1684,17 +2273,52 @@ describe('PredictEventScreen', () => {
     ).toHaveTextContent('Q4 · 12:22');
   });
 
-  it('omits unavailable optional standard Event fields', async () => {
-    resolveEvent(createEvent({ subtitle: undefined, imageUrl: undefined }));
+  it('lays out the standard Event header without an image', async () => {
+    resolveEvent(createEvent({ imageUrl: undefined, category: 'Politics' }));
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
+    );
+
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.IMAGE),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.TITLE),
+    ).toHaveTextContent('Canonical Event title');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.CATEGORY),
+    ).toHaveTextContent('Politics');
+  });
+
+  it('hides the category line when the standard Event has none', async () => {
+    resolveEvent(createEvent({ category: undefined }));
+    const view = renderPredictEventScreen(routeParams);
+
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
+    );
+
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.CATEGORY),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.TITLE),
+    ).toHaveTextContent('Canonical Event title');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.IMAGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the category line when the standard Event category is empty', async () => {
+    resolveEvent(createEvent({ category: '' }));
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
 
     expect(
-      view.queryByTestId(PredictEventScreenTestIds.SUBTITLE),
-    ).not.toBeOnTheScreen();
-    expect(
-      view.queryByTestId(PredictEventScreenTestIds.IMAGE),
+      view.queryByTestId(PredictEventScreenTestIds.CATEGORY),
     ).not.toBeOnTheScreen();
   });
 
@@ -1710,7 +2334,7 @@ describe('PredictEventScreen', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps full Team names accessible for long labels', async () => {
+  it('keeps full Team names in the Team labels', async () => {
     const awayName = 'The Extremely Long Arizona Cardinals Team Name';
     const homeName = 'The Extremely Long Carolina Panthers Team Name';
     resolveEvent(
@@ -1726,14 +2350,12 @@ describe('PredictEventScreen', () => {
     );
 
     expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamName('away')),
-    ).toHaveTextContent(awayName);
-    expect(
-      within(header).getByTestId(PredictEventScreenTestIds.teamName('home')),
-    ).toHaveTextContent(homeName);
-    expect(
       within(header).getByTestId(PredictEventScreenTestIds.team('away')),
     ).toHaveProp('accessibilityLabel', `${awayName}, 17`);
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.team('home')),
+    ).toHaveProp('accessibilityLabel', `${homeName}, 21`);
+    expect(within(header).queryByText(awayName)).not.toBeOnTheScreen();
   });
 
   it('keeps blocking error context visible while a retry is in progress', async () => {
@@ -1756,6 +2378,9 @@ describe('PredictEventScreen', () => {
     ).toHaveTextContent('Unable to load this event.');
     expect(error).not.toHaveTextContent('unsafe transport detail');
     expect(
+      view.queryByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
+    ).not.toBeOnTheScreen();
+    expect(
       view.queryByTestId(PredictEventScreenTestIds.LOADING),
     ).not.toBeOnTheScreen();
   });
@@ -1763,7 +2388,14 @@ describe('PredictEventScreen', () => {
   it('retries only the immutable Event query after a blocking error', async () => {
     messengerCall
       .mockRejectedValueOnce(new Error('unsafe transport detail'))
-      .mockResolvedValueOnce(createEvent());
+      .mockResolvedValueOnce(createEvent())
+      // Account-scoped reads follow the Event retry; infinite queries must
+      // resolve a valid page shape, never undefined.
+      .mockImplementation((action: string) =>
+        action.startsWith('PredictPortfolioService:getPositions')
+          ? Promise.resolve({ venueId, positions: [] })
+          : Promise.resolve(undefined),
+      );
     const view = renderPredictEventScreen(routeParams);
     const error = await view.findByTestId(PredictEventScreenTestIds.ERROR);
 
@@ -1794,12 +2426,510 @@ describe('PredictEventScreen', () => {
   it('returns Home when the Event has no originating screen', async () => {
     resolveEvent();
     const view = renderPredictEventScreen(routeParams);
-    await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+    const header = await view.findByTestId(
+      PredictEventScreenTestIds.STANDARD_HEADER,
+    );
 
-    fireEvent.press(view.getByTestId(PredictEventScreenTestIds.BACK));
+    fireEvent.press(within(header).getByTestId(PredictEventScreenTestIds.BACK));
 
     await waitFor(() =>
       expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen(),
     );
+  });
+
+  describe('Positions tab', () => {
+    const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
+    /** Composed real services to destroy after each test. */
+    const composedServices: ReturnType<
+      typeof composePredictNextPortfolioTrading
+    >[] = [];
+    /** Engine boundary restorations registered by a test. */
+    const testRestores: (() => void)[] = [];
+
+    beforeEach(() => {
+      // Positions discovery is skipped while the device reports offline.
+      netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    });
+
+    afterEach(() => {
+      netInfoMock.__resetMockNetInfo();
+      testRestores.splice(0).forEach((restore) => restore());
+      composedServices.splice(0).forEach((composed) => composed.destroy());
+      delete (Engine.context as Record<string, unknown>).PredictOrderService;
+    });
+
+    /** Routes the shared renderer's UI query client messenger adapter to
+     * the real services' root, keeping fixture answers for the rest. */
+    const observeRealPortfolioReads = (
+      trading: ReturnType<typeof composePredictNextPortfolioTrading>,
+    ) => {
+      const controllerMessenger = Engine.controllerMessenger as unknown as {
+        call: (action: string, ...params: unknown[]) => Promise<unknown>;
+        subscribe: (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void;
+        unsubscribe: (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void;
+      };
+      const originalCall = controllerMessenger.call;
+      const originalSubscribe = controllerMessenger.subscribe;
+      const originalUnsubscribe = controllerMessenger.unsubscribe;
+      testRestores.push(() => {
+        controllerMessenger.call = originalCall;
+        controllerMessenger.subscribe = originalSubscribe;
+        controllerMessenger.unsubscribe = originalUnsubscribe;
+      });
+      // Direct property swap, not jest.spyOn: the mocked
+      // controllerMessenger's methods are already Jest mocks, and a spy
+      // here re-enters itself when the fixture delegate is the same mock.
+      controllerMessenger.call = (action: string, ...params: unknown[]) => {
+        if (action.startsWith('PredictPortfolioService:')) {
+          // The composition root is a MockAnyNamespace messenger: it
+          // accepts any action the real services registered.
+          return (
+            trading.rootMessenger.call as unknown as (
+              action: string,
+              ...params: unknown[]
+            ) => Promise<unknown>
+          )(action, ...params);
+        }
+        return originalCall(action, ...params);
+      };
+      controllerMessenger.subscribe = (event, callback) => {
+        if (event.startsWith('PredictPortfolioService:')) {
+          (
+            trading.rootMessenger.subscribe as unknown as (
+              event: string,
+              callback: (...args: unknown[]) => void,
+            ) => void
+          )(event, callback);
+        }
+      };
+      controllerMessenger.unsubscribe = (event, callback) => {
+        if (event.startsWith('PredictPortfolioService:')) {
+          (
+            trading.rootMessenger.unsubscribe as unknown as (
+              event: string,
+              callback: (...args: unknown[]) => void,
+            ) => void
+          )(event, callback);
+        }
+      };
+    };
+
+    /** Adding the Positions tab changes the TabsBar tab set, which remounts
+     * every Tab from a later effect. That remount can land while a find
+     * query settles, so press a fresh lookup, never the resolved element. */
+    const pressPositionsTab = async (
+      view: ReturnType<typeof renderPredictEventScreen>,
+    ) => {
+      await view.findByTestId(EventMarketListTestIds.POSITIONS_TAB);
+      fireEvent.press(view.getByTestId(EventMarketListTestIds.POSITIONS_TAB));
+    };
+
+    it('renders held Positions for the Event Markets and opens the bounded Cash Out flow', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positions: [
+          makePredictNextPosition({
+            marketId: 'market-1',
+            side: 'yes',
+            shares: '75.00',
+            context: {
+              eventId: 'unrelated-event',
+              eventTitle: 'Unrelated Event title',
+              marketQuestion: 'Will it happen?',
+              outcomeId: 'yes',
+              outcomeLabel: 'Lakers',
+            },
+          }),
+        ],
+      });
+      (Engine.context as Record<string, unknown>).PredictOrderService =
+        composePredictNextOrderService();
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const view = renderPredictEventScreen(routeParams);
+      await pressPositionsTab(view);
+
+      expect(
+        view.getByTestId(EventMarketListTestIds.positionRow('market-1', 'yes')),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        view.getByTestId(
+          EventMarketListTestIds.positionCashOut('market-1', 'yes'),
+        ),
+      );
+
+      expect(
+        await view.findByTestId(PredictOrderFlowTestIds.SHEET),
+      ).toBeOnTheScreen();
+      // The sell sheet binds to the Position's whole-contract size and the
+      // canonical identity of the presented Event, not the Position's stale
+      // catalog context.
+      expect(
+        view.getByTestId(PredictOrderFlowTestIds.HELD_CONTRACTS),
+      ).toHaveTextContent('You hold 75 contracts');
+      expect(
+        view.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+      ).toHaveTextContent('Yes');
+    });
+
+    it("titles a threshold Position by its context's Market labels, not its Yes or No label", async () => {
+      const event = makePredictNextPlayerPropsEvent();
+      const labelled = `${event.id}-rushing_yards-Rhamondre Stevenson-60`;
+      const unlabelled = `${event.id}-rushing_yards-Kenneth Walker-50`;
+      configurePredictNextFeeds({
+        details: [
+          {
+            ...event,
+            venueId,
+            id: eventId,
+          },
+        ],
+        positions: [
+          makePredictNextPosition({
+            marketId: labelled,
+            side: 'yes',
+            context: {
+              eventId,
+              eventTitle: 'Patriots vs Seahawks',
+              marketQuestion: 'Rhamondre Stevenson: 60+',
+              outcomeLabel: 'Yes',
+              marketLabels: ['Rhamondre Stevenson', '60+'],
+            },
+          }),
+          makePredictNextPosition({
+            marketId: unlabelled,
+            side: 'no',
+            context: {
+              eventId,
+              eventTitle: 'Patriots vs Seahawks',
+              marketQuestion: 'Kenneth Walker: 50+',
+              outcomeLabel: 'No',
+              marketLabels: ['50+'],
+            },
+          }),
+        ],
+      });
+
+      const view = renderPredictEventScreen(routeParams);
+      await pressPositionsTab(view);
+
+      const labelledRow = view.getByTestId(
+        EventMarketListTestIds.positionRow(labelled, 'yes'),
+      );
+      expect(
+        within(labelledRow).getByText('Yes · Rhamondre Stevenson · 60+'),
+      ).toBeOnTheScreen();
+      expect(
+        within(labelledRow).getByLabelText(
+          /^Yes · Rhamondre Stevenson · 60\+, /u,
+        ),
+      ).toBeOnTheScreen();
+      const unlabelledRow = view.getByTestId(
+        EventMarketListTestIds.positionRow(unlabelled, 'no'),
+      );
+      expect(within(unlabelledRow).getByText('No · 50+')).toBeOnTheScreen();
+      expect(
+        within(unlabelledRow).getByLabelText(/^No · 50\+, /u),
+      ).toBeOnTheScreen();
+    });
+
+    it('walks later Positions pages for held Positions beyond the first page', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positionPages: [
+          {
+            positions: [makePredictNextPosition({ marketId: 'page-1-market' })],
+            nextCursor: 'cursor-page-2',
+          },
+          {
+            cursor: 'cursor-page-2',
+            positions: [
+              makePredictNextPosition({
+                marketId: 'market-1',
+                side: 'yes',
+                shares: '75.00',
+                context: {
+                  eventId: 'unrelated-event',
+                  eventTitle: 'Unrelated Event title',
+                  marketQuestion: 'Will it happen?',
+                  outcomeId: 'yes',
+                  outcomeLabel: 'Lakers',
+                },
+              }),
+            ],
+          },
+        ],
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const view = renderPredictEventScreen(routeParams);
+      await pressPositionsTab(view);
+
+      // The Positions tab is list-header UI. It can paint once page 1
+      // exists while the held row still waits on the page-2 read and the
+      // list item mount. findBy's default 1000ms budget expired on CI
+      // after that wait was added, so wait until the walked page is
+      // requested and both the row and its Cash Out control are on screen.
+      await waitFor(
+        () => {
+          expect(
+            messengerCall.mock.calls.some(
+              ([action, , , cursor]) =>
+                action === 'PredictPortfolioService:getPositions' &&
+                cursor === 'cursor-page-2',
+            ),
+          ).toBe(true);
+          expect(
+            view.getByTestId(
+              EventMarketListTestIds.positionRow('market-1', 'yes'),
+            ),
+          ).toBeOnTheScreen();
+          expect(
+            view.getByTestId(
+              EventMarketListTestIds.positionCashOut('market-1', 'yes'),
+            ),
+          ).toBeOnTheScreen();
+        },
+        { timeout: 5000 },
+      );
+    });
+
+    it('stops walking venue-wide Positions pages at the screen bound', async () => {
+      const fillerPages = Array.from({ length: 8 }, (_, index) => ({
+        ...(index > 0 ? { cursor: `cursor-page-${index + 1}` } : {}),
+        positions: [makePredictNextPosition({ marketId: `filler-${index}` })],
+        nextCursor: `cursor-page-${index + 2}`,
+      }));
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positionPages: fillerPages,
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      // Five pages in total (the initial read plus four walks) even though
+      // the fixture keeps serving cursors: the walk must not exceed its
+      // bound, so the sixth page's cursor is never requested.
+      const walkedCalls = messengerCall.mock.calls.filter(
+        ([action, , , cursor]) =>
+          action === 'PredictPortfolioService:getPositions' &&
+          cursor !== undefined,
+      );
+      expect(walkedCalls).toHaveLength(4);
+      expect(
+        view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('stops the page walk when a later Positions page fails', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positionPages: [
+          {
+            positions: [makePredictNextPosition({ marketId: 'page-1-market' })],
+            nextCursor: 'cursor-page-2',
+          },
+        ],
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      // Exactly one walk attempt: the failed page is never retried mid-visit.
+      const walkedCalls = messengerCall.mock.calls.filter(
+        ([action, , , cursor]) =>
+          action === 'PredictPortfolioService:getPositions' &&
+          cursor !== undefined,
+      );
+      expect(walkedCalls).toHaveLength(1);
+      expect(
+        view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('updates the mounted Position read after a Cash Out fills', async () => {
+      // Real services over the stubbed transport: the Positions read the
+      // Positions tab observes runs through the real Portfolio service cache and
+      // its cacheUpdated events, the way the Engine composes them.
+      let positionsBody: unknown = {
+        venueId: 'kalshi',
+        positions: [
+          makePredictNextPosition({
+            marketId: 'market-1',
+            side: 'yes',
+            shares: '75.00',
+            context: {
+              eventId: 'unrelated-event',
+              eventTitle: 'Unrelated Event title',
+              marketQuestion: 'Will it happen?',
+              outcomeId: 'yes',
+              outcomeLabel: 'Lakers',
+            },
+          }),
+        ],
+      };
+      fetchMock.mockImplementation(async (url, init) => {
+        if (String(url).endsWith('/orders/commit')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () =>
+              makePredictNextSellReceipt({
+                status: 'partially_filled',
+                filledContracts: '37.50',
+                averageFillPrice: '0.4700',
+                fee: '0.20',
+                actualProceeds: '19.74',
+                netProceeds: '19.54',
+              }),
+          } as Response;
+        }
+        if (String(url).endsWith('/orders/preview')) {
+          const body = JSON.parse(String(init?.body)) as {
+            marketId: string;
+            contracts: string;
+          };
+          return {
+            ok: true,
+            status: 200,
+            json: async () =>
+              makePredictNextSellPreview({
+                marketId: body.marketId,
+                requestedContracts: Number(body.contracts),
+              }),
+          } as Response;
+        }
+        if (String(url).includes('/venues/kalshi/positions')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => positionsBody,
+          } as Response;
+        }
+        return { ok: false, status: 404, json: async () => ({}) } as Response;
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      configurePredictNextFeeds({ details: [createEvent()] });
+      const trading = composePredictNextPortfolioTrading();
+      composedServices.push(trading);
+      (Engine.context as Record<string, unknown>).PredictOrderService =
+        trading.orderService;
+      observeRealPortfolioReads(trading);
+
+      const view = renderPredictEventScreen(routeParams);
+      await pressPositionsTab(view);
+
+      // Header tab and row item mount separately. Press the Cash Out
+      // control only after that row's button is on screen.
+      fireEvent.press(
+        await view.findByTestId(
+          EventMarketListTestIds.positionCashOut('market-1', 'yes'),
+          {},
+          { timeout: 5000 },
+        ),
+      );
+      await view.findByTestId(PredictOrderFlowTestIds.SHEET);
+      fireEvent.press(
+        view.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('max')),
+      );
+      await waitFor(() =>
+        expect(view.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+      );
+      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictOrderFlowTestIds.APPROVAL),
+        ).toBeOnTheScreen(),
+      );
+      // Real elapsed time between the pre-trade read and the receipt, so
+      // the refreshed snapshot's dataUpdatedAt is strictly newer — the
+      // property the UI cache's hydration applies.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      // The venue reports the reduced Position while the sheet is up: the
+      // terminal receipt's invalidation must refresh the mounted read
+      // through the service without any focus or staleTime workaround.
+      positionsBody = {
+        venueId: 'kalshi',
+        positions: [
+          makePredictNextPosition({
+            marketId: 'market-1',
+            side: 'yes',
+            shares: '37.50',
+            currentValue: '22.50',
+            context: {
+              eventId: 'unrelated-event',
+              eventTitle: 'Unrelated Event title',
+              marketQuestion: 'Will it happen?',
+              outcomeId: 'yes',
+              outcomeLabel: 'Lakers',
+            },
+          }),
+        ],
+      };
+
+      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.APPROVE));
+      await view.findByTestId(PredictOrderFlowTestIds.DONE);
+      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.DONE));
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(
+            EventMarketListTestIds.positionValue('market-1', 'yes'),
+          ),
+        ).toHaveTextContent('$22.50'),
+      );
+    });
+
+    it('omits the Positions tab when the Positions read fails and keeps the Markets browsable', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positions: new Error('positions unavailable'),
+      });
+
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+
+      expect(
+        view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(MarketStandardCardTestIds.yesButton('market-1')),
+      ).toBeOnTheScreen();
+    });
+
+    it('omits the Positions tab when the Predict User holds no Position in this Event', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positions: [makePredictNextPosition()],
+      });
+
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+
+      // The fixture Position targets an unrelated Market.
+      expect(
+        view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
+      ).not.toBeOnTheScreen();
+    });
   });
 });

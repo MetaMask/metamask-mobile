@@ -3,12 +3,15 @@ import type {
   SwapCommentResponse,
 } from '@metamask/social-controllers';
 import Engine from '../../../../core/Engine';
+import type { CreatedSwapCommentExtras } from './buildPendingPost';
+
+export type CreatedSwapComment = SwapCommentResponse & CreatedSwapCommentExtras;
 
 interface CreateSwapCommentMessenger {
   call: (
     action: 'SocialService:createSwapComment',
     options: CreateSwapCommentOptions,
-  ) => Promise<SwapCommentResponse>;
+  ) => Promise<CreatedSwapComment>;
 }
 
 const getMessenger = (): CreateSwapCommentMessenger =>
@@ -21,5 +24,5 @@ const getMessenger = (): CreateSwapCommentMessenger =>
  */
 export const createSwapComment = (
   options: CreateSwapCommentOptions,
-): Promise<SwapCommentResponse> =>
+): Promise<CreatedSwapComment> =>
   getMessenger().call('SocialService:createSwapComment', options);

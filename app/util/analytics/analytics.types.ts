@@ -165,3 +165,13 @@ export enum MetaMetricsRequestedThrough {
   EthereumProvider = 'ethereum_provider',
   MultichainApi = 'multichain_api',
 }
+
+/**
+ * Analytics `tdp_version` property value, shared across Token Details analytics
+ * call sites.
+ *
+ * The new Token Details page is called "V1" internally (`TokenDetailsVariant`,
+ * `TokenDetailsV1`) but ships to product/analytics as `'v3'`; the legacy page
+ * reports `'v2'`.
+ */
+export type TdpVersion = 'v2' | 'v3';

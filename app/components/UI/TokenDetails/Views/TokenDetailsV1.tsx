@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -10,19 +11,20 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import Animated, { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Theme } from '@metamask/design-tokens';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -39,71 +41,89 @@ import {
   selectNetworkConfigurationByChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import Price from '../../AssetOverview/Price/Price';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+  type QuickBuyTradeMode,
+} from '../../QuickBuy';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
+import type { SocialV1FeedItem } from '../../SocialFeed/types';
+import { chainNameToId } from '../../SocialFeed/utils/chainMapping';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
+import { resolveTokenContractAddress } from '../../AssetOverview/utils/getTokenDetails';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
+import { SECURITY_ATTRIBUTION_EXPLAINER } from '../components/V1/SecurityAttribution/SecurityAttribution';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
 import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
-import { SECURITY_EXPLAINER_KEYS } from '../components/V1/SecurityTab/SecurityTab.constants';
+import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
-import StatExplainerSheet from '../components/V1/StatBar/StatExplainerSheet';
-import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
+import TokenAgeChip from '../components/V1/TokenAgeChip/TokenAgeChip';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
+import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
+import {
+  TokenDetailsScrollProvider,
+  useTokenDetailsScroll,
+} from '../components/tokenDetailsScroll';
+import TokenDetailsFeedTab from '../components/tabs/FeedTab';
+import { useTokenHolders } from '../components/tabs/holders/useTokenHolders';
+import TokenDetailsHoldersTab from '../components/tabs/HoldersTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
+  usePinnedTokenDetailsV1TabBar,
   HIDDEN_TAB_PAGE_STYLE,
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
-  TOKEN_DETAILS_V1_TABS,
+  TokenDetailsSource,
   type TokenDetailsRouteParams,
   type TokenDetailsVariant,
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
+import {
+  selectMemecoinTdpV1TabConfigOrder,
+  selectMemecoinTdpV1TokenApiBaseUrl,
+} from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
-import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
-import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
-import {
-  MOCK_SECURITY_FACTS_EVM,
-  MOCK_SECURITY_FACTS_SOLANA,
-  MOCK_SECURITY_FLAG_COUNT,
-  MOCK_SECURITY_VERDICT,
-} from '../mocks/tokenDetailsV1Mocks';
+import { useElapsedTime } from '../hooks/useElapsedTime';
+import { useSecurityFacts } from '../hooks/useSecurityFacts';
+import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
+import { useTokenMarketData } from '../hooks/useTokenMarketData';
+import { useTokenStats } from '../hooks/useTokenStats';
+import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
+import { formatTokenAge } from '../utils/formatTokenAge';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
+import { TokenDetailsIds } from '../testIds';
 
-export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
-export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
-export const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID =
-  'token-details-v1-scroll-view';
-export const TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX =
-  'token-details-v1-tab-panel';
-export const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID =
-  'token-details-v1-tab-content';
-
-/**
- * Direct-child index of the tab bar inside the body ScrollView — registered in
- * `stickyHeaderIndices` so the tab bar docks below the nav header when the
- * price hero (with the security/social row), chart, stat bar, action tiles and
- * tab content scroll under it.
- */
-export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
-
-/**
- * TODO(ASSETS-4016): replace with the token's real age once the API platform
- * exposes it. Change locally to preview other labels ("5h", "3w", …).
- */
-const MOCK_TOKEN_AGE_LABEL = '3d';
+const AGE_EXPLAINER_COPY: ExplainerCopy = {
+  title: 'token_details_v1.age.explainer.title',
+  description: 'token_details_v1.age.explainer.description',
+};
 
 interface ShareTokenBottomSheetControllerRef {
   open: () => void;
@@ -138,7 +158,7 @@ const TokenDetailsV1TabPlaceholder = ({
     flexDirection={BoxFlexDirection.Column}
     alignItems={BoxAlignItems.Center}
     twClassName="py-8"
-    testID={`${TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX}-${tab}`}
+    testID={`${TokenDetailsIds.tabPanelPrefix}-${tab}`}
   >
     <Text
       variant={TextVariant.BodyMd}
@@ -150,6 +170,20 @@ const TokenDetailsV1TabPlaceholder = ({
   </Box>
 );
 
+/**
+ * Room kept at the end of the page for the sticky footer.
+ *
+ * The footer is a design-system `BottomSheetDialog`, positioned `absolute
+ * inset-0` rather than laid out, so it covers the end of the scroll instead
+ * of shortening it. Without this the last screenful of a tab sits under the
+ * footer, and a short tab -- a token with a handful of holders -- has no
+ * scroll range to lift it clear, so the page reads as unscrollable.
+ */
+const STICKY_FOOTER_RESERVED_HEIGHT = 190;
+
+/** Shown when the remote tab config and the runtime gates between them leave nothing. */
+const FALLBACK_TAB: TokenDetailsV1TabKey = 'overview';
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
@@ -158,17 +192,73 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    content: {
+      flex: 1,
+      isolation: 'isolate',
+    },
     scroll: {
       flex: 1,
     },
+    scrollArea: {
+      flex: 1,
+    },
+    pinnedTabBar: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+    },
     scrollContent: {
-      flexGrow: 1,
-      minHeight: '100%',
+      paddingBottom: STICKY_FOOTER_RESERVED_HEIGHT,
     },
   });
 };
 
 export { resolveSwipeTargetTab } from '../components/TokenDetailsV1TabBar';
+
+/**
+ * Fires TOKEN_DETAILS_OPENED once per Token Details V1 open.
+ *
+ * Mirrors the legacy `useTokenDetailsOpenedTracking`, deduping by
+ * `chainId:address:symbol:source` so a re-render never re-fires. The V1 page
+ * previously fired only TOKEN_DETAILS_SHARED and never TOKEN_DETAILS_OPENED.
+ */
+const useTokenDetailsV1OpenedTracking = (
+  token: TokenDetailsRouteParams,
+  variant: TokenDetailsVariant,
+) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const lastTrackedTokenKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const source = token.source ?? TokenDetailsSource.Unknown;
+    const tokenTrackingKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}:${source}`;
+
+    if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
+      return;
+    }
+
+    const hasBalance =
+      token.balance !== undefined &&
+      token.balance !== null &&
+      token.balance !== '0' &&
+      token.balance !== '';
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+        .addProperties({
+          ...getTdpAnalyticsBase(token, variant),
+          source,
+          token_symbol: token.symbol,
+          token_address: token.address,
+          token_name: token.name,
+          has_balance: hasBalance,
+        })
+        .build(),
+    );
+    lastTrackedTokenKeyRef.current = tokenTrackingKey;
+  }, [createEventBuilder, token, trackEvent, variant]);
+};
 
 interface TokenDetailsV1Props {
   token: TokenDetailsRouteParams;
@@ -182,14 +272,31 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = useIsFocused();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
+
+  useTokenDetailsV1OpenedTracking(token, variant);
+
+  const analyticsBase = useMemo(
+    () => getTdpAnalyticsBase(token, variant),
+    [token, variant],
+  );
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const caip19AssetId = useTokenCaipAssetId(token);
+
+  // Shared with the Overview tab and the variant check, so the three land on
+  // one react-query entry rather than fetching `/v2/assets` once each.
+  const tokenApiBaseUrl = useSelector(selectMemecoinTdpV1TokenApiBaseUrl);
+  const { asset: tokenAsset } = useTokenAssetDetails(
+    caip19AssetId,
+    tokenApiBaseUrl,
+  );
+  const launchedAt = tokenAsset?.launchpadData?.launchedAt;
 
   const shareUrl = useMemo(
     () =>
@@ -226,25 +333,83 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     trackEvent,
   ]);
 
-  const { securityData } = useTokenSecurityData({
-    assetId: caip19AssetId,
-    prefetchedData: token.securityData,
+  /**
+   * Read off the entry the token list badges already populate, rather than the
+   * `securityData` route param: that param is a snapshot taken at tap time and
+   * never revalidates, and carries no indication of when it was fetched.
+   */
+  const {
+    data: fetchedSecurityData,
+    isPending: isSecurityDataLoading,
+    error: securityDataError,
+    dataUpdatedAt: securityDataUpdatedAt,
+  } = useTokenSecurityQuery(caip19AssetId);
+
+  // `undefined` before the first fetch resolves, which the consumers below and
+  // `useSecurityFacts` treat the same as "no data".
+  const securityData = fetchedSecurityData ?? null;
+
+  // Resolved once here and shared with the Overview tab's market details list,
+  // so the screen does not fetch the same data from two places.
+  const selectedCurrency = useSelector(selectCurrentCurrency);
+  const { marketData, isLoading: isMarketDataLoading } =
+    useTokenMarketData(caip19AssetId);
+  const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
+
+  const tokenStats = useTokenStats({
+    marketData,
+    isMarketDataLoading,
+    securityData,
+    tokenApiHoldersCount: tokenAsset?.holders?.count,
+    currentCurrency: selectedCurrency,
   });
 
-  const statBarStats = useTokenStatBarStats();
+  /**
+   * Copy for whichever definition sheet is open, or `null` for none.
+   *
+   * The stat bar and the Security tab render the same sheet, so they share one
+   * piece of state rather than a key each: two keys would let both mount at
+   * once. It is held here rather than inside `SecurityTab` because the sheet
+   * has to mount outside the page `ScrollView` — see the note on
+   * `SecurityTabProps.onExplain`.
+   */
+  const [explainerCopy, setExplainerCopy] = useState<ExplainerCopy | null>(
+    null,
+  );
 
-  /** Which stat's explainer is open, or `null` for none. */
-  const [explainedStat, setExplainedStat] = useState<TokenStatKey | null>(null);
-
-  const handleStatPress = useCallback((statKey: TokenStatKey) => {
-    setExplainedStat(statKey);
+  /**
+   * Opens the definition for a tapped label, from either surface.
+   *
+   * One handler rather than one each: the stat bar's keys and the Security
+   * tab's rows are both `SecurityRowKey` now, so there is nothing left to tell
+   * apart.
+   */
+  const handleRowExplain = useCallback((rowKey: SecurityRowKey) => {
+    setExplainerCopy(EXPLAINER_KEYS_BY_ROW[rowKey]);
   }, []);
 
-  const handleExplainerClose = useCallback(() => {
-    setExplainedStat(null);
+  const handleExplainerClose = useCallback(() => setExplainerCopy(null), []);
+
+  const handleAgePress = useCallback(() => {
+    setExplainerCopy(AGE_EXPLAINER_COPY);
+  }, []);
+
+  const handleAttributionPress = useCallback(() => {
+    setExplainerCopy(SECURITY_ATTRIBUTION_EXPLAINER);
   }, []);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
+
+  /**
+   * Resolve `token.address` once through the same normalizer the header uses,
+   * so the security-row chip shows the bare contract address (not the full
+   * CAIP-19 asset id that Solana tokens carry in `token.address`).
+   */
+  const contractAddress = useMemo(
+    () => (isNativeToken ? null : resolveTokenContractAddress(token)),
+    [token, isNativeToken],
+  );
+
   const hasBalanceValue = useMemo(() => {
     if (token.balance === undefined || token.balance === null) return false;
     return Number(token.balance) > 0;
@@ -285,35 +450,312 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
 
+  // The paginated tabs (Feed, Holders) have no scroll of their own, so they
+  // read this page's instead of measuring their own footer on a timer.
+  const pageScroll = useTokenDetailsScroll();
+  const { onScroll: onPageScroll } = pageScroll;
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
+
+  // The docked tab bar is a copy laid over the page, outside the ScrollView,
+  // rather than a sticky header. See `usePinnedTokenDetailsV1TabBar`.
+  const pinnedTabBar = usePinnedTokenDetailsV1TabBar(headerScrollY);
+  const { onScrollOffset: onPinnedTabBarScroll, onTabBarOffsetY } =
+    pinnedTabBar;
+
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
+      const scrollOffset = event.nativeEvent.contentOffset.y;
+      headerScrollY.set(scrollOffset);
+      onPinnedTabBarScroll(scrollOffset);
+      onScrollOffset(scrollOffset);
+      onPageScroll(event);
     },
-    [onScrollOffset],
+    [headerScrollY, onPageScroll, onPinnedTabBarScroll, onScrollOffset],
   );
 
   const {
     scrollViewRef,
     handleScroll: onScrollViewScroll,
     handleTabBarLayout,
-    handleScrollViewLayout,
-    tabContentContainerStyle,
     clampScrollToTabBar,
+    scrollToTabBar,
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
+  // A tab shorter than the space under the docked tab bar cannot hold the
+  // page at that offset, so switching to one (an empty or still-loading feed,
+  // a short holders list) would snap the scroll back up toward the top. The
+  // tab area is kept at least that tall so a switch only ever scrolls as far
+  // as the clamp asks.
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [tabBarHeight, setTabBarHeight] = useState(0);
+  const { onLayout: onPageScrollLayout } = pageScroll;
+  const handleScrollViewLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setViewportHeight(event.nativeEvent.layout.height);
+      onPageScrollLayout(event);
+    },
+    [onPageScrollLayout],
+  );
+  const handleTabBarContainerLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout;
+      setTabBarHeight(height);
+      onTabBarOffsetY(y);
+      handleTabBarLayout(event);
+    },
+    [handleTabBarLayout, onTabBarOffsetY],
+  );
+  const tabContentStyle = useMemo(() => {
+    const minHeight =
+      viewportHeight - tabBarHeight - STICKY_FOOTER_RESERVED_HEIGHT;
+    return {
+      minHeight: Number.isFinite(minHeight) ? Math.max(0, minHeight) : 0,
+    };
+  }, [viewportHeight, tabBarHeight]);
+
+  const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const isTechnicalIndicatorsEnabled = useSelector(
+    selectTokenDetailsTechnicalIndicatorsEnabled,
+  );
+  const showSocialTabs = socialEnabled && Boolean(caip19AssetId);
+
+  const [copyTrade, setCopyTrade] = useState<{
+    target: QuickBuyTarget;
+    copyTradeOrigin?: CopyTradeOrigin;
+    tradeMode?: QuickBuyTradeMode;
+  } | null>(null);
+  const handleFeedCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
+        return;
+      }
+      const chain = chainNameToId(item.asset.avatar.chain);
+      const tokenAddress = item.asset.avatar.tokenAddress.trim();
+      if (!chain || !tokenAddress) {
+        return;
+      }
+      setCopyTrade({
+        target: {
+          tokenAddress,
+          tokenSymbol: item.asset.symbol,
+          tokenName: item.asset.name ?? item.asset.symbol,
+          chain,
+        },
+        copyTradeOrigin: commentId ? { commentId } : undefined,
+      });
+    },
+    [],
+  );
+  const closeCopyTrade = useCallback(() => setCopyTrade(null), []);
+  const handlePostTradeShareReopen = useCallback(
+    (
+      target: QuickBuyTarget,
+      copyTradeOrigin?: CopyTradeOrigin,
+      tradeMode?: QuickBuyTradeMode,
+    ) => {
+      setCopyTrade({ target, copyTradeOrigin, tradeMode });
+    },
+    [],
+  );
+  usePostTradeShareReopen(
+    handlePostTradeShareReopen,
+    isFocused ? PostTradeShareOwner.tokenDetails : undefined,
+  );
+  // Reads the same query the tab itself renders from: identical key, so
+  // react-query serves both from one fetch rather than requesting twice.
+  const {
+    rows: holderRows,
+    isLoading: isHoldersLoading,
+    error: holdersError,
+  } = useTokenHolders({
+    // `useTokenCaipAssetId` reports "no id" as null; the hook's absent case.
+    assetId: caip19AssetId ?? undefined,
+    enabled: showSocialTabs,
+  });
+  // A token nobody holds has no Holders tab. It stays through the first fetch
+  // so the tab bar does not shift under a thumb, and through an error so a
+  // network blip does not quietly remove the feature -- the tab keeps its own
+  // retry. Only a loaded, empty list hides it.
+  const showHoldersTab =
+    showSocialTabs &&
+    (isHoldersLoading || Boolean(holdersError) || holderRows.length > 0);
+
+  // Order and membership come from the remote config, which lets the tab
+  // layout be reshuffled without a release. It only ever takes tabs away: a
+  // tab it lists still has to clear the two gates above.
+  const tabConfigOrder = useSelector(selectMemecoinTdpV1TabConfigOrder);
+
+  const visibleTabs = useMemo<TokenDetailsV1TabKey[]>(() => {
+    const tabs = tabConfigOrder.filter((tab) => {
+      if (tab === 'feed') {
+        return showSocialTabs;
+      }
+      if (tab === 'holders') {
+        return showHoldersTab;
+      }
+      return true;
+    });
+
+    // A config naming only gated tabs can leave nothing at all, which would
+    // strand the reader on an empty tab strip with no panel under it. Overview
+    // is the backstop because it is the one tab no gate can take away.
+    return tabs.length > 0 ? tabs : [FALLBACK_TAB];
+  }, [tabConfigOrder, showHoldersTab, showSocialTabs]);
+  // Whichever tab survives first is where the page lands, so reordering the
+  // config moves the landing tab with it. An empty feed still keeps its tab;
+  // an empty holders list does not.
+  const landingTab = visibleTabs[0];
+  const userPickedTabRef = useRef(false);
+  const applyingLandingTabRef = useRef(false);
+  const handleTabChange = useCallback(() => {
+    if (!applyingLandingTabRef.current) {
+      userPickedTabRef.current = true;
+    }
+    clampScrollToTabBar();
+  }, [clampScrollToTabBar]);
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
-    useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
+    useTokenDetailsV1Tabs({
+      initialTab: landingTab,
+      onTabChange: handleTabChange,
+      tabs: visibleTabs,
+    });
+  // An empty feed has its own 48px padding. The short-tab spacer and the
+  // sticky-footer reservation exist for interactive tab content, and they
+  // leave a blank scroll under this state. A position footer is taller than
+  // Buy alone, so its measured height is added to that 48px gap.
+  const [feedIsEmpty, setFeedIsEmpty] = useState(false);
+  const handleFeedEmptyChange = useCallback((isEmpty: boolean) => {
+    setFeedIsEmpty((current) => (current === isEmpty ? current : isEmpty));
+  }, []);
+  const isEmptyFeed = activeTab === 'feed' && feedIsEmpty;
+  const [balanceFooterHeight, setBalanceFooterHeight] = useState(0);
+  const handleBalanceFooterLayout = useCallback((height: number) => {
+    setBalanceFooterHeight((current) =>
+      current === height ? current : height,
+    );
+  }, []);
+  const emptyFeedBottomPadding = hasBalanceValue
+    ? balanceFooterHeight + 48
+    : 48;
+  const scrollContentStyle = useMemo(() => {
+    if (!isGlassHeader) {
+      return isEmptyFeed
+        ? [styles.scrollContent, { paddingBottom: emptyFeedBottomPadding }]
+        : styles.scrollContent;
+    }
+
+    return [
+      styles.scrollContent,
+      {
+        paddingTop: headerInset,
+        ...(isEmptyFeed ? { paddingBottom: emptyFeedBottomPadding } : {}),
+      },
+    ];
+  }, [
+    emptyFeedBottomPadding,
+    headerInset,
+    isGlassHeader,
+    isEmptyFeed,
+    styles.scrollContent,
+  ]);
+
+  useEffect(() => {
+    if (!visibleTabs.includes(activeTab)) {
+      applyingLandingTabRef.current = true;
+      activateTab(visibleTabs[0]);
+      applyingLandingTabRef.current = false;
+      return;
+    }
+    if (!userPickedTabRef.current && activeTab !== landingTab) {
+      applyingLandingTabRef.current = true;
+      activateTab(landingTab);
+      applyingLandingTabRef.current = false;
+    }
+  }, [activeTab, activateTab, landingTab, visibleTabs]);
+
+  // Explicit tab taps emit exactly one TOKEN_DETAILS_TAB_VIEWED. Swipe-driven
+  // tab changes call `activateTab` internally and the pill routes through
+  // `handleSecurityPress` (its own event), so neither double-fires here.
+  const handleTabPress = useCallback(
+    (tab: TokenDetailsV1TabKey) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_TAB_VIEWED)
+          .addProperties({
+            ...analyticsBase,
+            tab_name: tab,
+          })
+          .build(),
+      );
+      activateTab(tab);
+    },
+    [activateTab, analyticsBase, createEventBuilder, trackEvent],
+  );
+
+  const securityFacts = useSecurityFacts({
+    securityData,
+    isLoading: isSecurityDataLoading,
+    error: securityDataError,
+  });
+
+  const securityFetchedMinutesAgo = useElapsedTime({
+    since: securityDataUpdatedAt,
+  });
 
   /**
-   * Security row whose definition is open, held here rather than inside
-   * `SecurityTab` because the sheet it drives has to mount outside the page
-   * `ScrollView` — see the note on `SecurityTabProps.onExplain`.
+   * The pill emits its own verdict event rather than TOKEN_DETAILS_TAB_VIEWED,
+   * so it calls `activateTab` directly instead of `handleTabPress`.
+   *
+   * Selecting the tab alone would leave the reader looking at the price hero
+   * while the thing they asked for sat a chart's height below the fold, so the
+   * verdict pill scrolls the page as well as switching tabs.
+   *
+   * Withheld when the config leaves the Security tab out, which renders the
+   * pill as static text. The verdict still reads, it just stops offering a
+   * destination the page no longer has.
    */
-  const [explainedSecurityRow, setExplainedSecurityRow] =
-    useState<SecurityRowKey | null>(null);
+  const handleSecurityPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_SECURITY_PILL_CLICKED)
+        .addProperties({
+          ...analyticsBase,
+          // The exact verdict feeding the SecurityPill below.
+          verdict: securityFacts.verdict,
+        })
+        .build(),
+    );
+    activateTab('security');
+    scrollToTabBar();
+  }, [
+    activateTab,
+    analyticsBase,
+    createEventBuilder,
+    scrollToTabBar,
+    securityFacts.verdict,
+    trackEvent,
+  ]);
 
+  /**
+   * No payload rides along: the detail screen subscribes to the same query
+   * entry this tab just read, so it renders from cache without a request and
+   * stays in step if that entry revalidates.
+   */
+  const handleOpenContractSecurity = useCallback(() => {
+    navigation.navigate(Routes.CONTRACT_SECURITY, {
+      token,
+      tdpVersion: analyticsBase.tdp_version,
+      tokenCategory: analyticsBase.token_category,
+    });
+  }, [navigation, token, analyticsBase]);
+
+  // `isActive` reaches the paginated tabs: every mounted tab sees the page's
+  // scroll, and a hidden one must not page itself in behind the active tab.
   const renderTabPage = useCallback(
-    (tab: TokenDetailsV1TabKey) => {
+    (tab: TokenDetailsV1TabKey, isActive: boolean) => {
       if (!mountedTabs.has(tab)) {
         return null;
       }
@@ -322,39 +764,59 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           <OverviewTab
             token={token}
             assetId={caip19AssetId}
-            currentCurrency={currentCurrency}
             securityData={securityData}
+            marketData={marketData}
           />
         );
       }
       if (tab === 'security') {
-        // TODO(ASSETS-4022): replace with real facts derived from
-        // `securityData`. The fixture is chosen by chain because the two
-        // namespaces render materially different tabs — Solana has no fee or
-        // creation data at all — so a single fixture would leave one of them
-        // unverified.
         return (
           <SecurityTab
-            facts={
-              isNonEvmChainId(token.chainId as string)
-                ? MOCK_SECURITY_FACTS_SOLANA
-                : MOCK_SECURITY_FACTS_EVM
-            }
-            onExplain={setExplainedSecurityRow}
+            facts={securityFacts}
+            stats={tokenStats}
+            onExplain={handleRowExplain}
+            onOpenContractDetails={handleOpenContractSecurity}
+            onExplainAttribution={handleAttributionPress}
+            fetchedMinutesAgo={securityFetchedMinutesAgo}
           />
+        );
+      }
+      if (tab === 'feed' && showSocialTabs && caip19AssetId) {
+        return (
+          <TokenDetailsFeedTab
+            assetId={caip19AssetId}
+            token={token}
+            isActive={isActive}
+            onCopyTrade={handleFeedCopyTrade}
+            hasBalance={hasBalanceValue}
+            onEmptyChange={handleFeedEmptyChange}
+          />
+        );
+      }
+      if (tab === 'holders' && showSocialTabs && caip19AssetId) {
+        return (
+          <TokenDetailsHoldersTab assetId={caip19AssetId} isActive={isActive} />
         );
       }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
-    [mountedTabs, token, caip19AssetId, currentCurrency, securityData],
-  );
-
-  const explainedSecurityCopy = explainedSecurityRow
-    ? SECURITY_EXPLAINER_KEYS[explainedSecurityRow]
-    : null;
-  const handleSecurityExplainerClose = useCallback(
-    () => setExplainedSecurityRow(null),
-    [],
+    [
+      mountedTabs,
+      token,
+      caip19AssetId,
+      securityData,
+      marketData,
+      securityFacts,
+      securityFetchedMinutesAgo,
+      tokenStats,
+      handleRowExplain,
+      handleAttributionPress,
+      handleOpenContractSecurity,
+      showSocialTabs,
+      hasBalanceValue,
+      handleFeedEmptyChange,
+      handleFeedCopyTrade,
+    ],
   );
 
   const currentPriceUsd = useMemo(() => {
@@ -398,127 +860,178 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   return (
     <PriceChartProvider>
-      <View style={styles.wrapper} testID={TOKEN_DETAILS_V1_TEST_ID}>
-        <TokenDetailsInlineHeader
-          token={token}
-          securityData={securityData}
-          onBackPress={handleBackPress}
-          onSharePress={shareUrl ? handleShare : undefined}
-          starButton={starButton}
-          onPriceAlertPress={
-            isPriceAlertsSupported ? handlePriceAlertPress : undefined
-          }
-          description={headerDescription}
-          titleEndAccessory={
-            <Tag
-              severity={TagSeverity.Neutral}
-              twClassName="self-center shrink-0"
-              testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
-              accessibilityLabel={`Token age ${MOCK_TOKEN_AGE_LABEL}`}
-            >
-              {MOCK_TOKEN_AGE_LABEL}
-            </Tag>
-          }
-        />
-
-        {/* The tab bar is a direct ScrollView child registered in
-            `stickyHeaderIndices`, so it docks right below the nav header
-            while the price hero, chart and tab content scroll under it. */}
-        <PriceChartContext.Consumer>
-          {({ isChartBeingTouched }) => (
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.scroll}
-              contentContainerStyle={styles.scrollContent}
-              stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
-              onScroll={onScrollViewScroll}
-              onLayout={handleScrollViewLayout}
-              scrollEventThrottle={16}
-              scrollEnabled={!isChartBeingTouched}
-              testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
-            >
-              <Price.Provider
-                asset={token}
-                prices={prices}
-                timePeriod={timePeriod}
-                setTimePeriod={setTimePeriod}
-                currentPrice={currentPrice}
-                priceDiff={priceDiff}
-                comparePrice={comparePrice}
-                currentCurrency={currentCurrency}
-                isLoading={isPriceLoading}
-                hasInsufficientCoverage={hasInsufficientCoverage}
-              >
-                <Price.Header />
-
-                <Box twClassName="px-4">
-                  <SecuritySocialSection
-                    securityVerdict={MOCK_SECURITY_VERDICT}
-                    securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
-                    externalLinks={securityData?.metadata?.externalLinks}
-                    contractAddress={token.isNative ? null : token.address}
-                    onSecurityPress={() => activateTab('security')}
-                  />
-                </Box>
-                <Box twClassName="py-4">
-                  <StatBar
-                    variant={variant}
-                    stats={statBarStats}
-                    onStatPress={handleStatPress}
-                  />
-                </Box>
-
-                <Price.Chart />
-              </Price.Provider>
-
-              <TokenDetailsActionsSection
-                token={token}
-                networkName={networkConfigurationByChainId?.name}
-                severity={securityData?.resultType}
-              />
-
-              <TokenDetailsV1TabBar
-                activeTab={activeTab}
-                onTabPress={activateTab}
-                onLayout={handleTabBarLayout}
-              />
-
-              <GestureDetector gesture={swipeGesture}>
-                <View
-                  collapsable={false}
-                  style={tabContentContainerStyle}
-                  testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
+      <View style={styles.wrapper} testID={TokenDetailsIds.v1}>
+        <View style={styles.content}>
+          <TokenDetailsInlineHeader
+            token={token}
+            securityData={securityData}
+            tdpVersion="v3"
+            hideContractAddress
+            onBackPress={handleBackPress}
+            onSharePress={shareUrl ? handleShare : undefined}
+            starButton={starButton}
+            onPriceAlertPress={
+              isPriceAlertsSupported ? handlePriceAlertPress : undefined
+            }
+            description={headerDescription}
+            titleEndAccessory={
+              formatTokenAge(launchedAt) != null ? (
+                <TokenAgeChip
+                  launchedAtSeconds={launchedAt}
+                  onPress={handleAgePress}
+                />
+              ) : undefined
+            }
+            isGlass={isGlassHeader}
+            onLayout={handleHeaderLayout}
+            scrollY={headerScrollY}
+          />
+          {/* The in-flow tab bar scrolls with the page and takes taps until it
+            reaches the top. From there a copy laid over the page, outside the
+            ScrollView, docks it below the nav header and takes the taps
+            instead. See `usePinnedTokenDetailsV1TabBar`. */}
+          <PriceChartContext.Consumer>
+            {({ isChartBeingTouched }) => (
+              <View style={styles.scrollArea}>
+                <ScrollView
+                  ref={scrollViewRef}
+                  style={styles.scroll}
+                  contentContainerStyle={scrollContentStyle}
+                  onScroll={onScrollViewScroll}
+                  scrollEventThrottle={16}
+                  scrollEnabled={!isChartBeingTouched}
+                  onLayout={handleScrollViewLayout}
+                  onContentSizeChange={pageScroll.onContentSizeChange}
+                  testID={TokenDetailsIds.scrollView}
                 >
-                  {TOKEN_DETAILS_V1_TABS.map((tab) => {
-                    const isActive = tab === activeTab;
-                    return (
-                      <View
-                        key={tab}
-                        collapsable={false}
-                        style={isActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
-                        pointerEvents={isActive ? 'auto' : 'none'}
-                        testID={`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-${tab}`}
-                      >
-                        {renderTabPage(tab)}
-                      </View>
-                    );
-                  })}
-                </View>
-              </GestureDetector>
-            </ScrollView>
-          )}
-        </PriceChartContext.Consumer>
+                  <Price.Provider
+                    asset={token}
+                    prices={prices}
+                    timePeriod={timePeriod}
+                    setTimePeriod={setTimePeriod}
+                    currentPrice={currentPrice}
+                    priceDiff={priceDiff}
+                    comparePrice={comparePrice}
+                    currentCurrency={currentCurrency}
+                    isLoading={isPriceLoading}
+                    hasInsufficientCoverage={hasInsufficientCoverage}
+                  >
+                    <Price.Header showPeriodLabel={false} />
+
+                    <Box twClassName="px-4">
+                      <SecuritySocialSection
+                        securityVerdict={securityFacts.verdict}
+                        securityRiskCount={securityFacts.risks.length}
+                        externalLinks={securityData?.metadata?.externalLinks}
+                        contractAddress={contractAddress}
+                        onSecurityPress={
+                          visibleTabs.includes('security')
+                            ? handleSecurityPress
+                            : undefined
+                        }
+                      />
+                    </Box>
+                    {/* The interval bar above the chart adds 8px of its own top padding. */}
+                    <Box
+                      twClassName={
+                        isTechnicalIndicatorsEnabled ? 'pt-4 pb-2' : 'py-4'
+                      }
+                    >
+                      <StatBar
+                        variant={variant}
+                        stats={tokenStats}
+                        onStatPress={handleRowExplain}
+                      />
+                    </Box>
+
+                    <Price.Chart uniformSpacing />
+                  </Price.Provider>
+
+                  <TokenDetailsActionsSection
+                    token={token}
+                    networkName={networkConfigurationByChainId?.name}
+                    severity={securityData?.resultType}
+                    tdpVersion="v3"
+                  />
+
+                  <View
+                    {...pinnedTabBar.inFlowProps}
+                    onLayout={handleTabBarContainerLayout}
+                    testID={TokenDetailsIds.tabBarSlot}
+                  >
+                    <TokenDetailsV1TabBar
+                      activeTab={activeTab}
+                      onTabPress={handleTabPress}
+                      tabs={visibleTabs}
+                    />
+                  </View>
+
+                  <GestureDetector gesture={swipeGesture}>
+                    <View
+                      collapsable={false}
+                      style={isEmptyFeed ? undefined : tabContentStyle}
+                      testID={TokenDetailsIds.tabContent}
+                    >
+                      <TokenDetailsScrollProvider value={pageScroll.value}>
+                        {visibleTabs.map((tab) => {
+                          const isActive = tab === activeTab;
+                          return (
+                            <View
+                              key={tab}
+                              collapsable={false}
+                              style={
+                                isActive ? undefined : HIDDEN_TAB_PAGE_STYLE
+                              }
+                              pointerEvents={isActive ? 'auto' : 'none'}
+                              testID={TokenDetailsIds.tabPage(tab)}
+                            >
+                              {renderTabPage(tab, isActive)}
+                            </View>
+                          );
+                        })}
+                      </TokenDetailsScrollProvider>
+                    </View>
+                  </GestureDetector>
+                </ScrollView>
+                <Animated.View
+                  style={[styles.pinnedTabBar, pinnedTabBar.pinnedStyle]}
+                  {...pinnedTabBar.pinnedProps}
+                  testID={TokenDetailsIds.pinnedTabBarOverlay}
+                >
+                  <TokenDetailsV1TabBar
+                    activeTab={activeTab}
+                    onTabPress={handleTabPress}
+                    topInset={isGlassHeader ? headerInset : 0}
+                    tabs={visibleTabs}
+                    isPinnedCopy
+                  />
+                </Animated.View>
+              </View>
+            )}
+          </PriceChartContext.Consumer>
+        </View>
+
+        {/* Outside the isolated content, so its sheets open above the glass header. */}
+        <TraderPositionPnlSection
+          token={token}
+          tokenKey={traderPositionTokenKey}
+          securityData={securityData}
+          // Measured on the first layout. Attaching this only after the feed
+          // is known empty misses that layout, leaves the height at 0, and the
+          // create-post button stays under the position bar.
+          onFooterLayout={handleBalanceFooterLayout}
+        />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design
             system `BottomSheet` is positioned `absolute inset-0` against its
             nearest positioned ancestor instead of being portalled, so mounting
             one inside the scroll content would clip it to the viewport and
             scroll it away with the page. */}
-        {explainedSecurityCopy && (
+        {explainerCopy && (
           <TokenExplainerSheet
-            title={strings(explainedSecurityCopy.title)}
-            description={strings(explainedSecurityCopy.description)}
-            onClose={handleSecurityExplainerClose}
+            title={strings(explainerCopy.title)}
+            description={strings(explainerCopy.description)}
+            onClose={handleExplainerClose}
           />
         )}
 
@@ -536,12 +1049,17 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           />
         )}
 
-        {explainedStat && (
-          <StatExplainerSheet
-            statKey={explainedStat}
-            onClose={handleExplainerClose}
-          />
-        )}
+        <QuickBuy.Root
+          isVisible={copyTrade !== null}
+          target={copyTrade?.target ?? null}
+          onClose={closeCopyTrade}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          initialTradeMode={copyTrade?.tradeMode ?? 'buy'}
+          analyticsContext={{ source: 'trader_feed' }}
+          copyTradeOrigin={copyTrade?.copyTradeOrigin}
+          postTradeShare
+          postTradeShareOwner={PostTradeShareOwner.tokenDetails}
+        />
       </View>
     </PriceChartProvider>
   );

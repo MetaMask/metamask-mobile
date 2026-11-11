@@ -20,6 +20,7 @@ import {
   TokenDetailsAction,
   type TokenDetailsRouteParams,
 } from '../../constants/constants';
+import type { TdpVersion } from '../../analytics/getTdpAnalyticsBase';
 import { usePerpsActions } from '../../hooks/usePerpsActions';
 import { useTokenActions } from '../../hooks/useTokenActions';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
@@ -144,6 +145,10 @@ export interface TokenDetailsActionsSectionProps {
   onActionTapped?: (action: TokenDetailsAction) => void;
   resetNavigationLockRef?: React.RefObject<(() => void) | null>;
   onExitAction?: () => void;
+  /** Token Details page version. Threaded into the section's fallback `useTokenActions` so the below-chart Buy/Send/Receive emit `tdp_version` (`'v2'` legacy, `'v3'` V1). */
+  tdpVersion?: TdpVersion;
+  /** Draws the action tiles on brand refresh glass. */
+  isGlass?: boolean;
 }
 
 const TokenDetailsActionsSection = ({
@@ -159,6 +164,8 @@ const TokenDetailsActionsSection = ({
   onActionTapped,
   resetNavigationLockRef,
   onExitAction,
+  tdpVersion,
+  isGlass = false,
 }: TokenDetailsActionsSectionProps) => {
   const selfPerpsMarket = usePerpsActions({
     symbol: perpsMarket ? null : token.symbol,
@@ -186,7 +193,7 @@ const TokenDetailsActionsSection = ({
     onBuy: defaultOnBuy,
     onSend: defaultOnSend,
     onReceive: defaultOnReceive,
-  } = useTokenActions({ token, networkName });
+  } = useTokenActions({ token, networkName, tdpVersion });
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
 
   const effectiveHasBalance =
@@ -217,6 +224,7 @@ const TokenDetailsActionsSection = ({
           isLoading={isBuyableLoading || isPerpsLoading}
           resetNavigationLockRef={resetNavigationLockRef}
           onActionTapped={effectiveOnActionTapped}
+          isGlass={isGlass}
         />
       </Box>
       {geoBlockTooltip}

@@ -17,6 +17,7 @@ import {
 import { AccountCellIds } from './AccountCell.testIds';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { AvatarAccountType } from '../avatarAccountVariant';
+import { AccountListBalanceContext } from '../../../../components/hooks/AccountListBalanceContext';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
@@ -72,9 +73,10 @@ const renderAccountCell = (
     avatarAccountType?: AvatarAccountType;
     onSelectAccount?: () => void;
     privacyMode?: boolean;
+    accountListBalance?: number | null;
   } = {},
 ) => {
-  const { privacyMode = false, ...componentProps } = props;
+  const { privacyMode = false, accountListBalance, ...componentProps } = props;
   const defaultProps = {
     accountGroup: mockAccountGroup,
     avatarAccountType: AvatarAccountType.Maskicon,
@@ -88,7 +90,17 @@ const renderAccountCell = (
   const wallet = createMockWallet('test-group', 'Test Wallet', groups);
   const internalAccounts = createMockInternalAccountsFromGroups(groups);
   const baseState = createMockState([wallet], internalAccounts);
-  return renderWithProvider(<AccountCell {...defaultProps} />, {
+  const accountCell = <AccountCell {...defaultProps} />;
+  const component =
+    accountListBalance === undefined ? (
+      accountCell
+    ) : (
+      <AccountListBalanceContext.Provider value={() => accountListBalance}>
+        {accountCell}
+      </AccountListBalanceContext.Provider>
+    );
+
+  return renderWithProvider(component, {
     state: {
       ...baseState,
       engine: {
@@ -133,6 +145,45 @@ describe('AccountCell', () => {
     mockBalance.currency = currency;
     const { getByText } = renderAccountCell();
     expect(getByText(expected)).toBeTruthy();
+  });
+
+  it('renders the cached complete homepage aggregate', () => {
+    mockBalance.value = 100;
+
+    const { getByText } = renderAccountCell({
+      accountListBalance: 900,
+    });
+
+    expect(getByText('$900.00')).toBeTruthy();
+  });
+
+  it('uses the homepage aggregate for the selected account group', () => {
+    mockBalance.value = 100;
+
+    const { getByText, queryByText } = renderAccountCell({
+      accountListBalance: 900,
+    });
+
+    expect(getByText('$900.00')).toBeTruthy();
+    expect(queryByText('$1,000.00')).toBeNull();
+  });
+
+  it('keeps the aggregate balance blank while non-token balances are loading', () => {
+    mockBalance.value = 100;
+
+    const { queryByText } = renderAccountCell({ accountListBalance: null });
+
+    expect(queryByText('$100.00')).toBeNull();
+  });
+
+  it('keeps the balance blank when the account has never been fully loaded', () => {
+    mockBalance.value = 100;
+
+    const { queryByText } = renderAccountCell({
+      accountListBalance: null,
+    });
+
+    expect(queryByText('$100.00')).toBeNull();
   });
 
   it.each([

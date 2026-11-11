@@ -14,12 +14,17 @@ import {
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { getNavIntegration } from '../../../util/sentry/utils';
+import { endNavigationInitializationAppStart } from '../../../util/sentry/navigationInitializationAppStart';
 import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
 import {
   markStartup,
   noteStartupRouteChange,
 } from '../../../core/Performance/startupStageSpans';
 import { AppThemeKey } from '../../../util/theme/models';
+import {
+  resetNavigationAnalyticsAttributionForTests,
+  resolvePreviousScreenName,
+} from '../../../util/analytics/navigationAnalyticsAttribution';
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -39,6 +44,10 @@ jest.mock('../../../util/sentry/utils', () => {
   };
 });
 
+jest.mock('../../../util/sentry/navigationInitializationAppStart', () => ({
+  endNavigationInitializationAppStart: jest.fn(),
+}));
+
 jest.mock('../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../util/theme');
   return {
@@ -51,6 +60,7 @@ jest.mock('../../../core/Performance/UIStartup', () => jest.fn());
 
 jest.mock('../../../core/NavigationService', () => ({
   navigation: jest.fn(),
+  getCurrentRoute: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -128,6 +138,8 @@ describe('NavigationProvider', () => {
     mockCapturedNavContainerProps.theme = undefined;
     NavigationService.navigation =
       undefined as unknown as NavigationContainerRef<ParamListBase>;
+    jest.mocked(NavigationService.getCurrentRoute).mockReturnValue(undefined);
+    resetNavigationAnalyticsAttributionForTests();
     jest.mocked(useDispatch).mockReturnValue(mockDispatch);
   });
 
@@ -140,6 +152,16 @@ describe('NavigationProvider', () => {
     );
 
     expect(getByText(testMessage)).toBeOnTheScreen();
+  });
+
+  it('ends extended App Start when the navigation container is ready', () => {
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    expect(endNavigationInitializationAppStart).toHaveBeenCalledTimes(1);
   });
 
   it('dispatches navigation ready action when ready', () => {
@@ -255,6 +277,114 @@ describe('NavigationProvider', () => {
       'HomeNav',
       'TrendingView',
     ]);
+  });
+
+  it('records the leaf route when a stack pushes', () => {
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+    resetNavigationAnalyticsAttributionForTests();
+
+    mockCapturedNavContainerProps.onStateChange?.({
+      index: 0,
+      routes: [
+        {
+          key: 'root',
+          name: 'Root',
+          state: {
+            index: 0,
+            routes: [{ key: 'wallet', name: 'WalletView' }],
+          },
+        },
+      ],
+    } as NavigationState);
+    mockCapturedNavContainerProps.onStateChange?.({
+      index: 0,
+      routes: [
+        {
+          key: 'root',
+          name: 'Root',
+          state: {
+            index: 1,
+            routes: [
+              { key: 'wallet', name: 'WalletView' },
+              { key: 'tokens', name: 'TokensFullView' },
+            ],
+          },
+        },
+      ],
+    } as NavigationState);
+
+    expect(
+      resolvePreviousScreenName({ name: 'TokensFullView', key: 'tokens' }),
+    ).toBe('WalletView');
+  });
+
+  it('records the leaf route when the focused tab changes', () => {
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+    resetNavigationAnalyticsAttributionForTests();
+
+    mockCapturedNavContainerProps.onStateChange?.({
+      index: 0,
+      routes: [
+        {
+          key: 'tabs',
+          name: 'MainTabs',
+          state: {
+            index: 0,
+            routes: [
+              { key: 'wallet', name: 'WalletView' },
+              { key: 'browser', name: 'BrowserView' },
+            ],
+          },
+        },
+      ],
+    } as NavigationState);
+    mockCapturedNavContainerProps.onStateChange?.({
+      index: 0,
+      routes: [
+        {
+          key: 'tabs',
+          name: 'MainTabs',
+          state: {
+            index: 1,
+            routes: [
+              { key: 'wallet', name: 'WalletView' },
+              { key: 'browser', name: 'BrowserView' },
+            ],
+          },
+        },
+      ],
+    } as NavigationState);
+
+    expect(
+      resolvePreviousScreenName({ name: 'BrowserView', key: 'browser' }),
+    ).toBe('WalletView');
+  });
+
+  it('records the current route when navigation is ready', () => {
+    resetNavigationAnalyticsAttributionForTests();
+    jest.mocked(NavigationService.getCurrentRoute).mockReturnValue({
+      key: 'wallet-ready',
+      name: 'WalletView',
+      params: {},
+    });
+
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    expect(
+      resolvePreviousScreenName({ name: 'BrowserView', key: 'browser' }),
+    ).toBe('WalletView');
   });
 
   it('ignores an undefined navigation state', () => {

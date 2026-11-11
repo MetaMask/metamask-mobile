@@ -32,12 +32,14 @@ describe('useTokenDetailsVariant', () => {
   const arrange = ({
     isFlagEnabled,
     isMeme,
+    isLoading = false,
   }: {
     isFlagEnabled: boolean;
     isMeme: boolean;
+    isLoading?: boolean;
   }) => {
     mockUseSelector.mockReturnValue(isFlagEnabled);
-    mockUseIsMemeToken.mockReturnValue({ isMeme });
+    mockUseIsMemeToken.mockReturnValue({ isMeme, isLoading });
 
     return renderHook(() => useTokenDetailsVariant(token));
   };
@@ -45,19 +47,54 @@ describe('useTokenDetailsVariant', () => {
   it('resolves the memecoin variant when the flag is on and the token is a meme', () => {
     const { result } = arrange({ isFlagEnabled: true, isMeme: true });
 
-    expect(result.current).toBe(TokenDetailsVariant.Memecoin);
+    expect(result.current).toStrictEqual({
+      variant: TokenDetailsVariant.Memecoin,
+      isLoading: false,
+    });
   });
 
   it('resolves no variant when the flag is off', () => {
     const { result } = arrange({ isFlagEnabled: false, isMeme: true });
 
-    expect(result.current).toBeNull();
+    expect(result.current).toStrictEqual({
+      variant: null,
+      isLoading: false,
+    });
   });
 
   it('resolves no variant when the token is not a meme', () => {
     const { result } = arrange({ isFlagEnabled: true, isMeme: false });
 
-    expect(result.current).toBeNull();
+    expect(result.current).toStrictEqual({
+      variant: null,
+      isLoading: false,
+    });
+  });
+
+  it('reports loading when the flag is on and the meme check is pending', () => {
+    const { result } = arrange({
+      isFlagEnabled: true,
+      isMeme: false,
+      isLoading: true,
+    });
+
+    expect(result.current).toStrictEqual({
+      variant: null,
+      isLoading: true,
+    });
+  });
+
+  it('does not report loading when the flag is off', () => {
+    const { result } = arrange({
+      isFlagEnabled: false,
+      isMeme: false,
+      isLoading: true,
+    });
+
+    expect(result.current).toStrictEqual({
+      variant: null,
+      isLoading: false,
+    });
   });
 
   it('passes the resolved asset id and flag state to the meme check', () => {

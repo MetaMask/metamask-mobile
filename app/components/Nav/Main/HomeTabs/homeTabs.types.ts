@@ -35,6 +35,14 @@ export interface HomeTabDefinition {
   onLeave?: () => void;
   freezeOnBlur?: boolean;
   isHidden?: boolean;
+  showNewBadge?: boolean;
+  /**
+   * Native iOS 26 bar only. `false` stops UIKit from selecting the tab on tap
+   * so a listener can decide first. Programmatic `navigate` still selects it.
+   */
+  tabBarSelectionEnabled?: boolean;
+  /** Native iOS 26 bar only. Also restored when the user switches tabs. */
+  initialParams?: object;
   isSelected?: (rootScreenName: string) => boolean;
   hidesTabBarFor?: (route: HomeTabRoute) => boolean;
 }
