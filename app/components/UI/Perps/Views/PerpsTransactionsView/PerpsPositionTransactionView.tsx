@@ -151,7 +151,9 @@ const PerpsPositionTransactionView: React.FC = () => {
     textColor: TextColor;
   }[] = [];
 
-  if (transaction.fill?.fee !== undefined && transaction.fill?.fee !== null) {
+  // An empty fee is unknown (a grouped order with a fill missing its fee):
+  // leave the row out rather than show $0.00.
+  if (transaction.fill?.fee) {
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.fees'),
       value: formatPositiveFiat(transaction.fill.fee),

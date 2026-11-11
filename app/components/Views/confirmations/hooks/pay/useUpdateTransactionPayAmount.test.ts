@@ -4,10 +4,7 @@ import {
   type TransactionMeta,
   updateEIP7702BatchData,
 } from '@metamask/transaction-controller';
-import {
-  TransactionPayRequiredToken,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
+import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useUpdateTransactionPayAmount } from './useUpdateTransactionPayAmount';
@@ -65,23 +62,9 @@ const requiredAssetMock = {
   standard: 'erc20',
 };
 
-const PAYMENT_TOKEN_MOCK: TransactionPaymentToken = {
-  assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-  balanceFiat: '0',
-  balanceHuman: '0',
-  balanceRaw: '0',
-  balanceUsd: '0',
-  decimals: 6,
-  symbol: 'USDC',
-};
-
 function runHook({
-  paymentToken,
   transactionMeta,
-}: {
-  paymentToken?: TransactionPaymentToken;
-  transactionMeta?: Partial<TransactionMeta>;
-} = {}) {
+}: { transactionMeta?: Partial<TransactionMeta> } = {}) {
   return renderHookWithProvider(useUpdateTransactionPayAmount, {
     state: merge(
       {},
@@ -93,17 +76,6 @@ function runHook({
             engine: {
               backgroundState: {
                 TransactionController: { transactions: [transactionMeta] },
-              },
-            },
-          }
-        : {},
-      paymentToken
-        ? {
-            engine: {
-              backgroundState: {
-                TransactionPayController: {
-                  transactionData: { [transactionIdMock]: { paymentToken } },
-                },
               },
             },
           }
@@ -184,27 +156,6 @@ describe('useUpdateTransactionPayAmount', () => {
         expect.objectContaining({ id: transactionIdMock }),
         AMOUNT_MOCK,
         OVERRIDE_ADDRESS_MOCK,
-        undefined,
-      );
-    });
-
-    it('passes the selected EVM payment token to the external module', async () => {
-      const { result } = runHook({
-        paymentToken: PAYMENT_TOKEN_MOCK,
-        transactionMeta: { requiredAssets: [requiredAssetMock] },
-      });
-      await act(async () => {
-        await result.current.updateTransactionPayAmount(AMOUNT_MOCK);
-      });
-
-      expect(getTransactionPayAmountCallsMock).toHaveBeenCalledWith(
-        expect.objectContaining({ id: transactionIdMock }),
-        AMOUNT_MOCK,
-        undefined,
-        expect.objectContaining({
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          chainId: '0x1',
-        }),
       );
     });
 

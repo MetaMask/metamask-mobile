@@ -12,13 +12,12 @@ import {
   IconName,
   IconSize,
   ListItemSelect,
-  Switch,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -65,6 +64,12 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const selectedAccount =
     accounts.find((account) => account.id === selectedAccountId) ?? accounts[0];
+  // Design-system Switch copies `label` into accessibilityLabel and ignores a
+  // passed accessibilityLabel. This row keeps its own text so the label can
+  // fill the row, and the native switch carries the accessible name.
+  const tradingActivityLabel = strings(
+    'social_leaderboard.manage_profile.show_trading_activity',
+  );
 
   const closeSheet = useCallback(() => {
     setIsSheetOpen(false);
@@ -130,13 +135,24 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
           </Box>
         </Pressable>
 
-        <Box twClassName="bg-muted rounded-xl px-4 py-3">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="bg-muted rounded-xl pl-4 pr-3 h-14 mb-3"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="flex-1 mr-2"
+          >
+            {tradingActivityLabel}
+          </Text>
           <Switch
-            isOn={shareTradingActivity}
+            value={shareTradingActivity}
             onValueChange={onShareTradingActivityChange}
-            label={strings(
-              'social_leaderboard.manage_profile.show_trading_activity',
-            )}
+            accessibilityRole="switch"
+            accessibilityLabel={tradingActivityLabel}
+            accessibilityState={{ checked: shareTradingActivity }}
             testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
           />
         </Box>

@@ -13,6 +13,7 @@ jest.mock('../send/useAccountTokens');
 jest.mock('../tokens/useTokenFiatRates');
 
 const PAY_TOKEN_MOCK = {
+  assetId: 'eip155:1/erc20:0xabc',
   address: '0xabc' as Hex,
   chainId: '0x1' as Hex,
   balanceUsd: '5.00',

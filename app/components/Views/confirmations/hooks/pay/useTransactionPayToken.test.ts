@@ -1,4 +1,5 @@
 import { ChainId } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   useSetNonEvmPayToken,
@@ -20,9 +21,13 @@ import {
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import Engine from '../../../../../core/Engine';
-import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { flushPromises } from '../../../../../util/test/utils';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
+
+jest.mock('../../../../UI/Money/utils/moneyAccountTransactions', () => ({
+  syncMoneyAccountWithdrawTransfer: jest.fn(),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -57,17 +62,21 @@ const TRANSACTION_ID_MOCK =
 
 const NETWORK_CLIENT_ID_MOCK = 'network-client-id-mock';
 
-const PAY_TOKEN_MOCK = {
-  address: tokenAddress1Mock,
+const PAYMENT_TOKEN_MOCK: TransactionPaymentToken = {
   assetId: `eip155:1/erc20:${tokenAddress1Mock}`,
   balanceHuman: '123.456',
   balanceFiat: '456.12',
   balanceUsd: '456.123',
   balanceRaw: '123456000000000000000',
-  chainId: ChainId.mainnet,
   decimals: 4,
   symbol: 'TST',
-} as EvmPaymentToken;
+};
+
+const PAY_TOKEN_MOCK = {
+  ...PAYMENT_TOKEN_MOCK,
+  address: tokenAddress1Mock as Hex,
+  chainId: ChainId.mainnet as Hex,
+};
 
 const REQUIRED_TOKEN_MOCK = {
   address: tokenAddress1Mock,
@@ -129,6 +138,10 @@ describe('useTransactionPayToken', () => {
     Engine.context.GasFeeController.fetchGasFeeEstimates,
   );
 
+  const syncMoneyAccountWithdrawTransferMock = jest.mocked(
+    syncMoneyAccountWithdrawTransfer,
+  );
+
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -143,13 +156,24 @@ describe('useTransactionPayToken', () => {
     expect(result.current.isNative).toBeFalsy();
   });
 
-  it('returns token matching state', () => {
+  it('returns token matching state with the chain and address derived from its asset ID', () => {
     const { result } = runHook({
-      payToken: PAY_TOKEN_MOCK,
+      payToken: PAYMENT_TOKEN_MOCK,
     });
 
     expect(result.current.payToken).toStrictEqual(PAY_TOKEN_MOCK);
     expect(result.current.isNative).toBe(false);
+  });
+
+  it('returns undefined for a non-EVM token in state', () => {
+    const { result } = runHook({
+      payToken: {
+        ...PAYMENT_TOKEN_MOCK,
+        assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      },
+    });
+
+    expect(result.current.payToken).toBeUndefined();
   });
 
   it('sets token in state', async () => {
@@ -164,21 +188,11 @@ describe('useTransactionPayToken', () => {
 
     expect(updatePaymentTokenMock).toHaveBeenCalledWith({
       transactionId: TRANSACTION_ID_MOCK,
-      assetId: PAY_TOKEN_MOCK.assetId,
+      assetId: PAYMENT_TOKEN_MOCK.assetId,
     });
   });
 
-  it('sets token in state by its AssetsController asset ID', async () => {
-    const checksummedAssetId = `eip155:1/erc20:${tokenAddress1Mock.replace(
-      'abcdef',
-      'ABCDEF',
-    )}`;
-    const assetsControllerState = jest.mocked(Engine.context.AssetsController)
-      .state as unknown as { assetsInfo: Record<string, unknown> };
-    assetsControllerState.assetsInfo = {
-      [checksummedAssetId]: { type: 'erc20' },
-    };
-
+  it('syncs a money account withdrawal transfer with the new token', async () => {
     const { result } = runHook();
 
     result.current.setPayToken({
@@ -188,18 +202,19 @@ describe('useTransactionPayToken', () => {
 
     await flushPromises();
 
-    expect(updatePaymentTokenMock).toHaveBeenCalledWith({
-      transactionId: TRANSACTION_ID_MOCK,
-      assetId: checksummedAssetId,
-    });
-
-    assetsControllerState.assetsInfo = {};
+    expect(syncMoneyAccountWithdrawTransferMock).toHaveBeenCalledWith(
+      expect.objectContaining({ id: TRANSACTION_ID_MOCK }),
+      {
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId,
+      },
+    );
   });
 
   it('returns isNative true when pay token is native address', () => {
     const { result } = runHook({
       payToken: {
-        ...PAY_TOKEN_MOCK,
+        ...PAYMENT_TOKEN_MOCK,
         assetId: 'eip155:1/slip44:60',
       },
     });
@@ -216,7 +231,7 @@ describe('useTransactionPayToken', () => {
 
     it('updates transaction with selectedGasFeeToken for predictDeposit when pay token matches required token', async () => {
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDeposit,
         requiredTokens: [REQUIRED_TOKEN_MOCK],
       });
@@ -239,7 +254,7 @@ describe('useTransactionPayToken', () => {
 
     it('updates transaction with selectedGasFeeToken for predictDepositAndOrder when pay token matches required token', async () => {
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDepositAndOrder,
         requiredTokens: [REQUIRED_TOKEN_MOCK],
       });
@@ -268,7 +283,7 @@ describe('useTransactionPayToken', () => {
       } as unknown as TransactionPayRequiredToken;
 
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDepositAndOrder,
         requiredTokens: [differentToken],
       });
@@ -291,7 +306,7 @@ describe('useTransactionPayToken', () => {
 
     it('does not update transaction for non-predictDeposit transaction types', async () => {
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.simpleSend,
         requiredTokens: [REQUIRED_TOKEN_MOCK],
       });
@@ -314,7 +329,7 @@ describe('useTransactionPayToken', () => {
       } as unknown as TransactionPayRequiredToken;
 
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDeposit,
         requiredTokens: [differentToken],
       });
@@ -337,7 +352,7 @@ describe('useTransactionPayToken', () => {
 
     it('resets selectedGasFeeToken when no required tokens exist', async () => {
       const { result } = runHook({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.predictDeposit,
         requiredTokens: [],
       });
@@ -489,7 +504,7 @@ describe('useTransactionPayToken', () => {
 
     it('does not change the config when switching between EVM tokens', () => {
       const { setPayToken } = renderSetPayTokenHooks({
-        payToken: PAY_TOKEN_MOCK,
+        payToken: PAYMENT_TOKEN_MOCK,
         type: TransactionType.moneyAccountDeposit,
       });
 

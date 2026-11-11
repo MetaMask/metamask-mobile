@@ -5,19 +5,19 @@ import ReduxService from '../../../../redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
-import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
-import { selectIsMoneyAccountGeoEligible } from '../../../../../components/UI/Money/selectors/eligibility';
+import { selectMoneyEntryContext } from '../../../../../components/UI/Money/selectors/entry';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../../../components/UI/Money/selectors/featureFlags';
 import {
   isVbaGeoBypassEnabled,
   type MoneyMovementNeobankRollout,
   selectMoneyMovementNeobank,
-  selectMoneyOnboardingStepperAnimationEnabled,
+  selectNeobankMarkets,
 } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
+
 import {
   selectRawRemoteFeatureFlags,
   selectRemoteFeatureFlags,
@@ -42,12 +42,8 @@ jest.mock('../../../../redux', () => ({
   },
 }));
 
-jest.mock('../../../../../reducers/user', () => ({
-  selectMoneyOnboardingSeen: jest.fn(),
-}));
-
-jest.mock('../../../../../components/UI/Money/selectors/eligibility', () => ({
-  selectIsMoneyAccountGeoEligible: jest.fn(),
+jest.mock('../../../../../components/UI/Money/selectors/entry', () => ({
+  selectMoneyEntryContext: jest.fn(),
 }));
 
 jest.mock('../../../../../components/UI/Money/selectors/featureFlags', () => ({
@@ -57,8 +53,8 @@ jest.mock('../../../../../components/UI/Money/selectors/featureFlags', () => ({
 jest.mock(
   '../../../../../selectors/featureFlagController/moneyAccount',
   () => ({
-    selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
     selectMoneyMovementNeobank: jest.fn(),
+    selectNeobankMarkets: jest.fn(),
     isVbaGeoBypassEnabled: jest.fn(),
   }),
 );
@@ -119,13 +115,11 @@ const disabledRolloutFlag: GradualRolloutFlag = {
 };
 
 const enabledNeobankRollout: MoneyMovementNeobankRollout = {
-  isEnabled: true,
-  regions: ['BR'],
-  regionCurrencies: {},
-  defaultCurrency: undefined,
   chooseCurrency: false,
   regionOverride: undefined,
 };
+
+const brlMarket = { currency: 'BRL', regions: ['BR'] } as const;
 
 describe('handleMoney', () => {
   let mockNavigate: jest.Mock;
@@ -169,15 +163,15 @@ describe('handleMoney', () => {
 
     jest.mocked(ReduxService.store.getState).mockReturnValue(mockState);
     setMoneyAccountFlags();
+    jest.mocked(selectMoneyEntryContext).mockReturnValue({
+      accessBlockReason: undefined,
+      isOnboardingRedirectNeeded: false,
+    });
     jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(true);
-    jest.mocked(selectIsMoneyAccountGeoEligible).mockReturnValue(true);
-    jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(true);
-    jest
-      .mocked(selectMoneyOnboardingStepperAnimationEnabled)
-      .mockReturnValue(true);
     jest
       .mocked(selectMoneyMovementNeobank)
       .mockReturnValue(enabledNeobankRollout);
+    jest.mocked(selectNeobankMarkets).mockReturnValue([brlMarket]);
     jest.mocked(selectGeolocationLocation).mockReturnValue('BR-SP');
     jest.mocked(selectGeolocationStatus).mockReturnValue('complete');
     jest.mocked(isVbaGeoBypassEnabled).mockReturnValue(false);
@@ -261,7 +255,10 @@ describe('handleMoney', () => {
   });
 
   it('navigates to geo block modal when user is not geo eligible', () => {
-    jest.mocked(selectIsMoneyAccountGeoEligible).mockReturnValue(false);
+    jest.mocked(selectMoneyEntryContext).mockReturnValue({
+      accessBlockReason: 'geo_blocked',
+      isOnboardingRedirectNeeded: false,
+    });
 
     handleMoney();
 
@@ -271,7 +268,10 @@ describe('handleMoney', () => {
   });
 
   it('navigates to MONEY.ONBOARDING when user has not seen onboarding', () => {
-    jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(false);
+    jest.mocked(selectMoneyEntryContext).mockReturnValue({
+      accessBlockReason: undefined,
+      isOnboardingRedirectNeeded: true,
+    });
 
     handleMoney();
 
@@ -279,10 +279,10 @@ describe('handleMoney', () => {
   });
 
   it('navigates to MONEY.HOME when onboarding has not been seen and onboarding is disabled', () => {
-    jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(false);
-    jest
-      .mocked(selectMoneyOnboardingStepperAnimationEnabled)
-      .mockReturnValue(false);
+    jest.mocked(selectMoneyEntryContext).mockReturnValue({
+      accessBlockReason: undefined,
+      isOnboardingRedirectNeeded: false,
+    });
 
     handleMoney();
 
@@ -359,11 +359,7 @@ describe('handleMoney', () => {
     });
 
     it('stays on MONEY.HOME when the VBA flag is disabled', () => {
-      jest.mocked(selectMoneyMovementNeobank).mockReturnValue({
-        ...enabledNeobankRollout,
-        isEnabled: false,
-        regions: [],
-      });
+      jest.mocked(selectNeobankMarkets).mockReturnValue([]);
 
       handleMoney({ moneyPath: '?screen=account' });
 
@@ -391,7 +387,10 @@ describe('handleMoney', () => {
     });
 
     it('shows the money onboarding first when the user has not seen it', () => {
-      jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(false);
+      jest.mocked(selectMoneyEntryContext).mockReturnValue({
+        accessBlockReason: undefined,
+        isOnboardingRedirectNeeded: true,
+      });
 
       handleMoney({ moneyPath: '?screen=account' });
 

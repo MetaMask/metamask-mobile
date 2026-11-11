@@ -49,7 +49,12 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  buildSocialPositionOpenGraph,
+  readTraderShareName,
+} from '../navigation/socialShareOpenGraph';
 import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
+import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
   ToastContext,
@@ -123,6 +128,12 @@ import {
   type TradeFocusRequest,
 } from './components/TraderAdvancedChart';
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  buildSocialTradeOgImageRequest,
+  fetchPerpOgSeries,
+  getEarliestTradeMs,
+} from '../navigation/socialOgImageCards';
+import { logSocialOgShare } from '../navigation/socialOgShareLog';
 
 // Estimate (chart + vertical margins + time selector) so the spacer and the
 // sticky-header math are close before onLayout measures the real height — avoids
@@ -241,20 +252,87 @@ const TraderPositionView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const { isSharing, runShare } = useSocialShareInProgress();
   const handleSharePosition = useCallback(() => {
     if (!effectivePositionId) {
       return;
     }
     const source = getSocialEventSource(sourceParam);
-    shareSocialTraderPosition(effectivePositionId, traderId, () => {
-      trackSocialPost({
-        interaction_type: SocialEvent.Interaction.POST_SHARED,
-        screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
-        share_destination: SocialEvent.ShareDestination.EXTERNAL,
-        ...(source ? { source } : {}),
-      });
-    });
-  }, [effectivePositionId, sourceParam, trackSocialPost, traderId]);
+    const sharedPosition = displayPosition;
+    const buildOgImageRequest = sharedPosition
+      ? async () => {
+          const prices = positionData.isPerp
+            ? await fetchPerpOgSeries(
+                sharedPosition.tokenSymbol,
+                getEarliestTradeMs(sharedPosition.trades),
+                Date.now(),
+              )
+            : historicalPrices;
+          logSocialOgShare('Building trade card on the position screen', {
+            positionId: effectivePositionId,
+            isPerp: positionData.isPerp,
+            isClosed,
+            priceSource: positionData.isPerp
+              ? 'hyperliquid candles'
+              : 'on-screen chart',
+            pricePoints: prices.length,
+          });
+          return buildSocialTradeOgImageRequest({
+            traderId,
+            positionId: effectivePositionId,
+            username: fetchedProfile?.profile?.name || traderName,
+            avatarUrl: traderImageUrl,
+            position: sharedPosition,
+            market: symbol,
+            marketIconUrl:
+              sharedPosition.tokenImageUrl ?? positionData.tokenImageUrl,
+            isPerp: positionData.isPerp,
+            isClosed,
+            pnlUsd: pnlValue,
+            pnlPct: pnlPercent,
+            markPrice: currentPrice,
+            prices,
+          });
+        }
+      : undefined;
+    runShare(() =>
+      shareSocialTraderPosition(
+        effectivePositionId,
+        traderId,
+        () => {
+          trackSocialPost({
+            interaction_type: SocialEvent.Interaction.POST_SHARED,
+            screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
+            share_destination: SocialEvent.ShareDestination.EXTERNAL,
+            ...(source ? { source } : {}),
+          });
+        },
+        buildSocialPositionOpenGraph({
+          traderName: readTraderShareName(fetchedProfile?.profile, traderName),
+          assetSymbol: symbol,
+        }),
+        buildOgImageRequest,
+      ),
+    );
+  }, [
+    currentPrice,
+    displayPosition,
+    effectivePositionId,
+    fetchedProfile?.profile,
+    historicalPrices,
+    isClosed,
+    pnlPercent,
+    pnlValue,
+    positionData.isPerp,
+    positionData.tokenImageUrl,
+    runShare,
+    sourceParam,
+    symbol,
+    trackSocialPost,
+    traderId,
+    traderImageUrl,
+    traderName,
+  ]);
 
   const handleTraderPress = useCallback(() => {
     if (isSocialV1Treatment()) {
@@ -760,6 +838,7 @@ const TraderPositionView = () => {
           tradeActions={tradeActions}
           traderImageUrl={traderImageUrl}
           traderAddress={traderAddress}
+          traderProfileId={traderId}
           onTradePress={chartAssetId || isPerp ? handleTradePress : undefined}
           emphasizedTradeId={emphasizedTradeId}
           onScroll={onScroll}
@@ -929,9 +1008,11 @@ const TraderPositionView = () => {
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderId}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
             onShare={effectivePositionId ? handleSharePosition : undefined}
+            isSharing={isSharing}
             backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
             shareButtonTestID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
             traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
@@ -943,6 +1024,7 @@ const TraderPositionView = () => {
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderId}
             symbol={symbol}
             pricePercentChange={displayPercentChange}
             activeTimePeriodLabel={periodLabel}
@@ -951,6 +1033,7 @@ const TraderPositionView = () => {
             onBack={handleBack}
             onTraderPress={handleTraderPress}
             onShare={effectivePositionId ? handleSharePosition : undefined}
+            isSharing={isSharing}
           />
         )}
       </Box>

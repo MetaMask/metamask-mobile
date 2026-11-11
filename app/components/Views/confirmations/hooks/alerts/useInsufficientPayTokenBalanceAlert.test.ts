@@ -10,6 +10,7 @@ import {
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { merge } from 'lodash';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -34,7 +35,6 @@ import { useTransactionPayingAccount } from '../transactions/useTransactionPayin
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { BigNumber } from 'bignumber.js';
 import { isHardwareAccount } from '../../../../../util/address';
-import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),

@@ -6,7 +6,6 @@ import {
 import { Hex } from '@metamask/utils';
 import { prefixError } from '../../../../../util/transactions/error-prefix';
 import {
-  MoneyAccountWithdrawPaymentToken,
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
 } from '../../../../UI/Money/utils/moneyAccountTransactions';
@@ -28,14 +27,12 @@ const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';
  * @param transactionMeta - Confirmation being updated.
  * @param amountHuman - Human-readable amount entered by the user.
  * @param accountOverride - Recipient override when the user picked another account.
- * @param paymentToken - Selected EVM receive token of a withdrawal, if any.
  * @returns The calls to apply, or `undefined` when no bespoke handling applies.
  */
 export async function getTransactionPayAmountCalls(
   transactionMeta: TransactionMeta,
   amountHuman: string,
   accountOverride?: Hex,
-  paymentToken?: MoneyAccountWithdrawPaymentToken,
 ): Promise<UpdateTransactionPayAmountCall[] | undefined> {
   if (hasTransactionType(transactionMeta, MONEY_ACCOUNT_DEPOSIT_TYPES)) {
     try {
@@ -56,7 +53,6 @@ export async function getTransactionPayAmountCalls(
         transactionMeta,
         amountHuman,
         accountOverride,
-        paymentToken,
       );
     } catch (error) {
       throw prefixError(error, WITHDRAW_ERROR_PREFIX);

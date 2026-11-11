@@ -39,8 +39,11 @@ function buildAssetsInfo(
   entries: Record<string, 'native' | 'erc20'>,
 ): AssetsControllerState['assetsInfo'] {
   return Object.fromEntries(
-    Object.entries(entries).map(([assetId, type]) => [assetId, { type }]),
-  ) as unknown as AssetsControllerState['assetsInfo'];
+    Object.entries(entries).map(([assetId, type]) => [
+      assetId,
+      { type, symbol: '', name: '', decimals: 18 },
+    ]),
+  ) as AssetsControllerState['assetsInfo'];
 }
 
 describe('payment-token', () => {

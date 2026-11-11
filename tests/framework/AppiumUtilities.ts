@@ -25,6 +25,8 @@ import { withAdbHostLockSync } from './services/appium/adbHostLock.ts';
 
 const logger = createAppiumLogger('AppiumUtilities');
 
+let lastIosLaunchArguments: string[] | undefined;
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
 
@@ -1071,6 +1073,7 @@ class AppiumUtilities {
     });
 
     logger.debug(`Launching iOS app ${bundleId}`);
+    lastIosLaunchArguments = argumentsList;
     await AppiumUtilities.terminateIosAppBeforeLaunch(bundleId);
     if (IOS_PRE_LAUNCH_SETTLE_MS > 0) {
       await new Promise((resolve) =>
@@ -1082,6 +1085,36 @@ class AppiumUtilities {
       bundleId,
       ...(argumentsList.length > 0 ? { arguments: argumentsList } : {}),
     });
+  }
+
+  static async relaunchTerminatedApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    if (currentDeviceDetails.platform === 'ios') {
+      const bundleId = currentDeviceDetails.appId;
+      if (!bundleId) {
+        throw new Error('app id is not available for iOS relaunch');
+      }
+      if (!lastIosLaunchArguments?.length) {
+        throw new Error('No iOS fixture launch arguments stored');
+      }
+      logger.debug(`Relaunching iOS app ${bundleId}`);
+      await drv.execute('mobile: launchApp', {
+        bundleId,
+        arguments: lastIosLaunchArguments,
+      });
+      return;
+    }
+
+    const packageName = currentDeviceDetails.packageName;
+    if (!packageName) {
+      throw new Error('Package name is not available');
+    }
+    logger.debug(`Activating app: ${packageName}`);
+    await drv.activateApp(packageName);
   }
 
   /**

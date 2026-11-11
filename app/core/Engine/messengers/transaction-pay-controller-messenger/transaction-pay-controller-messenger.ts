@@ -7,9 +7,11 @@ import {
 } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 import {
+  KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerSignTypedMessageAction,
+  KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
 import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/transaction-controller';
 import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
@@ -30,7 +32,6 @@ export function getTransactionPayControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'AccountsController:getState',
-      // Resolve the non-EVM source account in the transaction account group.
       'AccountTreeController:getAccountContext',
       'AccountTreeController:getAccountGroupObject',
       'AssetsController:getState',
@@ -71,6 +72,7 @@ export function getTransactionPayControllerMessenger(
 type InitMessengerActions =
   | AnalyticsControllerTrackEventAction
   | DelegationControllerSignDelegationAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignPersonalMessageAction
   | KeyringControllerSignTypedMessageAction
@@ -78,7 +80,7 @@ type InitMessengerActions =
   | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerIsAtomicBatchSupportedAction;
 
-type InitMessengerEvents = never;
+type InitMessengerEvents = KeyringControllerUnlockEvent;
 
 export type TransactionPayControllerInitMessenger = Messenger<
   'TransactionPayControllerInit',
@@ -101,6 +103,7 @@ export function getTransactionPayControllerInitMessenger(
     actions: [
       'AnalyticsController:trackEvent',
       'DelegationController:signDelegation',
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signPersonalMessage',
       'KeyringController:signTypedMessage',
@@ -108,7 +111,7 @@ export function getTransactionPayControllerInitMessenger(
       'RemoteFeatureFlagController:getState',
       'TransactionController:isAtomicBatchSupported',
     ],
-    events: [],
+    events: ['KeyringController:unlock'],
     messenger,
   });
 

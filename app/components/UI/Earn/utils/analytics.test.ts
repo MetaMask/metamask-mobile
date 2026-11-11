@@ -190,7 +190,7 @@ describe('getMusdConversionQuoteTrackingData', () => {
     (
       quote as unknown as { request: Record<string, unknown> }
     ).request.sourceAssetId =
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+      'bip122:000000000019d6689c085ae165831e93/slip44:0';
 
     const result = getMusdConversionQuoteTrackingData(txMeta, [quote]);
 

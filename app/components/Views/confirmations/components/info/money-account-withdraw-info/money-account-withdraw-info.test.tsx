@@ -36,10 +36,6 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
   })),
 }));
 
-jest.mock('../../../hooks/pay/useMoneyAccountWithdrawTransferSync', () => ({
-  useMoneyAccountWithdrawTransferSync: jest.fn(),
-}));
-
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -67,16 +63,6 @@ describe('MoneyAccountWithdrawInfo', () => {
     render(<MoneyAccountWithdrawInfo />);
 
     expect(useNavbar).toHaveBeenCalledWith('Send');
-  });
-
-  it('syncs the withdraw transfer with the receive token and recipient', () => {
-    const { useMoneyAccountWithdrawTransferSync } = jest.requireMock(
-      '../../../hooks/pay/useMoneyAccountWithdrawTransferSync',
-    );
-
-    render(<MoneyAccountWithdrawInfo />);
-
-    expect(useMoneyAccountWithdrawTransferSync).toHaveBeenCalled();
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {

@@ -155,6 +155,49 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
     'Have a referral code? Enter it below and you will be linked.',
   settingsReferralPlaceholder: 'Enter referral code',
   settingsReferralApply: 'Apply',
+  taxAttestationTitle: 'Confirm your tax status',
+  taxAttestationDescription:
+    'Are you a US person for tax purposes, or did you earn any of these rewards through activity in the United States?',
+  taxRenewalAttestationDescription:
+    'Your answer is about to expire. Are you a US person for tax purposes, or did you earn any of these rewards through activity in the United States?',
+  taxAttestationExpiredDescription:
+    'Your answer has expired. Are you a US person for tax purposes, or did you earn any of these rewards through activity in the United States?',
+  taxUsActivityTitle: 'Confirm your US activity',
+  taxUsActivityDescription: 'Did you perform any of this activity in the US?',
+  taxAnswerYes: 'Yes',
+  taxAnswerNo: 'No',
+  taxOpenFormTitle: 'Tax form required to claim',
+  taxFormRequiredDescription:
+    'US law requires a tax form before you can claim these rewards. Complete it through our partner to continue.',
+  taxFormFixDescription:
+    'Your tax form needs attention before you can claim these rewards. Refile it through our partner to continue.',
+  taxFormUnsupportedDescription:
+    "The tax form on file can't be used to claim these rewards. Complete a new one through our partner to continue.",
+  taxTinMismatchDescription:
+    "The tax number on your form didn't match our records. Correct it through our partner to continue.",
+  taxFormExpiredDescription:
+    'Your tax form has expired. US law requires a current one before you can claim these rewards. Renew it through our partner to continue.',
+  taxRenewalFormDescription:
+    'Your tax form is about to expire. Renew it through our partner to keep claiming without interruption.',
+  taxOpenFormButton: 'Continue',
+  taxNotNowButton: 'Not now',
+  taxChangeAnswerButton: 'Change my answer',
+  taxContactUsTitle: 'Contact us',
+  taxUsActivityBlockedDescription:
+    'We need to review your account before you can claim these rewards. Contact us to get started.',
+  taxContactSupportButton: 'Contact support',
+  taxFormPendingTitle: 'Pending review',
+  taxFormPendingDescription:
+    'Your tax information is being reviewed. You can claim your mUSD once the review is complete.',
+  taxDeterminationTitle: 'Tax determination needed',
+  taxDeterminationDescription:
+    "We can't determine your tax status right now. Your earnings stay in your balance.",
+  taxAnswerSavedToast: 'Your answer was saved.',
+  taxNotNeededToast: 'No tax information is needed right now.',
+  taxFormRateLimitedToast:
+    'You can open the tax form again in {minutes} minutes.',
+  taxErrorToast: 'Something went wrong. Your earnings stay in your balance.',
+  taxFormUrl: 'https://tax-form.test/form',
 };
 
 /**
@@ -428,6 +471,21 @@ export function referralMeFixture(
   };
 }
 
+export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
+
+export function referralMeWithInvitedBenefit(
+  invitedBenefitTitle: string = REFEREE_INVITED_BENEFIT_TITLE,
+): ReferralMeDto {
+  const referralMe = referralMeFixture('referee');
+  return {
+    ...referralMe,
+    localized_text: {
+      ...referralMe.localized_text,
+      invitedBenefitTitle,
+    },
+  };
+}
+
 function moneyAccount(): MoneyAccount {
   return {
     id: 'money-1',
@@ -468,12 +526,18 @@ export interface RewardsMoneyViewStateOptions {
    * gear and referral field read this cache, the `REFERRER` role, and geo.
    */
   referralMe?: ReferralMeDto;
+  /** When false, referral me is loaded by the screen instead of the preset. */
+  seedReferralMe?: boolean;
   /** Points subscription. Null leaves Rewards Settings on the referral field. */
   subscriptionId?: string | null;
   /** Device country. Null fails open for a Money referral. */
   geoLocation?: string | null;
   /** Remote `rewardsMoneyControllerEnabled`. The referral section needs it. */
   moneyControllerEnabled?: boolean;
+  /** Session-only deeplink state for the invite-sheet lifecycle. */
+  pendingReferralCode?: string | null;
+  answeredReferralCode?: string | null;
+  isReferralLinkPending?: boolean;
   /** Remote `glassHeaders`: the header floats over the content on glass. */
   glassHeaders?: boolean;
   /**
@@ -482,6 +546,11 @@ export interface RewardsMoneyViewStateOptions {
    * tab. Defaults on, so the Money screens show commissions as they always did.
    */
   socialV1?: boolean;
+  /**
+   * A saved support preference, so Contact support opens the WebView without
+   * the consent sheet.
+   */
+  supportPreferenceSaved?: boolean;
   /**
    * Monad Money account plus the vault and gas-sponsorship flags a claim
    * batch checks before it asks for a voucher.
@@ -504,14 +573,21 @@ export function rewardsMoneyViewState({
   claimReady = false,
   claimGates,
   referralMe: referralMeOverride,
+  seedReferralMe = true,
   subscriptionId = null,
   geoLocation = null,
   moneyControllerEnabled = false,
+  pendingReferralCode = null,
+  answeredReferralCode = null,
+  isReferralLinkPending = false,
   glassHeaders = false,
   socialV1 = true,
+  supportPreferenceSaved = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
-  const referralMe = referralMeOverride ?? referralMeFixture(persona);
+  const referralMe = seedReferralMe
+    ? (referralMeOverride ?? referralMeFixture(persona))
+    : undefined;
   const account = moneyAccount();
   const monadVault = claimGates?.monadVault ?? claimReady;
   const gasSponsorship = claimGates?.gasSponsorship ?? claimReady;
@@ -558,11 +634,21 @@ export function rewardsMoneyViewState({
         candidateSubscriptionId: subscriptionId,
         geoLocation,
       },
+      ...(supportPreferenceSaved
+        ? {
+            security: {
+              shouldShowConsentSheet: false,
+              dataSharingPreference: false,
+            },
+          }
+        : {}),
       rewardsMoney: {
         ...rewardsMoneyInitialState,
-        referralMe: {
-          [profileId]: { loading: false, error: false, data: referralMe },
-        },
+        referralMe: referralMe
+          ? {
+              [profileId]: { loading: false, error: false, data: referralMe },
+            }
+          : {},
         earningsSummary: {
           [profileId]: {
             loading: false,
@@ -570,6 +656,9 @@ export function rewardsMoneyViewState({
             data: summary,
           },
         },
+        pendingReferralCode,
+        answeredReferralCode,
+        isReferralLinkPending,
       },
       engine: {
         backgroundState: {

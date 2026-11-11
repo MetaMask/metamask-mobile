@@ -73,7 +73,8 @@ const PositionSheetHeader = ({
       >
         <TraderAvatar
           imageUrl={author.avatarUri}
-          address={author.id}
+          address={author.address}
+          profileId={author.id}
           size={AVATAR_SIZE}
           recyclingKey={author.id}
         />
