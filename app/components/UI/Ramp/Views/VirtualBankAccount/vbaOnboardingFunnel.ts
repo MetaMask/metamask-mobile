@@ -1,3 +1,4 @@
+import { KYC_CURRENT_STEPS } from '@metamask/kyc-controller';
 import type { AccountCreateErrorDestinationId } from './accountCreateError';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
@@ -15,6 +16,24 @@ export type VbaOnboardingDestinationId =
   | AccountCreateErrorDestinationId
   | 'error'
   | 'complete';
+
+// `consents` is in the idOS spec and the kyc-api DTO, but not in KYC_CURRENT_STEPS.
+const PRE_SUBMIT_KYC_STEPS: ReadonlySet<string> = new Set([
+  KYC_CURRENT_STEPS.emailOtpCollection,
+  KYC_CURRENT_STEPS.phoneOtpCollection,
+  KYC_CURRENT_STEPS.capabilityAuthorization,
+  KYC_CURRENT_STEPS.kyc,
+  'consents',
+]);
+
+export const isVbaKycPreSubmitStep = (step?: string | null): boolean =>
+  typeof step === 'string' && PRE_SUBMIT_KYC_STEPS.has(step);
+
+export const isVbaKycSubmitted = (
+  providerFlowStatus: string,
+  step?: string | null,
+): boolean =>
+  providerFlowStatus === 'submitted' || step === KYC_CURRENT_STEPS.processing;
 
 interface VbaOnboardingModule {
   id: Extract<
@@ -42,13 +61,14 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
   {
     id: 'identityVerification',
     isComplete: (snapshot) => {
-      const submitted =
-        snapshot.providerFlowStatus === 'submitted' ||
-        snapshot.kycCurrentStep === 'processing';
+      const submitted = isVbaKycSubmitted(
+        snapshot.providerFlowStatus,
+        snapshot.kycCurrentStep,
+      );
       const pendingWithoutSubmit =
         snapshot.kycStatus === 'pending' &&
         snapshot.providerFlowStatus === 'not_started' &&
-        snapshot.kycCurrentStep !== 'kyc';
+        !isVbaKycPreSubmitStep(snapshot.kycCurrentStep);
       return (
         snapshot.sessionDisclaimersComplete &&
         snapshot.kycStatus !== 'retry' &&
@@ -109,9 +129,7 @@ export const getVbaDestinationForSnapshot = (
 
   if (
     snapshot.kycStatus === 'pending' ||
-    snapshot.kycCurrentStep === 'processing' ||
-    (snapshot.providerFlowStatus === 'submitted' &&
-      snapshot.kycStatus !== 'retry')
+    isVbaKycSubmitted(snapshot.providerFlowStatus, snapshot.kycCurrentStep)
   ) {
     return 'kycPending';
   }

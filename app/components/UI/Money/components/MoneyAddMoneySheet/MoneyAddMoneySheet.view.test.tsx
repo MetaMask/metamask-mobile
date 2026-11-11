@@ -3,7 +3,8 @@ import NetInfo from '@react-native-community/netinfo';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { toSumSubLocale } from '../../../KYC/utils/toSumSubLocale';
 import type { RootState } from '../../../../../reducers';
 import {
   MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
@@ -424,52 +425,55 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
   });
 
-  it('opens identity verification from the bank account row when the session is still on the kyc step', async () => {
-    const kycController = Engine.context.KycController as unknown as {
-      fetchSessionDisclaimers: jest.Mock;
-      recordSessionDisclaimers: jest.Mock;
-      launchProviderFlow: jest.Mock;
-    };
-    kycController.fetchSessionDisclaimers = jest
-      .fn()
-      .mockResolvedValue({ kycProvider: [], idOS: [] });
-    kycController.recordSessionDisclaimers = jest
-      .fn()
-      .mockResolvedValue(undefined);
-    kycController.launchProviderFlow = jest
-      .fn()
-      .mockReturnValue(new Promise(() => undefined));
-    mockHydrateVbaOnboarding.mockResolvedValue({
-      sessionExists: true,
-      vendorDisclaimersComplete: true,
-      sessionDisclaimersComplete: true,
-      providerFlowStatus: 'not_started',
-      kycStatus: 'pending',
-      kycCurrentStep: 'kyc',
-      autorampStatus: 'not_ready',
-    });
-    const { findByTestId, queryByTestId } = renderVbaMoneyEntry();
-
-    fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+  const openBankAccountRow = async (
+    view: ReturnType<typeof renderVbaMoneyEntry>,
+  ): Promise<void> => {
     fireEvent.press(
-      await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+      await view.findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET),
     );
+    fireEvent.press(
+      await view.findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    );
+  };
 
+  const expectSumSubLaunch = async (
+    view: ReturnType<typeof renderVbaMoneyEntry>,
+  ): Promise<void> => {
     expect(
-      await findByTestId(KycSumSubSelectorsIDs.CONTAINER),
+      await view.findByTestId(KycSumSubSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(kycController.launchProviderFlow).toHaveBeenCalled();
-    expect(queryByTestId(KycSumSubSelectorsIDs.ERROR)).not.toBeOnTheScreen();
     expect(
-      queryByTestId(KycPendingSelectorsIDs.CONTAINER),
+      jest.mocked(Engine.context.KycController.launchProviderFlow),
+    ).toHaveBeenCalledWith({ locale: toSumSubLocale(I18n.locale) });
+    expect(
+      view.queryByTestId(KycSumSubSelectorsIDs.ERROR),
     ).not.toBeOnTheScreen();
-  });
+    expect(
+      view.queryByTestId(KycPendingSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+  };
+
+  it.each(['kyc', 'capabilityAuthorization'] as const)(
+    'opens identity verification from the bank account row when the session is still on %s',
+    async (kycCurrentStep) => {
+      mockHydrateVbaOnboarding.mockResolvedValue({
+        sessionExists: true,
+        vendorDisclaimersComplete: true,
+        sessionDisclaimersComplete: true,
+        providerFlowStatus: 'not_started',
+        kycStatus: 'pending',
+        kycCurrentStep,
+        autorampStatus: 'not_ready',
+      });
+      const view = renderVbaMoneyEntry();
+
+      await openBankAccountRow(view);
+
+      await expectSumSubLaunch(view);
+    },
+  );
 
   it('opens the pending screen from the bank account row when a submitted session was reinstalled', async () => {
-    const kycController = Engine.context.KycController as unknown as {
-      launchProviderFlow: jest.Mock;
-    };
-    kycController.launchProviderFlow = jest.fn();
     mockHydrateVbaOnboarding.mockResolvedValue({
       sessionExists: true,
       vendorDisclaimersComplete: true,
@@ -479,16 +483,15 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
       kycCurrentStep: 'processing',
       autorampStatus: 'not_ready',
     });
-    const { findByTestId } = renderVbaMoneyEntry();
+    const view = renderVbaMoneyEntry();
 
-    fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
-    fireEvent.press(
-      await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-    );
+    await openBankAccountRow(view);
 
     expect(
-      await findByTestId(KycPendingSelectorsIDs.CONTAINER),
+      await view.findByTestId(KycPendingSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(kycController.launchProviderFlow).not.toHaveBeenCalled();
+    expect(
+      jest.mocked(Engine.context.KycController.launchProviderFlow),
+    ).not.toHaveBeenCalled();
   });
 });

@@ -232,28 +232,134 @@ describe('getVbaDestinationForSnapshot', () => {
     expect(destination).toBe('kycRejected');
   });
 
+  const consentedPending = {
+    sessionExists: true,
+    vendorDisclaimersComplete: true,
+    sessionDisclaimersComplete: true,
+    providerFlowStatus: 'not_started' as const,
+    kycStatus: 'pending' as const,
+  };
+
   it.each([
-    ['processing', 'kycPending'],
     ['kyc', 'identityVerification'],
+    ['emailOtpCollection', 'identityVerification'],
+    ['phoneOtpCollection', 'identityVerification'],
+    ['capabilityAuthorization', 'identityVerification'],
+    ['consents', 'identityVerification'],
+    ['processing', 'kycPending'],
     [null, 'kycPending'],
-    ['emailOtpCollection', 'kycPending'],
-    ['phoneOtpCollection', 'kycPending'],
-    ['capabilityAuthorization', 'kycPending'],
+    [undefined, 'kycPending'],
     ['approved', 'kycPending'],
     ['rejected', 'kycPending'],
+    ['not-a-step', 'kycPending'],
+    ['', 'kycPending'],
   ] as const)(
     'kycCurrentStep %s with a pending unsubmitted session opens %s',
     (kycCurrentStep, destination) => {
-      const facts = snapshot({
-        sessionExists: true,
-        vendorDisclaimersComplete: true,
-        sessionDisclaimersComplete: true,
-        providerFlowStatus: 'not_started',
-        kycStatus: 'pending',
-        kycCurrentStep,
-      });
+      expect(
+        getVbaDestinationForSnapshot(
+          snapshot({ ...consentedPending, kycCurrentStep }),
+        ),
+      ).toBe(destination);
+    },
+  );
 
-      expect(getVbaDestinationForSnapshot(facts)).toBe(destination);
+  it.each([
+    'kyc',
+    'emailOtpCollection',
+    'phoneOtpCollection',
+    'capabilityAuthorization',
+    'consents',
+  ] as const)(
+    'a local submit at %s opens the pending screen',
+    (kycCurrentStep) => {
+      expect(
+        getVbaDestinationForSnapshot(
+          snapshot({
+            ...consentedPending,
+            providerFlowStatus: 'submitted',
+            kycCurrentStep,
+          }),
+        ),
+      ).toBe('kycPending');
+    },
+  );
+
+  it.each([
+    'kyc',
+    'emailOtpCollection',
+    'phoneOtpCollection',
+    'capabilityAuthorization',
+    'consents',
+  ] as const)(
+    'an abandoned flow at %s opens identity verification',
+    (kycCurrentStep) => {
+      expect(
+        getVbaDestinationForSnapshot(
+          snapshot({
+            ...consentedPending,
+            providerFlowStatus: 'abandoned',
+            kycCurrentStep,
+          }),
+        ),
+      ).toBe('identityVerification');
+    },
+  );
+
+  it.each([
+    'kyc',
+    'emailOtpCollection',
+    'phoneOtpCollection',
+    'capabilityAuthorization',
+    'consents',
+  ] as const)('a retry at %s opens the rejected screen', (kycCurrentStep) => {
+    expect(
+      getVbaDestinationForSnapshot(
+        snapshot({
+          ...consentedPending,
+          kycStatus: 'retry',
+          kycCurrentStep,
+        }),
+      ),
+    ).toBe('kycRejected');
+  });
+
+  it('opens the pending screen when the step is processing and there is no KYC status', () => {
+    expect(
+      getVbaDestinationForSnapshot(
+        snapshot({
+          ...consentedPending,
+          kycStatus: 'none',
+          kycCurrentStep: 'processing',
+        }),
+      ),
+    ).toBe('kycPending');
+  });
+
+  it.each([
+    'kyc',
+    'emailOtpCollection',
+    'phoneOtpCollection',
+    'capabilityAuthorization',
+    'consents',
+    'processing',
+    null,
+    'approved',
+    'rejected',
+    'not-a-step',
+  ] as const)(
+    'an approved account opens account details at step %s',
+    (kycCurrentStep) => {
+      expect(
+        getVbaDestinationForSnapshot(
+          snapshot({
+            ...consentedPending,
+            kycStatus: 'approved',
+            autorampStatus: 'ready',
+            kycCurrentStep,
+          }),
+        ),
+      ).toBe('complete');
     },
   );
 

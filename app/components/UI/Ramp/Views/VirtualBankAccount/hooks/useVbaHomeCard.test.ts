@@ -371,6 +371,44 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_decision' });
   });
 
+  it.each(['kyc', 'capabilityAuthorization'] as const)(
+    'renders finish_verification when relay KYC is pending at %s',
+    (currentStep) => {
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        sessionStatus: makeSession({ currentStep }),
+      });
+
+      expect(card).toEqual({ type: 'finish_verification' });
+    },
+  );
+
+  it('renders finish_verification for a pending session whose relay status is new at capability authorization', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      sessionStatus: makeSession({
+        finalStatus: 'pending',
+        kycStatus: 'new',
+        currentStep: 'capabilityAuthorization',
+      }),
+    });
+
+    expect(card).toEqual({ type: 'finish_verification' });
+  });
+
+  it('renders kyc_pending when relay KYC is new and the step is processing', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      sessionStatus: makeSession({
+        finalStatus: 'new',
+        kycStatus: 'new',
+        currentStep: 'processing',
+      }),
+    });
+
+    expect(card).toEqual({ type: 'kyc_pending' });
+  });
+
   it('renders kyc_pending when the relay kycStatus is pending (decision rule 5)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
@@ -387,6 +425,19 @@ describe('getVbaHomeCard', () => {
         finalStatus: 'new',
         kycStatus: 'pending',
       }),
+    });
+
+    expect(card).toEqual({ type: 'kyc_pending' });
+  });
+
+  it('renders kyc_pending when the provider flow was submitted during the kyc step', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      sessionStatus: makeSession({
+        kycStatus: 'pending',
+        currentStep: 'kyc',
+      }),
+      providerFlowStatus: 'submitted',
     });
 
     expect(card).toEqual({ type: 'kyc_pending' });

@@ -2,6 +2,11 @@
  * Component view test mocks:
  * - ONLY Engine (business) and minimal native mocks.
  */
+import type {
+  KycController,
+  KycDisclaimersCatalog,
+  KycProviderFlowStatus,
+} from '@metamask/kyc-controller';
 
 jest.mock('expo-web-browser', () => ({
   openAuthSessionAsync: jest.fn().mockResolvedValue({
@@ -299,6 +304,27 @@ jest.mock('../../app/core/Engine', () => {
         startSession: jest.fn().mockResolvedValue(undefined),
         fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
         recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
+        fetchSessionDisclaimers: jest
+          .fn<
+            ReturnType<KycController['fetchSessionDisclaimers']>,
+            Parameters<KycController['fetchSessionDisclaimers']>
+          >()
+          .mockResolvedValue({
+            idOS: [],
+            kycProvider: [],
+          } satisfies KycDisclaimersCatalog),
+        recordSessionDisclaimers: jest
+          .fn<
+            ReturnType<KycController['recordSessionDisclaimers']>,
+            Parameters<KycController['recordSessionDisclaimers']>
+          >()
+          .mockResolvedValue(undefined),
+        launchProviderFlow: jest
+          .fn<
+            ReturnType<KycController['launchProviderFlow']>,
+            Parameters<KycController['launchProviderFlow']>
+          >()
+          .mockReturnValue(new Promise<KycProviderFlowStatus>(() => undefined)),
         // Fired, fire-and-forget, once the vendor-terms screen's initial
         // disclaimers request settles (CreateVirtualBankAccount).
         ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
@@ -377,6 +403,7 @@ jest.mock('../../app/core/Engine', () => {
           sessionDisclaimersComplete: false,
           providerFlowStatus: 'not_started',
           kycStatus: 'none',
+          kycCurrentStep: null,
           autorampStatus: 'not_ready',
         }),
         transakSetApiKey: jest.fn(),

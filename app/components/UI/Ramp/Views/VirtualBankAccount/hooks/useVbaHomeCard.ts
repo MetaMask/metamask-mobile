@@ -30,6 +30,10 @@ import {
   subscribeVbaAccountDetailsViewed,
 } from '../vbaAccountDetailsViewedStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
+import {
+  isVbaKycPreSubmitStep,
+  isVbaKycSubmitted,
+} from '../vbaOnboardingFunnel';
 
 /**
  * Identity of the single VBA status card Money home renders, if any. The hook
@@ -206,10 +210,12 @@ export function getVbaHomeCard({
   // keeps `finalStatus: 'pending'` with `kycStatus: 'new'` (observed on
   // device), and must fall through to rule 6 so the user finishes verification
   // instead of seeing a spinner.
+  const step = sessionStatus?.currentStep;
   if (
-    sessionStatus?.kycStatus === 'pending' ||
-    sessionStatus?.kycStatus === 'approved' ||
-    providerFlowStatus === 'submitted'
+    isVbaKycSubmitted(providerFlowStatus, step) ||
+    (!isVbaKycPreSubmitStep(step) &&
+      (sessionStatus?.kycStatus === 'pending' ||
+        sessionStatus?.kycStatus === 'approved'))
   ) {
     return { type: 'kyc_pending' };
   }
