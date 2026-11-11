@@ -7,6 +7,8 @@ import {
 } from '@metamask/hw-wallet-sdk';
 import {
   isUserCancellation,
+  isDeviceUserRejection,
+  INTERNAL_ABORT_MESSAGES,
   getIconForErrorCode,
   getIconColorForErrorCode,
   getTitleForErrorCode,
@@ -69,6 +71,86 @@ describe('error helpers', () => {
 
     it('returns false for null', () => {
       expect(isUserCancellation(null)).toBe(false);
+    });
+
+    it('returns false for a RAW transport rejection (by design)', () => {
+      // Raw keyring/transport errors are not HardwareWalletError instances;
+      // confirm-flow suppression depends on them returning false here.
+      const rawRejection = Object.assign(
+        new Error('Ledger device: Action cancelled by user (0x6985)'),
+        { name: 'TransportStatusError', statusCode: 27013 },
+      );
+
+      expect(isUserCancellation(rawRejection)).toBe(false);
+    });
+  });
+
+  describe('isDeviceUserRejection', () => {
+    it('returns true for a RAW TransportStatusError 0x6985 (parsed internally)', () => {
+      const rawRejection = Object.assign(
+        new Error('Ledger device: Action cancelled by user (0x6985)'),
+        { name: 'TransportStatusError', statusCode: 27013 },
+      );
+
+      expect(isDeviceUserRejection(rawRejection)).toBe(true);
+    });
+
+    it('returns true for a plain Error whose message signals cancellation', () => {
+      expect(
+        isDeviceUserRejection(
+          new Error('Ledger device: Action cancelled by user'),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for an exactly-matching excluded message', () => {
+      expect(
+        isDeviceUserRejection(new Error('Batch cancelled'), {
+          excludedMessages: ['Batch cancelled'],
+        }),
+      ).toBe(false);
+    });
+
+    it('returns false for the Batch cancelled internal abort via INTERNAL_ABORT_MESSAGES', () => {
+      expect(
+        isDeviceUserRejection(new Error('Batch cancelled'), {
+          excludedMessages: INTERNAL_ABORT_MESSAGES,
+        }),
+      ).toBe(false);
+    });
+
+    it('returns false for the STX no-hash internal abort via INTERNAL_ABORT_MESSAGES', () => {
+      expect(
+        isDeviceUserRejection(
+          new Error(
+            'Smart Transaction does not have a transaction hash, there was a problem',
+          ),
+          {
+            excludedMessages: INTERNAL_ABORT_MESSAGES,
+          },
+        ),
+      ).toBe(false);
+    });
+
+    it('returns true for a HardwareWalletError UserRejected instance', () => {
+      const error = new HardwareWalletError('User rejected', {
+        code: ErrorCode.UserRejected,
+        severity: Severity.Info,
+        category: Category.UserAction,
+        userMessage: 'User rejected',
+      });
+
+      expect(isDeviceUserRejection(error)).toBe(true);
+    });
+
+    it('returns false for null', () => {
+      expect(isDeviceUserRejection(null)).toBe(false);
+    });
+
+    it('returns false for non-error values', () => {
+      expect(isDeviceUserRejection('UserRejected')).toBe(false);
+      expect(isDeviceUserRejection(42)).toBe(false);
+      expect(isDeviceUserRejection(undefined)).toBe(false);
     });
   });
 

@@ -15,16 +15,19 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../selector
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockGoToSwaps = jest.fn();
 
-let mockRouteParams: {
+const createDefaultRouteParams = (): {
   mode: 'open_position' | 'swap';
   campaignId: string;
   srcTokenAsset?: string;
   srcTokenSymbol?: string;
   srcTokenName?: string;
   srcTokenDecimals?: number;
-} = { mode: 'open_position', campaignId: 'campaign-1' };
+} => ({ mode: 'open_position', campaignId: 'campaign-1' });
+
+let mockRouteParams = createDefaultRouteParams();
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 
@@ -41,7 +44,7 @@ jest.mock('../../../../selectors/tokenBalancesController', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
@@ -92,12 +95,16 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
 }));
 
-let mockIsTokenTradingOpen = jest.fn(() => true);
+const mockIsTokenTradingOpen = jest.fn((_token?: { symbol?: string }) => true);
+const mockIsTokenMarketFullyClosed = jest.fn(
+  (_token?: { symbol?: string }) => false,
+);
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
     isStockToken: jest.fn(() => false),
     isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenMarketFullyClosed: mockIsTokenMarketFullyClosed,
   }),
 }));
 
@@ -111,21 +118,23 @@ jest.mock('../components/Campaigns/OndoAfterHoursSheet', () => {
     default: ({
       onClose,
       onConfirm,
+      testID = 'after-hours-sheet',
     }: {
       onClose: () => void;
-      onConfirm: () => void;
+      onConfirm?: () => void;
       nextOpenAt: Date | null;
+      testID?: string;
     }) =>
       ReactActual.createElement(
         View,
-        { testID: 'after-hours-sheet' },
+        { testID },
         ReactActual.createElement(TouchableOpacity, {
-          testID: 'after-hours-close',
+          testID: `${testID}-close`,
           onPress: onClose,
         }),
         ReactActual.createElement(TouchableOpacity, {
-          testID: 'after-hours-confirm',
-          onPress: onConfirm,
+          testID: `${testID}-confirm`,
+          onPress: onConfirm ?? onClose,
         }),
       ),
   };
@@ -328,8 +337,9 @@ describe('OndoCampaignRwaSelectorView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
-    mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
-    mockIsTokenTradingOpen = jest.fn(() => true);
+    mockRouteParams = createDefaultRouteParams();
+    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenMarketFullyClosed.mockReturnValue(false);
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -344,6 +354,10 @@ describe('OndoCampaignRwaSelectorView', () => {
       if (selector === selectAllTokenBalances) return mockAllTokenBalances;
       return undefined;
     });
+  });
+
+  afterEach(() => {
+    mockRouteParams = createDefaultRouteParams();
   });
 
   it('renders without crashing', () => {
@@ -484,7 +498,7 @@ describe('OndoCampaignRwaSelectorView', () => {
     const ACCOUNT_ADDRESS = '0xaccount1';
 
     beforeEach(() => {
-      mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
+      mockRouteParams = createDefaultRouteParams();
     });
 
     it('prefers USDY as the source token when user holds a non-zero USDY balance', () => {
@@ -592,7 +606,7 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   describe('page view tracking', () => {
     it('tracks ondo_campaign_open_position when mode is open_position', () => {
-      mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
+      mockRouteParams = createDefaultRouteParams();
       render(<OndoCampaignRwaSelectorView />);
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -633,10 +647,12 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   describe('after hours sheet', () => {
     beforeEach(() => {
-      mockIsTokenTradingOpen = jest.fn(() => false);
+      // Off-hours: tradable, but outside regular market hours.
+      mockIsTokenTradingOpen.mockReturnValue(false);
+      mockIsTokenMarketFullyClosed.mockReturnValue(false);
     });
 
-    it('shows after hours sheet when token trading is closed', () => {
+    it('shows after hours sheet when token is in off-hours', () => {
       const token = buildToken('AAPL');
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
@@ -659,7 +675,7 @@ describe('OndoCampaignRwaSelectorView', () => {
         <OndoCampaignRwaSelectorView />,
       );
       fireEvent.press(getByTestId('token-row-AAPL'));
-      fireEvent.press(getByTestId('after-hours-close'));
+      fireEvent.press(getByTestId('after-hours-sheet-close'));
       expect(queryByTestId('after-hours-sheet')).toBeNull();
       expect(mockGoToSwaps).not.toHaveBeenCalled();
     });
@@ -671,7 +687,7 @@ describe('OndoCampaignRwaSelectorView', () => {
         <OndoCampaignRwaSelectorView />,
       );
       fireEvent.press(getByTestId('token-row-AAPL'));
-      fireEvent.press(getByTestId('after-hours-confirm'));
+      fireEvent.press(getByTestId('after-hours-sheet-confirm'));
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
       expect(queryByTestId('after-hours-sheet')).toBeNull();
     });
@@ -681,7 +697,7 @@ describe('OndoCampaignRwaSelectorView', () => {
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
-      fireEvent.press(getByTestId('after-hours-confirm'));
+      fireEvent.press(getByTestId('after-hours-sheet-confirm'));
 
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
       const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
@@ -695,7 +711,7 @@ describe('OndoCampaignRwaSelectorView', () => {
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
-      fireEvent.press(getByTestId('after-hours-confirm'));
+      fireEvent.press(getByTestId('after-hours-sheet-confirm'));
 
       // createEventBuilder: [0] = page view, [1] = button click on confirm
       const confirmBuilder = mockCreateEventBuilder.mock.results[1].value;
@@ -704,6 +720,55 @@ describe('OndoCampaignRwaSelectorView', () => {
           button_type: 'ondo_campaign_swap_aapl',
         }),
       );
+    });
+  });
+
+  describe('market closed', () => {
+    it('shows a dismissible market closed alert and stays on the selector', () => {
+      mockIsTokenTradingOpen.mockReturnValue(false);
+      mockIsTokenMarketFullyClosed.mockReturnValue(true);
+      const token = buildToken('AAPL');
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      expect(
+        getByTestId('ondo-rwa-selector-market-closed-sheet'),
+      ).toBeDefined();
+      expect(queryByTestId('after-hours-sheet')).toBeNull();
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('lets the user pick another asset after closing the market closed alert', () => {
+      mockIsTokenMarketFullyClosed.mockImplementation(
+        (token?: { symbol?: string }) => token?.symbol === 'AAPL',
+      );
+      mockIsTokenTradingOpen.mockImplementation(
+        (token?: { symbol?: string }) => token?.symbol === 'MSFT',
+      );
+      mockUseRwaTokens.mockReturnValue({
+        data: [buildToken('AAPL'), buildToken('MSFT')],
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+      fireEvent.press(getByTestId('token-row-AAPL'));
+      fireEvent.press(
+        getByTestId('ondo-rwa-selector-market-closed-sheet-close'),
+      );
+
+      expect(queryByTestId('ondo-rwa-selector-market-closed-sheet')).toBeNull();
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+
+      fireEvent.press(getByTestId('token-row-MSFT'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
     });
   });
 

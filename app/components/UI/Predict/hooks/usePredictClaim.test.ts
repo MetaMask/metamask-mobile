@@ -1,5 +1,4 @@
 import { NavigationProp } from '@react-navigation/native';
-import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 import React from 'react';
 import { useSelector } from 'react-redux';
@@ -9,12 +8,15 @@ import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import Logger from '../../../../util/Logger';
+import { mockTheme } from '../../../../util/theme';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPredictPendingClaimByAddress } from '../selectors/predictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import Routes from '../../../../constants/navigation/Routes';
+import { PREDICT_ERROR_CODES } from '../constants/errors';
 
 // Create mock functions
 const mockNavigate = jest.fn();
@@ -66,19 +68,6 @@ jest.mock(
 
 jest.mock('../utils/accounts', () => ({
   getEvmAccountFromSelectedAccountGroup: jest.fn(),
-}));
-
-jest.mock('../../../../util/theme', () => ({
-  useAppThemeFromContext: jest.fn(() => ({
-    colors: {
-      error: {
-        default: mockTestHexColors.ERROR_DARK,
-      },
-      accent04: {
-        normal: mockTestHexColors.ACCENT_BLUE,
-      },
-    },
-  })),
 }));
 
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
@@ -409,14 +398,70 @@ describe('usePredictClaim', () => {
           },
         ],
         iconName: IconName.Error,
-        iconColor: mockTestHexColors.ERROR_DARK,
-        backgroundColor: mockTestHexColors.ACCENT_BLUE,
+        iconColor: mockTheme.colors.error.default,
+        backgroundColor: mockTheme.colors.accent04.normal,
         hasNoTimeout: false,
         linkButtonOptions: {
           label: strings('predict.claim.toasts.error.try_again'),
           onPress: expect.any(Function),
         },
       });
+    });
+
+    it('opens the Market unavailable sheet instead of the error toast when the kill switch blocks the claim', async () => {
+      mockClaimWinnings.mockRejectedValue(
+        new Error(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE),
+      );
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      await act(async () => {
+        await result.current.claim();
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.MARKET_UNAVAILABLE,
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('still tracks and logs a claim blocked by the kill switch', async () => {
+      const blockedError = new Error(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE);
+      mockClaimWinnings.mockRejectedValue(blockedError);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      await act(async () => {
+        await result.current.claim();
+      });
+
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'failed',
+          failureReason: 'market_unavailable',
+        }),
+      );
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        blockedError,
+        expect.any(Object),
+      );
+    });
+
+    it('does not open the Market unavailable sheet for other claim errors', async () => {
+      mockClaimWinnings.mockRejectedValue(new Error('Claim failed'));
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      await act(async () => {
+        await result.current.claim();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PREDICT.MODALS.ROOT,
+        expect.anything(),
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
     it('retries claim when try again button is pressed on error toast', async () => {

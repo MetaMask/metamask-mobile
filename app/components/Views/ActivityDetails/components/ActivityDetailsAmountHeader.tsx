@@ -2,6 +2,7 @@ import React from 'react';
 import {
   AvatarTokenSize,
   Box,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -73,13 +74,30 @@ export function ActivityDetailsAmountHeader({
   );
 }
 
-function AssetLine({ label, token }: { label: string; token: TokenAmount }) {
+function AssetLine({
+  label,
+  token,
+  signZero,
+  useSubscriptNotation,
+}: {
+  label: string;
+  token: TokenAmount;
+  signZero: boolean;
+  useSubscriptNotation: boolean;
+}) {
   const formatActivityTokenAmount = useFormatActivityTokenAmount();
-  const amount = formatActivityTokenAmount(token);
+  const amount = formatActivityTokenAmount(token, {
+    signZero,
+    useSubscriptNotation,
+  });
 
   return (
     <Box twClassName="gap-1">
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {label}
       </Text>
       <Box twClassName="flex-row items-center gap-3">
@@ -103,18 +121,25 @@ function AssetLine({ label, token }: { label: string; token: TokenAmount }) {
 
 /**
  * Dual amount header: stacked "You sent" / "You received" asset lines, for
- * swap/bridge-style transactions. Either side is optional.
+ * swap/bridge-style transactions. Either side is optional. Pass
+ * `signZeroAmounts={false}` to show a zero amount unsigned (`0 ETH` rather
+ * than `-0 ETH`), and `useSubscriptNotation` to condense the leading zeros of
+ * a tiny amount (`0.0₇1234 ETH` rather than `<0.00001 ETH`).
  */
 export function ActivityDetailsDualAmountHeader({
   sentToken,
   receivedToken,
   sentLabel = strings('activity_details.you_sent'),
   receivedLabel = strings('activity_details.you_received'),
+  signZeroAmounts = true,
+  useSubscriptNotation = false,
 }: {
   sentToken?: TokenAmount;
   receivedToken?: TokenAmount;
   sentLabel?: string;
   receivedLabel?: string;
+  signZeroAmounts?: boolean;
+  useSubscriptNotation?: boolean;
 }) {
   if (!sentToken && !receivedToken) {
     return null;
@@ -122,9 +147,21 @@ export function ActivityDetailsDualAmountHeader({
 
   return (
     <Box twClassName="gap-4" testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}>
-      {sentToken ? <AssetLine label={sentLabel} token={sentToken} /> : null}
+      {sentToken ? (
+        <AssetLine
+          label={sentLabel}
+          token={sentToken}
+          signZero={signZeroAmounts}
+          useSubscriptNotation={useSubscriptNotation}
+        />
+      ) : null}
       {receivedToken ? (
-        <AssetLine label={receivedLabel} token={receivedToken} />
+        <AssetLine
+          label={receivedLabel}
+          token={receivedToken}
+          signZero={signZeroAmounts}
+          useSubscriptNotation={useSubscriptNotation}
+        />
       ) : null}
     </Box>
   );

@@ -1,45 +1,52 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { Dimensions, StyleSheet } from 'react-native';
+import {
+  Dimensions,
+  StyleSheet,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
-import { RiveErrorType, type RiveError } from '@rive-app/react-native';
+import { Fit, RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyOnboardingView from './MoneyOnboardingView';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
+  BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import {
+  MoneyPostOnboardingRedirectType,
+  type MoneyOnboardingParams,
+} from '../../types/navigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import type { NavigationAnalyticsContext } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
   __fireRiveTrigger,
   __getRivePropertySetter,
   __resetRiveMocks,
+  __setRivePropertyValue,
 } from '../../../../../__mocks__/rive-app-react-native';
 
 const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+let mockTimingCompletion: (() => void) | undefined;
 let mockIsUsUnauthenticatedNonCardholder = false;
 let mockIsE2EOrPerformanceTest = false;
-let mockRouteParams:
-  | {
-      postOnboardingRedirect?: {
-        type: MoneyPostOnboardingRedirectType;
-        preferredPaymentToken?: {
-          address: `0x${string}`;
-          chainId: `0x${string}`;
-        };
-      };
-    }
-  | undefined;
-const mockInitiateDeposit = jest.fn();
+let mockRiveViewReady = true;
+const mockRiveViewRef = {};
+const mockSetHybridRef = { f: jest.fn() };
+let mockRouteParams: MoneyOnboardingParams | undefined;
+const mockNavigateToMoneyDeposit = jest.fn();
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 
 const setWindowDimensions = ({
   height,
@@ -89,8 +96,8 @@ jest.mock('../../hooks/useMoneyVaultApy', () => ({
   default: () => mockApy,
 }));
 
-jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: jest.fn(),
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
+  useMoneyDepositNavigation: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -110,6 +117,13 @@ jest.mock('../../../../../util/test/utils', () => ({
   },
 }));
 
+jest.mock('react-native-worklets', () => ({
+  scheduleOnRN: jest.fn(
+    (callback: (...args: number[]) => void, ...args: number[]) =>
+      callback(...args),
+  ),
+}));
+
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
 
@@ -126,77 +140,137 @@ jest.mock('react-native-reanimated', () => {
 
       return sharedValue;
     }),
-    withTiming: jest.fn((toValue, config) => ({ config, toValue })),
+    withTiming: jest.fn(
+      (
+        toValue: number,
+        config: { duration: number },
+        callback?: (finished: boolean) => void,
+      ) => {
+        if (callback) {
+          mockTimingCompletion = () => callback(true);
+        }
+        return { config, toValue };
+      },
+    ),
   };
 });
+
+const mockWorklets = jest.requireMock(
+  'react-native-worklets',
+) as typeof import('react-native-worklets');
 
 // Local wrapper around the global Nitro Rive mock so the RiveView `onError`
 // prop is observable; triggers/setters are driven via the global mock helpers.
-const mockRiveViewProps: {
-  current?: { onError?: (error: RiveError) => void };
-} = {};
+interface MockRiveViewProps {
+  fit?: Fit;
+  onError?: (error: RiveError) => void;
+  style?: StyleProp<ViewStyle>;
+}
+
+const mockRiveViewProps: { current?: MockRiveViewProps } = {};
 
 jest.mock('@rive-app/react-native', () => {
-  const actual = jest.requireActual('@rive-app/react-native');
+  const rive = jest.requireActual(
+    '../../../../../__mocks__/rive-app-react-native',
+  );
   const ReactActual = jest.requireActual('react');
-  const MockRiveView = (props: { onError?: (error: RiveError) => void }) => {
+  const mockUseRive = () => ({
+    riveViewRef: mockRiveViewReady ? mockRiveViewRef : undefined,
+    setHybridRef: mockSetHybridRef,
+  });
+  const MockRiveView = (props: MockRiveViewProps) => {
     mockRiveViewProps.current = props;
-    return ReactActual.createElement(actual.RiveView, props);
+    return ReactActual.createElement(rive.RiveView, props);
   };
   return {
     __esModule: true,
-    ...actual,
+    ...rive,
     RiveView: MockRiveView,
+    useRive: mockUseRive,
   };
 });
 
-const STEP_TRANSITION_MS = 300;
-
-// Steps are reconstructed from `continue`/`back` view-model triggers (no
-// `onStateChanged` in Nitro): fire a trigger, then settle the transition timer.
 const fireTrigger = (path: string) => {
   act(() => {
     __fireRiveTrigger(path);
   });
 };
 
-const settleTransition = () => {
+let mockCurrentStep = 1;
+
+const setCurrentStep = (step: number) => {
   act(() => {
-    jest.advanceTimersByTime(STEP_TRANSITION_MS);
+    mockCurrentStep = step;
+    __setRivePropertyValue('currentStep', step);
+  });
+};
+
+const completeOverlayFade = () => {
+  act(() => {
+    mockTimingCompletion?.();
+    mockTimingCompletion = undefined;
   });
 };
 
 const advanceStep = () => {
-  fireTrigger('continue');
-  settleTransition();
+  setCurrentStep(mockCurrentStep + 1);
 };
 
-/** Fires `continue` up to the final step and settles the last transition. */
-const completeOnboarding = async () => {
-  fireTrigger('continue');
-  fireTrigger('continue');
-  fireTrigger('continue');
-  fireTrigger('continue');
-  await act(async () => {
-    jest.advanceTimersByTime(STEP_TRANSITION_MS);
-  });
+const goBack = () => {
+  setCurrentStep(mockCurrentStep - 1);
 };
+
+const setOnboardingCompleted = (completed: boolean) => {
+  if (completed) {
+    fireTrigger('onboardingCompleted');
+  }
+};
+
+/** Emits each Rive step and then the completion binding. */
+const completeOnboarding = async () => {
+  advanceStep();
+  completeOverlayFade();
+  advanceStep();
+  completeOverlayFade();
+  advanceStep();
+  completeOverlayFade();
+  advanceStep();
+  completeOverlayFade();
+  setOnboardingCompleted(true);
+};
+
+const RIVE_READY_FALLBACK_DELAY_MS = 2500;
 
 const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
 
 describe('MoneyOnboardingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(mockWorklets, 'scheduleOnRN')
+      .mockImplementation(
+        (callback: (...args: unknown[]) => unknown, ...args: unknown[]) =>
+          callback(...args),
+      );
     __resetRiveMocks();
     jest.useFakeTimers();
+    mockTimingCompletion = undefined;
+    mockCurrentStep = 1;
+    __setRivePropertyValue('currentStep', mockCurrentStep);
     mockRiveViewProps.current = undefined;
     mockApy = { apyPercent: 4, apyPercentFormatted: '4%' };
     mockIsUsUnauthenticatedNonCardholder = false;
     mockIsE2EOrPerformanceTest = false;
+    mockRiveViewReady = true;
     mockRouteParams = undefined;
-    mockInitiateDeposit.mockResolvedValue(undefined);
-    jest.mocked(useMoneyAccountDeposit).mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
+    mockNavigateToMoneyDeposit.mockImplementation(async ({ track }) => {
+      track?.({
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      });
+    });
+    mockUseMoneyDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
     setWindowDimensions({ height: 844, width: 390 });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
@@ -215,6 +289,21 @@ describe('MoneyOnboardingView', () => {
       expect(
         getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
       ).toBeOnTheScreen();
+    });
+
+    it('renders onboarding in a transparent fade modal', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+      const modal = getByTestId(MoneyOnboardingViewTestIds.MODAL);
+
+      expect(modal.props).toEqual(
+        expect.objectContaining({
+          animationType: 'fade',
+          hardwareAccelerated: true,
+          navigationBarTranslucent: true,
+          statusBarTranslucent: true,
+          transparent: true,
+        }),
+      );
     });
 
     it('renders the initial native text overlay for step 1', () => {
@@ -274,6 +363,44 @@ describe('MoneyOnboardingView', () => {
     });
   });
 
+  describe('Rive readiness', () => {
+    it('reveals the overlay after the fallback delay when Rive is not ready', async () => {
+      mockRiveViewReady = false;
+
+      const { getByTestId, queryByTestId } = renderMoneyOnboardingView();
+
+      expect(
+        queryByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION).props.style,
+        ).opacity,
+      ).toBe(0);
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(RIVE_READY_FALLBACK_DELAY_MS);
+      });
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION).props.style,
+        ).opacity,
+      ).toBeUndefined();
+    });
+  });
+
+  describe('Rive configuration', () => {
+    it('renders the animation with Layout fit', () => {
+      renderMoneyOnboardingView();
+
+      expect(mockRiveViewProps.current?.fit).toBe(Fit.Layout);
+    });
+  });
+
   describe('Onboarding view gate', () => {
     it('renders the standard onboarding view outside E2E and performance tests', () => {
       mockIsE2EOrPerformanceTest = false;
@@ -307,6 +434,94 @@ describe('MoneyOnboardingView', () => {
         { pop: true },
       );
     });
+
+    it('returns to Card sign-in when the Card redirect asks for it', () => {
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'authentication',
+        },
+      };
+
+      renderMoneyOnboardingView();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
+      expect(mockNavigateToMoneyDeposit).not.toHaveBeenCalled();
+    });
+
+    it('returns to Card onboarding when the post-onboarding redirect is Card', () => {
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'onboarding',
+        },
+      };
+
+      renderMoneyOnboardingView();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+      });
+      expect(mockNavigateToMoneyDeposit).not.toHaveBeenCalled();
+    });
+
+    it('initiates the post-onboarding deposit during E2E and performance tests', () => {
+      const preferredPaymentToken = {
+        address: '0xabc' as const,
+        chainId: '0x1' as const,
+      };
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken,
+          autoSelectFiatPayment: true,
+          intent: 'card',
+        },
+      };
+
+      renderMoneyOnboardingView();
+
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken,
+        autoSelectFiatPayment: true,
+        intent: 'card',
+        replaceConfirmation: true,
+        onDepositSetupFailure: expect.any(Function),
+        isPostOnboardingContinuation: true,
+      });
+      expect(mockDispatch.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigateToMoneyDeposit.mock.invocationCallOrder[0],
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('completes fallback continuation once when the adapter callback identity changes', () => {
+      const replacementNavigateToMoneyDeposit = jest.fn();
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
+      };
+      const { rerender } = renderMoneyOnboardingView();
+      mockUseMoneyDepositNavigation.mockReturnValue({
+        navigateToMoneyDeposit: replacementNavigateToMoneyDeposit,
+      });
+
+      rerender(<MoneyOnboardingView />);
+
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledTimes(1);
+      expect(replacementNavigateToMoneyDeposit).not.toHaveBeenCalled();
+    });
   });
 
   describe('Analytics initialization', () => {
@@ -320,7 +535,7 @@ describe('MoneyOnboardingView', () => {
     });
   });
 
-  describe('Step tracking (continue/back triggers)', () => {
+  describe('Step tracking (currentStep binding)', () => {
     it('tracks VIEWED event with step 1 once the view-model instance is bound', () => {
       renderMoneyOnboardingView();
 
@@ -333,7 +548,7 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
-    it('tracks VIEWED event with step 2 when the continue trigger settles', () => {
+    it('tracks VIEWED event with step 2 when currentStep changes', () => {
       renderMoneyOnboardingView();
 
       advanceStep();
@@ -347,7 +562,7 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
-    it('tracks VIEWED event with step 3 after two continue triggers', () => {
+    it('tracks VIEWED event with step 3 after two currentStep changes', () => {
       renderMoneyOnboardingView();
 
       advanceStep();
@@ -362,7 +577,7 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
-    it('tracks VIEWED event with step 4 after three continue triggers', () => {
+    it('tracks VIEWED event with step 4 after three currentStep changes', () => {
       renderMoneyOnboardingView();
 
       advanceStep();
@@ -378,23 +593,13 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
-    it('does not track the next step until the transition has settled', () => {
-      renderMoneyOnboardingView();
-      mockTrackOnboardingEvent.mockClear();
-
-      fireTrigger('continue');
-
-      expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
-    });
-
-    it('tracks the previous step again when the back trigger settles', () => {
+    it('tracks the previous step again when currentStep moves backward', () => {
       renderMoneyOnboardingView();
       advanceStep();
       advanceStep();
       mockTrackOnboardingEvent.mockClear();
 
-      fireTrigger('back');
-      settleTransition();
+      goBack();
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -404,31 +609,31 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
-    it('ignores the back trigger on the first step', () => {
+    it('ignores invalid currentStep values', () => {
       renderMoneyOnboardingView();
       mockTrackOnboardingEvent.mockClear();
 
-      fireTrigger('back');
-      settleTransition();
+      goBack();
+      setCurrentStep(6);
+      setCurrentStep(1.5);
 
       expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
       expect(playImpact).not.toHaveBeenCalled();
     });
 
-    it('ignores further continue triggers on the final step', async () => {
+    it('does not retrack the current step when the binding repeats its value', async () => {
       renderMoneyOnboardingView();
       await completeOnboarding();
       mockTrackOnboardingEvent.mockClear();
 
-      fireTrigger('continue');
-      settleTransition();
+      setCurrentStep(5);
 
       expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
     });
   });
 
   describe('Completion (final step)', () => {
-    it('tracks VIEWED event when the final step settles', async () => {
+    it('tracks VIEWED event when currentStep reaches the final step', async () => {
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -441,7 +646,7 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
-    it('tracks COMPLETED event when the final step settles', async () => {
+    it('tracks COMPLETED event when onboardingCompleted becomes true', async () => {
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -455,7 +660,7 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
-    it('navigates to Money home when the final step settles', async () => {
+    it('navigates to Money home when onboardingCompleted becomes true', async () => {
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -470,7 +675,68 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
-    it('dispatches setMoneyOnboardingSeen when the final step settles', async () => {
+    it('waits for onboardingCompleted after reaching the final step', () => {
+      renderMoneyOnboardingView();
+      advanceStep();
+      advanceStep();
+      advanceStep();
+      mockTrackOnboardingEvent.mockClear();
+
+      advanceStep();
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 5,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        }),
+      );
+      expect(mockTrackOnboardingEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      setOnboardingCompleted(true);
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 5,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('logs an error when onboardingCompleted fires before the final step', () => {
+      renderMoneyOnboardingView();
+      jest.clearAllMocks();
+
+      setOnboardingCompleted(true);
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'MoneyOnboardingView: onboardingCompleted fired before the final step',
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('ignores duplicate onboardingCompleted triggers after completion', async () => {
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+      mockNavigate.mockClear();
+      mockTrackOnboardingEvent.mockClear();
+
+      setOnboardingCompleted(true);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
+    });
+
+    it('dispatches setMoneyOnboardingSeen when onboardingCompleted becomes true', async () => {
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -479,6 +745,31 @@ describe('MoneyOnboardingView', () => {
         expect.objectContaining({
           type: 'SET_MONEY_ONBOARDING_SEEN',
           payload: { seen: true },
+        }),
+      );
+    });
+
+    it('returns to Card sign-in after onboarding when the redirect asks for it', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'authentication',
+        },
+      };
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.AUTHENTICATION },
+      });
+      expect(mockNavigateToMoneyDeposit).not.toHaveBeenCalled();
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 5,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+          redirect_target: SCREEN_NAMES.CARD_HOME,
         }),
       );
     });
@@ -498,17 +789,71 @@ describe('MoneyOnboardingView', () => {
 
       await completeOnboarding();
 
-      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
         preferredPaymentToken,
         replaceConfirmation: true,
         onDepositSetupFailure: expect.any(Function),
+        isPostOnboardingContinuation: true,
+        track: expect.any(Function),
       });
+      expect(mockDispatch.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigateToMoneyDeposit.mock.invocationCallOrder[0],
+      );
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
         }),
       );
+    });
+
+    it('tracks the adapter redirect target when post-onboarding deposit is blocked', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
+      };
+      mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+        track?.({
+          redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
+          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        });
+      });
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
+        step: 5,
+        step_title: '',
+        total_steps: 5,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
+      });
+    });
+
+    it('preserves fiat deposit options after completing onboarding', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          autoSelectFiatPayment: true,
+          intent: 'card',
+        },
+      };
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken: undefined,
+        autoSelectFiatPayment: true,
+        intent: 'card',
+        replaceConfirmation: true,
+        onDepositSetupFailure: expect.any(Function),
+        isPostOnboardingContinuation: true,
+        track: expect.any(Function),
+      });
     });
 
     it('logs error when post-onboarding deposit fails', async () => {
@@ -518,7 +863,7 @@ describe('MoneyOnboardingView', () => {
           type: MoneyPostOnboardingRedirectType.DEPOSIT,
         },
       };
-      mockInitiateDeposit.mockRejectedValue(error);
+      mockNavigateToMoneyDeposit.mockRejectedValue(error);
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -536,7 +881,7 @@ describe('MoneyOnboardingView', () => {
           type: MoneyPostOnboardingRedirectType.DEPOSIT,
         },
       };
-      mockInitiateDeposit.mockRejectedValue(new Error('deposit failed'));
+      mockNavigateToMoneyDeposit.mockRejectedValue(new Error('deposit failed'));
       renderMoneyOnboardingView();
 
       await completeOnboarding();
@@ -551,20 +896,33 @@ describe('MoneyOnboardingView', () => {
   });
 
   describe('Close trigger', () => {
-    it('tracks EXITED event at current step when close trigger fires', () => {
+    it('tracks EXITED event with the adapter redirect target at the current step', () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
+      };
+      mockNavigateToMoneyDeposit.mockImplementationOnce(async ({ track }) => {
+        track?.({
+          redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
+          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        });
+      });
       renderMoneyOnboardingView();
       advanceStep();
       jest.clearAllMocks();
 
       fireTrigger('close');
 
-      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          step: 2,
-          step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
-          redirect_target: SCREEN_NAMES.MONEY_HOME,
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
+        step: 2,
+        step_title: strings('money.rive_onboarding.step2_title', {
+          locale: 'en',
         }),
-      );
+        total_steps: 5,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
+      });
     });
 
     it('navigates to Money home when close trigger fires', () => {
@@ -584,13 +942,60 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
+    it('closes onboarding when the modal requests close', async () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+      jest.clearAllMocks();
+
+      await act(async () => {
+        getByTestId(MoneyOnboardingViewTestIds.MODAL).props.onRequestClose();
+      });
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 1,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+    });
+
+    it('preserves analytics context when close trigger navigates home', () => {
+      const analyticsContext: NavigationAnalyticsContext = {
+        id: 'money-home',
+        attribution: 'homescreen_balance_breakdown',
+      };
+      mockRouteParams = { analyticsContext };
+
+      renderMoneyOnboardingView();
+      fireTrigger('close');
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: {
+            screen: Routes.MONEY.HOME,
+            params: { analyticsContext },
+          },
+        },
+        { pop: true },
+      );
+    });
+
     it('navigates to Money home when post-onboarding deposit fails', async () => {
       mockRouteParams = {
         postOnboardingRedirect: {
           type: MoneyPostOnboardingRedirectType.DEPOSIT,
         },
       };
-      mockInitiateDeposit.mockImplementationOnce(
+      mockNavigateToMoneyDeposit.mockImplementationOnce(
         async ({ onDepositSetupFailure }) => {
           const error = new Error('deposit setup failed');
           onDepositSetupFailure?.(error);
@@ -677,57 +1082,57 @@ describe('MoneyOnboardingView', () => {
       expect(__getRivePropertySetter('apyAmountDigit')).toHaveBeenCalledWith(1);
     });
 
-    it('starts the overlay hidden and fades it in after Rive initializes', () => {
+    it('initializes overlay opacity for the initial step', () => {
       renderMoneyOnboardingView();
 
-      expect(useSharedValue).toHaveBeenCalledWith(0);
-      expect(withTiming).toHaveBeenCalledWith(1, {
-        duration: 200,
-      });
+      expect(useSharedValue).toHaveBeenCalledWith(1);
+      expect(withTiming).not.toHaveBeenCalled();
     });
   });
 
   describe('Transition haptics', () => {
-    it('plays page navigation haptic when the continue trigger fires', () => {
+    it('plays page navigation haptic when currentStep advances', () => {
       renderMoneyOnboardingView();
 
-      fireTrigger('continue');
+      advanceStep();
 
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
     });
 
-    it('plays page navigation haptic when the back trigger fires past the first step', () => {
+    it('plays page navigation haptic when currentStep moves backward', () => {
       renderMoneyOnboardingView();
       advanceStep();
       (playImpact as jest.Mock).mockClear();
 
-      fireTrigger('back');
+      goBack();
 
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
     });
 
-    it('does not play haptic while no navigation trigger fires', () => {
+    it('does not play haptic while currentStep does not change', () => {
       renderMoneyOnboardingView();
 
       expect(playImpact).not.toHaveBeenCalled();
     });
   });
 
-  describe('Overlay fade animation', () => {
-    it('fades out when the transition starts and fades in when the step settles', () => {
+  describe('Overlay updates', () => {
+    it('fades in after currentStep changes', () => {
       renderMoneyOnboardingView();
       (withTiming as jest.Mock).mockClear();
 
-      fireTrigger('continue');
+      advanceStep();
 
-      expect(withTiming).toHaveBeenCalledWith(0, {
-        duration: 200,
-      });
-
-      settleTransition();
-
+      expect(withTiming).toHaveBeenCalledWith(
+        0,
+        {
+          duration: 600,
+        },
+        expect.any(Function),
+      );
+      completeOverlayFade();
       expect(withTiming).toHaveBeenCalledWith(1, {
-        duration: 200,
+        duration: 600,
       });
     });
   });
@@ -783,19 +1188,11 @@ describe('MoneyOnboardingView', () => {
   });
 
   describe('Native text overlay', () => {
-    it('keeps step1 text during the forward transition and swaps when step 2 settles', () => {
+    it('updates text when currentStep changes', () => {
       const { getByTestId } = renderMoneyOnboardingView();
 
-      fireTrigger('continue');
-
-      expect(
-        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
-      ).toBe(strings('money.rive_onboarding.step1_title'));
-      expect(
-        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
-      ).toBe(strings('money.rive_onboarding.step1_body', { percentage: 4 }));
-
-      settleTransition();
+      advanceStep();
+      completeOverlayFade();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
@@ -808,20 +1205,13 @@ describe('MoneyOnboardingView', () => {
       ).toBe(strings('money.rive_onboarding.step2_footer_text'));
     });
 
-    it('keeps step2 text during the backward transition and swaps when step 1 settles', () => {
+    it('updates text when currentStep moves backward', () => {
       const { getByTestId } = renderMoneyOnboardingView();
 
       advanceStep();
-      fireTrigger('back');
-
-      expect(
-        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
-      ).toBe(strings('money.rive_onboarding.step2_title'));
-      expect(
-        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
-      ).toBe(strings('money.rive_onboarding.step2_body'));
-
-      settleTransition();
+      completeOverlayFade();
+      goBack();
+      completeOverlayFade();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
@@ -834,9 +1224,6 @@ describe('MoneyOnboardingView', () => {
     it('keeps the step4 overlay copy on the final step, which has no overlay content of its own', async () => {
       const { getByTestId } = renderMoneyOnboardingView();
 
-      advanceStep();
-      advanceStep();
-      advanceStep();
       await completeOnboarding();
 
       expect(
@@ -854,6 +1241,7 @@ describe('MoneyOnboardingView', () => {
 
       advanceStep();
       advanceStep();
+      completeOverlayFade();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
@@ -871,6 +1259,7 @@ describe('MoneyOnboardingView', () => {
 
       advanceStep();
       advanceStep();
+      completeOverlayFade();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,

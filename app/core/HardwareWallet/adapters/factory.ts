@@ -4,10 +4,6 @@ import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
 import { QRWalletAdapter } from './QRWalletAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
-import { store } from '../../../store';
-import { selectRemoteFeatureFlags } from '../../../selectors/featureFlagController';
-import { isDmkEnabled } from '../../Ledger/dmk';
-import type { RootState } from '../../../reducers';
 
 /**
  * Factory function to create the appropriate hardware wallet adapter
@@ -18,22 +14,19 @@ import type { RootState } from '../../../reducers';
  *
  * @param walletType - The type of hardware wallet (null for non-hardware accounts)
  * @param options - Adapter options including event callbacks
- * @param enableDmk - Optional Ledger DMK override. When omitted, reads the same
- * `isDmkEnabled` decision used at keyring init so adapter and bridge agree.
+ * @param enableDmk - The Ledger DMK mode seeded at Engine initialization;
+ * callers pass `getLedgerDmkMode()` so the adapter stack agrees with the
+ * keyring bridge. The factory never resolves flags itself.
  * @returns An adapter instance that implements HardwareWalletAdapter
  */
 export function createAdapter(
   walletType: HardwareWalletType | null,
   options: HardwareWalletAdapterOptions,
-  enableDmk?: boolean,
+  enableDmk: boolean,
 ): HardwareWalletAdapter {
-  const useDmk =
-    enableDmk ??
-    isDmkEnabled(selectRemoteFeatureFlags(store.getState() as RootState));
-
   switch (walletType) {
     case HardwareWalletType.Ledger:
-      return useDmk
+      return enableDmk
         ? new LedgerBluetoothDMKAdapter(options)
         : new LedgerBluetoothAdapter(options);
 

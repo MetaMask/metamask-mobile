@@ -2,10 +2,12 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
+import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
 import renderWithProviderBase from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem, {
   getAssetNavigationParams,
 } from './TrendingTokenRowItem';
+import { getTrendingTokenRowAddButtonTestId } from './TrendingTokenRowItem.testIds';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
@@ -89,62 +91,34 @@ jest.mock('../TrendingTokenLogo', () => {
   };
 });
 
-jest.mock(
-  '../../../../../component-library/components/Badges/BadgeWrapper',
-  () => {
-    const { View: RNView } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: function MockBadgeWrapper({
-        children,
-        badgeElement,
-        badgePosition,
-      }: {
-        children: unknown;
-        badgeElement: unknown;
-        badgePosition: string;
-      }) {
-        return (
-          <RNView testID="badge-wrapper" data-position={badgePosition}>
-            {children}
-            {badgeElement}
-          </RNView>
-        );
-      },
-      BadgePosition: {
-        BottomRight: 'BottomRight',
-      },
-    };
-  },
-);
-
-jest.mock('../../../../../component-library/components/Badges/Badge', () => {
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const { View: RNView } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    default: function MockBadge({
-      size,
-      variant,
-      imageSource,
-      isScaled,
+    ...actual,
+    BadgeWrapper: function MockBadgeWrapper({
+      children,
+      badge,
+      position,
     }: {
-      size: string;
-      variant: string;
-      imageSource?: string;
-      isScaled?: boolean;
+      children: React.ReactNode;
+      badge: React.ReactNode;
+      position: string;
     }) {
       return (
-        <RNView
-          testID="network-badge"
-          data-size={size}
-          data-variant={variant}
-          data-image-source={imageSource}
-          data-scaled={isScaled}
-        />
+        <RNView testID="badge-wrapper" data-position={position}>
+          {children}
+          {badge}
+        </RNView>
       );
     },
-    BadgeVariant: {
-      Network: 'Network',
+    BadgeNetwork: function MockBadgeNetwork({
+      src,
+    }: {
+      src?: string | { uri?: string };
+    }) {
+      const imageSource = typeof src === 'string' ? src : src?.uri;
+      return <RNView testID="network-badge" data-image-source={imageSource} />;
     },
   };
 });
@@ -167,7 +141,6 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
       nickname: 'Ethereum Mainnet',
       ticker: 'ETH',
       rpcUrl: 'https://mainnet.infura.io/v3/test',
-      failoverRpcUrls: [],
       rpcPrefs: {
         blockExplorerUrl: 'https://etherscan.io',
         imageUrl: 'https://ethereum.png',
@@ -179,7 +152,6 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
       nickname: 'Base',
       ticker: 'ETH',
       rpcUrl: 'https://mainnet.base.org',
-      failoverRpcUrls: [],
       rpcPrefs: {
         blockExplorerUrl: 'https://basescan.org',
         imageUrl: 'https://base.png',
@@ -310,7 +282,6 @@ describe('TrendingTokenRowItem', () => {
         nickname: 'Ethereum Mainnet',
         ticker: 'ETH',
         rpcUrl: 'https://mainnet.infura.io/v3/test',
-        failoverRpcUrls: [],
         rpcPrefs: {
           blockExplorerUrl: 'https://etherscan.io',
           imageUrl: 'https://ethereum.png',
@@ -322,7 +293,6 @@ describe('TrendingTokenRowItem', () => {
         nickname: 'Base',
         ticker: 'ETH',
         rpcUrl: 'https://mainnet.base.org',
-        failoverRpcUrls: [],
         rpcPrefs: {
           blockExplorerUrl: 'https://basescan.org',
           imageUrl: 'https://base.png',
@@ -384,6 +354,58 @@ describe('TrendingTokenRowItem', () => {
     );
 
     expect(getByText(/\$76B cap • \$974\.2M vol/)).toBeTruthy();
+  });
+
+  it('renders the symbol and market cap subtitle for search rows', () => {
+    const token = createMockToken();
+
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} subtitle="search" />,
+      { state: mockState },
+      false,
+    );
+
+    expect(getByText('USDC · $76B cap')).toBeTruthy();
+  });
+
+  it('renders a dash market cap and omits volume when search rows have no market cap', () => {
+    const token = createMockToken({
+      marketCap: undefined,
+      aggregatedUsdVolume: 974248822.2,
+    });
+
+    const { getByText, queryByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} subtitle="search" />,
+      { state: mockState },
+      false,
+    );
+
+    expect(getByText('USDC · - cap')).toBeTruthy();
+    expect(queryByText(/vol/)).toBeNull();
+  });
+
+  it('renders the search subtitle in the selected currency', () => {
+    const token = createMockToken();
+    const stateWithEur = {
+      ...mockState,
+      engine: {
+        ...mockState.engine,
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          AssetsController: {
+            selectedCurrency: 'eur',
+          },
+        },
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <TrendingTokenRowItem token={token} subtitle="search" />,
+      { state: stateWithEur },
+      false,
+    );
+
+    expect(getByText('USDC · €76B cap')).toBeTruthy();
   });
 
   it('renders formatted price', () => {
@@ -1783,8 +1805,8 @@ describe('TrendingTokenRowItem', () => {
     });
   });
 
-  describe('Quick Trade button (onQuickTrade)', () => {
-    it('does not render the quick trade button when onQuickTrade is not provided', () => {
+  describe('Quick Trade button (endAction: quick-trade)', () => {
+    it('does not render the quick trade button when no endAction is provided', () => {
       const token = createMockToken();
 
       const { queryByTestId } = renderWithProvider(
@@ -1793,15 +1815,18 @@ describe('TrendingTokenRowItem', () => {
         false,
       );
 
-      expect(queryByTestId('quick-trade-button')).toBeNull();
+      expect(queryByTestId('quick-trade-button')).not.toBeOnTheScreen();
     });
 
-    it('renders the quick trade button when onQuickTrade is provided', () => {
+    it('renders the quick trade button when provided', () => {
       const token = createMockToken();
-      const onQuickTrade = jest.fn();
+      const onPress = jest.fn();
 
       const { getByTestId } = renderWithProvider(
-        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'quick-trade', onPress }}
+        />,
         { state: mockState },
         false,
       );
@@ -1809,28 +1834,34 @@ describe('TrendingTokenRowItem', () => {
       expect(getByTestId('quick-trade-button')).toBeOnTheScreen();
     });
 
-    it('calls onQuickTrade with the token when the button is pressed', () => {
+    it('calls onPress with the token when the button is pressed', () => {
       const token = createMockToken();
-      const onQuickTrade = jest.fn();
+      const onPress = jest.fn();
 
       const { getByTestId } = renderWithProvider(
-        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'quick-trade', onPress }}
+        />,
         { state: mockState },
         false,
       );
 
       fireEvent.press(getByTestId('quick-trade-button'));
 
-      expect(onQuickTrade).toHaveBeenCalledTimes(1);
-      expect(onQuickTrade).toHaveBeenCalledWith(token);
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledWith(token);
     });
 
     it('does not trigger row navigation when the quick trade button is pressed', async () => {
       const token = createMockToken();
-      const onQuickTrade = jest.fn();
+      const onPress = jest.fn();
 
       const { getByTestId } = renderWithProvider(
-        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'quick-trade', onPress }}
+        />,
         { state: mockState },
         false,
       );
@@ -1841,6 +1872,90 @@ describe('TrendingTokenRowItem', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockDispatch).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('Add to watchlist button (endAction: watchlist)', () => {
+    const renderWatchlistRow = () => {
+      const onPress = jest.fn();
+      const token = createMockToken();
+      const renderResult = renderWithProvider(
+        <TrendingTokenRowItem
+          token={token}
+          endAction={{ type: 'watchlist', onPress }}
+        />,
+        { state: mockState },
+        false,
+      );
+      return {
+        onPress,
+        token,
+        addButtonId: getTrendingTokenRowAddButtonTestId(
+          token.assetId as string,
+        ),
+        ...renderResult,
+      };
+    };
+
+    it('does not render the add button when no endAction is provided', () => {
+      const token = createMockToken();
+
+      const { queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(
+        queryByTestId(
+          getTrendingTokenRowAddButtonTestId(token.assetId as string),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the add button when provided', () => {
+      const { getByTestId, addButtonId } = renderWatchlistRow();
+
+      expect(getByTestId(addButtonId)).toBeOnTheScreen();
+    });
+
+    it('calls onPress with the token when the button is pressed', () => {
+      const { getByTestId, onPress, token, addButtonId } = renderWatchlistRow();
+
+      fireEvent.press(getByTestId(addButtonId));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledWith(token);
+    });
+
+    it('renders an outline star button matching the perps suggested add affordance (PR 36358)', () => {
+      const { UNSAFE_getByType } = renderWatchlistRow();
+
+      const button = UNSAFE_getByType(ButtonIcon);
+
+      expect(button.props.iconName).toStrictEqual(IconName.Star);
+      // No variant → outline style, mirroring PerpsMarketRowItem.
+      expect(button.props.variant).toBeUndefined();
+      // The star is vertically centered against the row's text columns.
+      expect(button.props.twClassName).toBe('self-center');
+    });
+
+    it('does not trigger row navigation when the add button is pressed', async () => {
+      const { getByTestId, addButtonId } = renderWatchlistRow();
+
+      fireEvent.press(getByTestId(addButtonId));
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('renders only the watchlist action when both variants could apply', () => {
+      const { getByTestId, queryByTestId, addButtonId } = renderWatchlistRow();
+
+      expect(getByTestId(addButtonId)).toBeOnTheScreen();
+      expect(queryByTestId('quick-trade-button')).not.toBeOnTheScreen();
     });
   });
 

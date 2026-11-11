@@ -2,7 +2,8 @@ import { getWindowSize } from './DeviceInfoCache.ts';
 import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
 import { AppiumElement } from './AppiumElement';
-import { boxedStep, getDriver } from './AppiumUtilities';
+import AppiumUtilities, { boxedStep, getDriver } from './AppiumUtilities';
+import { runBeforeAppTerminateHooks } from './appLifecycle.ts';
 import {
   createAppiumLogger,
   debugElementAction,
@@ -524,6 +525,10 @@ export default class AppiumGestures {
       throw new Error('Package name or app id is not available');
     }
 
+    // Give listeners a chance to flush anything tied to the current process
+    // (e.g. an in-flight Hermes CPU profile) before it is killed.
+    await runBeforeAppTerminateHooks();
+
     logger.debug(`Terminating app: ${bundleId}`);
     while (retries > 0) {
       try {
@@ -580,6 +585,13 @@ export default class AppiumGestures {
     throw new Error('Package name or app id is not available');
   }
 
+  @boxedStep
+  static async relaunchApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+  ): Promise<void> {
+    await AppiumUtilities.relaunchTerminatedApp(currentDeviceDetails);
+  }
+
   /**
    * Background the current app for a number of seconds.
    * @param seconds - Time to keep the app in the background
@@ -601,8 +613,25 @@ export default class AppiumGestures {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
-    const key = await drv.$(`~${keyName}`);
-    await key.waitForExist({ timeout: 5000 });
+    await drv.$('//XCUIElementTypeKeyboard').waitForExist({
+      timeout: 5000,
+      timeoutMsg: 'iOS keyboard is not displayed',
+    });
+
+    // Prefer the keyboard-scoped key: inputs like CodeField render typed
+    // digits as accessible text, so a bare `~0` lookup can match an input
+    // cell instead of the number-pad key.
+    const scopedKey = await drv.$(
+      `//XCUIElementTypeKeyboard//*[@name="${keyName}"]`,
+    );
+    const key = (await scopedKey.isExisting())
+      ? scopedKey
+      : await drv.$(`~${keyName}`);
+
+    await key.waitForExist({
+      timeout: 5000,
+      timeoutMsg: `Could not find iOS keyboard key "${keyName}"`,
+    });
     await key.click();
   }
 

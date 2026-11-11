@@ -4,11 +4,6 @@
 const dualFrameworkRestrictedImportOptions = {
   patterns: [
     {
-      group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
-      message:
-        'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
-    },
-    {
       group: [
         '**/FrameworkDetector',
         '**/FrameworkDetector.ts',
@@ -16,25 +11,6 @@ const dualFrameworkRestrictedImportOptions = {
       ],
       message:
         'Do not import FrameworkDetector in POs/specs. Use Gestures/Assertions/Matchers (Appium-only).',
-    },
-    {
-      group: [
-        '**/EncapsulatedElement',
-        '**/EncapsulatedElement.ts',
-        '**/EncapsulatedElement.js',
-      ],
-      importNames: ['encapsulated', 'encapsulatedAction'],
-      message:
-        'Do not use encapsulated(). Prefer Matchers + Gestures/Assertions.',
-    },
-    {
-      group: [
-        '**/encapsulatedAction',
-        '**/encapsulatedAction.ts',
-        '**/encapsulatedAction.js',
-      ],
-      message:
-        'Do not import encapsulatedAction. Prefer Gestures/Assertions from tests/framework.',
     },
     {
       group: [
@@ -51,17 +27,14 @@ const dualFrameworkRestrictedImportOptions = {
         'Do not import AppiumMatchers/AppiumGestures/AppiumAssertions backends in POs/specs. Use Gestures/Assertions/Matchers.',
     },
     {
-      // Only bare `from '.../framework'` / index re-exports (not framework/EncapsulatedElement etc.)
+      // Only bare `from '.../framework'` / index re-exports
       group: [
         '**/framework/index',
         '**/framework/index.ts',
         '**/framework/index.js',
       ],
       importNames: [
-        'UnifiedGestures',
         'FrameworkDetector',
-        'encapsulated',
-        'encapsulatedAction',
         'AppiumMatchers',
         'AppiumGestures',
         'AppiumAssertions',
@@ -80,10 +53,7 @@ const dualFrameworkRestrictedImportOptions = {
         '../../../../../framework',
       ],
       importNames: [
-        'UnifiedGestures',
         'FrameworkDetector',
-        'encapsulated',
-        'encapsulatedAction',
         'AppiumMatchers',
         'AppiumGestures',
         'AppiumAssertions',

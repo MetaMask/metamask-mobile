@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   AvatarNetwork,
   AvatarNetworkSize,
@@ -7,10 +7,6 @@ import {
   toast,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import {
@@ -20,8 +16,6 @@ import {
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-
-const IGNORED_TRANSACTION_TYPES = [TransactionType.musdConversion];
 
 export function GasFeeTokenToast() {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -40,13 +34,8 @@ export function GasFeeTokenToast() {
     chainId: chainId ?? '0x1',
   });
 
-  const isIgnoredType = hasTransactionType(
-    transactionMetadata,
-    IGNORED_TRANSACTION_TYPES,
-  );
-
   useEffect(() => {
-    if (!gasFeeToken || !transactionMetadata || isIgnoredType) return;
+    if (!gasFeeToken || !transactionMetadata) return;
     if (gasFeeToken.tokenAddress === prevRef.current) return;
 
     prevRef.current = gasFeeToken.tokenAddress;
@@ -63,13 +52,7 @@ export function GasFeeTokenToast() {
       ),
       hasNoTimeout: false,
     });
-  }, [
-    gasFeeToken,
-    tokenSelected,
-    networkImageSource,
-    transactionMetadata,
-    isIgnoredType,
-  ]);
+  }, [gasFeeToken, tokenSelected, networkImageSource, transactionMetadata]);
 
   return null;
 }

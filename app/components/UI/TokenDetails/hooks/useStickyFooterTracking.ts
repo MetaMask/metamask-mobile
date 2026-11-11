@@ -4,11 +4,13 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getUsdAmountRange } from '../../../../util/analytics/usdAmountRange';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
 
 export type StickyFooterButtonAction =
   | 'swap'
   | 'buy'
   | 'quick_buy'
+  | 'quick_sell'
   | 'money_deposit';
 
 interface TrackStickyBottomCtaClickedParams {
@@ -17,6 +19,7 @@ interface TrackStickyBottomCtaClickedParams {
   tokenAddress: string;
   chainId: string;
   indicatorsActive?: string[];
+  tdp_version?: TdpVersion;
 }
 
 /**
@@ -37,6 +40,7 @@ export function useStickyFooterTracking() {
       tokenAddress,
       chainId,
       indicatorsActive,
+      tdp_version,
     }: TrackStickyBottomCtaClickedParams) => {
       const properties: Record<string, unknown> = {
         cta_type: ctaType,
@@ -44,6 +48,10 @@ export function useStickyFooterTracking() {
         token_address: tokenAddress,
         chain_id: chainId,
       };
+
+      if (tdp_version) {
+        properties.tdp_version = tdp_version;
+      }
 
       // Only add indicators_active when feature flag is enabled
       if (isTechnicalIndicatorsEnabled) {

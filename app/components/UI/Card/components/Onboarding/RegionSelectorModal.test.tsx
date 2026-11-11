@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import { strings } from '../../../../../../locales/i18n';
 import RegionSelectorModal, {
   setOnValueChange,
   clearOnValueChange,
@@ -36,7 +37,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(
     (key: string, params?: { [key: string]: string | number }) => {
       const mockStrings: { [key: string]: string } = {
-        'card.card_onboarding.region_selector.title': 'Select Region',
+        'card.card_onboarding.region_selector.title': 'Select your region',
+        'card.card_onboarding.region_selector.search_placeholder': 'Search',
         'card.card_onboarding.errors.no_region_results':
           'No results found for "{searchString}"',
       };
@@ -52,15 +54,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
   ),
 }));
 
-// Mock BottomSheet component
+// Mock BottomSheet while keeping the rest of the design system real.
 const mockOnCloseBottomSheet = jest.fn();
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const React = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
 
-    return React.forwardRef(
+  return {
+    ...actual,
+    BottomSheet: React.forwardRef(
       (
         {
           children,
@@ -69,8 +72,6 @@ jest.mock(
         }: {
           children: React.ReactNode;
           onClose?: () => void;
-          shouldNavigateBack?: boolean;
-          keyboardAvoidingViewEnabled?: boolean;
           testID?: string;
         },
         ref: React.Ref<{ onCloseBottomSheet: () => void }>,
@@ -87,52 +88,9 @@ jest.mock(
           children,
         );
       },
-    );
-  },
-);
-
-// Mock TextFieldSearch - needed because component has internal elements (clear button) that need testIDs
-jest.mock(
-  '../../../../../component-library/components/Form/TextFieldSearch',
-  () => {
-    const React = jest.requireActual('react');
-    const { TextInput, TouchableOpacity, View } =
-      jest.requireActual('react-native');
-
-    return ({
-      value,
-      onChangeText,
-      onPressClearButton,
-      onFocus,
-      testID,
-    }: {
-      value: string;
-      onChangeText: (text: string) => void;
-      onPressClearButton?: () => void;
-      onFocus?: () => void;
-      testID?: string;
-    }) =>
-      React.createElement(
-        View,
-        { testID: 'search-field-container' },
-        React.createElement(TextInput, {
-          testID: testID || 'search-input',
-          value,
-          onChangeText,
-          onFocus,
-        }),
-        !!value &&
-          React.createElement(
-            TouchableOpacity,
-            {
-              testID: 'search-clear-button',
-              onPress: onPressClearButton,
-            },
-            'Clear',
-          ),
-      );
-  },
-);
+    ),
+  };
+});
 
 // Mock FlatList from react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => {
@@ -215,7 +173,7 @@ describe('RegionSelectorModal', () => {
       );
 
       expect(getByTestId('region-selector-modal')).toBeTruthy();
-      expect(getByText('Select Region')).toBeTruthy();
+      expect(getByText('Select your region')).toBeTruthy();
     });
 
     it('renders search input field', () => {
@@ -458,6 +416,65 @@ describe('RegionSelectorModal', () => {
 
       expect(queryByTestId('region-selector-item')).not.toBeOnTheScreen();
       expect(getByTestId('region-selector-modal')).toBeTruthy();
+      expect(queryByTestId('region-selector-empty-list')).not.toBeOnTheScreen();
+    });
+
+    it('shows the empty state for a search on an empty regions array', async () => {
+      mockUseParams.mockReturnValue({
+        regions: [],
+        renderAreaCode: false,
+      });
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <RegionSelectorModal />
+        </Provider>,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(getByTestId('region-selector-search-input'), 'US');
+      });
+
+      expect(getByTestId('region-selector-empty-list')).toBeOnTheScreen();
+    });
+
+    it('does not show the empty state for a whitespace-only query', async () => {
+      mockUseParams.mockReturnValue({
+        regions: [],
+        renderAreaCode: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <RegionSelectorModal />
+        </Provider>,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(getByTestId('region-selector-search-input'), '  ');
+      });
+
+      expect(queryByTestId('region-selector-empty-list')).not.toBeOnTheScreen();
+    });
+
+    it('shows the localised search placeholder', () => {
+      jest
+        .mocked(strings)
+        .mockImplementation((key: string) =>
+          key === 'card.card_onboarding.region_selector.search_placeholder'
+            ? 'Search by country'
+            : key,
+        );
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <RegionSelectorModal />
+        </Provider>,
+      );
+
+      expect(getByTestId('region-selector-search-input')).toHaveProp(
+        'placeholder',
+        'Search by country',
+      );
     });
 
     it('handles null regions parameter', () => {

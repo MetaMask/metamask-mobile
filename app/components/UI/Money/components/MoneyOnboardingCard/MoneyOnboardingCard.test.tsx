@@ -1,12 +1,12 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import MoneyOnboardingCard, {
   MONEY_ONBOARDING_TOTAL_STEPS,
 } from './MoneyOnboardingCard';
 import { useOnboardingStep } from '../../hooks/useOnboardingStep';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { strings } from '../../../../../../locales/i18n';
@@ -22,10 +22,13 @@ import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+import Logger from '../../../../../util/Logger';
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'built-event' }));
@@ -39,6 +42,11 @@ const mockTrackOnboardingEvent = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 jest.mock('../MoneyNextBestActionParallax', () => ({
@@ -57,8 +65,8 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
   STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
-jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: jest.fn(),
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
+  useMoneyDepositNavigation: jest.fn(),
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
@@ -85,6 +93,20 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 const mockIsCardholder = jest.fn(() => true);
 const mockCardHomeDataStatus = jest.fn(() => 'success');
 const mockIsCardStateResolved = jest.fn(() => true);
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
 }));
@@ -98,8 +120,7 @@ jest.mock('../../../../../selectors/cardController', () => ({
 const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
   typeof useOnboardingStep
 >;
-const mockUseMoneyAccountDeposit =
-  useMoneyAccountDeposit as jest.MockedFunction<typeof useMoneyAccountDeposit>;
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountCardLinkage =
@@ -108,8 +129,9 @@ const mockUseMoneyAccountCardLinkage =
   >;
 
 const mockIncrementStep = jest.fn();
-const mockInitiateDeposit = jest.fn().mockResolvedValue(undefined);
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockStartLinkFlow = jest.fn();
+const mockLoggerError = jest.mocked(Logger.error);
 
 interface SetupOptions {
   currentStep?: number;
@@ -141,8 +163,8 @@ const setupDefaultMocks = ({
     incrementStep: mockIncrementStep,
     isVisible: currentStep < MONEY_ONBOARDING_TOTAL_STEPS,
   });
-  (mockUseMoneyAccountDeposit as jest.Mock).mockReturnValue({
-    initiateDeposit: mockInitiateDeposit,
+  mockUseMoneyDepositNavigation.mockReturnValue({
+    navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
   });
   mockUseMoneyAccountBalance.mockReturnValue({
     tokenTotal,
@@ -168,6 +190,12 @@ describe('MoneyOnboardingCard', () => {
     jest.clearAllMocks();
     mockIsCardStateResolved.mockReturnValue(true);
     mockCardHomeDataStatus.mockReturnValue('success');
+    mockNavigateToMoneyDeposit.mockImplementation(async ({ track }) => {
+      track?.({
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      });
+    });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackOnboardingEvent: mockTrackOnboardingEvent,
     });
@@ -225,6 +253,14 @@ describe('MoneyOnboardingCard', () => {
       const { getByTestId } = render(<MoneyOnboardingCard />);
 
       expect(getByTestId('money-onboarding-card-container')).toBeOnTheScreen();
+    });
+
+    it('draws the card on glass when isGlass is set', () => {
+      setupDefaultMocks({ currentStep: 0 });
+
+      const { getByTestId } = render(<MoneyOnboardingCard isGlass />);
+
+      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
     });
   });
 
@@ -292,13 +328,30 @@ describe('MoneyOnboardingCard', () => {
       );
     });
 
-    it('calls initiateDeposit when Add funds CTA is pressed', () => {
+    it('navigates to deposit when Add funds CTA is pressed', () => {
       setupDefaultMocks({ currentStep: 0 });
 
       const { getByTestId } = render(<MoneyOnboardingCard />);
       fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
 
-      expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        track: expect.any(Function),
+      });
+    });
+
+    it('logs deposit navigation errors without blocking the onboarding card', async () => {
+      const error = new Error('navigation failed');
+      mockNavigateToMoneyDeposit.mockRejectedValueOnce(error);
+      setupDefaultMocks({ currentStep: 0 });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+
+      await waitFor(() =>
+        expect(mockLoggerError).toHaveBeenCalledWith(error, {
+          message: '[MoneyOnboardingCard] Failed to navigate to deposit',
+        }),
+      );
     });
   });
 
@@ -719,14 +772,15 @@ describe('MoneyOnboardingCard', () => {
       const { getByTestId } = render(<MoneyOnboardingCard />);
       fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
 
-      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          step: 1,
-          step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
-          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-          total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
+        step: 1,
+        step_title: strings('money.onboarding.step_1.title_no_apy', {
+          locale: 'en',
         }),
-      );
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+      });
     });
 
     it('calls trackOnboardingEvent with GET_CARD when Get card CTA is pressed for unauthenticated user at step 2', () => {

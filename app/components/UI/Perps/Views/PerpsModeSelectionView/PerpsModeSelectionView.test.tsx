@@ -3,7 +3,12 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import React from 'react';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -15,9 +20,16 @@ import {
 } from '../../utils/openPerpsModeSelection';
 import PerpsModeSelectionView from './PerpsModeSelectionView';
 
-const mockGoBack = jest.fn();
-const mockNavigate = jest.fn();
-const mockGetParentReset = jest.fn();
+const proEntrySequence: string[] = [];
+const mockGoBack = jest.fn(() => {
+  proEntrySequence.push('leave');
+});
+const mockNavigate = jest.fn(() => {
+  proEntrySequence.push('continue');
+});
+const mockGetParentReset = jest.fn(() => {
+  proEntrySequence.push('leave');
+});
 const mockGetParentGetState = jest.fn(() => ({
   index: 2,
   routes: [
@@ -41,7 +53,6 @@ const fireNavigationEvent = (event: string) => {
 };
 
 let mockIsProModeEnabled = true;
-let mockIsFirstTimePerpsUser = true;
 let mockPerpsMode = PerpsMode.Lite;
 let mockRouteParams: { entry?: string; source?: string } = {};
 
@@ -66,12 +77,39 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
 
+const mockReact = React;
+
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: (
+    _flagKey: string,
+    variants: { control: { destination: 'lastViewedMarket' } },
+    metadata?: { trackExposure?: boolean },
+  ) => {
+    // Mirrors useABTest: Experiment Viewed is an effect, so it only runs
+    // after a commit where trackExposure is true.
+    mockReact.useEffect(() => {
+      if (metadata?.trackExposure) {
+        proEntrySequence.push('experiment-viewed');
+      }
+    }, [metadata?.trackExposure]);
+
+    return {
+      variant: variants.control,
+      variantName: 'control',
+      isActive: false,
+    };
+  },
+}));
+
 jest.mock('../../selectors/perpsController', () => ({
-  selectIsFirstTimePerpsUser: () => mockIsFirstTimePerpsUser,
+  selectPerpsLastViewedMarketSymbol: () => 'BTC',
+  selectPerpsWatchlistMarkets: () => [],
+  selectPerpsMode: () => mockPerpsMode,
 }));
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: () => mockIsProModeEnabled,
+  selectPerpsWatchlistEnabledFlag: () => true,
 }));
 
 jest.mock('../../hooks/usePerpsMode', () => ({
@@ -108,6 +146,11 @@ jest.mock('../../utils/perpsModeSwitch', () => ({
   dropPerpsHomeFromStackHistory: jest.requireActual(
     '../../utils/perpsModeSwitch',
   ).dropPerpsHomeFromStackHistory,
+  withHomeDroppedFromHistory: jest.requireActual('../../utils/perpsModeSwitch')
+    .withHomeDroppedFromHistory,
+  useIsPerpsProModeActive: jest.requireActual('../../utils/perpsModeSwitch')
+    .useIsPerpsProModeActive,
+  PERPS_DEFAULT_PRO_MARKET_SYMBOL: 'BTC',
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -138,9 +181,9 @@ describe('PerpsModeSelectionView', () => {
       delete mockNavigationListeners[key];
     });
     mockIsProModeEnabled = true;
-    mockIsFirstTimePerpsUser = true;
     mockPerpsMode = PerpsMode.Lite;
     mockRouteParams = {};
+    proEntrySequence.length = 0;
     jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
       cb(0);
       return 0;
@@ -198,7 +241,7 @@ describe('PerpsModeSelectionView', () => {
     ).toEqual({ selected: false });
   });
 
-  it('persists Lite, dismisses, and continues to the tutorial for first-time users', async () => {
+  it('persists Lite, dismisses, and continues to Perps Home for first-time users', async () => {
     render(<PerpsModeSelectionView />);
 
     fireEvent.press(
@@ -221,125 +264,17 @@ describe('PerpsModeSelectionView', () => {
       },
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-      source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
-    });
-  });
-
-  it('persists Pro and continues to the tutorial with a Pro market redirect', async () => {
-    render(<PerpsModeSelectionView />);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION),
-    );
-
-    await Promise.resolve();
-
-    expect(mockSetMode).toHaveBeenCalledWith(PerpsMode.Pro);
-    expect(mockMarkPerpsModeSelectionCompleted).toHaveBeenCalledTimes(1);
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-      source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
-      redirectScreen: Routes.PERPS.MARKET_DETAILS,
-      redirectParams: {
-        market: { symbol: 'BTC', name: 'Bitcoin' },
-        source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
-      },
-    });
-  });
-
-  it('continues to Perps Home when a returning Trade-entry user selects Lite', async () => {
-    mockIsFirstTimePerpsUser = false;
-
-    render(<PerpsModeSelectionView />);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION),
-    );
-
-    await Promise.resolve();
-
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
       params: { source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION },
     });
-  });
-
-  it('continues to the default Pro market when a returning Trade-entry user selects Pro', async () => {
-    // Regression: the destination must come from the selected mode, not from the
-    // Pro-mode selector, which still reads Lite at this point.
-    mockIsFirstTimePerpsUser = false;
-    mockPerpsMode = PerpsMode.Lite;
-
-    render(<PerpsModeSelectionView />);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION),
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.TUTORIAL,
+      expect.anything(),
     );
-
-    await Promise.resolve();
-
-    expect(mockSetMode).toHaveBeenCalledWith(PerpsMode.Pro);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.MARKET_DETAILS,
-      params: {
-        market: expect.objectContaining({ symbol: 'BTC' }),
-        source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
-      },
-    });
-  });
-
-  it('continues to Perps Home when Pro is selected but the Pro-mode flag is off', async () => {
-    mockIsFirstTimePerpsUser = false;
-    mockIsProModeEnabled = false;
-
-    render(<PerpsModeSelectionView />);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION),
-    );
-
-    await Promise.resolve();
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION },
-    });
-  });
-
-  it('resets onto the default Pro market when selecting Pro from home', async () => {
-    mockIsFirstTimePerpsUser = false;
-    mockRouteParams = {
-      entry: 'home',
-      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-    };
-
-    render(<PerpsModeSelectionView />);
-
-    fireEvent.press(
-      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION),
-    );
-
-    await Promise.resolve();
-
-    expect(mockSetMode).toHaveBeenCalledWith(PerpsMode.Pro);
-    expect(mockGetParentReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [
-        {
-          name: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market: { symbol: 'BTC', name: 'Bitcoin' },
-            source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-          },
-        },
-      ],
-    });
-    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('drops Perps Home from the parent stack when selecting Pro from a market', async () => {
-    mockIsFirstTimePerpsUser = false;
     mockRouteParams = {
       entry: 'market',
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
@@ -358,17 +293,25 @@ describe('PerpsModeSelectionView', () => {
       expect.objectContaining({
         index: 1,
         routes: [
-          { name: Routes.PERPS.MARKET_DETAILS, key: 'market-1' },
-          { name: Routes.PERPS.MODALS.ROOT, key: 'modal-1' },
+          {
+            name: Routes.PERPS.MARKET_DETAILS,
+            key: 'market-1',
+            params: { homeDroppedFromHistory: true },
+          },
+          {
+            name: Routes.PERPS.MODALS.ROOT,
+            key: 'modal-1',
+            params: { homeDroppedFromHistory: true },
+          },
         ],
       }),
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(proEntrySequence).not.toContain('experiment-viewed');
   });
 
   it('dismisses only when selecting Lite from a market header', async () => {
-    mockIsFirstTimePerpsUser = false;
     mockRouteParams = {
       entry: 'market',
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
@@ -413,6 +356,30 @@ describe('PerpsModeSelectionView', () => {
     );
   });
 
+  it('measures time on screen from when the chooser opened, not from a later update', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(5_000);
+
+    const { rerender } = render(<PerpsModeSelectionView />);
+    mockTrack.mockClear();
+
+    // The dismissal continuation derives from the Pro flag, so flipping it
+    // re-creates the callback. Resubscribing must not restart the timer.
+    jest.spyOn(Date, 'now').mockReturnValue(5_400);
+    mockIsProModeEnabled = false;
+    rerender(<PerpsModeSelectionView />);
+
+    jest.spyOn(Date, 'now').mockReturnValue(5_600);
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: PERPS_MODE_SELECTION_DISMISSED,
+        [PERPS_EVENT_PROPERTY.TIME_ON_SCREEN_MS]: 600,
+      }),
+    );
+  });
+
   it('emits mode_selection_dismissed at most once across close and beforeRemove', () => {
     render(<PerpsModeSelectionView />);
     mockTrack.mockClear();
@@ -443,5 +410,116 @@ describe('PerpsModeSelectionView', () => {
     fireNavigationEvent('beforeRemove');
 
     expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('continues to Perps Home when the Trade-menu chooser is dismissed', () => {
+    render(<PerpsModeSelectionView />);
+
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockMarkPerpsModeSelectionCompleted).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION },
+    });
+  });
+
+  it('still emits mode_selection_dismissed when a dismissal continues into Perps', () => {
+    render(<PerpsModeSelectionView />);
+    mockTrack.mockClear();
+
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: PERPS_MODE_SELECTION_DISMISSED,
+        entry: 'trade',
+      }),
+    );
+  });
+
+  it('does not emit an intentional selection event when a dismissal continues', () => {
+    render(<PerpsModeSelectionView />);
+    mockTrack.mockClear();
+
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      }),
+    );
+  });
+
+  it('continues to the pre-selected mode rather than always Lite', () => {
+    mockPerpsMode = PerpsMode.Pro;
+
+    render(<PerpsModeSelectionView />);
+
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: expect.objectContaining({ symbol: 'BTC' }),
+        source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
+      },
+    });
+  });
+
+  it('continues at most once across repeated dismissal events', () => {
+    render(<PerpsModeSelectionView />);
+
+    fireNavigationEvent('beforeRemove');
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockMarkPerpsModeSelectionCompleted).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays put when the chooser is dismissed from the Perps home header', () => {
+    mockRouteParams = {
+      entry: 'home',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    };
+
+    render(<PerpsModeSelectionView />);
+
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockMarkPerpsModeSelectionCompleted).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGetParentReset).not.toHaveBeenCalled();
+  });
+
+  it('stays put when the chooser is dismissed from a market header', () => {
+    mockRouteParams = {
+      entry: 'market',
+      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    };
+
+    render(<PerpsModeSelectionView />);
+
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockMarkPerpsModeSelectionCompleted).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not continue a second time after the user selects a mode', async () => {
+    render(<PerpsModeSelectionView />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION),
+    );
+    await Promise.resolve();
+
+    fireNavigationEvent('beforeRemove');
+
+    expect(mockMarkPerpsModeSelectionCompleted).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });

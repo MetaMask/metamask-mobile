@@ -8,12 +8,16 @@ import {
   useRive,
   useRiveFile,
 } from '@rive-app/react-native';
-import { useSafeAreaInsets, EdgeInsets } from 'react-native-safe-area-context';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import FoxAnimationRive from '../../../animations/fox_appear.riv';
 import { OnboardingRiveAnimationIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useRivePerformance } from '../../../hooks/performance/useRivePerformance';
+import { useBottomSafeAreaInset } from '../../hooks/useBottomSafeAreaInset';
+
+// Android reports about 24dp for gesture navigation and 48dp for the opaque
+// three-button navigation bar.
+const ANDROID_OPAQUE_NAV_BAR_MIN_INSET = 40;
 
 const getFoxAnimationHeight = (hasFooter: boolean) => {
   if (hasFooter) {
@@ -22,68 +26,92 @@ const getFoxAnimationHeight = (hasFooter: boolean) => {
   return Device.isMediumDevice() ? 300 : 350;
 };
 
-const getSafeBottomPosition = (hasFooter: boolean, insets?: EdgeInsets) => {
-  const basePadding = insets?.bottom || 0;
+export interface FoxSafeBottomOptions {
+  /**
+   * Parent paints under the Android system nav / gesture area (e.g. Onboarding
+   * root canvas with top-only SafeArea). Gesture navigation uses a negative
+   * bottom so the fox sits flush; an opaque three-button bar is cleared.
+   * Login must leave this false because its SafeAreaView applied the inset.
+   */
+  fullBleedBottom?: boolean;
+}
 
-  // iOS specific
-  if (Platform.OS === 'ios') {
-    if (hasFooter) {
-      // Footer case: position above footer + safe area
-      return Math.max(100, basePadding + 60);
+export const getSafeBottomPosition = (
+  hasFooter: boolean,
+  bottomInset = 0,
+  options?: FoxSafeBottomOptions,
+) => {
+  if (hasFooter) {
+    if (Platform.OS === 'ios') {
+      return Math.max(100, bottomInset + 60);
     }
-    if (basePadding > 0) {
-      // iPhone X+ with home indicator
-      return Math.max(-40, -(basePadding - 10));
+    if (Platform.OS === 'android') {
+      return Math.max(100, bottomInset + (bottomInset > 20 ? 60 : 40));
+    }
+    return 100;
+  }
+
+  if (Platform.OS === 'ios') {
+    if (bottomInset > 0) {
+      return Math.max(-40, -(bottomInset - 10));
     }
     return -20;
   }
 
-  // Android specific
   if (Platform.OS === 'android') {
-    // Samsung and other Android devices with gesture navigation
-    if (basePadding > 20) {
-      return hasFooter
-        ? Math.max(100, basePadding + 60)
-        : Math.max(-20, basePadding);
+    if (options?.fullBleedBottom) {
+      // The full-bleed canvas still paints behind the system bar, but the fox
+      // artwork must stay above an opaque three-button navigation bar.
+      if (bottomInset >= ANDROID_OPAQUE_NAV_BAR_MIN_INSET) {
+        return bottomInset;
+      }
+      // Gesture navigation is mostly transparent, so tuck the art into it to
+      // avoid a visible strip between the fox and the bottom of the screen.
+      if (bottomInset > 0) {
+        return Math.max(-40, -(bottomInset - 10));
+      }
+      // Edge-to-edge often reports 0 inset; still pull slightly into the gesture area.
+      return -20;
     }
-
-    // Standard Android devices
-    return hasFooter
-      ? Math.max(100, basePadding + 40)
-      : Math.max(-20, basePadding - 20);
+    // Login (and other bottom-safe parents): do not double-count the inset.
+    return 0;
   }
 
-  // Fallback for other platforms
-  return hasFooter ? 100 : -20;
+  return -20;
 };
 
-const createStyles = (hasFooter: boolean, insets?: EdgeInsets) =>
-  StyleSheet.create({
-    foxAnimationWrapper: {
-      position: 'absolute',
-      bottom: getSafeBottomPosition(hasFooter, insets),
-      left: 0,
-      right: 0,
-      height: getFoxAnimationHeight(hasFooter),
-      alignItems: 'center',
-      justifyContent: 'center',
-      pointerEvents: 'none',
-    },
-    foxAnimation: {
-      width: '100%',
-      height: '100%',
-    },
-  });
+const styles = StyleSheet.create({
+  foxAnimationWrapper: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+  },
+  foxAnimation: {
+    width: '100%',
+    height: '100%',
+  },
+});
 
 const FoxAnimation = ({
   hasFooter,
   trigger,
+  fullBleedBottom = false,
 }: {
   hasFooter: boolean;
   trigger?: 'Loader' | 'Start';
+  fullBleedBottom?: boolean;
 }) => {
-  const insets = useSafeAreaInsets();
-  const styles = createStyles(hasFooter, insets);
+  // RN 0.86 can report a zero safe-area inset while Android's navigation bar
+  // still occupies the bottom of the window. The shared hook derives a
+  // fallback from the safe-area frame for that case.
+  const bottomInset = useBottomSafeAreaInset();
+  const bottom = getSafeBottomPosition(hasFooter, bottomInset, {
+    fullBleedBottom,
+  });
+  const height = getFoxAnimationHeight(hasFooter);
 
   const { riveFile } = useRiveFile(FoxAnimationRive);
   const { riveViewRef, setHybridRef } = useRive();
@@ -103,7 +131,7 @@ const FoxAnimation = ({
   }, [riveViewRef, riveHandlers, trigger]);
 
   return (
-    <View style={[styles.foxAnimationWrapper]}>
+    <View style={[styles.foxAnimationWrapper, { bottom, height }]}>
       {riveFile && (
         <RiveView
           hybridRef={setHybridRef}
@@ -111,7 +139,7 @@ const FoxAnimation = ({
           file={riveFile}
           autoPlay
           fit={Fit.Contain}
-          alignment={Alignment.Center}
+          alignment={hasFooter ? Alignment.Center : Alignment.BottomCenter}
           stateMachineName="FoxRaiseUp"
           testID="fox-animation"
           onError={(riveError) => {

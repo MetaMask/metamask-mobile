@@ -16,6 +16,7 @@ const trackingData = buildPerpsOrderTrackingData({
   },
   marketPrice: 90000,
   inputMethod: 'default' as const,
+  orderType: 'market',
   direction: 'long',
   chartLibrary: 'lightweight',
 });
@@ -31,6 +32,45 @@ describe('buildPerpsOrderParams', () => {
     maxSlippageBps: 100,
     trackingData,
   };
+
+  it.each([false, true])(
+    'omits unsupported fields from venue-sized Scale with reduce-only %s',
+    (reduceOnly) => {
+      const params = buildPerpsOrderParams({
+        ...base,
+        orderType: 'scale',
+        providerId: 'lighter',
+        reduceOnly,
+        isFullClose: reduceOnly,
+      });
+
+      expect(params).toEqual({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.001',
+        orderType: 'scale',
+        providerId: 'lighter',
+        currentPrice: 90000,
+        leverage: 5,
+        usdAmount: '100',
+        reduceOnly,
+        trackingData,
+      });
+    },
+  );
+
+  it('retains Hyperliquid Scale calculation and full-close fields', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'scale',
+      providerId: 'hyperliquid',
+      reduceOnly: true,
+      isFullClose: true,
+    });
+
+    expect(params.priceAtCalculation).toBe(90000);
+    expect(params.isFullClose).toBe(true);
+  });
 
   it('builds a market order without a price and with the user max slippage', () => {
     // Arrange / Act
@@ -114,6 +154,34 @@ describe('buildPerpsOrderParams', () => {
     expect(params).not.toHaveProperty('stopLossPrice');
   });
 
+  it('assembles Chase fields without price, slippage override, or TP/SL', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'chase',
+      limitPrice: '90000',
+      chaseMaxDistanceBps: 125,
+      takeProfitPrice: '95000',
+      stopLossPrice: '80000',
+      maxSlippageBps: 150,
+    });
+
+    expect(params.chaseMaxDistanceBps).toBe(125);
+    expect(params).not.toHaveProperty('maxSlippageBps');
+    expect(params).not.toHaveProperty('price');
+    expect(params).not.toHaveProperty('takeProfitPrice');
+    expect(params).not.toHaveProperty('stopLossPrice');
+  });
+
+  it('omits an undefined Chase distance', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'chase',
+      chaseMaxDistanceBps: undefined,
+    });
+
+    expect(params).not.toHaveProperty('chaseMaxDistanceBps');
+  });
+
   it('includes triggerPrice and omits TP/SL for a stop-market order', () => {
     const params = buildPerpsOrderParams({
       ...base,
@@ -188,6 +256,52 @@ describe('buildPerpsOrderParams', () => {
     });
     expect(params).not.toHaveProperty('usdAmount');
   });
+
+  it('builds a routed TWAP order with strategy fields only', () => {
+    // Arrange / Act
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'twap',
+      twapDuration: 90,
+      twapRandomize: true,
+      providerId: 'hyperliquid',
+      limitPrice: '80000',
+      triggerPrice: '81000',
+      takeProfitPrice: '95000',
+      stopLossPrice: '70000',
+    });
+
+    // Assert
+    expect(params).toMatchObject({
+      orderType: 'twap',
+      twapDuration: 90,
+      twapRandomize: true,
+      providerId: 'hyperliquid',
+      currentPrice: 90000,
+      priceAtCalculation: 90000,
+    });
+    expect(params).not.toHaveProperty('maxSlippageBps');
+    expect(params).not.toHaveProperty('price');
+    expect(params).not.toHaveProperty('triggerPrice');
+    expect(params).not.toHaveProperty('takeProfitPrice');
+    expect(params).not.toHaveProperty('stopLossPrice');
+  });
+
+  it('passes the margin mode through when provided', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'market',
+      marginMode: 'cross',
+    });
+
+    expect(params.marginMode).toBe('cross');
+  });
+
+  it('omits the margin mode when not provided', () => {
+    const params = buildPerpsOrderParams({ ...base, orderType: 'market' });
+
+    expect(params).not.toHaveProperty('marginMode');
+  });
 });
 
 describe('buildPerpsOrderTrackingData', () => {
@@ -202,9 +316,23 @@ describe('buildPerpsOrderTrackingData', () => {
     },
     marketPrice: 90000,
     inputMethod: 'default' as const,
+    orderType: 'market' as const,
     direction: 'long' as const,
     chartLibrary: 'lightweight',
   };
+
+  it('puts the order source on entryPoint and omits it when unset', () => {
+    expect(
+      buildPerpsOrderTrackingData({ ...base, source: 'notification' }),
+    ).toMatchObject({ source: 'notification', entryPoint: 'notification' });
+    expect(
+      buildPerpsOrderTrackingData({ ...base, source: 'social_live_trades' }),
+    ).toMatchObject({
+      source: 'social_live_trades',
+      entryPoint: 'social_live_trades',
+    });
+    expect(buildPerpsOrderTrackingData(base)).not.toHaveProperty('entryPoint');
+  });
 
   it('marks trades without a custom token and omits pay-token fields', () => {
     // Arrange / Act
@@ -244,6 +372,36 @@ describe('buildPerpsOrderTrackingData', () => {
     // Assert
     expect(withRate.hlFeeRate).toBe(0.02);
     expect(withoutRate).not.toHaveProperty('hlFeeRate');
+  });
+
+  it('only includes slippage analytics for market-executing orders', () => {
+    const slippage = {
+      maxSlippageBps: 300,
+      maxSlippageSource: 'user_configured' as const,
+      estimatedSlippageBps: 125,
+    };
+
+    const market = buildPerpsOrderTrackingData({
+      ...base,
+      orderType: 'market',
+      ...slippage,
+    });
+    const limit = buildPerpsOrderTrackingData({
+      ...base,
+      orderType: 'limit',
+      ...slippage,
+    });
+    const scale = buildPerpsOrderTrackingData({
+      ...base,
+      orderType: 'scale',
+      ...slippage,
+    });
+
+    expect(market).toMatchObject(slippage);
+    expect(limit).not.toHaveProperty('maxSlippageBps');
+    expect(limit).not.toHaveProperty('maxSlippageSource');
+    expect(limit).not.toHaveProperty('estimatedSlippageBps');
+    expect(scale).not.toHaveProperty('maxSlippageBps');
   });
 });
 

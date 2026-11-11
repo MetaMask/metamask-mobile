@@ -28,6 +28,7 @@ export const initialStateWatchlist = (
     .withMinimalTokenRates()
     .withMinimalMultichainAssetsRates()
     .withMinimalAnalyticsController()
+    .withMinimalEarnController()
     .withAccountTreeForSelectedAccount()
     .withRemoteFeatureFlags({
       assetsGlobalWatchlistV1: { enabled: true, minimumVersion: '7.0.0' },
@@ -74,6 +75,7 @@ export const initialStateWatchlist = (
           },
           MoneyAccountController: {
             moneyAccounts: {},
+            defaultMoneyAccountId: null,
           },
           NftController: {
             allNfts: {},

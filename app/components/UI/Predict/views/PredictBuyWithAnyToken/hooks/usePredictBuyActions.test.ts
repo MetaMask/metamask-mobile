@@ -662,6 +662,25 @@ describe('usePredictBuyActions', () => {
       });
     });
 
+    it('records the preview even when placeOrder rejects', async () => {
+      mockPlaceOrder.mockRejectedValue(new Error('Order failed'));
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+      const preview = createDefaultParams().preview as OrderPreview;
+
+      await act(async () => {
+        await result.current.placeOrder({
+          analyticsProperties: { marketId: 'market-1' },
+          preview,
+        });
+      });
+
+      // The recorded preview is the 1-tick baseline for the retry flow: it
+      // must survive a rejected submission, not just a successful one.
+      expect(result.current.lastSubmittedPreview).toBe(preview);
+    });
+
     it('returns the default error when placeOrder rejects with a non-Error value', async () => {
       mockPlaceOrder.mockRejectedValue('unexpected failure');
       const { result } = renderHook(() =>

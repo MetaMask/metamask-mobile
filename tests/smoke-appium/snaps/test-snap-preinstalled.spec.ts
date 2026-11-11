@@ -16,7 +16,8 @@ appiumTest.describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
   // TODO(Appium): displays the Snap settings page
   // (Playwright has no test.todo; Detox used it.todo for this unfinished coverage.)
 
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Android install allows 60s per sheet. Login plus three sheets exceeds 150s.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'uses `initialConnections` to allow JSON-RPC and tracks an event in Segment with `snap_trackEvent`',

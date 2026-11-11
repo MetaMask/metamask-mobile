@@ -4,6 +4,8 @@ import {
   BackendWebSocketServiceMessenger,
   BackendWebSocketServiceInitMessenger,
 } from '../../messengers/core-backend';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 
@@ -29,6 +31,25 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
   BackendWebSocketServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
   Logger.log('Initializing BackendWebSocketService');
+
+  const isBasicFunctionality = () =>
+    selectBasicFunctionalityEnabled(store.getState());
+
+  const subscribeToBasicFunctionalityChange = (
+    onChange: (isBasic: boolean) => void,
+  ) => {
+    let previous = isBasicFunctionality();
+
+    return store.subscribe(() => {
+      const current = isBasicFunctionality();
+      if (current === previous) {
+        return;
+      }
+
+      previous = current;
+      onChange(current);
+    });
+  };
 
   const controller = new BackendWebSocketService({
     messenger: controllerMessenger,
@@ -70,6 +91,8 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
         return false;
       }
     },
+    isBasicFunctionality,
+    subscribeToBasicFunctionalityChange,
   });
 
   // Authentication and lock/unlock handling is now managed by the core WebSocket service

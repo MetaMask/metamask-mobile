@@ -3,20 +3,16 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import {
-  Box,
-  Label,
-  Text,
-  TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
+  HelpText,
+  HelpTextSeverity,
+  TextField,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import SelectField from './SelectField';
-import DepositDateField from '../../../Ramp/components/DepositDateField';
+import CardDateField from './CardDateField';
+import CardFormField from './CardFormField';
 import {
   resetOnboardingState,
   selectOnboardingId,
@@ -329,142 +325,137 @@ const PersonalDetails = () => {
   const renderFormFields = () => (
     <>
       {/* First Name */}
-      <Box>
-        <Label>
-          {strings('card.card_onboarding.personal_details.first_name_label')}
-        </Label>
+      <CardFormField
+        label={strings(
+          'card.card_onboarding.personal_details.first_name_label',
+        )}
+      >
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleFirstNameChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={firstName}
-          keyboardType="default"
-          maxLength={255}
           isError={!!nameError}
-          accessibilityLabel={strings(
-            'card.card_onboarding.personal_details.first_name_label',
-          )}
-          testID="personal-details-first-name-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.personal_details.first_name_label',
+            ),
+            testID: 'personal-details-first-name-input',
+          }}
         />
-      </Box>
+      </CardFormField>
 
       {/* Last Name */}
-      <Box>
-        <Label>
-          {strings('card.card_onboarding.personal_details.last_name_label')}
-        </Label>
+      <CardFormField
+        label={strings('card.card_onboarding.personal_details.last_name_label')}
+        errorText={nameError || null}
+        errorTestID="personal-details-name-error"
+      >
         <TextField
-          autoCapitalize={'none'}
           onChangeText={handleLastNameChange}
-          numberOfLines={1}
-          autoComplete="one-time-code"
           value={lastName}
-          keyboardType="default"
-          maxLength={255}
           isError={!!nameError}
-          accessibilityLabel={strings(
-            'card.card_onboarding.personal_details.last_name_label',
-          )}
-          testID="personal-details-last-name-input"
+          inputProps={{
+            autoCapitalize: 'none',
+            numberOfLines: 1,
+            autoComplete: 'one-time-code',
+            keyboardType: 'default',
+            maxLength: 255,
+            accessibilityLabel: strings(
+              'card.card_onboarding.personal_details.last_name_label',
+            ),
+            testID: 'personal-details-last-name-input',
+          }}
         />
-        {!!nameError && (
-          <Text
-            variant={TextVariant.BodySm}
-            testID="personal-details-name-error"
-            twClassName="text-error-default"
-          >
-            {nameError}
-          </Text>
-        )}
-      </Box>
+      </CardFormField>
 
       {/* Date of Birth */}
-      <DepositDateField
-        label="Date of Birth"
+      <CardDateField
+        label={strings(
+          'card.card_onboarding.personal_details.date_of_birth_label',
+        )}
         value={dateOfBirth}
         onChangeText={handleDateOfBirthChange}
         error={dateError}
+        testID="personal-details-date-of-birth-input"
+        errorTestID="personal-details-date-of-birth-error"
       />
 
       {/* Nationality */}
-      <Box twClassName="mt-[-14px]">
-        <Label>
-          {strings('card.card_onboarding.personal_details.nationality_label')}
-        </Label>
+      <CardFormField
+        label={strings(
+          'card.card_onboarding.personal_details.nationality_label',
+        )}
+      >
         <SelectField
           value={nationalityName || nationalityKey}
+          placeholder={strings(
+            'card.card_onboarding.personal_details.nationality_placeholder',
+          )}
           onPress={handleNationalitySelect}
           testID="personal-details-nationality-select"
+          accessibilityLabel={`${strings(
+            'card.card_onboarding.personal_details.nationality_label',
+          )}, ${
+            nationalityName ||
+            nationalityKey ||
+            strings(
+              'card.card_onboarding.personal_details.nationality_placeholder',
+            )
+          }`}
         />
-      </Box>
+      </CardFormField>
 
       {/* SSN */}
       {selectedCountry?.key === 'US' && (
-        <Box>
-          <Label>
-            {strings('card.card_onboarding.personal_details.ssn_label')}
-          </Label>
+        <CardFormField
+          label={strings('card.card_onboarding.personal_details.ssn_label')}
+          helpText={
+            isSSNTouched && isSSNError
+              ? undefined
+              : strings('card.card_onboarding.personal_details.ssn_description')
+          }
+          errorText={
+            isSSNTouched && isSSNError
+              ? strings('card.card_onboarding.personal_details.invalid_ssn')
+              : null
+          }
+          errorTestID="personal-details-ssn-error"
+        >
           <TextField
-            autoCapitalize={'none'}
             onChangeText={handleSSNChange}
             onBlur={handleSSNBlur}
-            numberOfLines={1}
             value={SSN}
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            secureTextEntry
-            maxLength={9}
-            accessibilityLabel={strings(
-              'card.card_onboarding.personal_details.ssn_label',
-            )}
             isError={isSSNTouched && isSSNError}
-            testID="personal-details-ssn-input"
+            inputProps={{
+              autoCapitalize: 'none',
+              numberOfLines: 1,
+              keyboardType: 'number-pad',
+              autoComplete: 'one-time-code',
+              secureTextEntry: true,
+              maxLength: 9,
+              accessibilityLabel: strings(
+                'card.card_onboarding.personal_details.ssn_label',
+              ),
+              testID: 'personal-details-ssn-input',
+            }}
           />
-          {isSSNTouched && isSSNError ? (
-            <Text
-              variant={TextVariant.BodySm}
-              testID="personal-details-ssn-error"
-              twClassName="text-error-default"
-            >
-              {strings('card.card_onboarding.personal_details.invalid_ssn')}
-            </Text>
-          ) : (
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="text-text-alternative"
-            >
-              {strings('card.card_onboarding.personal_details.ssn_description')}
-            </Text>
-          )}
-        </Box>
+        </CardFormField>
       )}
-    </>
-  );
-
-  const renderActions = () => (
-    <Box twClassName="flex flex-col justify-center gap-2">
       {!!registerError && (
-        <Text
-          variant={TextVariant.BodySm}
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
           testID="personal-details-error"
-          twClassName="text-error-default"
         >
           {registerError}
-        </Text>
+        </HelpText>
       )}
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        isFullWidth
-        isDisabled={isDisabled}
-        isLoading={registerLoading}
-        testID="personal-details-continue-button"
-      >
-        {strings('card.card_onboarding.continue_button')}
-      </Button>
-    </Box>
+    </>
   );
 
   return (
@@ -472,7 +463,13 @@ const PersonalDetails = () => {
       title={strings('card.card_onboarding.personal_details.title')}
       description={strings('card.card_onboarding.personal_details.description')}
       formFields={renderFormFields()}
-      actions={renderActions()}
+      primaryButtonProps={{
+        children: strings('card.card_onboarding.continue_button'),
+        onPress: handleContinue,
+        isDisabled,
+        isLoading: registerLoading,
+        testID: 'personal-details-continue-button',
+      }}
       headerMode="close-with-confirmation"
     />
   );

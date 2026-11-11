@@ -3,6 +3,7 @@ import {
   STORE_PRIVACY_POLICY_SHOWN_DATE,
   STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED,
   STORE_PNA25_ACKNOWLEDGED,
+  storeArcUsageNoticeShown,
 } from '../../actions/legalNotices';
 
 describe('legalNoticesReducer', () => {
@@ -10,6 +11,7 @@ describe('legalNoticesReducer', () => {
     isPna25Acknowledged: false,
     newPrivacyPolicyToastClickedOrClosed: false,
     newPrivacyPolicyToastShownDate: null,
+    arcUsageNoticeShown: false,
   };
 
   it('returns the initial state when no action is provided', () => {
@@ -181,12 +183,21 @@ describe('legalNoticesReducer', () => {
         isPna25Acknowledged: true,
         newPrivacyPolicyToastClickedOrClosed: true,
         newPrivacyPolicyToastShownDate: 1234567890,
+        arcUsageNoticeShown: false,
       };
       const action = { type: 'UNKNOWN_ACTION' } as never;
 
       const state = legalNoticesReducer(modifiedState, action);
 
       expect(state).toBe(modifiedState);
+    });
+  });
+
+  describe('STORE_ARC_USAGE_NOTICE_SHOWN', () => {
+    it('sets arcUsageNoticeShown to true', () => {
+      const state = legalNoticesReducer(undefined, storeArcUsageNoticeShown());
+
+      expect(state.arcUsageNoticeShown).toBe(true);
     });
   });
 });

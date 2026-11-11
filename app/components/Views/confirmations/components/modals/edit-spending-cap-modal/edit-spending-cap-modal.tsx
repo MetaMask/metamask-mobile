@@ -1,13 +1,16 @@
-import React, { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Modal, View } from 'react-native';
 
 import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetRef,
+  Box,
   Text,
   TextVariant,
   TextColor,
-  FontWeight,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -15,7 +18,6 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { ApproveMethod } from '../../../types/approve';
 import { SpendingCapInput } from '../../spending-cap-input';
-import BottomModal from '../../UI/bottom-modal';
 import styleSheet from './edit-spending-cap-modal.styles';
 
 export interface EditSpendingCapProps {
@@ -41,86 +43,94 @@ export const EditSpendingCapModal = ({
   tokenSymbol,
 }: EditSpendingCapProps & ModalProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [newSpendingCap, setNewSpendingCap] = useState(spendingCap);
   const [error, setError] = useState<string | boolean>(false);
   const [isDataUpdating, setIsDataUpdating] = useState<boolean>(false);
 
-  const handleCloseModal = useCallback(() => {
+  const handleRequestClose = useCallback(() => {
     if (!isDataUpdating) {
-      onClose();
+      bottomSheetRef.current?.onCloseBottomSheet();
     }
-  }, [onClose, isDataUpdating]);
+  }, [isDataUpdating]);
+
+  const handleSheetClosed = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   return (
-    <BottomModal
-      avoidKeyboard
-      onBackdropPress={handleCloseModal}
-      onBackButtonPress={handleCloseModal}
-      onSwipeComplete={handleCloseModal}
+    <Modal
+      visible
+      animationType="none"
+      transparent
+      presentationStyle="overFullScreen"
+      onRequestClose={handleRequestClose}
     >
-      <View style={styles.container}>
-        <Text
-          variant={TextVariant.BodyLg}
-          fontWeight={FontWeight.Medium}
-          style={styles.title}
-        >
+      <BottomSheet
+        ref={bottomSheetRef}
+        keyboardAvoidingViewEnabled
+        onClose={handleSheetClosed}
+      >
+        <BottomSheetHeader onClose={handleRequestClose}>
           {strings('confirm.edit_spending_cap_modal.title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          style={styles.description}
-          color={TextColor.TextAlternative}
-        >
-          {strings('confirm.edit_spending_cap_modal.description')}
-        </Text>
-        <SpendingCapInput
-          approveMethod={approveMethod}
-          initialValue={spendingCap}
-          decimals={decimals}
-          onChange={(updatedSpendingCap) => {
-            setNewSpendingCap(updatedSpendingCap);
-          }}
-          onErrorChange={(newError) => {
-            setError(newError);
-          }}
-        />
-
-        <Text
-          variant={TextVariant.BodyMd}
-          style={styles.balanceInfo}
-          color={TextColor.TextAlternative}
-        >
-          {strings('confirm.edit_spending_cap_modal.account_balance')} :{' '}
-          {balance} {tokenSymbol ?? ''}
-        </Text>
-
-        <View style={styles.buttonsContainer}>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isDisabled={isDataUpdating}
-            style={styles.button}
-            onPress={handleCloseModal}
+        </BottomSheetHeader>
+        <Box twClassName="flex flex-col p-4 pt-0">
+          <Text
+            variant={TextVariant.BodyMd}
+            style={styles.description}
+            color={TextColor.TextAlternative}
           >
-            {strings('confirm.edit_spending_cap_modal.cancel')}
-          </Button>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            style={styles.button}
-            isDisabled={!!error}
-            testID={ApproveComponentIDs.EDIT_SPENDING_CAP_SAVE_BUTTON}
-            onPress={async () => {
-              setIsDataUpdating(true);
-              await onSpendingCapUpdate?.(newSpendingCap);
-              onClose();
-              setIsDataUpdating(false);
+            {strings('confirm.edit_spending_cap_modal.description')}
+          </Text>
+          <SpendingCapInput
+            approveMethod={approveMethod}
+            initialValue={spendingCap}
+            decimals={decimals}
+            onChange={(updatedSpendingCap) => {
+              setNewSpendingCap(updatedSpendingCap);
             }}
+            onErrorChange={(newError) => {
+              setError(newError);
+            }}
+          />
+
+          <Text
+            variant={TextVariant.BodyMd}
+            style={styles.balanceInfo}
+            color={TextColor.TextAlternative}
           >
-            {strings('confirm.edit_spending_cap_modal.save')}
-          </Button>
-        </View>
-      </View>
-    </BottomModal>
+            {strings('confirm.edit_spending_cap_modal.account_balance')} :{' '}
+            {balance} {tokenSymbol ?? ''}
+          </Text>
+
+          <View style={styles.buttonsContainer}>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isDisabled={isDataUpdating}
+              style={styles.button}
+              onPress={handleRequestClose}
+            >
+              {strings('confirm.edit_spending_cap_modal.cancel')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              style={styles.button}
+              isDisabled={!!error}
+              testID={ApproveComponentIDs.EDIT_SPENDING_CAP_SAVE_BUTTON}
+              onPress={async () => {
+                setIsDataUpdating(true);
+                await onSpendingCapUpdate?.(newSpendingCap);
+                onClose();
+                setIsDataUpdating(false);
+              }}
+            >
+              {strings('confirm.edit_spending_cap_modal.save')}
+            </Button>
+          </View>
+        </Box>
+      </BottomSheet>
+    </Modal>
   );
 };

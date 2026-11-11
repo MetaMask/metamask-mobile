@@ -28,9 +28,7 @@ on:
         required: false
 
 permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   resolve-bases:
@@ -83,7 +81,7 @@ jobs:
       previous_ref: ${{ steps.out.outputs.previous_ref }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - id: out
         shell: bash
@@ -98,6 +96,10 @@ jobs:
     if: needs.resolve-bases.result == 'success' && needs.resolve-previous-ref.result == 'success'
     name: Create Release Pull Request using Github Tools
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
+      contents: write
+      pull-requests: write
     steps:
       # Mint a short-lived token via the token-exchange service (OIDC). It needs:
       # - contents: write       → push the release / version-bump / changelog branches
@@ -121,14 +123,14 @@ jobs:
       # Kept in this job to avoid a separate runner just for the metadata read.
       - name: Checkout repository
         if: needs.resolve-bases.outputs.is_ota != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.resolve-bases.outputs.checkout_base }}
           fetch-depth: 1
 
       - name: Setup Node.js
         if: needs.resolve-bases.outputs.is_ota != 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -176,7 +178,7 @@ jobs:
 
       - name: Checkout release branch (OTA hotfix — OTA_VERSION only)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: release/${{ inputs.semver-version }}-ota
           token: ${{ steps.get-token.outputs.token }}
@@ -206,45 +208,8 @@ jobs:
             git push origin "$BRANCH"
           fi
 
-      # Changelog: run-update-release-changelog-mobile.sh passes the bare X.Y.Z (stripped from
-      # release/X.Y.Z-ota) to auto-changelog, so the changelog header and the production git
-      # tag match exactly (both v<X.Y.Z>). The `-ota` suffix is a branch-name convention only.
-      - name: Checkout github-tools (release changelog)
-        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: MetaMask/github-tools
-          path: github-tools
-          ref: v1
-
-      - name: Setup Node for changelog tooling
-        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: MetaMask/action-checkout-and-setup@v3
-        with:
-          is-high-risk-environment: true
-
-      - name: Update release changelog (OTA hotfix)
-        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
-          GIT_AUTHOR_NAME: metamaskbot
-          GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
-        run: |
-          set -euo pipefail
-          git config user.name metamaskbot
-          git config user.email metamaskbot@users.noreply.github.com
-          # Re-sync with the remote tip before the changelog tooling commits and pushes,
-          # since Runway may have pushed to this branch concurrently.
-          git pull --rebase origin "release/${{ inputs.semver-version }}-ota"
-          corepack enable
-          yarn install --immutable
-          bash .github/scripts/run-update-release-changelog-mobile.sh \
-            "release/${{ inputs.semver-version }}-ota" \
-            mobile \
-            "${{ github.server_url }}/${{ github.repository }}" \
-            "null"
-
+      # The changelog is not updated here: pushing to release/X.Y.Z-ota already runs
+      # update-release-changelog.yml, and a second updater call races it.
       - name: Create OTA release PR to stable (if missing)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         shell: bash

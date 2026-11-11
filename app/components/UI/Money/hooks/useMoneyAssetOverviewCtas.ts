@@ -1,23 +1,27 @@
 import { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
+import type { Hex } from '@metamask/utils';
+import { earnSelectors } from '../../../../selectors/earnController/earn';
+import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import type { TokenI } from '../../Tokens/types';
+import type { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import {
   COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../utils/projections';
-import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
+import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
+import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 
 const FOOTER_LABEL_KEY = 'money.asset_overview.cta.earn_apy';
 const BALANCE_BUTTON_LABEL_KEY = 'money.asset_overview.cta.start_earning';
@@ -38,10 +42,38 @@ export const useMoneyAssetOverviewCtas = ({
   balanceFiatUsd,
   hasBalance,
 }: UseMoneyAssetOverviewCtasArgs) => {
-  const { isBalanceCtaEligible, isFooterCtaEligible } =
-    useMoneyAssetOverviewCtaVisibility(asset, hasBalance, balanceFiatUsd);
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const assetId = useMemo(() => {
+    if (!asset.address || !asset.chainId) {
+      return undefined;
+    }
+
+    try {
+      return buildEvmCaip19AssetId(asset.address, asset.chainId as Hex);
+    } catch {
+      return undefined;
+    }
+  }, [asset.address, asset.chainId]);
+
+  const relayFixedSpread = useSelector(selectRelayFixedSpread);
+  const isAaveOutputToken = useSelector((state: RootState) =>
+    earnSelectors.selectIsAaveOutputToken(state, assetId),
+  );
+
+  const {
+    isBalanceCtaEligible,
+    isFooterCtaEligible: isFooterCtaEligibleFromVisibility,
+  } = useMoneyAssetOverviewCtaVisibility(asset, hasBalance, balanceFiatUsd);
+
+  // Only aTokens with Money deposit fee subsidized are eligible for the footer CTA
+  const isFooterCtaEligible =
+    isFooterCtaEligibleFromVisibility &&
+    isAaveOutputToken &&
+    isMoneyDepositFeeSubsidized(relayFixedSpread, {
+      address: asset.address,
+      chainId: asset.chainId,
+    });
+
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({
     enabled: isBalanceCtaEligible || isFooterCtaEligible,
   });
@@ -105,50 +137,39 @@ export const useMoneyAssetOverviewCtas = ({
         address: toHex(asset.address),
         chainId: toHex(asset.chainId),
       };
-      const redirectedToOnboarding = redirectToOnboardingIfNeeded({
-        postOnboardingRedirect: {
-          type: MoneyPostOnboardingRedirectType.DEPOSIT,
-          preferredPaymentToken,
-        },
-      });
-      const trackingProperties = {
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: redirectedToOnboarding
-          ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
-          : MONEY_BUTTON_INTENTS.ADD_MONEY,
-        component_name:
-          component === 'footer'
-            ? COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA
-            : COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
-        redirect_target: redirectedToOnboarding
-          ? SCREEN_NAMES.MONEY_ONBOARDING
-          : SCREEN_NAMES.MONEY_DEPOSIT,
-        token_symbol: asset.symbol ?? '',
-        token_position_in_list: 1,
-        token_chain_id: asset.chainId ?? '',
-        tokens_in_list: 1,
-        token_has_balance: hasBalance,
-      } as const;
-
-      if (component === 'footer') {
-        trackTokenButtonClicked({
-          ...trackingProperties,
-          label_en: footerEnglishLabel ?? label,
-          label_localized: label,
-        });
-      } else {
-        trackTokenButtonClicked({
-          ...trackingProperties,
-          label_key: labelKey,
-        });
-      }
-
-      if (redirectedToOnboarding) {
-        return;
-      }
-
       try {
-        await initiateDeposit({ preferredPaymentToken });
+        await navigateToMoneyDeposit({
+          preferredPaymentToken,
+          track: ({ redirect_target, button_intent }) => {
+            const trackingProperties = {
+              button_type: MONEY_BUTTON_TYPES.TEXT,
+              button_intent,
+              component_name:
+                component === 'footer'
+                  ? COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA
+                  : COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
+              redirect_target,
+              token_symbol: asset.symbol ?? '',
+              token_position_in_list: 1,
+              token_chain_id: asset.chainId ?? '',
+              tokens_in_list: 1,
+              token_has_balance: hasBalance,
+            } as const;
+
+            if (component === 'footer') {
+              trackTokenButtonClicked({
+                ...trackingProperties,
+                label_en: footerEnglishLabel ?? label,
+                label_localized: label,
+              });
+            } else {
+              trackTokenButtonClicked({
+                ...trackingProperties,
+                label_key: labelKey,
+              });
+            }
+          },
+        });
       } catch (error) {
         Logger.error(
           error as Error,
@@ -162,8 +183,7 @@ export const useMoneyAssetOverviewCtas = ({
       asset.symbol,
       footerEnglishLabel,
       hasBalance,
-      initiateDeposit,
-      redirectToOnboardingIfNeeded,
+      navigateToMoneyDeposit,
       trackTokenButtonClicked,
     ],
   );

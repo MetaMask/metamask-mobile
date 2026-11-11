@@ -26,6 +26,7 @@ import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptIn
 import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import PushNotificationOnboardingView from '../../page-objects/Notifications/PushNotificationOnboardingView';
 import { closePredictModal } from '../../flows/wallet.flow';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 import {
   Performance,
   PerformanceOnboarding,
@@ -53,8 +54,10 @@ type PostOnboardingSource =
   | Exclude<PostOnboardingDestination, 'wallet'>;
 
 const POST_ONBOARDING_THRESHOLD: PlatformThreshold = {
-  ios: 5_000,
-  android: 6_000,
+  // Baseline from 2026-09-02 Pixel 8 Pro: Agree → usable wallet ~10.4–12.5s.
+  // ~1.5× headroom for first enforce pass; tighten in TO-946.
+  ios: 14_000,
+  android: 16_000,
 };
 
 const POST_ONBOARDING_DESTINATION_LABELS: Record<
@@ -183,7 +186,7 @@ const waitForPostOnboardingDestination = async (
         if (!visible) {
           if (tracking) {
             // These optional UI probes are known infrastructure lookups when
-            // absent. BrowserStack can spend several seconds resolving a
+            // absent. TestMu can spend several seconds resolving a
             // missing native element, so do not charge that RTT to the app.
             recordInfrastructureCommand(Date.now() - t0);
           }
@@ -331,6 +334,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         },
       );
 
+      await enableHermesAppProfiling();
       await OnboardingView.tapCreateNewWalletButton();
       await onboardingSheetTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
@@ -353,9 +357,9 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       await CreatePasswordView.enterPassword(password);
       await CreatePasswordView.reEnterPassword(password);
       await AppiumGestures.hideKeyboard();
-      await CreatePasswordView.tapIUnderstandCheckBox();
 
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
       await walletCreationTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           ProtectYourWalletView.remindMeLaterButton,

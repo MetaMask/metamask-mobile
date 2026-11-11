@@ -9,7 +9,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
+import DottedUnderline from '../../../../DottedUnderline';
 
 interface ChildrenProps {
   children: React.ReactNode;
@@ -20,9 +23,16 @@ interface RootProps extends ChildrenProps {
 }
 
 const Root = ({ children, testID }: RootProps) => (
-  <Box testID={testID} twClassName="gap-[14px] rounded-2xl bg-section p-4">
+  <Box
+    testID={testID}
+    twClassName="gap-[14px] overflow-hidden rounded-2xl bg-section p-4"
+  >
     {children}
   </Box>
+);
+
+const Footer = ({ children }: ChildrenProps) => (
+  <Box twClassName="-mx-4 -mb-4">{children}</Box>
 );
 
 const Header = ({ children }: ChildrenProps) => (
@@ -33,16 +43,63 @@ const Summary = ({ children }: ChildrenProps) => (
   <Box twClassName="min-w-0 flex-1 gap-1">{children}</Box>
 );
 
-const Title = ({ children, testID }: ChildrenProps & { testID?: string }) => (
-  <Text
-    testID={testID}
-    variant={TextVariant.HeadingSm}
-    fontWeight={FontWeight.Bold}
-    numberOfLines={1}
-  >
-    {children}
-  </Text>
-);
+interface TitleProps extends ChildrenProps {
+  testID?: string;
+  /** Makes the title a button that opens the Market's rules. */
+  onPress?: () => void;
+  accessibilityHint?: string;
+}
+
+const Title = ({
+  children,
+  testID,
+  onPress,
+  accessibilityHint,
+}: TitleProps) => {
+  const { colors } = useTheme();
+
+  if (!onPress) {
+    return (
+      <Text
+        testID={testID}
+        variant={TextVariant.HeadingSm}
+        fontWeight={FontWeight.Bold}
+        numberOfLines={1}
+      >
+        {children}
+      </Text>
+    );
+  }
+
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={typeof children === 'string' ? children : undefined}
+      accessibilityHint={accessibilityHint}
+      // Reaches 44 px around short titles such as "Tie". The bottom slop
+      // overlaps the inert volume line below on purpose.
+      hitSlop={{ top: 10, bottom: 10, left: 12, right: 12 }}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        alignSelf: 'flex-start',
+        maxWidth: '100%',
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      {/* The same dotted underline as Money's APY, so it renders on Android. */}
+      <DottedUnderline color={colors.text.default}>
+        <Text
+          variant={TextVariant.HeadingSm}
+          fontWeight={FontWeight.Bold}
+          numberOfLines={1}
+        >
+          {children}
+        </Text>
+      </DottedUnderline>
+    </Pressable>
+  );
+};
 
 const Volume = ({ value, testID }: { value: string; testID?: string }) => (
   <Text
@@ -95,18 +152,20 @@ const Actions = ({ children }: ChildrenProps) => (
   <Box twClassName="flex-row gap-[10px]">{children}</Box>
 );
 
-const noOp = (): void => undefined;
-
 const OutcomeButton = ({
   label,
   price,
   side,
   testID,
+  onPress,
+  isDisabled = false,
 }: {
   label: string;
   price?: string;
   side: 'yes' | 'no';
   testID?: string;
+  onPress?: () => void;
+  isDisabled?: boolean;
 }) => {
   const displayLabel = price ? `${label} · ${price}` : label;
 
@@ -116,10 +175,11 @@ const OutcomeButton = ({
       accessibilityLabel={
         price ? `${label}, ${price}` : `${label}, price unavailable`
       }
-      accessibilityState={{ disabled: false }}
+      accessibilityState={{ disabled: isDisabled }}
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
-      onPress={noOp}
+      onPress={isDisabled ? undefined : onPress}
+      isDisabled={isDisabled}
       twClassName="h-12 min-w-0 flex-1 rounded-xl bg-muted px-2"
     >
       <Text
@@ -138,6 +198,7 @@ const OutcomeButton = ({
 
 export const MarketCard = {
   Root,
+  Footer,
   Header,
   Summary,
   Title,

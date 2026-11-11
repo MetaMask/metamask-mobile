@@ -10,7 +10,7 @@ const styleSheet = (params: {
       height: Device.isAndroid() || Device.isMediumDevice() ? '99%' : '100%',
     },
     bodyContainer: {
-      paddingHorizontal: 22,
+      paddingHorizontal: 16,
       paddingBottom: 4,
     },
     buttonsContainer: {

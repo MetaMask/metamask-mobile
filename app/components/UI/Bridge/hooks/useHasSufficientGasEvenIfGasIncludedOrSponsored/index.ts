@@ -2,6 +2,7 @@ import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
+  isNativeAddress,
   sumAmounts,
 } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../useLatestBalance';
@@ -46,8 +47,11 @@ export const useHasSufficientGasEvenIfGasIncludedOrSponsored = ({
   });
 
   const gasAmount = sumAmounts(
-    quote?.quote.feeData?.network,
-    quote?.quote.feeData?.relayer,
+    quote?.quote?.feeData?.network,
+    quote?.quote?.feeData?.relayer,
+    quote?.quote?.src?.asset && !isNativeAddress(quote.quote.src.asset.assetId)
+      ? quote.quote.feeData.reserve
+      : undefined,
   )?.normalizedAmount;
   const effectiveGasFee =
     isNumberValue(gasAmount) && gasAmount != null

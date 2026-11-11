@@ -5,8 +5,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollViewProps, View } from 'react-native';
+import { RefreshControl, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import {
   Text,
   TextColor,
@@ -26,7 +28,6 @@ import { selectEnabledNetworksByNamespace } from '../../../../../selectors/netwo
 import { useStyles } from '../../../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { DefiEmptyState } from '../../../DefiEmptyState';
-import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 import DeFiPositionsControlBar from '../../../DeFiPositions/DeFiPositionsControlBar';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -40,10 +41,16 @@ interface DeFiPositionsListV2Props {
   isFullView: boolean;
 }
 
+const getPositionKey = (position: DeFiProtocolPositionGroup): string =>
+  `${position.chainId}-${position.protocolId}`;
+
 /**
  * DeFiPositionsListV2 - full view / list backed by the on-demand V2 controller.
  * Fetches immediately (the full-view surface is the viewport), filters to the
  * enabled EVM networks, sorts per user preference, and renders the list chrome.
+ *
+ * Matches TokenList: FlashList when this component owns scrolling (`isFullView`),
+ * `.map()` when nested in a parent scroll.
  */
 const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
   isFullView,
@@ -97,40 +104,29 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
     }
   }, [refresh]);
 
+  const renderPositionItem = useCallback<
+    ListRenderItem<DeFiProtocolPositionGroup>
+  >(
+    ({ item }) => (
+      <DeFiPositionsListItemV2 position={item} privacyMode={privacyMode} />
+    ),
+    [privacyMode],
+  );
+
   const listLength = formattedPositions.length;
   // Idle before the deferred first fetch settles looks like loaded-empty
   // (isLoading false, positions []). Gate on hasFetched like DeFiSectionV2.
   const isReady = hasFetched && !isLoading && !isError;
   const showIdlePlaceholder = !hasFetched && !isLoading && !isError;
 
-  const scrollViewProps = useMemo((): ScrollViewProps => {
-    const base: ScrollViewProps = {
-      testID: WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
-    };
-    if (!isFullView) {
-      return base;
-    }
-    return {
-      ...base,
-      refreshControl: (
-        <RefreshControl
-          colors={[colors.primary.default]}
-          tintColor={colors.icon.default}
-          refreshing={refreshing}
-          onRefresh={handleDeFiRefresh}
-        />
-      ),
-      ...(listLength === 0 ? { contentContainerStyle: tw`flex-grow` } : {}),
-    };
-  }, [
-    isFullView,
-    listLength,
-    refreshing,
-    handleDeFiRefresh,
-    colors.primary.default,
-    colors.icon.default,
-    tw,
-  ]);
+  const refreshControl = (
+    <RefreshControl
+      colors={[colors.primary.default]}
+      tintColor={colors.icon.default}
+      refreshing={refreshing}
+      onRefresh={handleDeFiRefresh}
+    />
+  );
 
   useEffect(() => {
     if (!isFullView || !isReady || hasTrackedScreenViewRef.current) {
@@ -177,20 +173,33 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
     );
   }
 
-  const listBody =
-    listLength > 0 ? (
-      <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}>
-        {formattedPositions.map((position) => (
-          <DeFiPositionsListItemV2
-            key={`${position.chainId}-${position.protocolId}`}
-            position={position}
-            privacyMode={privacyMode}
-          />
-        ))}
-      </View>
-    ) : (
-      <DefiEmptyState twClassName="mx-auto mt-4" />
-    );
+  const emptyState = <DefiEmptyState twClassName="mx-auto mt-4" />;
+
+  const listBody = isFullView ? (
+    <FlashList
+      data={formattedPositions}
+      renderItem={renderPositionItem}
+      keyExtractor={getPositionKey}
+      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
+      showsVerticalScrollIndicator={false}
+      removeClippedSubviews={false}
+      refreshControl={refreshControl}
+      ListEmptyComponent={emptyState}
+      contentContainerStyle={listLength === 0 ? tw`flex-grow` : undefined}
+    />
+  ) : listLength > 0 ? (
+    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}>
+      {formattedPositions.map((position) => (
+        <DeFiPositionsListItemV2
+          key={getPositionKey(position)}
+          position={position}
+          privacyMode={privacyMode}
+        />
+      ))}
+    </View>
+  ) : (
+    emptyState
+  );
 
   return (
     <View
@@ -198,12 +207,7 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />
-      <ConditionalScrollView
-        isScrollEnabled={isFullView}
-        scrollViewProps={isFullView ? scrollViewProps : undefined}
-      >
-        {listBody}
-      </ConditionalScrollView>
+      {listBody}
     </View>
   );
 };

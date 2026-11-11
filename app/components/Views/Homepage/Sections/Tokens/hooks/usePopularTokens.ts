@@ -2,14 +2,10 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { handleFetch } from '@metamask/controller-utils';
-import { strings } from '../../../../../../../locales/i18n';
 import {
-  MUSD_CONVERSION_APY,
   MUSD_TOKEN_ADDRESS,
   isMusdToken,
 } from '../../../../../UI/Earn/constants/musd';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../../../UI/Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { selectMoneyHubEnabledFlag } from '../../../../../UI/Money/selectors/featureFlags';
 
 /**
@@ -82,7 +78,6 @@ export interface PopularToken {
   name: string;
   symbol: string;
   iconUrl: string;
-  description?: string;
   price: number | undefined;
   priceChange1d: number | undefined;
 }
@@ -95,20 +90,6 @@ interface PriceApiResponse {
 }
 
 /**
- * Adds dynamic description for tokens that have special bonuses
- */
-const getTokenDescription = (
-  token: (typeof POPULAR_TOKENS)[number],
-): string | undefined => {
-  if ('hasMusdBonus' in token && token.hasMusdBonus) {
-    return strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
-      percentage: MUSD_CONVERSION_APY,
-    });
-  }
-  return undefined;
-};
-
-/**
  * Hook to fetch popular tokens with their current prices for zero balance accounts.
  * Uses the MetaMask Price API to get real-time price data.
  *
@@ -118,13 +99,7 @@ const getTokenDescription = (
  */
 export const usePopularTokens = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
-  const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
-  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-  const shouldExcludeMusd =
-    isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
+  const shouldExcludeMusd = useSelector(selectMoneyHubEnabledFlag);
   const [rawTokens, setRawTokens] = useState<
     {
       assetId: string;
@@ -133,7 +108,6 @@ export const usePopularTokens = () => {
       iconUrl: string;
       price: number | undefined;
       priceChange1d: number | undefined;
-      hasMusdBonus?: boolean;
     }[]
   >([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -219,21 +193,16 @@ export const usePopularTokens = () => {
     [],
   );
 
-  // Add descriptions dynamically (localized strings must be called within component).
   // Exclude mUSD while it is surfaced in the Money hub.
   const tokens: PopularToken[] = useMemo(() => {
-    const mapped = rawTokens.map((token) => {
-      const baseToken = POPULAR_TOKENS.find((t) => t.assetId === token.assetId);
-      return {
-        assetId: token.assetId,
-        name: token.name,
-        symbol: token.symbol,
-        iconUrl: token.iconUrl,
-        price: token.price,
-        priceChange1d: token.priceChange1d,
-        description: baseToken ? getTokenDescription(baseToken) : undefined,
-      };
-    });
+    const mapped = rawTokens.map((token) => ({
+      assetId: token.assetId,
+      name: token.name,
+      symbol: token.symbol,
+      iconUrl: token.iconUrl,
+      price: token.price,
+      priceChange1d: token.priceChange1d,
+    }));
     return shouldExcludeMusd
       ? mapped.filter((t) => {
           const address = t.assetId.split(':').pop();

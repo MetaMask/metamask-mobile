@@ -1,8 +1,16 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { setImmersveFundingSourceId } from '../../../../core/redux/slices/card';
-import { selectCardImmersveConfig } from '../../../../selectors/featureFlagController/card';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { safeToChecksumAddress } from '../../../../util/address';
+import {
+  immersveFundingChannelForCountry,
+  isMoneyAccountFundingChannel,
+  selectCardImmersveConfig,
+  selectCardImmersveCountryFunding,
+} from '../../../../selectors/featureFlagController/card';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -11,6 +19,7 @@ import { deriveNextImmersveAction } from '../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../util/immersveResume';
 import { CardActions, CardEntryPoint, withCardProvider } from '../util/metrics';
 import { getSiweErrorType, useImmersveSiweAuth } from './useImmersveSiweAuth';
+import { useImmersveMfaHandoff } from './useImmersveMfaHandoff';
 import { useImmersveOnboardingRouter } from './useImmersveOnboardingRouter';
 
 interface ResumeParams {
@@ -22,13 +31,20 @@ interface ResumeParams {
   navigateFromRoot?: boolean;
   /** Analytics entrypoint for the resume funnel (SIGN_UP | AUTHENTICATION). */
   entrypoint?: CardEntryPoint.SIGN_UP | CardEntryPoint.AUTHENTICATION;
+  alreadyAuthenticated?: boolean;
 }
 
 export const useImmersveResumeOnboarding = () => {
   const dispatch = useDispatch();
   const { signIn } = useImmersveSiweAuth();
+  const handoffMfa = useImmersveMfaHandoff();
   const route = useImmersveOnboardingRouter();
   const immersveConfig = useSelector(selectCardImmersveConfig);
+  const countryFunding = useSelector(selectCardImmersveCountryFunding);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccountAddress = safeToChecksumAddress(
+    primaryMoneyAccount?.address,
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   return useCallback(
@@ -40,6 +56,7 @@ export const useImmersveResumeOnboarding = () => {
       showAccountExistsToast,
       navigateFromRoot,
       entrypoint = CardEntryPoint.SIGN_UP,
+      alreadyAuthenticated = false,
     }: ResumeParams): Promise<void> => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -57,13 +74,74 @@ export const useImmersveResumeOnboarding = () => {
 
         controller.setSelectedCountry(country);
 
-        await signIn({ country, address });
+        if (!alreadyAuthenticated) {
+          const authResult = await signIn({ country, address });
+          if (
+            handoffMfa(authResult, {
+              country,
+              address,
+              continuation: {
+                entrypoint,
+                email,
+                phone,
+                showAccountExistsToast,
+                navigateFromRoot,
+              },
+            })
+          ) {
+            return;
+          }
+        }
 
         const resume = await controller.getResumeCardInfo();
+        if (resume) {
+          controller
+            .recordCardActivated({
+              provider: CardProviderIds.Immersve,
+              address,
+            })
+            .catch(() => undefined);
+        } else {
+          controller
+            .recordProviderOnboardingStarted({
+              provider: CardProviderIds.Immersve,
+              address,
+            })
+            .catch(() => undefined);
+        }
 
+        const fundingChannel = immersveFundingChannelForCountry(
+          countryFunding,
+          country,
+        );
+        const isMoneyAccountChannel =
+          isMoneyAccountFundingChannel(fundingChannel);
+        if (isMoneyAccountChannel && !moneyAccountAddress) {
+          Logger.error(
+            new Error(
+              'useImmersveResumeOnboarding: Money account address is missing',
+            ),
+            {
+              tags: { feature: 'card', provider: 'immersve' },
+              context: {
+                name: 'useImmersveResumeOnboarding',
+                data: { method: 'resume' },
+              },
+            },
+          );
+          return;
+        }
         const id = await resolveImmersveFundingSourceId({
-          fundingChannelId: immersveConfig.fundingChannelId,
-          existingId: resume?.fundingSourceIds?.[0],
+          fundingChannelId:
+            fundingChannel?.fundingChannelId || immersveConfig.fundingChannelId,
+          // A previously stored Base source must not be reused for the Money
+          // account channel.
+          existingId: isMoneyAccountChannel
+            ? undefined
+            : resume?.fundingSourceIds?.[0],
+          moneyAccountAddress: isMoneyAccountChannel
+            ? moneyAccountAddress
+            : undefined,
         });
         dispatch(setImmersveFundingSourceId(id));
 
@@ -92,6 +170,8 @@ export const useImmersveResumeOnboarding = () => {
           countryKey: country,
           showAccountExistsToast,
           navigateFromRoot,
+          hasExistingCard: Boolean(resume),
+          fundingAddress: address,
         });
       } catch (error) {
         // SIWE already emits CARD_SIWE_AUTH_FAILED (incl. user_cancelled).
@@ -112,6 +192,16 @@ export const useImmersveResumeOnboarding = () => {
         throw error;
       }
     },
-    [dispatch, signIn, route, immersveConfig, trackEvent, createEventBuilder],
+    [
+      dispatch,
+      signIn,
+      handoffMfa,
+      route,
+      immersveConfig,
+      countryFunding,
+      moneyAccountAddress,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 };

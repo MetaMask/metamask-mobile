@@ -9,12 +9,15 @@ import {
   withIsolationScope,
   startNewTrace,
   SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
 } from '@sentry/core';
 import {
   endTrace,
   trace,
   annotateTrace,
+  annotateTraceByRequest,
   getTraceContext,
+  setTraceMeasurement,
   ONBOARDING_MACHINE_TIME_ATTRIBUTE,
   TraceName,
   TraceOperation,
@@ -48,6 +51,7 @@ jest.mock('@sentry/core', () => ({
   withIsolationScope: jest.fn(),
   startNewTrace: jest.fn((fn: () => unknown) => fn()),
   SPAN_STATUS_ERROR: 2,
+  SPAN_STATUS_OK: 1,
 }));
 
 jest.mock('../store/storage-wrapper', () => ({
@@ -126,7 +130,10 @@ describe('Trace', () => {
     );
     startNewTraceMock.mockImplementation((fn: () => unknown) => fn());
 
-    flushBufferedTraces();
+    // Discard rather than flush: flushing replays whatever the previous test
+    // left buffered, and with the consent it left cached, so those replays land
+    // on the mocks this test is about to assert against.
+    discardBufferedTraces();
     updateCachedConsent(false);
   });
 
@@ -153,7 +160,7 @@ describe('Trace', () => {
       expect(result).toBe(true);
     });
 
-    it('invokes Sentry if callback provided', () => {
+    it('keeps callback trace tags on span attributes and off the shared scope', () => {
       updateCachedConsent(true);
 
       trace(
@@ -181,15 +188,13 @@ describe('Trace', () => {
         expect.any(Function),
       );
 
-      expect(setTagMock).toHaveBeenCalledTimes(2);
-      expect(setTagMock).toHaveBeenCalledWith('tag1', 'value1');
-      expect(setTagMock).toHaveBeenCalledWith('tag2', true);
+      expect(setTagMock).not.toHaveBeenCalled();
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
     });
 
-    it('invokes Sentry if no callback provided', () => {
+    it('keeps manual trace tags on span attributes and off the shared scope', () => {
       updateCachedConsent(true);
 
       trace({
@@ -202,9 +207,9 @@ describe('Trace', () => {
 
       endTrace({ name: NAME_MOCK, id: ID_MOCK });
 
-      expect(withIsolationScopeMock).toHaveBeenCalledTimes(3);
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
-      expect(startSpanManualMock).toHaveBeenCalledTimes(3);
+      expect(startSpanManualMock).toHaveBeenCalledTimes(1);
       expect(startSpanManualMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,
@@ -215,9 +220,7 @@ describe('Trace', () => {
         expect.any(Function),
       );
 
-      expect(setTagMock).toHaveBeenCalledTimes(2);
-      expect(setTagMock).toHaveBeenCalledWith('tag1', 'value1');
-      expect(setTagMock).toHaveBeenCalledWith('tag2', true);
+      expect(setTagMock).not.toHaveBeenCalled();
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
@@ -239,7 +242,7 @@ describe('Trace', () => {
         expect.objectContaining({ attributes: { shared: 'data' } }),
         expect.any(Function),
       );
-      expect(setTagMock).toHaveBeenCalledWith('shared', 'tag');
+      expect(setTagMock).not.toHaveBeenCalled();
     });
 
     it('buffers traces when consent is not given', () => {
@@ -289,9 +292,7 @@ describe('Trace', () => {
         expect.any(Function),
       );
 
-      expect(setTagMock).toHaveBeenCalledTimes(2);
-      expect(setTagMock).toHaveBeenCalledWith('tag1', 'value1');
-      expect(setTagMock).toHaveBeenCalledWith('tag2', true);
+      expect(setTagMock).not.toHaveBeenCalled();
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
@@ -494,6 +495,221 @@ describe('Trace', () => {
     });
   });
 
+  describe('targeted trace metadata', () => {
+    it('targets the default trace when the request omits an id', () => {
+      updateCachedConsent(true);
+      const spanMock = {
+        end: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => undefined),
+      );
+      trace({ name: NAME_MOCK });
+
+      setTraceMeasurement({ name: NAME_MOCK }, 'ready_ms', 10, 'millisecond');
+      annotateTraceByRequest({ name: NAME_MOCK }, { lifecycle: 'warm' });
+
+      expect(setMeasurement).toHaveBeenCalledWith(
+        'ready_ms',
+        10,
+        'millisecond',
+        spanMock,
+      );
+      expect(spanMock.setAttribute).toHaveBeenCalledWith('lifecycle', 'warm');
+      endTrace({ name: NAME_MOCK });
+    });
+
+    it('isolates measurements and attributes across overlapping trace ids', () => {
+      updateCachedConsent(true);
+      const firstSpan = {
+        end: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+      const secondSpan = {
+        end: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+      startSpanManualMock
+        .mockImplementationOnce((_, fn) => fn(firstSpan, () => undefined))
+        .mockImplementationOnce((_, fn) => fn(secondSpan, () => undefined));
+      trace({ name: NAME_MOCK, id: 'first' });
+      trace({ name: NAME_MOCK, id: 'second' });
+
+      setTraceMeasurement(
+        { name: NAME_MOCK, id: 'first' },
+        'ready_ms',
+        20,
+        'millisecond',
+      );
+      annotateTraceByRequest(
+        { name: NAME_MOCK, id: 'second' },
+        { lifecycle: 'cold_no_cache' },
+      );
+
+      expect(setMeasurement).toHaveBeenCalledWith(
+        'ready_ms',
+        20,
+        'millisecond',
+        firstSpan,
+      );
+      expect(secondSpan.setAttribute).toHaveBeenCalledWith(
+        'lifecycle',
+        'cold_no_cache',
+      );
+      expect(firstSpan.setAttribute).not.toHaveBeenCalled();
+      endTrace({ name: NAME_MOCK, id: 'first' });
+      endTrace({ name: NAME_MOCK, id: 'second' });
+    });
+
+    it('does not write metadata when no trace matches the request', () => {
+      updateCachedConsent(true);
+      const spanMock = {
+        end: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => undefined),
+      );
+      trace({ name: NAME_MOCK, id: ID_MOCK });
+      jest.mocked(setMeasurement).mockClear();
+
+      setTraceMeasurement(
+        { name: NAME_MOCK, id: 'missing' },
+        'ready_ms',
+        30,
+        'millisecond',
+      );
+      annotateTraceByRequest(
+        { name: NAME_MOCK, id: 'missing' },
+        { lifecycle: 'warm' },
+      );
+
+      expect(setMeasurement).not.toHaveBeenCalled();
+      expect(spanMock.setAttribute).not.toHaveBeenCalled();
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+    });
+
+    it('writes a measurement to the matching pending span', () => {
+      updateCachedConsent(true);
+
+      const spanEndMock = jest.fn();
+      const spanMock = { end: spanEndMock } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({ name: NAME_MOCK, id: ID_MOCK });
+
+      setTraceMeasurement(
+        { name: NAME_MOCK, id: ID_MOCK },
+        'ready_ms',
+        123,
+        'millisecond',
+      );
+
+      expect(setMeasurement).toHaveBeenCalledWith(
+        'ready_ms',
+        123,
+        'millisecond',
+        spanMock,
+      );
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+    });
+
+    it('replays buffered measurements and attributes when consent becomes available', async () => {
+      trace({ name: NAME_MOCK, id: ID_MOCK });
+      setTraceMeasurement(
+        { name: NAME_MOCK, id: ID_MOCK },
+        'ready_ms',
+        123,
+        'millisecond',
+      );
+      annotateTraceByRequest(
+        { name: NAME_MOCK, id: ID_MOCK },
+        { lifecycle: 'cold_no_cache' },
+      );
+
+      updateCachedConsent(true);
+      await flushBufferedTraces();
+
+      expect(setMeasurement).toHaveBeenCalledWith(
+        'ready_ms',
+        123,
+        'millisecond',
+        expect.anything(),
+      );
+      expect(startSpanManualMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          attributes: expect.objectContaining({
+            lifecycle: 'cold_no_cache',
+          }),
+        }),
+        expect.any(Function),
+      );
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+    });
+
+    it('ignores metadata added after a buffered trace ends', async () => {
+      trace({ name: NAME_MOCK, id: ID_MOCK });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      setTraceMeasurement(
+        { name: NAME_MOCK, id: ID_MOCK },
+        'ready_ms',
+        123,
+        'millisecond',
+      );
+      annotateTraceByRequest(
+        { name: NAME_MOCK, id: ID_MOCK },
+        { lifecycle: 'late' },
+      );
+      updateCachedConsent(true);
+      await flushBufferedTraces();
+
+      expect(setMeasurement).not.toHaveBeenCalled();
+      expect(startSpanManualMock).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          attributes: expect.objectContaining({ lifecycle: 'late' }),
+        }),
+        expect.any(Function),
+      );
+    });
+
+    it('preserves buffered onboarding account type inheritance', async () => {
+      trace({
+        name: TraceName.OnboardingJourneyOverall,
+        op: TraceOperation.OnboardingUserJourney,
+      });
+      annotateTraceByRequest(
+        { name: TraceName.OnboardingJourneyOverall },
+        { account_type: 'imported_google' },
+      );
+      trace({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+      });
+      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      updateCachedConsent(true);
+      await flushBufferedTraces();
+
+      expect(startSpanManualMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingPasswordSetupAttempt,
+          attributes: expect.objectContaining({
+            account_type: 'imported_google',
+          }),
+        }),
+        expect.any(Function),
+      );
+    });
+  });
+
   describe('endTrace', () => {
     it('ends Sentry span matching name and specified ID', () => {
       updateCachedConsent(true);
@@ -523,6 +739,38 @@ describe('Trace', () => {
 
       expect(spanEndMock).toHaveBeenCalledTimes(1);
     });
+
+    it.each([
+      ['ok', SPAN_STATUS_OK],
+      ['error', SPAN_STATUS_ERROR],
+    ] as const)(
+      'sets the Sentry span status to %s before ending it',
+      (status, code) => {
+        updateCachedConsent(true);
+
+        const spanEndMock = jest.fn();
+        const setStatusMock = jest.fn();
+        const spanMock = {
+          end: spanEndMock,
+          setStatus: setStatusMock,
+          setAttribute: jest.fn(),
+        } as unknown as Span;
+
+        startSpanManualMock.mockImplementationOnce((_, fn) =>
+          fn(spanMock, () => {
+            // Intentionally empty
+          }),
+        );
+
+        trace({ name: NAME_MOCK, id: ID_MOCK });
+        endTrace({ name: NAME_MOCK, id: ID_MOCK, status });
+
+        expect(setStatusMock).toHaveBeenCalledWith({ code });
+        expect(setStatusMock.mock.invocationCallOrder[0]).toBeLessThan(
+          spanEndMock.mock.invocationCallOrder[0],
+        );
+      },
+    );
 
     it('ends Sentry span matching name and default ID', () => {
       updateCachedConsent(true);
@@ -1262,6 +1510,61 @@ describe('Trace', () => {
       );
     });
 
+    it('caps a trace at its custom maximum lifetime', () => {
+      updateCachedConsent(true);
+
+      const startTime = 2_000;
+      const maxLifetimeMs = 30 * 60 * 1000;
+      const { spanEndMock, spanMock } = createSpanMock();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        startTime,
+        maxLifetimeMs,
+      });
+      endTrace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        timestamp: startTime + maxLifetimeMs + 1,
+      });
+
+      expect(spanEndMock).toHaveBeenCalledWith(startTime + maxLifetimeMs);
+    });
+
+    it('runs cleanup at a trace custom maximum lifetime', () => {
+      jest.useFakeTimers();
+      updateCachedConsent(true);
+
+      const startTime = 3_000;
+      const maxLifetimeMs = 10 * 60 * 1000;
+      const { spanEndMock, spanMock } = createSpanMock();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        startTime,
+        maxLifetimeMs,
+      });
+      jest.advanceTimersByTime(maxLifetimeMs - 1);
+
+      expect(spanEndMock).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(1);
+
+      expect(spanEndMock).toHaveBeenCalledWith(startTime + maxLifetimeMs);
+    });
+
     it('finishes the previous span with a capped timestamp when a duplicate trace key is started', () => {
       updateCachedConsent(true);
 
@@ -1633,6 +1936,174 @@ describe('Trace', () => {
       );
 
       dateNowSpy.mockRestore();
+    });
+  });
+
+  describe('performance timeline', () => {
+    // Jest's console has no timeStamp; React Native's runtime console does.
+    const consoleMock = console as { timeStamp?: unknown };
+    const originalTimeStamp = consoleMock.timeStamp;
+    let timeStampSpy: jest.Mock;
+    let nowSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      timeStampSpy = jest.fn();
+      consoleMock.timeStamp = timeStampSpy;
+      nowSpy = jest.spyOn(globalThis.performance, 'now').mockReturnValue(0);
+    });
+
+    afterEach(() => {
+      nowSpy.mockRestore();
+      if (originalTimeStamp === undefined) {
+        delete consoleMock.timeStamp;
+      } else {
+        consoleMock.timeStamp = originalTimeStamp;
+      }
+    });
+
+    it('adds a manual trace from trace() to endTrace()', () => {
+      nowSpy.mockReturnValueOnce(100).mockReturnValueOnce(250);
+
+      trace({ name: NAME_MOCK, id: 'timeline-manual' });
+      expect(timeStampSpy).not.toHaveBeenCalled();
+      endTrace({ name: NAME_MOCK, id: 'timeline-manual' });
+
+      expect(timeStampSpy).toHaveBeenCalledTimes(1);
+      expect(timeStampSpy).toHaveBeenCalledWith(
+        NAME_MOCK,
+        100,
+        250,
+        'Traces',
+        'MetaMask',
+        'tertiary',
+      );
+    });
+
+    it('marks a manual trace that ends with an error status', () => {
+      updateCachedConsent(true);
+      nowSpy.mockReturnValueOnce(100).mockReturnValueOnce(250);
+
+      trace({ name: NAME_MOCK, id: 'timeline-manual-error' });
+      endTrace({
+        name: NAME_MOCK,
+        id: 'timeline-manual-error',
+        status: 'error',
+      });
+
+      expect(timeStampSpy).toHaveBeenCalledWith(
+        NAME_MOCK,
+        100,
+        250,
+        'Traces',
+        'MetaMask',
+        'error',
+      );
+    });
+
+    it.each([true, false])(
+      'adds a synchronous callback trace (consent %s)',
+      (consent) => {
+        updateCachedConsent(consent);
+        nowSpy.mockReturnValueOnce(10).mockReturnValueOnce(30);
+
+        const result = trace({ name: NAME_MOCK }, () => 'done');
+
+        expect(result).toBe('done');
+        expect(timeStampSpy).toHaveBeenCalledTimes(1);
+        expect(timeStampSpy).toHaveBeenCalledWith(
+          NAME_MOCK,
+          10,
+          30,
+          'Traces',
+          'MetaMask',
+          'tertiary',
+        );
+      },
+    );
+
+    it('adds an asynchronous callback trace once its promise settles', async () => {
+      updateCachedConsent(true);
+      nowSpy.mockReturnValueOnce(10).mockReturnValueOnce(40);
+      let resolve: (value: string) => void = () => undefined;
+
+      const promise = trace(
+        { name: NAME_MOCK },
+        () =>
+          new Promise<string>((resolver) => {
+            resolve = resolver;
+          }),
+      );
+
+      expect(timeStampSpy).not.toHaveBeenCalled();
+      resolve('done');
+      await expect(promise).resolves.toBe('done');
+      expect(timeStampSpy).toHaveBeenCalledTimes(1);
+      expect(timeStampSpy).toHaveBeenCalledWith(
+        NAME_MOCK,
+        10,
+        40,
+        'Traces',
+        'MetaMask',
+        'tertiary',
+      );
+    });
+
+    it('marks a callback trace that throws and rethrows its error', () => {
+      nowSpy.mockReturnValueOnce(10).mockReturnValueOnce(20);
+      const error = new Error('callback failed');
+
+      expect(() =>
+        trace({ name: NAME_MOCK }, () => {
+          throw error;
+        }),
+      ).toThrow(error);
+      expect(timeStampSpy).toHaveBeenCalledWith(
+        NAME_MOCK,
+        10,
+        20,
+        'Traces',
+        'MetaMask',
+        'error',
+      );
+    });
+
+    it('never lets a failing console.timeStamp break a trace', async () => {
+      updateCachedConsent(true);
+      timeStampSpy.mockImplementation(() => {
+        throw new Error('timeline failed');
+      });
+
+      expect(trace({ name: NAME_MOCK }, () => 'sync')).toBe('sync');
+      await expect(
+        trace({ name: NAME_MOCK }, async () => 'async'),
+      ).resolves.toBe('async');
+      expect(trace({ name: NAME_MOCK, id: 'timeline-throws' })).toBeDefined();
+      expect(() =>
+        endTrace({ name: NAME_MOCK, id: 'timeline-throws' }),
+      ).not.toThrow();
+      expect(timeStampSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('skips the timeline when console.timeStamp is unavailable', () => {
+      delete consoleMock.timeStamp;
+
+      expect(trace({ name: NAME_MOCK }, () => 'done')).toBe('done');
+      trace({ name: NAME_MOCK, id: 'timeline-unavailable' });
+      endTrace({ name: NAME_MOCK, id: 'timeline-unavailable' });
+
+      expect(nowSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not add buffered traces again when they are flushed', async () => {
+      trace({ name: NAME_MOCK, id: 'timeline-flush' });
+      endTrace({ name: NAME_MOCK, id: 'timeline-flush' });
+      expect(timeStampSpy).toHaveBeenCalledTimes(1);
+
+      updateCachedConsent(true);
+      await flushBufferedTraces();
+
+      expect(startSpanManualMock).toHaveBeenCalledTimes(1);
+      expect(timeStampSpy).toHaveBeenCalledTimes(1);
     });
   });
 });
