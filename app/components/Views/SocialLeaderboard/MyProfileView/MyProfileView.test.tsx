@@ -42,6 +42,7 @@ import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTrade
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
+import { ImpactMoment } from '../../../../util/haptics';
 import {
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_NEXT_PAGE_TEST_ID,
@@ -69,6 +70,7 @@ const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockOpenComposer = jest.fn();
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockFireImpact = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockFollowWithSetup = jest.fn(
   async (_isFollowing: boolean, performFollow: () => Promise<void>) => {
@@ -202,6 +204,7 @@ jest.mock('../hooks/useSpotCopyTradeQuickBuy', () => ({
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playSelection: () => mockPlaySelection(),
+  fireImpact: (...args: unknown[]) => mockFireImpact(...args),
   playImpact: jest.fn().mockResolvedValue(undefined),
   playErrorNotification: jest.fn().mockResolvedValue(undefined),
 }));
@@ -901,18 +904,19 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_SPINNER),
     ).toBeOnTheScreen();
+    expect(mockFireImpact).toHaveBeenCalledTimes(1);
+    expect(mockFireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
-        message:
-          'https://link.metamask.io/social/profile?traderId=current-user&share=1',
         url: 'https://link.metamask.io/social/profile?traderId=current-user&share=1',
         failOnCancel: false,
       });
     });
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(
       await screen.findByTestId(MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON),
     ).toBeOnTheScreen();
+    expect(mockFireImpact).toHaveBeenCalledTimes(2);
+    expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
   it('does not render a reset profile button on the owner profile header', () => {
@@ -1024,6 +1028,7 @@ describe('MyProfileView', () => {
         author: expect.objectContaining({ id: 'current-user' }),
         isClosed: false,
         isSnapshotLive: false,
+        shareSource: 'trader_feed',
       });
     });
 
@@ -1051,6 +1056,7 @@ describe('MyProfileView', () => {
         author: expect.objectContaining({ id: 'foreign-profile-id' }),
         isClosed: true,
         isSnapshotLive: false,
+        shareSource: 'trader_feed',
       });
     });
 
@@ -1380,13 +1386,12 @@ describe('MyProfileView', () => {
 
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
-        message:
-          'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         url: 'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         failOnCancel: false,
       });
     });
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockFireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+    expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
   it('hides the trader deeplink share button on the owner profile', () => {
@@ -2286,6 +2291,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
   });
 
@@ -2333,6 +2339,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: true,
+      shareSource: 'profile_position',
     });
   });
 
@@ -2454,6 +2461,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
 
     fireEvent.press(
@@ -2542,6 +2550,7 @@ describe('MyProfileView', () => {
         xHandle: null,
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
   });
 
