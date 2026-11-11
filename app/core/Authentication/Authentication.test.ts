@@ -230,7 +230,7 @@ jest.mock('../Engine', () => ({
       clearState: jest.fn(),
     },
 
-    KycFlowController: {
+    VendorOnboardingController: {
       reset: jest.fn(),
     },
 
@@ -5283,7 +5283,9 @@ describe('Authentication', () => {
       ).resetWalletState();
 
       // Assert
-      expect(Engine.context.KycFlowController.reset).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.VendorOnboardingController.reset,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('removes VBA autoramp cursors so Money Activity cannot show a prior wallet deposit', async () => {

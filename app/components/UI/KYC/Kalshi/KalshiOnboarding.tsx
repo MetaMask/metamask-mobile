@@ -8,7 +8,7 @@ import type {
   KycCatalogDocument,
   KycConsentDocument,
   KycDisclaimer,
-  KycFlowVendorState,
+  OnboardingVendorState,
 } from '@metamask/kyc-controller';
 import {
   Box,
@@ -44,8 +44,10 @@ export const KalshiOnboardingTestIds = {
   ERROR: 'kalshi-onboarding-error',
 } as const;
 
-const selectKalshiFlow = (state: RootState): KycFlowVendorState | undefined =>
-  state.engine.backgroundState.KycFlowController?.vendors?.[VENDOR];
+const selectKalshiFlow = (
+  state: RootState,
+): OnboardingVendorState | undefined =>
+  state.engine.backgroundState.VendorOnboardingController?.vendors?.[VENDOR];
 
 const toKeys = (
   documents: (KycCatalogDocument | KycConsentDocument)[] | undefined,
@@ -148,7 +150,7 @@ const FIELDS: Partial<
 };
 
 /**
- * Kalshi onboarding through `KycFlowController`. One screen that shows
+ * Kalshi onboarding through `VendorOnboardingController`. One screen that shows
  * whatever step kyc-api says the user is on, so it resumes wherever they left
  * off, on any device. The phone keeps nothing that kyc-api can work out: the
  * email, the phone code state and the MFA hint only live while this screen is
@@ -169,7 +171,7 @@ const KalshiOnboarding = () => {
   const [terms, setTerms] = useState<KycDisclaimer[]>();
   const step = flowState?.step;
   const screen = deriveKalshiScreen(step, { relayStep, phoneCodeSent });
-  const { KycFlowController } = Engine.context;
+  const { VendorOnboardingController } = Engine.context;
 
   // Each screen starts with an empty field.
   useEffect(() => {
@@ -179,7 +181,9 @@ const KalshiOnboarding = () => {
   // Ask kyc-api for the step, and idOS's own step when it owes a code.
   const refresh = useCallback(async () => {
     try {
-      const next = await KycFlowController.refreshStep({ vendor: VENDOR });
+      const next = await VendorOnboardingController.refreshStep({
+        vendor: VENDOR,
+      });
       if (next === 'identity_verification') {
         const session = await getKycService().getSessionStatusForVendor(VENDOR);
         setRelayStep(session?.currentStep);
@@ -189,7 +193,7 @@ const KalshiOnboarding = () => {
         tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
       });
     }
-  }, [KycFlowController]);
+  }, [VendorOnboardingController]);
 
   useEffect(() => {
     refresh();
@@ -245,7 +249,7 @@ const KalshiOnboarding = () => {
   const acceptTerms = () =>
     run(async () => {
       const country = await getGeoCountry();
-      await KycFlowController.acceptTerms({
+      await VendorOnboardingController.acceptTerms({
         vendor: VENDOR,
         country,
         disclaimerIds: (terms ?? []).map(({ id }) => id),
@@ -257,13 +261,16 @@ const KalshiOnboarding = () => {
   const submitEmail = () =>
     run(async () => {
       const email = input.trim();
-      await KycFlowController.startAccountLink({ vendor: VENDOR, email });
+      await VendorOnboardingController.startAccountLink({
+        vendor: VENDOR,
+        email,
+      });
       setLinkedEmail(email);
     });
 
   const submitLinkCode = () =>
     run(async () => {
-      const result = await KycFlowController.verifyAccountLink({
+      const result = await VendorOnboardingController.verifyAccountLink({
         vendor: VENDOR,
         code: input.trim(),
       });
@@ -284,7 +291,7 @@ const KalshiOnboarding = () => {
       if (!aal2Token) {
         throw new Error('MetaMask could not confirm your email.');
       }
-      await KycFlowController.startSession({
+      await VendorOnboardingController.startSession({
         vendor: VENDOR,
         aal2Token,
         ...(linkedEmail ? { email: linkedEmail } : {}),
@@ -293,15 +300,18 @@ const KalshiOnboarding = () => {
 
   const submitEmailCode = () =>
     run(() =>
-      KycFlowController.submitEmailCode({ vendor: VENDOR, code: input.trim() }),
+      VendorOnboardingController.submitEmailCode({
+        vendor: VENDOR,
+        code: input.trim(),
+      }),
     );
 
   const resendEmailCode = () =>
-    run(() => KycFlowController.resendEmailCode({ vendor: VENDOR }));
+    run(() => VendorOnboardingController.resendEmailCode({ vendor: VENDOR }));
 
   const submitPhone = () =>
     run(async () => {
-      await KycFlowController.submitPhone({
+      await VendorOnboardingController.submitPhone({
         vendor: VENDOR,
         phoneNumber: input.trim(),
       });
@@ -310,17 +320,20 @@ const KalshiOnboarding = () => {
 
   const submitPhoneCode = () =>
     run(() =>
-      KycFlowController.submitPhoneCode({ vendor: VENDOR, code: input.trim() }),
+      VendorOnboardingController.submitPhoneCode({
+        vendor: VENDOR,
+        code: input.trim(),
+      }),
     );
 
   const launchSumSub = () =>
     run(async () => {
-      const catalog = await KycFlowController.fetchSessionDisclaimers({
+      const catalog = await VendorOnboardingController.fetchSessionDisclaimers({
         vendor: VENDOR,
       });
       const documents = [...catalog.idOS, ...catalog.kycProvider];
       if (!documents.every(({ consented }) => consented)) {
-        await KycFlowController.acceptSessionDisclaimers({
+        await VendorOnboardingController.acceptSessionDisclaimers({
           vendor: VENDOR,
           idOS: toKeys(catalog.idOS),
           kycProvider: toKeys(catalog.kycProvider),
@@ -328,7 +341,7 @@ const KalshiOnboarding = () => {
           credentialReusabilityConsentGiven: false,
         });
       }
-      const outcome = await KycFlowController.launchProviderFlow({
+      const outcome = await VendorOnboardingController.launchProviderFlow({
         vendor: VENDOR,
         locale: toSumSubLocale(I18n.locale),
       });

@@ -30,7 +30,7 @@ jest.mock('../utils/toSumSubLocale', () => ({
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    KycFlowController: {
+    VendorOnboardingController: {
       refreshStep: jest.fn(),
       acceptTerms: jest.fn(),
       startAccountLink: jest.fn(),
@@ -52,7 +52,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const flow = Engine.context.KycFlowController as unknown as Record<
+const flow = Engine.context.VendorOnboardingController as unknown as Record<
   string,
   jest.Mock
 >;
@@ -75,7 +75,7 @@ const render = (step?: KycStep) =>
     state: {
       engine: {
         backgroundState: {
-          KycFlowController: {
+          VendorOnboardingController: {
             vendors: step ? { kalshi: { step, sessionId: 'sid-1' } } : {},
           },
         },

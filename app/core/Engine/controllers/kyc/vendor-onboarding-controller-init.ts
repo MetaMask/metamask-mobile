@@ -1,13 +1,13 @@
 import {
-  KycFlowController,
-  type KycFlowControllerMessenger,
+  VendorOnboardingController,
+  type VendorOnboardingControllerMessenger,
 } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
 import { createKalshiAccountLinkAdapter } from '../../../../components/UI/KYC/Kalshi/kalshiAccountLinkAdapter';
 import { sumsubLauncher } from './sumSubLauncher';
 
 /**
- * Initialize the KycFlowController.
+ * Initialize the VendorOnboardingController.
  *
  * The controller follows the onboarding step kyc-api decides for a vendor and
  * keeps only that step and the session id. Platform-specific parts are
@@ -17,15 +17,15 @@ import { sumsubLauncher } from './sumSubLauncher';
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger for the controller.
  * @param request.persistedState - Persisted state to hydrate from.
- * @returns The initialized KycFlowController.
+ * @returns The initialized VendorOnboardingController.
  */
-export const kycFlowControllerInit: MessengerClientInitFunction<
-  KycFlowController,
-  KycFlowControllerMessenger
+export const vendorOnboardingControllerInit: MessengerClientInitFunction<
+  VendorOnboardingController,
+  VendorOnboardingControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {
-  const controller = new KycFlowController({
+  const controller = new VendorOnboardingController({
     messenger: controllerMessenger,
-    state: persistedState.KycFlowController,
+    state: persistedState.VendorOnboardingController,
     sumsubLauncher,
     accountLinkAdapters: { kalshi: createKalshiAccountLinkAdapter() },
   });

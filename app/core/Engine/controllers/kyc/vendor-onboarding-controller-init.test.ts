@@ -1,28 +1,28 @@
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { getKycFlowControllerMessenger } from '../../messengers/kyc/kyc-flow-controller-messenger';
+import { getVendorOnboardingControllerMessenger } from '../../messengers/kyc/vendor-onboarding-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
-import { kycFlowControllerInit } from './kyc-flow-controller-init';
+import { vendorOnboardingControllerInit } from './vendor-onboarding-controller-init';
 import { sumsubLauncher } from './sumSubLauncher';
 import { createKalshiAccountLinkAdapter } from '../../../../components/UI/KYC/Kalshi/kalshiAccountLinkAdapter';
 import {
-  KycFlowController,
-  type KycFlowControllerMessenger,
-  type KycFlowControllerState,
+  VendorOnboardingController,
+  type VendorOnboardingControllerMessenger,
+  type VendorOnboardingControllerState,
 } from '@metamask/kyc-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/kyc-controller', () => {
-  class MockKycFlowController {
+  class MockVendorOnboardingController {
     static lastConstructorArgs: Record<string, unknown>[] = [];
 
     constructor(args: Record<string, unknown>) {
-      MockKycFlowController.lastConstructorArgs.push(args);
+      MockVendorOnboardingController.lastConstructorArgs.push(args);
       Object.assign(this, args);
     }
   }
 
-  return { KycFlowController: MockKycFlowController };
+  return { VendorOnboardingController: MockVendorOnboardingController };
 });
 
 jest.mock(
@@ -35,21 +35,25 @@ jest.mock(
   }),
 );
 
-interface MockKycFlowControllerConstructor {
+interface MockVendorOnboardingControllerConstructor {
   lastConstructorArgs: Record<string, unknown>[];
 }
 
 function getLastConstructorArgs(): Record<string, unknown> | undefined {
   return (
-    KycFlowController as unknown as MockKycFlowControllerConstructor
+    VendorOnboardingController as unknown as MockVendorOnboardingControllerConstructor
   ).lastConstructorArgs.at(-1);
 }
 
 function getInitRequestMock(
   overrides: {
-    persistedState?: { KycFlowController?: Partial<KycFlowControllerState> };
+    persistedState?: {
+      VendorOnboardingController?: Partial<VendorOnboardingControllerState>;
+    };
   } = {},
-): jest.Mocked<MessengerClientInitRequest<KycFlowControllerMessenger>> {
+): jest.Mocked<
+  MessengerClientInitRequest<VendorOnboardingControllerMessenger>
+> {
   const { persistedState = {} } = overrides;
 
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
@@ -58,51 +62,53 @@ function getInitRequestMock(
 
   return {
     ...buildMessengerClientInitRequestMock(baseMessenger),
-    controllerMessenger: getKycFlowControllerMessenger(baseMessenger),
+    controllerMessenger: getVendorOnboardingControllerMessenger(baseMessenger),
     persistedState,
   };
 }
 
-describe('kycFlowControllerInit', () => {
+describe('vendorOnboardingControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (
-      KycFlowController as unknown as MockKycFlowControllerConstructor
+      VendorOnboardingController as unknown as MockVendorOnboardingControllerConstructor
     ).lastConstructorArgs = [];
   });
 
-  it('instantiates the KycFlowController', () => {
-    const { controller } = kycFlowControllerInit(getInitRequestMock());
+  it('instantiates the VendorOnboardingController', () => {
+    const { controller } = vendorOnboardingControllerInit(getInitRequestMock());
 
-    expect(controller).toBeInstanceOf(KycFlowController);
+    expect(controller).toBeInstanceOf(VendorOnboardingController);
   });
 
   it('hydrates state from persistedState', () => {
-    const persisted: Partial<KycFlowControllerState> = {
+    const persisted: Partial<VendorOnboardingControllerState> = {
       vendors: { kalshi: { step: 'kyc_pending', sessionId: 'sid-1' } },
     };
 
-    kycFlowControllerInit(
-      getInitRequestMock({ persistedState: { KycFlowController: persisted } }),
+    vendorOnboardingControllerInit(
+      getInitRequestMock({
+        persistedState: { VendorOnboardingController: persisted },
+      }),
     );
 
     expect(getLastConstructorArgs()?.state).toStrictEqual(persisted);
   });
 
   it('starts without state when nothing was persisted', () => {
-    kycFlowControllerInit(getInitRequestMock());
+    vendorOnboardingControllerInit(getInitRequestMock());
 
     expect(getLastConstructorArgs()?.state).toBeUndefined();
   });
 
   it('injects the SumSub launcher', () => {
-    kycFlowControllerInit(getInitRequestMock());
+    vendorOnboardingControllerInit(getInitRequestMock());
 
     expect(getLastConstructorArgs()?.sumsubLauncher).toBe(sumsubLauncher);
   });
 
   it('injects the Kalshi account link calls', () => {
-    kycFlowControllerInit(getInitRequestMock());
+    vendorOnboardingControllerInit(getInitRequestMock());
 
     expect(createKalshiAccountLinkAdapter).toHaveBeenCalledTimes(1);
     expect(getLastConstructorArgs()?.accountLinkAdapters).toStrictEqual({

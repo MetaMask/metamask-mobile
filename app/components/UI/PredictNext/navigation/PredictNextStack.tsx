@@ -15,7 +15,7 @@ const Stack = createNativeStackNavigator<PredictNextStackParamList>();
 
 const PredictNextStack = () => (
   <PredictDeviceAuthBootstrap>
-    {/* Kalshi onboarding runs through KycFlowController (KalshiOnboarding) and replaces the demo sheet. */}
+    {/* Kalshi onboarding runs through VendorOnboardingController (KalshiOnboarding) and replaces the demo sheet. */}
     <PredictOrderFlowProvider>
       <Stack.Navigator
         initialRouteName={PredictNextRoutes.HOME}

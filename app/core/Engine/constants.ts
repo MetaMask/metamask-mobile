@@ -116,7 +116,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
   'KycController:stateChange',
-  'KycFlowController:stateChange',
+  'VendorOnboardingController:stateChange',
   'SocialController:stateChange',
   'ProfileController:stateChanged',
   'QrSyncController:stateChange',

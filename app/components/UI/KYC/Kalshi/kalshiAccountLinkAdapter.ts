@@ -15,14 +15,14 @@ const KYC_API_KALSHI_SEGMENTS = ['vendors', 'kalshi', 'enrollment'] as const;
 const DEFAULT_KYC_API_BASE_URL = 'https://kyc-api.uat-api.cx.metamask.io';
 
 /**
- * Engine imports this module through the KycFlowController init, so Engine is
+ * Engine imports this module through the VendorOnboardingController init, so Engine is
  * resolved when a call runs, not when the module loads.
  */
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const getEngine = () => require('../../../../core/Engine').default;
 
 /**
- * The Kalshi account link calls for `KycFlowController`. They reuse
+ * The Kalshi account link calls for `VendorOnboardingController`. They reuse
  * Predict's device key, A2T and request signer, and send the signed calls to
  * kyc-api, which checks the signature, forwards them to Kalshi and records
  * the result. Every call gets a new idempotency key.

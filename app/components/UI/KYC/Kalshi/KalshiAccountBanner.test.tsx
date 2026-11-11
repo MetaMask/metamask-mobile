@@ -24,10 +24,10 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../../../core/Engine', () => ({
-  context: { KycFlowController: { refreshStep: jest.fn() } },
+  context: { VendorOnboardingController: { refreshStep: jest.fn() } },
 }));
 
-const refreshStep = Engine.context.KycFlowController
+const refreshStep = Engine.context.VendorOnboardingController
   .refreshStep as unknown as jest.Mock;
 
 const render = (step?: KycStep) =>
@@ -35,7 +35,7 @@ const render = (step?: KycStep) =>
     state: {
       engine: {
         backgroundState: {
-          KycFlowController: {
+          VendorOnboardingController: {
             vendors: step ? { kalshi: { step, sessionId: null } } : {},
           },
         },

@@ -3,15 +3,15 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { KycFlowControllerMessenger } from '@metamask/kyc-controller';
+import type { VendorOnboardingControllerMessenger } from '@metamask/kyc-controller';
 import type { RootMessenger } from '../../types';
 
 /**
- * Actions {@link KycFlowController} calls on other messengers: the
+ * Actions {@link VendorOnboardingController} calls on other messengers: the
  * `KycService` requests it makes for each step, and Profile Sync storage for
  * the UKYC local user secret.
  */
-const KYC_FLOW_CONTROLLER_DELEGATED_ACTIONS = [
+const VENDOR_ONBOARDING_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:getStep',
   'KycService:acceptVendorTerms',
   'KycService:markProviderSubmitted',
@@ -31,25 +31,25 @@ const KYC_FLOW_CONTROLLER_DELEGATED_ACTIONS = [
 ] as const;
 
 /**
- * Get the messenger for the KycFlowController.
+ * Get the messenger for the VendorOnboardingController.
  *
  * @param rootMessenger - The root messenger.
- * @returns The KycFlowControllerMessenger.
+ * @returns The VendorOnboardingControllerMessenger.
  */
-export function getKycFlowControllerMessenger(
+export function getVendorOnboardingControllerMessenger(
   rootMessenger: RootMessenger,
-): KycFlowControllerMessenger {
+): VendorOnboardingControllerMessenger {
   const messenger = new Messenger<
-    'KycFlowController',
-    MessengerActions<KycFlowControllerMessenger>,
-    MessengerEvents<KycFlowControllerMessenger>,
+    'VendorOnboardingController',
+    MessengerActions<VendorOnboardingControllerMessenger>,
+    MessengerEvents<VendorOnboardingControllerMessenger>,
     RootMessenger
   >({
-    namespace: 'KycFlowController',
+    namespace: 'VendorOnboardingController',
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [...KYC_FLOW_CONTROLLER_DELEGATED_ACTIONS],
+    actions: [...VENDOR_ONBOARDING_CONTROLLER_DELEGATED_ACTIONS],
     messenger,
   });
   return messenger;

@@ -26,7 +26,7 @@ export const KalshiAccountBannerTestIds = {
 } as const;
 
 const selectIsKalshiVerified = (state: RootState): boolean =>
-  state.engine.backgroundState.KycFlowController?.vendors?.[
+  state.engine.backgroundState.VendorOnboardingController?.vendors?.[
     KALSHI_KYC_VENDOR.id
   ]?.step === 'approved';
 
@@ -41,7 +41,7 @@ export const KalshiAccountBanner = () => {
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
 
   useEffect(() => {
-    Engine.context.KycFlowController.refreshStep({
+    Engine.context.VendorOnboardingController.refreshStep({
       vendor: KALSHI_KYC_VENDOR.id,
     }).catch((error: unknown) => {
       Logger.error(error as Error, {

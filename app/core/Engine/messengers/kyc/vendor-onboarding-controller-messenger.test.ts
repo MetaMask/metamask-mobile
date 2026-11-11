@@ -1,14 +1,15 @@
 import { Messenger, MOCK_ANY_NAMESPACE } from '@metamask/messenger';
-import { getKycFlowControllerMessenger } from './kyc-flow-controller-messenger';
+import { getVendorOnboardingControllerMessenger } from './vendor-onboarding-controller-messenger';
 
 const getRootMessenger = () =>
   new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
-describe('getKycFlowControllerMessenger', () => {
+describe('getVendorOnboardingControllerMessenger', () => {
   it('returns a messenger', () => {
-    const messenger = getKycFlowControllerMessenger(getRootMessenger());
+    const messenger =
+      getVendorOnboardingControllerMessenger(getRootMessenger());
 
     expect(messenger).toBeInstanceOf(Messenger);
   });
@@ -17,7 +18,7 @@ describe('getKycFlowControllerMessenger', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
-    getKycFlowControllerMessenger(rootMessenger);
+    getVendorOnboardingControllerMessenger(rootMessenger);
 
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -40,7 +41,7 @@ describe('getKycFlowControllerMessenger', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
-    getKycFlowControllerMessenger(rootMessenger);
+    getVendorOnboardingControllerMessenger(rootMessenger);
 
     const { actions } = delegateSpy.mock.calls[0][0] as { actions: string[] };
     expect(actions).not.toContain(
