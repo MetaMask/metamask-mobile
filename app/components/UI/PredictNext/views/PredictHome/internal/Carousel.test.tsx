@@ -229,6 +229,7 @@ describe('Carousel', () => {
           renderItem={renderItem}
           Skeleton={Skeleton}
           idPrefix="test"
+          cardWidth={CARD_WIDTH}
           renderFooter={renderFooter}
         />,
       );
