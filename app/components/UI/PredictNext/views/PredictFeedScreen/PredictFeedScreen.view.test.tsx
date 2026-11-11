@@ -785,16 +785,28 @@ describe('PredictFeedScreen', () => {
       homeQuote: /^PIT\s*· 42¢$/,
     });
 
+    // The Feed asks for the featured presentation, so a non-game Event gets
+    // the featured standard card: Category header and one row per Market.
     const propsCard = view.getByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
     );
     expect(within(propsCard).getByText(propsEvent.title)).toBeOnTheScreen();
     expect(
+      within(propsCard).getByTestId(PredictHomeTestIds.category(propsEvent.id)),
+    ).toHaveTextContent('SPORTS');
+    expect(
       within(propsCard).getByTestId(
-        PredictHomeTestIds.outcome(propsEvent.id, 'yes'),
+        PredictHomeTestIds.marketOutcome(
+          propsEvent.id,
+          propsEvent.markets[0].id,
+        ),
       ),
     ).toBeOnTheScreen();
-    expect(within(propsCard).queryByText('Sports')).not.toBeOnTheScreen();
+    expect(
+      within(propsCard).queryByTestId(
+        PredictHomeTestIds.outcome(propsEvent.id, 'no'),
+      ),
+    ).not.toBeOnTheScreen();
     expect(within(propsCard).getByText('$1.5M')).toBeOnTheScreen();
   });
 
@@ -809,7 +821,12 @@ describe('PredictFeedScreen', () => {
     });
 
     fireEvent.press(
-      await view.findByTestId(PredictHomeTestIds.outcome(propsEvent.id, 'yes')),
+      await view.findByTestId(
+        PredictHomeTestIds.marketOutcome(
+          propsEvent.id,
+          propsEvent.markets[0].id,
+        ),
+      ),
     );
 
     expect(
@@ -843,7 +860,10 @@ describe('PredictFeedScreen', () => {
     // The row stays visible (a missing Ask Price is not a zero price) but
     // cannot start the Order flow.
     const row = await view.findByTestId(
-      PredictHomeTestIds.outcome(quoteLessEvent.id, 'yes'),
+      PredictHomeTestIds.marketOutcome(
+        quoteLessEvent.id,
+        quoteLessEvent.markets[0].id,
+      ),
     );
     expect(row).toBeDisabled();
     fireEvent.press(row);

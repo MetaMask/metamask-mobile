@@ -13,14 +13,12 @@ import type {
   PredictOutcome,
 } from '../../types';
 import { formatGameStartShort, getGameTeamOrder } from '../game';
-import { EventCard } from './internal/EventCard';
+import { EventCard, type EventCardVariant } from './internal/EventCard';
 import { GameCard } from './internal/EventCardGameParts';
-
-export type EventCardGameVariant = 'compact' | 'featured' | 'small';
 
 export interface EventCardGameProps {
   event: PredictEvent;
-  variant?: EventCardGameVariant;
+  variant?: EventCardVariant;
   onPress: () => void;
   onOrder?: (
     event: PredictEvent,
@@ -187,7 +185,7 @@ const SmallGameCard = ({
 };
 
 const COMPOSITIONS: Record<
-  EventCardGameVariant,
+  EventCardVariant,
   (props: GameCompositionProps) => React.JSX.Element
 > = {
   compact: CompactGameCard,

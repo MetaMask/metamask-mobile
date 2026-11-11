@@ -131,4 +131,80 @@ describe('PredictEventCard', () => {
     ).toBeOnTheScreen();
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+  it('renders the featured design for a non-game Event with the featured variant', () => {
+    render(
+      <PredictEventCard
+        event={{ ...standardEvent(), category: 'Politics' }}
+        variant="featured"
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('predict-next-event-category-routed-event'),
+    ).toHaveTextContent('POLITICS');
+    expect(
+      screen.getByTestId('predict-next-outcome-row-routed-event-market-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('predict-next-event-live-routed-event'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('predict-next-outcome-routed-event-yes'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the default standard card for a non-game Event without a variant', () => {
+    render(<PredictEventCard event={standardEvent()} onPress={jest.fn()} />);
+
+    expect(
+      screen.getByTestId('predict-next-outcome-routed-event-yes-avatar'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-next-outcome-routed-event-no'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('predict-next-event-header-routed-event'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each(['compact', 'small'] as const)(
+    'falls back to the default standard card for a non-game Event with the %s variant',
+    (variant) => {
+      render(
+        <PredictEventCard
+          event={standardEvent()}
+          variant={variant}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByTestId('predict-next-outcome-routed-event-yes'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-next-event-header-routed-event'),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  it('renders the featured game card for a game Event with the featured variant', () => {
+    render(
+      <PredictEventCard
+        event={gameEvent('basketball')}
+        variant="featured"
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('predict-next-game-header-routed-event'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-next-game-live-dot-routed-event'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('predict-next-event-category-routed-event'),
+    ).not.toBeOnTheScreen();
+  });
 });
