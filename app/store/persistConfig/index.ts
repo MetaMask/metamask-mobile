@@ -213,7 +213,9 @@ const persistOnboardingTransform = createTransform(
 
 type PersistedCardState = Omit<
   CardSliceState,
-  'pendingMoneyAccountCardLink' | 'cardArrivalPreviewRequested'
+  | 'pendingMoneyAccountCardLink'
+  | 'cardArrivalPreviewRequested'
+  | 'immersveFundingSettling'
 >;
 
 const persistCardTransform = createTransform<
@@ -224,6 +226,7 @@ const persistCardTransform = createTransform<
     const {
       pendingMoneyAccountCardLink: _omitSession,
       cardArrivalPreviewRequested: _omitPreview,
+      immersveFundingSettling: _omitFundingSettling,
       ...state
     } = inboundState;
     return state;
@@ -232,6 +235,7 @@ const persistCardTransform = createTransform<
     ...outboundState,
     pendingMoneyAccountCardLink: null,
     cardArrivalPreviewRequested: false,
+    immersveFundingSettling: false,
   }),
   { whitelist: ['card'] },
 );
