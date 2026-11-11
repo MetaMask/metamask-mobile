@@ -1,7 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useDispatch, useStore } from 'react-redux';
+import type { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { resetBridgeState } from '../../../../core/redux/slices/bridge';
+import {
+  resetBridgeState,
+  selectDestToken,
+  selectIsDestTokenManuallySet,
+  selectIsMaxSourceAmount,
+  selectSourceAmount,
+  selectSourceToken,
+  setDestToken,
+  setIsDestTokenManuallySet,
+  setSourceAmount,
+  setSourceAmountAsMax,
+  setSourceToken,
+} from '../../../../core/redux/slices/bridge';
 import Engine from '../../../../core/Engine';
 import { useSocialLeaderboardAnalytics } from '../../../Views/SocialLeaderboard/analytics';
 import {
@@ -64,6 +77,20 @@ export function useQuickBuyAnalytics(
   );
   const submitStartedAtRef = useRef<number | null>(null);
   const shouldResetBridgeOnUnmountRef = useRef(true);
+  // QuickBuy shares the bridge slice with a possibly still-mounted BridgeView;
+  // capture its inputs before QuickBuy overwrites them so dismiss can restore them.
+  // Read once without subscribing: QuickBuy dispatches these on every amount change.
+  const store = useStore<RootState>();
+  const [priorBridgeInputs] = useState(() => {
+    const state = store.getState();
+    return {
+      sourceToken: selectSourceToken(state),
+      destToken: selectDestToken(state),
+      sourceAmount: selectSourceAmount(state),
+      isMaxSourceAmount: selectIsMaxSourceAmount(state),
+      isDestTokenManuallySet: selectIsDestTokenManuallySet(state),
+    };
+  });
 
   const resolvedTraderAddress =
     analyticsContext?.traderAddress ?? traderAddress;
@@ -97,6 +124,25 @@ export function useQuickBuyAnalytics(
         if (Engine.context.BridgeController?.resetState) {
           Engine.context.BridgeController.resetState();
         }
+        const {
+          sourceToken,
+          destToken,
+          sourceAmount,
+          isMaxSourceAmount,
+          isDestTokenManuallySet,
+        } = priorBridgeInputs;
+        if (sourceToken) dispatch(setSourceToken(sourceToken));
+        if (destToken) dispatch(setDestToken(destToken));
+        if (sourceAmount) {
+          dispatch(
+            isMaxSourceAmount
+              ? setSourceAmountAsMax(sourceAmount)
+              : setSourceAmount(sourceAmount),
+          );
+        }
+        if (isDestTokenManuallySet) {
+          dispatch(setIsDestTokenManuallySet(true));
+        }
       }
       if (!tradeSubmittedRef.current && resolvedTraderAddress && caip19) {
         const numeric = Number(lastTrackedAmountRef.current);
@@ -110,7 +156,7 @@ export function useQuickBuyAnalytics(
         });
       }
     },
-    [dispatch, resolvedTraderAddress, caip19, track],
+    [dispatch, priorBridgeInputs, resolvedTraderAddress, caip19, track],
   );
 
   const trackAmountSelected = useCallback(
