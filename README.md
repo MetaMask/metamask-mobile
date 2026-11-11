@@ -146,7 +146,19 @@ yarn install:ios:dev --run RUN_ID
 yarn install:android:dev --run RUN_ID
 ```
 
-(`--run-id` is also accepted.) Related: [MCWP-683](https://consensyssoftware.atlassian.net/browse/MCWP-683), supersedes [PR #29891](https://github.com/MetaMask/metamask-mobile/pull/29891).
+(`--run-id` is also accepted.)
+
+Use the build that matches your checkout instead of the latest one. This picks the newest build produced from a commit in your checkout's history, so a branch cut from an older `main` doesn't get a native binary built from newer `main` commits:
+
+```bash
+yarn install:ios:dev --match-checkout                   # matches HEAD
+yarn install:android:dev --match-checkout               # matches HEAD
+yarn install:ios:dev --match-checkout origin/my-branch  # any git ref
+```
+
+The build commits must be present locally (`git fetch origin main` if the lookup reports missing commits). `--match-checkout` cannot be combined with `--run`, and fails instead of falling back to the latest build when nothing matches.
+
+Related: [MCWP-683](https://consensyssoftware.atlassian.net/browse/MCWP-683), supersedes [PR #29891](https://github.com/MetaMask/metamask-mobile/pull/29891).
 
 #### Load the app
 
