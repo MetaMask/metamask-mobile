@@ -4,6 +4,7 @@ import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialSurfaceLocation } from '../SocialFeedSurface';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
+import type { PendingPostSurface } from '../../../Views/SocialLeaderboard/pendingPosts/pendingPostsStore';
 import type {
   SocialDataFetchTab,
   SocialPerformanceContext,
@@ -94,6 +95,11 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   realtime?: boolean;
   /** Holds new posts back; switching back to false reveals them. */
   paused?: boolean;
+  /**
+   * Pins the viewer's just-written posts on top, greyed out, until this feed
+   * returns them (live or on a refresh) and its copy takes their place.
+   */
+  pendingPostsSurface?: PendingPostSurface;
   /**
    * Reorders the loaded posts, ties keeping the feed's order. Omitted keeps
    * the feed's newest-first order. Memoize it.

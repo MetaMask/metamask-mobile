@@ -4,8 +4,13 @@ import {
   getFilteredPositionSections,
   getProfilePositionsEmptyMessageKey,
   matchesProfileAssetFilter,
+  profileAssetFilterChains,
   splitPositionsByType,
 } from './splitPositionsByType';
+import {
+  FEED_CAIP2_CHAINS,
+  HYPERLIQUID_CAIP2_CHAIN_ID,
+} from '../../../../UI/SocialFeed/data/feed-constants';
 
 const spotPosition = (positionId: string): Position => ({
   positionId,
@@ -57,6 +62,24 @@ describe('filterPositionsByAsset', () => {
     expect(matchesProfileAssetFilter(undefined, 'all')).toBe(true);
     expect(matchesProfileAssetFilter(undefined, 'tokens')).toBe(false);
     expect(matchesProfileAssetFilter(undefined, 'perps')).toBe(false);
+  });
+});
+
+describe('profileAssetFilterChains', () => {
+  it('requests every chain for All', () => {
+    expect(profileAssetFilterChains('all')).toBeUndefined();
+  });
+
+  it('requests Hyperliquid alone for Perps', () => {
+    expect(profileAssetFilterChains('perps')).toStrictEqual([
+      HYPERLIQUID_CAIP2_CHAIN_ID,
+    ]);
+  });
+
+  it('requests every other feed chain for Tokens', () => {
+    expect(profileAssetFilterChains('tokens')).toStrictEqual(
+      FEED_CAIP2_CHAINS.filter((chain) => chain !== HYPERLIQUID_CAIP2_CHAIN_ID),
+    );
   });
 });
 
