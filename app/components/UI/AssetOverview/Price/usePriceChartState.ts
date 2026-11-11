@@ -642,7 +642,7 @@ export const usePriceChartState = ({
   const wsEnabled =
     chartType === ChartType.Line ? lineWsEnabled : candleWsEnabled;
 
-  /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
+  /** OHLCV or WebView init still in flight. Controls stay visible; only the chart skeletons. */
   const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
 
   /** First visit only; time-range / interval refresh keeps selector and bars visible. */

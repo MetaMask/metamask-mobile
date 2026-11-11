@@ -323,6 +323,20 @@ describe('TokenDetailsActionsSection', () => {
     expect(capturedTokenDetailsActionsProps[0].isLoading).toBe(true);
   });
 
+  it('keeps the action buttons visible while perps or buyability resolve', () => {
+    mockIsPerpsLoading = true;
+    mockIsBuyableLoading = true;
+
+    render(
+      <TokenDetailsActionsSection
+        token={baseToken}
+        showSkeletonWhileLoading={false}
+      />,
+    );
+
+    expect(capturedTokenDetailsActionsProps[0].isLoading).toBe(false);
+  });
+
   it('has no Long/Short handlers when the token has no perps market', () => {
     mockHasPerpsMarket = false;
 

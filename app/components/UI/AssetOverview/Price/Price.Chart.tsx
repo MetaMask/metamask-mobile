@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Platform } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
 import TimeRangeSelector from '../../Charts/AdvancedChart/TimeRangeSelector';
@@ -75,12 +74,9 @@ const BottomChrome = ({
     handleMAPress,
     handleTimeRangeSelect,
     initialAmbientColor,
-    isInitialChartPending,
     isLineMode,
-    isLoading,
     isTechnicalIndicatorsEnabled,
     maLabel,
-    shouldShowTechnicalIndicators,
     showCandleEmptyState,
     styles,
     timeRange,
@@ -99,7 +95,7 @@ const BottomChrome = ({
 
   if (isLineMode) {
     if (isTechnicalIndicatorsEnabled) {
-      // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
+      // Match the IndicatorBar height so switching modes doesn't shift buttons
       return (
         <Box
           testID={PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID}
@@ -112,7 +108,6 @@ const BottomChrome = ({
       <View style={styles.timeRangeContainer}>
         <View style={styles.timeRangeSelectorWrap}>
           <TimeRangeSelector
-            isChartLoading={isLoading}
             selected={timeRange}
             onSelect={handleLineTimeRangeSelect}
             chartType={chartType}
@@ -125,7 +120,7 @@ const BottomChrome = ({
   }
 
   if (showCandleEmptyState && isTechnicalIndicatorsEnabled) {
-    // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
+    // Match the IndicatorBar height so switching modes doesn't shift buttons
     return (
       <Box
         testID={PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID}
@@ -135,7 +130,7 @@ const BottomChrome = ({
     );
   }
 
-  if (shouldShowTechnicalIndicators && chartType === ChartType.Candles) {
+  if (isTechnicalIndicatorsEnabled && chartType === ChartType.Candles) {
     return (
       <Box twClassName={`w-full ${indicatorBarSpacing}`}>
         <IndicatorBar
@@ -149,24 +144,11 @@ const BottomChrome = ({
     );
   }
 
-  if (
-    isTechnicalIndicatorsEnabled &&
-    chartType === ChartType.Candles &&
-    !shouldShowTechnicalIndicators
-  ) {
-    return (
-      <Box twClassName={`w-full px-4 ${indicatorBarSpacing}`}>
-        <Skeleton height={37} width="100%" />
-      </Box>
-    );
-  }
-
-  if (!shouldShowTechnicalIndicators && !isTechnicalIndicatorsEnabled) {
+  if (!isTechnicalIndicatorsEnabled) {
     return (
       <View style={styles.timeRangeContainer}>
         <View style={styles.timeRangeSelectorWrap}>
           <TimeRangeSelector
-            isChartLoading={isInitialChartPending}
             selected={timeRange}
             onSelect={handleTimeRangeSelect}
             chartType={chartType}
@@ -221,7 +203,6 @@ export const PriceChartSection = ({
     hasInsufficientCoverage,
     indicatorsArray,
     initialAmbientColor,
-    isInitialChartPending,
     isLineMode,
     isLoading,
     isTechnicalIndicatorsEnabled,
@@ -231,7 +212,6 @@ export const PriceChartSection = ({
     priceDiff,
     realtimeBar,
     selectedMAs,
-    shouldShowTechnicalIndicators,
     showCandleEmptyState,
     showChartIndicators,
     styles,
@@ -254,25 +234,8 @@ export const PriceChartSection = ({
 
   return (
     <>
-      {/* ── Skeleton bar (flag ON, candle mode only) ───────────────────── */}
-      {isTechnicalIndicatorsEnabled &&
-        !isLineMode &&
-        !showCandleEmptyState &&
-        isInitialChartPending && (
-          <View style={styles.intervalBarContainer}>
-            <View style={styles.timeRangeSelectorWrap}>
-              <Box twClassName="w-full px-4">
-                <Skeleton height={29} width="100%" />
-              </Box>
-            </View>
-          </View>
-        )}
-
-      {/* ── IntervalBar (flag ON) ──────────────────────────────────────── */}
-      {isTechnicalIndicatorsEnabled &&
-        (isLineMode ||
-          shouldShowTechnicalIndicators ||
-          showCandleEmptyState) && <IntervalBarRow />}
+      {/* ── IntervalBar (flag ON). Stays visible while the chart skeleton shows. */}
+      {isTechnicalIndicatorsEnabled && <IntervalBarRow />}
 
       {/* ── Chart area ─────────────────────────────────────────────────── */}
       {isLineMode && (

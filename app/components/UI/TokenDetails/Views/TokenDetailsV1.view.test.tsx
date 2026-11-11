@@ -386,6 +386,10 @@ describeForPlatforms('TokenDetailsV1', () => {
 
     expect(pending.getByTestId('loading-price-diff')).toBeOnTheScreen();
     expect(pending.getByTestId('chart-line-skeleton')).toBeOnTheScreen();
+    expect(pending.getByText('1D')).toBeOnTheScreen();
+    expect(
+      pending.getByTestId('token-details-pending-body-skeleton'),
+    ).toBeOnTheScreen();
     expect(
       await findByTestId(TOKEN_DETAILS_V1_TEST_ID, {}, FIND_TIMEOUT),
     ).toBeOnTheScreen();

@@ -149,6 +149,11 @@ export interface TokenDetailsActionsSectionProps {
   tdpVersion?: TdpVersion;
   /** Draws the action tiles on brand refresh glass. */
   isGlass?: boolean;
+  /**
+   * When false, the labeled action buttons stay visible while buyability and
+   * perps are still resolving. Default keeps the four-square skeleton.
+   */
+  showSkeletonWhileLoading?: boolean;
 }
 
 const TokenDetailsActionsSection = ({
@@ -166,6 +171,7 @@ const TokenDetailsActionsSection = ({
   onExitAction,
   tdpVersion,
   isGlass = false,
+  showSkeletonWhileLoading = true,
 }: TokenDetailsActionsSectionProps) => {
   const selfPerpsMarket = usePerpsActions({
     symbol: perpsMarket ? null : token.symbol,
@@ -221,7 +227,9 @@ const TokenDetailsActionsSection = ({
           onShort={handlePerpsAction ? onShort : undefined}
           onSend={onSend ?? defaultOnSend}
           onReceive={onReceive ?? defaultOnReceive}
-          isLoading={isBuyableLoading || isPerpsLoading}
+          isLoading={
+            showSkeletonWhileLoading && (isBuyableLoading || isPerpsLoading)
+          }
           resetNavigationLockRef={resetNavigationLockRef}
           onActionTapped={effectiveOnActionTapped}
           isGlass={isGlass}
