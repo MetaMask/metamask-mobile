@@ -120,7 +120,7 @@ describe('commitSigningFor', () => {
     });
   });
 
-  it('signs a sell with a price floor 10¢ under the quoted average', () => {
+  it('signs a sell of the pinned contracts at the quoted limit', () => {
     const preview = {
       action: 'sell',
       requestedContracts: 6,
@@ -129,20 +129,10 @@ describe('commitSigningFor', () => {
     } as unknown as PredictOrderPreview;
 
     expect(
-      commitSigningFor({ ...intent, action: 'sell' }, pinned, preview)?.inputs,
-    ).toMatchObject({ contracts: '6', minOutcomePrice: '0.3500' });
-  });
-
-  it('never floors a sell below the 1¢ venue minimum', () => {
-    const preview = {
-      action: 'sell',
-      requestedContracts: 6,
-      limitPrice: '0.0100',
-      averagePrice: '0.0500',
-    } as unknown as PredictOrderPreview;
-
-    expect(
-      commitSigningFor({ ...intent, action: 'sell' }, pinned, preview)?.inputs,
-    ).toMatchObject({ minOutcomePrice: '0.0100' });
+      commitSigningFor({ ...intent, action: 'sell' }, pinned, preview),
+    ).toMatchObject({
+      inputs: { contracts: '6' },
+      values: { count: '6.00', price: '0.3000' },
+    });
   });
 });

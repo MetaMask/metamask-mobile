@@ -463,6 +463,11 @@ export const PredictOrderFlowSheet = ({
       })
       .catch((error: unknown) => {
         Logger.log('PredictNext: the signing profile refused the quote', error);
+        if (current) {
+          // Say why Approve stays disabled: this quote cannot be signed, and
+          // a fresh quote is the way forward.
+          setCommitError(PredictError.from(PredictErrorCode.QUOTE_UNAVAILABLE));
+        }
       });
     return () => {
       current = false;
