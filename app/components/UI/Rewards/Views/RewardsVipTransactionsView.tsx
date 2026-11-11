@@ -16,7 +16,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -42,6 +41,9 @@ import type {
   VipTransactionDto,
   VipTransactionType,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 type TransactionListItem =
   | { kind: 'date-header'; dateKey: string; label: string }
@@ -86,6 +88,7 @@ const VipTransactionRowSkeleton: React.FC = () => {
 };
 
 const RewardsVipTransactionsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [selectedType, setSelectedType] = useState<VipTransactionType>('PERPS');
@@ -107,8 +110,7 @@ const RewardsVipTransactionsView: React.FC = () => {
     isRefreshing,
   } = useGetVipTransactions(selectedType);
 
-  const headerTitle =
-    dashboard?.localizedText.transactionsTitle || 'Transactions';
+  const headerTitle = dashboard?.localizedText.transactionsTitle ?? '';
 
   const typeOptions = useMemo(
     () => [
@@ -302,7 +304,9 @@ const RewardsVipTransactionsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIP_TRANSACTIONS_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={headerTitle}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}

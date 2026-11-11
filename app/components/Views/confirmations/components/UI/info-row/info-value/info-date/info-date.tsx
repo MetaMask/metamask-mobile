@@ -1,7 +1,7 @@
 import React from 'react';
 
-import Text from '../../../../../../../../component-library/components/Texts/Text';
 import { formatUTCDateFromUnixTimestamp } from '../../../../../utils/date';
+import { Text } from '@metamask/design-system-react-native';
 
 interface InfoDateProps {
   unixTimestamp: number;

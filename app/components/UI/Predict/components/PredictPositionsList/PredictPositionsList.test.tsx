@@ -57,6 +57,19 @@ jest.mock('../PredictPosition/PredictPosition', () => {
   };
 });
 
+jest.mock('../PredictOffline', () => {
+  const ReactLib = jest.requireActual('react');
+  const { Pressable, Text } = jest.requireActual('react-native');
+
+  return function MockPredictOffline({ onRetry }: { onRetry: () => void }) {
+    return ReactLib.createElement(
+      Pressable,
+      { onPress: onRetry, testID: 'predict-offline' },
+      ReactLib.createElement(Text, null, 'Try again'),
+    );
+  };
+});
+
 const mockNavigation = {
   navigate: jest.fn(),
 };
@@ -239,6 +252,23 @@ describe('PredictPositionsList', () => {
     expect(
       screen.getAllByTestId(PredictPositionsListSelectorsIDs.SKELETON_ROW),
     ).toHaveLength(3);
+    expect(
+      screen.queryByTestId(PredictPositionsEmptySelectorsIDs.CONTAINER),
+    ).toBeNull();
+  });
+
+  it('renders the retry state instead of the empty state when positions fail', () => {
+    const refetch = jest.fn();
+    renderList({
+      portfolio: createPortfolio({
+        openPositionsError: new Error('Network error'),
+        refetch,
+      }),
+    });
+
+    fireEvent.press(screen.getByTestId('predict-offline'));
+
+    expect(refetch).toHaveBeenCalledTimes(1);
     expect(
       screen.queryByTestId(PredictPositionsEmptySelectorsIDs.CONTAINER),
     ).toBeNull();

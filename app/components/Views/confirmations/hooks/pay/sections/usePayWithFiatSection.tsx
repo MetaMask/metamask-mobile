@@ -11,8 +11,10 @@ import {
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useFiatPaymentHighlightedActions } from '../useFiatPaymentHighlightedActions';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
+import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
-export const PAY_WITH_BANK_CARD_SECTION_TEST_ID = 'pay-with-section-bank-card';
+export const PAY_WITH_BANK_CARD_SECTION_TEST_ID =
+  PayWithBottomSheetIDs.BANK_CARD_SECTION;
 
 const PAYMENT_METHOD_ICON_SIZE = 20;
 

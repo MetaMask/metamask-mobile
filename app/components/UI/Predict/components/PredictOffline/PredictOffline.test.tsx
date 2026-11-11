@@ -18,11 +18,11 @@ describe('PredictOffline', () => {
 
       expect(screen.getByTestId('predict-error-state')).toBeOnTheScreen();
       expect(
-        screen.getByText('Unable to connect to predictions'),
+        screen.getByText("Couldn't connect to Predictions"),
       ).toBeOnTheScreen();
       expect(
         screen.getByText(
-          'Prediction markets are temporarily offline. Please check you have a stable connection and try again.',
+          'Check your connection and try again. If it continues, try a different network.',
         ),
       ).toBeOnTheScreen();
     });
@@ -40,7 +40,7 @@ describe('PredictOffline', () => {
 
       renderWithProvider(<PredictOffline onRetry={onRetry} />);
 
-      expect(screen.getByText('Retry')).toBeOnTheScreen();
+      expect(screen.getByText('Try again')).toBeOnTheScreen();
     });
 
     it('calls onRetry callback when retry button is pressed', () => {
@@ -48,7 +48,7 @@ describe('PredictOffline', () => {
 
       renderWithProvider(<PredictOffline onRetry={onRetry} />);
 
-      fireEvent.press(screen.getByText('Retry'));
+      fireEvent.press(screen.getByText('Try again'));
 
       expect(onRetry).toHaveBeenCalledTimes(1);
     });
@@ -56,7 +56,7 @@ describe('PredictOffline', () => {
     it('hides retry button when onRetry is not provided', () => {
       renderWithProvider(<PredictOffline />);
 
-      expect(screen.queryByText('Retry')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Try again')).not.toBeOnTheScreen();
     });
   });
 });

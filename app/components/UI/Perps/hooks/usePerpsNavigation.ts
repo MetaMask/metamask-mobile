@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -13,18 +15,35 @@ import {
   type Order,
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
+import { selectPerpsProvider } from '../selectors/perpsController';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import {
+  registerTransactionAbTestAttributionForIds,
   withPendingTransactionActiveAbTests,
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import { trackStashedPrewarmTransactionAdded } from '../utils/unclaimedPrewarmTransactionMetrics';
+import {
+  claimPrewarmedDepositOrder,
+  resolveDepositOrderProvider,
+} from '../utils/prewarmedDepositOrder';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
+import {
+  CONFIRMATION_HEADER_CONFIG,
+  PROVIDER_CONFIG,
+} from '../constants/perpsConfig';
+import { usePerpsProvider } from './usePerpsProvider';
+import {
+  failPerpsTradeSheetInteractiveTrace,
+  startPerpsTradeSheetInteractiveTrace,
+} from '../utils/perpsTradeSheetInteractiveTrace';
 import {
   navigateToPerpsHomeTarget,
+  resetToPerpsHomeTarget,
   useGetPerpsHomeNavigationTarget,
 } from '../utils/perpsModeSwitch';
 
@@ -44,8 +63,15 @@ export interface PerpsNavigationHandlers {
     market: PerpsMarketData,
     source?: string,
     transactionActiveAbTests?: TransactionActiveAbTestEntry[],
+    source_section?: string,
   ) => void;
   navigateToHome: (source?: string) => void;
+  /**
+   * Replace the Perps stack with Home. Use after Home was dropped so Back
+   * from Home cannot return to the market that `navigateToHome` would leave
+   * underneath.
+   */
+  resetToHome: (source?: string) => void;
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
   ) => void;
@@ -56,11 +82,19 @@ export interface PerpsNavigationHandlers {
   navigateToTutorial: (
     params?: PerpsNavigationParamList['PerpsTutorial'],
   ) => void;
-  navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
+  navigateToAdjustMargin: (
+    position: Position,
+    mode: 'add' | 'remove',
+    options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
+  ) => void;
   navigateToClosePosition: (
     position: Position,
     source?: string,
-    entry?: { buttonClicked?: string; buttonLocation?: string },
+    entry?: {
+      buttonClicked?: string;
+      buttonLocation?: string;
+      enableHaptics?: boolean;
+    },
   ) => void;
   navigateToOrderDetails: (order: Order) => void;
 
@@ -138,6 +172,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       market: PerpsMarketData,
       source?: string,
       transactionActiveAbTests?: TransactionActiveAbTestEntry[],
+      source_section?: string,
     ) => {
       navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
         market,
@@ -145,17 +180,30 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         ...(transactionActiveAbTests?.length
           ? { transactionActiveAbTests }
           : {}),
+        ...(source_section ? { source_section } : {}),
       });
     },
     [navigation],
   );
 
+  // Keep this stream-free: usePerpsNavigation is also used by screens that can
+  // mount outside PerpsStreamProvider (e.g. select-modify sheet in view tests).
+  // Tradable-symbol validation belongs in stream-backed flows such as
+  // usePerpsRecordMarketViewed.
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const navigateToHome = useCallback(
     (source?: string) => {
       const target = getPerpsHomeNavigationTarget({ source });
       navigateToPerpsHomeTarget(navigation, target);
+    },
+    [navigation, getPerpsHomeNavigationTarget],
+  );
+
+  const resetToHome = useCallback(
+    (source?: string) => {
+      const target = getPerpsHomeNavigationTarget({ source });
+      resetToPerpsHomeTarget(navigation, target);
     },
     [navigation, getPerpsHomeNavigationTarget],
   );
@@ -196,6 +244,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         StackActions.push(Routes.PERPS.MARKET_LIST, {
           ...params,
           animation: 'slide_from_bottom',
+          // Switching markets from the chart header is a high-frequency move,
+          // so the picker runs faster than the platform's default slide-up,
+          // which reads as latency rather than as a transition. iOS only:
+          // native-stack documents animationDuration as @platform ios, and
+          // react-native-screens no-ops setTransitionDuration on Android, so
+          // Android keeps its fixed slide_from_bottom timing regardless.
+          animationDuration: AnimationDuration.Promptly,
           // Selecting a market should replace the details beneath this picker
           // rather than pushing another MARKET_DETAILS on top of the stack.
           replaceOnSelect: true,
@@ -206,48 +261,137 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const { depositWithOrder } = usePerpsTrading();
+  const { switchProvider } = usePerpsProvider();
+  const activeProvider = useSelector(selectPerpsProvider);
+  const selectedAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
-      withPendingTransactionActiveAbTests(
-        params.transactionActiveAbTests,
-        depositWithOrder,
-      )
+      const useBottomSheet = Boolean(params.useBottomSheet);
+      const orderProvider = params.providerId ?? activeProvider;
+      const handleOrderError = (error: unknown) => {
+        const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
+        Logger.error(err, {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
+        });
+
+        track(MetaMetricsEvents.PERPS_ERROR, {
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
+          [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
+        });
+
+        showToast(
+          PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+        );
+      };
+      const switchToOrderProvider = async () => {
+        if (params.providerId === undefined) {
+          return;
+        }
+        const result = await switchProvider(params.providerId);
+        if (!result.success) {
+          throw new Error(
+            result.error ??
+              `Failed to switch perps provider to ${params.providerId}`,
+          );
+        }
+      };
+      // Lighter has no deposit-with-order route. Switch first so the form uses
+      // Lighter's balance and market metadata, including from aggregated mode.
+      if (orderProvider === PROVIDER_CONFIG.LighterProvider) {
+        if (
+          params.providerId === PROVIDER_CONFIG.LighterProvider &&
+          activeProvider !== undefined &&
+          activeProvider !== params.providerId
+        ) {
+          switchToOrderProvider()
+            .then(() => navigation.navigate(Routes.PERPS.BALANCE_ORDER, params))
+            .catch(handleOrderError);
+          return;
+        }
+        navigation.navigate(Routes.PERPS.BALANCE_ORDER, params);
+        return;
+      }
+      const depositProvider = resolveDepositOrderProvider(activeProvider);
+      let createOrder = depositWithOrder;
+      if (
+        params.providerId !== undefined &&
+        params.providerId !== depositProvider
+      ) {
+        createOrder = async () => {
+          await switchToOrderProvider();
+          return depositWithOrder();
+        };
+      }
+      if (useBottomSheet) {
+        startPerpsTradeSheetInteractiveTrace(
+          params.source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        );
+      }
+      // The market screen may already have prepared this transaction. Claiming it
+      // skips both creation and approval queueing; the criteria encode the
+      // provider, so a market needing a switch never matches and falls through.
+      const claimedPrewarm = selectedAccountAddress
+        ? claimPrewarmedDepositOrder({
+            accountAddress: selectedAccountAddress,
+            providerId: params.providerId ?? depositProvider,
+          })
+        : undefined;
+      const prepareOrder = async () => {
+        if (claimedPrewarm) {
+          try {
+            const transactionId = await claimedPrewarm;
+            registerTransactionAbTestAttributionForIds(
+              [transactionId],
+              params.transactionActiveAbTests,
+            );
+            // Added was held back at prewarm time. Emit it now, after
+            // attribution is registered, because the user actually started.
+            // eslint-disable-next-line no-void -- metric builders must not delay opening confirmation
+            void trackStashedPrewarmTransactionAdded(transactionId);
+            return;
+          } catch {
+            // Prewarm failed or became unusable; create a fresh transaction.
+          }
+        }
+        await withPendingTransactionActiveAbTests(
+          params.transactionActiveAbTests,
+          createOrder,
+        );
+      };
+      prepareOrder()
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             {
               ...params,
-              showPerpsHeader:
-                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+              ...(useBottomSheet
+                ? { useBottomSheet: true, forceBottomSheet: true }
+                : {}),
+              showPerpsHeader: useBottomSheet
+                ? false
+                : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
           );
         })
         .catch((error: unknown) => {
-          const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
-          Logger.error(err, {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
-          });
-
-          track(MetaMetricsEvents.PERPS_ERROR, {
-            [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
-              PERPS_EVENT_VALUE.ERROR_TYPE.BACKEND,
-            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: err.message,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
-          });
-
-          showToast(
-            PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
-          );
+          if (useBottomSheet) {
+            failPerpsTradeSheetInteractiveTrace('transaction_creation_failed');
+          }
+          handleOrderError(error);
         });
     },
     [
       navigation,
       depositWithOrder,
+      switchProvider,
+      activeProvider,
+      selectedAccountAddress,
       showToast,
       PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
       track,
@@ -262,8 +406,17 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const navigateToAdjustMargin = useCallback(
-    (position: Position, mode: 'add' | 'remove') => {
-      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, { position, mode });
+    (
+      position: Position,
+      mode: 'add' | 'remove',
+      options?: { enableHaptics?: boolean; useBottomSheet?: boolean },
+    ) => {
+      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode,
+        enableHaptics: options?.enableHaptics,
+        ...(options?.useBottomSheet ? { useBottomSheet: true } : {}),
+      });
     },
     [navigation],
   );
@@ -272,13 +425,18 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     (
       position: Position,
       source?: string,
-      entry?: { buttonClicked?: string; buttonLocation?: string },
+      entry?: {
+        buttonClicked?: string;
+        buttonLocation?: string;
+        enableHaptics?: boolean;
+      },
     ) => {
       navigation.navigate(Routes.PERPS.CLOSE_POSITION, {
         position,
         source,
         buttonClicked: entry?.buttonClicked,
         buttonLocation: entry?.buttonLocation,
+        enableHaptics: entry?.enableHaptics,
       });
     },
     [navigation],
@@ -311,6 +469,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     // Perps-specific navigation
     navigateToMarketDetails,
     navigateToHome,
+    resetToHome,
     navigateToMarketList,
     navigateToMarketListFromHeader,
     navigateToOrder,

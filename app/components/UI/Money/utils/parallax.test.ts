@@ -112,7 +112,30 @@ describe('shapeCardTilt', () => {
     // A third of the way through the travel, as reported by the hook.
     const smallTilt = (1 / 3) ** 2;
 
-    expect(shapeCardTilt(smallTilt)).toBeGreaterThan(smallTilt * 3);
+    expect(shapeCardTilt(smallTilt)).toBeGreaterThan(smallTilt * 2.5);
+  });
+
+  it('stays eased above a proportional response without over-boosting it', () => {
+    // Halfway through the travel, as reported by the hook's squared curve.
+    // Below the proportional response the card would need a deliberate turn
+    // before it answered at all; far above it, the drift of a hand holding a
+    // phone still enough to read drives the artboard.
+    const halfway = 0.5 ** 2;
+    const proportional = (0.5 - CARD_TILT_DEADZONE) / (1 - CARD_TILT_DEADZONE);
+
+    expect(shapeCardTilt(halfway)).toBeGreaterThan(proportional);
+    expect(shapeCardTilt(halfway)).toBeLessThan(proportional * 1.15);
+  });
+
+  it('damps the smallest movements hardest', () => {
+    // Share of the travel reached per share of the travel turned through. A
+    // gain change bites hardest near rest; an amplitude change would move
+    // every one of these by the same factor.
+    const responseAt = (fraction: number) =>
+      shapeCardTilt(fraction ** 2) / fraction;
+
+    expect(responseAt(0.1)).toBeLessThan(responseAt(0.25));
+    expect(responseAt(0.25)).toBeLessThan(responseAt(0.5));
   });
 
   it('increases monotonically with the tilt', () => {

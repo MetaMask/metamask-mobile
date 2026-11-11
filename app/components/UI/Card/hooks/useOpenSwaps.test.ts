@@ -43,6 +43,10 @@ jest.mock('../../../../selectors/networkController', () => ({
   selectAllPopularNetworkConfigurations: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/cardController', () => ({
+  selectCardActiveProviderId: jest.fn(() => 'baanx'),
+}));
+
 jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: jest.fn(),
 }));

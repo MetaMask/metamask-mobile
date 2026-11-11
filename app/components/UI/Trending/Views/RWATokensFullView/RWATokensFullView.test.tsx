@@ -7,6 +7,7 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
 import type TrendingTokensList from '../../components/TrendingTokensList';
 import mockState from '../../../../../util/test/initial-root-state';
+import { clone } from 'lodash';
 
 const TEST_IDS = {
   skeleton: 'trending-tokens-skeleton',
@@ -24,11 +25,11 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
-  createNavigatorFactory: () => ({}),
 }));
 
 jest.mock('../../hooks/useRwaTokens/useRwaTokens');
@@ -98,18 +99,34 @@ const arrangeMocks = () => {
 };
 
 describe('RWATokensFullView', () => {
-  const renderRWAFullView = () =>
+  let mocks: ReturnType<typeof arrangeMocks>;
+
+  const renderRWAFullView = (state: typeof mockState = mockState) =>
     renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <RWATokensFullView />
       </SafeAreaProvider>,
-      { state: mockState },
+      { state },
       false,
     );
 
+  const createStateWithRobinhoodRwa = (showRobinhoodRwa: boolean) => {
+    const state = clone(mockState);
+    (
+      state as Record<string, unknown> & typeof mockState
+    ).engine.backgroundState.RemoteFeatureFlagController = {
+      ...state.engine.backgroundState.RemoteFeatureFlagController,
+      remoteFeatureFlags: { ASSETS4098ShowRobinhoodRwa: showRobinhoodRwa },
+    };
+    return state;
+  };
+
+  // Arranged once per test so every test asserts on the same mock handles the
+  // component received; jest.resetAllMocks() is deliberately avoided because it
+  // also wipes the shared setup mocks configured at module load.
   beforeEach(() => {
     jest.clearAllMocks();
-    arrangeMocks();
+    mocks = arrangeMocks();
   });
 
   it('renders header with Stocks title', () => {
@@ -132,7 +149,6 @@ describe('RWATokensFullView', () => {
   });
 
   it('navigates back when back button is pressed', async () => {
-    const mocks = arrangeMocks();
     const { getByTestId } = renderRWAFullView();
 
     const backButton = getByTestId('rwa-tokens-header-back-button');
@@ -142,7 +158,6 @@ describe('RWATokensFullView', () => {
   });
 
   it('displays skeleton loader when loading', () => {
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: [], isLoading: true });
 
     const { getByTestId } = renderRWAFullView();
@@ -151,7 +166,6 @@ describe('RWATokensFullView', () => {
   });
 
   it('displays empty error state when results are empty', () => {
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: [] });
 
     const { getByTestId } = renderRWAFullView();
@@ -171,7 +185,6 @@ describe('RWATokensFullView', () => {
       }),
     ];
 
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: stockTokens });
 
     const { getByText, getByTestId } = renderRWAFullView();
@@ -186,7 +199,6 @@ describe('RWATokensFullView', () => {
       createMockToken({ name: 'OUSG', assetId: 'eip155:1/erc20:0xstock1' }),
     ];
 
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: stockTokens });
 
     const { getByTestId, UNSAFE_getByType } = renderRWAFullView();
@@ -202,7 +214,9 @@ describe('RWATokensFullView', () => {
   });
 
   it('opens network bottom sheet when button is pressed', async () => {
-    const { getByTestId } = renderRWAFullView();
+    const { getByTestId, getByText } = renderRWAFullView(
+      createStateWithRobinhoodRwa(true),
+    );
 
     const networkButton = getByTestId('all-networks-button');
     await userEvent.press(networkButton);
@@ -210,10 +224,24 @@ describe('RWATokensFullView', () => {
     expect(
       getByTestId('trending-token-network-bottom-sheet'),
     ).toBeOnTheScreen();
+    expect(getByText('Robinhood Chain')).toBeOnTheScreen();
+  });
+
+  it('excludes Robinhood Chain from the network bottom sheet when the flag is off', async () => {
+    const { getByTestId, queryByText } = renderRWAFullView(
+      createStateWithRobinhoodRwa(false),
+    );
+
+    const networkButton = getByTestId('all-networks-button');
+    await userEvent.press(networkButton);
+
+    expect(
+      getByTestId('trending-token-network-bottom-sheet'),
+    ).toBeOnTheScreen();
+    expect(queryByText('Robinhood Chain')).not.toBeOnTheScreen();
   });
 
   it('opens price change bottom sheet when button is pressed', async () => {
-    const mocks = arrangeMocks();
     mocks.setRwaTokensMock({ data: [createMockToken()] });
     const { getByTestId } = renderRWAFullView();
 

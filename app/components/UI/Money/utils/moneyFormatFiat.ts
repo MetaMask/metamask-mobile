@@ -1,7 +1,8 @@
 import BigNumber from 'bignumber.js';
 import { formatWithThreshold } from '../../../../util/assets';
+import { getIntlNumberFormatter } from '../../../../util/intl';
+import I18n from '../../../../../locales/i18n';
 import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
-import { AssetType } from '../../../Views/confirmations/types/token';
 import { MONEY_DEFAULT_FIAT_CURRENCY } from '../constants/fiat';
 
 // One cent. Values strictly below this collapse to $0.00 — mUSD is USD-pegged
@@ -10,7 +11,7 @@ export const DUST_THRESHOLD = 0.01;
 
 /** Falls back to the Money default when a token carries no fiat currency. */
 export const moneySafeTokenFiatCurrency = (
-  token: Pick<AssetType, 'fiat'> | undefined | null,
+  token: { fiat?: { currency?: string } } | undefined | null,
 ): string => token?.fiat?.currency ?? MONEY_DEFAULT_FIAT_CURRENCY;
 
 /**
@@ -51,3 +52,28 @@ export const moneyFormatFiat = (
  */
 export const moneyFormatUsd = (value: BigNumber): string =>
   formatMoney(value, 'en-US', 'USD');
+
+/**
+ * Formats a positive amount as a signed, symbol-suffixed string, e.g.
+ * "+1,234.56 mUSD". Returns `''` for a non-finite or non-positive amount so
+ * callers can hide the amount line with `showPrimaryAmount`.
+ *
+ * @param amount - Decimal amount string as the provider reports it.
+ * @param symbol - Currency code or token symbol to suffix.
+ * @returns Signed amount string, or `''` when the amount is unusable.
+ */
+export const moneyFormatIncomingAmount = (
+  amount: string | undefined,
+  symbol: string,
+): string => {
+  const value = new BigNumber(amount ?? 'NaN');
+  if (!value.isFinite() || !value.isGreaterThan(0)) {
+    return '';
+  }
+  const formatted = getIntlNumberFormatter(I18n.locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true,
+  }).format(value.toNumber());
+  return `+${formatted} ${symbol}`;
+};

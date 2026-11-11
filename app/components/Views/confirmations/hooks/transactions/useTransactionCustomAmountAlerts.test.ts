@@ -28,18 +28,18 @@ const ALERT_MOCK = {
 function runHook({
   isInputChanged = false,
   isKeyboardVisible = false,
-  pendingTokenAmount = '0',
+  pendingFiatAmount = '0',
 }: {
   isInputChanged?: boolean;
   isKeyboardVisible?: boolean;
-  pendingTokenAmount?: string;
+  pendingFiatAmount?: string;
 } = {}) {
   return renderHookWithProvider(
     () =>
       useTransactionCustomAmountAlerts({
         isInputChanged,
         isKeyboardVisible,
-        pendingTokenAmount,
+        pendingFiatAmount,
       }),
     {
       state: merge(
@@ -66,32 +66,7 @@ describe('useTransactionCustomAmountAlerts', () => {
     usePendingAmountAlertsMock.mockReturnValue([]);
   });
 
-  it('returns title as alert title if present', () => {
-    useAlertsMock.mockReturnValue({
-      alerts: [ALERT_MOCK],
-    } as AlertsContextParams);
-
-    const { result } = runHook();
-
-    expect(result.current.alertTitle).toBe(TITLE_MOCK);
-  });
-
-  it('returns message as alert title if no title', () => {
-    useAlertsMock.mockReturnValue({
-      alerts: [
-        {
-          ...ALERT_MOCK,
-          title: undefined,
-        },
-      ],
-    } as AlertsContextParams);
-
-    const { result } = runHook();
-
-    expect(result.current.alertTitle).toBe(MESSAGE_MOCK);
-  });
-
-  it('returns alert message as message if title', () => {
+  it('returns the message as the alert message when present', () => {
     useAlertsMock.mockReturnValue({
       alerts: [ALERT_MOCK],
     } as AlertsContextParams);
@@ -99,6 +74,21 @@ describe('useTransactionCustomAmountAlerts', () => {
     const { result } = runHook();
 
     expect(result.current.alertMessage).toBe(MESSAGE_MOCK);
+  });
+
+  it('falls back to the title as the alert message when no message', () => {
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          ...ALERT_MOCK,
+          message: undefined,
+        },
+      ],
+    } as AlertsContextParams);
+
+    const { result } = runHook();
+
+    expect(result.current.alertMessage).toBe(TITLE_MOCK);
   });
 
   it('returns content from the first alert', () => {
@@ -115,12 +105,13 @@ describe('useTransactionCustomAmountAlerts', () => {
     expect(result.current.alertContent).toBe(content);
   });
 
-  it('returns no alert message if no title', () => {
+  it('returns no alert message if no message or title', () => {
     useAlertsMock.mockReturnValue({
       alerts: [
         {
           ...ALERT_MOCK,
           title: undefined,
+          message: undefined,
         },
       ],
     } as AlertsContextParams);
@@ -140,7 +131,6 @@ describe('useTransactionCustomAmountAlerts', () => {
 
     const { result } = runHook();
 
-    expect(result.current.alertTitle).toBe(PENDING_ALERT_MOCK.title);
     expect(result.current.alertMessage).toBe(PENDING_ALERT_MOCK.message);
   });
 
@@ -205,5 +195,54 @@ describe('useTransactionCustomAmountAlerts', () => {
     });
 
     expect(result.current.alertMessage).toBeUndefined();
+  });
+
+  it('does not duplicate an alert present in both the pending and confirmation lists', () => {
+    const PENDING_MESSAGE = 'Max deposit: $100,000';
+    const CONFIRMATION_MESSAGE = 'Stale confirmation copy';
+
+    usePendingAmountAlertsMock.mockReturnValue([
+      {
+        ...ALERT_MOCK,
+        key: AlertKeys.DepositLimit,
+        message: PENDING_MESSAGE,
+      },
+    ]);
+
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          ...ALERT_MOCK,
+          key: AlertKeys.DepositLimit,
+          message: CONFIRMATION_MESSAGE,
+        },
+      ],
+    } as AlertsContextParams);
+
+    const { result } = runHook({ isInputChanged: true });
+
+    // The pending copy wins, and the confirmation duplicate is dropped.
+    expect(result.current.alertMessage).toBe(PENDING_MESSAGE);
+  });
+
+  it('returns the deposit limit alert while the keyboard is visible', () => {
+    usePendingAmountAlertsMock.mockReturnValue([
+      {
+        ...ALERT_MOCK,
+        key: AlertKeys.DepositLimit,
+        message: 'Max deposit: $100,000',
+      },
+    ]);
+
+    useAlertsMock.mockReturnValue({
+      alerts: [],
+    } as unknown as AlertsContextParams);
+
+    const { result } = runHook({
+      isInputChanged: true,
+      isKeyboardVisible: true,
+    });
+
+    expect(result.current.alertMessage).toBe('Max deposit: $100,000');
   });
 });

@@ -1,6 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { BackHandler, NativeEventSubscription } from 'react-native';
+import {
+  BackHandler,
+  HardwareBackPressEvent,
+  NativeEventSubscription,
+} from 'react-native';
 import { SolScope } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { AccountGroupDetails } from './AccountGroupDetails';
@@ -20,6 +24,7 @@ import {
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AvatarAccountVariant } from '@metamask/design-system-react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { endTrace, TraceName } from '../../../../util/trace';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -86,6 +91,12 @@ jest.mock('../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
   toFormattedAddress: jest.fn((address) => address),
   areAddressesEqual: jest.fn((addr1, addr2) => addr1 === addr2),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: jest.fn(),
+  trace: jest.fn(),
 }));
 
 const mockNetworkControllerState = {
@@ -163,6 +174,19 @@ describe('AccountGroupDetails', () => {
     expect(
       getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
     ).toBeTruthy();
+    const headerTitle = getByTestId('header-title');
+    expect(headerTitle).toHaveProp('numberOfLines', 1);
+    expect(headerTitle).toHaveProp('ellipsizeMode', 'tail');
+    expect(headerTitle).toHaveStyle({
+      width: '100%',
+      minWidth: 0,
+      flexShrink: 1,
+    });
+    expect(
+      getByTestId(AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR_CONTAINER),
+    ).toHaveStyle({
+      width: '100%',
+    });
     expect(getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK)).toBeTruthy();
     expect(getByTestId(AccountDetailsIds.NETWORKS_LINK)).toBeTruthy();
     expect(getByTestId(AccountDetailsIds.PRIVATE_KEYS_LINK)).toBeTruthy();
@@ -187,7 +211,9 @@ describe('AccountGroupDetails', () => {
       .mockImplementation(
         (
           event: 'hardwareBackPress',
-          _handler: () => boolean | null | undefined,
+          _handler: (
+            event: HardwareBackPressEvent,
+          ) => boolean | null | undefined,
         ): NativeEventSubscription => {
           expect(event).toBe('hardwareBackPress');
           return { remove: removeMock } as unknown as NativeEventSubscription;
@@ -364,6 +390,39 @@ describe('AccountGroupDetails', () => {
       title: `Addresses / ${mockAccountGroup.metadata.name}`,
       source: 'account_details',
       onLoad: expect.any(Function),
+    });
+  });
+
+  it('ends the address list trace when the Address List onLoad callback is invoked', () => {
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
+
+    const networksLink = getByTestId(AccountDetailsIds.NETWORKS_LINK);
+    fireEvent.press(networksLink);
+
+    const navigationParams = mockNavigate.mock.calls[0][1];
+    navigationParams.onLoad();
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
+    });
+  });
+
+  it('ends the address list trace if navigating to Address List throws', () => {
+    const navigationError = new Error('navigation failed');
+    mockNavigate.mockImplementationOnce(() => {
+      throw navigationError;
+    });
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
+
+    const networksLink = getByTestId(AccountDetailsIds.NETWORKS_LINK);
+
+    expect(() => fireEvent.press(networksLink)).toThrow(navigationError);
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
     });
   });
 

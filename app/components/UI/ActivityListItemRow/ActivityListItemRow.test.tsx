@@ -3,14 +3,22 @@
  */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import type { ReactTestInstance } from 'react-test-renderer';
+import {
+  StyleSheet as ReactNativeStyleSheet,
+  type StyleProp,
+  type TextStyle,
+} from 'react-native';
 import {
   TransactionStatus,
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
-import type { ActivityListItem, Status } from '../../../util/activity-adapters';
+import {
+  KALSHI_VENUE_CHAIN_ID,
+  type ActivityListItem,
+  type Status,
+} from '../../../util/activity-adapters';
 import { ActivityListItemRow } from './ActivityListItemRow';
 import { ActivityListItemRowPendingActions } from './ActivityListItemRowPendingActions';
 import { strings } from '../../../../locales/i18n';
@@ -22,6 +30,7 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
@@ -29,6 +38,7 @@ const LINEA_MUSD_CHECKSUM_ADDRESS =
   '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
 const OWNED_ACCOUNT_ADDRESS = '0xAa60919dd0d0964B76620dAaF08bF357e1c9DD73';
 const OWNED_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+const MOCK_MONEY_ACCOUNT_ADDRESS = '0x3333333333333333333333333333333333333333';
 
 const mockState = {
   user: {
@@ -163,9 +173,33 @@ jest.mock('../../../selectors/tokenRatesController', () => ({
   ),
 }));
 
+jest.mock('../../../selectors/multichain', () => ({
+  selectMultichainAssetsRates: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(() => ({
+    address: MOCK_MONEY_ACCOUNT_ADDRESS,
+  })),
+}));
+
 jest.mock('../../hooks/useTokensData/useTokensData', () => ({
   useTokensData: jest.fn(() => ({})),
 }));
+
+const mockCachedEvmTransactions = new Map<
+  string,
+  { transactionProtocol?: string }
+>();
+
+jest.mock(
+  '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction',
+  () => ({
+    useCachedEvmTransaction: ({ txHash }: { txHash?: string }) =>
+      (txHash && mockCachedEvmTransactions.get(txHash.toLowerCase())) ||
+      undefined,
+  }),
+);
 
 jest.mock('../Earn/constants/musd', () => ({
   MUSD_DECIMALS: 6,
@@ -197,6 +231,10 @@ jest.mock('../../../util/networks', () => ({
 }));
 
 jest.mock('../../../util/address', () => ({
+  areAddressesEqual: jest.fn(
+    (first: string, second: string) =>
+      first.toLowerCase() === second.toLowerCase(),
+  ),
   renderShortAddress: jest.fn((address: string) => `${address.slice(0, 6)}...`),
   safeToChecksumAddress: jest.requireActual('../../../util/address')
     .safeToChecksumAddress,
@@ -396,6 +434,12 @@ const makeItem = (
     isEarliestNonce: overrides.isEarliestNonce,
   };
 
+  if (overrides.transactionProtocol) {
+    mockCachedEvmTransactions.set(base.hash.toLowerCase(), {
+      transactionProtocol: overrides.transactionProtocol,
+    });
+  }
+
   if (type === 'send' || type === 'receive') {
     return {
       ...base,
@@ -420,14 +464,6 @@ const makeItem = (
     return {
       ...base,
       type,
-      raw: overrides.transactionProtocol
-        ? {
-            type: 'apiEvmTransaction',
-            data: {
-              transactionProtocol: overrides.transactionProtocol,
-            },
-          }
-        : undefined,
       data: {
         sourceToken: overrides.sourceToken as never,
         destinationToken: overrides.destinationToken as never,
@@ -438,14 +474,6 @@ const makeItem = (
   return {
     ...base,
     type,
-    raw: overrides.transactionProtocol
-      ? {
-          type: 'apiEvmTransaction',
-          data: {
-            transactionProtocol: overrides.transactionProtocol,
-          },
-        }
-      : undefined,
     data: {
       from: overrides.from ?? '0xfrom',
       to: overrides.to ?? '0xto',
@@ -453,6 +481,18 @@ const makeItem = (
     },
   } as unknown as ActivityListItem;
 };
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockCachedEvmTransactions.clear();
+  jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
+  jest.mocked(selectConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
+    [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
+  } as unknown as ReturnType<typeof selectContractExchangeRatesByChainId>);
+  jest.mocked(selectMultichainAssetsRates).mockReturnValue({});
+});
 
 // ---------------------------------------------------------------------------
 // Row content tests — mirrors extension ActivityRow title/subtitle/amount split
@@ -521,20 +561,17 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'out',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('To: ');
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: ETH DeFi',
+    );
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
-  it('renders the account name and avatar for a non-EVM (Solana) owned counterparty', () => {
+  it('renders the account name for a non-EVM (Solana) owned counterparty', () => {
     const item = makeItem({
       type: 'send',
       status: 'success',
@@ -549,14 +586,9 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('Solana');
-    // The non-hex address is passed straight through to the avatar (no
-    // checksumming), so the multichain row renders without error.
-    expect(
-      getByTestId(`avatar-account-${OWNED_SOLANA_ADDRESS}`),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: Solana',
+    );
   });
 
   it('renders the account name in the subtitle when receiving from an owned account', () => {
@@ -570,19 +602,14 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'in',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
-      'From: ',
+      'From: ETH DeFi',
     );
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
   it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
@@ -668,6 +695,84 @@ describe('ActivityListItemRow — row content', () => {
     );
     expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
       '+$200.34',
+    );
+  });
+
+  it('renders an EOA transfer to Money as a deposit with Money account counterparty', () => {
+    const item = makeItem({
+      type: 'send',
+      from: OWNED_ACCOUNT_ADDRESS,
+      to: MOCK_MONEY_ACCOUNT_ADDRESS,
+      token: {
+        amount: '2500000',
+        decimals: 6,
+        direction: 'out',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Deposited mUSD',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      `To: ${strings('transaction_details.label.money_account')}`,
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-2.5 mUSD',
+    );
+  });
+
+  it('uses deposit copy and hides amounts for a cancelled EOA transfer to Money', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'cancelled',
+      from: OWNED_ACCOUNT_ADDRESS,
+      to: MOCK_MONEY_ACCOUNT_ADDRESS,
+      token: {
+        amount: '2500000',
+        decimals: 6,
+        direction: 'out',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Deposit cancelled',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
+  });
+
+  it('renders a Money Account withdrawal as a received transfer with Money account counterparty', () => {
+    const item = makeItem({
+      type: 'receive',
+      from: MOCK_MONEY_ACCOUNT_ADDRESS,
+      to: OWNED_ACCOUNT_ADDRESS,
+      token: {
+        amount: '1750000',
+        decimals: 6,
+        direction: 'in',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Received mUSD',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      `From: ${strings('transaction_details.label.money_account')}`,
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+1.75 mUSD',
     );
   });
 
@@ -811,6 +916,52 @@ describe('ActivityListItemRow — row content', () => {
     expect(queryByTestId('activity-secondary-amount-0xlong')).toBeNull();
   });
 
+  it.each(['perpsCloseLong', 'perpsCloseShortStopLoss'] as const)(
+    'displays Unknown for %s without a reported amount',
+    (type) => {
+      const item = {
+        type,
+        chainId: 'eip155:421614',
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash: 'missing-pnl',
+        data: {
+          sourceToken: { amount: '0.008', symbol: 'ETH', direction: 'out' },
+        },
+      } as ActivityListItem;
+
+      const { getByTestId } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(
+        getByTestId('activity-primary-amount-missing-pnl'),
+      ).toHaveTextContent(strings('perps.transactions.unknown_pnl'));
+    },
+  );
+
+  it('preserves a reported zero closing PnL in the activity row', () => {
+    const item = {
+      type: 'perpsCloseLong',
+      chainId: 'eip155:421614',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: 'zero-pnl',
+      data: {
+        token: { amount: '0', symbol: 'USD', direction: 'in' },
+        sourceToken: { amount: '0.008', symbol: 'ETH', direction: 'out' },
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-zero-pnl')).toHaveTextContent(
+      '+$0.00',
+    );
+  });
+
   it('uses PerpsTokenLogo for market avatars', () => {
     const openLong = {
       type: 'perpsOpenLong',
@@ -918,7 +1069,7 @@ describe('ActivityListItemRow — row content', () => {
       },
     }) as unknown as ActivityListItem;
 
-  const flattenColor = (node: ReactTestInstance) => {
+  const flattenColor = (node: { props: { style?: StyleProp<TextStyle> } }) => {
     const { StyleSheet } = jest.requireActual('react-native');
     return StyleSheet.flatten(node.props.style).color;
   };
@@ -1216,19 +1367,11 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:137',
       status: 'success',
       timestamp: 1_700_000_000_000,
-      raw: {
-        type: 'predictActivity',
-        data: {
-          id: 'p1',
-          providerId: 'polymarket',
-          title: 'Will Spain win the 2026 FIFA World Cup?',
-          icon: 'https://example.com/spain.png',
-          entry: { type: 'buy', timestamp: 1, amount: 3 },
-        },
-      },
       hash: 'predict-1',
       data: {
         token: { amount: '3', symbol: 'USDC', direction: 'out' },
+        eventTitle: 'Will Spain win the 2026 FIFA World Cup?',
+        icon: 'https://example.com/spain.png',
       },
     } as unknown as ActivityListItem;
 
@@ -1246,6 +1389,60 @@ describe('ActivityListItemRow — row content', () => {
       .children as string;
     expect(primary.startsWith('-')).toBe(true);
     expect(primary).toContain('$');
+  });
+
+  describe('Settlement rows', () => {
+    const makeSettlement = (proceeds: string, hash: string) =>
+      ({
+        type: 'predictionSettled',
+        chainId: KALSHI_VENUE_CHAIN_ID,
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash,
+        data: {
+          token: { amount: proceeds, symbol: 'USD', direction: 'in' },
+          eventTitle: 'FIFA World Cup 2026',
+          marketQuestion: 'Will Spain win the 2026 FIFA World Cup?',
+          outcomeLabel: 'Spain',
+          side: 'yes',
+          result: 'yes',
+          shares: '10',
+          icon: 'https://example.com/spain.png',
+        },
+      }) as ActivityListItem;
+
+    it('renders Settled with the market question, signed proceeds, and no network badge', () => {
+      const { getByTestId } = render(
+        <ActivityListItemRow
+          item={makeSettlement('10', 'settled-1')}
+          index={0}
+        />,
+      );
+
+      expect(getByTestId('activity-title-settled-1').props.children).toBe(
+        strings('predict.transactions.settled_title'),
+      );
+      expect(getByTestId('activity-subtitle-settled-1').props.children).toBe(
+        'Will Spain win the 2026 FIFA World Cup?',
+      );
+      expect(
+        getByTestId('activity-primary-amount-settled-1').props.children,
+      ).toBe('+$10.00');
+      expect(getNetworkImageSource).not.toHaveBeenCalled();
+    });
+
+    it('renders zero proceeds of a losing Settlement like other zero domain amounts', () => {
+      const { getByTestId } = render(
+        <ActivityListItemRow
+          item={makeSettlement('0', 'settled-0')}
+          index={0}
+        />,
+      );
+
+      expect(
+        getByTestId('activity-primary-amount-settled-0').props.children,
+      ).toBe('+$0.00');
+    });
   });
 
   it('renders very small funding fees in subscript notation', () => {
@@ -1318,8 +1515,8 @@ describe('ActivityListItemRow — row content', () => {
       type: 'approveSpendingCap',
       status: 'success',
       token: {
-        amount: '115792089237316195423570985.639935',
-        isUnlimitedApproval: true,
+        amount:
+          '115792089237316195423570985008687907853269984665640564039457584007913129639935',
         symbol: 'USDT',
         direction: 'out',
       },
@@ -1702,6 +1899,26 @@ describe('ActivityListItemRow — row content', () => {
     expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
   });
 
+  it('renders an NFT send without inventing a zero amount', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      token: {
+        direction: 'out',
+        symbol: 'I Love FLUF',
+        assetType: 'erc1155',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent I Love FLUF',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
   it('renders a named NFT buy with the collection name and the amount paid', () => {
     const item: ActivityListItem = {
       type: 'nftBuy',
@@ -1816,14 +2033,22 @@ describe('ActivityListItemRow — display currency conversion', () => {
   const mockConversionRate = jest.mocked(selectConversionRateByChainId);
   const mockUsdConversionRate = jest.mocked(selectUSDConversionRateByChainId);
 
-  // These selector mocks use persistent return values (clearAllMocks does not
-  // reset them), so restore the suite-wide defaults (USD, equal rates) after
-  // each test to keep overrides from leaking.
-  afterEach(() => {
-    jest.clearAllMocks();
+  const restoreSelectorDefaults = () => {
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
+  };
+
+  // Persistent mockReturnValue is not cleared by clearAllMocks. beforeEach
+  // isolates tests in this suite; afterEach restores defaults so later
+  // suites (amount display, ERC-20 fiat) are not left on EUR / missing rates.
+  beforeEach(() => {
+    jest.clearAllMocks();
+    restoreSelectorDefaults();
+  });
+
+  afterEach(() => {
+    restoreSelectorDefaults();
   });
 
   const makeFundingFee = (hash: string, amount: string): ActivityListItem =>
@@ -1858,6 +2083,48 @@ describe('ActivityListItemRow — display currency conversion', () => {
     // 1 USD × (2300 / 2500) = 0.92 in the user's currency, not the raw $1.
     expect(primary).toContain('0.92');
     expect(primary).not.toContain('$');
+  });
+
+  it('converts a Kalshi row, which has no chain, through mainnet rates', () => {
+    mockCurrency.mockReturnValue('eur');
+    mockConversionRate.mockReturnValue(2300);
+    mockUsdConversionRate.mockReturnValue(2500);
+    const placed = {
+      type: 'predictionPlaced',
+      chainId: KALSHI_VENUE_CHAIN_ID,
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: 'kalshi-trade-1',
+      data: {
+        token: {
+          amount: '10',
+          symbol: 'USD',
+          direction: 'out',
+          amountIsHumanReadable: true,
+        },
+        eventTitle: 'Kansas City at Buffalo',
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={placed} index={0} />,
+    );
+
+    expect(mockConversionRate).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+      true,
+    );
+    expect(mockUsdConversionRate).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+    );
+    const primary = getByTestId('activity-primary-amount-kalshi-trade-1').props
+      .children as string;
+    expect(primary.startsWith('-')).toBe(true);
+    // 10 USD × (2300 / 2500) = 9.20 in the user's currency, not "-10 USD".
+    expect(primary).toContain('9.20');
+    expect(primary).not.toContain('USD');
   });
 
   it('omits the domain fiat for a non-USD user when rates are unavailable', () => {
@@ -1896,6 +2163,31 @@ describe('ActivityListItemRow — network badge', () => {
 });
 
 describe('ActivityListItemRow — amount display', () => {
+  it('renders fiat for a non-EVM token using its multichain asset rate', () => {
+    const solanaChainId = SolScope.Mainnet;
+    const usdcAssetId = `${solanaChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`;
+    jest.mocked(selectMultichainAssetsRates).mockReturnValue({
+      [usdcAssetId]: { rate: '1', conversionTime: 0 },
+    } as ReturnType<typeof selectMultichainAssetsRates>);
+
+    const item = makeItem({
+      status: 'success',
+      chainId: solanaChainId,
+      token: {
+        amount: '524800',
+        decimals: 6,
+        symbol: 'USDC',
+        assetId: usdcAssetId,
+        direction: 'out',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('-0.5248 USDC')).toBeOnTheScreen();
+    expect(getByText('-$0.52')).toBeOnTheScreen();
+  });
+
   it('formats raw token base units and renders fiat when rates are available', () => {
     const item = makeItem({
       status: 'success',
@@ -1991,8 +2283,8 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
     >;
 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
-  // so restore the suite default (lowercased mUSD key) after each test.
-  afterEach(() => {
+  // so set the suite default (lowercased mUSD key) before each test.
+  beforeEach(() => {
     jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
@@ -2029,10 +2321,11 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'send',
   'receive',
   'swap',
-  'swapIncomplete',
   'bridge',
   'buy',
+  'rampBuy',
   'sell',
+  'rampSell',
   'claim',
   'claimMusdBonus',
   'deposit',
@@ -2055,6 +2348,7 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'predictionsAddFunds',
   'predictionsWithdrawFunds',
   'predictionClaimWinnings',
+  'predictionSettled',
   'predictionCashedOut',
   'predictionPlaced',
   'perpsAddFunds',
@@ -2089,15 +2383,16 @@ const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
   swap: 'Swapped',
-  swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',
+  rampBuy: 'Bought',
   sell: 'Sold',
-  claim: 'Claimed',
+  rampSell: 'Sold',
+  claim: 'Claimed ETH',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',
-  stake: 'Staked Ethereum',
-  unstake: 'Unstaked Ethereum',
+  stake: 'Staked ETH',
+  unstake: 'Unstaked ETH',
   convert: 'Converted',
   wrap: strings('transactions.activity_wrap'),
   unwrap: strings('transactions.activity_unwrap'),
@@ -2119,6 +2414,7 @@ const EXPECTED_TITLES = {
     'transactions.activity_prediction_withdrawal',
   ),
   predictionClaimWinnings: strings('predict.transactions.claim_title'),
+  predictionSettled: strings('predict.transactions.settled_title'),
   predictionCashedOut: strings('predict.transactions.sell_title'),
   predictionPlaced: strings('transactions.activity_prediction_placed'),
   perpsAddFunds: strings('transactions.activity_perps_account_funded'),
@@ -2178,6 +2474,97 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
     expect(queryByText(strings('transactions.interaction'))).toBeNull();
   });
 
+  it('names the staked asset for the avatar when an unstake moves no token', () => {
+    const item = makeItem({ type: 'unstake', status: 'success' });
+    const { getByTestId, getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByText('Unstaked ETH')).toBeOnTheScreen();
+    // The asset is named for the avatar only — no amount is invented.
+    expect(queryByText('+0 ETH')).toBeNull();
+  });
+
+  it('does not name an asset for non-EVM staking without a token', () => {
+    const item = makeItem({
+      type: 'unstake',
+      status: 'success',
+      chainId: 'tron:728126428',
+    });
+    const { queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(queryByTestId('avatar-token-ETH')).toBeNull();
+  });
+
+  it('reads the ticker for an EVM ETH claim', () => {
+    const item = makeItem({
+      type: 'claim',
+      status: 'success',
+      token: { amount: '1045000000000000', direction: 'in', symbol: 'ETH' },
+    });
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('Claimed ETH')).toBeOnTheScreen();
+  });
+
+  it.each(['claim', 'unstake'] as const)(
+    'falls back to the ETH ticker for a tokenless EVM %s',
+    (type) => {
+      const item = makeItem({ type, status: 'success' });
+      const { getByText } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(
+        getByText(type === 'claim' ? 'Claimed ETH' : 'Unstaked ETH'),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('keeps the symbol for a non-ETH claim', () => {
+    const item = makeItem({
+      type: 'claim',
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        direction: 'in',
+        symbol: 'USDC',
+      },
+    });
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('Claimed USDC')).toBeOnTheScreen();
+  });
+
+  it.each([
+    ['stake', 'Staked TRX'],
+    ['unstake', 'Unstaked TRX'],
+  ] as const)(
+    'reads the moved token symbol for non-EVM %s rows',
+    (type, expectedTitle) => {
+      const item = makeItem({
+        type,
+        status: 'success',
+        chainId: 'tron:728126428',
+        token: {
+          amount: '100',
+          decimals: 6,
+          direction: type === 'stake' ? 'out' : 'in',
+          symbol: 'TRX',
+        },
+      });
+      const { getByText } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(getByText(expectedTitle)).toBeOnTheScreen();
+    },
+  );
+
   it('prefers the title override when provided (legacy swap/bridge contract)', () => {
     const item = makeItem({ type: 'swap', status: 'success' });
     const { getByText, queryByText } = render(
@@ -2196,9 +2583,6 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
 describe('getLocalTransactionStatus — all local transaction status paths', () => {
   const { getLocalTransactionStatus } = jest.requireActual(
     '../../../util/activity-adapters/adapters/helpers',
-  );
-  const { TransactionStatus } = jest.requireActual(
-    '@metamask/transaction-controller',
   );
 
   const makeGroup = (overrides: Record<string, unknown>) => ({
@@ -2383,6 +2767,58 @@ describe('ActivityListItemRow — pending rows', () => {
     );
   });
 
+  it('keeps the pending spinner inside the title column when an amount is present', () => {
+    const item: ActivityListItem = {
+      type: 'unstake',
+      chainId: 'eip155:1',
+      status: 'pending',
+      timestamp: 1_787_646_540_000,
+      hash: '0xactivitypendingunstakelayout',
+      isEarliestNonce: true,
+      data: {
+        token: {
+          direction: 'in',
+          symbol: 'ETH',
+          decimals: 18,
+          amount: '790100000000000',
+        },
+      },
+    };
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    const title = getByTestId(`activity-title-${item.hash}`);
+    const spinnerContainer = getByTestId(
+      `activity-pending-spinner-container-${item.hash}`,
+    );
+    const amount = getByTestId(`activity-primary-amount-${item.hash}`);
+    const amountColumn = getByTestId(`activity-amount-column-${item.hash}`);
+
+    expect(title).toHaveTextContent('Unstaking ETH');
+    expect(amount).toHaveTextContent('+0.0007901 ETH');
+    expect(ReactNativeStyleSheet.flatten(title.props.style)).toMatchObject({
+      flexShrink: 1,
+      minWidth: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(title.parent?.props.style),
+    ).toMatchObject({
+      flexShrink: 1,
+      minWidth: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(spinnerContainer.props.style),
+    ).toMatchObject({
+      flexShrink: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(amountColumn.props.style),
+    ).toMatchObject({
+      flexShrink: 0,
+    });
+  });
+
   it('renders queued rows with an hourglass prefix and no title spinner', () => {
     const item = makePendingLocalItem({ isEarliestNonce: false });
     const { getByTestId, queryByTestId } = render(
@@ -2494,6 +2930,27 @@ describe('ActivityListItemRowPendingActions', () => {
 
     expect(getByText(strings('transaction.speedup'))).toBeOnTheScreen();
     expect(getByText(strings('transaction.cancel'))).toBeOnTheScreen();
+  });
+
+  it('hides speed-up for swaps, bridges, and their approvals', () => {
+    for (const type of [
+      TransactionType.swap,
+      TransactionType.bridge,
+      TransactionType.swapApproval,
+      TransactionType.bridgeApproval,
+    ]) {
+      const props = makePendingActionProps({
+        tx: makePendingActionTx({ type }),
+      });
+
+      const { queryByText, unmount } = render(
+        <ActivityListItemRowPendingActions {...props} />,
+      );
+
+      expect(queryByText(strings('transaction.speedup'))).toBeNull();
+
+      unmount();
+    }
   });
 
   it('renders QR signing and QR cancel actions for approved QR hardware transactions', () => {

@@ -7,7 +7,7 @@ import {
   waitForAccountActivitySubscription,
   waitForAccountActivityDisconnection,
 } from '../../websocket/account-activity-mocks.js';
-import PlaywrightGestures from '../../framework/PlaywrightGestures.js';
+import Gestures from '../../framework/Gestures.js';
 import {
   assertSubscriptionCountAtLeast,
   assertSubscriptionCountIncreased,
@@ -71,7 +71,7 @@ appiumTest.describe(
             const resubPromise = waitForAccountActivitySubscription(
               LOGIN_SUBSCRIPTION_TIMEOUT_MS,
             );
-            await PlaywrightGestures.activateApp(currentDeviceDetails);
+            await Gestures.activateApp(currentDeviceDetails);
             await resubPromise;
             assertSubscriptionCountIncreased(
               countAfterLogin,

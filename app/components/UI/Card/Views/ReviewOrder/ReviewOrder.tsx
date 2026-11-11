@@ -12,14 +12,14 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { ReviewOrderSelectors } from './ReviewOrder.testIds';
 import DaimoPayService from '../../services/DaimoPayService';
 import Logger from '../../../../../util/Logger';
@@ -28,6 +28,8 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import type { ShippingAddress } from '../../util/buildUserAddress';
 import { useSelector } from 'react-redux';
 import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export type { ShippingAddress };
 
@@ -47,6 +49,7 @@ const ReviewOrder = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { shippingAddress: routeShippingAddress, fromUpgrade } =
     useParams<ReviewOrderParams>();
 
@@ -64,10 +67,12 @@ const ReviewOrder = () => {
   const handleRenewsPress = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.REVIEW_ORDER_RENEWS_PRESSED,
-          screen: CardScreens.REVIEW_ORDER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.REVIEW_ORDER_RENEWS_PRESSED,
+            screen: CardScreens.REVIEW_ORDER,
+          }),
+        )
         .build(),
     );
 
@@ -113,9 +118,11 @@ const ReviewOrder = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.REVIEW_ORDER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.REVIEW_ORDER,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -123,9 +130,11 @@ const ReviewOrder = () => {
   const handlePay = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.REVIEW_ORDER_PAY,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.REVIEW_ORDER_PAY,
+          }),
+        )
         .build(),
     );
 
@@ -222,7 +231,9 @@ const ReviewOrder = () => {
       edges={['bottom']}
       testID={ReviewOrderSelectors.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}

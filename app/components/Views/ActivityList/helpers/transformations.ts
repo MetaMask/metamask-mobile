@@ -4,24 +4,27 @@
  * Local EVM transactions are handled separately by useLocalActivityItems.
  */
 import {
+  mapApiTransaction,
+  mapKeyringTransaction,
+} from '@metamask/client-utils';
+import {
   type V1TransactionByHashResponse,
   type V4MultiAccountTransactionsResponse,
 } from '@metamask/core-backend';
+import { isCrossChain } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
-  mapApiEvmTransactions,
-  mapKeyringTransaction,
   type ActivityListItem,
-  type ActivityAdapterEnvironment,
+  classifyKeyringStakingActivity,
+  classifyPooledStakingActivity,
 } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
+import { applyBridgeQuote } from './apply-bridge-quote';
 
 export type { ActivityListItem };
-
-const excludedTransactionTypes = ['SPAM_TOKEN_TRANSFER'];
 
 const getOriginalTransactionId = (bridgeHistoryItem: BridgeHistoryItem) =>
   (bridgeHistoryItem as unknown as { originalTransactionId?: string })
@@ -42,67 +45,14 @@ export const isBridgeHistoryForEvmTransaction = (
     );
   });
 
-function isIncomingTokenTransfer(
-  address: string,
-  transaction: V1TransactionByHashResponse,
-) {
-  const normalizedAddress = address.toLowerCase();
-
-  return (
-    (transaction.valueTransfers?.some(
-      (transfer) =>
-        Boolean(transfer.contractAddress) &&
-        transfer.to?.toLowerCase() === normalizedAddress &&
-        transfer.from?.toLowerCase() !== normalizedAddress,
-    ) ??
-      false) &&
-    transaction.from?.toLowerCase() !== normalizedAddress
-  );
-}
-
-function isNativeValueTransfer(
-  transfer: NonNullable<V1TransactionByHashResponse['valueTransfers']>[number],
-) {
-  const transferType = transfer.transferType?.toLowerCase();
-  return (
-    !transfer.contractAddress &&
-    (transferType === 'native' || transferType === 'normal')
-  );
-}
-
-function isIncomingNativeTransfer(
-  address: string,
-  transaction: V1TransactionByHashResponse,
-) {
-  const normalizedAddress = address.toLowerCase();
-  let hasOutgoingTransfer = false;
-  let hasIncomingNativeTransfer = false;
-
-  for (const transfer of transaction.valueTransfers ?? []) {
-    if (
-      !hasOutgoingTransfer &&
-      transfer.from?.toLowerCase() === normalizedAddress
-    ) {
-      hasOutgoingTransfer = true;
-    }
-
-    if (
-      !hasIncomingNativeTransfer &&
-      transfer.to?.toLowerCase() === normalizedAddress &&
-      isNativeValueTransfer(transfer)
-    ) {
-      hasIncomingNativeTransfer = true;
-    }
-
-    if (hasOutgoingTransfer && hasIncomingNativeTransfer) {
-      break;
-    }
-  }
-
-  return hasIncomingNativeTransfer && !hasOutgoingTransfer;
-}
-
-export function shouldSkipTransaction(
+/**
+ * Participation gate shared by the activity list and the Activity details
+ * by-hash lookup: excluded hashes, transactions the subject does not take part
+ * in at the top level, and no-op self transfers.
+ *
+ * `address` must already be lowercased.
+ */
+export function shouldSkipUnrelatedTransaction(
   address: string,
   transaction: V1TransactionByHashResponse,
   excludedTxHashes?: Set<string>,
@@ -120,31 +70,35 @@ export function shouldSkipTransaction(
     return true;
   }
 
-  if (excludedTransactionTypes.includes(transaction.transactionType ?? '')) {
-    return true;
-  }
-
-  if (
+  return (
     rawFrom === address &&
     rawTo === address &&
     transaction.value === '0' &&
     !transaction.valueTransfers?.length &&
     (!transaction.methodId || transaction.methodId === '0x')
-  ) {
-    return true;
-  }
-
-  return (
-    isIncomingTokenTransfer(address, transaction) ||
-    (rawFrom !== address && isIncomingNativeTransfer(address, transaction))
   );
+}
+
+/**
+ * List gate. Drops excluded hashes, transactions the subject does not take
+ * part in at the top level, and no-op self transfers.
+ *
+ * Details must not reuse this gate: the by-hash request always asks for
+ * `includeValueTransfers`, so a plain receive the user explicitly opened would
+ * be filtered out and render as not-found.
+ */
+export function shouldSkipTransaction(
+  address: string,
+  transaction: V1TransactionByHashResponse,
+  excludedTxHashes?: Set<string>,
+) {
+  return shouldSkipUnrelatedTransaction(address, transaction, excludedTxHashes);
 }
 
 function transformApiTransactions(
   address: string,
   transactions: V1TransactionByHashResponse[],
   excludedTxHashes?: Set<string>,
-  environment?: ActivityAdapterEnvironment,
 ): ActivityListItem[] {
   const items: ActivityListItem[] = [];
   const subjectAddress = address.toLowerCase();
@@ -153,9 +107,11 @@ function transformApiTransactions(
     if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
       continue;
     }
-    items.push(
-      mapApiEvmTransactions({ subjectAddress, transaction: tx, environment }),
-    );
+    const activity = mapApiTransaction({
+      subjectAddress,
+      transaction: tx,
+    }) as ActivityListItem;
+    items.push(classifyPooledStakingActivity(tx, activity));
   }
 
   return items;
@@ -164,22 +120,15 @@ function transformApiTransactions(
 export function selectApiEvmTransactions({
   address,
   excludedTxHashes,
-  environment,
 }: {
   address: string;
   excludedTxHashes?: Set<string>;
-  environment?: ActivityAdapterEnvironment;
 }) {
   return (data: InfiniteData<V4MultiAccountTransactionsResponse>) => ({
     ...data,
     pages: data.pages.map((page) => ({
       ...page,
-      data: transformApiTransactions(
-        address,
-        page.data,
-        excludedTxHashes,
-        environment,
-      ),
+      data: transformApiTransactions(address, page.data, excludedTxHashes),
     })),
   });
 }
@@ -187,13 +136,28 @@ export function selectApiEvmTransactions({
 export function mapNonEvmTransactions(
   transactions: NonEvmTransaction[],
   getBridgeHistoryItem?: (txId: string) => BridgeHistoryItem | undefined,
+  getSubjectAddress?: (transaction: NonEvmTransaction) => string | undefined,
 ): ActivityListItem[] {
-  return transactions.map((transaction) =>
-    mapKeyringTransaction({
-      transaction,
-      bridgeHistory: getBridgeHistoryItem?.(transaction.id),
-    }),
-  );
+  return transactions.map((transaction) => {
+    const subjectAddress = getSubjectAddress?.(transaction);
+    const activity = classifyKeyringStakingActivity(transaction, {
+      ...mapKeyringTransaction({
+        transaction: {
+          ...transaction,
+          fees: transaction.fees ?? [],
+        },
+        subjectAddress,
+      }),
+    } as ActivityListItem);
+    const bridgeHistoryItem = getBridgeHistoryItem?.(transaction.id);
+    const quote = bridgeHistoryItem?.quote;
+
+    if (quote && isCrossChain(quote.srcChainId, quote.destChainId)) {
+      return applyBridgeQuote(activity, bridgeHistoryItem, subjectAddress);
+    }
+
+    return activity;
+  });
 }
 
 /**

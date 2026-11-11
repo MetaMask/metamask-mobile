@@ -4,8 +4,10 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../../reducers';
 import type { CardSliceState } from '../../core/redux/slices/card';
+import type { BridgeState } from '../../core/redux/slices/bridge';
 import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
+import { reportStorageWriteError } from '../../util/storage/diskSpaceError';
 import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
@@ -53,8 +55,10 @@ const createStorage = (enableAsyncStorageFallback = false) => ({
     try {
       return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
-      Logger.error(error as Error, {
+      reportStorageWriteError(error as Error, {
         message: `Failed to set item for ${key}`,
+        key,
+        source: 'persist_storage',
       });
     }
   },
@@ -158,14 +162,34 @@ export const createPersistController = (debounceMs: number = 200) =>
     }
   }, debounceMs);
 
-const persistUserTransform = createTransform(
-  (inboundState: UserState) => {
-    const { initialScreen, isAuthChecked, appServicesReady, ...state } =
-      inboundState;
-    // Reconstruct data to persist
+type PersistedUserState = Omit<
+  UserState,
+  'initialScreen' | 'isAuthChecked' | 'appServicesReady' | 'userLoggedIn'
+>;
+
+const persistUserTransform = createTransform<UserState, PersistedUserState>(
+  (inboundState) => {
+    const {
+      initialScreen,
+      isAuthChecked,
+      appServicesReady,
+      userLoggedIn,
+      ...state
+    } = inboundState;
+    // userLoggedIn is session-only; rehydrated true would claim unlocked during Login.
     return state;
   },
-  null,
+  // Restore session fields to their initial values on read. Older builds
+  // persisted userLoggedIn, so without the explicit `false` here the first
+  // rehydrate after an upgrade would claim the wallet is unlocked while it
+  // is still locked.
+  (outboundState) => ({
+    ...outboundState,
+    initialScreen: '',
+    isAuthChecked: false,
+    appServicesReady: false,
+    userLoggedIn: false,
+  }),
   { whitelist: ['user'] },
 );
 
@@ -208,6 +232,30 @@ const persistCardTransform = createTransform<
   { whitelist: ['card'] },
 );
 
+// Limit-order settings are session-only. They are also cleared on read because
+// older builds persisted limitOrderCostTolerance.
+type PersistedBridgeState = Omit<
+  BridgeState,
+  'limitOrderCostTolerance' | 'limitOrderExpirationMinutes'
+>;
+
+const persistBridgeTransform = createTransform<
+  BridgeState,
+  PersistedBridgeState
+>(
+  ({
+    limitOrderCostTolerance: _omitCostTolerance,
+    limitOrderExpirationMinutes: _omitExpirationMinutes,
+    ...state
+  }) => state,
+  (state) => ({
+    ...state,
+    limitOrderCostTolerance: undefined,
+    limitOrderExpirationMinutes: undefined,
+  }),
+  { whitelist: ['bridge'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
@@ -225,6 +273,7 @@ const persistConfig = {
     persistUserTransform,
     persistOnboardingTransform,
     persistCardTransform,
+    persistBridgeTransform,
   ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {
@@ -233,7 +282,10 @@ const persistConfig = {
   timeout: TIMEOUT,
   throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>
-    Logger.error(error, { message: 'Error persisting data' }),
+    reportStorageWriteError(error, {
+      message: 'Error persisting data',
+      source: 'redux_persist',
+    }),
 };
 
 export default persistConfig;

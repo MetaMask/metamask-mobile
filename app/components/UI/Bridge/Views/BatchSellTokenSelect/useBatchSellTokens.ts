@@ -10,9 +10,8 @@ import { flow } from 'lodash/fp';
 import { selectBatchSellDestStablecoinsByChain } from '../../../../../core/redux/slices/bridge';
 import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import { BridgeToken } from '../../types';
+import { filterOutRwaTokens } from '../../utils/filterOutRwaTokens';
 import { SUPPORTED_BATCH_SELL_CHAIN_IDS } from './BatchSellTokenSelect.utils';
-
-const ONDO_TOKENIZED_TOKEN_NAME = 'Ondo Tokenized';
 
 function removeStablecoinsFromSourceTokens({
   tokens,
@@ -52,16 +51,6 @@ function removeStablecoinsFromSourceTokens({
   });
 }
 
-function removeOndoTokenizedTokens(tokens: BridgeToken[]): BridgeToken[] {
-  return tokens.filter(
-    (token) => !token.name?.includes(ONDO_TOKENIZED_TOKEN_NAME),
-  );
-}
-
-function removeRwaTokens(tokens: BridgeToken[]): BridgeToken[] {
-  return tokens.filter((token) => !token.rwaData);
-}
-
 export function useBatchSellTokens() {
   const allWalletTokens = useTokensWithBalance({
     chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
@@ -76,8 +65,7 @@ export function useBatchSellTokens() {
             tokens,
             stablecoinsByChain,
           }),
-        removeOndoTokenizedTokens,
-        removeRwaTokens,
+        filterOutRwaTokens,
       )(allWalletTokens),
     [allWalletTokens, stablecoinsByChain],
   );

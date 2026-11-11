@@ -5,7 +5,11 @@ import {
 } from '@metamask/messenger';
 import { QrKeyring as LegacyQrKeyring } from '@metamask/eth-qr-keyring';
 import { QrKeyring } from '@metamask/eth-qr-keyring/v2';
-import { LedgerKeyring as LegacyLedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
+import {
+  LedgerKeyring as LegacyLedgerKeyring,
+  LedgerDmkBridge,
+  LedgerMobileBridge,
+} from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
 import { HdKeyring as LegacyHdKeyring } from '@metamask/eth-hd-keyring';
 import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
@@ -19,9 +23,18 @@ import {
   qrKeyringBridge,
 } from './keyrings';
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
+import { MpcMoneyKeyring as MpcMoneyKeyringV2 } from '@metamask/eth-money-mpc-keyring/v2';
+import { MpcMoneyKeyring } from '../../MpcMoneyKeyring/MpcMoneyKeyring';
 
 jest.mock('../../../store', () => ({
-  store: { dispatch: jest.fn() },
+  store: {
+    dispatch: jest.fn(),
+    getState: jest.fn(() => ({})),
+  },
+}));
+
+jest.mock('@ledgerhq/device-transport-kit-react-native-ble', () => ({
+  RNBleTransportFactory: 'RNBleTransportFactory',
 }));
 
 jest.mock('../../SnapKeyring', () => ({
@@ -54,7 +67,7 @@ describe('wallet-init/keyrings', () => {
 
   describe('getKeyringBuilders', () => {
     it('registers QR, Ledger, HD, Money, and Snap builders by type', () => {
-      const builders = getKeyringBuilders(getRootMessenger()) ?? [];
+      const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
       const types = builders.map((b) => b.type);
 
       expect(types).toEqual(
@@ -68,7 +81,7 @@ describe('wallet-init/keyrings', () => {
     });
 
     it('constructs the right keyring instance for each type', () => {
-      const builders = getKeyringBuilders(getRootMessenger()) ?? [];
+      const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
       const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
 
       expect(byType[LegacyQrKeyring.type]()).toBeInstanceOf(LegacyQrKeyring);
@@ -81,6 +94,22 @@ describe('wallet-init/keyrings', () => {
       );
     });
 
+    it('uses LedgerMobileBridge when DMK is disabled', () => {
+      const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
+      const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
+      const ledger = byType[LegacyLedgerKeyring.type]() as LegacyLedgerKeyring;
+
+      expect(ledger.bridge).toBeInstanceOf(LedgerMobileBridge);
+    });
+
+    it('uses LedgerDmkBridge when DMK is enabled', () => {
+      const builders = getKeyringBuilders(getRootMessenger(), true) ?? [];
+      const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
+      const ledger = byType[LegacyLedgerKeyring.type]() as LegacyLedgerKeyring;
+
+      expect(ledger.bridge).toBeInstanceOf(LedgerDmkBridge);
+    });
+
     it('MoneyKeyring getMnemonic closure routes through withKeyringV2Unsafe and matches HD keyrings by id', async () => {
       const messenger = getRootMessenger();
       const legacyHd = new LegacyHdKeyring();
@@ -88,6 +117,8 @@ describe('wallet-init/keyrings', () => {
         mnemonic: 'test test test test test test test test test test test ball',
       });
       const hdKeyring = new HdKeyringV2({
+        // @ts-expect-error: Property '#private' in type 'HdKeyring' refers to a
+        // different member that cannot be accessed from within type 'HdKeyring'.
         legacyKeyring: legacyHd,
         entropySource: 'entropy-1',
       });
@@ -112,7 +143,7 @@ describe('wallet-init/keyrings', () => {
         handler,
       );
 
-      const builders = getKeyringBuilders(messenger) ?? [];
+      const builders = getKeyringBuilders(messenger, false) ?? [];
       const moneyBuilder = builders.find(
         (b) => b.type === LegacyMoneyKeyring.type,
       );
@@ -136,6 +167,8 @@ describe('wallet-init/keyrings', () => {
     it('MoneyKeyring getMnemonic closure throws if the HD keyring has no mnemonic', async () => {
       const messenger = getRootMessenger();
       const emptyHd = new HdKeyringV2({
+        // @ts-expect-error: Two different types with this name exist, but they
+        // are unrelated.
         legacyKeyring: new LegacyHdKeyring(),
         entropySource: 'entropy-1',
       });
@@ -149,7 +182,7 @@ describe('wallet-init/keyrings', () => {
           }),
       );
 
-      const builders = getKeyringBuilders(messenger) ?? [];
+      const builders = getKeyringBuilders(messenger, false) ?? [];
       const moneyBuilder = builders.find(
         (b) => b.type === LegacyMoneyKeyring.type,
       );
@@ -219,6 +252,52 @@ describe('wallet-init/keyrings', () => {
         name: 'money',
       });
       expect(moneyV2).toBeInstanceOf(MoneyKeyring);
+    });
+  });
+
+  describe('MPC money keyring registration', () => {
+    const originalFlag = process.env.MM_MONEY_MPC_KEYRING_ENABLED;
+
+    afterEach(() => {
+      if (originalFlag === undefined) {
+        delete process.env.MM_MONEY_MPC_KEYRING_ENABLED;
+      } else {
+        process.env.MM_MONEY_MPC_KEYRING_ENABLED = originalFlag;
+      }
+    });
+
+    it('does not register the MPC money keyring builders when the build flag is off', () => {
+      delete process.env.MM_MONEY_MPC_KEYRING_ENABLED;
+
+      const v1Types = (getKeyringBuilders(getRootMessenger(), false) ?? []).map(
+        (builder) => builder.type,
+      );
+      const v2Types = (getKeyringV2Builders() ?? []).map(
+        (builder) => builder.type,
+      );
+
+      expect(v1Types).not.toContain(MpcMoneyKeyring.type);
+      expect(v2Types).not.toContain(MpcMoneyKeyring.type);
+    });
+
+    it('registers the MPC money keyring builders when the build flag is on', () => {
+      process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+
+      const v1Builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
+      const byV1Type = Object.fromEntries(
+        v1Builders.map((builder) => [builder.type, builder]),
+      );
+      expect(byV1Type[MpcMoneyKeyring.type]()).toBeInstanceOf(MpcMoneyKeyring);
+
+      const v2Builders = getKeyringV2Builders() ?? [];
+      const byV2Type = Object.fromEntries(
+        v2Builders.map((builder) => [builder.type, builder]),
+      );
+      const wrapper = byV2Type[MpcMoneyKeyring.type](
+        new MpcMoneyKeyring() as never,
+        { id: 'metadata-id', name: 'name' },
+      );
+      expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
     });
   });
 });

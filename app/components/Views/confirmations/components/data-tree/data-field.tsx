@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 import { startCase } from 'lodash';
 
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { NONE_DATE_VALUE } from '../../utils/date';
 import {
   PRIMARY_TYPES_ORDER,
@@ -16,6 +15,7 @@ import InfoDate from '../UI/info-row/info-value/info-date';
 import InfoRow from '../UI/info-row';
 import TokenValue from '../UI/info-row/info-value/token-value';
 import DataTree from './data-tree';
+import { Text } from '@metamask/design-system-react-native';
 
 enum Field {
   Amount = 'amount',

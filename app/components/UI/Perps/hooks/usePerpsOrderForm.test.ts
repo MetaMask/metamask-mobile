@@ -2,6 +2,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import type { AnyAction } from 'redux';
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsOrderForm } from './usePerpsOrderForm';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -10,7 +11,12 @@ import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
 import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { TRADING_DEFAULTS, type Position } from '@metamask/perps-controller';
+import {
+  TRADING_DEFAULTS,
+  PerpsMode,
+  type Position,
+} from '@metamask/perps-controller';
+import Engine from '../../../../core/Engine';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
@@ -21,6 +27,14 @@ jest.mock('./stream/usePerpsLiveAccount');
 jest.mock('./stream/usePerpsLivePrices');
 jest.mock('./stream/usePerpsLivePositions');
 jest.mock('./usePerpsMarketData');
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      setSelectedOrderType: jest.fn(),
+      saveTradeConfiguration: jest.fn(),
+    },
+  },
+}));
 
 // Create a mock stream manager for testing
 const createMockStreamManager = (): PerpsStreamManager => {
@@ -71,21 +85,57 @@ const createMockStreamManager = (): PerpsStreamManager => {
   return mockStreamManager;
 };
 
-// Test wrapper with Redux Provider using configureStore pattern
-const createWrapper = () => {
-  const mockStore = configureStore({
+const SET_MAX_SLIPPAGE = 'test/setMaxSlippage';
+
+interface TestEngineState {
+  backgroundState: {
+    PerpsController: Record<string, unknown>;
+  };
+}
+
+const createPerpsStore = (
+  maxSlippageBps?: number,
+  extraControllerState: Record<string, unknown> = {},
+) =>
+  configureStore({
     reducer: {
       engine: (
-        state = {
+        state: TestEngineState | undefined,
+        action: AnyAction,
+      ): TestEngineState => {
+        const currentState = state ?? {
           backgroundState: {
-            PerpsController: {},
+            PerpsController: {
+              ...(maxSlippageBps === undefined ? {} : { maxSlippageBps }),
+              ...extraControllerState,
+            },
           },
-        },
-      ) => state,
+        };
+
+        if (
+          action.type !== SET_MAX_SLIPPAGE ||
+          typeof action.payload !== 'number'
+        ) {
+          return currentState;
+        }
+
+        return {
+          ...currentState,
+          backgroundState: {
+            ...currentState.backgroundState,
+            PerpsController: {
+              ...currentState.backgroundState.PerpsController,
+              maxSlippageBps: action.payload,
+            },
+          },
+        };
+      },
     },
   });
 
-  return function TestWrapper({ children }: { children: React.ReactNode }) {
+// Test wrapper with Redux Provider using configureStore pattern
+const createWrapper = (mockStore = createPerpsStore()) =>
+  function TestWrapper({ children }: { children: React.ReactNode }) {
     const streamProvider = React.createElement(PerpsStreamProvider, {
       testStreamManager: createMockStreamManager(),
       children,
@@ -96,7 +146,17 @@ const createWrapper = () => {
       children: streamProvider,
     });
   };
-};
+
+const createPerpsControllerStore = (perpsController: Record<string, unknown>) =>
+  configureStore({
+    reducer: {
+      engine: (
+        state = {
+          backgroundState: { PerpsController: perpsController },
+        },
+      ) => state,
+    },
+  });
 
 // Helper to create mock positions
 const createMockPosition = (
@@ -179,6 +239,7 @@ describe('usePerpsOrderForm', () => {
       },
       refetch: jest.fn(),
       isLoading: false,
+      isProviderMetadataAvailable: true,
       error: null,
     });
   });
@@ -202,6 +263,21 @@ describe('usePerpsOrderForm', () => {
       });
     });
 
+    it('skips the market lookup when route precision is available', () => {
+      renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'ETH',
+            initialSzDecimals: 4,
+          }),
+        {
+          wrapper: createWrapper(),
+        },
+      );
+
+      expect(mockUsePerpsMarketData).toHaveBeenCalledWith('');
+    });
+
     it('keeps an empty surface fallback empty', () => {
       const { result } = renderHook(
         () => usePerpsOrderForm({ fallbackAmount: '' }),
@@ -215,56 +291,179 @@ describe('usePerpsOrderForm', () => {
     });
 
     it('prioritizes a pending amount over an empty surface fallback', () => {
-      const mockStoreWithPendingConfig = configureStore({
-        reducer: {
-          engine: (
-            state = {
-              backgroundState: {
-                PerpsController: {
-                  isTestnet: false,
-                  tradeConfigurations: {
-                    mainnet: {
-                      BTC: {
-                        pendingConfig: {
-                          amount: '125',
-                          timestamp: Date.now(),
-                        },
-                      },
-                    },
-                    testnet: {},
-                  },
-                },
-              },
-            },
-          ) => state,
-        },
-      });
-      const WrapperWithPendingConfig = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const streamProvider = React.createElement(PerpsStreamProvider, {
-          testStreamManager: createMockStreamManager(),
-          children,
-        } as React.ComponentProps<typeof PerpsStreamProvider>);
-
-        return React.createElement(Provider, {
-          store: mockStoreWithPendingConfig,
-          children: streamProvider,
-        });
-      };
-
       const { result } = renderHook(
         () =>
           usePerpsOrderForm({
             initialAsset: 'BTC',
             fallbackAmount: '',
           }),
-        { wrapper: WrapperWithPendingConfig },
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({
+              isTestnet: false,
+              tradeConfigurations: {
+                mainnet: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+                testnet: {},
+              },
+            }),
+          ),
+        },
       );
 
       expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('restores a pending short direction with the draft amount', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            fallbackAmount: '',
+          }),
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({
+              isTestnet: false,
+              tradeConfigurations: {
+                mainnet: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      direction: 'short',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+                testnet: {},
+              },
+            }),
+          ),
+        },
+      );
+
+      expect(result.current.orderForm.direction).toBe('short');
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('prefers a navigation direction over a pending draft direction', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialDirection: 'long',
+            fallbackAmount: '',
+          }),
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({
+              isTestnet: false,
+              tradeConfigurations: {
+                mainnet: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      direction: 'short',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+                testnet: {},
+              },
+            }),
+          ),
+        },
+      );
+
+      expect(result.current.orderForm.direction).toBe('long');
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('uses the persisted market-agnostic order type when no pending or navigation type exists', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({ selectedOrderType: 'limit' }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('limit');
+    });
+
+    it('prefers the persisted global order type over a stale per-market pending type', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            isTestnet: false,
+            selectedOrderType: 'limit',
+            tradeConfigurations: {
+              mainnet: {
+                BTC: {
+                  pendingConfig: {
+                    amount: '125',
+                    orderType: 'market',
+                    timestamp: Date.now(),
+                  },
+                },
+              },
+              testnet: {},
+            },
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('limit');
+      expect(result.current.orderForm.amount).toBe('125');
+    });
+
+    it('ignores a persisted Pro-only order type when hydrating Lite', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            mode: PerpsMode.Lite,
+            selectedOrderType: 'twap',
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('market');
+      expect(
+        Engine.context.PerpsController.setSelectedOrderType,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('ignores a persisted stop-market type when hydrating Lite', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            mode: PerpsMode.Lite,
+            selectedOrderType: 'stop_market',
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('market');
+      expect(
+        Engine.context.PerpsController.setSelectedOrderType,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('restores a persisted TWAP order type on Pro', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(
+          createPerpsControllerStore({
+            mode: PerpsMode.Pro,
+            selectedOrderType: 'twap',
+          }),
+        ),
+      });
+
+      expect(result.current.orderForm.type).toBe('twap');
     });
 
     it('prioritizes existing position leverage over saved config', () => {
@@ -677,16 +876,32 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.direction).toBe('short');
     });
 
-    it('updates asset', () => {
+    it('updates asset and clears asset-specific price drafts', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
+
+      act(() => {
+        result.current.setLimitPrice('50000');
+        result.current.setTriggerPrice('51000');
+        result.current.commitLimitPrice('50000');
+        result.current.commitTriggerPrice('51000');
+      });
+
+      expect(result.current.orderForm.limitPrice).toBe('50000');
+      expect(result.current.triggerPrice).toBe('51000');
+      expect(result.current.hasBlurredLimitPrice).toBe(true);
+      expect(result.current.hasBlurredTriggerPrice).toBe(true);
 
       act(() => {
         result.current.setAsset('SOL');
       });
 
       expect(result.current.orderForm.asset).toBe('SOL');
+      expect(result.current.orderForm.limitPrice).toBeUndefined();
+      expect(result.current.triggerPrice).toBeUndefined();
+      expect(result.current.hasBlurredLimitPrice).toBe(false);
+      expect(result.current.hasBlurredTriggerPrice).toBe(false);
     });
 
     it('updates take profit price', () => {
@@ -725,6 +940,41 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.limitPrice).toBe('50000');
     });
 
+    it('updates trigger price independently of OrderFormState', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setTriggerPrice('91000');
+      });
+
+      expect(result.current.triggerPrice).toBe('91000');
+      expect(result.current.orderForm).not.toHaveProperty('triggerPrice');
+    });
+
+    it('resets price interaction state without clearing price values', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.commitLimitPrice('50000');
+        result.current.commitTriggerPrice('51000');
+      });
+      expect(result.current.hasBlurredLimitPrice).toBe(true);
+      expect(result.current.hasBlurredTriggerPrice).toBe(true);
+
+      act(() => {
+        result.current.resetPriceInputInteraction();
+      });
+
+      expect(result.current.orderForm.limitPrice).toBe('50000');
+      expect(result.current.triggerPrice).toBe('51000');
+      expect(result.current.hasBlurredLimitPrice).toBe(false);
+      expect(result.current.hasBlurredTriggerPrice).toBe(false);
+    });
+
     it('updates order type', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
@@ -735,6 +985,125 @@ describe('usePerpsOrderForm', () => {
       });
 
       expect(result.current.orderForm.type).toBe('limit');
+      expect(
+        Engine.context.PerpsController.setSelectedOrderType,
+      ).toHaveBeenCalledWith('limit');
+    });
+
+    it('clears the active price field when the order type changes', () => {
+      // A field tied to the previous type (e.g. a Scale rung) no longer
+      // exists once the type changes, so a stale selection must not persist.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setActivePriceField('scaleStart');
+      });
+      expect(result.current.activePriceField).toBe('scaleStart');
+
+      act(() => {
+        result.current.setOrderType('limit');
+      });
+
+      expect(result.current.activePriceField).toBeNull();
+    });
+
+    it('clears the active price field when the asset changes', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setActivePriceField('limit');
+      });
+      expect(result.current.activePriceField).toBe('limit');
+
+      act(() => {
+        result.current.setAsset('SOL');
+      });
+
+      expect(result.current.activePriceField).toBeNull();
+    });
+
+    it('commits an order-book price to the limit field without a registered handler', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      let committed = false;
+      act(() => {
+        committed = result.current.commitPriceToField('limit', '50000');
+      });
+
+      expect(committed).toBe(true);
+      expect(result.current.orderForm.limitPrice).toBe('50000');
+      expect(result.current.hasBlurredLimitPrice).toBe(true);
+    });
+
+    it('commits an order-book price to the trigger field without a registered handler', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      let committed = false;
+      act(() => {
+        committed = result.current.commitPriceToField('trigger', '51000');
+      });
+
+      expect(committed).toBe(true);
+      expect(result.current.triggerPrice).toBe('51000');
+      expect(result.current.hasBlurredTriggerPrice).toBe(true);
+    });
+
+    it('returns false for a Pro-only field with no registered handler', () => {
+      // Lite never registers Scale/Chase handlers, so the caller (an
+      // order-book tap) knows to fall back to its own default field.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      let committed = true;
+      act(() => {
+        committed = result.current.commitPriceToField('scaleStart', '50000');
+      });
+
+      expect(committed).toBe(false);
+    });
+
+    it('routes to a handler registered for a Pro-only field', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      const scaleStartHandler = jest.fn();
+      act(() => {
+        result.current.registerPriceFieldHandlers({
+          scaleStart: scaleStartHandler,
+        });
+      });
+
+      let committed = false;
+      act(() => {
+        committed = result.current.commitPriceToField('scaleStart', '50000');
+      });
+
+      expect(committed).toBe(true);
+      expect(scaleStartHandler).toHaveBeenCalledWith('50000');
+    });
+
+    it('persists leverage via saveTradeConfiguration', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setLeverage(15);
+      });
+
+      expect(
+        Engine.context.PerpsController.saveTradeConfiguration,
+      ).toHaveBeenCalledWith('BTC', 15);
     });
 
     it('updates multiple fields at once', () => {
@@ -832,6 +1201,53 @@ describe('usePerpsOrderForm', () => {
       expect(at100).toBe(result.current.maxPossibleAmount);
     });
 
+    it('caps an amount set above the margin max at that max', () => {
+      // The Pro order-book size fill (TAT-4085) relies on this cap.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const marginMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setAmount(String(marginMax * 10));
+      });
+
+      expect(marginMax).toBeGreaterThan(0);
+      expect(result.current.orderForm.amount).toBe(
+        String(Math.floor(marginMax)),
+      );
+    });
+
+    it('does not clamp typed amounts while a max override is set', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setMaxPossibleAmountOverride(1000);
+        result.current.setAmount('5000');
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(1000);
+      expect(result.current.orderForm.amount).toBe('5000');
+    });
+
+    it('restores the margin-based max when the override is cleared', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const marginMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setMaxPossibleAmountOverride(marginMax + 5000);
+      });
+      act(() => {
+        result.current.setMaxPossibleAmountOverride(null);
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(marginMax);
+    });
+
     it('does not update amount when balance is 0', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
@@ -858,6 +1274,70 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  describe('fee-adjusted max amount', () => {
+    const feeRate = 0.0045;
+
+    it('reserves the trading fee so margin plus fee fits the balance at 100%', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const unreservedMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+
+      const notional = Number(result.current.orderForm.amount);
+      const { leverage } = result.current.orderForm;
+      expect(result.current.maxPossibleAmount).toBeLessThan(unreservedMax);
+      expect(notional).toBe(result.current.maxPossibleAmount);
+      expect(notional / leverage + notional * feeRate).toBeLessThanOrEqual(
+        1000,
+      );
+    });
+
+    it('lowers an amount held at max when the quoted fee rate rises', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      act(() => {
+        result.current.setEstimatedFeeRate(0.001);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+      const lowFeeMax = Number(result.current.orderForm.amount);
+
+      act(() => {
+        result.current.setEstimatedFeeRate(0.02);
+      });
+
+      expect(result.current.maxPossibleAmount).toBeLessThan(lowFeeMax);
+      expect(Number(result.current.orderForm.amount)).toBe(
+        result.current.maxPossibleAmount,
+      );
+    });
+
+    it('restores the unreserved max when the quote is cleared', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const unreservedMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.setEstimatedFeeRate(0);
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(unreservedMax);
+    });
+  });
+
   describe('limit order price adjustment', () => {
     it('uses limit price for maxPossibleAmount when order type is limit', () => {
       // Use low-precision asset where price difference causes rounding differences
@@ -870,6 +1350,7 @@ describe('usePerpsOrderForm', () => {
         },
         refetch: jest.fn(),
         isLoading: false,
+        isProviderMetadataAvailable: true,
         error: null,
       });
 
@@ -948,6 +1429,7 @@ describe('usePerpsOrderForm', () => {
         },
         refetch: jest.fn(),
         isLoading: false,
+        isProviderMetadataAvailable: true,
         error: null,
       });
 
@@ -1010,6 +1492,59 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  describe('trigger-market sizing', () => {
+    it('uses the TP/SL default cap when calculating the maximum buy amount', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'stop_market',
+          }),
+        {
+          wrapper: createWrapper(
+            createPerpsControllerStore({ mode: PerpsMode.Pro }),
+          ),
+        },
+      );
+
+      act(() => {
+        result.current.setTriggerPrice('90000');
+      });
+      const triggerMarketMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setOrderType('market');
+      });
+      const marketMax = result.current.maxPossibleAmount;
+
+      expect(triggerMarketMax).toBeLessThan(marketMax);
+    });
+
+    it('recalculates trigger-market sizing after max slippage state changes', () => {
+      const store = createPerpsStore(300, { mode: PerpsMode.Pro });
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'stop_market',
+          }),
+        { wrapper: createWrapper(store) },
+      );
+
+      act(() => {
+        result.current.setTriggerPrice('90000');
+      });
+
+      const maxAtThreePercent = result.current.maxPossibleAmount;
+
+      act(() => {
+        store.dispatch({ type: SET_MAX_SLIPPAGE, payload: 1000 });
+      });
+
+      expect(result.current.maxPossibleAmount).toBeLessThan(maxAtThreePercent);
+    });
+  });
+
   describe('empty amount handling', () => {
     it('converts empty string to 0', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
@@ -1034,7 +1569,11 @@ describe('usePerpsOrderForm', () => {
       'setTakeProfitPrice',
       'setStopLossPrice',
       'setLimitPrice',
+      'setTriggerPrice',
       'setOrderType',
+      'setActivePriceField',
+      'registerPriceFieldHandlers',
+      'commitPriceToField',
       'handlePercentageAmount',
       'handleMaxAmount',
       'handleMinAmount',
@@ -1069,6 +1608,7 @@ describe('usePerpsOrderForm', () => {
         'setTakeProfitPrice',
         'setStopLossPrice',
         'setLimitPrice',
+        'setTriggerPrice',
         'setOrderType',
       ] as const;
 

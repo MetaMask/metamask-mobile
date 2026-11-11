@@ -6,12 +6,10 @@ import {
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { Text } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../../component-library/components/Badges/Badge';
-import { Text } from '@metamask/design-system-react-native';
+import AvatarNetwork from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import images from '../../../../../../../images/image-icons';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
@@ -73,13 +71,12 @@ const StakingContractInteractionDetails = () => {
       <InfoRowDivider />
       <InfoRow label={strings('confirm.label.network')}>
         <View style={styles.networkContainer}>
-          <Badge
+          <AvatarNetwork
             size={AvatarSize.Xs}
             imageSource={images.ETHEREUM}
-            variant={BadgeVariant.Network}
-            isScaled={false}
+            style={styles.networkAvatar}
+            testID="staking-contract-network-avatar"
           />
-          <Text>{'  '}</Text>
           <Text>{strings('stake.ethereum_mainnet')}</Text>
         </View>
       </InfoRow>

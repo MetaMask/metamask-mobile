@@ -1,13 +1,12 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeSnaps } from '../../tags.js';
-import Assertions from '../../framework/Assertions.js';
-import Matchers from '../../framework/Matchers.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Image Snap Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Android install allows 60s per sheet. Login plus three sheets exceeds 150s.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'can connect to the Image Snap',
@@ -31,8 +30,9 @@ appiumTest.describe(SmokeSnaps('Image Snap Tests'), () => {
         { restartDevice: false },
         async () => {
           await TestSnaps.tapButton('showSVGImage');
-          const dynamicSvg = Matchers.getElementByID('snaps-ui-image');
-          await Assertions.expectElementToBeVisible(dynamicSvg);
+          await TestSnaps.expectSnapUiImageVisible({
+            description: 'Snap UI SVG image (snaps-ui-image)',
+          });
           await TestSnaps.tapOkButton();
         },
       );
@@ -47,8 +47,9 @@ appiumTest.describe(SmokeSnaps('Image Snap Tests'), () => {
         { restartDevice: false },
         async () => {
           await TestSnaps.tapButton('showPNGImage');
-          const dynamicPng = Matchers.getElementByID('snaps-ui-image');
-          await Assertions.expectElementToBeVisible(dynamicPng);
+          await TestSnaps.expectSnapUiImageVisible({
+            description: 'Snap UI PNG image (snaps-ui-image)',
+          });
         },
       );
     },

@@ -11,31 +11,19 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import ThemeProvider from './ThemeProvider';
 import { Theme } from '@metamask/design-system-twrnc-preset';
 
-let mockIsPureBlackEnabled = false;
-
-jest.mock('../../../util/theme/themeUtils', () => ({
-  get isPureBlackEnabled() {
-    return mockIsPureBlackEnabled;
-  },
-}));
-
 const mockDesignSystemThemeProvider = jest.fn(
   ({ children }: { children: React.ReactNode }) => children,
 );
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  ThemeProvider: (props: {
-    children: React.ReactNode;
-    isPureBlack?: boolean;
-    theme?: string;
-  }) => mockDesignSystemThemeProvider(props),
+  ThemeProvider: (props: { children: React.ReactNode; theme?: string }) =>
+    mockDesignSystemThemeProvider(props),
   Theme: { Light: 'light', Dark: 'dark' },
 }));
 
 describe('ThemeProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsPureBlackEnabled = false;
   });
 
   it('renders children correctly', () => {
@@ -68,57 +56,33 @@ describe('ThemeProvider', () => {
     expect(themeValue.brandColors.black).toStrictEqual(brandColor.black);
   });
 
-  describe('isPureBlack', () => {
-    it('passes isPureBlack false to DesignSystemThemeProvider when preview flag is off in dark mode', () => {
-      renderWithProvider(
-        <ThemeProvider>
-          <View />
-        </ThemeProvider>,
-        { state: { user: { appTheme: AppThemeKey.dark } } },
-      );
+  it('maps dark app theme to DesignSystem Theme.Dark', () => {
+    renderWithProvider(
+      <ThemeProvider>
+        <View />
+      </ThemeProvider>,
+      { state: { user: { appTheme: AppThemeKey.dark } } },
+    );
 
-      expect(mockDesignSystemThemeProvider).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isPureBlack: false,
-          theme: Theme.Dark,
-        }),
-      );
-    });
+    expect(mockDesignSystemThemeProvider).toHaveBeenCalledWith(
+      expect.objectContaining({
+        theme: Theme.Dark,
+      }),
+    );
+  });
 
-    it('passes isPureBlack false to DesignSystemThemeProvider when preview flag is on in light mode', () => {
-      mockIsPureBlackEnabled = true;
+  it('maps light app theme to DesignSystem Theme.Light', () => {
+    renderWithProvider(
+      <ThemeProvider>
+        <View />
+      </ThemeProvider>,
+      { state: { user: { appTheme: AppThemeKey.light } } },
+    );
 
-      renderWithProvider(
-        <ThemeProvider>
-          <View />
-        </ThemeProvider>,
-        { state: { user: { appTheme: AppThemeKey.light } } },
-      );
-
-      expect(mockDesignSystemThemeProvider).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isPureBlack: false,
-          theme: Theme.Light,
-        }),
-      );
-    });
-
-    it('passes isPureBlack true to DesignSystemThemeProvider when preview flag is on in dark mode', () => {
-      mockIsPureBlackEnabled = true;
-
-      renderWithProvider(
-        <ThemeProvider>
-          <View />
-        </ThemeProvider>,
-        { state: { user: { appTheme: AppThemeKey.dark } } },
-      );
-
-      expect(mockDesignSystemThemeProvider).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isPureBlack: true,
-          theme: Theme.Dark,
-        }),
-      );
-    });
+    expect(mockDesignSystemThemeProvider).toHaveBeenCalledWith(
+      expect.objectContaining({
+        theme: Theme.Light,
+      }),
+    );
   });
 });

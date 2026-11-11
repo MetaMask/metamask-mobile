@@ -1,21 +1,16 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
-import { Interface } from '@ethersproject/abi';
 import {
   isMusdClaimForCurrentView,
   convertMusdClaimAmount,
-  decodeMerklClaimParams,
   getClaimPayoutFromReceipt,
 } from './musd';
-import {
-  DISTRIBUTOR_CLAIM_ABI,
-  MERKL_DISTRIBUTOR_ADDRESS,
-} from '../components/MerklRewards/constants';
 import { MUSD_TOKEN_ADDRESS } from '../constants/musd';
 
 const LINEA_CHAIN_ID = '0xe708' as Hex;
 const MAINNET_CHAIN_ID = '0x1' as Hex;
+const MERKL_DISTRIBUTOR_ADDRESS = '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae';
 const SELECTED_ADDRESS = '0x1234567890123456789012345678901234567890';
 const OTHER_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
@@ -214,50 +209,6 @@ describe('musd utils', () => {
       expect(result.claimAmountDecimal.toNumber()).toBe(1000000);
       expect(result.fiatValue.toNumber()).toBe(900000);
       expect(result.isConverted).toBe(true);
-    });
-  });
-
-  describe('decodeMerklClaimParams', () => {
-    const userAddress = '0x1234567890123456789012345678901234567890';
-    const tokenAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const amount = '500000';
-
-    const encodeClaimData = (
-      users: string[],
-      tokens: string[],
-      amounts: string[],
-    ): string => {
-      const iface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-      return iface.encodeFunctionData('claim', [users, tokens, amounts, [[]]]);
-    };
-
-    it('decodes valid claim data', () => {
-      const data = encodeClaimData([userAddress], [tokenAddress], [amount]);
-      const result = decodeMerklClaimParams(data);
-
-      expect(result).toEqual({
-        totalAmount: amount,
-        userAddress: expect.stringMatching(new RegExp(userAddress, 'i')),
-        tokenAddress: expect.stringMatching(new RegExp(tokenAddress, 'i')),
-      });
-    });
-
-    it('returns null for undefined data', () => {
-      expect(decodeMerklClaimParams(undefined)).toBeNull();
-    });
-
-    it('returns null for non-string data', () => {
-      expect(decodeMerklClaimParams(123 as unknown as string)).toBeNull();
-    });
-
-    it('returns null for invalid hex data', () => {
-      expect(decodeMerklClaimParams('0xdeadbeef')).toBeNull();
-    });
-
-    it('returns null when decoded arrays are empty', () => {
-      // Manually construct data that decodes to empty arrays isn't trivially possible,
-      // but we test the guard by passing data with an unrelated function selector
-      expect(decodeMerklClaimParams('not-hex-at-all')).toBeNull();
     });
   });
 

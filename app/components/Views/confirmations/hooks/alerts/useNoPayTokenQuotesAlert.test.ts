@@ -401,6 +401,7 @@ describe('useNoPayTokenQuotesAlert', () => {
       });
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
       jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
+      jest.mocked(useTransactionPayQuoteError).mockReturnValue(undefined);
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
       } as never);
@@ -422,6 +423,26 @@ describe('useNoPayTokenQuotesAlert', () => {
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
       } as never);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '0',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert for moneyAccountDeposit when Max is set before the amount lands', () => {
+      // Max sets isMaxAmount synchronously before amountRaw / quote loading.
+      // The quote-required branch must not treat isMaxAmount alone as ready —
+      // and must not latch on isQuotesLoading pulses to infer settlement
+      // (empty pre-fetch pulses would re-flash the alert).
+      jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
       useTransactionPayRequiredTokensMock.mockReturnValue([
         {
           address: ADDRESS_MOCK,

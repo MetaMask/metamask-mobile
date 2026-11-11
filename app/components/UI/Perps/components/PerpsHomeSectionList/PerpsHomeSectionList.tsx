@@ -11,6 +11,8 @@ export interface PerpsHomeSectionItem {
 
 interface PerpsHomeSectionListProps {
   sections: PerpsHomeSectionItem[];
+  /** Skip the divider above the first visible section (e.g. right under a tab bar). */
+  hideLeadingDivider?: boolean;
 }
 
 /**
@@ -19,26 +21,36 @@ interface PerpsHomeSectionListProps {
  */
 const PerpsHomeSectionList: React.FC<PerpsHomeSectionListProps> = ({
   sections,
-}) => (
-  <>
-    {sections.map((section) => {
-      if (!section.visible) {
-        return null;
-      }
+  hideLeadingDivider = false,
+}) => {
+  const firstVisibleKey = sections.find((section) => section.visible)?.key;
 
-      return (
-        <Fragment key={section.key}>
-          <SectionDivider testID="perps-home-section-divider" />
-          <View
-            testID={`perps-home-section-${section.key}`}
-            onLayout={section.onLayout}
-          >
-            {section.content}
-          </View>
-        </Fragment>
-      );
-    })}
-  </>
-);
+  return (
+    <>
+      {sections.map((section) => {
+        if (!section.visible) {
+          return null;
+        }
+
+        const showDivider =
+          !hideLeadingDivider || section.key !== firstVisibleKey;
+
+        return (
+          <Fragment key={section.key}>
+            {showDivider ? (
+              <SectionDivider testID="perps-home-section-divider" />
+            ) : null}
+            <View
+              testID={`perps-home-section-${section.key}`}
+              onLayout={section.onLayout}
+            >
+              {section.content}
+            </View>
+          </Fragment>
+        );
+      })}
+    </>
+  );
+};
 
 export default PerpsHomeSectionList;

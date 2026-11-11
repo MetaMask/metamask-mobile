@@ -85,11 +85,11 @@ describe('PasswordBottomSheet', () => {
   });
 
   afterEach(async () => {
-    // Flush pending timers and state updates to avoid act() warnings
+    // Flush pending timers and state updates to avoid act() warnings.
+    // Avoid jest.resetAllMocks() — it breaks RN Animated listener mocks used by native-stack.
     await act(async () => {
       jest.runAllTimers();
     });
-    jest.resetAllMocks();
   });
 
   it('renders correctly', () => {
@@ -152,7 +152,7 @@ describe('PasswordBottomSheet', () => {
     fireEvent.press(confirmButton);
 
     await waitFor(() => {
-      expect(getByText('Please enter your password')).toBeTruthy();
+      expect(getByText('Enter your password')).toBeTruthy();
     });
 
     expect(mockReauthenticate).not.toHaveBeenCalled();
@@ -172,7 +172,7 @@ describe('PasswordBottomSheet', () => {
     fireEvent.press(confirmButton);
 
     await waitFor(() => {
-      expect(getByText('Incorrect password. Please try again.')).toBeTruthy();
+      expect(getByText('Incorrect password. Try again.')).toBeTruthy();
     });
 
     expect(mockReauthenticate).toHaveBeenCalledWith('wrongpassword');
@@ -208,7 +208,7 @@ describe('PasswordBottomSheet', () => {
     fireEvent.press(confirmButton);
 
     await waitFor(() => {
-      expect(getByText('Please enter your password')).toBeTruthy();
+      expect(getByText('Enter your password')).toBeTruthy();
     });
 
     // Type in password input
@@ -249,7 +249,7 @@ describe('PasswordBottomSheet', () => {
     fireEvent.press(confirmButton);
 
     await waitFor(() => {
-      expect(getByText('Please enter your password')).toBeTruthy();
+      expect(getByText('Enter your password')).toBeTruthy();
     });
 
     expect(mockReauthenticate).not.toHaveBeenCalled();

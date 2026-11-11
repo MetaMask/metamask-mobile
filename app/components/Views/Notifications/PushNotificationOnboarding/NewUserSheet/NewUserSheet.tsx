@@ -16,7 +16,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
-import NotifCard from '../NotifCard';
+import NotifCard from '../../../../UI/Notification/NotifCard';
 
 export interface NewUserSheetProps {
   isVisible: boolean;

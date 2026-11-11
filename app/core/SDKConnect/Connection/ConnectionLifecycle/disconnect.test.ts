@@ -1,4 +1,10 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
+import {
+  getOriginProvenance,
+  removeOriginProvenance,
+  RemoteTransport,
+  stampOriginProvenance,
+} from '../../../OriginProvenance';
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
 import disconnect from './disconnect';
@@ -92,6 +98,44 @@ describe('disconnect', () => {
       await disconnect({ instance: mockConnection, terminate: false });
 
       expect(mockRemoteDisconnect).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('origin provenance', () => {
+    const stampTestProvenance = () =>
+      stampOriginProvenance({
+        connectionId: 'testChannelId',
+        transport: RemoteTransport.SDKv1,
+        selfReported: { url: 'https://example.com' },
+      });
+
+    afterEach(() => {
+      removeOriginProvenance('testChannelId');
+    });
+
+    it('drops the provenance stamped in setupBridge when the connection terminates', async () => {
+      stampTestProvenance();
+
+      await disconnect({ instance: mockConnection, terminate: true });
+
+      expect(getOriginProvenance('testChannelId')).toBeUndefined();
+    });
+
+    it('keeps the provenance when termination fails so a retry can still find it', async () => {
+      stampTestProvenance();
+      mockRemoteSendMessage.mockResolvedValue(false);
+
+      await disconnect({ instance: mockConnection, terminate: true });
+
+      expect(getOriginProvenance('testChannelId')).toBeDefined();
+    });
+
+    it('keeps the provenance on non-terminal disconnects because the connection can resume', async () => {
+      stampTestProvenance();
+
+      await disconnect({ instance: mockConnection, terminate: false });
+
+      expect(getOriginProvenance('testChannelId')).toBeDefined();
     });
   });
 

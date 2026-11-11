@@ -470,7 +470,7 @@ describe('SearchTokenAutocomplete', () => {
       );
     });
 
-    it('returns early without adding or TOKEN_ADDED when no account found', async () => {
+    it('does not add token when no account found but still tracks TOKEN_ADDED analytics', async () => {
       setupWithTokenResults();
       mockSelectInternalAccountByScope.mockReturnValue(null);
 
@@ -481,7 +481,7 @@ describe('SearchTokenAutocomplete', () => {
       await params.addTokenList();
 
       expect(mockAddCustomAsset).not.toHaveBeenCalled();
-      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.TOKEN_ADDED,
       );
     });
@@ -560,7 +560,7 @@ describe('SearchTokenAutocomplete', () => {
       mockConvertTokens.mockReturnValue([mockNonEvmToken as any]);
     });
 
-    it('returns early without adding or TOKEN_ADDED when no account found', async () => {
+    it('does not add token when no account found but still tracks TOKEN_ADDED analytics', async () => {
       mockSelectInternalAccountByScope.mockReturnValue(null);
 
       const utils = renderComponent({ selectedChainId: solanaChainId });
@@ -570,7 +570,7 @@ describe('SearchTokenAutocomplete', () => {
       await params.addTokenList();
 
       expect(mockAddCustomAsset).not.toHaveBeenCalled();
-      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.TOKEN_ADDED,
       );
     });

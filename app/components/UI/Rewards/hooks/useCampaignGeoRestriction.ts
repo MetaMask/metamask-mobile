@@ -34,18 +34,25 @@ const useCampaignGeoRestriction = (
   const isGeoRestricted = useMemo(() => {
     if (isFeatureGeoRestricted) return true;
     if (isGeoLoading) return true;
-    const country = geolocation?.toUpperCase().split('-')[0];
+    const rawGeo = geolocation?.toUpperCase() ?? null;
+    const country = rawGeo?.split('-')[0] ?? null;
 
-    // Check the custom list first (if provided).
+    // Check the custom list first (if provided) — country-level only.
     if (customRestrictedCountries) {
       if (!country || customRestrictedCountries.has(country)) return true;
     }
 
     // Then fall through to the campaign's own excluded regions.
-    if (!country) return campaign.excludedRegions.length > 0;
-    return campaign.excludedRegions.some(
-      (region) => region.toUpperCase() === country,
-    );
+    // Match full region codes (US-NY) against the full geolocation, and
+    // country-only codes (GB, US) against the country portion.
+    if (!rawGeo || !country) return campaign.excludedRegions.length > 0;
+    return campaign.excludedRegions.some((region) => {
+      const normalized = region.toUpperCase();
+      if (normalized.includes('-')) {
+        return normalized === rawGeo;
+      }
+      return normalized === country;
+    });
   }, [
     isGeoLoading,
     geolocation,

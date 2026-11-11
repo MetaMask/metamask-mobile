@@ -3,29 +3,31 @@ import {
   ScrollView,
   BackHandler,
   Alert,
-  Pressable,
   Platform,
-  Image,
-  StatusBar,
   NativeScrollEvent,
   NativeSyntheticEvent,
   LayoutChangeEvent,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  Button,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  ButtonVariant,
   ButtonSize,
+  ContentVariant,
+  FontWeight,
+  ListItemMultiSelect,
+  Text,
+  TextButton,
+  TextColor,
+  TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
@@ -38,7 +40,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
-import Checkbox from '../../../component-library/components/Checkbox';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -51,8 +52,6 @@ import {
   discardBufferedTraces,
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
-import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
-import Device from '../../../util/device';
 import { HOWTO_MANAGE_METAMETRICS } from '../../../constants/urls';
 import type { OptinMetricsRouteParams } from './OptinMetrics.types';
 import {
@@ -65,8 +64,14 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import type { RootState } from '../../../reducers';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
+import {
+  discardPendingAppInstall,
+  replayPendingAppInstall,
+} from '../../../util/analytics/appInstallEvent';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -82,7 +87,18 @@ const OptinMetrics = () => {
       >
     >();
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const metrics = useAnalytics();
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.OPTIN_METRICS,
+    contentReady: true,
+    isEmpty: false,
+  });
 
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
@@ -108,15 +124,6 @@ const OptinMetrics = () => {
 
   const { shouldShowQuestionnaire } =
     useOnboardingInterestQuestionnaireEligibility();
-
-  const isMediumDevice = useMemo(() => Device.isMediumDevice(), []);
-  const illustrationSize = useMemo(
-    () =>
-      isMediumDevice
-        ? { width: 160, height: 120 }
-        : { width: 200, height: 180 },
-    [isMediumDevice],
-  );
 
   /**
    * Temporary disabling the back button so users can't go back
@@ -256,6 +263,14 @@ const OptinMetrics = () => {
       });
     }
 
+    // Emit App Installed for an install captured before consent existed, or
+    // drop it when the user declines, same as the buffers handled above.
+    if (isBasicUsageChecked) {
+      await replayPendingAppInstall();
+    } else {
+      discardPendingAppInstall();
+    }
+
     dispatch(clearOnboardingEvents());
 
     if (isBasicUsageChecked && shouldShowQuestionnaire) {
@@ -322,23 +337,6 @@ const OptinMetrics = () => {
 
   const isMarketingDisabled = !isBasicUsageChecked;
 
-  const renderActionButtons = useCallback(
-    () => (
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 py-2">
-        <Button
-          variant={ButtonVariant.Primary}
-          onPress={onConfirm}
-          testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID}
-          style={tw.style('flex-1')}
-          size={ButtonSize.Lg}
-        >
-          {strings('privacy_policy.continue')}
-        </Button>
-      </Box>
-    ),
-    [onConfirm, tw],
-  );
-
   /**
    * Content size change event for the ScrollView.
    *
@@ -385,14 +383,7 @@ const OptinMetrics = () => {
     [isEndReached],
   );
 
-  const rootStyle = useMemo(
-    () =>
-      tw.style('flex-1 bg-default', {
-        paddingTop:
-          Platform.OS === 'android' ? StatusBar.currentHeight || 40 : 40,
-      }),
-    [tw],
-  );
+  const rootStyle = useMemo(() => tw.style('flex-1 bg-default'), [tw]);
 
   const goToDefaultSettings = () => {
     navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
@@ -402,171 +393,109 @@ const OptinMetrics = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
+        includesTopInset
+        title=""
+      />
       <ScrollView
-        style={tw.style('flex-1')}
+        style={[tw.style('flex-1'), { marginTop: headerInset }]}
         scrollEventThrottle={150}
         onContentSizeChange={onContentSizeChange}
         onLayout={onLayout}
         onScroll={onScroll}
         testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
-        <Box twClassName="mx-5 flex-1 gap-y-4 pb-20">
-          <Box
-            alignItems={BoxAlignItems.Center}
-            twClassName={isMediumDevice ? 'my-2' : 'my-3'}
-          >
-            <Image
-              source={PrivacyIllustration}
-              style={tw.style('self-center', {
-                width: illustrationSize.width,
-                height: illustrationSize.height,
-              })}
-              resizeMode="contain"
+        <Box twClassName="flex-1 px-4 pb-6">
+          <Box marginBottom={6}>
+            <TitleStandard
+              title={strings('privacy_policy.description_title')}
+              bottomLabel={strings('privacy_policy.description_content_1')}
+              testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
+              bottomLabelProps={{
+                testID:
+                  MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
+              }}
             />
           </Box>
-          <Text
-            variant={TextVariant.DisplayMd}
-            color={TextColor.TextDefault}
-            fontWeight={FontWeight.Bold}
-            twClassName="mt-2"
-            testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
-          >
-            {strings('privacy_policy.description_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={
-              MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
-            }
-          >
-            {strings('privacy_policy.description_content_1')}
-          </Text>
-          <Box>
-            <Pressable
-              style={({ pressed }) =>
-                tw.style(
-                  'bg-background-alternative rounded-xl p-4 mb-4',
-                  pressed && 'opacity-70',
-                )
-              }
+          <Box twClassName="gap-4">
+            <ListItemMultiSelect
+              variant={ContentVariant.MultiLine}
+              isSelected={isBasicUsageChecked}
               onPress={handleBasicUsageToggle}
+              twClassName="rounded-xl border border-muted"
+              title={strings('privacy_policy.gather_basic_usage_title')}
+              description={
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('privacy_policy.gather_basic_usage_description') +
+                    ' '}
+                  <TextButton
+                    variant={TextVariant.BodySm}
+                    onPress={(e) => {
+                      e?.stopPropagation?.();
+                      openLearnMore();
+                    }}
+                  >
+                    {strings('privacy_policy.gather_basic_usage_learn_more')}
+                  </TextButton>
+                </Text>
+              }
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
               }
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                justifyContent={BoxJustifyContent.Between}
-                gap={4}
-              >
-                <Box twClassName="flex-1">
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                  >
-                    {strings('privacy_policy.gather_basic_usage_title')}
-                  </Text>
-                </Box>
-                <Checkbox
-                  onPress={handleBasicUsageToggle}
-                  isChecked={isBasicUsageChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                />
-              </Box>
+            />
+            <Box twClassName="gap-2">
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="mt-1"
               >
-                {strings('privacy_policy.gather_basic_usage_description') + ' '}
-                <Text
-                  color={TextColor.PrimaryDefault}
-                  variant={TextVariant.BodySm}
-                  onPress={(e) => {
-                    e?.stopPropagation?.();
-                    openLearnMore();
-                  }}
-                >
-                  {strings('privacy_policy.gather_basic_usage_learn_more')}
-                </Text>
+                {strings('privacy_policy.stay_informed')}
               </Text>
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) =>
-                tw.style(
-                  'bg-background-alternative rounded-xl p-4 mb-4',
-                  isMarketingDisabled && 'opacity-50',
-                  pressed && !isMarketingDisabled && 'opacity-70',
-                )
-              }
-              onPress={handleMarketingToggle}
-              disabled={isMarketingDisabled}
-              testID={
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
-              }
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                justifyContent={BoxJustifyContent.Between}
-                gap={4}
-              >
-                <Box twClassName="flex-1">
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={
-                      isMarketingDisabled
-                        ? TextColor.TextMuted
-                        : TextColor.TextDefault
-                    }
-                  >
-                    {strings('privacy_policy.checkbox_marketing')}
-                  </Text>
-                </Box>
-                <Checkbox
-                  onPress={handleMarketingToggle}
-                  isChecked={isMarketingChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                  disabled={isMarketingDisabled}
-                />
-              </Box>
-              <Text
-                variant={TextVariant.BodySm}
-                color={
-                  isMarketingDisabled
-                    ? TextColor.TextMuted
-                    : TextColor.TextAlternative
+              <ListItemMultiSelect
+                variant={ContentVariant.MultiLine}
+                isSelected={isMarketingChecked}
+                onPress={handleMarketingToggle}
+                disabled={isMarketingDisabled}
+                twClassName={`rounded-xl border border-muted ${
+                  isMarketingDisabled ? 'opacity-50' : ''
+                }`}
+                title={strings('privacy_policy.checkbox_marketing')}
+                description={strings('privacy_policy.checkbox')}
+                testID={
+                  MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
                 }
-                twClassName="mt-1"
-              >
-                {strings('privacy_policy.checkbox')}
-              </Text>
-            </Pressable>
-
+              />
+            </Box>
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
               {strings('privacy_policy.settings')}{' '}
-              <Text
+              <TextButton
                 variant={TextVariant.BodySm}
-                color={TextColor.PrimaryDefault}
                 onPress={goToDefaultSettings}
               >
                 {strings('privacy_policy.settings_link')}
-              </Text>
+              </TextButton>
             </Text>
           </Box>
         </Box>
       </ScrollView>
-      {renderActionButtons()}
+      <FooterGlass
+        twClassName="py-2"
+        primaryButtonProps={{
+          children: strings('privacy_policy.continue'),
+          onPress: onConfirm,
+          size: ButtonSize.Lg,
+          testID: MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
+        }}
+      />
     </SafeAreaView>
   );
 };

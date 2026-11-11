@@ -7,6 +7,12 @@ import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ElevatedView from 'react-native-elevated-view';
+import {
+  Icon as DesignSystemIcon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -19,7 +25,7 @@ const createStyles = (colors) =>
       width: width || 180,
       backgroundColor: colors.overlay.alternative,
       padding: 20,
-      paddingTop: 30,
+      paddingTop: 32,
       alignSelf: 'center',
       alignItems: 'center',
       justifyContent: 'center',
@@ -85,6 +91,8 @@ class GlobalAlert extends PureComponent {
     switch (content) {
       case 'clipboard-alert':
         return this.renderClipboardAlert();
+      case 'storage-full-alert':
+        return this.renderStorageFullAlert();
       default:
         return <View />;
     }
@@ -93,6 +101,23 @@ class GlobalAlert extends PureComponent {
   getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
     return createStyles(colors);
+  };
+
+  renderStorageFullAlert = () => {
+    const styles = this.getStyles();
+
+    return (
+      <ElevatedView style={styles.copyAlert(280)} elevation={5}>
+        <View style={styles.copyAlertIcon}>
+          <DesignSystemIcon
+            name={IconName.Danger}
+            size={IconSize.Xl}
+            color={IconColor.Inverse}
+          />
+        </View>
+        <Text style={styles.copyAlertText}>{this.props.data?.msg}</Text>
+      </ElevatedView>
+    );
   };
 
   renderClipboardAlert = () => {

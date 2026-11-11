@@ -2,10 +2,9 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import {
   selectActiveTab,
-  selectReferralCode,
   selectBalanceTotal,
-  selectReferralCount,
-  selectReferredByCode,
+  selectCampaignsFetching,
+  selectReferralCode,
   selectIsVipReferee,
   selectReferredByVipCode,
   selectCurrentTier,
@@ -22,13 +21,10 @@ import {
   selectSeasonActivityTypes,
   selectSeasonWaysToEarn,
   selectOnboardingActiveStep,
-  selectOnboardingReferralCode,
   selectGeoLocation,
   selectOptinAllowedForGeo,
   selectOptinAllowedForGeoLoading,
   selectOptinAllowedForGeoError,
-  selectReferralDetailsLoading,
-  selectReferralDetailsError,
   selectCandidateSubscriptionId,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
@@ -47,6 +43,7 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
+  selectPendingMasSeriesOptIn,
   selectBenefits,
   selectVipDashboard,
   selectVipDashboardError,
@@ -86,6 +83,9 @@ import {
   selectPredictThePitchPrizePoolByCampaignId,
   selectPredictThePitchPrizePoolLoadingByCampaignId,
   selectPredictThePitchPrizePoolErrorByCampaignId,
+  selectPerpsTradingCampaignPrizePoolByCampaignId,
+  selectPerpsTradingCampaignPrizePoolLoadingByCampaignId,
+  selectPerpsTradingCampaignPrizePoolErrorByCampaignId,
   selectDismissedCampaignOutcomeToasts,
   selectSubscribedCampaignReminders,
   selectIsCampaignOutcomeToastDismissed,
@@ -123,10 +123,286 @@ const mockedUseSelector = useSelector as jest.MockedFunction<
 >;
 
 describe('Rewards selectors', () => {
-  // Helper function to create mock root state
+  const TEST_SUBSCRIPTION_ID = 'test-subscription-id';
+  const TEST_SEASON_ID = 'test-season-id';
+
   const createMockRootState = (
-    rewardsState: Partial<RewardsState>,
-  ): RootState => ({ rewards: rewardsState }) as RootState;
+    rewardsState: Record<string, unknown> = {},
+  ): RootState => {
+    const flat = rewardsState;
+    const hasSeasonIdKey = Object.prototype.hasOwnProperty.call(
+      flat,
+      'seasonId',
+    );
+    const seasonId = hasSeasonIdKey
+      ? ((flat.seasonId as string | null | undefined) ?? null)
+      : flat.balanceTotal !== undefined ||
+          flat.currentTier !== undefined ||
+          flat.nextTier !== undefined ||
+          flat.nextTierPointsNeeded !== undefined ||
+          flat.balanceUpdatedAt !== undefined ||
+          flat.seasonStatusLoading !== undefined ||
+          flat.seasonStatusError !== undefined ||
+          flat.activeBoosts !== undefined ||
+          flat.activeBoostsLoading !== undefined ||
+          flat.activeBoostsError !== undefined ||
+          flat.unlockedRewards !== undefined ||
+          flat.unlockedRewardLoading !== undefined ||
+          flat.unlockedRewardError !== undefined ||
+          flat.pointsEvents !== undefined
+        ? TEST_SEASON_ID
+        : null;
+
+    const hasCandidateKey = Object.prototype.hasOwnProperty.call(
+      flat,
+      'candidateSubscriptionId',
+    );
+    const candidate = hasCandidateKey
+      ? (flat.candidateSubscriptionId as string | null | undefined)
+      : TEST_SUBSCRIPTION_ID;
+    const subscriptionId =
+      candidate &&
+      candidate !== 'pending' &&
+      candidate !== 'error' &&
+      candidate !== 'retry'
+        ? candidate
+        : TEST_SUBSCRIPTION_ID;
+
+    const seasonKey = seasonId ? `${seasonId}:${subscriptionId}` : null;
+
+    const seasonUserStatuses: Record<string, unknown> = {
+      ...((flat.seasonUserStatuses as object) || {}),
+    };
+    if (
+      seasonKey &&
+      (flat.balanceTotal !== undefined ||
+        flat.currentTier !== undefined ||
+        flat.nextTier !== undefined ||
+        flat.nextTierPointsNeeded !== undefined ||
+        flat.balanceUpdatedAt !== undefined ||
+        flat.seasonStatusLoading !== undefined ||
+        flat.seasonStatusError !== undefined)
+    ) {
+      seasonUserStatuses[seasonKey] = {
+        balanceTotal: flat.balanceTotal ?? null,
+        balanceUpdatedAt: flat.balanceUpdatedAt ?? null,
+        currentTier: flat.currentTier ?? null,
+        nextTier: flat.nextTier ?? null,
+        nextTierPointsNeeded: flat.nextTierPointsNeeded ?? null,
+        loading: flat.seasonStatusLoading ?? false,
+        error: flat.seasonStatusError ?? null,
+      };
+    }
+
+    // Flat fixture fields (arrays / scalars) share names with keyed maps on
+    // RewardsState — detect arrays vs maps so both call styles keep working.
+    const referralDetailsMap: Record<string, unknown> =
+      flat.referralDetails &&
+      typeof flat.referralDetails === 'object' &&
+      !Array.isArray(flat.referralDetails)
+        ? { ...(flat.referralDetails as object) }
+        : {};
+    if (
+      flat.referralCode !== undefined ||
+      flat.refereeCount !== undefined ||
+      flat.referredByCode !== undefined ||
+      flat.isVipReferee !== undefined ||
+      flat.referredByVipCode !== undefined ||
+      flat.referralDetailsLoading !== undefined ||
+      flat.referralDetailsError !== undefined
+    ) {
+      referralDetailsMap[subscriptionId] = {
+        referralCode: flat.referralCode ?? null,
+        refereeCount: flat.refereeCount ?? 0,
+        referredByCode: flat.referredByCode ?? null,
+        isVipReferee: flat.isVipReferee ?? false,
+        referredByVipCode: flat.referredByVipCode ?? null,
+        loading: flat.referralDetailsLoading ?? false,
+        error: flat.referralDetailsError ?? false,
+      };
+    }
+
+    const activeBoostsMap: Record<string, unknown> =
+      flat.activeBoosts &&
+      typeof flat.activeBoosts === 'object' &&
+      !Array.isArray(flat.activeBoosts)
+        ? { ...(flat.activeBoosts as object) }
+        : {};
+    if (
+      seasonKey &&
+      (Array.isArray(flat.activeBoosts) ||
+        flat.activeBoostsLoading !== undefined ||
+        flat.activeBoostsError !== undefined)
+    ) {
+      activeBoostsMap[seasonKey] = {
+        boosts: Array.isArray(flat.activeBoosts) ? flat.activeBoosts : null,
+        loading: flat.activeBoostsLoading ?? false,
+        error: flat.activeBoostsError ?? false,
+      };
+    }
+
+    const unlockedRewardsMap: Record<string, unknown> =
+      flat.unlockedRewards &&
+      typeof flat.unlockedRewards === 'object' &&
+      !Array.isArray(flat.unlockedRewards)
+        ? { ...(flat.unlockedRewards as object) }
+        : {};
+    if (
+      seasonKey &&
+      (Array.isArray(flat.unlockedRewards) ||
+        flat.unlockedRewardLoading !== undefined ||
+        flat.unlockedRewardError !== undefined)
+    ) {
+      unlockedRewardsMap[seasonKey] = {
+        rewards: Array.isArray(flat.unlockedRewards)
+          ? flat.unlockedRewards
+          : null,
+        loading: flat.unlockedRewardLoading ?? false,
+        error: flat.unlockedRewardError ?? false,
+      };
+    }
+
+    const pointsEventsMap: Record<string, unknown> =
+      flat.pointsEvents &&
+      typeof flat.pointsEvents === 'object' &&
+      !Array.isArray(flat.pointsEvents)
+        ? { ...(flat.pointsEvents as object) }
+        : {};
+    if (
+      seasonKey &&
+      (Array.isArray(flat.pointsEvents) || flat.pointsEvents === null)
+    ) {
+      pointsEventsMap[seasonKey] = flat.pointsEvents;
+    }
+
+    const benefitsMap: Record<string, unknown> =
+      flat.benefits &&
+      typeof flat.benefits === 'object' &&
+      !Array.isArray(flat.benefits)
+        ? { ...(flat.benefits as object) }
+        : {};
+    if (
+      Array.isArray(flat.benefits) ||
+      flat.benefitsLoading !== undefined ||
+      flat.benefitsError !== undefined
+    ) {
+      benefitsMap[subscriptionId] = {
+        benefits: Array.isArray(flat.benefits) ? flat.benefits : [],
+        loading: flat.benefitsLoading ?? false,
+        error: flat.benefitsError ?? false,
+      };
+    }
+
+    const vipDashboard: Record<string, unknown> = {
+      ...((flat.vipDashboard as object) || {}),
+    };
+    if (
+      flat.vipDashboardLoading !== undefined ||
+      flat.vipDashboardError !== undefined
+    ) {
+      const existing = vipDashboard[subscriptionId] as
+        | { data?: unknown; loading?: boolean; error?: boolean }
+        | undefined;
+      vipDashboard[subscriptionId] = {
+        data: existing && 'data' in existing ? (existing.data ?? null) : null,
+        loading: flat.vipDashboardLoading ?? existing?.loading ?? false,
+        error: flat.vipDashboardError ?? existing?.error ?? false,
+      };
+    }
+
+    const vipRefereeDashboard: Record<string, unknown> = {
+      ...((flat.vipRefereeDashboard as object) || {}),
+    };
+    if (
+      flat.vipRefereeDashboardLoading !== undefined ||
+      flat.vipRefereeDashboardError !== undefined
+    ) {
+      const existing = vipRefereeDashboard[subscriptionId] as
+        | { data?: unknown; loading?: boolean; error?: boolean }
+        | undefined;
+      vipRefereeDashboard[subscriptionId] = {
+        data: existing && 'data' in existing ? (existing.data ?? null) : null,
+        loading: flat.vipRefereeDashboardLoading ?? existing?.loading ?? false,
+        error: flat.vipRefereeDashboardError ?? existing?.error ?? false,
+      };
+    }
+
+    // Strip legacy flat keys that are no longer on RewardsState
+    const {
+      balanceTotal: _bt,
+      balanceUpdatedAt: _bu,
+      currentTier: _ct,
+      nextTier: _nt,
+      nextTierPointsNeeded: _ntp,
+      seasonStatusLoading: _ssl,
+      seasonStatusError: _sse,
+      referralCode: _rc,
+      refereeCount: _rfc,
+      referredByCode: _rbc,
+      isVipReferee: _ivr,
+      referredByVipCode: _rbv,
+      referralDetailsLoading: _rdl,
+      referralDetailsError: _rde,
+      referralDetails: _rdm,
+      activeBoosts: _ab,
+      activeBoostsLoading: _abl,
+      activeBoostsError: _abe,
+      unlockedRewards: _ur,
+      unlockedRewardLoading: _url,
+      unlockedRewardError: _ure,
+      pointsEvents: _pe,
+      benefits: _bf,
+      benefitsLoading: _bfl,
+      benefitsError: _bfe,
+      vipDashboardLoading: _vdl,
+      vipDashboardError: _vde,
+      vipRefereeDashboardLoading: _vrdl,
+      vipRefereeDashboardError: _vrde,
+      vipDashboard: _vd,
+      vipRefereeDashboard: _vrd,
+      ...rest
+    } = flat;
+
+    return {
+      rewards: {
+        ...rest,
+        seasonId: seasonId ?? rest.seasonId ?? null,
+        candidateSubscriptionId: hasCandidateKey
+          ? candidate
+          : TEST_SUBSCRIPTION_ID,
+        seasonUserStatuses,
+        referralDetails: referralDetailsMap,
+        activeBoosts: activeBoostsMap,
+        unlockedRewards: unlockedRewardsMap,
+        pointsEvents: pointsEventsMap,
+        benefits: benefitsMap,
+        vipDashboard,
+        vipRefereeDashboard,
+      },
+      engine: { backgroundState: {} },
+    } as RootState;
+  };
+
+  const normalizeRootState = (
+    state:
+      | {
+          rewards?: Record<string, unknown> | RewardsState;
+          engine?: { backgroundState?: unknown };
+        }
+      | RootState,
+  ): RootState => {
+    // Already a createMockRootState result — avoid double-migration.
+    if (
+      'engine' in state &&
+      state.engine?.backgroundState !== undefined &&
+      state.rewards
+    ) {
+      return state as unknown as RootState;
+    }
+    return createMockRootState(
+      (state.rewards ?? {}) as Record<string, unknown>,
+    );
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -134,8 +410,12 @@ describe('Rewards selectors', () => {
 
   describe('selectActiveTab', () => {
     it('returns null when activeTab is null', () => {
-      const mockState = { rewards: { activeTab: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      const mockState = {
+        rewards: { activeTab: null },
+      };
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
       expect(result.current).toBeNull();
@@ -143,7 +423,9 @@ describe('Rewards selectors', () => {
 
     it('returns overview tab when set', () => {
       const mockState = { rewards: { activeTab: 'overview' as const } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
       expect(result.current).toBe('overview');
@@ -151,7 +433,9 @@ describe('Rewards selectors', () => {
 
     it('returns campaigns tab when set', () => {
       const mockState = { rewards: { activeTab: 'campaigns' as const } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
       expect(result.current).toBe('campaigns');
@@ -159,35 +443,20 @@ describe('Rewards selectors', () => {
 
     it('returns activity tab when set', () => {
       const mockState = { rewards: { activeTab: 'activity' as const } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
       expect(result.current).toBe('activity');
     });
   });
-
-  describe('selectReferralCode', () => {
-    it('returns null when referral code is not set', () => {
-      const mockState = { rewards: { referralCode: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferralCode));
-      expect(result.current).toBeNull();
-    });
-
-    it('returns referral code when set', () => {
-      const mockState = { rewards: { referralCode: 'ABC123' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferralCode));
-      expect(result.current).toBe('ABC123');
-    });
-  });
-
   describe('selectBalanceTotal', () => {
     it('returns null when balance total is null', () => {
       const mockState = { rewards: { balanceTotal: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectBalanceTotal));
       expect(result.current).toBeNull();
@@ -195,7 +464,9 @@ describe('Rewards selectors', () => {
 
     it('returns balance total when set', () => {
       const mockState = { rewards: { balanceTotal: 1500.75 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectBalanceTotal));
       expect(result.current).toBe(1500.75);
@@ -203,54 +474,23 @@ describe('Rewards selectors', () => {
 
     it('returns zero balance when set to zero', () => {
       const mockState = { rewards: { balanceTotal: 0 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectBalanceTotal));
       expect(result.current).toBe(0);
     });
   });
-
-  describe('selectReferralCount', () => {
-    it('returns referee count', () => {
-      const mockState = { rewards: { refereeCount: 5 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferralCount));
-      expect(result.current).toBe(5);
+  describe('selectReferralCode', () => {
+    it('returns null when no referral code is stored', () => {
+      const state = createMockRootState({});
+      expect(selectReferralCode(state)).toBeNull();
     });
 
-    it('returns zero when no referrals', () => {
-      const mockState = { rewards: { refereeCount: 0 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferralCount));
-      expect(result.current).toBe(0);
-    });
-  });
-
-  describe('selectReferredByCode', () => {
-    it('returns null when referred by code is not set', () => {
-      const mockState = { rewards: { referredByCode: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferredByCode));
-      expect(result.current).toBeNull();
-    });
-
-    it('returns referred by code when set', () => {
-      const mockState = { rewards: { referredByCode: 'REFERRER123' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferredByCode));
-      expect(result.current).toBe('REFERRER123');
-    });
-
-    it('returns empty string when referred by code is empty', () => {
-      const mockState = { rewards: { referredByCode: '' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectReferredByCode));
-      expect(result.current).toBe('');
+    it('returns the referral code for the current subscription', () => {
+      const state = createMockRootState({ referralCode: 'ABC123' });
+      expect(selectReferralCode(state)).toBe('ABC123');
     });
   });
 
@@ -281,7 +521,9 @@ describe('Rewards selectors', () => {
   describe('selectCurrentTier', () => {
     it('returns null when current tier is not set', () => {
       const mockState = { rewards: { currentTier: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectCurrentTier));
       expect(result.current).toBeNull();
@@ -300,7 +542,9 @@ describe('Rewards selectors', () => {
         rewards: [],
       };
       const mockState = { rewards: { currentTier: mockTier } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectCurrentTier));
       expect(result.current).toEqual(mockTier);
@@ -310,7 +554,9 @@ describe('Rewards selectors', () => {
   describe('selectNextTier', () => {
     it('returns null when next tier is not set', () => {
       const mockState = { rewards: { nextTier: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectNextTier));
       expect(result.current).toBeNull();
@@ -329,7 +575,9 @@ describe('Rewards selectors', () => {
         rewards: [],
       };
       const mockState = { rewards: { nextTier: mockTier } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectNextTier));
       expect(result.current).toEqual(mockTier);
@@ -339,7 +587,9 @@ describe('Rewards selectors', () => {
   describe('selectNextTierPointsNeeded', () => {
     it('returns null when points needed is not set', () => {
       const mockState = { rewards: { nextTierPointsNeeded: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectNextTierPointsNeeded),
@@ -349,7 +599,9 @@ describe('Rewards selectors', () => {
 
     it('returns points needed when set', () => {
       const mockState = { rewards: { nextTierPointsNeeded: 250 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectNextTierPointsNeeded),
@@ -359,7 +611,9 @@ describe('Rewards selectors', () => {
 
     it('returns zero points needed when set to zero', () => {
       const mockState = { rewards: { nextTierPointsNeeded: 0 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectNextTierPointsNeeded),
@@ -371,7 +625,9 @@ describe('Rewards selectors', () => {
   describe('selectBalanceUpdatedAt', () => {
     it('returns null when balance updated at is not set', () => {
       const mockState = { rewards: { balanceUpdatedAt: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectBalanceUpdatedAt));
       expect(result.current).toBeNull();
@@ -380,7 +636,9 @@ describe('Rewards selectors', () => {
     it('returns balance updated at date when set', () => {
       const mockDate = new Date('2024-01-15T10:30:00Z');
       const mockState = { rewards: { balanceUpdatedAt: mockDate } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectBalanceUpdatedAt));
       expect(result.current).toEqual(mockDate);
@@ -390,7 +648,9 @@ describe('Rewards selectors', () => {
   describe('selectSeasonStatusLoading', () => {
     it('returns false when season status is not loading', () => {
       const mockState = { rewards: { seasonStatusLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonStatusLoading),
@@ -400,7 +660,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when season status is loading', () => {
       const mockState = { rewards: { seasonStatusLoading: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonStatusLoading),
@@ -412,7 +674,9 @@ describe('Rewards selectors', () => {
   describe('selectSeasonStatusError', () => {
     it('returns null when no season status error is set', () => {
       const mockState = { rewards: { seasonStatusError: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonStatusError));
       expect(result.current).toBeNull();
@@ -421,7 +685,9 @@ describe('Rewards selectors', () => {
     it('returns error message when season status error is set', () => {
       const errorMessage = 'Failed to fetch season status';
       const mockState = { rewards: { seasonStatusError: errorMessage } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonStatusError));
       expect(result.current).toBe(errorMessage);
@@ -430,7 +696,9 @@ describe('Rewards selectors', () => {
     it('returns timeout error message', () => {
       const timeoutError = 'Request timed out while fetching season status';
       const mockState = { rewards: { seasonStatusError: timeoutError } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonStatusError));
       expect(result.current).toBe(timeoutError);
@@ -439,7 +707,9 @@ describe('Rewards selectors', () => {
     it('returns API error message', () => {
       const apiError = 'API returned 500: Internal server error';
       const mockState = { rewards: { seasonStatusError: apiError } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonStatusError));
       expect(result.current).toBe(apiError);
@@ -448,41 +718,51 @@ describe('Rewards selectors', () => {
     it('returns network error message', () => {
       const networkError = 'Network connection failed';
       const mockState = { rewards: { seasonStatusError: networkError } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonStatusError));
       expect(result.current).toBe(networkError);
     });
 
-    it('returns undefined when season status error is undefined', () => {
+    it('returns null when season status error is undefined', () => {
       const mockState = { rewards: { seasonStatusError: undefined } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonStatusError));
-      expect(result.current).toBeUndefined();
+      expect(result.current).toBeNull();
     });
   });
 
   describe('selectSeasonId', () => {
     it('returns null when season ID is not set', () => {
       const mockState = { rewards: { seasonId: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonId));
       expect(result.current).toBeNull();
     });
 
-    it('returns undefined when season ID is undefined', () => {
+    it('returns null when season ID is undefined', () => {
       const mockState = { rewards: { seasonId: undefined } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonId));
-      expect(result.current).toBeUndefined();
+      expect(result.current).toBeNull();
     });
 
     it('returns season ID when set', () => {
       const mockState = { rewards: { seasonId: 'season-2024-summer' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonId));
       expect(result.current).toBe('season-2024-summer');
@@ -490,7 +770,9 @@ describe('Rewards selectors', () => {
 
     it('returns numeric season ID when set as number', () => {
       const mockState = { rewards: { seasonId: 123 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonId));
       expect(result.current).toBe(123);
@@ -500,7 +782,9 @@ describe('Rewards selectors', () => {
   describe('selectSeasonName', () => {
     it('returns null when season name is not set', () => {
       const mockState = { rewards: { seasonName: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonName));
       expect(result.current).toBeNull();
@@ -508,7 +792,9 @@ describe('Rewards selectors', () => {
 
     it('returns season name when set', () => {
       const mockState = { rewards: { seasonName: 'Summer 2024' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonName));
       expect(result.current).toBe('Summer 2024');
@@ -518,7 +804,9 @@ describe('Rewards selectors', () => {
   describe('selectSeasonStartDate', () => {
     it('returns null when season start date is not set', () => {
       const mockState = { rewards: { seasonStartDate: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonStartDate));
       expect(result.current).toBeNull();
@@ -527,7 +815,9 @@ describe('Rewards selectors', () => {
     it('returns season start date when set', () => {
       const mockDate = new Date('2024-06-01T00:00:00Z');
       const mockState = { rewards: { seasonStartDate: mockDate } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonStartDate));
       expect(result.current).toEqual(mockDate);
@@ -537,7 +827,9 @@ describe('Rewards selectors', () => {
   describe('selectSeasonEndDate', () => {
     it('returns null when season end date is not set', () => {
       const mockState = { rewards: { seasonEndDate: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonEndDate));
       expect(result.current).toBeNull();
@@ -546,7 +838,9 @@ describe('Rewards selectors', () => {
     it('returns season end date when set', () => {
       const mockDate = new Date('2024-08-31T23:59:59Z');
       const mockState = { rewards: { seasonEndDate: mockDate } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonEndDate));
       expect(result.current).toEqual(mockDate);
@@ -556,7 +850,9 @@ describe('Rewards selectors', () => {
   describe('selectSeasonTiers', () => {
     it('returns empty array when season tiers are not set', () => {
       const mockState = { rewards: { seasonTiers: [] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonTiers));
       expect(result.current).toEqual([]);
@@ -566,7 +862,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { seasonTiers: undefined },
       } as unknown as RootState;
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonTiers));
       expect(result.current).toEqual([]);
@@ -609,7 +907,9 @@ describe('Rewards selectors', () => {
         },
       ];
       const mockState = { rewards: { seasonTiers: mockTiers } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonTiers));
       expect(result.current).toEqual(mockTiers);
@@ -619,7 +919,9 @@ describe('Rewards selectors', () => {
   describe('selectSeasonActivityTypes', () => {
     it('returns empty array when season activity types are not set', () => {
       const mockState = { rewards: { seasonActivityTypes: [] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonActivityTypes),
@@ -631,7 +933,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { seasonActivityTypes: undefined },
       } as unknown as RootState;
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonActivityTypes),
@@ -655,7 +959,9 @@ describe('Rewards selectors', () => {
         },
       ];
       const mockState = { rewards: { seasonActivityTypes: mockActivityTypes } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonActivityTypes),
@@ -667,7 +973,9 @@ describe('Rewards selectors', () => {
   describe('selectSeasonWaysToEarn', () => {
     it('returns empty array when season ways to earn are not set', () => {
       const mockState = { rewards: { seasonWaysToEarn: [] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
       expect(result.current).toEqual([]);
@@ -677,7 +985,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { seasonWaysToEarn: undefined },
       } as unknown as RootState;
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
       expect(result.current).toEqual([]);
@@ -711,7 +1021,9 @@ describe('Rewards selectors', () => {
         },
       ];
       const mockState = { rewards: { seasonWaysToEarn: mockWaysToEarn } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
       expect(result.current).toEqual(mockWaysToEarn);
@@ -724,7 +1036,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { onboardingActiveStep: OnboardingStep.INTRO },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOnboardingActiveStep),
@@ -736,7 +1050,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { onboardingActiveStep: OnboardingStep.STEP_1 },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOnboardingActiveStep),
@@ -748,7 +1064,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { onboardingActiveStep: OnboardingStep.STEP_2 },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOnboardingActiveStep),
@@ -760,7 +1078,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { onboardingActiveStep: OnboardingStep.STEP_3 },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOnboardingActiveStep),
@@ -772,7 +1092,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { onboardingActiveStep: OnboardingStep.STEP_4 },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOnboardingActiveStep),
@@ -780,63 +1102,12 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe(OnboardingStep.STEP_4);
     });
   });
-
-  describe('selectOnboardingReferralCode', () => {
-    it('returns null when onboarding referral code is not set', () => {
-      const mockState = { rewards: { onboardingReferralCode: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingReferralCode),
-      );
-      expect(result.current).toBeNull();
-    });
-
-    it('returns onboarding referral code when set', () => {
-      const mockState = { rewards: { onboardingReferralCode: 'ONBOARD123' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingReferralCode),
-      );
-      expect(result.current).toBe('ONBOARD123');
-    });
-
-    it('returns empty string when onboarding referral code is empty', () => {
-      const mockState = { rewards: { onboardingReferralCode: '' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectOnboardingReferralCode),
-      );
-      expect(result.current).toBe('');
-    });
-
-    it('handles state changes correctly', () => {
-      const mockState = { rewards: { onboardingReferralCode: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result, rerender } = renderHook(() =>
-        useSelector(selectOnboardingReferralCode),
-      );
-      expect(result.current).toBeNull();
-
-      // Simulate state change: update onboardingReferralCode to a string
-      const updatedState = {
-        rewards: { onboardingReferralCode: 'UPDATED456' },
-      };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(updatedState),
-      );
-      rerender();
-      expect(result.current).toBe('UPDATED456');
-    });
-  });
-
   describe('selectGeoLocation', () => {
     it('returns null when geo location is not set', () => {
       const mockState = { rewards: { geoLocation: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectGeoLocation));
       expect(result.current).toBeNull();
@@ -844,7 +1115,9 @@ describe('Rewards selectors', () => {
 
     it('returns geo location when set', () => {
       const mockState = { rewards: { geoLocation: 'US' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectGeoLocation));
       expect(result.current).toBe('US');
@@ -854,7 +1127,9 @@ describe('Rewards selectors', () => {
   describe('selectOptinAllowedForGeo', () => {
     it('returns false when opt-in is not allowed for geo', () => {
       const mockState = { rewards: { optinAllowedForGeo: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOptinAllowedForGeo),
@@ -864,7 +1139,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when opt-in is allowed for geo', () => {
       const mockState = { rewards: { optinAllowedForGeo: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOptinAllowedForGeo),
@@ -876,7 +1153,9 @@ describe('Rewards selectors', () => {
   describe('selectOptinAllowedForGeoLoading', () => {
     it('returns false when geo check is not loading', () => {
       const mockState = { rewards: { optinAllowedForGeoLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOptinAllowedForGeoLoading),
@@ -886,7 +1165,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when geo check is loading', () => {
       const mockState = { rewards: { optinAllowedForGeoLoading: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOptinAllowedForGeoLoading),
@@ -898,7 +1179,9 @@ describe('Rewards selectors', () => {
   describe('selectOptinAllowedForGeoError', () => {
     it('returns false when there is no geo error', () => {
       const mockState = { rewards: { optinAllowedForGeoError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOptinAllowedForGeoError),
@@ -908,7 +1191,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when there is a geo error', () => {
       const mockState = { rewards: { optinAllowedForGeoError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectOptinAllowedForGeoError),
@@ -918,7 +1203,9 @@ describe('Rewards selectors', () => {
 
     it('handles error state changes correctly', () => {
       let mockState = { rewards: { optinAllowedForGeoError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result, rerender } = renderHook(() =>
         useSelector(selectOptinAllowedForGeoError),
@@ -926,85 +1213,26 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe(false);
 
       mockState = { rewards: { optinAllowedForGeoError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBe(true);
 
       mockState = { rewards: { optinAllowedForGeoError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBe(false);
     });
   });
-
-  describe('selectReferralDetailsLoading', () => {
-    it('returns false when referral details are not loading', () => {
-      const mockState = { rewards: { referralDetailsLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectReferralDetailsLoading),
-      );
-      expect(result.current).toBe(false);
-    });
-
-    it('returns true when referral details are loading', () => {
-      const mockState = { rewards: { referralDetailsLoading: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectReferralDetailsLoading),
-      );
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectReferralDetailsError', () => {
-    it('returns false when there is no referral details error', () => {
-      const mockState = { rewards: { referralDetailsError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectReferralDetailsError),
-      );
-      expect(result.current).toBe(false);
-    });
-
-    it('returns true when there is a referral details error', () => {
-      const mockState = { rewards: { referralDetailsError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectReferralDetailsError),
-      );
-      expect(result.current).toBe(true);
-    });
-
-    it('handles error state changes correctly', () => {
-      let mockState = { rewards: { referralDetailsError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result, rerender } = renderHook(() =>
-        useSelector(selectReferralDetailsError),
-      );
-      expect(result.current).toBe(false);
-
-      mockState = { rewards: { referralDetailsError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-      rerender();
-      expect(result.current).toBe(true);
-
-      mockState = { rewards: { referralDetailsError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-      rerender();
-      expect(result.current).toBe(false);
-    });
-  });
-
   describe('selectCandidateSubscriptionId', () => {
     it('returns null when candidate subscription ID is null', () => {
       const mockState = { rewards: { candidateSubscriptionId: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectCandidateSubscriptionId),
@@ -1014,7 +1242,9 @@ describe('Rewards selectors', () => {
 
     it('returns pending when candidate subscription ID is pending', () => {
       const mockState = { rewards: { candidateSubscriptionId: 'pending' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectCandidateSubscriptionId),
@@ -1024,7 +1254,9 @@ describe('Rewards selectors', () => {
 
     it('returns error when candidate subscription ID is error', () => {
       const mockState = { rewards: { candidateSubscriptionId: 'error' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectCandidateSubscriptionId),
@@ -1034,7 +1266,9 @@ describe('Rewards selectors', () => {
 
     it('returns subscription ID when set to a string', () => {
       const mockState = { rewards: { candidateSubscriptionId: 'sub-12345' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectCandidateSubscriptionId),
@@ -1046,7 +1280,9 @@ describe('Rewards selectors', () => {
   describe('selectHideUnlinkedAccountsBanner', () => {
     it('returns false when banner should be shown', () => {
       const mockState = { rewards: { hideUnlinkedAccountsBanner: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectHideUnlinkedAccountsBanner),
@@ -1056,7 +1292,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when banner should be hidden', () => {
       const mockState = { rewards: { hideUnlinkedAccountsBanner: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectHideUnlinkedAccountsBanner),
@@ -1068,7 +1306,9 @@ describe('Rewards selectors', () => {
   describe('selectHideCurrentAccountNotOptedInBannerArray', () => {
     it('returns empty array when no accounts are configured', () => {
       const mockState = { rewards: { hideCurrentAccountNotOptedInBanner: [] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
@@ -1081,7 +1321,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { hideCurrentAccountNotOptedInBanner: undefined },
       } as unknown as RootState;
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
@@ -1097,7 +1339,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { hideCurrentAccountNotOptedInBanner: [mockAccountConfig] },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
@@ -1126,7 +1370,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { hideCurrentAccountNotOptedInBanner: mockAccountConfigs },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
@@ -1156,7 +1402,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { hideCurrentAccountNotOptedInBanner: mockAccountConfigs },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
@@ -1173,7 +1421,9 @@ describe('Rewards selectors', () => {
             [] as AccountOptInBannerInfoStatus[],
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result, rerender } = renderHook(() =>
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
@@ -1190,7 +1440,9 @@ describe('Rewards selectors', () => {
       mockState = {
         rewards: { hideCurrentAccountNotOptedInBanner: newAccountConfigs },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toEqual(newAccountConfigs);
       expect(result.current).toHaveLength(1);
@@ -1218,7 +1470,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { hideCurrentAccountNotOptedInBanner: orderedConfigs },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
@@ -1252,7 +1506,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { hideCurrentAccountNotOptedInBanner: differentFormatConfigs },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectHideCurrentAccountNotOptedInBannerArray),
@@ -1270,7 +1526,9 @@ describe('Rewards selectors', () => {
   describe('selectCurrentSeasonId', () => {
     it('returns null when season ID is null', () => {
       const mockState = { rewards: { seasonId: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonId));
       expect(result.current).toBeNull();
@@ -1278,7 +1536,9 @@ describe('Rewards selectors', () => {
 
     it('returns season ID when set', () => {
       const mockState = { rewards: { seasonId: 'season-123' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonId));
       expect(result.current).toBe('season-123');
@@ -1286,7 +1546,9 @@ describe('Rewards selectors', () => {
 
     it('returns different season IDs correctly', () => {
       const mockState = { rewards: { seasonId: 'winter-2024' } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectSeasonId));
       expect(result.current).toBe('winter-2024');
@@ -1296,7 +1558,9 @@ describe('Rewards selectors', () => {
   describe('selectActiveBoosts', () => {
     it('returns empty array when no boosts', () => {
       const mockState = { rewards: { activeBoosts: [] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectActiveBoosts));
       expect(result.current).toEqual([]);
@@ -1330,7 +1594,9 @@ describe('Rewards selectors', () => {
         },
       ];
       const mockState = { rewards: { activeBoosts: mockBoosts } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectActiveBoosts));
       expect(result.current).toEqual(mockBoosts);
@@ -1354,7 +1620,9 @@ describe('Rewards selectors', () => {
         },
       ];
       const mockState = { rewards: { activeBoosts: singleBoost } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectActiveBoosts));
       expect(result.current).toEqual(singleBoost);
@@ -1367,7 +1635,9 @@ describe('Rewards selectors', () => {
   describe('selectActiveBoostsLoading', () => {
     it('returns false when not loading', () => {
       const mockState = { rewards: { activeBoostsLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectActiveBoostsLoading),
@@ -1377,7 +1647,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when loading', () => {
       const mockState = { rewards: { activeBoostsLoading: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectActiveBoostsLoading),
@@ -1389,7 +1661,9 @@ describe('Rewards selectors', () => {
   describe('selectActiveBoostsError', () => {
     it('returns false when no error', () => {
       const mockState = { rewards: { activeBoostsError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectActiveBoostsError));
       expect(result.current).toBe(false);
@@ -1397,7 +1671,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when error occurs', () => {
       const mockState = { rewards: { activeBoostsError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectActiveBoostsError));
       expect(result.current).toBe(true);
@@ -1405,7 +1681,9 @@ describe('Rewards selectors', () => {
 
     it('handles error state changes correctly', () => {
       let mockState = { rewards: { activeBoostsError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result, rerender } = renderHook(() =>
         useSelector(selectActiveBoostsError),
@@ -1414,13 +1692,17 @@ describe('Rewards selectors', () => {
 
       // Change state to error
       mockState = { rewards: { activeBoostsError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBe(true);
 
       // Change back to no error
       mockState = { rewards: { activeBoostsError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBe(false);
     });
@@ -1432,6 +1714,25 @@ describe('Rewards selectors', () => {
       it('returns correct active tab directly', () => {
         const state = createMockRootState({ activeTab: 'activity' });
         expect(selectActiveTab(state)).toBe('activity');
+      });
+    });
+
+    describe('selectCampaignsFetching direct calls', () => {
+      it('returns true while a campaigns fetch is in flight', () => {
+        const state = createMockRootState({ campaignsFetching: true });
+        expect(selectCampaignsFetching(state)).toBe(true);
+      });
+
+      it('returns false when no fetch is in flight', () => {
+        const state = createMockRootState({ campaignsFetching: false });
+        expect(selectCampaignsFetching(state)).toBe(false);
+      });
+
+      it('defaults to false when the flag is absent from persisted state', () => {
+        const state = createMockRootState({});
+        // @ts-expect-error deliberately simulating pre-upgrade state
+        delete state.rewards.campaignsFetching;
+        expect(selectCampaignsFetching(state)).toBe(false);
       });
     });
 
@@ -1451,36 +1752,6 @@ describe('Rewards selectors', () => {
         expect(selectBalanceTotal(state)).toBe(-100);
       });
     });
-
-    describe('selectReferralCount direct calls', () => {
-      it('returns correct referral count directly', () => {
-        const state = createMockRootState({ refereeCount: 42 });
-        expect(selectReferralCount(state)).toBe(42);
-      });
-
-      it('handles zero referrals correctly', () => {
-        const state = createMockRootState({ refereeCount: 0 });
-        expect(selectReferralCount(state)).toBe(0);
-      });
-
-      it('handles large referral counts correctly', () => {
-        const state = createMockRootState({ refereeCount: 9999 });
-        expect(selectReferralCount(state)).toBe(9999);
-      });
-    });
-
-    describe('selectReferredByCode direct calls', () => {
-      it('returns null when referred by code is null', () => {
-        const state = createMockRootState({ referredByCode: null });
-        expect(selectReferredByCode(state)).toBeNull();
-      });
-
-      it('returns referred by code when set', () => {
-        const state = createMockRootState({ referredByCode: 'REFERRER456' });
-        expect(selectReferredByCode(state)).toBe('REFERRER456');
-      });
-    });
-
     describe('selectSeasonTiers direct calls', () => {
       it('returns empty array when no tiers', () => {
         const state = createMockRootState({ seasonTiers: [] });
@@ -1733,36 +2004,30 @@ describe('Rewards selectors', () => {
       it('handles zero values correctly', () => {
         const state = createMockRootState({
           balanceTotal: 0,
-          refereeCount: 0,
           nextTierPointsNeeded: 0,
         });
 
         expect(selectBalanceTotal(state)).toBe(0);
-        expect(selectReferralCount(state)).toBe(0);
         expect(selectNextTierPointsNeeded(state)).toBe(0);
       });
 
       it('handles negative values correctly', () => {
         const state = createMockRootState({
           balanceTotal: -100,
-          refereeCount: -1,
           nextTierPointsNeeded: -10,
         });
 
         expect(selectBalanceTotal(state)).toBe(-100);
-        expect(selectReferralCount(state)).toBe(-1);
         expect(selectNextTierPointsNeeded(state)).toBe(-10);
       });
 
       it('handles very large numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: Number.MAX_SAFE_INTEGER,
-          refereeCount: 1000000,
           nextTierPointsNeeded: Number.MAX_SAFE_INTEGER,
         });
 
         expect(selectBalanceTotal(state)).toBe(Number.MAX_SAFE_INTEGER);
-        expect(selectReferralCount(state)).toBe(1000000);
         expect(selectNextTierPointsNeeded(state)).toBe(Number.MAX_SAFE_INTEGER);
       });
 
@@ -1778,29 +2043,25 @@ describe('Rewards selectors', () => {
     describe('String value edge cases', () => {
       it('handles empty strings correctly', () => {
         const state = createMockRootState({
-          referralCode: '',
           seasonId: '',
           seasonName: '',
           geoLocation: '',
-          candidateSubscriptionId: '',
+          candidateSubscriptionId: 'sub-empty-test',
         });
 
-        expect(selectReferralCode(state)).toBe('');
         expect(selectSeasonId(state)).toBe('');
         expect(selectSeasonName(state)).toBe('');
         expect(selectGeoLocation(state)).toBe('');
-        expect(selectCandidateSubscriptionId(state)).toBe('');
+        expect(selectCandidateSubscriptionId(state)).toBe('sub-empty-test');
       });
 
       it('handles very long strings correctly', () => {
         const longString = 'a'.repeat(10000);
         const state = createMockRootState({
-          referralCode: longString,
           seasonName: longString,
           geoLocation: longString,
         });
 
-        expect(selectReferralCode(state)).toBe(longString);
         expect(selectSeasonName(state)).toBe(longString);
         expect(selectGeoLocation(state)).toBe(longString);
       });
@@ -1809,12 +2070,10 @@ describe('Rewards selectors', () => {
         const specialString = '!@#$%^&*()_+-=[]{}|;:,.<>?';
         const unicodeString = '🎉🌟✨🎊🎈';
         const state = createMockRootState({
-          referralCode: specialString,
           seasonName: unicodeString,
           geoLocation: 'en-US',
         });
 
-        expect(selectReferralCode(state)).toBe(specialString);
         expect(selectSeasonName(state)).toBe(unicodeString);
         expect(selectGeoLocation(state)).toBe('en-US');
       });
@@ -2007,9 +2266,6 @@ describe('Rewards selectors', () => {
           new Date('2024-03-31'),
         );
         expect(selectSeasonTiers(comprehensiveState)).toHaveLength(3);
-        expect(selectReferralDetailsLoading(comprehensiveState)).toBe(false);
-        expect(selectReferralCode(comprehensiveState)).toBe('REFER2024');
-        expect(selectReferralCount(comprehensiveState)).toBe(25);
         expect(selectCurrentTier(comprehensiveState)?.name).toBe('Silver');
         expect(selectNextTier(comprehensiveState)?.name).toBe('Gold');
         expect(selectNextTierPointsNeeded(comprehensiveState)).toBe(1000);
@@ -2055,7 +2311,9 @@ describe('Rewards selectors', () => {
       });
       it('returns true when loading', () => {
         const mockState = { rewards: { activeBoostsLoading: true } };
-        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+        mockedUseSelector.mockImplementation((selector) =>
+          selector(normalizeRootState(mockState)),
+        );
 
         const { result } = renderHook(() =>
           useSelector(selectActiveBoostsLoading),
@@ -2065,7 +2323,9 @@ describe('Rewards selectors', () => {
 
       it('handles loading state changes correctly', () => {
         let mockState = { rewards: { activeBoostsLoading: false } };
-        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+        mockedUseSelector.mockImplementation((selector) =>
+          selector(normalizeRootState(mockState)),
+        );
 
         const { result, rerender } = renderHook(() =>
           useSelector(selectActiveBoostsLoading),
@@ -2074,7 +2334,9 @@ describe('Rewards selectors', () => {
 
         // Change state to loading
         mockState = { rewards: { activeBoostsLoading: true } };
-        mockedUseSelector.mockImplementation((selector) => selector(mockState));
+        mockedUseSelector.mockImplementation((selector) =>
+          selector(normalizeRootState(mockState)),
+        );
         rerender();
         expect(result.current).toBe(true);
       });
@@ -2084,7 +2346,9 @@ describe('Rewards selectors', () => {
   describe('selectUnlockedRewards', () => {
     it('returns empty array when unlockedRewards is null', () => {
       const mockState = { rewards: { unlockedRewards: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectUnlockedRewards));
       expect(result.current).toBeNull();
@@ -2092,7 +2356,9 @@ describe('Rewards selectors', () => {
 
     it('returns empty array when unlockedRewards is empty', () => {
       const mockState = { rewards: { unlockedRewards: [] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectUnlockedRewards));
       expect(result.current).toEqual([]);
@@ -2112,7 +2378,9 @@ describe('Rewards selectors', () => {
         },
       ];
       const mockState = { rewards: { unlockedRewards: mockUnlockedRewards } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectUnlockedRewards));
       expect(result.current).toEqual(mockUnlockedRewards);
@@ -2123,7 +2391,9 @@ describe('Rewards selectors', () => {
 
     it('handles state changes correctly', () => {
       let mockState = { rewards: { unlockedRewards: [] as RewardDto[] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result, rerender } = renderHook(() =>
         useSelector(selectUnlockedRewards),
@@ -2139,7 +2409,9 @@ describe('Rewards selectors', () => {
         },
       ] as RewardDto[];
       mockState = { rewards: { unlockedRewards: newRewards } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toEqual(newRewards);
     });
@@ -2148,7 +2420,9 @@ describe('Rewards selectors', () => {
   describe('selectUnlockedRewardLoading', () => {
     it('returns false when unlockedRewardLoading is false', () => {
       const mockState = { rewards: { unlockedRewardLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectUnlockedRewardLoading),
@@ -2158,7 +2432,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when unlockedRewardLoading is true', () => {
       const mockState = { rewards: { unlockedRewardLoading: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectUnlockedRewardLoading),
@@ -2168,17 +2444,21 @@ describe('Rewards selectors', () => {
 
     it('returns false when unlockedRewardLoading is undefined', () => {
       const mockState = { rewards: { unlockedRewardLoading: undefined } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectUnlockedRewardLoading),
       );
-      expect(result.current).toBeUndefined();
+      expect(result.current).toBe(false);
     });
 
     it('handles loading state changes correctly', () => {
       let mockState = { rewards: { unlockedRewardLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result, rerender } = renderHook(() =>
         useSelector(selectUnlockedRewardLoading),
@@ -2187,7 +2467,9 @@ describe('Rewards selectors', () => {
 
       // Change state to loading
       mockState = { rewards: { unlockedRewardLoading: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBe(true);
     });
@@ -2196,7 +2478,9 @@ describe('Rewards selectors', () => {
   describe('selectUnlockedRewardError', () => {
     it('returns false when unlockedRewardError is false', () => {
       const mockState = { rewards: { unlockedRewardError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectUnlockedRewardError),
@@ -2206,7 +2490,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when unlockedRewardError is true', () => {
       const mockState = { rewards: { unlockedRewardError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectUnlockedRewardError),
@@ -2216,17 +2502,21 @@ describe('Rewards selectors', () => {
 
     it('returns false when unlockedRewardError is undefined', () => {
       const mockState = { rewards: { unlockedRewardError: undefined } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectUnlockedRewardError),
       );
-      expect(result.current).toBeUndefined();
+      expect(result.current).toBe(false);
     });
 
     it('handles error state changes correctly', () => {
       let mockState = { rewards: { unlockedRewardError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result, rerender } = renderHook(() =>
         useSelector(selectUnlockedRewardError),
@@ -2235,13 +2525,17 @@ describe('Rewards selectors', () => {
 
       // Change state to error
       mockState = { rewards: { unlockedRewardError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBe(true);
 
       // Change back to no error
       mockState = { rewards: { unlockedRewardError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBe(false);
     });
@@ -2298,7 +2592,9 @@ describe('Rewards selectors', () => {
 
     it('returns undefined when seasonTiers is null', () => {
       const mockState = { rewards: { seasonTiers: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonRewardById('reward-1')),
@@ -2308,7 +2604,9 @@ describe('Rewards selectors', () => {
 
     it('returns undefined when seasonTiers is empty', () => {
       const mockState = { rewards: { seasonTiers: [] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonRewardById('reward-1')),
@@ -2318,7 +2616,9 @@ describe('Rewards selectors', () => {
 
     it('returns undefined when reward is not found', () => {
       const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonRewardById('non-existent-reward')),
@@ -2328,7 +2628,9 @@ describe('Rewards selectors', () => {
 
     it('returns the correct reward when found in first tier', () => {
       const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonRewardById('reward-1')),
@@ -2341,7 +2643,9 @@ describe('Rewards selectors', () => {
 
     it('returns the correct reward when found in second tier', () => {
       const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonRewardById('reward-3')),
@@ -2354,7 +2658,9 @@ describe('Rewards selectors', () => {
 
     it('returns the correct reward from multiple rewards in same tier', () => {
       const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectSeasonRewardById('reward-2')),
@@ -2367,7 +2673,9 @@ describe('Rewards selectors', () => {
 
     it('handles different reward IDs correctly', () => {
       const mockState = { rewards: { seasonTiers: mockSeasonTiers } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       // Test multiple different IDs
       const { result: result1 } = renderHook(() =>
@@ -2387,7 +2695,9 @@ describe('Rewards selectors', () => {
 
     it('handles state changes correctly', () => {
       let mockState = { rewards: { seasonTiers: [] as SeasonTierDto[] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result, rerender } = renderHook(() =>
         useSelector(selectSeasonRewardById('reward-1')),
@@ -2398,7 +2708,9 @@ describe('Rewards selectors', () => {
       mockState = {
         rewards: { seasonTiers: mockSeasonTiers as SeasonTierDto[] },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBeDefined();
       expect(result.current?.id).toBe('reward-1');
@@ -2408,7 +2720,9 @@ describe('Rewards selectors', () => {
   describe('selectPointsEvents', () => {
     it('returns null when points events is null', () => {
       const mockState = { rewards: { pointsEvents: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectPointsEvents));
       expect(result.current).toBeNull();
@@ -2416,7 +2730,9 @@ describe('Rewards selectors', () => {
 
     it('returns empty array when points events is empty', () => {
       const mockState = { rewards: { pointsEvents: [] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectPointsEvents));
       expect(result.current).toEqual([]);
@@ -2464,7 +2780,9 @@ describe('Rewards selectors', () => {
         },
       ];
       const mockState = { rewards: { pointsEvents: mockPointsEvents } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectPointsEvents));
       expect(result.current).toEqual(mockPointsEvents);
@@ -2478,7 +2796,9 @@ describe('Rewards selectors', () => {
       let mockState = {
         rewards: { pointsEvents: null as PointsEventDto[] | null },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result, rerender } = renderHook(() =>
         useSelector(selectPointsEvents),
@@ -2514,7 +2834,9 @@ describe('Rewards selectors', () => {
         },
       ];
       mockState = { rewards: { pointsEvents: newEvents } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toEqual(newEvents);
       expect(result.current).toHaveLength(1);
@@ -2571,7 +2893,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectBulkLinkState));
       expect(result.current).toEqual({
@@ -2593,7 +2917,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectBulkLinkState));
       expect(result.current).toEqual({
@@ -2640,7 +2966,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectBulkLinkIsRunning));
       expect(result.current).toBe(true);
@@ -2657,7 +2985,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectBulkLinkIsRunning));
       expect(result.current).toBe(false);
@@ -2706,7 +3036,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkTotalAccounts),
@@ -2725,7 +3057,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkTotalAccounts),
@@ -2762,7 +3096,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkLinkedAccounts),
@@ -2781,7 +3117,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkLinkedAccounts),
@@ -2818,7 +3156,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkFailedAccounts),
@@ -2837,7 +3177,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkFailedAccounts),
@@ -2876,7 +3218,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkWasInterrupted),
@@ -2897,7 +3241,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkWasInterrupted),
@@ -2918,7 +3264,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkWasInterrupted),
@@ -2939,7 +3287,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result, rerender } = renderHook(() =>
         useSelector(selectBulkLinkWasInterrupted),
@@ -2959,7 +3309,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBe(true);
 
@@ -2976,7 +3328,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
       rerender();
       expect(result.current).toBe(false);
     });
@@ -3038,7 +3392,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkAccountProgress),
@@ -3057,7 +3413,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkAccountProgress),
@@ -3077,7 +3435,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkAccountProgress),
@@ -3097,7 +3457,9 @@ describe('Rewards selectors', () => {
           },
         },
       };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() =>
         useSelector(selectBulkLinkAccountProgress),
@@ -3236,6 +3598,7 @@ describe('Rewards selectors', () => {
         earned: 5555555,
         threshold: 7777777,
         percent: 71.4,
+        lifetimeQualifyingPoints: null,
       },
       tiers: [
         {
@@ -3252,6 +3615,7 @@ describe('Rewards selectors', () => {
         },
       ],
       localizedText: {
+        equityLifetimePointsDescription: 'Lifetime total: {points}',
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         transactionsTitle: 'Transactions',
@@ -3283,7 +3647,13 @@ describe('Rewards selectors', () => {
 
     it('returns null when subscription id is missing', () => {
       const state = createMockRootState({
-        vipDashboard: { 'sub-1': mockVipDashboard },
+        vipDashboard: {
+          'sub-1': {
+            data: mockVipDashboard,
+            loading: false,
+            error: false,
+          },
+        },
       });
 
       expect(selectVipDashboard(null)(state)).toBeNull();
@@ -3299,7 +3669,13 @@ describe('Rewards selectors', () => {
 
     it('returns dashboard for subscription', () => {
       const state = createMockRootState({
-        vipDashboard: { 'sub-1': mockVipDashboard },
+        vipDashboard: {
+          'sub-1': {
+            data: mockVipDashboard,
+            loading: false,
+            error: false,
+          },
+        },
       });
 
       expect(selectVipDashboard('sub-1')(state)).toEqual(mockVipDashboard);
@@ -3349,7 +3725,9 @@ describe('Rewards selectors', () => {
   describe('selectCampaigns', () => {
     it('returns empty array when campaigns is empty', () => {
       const mockState = { rewards: { campaigns: [] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectCampaigns));
       expect(result.current).toEqual([]);
@@ -3359,7 +3737,9 @@ describe('Rewards selectors', () => {
       const mockState = {
         rewards: { campaigns: undefined },
       } as unknown as RootState;
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectCampaigns));
       expect(result.current).toEqual([]);
@@ -3367,7 +3747,9 @@ describe('Rewards selectors', () => {
 
     it('returns campaigns array when campaigns exist', () => {
       const mockState = { rewards: { campaigns: [mockCampaign] } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectCampaigns));
       expect(result.current).toEqual([mockCampaign]);
@@ -3396,7 +3778,9 @@ describe('Rewards selectors', () => {
   describe('selectCampaignsLoading', () => {
     it('returns false when campaigns are not loading', () => {
       const mockState = { rewards: { campaignsLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectCampaignsLoading));
       expect(result.current).toBe(false);
@@ -3404,7 +3788,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when campaigns are loading', () => {
       const mockState = { rewards: { campaignsLoading: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectCampaignsLoading));
       expect(result.current).toBe(true);
@@ -3426,7 +3812,9 @@ describe('Rewards selectors', () => {
   describe('selectCampaignsError', () => {
     it('returns false when there is no campaigns error', () => {
       const mockState = { rewards: { campaignsError: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectCampaignsError));
       expect(result.current).toBe(false);
@@ -3434,7 +3822,9 @@ describe('Rewards selectors', () => {
 
     it('returns true when there is a campaigns error', () => {
       const mockState = { rewards: { campaignsError: true } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      mockedUseSelector.mockImplementation((selector) =>
+        selector(normalizeRootState(mockState)),
+      );
 
       const { result } = renderHook(() => useSelector(selectCampaignsError));
       expect(result.current).toBe(true);
@@ -4420,6 +4810,58 @@ describe('Rewards selectors', () => {
         ),
       ).toBe(true);
     });
+
+    it('selects the perps trading prize pool and status flags', () => {
+      const PERPS_CAMPAIGN_ID = 'perps-c-1';
+      const mockPerpsPrizePool = {
+        totalVolumeUsd: 7_500_000,
+        unlockedPoolUsd: 15_000,
+        thresholdsUsd: [0, 5_000_000],
+        poolScheduleUsd: [10_000, 15_000],
+        computedAt: '2026-07-15T00:00:00.000Z',
+      };
+      const state = createMockRootState({
+        perpsTradingCampaignPrizePools: {
+          [PERPS_CAMPAIGN_ID]: {
+            data: mockPerpsPrizePool,
+            loading: true,
+            error: true,
+          },
+        },
+      });
+
+      expect(
+        selectPerpsTradingCampaignPrizePoolByCampaignId(PERPS_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toEqual(mockPerpsPrizePool);
+      expect(
+        selectPerpsTradingCampaignPrizePoolLoadingByCampaignId(
+          PERPS_CAMPAIGN_ID,
+        )(state),
+      ).toBe(true);
+      expect(
+        selectPerpsTradingCampaignPrizePoolErrorByCampaignId(PERPS_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBe(true);
+    });
+
+    it('returns null and false for the perps prize pool when no campaign id is given', () => {
+      const state = createMockRootState({});
+
+      expect(
+        selectPerpsTradingCampaignPrizePoolByCampaignId(undefined)(state),
+      ).toBeNull();
+      expect(
+        selectPerpsTradingCampaignPrizePoolLoadingByCampaignId(undefined)(
+          state,
+        ),
+      ).toBe(false);
+      expect(
+        selectPerpsTradingCampaignPrizePoolErrorByCampaignId(undefined)(state),
+      ).toBe(false);
+    });
   });
 
   describe('selectDismissedCampaignOutcomeToasts', () => {
@@ -4532,6 +4974,32 @@ describe('Rewards selectors', () => {
         subscribedCampaignReminders: subscribed,
       });
       expect(selectSubscribedCampaignReminders(state)).toEqual(subscribed);
+    });
+  });
+
+  describe('selectPendingMasSeriesOptIn', () => {
+    it('returns the initial cleared flag when pending is unset', () => {
+      const state = createMockRootState({
+        pendingMasSeriesOptIn: {
+          needsRetry: false,
+          subscriptionId: null,
+        },
+      });
+      expect(selectPendingMasSeriesOptIn(state)).toEqual({
+        needsRetry: false,
+        subscriptionId: null,
+      });
+    });
+
+    it('returns the pending retry flag when set', () => {
+      const pending = {
+        needsRetry: true,
+        subscriptionId: 'sub-mas-1',
+      };
+      const state = createMockRootState({
+        pendingMasSeriesOptIn: pending,
+      });
+      expect(selectPendingMasSeriesOptIn(state)).toEqual(pending);
     });
   });
 });

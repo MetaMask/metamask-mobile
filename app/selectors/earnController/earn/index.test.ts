@@ -1,7 +1,7 @@
 import {
   AccountTrackerControllerState,
   CurrencyRateState,
-  TokensControllerState,
+  getNativeTokenAddress,
 } from '@metamask/assets-controllers';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -102,6 +102,10 @@ const MOCK_RATE = {
   totalVolume: 1,
 };
 const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+const MOCK_CANONICAL_MAINNET_ETH_ASSET = {
+  ...MOCK_ETH_MAINNET_ASSET,
+  address: getNativeTokenAddress(CHAIN_IDS.MAINNET),
+};
 const createMainnetErc20AssetId = (address: string) =>
   `eip155:1/erc20:${toChecksumHexAddress(address)}`;
 const MOCK_EARN_ASSETS_CONTROLLER_STATE = {
@@ -218,6 +222,57 @@ const MOCK_EARN_ASSETS_CONTROLLER_STATE = {
     },
   },
 };
+// `TokensController` no longer exists in `EngineState` (see
+// app/selectors/assets/assets-migration.ts); the earn selectors under test
+// now derive token lists from `AssetsController`
+// (MOCK_EARN_ASSETS_CONTROLLER_STATE below). This standalone list mirrors
+// the previous `TokensController.allTokens['0x1'][account]` fixture and is
+// only used to pick a `TokenI` to pass into the selectors under test.
+const MOCK_MAINNET_TOKENS: TokenI[] = [
+  {
+    address: toChecksumHexAddress(MOCK_LENDING_MARKET_USDT.underlying.address),
+    name: 'USDT Token',
+    symbol: 'USDT',
+    decimals: 6,
+    chainId: CHAIN_IDS.MAINNET,
+  },
+  {
+    address: toChecksumHexAddress(MOCK_LENDING_MARKET_USDC.underlying.address),
+    name: 'USDC Token',
+    symbol: 'USDC',
+    decimals: 6,
+    chainId: CHAIN_IDS.MAINNET,
+  },
+  {
+    address: toChecksumHexAddress(MOCK_LENDING_MARKET_WETH.underlying.address),
+    name: 'WETH Token',
+    symbol: 'WETH',
+    decimals: 12,
+    chainId: CHAIN_IDS.MAINNET,
+  },
+  {
+    address: toChecksumHexAddress(MOCK_LENDING_MARKET_USDT.outputToken.address),
+    name: 'aUSDT Token',
+    symbol: 'aUSDT',
+    decimals: 6,
+    chainId: CHAIN_IDS.MAINNET,
+  },
+  {
+    address: toChecksumHexAddress(MOCK_LENDING_MARKET_USDC.outputToken.address),
+    name: 'aUSDC Token',
+    symbol: 'aUSDC',
+    decimals: 6,
+    chainId: CHAIN_IDS.MAINNET,
+  },
+  {
+    address: toChecksumHexAddress(MOCK_LENDING_MARKET_WETH.outputToken.address),
+    name: 'aWETH Token',
+    symbol: 'aWETH',
+    decimals: 12,
+    chainId: CHAIN_IDS.MAINNET,
+  },
+] as TokenI[];
+
 const mockState = {
   ...MOCK_ROOT_STATE_WITH_EARN_CONTROLLER,
   engine: {
@@ -271,70 +326,6 @@ const mockState = {
           },
         },
       },
-      TokensController: {
-        allTokens: {
-          [CHAIN_IDS.MAINNET as Hex]: {
-            [internalAccount2.address as string]: [
-              {
-                address: toChecksumHexAddress(
-                  MOCK_LENDING_MARKET_USDT.underlying.address,
-                ),
-                name: 'USDT Token',
-                symbol: 'USDT',
-                decimals: 6,
-                chainId: CHAIN_IDS.MAINNET,
-              },
-              {
-                address: toChecksumHexAddress(
-                  MOCK_LENDING_MARKET_USDC.underlying.address,
-                ),
-                name: 'USDC Token',
-                symbol: 'USDC',
-                decimals: 6,
-                chainId: CHAIN_IDS.MAINNET,
-              },
-              {
-                address: toChecksumHexAddress(
-                  MOCK_LENDING_MARKET_WETH.underlying.address,
-                ),
-                name: 'WETH Token',
-                symbol: 'WETH',
-                decimals: 12,
-                chainId: CHAIN_IDS.MAINNET,
-              },
-              {
-                address: toChecksumHexAddress(
-                  MOCK_LENDING_MARKET_USDT.outputToken.address,
-                ),
-                name: 'aUSDT Token',
-                symbol: 'aUSDT',
-                decimals: 6,
-                chainId: CHAIN_IDS.MAINNET,
-              },
-              {
-                address: toChecksumHexAddress(
-                  MOCK_LENDING_MARKET_USDC.outputToken.address,
-                ),
-                name: 'aUSDC Token',
-                symbol: 'aUSDC',
-                decimals: 6,
-                chainId: CHAIN_IDS.MAINNET,
-              },
-              {
-                address: toChecksumHexAddress(
-                  MOCK_LENDING_MARKET_WETH.outputToken.address,
-                ),
-                name: 'aWETH Token',
-                symbol: 'aWETH',
-                decimals: 12,
-                chainId: CHAIN_IDS.MAINNET,
-              },
-            ] as TokenI[],
-          },
-        },
-        allIgnoredTokens: {},
-        allDetectedTokens: {},
-      } as TokensControllerState,
       TokenBalancesController: {
         tokenBalances: {
           [internalAccount2.address as Hex]: {
@@ -413,6 +404,153 @@ describe('Earn Controller Selectors', () => {
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
+  });
+
+  describe('selectIsAaveOutputToken', () => {
+    it('returns true for a known Aave output token asset ID', () => {
+      const outputTokenAssetId = `eip155:1/erc20:${MOCK_LENDING_MARKET_USDC.outputToken.address.toLowerCase()}`;
+
+      const result = earnSelectors.selectIsAaveOutputToken(
+        mockState as unknown as RootState,
+        outputTokenAssetId,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the asset ID is missing', () => {
+      const result = earnSelectors.selectIsAaveOutputToken(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a different output token address', () => {
+      const assetIdWithDifferentAddress =
+        'eip155:1/erc20:0x0000000000000000000000000000000000000001';
+
+      const result = earnSelectors.selectIsAaveOutputToken(
+        mockState as unknown as RootState,
+        assetIdWithDifferentAddress,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for the same output token address on a different chain', () => {
+      const assetIdOnDifferentChain = `eip155:137/erc20:${MOCK_LENDING_MARKET_USDC.outputToken.address.toLowerCase()}`;
+
+      const result = earnSelectors.selectIsAaveOutputToken(
+        mockState as unknown as RootState,
+        assetIdOnDifferentChain,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a matching output token from a non-Aave market', () => {
+      const stateWithNonAaveMarket = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            EarnController: {
+              ...mockState.engine.backgroundState.EarnController,
+              lending: {
+                ...mockState.engine.backgroundState.EarnController.lending,
+                markets: [
+                  {
+                    ...MOCK_LENDING_MARKET_USDC,
+                    protocol: 'morpho',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+      const outputTokenAssetId = `eip155:1/erc20:${MOCK_LENDING_MARKET_USDC.outputToken.address.toLowerCase()}`;
+
+      const result = earnSelectors.selectIsAaveOutputToken(
+        stateWithNonAaveMarket as unknown as RootState,
+        outputTokenAssetId,
+      );
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectHighestBalanceAaveOutputToken', () => {
+    const createOutputToken = ({
+      address,
+      balanceFiatNumber,
+      protocol = 'aave',
+    }: {
+      address: string;
+      balanceFiatNumber: number;
+      protocol?: string;
+    }) =>
+      ({
+        address,
+        chainId: CHAIN_IDS.MAINNET,
+        balanceFiatNumber,
+        experiences: [
+          {
+            market: {
+              protocol,
+            },
+          },
+        ],
+      }) as EarnTokenDetails;
+
+    const selectFromOutputTokens = (earnOutputTokens: EarnTokenDetails[]) =>
+      earnSelectors.selectHighestBalanceAaveOutputToken.resultFunc({
+        earnOutputTokens,
+      } as ReturnType<typeof earnSelectors.selectEarnTokens>);
+
+    it('returns the Aave output token with the highest fiat balance', () => {
+      const lowerBalanceToken = createOutputToken({
+        address: '0x1',
+        balanceFiatNumber: 12,
+      });
+      const higherBalanceToken = createOutputToken({
+        address: '0x2',
+        balanceFiatNumber: 34,
+      });
+
+      expect(
+        selectFromOutputTokens([lowerBalanceToken, higherBalanceToken]),
+      ).toBe(higherBalanceToken);
+    });
+
+    it('excludes output tokens with non-positive fiat balances', () => {
+      const zeroBalanceToken = createOutputToken({
+        address: '0x1',
+        balanceFiatNumber: 0,
+      });
+
+      expect(selectFromOutputTokens([zeroBalanceToken])).toBeUndefined();
+    });
+
+    it('excludes output tokens from non-Aave markets', () => {
+      const nonAaveToken = createOutputToken({
+        address: '0x1',
+        balanceFiatNumber: 100,
+        protocol: 'morpho',
+      });
+      const aaveToken = createOutputToken({
+        address: '0x2',
+        balanceFiatNumber: 10,
+      });
+
+      expect(selectFromOutputTokens([nonAaveToken, aaveToken])).toBe(aaveToken);
+    });
+
+    it('returns undefined when no output tokens are available', () => {
+      expect(selectFromOutputTokens([])).toBeUndefined();
+    });
   });
 
   describe('selectEarnTokens', () => {
@@ -498,6 +636,16 @@ describe('Earn Controller Selectors', () => {
       expect(result.earnOutputTokens.length).toEqual(4);
       expect(result.earnTokens[0].isStaked).toEqual(false);
       expect(result.earnOutputTokens[0].isStaked).toEqual(true);
+
+      const usdcEarnToken = result.earnTokens.find(
+        (token) =>
+          token.address.toLowerCase() ===
+          MOCK_LENDING_MARKET_USDC.underlying.address.toLowerCase(),
+      );
+
+      expect(usdcEarnToken?.experience.apr).toBe(
+        String(MOCK_LENDING_MARKET_USDC.netSupplyRate),
+      );
 
       for (const token of [...result.earnOutputTokens, ...result.earnTokens]) {
         expect(token).toEqual(
@@ -638,7 +786,7 @@ describe('Earn Controller Selectors', () => {
         mockHasMinimumRequiredVersion?.mockRestore();
       });
 
-      it('includes canonical TRX native token as a pooled staking earn token', () => {
+      it('includes canonical TRX native token as a TRX staking earn token', () => {
         const tronToken = createTronToken();
 
         mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({
@@ -652,7 +800,27 @@ describe('Earn Controller Selectors', () => {
         expect(result.earnTokens).toHaveLength(1);
         expect(result.earnTokens[0].address).toBe(TRX_NATIVE_TOKEN_ADDRESS);
         expect(result.earnTokens[0].experience.type).toBe(
-          EARN_EXPERIENCES.POOLED_STAKING,
+          EARN_EXPERIENCES.TRX_STAKING,
+        );
+      });
+
+      it('classifies staked TRX as a TRX staking output token', () => {
+        const stakedTronToken = createTronToken({
+          symbol: 'sTRX',
+          ticker: 'sTRX',
+          isStaked: true,
+        });
+        mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({
+          [TRON_MAINNET_CHAIN_ID]: [stakedTronToken],
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          createStateWithTrxStakingEnabled(),
+        );
+
+        expect(result.earnOutputTokens).toHaveLength(1);
+        expect(result.earnOutputTokens[0].experience.type).toBe(
+          EARN_EXPERIENCES.TRX_STAKING,
         );
       });
 
@@ -715,10 +883,7 @@ describe('Earn Controller Selectors', () => {
 
     it('returns earn token when valid asset is provided', () => {
       // USDT underlying token (index 0)
-      const token =
-        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
-          internalAccount2.address
-        ][0];
+      const token = MOCK_MAINNET_TOKENS[0];
 
       const result = earnSelectors.selectEarnToken(
         mockState as unknown as RootState,
@@ -771,10 +936,7 @@ describe('Earn Controller Selectors', () => {
 
     it('returns earn output token when valid asset is provided', () => {
       // aUSDT underlying token (index 3)
-      const token =
-        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
-          internalAccount2.address
-        ][3];
+      const token = MOCK_MAINNET_TOKENS[3];
       const result = earnSelectors.selectEarnOutputToken(
         mockState as unknown as RootState,
         token as TokenI,
@@ -825,10 +987,7 @@ describe('Earn Controller Selectors', () => {
 
     it('returns paired earn token when valid output token is provided', () => {
       // USDT output token (index 3)
-      const outputToken =
-        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
-          internalAccount2.address
-        ][3];
+      const outputToken = MOCK_MAINNET_TOKENS[3];
       const result = earnSelectors.selectPairedEarnToken(
         mockState as unknown as RootState,
         outputToken as TokenI,
@@ -879,10 +1038,7 @@ describe('Earn Controller Selectors', () => {
 
     it('returns paired earn output token when valid token is provided', () => {
       // USDT underlying token (index 0)
-      const token =
-        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
-          internalAccount2.address
-        ][0];
+      const token = MOCK_MAINNET_TOKENS[0];
       const result = earnSelectors.selectPairedEarnOutputToken(
         mockState as unknown as RootState,
         token as TokenI,
@@ -895,6 +1051,31 @@ describe('Earn Controller Selectors', () => {
   });
 
   describe('selectEarnTokenPair', () => {
+    it('returns Staked Ethereum for a canonical mainnet ETH asset', () => {
+      const result = earnSelectors.selectEarnTokenPair(
+        mockState as unknown as RootState,
+        MOCK_CANONICAL_MAINNET_ETH_ASSET,
+      );
+
+      expect(result.earnToken?.isETH).toBe(true);
+      expect(result.earnToken?.isStaked).toBe(false);
+      expect(result.outputToken?.isETH).toBe(true);
+      expect(result.outputToken?.isStaked).toBe(true);
+      expect(result.outputToken?.name).toBe('Staked Ethereum');
+    });
+
+    it('returns no output token when Earn asset state is incomplete', () => {
+      mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({});
+
+      const result = earnSelectors.selectEarnTokenPair(
+        { ...mockState } as unknown as RootState,
+        MOCK_CANONICAL_MAINNET_ETH_ASSET,
+      );
+
+      expect(result.earnToken).toBeUndefined();
+      expect(result.outputToken).toBeUndefined();
+    });
+
     it('returns undefined earn token and output token when no valid tokens are provided', () => {
       const result = earnSelectors.selectEarnTokenPair(
         mockState as unknown as RootState,
@@ -911,10 +1092,7 @@ describe('Earn Controller Selectors', () => {
 
     it('returns earn token and paired output token when valid earn token is provided', () => {
       // USDT underlying token (index 0)
-      const token =
-        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
-          internalAccount2.address
-        ][0];
+      const token = MOCK_MAINNET_TOKENS[0];
       const result = earnSelectors.selectEarnTokenPair(
         mockState as unknown as RootState,
         token as TokenI,
@@ -931,10 +1109,7 @@ describe('Earn Controller Selectors', () => {
 
     it('returns paired earn token and output token when valid output token is provided', () => {
       // USDT output token (index 3)
-      const outputToken =
-        mockState.engine.backgroundState.TokensController.allTokens['0x1'][
-          internalAccount2.address
-        ][3];
+      const outputToken = MOCK_MAINNET_TOKENS[3];
       const result = earnSelectors.selectEarnTokenPair(
         mockState as unknown as RootState,
         outputToken as TokenI,
@@ -1047,7 +1222,7 @@ describe('Earn Controller Selectors', () => {
       balance: '0',
     } as const;
 
-    it('returns pooled staking for TRX when metadata is missing and flag is enabled', () => {
+    it('returns TRX staking for TRX when metadata is missing and flag is enabled', () => {
       const state = createBaseState({
         trxStakingEnabled: { enabled: true, minimumVersion: '1.0.0' },
       });
@@ -1057,7 +1232,7 @@ describe('Earn Controller Selectors', () => {
         tronNativeAsset as unknown as TokenI,
       );
 
-      expect(result).toBe(EARN_EXPERIENCES.POOLED_STAKING);
+      expect(result).toBe(EARN_EXPERIENCES.TRX_STAKING);
     });
 
     it('returns undefined for TRX when flag is disabled', () => {
@@ -1071,6 +1246,46 @@ describe('Earn Controller Selectors', () => {
       );
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectEarnAssetCatalogueInputs', () => {
+    it('exposes held Earn assets and discovery markets without reshaping tokens', () => {
+      const earnToken = {
+        ...MOCK_ETH_MAINNET_ASSET,
+        experiences: [],
+      } as unknown as EarnTokenDetails;
+      const earnTokensData = {
+        earnTokens: [earnToken],
+        earnOutputTokens: [],
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        earnableTotalFiatNumber: 0,
+        earnableTotalFiatFormatted: '$0',
+      };
+
+      const result = earnSelectors.selectEarnAssetCatalogueInputs.resultFunc(
+        earnTokensData,
+        [MOCK_LENDING_MARKET_USDC],
+        [],
+        { chainIds: [], tokens: [] },
+        {},
+        true,
+        true,
+        true,
+        false,
+      );
+
+      expect(result.earnTokens[0]).toBe(earnToken);
+      expect(result.lendingMarkets).toEqual([MOCK_LENDING_MARKET_USDC]);
+      expect(result.moneyDepositAssetsMeetingMinimumBalance).toEqual([]);
+      expect(result.moneyDepositBlockedTokens).toEqual({
+        chainIds: [],
+        tokens: [],
+      });
+      expect(result.isStablecoinLendingEnabled).toBe(true);
     });
   });
 });

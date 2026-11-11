@@ -15,6 +15,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import {
   incrementBridgeBalanceRefreshKey,
+  resetBridgeState,
   resetBridgeTokenInputs,
   resetHardwareWalletsSwaps,
   selectHardwareWalletsSwaps,
@@ -27,6 +28,7 @@ import {
   showPostTradeNotificationSurface,
 } from '../../Bridge/utils/postTradeNotifications';
 import { completeHwSwapSuccess } from './hwSwapSuccess';
+import { notifyHwSubmissionOutcome } from './hwSubmissionOutcome';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
@@ -78,7 +80,7 @@ interface UseHwSwapLifecycleInputs {
   /** Imperative device-readiness gate from `useHardwareWallet()`. Forwarded to submit. */
   ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
   /** Sets the pending operation address so the provider can derive the wallet type for device connection. Forwarded to submit. */
-  setPendingOperationAddress?: (address: string | null) => void;
+  setPendingOperationAddress: (address: string | null) => void;
   /** True when the active wallet is a QR hardware wallet. Disables BLE connection monitoring (QR has no persistent transport). */
   isQrHardwareWallet?: boolean;
 }
@@ -176,6 +178,22 @@ export function useHwSwapLifecycle({
     };
   }, [strategy.isSendFlow, isFocused]);
 
+  // Leaving without a reported submission (cancel, back, done after failure)
+  // resolves the caller's session as failed; a no-op once `submitted` was
+  // reported. Quick Buy also hands its bridge slice to this screen to reset.
+  const outcomeListenerId =
+    strategy.submitOptions.submissionParams?.outcomeListenerId;
+  useEffect(
+    () => () => {
+      notifyHwSubmissionOutcome(outcomeListenerId, { status: 'failed' });
+      if (strategy.isQuickBuy) {
+        dispatch(resetBridgeState());
+        Engine.context.BridgeController?.resetState?.();
+      }
+    },
+    [dispatch, outcomeListenerId, strategy.isQuickBuy],
+  );
+
   // Register before opening the QR scanner so transitionEnd cannot be missed.
   // This is Bridge-only; Send retains its existing scanner-owned completion.
   useEffect(() => {
@@ -237,7 +255,21 @@ export function useHwSwapLifecycle({
       return;
     }
 
+    notifyHwSubmissionOutcome(outcomeListenerId, {
+      status: 'submitted',
+      transaction: submittedTransaction,
+    });
+
     if (isQrHardwareWallet && !isQrReturnTransitionEnded) return;
+
+    if (strategy.isQuickBuy) {
+      // Quick Buy surfaces its own pending/terminal toasts for this trade.
+      hasAutoNavigatedRef.current = true;
+      clearCachedSubmission();
+      dispatch(resetHardwareWalletsSwaps());
+      navigation.goBack();
+      return;
+    }
 
     hasAutoNavigatedRef.current = true;
     clearCachedSubmission();
@@ -247,7 +279,7 @@ export function useHwSwapLifecycle({
     dispatch(incrementBridgeBalanceRefreshKey());
     dispatch(resetHardwareWalletsSwaps());
     // Keep BridgeView beneath the modal, not the reset HW progress screen.
-    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
+    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW, undefined, { pop: true });
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
       params: {
@@ -264,6 +296,8 @@ export function useHwSwapLifecycle({
     isQrReturnTransitionEnded,
     navigation,
     strategy.isSendFlow,
+    strategy.isQuickBuy,
+    outcomeListenerId,
     strategy.submitOptions.submissionParams?.postTradeModalParams,
     submittedTransaction,
     toastRef,
@@ -375,15 +409,17 @@ export function useHwSwapLifecycle({
     if (target.type === CancelTargetType.GoBack) {
       navigation.goBack();
     } else if (target.params) {
-      navigateWithDetails(navigation, [target.route as string, target.params]);
+      navigateWithDetails(navigation, [target.route as string, target.params], {
+        pop: true,
+      });
     } else {
-      navigateWithDetails(navigation, [target.route as string]);
+      navigateWithDetails(navigation, [target.route as string], { pop: true });
     }
   }, [navigation, strategy.cancelTarget]);
 
   // ── Actions ──────────────────────────────────────────────────────
   const handleCancel = useCallback(() => {
-    cancelCurrentBatch();
+    void cancelCurrentBatch();
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
     navigateOnCancel();
@@ -453,8 +489,12 @@ export function useHwSwapLifecycle({
   const handleDone = useCallback(() => {
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
-  }, [dispatch, navigation, clearCachedSubmission]);
+    if (strategy.isQuickBuy) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, undefined, { pop: true });
+  }, [dispatch, navigation, clearCachedSubmission, strategy.isQuickBuy]);
 
   return {
     isRetrying,

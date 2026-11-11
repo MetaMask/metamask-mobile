@@ -55,7 +55,7 @@ const styleSheet = (params: { theme: Theme }) =>
       alignSelf: 'stretch',
     } as ViewStyle,
     noDataOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 2,
@@ -72,6 +72,16 @@ const styleSheet = (params: { theme: Theme }) =>
       width: '100%',
       borderRadius: 8,
       minHeight: TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT,
+    } as ViewStyle,
+    /** Used to keep WebView mounted but invisible when line chart is shown */
+    hiddenChartContainer: {
+      position: 'absolute',
+      opacity: 0,
+      pointerEvents: 'none',
+    } as ViewStyle,
+    /** Spacer matching IndicatorBar / Skeleton height so mode switches don't shift buttons */
+    indicatorBarSpacer: {
+      height: 37,
     } as ViewStyle,
   });
 

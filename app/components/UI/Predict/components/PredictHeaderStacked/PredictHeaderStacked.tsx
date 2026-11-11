@@ -1,8 +1,17 @@
 import React from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import {
-  HeaderStandardAnimated,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   IconName,
+  type ButtonIconProps,
 } from '@metamask/design-system-react-native';
+import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import { PredictVenueSelectorButton } from '../../../PredictNext/venueSelection';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -31,14 +40,22 @@ export interface PredictHeaderStackedProps {
   onBack: () => void;
   /** Search icon handler. Opens the existing Predict search flow. */
   onSearchPress: () => void;
+  /**
+   * Floats the header over the page on its glass backdrop, with back and
+   * search in capsules, as on the brand refresh.
+   */
+  isGlass?: boolean;
+  /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
+  onLayout?: (event: LayoutChangeEvent) => void;
   testID?: string;
 }
 
 /**
  * Predict-specific stacked/collapsing navigation header.
  *
- * Thin wrapper over the design system's `HeaderStandardAnimated`, baking in the
- * Predict back navigation and search icon. The large title is rendered by the
+ * Thin wrapper over `HeaderStandardAnimatedGlass`, baking in the
+ * Predict back navigation, the venue picker (absent unless more than one
+ * Venue is selectable) and the search icon. The large title is rendered by the
  * consuming page as the first scroll child; this component renders the nav bar
  * with the compact title that fades/slides in on scroll (Figma
  * HeaderStackedStandard behavior).
@@ -49,27 +66,51 @@ const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
   title = strings('wallet.predict'),
   onBack,
   onSearchPress,
+  isGlass = false,
+  onLayout,
   testID = PREDICT_HEADER_STACKED_TEST_IDS.HEADER,
-}) => (
-  <HeaderStandardAnimated
-    testID={testID}
-    includesTopInset
-    title={title}
-    titleProps={{ testID: PREDICT_HEADER_STACKED_TEST_IDS.COMPACT_TITLE }}
-    scrollY={scrollY}
-    titleSectionHeight={titleSectionHeight}
-    onBack={onBack}
-    backButtonProps={{
-      testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-    }}
-    endButtonIconProps={[
-      {
-        iconName: IconName.Search,
-        onPress: onSearchPress,
-        testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-      },
-    ]}
-  />
-);
+}) => {
+  const searchButtonProps: ButtonIconProps = {
+    iconName: IconName.Search,
+    size: ButtonIconSize.Md,
+    onPress: onSearchPress,
+    accessibilityLabel: strings('predict.search_placeholder'),
+    testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+  };
+
+  return (
+    <HeaderStandardAnimatedGlass
+      isGlass={isGlass}
+      onLayout={onLayout}
+      testID={testID}
+      includesTopInset
+      title={title}
+      titleProps={{ testID: PREDICT_HEADER_STACKED_TEST_IDS.COMPACT_TITLE }}
+      scrollY={scrollY}
+      titleSectionHeight={titleSectionHeight}
+      onBack={onBack}
+      backButtonProps={{
+        accessibilityLabel: strings('navigation.back'),
+        testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+      }}
+      endAccessory={
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+        >
+          <PredictVenueSelectorButton
+            variant={isGlass ? 'glass' : 'standard'}
+          />
+          {isGlass ? (
+            <ButtonIconGlass isCapsule {...searchButtonProps} />
+          ) : (
+            <ButtonIcon {...searchButtonProps} />
+          )}
+        </Box>
+      }
+    />
+  );
+};
 
 export default PredictHeaderStacked;

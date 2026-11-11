@@ -5,7 +5,30 @@ import { addBreadcrumb } from '@sentry/react-native';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import { resetFollowToggleSharedStateForTests } from '../../../../../hooks/useFollowToggle';
 import { useTopTraders } from './useTopTraders';
+import { measureSocialDataFetch } from '../../../../../../util/social/socialPerformance';
+
+const mockGetQueryData = jest.fn();
+let mockBlockedProfileIds = new Set<string>();
+
+jest.mock('../../../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
+  useSocialBlockLists: () => ({
+    blockedProfileIds: mockBlockedProfileIds,
+    blockedCommentIds: new Set<string>(),
+  }),
+}));
+
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: () => ({ getQueryData: mockGetQueryData }),
+}));
+
+jest.mock('../../../../../../util/social/socialPerformance', () => ({
+  measureSocialDataFetch: jest.fn(
+    ({ request }: { request: () => Promise<unknown> }) => request(),
+  ),
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -13,6 +36,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/socialController', () => ({
@@ -41,6 +68,7 @@ const mockTraders = [
     pnl7d: 963146.8,
     roiPercent7d: 43,
     pnlPerChain: { base: 963146.8 },
+    followerCount: 48707,
   },
   {
     rank: 2,
@@ -51,6 +79,7 @@ const mockTraders = [
     pnl7d: 474751.45,
     roiPercent7d: 359,
     pnlPerChain: { ethereum: 474751.45 },
+    followerCount: 21999,
   },
   {
     rank: 3,
@@ -61,6 +90,7 @@ const mockTraders = [
     pnl7d: 374735.16,
     roiPercent7d: 617,
     pnlPerChain: { solana: 374735.16 },
+    followerCount: 11772,
   },
 ];
 
@@ -77,6 +107,13 @@ const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockMeasureSocialDataFetch = jest.mocked(measureSocialDataFetch);
+const getLastQueryFn = () =>
+  (
+    mockUseQuery.mock.calls.at(-1)?.[0] as unknown as {
+      queryFn?: () => Promise<unknown>;
+    }
+  ).queryFn;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -85,6 +122,7 @@ const makeQueryResult = (
     data: undefined,
     isLoading: false,
     isFetching: false,
+    isFetched: false,
     error: null,
     refetch: mockRefetch,
     ...overrides,
@@ -93,7 +131,10 @@ const makeQueryResult = (
 describe('useTopTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetFollowToggleSharedStateForTests();
     mockUseQuery.mockReturnValue(makeQueryResult());
+    mockGetQueryData.mockReturnValue(undefined);
+    mockBlockedProfileIds = new Set();
     mockAddBreadcrumb.mockClear();
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsUnlocked) return true;
@@ -121,6 +162,19 @@ describe('useTopTraders', () => {
       expect(result.current.traders).toHaveLength(mockTraders.length);
     });
 
+    it('leaves out traders the viewer blocked', () => {
+      mockBlockedProfileIds = new Set([mockTraders[0].profileId]);
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: mockLeaderboardResponse as never }),
+      );
+
+      const { result } = renderHook(() => useTopTraders());
+
+      expect(result.current.traders.map((trader) => trader.id)).toEqual(
+        mockTraders.slice(1).map((trader) => trader.profileId),
+      );
+    });
+
     it('maps each field correctly for the first entry', () => {
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: mockLeaderboardResponse as never }),
@@ -137,10 +191,34 @@ describe('useTopTraders', () => {
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent7d,
         pnlValue: first.pnl7d,
+        pnl30d: null,
         winRatePercent: null,
         pnlPerChain: first.pnlPerChain ?? {},
+        followerCount: first.followerCount,
         isFollowing: false,
+        xHandle: null,
       });
+    });
+
+    it('copies an X handle and drops a blank one', () => {
+      const connected = {
+        ...mockTraders[0],
+        socialHandles: { twitter: ' @alpha ' },
+      };
+      const blank = {
+        ...mockTraders[1],
+        socialHandles: { twitter: '  ' },
+      };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({
+          data: { traders: [connected, blank] } as never,
+        }),
+      );
+
+      const { result } = renderHook(() => useTopTraders());
+
+      expect(result.current.traders[0].xHandle).toBe('alpha');
+      expect(result.current.traders[1].xHandle).toBeNull();
     });
 
     it('converts the API win-rate fraction to a whole percent', () => {
@@ -208,6 +286,88 @@ describe('useTopTraders', () => {
   });
 
   describe('query options', () => {
+    it('measures the first Social V1 leaderboard request at the query boundary', async () => {
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(
+        mockLeaderboardResponse,
+      );
+      renderHook(() =>
+        useTopTraders({
+          limit: 50,
+          performance: { tab: 'leaderboard' },
+        }),
+      );
+      const queryFn = getLastQueryFn();
+      if (!queryFn) {
+        throw new Error('Social V1 leaderboard queryFn was not configured');
+      }
+
+      await queryFn();
+
+      expect(mockMeasureSocialDataFetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tab: 'leaderboard',
+          cacheState: 'cold',
+          request: expect.any(Function),
+        }),
+      );
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SocialService:fetchLeaderboard',
+        { limit: 50 },
+      );
+    });
+
+    it('does not duplicate leaderboard tracing for a retry', async () => {
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(
+        mockLeaderboardResponse,
+      );
+      renderHook(() =>
+        useTopTraders({
+          limit: 50,
+          performance: { tab: 'leaderboard' },
+        }),
+      );
+      const queryFn = getLastQueryFn();
+      if (!queryFn) {
+        throw new Error('Social V1 leaderboard queryFn was not configured');
+      }
+
+      await queryFn();
+      await queryFn();
+
+      expect(mockMeasureSocialDataFetch).toHaveBeenCalledTimes(1);
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(2);
+    });
+
+    it('tags a leaderboard request with existing cached data as warm', async () => {
+      mockGetQueryData.mockReturnValue(mockLeaderboardResponse);
+      (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(
+        mockLeaderboardResponse,
+      );
+      renderHook(() =>
+        useTopTraders({
+          limit: 50,
+          performance: { tab: 'leaderboard' },
+        }),
+      );
+      const queryFn = getLastQueryFn();
+      if (!queryFn) {
+        throw new Error('Social V1 leaderboard queryFn was not configured');
+      }
+
+      await queryFn();
+
+      expect(mockMeasureSocialDataFetch).toHaveBeenCalledWith(
+        expect.objectContaining({ cacheState: 'warm' }),
+      );
+    });
+
+    it('uses the shared query function outside Social V1', () => {
+      renderHook(() => useTopTraders({ limit: 50 }));
+
+      expect(getLastQueryFn()).toBeUndefined();
+      expect(mockMeasureSocialDataFetch).not.toHaveBeenCalled();
+    });
+
     it('forwards the ranking metric to the leaderboard query key', () => {
       renderHook(() => useTopTraders({ limit: 50, sort: 'winRate' }));
 
@@ -241,6 +401,12 @@ describe('useTopTraders', () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.isLoading).toBe(true);
+    });
+
+    it('exposes whether the query has fetched', () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ isFetched: true }));
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.hasFetched).toBe(true);
     });
 
     it('returns the error message for an Error object', () => {

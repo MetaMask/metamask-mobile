@@ -10,19 +10,36 @@ import { TokenDetailsAction } from '../constants/constants';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../component-library/components-temp/BoxGlass';
+
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
+  const actualReact = jest.requireActual('react');
   return {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
       addListener: jest.fn(() => jest.fn()),
     }),
+    // Defer via useEffect to match real useFocusEffect timing.
     useFocusEffect: jest.fn((callback) => {
-      callback();
+      actualReact.useEffect(callback, []);
     }),
   };
 });
@@ -321,6 +338,32 @@ describe('TokenDetailsActions', () => {
       expect(mockOnActionTapped).toHaveBeenCalledWith(
         TokenDetailsAction.MoreOpened,
       );
+    });
+  });
+
+  describe('glass', () => {
+    it('keeps the opaque tiles by default', () => {
+      const { queryAllByTestId } = renderWithProvider(
+        <TokenDetailsActions {...defaultProps} />,
+        { state: mockInitialState },
+      );
+
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+    });
+
+    it('draws every tile on glass with the sheen when isGlass is set', () => {
+      const { getAllByTestId } = renderWithProvider(
+        <TokenDetailsActions
+          {...defaultProps}
+          hasPerpsMarket={false}
+          isBuyable
+          hasBalance
+          isGlass
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(4);
     });
   });
 });

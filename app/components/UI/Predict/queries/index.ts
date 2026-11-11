@@ -19,6 +19,10 @@ import {
   predictOrderPreviewKeys,
   predictOrderPreviewOptions,
 } from './orderPreview';
+import {
+  predictMaxBuyOrderPreviewKeys,
+  predictMaxBuyOrderPreviewOptions,
+} from './maxBuyOrderPreview';
 import { predictPositionsKeys, predictPositionsOptions } from './positions';
 import {
   predictCryptoPriceHistoryKeys,
@@ -37,6 +41,10 @@ import {
   predictUnrealizedPnLKeys,
   predictUnrealizedPnLOptions,
 } from './unrealizedPnL';
+import {
+  predictWithdrawGasFeeTokenKeys,
+  predictWithdrawGasFeeTokenOptions,
+} from './withdrawGasFeeToken';
 
 export const predictQueries = {
   accountState: {
@@ -74,6 +82,10 @@ export const predictQueries = {
     keys: predictMarketListKeys,
     options: predictMarketListOptions,
   },
+  maxBuyOrderPreview: {
+    keys: predictMaxBuyOrderPreviewKeys,
+    options: predictMaxBuyOrderPreviewOptions,
+  },
   orderPreview: {
     keys: predictOrderPreviewKeys,
     options: predictOrderPreviewOptions,
@@ -97,5 +109,9 @@ export const predictQueries = {
   unrealizedPnL: {
     keys: predictUnrealizedPnLKeys,
     options: predictUnrealizedPnLOptions,
+  },
+  withdrawGasFeeToken: {
+    keys: predictWithdrawGasFeeTokenKeys,
+    options: predictWithdrawGasFeeTokenOptions,
   },
 };

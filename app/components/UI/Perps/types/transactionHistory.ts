@@ -1,4 +1,5 @@
 import { RouteProp } from '@react-navigation/native';
+import type { OrderType } from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from './navigation';
 
 export enum PerpsOrderTransactionStatus {
@@ -50,17 +51,17 @@ export interface PerpsTransaction {
   fill?: {
     shortTitle: string; // e.g., "Opened long" or "Closed long"
     amount: string; // e.g., "+$43.99" or "-$400"
-    amountNumber: number; // e.g., 43.99 or 400
-    isPositive: boolean;
+    amountNumber?: number; // Unknown when the venue omits realized PnL
+    isPositive?: boolean;
     size: string;
     entryPrice: string;
     points: string;
-    pnl: string;
+    pnl?: string; // Absent when the venue does not report realized PnL
     fee: string;
     action: string;
     feeToken: string;
     liquidation?: {
-      liquidatedUser: string; // Address of the liquidated user. liquidatedUser isn't always the current user. It can also mean the fill filled another user's liquidation.
+      liquidatedUser?: string; // Address of the liquidated user, omitted by HyperLiquid on some fills. liquidatedUser isn't always the current user. It can also mean the fill filled another user's liquidation.
       markPx: string; // Mark price at liquidation
       method: string; // Liquidation method (e.g., 'market')
     };
@@ -68,11 +69,17 @@ export interface PerpsTransaction {
   };
   // For orders: order info
   order?: {
+    /** Hyperliquid order ID used to correlate recorded execution fills. */
+    orderId?: string;
     text: PerpsOrderTransactionStatus;
     statusType: PerpsOrderTransactionStatusType;
+    /** Legacy execution type retained for activity adapter compatibility. */
     type: 'limit' | 'market';
+    /** Normalized order placement type, including trigger variants. */
+    orderType?: OrderType;
     size: string;
-    limitPrice: string;
+    limitPrice?: string;
+    triggerPrice?: string;
     filled: string;
     side?: 'buy' | 'sell';
     reduceOnly?: boolean;

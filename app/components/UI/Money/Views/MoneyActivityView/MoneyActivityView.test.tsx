@@ -4,10 +4,20 @@ import { fireEvent } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEnableActivityDetailsFlag,
+  selectMoneyEnableCardActivityEnrichmentFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../selectors/featureFlags';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectCardTransactionHistoryEnabled } from '../../../../../selectors/featureFlagController/card';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
-import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
+import { useMoneyVbaTransfers } from '../../hooks/useMoneyVbaTransfers';
+import { useNeobankAutorampActivity } from '../../hooks/useNeobankAutorampActivity';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
+import { useCardTransactionIndex } from '../../../Card/hooks/useCardTransactionIndex';
+import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import {
   isMoneyActivityDeposit,
   isMoneyActivityTransfer,
@@ -24,6 +34,11 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import {
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const mockTrackScreenViewed = jest.fn();
 const mockTrackButtonClicked = jest.fn();
@@ -59,10 +74,34 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
+  selectMoneyEnableCardActivityEnrichmentFlag: jest.fn(() => false),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(() => false),
+  selectMoneyVbaPendingActivityEnabled: jest.fn(() => true),
+  selectMoneyVbaCompletedActivityEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../../selectors/eligibility', () => ({
+  ...jest.requireActual('../../selectors/eligibility'),
+  selectIsMoneyAccountGeoEligible: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController/card', () => ({
+  ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
+  selectCardTransactionHistoryEnabled: jest.fn(() => false),
 }));
 
 const mockedSelectActivityDetailsFlag = jest.mocked(
   selectMoneyEnableActivityDetailsFlag,
+);
+const mockedSelectEnrichmentFlag = jest.mocked(
+  selectMoneyEnableCardActivityEnrichmentFlag,
+);
+const mockedSelectMoneyAccountFlag = jest.mocked(
+  selectMoneyEnableMoneyAccountFlag,
+);
+const mockedSelectGeoEligible = jest.mocked(selectIsMoneyAccountGeoEligible);
+const mockedSelectCardHistory = jest.mocked(
+  selectCardTransactionHistoryEnabled,
 );
 
 // The view consumes `useMoneyActivityItems`, which fans out to these two data
@@ -75,6 +114,54 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
 jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   useMoneyAccountApiActivity: jest.fn(),
 }));
+jest.mock('../../hooks/useMoneyMicrodeposits', () => ({
+  useMoneyMicrodeposits: jest.fn(() => ({
+    microdeposits: [],
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+jest.mock('../../hooks/useMoneyVbaTransfers', () => ({
+  useMoneyVbaTransfers: jest.fn(() => ({
+    data: undefined,
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
+  useNeobankAutorampActivity: jest.fn(() => ({
+    activity: [],
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
+  useVbaTransactionRefresh: jest.fn(),
+}));
+
+jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
+  useCardTransactionIndex: jest.fn(),
+}));
+
+jest.mock('../../../Card/hooks/useCardCapabilities', () => ({
+  useCardCapabilities: jest.fn(() => null),
+}));
+
+jest.mock(
+  '../../../Card/components/CardTransactionRow/CardTransactionRow',
+  () => {
+    const { Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ transaction }: { transaction: { id: string } }) => (
+        <Text testID={`activity-mock-card-${transaction.id}`}>
+          {transaction.id}
+        </Text>
+      ),
+    };
+  },
+);
 
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
   const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
@@ -147,9 +234,26 @@ const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
+const mockUseMoneyVbaTransfers = jest.mocked(useMoneyVbaTransfers);
+const mockUseNeobankAutorampActivity = jest.mocked(useNeobankAutorampActivity);
+const mockUseVbaTransactionRefresh = jest.mocked(useVbaTransactionRefresh);
+const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
 
-const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
-const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
+const defaultCardIndexResult = {
+  bySettlementHash: new Map(),
+  declined: [] as CardTransaction[],
+  oldestFetchedTime: Number.NEGATIVE_INFINITY,
+  isFetching: false,
+  isSettling: false,
+  isError: false,
+};
+
+const MOCK_DEPOSITS = MONEY_ACTIVITY_TRANSACTIONS.filter(
+  isMoneyActivityDeposit,
+);
+const MOCK_TRANSFERS = MONEY_ACTIVITY_TRANSACTIONS.filter(
+  isMoneyActivityTransfer,
+);
 
 const CARD_TX: AccountsApiActivity = {
   kind: 'card',
@@ -223,13 +327,26 @@ describe('MoneyActivityView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSelectActivityDetailsFlag.mockReturnValue(true);
+    mockedSelectEnrichmentFlag.mockReturnValue(false);
+    mockedSelectMoneyAccountFlag.mockReturnValue(false);
+    mockedSelectGeoEligible.mockReturnValue(false);
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    } as never);
+    mockUseNeobankAutorampActivity.mockReturnValue({
+      activity: [],
+      refetch: jest.fn(),
+    });
+    mockedSelectCardHistory.mockReturnValue(false);
+    mockUseCardTransactionIndex.mockReturnValue(defaultCardIndexResult);
     mockUseMoneyAccountTransactions.mockReturnValue({
-      allTransactions: MOCK_MONEY_TRANSACTIONS,
+      allTransactions: MONEY_ACTIVITY_TRANSACTIONS,
       deposits: MOCK_DEPOSITS,
       transfers: MOCK_TRANSFERS,
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: false,
     });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackScreenViewed: mockTrackScreenViewed,
@@ -256,6 +373,12 @@ describe('MoneyActivityView', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
     expect(getByTestId(MoneyActivityViewTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('wires the VBA autoramp transaction refresh on mount', () => {
+    renderWithProvider(<MoneyActivityView />);
+
+    expect(mockUseVbaTransactionRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('renders the activity title', () => {
@@ -328,6 +451,53 @@ describe('MoneyActivityView', () => {
     });
   });
 
+  it('places failed VBA transfers in date sections, not Pending', () => {
+    const transfer = (id: string, timestamp: string) => ({
+      event_id: `${id}-event`,
+      transfer_id: id,
+      status: 'error' as const,
+      event_timestamp: timestamp,
+      updated_at: timestamp,
+      transfer: {
+        sender_address: '0x0000000000000000000000000000000000000002',
+        recipient_address: '0x0000000000000000000000000000000000000001',
+        network: 'Monad',
+        amount: '15.000000',
+        asset: 'mUSD',
+        transaction_hash: null,
+      },
+    });
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: [],
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+    });
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: {
+        transfers: [
+          transfer('vba-failed', '2026-06-04T12:00:00.000Z'),
+          transfer('vba-error', '2026-06-03T12:00:00.000Z'),
+        ],
+      },
+      isLoading: false,
+      refetch: jest.fn(),
+    } as never);
+
+    const { getAllByText, getAllByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    expect(getAllByText('money.transaction.deposit_failed')).toHaveLength(2);
+    expect(
+      queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER),
+    ).not.toBeOnTheScreen();
+    expect(getAllByTestId(MoneyActivityViewTestIds.DATE_HEADER)).toHaveLength(
+      2,
+    );
+  });
+
   it('renders a Pending section for in-flight rows', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
@@ -349,11 +519,57 @@ describe('MoneyActivityView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: false,
     });
 
     const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
 
+    expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
+  });
+
+  it('places declined Card rows in a date section, never Pending', () => {
+    const { useCardCapabilities } = jest.requireMock(
+      '../../../Card/hooks/useCardCapabilities',
+    ) as { useCardCapabilities: jest.Mock };
+    useCardCapabilities.mockReturnValue({
+      supportsTransactionHistory: true,
+      supportsMoneyAccountLinking: true,
+      reportsVerificationStatus: true,
+    });
+    mockedSelectEnrichmentFlag.mockReturnValue(true);
+    mockedSelectMoneyAccountFlag.mockReturnValue(true);
+    mockedSelectGeoEligible.mockReturnValue(true);
+    mockedSelectCardHistory.mockReturnValue(true);
+
+    const declined: CardTransaction = {
+      id: 'declined-card-1',
+      providerId: 'baanx',
+      timestamp: Date.UTC(2026, 0, 26, 12, 0, 0),
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '9.99', currency: 'USD' },
+      fundingSources: [],
+    };
+
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: [],
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+    });
+    mockApiActivity({ activity: [] });
+    mockUseCardTransactionIndex.mockReturnValue({
+      ...defaultCardIndexResult,
+      declined: [declined],
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    expect(getByTestId('activity-mock-card-declined-card-1')).toBeOnTheScreen();
+    expect(getByTestId(MoneyActivityViewTestIds.DATE_HEADER)).toBeOnTheScreen();
     expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
   });
 
@@ -368,7 +584,6 @@ describe('MoneyActivityView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
     }
 
@@ -475,7 +690,6 @@ describe('MoneyActivityView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: false,
     });
 
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
@@ -486,7 +700,7 @@ describe('MoneyActivityView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('pressing a row navigates to the transaction details sheet when mockDataEnabled is false', () => {
+  it('pressing a row navigates to the transaction details sheet', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
     fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
@@ -607,22 +821,6 @@ describe('MoneyActivityView', () => {
     expect(getByTestId(REFUND_ROW_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('does not render real Accounts-API rows in mock-data mode', () => {
-    mockUseMoneyAccountTransactions.mockReturnValue({
-      allTransactions: MOCK_MONEY_TRANSACTIONS,
-      deposits: MOCK_DEPOSITS,
-      transfers: MOCK_TRANSFERS,
-      submittedTransactions: [],
-      moneyAddress: '0x0000000000000000000000000000000000000001',
-      mockDataEnabled: true,
-    });
-    mockApiActivity({ activity: [CARD_TX] });
-
-    const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
-
-    expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
-  });
-
   describe('infinite scroll', () => {
     it('fetches the next page when the list end is reached and more remain', () => {
       mockApiActivity({
@@ -704,7 +902,6 @@ describe('MoneyActivityView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
 
     it('fetches more pages on mount while the active bucket is below a screenful and pages remain', () => {
@@ -768,27 +965,6 @@ describe('MoneyActivityView', () => {
 
       expect(mockLoadMore).not.toHaveBeenCalled();
     });
-
-    it('does not fetch on mount in mock-data mode', () => {
-      mockUseMoneyAccountTransactions.mockReturnValue({
-        allTransactions: [],
-        deposits: [],
-        transfers: [],
-        submittedTransactions: [],
-        moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: true,
-      });
-      mockApiActivity({
-        activity: [],
-        hasMore: true,
-        isComplete: false,
-        pageCount: 1,
-      });
-
-      renderWithProvider(<MoneyActivityView />);
-
-      expect(mockLoadMore).not.toHaveBeenCalled();
-    });
   });
 
   describe('empty vs. still-loading', () => {
@@ -799,7 +975,6 @@ describe('MoneyActivityView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
 
     it('keeps the skeleton (not the empty message) while no rows yet and pages remain', () => {
@@ -865,7 +1040,6 @@ describe('MoneyActivityView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
-        mockDataEnabled: false,
       });
 
     it('shows an error footer with retry (not a spinner) when paging fails mid-list', () => {

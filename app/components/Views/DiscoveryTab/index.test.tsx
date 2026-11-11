@@ -8,7 +8,7 @@ import UrlAutocomplete, {
 } from '../../UI/UrlAutocomplete';
 import { screen, waitFor } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NavigationContainer } from '@react-navigation/native';
+import { IndependentNavigationContainer } from '../../../util/test/IndependentNavigationContainer';
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -71,13 +71,13 @@ const Stack = createNativeStackNavigator();
 describe('DiscoveryTab', () => {
   it('should render correctly', async () => {
     renderWithProvider(
-      <NavigationContainer independent>
+      <IndependentNavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="Browser">
             {() => <DiscoveryTab {...mockProps} />}
           </Stack.Screen>
         </Stack.Navigator>
-      </NavigationContainer>,
+      </IndependentNavigationContainer>,
       { state: mockInitialState },
     );
     await waitFor(() => {
@@ -94,7 +94,7 @@ describe('DiscoveryTab', () => {
 
     const updateTabInfo = jest.fn();
     renderWithProvider(
-      <NavigationContainer independent>
+      <IndependentNavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="Browser">
             {() => (
@@ -102,7 +102,7 @@ describe('DiscoveryTab', () => {
             )}
           </Stack.Screen>
         </Stack.Navigator>
-      </NavigationContainer>,
+      </IndependentNavigationContainer>,
       { state: mockInitialState },
     );
     onSelectProp?.({

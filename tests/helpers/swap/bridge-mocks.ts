@@ -16,7 +16,10 @@ import {
   GET_POPULAR_TOKENS_BASE_RESPONSE,
   toSSEResponse,
 } from './constants';
-import { setupSpotPricesMock } from './swap-mocks';
+import {
+  setupSpotPricesMock,
+  setupSwapSocialAndComplianceMocks,
+} from './swap-mocks';
 import { toQuoteResponseV2 } from '@metamask/bridge-controller';
 
 const BRIDGE_TX_STATUS_COMPLETE = {
@@ -71,6 +74,7 @@ export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
   await setupSpotPricesMock(mockServer);
+  await setupSwapSocialAndComplianceMocks(mockServer);
 
   await setupRemoteFeatureFlagsMock(mockServer, {
     bridgeConfigV2: {
@@ -85,10 +89,6 @@ export const testSpecificMock: TestSpecificMock = async (
         { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', name: 'Solana' },
       ],
     },
-    stxMigrationBatchStatus: false,
-    stxMigrationCancel: false,
-    stxMigrationGetFees: false,
-    stxMigrationSubmitTransactions: false,
   });
   // Mock Ethereum token list
   await setupMockRequest(mockServer, {
@@ -128,7 +128,7 @@ export const testSpecificMock: TestSpecificMock = async (
     mockServer,
     /getQuoteStream/i,
     toSSEResponse(GET_QUOTE_ETH_BASE_RESPONSE),
-    1, // lower priority than specific mocks below (999)
+    2, // above mockttp's DEFAULT (1), which the MockServer /proxy passthrough uses; below the specific mocks (999)
   );
 
   // Mock SSE quote response ETH(Ethereum)->SOL(Solana)
@@ -271,10 +271,6 @@ export const createBridgeQuoteStatusManagerMock = (
         ],
       },
       bridgeQuoteStatusManager: { enabled: true },
-      stxMigrationBatchStatus: false,
-      stxMigrationCancel: false,
-      stxMigrationGetFees: false,
-      stxMigrationSubmitTransactions: false,
     });
 
     // Mock Ethereum token list
@@ -309,7 +305,7 @@ export const createBridgeQuoteStatusManagerMock = (
       mockServer,
       /getQuoteStream/i,
       toSSEResponse(quotesWithId),
-      1, // lower priority than the specific mock below (999)
+      2, // above mockttp's DEFAULT (1), which the MockServer /proxy passthrough uses; below the specific mock (999)
     );
 
     // Mock SSE quote response ETH(Ethereum)->ETH(Base), with a quoteId so

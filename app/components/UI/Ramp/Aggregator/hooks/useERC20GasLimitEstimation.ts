@@ -5,8 +5,10 @@ import useInterval from '../../../../hooks/useInterval';
 import { getGasLimit } from '../../../../../util/custom-gas';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { generateTransferData } from '../../../../../util/transactions';
-import { addHexPrefix, BN } from 'ethereumjs-util';
-import { toTokenMinimalUnit } from '../../../../../util/number';
+import {
+  bigIntToHex,
+  toTokenMinimalUnit,
+} from '../../../../../util/number/bigint';
 
 const TRANSFER_GAS_LIMIT = 21000;
 const POLLING_INTERVAL = 15000; // 15s
@@ -53,9 +55,7 @@ function useERC20GasLimitEstimation({
         }
 
         const amountInMinimalUnit = toTokenMinimalUnit(amount, decimals);
-        const amountHex = addHexPrefix(
-          new BN(amountInMinimalUnit.toString()).toString('hex'),
-        );
+        const amountHex = bigIntToHex(amountInMinimalUnit);
 
         const dummyToAddress = '0x1234567890123456789012345678901234567890';
 

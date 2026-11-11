@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -12,7 +12,12 @@ import {
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import {
+  PredictTrendingCarousel,
+  selectPredictAvailability,
+  usePredictEntryActions,
+  usePredictTrendingFeed,
+} from '../../../UI/PredictNext';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
@@ -30,8 +35,6 @@ import PerpsToggleBlock, {
 } from '../feeds/perps/PerpsToggleBlock';
 import { normalizeFilterKey } from '../../../UI/Perps/utils/marketCategoryMapping';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
@@ -43,7 +46,7 @@ import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
-import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   EXPLORE_QUICK_BUY_AB_KEY,
@@ -115,14 +118,12 @@ const RwasTabContent: React.FC<TabProps> = ({
   onRefresh,
 }) => {
   const appNavigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-
-  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
-    null,
-  );
+  const isPredictEnabled = useSelector(selectPredictAvailability);
+  const { openQuickBuy } = useTrendingQuickBuySheet();
 
   const { variant: quickBuyVariant } = useABTest(
     EXPLORE_QUICK_BUY_AB_KEY,
@@ -130,7 +131,7 @@ const RwasTabContent: React.FC<TabProps> = ({
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
 
-  const politics = usePredictionsFeed({ variant: 'politics', refresh });
+  const politics = usePredictTrendingFeed({ tab: 'rwas', refresh });
   const stocks = useStocksFeed({
     refresh,
     pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
@@ -156,11 +157,13 @@ const RwasTabContent: React.FC<TabProps> = ({
           })
         }
         onQuickTrade={
-          quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
+          quickBuyVariant.showQuickTradeButton
+            ? (token) => openQuickBuy(token, 'explore_rwas')
+            : undefined
         }
       />
     ),
-    [quickBuyVariant.showQuickTradeButton],
+    [openQuickBuy, quickBuyVariant.showQuickTradeButton],
   );
 
   const showStocks = stocks.isLoading || stocks.data.length > 0;
@@ -176,7 +179,7 @@ const RwasTabContent: React.FC<TabProps> = ({
       items.push({
         key: 'predictions',
         content: (
-          <PredictionsCarouselSection
+          <PredictTrendingCarousel
             feed={politics}
             tabName="RWAs"
             sectionName="predictions_politics"
@@ -184,7 +187,7 @@ const RwasTabContent: React.FC<TabProps> = ({
             testIdPrefix="predict-rwa-politics-market-row-item"
             idPrefix="politics_predictions"
             onViewAll={() =>
-              navigateToExplorePredictionsList(appNavigation, 'politics')
+              navigateToExplorePredictionsList(openPredict, 'politics')
             }
             isEnabled={isPredictEnabled}
           />
@@ -242,6 +245,7 @@ const RwasTabContent: React.FC<TabProps> = ({
     politics,
     isPredictEnabled,
     appNavigation,
+    openPredict,
     stocks.data,
     stocks.isLoading,
     renderStockItem,
@@ -258,12 +262,6 @@ const RwasTabContent: React.FC<TabProps> = ({
       >
         <ExploreSectionList sections={sections} />
       </ExploreScroll>
-
-      <TrendingQuickBuy
-        token={quickTradeToken}
-        onClose={() => setQuickTradeToken(null)}
-        source="explore_rwas"
-      />
     </View>
   );
 };

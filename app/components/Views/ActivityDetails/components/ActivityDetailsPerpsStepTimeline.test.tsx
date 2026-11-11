@@ -3,6 +3,10 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { useActivityBlockExplorer } from '../hooks/useActivityBlockExplorer';
+import {
+  getActivityDetailsStepIconTestId,
+  getActivityDetailsStepTestId,
+} from '../ActivityDetails.testIds';
 import { ActivityDetailsPerpsStepTimeline } from './ActivityDetailsPerpsStepTimeline';
 
 const mockNavigate = jest.fn();
@@ -34,7 +38,7 @@ describe('ActivityDetailsPerpsStepTimeline', () => {
       />,
     );
 
-    fireEvent.press(getByTestId('activity-details-step-0'));
+    fireEvent.press(getByTestId(getActivityDetailsStepTestId(0)));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
@@ -56,6 +60,6 @@ describe('ActivityDetailsPerpsStepTimeline', () => {
       />,
     );
 
-    expect(queryByTestId('activity-details-step-0-icon')).toBeNull();
+    expect(queryByTestId(getActivityDetailsStepIconTestId(0))).toBeNull();
   });
 });

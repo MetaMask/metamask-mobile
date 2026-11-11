@@ -1,41 +1,39 @@
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../app/components/Views/NetworkConnect/NetworkConnectMultiSelector.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import {
-  Assertions,
-  EncapsulatedElementType,
-  encapsulated,
-  PlatformDetector,
-  PlaywrightMatchers,
-} from '../../framework';
+import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class NetworkConnectMultiSelector {
-  get updateButton(): EncapsulatedElementType {
+  get updateButton() {
     return Matchers.getElementByID(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
     );
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton() {
     return Matchers.getElementByID(
       NetworkConnectMultiSelectorSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  getNetworkRow(networkName: string): EncapsulatedElementType {
+  getNetworkRow(networkName: string) {
     const escaped = networkName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          new RegExp(`^${escaped}-(selected|not-selected)$`),
-        ),
-    });
+    return Matchers.getElementByID(
+      new RegExp(`^${escaped}-(selected|not-selected)$`),
+    );
   }
 
   async tapUpdateButton(): Promise<void> {
     await Gestures.waitAndTap(this.updateButton, {
       elemDescription: 'Tap on the update button',
     });
+    // The NetworkConnectMultiSelector screen closes after the update. Wait for
+    // the update button to leave the tree so the caller can safely interact
+    // with the Connected Accounts Modal that slides back in — prevents taps
+    // from landing on an element that is still animating out.
+    await Utilities.waitForElementToDisappear(this.updateButton, 5_000);
   }
 
   async tapBackButton(): Promise<void> {

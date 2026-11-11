@@ -3,9 +3,6 @@ import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { hexWEIToDecGWEI } from '../../../../../../util/conversions';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -13,6 +10,7 @@ import { convertGasInputToHexWEI } from '../../../utils/gas';
 import { validateGasPrice } from '../../../utils/validations/gas';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 import styleSheet from './gas-price-input.styles';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 export const GasPriceInput = ({
   onChange,
@@ -51,7 +49,7 @@ export const GasPriceInput = ({
   return (
     <View style={styles.container}>
       <TextFieldWithLabel
-        endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
+        endAccessory={<Text variant={TextVariant.BodySm}>GWEI</Text>}
         error={error}
         inputType="gas-price"
         keyboardType="numeric"

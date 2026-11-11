@@ -4,6 +4,13 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
 // Mock FilesystemStorage
 jest.mock('redux-persist-filesystem-storage', () => ({
   getItem: jest.fn(() => Promise.resolve(null)),
@@ -34,6 +41,10 @@ jest.mock('../../../actions/user', () => {
 // Mock animation components - using existing mocks
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
+jest.mock('../../UI/OnboardingFoxLoader/OnboardingFoxLoader');
+jest.mock('../RevealPrivateCredential', () => ({
+  RevealPrivateCredential: () => null,
+}));
 
 jest.mock('react-native-elevated-view', () => ({
   __esModule: true,
@@ -48,6 +59,7 @@ const MOCK_ONBOARDING_VERSION = `${MOCK_APP_VERSION} (${MOCK_BUILD_NUMBER})`;
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => MOCK_APP_VERSION),
   getBuildNumber: jest.fn(() => MOCK_BUILD_NUMBER),
+  getTotalMemorySync: jest.fn(() => 4 * 1024 ** 3),
 }));
 
 import React from 'react';
@@ -67,16 +79,29 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { OnboardingSelectorIDs } from './Onboarding.testIds';
+import { OnboardingSheetSelectorIDs } from './OnboardingSheet/OnboardingSheet.testIds';
+import { loadingUnset, UserActionType } from '../../../actions/user';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { BottomSheet } from '@metamask/design-system-react-native';
+import {
+  getOAuthBackgroundAnalyticsProperties,
+  isOAuthLifecycleInProgress,
+  resetOAuthLifecycleTrackingForTests,
+} from '../../../core/OAuthService/oauthLifecycleTracking';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
-import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
+import {
+  MIGRATION_ERROR_HAPPENED,
+  OAUTH_IN_PROGRESS,
+} from '../../../constants/storage';
 import { AccountType, OnboardingMethod } from '../../../constants/onboarding';
 import { OnboardingCtaIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { _resetOnboardingNavigationPerformanceForTesting } from '../../../hooks/performance/onboardingNavigationPerformanceState';
@@ -106,8 +131,13 @@ jest.mock('../../../util/test/utils', () => ({
 }));
 
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
+const mockUseOnboardingLoadingStallTracker =
+  useOnboardingLoadingStallTracker as jest.MockedFunction<
+    typeof useOnboardingLoadingStallTracker
+  >;
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
@@ -313,6 +343,9 @@ const mockNav = {
   reset: jest.fn(),
   setOptions: jest.fn(),
   goBack: mockGoBack,
+  setParams: jest.fn(),
+  isFocused: jest.fn(() => true),
+  canGoBack: jest.fn(() => false),
   dispatch: jest.fn((action) => {
     if (action.type === 'REPLACE') {
       mockReplace(action.payload.name, action.payload.params);
@@ -340,6 +373,8 @@ jest.mock('@react-navigation/native-stack', () => ({
   }),
 }));
 
+// trackOnboarding still defers through InteractionManager, and testSetup mocks
+// it as a no-op, so it has to run synchronously here for analytics assertions.
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
@@ -352,6 +387,21 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
+
+const mockRequestIdleCallback = jest.fn((callback: () => void) => {
+  callback();
+  return 0;
+});
+interface IdleCallbackHost {
+  requestIdleCallback?: (callback: () => void) => number;
+}
+const idleHost = globalThis as unknown as IdleCallbackHost;
+const originalRequestIdleCallback = idleHost.requestIdleCallback;
+idleHost.requestIdleCallback = mockRequestIdleCallback;
+
+afterAll(() => {
+  idleHost.requestIdleCallback = originalRequestIdleCallback;
+});
 
 // Mock React Navigation hooks
 const mockRoute = {
@@ -471,21 +521,20 @@ describe('Onboarding', () => {
     expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
-  it('renders loading overlay with loading message', async () => {
+  it('renders the onboarding fox loader while social login is loading', async () => {
     mockSkipLoadingUnset = true;
-    const loadingMessage = 'Creating your wallet...';
     const loadingState = {
       ...mockInitialState,
       user: {
         ...mockInitialState.user,
         loadingSet: true,
-        loadingMsg: loadingMessage,
+        loadingMsg: '',
       },
     };
     mockRoute.params = { delete: true };
 
     try {
-      const { getByText } = renderScreen(
+      const { getByTestId, queryByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -494,10 +543,61 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText(loadingMessage)).toBeOnTheScreen();
+        expect(getByTestId('fox-rive-loader-animation')).toBeOnTheScreen();
       });
+      expect(
+        queryByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON),
+      ).toBeOnTheScreen();
     } finally {
       mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
+  it('keeps the landing content mounted when loading is unset after a failed social login', async () => {
+    mockSkipLoadingUnset = true;
+    const fadeOutOverlayMountSpy = jest.spyOn(
+      FadeOutOverlay.prototype,
+      'componentDidMount',
+    );
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: '',
+      },
+    };
+
+    try {
+      const { getByTestId, queryByTestId, store } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByTestId('fox-rive-loader-animation')).toBeOnTheScreen();
+      });
+      expect(fadeOutOverlayMountSpy).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        store.dispatch({ type: UserActionType.LOADING_UNSET });
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId('fox-rive-loader-animation'),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(fadeOutOverlayMountSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      fadeOutOverlayMountSpy.mockRestore();
       mockSkipLoadingUnset = false;
     }
   });
@@ -508,15 +608,15 @@ describe('Onboarding', () => {
       ...mockInitialState,
       user: {
         ...mockInitialState.user,
-        loadingSet: true,
-        loadingMsg: 'Loading...',
+        loadingSet: false,
+        loadingMsg: '',
       },
     };
     mockRoute.params = { delete: true };
     (Device.isIphoneX as jest.Mock).mockReturnValue(true);
 
     try {
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -525,7 +625,9 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Loading...')).toBeOnTheScreen();
+        expect(
+          getByTestId(OnboardingSelectorIDs.CONTAINER_ID),
+        ).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};
@@ -539,15 +641,15 @@ describe('Onboarding', () => {
       ...mockInitialState,
       user: {
         ...mockInitialState.user,
-        loadingSet: true,
-        loadingMsg: 'Loading...',
+        loadingSet: false,
+        loadingMsg: '',
       },
     };
     mockRoute.params = { delete: true };
     (Device.isIphoneX as jest.Mock).mockReturnValue(false);
 
     try {
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -556,7 +658,9 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Loading...')).toBeOnTheScreen();
+        expect(
+          getByTestId(OnboardingSelectorIDs.CONTAINER_ID),
+        ).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};
@@ -611,11 +715,11 @@ describe('Onboarding', () => {
       mockNetInfoFetch.mockReset();
     });
 
-    it('navigates to onboarding sheet when create wallet is pressed for new user', async () => {
+    it('opens the onboarding sheet when create wallet is pressed for new user', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
-      const { getByTestId } = renderScreen(
+      const { getByTestId, getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -635,15 +739,28 @@ describe('Onboarding', () => {
         await Promise.resolve();
       });
 
+      expect(
+        getByTestId(OnboardingSheetSelectorIDs.CONTAINER_ID),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('onboarding.continue_with_srp')),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON),
+        );
+      });
+
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        'ChoosePassword',
         expect.objectContaining({
-          screen: Routes.SHEET.ONBOARDING_SHEET,
-          params: expect.objectContaining({
-            createWallet: true,
-          }),
+          [PREVIOUS_SCREEN]: ONBOARDING,
         }),
       );
+      expect(
+        getByTestId(OnboardingSheetSelectorIDs.CONTAINER_ID),
+      ).toBeOnTheScreen();
     });
 
     it('navigates to ChoosePassword when create wallet is pressed with seedless disabled', async () => {
@@ -673,7 +790,6 @@ describe('Onboarding', () => {
         'ChoosePassword',
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
       expect(annotateTrace).toHaveBeenCalledWith(
@@ -746,22 +862,13 @@ describe('Onboarding', () => {
         await Promise.resolve();
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      expect(navCall).toBeDefined();
-
-      const googleOAuthFunction =
-        navCall?.[1]?.params?.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
-      expect(mockReplace).toHaveBeenCalledWith(
+      expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -780,17 +887,143 @@ describe('Onboarding', () => {
         }),
       );
     });
+
+    it('hides landing content from assistive technologies while the onboarding sheet is open', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+
+      const { getByTestId, UNSAFE_getByType } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const landingContent = getByTestId(
+        OnboardingSelectorIDs.LANDING_CONTENT_ID,
+      );
+      expect(landingContent).toHaveProp('accessibilityElementsHidden', false);
+      expect(landingContent).toHaveProp('importantForAccessibility', 'auto');
+
+      await act(async () => {
+        fireEvent.press(getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON));
+      });
+
+      const hiddenLandingContent = getByTestId(
+        OnboardingSelectorIDs.LANDING_CONTENT_ID,
+        { includeHiddenElements: true },
+      );
+      expect(hiddenLandingContent).toHaveProp(
+        'accessibilityElementsHidden',
+        true,
+      );
+      expect(hiddenLandingContent).toHaveProp(
+        'importantForAccessibility',
+        'no-hide-descendants',
+      );
+
+      await act(async () => {
+        UNSAFE_getByType(BottomSheet).props.goBack();
+      });
+
+      expect(getByTestId(OnboardingSelectorIDs.LANDING_CONTENT_ID)).toHaveProp(
+        'accessibilityElementsHidden',
+        false,
+      );
+      expect(getByTestId(OnboardingSelectorIDs.LANDING_CONTENT_ID)).toHaveProp(
+        'importantForAccessibility',
+        'auto',
+      );
+    });
+
+    it('closes the onboarding sheet when the sheet goes back', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+
+      const { getByTestId, queryByTestId, UNSAFE_getByType } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON));
+      });
+
+      expect(
+        getByTestId(OnboardingSheetSelectorIDs.CONTAINER_ID),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        UNSAFE_getByType(BottomSheet).props.goBack();
+      });
+
+      expect(queryByTestId(OnboardingSheetSelectorIDs.CONTAINER_ID)).toBeNull();
+    });
+
+    it('pops an unfocused onboarding screen on Android back while the sheet is open', async () => {
+      Platform.OS = 'android';
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      const hardwareBackHandlers: (() => boolean | null | undefined)[] = [];
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((event, handler) => {
+          if (event === 'hardwareBackPress') {
+            hardwareBackHandlers.push(
+              handler as () => boolean | null | undefined,
+            );
+          }
+          return { remove: jest.fn() };
+        });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON));
+      });
+
+      const onHardwareBackPress =
+        hardwareBackHandlers[hardwareBackHandlers.length - 1];
+
+      try {
+        (mockNav.isFocused as jest.Mock).mockReturnValue(true);
+
+        expect(onHardwareBackPress()).toBe(false);
+        expect(mockGoBack).not.toHaveBeenCalled();
+
+        (mockNav.isFocused as jest.Mock).mockReturnValue(false);
+        (mockNav.canGoBack as jest.Mock).mockReturnValue(true);
+
+        expect(onHardwareBackPress()).toBe(true);
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+        (mockNav.canGoBack as jest.Mock).mockReturnValue(false);
+
+        expect(onHardwareBackPress()).toBe(true);
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      } finally {
+        (mockNav.isFocused as jest.Mock).mockReturnValue(true);
+        (mockNav.canGoBack as jest.Mock).mockReturnValue(false);
+      }
+    });
   });
 
   describe('Import wallet flow', () => {
     afterEach(() => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
-    it('navigates to onboarding sheet when have an existing wallet button is pressed for new user', async () => {
+    it('opens the onboarding sheet when have an existing wallet button is pressed for new user', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
-      const { getByTestId } = renderScreen(
+      const { getByTestId, getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -810,14 +1043,60 @@ describe('Onboarding', () => {
         await Promise.resolve();
       });
 
+      expect(
+        getByTestId(OnboardingSheetSelectorIDs.CONTAINER_ID),
+      ).toBeOnTheScreen();
+      expect(getByText(strings('onboarding.import_srp'))).toBeOnTheScreen();
+    });
+
+    it('navigates to AddDeviceToWallet from the social import sheet', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const stateWithAddDeviceSync = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...mockInitialState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...mockInitialState.engine.backgroundState
+                  .RemoteFeatureFlagController?.remoteFeatureFlags,
+                [FeatureFlagNames.addDeviceSyncEnabled]: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: stateWithAddDeviceSync,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      fireEvent.press(
+        getByTestId(OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON),
+      );
+
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        expect.objectContaining({
-          screen: Routes.SHEET.ONBOARDING_SHEET,
-          params: expect.objectContaining({
-            createWallet: false,
-          }),
-        }),
+        Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
       );
     });
 
@@ -844,7 +1123,6 @@ describe('Onboarding', () => {
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.objectContaining({
             [PREVIOUS_SCREEN]: ONBOARDING,
-            onboardingTraceCtx: expect.any(Object),
           }),
         );
       });
@@ -878,9 +1156,10 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        // The component now reads from Redux state, not MMKV storage
-        // So we don't expect StorageWrapper.getItem to be called
-        expect(StorageWrapper.getItem).not.toHaveBeenCalled();
+        // Existing-user is read from Redux, not MMKV. Mount still checks
+        // persisted OAuth-in-progress for Android process-death analytics.
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(OAUTH_IN_PROGRESS);
+        expect(StorageWrapper.getItem).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -914,9 +1193,10 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        // The component now reads from Redux state, not MMKV storage
-        // So we don't expect StorageWrapper.getItem to be called
-        expect(StorageWrapper.getItem).not.toHaveBeenCalled();
+        // Existing-user is read from Redux, not MMKV. Mount still checks
+        // persisted OAuth-in-progress for Android process-death analytics.
+        expect(StorageWrapper.getItem).toHaveBeenCalledWith(OAUTH_IN_PROGRESS);
+        expect(StorageWrapper.getItem).toHaveBeenCalledTimes(1);
       });
 
       await act(async () => {
@@ -957,7 +1237,107 @@ describe('Onboarding', () => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
 
-    it('calls Google OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
+    it('passes wallet_setup_type new to the stall tracker when social create starts', async () => {
+      let resolveLogin: (value: unknown) => void = () => undefined;
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+      );
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      let loginPromise: Promise<unknown> | undefined;
+      await act(async () => {
+        loginPromise = fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockUseOnboardingLoadingStallTracker).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isLoading: true,
+            properties: { wallet_setup_type: 'new' },
+          }),
+        );
+      });
+
+      await act(async () => {
+        resolveLogin({
+          type: 'success',
+          existingUser: false,
+          accountName: 'test@example.com',
+        });
+        await loginPromise;
+      });
+    });
+
+    it('passes wallet_setup_type import to the stall tracker when social import starts', async () => {
+      let resolveLogin: (value: unknown) => void = () => undefined;
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+      );
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      let loginPromise: Promise<unknown> | undefined;
+      await act(async () => {
+        loginPromise = fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockUseOnboardingLoadingStallTracker).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isLoading: true,
+            properties: { wallet_setup_type: 'import' },
+          }),
+        );
+      });
+
+      await act(async () => {
+        resolveLogin({
+          type: 'success',
+          existingUser: true,
+          accountName: 'test@icloud.com',
+        });
+        await loginPromise;
+      });
+    });
+
+    it('calls Google OAuth login for create wallet flow on iOS and navigates to ChoosePassword', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -980,16 +1360,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
@@ -1012,11 +1386,10 @@ describe('Onboarding', () => {
         }),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.objectContaining({
-          accountName: 'test@example.com',
+          [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -1045,16 +1418,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
@@ -1068,13 +1435,11 @@ describe('Onboarding', () => {
         false,
         expect.anything(),
       );
-      // On Android, should navigate directly to ChoosePassword, not SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
-        'ChoosePassword',
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
 
@@ -1082,7 +1447,7 @@ describe('Onboarding', () => {
       Platform.OS = 'ios';
     });
 
-    it('calls Apple OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
+    it('calls Apple OAuth login for create wallet flow on iOS and navigates to ChoosePassword', async () => {
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -1105,16 +1470,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
       await act(async () => {
-        await appleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
@@ -1128,13 +1487,11 @@ describe('Onboarding', () => {
         false,
         expect.anything(),
       );
-      // On iOS with Apple login, should navigate to SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.objectContaining({
-          accountName: 'test@icloud.com',
+          [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -1182,16 +1539,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -1254,16 +1605,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
       await act(async () => {
-        await appleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -1324,14 +1669,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
       await act(async () => {
-        await navCall[1].params.onPressContinueWithGoogle(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -1395,14 +1736,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
       await act(async () => {
-        await navCall[1].params.onPressContinueWithGoogle(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -1449,16 +1786,10 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
       await act(async () => {
-        await appleOAuthFunction(false);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
@@ -1473,11 +1804,10 @@ describe('Onboarding', () => {
         expect.anything(),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+        Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -1502,16 +1832,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
@@ -1549,16 +1873,10 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
       await act(async () => {
-        await appleOAuthFunction(false);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
@@ -1572,6 +1890,46 @@ describe('Onboarding', () => {
             primaryButtonLabel: strings('error_sheet.oauth_error_button'),
             type: 'error',
           }),
+        }),
+      );
+    });
+
+    it('does not report to Sentry when OAuth login is already in progress', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const loginInProgressError = new OAuthError(
+        'Login already in progress',
+        OAuthErrorType.LoginInProgress,
+      );
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(loginInProgressError);
+      (captureException as jest.Mock).mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      await act(async () => {
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
+      });
+
+      expect(captureException).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         }),
       );
     });
@@ -1603,16 +1961,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       // Verify the warning sheet was shown with the iOS not-supported message.
@@ -1691,16 +2043,10 @@ describe('Onboarding', () => {
         fireEvent.press(importWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(false);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       const warningSheetCall = getIosGoogleWarningSheetCall();
@@ -1788,16 +2134,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       const errorSheetCall = getIosGoogleBlockingErrorSheetCall();
@@ -1877,14 +2217,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
       await act(async () => {
-        await navCall[1].params.onPressContinueWithGoogle(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
@@ -1941,16 +2277,10 @@ describe('Onboarding', () => {
         fireEvent.press(importWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(false);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       const rehydrationSheetCall = getIosGoogleBlockingRehydrationSheetCall();
@@ -2015,16 +2345,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -2032,7 +2356,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'existing@example.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -2060,16 +2383,10 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
       await act(async () => {
-        await appleOAuthFunction(false);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -2077,7 +2394,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'newuser@icloud.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -2104,26 +2420,15 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        'ChoosePassword',
-        expect.anything(),
-      );
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.anything(),
       );
       expect(mockNavigate).not.toHaveBeenCalledWith(
@@ -2163,17 +2468,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       // Verify fallback was attempted
@@ -2233,17 +2532,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       // Verify fallback was attempted
@@ -2306,17 +2599,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
@@ -2338,7 +2625,6 @@ describe('Onboarding', () => {
         'ChoosePassword',
         expect.objectContaining({
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
           [PREVIOUS_SCREEN]: ONBOARDING,
           provider: 'google',
         }),
@@ -2378,17 +2664,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       // Verify fallback was attempted
@@ -2440,17 +2720,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       // Verify fallback was attempted
@@ -2502,17 +2776,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       // Verify fallback was attempted
@@ -2564,17 +2832,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       // Verify fallback was attempted
@@ -2629,17 +2891,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       // Verify fallback was NOT attempted (only 1 call, no fallback)
@@ -2691,17 +2947,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       // Verify fallback was attempted
@@ -2742,16 +2992,10 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -2764,6 +3008,152 @@ describe('Onboarding', () => {
           ),
         ).toBe(true);
       });
+    });
+
+    it('shows the full-screen loader for fast onboarding Google login and clears it after the success delay', async () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+      mockNetInfoFetch.mockResolvedValue({
+        isConnected: true,
+        isInternetReachable: true,
+      });
+      mockRoute.params = { onboardingType: 'google' };
+      jest.useFakeTimers();
+
+      try {
+        const { store } = renderScreen(
+          Onboarding,
+          { name: 'Onboarding' },
+          {
+            state: mockInitialState,
+          },
+        );
+
+        await act(async () => {
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith('Onboarding');
+        expect(store.getState().user.loadingSet).toBe(true);
+
+        await act(async () => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        expect(store.getState().user.loadingSet).toBe(false);
+      } finally {
+        jest.useRealTimers();
+        mockRoute.params = {};
+      }
+    });
+
+    it('shows the offline error sheet for fast onboarding Google login without starting OAuth', async () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      mockNetInfoFetch.mockResolvedValue({
+        isConnected: false,
+        isInternetReachable: false,
+      });
+      mockRoute.params = { onboardingType: 'google' };
+
+      try {
+        renderScreen(
+          Onboarding,
+          { name: 'Onboarding' },
+          {
+            state: mockInitialState,
+          },
+        );
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.MODAL.ROOT_MODAL_FLOW,
+            expect.objectContaining({
+              screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+              params: expect.objectContaining({
+                title: strings('error_sheet.no_internet_connection_title'),
+              }),
+            }),
+          );
+        });
+
+        expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalledWith('Onboarding');
+        expect(loadingUnset).toHaveBeenCalled();
+      } finally {
+        mockRoute.params = {};
+      }
+    });
+
+    it('starts Telegram login from the onboarding sheet when Telegram login is enabled', async () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
+      mockCreateLoginHandler.mockReturnValue('mockTelegramHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'telegram-user',
+      });
+      mockNetInfoFetch.mockResolvedValue({
+        isConnected: true,
+        isInternetReachable: true,
+      });
+
+      const stateWithTelegramLogin = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...mockInitialState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                [FeatureFlagNames.telegramLoginEnabled]: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: stateWithTelegramLogin,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON));
+      });
+
+      await act(async () => {
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON),
+        );
+      });
+
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        AuthConnection.Telegram,
+        false,
+        { telegramLoginEnabled: true },
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockTelegramHandler',
+        false,
+        expect.anything(),
+      );
     });
   });
 
@@ -3231,16 +3621,10 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
       await act(async () => {
-        await appleOAuthFunction(false);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -3273,16 +3657,10 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
       await act(async () => {
-        await appleOAuthFunction(false);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -3318,16 +3696,10 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
       await act(async () => {
-        await appleOAuthFunction(false);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -3377,17 +3749,11 @@ describe('Onboarding', () => {
         fireEvent.press(importSeedButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await appleOAuthFunction(false);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -3443,17 +3809,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
-
       mockNavigate.mockClear();
       await act(async () => {
-        await googleOAuthFunction(true);
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+        );
       });
 
       await waitFor(() => {
@@ -3511,14 +3871,11 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
       return {
-        googleLogin: navCall[1].params.onPressContinueWithGoogle,
+        googleLogin: (_createWallet?: boolean) =>
+          fireEvent.press(
+            getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+          ),
         unmount,
       };
     };
@@ -3553,6 +3910,7 @@ describe('Onboarding', () => {
       jest.clearAllMocks();
       mockNavigate.mockReset();
       mockSeedlessOnboardingEnabled.mockReset();
+      resetOAuthLifecycleTrackingForTests();
     });
 
     it('reuses the mount journey span for social login instead of ending it as abandoned', async () => {
@@ -3637,7 +3995,7 @@ describe('Onboarding', () => {
       });
     });
 
-    it('does not start a CTA navigation span while OAuth is still in the browser', async () => {
+    it('does not start a social CTA navigation span while OAuth is still in the browser', async () => {
       mockOAuthService.handleOAuthLogin.mockReturnValue(
         new Promise(() => {
           // Never settles: the user is still on the provider's login page.
@@ -3645,9 +4003,13 @@ describe('Onboarding', () => {
       );
 
       const { googleLogin } = await openSheetAndGetGoogleLogin();
+      // Opening Create wallet already starts a sheet CTA span; this case is
+      // about the social CTA that must wait until OAuth resolves.
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
 
       await act(async () => {
-        void googleLogin(true);
+        googleLogin(true);
       });
 
       // Timing the tap would charge the OAuth round trip to navigation latency.
@@ -3666,6 +4028,8 @@ describe('Onboarding', () => {
       });
 
       const { googleLogin } = await openSheetAndGetGoogleLogin();
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
 
       await act(async () => {
         await googleLogin(false);
@@ -3681,10 +4045,15 @@ describe('Onboarding', () => {
           }),
         );
       });
-      // The destination screen ends it, so it is still open here.
+      // Sheet create_wallet CTA is superseded when the social CTA starts; the
+      // social span stays open until the destination ends it.
       expect(mockEndTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingCtaNavigation,
+          data: expect.objectContaining({
+            success: true,
+            cta_id: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+          }),
         }),
       );
     });
@@ -3754,7 +4123,7 @@ describe('Onboarding', () => {
       const { googleLogin } = await openSheetAndGetGoogleLogin();
 
       await act(async () => {
-        void googleLogin(true);
+        googleLogin(true);
       });
 
       await waitFor(() => {
@@ -3805,7 +4174,7 @@ describe('Onboarding', () => {
       const { googleLogin } = await openSheetAndGetGoogleLogin();
 
       await act(async () => {
-        void googleLogin(true);
+        googleLogin(true);
       });
 
       await waitFor(() => {
@@ -3843,6 +4212,190 @@ describe('Onboarding', () => {
       });
     });
 
+    it('does not reset background duration when iOS resumes through inactive', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles while the user is in the provider browser.
+        }),
+      );
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+            properties: expect.objectContaining({
+              status: 'started',
+            }),
+          }),
+        );
+      });
+
+      jest.useFakeTimers();
+      mockAnalytics.trackEvent.mockClear();
+      dispatchAppStateChange('background');
+      act(() => {
+        jest.advanceTimersByTime(5_000);
+      });
+      dispatchAppStateChange('inactive');
+      dispatchAppStateChange('active');
+
+      expect(getOAuthBackgroundAnalyticsProperties()).toEqual({
+        had_background_during_oauth: true,
+        background_count: 1,
+        time_in_background_ms: 5_000,
+      });
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'backgrounded',
+            auth_connection: 'google',
+            had_background_during_oauth: false,
+            background_count: 0,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'resumed',
+            auth_connection: 'google',
+            had_background_during_oauth: true,
+            background_count: 1,
+            time_in_background_ms: 5_000,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps OAuth lifecycle tracking during Android Google browser fallback', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const originalPlatform = Platform.OS;
+      Platform.OS = 'android';
+
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(
+          new OAuthError('', OAuthErrorType.GoogleLoginNoCredential),
+        )
+        .mockReturnValueOnce(
+          new Promise(() => {
+            // Fallback browser login is in flight.
+          }),
+        );
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+      });
+
+      expect(isOAuthLifecycleInProgress()).toBe(true);
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'started',
+          }),
+        }),
+      );
+
+      jest.useFakeTimers();
+      mockAnalytics.trackEvent.mockClear();
+      dispatchAppStateChange('background');
+      act(() => {
+        jest.advanceTimersByTime(2_000);
+      });
+      dispatchAppStateChange('active');
+
+      expect(getOAuthBackgroundAnalyticsProperties()).toEqual({
+        had_background_during_oauth: true,
+        background_count: 1,
+        time_in_background_ms: 2_000,
+      });
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'backgrounded',
+            had_background_during_oauth: false,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'resumed',
+            had_background_during_oauth: true,
+            time_in_background_ms: 2_000,
+          }),
+        }),
+      );
+
+      Platform.OS = originalPlatform;
+    });
+
+    it('tracks Social Login Status Updated abandoned after the grace period without resetting OAuth UI state', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles: user abandoned the flow in the external browser.
+        }),
+      );
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSocialLoginAttempt,
+          }),
+        );
+      });
+
+      jest.useFakeTimers();
+      mockAnalytics.trackEvent.mockClear();
+      dispatchAppStateChange('background');
+      dispatchAppStateChange('active');
+
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'abandoned',
+            auth_connection: 'google',
+            resume_outcome: 'abandoned',
+            had_background_during_oauth: true,
+          }),
+        }),
+      );
+      expect(mockOAuthService.resetOauthState).not.toHaveBeenCalled();
+    });
+
     it('cancels the abandonment countdown when OAuth returns to the background', async () => {
       mockOAuthService.handleOAuthLogin.mockReturnValue(
         new Promise(() => {
@@ -3851,7 +4404,7 @@ describe('Onboarding', () => {
       );
       const { googleLogin } = await openSheetAndGetGoogleLogin();
       await act(async () => {
-        void googleLogin(true);
+        googleLogin(true);
       });
       await waitFor(() => {
         expect(mockTrace).toHaveBeenCalledWith(
@@ -3892,7 +4445,7 @@ describe('Onboarding', () => {
       const { googleLogin, unmount } = await openSheetAndGetGoogleLogin();
 
       await act(async () => {
-        void googleLogin(true);
+        googleLogin(true);
       });
 
       await waitFor(() => {

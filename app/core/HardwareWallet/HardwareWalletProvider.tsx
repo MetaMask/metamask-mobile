@@ -46,17 +46,40 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const [pendingOperationWalletType, setPendingOperationWalletTypeState] =
     useState<HardwareWalletType | null>(null);
+  const pendingOperationCountRef = useRef(0);
+  const [pendingOperationCount, setPendingOperationCount] = useState(0);
 
   const effectiveWalletType =
     targetWalletType ?? pendingOperationWalletType ?? walletType;
 
+  // While an operation is pinned, follow the pending type (or freeze the
+  // current adapter if the type lookup blipped to null). Selected account
+  // and targetWalletType must not tear down an in-flight session. A stale
+  // deviceId is not a pin — after signing, BLE stays warm only if the
+  // selected account still matches this adapter.
+  const adapterWalletType =
+    pendingOperationCount > 0
+      ? (pendingOperationWalletType ??
+        refs.adapterRef.current?.walletType ??
+        walletType)
+      : (targetWalletType ?? walletType);
+
   const [forceHideBottomSheet, setForceHideBottomSheet] = useState(false);
+
+  // Tracks whether a connection flow is active. Late adapter/device errors
+  // arriving after a flow has closed must not re-open the error bottom sheet
+  // over the app (e.g. a locked Ledger re-connecting after the flow screen
+  // exited). `showHardwareWalletError` intentionally bypasses this gate —
+  // signing flows rely on it surfacing errors unconditionally.
+  const flowActiveRef = useRef(false);
+  const isFlowActive = useCallback(() => flowActiveRef.current, []);
 
   const { handleDeviceEvent, handleError, updateConnectionState } =
     useDeviceEventHandlers({
       refs,
       setters,
       walletType: effectiveWalletType,
+      isFlowActive,
     });
 
   const {
@@ -65,11 +88,12 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     createAdapterWithCallbacks,
     initializeAdapter,
   } = useAdapterLifecycle({
-    walletType: effectiveWalletType,
+    walletType: adapterWalletType,
     adapterRef: refs.adapterRef,
     handleDeviceEvent,
     handleError,
     updateConnectionState,
+    isFlowActive,
   });
 
   const { checkTransportEnabledOrShowError } = useTransportMonitoring({
@@ -129,6 +153,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     initializeAdapter,
     checkTransportEnabledOrShowError,
     onFlowStart: handleFlowStart,
+    flowActiveRef,
   });
 
   const showHardwareWalletError = useCallback(
@@ -158,11 +183,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const hideAwaitingConfirmation = useCallback(() => {
     awaitingConfirmationRejectRef.current = null;
-    // Ledger BLE transports are cached by device id inside the transport
-    // package, so release the transport once signing is no longer awaiting.
-    refs.adapterRef.current?.disconnect().catch(() => undefined);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [refs, updateConnectionState]);
+  }, [updateConnectionState]);
 
   const handleCloseFlow = useCallback(() => {
     awaitingConfirmationRejectRef.current = null;
@@ -219,12 +241,31 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const setPendingOperationAddress = useCallback(
     (address: string | null) => {
-      const nextPendingOperationWalletType = address
-        ? (getHardwareWalletTypeForAddress(address) ?? null)
-        : null;
+      if (address) {
+        pendingOperationCountRef.current += 1;
+        setPendingOperationCount(pendingOperationCountRef.current);
+        const nextPendingOperationWalletType =
+          getHardwareWalletTypeForAddress(address) ?? null;
+        // A transient lookup miss must not clear an existing pin (ledger →
+        // null → ledger blip mid-send). Nested callers increment the count.
+        if (nextPendingOperationWalletType === null) {
+          return;
+        }
+        setters.setPendingOperationWalletType(nextPendingOperationWalletType);
+        setPendingOperationWalletTypeState(nextPendingOperationWalletType);
+        return;
+      }
 
-      setters.setPendingOperationWalletType(nextPendingOperationWalletType);
-      setPendingOperationWalletTypeState(nextPendingOperationWalletType);
+      pendingOperationCountRef.current = Math.max(
+        0,
+        pendingOperationCountRef.current - 1,
+      );
+      setPendingOperationCount(pendingOperationCountRef.current);
+      if (pendingOperationCountRef.current > 0) {
+        return;
+      }
+      setters.setPendingOperationWalletType(null);
+      setPendingOperationWalletTypeState(null);
     },
     [setters],
   );
@@ -265,6 +306,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setTargetWalletType: setters.setTargetWalletType,
       setPendingOperationAddress,
       showHardwareWalletError,
+      cancelConnectionFlow: closeFlow,
       setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
@@ -280,6 +322,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setters.setTargetWalletType,
       setPendingOperationAddress,
       showHardwareWalletError,
+      closeFlow,
       setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,

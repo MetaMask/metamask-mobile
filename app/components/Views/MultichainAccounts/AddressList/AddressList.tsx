@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 
@@ -25,7 +25,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import MultichainAccountsHeader from '../shared/MultichainAccountsHeader';
 import { strings } from '../../../../../locales/i18n';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import {
@@ -49,6 +49,21 @@ export const AddressList = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { groupId, title, source, onLoad } = useParams<AddressListProps>();
+
+  const hasCompletedLoadTraceRef = useRef(false);
+
+  const completeLoadTrace = useCallback(() => {
+    if (hasCompletedLoadTraceRef.current) {
+      return;
+    }
+
+    hasCompletedLoadTraceRef.current = true;
+    onLoad?.();
+  }, [onLoad]);
+
+  useFocusEffect(useCallback(() => completeLoadTrace, [completeLoadTrace]));
+
+  useEffect(() => completeLoadTrace, [completeLoadTrace]);
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
@@ -95,6 +110,7 @@ export const AddressList = () => {
           chainId={item.scope}
           networkName={item.networkName}
           address={item.account.address}
+          accountType={item.account.type}
           copyParams={{
             callback: async () => {
               await copyAddressToClipboard();
@@ -136,12 +152,14 @@ export const AddressList = () => {
   useLayoutEffect(() => {
     if (title) {
       navigation.setOptions({
-        ...getHeaderCompactStandardNavbarOptions({
-          title,
-          onBack: () => navigation.goBack(),
-          backButtonProps: { testID: AddressListIds.GO_BACK },
-          includesTopInset: true,
-        }),
+        header: () => (
+          <MultichainAccountsHeader
+            title={title}
+            onBack={() => navigation.goBack()}
+            backButtonProps={{ testID: AddressListIds.GO_BACK }}
+            includesTopInset
+          />
+        ),
         headerShown: true,
       });
     }
@@ -153,7 +171,7 @@ export const AddressList = () => {
         data={internalAccountsSpreadByScopes}
         keyExtractor={(item) => item.scope}
         renderItem={renderAddressItem}
-        onLoad={onLoad}
+        onLoad={completeLoadTrace}
       />
     </View>
   );

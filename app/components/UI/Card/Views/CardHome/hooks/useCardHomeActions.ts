@@ -1,8 +1,7 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { useCallback, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import type { NavigationDetails } from '../../../../../../util/navigation/navUtils';
+import { navigateWithDetails } from '../../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { useTheme } from '../../../../../../util/theme';
@@ -19,7 +18,11 @@ import {
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { CardActions, CardEntryPoint } from '../../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  withCardProvider,
+} from '../../../util/metrics';
 import { DEPOSIT_SUPPORTED_TOKENS, cardNetworkInfos } from '../../../constants';
 import { withBiometricAuth } from '../../../util/withBiometricAuth';
 import { createAddFundsModalNavigationDetails } from '../../../components/AddFundsBottomSheet/AddFundsBottomSheet';
@@ -28,18 +31,16 @@ import { createViewPinBottomSheetNavigationDetails } from '../../../components/V
 import { buildShippingAddress } from '../../../util/buildUserAddress';
 import useAuthentication from '../../../../../../core/Authentication/hooks/useAuthentication';
 import useCardFreeze from '../../../hooks/useCardFreeze';
-import useCardDetailsToken from '../../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../../hooks/useCardPinToken';
+import { useRevealCardDetails } from '../../../hooks/useRevealCardDetails';
 import { useOpenSwaps } from '../../../hooks/useOpenSwaps';
 import { useNavigateToCardPage } from '../../../hooks/useNavigateToCardPage';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import type {
   CardHomeData,
   CardProviderCapabilities,
-  CardSensitiveDetails,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { CardFundingTokenWithBalance } from '../../../types';
-import ClipboardManager from '../../../../../../core/ClipboardManager';
 
 interface UseCardHomeActionsParams {
   data: CardHomeData | null | undefined;
@@ -70,13 +71,20 @@ export function useCardHomeActions({
   );
   const { freeze, unfreeze } = useCardFreeze(data?.card?.id);
   const {
-    fetchCardDetailsToken,
-    isLoading: isCardDetailsLoading,
-    isImageLoading: isCardDetailsImageLoading,
-    onImageLoad: onCardDetailsImageLoad,
-    imageUrl: cardDetailsImageUrl,
-    clearImageUrl: clearCardDetailsImageUrl,
-  } = useCardDetailsToken();
+    isCardDetailsLoading,
+    isCardDetailsImageLoading,
+    onCardDetailsImageLoad,
+    cardDetailsImageUrl,
+    onCardDetailsImageError,
+    cardSensitiveDetails,
+    isSensitiveDetailsLoading,
+    clearCardSensitiveDetails,
+    copyCardDetail,
+    viewCardDetailsAction,
+  } = useRevealCardDetails({
+    cardType: data?.card?.type,
+    capabilities,
+  });
   const {
     generatePinToken,
     isLoading: isPinLoading,
@@ -128,7 +136,11 @@ export function useCardHomeActions({
         onSuccess: () => {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-              .addProperties({ action: CardActions.FREEZE_CARD_BUTTON })
+              .addProperties(
+                withCardProvider(activeProviderId, {
+                  action: CardActions.FREEZE_CARD_BUTTON,
+                }),
+              )
               .build(),
           );
           showFreezeSuccessToast(wasFrozen);
@@ -149,7 +161,11 @@ export function useCardHomeActions({
           onSuccess: () => {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-                .addProperties({ action: CardActions.UNFREEZE_CARD_BUTTON })
+                .addProperties(
+                  withCardProvider(activeProviderId, {
+                    action: CardActions.UNFREEZE_CARD_BUTTON,
+                  }),
+                )
                 .build(),
             );
             showFreezeSuccessToast(wasFrozen);
@@ -166,162 +182,9 @@ export function useCardHomeActions({
     navigation,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     toastRef,
     showFreezeSuccessToast,
-  ]);
-
-  // --- Card details ---
-
-  const [cardSensitiveDetails, setCardSensitiveDetails] =
-    useState<CardSensitiveDetails | null>(null);
-  const [isSensitiveDetailsLoading, setIsSensitiveDetailsLoading] =
-    useState(false);
-
-  const clearCardSensitiveDetails = useCallback(() => {
-    setCardSensitiveDetails(null);
-  }, []);
-
-  useEffect(() => () => setCardSensitiveDetails(null), []);
-
-  const copyCardDetail = useCallback(
-    (value: string) => {
-      ClipboardManager.setString(value);
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('card.card_home.card_details.copied') },
-        ],
-        iconName: IconName.Copy,
-        iconColor: theme.colors.icon.default,
-        hasNoTimeout: false,
-      });
-    },
-    [toastRef, theme],
-  );
-
-  const showCardDetailsErrorToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        { label: strings('card.card_home.view_card_details_error') },
-      ],
-      hasNoTimeout: false,
-      iconName: IconName.Warning,
-    });
-  }, [toastRef]);
-
-  const onCardDetailsImageError = useCallback(() => {
-    clearCardDetailsImageUrl();
-    showCardDetailsErrorToast();
-  }, [clearCardDetailsImageUrl, showCardDetailsErrorToast]);
-
-  const fetchAndShowCardDetails = useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VIEW_CARD_DETAILS_BUTTON,
-          card_type: data?.card?.type,
-        })
-        .build(),
-    );
-    try {
-      await fetchCardDetailsToken(data?.card?.type);
-    } catch {
-      showCardDetailsErrorToast();
-    }
-  }, [
-    fetchCardDetailsToken,
-    showCardDetailsErrorToast,
-    data?.card?.type,
-    trackEvent,
-    createEventBuilder,
-  ]);
-
-  const fetchAndShowSensitiveDetails = useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VIEW_CARD_DETAILS_BUTTON,
-          card_type: data?.card?.type,
-        })
-        .build(),
-    );
-    setIsSensitiveDetailsLoading(true);
-    try {
-      const details =
-        await Engine.context.CardController.getCardSensitiveDetails();
-      setCardSensitiveDetails(details);
-    } catch {
-      showCardDetailsErrorToast();
-    } finally {
-      setIsSensitiveDetailsLoading(false);
-    }
-  }, [
-    showCardDetailsErrorToast,
-    data?.card?.type,
-    trackEvent,
-    createEventBuilder,
-  ]);
-
-  const viewCardDetailsAction = useCallback(async () => {
-    if (!isAuthenticated) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
-      return;
-    }
-
-    if (capabilities?.supportsSensitiveDetailsView) {
-      if (isSensitiveDetailsLoading) return;
-      if (cardSensitiveDetails) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-            .addProperties({ action: CardActions.HIDE_CARD_DETAILS_BUTTON })
-            .build(),
-        );
-        clearCardSensitiveDetails();
-        return;
-      }
-      await withBiometricAuth({
-        reauthenticate,
-        navigation,
-        toastRef,
-        onSuccess: () => fetchAndShowSensitiveDetails(),
-      });
-      return;
-    }
-
-    if (isCardDetailsLoading || isCardDetailsImageLoading) return;
-    if (cardDetailsImageUrl) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({ action: CardActions.HIDE_CARD_DETAILS_BUTTON })
-          .build(),
-      );
-      clearCardDetailsImageUrl();
-      return;
-    }
-    await withBiometricAuth({
-      reauthenticate,
-      navigation,
-      toastRef,
-      onSuccess: () => fetchAndShowCardDetails(),
-    });
-  }, [
-    isAuthenticated,
-    capabilities?.supportsSensitiveDetailsView,
-    isSensitiveDetailsLoading,
-    cardSensitiveDetails,
-    clearCardSensitiveDetails,
-    fetchAndShowSensitiveDetails,
-    isCardDetailsLoading,
-    isCardDetailsImageLoading,
-    cardDetailsImageUrl,
-    clearCardDetailsImageUrl,
-    reauthenticate,
-    fetchAndShowCardDetails,
-    navigation,
-    toastRef,
-    trackEvent,
-    createEventBuilder,
   ]);
 
   // --- PIN ---
@@ -329,16 +192,18 @@ export function useCardHomeActions({
   const fetchAndShowPin = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.VIEW_PIN_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.VIEW_PIN_BUTTON,
+          }),
+        )
         .build(),
     );
     try {
       const response = await generatePinToken();
-      // `createViewPinBottomSheetNavigationDetails` returns a `[routeName, params]`
-      // tuple with the route name widened to `string`, which can't satisfy the
-      // strict `AppNavigationProp` overloads. Cast to a generic navigate.
-      (navigation.navigate as unknown as (...args: NavigationDetails) => void)(
-        ...createViewPinBottomSheetNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createViewPinBottomSheetNavigationDetails({
           imageUrl: response.url,
         }),
       );
@@ -363,6 +228,7 @@ export function useCardHomeActions({
     resetPinToken,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
   ]);
 
   const viewPinAction = useCallback(async () => {
@@ -400,10 +266,11 @@ export function useCardHomeActions({
     }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.SET_PIN_BUTTON,
-          provider: activeProviderId,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.SET_PIN_BUTTON,
+          }),
+        )
         .build(),
     );
     await withBiometricAuth({
@@ -449,7 +316,9 @@ export function useCardHomeActions({
 
   const addFundsAction = useCallback(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
+      createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED)
+        .addProperties(withCardProvider(activeProviderId))
+        .build(),
     );
 
     if (primaryToken?.isMoneyAccountEntry) {
@@ -466,10 +335,9 @@ export function useCardHomeActions({
 
     if (isPriorityTokenSupportedDeposit) {
       switchToFundingAccountIfNeeded();
-      // See note in `fetchAndShowPin`: the details helper widens the route name
-      // to `string`, so cast to a generic navigate for the strict prop.
-      (navigation.navigate as unknown as (...args: NavigationDetails) => void)(
-        ...createAddFundsModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createAddFundsModalNavigationDetails({
           priorityToken: primaryToken ?? undefined,
         }),
       );
@@ -480,6 +348,7 @@ export function useCardHomeActions({
   }, [
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     data?.primaryFundingAsset,
     primaryToken,
     openSwaps,
@@ -490,35 +359,52 @@ export function useCardHomeActions({
   const changeAssetAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.CHANGE_ASSET_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CHANGE_ASSET_BUTTON,
+          }),
+        )
         .build(),
     );
     if (isAuthenticated) {
-      // See note in `fetchAndShowPin`: the details helper widens the route name
-      // to `string`, so cast to a generic navigate for the strict prop.
-      (navigation.navigate as unknown as (...args: NavigationDetails) => void)(
-        ...createAssetSelectionModalNavigationDetails({}),
+      navigateWithDetails(
+        navigation,
+        createAssetSelectionModalNavigationDetails({}),
       );
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+  ]);
 
   const enableCardAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.OPEN_ONBOARDING_DELEGATION_FLOW })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.OPEN_ONBOARDING_DELEGATION_FLOW,
+          }),
+        )
         .build(),
     );
     navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
       flow: 'enable_card',
     });
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder, activeProviderId]);
 
   const manageSpendingLimitAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.MANAGE_SPENDING_LIMIT_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.MANAGE_SPENDING_LIMIT_BUTTON,
+          }),
+        )
         .build(),
     );
     if (isAuthenticated) {
@@ -528,13 +414,61 @@ export function useCardHomeActions({
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+  ]);
+
+  const contactDetailsAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CONTACT_DETAILS_BUTTON,
+          }),
+        )
+        .build(),
+    );
+    if (isAuthenticated) {
+      navigation.navigate(Routes.CARD.CONTACT_DETAILS);
+    } else {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+        postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
+      });
+    }
+  }, [
+    activeProviderId,
+    createEventBuilder,
+    isAuthenticated,
+    navigation,
+    trackEvent,
+  ]);
+
+  const digitalWalletInstructionsAction = useCallback(() => {
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
+    });
+  }, [navigation]);
+
+  const howToUseApplePayAction = useCallback(() => {
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.APPLE_PAY_USAGE,
+    });
+  }, [navigation]);
 
   const unlinkMoneyAccountAction = useCallback(
     (fundingSource?: string) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({ action: CardActions.UNLINK_MONEY_ACCOUNT_BUTTON })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              action: CardActions.UNLINK_MONEY_ACCOUNT_BUTTON,
+            }),
+          )
           .build(),
       );
       navigation.navigate(Routes.CARD.MODALS.ID, {
@@ -545,34 +479,35 @@ export function useCardHomeActions({
         },
       });
     },
-    [navigation, trackEvent, createEventBuilder],
+    [navigation, trackEvent, createEventBuilder, activeProviderId],
   );
 
-  const logoutAction = useCallback(() => {
-    Alert.alert(
-      strings('card.card_home.logout_confirmation_title'),
-      strings('card.card_home.logout_confirmation_message'),
-      [
-        {
-          text: strings('card.card_home.logout_confirmation_cancel'),
-          style: 'cancel',
-        },
-        {
-          text: strings('card.card_home.logout_confirmation_confirm'),
-          style: 'destructive',
-          onPress: async () => {
-            await Engine.context.CardController.logout();
-            navigation.goBack();
-          },
-        },
-      ],
+  const revokeAllowanceAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.REVOKE_ALLOWANCE_BUTTON,
+          }),
+        )
+        .build(),
     );
-  }, [navigation]);
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.REVOKE_ALLOWANCE,
+      params: {
+        entrypoint: CardEntryPoint.CARD_HOME_REVOKE_ALLOWANCE,
+      },
+    });
+  }, [navigation, trackEvent, createEventBuilder, activeProviderId]);
 
   const orderMetalCardAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.ORDER_METAL_CARD_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.ORDER_METAL_CARD_BUTTON,
+          }),
+        )
         .build(),
     );
     navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
@@ -591,13 +526,19 @@ export function useCardHomeActions({
     navigation,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     data?.account?.shippingAddress,
   ]);
 
   const cashbackAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.CASHBACK_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CASHBACK_BUTTON,
+            type: 'open_redeem',
+          }),
+        )
         .build(),
     );
     if (isAuthenticated) {
@@ -605,7 +546,49 @@ export function useCardHomeActions({
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
-  }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
+  }, [
+    isAuthenticated,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+  ]);
+
+  const redeemCreditAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CREDIT_BUTTON,
+            type: 'open_redeem',
+          }),
+        )
+        .build(),
+    );
+    navigation.navigate(Routes.CARD.CREDIT_REDEEM);
+  }, [navigation, trackEvent, createEventBuilder, activeProviderId]);
+
+  const transactionHistoryAction = useCallback(
+    (destination: 'card' | 'money') => {
+      if (destination === 'money') {
+        navigation.navigate(Routes.HOME_TABS, {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.ACTIVITY },
+        });
+        return;
+      }
+
+      if (isAuthenticated) {
+        navigation.navigate(Routes.CARD.TRANSACTION_HISTORY);
+      } else {
+        navigation.navigate(Routes.CARD.AUTHENTICATION, {
+          showAuthPrompt: true,
+          postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
+        });
+      }
+    },
+    [isAuthenticated, navigation],
+  );
 
   return {
     freeze,
@@ -628,10 +611,15 @@ export function useCardHomeActions({
     changeAssetAction,
     enableCardAction,
     manageSpendingLimitAction,
+    contactDetailsAction,
+    digitalWalletInstructionsAction,
+    howToUseApplePayAction,
     unlinkMoneyAccountAction,
-    logoutAction,
+    revokeAllowanceAction,
     orderMetalCardAction,
     cashbackAction,
+    redeemCreditAction,
+    transactionHistoryAction,
     navigateToTravelPage,
     navigateToCardTosPage,
   };

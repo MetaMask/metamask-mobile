@@ -1,11 +1,18 @@
+import React from 'react';
+import { Linking } from 'react-native';
+import { fireEvent } from '@testing-library/react-native';
 import {
   TransactionStatus,
   TransactionType,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  renderHookWithProvider,
+} from '../../../../../util/test/renderWithProvider';
 import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { PendingTransactionAlertTestIds } from './pending-transaction-alert.testIds';
+import { SPEEDUP_CANCEL_TRANSACTION_URL } from '../../constants/url';
 
 const MOCK_SUBMITTED_TRANSACTION_META = {
   id: '1',
@@ -95,6 +102,37 @@ describe('usePendingTransactionAlert', () => {
         }),
       ]),
     );
+  });
+
+  it('opens speed up URL when learn more button is pressed', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValueOnce(undefined);
+
+    const { result } = renderHookWithProvider(
+      () => usePendingTransactionAlert(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [MOCK_SUBMITTED_TRANSACTION_META],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(
+      <>{result.current[0].message}</>,
+    );
+
+    fireEvent.press(
+      getByTestId(PendingTransactionAlertTestIds.LEARN_MORE_BUTTON),
+    );
+
+    expect(openUrlSpy).toHaveBeenCalledWith(SPEEDUP_CANCEL_TRANSACTION_URL);
   });
 
   it('does not return an alert if no transactions', () => {

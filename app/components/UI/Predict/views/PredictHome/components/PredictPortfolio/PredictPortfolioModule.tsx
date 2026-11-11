@@ -17,11 +17,13 @@ import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 
 export interface PredictPortfolioModuleProps {
+  isGlass?: boolean;
   onDepositWalletWithdrawPress?: () => void;
   onPositionsPress?: () => void;
 }
 
 const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
+  isGlass = false,
   onDepositWalletWithdrawPress,
   onPositionsPress,
 }) => {
@@ -31,6 +33,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const {
     availableBalance,
+    balanceError,
     claim,
     claimableAmount,
     claimablePositionCount,
@@ -38,6 +41,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     hasClaimableWinnings,
     isClaimPending,
     isLoading,
+    error,
     openPositionCount,
     portfolioValue,
     positionsBadgeCount,
@@ -153,8 +157,10 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     <Box testID={PredictHomeSelectorsIDs.PORTFOLIO_MODULE} twClassName="gap-4">
       <PredictPortfolioSummary
         availableBalance={availableBalance}
+        hasBalanceError={Boolean(balanceError)}
         isHidden={Boolean(privacyMode)}
         isLoading={isLoading}
+        hasError={Boolean(error)}
         portfolioValue={portfolioValue}
         showPnlLine={showPnlLine}
         totalUnrealizedPnlAmount={totalUnrealizedPnlAmount}
@@ -162,6 +168,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
       />
 
       <PredictPortfolioActions
+        isGlass={isGlass}
         isWithdrawDisabled={isWithdrawDisabled}
         onAddFundsPress={handleAddFundsPress}
         onPositionsPress={handlePositionsPress}
@@ -171,6 +178,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
 
       {hasClaimableWinnings && (
         <PredictClaimButton
+          isGlass={isGlass}
           amount={claimableAmount}
           isHidden={Boolean(privacyMode)}
           isLoading={isClaimPending}

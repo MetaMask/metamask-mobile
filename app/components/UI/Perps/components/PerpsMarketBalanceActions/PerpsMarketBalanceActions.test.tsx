@@ -1,7 +1,9 @@
 import React, { ReactNode } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import { GlassView } from 'expo-glass-effect';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
@@ -32,6 +34,20 @@ const mockStartPulseAnimation = jest.fn();
 const mockGetAnimatedStyle = jest.fn(() => ({}));
 const mockStopAnimation = jest.fn();
 const mockCompareAndUpdateBalance = jest.fn(() => 'increase');
+
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -750,6 +766,59 @@ describe('PerpsMarketBalanceActions', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('glass', () => {
+    it('draws Withdraw with the sheen and Add funds as the plain primary button', () => {
+      const { UNSAFE_getAllByType, getAllByTestId, getByTestId } =
+        renderWithProvider(
+          <PerpsMarketBalanceActions
+            hideBalanceSection
+            showActionButtons
+            isGlass
+          />,
+          { state: createMockState() },
+          false,
+        );
+
+      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the empty-balance Add funds off glass', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...defaultPerpsAccount,
+          totalBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+        },
+        isInitialLoading: false,
+        isLoading: false,
+        error: null,
+      });
+
+      const { UNSAFE_queryAllByType } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection isGlass />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+    });
+
+    it('keeps the original buttons by default', () => {
+      const { UNSAFE_queryAllByType } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection showActionButtons />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
     });
   });
 

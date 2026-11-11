@@ -10,14 +10,18 @@ Read, in order:
 2. `CONTEXT.md` — canonical Predict domain language.
 3. Accepted Kalshi ADRs linked from `README.md`.
 4. `docs/architecture.md` — stable boundaries and invariants.
-5. The Jira issue being implemented.
+5. `docs/canonical-read-model-and-api.md` — agreed working direction for public read types and routes.
+6. `docs/ui-components.md` — composition rules for PredictNext core UI work.
+7. `docs/module-structure.md` — feature ownership and public/internal module boundaries.
+8. The Jira issue being implemented. When migrating a caller outside Predict, also read `docs/adr/0002-permanent-public-api-private-legacy.md` and `docs/public-api-contract.md`.
 
 ## Scope
 
 - Build the new architecture for Kalshi first.
-- Keep production Polymarket on the legacy `Predict/` stack.
+- Keep production Polymarket on the legacy `Predict/` stack with unchanged behavior.
 - Do not add Kalshi branches to legacy Predict controllers or providers.
-- Do not create Polymarket adapters, compatibility code, or migration scaffolding until a ticket explicitly starts that work.
+- External callers use the PredictNext public API and never branch on Venue. Its Polymarket branch passes through to legacy code moved as-is. Do not convert legacy Polymarket data into canonical types on the client, and do not expose legacy objects publicly.
+- Do not create Polymarket adapters or migration scaffolding beyond that pass-through until a ticket explicitly starts PRED-1356.
 - Implement only the capabilities required by the current vertical slice. Do not scaffold future services, UI tiers, or optional adapter capabilities.
 
 ## Sources of truth
@@ -26,7 +30,8 @@ Read, in order:
 2. Jira governs current scope and acceptance criteria.
 3. `CONTEXT.md` governs domain vocabulary.
 4. `docs/architecture.md` governs current module boundaries.
-5. Code and tests are the executable truth for implemented interfaces.
+5. `docs/canonical-read-model-and-api.md` governs the agreed next public-read contract until implementation supersedes it.
+6. Code and tests are the executable truth for implemented interfaces.
 
 Proposed ADRs and examples in these docs are working direction, not accepted contracts. Surface conflicts instead of silently choosing a side.
 
@@ -37,7 +42,19 @@ Proposed ADRs and examples in these docs are working direction, not accepted con
 - Create Predict-local ADRs under `docs/adr/` only for durable, non-obvious decisions not governed elsewhere.
 - Never put credentials, bearer tokens, OTPs, PII/KYC values, or transfer-authorization material in Redux, persisted mobile storage, logs, analytics, traces, or fixtures.
 - Follow repository TypeScript, testing, design-system, and security guidance.
+- For core UI, follow `docs/ui-components.md`: prefer explicit variants and children-based composition, avoid boolean mode props, and use compound components only where independently useful parts or shared state justify them.
+- For placement and imports, follow `docs/module-structure.md`: organize product UI by owning feature/domain, import across modules through deliberate `index.ts` APIs, and keep private implementation under the owner's `internal/` directory.
 - Work one behavior at a time: red → green → refactor.
+
+## Testing locations and boundaries
+
+PredictNext test support also lives outside this directory:
+
+- `tests/component-view/renderers/predictNext.ts` owns the shared screen renderer and registered routes.
+- `tests/component-view/fixtures/predictNext.ts` owns reusable Event fixtures, Feed messenger setup, and card assertions.
+- `tests/integration/harnesses/predict-next.ts` owns the Engine-root-to-service integration harness.
+
+Keep screen loading, error, empty, cached-data, and navigation journeys in colocated `*.view.test.tsx` files. Reuse the shared component-view fixture instead of recreating Event builders or Feed messenger setup. Keep Feed contracts, pagination, retry, and circuit-breaker behavior in the integration harness; do not add a separate rendered-Home integration harness.
 
 ## Agent readiness
 

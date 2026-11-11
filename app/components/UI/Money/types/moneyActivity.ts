@@ -1,5 +1,6 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
+import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 /**
  * Card spends and musdback from the accounts API
@@ -34,14 +35,77 @@ export type AccountsApiActivity =
   | (AccountsApiSettlement & {
       kind: 'refund';
       receivedFrom: Hex;
+    })
+  | (AccountsApiSettlement & {
+      /** VBA / Iron (or QA test-wallet) mUSD credit to the Money Account. */
+      kind: 'bank_transfer';
+      receivedFrom: Hex;
+      /**
+       * Money Account API transfer status. Only `confirmed` transfers with an
+       * on-chain hash become completed API activity; in-flight and errored
+       * transfers stay NeoBank rows.
+       */
+      status: 'confirmed';
     });
+
+/**
+ * Off-chain VBA / NeoBank autoramp deposit (PIX → mUSD), before or without an
+ * Accounts-API on-chain settlement row. Status is MoonPay `transaction_status`.
+ */
+export interface NeobankBankTransferActivity {
+  id: string;
+  autorampId: string;
+  /** MoonPay status: Pending, Completed, Failed, Cancelled, … */
+  status: string;
+  time: number;
+  /** Source fiat decimal string when present (BRL). */
+  sourceAmount?: string;
+  /** Destination mUSD decimal string when present. */
+  destinationAmount?: string;
+  /** On-chain payout hash when MoonPay has one (used to dedupe vs Accounts API). */
+  transactionHash?: Hex;
+}
+
+/**
+ * Bank microdeposit: a small test credit a bank sends to verify a linked
+ * account. It never settles on-chain — the bank later pulls the total back
+ * with one debit that our providers do not report — so the row exists only
+ * to explain a credit the user sees on their bank statement.
+ */
+export interface MicrodepositActivity {
+  /**
+   * Synthetic identity. MoonPay's microdeposit payload has no id, so this is
+   * built from the fields that identify the credit.
+   */
+  id: string;
+  /** Decimal fiat amount, exactly as MoonPay sends it. */
+  amount: string;
+  currencyCode: string;
+  /** Sending bank or account name when MoonPay reports one. */
+  counterpartyName?: string;
+  /** Epoch ms parsed from MoonPay's `created_at`. */
+  time: number;
+}
 
 /**
  * One row in the Money activity list, tagged by source.
  **/
 export type MoneyActivityItem =
   | { kind: 'onchain'; id: string; time: number; tx: TransactionMeta }
-  | { kind: 'accountsApi'; id: string; time: number; tx: AccountsApiActivity };
+  | { kind: 'accountsApi'; id: string; time: number; tx: AccountsApiActivity }
+  | { kind: 'cardProvider'; id: string; time: number; tx: CardTransaction }
+  | {
+      kind: 'neobank';
+      id: string;
+      time: number;
+      tx: NeobankBankTransferActivity;
+    }
+  | {
+      kind: 'microdeposit';
+      id: string;
+      time: number;
+      tx: MicrodepositActivity;
+    };
 
 export const onchainItem = (tx: TransactionMeta): MoneyActivityItem => ({
   kind: 'onchain',
@@ -55,6 +119,31 @@ export const accountsApiItem = (
 ): MoneyActivityItem => ({
   kind: 'accountsApi',
   id: tx.hash,
+  time: tx.time,
+  tx,
+});
+
+export const cardProviderItem = (tx: CardTransaction): MoneyActivityItem => ({
+  kind: 'cardProvider',
+  id: tx.id,
+  time: tx.timestamp,
+  tx,
+});
+
+export const neobankItem = (
+  tx: NeobankBankTransferActivity,
+): MoneyActivityItem => ({
+  kind: 'neobank',
+  id: tx.id,
+  time: tx.time,
+  tx,
+});
+
+export const microdepositItem = (
+  tx: MicrodepositActivity,
+): MoneyActivityItem => ({
+  kind: 'microdeposit',
+  id: tx.id,
   time: tx.time,
   tx,
 });

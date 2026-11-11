@@ -7,7 +7,6 @@ import styleSheet from './styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   FontWeight,
-  HeaderBase,
   ButtonIconSize,
   Icon,
   IconColor,
@@ -39,7 +38,9 @@ import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import AccountCell from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell';
+import HeaderBaseGlass from '../../../../../component-library/components-temp/HeaderBaseGlass';
 import { selectAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { AddAccountItem } from './components/AddAccountItem';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
@@ -55,6 +56,7 @@ export const BaseWalletDetails = ({
   children,
 }: BaseWalletDetailsProps) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const [isLoading, setIsLoading] = useState(false);
   const accountGroupsFlashListRef =
@@ -170,7 +172,10 @@ export const BaseWalletDetails = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        testID={WalletDetailsIds.HEADER}
         style={styles.header}
         startButtonIconProps={{
           testID: WalletDetailsIds.BACK_BUTTON,
@@ -181,7 +186,7 @@ export const BaseWalletDetails = ({
         }}
       >
         {wallet.metadata.name}
-      </HeaderBase>
+      </HeaderBaseGlass>
       <View
         style={styles.container}
         testID={WalletDetailsIds.WALLET_DETAILS_CONTAINER}

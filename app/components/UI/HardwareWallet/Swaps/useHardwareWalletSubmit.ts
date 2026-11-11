@@ -15,13 +15,17 @@ import type { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
+import {
+  INTERNAL_ABORT_MESSAGES,
+  isDeviceUserRejection,
+} from '../../../../core/HardwareWallet/errors/helpers';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import useSubmitBridgeTx from '../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { withPostTradeNotificationSuppression } from '../../Bridge/utils/postTradeNotifications';
 import {
-  HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
+  HardwareWalletsSwapsStatus,
   type HardwareWalletsSwapsState,
 } from './HardwareWalletsSwaps.state';
 import type { SubmissionParams } from './HardwareWalletsSwaps';
@@ -116,7 +120,7 @@ interface UseHardwareWalletSubmitOptions {
   approvalRequestId?: string;
   submissionParams?: SubmissionParams;
   ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
-  setPendingOperationAddress?: (address: string | null) => void;
+  setPendingOperationAddress: (address: string | null) => void;
 }
 
 /**
@@ -173,7 +177,7 @@ export function useHardwareWalletSubmit({
     }
   }, [submissionParams]);
 
-  // Shared stale-submission guard + TransactionFailed dispatch.
+  // Shared stale-submission guard + failure dispatch.
   const runSubmit = useCallback(
     async <Result>(submitFn: () => Promise<Result>) => {
       const submissionGenerationAtStart = submissionGenerationRef.current;
@@ -181,31 +185,37 @@ export function useHardwareWalletSubmit({
         return await submitFn();
       } catch (error) {
         if (submissionGenerationRef.current !== submissionGenerationAtStart) {
-          return;
+          return undefined;
         }
-        Logger.error(error as Error, 'HW swap submit failed');
-        const status = progressRef.current.status;
-        // Only transition to Failed from active phases:
-        // - Waiting:  HW signing step failed (device error, keyring error, etc.)
-        // - Submitted: signing succeeded but the broadcast (STX backend) failed
-        //
-        // Other statuses (Rejected, Disconnected, Cancelled, Failed, Idle) are
-        // already terminal or handled — the error is redundant and skipping it
-        // avoids overwriting state the reducer deliberately expects to be retryable.
+        // Rejected is only accepted while the progress state is Waiting. Once
+        // all signing steps have completed (Submitted), submitFn can reject
+        // because publishing failed; its error message may contain a broad
+        // cancellation pattern but must reach TransactionFailed.
         if (
-          status === HardwareWalletsSwapsStatus.Waiting ||
-          status === HardwareWalletsSwapsStatus.Submitted
+          progressRef.current.status === HardwareWalletsSwapsStatus.Waiting &&
+          isDeviceUserRejection(error, {
+            excludedMessages: INTERNAL_ABORT_MESSAGES,
+          })
         ) {
           dispatch(
             updateHardwareWalletsSwaps({
-              type: HardwareWalletsSwapsEventType.TransactionFailed,
+              type: HardwareWalletsSwapsEventType.Rejected,
             }),
           );
+          return undefined;
         }
+        Logger.error(error as Error, 'HW swap submit failed');
+        dispatch(
+          updateHardwareWalletsSwaps({
+            type: HardwareWalletsSwapsEventType.TransactionFailed,
+          }),
+        );
         return undefined;
       }
     },
-    [dispatch, progressRef, submissionGenerationRef],
+    // refs do not need to be included in the dependency array
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch],
   );
 
   // ── Send flow ──────────────────────────────────────────────────────
@@ -223,7 +233,7 @@ export function useHardwareWalletSubmit({
     }
 
     await runSubmit(async () => {
-      setPendingOperationAddress?.(walletAddress);
+      setPendingOperationAddress(walletAddress);
       try {
         const deviceId = await getDeviceIdForAddress(walletAddress);
         const isReady = await ensureDeviceReady?.(deviceId);
@@ -258,7 +268,7 @@ export function useHardwareWalletSubmit({
           await retrySendTransaction(currentPreparedTxMeta);
         }
       } finally {
-        setPendingOperationAddress?.(null);
+        setPendingOperationAddress(null);
       }
     });
   }, [
@@ -285,18 +295,41 @@ export function useHardwareWalletSubmit({
     const submissionGenerationAtStart = submissionGenerationRef.current;
     setSubmittedTransaction(null);
 
-    const submitted = await runSubmit(() =>
-      withPostTradeNotificationSuppression(() =>
-        submitBridgeTxRef.current(cachedParams),
-      ),
-    );
+    const submitted = await runSubmit(async () => {
+      setPendingOperationAddress(walletAddress);
+      try {
+        const deviceId = await getDeviceIdForAddress(walletAddress);
+        const isReady = await ensureDeviceReady?.(deviceId);
+        if (!isReady) {
+          dispatch(
+            updateHardwareWalletsSwaps({
+              type: HardwareWalletsSwapsEventType.TransactionFailed,
+            }),
+          );
+          return undefined;
+        }
+
+        return await withPostTradeNotificationSuppression(() =>
+          submitBridgeTxRef.current(cachedParams),
+        );
+      } finally {
+        setPendingOperationAddress(null);
+      }
+    });
 
     if (submissionGenerationRef.current !== submissionGenerationAtStart) {
       return;
     }
 
     setSubmittedTransaction(submitted);
-  }, [dispatch, walletAddress, runSubmit, submissionGenerationRef]);
+  }, [
+    dispatch,
+    walletAddress,
+    runSubmit,
+    submissionGenerationRef,
+    ensureDeviceReady,
+    setPendingOperationAddress,
+  ]);
 
   const submit = useCallback(async () => {
     if (isSendFlow) {

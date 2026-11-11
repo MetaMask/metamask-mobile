@@ -151,9 +151,10 @@ export function areAddressesEqual(address1: string, address2: string) {
 export function renderShortAddress(address: string, chars = 5) {
   if (!address) return address;
   const formattedAddress = toFormattedAddress(address);
-  return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
-    -chars,
-  )}`;
+  const start = isHexPrefixed(formattedAddress)
+    ? `0x${formattedAddress.slice(2, 2 + chars)}`
+    : formattedAddress.slice(0, chars);
+  return `${start}...${formattedAddress.slice(-chars)}`;
 }
 
 /**
@@ -435,7 +436,6 @@ export function getLabelTextByInternalAccount(
       return strings('accounts.qr_hardware');
     case ExtendedKeyringTypes.simple:
       return strings('accounts.imported');
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     case KeyringTypes.snap: {
       // TODO: We should return multiple labels if one day we allow 3rd party Snaps (since they might have 2 pills:
       // 1. For the SRP (if they provide `options.entropySource`)
@@ -453,7 +453,6 @@ export function getLabelTextByInternalAccount(
         return strings('accounts.snap_account_tag');
       }
     }
-    ///: END:ONLY_INCLUDE_IF
   }
   return null;
 }

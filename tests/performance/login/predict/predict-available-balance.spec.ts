@@ -1,12 +1,12 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import { AppiumAssertions } from '../../../framework';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
-import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
-import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
+import PredictHome from '../../../page-objects/Predict/PredictHome';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Predict Available Balance Performance Test
@@ -33,19 +33,18 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       // Timer 1: Navigate to Predict tab and verify available balance
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Available Balance is displayed',
-        { ios: 4500, android: 5000 },
+        { ios: 4500, android: 2400 },
         currentDeviceDetails.platform,
       );
+
       await ToastModal.waitForToastToDismiss();
+      await enableHermesAppProfiling();
+      await WalletView.scrollAndTapPredictionsSection();
 
-      await TabBarComponent.tapActions();
-
-      await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictMarketList.container),
-          { timeout: 60000 },
-        );
+        await AppiumAssertions.expectElementToBeVisible(PredictHome.container, {
+          timeout: 60000,
+        });
       });
 
       // Add all timers to performance tracker

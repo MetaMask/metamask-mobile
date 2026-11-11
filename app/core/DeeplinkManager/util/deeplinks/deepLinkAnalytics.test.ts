@@ -44,6 +44,10 @@ jest.mock('./deepLinkAnalytics', () => {
 });
 
 describe('deepLinkAnalytics', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('determineAppInstallationStatus', () => {
     it('detects deferred deep link when user installs app via Branch link', () => {
       const params = {
@@ -464,6 +468,8 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
       [ACTIONS.WHATS_HAPPENING, DeepLinkRoute.WHATS_HAPPENING],
       [ACTIONS.TOP_TRADERS, DeepLinkRoute.TOP_TRADERS],
+      [ACTIONS.SOCIAL, DeepLinkRoute.TOP_TRADERS],
+      [ACTIONS.SOCIAL_TRADER, DeepLinkRoute.SOCIAL_TRADER],
       [ACTIONS.SOCIAL_TRADER_POSITION, DeepLinkRoute.SOCIAL_TRADER_POSITION],
     ] as const)(
       'maps action %s to its corresponding route',
@@ -493,6 +499,21 @@ describe('deepLinkAnalytics', () => {
       const result = mapSupportedActionToRoute(ACTIONS.MONEY);
       expect(result).toBe(DeepLinkRoute.MONEY);
     });
+
+    it('maps Money account deposit action to its dedicated route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.MONEY_ACCOUNT_DEPOSIT);
+      expect(result).toBe(DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT);
+    });
+
+    it('maps PRIVACY action to PRIVACY route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.PRIVACY);
+      expect(result).toBe(DeepLinkRoute.PRIVACY);
+    });
+
+    it('maps NOTIFICATIONS_SETTINGS action to NOTIFICATIONS_SETTINGS route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.NOTIFICATIONS_SETTINGS);
+      expect(result).toBe(DeepLinkRoute.NOTIFICATIONS_SETTINGS);
+    });
   });
 
   describe('extractRouteFromUrl', () => {
@@ -519,6 +540,13 @@ describe('deepLinkAnalytics', () => {
         'https://link.metamask.io/deposit?provider=ramp',
       );
       expect(result).toBe(DeepLinkRoute.INVALID);
+    });
+
+    it('extracts Money account deposit route from URL', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/money-account-deposit',
+      );
+      expect(result).toBe(DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT);
     });
 
     it('extract transaction route', () => {
@@ -552,6 +580,30 @@ describe('deepLinkAnalytics', () => {
     it('extract shield route', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/shield');
       expect(result).toBe(DeepLinkRoute.SHIELD);
+    });
+
+    it('extract social trader profile route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social-trader?traderId=trader-1',
+      );
+      expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER);
+    });
+
+    it.each([
+      [
+        'https://link.metamask.io/social?tab=trending',
+        DeepLinkRoute.TOP_TRADERS,
+      ],
+      [
+        'https://link.metamask.io/social/profile?traderId=trader-1',
+        DeepLinkRoute.SOCIAL_TRADER,
+      ],
+      [
+        'https://link.metamask.io/social/profile/position?positionId=position-1',
+        DeepLinkRoute.SOCIAL_TRADER_POSITION,
+      ],
+    ])('extracts the nested social route from %s', (url, route) => {
+      expect(extractRouteFromUrl(url)).toBe(route);
     });
 
     it('extract social trader position route', () => {
@@ -588,6 +640,20 @@ describe('deepLinkAnalytics', () => {
     it('extract money route', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/money');
       expect(result).toBe(DeepLinkRoute.MONEY);
+    });
+
+    it('extract privacy route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/privacy?setting=metametrics',
+      );
+      expect(result).toBe(DeepLinkRoute.PRIVACY);
+    });
+
+    it('extract notifications-settings route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/notifications-settings?section=price-alerts',
+      );
+      expect(result).toBe(DeepLinkRoute.NOTIFICATIONS_SETTINGS);
     });
 
     it('return INVALID for unknown routes', () => {
@@ -666,6 +732,60 @@ describe('deepLinkAnalytics', () => {
         amount: '100',
         slippage: '0.5',
       });
+    });
+
+    it('includes referral code for rewards route', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/rewards?referral=ABC123',
+        route: DeepLinkRoute.REWARDS,
+        urlParams: { referral: 'ABC123' },
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const result = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(result.properties.referral).toBe('ABC123');
+      expect(result.properties).not.toHaveProperty('referral_code');
+      expect(result.sensitiveProperties).toEqual({});
+    });
+
+    it('reports the normalized money referral code from ref', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/home?ref=kol123',
+        route: DeepLinkRoute.HOME,
+        urlParams: { ref: 'kol123' },
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const result = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(result.properties.referral_code).toBe('KOL123');
+      expect(result.properties).not.toHaveProperty('referral');
+    });
+
+    it('omits the money referral code when ref is malformed', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/home?ref=a',
+        route: DeepLinkRoute.HOME,
+        urlParams: { ref: 'a' },
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const result = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(result.properties).not.toHaveProperty('referral_code');
     });
 
     it('creates event for invalid route with target URL', async () => {

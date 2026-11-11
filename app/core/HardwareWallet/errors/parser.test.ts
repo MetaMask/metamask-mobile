@@ -206,6 +206,24 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.DeviceDisconnected);
     });
 
+    it('parses legacy BLE "Failed to open transport" as BluetoothConnectionFailed', () => {
+      const error = new Error('Failed to open transport');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.BluetoothConnectionFailed);
+    });
+
+    it('parses DMK "No cached DiscoveredDevice" as DeviceDisconnected', () => {
+      const error = new Error(
+        'No cached DiscoveredDevice for deviceId: ABC-123',
+      );
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
     it('parses LockedDeviceError', () => {
       const error = new Error('Device is locked');
       error.name = 'LockedDeviceError';
@@ -373,6 +391,22 @@ describe('parseErrorByType', () => {
       const result = parseErrorByType(error, walletType);
 
       expect(result.code).toBe(ErrorCode.ConnectionTimeout);
+    });
+
+    it('parses "Device unresponsive" timeout message', () => {
+      const error = new Error('Device unresponsive');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceUnresponsive);
+    });
+
+    it('parses "Device unresponsive during verification" timeout message', () => {
+      const error = new Error('Device unresponsive during verification');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceUnresponsive);
     });
 
     it('parses scan timeout message containing "unlocked" as ConnectionTimeout, not AuthenticationDeviceLocked', () => {
@@ -560,6 +594,94 @@ describe('parseErrorByType', () => {
       const result = parseErrorByType(error, walletType);
 
       expect(result.code).toBe(ErrorCode.UserRejected);
+    });
+  });
+
+  describe('DMK errorCode-based error translation', () => {
+    // DMK DeviceExchangeError subclasses carry the device status word in
+    // `errorCode` as a 4-hex-digit string WITHOUT the 0x prefix (e.g. '6a80').
+    it('parses unrecognized _tag with errorCode 6a80 as blind signing not supported', () => {
+      const error = {
+        _tag: 'UnmappedSignCommandError',
+        errorCode: '6a80',
+        message: 'Sign command failed',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateBlindSignNotSupported);
+    });
+
+    it('parses errorCode 6985 with blind signing message as blind signing not supported', () => {
+      const error = {
+        _tag: 'UnmappedSignCommandError',
+        errorCode: '6985',
+        message: 'Please enable Blind signing on your device',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateBlindSignNotSupported);
+    });
+
+    it('parses errorCode 6985 with contract data message as blind signing not supported', () => {
+      const error = {
+        _tag: 'UnmappedSignCommandError',
+        errorCode: '6985',
+        message: 'Please enable Contract data in the Ethereum app Settings',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceStateBlindSignNotSupported);
+    });
+
+    it('parses errorCode 6985 without blind signing context as user rejected', () => {
+      const error = {
+        _tag: 'UnmappedSignCommandError',
+        errorCode: '6985',
+        message: 'Sign command failed',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.UserRejected);
+    });
+
+    it('parses global errorCode 5515 as device locked', () => {
+      const error = {
+        _tag: 'GlobalCommandError',
+        errorCode: '5515',
+        message: 'Device is locked',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.AuthenticationDeviceLocked);
+    });
+
+    it('falls back to Unknown for unmapped errorCode', () => {
+      const error = {
+        _tag: 'UnmappedSignCommandError',
+        errorCode: '9fff',
+        message: 'Sign command failed',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.Unknown);
+    });
+
+    it('keeps recognized _tag classification over errorCode', () => {
+      const error = {
+        _tag: 'DeviceLockedError',
+        errorCode: '6a80',
+        message: 'Device is locked',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.AuthenticationDeviceLocked);
     });
   });
 

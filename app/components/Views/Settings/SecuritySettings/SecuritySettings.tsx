@@ -1,6 +1,13 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Switch, ScrollView, View, Keyboard, Linking } from 'react-native';
+import {
+  Switch,
+  ScrollView,
+  View,
+  Keyboard,
+  Linking,
+  InteractionManager,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,9 +28,11 @@ import {
   ProtectYourWallet,
   DeviceSecurityToggle,
   ChangePassword,
+  MfaSection,
   AutoLock,
   ClearPrivacy,
   BlockaidSettings,
+  SupportConsentPreferenceSection,
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
@@ -38,7 +47,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   FontWeight,
   Text,
   TextColor,
@@ -65,8 +73,15 @@ import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSetti
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
+import {
+  selectIsBasicFunctionalityConsolidationEnabled,
+  selectIsSocialLoginBasicFunctionalityLocked,
+} from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const Settings: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
   const {
     styles,
@@ -83,8 +98,15 @@ const Settings: React.FC = () => {
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
+  const isBasicFunctionalityConsolidationEnabled = useSelector(
+    selectIsBasicFunctionalityConsolidationEnabled,
+  );
+  const isSocialLoginBasicFunctionalityLocked = useSelector(
+    selectIsSocialLoginBasicFunctionalityLocked,
+  );
   const scrollViewRef = useRef<ScrollView>(null);
-  const detectNftComponentRef = useRef<View>(null);
+  const metaMetricsSectionRef = useRef<View>(null);
+  const dataCollectionSectionRef = useRef<View>(null);
   const {
     disableNotifications,
     loading: disableNotificationsLoading,
@@ -153,37 +175,34 @@ const Settings: React.FC = () => {
     isNotificationEnabled,
   ]);
 
-  const scrollToDetectNFTs = useCallback(() => {
-    if (detectNftComponentRef.current) {
-      detectNftComponentRef.current?.measureLayout(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        scrollViewRef.current as any,
-        (_, y) => {
-          scrollViewRef.current?.scrollTo({
-            y,
-            animated: true,
-          });
-        },
-        () => null,
-      );
-    }
-  }, []);
+  const scrollToSection = useCallback(() => {
+    const scrollHost = scrollViewRef.current?.getNativeScrollRef();
+    if (!scrollHost) return;
 
-  const waitForRenderDetectNftComponentRef = useCallback(async () => {
-    if (params?.scrollToDetectNFTs) {
-      // Add a delay to ensure the component is fully rendered
-      await new Promise((resolve) => setTimeout(resolve, 0));
+    const sectionRef =
+      params?.scrollToSection === 'data-collection'
+        ? dataCollectionSectionRef
+        : metaMetricsSectionRef;
 
-      // Scroll to the desired position
-      scrollToDetectNFTs();
-    }
-  }, [scrollToDetectNFTs, params?.scrollToDetectNFTs]);
+    sectionRef.current?.measureLayout(
+      scrollHost,
+      (_, y) => {
+        scrollViewRef.current?.scrollTo({
+          y,
+          animated: true,
+        });
+      },
+      () => null,
+    );
+  }, [params?.scrollToSection]);
 
   useFocusEffect(
     useCallback(() => {
-      waitForRenderDetectNftComponentRef();
-    }, [waitForRenderDetectNftComponentRef]),
+      if (!params?.scrollToSection) return;
+
+      const task = InteractionManager.runAfterInteractions(scrollToSection);
+      return () => task.cancel();
+    }, [scrollToSection, params?.scrollToSection]),
   );
 
   const toggleHint = () => {
@@ -338,6 +357,9 @@ const Settings: React.FC = () => {
   );
 
   const toggleBasicFunctionality = () => {
+    if (isSocialLoginBasicFunctionalityLocked) {
+      return;
+    }
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
@@ -348,7 +370,9 @@ const Settings: React.FC = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID="header"
         title={strings('app_settings.security_title')}
         onBack={() => navigation.goBack()}
@@ -372,46 +396,62 @@ const Settings: React.FC = () => {
             toggleHint={toggleHint}
           />
           <ChangePassword />
+          <MfaSection />
           <AutoLock />
           <DeviceSecurityToggle />
-          <BlockaidSettings />
+          {!isBasicFunctionalityConsolidationEnabled && <BlockaidSettings />}
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.privacy_heading')}
           </Text>
           <View style={styles.halfSetting}>
             <BasicFunctionalityComponent
               flushTop
+              disabled={isSocialLoginBasicFunctionalityLocked}
               handleSwitchToggle={toggleBasicFunctionality}
             />
           </View>
           <ClearPrivacy />
           {renderClearBrowserHistorySection()}
           <ClearCookiesSection />
-          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-            {strings('app_settings.network_provider')}
-          </Text>
-          <NetworkDetailsCheckSettings />
-          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-            {strings('app_settings.transactions_subheading')}
-          </Text>
-          <BatchAccountBalanceSettings />
+          {!isBasicFunctionalityConsolidationEnabled && (
+            <>
+              <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
+                {strings('app_settings.network_provider')}
+              </Text>
+              <NetworkDetailsCheckSettings />
+            </>
+          )}
+          {!isBasicFunctionalityConsolidationEnabled && (
+            <>
+              <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
+                {strings('app_settings.transactions_subheading')}
+              </Text>
+              <BatchAccountBalanceSettings />
+              {renderUseTransactionSimulations()}
+            </>
+          )}
           {renderHistoryModal()}
-          {renderUseTransactionSimulations()}
-          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-            {strings('app_settings.token_nft_ens_subheading')}
-          </Text>
-          <DisplayNFTMediaSettings />
-          {isMainnet && (
-            <View ref={detectNftComponentRef}>
-              <AutoDetectNFTSettings />
-            </View>
+          {!isBasicFunctionalityConsolidationEnabled && (
+            <>
+              <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
+                {strings('app_settings.token_nft_ens_subheading')}
+              </Text>
+              <DisplayNFTMediaSettings />
+              {isMainnet && <AutoDetectNFTSettings />}
+            </>
           )}
           <IPFSGatewaySettings />
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.analytics_subheading')}
           </Text>
-          <MetaMetricsAndDataCollectionSection />
+          <MetaMetricsAndDataCollectionSection
+            metaMetricsRef={metaMetricsSectionRef}
+            dataCollectionRef={dataCollectionSectionRef}
+          />
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+          <View style={styles.setting}>
+            <SupportConsentPreferenceSection />
+          </View>
           <DeleteWalletData />
           <TopTradersSection />
           {renderHint()}

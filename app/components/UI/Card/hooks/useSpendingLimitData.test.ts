@@ -529,6 +529,17 @@ describe('useSpendingLimitData', () => {
 
       expect(mockFetchDelegationSettings).not.toHaveBeenCalled();
     });
+
+    it('swallows fetchDelegationSettings rejections so they surface via observer error', async () => {
+      mockIsAuthenticated = true;
+      mockFetchDelegationSettings.mockRejectedValueOnce(
+        new Error('Network error'),
+      );
+
+      const { result } = renderHook(() => useSpendingLimitData());
+
+      await expect(result.current.fetchData()).resolves.toBeUndefined();
+    });
   });
 
   describe('Return Value Structure', () => {

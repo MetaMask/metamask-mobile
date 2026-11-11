@@ -39,11 +39,12 @@ function isExternalAppOrigin(origin?: string | null): boolean {
  * of whether the transport surfaced the origin as a placeholder, a connection
  * id, or a self-reported domain.
  *
- * Note: `request_source` is currently only populated on signature requests
- * (`messageParams.meta.analytics.request_source`). Transactions persist only
- * `origin`, so unverifiable WalletConnect / SDK v1 *transactions* (whose origin
- * is a self-reported domain) still rely on {@link isExternalAppOrigin} and are
- * tracked as a follow-up.
+ * Note: for signatures `request_source` rides on
+ * `messageParams.meta.analytics.request_source`; for transactions it is
+ * stored in the `confirmationMetrics` redux slice keyed by transaction id
+ * (TransactionMeta cannot carry arbitrary client-only fields), written by the
+ * request entry points (`eth_sendTransaction`,
+ * `WalletConnect2Session.handleSendTransaction`).
  */
 function isExternalAppRequestSource(requestSource?: string | null): boolean {
   const { REQUEST_SOURCES } = AppConstants;

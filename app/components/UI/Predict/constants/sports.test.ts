@@ -147,6 +147,7 @@ describe('isMoneylineLikeMarketType', () => {
 describe('isSpreadLikeMarketType', () => {
   it.each([
     'spreads',
+    'first_half_spreads',
     'map_handicap',
     'round_handicap_game_3',
     'round_handicap_game_7',
@@ -174,10 +175,15 @@ describe('isLineMarketType', () => {
 
   it.each([
     'totals',
+    'first_half_spreads',
     'first_half_totals',
     'second_half_totals',
     'team_totals',
+    'team_totals_home',
+    'team_totals_away',
     'soccer_team_totals',
+    'rushing_yards',
+    'receiving_yards',
     'tennis_set_totals',
     'tennis_first_set_totals',
     'tennis_match_totals',
@@ -232,6 +238,10 @@ describe('filterSupportedLeagues', () => {
       'dota2',
       'val',
       'r6siege',
+      'usc',
+      'efa',
+      'clf',
+      'saf1',
     ];
 
     const result = filterSupportedLeagues([

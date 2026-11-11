@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { OHLCVBar as WSOHLCVBar } from '@metamask/core-backend';
 import Engine from '../../../../core/Engine';
+import { usePriceApiHost } from '../../TokenDetails/context/PriceApiHostContext';
 
 export interface UseOHLCVRealtimeOptions {
   /** CAIP-19 asset identifier */
@@ -13,11 +14,19 @@ export interface UseOHLCVRealtimeOptions {
   timePeriod: string;
   /** When false, skips subscription (e.g. legacy chart fallback) */
   enabled: boolean;
+  /** Price API origin for the `/latest` fallback. Omitted means prod. */
+  baseUrl?: string;
 }
 
 export interface UseOHLCVRealtimeResult {
   /** Latest bar from WebSocket stream or HTTP fallback (timestamp in seconds) */
   latestBar: WSOHLCVBar | null;
+  /**
+   * True while the current asset has no bar yet and its first `/latest` poll
+   * has not answered. A `null` bar with `isLoading` false means no price is
+   * available for the asset.
+   */
+  isLoading: boolean;
 }
 
 const DEBOUNCE_MS = 500;
@@ -28,7 +37,7 @@ const STALENESS_CHECK_INTERVAL_MS = 5_000;
 /** If no WS message arrives within this window, consider the stream stale */
 const STALENESS_THRESHOLD_MS = 5_000;
 
-const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv';
+const OHLCV_PATH = '/v3/ohlcv';
 
 /**
  * Fetch the current (latest) candle from the dedicated /latest REST endpoint.
@@ -39,9 +48,10 @@ async function fetchLatestBar(
   timePeriod: string,
   wsInterval: string,
   currency: string,
+  baseUrl: string,
   signal?: AbortSignal,
 ): Promise<WSOHLCVBar | null> {
-  const url = new URL(`${OHLCV_BASE_URL}/${assetId}/latest`);
+  const url = new URL(`${baseUrl}${OHLCV_PATH}/${assetId}/latest`);
   url.searchParams.set('timePeriod', timePeriod);
   url.searchParams.set('interval', wsInterval);
   url.searchParams.set('vsCurrency', currency);
@@ -89,6 +99,20 @@ function extractChainId(assetId: string): string {
   return slashIdx > 0 ? assetId.slice(0, slashIdx) : assetId;
 }
 
+/** Field-by-field equality check to avoid re-rendering on identical bars. */
+function areBarsEqual(a: WSOHLCVBar | null, b: WSOHLCVBar | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.timestamp === b.timestamp &&
+    a.open === b.open &&
+    a.high === b.high &&
+    a.low === b.low &&
+    a.close === b.close &&
+    a.volume === b.volume
+  );
+}
+
 /**
  * Subscribes to real-time OHLCV candle updates via OHLCVService (WebSocket).
  * Uses a 500ms debounce before subscribing to avoid thrashing during rapid
@@ -106,8 +130,28 @@ export function useOHLCVRealtime({
   currency,
   timePeriod,
   enabled,
+  baseUrl,
 }: UseOHLCVRealtimeOptions): UseOHLCVRealtimeResult {
-  const [latestBar, setLatestBar] = useState<WSOHLCVBar | null>(null);
+  // Outside a `PriceApiHostProvider` this is prod, which keeps Bridge's live
+  // rate and the legacy chart on the host they already use. The WebSocket
+  // itself is unaffected either way — its gateway comes from the build.
+  const contextBaseUrl = usePriceApiHost();
+  const latestBaseUrl = baseUrl ?? contextBaseUrl;
+
+  const [latest, setLatest] = useState<{
+    channel: string;
+    bar: WSOHLCVBar;
+  } | null>(null);
+  // Channel whose first price lookup has answered, with or without a bar.
+  const [settledChannel, setSettledChannel] = useState<string | null>(null);
+  // Skips the state update (and re-render) when the bar hasn't changed.
+  const updateLatestBar = useCallback((channel: string, bar: WSOHLCVBar) => {
+    setLatest((prev) =>
+      prev?.channel === channel && areBarsEqual(prev.bar, bar)
+        ? prev
+        : { channel, bar },
+    );
+  }, []);
   const subscribedRef = useRef(false);
   const cancelledRef = useRef(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,7 +164,7 @@ export function useOHLCVRealtime({
   const pollingAbortRef = useRef<AbortController | null>(null);
 
   const buildChannel = useCallback(
-    () => `market-data.v1.${assetId}.${interval}.${currency}`,
+    () => `ohlcv.v1.${assetId}.${interval}.${currency}`,
     [assetId, interval, currency],
   );
 
@@ -132,7 +176,8 @@ export function useOHLCVRealtime({
     const channel = buildChannel();
     channelRef.current = channel;
     cancelledRef.current = false;
-    setLatestBar(null);
+    setLatest(null);
+    setSettledChannel(null);
     lastMessageTimeRef.current = 0;
     chainDownRef.current = false;
 
@@ -148,14 +193,19 @@ export function useOHLCVRealtime({
           timePeriod,
           interval,
           currency,
+          latestBaseUrl,
           controller.signal,
         );
         if (bar) {
           lastMessageTimeRef.current = Date.now();
-          setLatestBar(bar);
+          updateLatestBar(channel, bar);
         }
       } catch {
         // no-op
+      }
+      // An aborted poll was superseded by a newer one, which settles instead.
+      if (!controller.signal.aborted) {
+        setSettledChannel(channel);
       }
     };
 
@@ -166,7 +216,7 @@ export function useOHLCVRealtime({
       if (payload.channel === channelRef.current) {
         lastMessageTimeRef.current = Date.now();
         chainDownRef.current = false;
-        setLatestBar(payload.bar);
+        updateLatestBar(payload.channel, payload.bar);
       }
     };
 
@@ -247,6 +297,10 @@ export function useOHLCVRealtime({
         pollLatest();
       } catch {
         // Subscribe failure is handled via subscriptionError event → immediate REST poll.
+        // Without that event no poll follows, so the lookup is over.
+        if (!cancelledRef.current) {
+          setSettledChannel(channel);
+        }
       }
     }, DEBOUNCE_MS);
 
@@ -285,7 +339,25 @@ export function useOHLCVRealtime({
         });
       subscribedRef.current = false;
     };
-  }, [assetId, interval, currency, timePeriod, enabled, buildChannel]);
+  }, [
+    assetId,
+    interval,
+    currency,
+    timePeriod,
+    enabled,
+    latestBaseUrl,
+    buildChannel,
+    updateLatestBar,
+  ]);
 
-  return { latestBar };
+  // The effect only clears the previous asset's bar after the render in which
+  // the asset changes, so that render must not report it as the new asset's.
+  const currentChannel = buildChannel();
+  const latestBar = latest?.channel === currentChannel ? latest.bar : null;
+  const isLoading =
+    Boolean(enabled && assetId && interval && currency) &&
+    latestBar === null &&
+    settledChannel !== currentChannel;
+
+  return { latestBar, isLoading };
 }

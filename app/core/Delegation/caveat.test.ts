@@ -38,6 +38,15 @@ describe('caveat', () => {
       expect(result).toHaveLength(32); // keccak256 hash is 32 bytes
     });
 
+    it('should return the expected hash for a single caveat', () => {
+      const caveat = createCaveat(mockEnforcer, mockTerms, mockArgs);
+      const result = getCaveatArrayPacketHash([caveat]);
+
+      expect(toHex(result)).toBe(
+        '0x19b6b3fa8f5ad540000029de95f1f9fa8c30b21e0a24b17fc0a23a471aef5756',
+      );
+    });
+
     it('should return the same hash for the same caveat array', () => {
       const caveat = createCaveat(mockEnforcer, mockTerms, mockArgs);
       const result1 = getCaveatArrayPacketHash([caveat]);

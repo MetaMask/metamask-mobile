@@ -1,6 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsCrossLiquidationInfoSelector,
+  getPerpsCrossMarginTagSelector,
+  PerpsPositionCardSelectorsIDs,
+} from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Box,
@@ -15,23 +19,21 @@ import {
   ButtonVariant,
   Card,
   FontWeight,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   KeyValueRow,
   KeyValueRowVariant,
   SectionDivider,
   SectionHeader,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
-  PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
   type Order,
   type Position,
@@ -40,10 +42,13 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
-  formatPerpsPrice,
+  formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { parsePositionRoePercentage } from '../../utils/positionDisplay';
+import PerpsCrossMarginInfoButton from '../PerpsCrossMarginInfoButton';
+import PerpsLiquidationPriceValue from '../PerpsLiquidationPriceValue';
 
 /**
  * PerpsPositionCard Component
@@ -54,12 +59,12 @@ import {
  *
  * @remarks
  * **Callback Requirements by Context:**
- * - **View-Only Mode** (no callbacks): Shows position data only, no interactive elements
+ * - **View-Only Mode** (no callbacks): Shows position data and cross liquidation information
  * - **Interactive Mode** (with callbacks): Enables position management actions
  *
  * **Interactive Callbacks:**
  * - `onAutoClosePress`: Required for TP/SL configuration - opens auto-close settings
- * - `onMarginPress`: Required for margin adjustment - opens add/remove margin flow
+ * - `onMarginPress`: Opens add/remove margin for isolated positions only
  * - `onSharePress`: Optional - enables sharing position P&L card
  * - `onFlipPress`: Not currently used (flip handled via modify action sheet)
  *
@@ -86,11 +91,15 @@ interface PerpsPositionCardProps {
   onAutoClosePress?: () => void;
   onFlipPress?: () => void;
   onMarginPress?: () => void;
+  /** Rendered before the share icon in the header. */
+  postToFeedButton?: React.ReactNode;
   onSharePress?: () => void;
   /** Test ID for the card */
   testID?: string;
   /** Market size decimals, used to derive Hyperliquid price precision for TP/SL display. */
   szDecimals?: number | null;
+  /** `tabs`: market details above the social tabs — no Details header, roomier rows. */
+  variant?: 'default' | 'tabs';
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -101,12 +110,19 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onAutoClosePress,
   onFlipPress: _onFlipPress,
   onMarginPress,
+  postToFeedButton,
   onSharePress,
   testID,
   szDecimals,
+  variant = 'default',
 }) => {
+  const isTabsVariant = variant === 'tabs';
+  const detailRowClassName = isTabsVariant ? 'h-12' : undefined;
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
   const privacyMode = useSelector(selectPrivacyMode);
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
+  const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
+  const marginPress = isCross ? undefined : onMarginPress;
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;
@@ -115,10 +131,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const pnlNum = parseFloat(position.unrealizedPnl);
 
-  // ROE is always stored as a decimal (e.g., 0.171 for 17.10%)
-  // Convert to percentage for display
-  const roeValue = parseFloat(position.returnOnEquity || '0');
-  const roe = isNaN(roeValue) ? 0 : roeValue * 100;
+  // ROE is always stored as a decimal (e.g., 0.171 for 17.10%);
+  // the shared parser converts it to the displayed percentage.
+  const roe = parsePositionRoePercentage(position.returnOnEquity) ?? 0;
 
   // Funding cost (cumulative since open) formatting logic
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
@@ -147,14 +162,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     setShowSizeInUSD(!showSizeInUSD);
   };
 
-  // Calculate liquidation distance percentage
-  const liquidationDistance = useMemo(() => {
-    if (!currentPrice || !position.liquidationPrice) return null;
-    const liqPrice = parseFloat(String(position.liquidationPrice));
-    if (liqPrice <= 0 || currentPrice <= 0) return null;
-    return (Math.abs(currentPrice - liqPrice) / currentPrice) * 100;
-  }, [currentPrice, position.liquidationPrice]);
-
   // Resolve TP/SL from position-level or parent order-level values
   const resolvedTPSL = useMemo(() => {
     let takeProfitPrice = position.takeProfitPrice;
@@ -174,23 +181,30 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       }
     }
 
-    const hasTakeProfit = Boolean(
-      takeProfitPrice && parseFloat(takeProfitPrice) > 0,
-    );
-    const hasStopLoss = Boolean(stopLossPrice && parseFloat(stopLossPrice) > 0);
+    const takeProfitSummary = formatPositionTriggerSummary({
+      count: position.takeProfitCount,
+      price: takeProfitPrice,
+      szDecimals,
+    });
+    const stopLossSummary = formatPositionTriggerSummary({
+      count: position.stopLossCount,
+      price: stopLossPrice,
+      szDecimals,
+    });
 
     return {
-      takeProfitPrice,
-      stopLossPrice,
-      hasTakeProfit,
-      hasStopLoss,
-      hasTPSLConfigured: hasTakeProfit || hasStopLoss,
+      takeProfitSummary,
+      stopLossSummary,
+      hasTPSLConfigured: Boolean(takeProfitSummary || stopLossSummary),
     };
   }, [
     position.takeProfitPrice,
     position.stopLossPrice,
+    position.takeProfitCount,
+    position.stopLossCount,
     position.symbol,
     orders,
+    szDecimals,
   ]);
 
   const handleAutoCloseButtonPress = () => {
@@ -199,46 +213,67 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
   };
 
-  const sectionTitle = onSharePress ? (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="w-full"
-    >
-      <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-        {strings('perps.position.card.position_title')}
-      </Text>
-      <ButtonIcon
-        size={ButtonIconSize.Sm}
-        iconName={IconName.Share}
-        onPress={onSharePress}
-        testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
-      />
-    </Box>
-  ) : (
-    strings('perps.position.card.position_title')
-  );
+  const sectionTitle =
+    onSharePress || postToFeedButton || isCross ? (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="w-full"
+        accessible={false}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          accessible={false}
+        >
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {strings('perps.position.card.position_title')}
+          </Text>
+          {isCross && (
+            <Tag
+              testID={getPerpsCrossMarginTagSelector('lite', position.symbol)}
+            >
+              {strings('perps.cross_position.badge')}
+            </Tag>
+          )}
+        </Box>
+        {postToFeedButton || onSharePress ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            {postToFeedButton}
+            {onSharePress ? (
+              <ButtonIcon
+                size={ButtonIconSize.Md}
+                variant={ButtonIconVariant.Filled}
+                iconName={IconName.Share}
+                onPress={onSharePress}
+                testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
+              />
+            ) : null}
+          </Box>
+        ) : null}
+      </Box>
+    ) : (
+      strings('perps.position.card.position_title')
+    );
 
   const autoCloseDescription = (() => {
-    const { takeProfitPrice, stopLossPrice, hasTakeProfit, hasStopLoss } =
-      resolvedTPSL;
+    const { takeProfitSummary, stopLossSummary } = resolvedTPSL;
 
-    if (hasTakeProfit || hasStopLoss) {
+    if (takeProfitSummary || stopLossSummary) {
       const parts: string[] = [];
 
-      if (hasTakeProfit && takeProfitPrice) {
-        const tpPrice = formatPerpsPrice(takeProfitPrice, {
-          szDecimals,
-        });
-        parts.push(`${strings('perps.order.tp')} ${tpPrice}`);
+      if (takeProfitSummary) {
+        parts.push(`${strings('perps.order.tp')} ${takeProfitSummary}`);
       }
 
-      if (hasStopLoss && stopLossPrice) {
-        const slPrice = formatPerpsPrice(stopLossPrice, {
-          szDecimals,
-        });
-        parts.push(`${strings('perps.order.sl')} ${slPrice}`);
+      if (stopLossSummary) {
+        parts.push(`${strings('perps.order.sl')} ${stopLossSummary}`);
       }
 
       return (
@@ -247,6 +282,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           color={TextColor.TextDefault}
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
+          testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_VALUE}
         >
           {parts.join(', ')}
         </SensitiveText>
@@ -261,36 +297,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   })();
 
   const liquidationValue = (
-    <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
-      <SensitiveText
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Short}
-        testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
-      >
-        {position.liquidationPrice !== undefined &&
-        position.liquidationPrice !== null
-          ? formatPerpsFiat(position.liquidationPrice, {
-              ranges: PRICE_RANGES_UNIVERSAL,
-            })
-          : PERPS_CONSTANTS.FallbackPriceDisplay}
-      </SensitiveText>
-      {liquidationDistance !== null && !privacyMode && (
-        <>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {' '}
-            {Math.round(liquidationDistance)}%
-          </Text>
-          <Icon
-            name={isLong ? IconName.TrendDown : IconName.TrendUp}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </>
-      )}
-    </Box>
+    <PerpsLiquidationPriceValue
+      liquidationPrice={position.liquidationPrice}
+      currentPrice={currentPrice}
+      isLong={isLong}
+      isCross={isCross}
+      privacyMode={privacyMode}
+      priceTestID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+      distanceTestID={PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE}
+    />
   );
 
   const cardTestID = testID ?? PerpsPositionCardSelectorsIDs.CARD;
@@ -301,16 +316,22 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <SectionHeader
           title={sectionTitle}
           titleWrapperProps={
-            onSharePress ? { twClassName: 'w-full' } : undefined
+            onSharePress || isCross ? { twClassName: 'w-full' } : undefined
           }
           testID={PerpsPositionCardSelectorsIDs.HEADER}
         />
 
         <Box paddingHorizontal={4}>
           {/* P&L Section - Two cards side by side */}
-          <Box flexDirection={BoxFlexDirection.Row} gap={2} twClassName="mb-2">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            gap={2}
+            twClassName={isTabsVariant ? 'mt-1 mb-2' : 'mb-2'}
+          >
+            {/* Accessible cards expose each label with its value natively. */}
             <Card
               twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              accessible
               testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
             >
               <Text
@@ -338,6 +359,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
             <Card
               twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              accessible
               testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
             >
               <Text
@@ -368,6 +390,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           {/* Size/Margin Row */}
           <Box flexDirection={BoxFlexDirection.Row} gap={2} twClassName="mb-2">
             <Card
+              isInteractive
               onPress={handleSizeToggle}
               twClassName="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
               testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
@@ -403,17 +426,22 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Card>
 
             <Card
-              onPress={onMarginPress}
+              isInteractive
+              onPress={marginPress}
+              disabled={!marginPress}
               twClassName="flex-1 flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0"
               testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
-              touchableOpacityProps={{ disabled: !onMarginPress }}
             >
               <Box twClassName="flex-1 gap-1">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                 >
-                  {strings('perps.position.card.margin_label')}
+                  {strings(
+                    isCross
+                      ? 'perps.cross_position.margin_used'
+                      : 'perps.position.card.margin_label',
+                  )}
                 </Text>
                 <SensitiveText
                   variant={TextVariant.BodyMd}
@@ -427,12 +455,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   })}
                 </SensitiveText>
               </Box>
-              {onMarginPress && (
+              {marginPress && (
                 <ButtonIcon
                   iconName={IconName.ArrowRight}
                   size={ButtonIconSize.Sm}
                   variant={ButtonIconVariant.Filled}
-                  onPress={onMarginPress}
+                  onPress={marginPress}
                   testID={PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON}
                 />
               )}
@@ -441,13 +469,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           {/* Auto Close Section */}
           <Card
+            isInteractive
             onPress={handleAutoCloseButtonPress}
-            twClassName="flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0 mb-3"
+            disabled={!onAutoClosePress}
+            twClassName={`flex-row items-center justify-between bg-background-section rounded-lg p-3 border-0 ${
+              isTabsVariant ? 'mb-2' : 'mb-3'
+            }`}
             testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
-            touchableOpacityProps={{
-              activeOpacity: 0.7,
-              disabled: !onAutoClosePress,
-            }}
           >
             <Box twClassName="flex-1 gap-1">
               <Text
@@ -463,7 +491,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Sm}
                 onPress={handleAutoCloseButtonPress}
-                twClassName="self-center rounded-lg"
+                twClassName="self-center"
               >
                 {resolvedTPSL.hasTPSLConfigured
                   ? strings('perps.auto_close.edit_button')
@@ -473,11 +501,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </Card>
         </Box>
 
-        <SectionDivider />
-        <SectionHeader title={strings('perps.position.card.details_title')} />
+        {isTabsVariant ? null : (
+          <>
+            <SectionDivider />
+            <SectionHeader
+              title={strings('perps.position.card.details_title')}
+            />
+          </>
+        )}
         <Box testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}>
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
+            twClassName={detailRowClassName}
             keyLabel={strings('perps.position.card.direction_label')}
             value={`${
               direction === 'long'
@@ -491,6 +526,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
+            twClassName={detailRowClassName}
             keyLabel={strings('perps.position.card.entry_label')}
             value={
               <SensitiveText
@@ -511,11 +547,28 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
             keyLabel={strings('perps.position.card.liquidation_price_label')}
+            twClassName={
+              isCross
+                ? `h-auto py-2 ${isTabsVariant ? 'min-h-12' : 'min-h-10'}`
+                : detailRowClassName
+            }
+            keyEndAccessory={
+              isCross ? (
+                <PerpsCrossMarginInfoButton
+                  hasLiquidationPrice={position.liquidationPrice != null}
+                  testID={getPerpsCrossLiquidationInfoSelector(
+                    'lite',
+                    position.symbol,
+                  )}
+                />
+              ) : undefined
+            }
             value={liquidationValue}
           />
 
           <KeyValueRow
             variant={KeyValueRowVariant.Summary}
+            twClassName={detailRowClassName}
             keyLabel={strings('perps.position.card.funding_payments_label')}
             value={
               <SensitiveText

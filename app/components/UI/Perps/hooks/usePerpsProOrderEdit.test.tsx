@@ -8,7 +8,10 @@ import {
 import type { Order, OrderResult } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { usePerpsProOrderEdit } from './usePerpsProOrderEdit';
+
+jest.mock('../../../../util/haptics');
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -252,6 +255,12 @@ describe('usePerpsProOrderEdit', () => {
       expect(mockEditSubmittingToast).toHaveBeenCalled();
       expect(mockEditConfirmedToast).toHaveBeenCalled();
       expect(mockEditFailedToast).not.toHaveBeenCalled();
+      expect(playImpact).toHaveBeenNthCalledWith(
+        1,
+        ImpactMoment.PageNavigation,
+      );
+      expect(playImpact).toHaveBeenNthCalledWith(2, ImpactMoment.PrimaryCTA);
+      expect(playImpact).toHaveBeenCalledTimes(2);
     },
   );
 
@@ -282,6 +291,27 @@ describe('usePerpsProOrderEdit', () => {
       expect(mockEditConfirmedToast).not.toHaveBeenCalled();
     },
   );
+
+  it('passes the typed rejection from editOrder to the failure toast', async () => {
+    const rejection = {
+      reason: 'post_only_would_cross',
+      originalOrder: 'cancelled',
+      error: 'venue error',
+    };
+    mockEditOrder.mockResolvedValue({
+      success: false,
+      error: 'venue error',
+      rejection,
+    });
+    const orderEdit = await renderOrderEditHarness();
+
+    await openEditSheet(orderEdit, 'price');
+    await confirmEdit('price');
+
+    await waitFor(() => {
+      expect(mockEditFailedToast).toHaveBeenCalledWith(rejection);
+    });
+  });
 
   it.each(['price', 'size'] as const)(
     'rolls back optimistic %s edit when editOrder throws',
@@ -331,6 +361,7 @@ describe('usePerpsProOrderEdit', () => {
     });
 
     expect(mockEditOrder).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(2);
 
     await act(async () => {
       resolveEdit({ success: true, orderId: order.orderId });
@@ -349,6 +380,8 @@ describe('usePerpsProOrderEdit', () => {
 
     expect(mockEditOrder).not.toHaveBeenCalled();
     expect(mockUpdateOrderOptimistic).not.toHaveBeenCalled();
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
     await waitFor(() => {
       expect(
         screen.queryByTestId('perps-order-edit-sheet-price'),
@@ -367,6 +400,21 @@ describe('usePerpsProOrderEdit', () => {
       screen.queryByTestId('perps-order-edit-sheet-price'),
     ).not.toBeOnTheScreen();
     expect(mockRunGatedEligibleAction).not.toHaveBeenCalled();
+    expect(playImpact).not.toHaveBeenCalled();
+  });
+
+  it('keeps haptics silent when the eligibility gate blocks editing', async () => {
+    mockRunGatedEligibleAction.mockImplementationOnce(() => undefined);
+    const orderEdit = await renderOrderEditHarness();
+
+    await act(async () => {
+      orderEdit.handleEditOrderPrice(order);
+    });
+
+    expect(
+      screen.queryByTestId('perps-order-edit-sheet-price'),
+    ).not.toBeOnTheScreen();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('aborts confirm when a mutation becomes blocked while the sheet is open', async () => {

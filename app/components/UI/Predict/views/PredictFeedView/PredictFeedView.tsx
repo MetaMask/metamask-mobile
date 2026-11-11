@@ -7,10 +7,10 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandard,
   IconName,
   Text,
   TextColor,
@@ -20,6 +20,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import {
   TabItem,
   TabsBar,
@@ -57,6 +59,7 @@ const INITIAL_SKELETON_COUNT = 4;
 const PredictFeedView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictFeed'>>();
   const { feedId, initialTabId, initialFilterId, entryPoint } =
@@ -66,6 +69,7 @@ const PredictFeedView: React.FC = () => {
   const {
     status,
     titleKey,
+    label,
     header,
     tabs,
     showTabBar,
@@ -80,6 +84,8 @@ const PredictFeedView: React.FC = () => {
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
 
   const isReady = status === 'ready';
+  const title =
+    label ?? (titleKey ? strings(titleKey, { defaultValue: feedId }) : feedId);
   const showSportsLiveFirst =
     feedId === 'sports' && activeFilter?.showLiveFirst === true;
 
@@ -297,7 +303,7 @@ const PredictFeedView: React.FC = () => {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <Box twClassName="flex-1 px-4">
+        <Box twClassName={`flex-1 px-4 ${showFilterBar ? 'pt-1' : ''}`}>
           {Array.from({ length: INITIAL_SKELETON_COUNT }).map((_, index) => (
             <PredictMarketSkeleton
               key={`skeleton-${index}`}
@@ -334,7 +340,7 @@ const PredictFeedView: React.FC = () => {
             color={TextColor.PrimaryAlternative}
           >
             {strings('predict.search_empty_state', {
-              category: titleKey ? strings(titleKey) : '',
+              category: title ?? '',
             })}
           </Text>
         </Box>
@@ -353,7 +359,11 @@ const PredictFeedView: React.FC = () => {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.7}
           ListFooterComponent={renderFooter}
-          contentContainerStyle={tw.style('px-4 pb-4')}
+          contentContainerStyle={tw.style(
+            'px-4 pb-4',
+            // Chip row is pb-3 (12px); 4px here makes 16px to the first card.
+            showFilterBar && 'pt-1',
+          )}
           showsVerticalScrollIndicator={false}
         />
       </Box>
@@ -371,9 +381,11 @@ const PredictFeedView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={PredictFeedViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
-        title={titleKey ? strings(titleKey) : undefined}
+        title={title}
         onBack={header?.showBackButton ? handleBack : undefined}
         backButtonProps={{ testID: PredictMarketListSelectorsIDs.BACK_BUTTON }}
         endButtonIconProps={
@@ -406,6 +418,10 @@ const PredictFeedView: React.FC = () => {
             activeChipKey={activeFilterId ?? ''}
             onChipSelect={handleFilterSelect}
             testID={PredictFeedViewSelectorsIDs.FILTERS}
+            // No tabs: flush under the header like Explore Trending.
+            // With tabs: 16px (pt-4) between the tab underline and chips.
+            // pb-3 = 12px between chips and the first feed card.
+            containerTwClassName={showTabBar ? 'pt-4 pb-3' : 'pb-3'}
           />
         )}
 

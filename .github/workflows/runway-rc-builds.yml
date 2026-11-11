@@ -22,21 +22,36 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
+      runner_provider:
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
+        required: false
+        type: choice
+        options:
+          - inherit
+          - namespace
+          - current
+        default: inherit
 
 permissions:
   contents: read
   pull-requests: read
-  actions: write
-  id-token: write # required by build.yml
+
+# Builds from this workflow can be signed with the RC signer, so they must not restore caches.
+cache-mode: none
 
 jobs:
   generate-build-version:
     name: Generate build version
+    permissions:
+      id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS + Android (main-rc)
     needs: generate-build-version
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
@@ -46,11 +61,16 @@ jobs:
       source_branch: ${{ inputs.source_branch || github.sha }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
       upload_to_sentry: true
+      build_attribution: official
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: build
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for the TestFlight upload in upload-to-testflight.yml
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: rc
@@ -60,12 +80,16 @@ jobs:
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
       distribute_external: true
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   slack-notification:
     name: Slack RC Notification
     needs: build
     if: success()
+    permissions:
+      actions: read
+      contents: read
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ inputs.source_branch || github.ref_name }}

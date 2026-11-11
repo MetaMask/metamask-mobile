@@ -24,6 +24,7 @@ import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderS
 import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictFeedBannerSelectorsIDs } from '../../components/PredictFeedBanner';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
@@ -63,6 +64,18 @@ const feedBannerEnabledOverrides = {
             severity: PredictFeedBannerSeverity.Warning,
             dismissible: true,
           },
+        },
+      },
+    },
+  },
+};
+
+const brandRefreshOverrides = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          predictBrandRefresh: { enabled: true, minimumVersion: '0.0.1' },
         },
       },
     },
@@ -233,6 +246,32 @@ describe('PredictHome', () => {
       });
     });
 
+    it('clears the balance breakdown entry point when focus is lost', async () => {
+      const setParams = jest.fn();
+      const trackHomeViewed = Engine.context.PredictController
+        .trackHomeViewed as jest.Mock;
+      trackHomeViewed.mockClear();
+      const view = renderPredictHomeView({
+        initialParams: {
+          entryPoint:
+            PredictEventValues.ENTRY_POINT.HOMESCREEN_BALANCE_BREAKDOWN,
+        },
+        setParams,
+      });
+
+      await waitFor(() =>
+        expect(trackHomeViewed).toHaveBeenCalledWith({
+          entryPoint: 'homescreen_balance_breakdown',
+        }),
+      );
+
+      view.unmount();
+
+      await waitFor(() =>
+        expect(setParams).toHaveBeenCalledWith({ entryPoint: undefined }),
+      );
+    });
+
     it('tracks a section-viewed impression once it dwells in the viewport', async () => {
       const { findByTestId, getByTestId } = renderPredictHomeView();
 
@@ -291,6 +330,29 @@ describe('PredictHome', () => {
           getByTestId(PREDICT_HEADER_STACKED_TEST_IDS.COMPACT_TITLE),
         ).toBeOnTheScreen();
       });
+    });
+  });
+
+  describe('brand refresh', () => {
+    it('floats the header on the scroll edge fade and still opens search', async () => {
+      const { findByTestId, getByTestId, findByPlaceholderText } =
+        renderPredictHomeView({ overrides: brandRefreshOverrides });
+
+      expect(
+        await findByTestId(FLOATING_HEADER_FADE_TEST_ID),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
+    });
+
+    it('keeps the inline header when the flag is off', async () => {
+      const { queryByTestId, findByTestId } = renderPredictHomeView();
+
+      await findByTestId(PredictHomeSelectorsIDs.TITLE);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
     });
   });
 });

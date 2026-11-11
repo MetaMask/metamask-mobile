@@ -3,7 +3,6 @@ import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomShee
 import AddAccountBottomSheet from '../page-objects/wallet/AddAccountBottomSheet';
 import ImportAccountView from '../page-objects/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../page-objects/importAccount/SuccessImportAccountView';
-import WalletView from '../page-objects/wallet/WalletView';
 import Assertions from '../framework/Assertions';
 import SRPListItemComponent from '../page-objects/wallet/MultiSrp/Common/SRPListItemComponent';
 import SrpQuizModal from '../page-objects/Settings/SecurityAndPrivacy/SrpQuizModal';
@@ -16,12 +15,11 @@ import AccountMenu from '../page-objects/AccountMenu/AccountMenu';
 import CommonView from '../page-objects/CommonView';
 import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
 import EditAccountName from '../page-objects/MultichainAccounts/EditAccountName';
-import { PlatformDetector } from '../framework/PlatformLocator';
-import { FrameworkDetector } from '../framework/FrameworkDetector';
 import Utilities from '../framework/Utilities';
 import ContactsView from '../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../page-objects/Settings/Contacts/AddContactView';
 import {
+  ensureAccountListOpenPlaywright,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
@@ -35,8 +33,7 @@ export const openImportSrpFromAccountList = async (): Promise<void> => {
 };
 
 export const goToImportSrp = async () => {
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await ensureAccountListOpenPlaywright();
   await openImportSrpFromAccountList();
 };
 
@@ -72,16 +69,9 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
   await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
 
   await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
-
-  if (
-    PlatformDetector.isIOS() ||
-    (PlatformDetector.isAndroid() && FrameworkDetector.isAppium())
-  ) {
-    // For some reason, the QR code is visible on Android but detox cannot find it
-    await Assertions.expectElementToBeVisible(
-      RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
-    );
-  }
+  await Assertions.expectElementToBeVisible(
+    RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
+  );
 
   await RevealSecretRecoveryPhrase.scrollToDone();
   await RevealSecretRecoveryPhrase.tapDoneButton();
@@ -95,8 +85,7 @@ export const openAccountActionsFromAccountList = async (
 };
 
 export const goToAccountActions = async (accountIndex: number) => {
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await ensureAccountListOpenPlaywright();
   await openAccountActionsFromAccountList(accountIndex);
 };
 
@@ -116,9 +105,7 @@ export const importAccountViaPrivateKey = async (
     },
   );
   await SuccessImportAccountView.tapCloseButton();
-  if (FrameworkDetector.isAppium()) {
-    await AddAccountBottomSheet.tapBackToWalletView();
-  }
+  await AddAccountBottomSheet.tapBackToWalletView();
 };
 
 export const openContactsViaAccountMenu = async (): Promise<void> => {
@@ -200,21 +187,32 @@ export const renameAccountAtIndex = async (
   await EditAccountName.tapSave();
   await AccountDetails.tapBackButton();
 
-  if (FrameworkDetector.isAppium()) {
-    await AccountListBottomSheet.waitForAccountListVisible();
-  }
+  await AccountListBottomSheet.waitForAccountListVisible();
 };
 
+/**
+ * Asserts the number of account rows with the given name in the account list.
+ *
+ * @param accountName - Account display name to count.
+ * @param expectedCount - Expected number of matching rows.
+ * @param timeout - Retry window for the count to settle.
+ * @param exactMatch - Match the name exactly instead of by substring.
+ * Substring matching counts any row whose name merely contains the given
+ * string (e.g. "Account 3" matches "Account 3 (2)"), which over-counts when
+ * another account's name embeds it (e.g. "Imported Account 1").
+ */
 export const assertAccountCount = async (
   accountName: string,
   expectedCount: number,
   timeout: number = 5000,
+  exactMatch: boolean = false,
 ): Promise<void> => {
   await Utilities.executeWithRetry(
     async () => {
       const accountElements =
         await AccountListBottomSheet.getAccountElementsByAccountNameV2(
           accountName,
+          exactMatch,
         );
       return accountElements.length === expectedCount;
     },

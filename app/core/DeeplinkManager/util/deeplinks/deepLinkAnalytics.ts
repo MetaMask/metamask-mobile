@@ -16,6 +16,8 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../types/deepLink.types';
 import { ACTIONS } from '../../../../constants/deeplinks';
+import { resolveSocialDeeplinkTarget } from './socialDeeplinkPath';
+import { parseMoneyReferralCode } from '../../../../components/UI/Rewards/utils/moneyReferralCode';
 
 /**
  * Type for URL parameters that can contain string or boolean values
@@ -478,7 +480,9 @@ const routeExtractors: Record<
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
   [DeepLinkRoute.WHATS_HAPPENING]: extractWhatsHappeningProperties,
   [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_TRADER]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_POST]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
@@ -488,6 +492,9 @@ const routeExtractors: Record<
   [DeepLinkRoute.SDK_MMSDK]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
   [DeepLinkRoute.MONEY]: extractInvalidProperties,
+  [DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT]: extractInvalidProperties,
+  [DeepLinkRoute.PRIVACY]: extractInvalidProperties,
+  [DeepLinkRoute.NOTIFICATIONS_SETTINGS]: extractInvalidProperties,
 };
 
 /**
@@ -586,6 +593,7 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.PERPS:
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
+    case ACTIONS.PERPS_OUTREACH:
       return DeepLinkRoute.PERPS;
     case ACTIONS.SEND:
       return DeepLinkRoute.TRANSACTION;
@@ -619,7 +627,10 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.WHATS_HAPPENING:
       return DeepLinkRoute.WHATS_HAPPENING;
     case ACTIONS.TOP_TRADERS:
+    case ACTIONS.SOCIAL:
       return DeepLinkRoute.TOP_TRADERS;
+    case ACTIONS.SOCIAL_TRADER:
+      return DeepLinkRoute.SOCIAL_TRADER;
     case ACTIONS.SOCIAL_TRADER_POSITION:
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
@@ -643,8 +654,27 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SDK_MMSDK;
     case ACTIONS.MONEY:
       return DeepLinkRoute.MONEY;
+    case ACTIONS.MONEY_ACCOUNT_DEPOSIT:
+      return DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT;
+    case ACTIONS.PRIVACY:
+      return DeepLinkRoute.PRIVACY;
+    case ACTIONS.NOTIFICATIONS_SETTINGS:
+      return DeepLinkRoute.NOTIFICATIONS_SETTINGS;
     default:
       return DeepLinkRoute.INVALID;
+  }
+};
+
+const mapSocialSegmentsToRoute = (pathSegments: string[]): DeepLinkRoute => {
+  switch (resolveSocialDeeplinkTarget(pathSegments.join('/'))) {
+    case 'position':
+      return DeepLinkRoute.SOCIAL_TRADER_POSITION;
+    case 'trader':
+      return DeepLinkRoute.SOCIAL_TRADER;
+    case 'post':
+      return DeepLinkRoute.SOCIAL_POST;
+    default:
+      return DeepLinkRoute.TOP_TRADERS;
   }
 };
 
@@ -697,6 +727,10 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.WHATS_HAPPENING;
       case 'top-traders':
         return DeepLinkRoute.TOP_TRADERS;
+      case 'social':
+        return mapSocialSegmentsToRoute(pathSegments);
+      case 'social-trader':
+        return DeepLinkRoute.SOCIAL_TRADER;
       case 'social-trader-position':
         return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':
@@ -709,6 +743,12 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.AGENTIC_CLI;
       case 'money':
         return DeepLinkRoute.MONEY;
+      case 'money-account-deposit':
+        return DeepLinkRoute.MONEY_ACCOUNT_DEPOSIT;
+      case 'privacy':
+        return DeepLinkRoute.PRIVACY;
+      case 'notifications-settings':
+        return DeepLinkRoute.NOTIFICATIONS_SETTINGS;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:
@@ -770,6 +810,8 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_campaign: context.urlParams.utm_campaign,
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
+      referral: context.urlParams.referral,
+      referral_code: parseMoneyReferralCode(context.urlParams.ref) ?? undefined,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
     })
     .addSensitiveProperties(sensitiveProperties);

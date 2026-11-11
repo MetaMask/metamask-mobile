@@ -1,38 +1,63 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
 import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
-import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
 import WatchlistSection from './Sections/Watchlist';
 import MoreSection from './Sections/More';
-import { SectionRefreshHandle } from './types';
+import { SectionRefreshHandle, type HomepageDeviceCapability } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import { useIsActivePerpsTrader } from '../../UI/Perps/hooks';
+import {
+  PredictHomeSection,
+  selectPredictAvailability,
+} from '../../UI/PredictNext';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
+import {
+  getHomepageSectionMountMode,
+  shouldPlacePerpsAboveTokens,
+  shouldPlaceTopTradersAboveAllocation,
+  shouldShowTopTradersAboveAllocation,
+} from './hooks/homepageSectionMountPolicy';
+import { useIsSocialTopTradersEligible } from './hooks/useIsSocialTopTradersEligible';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { useABTest } from '../../../hooks';
+import { useNetworkTierState } from '../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../util/deviceCapability';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsPriorityEligibilityContext } from './context/PerpsPriorityEligibilityContext';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import BalanceBreakdownSection, {
   type BalanceBreakdownSectionProps,
 } from './Sections/BalanceBreakdown';
+import {
+  PERPS_SECTION_PRIORITY_AB_KEY,
+  PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
+  PERPS_SECTION_PRIORITY_VARIANTS,
+} from './abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+} from '../../../constants/socialV1';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -53,14 +78,113 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
     const watchlistSectionRef = useRef<SectionRefreshHandle>(null);
+    const [hardwareTier] = useState(() => getHardwareTier());
+    const { tier: networkTier, isResolved: networkTierResolved } =
+      useNetworkTierState();
+    const [isPrimaryTokenContentReady, setIsPrimaryTokenContentReady] =
+      useState(false);
+    const [hasObservedOfflineNetwork, setHasObservedOfflineNetwork] = useState(
+      networkTier === 'NONE',
+    );
+    const sectionMountMode = getHomepageSectionMountMode({
+      hardwareTier,
+      networkTier,
+    });
+    const homepageDeviceCapability: HomepageDeviceCapability = useMemo(
+      () => ({ hardwareTier, networkTier, networkTierResolved }),
+      [hardwareTier, networkTier, networkTierResolved],
+    );
+    const [hasMountedOptionalSections, setHasMountedOptionalSections] =
+      useState(sectionMountMode === 'immediate' && networkTierResolved);
+    useEffect(() => {
+      if (networkTier === 'NONE') {
+        setHasObservedOfflineNetwork(true);
+      }
+    }, [networkTier]);
+    // Keep the primary token surface in the first commit on constrained
+    // devices. This gates optional section mount work without delaying token
+    // balance refresh or changing the Homepage Ready boundary.
+    const isWaitingForOfflineRecovery =
+      hasObservedOfflineNetwork &&
+      networkTier !== 'NONE' &&
+      !hasMountedOptionalSections;
+    const effectiveSectionMountMode = isWaitingForOfflineRecovery
+      ? 'when_network_available'
+      : sectionMountMode;
+    const canMountOptionalSections =
+      (effectiveSectionMountMode === 'immediate' && networkTierResolved) ||
+      (effectiveSectionMountMode === 'after_primary_content' &&
+        networkTierResolved &&
+        isPrimaryTokenContentReady) ||
+      (effectiveSectionMountMode === 'when_network_available' &&
+        networkTier !== 'NONE' &&
+        isPrimaryTokenContentReady);
+    useEffect(() => {
+      if (canMountOptionalSections) {
+        setHasMountedOptionalSections(true);
+      }
+    }, [canMountOptionalSections]);
+    const shouldMountOptionalSections =
+      hasMountedOptionalSections || canMountOptionalSections;
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const isPredictEnabled = useSelector(selectPredictAvailability);
     const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
     const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+
+    const { variant: perpsSectionPriorityVariant } = useABTest(
+      PERPS_SECTION_PRIORITY_AB_KEY,
+      PERPS_SECTION_PRIORITY_VARIANTS,
+      PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
+    );
+    const { variant: socialV1Variant } = useABTest(
+      SOCIAL_V1_AB_KEY,
+      SOCIAL_V1_VARIANTS,
+      { trackExposure: false },
+    );
+    const isActivePerpsTrader = useIsActivePerpsTrader();
+    const shouldRenderPerps = isPerpsEnabled && shouldMountOptionalSections;
+    // Decide the Perps position from the initial Homepage layout. Deferred
+    // sections must not move above Tokens after the primary surface renders.
+    const [perpsAboveTokensPlacement] = useState(() =>
+      shouldPlacePerpsAboveTokens({
+        optionalSectionsCanMount:
+          effectiveSectionMountMode === 'immediate' && networkTierResolved,
+        isPerpsEnabled,
+        perpsAboveTokensEligible:
+          perpsSectionPriorityVariant.perpsAboveTokensEligible,
+        isActivePerpsTrader,
+      }),
+    );
+    const showPerpsAboveTokens = perpsAboveTokensPlacement && shouldRenderPerps;
+    const isSocialV1PriorityEnabled =
+      isTopTradersEnabled && socialV1Variant.useSocialV1;
+    const shouldHydrateSocialProfile =
+      isSocialV1PriorityEnabled &&
+      networkTierResolved &&
+      networkTier !== 'NONE' &&
+      hardwareTier !== 'LOW';
+    const isSocialTopTradersEligible = useIsSocialTopTradersEligible(
+      isSocialV1PriorityEnabled,
+      shouldHydrateSocialProfile,
+    );
+    const [topTradersAboveAllocationPlacement] = useState(() =>
+      shouldPlaceTopTradersAboveAllocation({
+        optionalSectionsCanMount:
+          effectiveSectionMountMode === 'immediate' && networkTierResolved,
+        isSocialV1PriorityEnabled,
+        isSocialTopTradersEligible,
+      }),
+    );
+    const showTopTradersAboveAllocation = shouldShowTopTradersAboveAllocation({
+      topTradersAboveAllocationPlacement,
+      shouldMountOptionalSections,
+      isTopTradersEnabled,
+      isSocialV1PriorityEnabled,
+    });
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();
@@ -95,19 +219,45 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const enabledSections = useMemo(
       () =>
         [
-          { name: HomeSectionNames.TOKENS, enabled: true },
-          { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
-          { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
-          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
+          ...(showTopTradersAboveAllocation
+            ? [{ name: HomeSectionNames.TOP_TRADERS, enabled: true }]
+            : []),
+          // Order must match the JSX below — this drives `sectionIndex` on Home Viewed.
+          ...(showPerpsAboveTokens
+            ? [
+                { name: HomeSectionNames.PERPS, enabled: true },
+                { name: HomeSectionNames.TOKENS, enabled: true },
+              ]
+            : [
+                { name: HomeSectionNames.TOKENS, enabled: true },
+                { name: HomeSectionNames.PERPS, enabled: shouldRenderPerps },
+              ]),
+          {
+            name: HomeSectionNames.PREDICT,
+            enabled: isPredictEnabled && shouldMountOptionalSections,
+          },
+          {
+            name: HomeSectionNames.WATCHLIST,
+            enabled: isWatchlistEnabled && shouldMountOptionalSections,
+          },
           {
             name: HomeSectionNames.TOP_TRADERS,
-            enabled: isTopTradersEnabled,
+            enabled:
+              isTopTradersEnabled &&
+              shouldMountOptionalSections &&
+              !showTopTradersAboveAllocation,
           },
-          { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
-          { name: HomeSectionNames.NFTS, enabled: true },
+          {
+            name: HomeSectionNames.DEFI,
+            enabled: isDeFiEnabled && shouldMountOptionalSections,
+          },
+          { name: HomeSectionNames.NFTS, enabled: shouldMountOptionalSections },
         ].filter((section) => section.enabled),
       [
-        isPerpsEnabled,
+        shouldRenderPerps,
+        shouldMountOptionalSections,
+        showPerpsAboveTokens,
+        showTopTradersAboveAllocation,
         isPredictEnabled,
         isDeFiEnabled,
         isTopTradersEnabled,
@@ -139,64 +289,108 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
+    // Keyed so a Perps/Tokens reorder moves the sections instead of
+    // remounting them, which would reset in-section state such as token-list
+    // scroll and re-fire section_viewed within the same visit.
+    const tokensSection = (
+      <TokensSection
+        key="tokens"
+        ref={tokensSectionRef}
+        deviceCapability={homepageDeviceCapability}
+        onContentReadyChange={setIsPrimaryTokenContentReady}
+        sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
+    );
+    const perpsSection = shouldRenderPerps ? (
+      <HomepagePerpsHomeSlot
+        key="perps"
+        ref={perpsSectionRef}
+        sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
+    ) : null;
+
     return (
-      <PerpsConnectionProvider isEnabled={isPerpsEnabled} suppressErrorView>
-        <PerpsStreamProvider>
-          <Box
-            marginBottom={8}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
-            accessible={false}
-          >
-            {balanceBreakdownSectionProps ? (
-              <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
-            ) : null}
-            <TokensSection
-              ref={tokensSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-            {isPerpsEnabled && (
-              <HomepagePerpsHomeSlot
-                ref={perpsSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            <PredictionsSection
-              ref={predictionsSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-            {isWatchlistEnabled && (
-              <WatchlistSection
-                ref={watchlistSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            {isTopTradersEnabled && (
-              <TopTradersSection
-                ref={topTradersSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            {isDeFiEnabled && (
-              <DeFiSection
-                ref={defiSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            <NFTsSection
-              ref={nftsSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-            <MoreSection />
-          </Box>
-        </PerpsStreamProvider>
-      </PerpsConnectionProvider>
+      <PerpsPriorityEligibilityContext.Provider value={isActivePerpsTrader}>
+        <PerpsConnectionProvider
+          isEnabled={isPerpsEnabled && shouldMountOptionalSections}
+          suppressErrorView
+        >
+          <PerpsStreamProvider>
+            <Box
+              marginBottom={8}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+              accessible={false}
+            >
+              {balanceBreakdownSectionProps ? (
+                <BalanceBreakdownSection
+                  {...balanceBreakdownSectionProps}
+                  deviceCapability={homepageDeviceCapability}
+                />
+              ) : null}
+              {showTopTradersAboveAllocation && (
+                <TopTradersSection
+                  key="top-traders"
+                  ref={topTradersSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
+              {showPerpsAboveTokens ? (
+                <>
+                  {perpsSection}
+                  {tokensSection}
+                </>
+              ) : (
+                <>
+                  {tokensSection}
+                  {perpsSection}
+                </>
+              )}
+              {shouldMountOptionalSections && (
+                <PredictHomeSection
+                  ref={predictionsSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
+              {shouldMountOptionalSections && isWatchlistEnabled && (
+                <WatchlistSection
+                  ref={watchlistSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
+              {shouldMountOptionalSections &&
+                isTopTradersEnabled &&
+                !showTopTradersAboveAllocation && (
+                  <TopTradersSection
+                    key="top-traders"
+                    ref={topTradersSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                  />
+                )}
+              {shouldMountOptionalSections && isDeFiEnabled && (
+                <DeFiSection
+                  ref={defiSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
+              {shouldMountOptionalSections && (
+                <NFTsSection
+                  ref={nftsSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
+              <MoreSection />
+            </Box>
+          </PerpsStreamProvider>
+        </PerpsConnectionProvider>
+      </PerpsPriorityEligibilityContext.Provider>
     );
   },
 );

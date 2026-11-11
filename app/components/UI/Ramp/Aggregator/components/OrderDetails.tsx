@@ -18,7 +18,7 @@ import {
   renderFiat,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../../../util/number';
+} from '../../../../../util/number/bigint';
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import { useLegacySwapsBlockExplorer } from '../../../Bridge/hooks/useLegacySwapsBlockExplorer';
 import Spinner from '../../../AnimatedSpinner';
@@ -53,7 +53,7 @@ const createStyles = (colors: any) =>
     },
     seperationBottom: {
       paddingVertical: 4,
-      paddingBottom: 18,
+      paddingBottom: 16,
     },
     transactionIdFlex: {
       textAlign: 'right',

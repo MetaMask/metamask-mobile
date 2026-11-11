@@ -12,10 +12,16 @@ export const NotificationSettingsViewSelectorsIDs = {
     'notification-settings-feature-announcements-toggle',
   FEATURE_ANNOUNCEMENT_SEPARATOR:
     'notification-settings-feature-announcements-separator',
+  SECTION_SCROLL_VIEW: 'notification-settings-section-scroll-view',
+  WALLET_ACTIVITY_LIST: 'notification-settings-wallet-activity-list',
   PERPS_NOTIFICATIONS_TOGGLE:
     'notification-settings-perps-notifications-toggle',
   ACCOUNT_NOTIFICATIONS_SELECT_ALL:
     'notification-settings-account-notifications-select-all',
   ACCOUNT_NOTIFICATION_TOGGLE: (address: string) =>
     `notification-settings-account-notifications-${address}`,
+  FEATURE_GATE_SHEET: 'notification-settings-feature-gate-sheet',
+  FEATURE_GATE_CLOSE_BUTTON: 'notification-settings-feature-gate-close-button',
+  FEATURE_GATE_TURN_ON_BUTTON:
+    'notification-settings-feature-gate-turn-on-button',
 };

@@ -5,6 +5,7 @@ import {
   parseCaipAssetType,
   toCaipAssetType,
 } from '@metamask/utils';
+import { EthScope } from '@metamask/keyring-api';
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
@@ -18,6 +19,7 @@ import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { getSwapDestToken } from './getSwapDestToken';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
 import { areAddressesEqual } from '../../../../util/address';
+import { filterOutRwaTokens } from './filterOutRwaTokens';
 
 export interface ApiTokenForBridgeToken {
   assetId: string;
@@ -171,6 +173,41 @@ export const getDefaultDestToken = (
 };
 
 /**
+ * Computes a default source/dest token pair to re-anchor a swap/bridge
+ * selection on when it's found to be outside a set of enabled chains (e.g.
+ * a token selected in an unrestricted flow that isn't supported by a
+ * narrower one like Limit Order). Prefers Ethereum mainnet's ETH/mUSD pair
+ * when Ethereum is part of the enabled chains, otherwise falls back to the
+ * native token + configured default dest token of the first enabled chain.
+ *
+ * Returns `undefined` when there are no enabled chains to anchor on.
+ */
+export const getDefaultTokenPairForChains = (
+  chainIds: CaipChainId[],
+): { sourceToken: BridgeToken; destToken?: BridgeToken } | undefined => {
+  if (chainIds.length === 0) {
+    return undefined;
+  }
+
+  const fallbackChainId = chainIds.includes(EthScope.Mainnet)
+    ? EthScope.Mainnet
+    : chainIds[0];
+
+  const sourceToken = getNativeSourceToken(fallbackChainId);
+  // Look up the dest default using the source token's already-formatted
+  // chainId (not the raw fallbackChainId) so both tokens end up in the
+  // same chainId format (hex for EVM chains).
+  const destTokenCandidate = getDefaultDestToken(sourceToken.chainId);
+  const destToken =
+    destTokenCandidate &&
+    !areAddressesEqual(destTokenCandidate.address, sourceToken.address)
+      ? destTokenCandidate
+      : undefined;
+
+  return { sourceToken, destToken };
+};
+
+/**
  * Checks if a token matches a search query by name, symbol, or address.
  * Returns true if no query is provided.
  */
@@ -233,3 +270,25 @@ export const isSameBridgeToken = (
     formatChainIdToCaip(tokenA.chainId) === formatChainIdToCaip(tokenB.chainId)
   );
 };
+
+export const isNetworkSupportedForNonMarketSwapTab = (
+  chainId: BridgeToken['chainId'] | undefined,
+  enabledChainIds: CaipChainId[],
+): chainId is BridgeToken['chainId'] => {
+  if (!chainId) {
+    return false;
+  }
+
+  const caipChainId = formatChainIdToCaip(chainId);
+  return !isNonEvmChainId(caipChainId) && enabledChainIds.includes(caipChainId);
+};
+
+export const isTokenSupportedForNonMarketSwapTab = (
+  token: BridgeToken | undefined,
+  enabledChainIds: CaipChainId[],
+): token is BridgeToken =>
+  Boolean(
+    token &&
+      isNetworkSupportedForNonMarketSwapTab(token.chainId, enabledChainIds) &&
+      filterOutRwaTokens([token]).length === 1,
+  );

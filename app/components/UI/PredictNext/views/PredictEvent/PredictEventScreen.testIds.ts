@@ -1,0 +1,26 @@
+export const PredictEventScreenTestIds = {
+  VIEW: 'predict-next-event',
+  BACK: 'predict-next-event-back',
+  TITLE: 'predict-next-event-title',
+  CATEGORY: 'predict-next-event-category',
+  LOADING: 'predict-next-event-loading',
+  ERROR: 'predict-next-event-error',
+  ERROR_MESSAGE: 'predict-next-event-error-message',
+  RETRY: 'predict-next-event-retry',
+  STANDARD_HEADER: 'predict-next-event-standard-header',
+  IMAGE: 'predict-next-event-image',
+  GAME_HEADER: 'predict-next-event-game-header',
+  GAME_STATUS: 'predict-next-event-game-status',
+  GAME_METADATA: 'predict-next-event-game-metadata',
+  LIVE_DOT: 'predict-next-event-game-live-dot',
+  EVENT_RULES_BUTTON: 'predict-next-event-rules-button',
+  team: (selection: 'away' | 'home') => `predict-next-event-team-${selection}`,
+  teamLogo: (selection: 'away' | 'home') =>
+    `predict-next-event-team-${selection}-logo`,
+  teamLogoFallback: (selection: 'away' | 'home') =>
+    `predict-next-event-team-${selection}-logo-fallback`,
+  teamAbbreviation: (selection: 'away' | 'home') =>
+    `predict-next-event-team-${selection}-abbreviation`,
+  teamScore: (selection: 'away' | 'home') =>
+    `predict-next-event-team-${selection}-score`,
+} as const;

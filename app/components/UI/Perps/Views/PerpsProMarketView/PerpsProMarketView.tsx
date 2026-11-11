@@ -6,14 +6,22 @@ import {
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
-import { TimeDuration, type PerpsMarketData } from '@metamask/perps-controller';
+import {
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
+  TimeDuration,
+  type CandlePeriod,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import { AnimationDuration } from '@metamask/design-tokens';
+import BigNumber from 'bignumber.js';
 import {
   useNavigation,
+  useIsFocused,
   useRoute,
   type NavigationProp,
   type RouteProp,
@@ -26,28 +34,48 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { View, type ScrollView } from 'react-native';
+import { View, type LayoutChangeEvent, type ScrollView } from 'react-native';
+import type { EdgeInsets } from 'react-native-safe-area-context';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useHaptics } from '../../../../../util/haptics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
-import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
+import { CandlePeriodBottomSheet } from '../../../Charts/CandlePeriodSelector';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
-import { usePerpsMarketData } from '../../hooks';
+import { useMinimumOrderAmount, usePerpsMarketData } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  type PerpsMarketDetailSectionState,
+  usePerpsMarketDetailSession,
+} from '../../hooks/usePerpsMarketDetailSession';
+import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import type { PerpsOrderPriceField } from '../../hooks/usePerpsOrderForm';
+import { usePerpsProOrderBookExpanded } from '../../hooks/usePerpsProOrderBookExpanded';
+import { usePerpsProOrderBookPosition } from '../../hooks/usePerpsProOrderBookPosition';
+import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketViewed';
+import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
+import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
-import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
+import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
+import { selectPerpsProvider } from '../../selectors/perpsController';
+import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsStackParamList } from '../../types/navigation';
 import {
   getPerpsChartAnalyticsProperties,
@@ -57,57 +85,180 @@ import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
 } from '../../components/PerpsMarketHeader';
-import { PRICE_SECTION_HEIGHT } from '../../components/PerpsMarketSummary';
+import { usePerpsMarketHeaderInsets } from '../../components/PerpsMarketHeader/usePerpsMarketHeaderInsets';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
+import { getUsdFromAsset } from './components/PerpsProOrderForm/usePerpsProSizeInput';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import { createStyles } from './PerpsProMarketView.styles';
+import { canonicalizeOrderPrice } from '../../utils/triggerOrderValidation';
+import { usePerpsProSectionReadiness } from './hooks/usePerpsProSectionReadiness';
 
 interface PerpsProOrderBookColumnProps {
   symbol: string;
   marketPrice?: number;
+  isMarketContextReady: boolean;
+  marketContextKey: string;
   onCollapse: () => void;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+  ) => void;
 }
 
 /**
  * Order-book column bridged to the shared order-form state (TAT-3643).
  *
  * Rendered inside `PerpsOrderProvider` (owned by `PerpsProMarketView`) so a
- * bid/ask row tap can flip the form to a Limit order and prefill the tapped
- * price — the two setters live in `PerpsOrderContext`, which the sibling order
- * book cannot otherwise reach. Wiring both at once has no existing analog
- * (`onUseMidPricePress` only sets price and assumes the form is already Limit).
+ * bid/ask row tap can fill the price field the user last focused — Scale
+ * start/end, Chase max distance, limit, or trigger — in place, with no
+ * order-type switch. Only when nothing is focused does it fall back to the
+ * order type's own default field. With "Set order book size on click" on,
+ * the tap also fills the order size from the row (TAT-4085).
  */
 const PerpsProOrderBookColumn = ({
   symbol,
   marketPrice,
+  isMarketContextReady,
+  marketContextKey,
   onCollapse,
+  onResolvedStateChange,
 }: PerpsProOrderBookColumnProps) => {
-  const { setLimitPrice, setOrderType } = usePerpsOrderContext();
+  const {
+    orderForm,
+    commitLimitPrice,
+    setOrderType,
+    commitTriggerPrice,
+    activePriceField,
+    commitPriceToField,
+    setAmount,
+    fillOrderBookSize,
+  } = usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
   const { marketData } = usePerpsMarketData({ asset: symbol });
+  const { minimumOrderAmount } = useMinimumOrderAmount({ asset: symbol });
 
   const handleSelectPrice = useCallback(
-    (price: string) => {
-      // Force Limit first (no-op when already Limit) so the prefilled price is
-      // always shown in the limit-price input, regardless of the prior type.
-      setOrderType('limit');
-      setLimitPrice(price);
+    (price: string, size?: string) => {
+      // Book prices come from the venue already on a valid tick, so canonicalize
+      // only once the asset's precision is known. `canonicalizeOrderPrice` falls
+      // back to a default `szDecimals` when it is not, which can round a valid
+      // price onto an invalid tick and then commit it.
+      const selectedPrice =
+        marketData?.szDecimals === undefined
+          ? price
+          : canonicalizeOrderPrice(price, marketData.szDecimals);
+
+      // The last focused field wins over the type-based default below.
+      // Falls through when nothing is focused or the field has no handler.
+      const commitSelectedPrice = (): PerpsOrderPriceField => {
+        if (
+          activePriceField &&
+          commitPriceToField(activePriceField, selectedPrice)
+        ) {
+          return activePriceField;
+        }
+
+        if (isTriggerOrderType(orderForm.type)) {
+          if (isLimitExecutionOrderType(orderForm.type)) {
+            commitLimitPrice(selectedPrice);
+            return 'limit';
+          }
+          commitTriggerPrice(selectedPrice);
+          return 'trigger';
+        }
+
+        setOrderType('limit');
+        commitLimitPrice(selectedPrice);
+        return 'limit';
+      };
+      const filledField = commitSelectedPrice();
+
+      if (size !== undefined && selectedPrice !== undefined) {
+        // The amount reads as if the trader typed the row size in the size
+        // field. USD cannot hold every base size, so the exact row size rides
+        // along and sizes the order while that amount and price stand. A row
+        // below the market minimum only raises the amount; outside Reduce Only
+        // the form caps the amount at the margin maximum, which drops the fill.
+        const rowAmount = getUsdFromAsset(size, Number(selectedPrice));
+        if (new BigNumber(rowAmount).gt(0)) {
+          // Compare the unrounded notional: cents rounding can lift a row just
+          // under the minimum onto it, and the exact size would then be refused.
+          if (new BigNumber(size).times(selectedPrice).lt(minimumOrderAmount)) {
+            setAmount(String(minimumOrderAmount));
+          } else {
+            fillOrderBookSize({
+              size,
+              amount: rowAmount,
+              price: selectedPrice,
+              field: filledField,
+            });
+          }
+        }
+      }
     },
-    [setOrderType, setLimitPrice],
+    [
+      activePriceField,
+      commitPriceToField,
+      commitLimitPrice,
+      commitTriggerPrice,
+      fillOrderBookSize,
+      marketData?.szDecimals,
+      minimumOrderAmount,
+      orderForm.type,
+      setAmount,
+      setOrderType,
+    ],
   );
 
   return (
     <PerpsProOrderBookPanel
       symbol={symbol}
       marketPrice={marketPrice}
+      isMarketContextReady={isMarketContextReady}
+      marketContextKey={marketContextKey}
       szDecimals={marketData?.szDecimals}
       onCollapse={onCollapse}
       onSelectPrice={handleSelectPrice}
+      onResolvedStateChange={onResolvedStateChange}
     />
   );
+};
+
+interface PerpsProMarketViewProps {
+  generationTrigger?: 'initial' | 'market_switch' | 'mode_switch';
+  /** Set when the screen runs under the status bar and home indicator. */
+  edgeInsets?: Pick<EdgeInsets, 'top' | 'bottom'>;
+}
+
+const resolveProMarketSectionState = (
+  hasContent: boolean,
+  hasError: boolean,
+  isLoading: boolean,
+): PerpsMarketDetailSectionState => {
+  if (hasContent) return 'content';
+  if (hasError) return 'error';
+  return isLoading ? 'loading' : 'empty';
+};
+
+const resolveProAccountSectionState = (
+  isLoading: boolean,
+  hasAccount: boolean,
+): PerpsMarketDetailSectionState => {
+  if (isLoading) return 'loading';
+  return hasAccount ? 'content' : 'empty';
+};
+
+const resolveProMarketSource = (
+  hasRouteMarket: boolean,
+  hasEnrichedMarket: boolean,
+): 'route' | 'stream_enrichment' | 'unknown' => {
+  if (hasRouteMarket) return 'route';
+  if (hasEnrichedMarket) return 'stream_enrichment';
+  return 'unknown';
 };
 
 /**
@@ -119,15 +270,27 @@ const PerpsProOrderBookColumn = ({
  * server-aggregated ladder on a dedicated AggregatedOrderBookConnection
  * (same dual-stream approach as Extension).
  */
-const PerpsProMarketView = () => {
+const PerpsProMarketView = ({
+  generationTrigger = 'initial',
+  edgeInsets,
+}: PerpsProMarketViewProps) => {
   const { styles } = useStyles(createStyles, {});
+  const { playSelection } = useHaptics();
   const navigation =
     useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
+  const isScreenFocused = useIsFocused();
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const routeMarket = route.params?.market;
+  const activeProvider = useSelector(selectPerpsProvider);
+  const routeProviderId =
+    routeMarket?.providerId ??
+    (activeProvider === 'aggregated'
+      ? PROVIDER_CONFIG.DefaultProvider
+      : activeProvider);
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+  const buttonLocation = route.params?.button_location;
   // Set by entry points that already carry a trade intent (e.g. spot token
   // details Long/Short), so the inline form opens on the right side.
   const initialDirection = route.params?.direction;
@@ -139,15 +302,40 @@ const PerpsProMarketView = () => {
   const hasFormattedMaxLeverage =
     typeof routeMarket?.maxLeverage === 'string' &&
     routeMarket.maxLeverage.endsWith('x');
-  const { markets } = usePerpsMarkets({
+  const {
+    markets,
+    isLoading: areMarketsLoading,
+    error: marketsError,
+    hasResolvedInitialData: haveMarketsResolved = false,
+  } = usePerpsMarkets({
     skipInitialFetch: hasFormattedMaxLeverage,
   });
+  const enrichedMarket = useMemo(
+    () =>
+      markets.find(
+        (item) =>
+          item.symbol === routeMarket?.symbol &&
+          (item.providerId ??
+            (activeProvider === 'aggregated'
+              ? PROVIDER_CONFIG.DefaultProvider
+              : activeProvider)) === routeProviderId,
+      ),
+    [activeProvider, markets, routeMarket?.symbol, routeProviderId],
+  );
   const market = useMemo(() => {
-    if (hasFormattedMaxLeverage) return routeMarket;
-    const fullMarket = markets.find((m) => m.symbol === routeMarket?.symbol);
-    return fullMarket || routeMarket;
-  }, [hasFormattedMaxLeverage, markets, routeMarket]);
-  const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
+    const resolvedMarket = hasFormattedMaxLeverage
+      ? routeMarket
+      : (enrichedMarket ?? routeMarket);
+    return resolvedMarket &&
+      resolvedMarket.providerId === undefined &&
+      routeProviderId === PROVIDER_CONFIG.LighterProvider
+      ? { ...resolvedMarket, providerId: PROVIDER_CONFIG.LighterProvider }
+      : resolvedMarket;
+  }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket, routeProviderId]);
+  const { isOrderBookExpanded, setOrderBookExpanded } =
+    usePerpsProOrderBookExpanded();
+  const isOrderBookCollapsed = !isOrderBookExpanded;
+  const { orderBookPosition } = usePerpsProOrderBookPosition();
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Swapping the route param rather than pushing keeps a single Pro screen on
@@ -159,9 +347,20 @@ const PerpsProMarketView = () => {
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     ) => {
-      if (!nextMarket.symbol || nextMarket.symbol === routeMarket?.symbol) {
+      const nextProviderId =
+        nextMarket.providerId ??
+        (activeProvider === 'aggregated'
+          ? PROVIDER_CONFIG.DefaultProvider
+          : activeProvider);
+      if (
+        !nextMarket.symbol ||
+        (nextMarket.symbol === routeMarket?.symbol &&
+          nextProviderId === routeProviderId)
+      ) {
         return;
       }
+
+      playSelection().catch(() => undefined);
 
       // POSITION_TAB is the panel-level source; source_section distinguishes
       // which tab the row came from (same pattern as Perps home).
@@ -175,7 +374,13 @@ const PerpsProMarketView = () => {
         direction: undefined,
       });
     },
-    [navigation, routeMarket?.symbol],
+    [
+      activeProvider,
+      navigation,
+      playSelection,
+      routeMarket?.symbol,
+      routeProviderId,
+    ],
   );
 
   // Bring the chart back into view when the active market changes (e.g. the
@@ -184,30 +389,52 @@ const PerpsProMarketView = () => {
   // `animated: false` so a near-top scroll doesn't flash an animation.
   useEffect(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-  }, [market?.symbol]);
+  }, [market?.providerId, market?.symbol]);
 
   const handleCollapseOrderBook = useCallback(() => {
-    setIsOrderBookCollapsed(true);
-  }, []);
+    setOrderBookExpanded(false);
+  }, [setOrderBookExpanded]);
 
   const handleExpandOrderBook = useCallback(() => {
-    setIsOrderBookCollapsed(false);
-  }, []);
+    setOrderBookExpanded(true);
+  }, [setOrderBookExpanded]);
 
-  // Drives the header's subtitle/live-price crossfade (see
-  // PerpsProMarketHeader). The price section above the fold has a fixed
-  // height, so the threshold is set once instead of measured via onLayout.
+  // Drives the header's subtitle/live-price crossfade. The summary row
+  // sizes to its content, so the threshold comes from its measured height.
   const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
     useHeaderStandardAnimated();
-  useEffect(() => {
-    setTitleSectionHeight(PRICE_SECTION_HEIGHT);
-  }, [setTitleSectionHeight]);
+  const handleMarketSummaryLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height > 0) {
+        setTitleSectionHeight(height);
+      }
+    },
+    [setTitleSectionHeight],
+  );
+
+  const handleRequestScrollBy = useCallback(
+    (delta: number) => {
+      scrollViewRef.current?.scrollTo({
+        y: scrollY.get() + delta,
+        animated: true,
+      });
+    },
+    [scrollY],
+  );
 
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
+  );
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
+  const { headerTopInset, headerInset } = usePerpsMarketHeaderInsets(
+    edgeInsets,
+    isServiceInterruptionBannerEnabled,
   );
   const configuredChartLibrary = getPerpsChartLibrary(isAdvancedChartEnabled);
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
@@ -217,12 +444,48 @@ const PerpsProMarketView = () => {
     useState(false);
 
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
+  const [chartDeliveryRevision, setChartDeliveryRevision] = useState(0);
+  const currentSymbol = market?.symbol;
+  const currentProviderId =
+    market?.providerId ??
+    (activeProvider === 'aggregated'
+      ? PROVIDER_CONFIG.DefaultProvider
+      : activeProvider);
+  const currentMarketIdentityKey = `${currentSymbol ?? ''}|${currentProviderId}`;
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const {
+    key: marketContextKey,
+    isReady: isMarketContextReady,
+    isUserReady: isUserContextReady,
+  } = usePerpsMarketContext();
+  const marketSectionContextKey = `${currentMarketIdentityKey}|${marketContextKey}`;
+  const userSectionContextKey = `${marketContextKey}|${selectedAddress ?? ''}`;
+
+  // Same parent-owned merge as Lite: last candle close, overridden by the
+  // Advanced Chart latest-bar close while that chart is reporting.
+  const {
+    syncedChartCurrentPrice,
+    setAdvancedChartCurrentPrice,
+    priceDeliveryRevision,
+  } = usePerpsSyncedChartPrice({
+    symbol: market?.symbol || '',
+    interval: selectedCandlePeriod,
+    isAdvancedChartEnabled,
+    marketContextKey,
+    isMarketContextReady,
+  });
+  const {
+    account,
+    isInitialLoading: isLoadingAccount,
+    deliveryRevision: accountDeliveryRevision = 0,
+  } = usePerpsLiveAccount();
 
   const handleWalletPress = useCallback(() => {
     setIsBalanceSheetVisible(true);
   }, []);
 
   const appNavigation = useNavigation<AppNavigationProp>();
+  const { track } = usePerpsEventTracking();
 
   const handleHistoryPress = useCallback(() => {
     appNavigation.navigate(Routes.PERPS.ACTIVITY, {
@@ -236,7 +499,7 @@ const PerpsProMarketView = () => {
 
   useEffect(() => {
     setEffectiveChartLibrary(configuredChartLibrary);
-  }, [configuredChartLibrary, market?.symbol]);
+  }, [configuredChartLibrary, market?.symbol, marketContextKey]);
 
   const chartAnalyticsProperties = useMemo(
     () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),
@@ -250,17 +513,29 @@ const PerpsProMarketView = () => {
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
       [PERPS_EVENT_PROPERTY.SOURCE]:
         source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       ...chartAnalyticsProperties,
       ...(sourceSection && {
         [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: sourceSection,
       }),
+      ...(buttonLocation && {
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]: buttonLocation,
+      }),
     }),
-    [chartAnalyticsProperties, market?.symbol, source, sourceSection],
+    [
+      buttonLocation,
+      chartAnalyticsProperties,
+      isServiceInterruptionBannerEnabled,
+      market?.symbol,
+      source,
+      sourceSection,
+    ],
   );
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    resetKey: `${market?.symbol || ''}:${effectiveChartLibrary}`,
+    resetKey: `${currentMarketIdentityKey}:${effectiveChartLibrary}`,
     conditions: [Boolean(market?.symbol)],
     properties: screenViewedProperties,
   });
@@ -278,6 +553,87 @@ const PerpsProMarketView = () => {
       onAdvancedChartError: handleAdvancedChartError,
     });
 
+  const handleProCandlePeriodChange = useCallback(
+    (period: CandlePeriod) => {
+      if (period === selectedCandlePeriod) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      handleCandlePeriodChange(period);
+    },
+    [handleCandlePeriodChange, playSelection, selectedCandlePeriod],
+  );
+
+  const chartContextKey = `${marketSectionContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
+  const marketSectionState = resolveProMarketSectionState(
+    Boolean(
+      currentSymbol &&
+        (hasFormattedMaxLeverage ||
+          (enrichedMarket?.symbol === currentSymbol &&
+            (enrichedMarket.providerId ??
+              (activeProvider === 'aggregated'
+                ? PROVIDER_CONFIG.DefaultProvider
+                : activeProvider)) === currentProviderId)),
+    ),
+    Boolean(marketsError),
+    areMarketsLoading || !haveMarketsResolved,
+  );
+  const priceSectionState: PerpsMarketDetailSectionState =
+    isMarketContextReady && syncedChartCurrentPrice > 0 ? 'content' : 'loading';
+  const accountSectionState = resolveProAccountSectionState(
+    !isMarketContextReady || !isUserContextReady || isLoadingAccount,
+    Boolean(account),
+  );
+  const {
+    onChartResolved: handleChartResolvedStateChange,
+    onOrderBookResolved: handleOrderBookResolvedStateChange,
+    onPositionsOrdersResolved: handlePositionsOrdersResolvedStateChange,
+    onStatsResolved: handleStatsResolvedStateChange,
+    sections: detailSections,
+    statsState: statsSectionState,
+    positionsOrdersDeliveryRevisions,
+  } = usePerpsProSectionReadiness({
+    accountState: accountSectionState,
+    chartContextKey,
+    currentSymbol,
+    isOrderBookCollapsed,
+    isUserContextReady,
+    marketContextKey: marketSectionContextKey,
+    marketState: marketSectionState,
+    priceState: priceSectionState,
+    userContextKey: userSectionContextKey,
+  });
+  const detailSession = usePerpsMarketDetailSession({
+    mode: 'pro',
+    symbol: currentSymbol,
+    deliveryRevisions: {
+      account: accountDeliveryRevision,
+      chart: chartDeliveryRevision,
+      price: priceDeliveryRevision,
+      orders: positionsOrdersDeliveryRevisions?.orders ?? 0,
+      positions: positionsOrdersDeliveryRevisions?.positions ?? 0,
+    },
+    configuredChartLibrary,
+    renderedChartLibrary: effectiveChartLibrary,
+    marketSource: resolveProMarketSource(
+      hasFormattedMaxLeverage,
+      Boolean(enrichedMarket),
+    ),
+    surfaceTrigger: generationTrigger,
+    entrySource: source,
+    sections: detailSections,
+  });
+
+  usePerpsMarketDetailLiveMeasurement({
+    detailMode: 'pro',
+    detailSession,
+    marketSectionState,
+    priceSectionState,
+    statsSectionState,
+    accountSectionState,
+    totalBalance: account?.totalBalance,
+  });
+
   const {
     perpsMode,
     isWatchlist,
@@ -286,6 +642,8 @@ const PerpsProMarketView = () => {
     handleFavoritePress,
     handlePerpsModeChange,
   } = usePerpsMarketHeaderActions({ symbol: market?.symbol });
+
+  usePerpsRecordMarketViewed(market?.symbol);
 
   if (!market?.symbol) {
     return (
@@ -316,100 +674,160 @@ const PerpsProMarketView = () => {
       style={styles.container}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
-      <PerpsMarketHeader
-        market={{ ...market, symbol: market.symbol }}
-        testIDs={createProMarketHeaderTestIDs()}
-        mode={perpsMode}
-        onBackPress={handleBackPress}
-        onIdentityPress={handleMarketListPress}
-        onWalletPress={handleWalletPress}
-        onFavoritePress={handleFavoritePress}
-        isFavorite={isWatchlist}
-        onModeChange={handlePerpsModeChange}
-        scrollY={scrollY}
-        priceSectionHeight={titleSectionHeightSv}
-      />
-      <Animated.ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        testID={PerpsProMarketViewSelectorsIDs.SCROLL_VIEW}
-        showsVerticalScrollIndicator={false}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-      >
-        <PerpsProChartPanel
-          symbol={market.symbol}
-          selectedCandlePeriod={selectedCandlePeriod}
-          isAdvancedChartEnabled={isAdvancedChartEnabled}
-          effectiveChartLibrary={effectiveChartLibrary}
-          onCandlePeriodChange={handleCandlePeriodChange}
-          onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
-          onChartError={handleChartError}
+      {/* Service Interruption Banner — pinned above the header; collapses to
+          its title row once the content is scrolled. Outer flag guard avoids
+          mounting the padded wrapper (and banner hooks) when disabled. */}
+      {isServiceInterruptionBannerEnabled && (
+        <Box twClassName="px-4 pb-2" style={{ paddingTop: edgeInsets?.top }}>
+          <PerpsServiceInterruptionBanner
+            scrollY={scrollY}
+            testID={PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
+        </Box>
+      )}
+      <Box twClassName="flex-1">
+        <PerpsMarketHeader
+          market={{ ...market, symbol: market.symbol }}
+          testIDs={createProMarketHeaderTestIDs()}
+          mode={perpsMode}
+          onBackPress={handleBackPress}
+          onIdentityPress={handleMarketListPress}
+          onWalletPress={handleWalletPress}
+          onFavoritePress={handleFavoritePress}
+          isFavorite={isWatchlist}
+          onModeChange={handlePerpsModeChange}
+          enableHaptics
+          scrollY={scrollY}
+          priceSectionHeight={titleSectionHeightSv}
+          currentPrice={syncedChartCurrentPrice}
+          topInset={headerTopInset}
         />
-        {/* The chart's own height (`PerpsProChartPanel`) animates when
-            expanded/collapsed above this point — wrap everything that would
-            otherwise jump when that happens so it slides into place. */}
-        <Animated.View
-          layout={LinearTransition.duration(AnimationDuration.Fast)}
+        <Animated.ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          testID={PerpsProMarketViewSelectorsIDs.SCROLL_VIEW}
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
+          onScroll={onScroll}
+          scrollEventThrottle={16}
         >
-          <PerpsProMarketStatsBar
-            symbol={market.symbol}
-            nextFundingTime={market.nextFundingTime}
-            fundingIntervalHours={market.fundingIntervalHours}
-          />
-          {/* Provider wraps BOTH columns (not just the form) so an order-book
-              row tap can drive the form's Limit price / order type via shared
-              context (TAT-3643). Keyed by symbol so form state resets when the
-              market changes. */}
-          <PerpsOrderProvider
-            key={market.symbol}
-            initialAsset={market.symbol}
-            initialDirection={initialDirection}
-            initialType="market"
-            fallbackAmount=""
-          >
-            <PerpsProMarketLayout
-              isOrderBookCollapsed={isOrderBookCollapsed}
-              orderForm={
-                // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
-                // to support deep-link trade-detail entries that may only carry
-                // partial data. PerpsProMarketView is only reachable via full-market
-                // navigation; the !market?.symbol guard above validates the minimum
-                // required field at runtime.
-                <PerpsProOrderFormPanel
-                  market={market as PerpsMarketData}
-                  isOrderBookCollapsed={isOrderBookCollapsed}
-                  onExpandOrderBook={handleExpandOrderBook}
-                />
-              }
-              orderBook={
-                <PerpsProOrderBookColumn
-                  symbol={market.symbol}
-                  marketPrice={marketPrice}
-                  onCollapse={handleCollapseOrderBook}
-                />
-              }
+          {headerInset > 0 && (
+            <View
+              style={{ height: headerInset }}
+              testID={PerpsProMarketViewSelectorsIDs.HEADER_SPACER}
             />
-          </PerpsOrderProvider>
-          <SectionDivider marginVertical={0} />
-          <PerpsProPositionsPanel
+          )}
+          <PerpsProChartPanel
             symbol={market.symbol}
-            onSelectMarket={handleSelectMarket}
-            onHistoryPress={handleHistoryPress}
+            selectedCandlePeriod={selectedCandlePeriod}
+            isAdvancedChartEnabled={isAdvancedChartEnabled}
+            configuredChartLibrary={configuredChartLibrary}
+            effectiveChartLibrary={effectiveChartLibrary}
+            marketContextKey={marketContextKey}
+            isMarketContextReady={isMarketContextReady}
+            onCandlePeriodChange={handleProCandlePeriodChange}
+            onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
+            onChartError={handleChartError}
+            currentPrice={syncedChartCurrentPrice}
+            onLatestPriceChange={setAdvancedChartCurrentPrice}
+            onResolvedStateChange={handleChartResolvedStateChange}
+            marketId={market.id}
+            onFreshDelivery={() =>
+              setChartDeliveryRevision((revision) => revision + 1)
+            }
+            onSummaryLayout={handleMarketSummaryLayout}
           />
-        </Animated.View>
-      </Animated.ScrollView>
-      <PerpsCandlePeriodBottomSheet
+          {/* The chart's own height (`PerpsProChartPanel`) animates when
+              expanded/collapsed above this point — wrap everything that would
+              otherwise jump when that happens so it slides into place. */}
+          <Animated.View
+            layout={LinearTransition.duration(AnimationDuration.Fast)}
+          >
+            <PerpsProMarketStatsBar
+              symbol={market.symbol}
+              nextFundingTime={market.nextFundingTime}
+              fundingIntervalHours={market.fundingIntervalHours}
+              onResolvedStateChange={handleStatsResolvedStateChange}
+            />
+            {/* Provider wraps BOTH columns (not just the form) so an order-book
+                row tap can drive the form's Limit price / order type via shared
+                context (TAT-3643). Keyed by symbol so form state resets when the
+                market changes. */}
+            <PerpsOrderProvider
+              key={currentMarketIdentityKey}
+              initialAsset={market.symbol}
+              initialDirection={initialDirection}
+              fallbackAmount=""
+            >
+              <PerpsProMarketLayout
+                isOrderBookCollapsed={isOrderBookCollapsed}
+                orderBookPosition={orderBookPosition}
+                orderForm={
+                  // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
+                  // to support deep-link trade-detail entries that may only carry
+                  // partial data. PerpsProMarketView is only reachable via full-market
+                  // navigation; the !market?.symbol guard above validates the minimum
+                  // required field at runtime.
+                  <PerpsProOrderFormPanel
+                    market={market as PerpsMarketData}
+                    isScreenFocused={isScreenFocused}
+                    isOrderBookCollapsed={isOrderBookCollapsed}
+                    onExpandOrderBook={handleExpandOrderBook}
+                    onRequestScrollBy={handleRequestScrollBy}
+                    scrollViewRef={scrollViewRef}
+                    scrollViewTopInset={headerInset}
+                  />
+                }
+                orderBook={
+                  <PerpsProOrderBookColumn
+                    symbol={market.symbol}
+                    marketPrice={marketPrice}
+                    isMarketContextReady={isMarketContextReady}
+                    marketContextKey={marketSectionContextKey}
+                    onCollapse={handleCollapseOrderBook}
+                    onResolvedStateChange={handleOrderBookResolvedStateChange}
+                  />
+                }
+              />
+            </PerpsOrderProvider>
+            <SectionDivider marginVertical={0} />
+            <PerpsProPositionsPanel
+              symbol={market.symbol}
+              isMarketContextReady={isMarketContextReady}
+              marketContextKey={userSectionContextKey}
+              onSelectMarket={handleSelectMarket}
+              onHistoryPress={handleHistoryPress}
+              onResolvedStateChange={handlePositionsOrdersResolvedStateChange}
+              isScreenFocused={isScreenFocused}
+            />
+          </Animated.View>
+          {edgeInsets && (
+            <View
+              style={{ height: edgeInsets.bottom }}
+              testID={PerpsProMarketViewSelectorsIDs.BOTTOM_INSET_SPACER}
+            />
+          )}
+        </Animated.ScrollView>
+      </Box>
+      <CandlePeriodBottomSheet
         isVisible={isMoreCandlePeriodsVisible}
         onClose={() => setIsMoreCandlePeriodsVisible(false)}
         selectedPeriod={selectedCandlePeriod}
         selectedDuration={TimeDuration.YearToDate}
-        onPeriodChange={handleCandlePeriodChange}
+        onPeriodChange={handleProCandlePeriodChange}
         showAllPeriods
-        asset={market.symbol}
+        onViewed={(period) => {
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.CANDLE_PERIOD_VIEWED,
+            [PERPS_EVENT_PROPERTY.ASSET]: market.symbol || '',
+            [PERPS_EVENT_PROPERTY.CANDLE_PERIOD]: period,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          });
+        }}
         testID={PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET}
       />
       <PerpsBalanceBottomSheet

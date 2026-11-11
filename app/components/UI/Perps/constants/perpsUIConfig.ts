@@ -29,3 +29,19 @@ export const ORDER_BOOK_SPREAD = {
 
 // Withdrawal constants (HyperLiquid-specific UI progress timing)
 export const HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS = 30000; // 30 seconds progress update interval
+
+// Fixed bottom CTA container geometry (density-independent pixels).
+// Screens that pin a CTA container to the bottom of the window add the system
+// navigation-bar inset to FIXED_BOTTOM_CONTAINER_PADDING at runtime, so the
+// visual gap survives above the navigation bar instead of being consumed by it.
+export const FIXED_BOTTOM_CONTAINER_PADDING = 16;
+
+// Height of a footer button in a fixed bottom CTA container.
+export const FIXED_BOTTOM_CONTAINER_BUTTON_HEIGHT = 48;
+
+// Footer height excluding the navigation-bar inset:
+// paddingTop + button + paddingBottom.
+export const FIXED_BOTTOM_CONTAINER_BASE_HEIGHT =
+  FIXED_BOTTOM_CONTAINER_PADDING +
+  FIXED_BOTTOM_CONTAINER_BUTTON_HEIGHT +
+  FIXED_BOTTOM_CONTAINER_PADDING;

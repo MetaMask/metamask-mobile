@@ -37,6 +37,7 @@ export const userInitialState: UserState = {
   tokenIndicators: [],
   onboardingStepperProgress: {},
   appInstallEventFired: false,
+  pendingAppInstall: null,
 };
 
 /**
@@ -208,6 +209,17 @@ const userReducer = (
         ...state,
         appInstallEventFired: true,
       };
+    case UserActionType.SET_PENDING_APP_INSTALL:
+      return {
+        ...state,
+        pendingAppInstall: action.payload.pendingAppInstall,
+      };
+    case UserActionType.CLEAR_PENDING_APP_INSTALL:
+      // Return the same reference when there is nothing pending so declining
+      // analytics does not trigger a redundant persist write.
+      return state.pendingAppInstall === null
+        ? state
+        : { ...state, pendingAppInstall: null };
     default:
       return state;
   }

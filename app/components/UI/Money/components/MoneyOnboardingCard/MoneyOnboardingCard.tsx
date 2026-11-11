@@ -14,7 +14,7 @@ import MoneyNextBestActionParallax, {
   PARALLAX_ARTBOARD_CARD,
   PARALLAX_ARTBOARD_FUND,
 } from '../MoneyNextBestActionParallax';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -24,13 +24,16 @@ import {
   CardEntryPoint,
   CardScreens,
   deriveCardState,
+  withCardProvider,
 } from '../../../Card/util/metrics';
 import { useSelector } from 'react-redux';
 import {
   selectIsCardholder,
   selectCardHomeDataStatus,
   selectIsCardStateResolved,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
+import Logger from '../../../../../util/Logger';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -41,8 +44,21 @@ import {
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
 
-const MoneyOnboardingCard = () => {
+export interface MoneyOnboardingCardProps {
+  isGlass?: boolean;
+  /**
+   * Dev-menu only. Renders this stepper index and ignores live completion,
+   * so Add funds and the card step can be demoed on any account.
+   */
+  forcedStep?: 0 | 1;
+}
+
+const MoneyOnboardingCard = ({
+  isGlass = false,
+  forcedStep,
+}: MoneyOnboardingCardProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedCardStepViewRef = useRef(false);
 
   const {
@@ -54,7 +70,7 @@ const MoneyOnboardingCard = () => {
     totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
   });
 
-  const { initiateDeposit } = useMoneyAccountDeposit();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
   const { apyPercent } = useMoneyVaultApy();
   const showApy = isPositiveNumber(apyPercent);
@@ -94,10 +110,6 @@ const MoneyOnboardingCard = () => {
     (isCardholder ||
       (isCardAuthenticated && isCardVerified && !isCardLinkedToMoneyAccount));
 
-  const handleRedirectToCryptoDeposit = useCallback(async () => {
-    await initiateDeposit().catch(() => undefined);
-  }, [initiateDeposit]);
-
   const handleCardCtaPress = useCallback(
     (stepTitleEn: string) => {
       const baseProperties = {
@@ -122,12 +134,14 @@ const MoneyOnboardingCard = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            screen: CardScreens.MONEY_HOME,
-            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
-            card_state: cardState,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              screen: CardScreens.MONEY_HOME,
+              entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+              action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
+              card_state: cardState,
+            }),
+          )
           .build(),
       );
 
@@ -140,6 +154,7 @@ const MoneyOnboardingCard = () => {
       trackOnboardingEvent,
       trackEvent,
       createEventBuilder,
+      activeProviderId,
       cardState,
     ],
   );
@@ -156,12 +171,14 @@ const MoneyOnboardingCard = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            screen: CardScreens.MONEY_HOME,
-            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
-            card_state: cardState,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              screen: CardScreens.MONEY_HOME,
+              entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+              action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
+              card_state: cardState,
+            }),
+          )
           .build(),
       );
 
@@ -173,6 +190,7 @@ const MoneyOnboardingCard = () => {
       trackOnboardingEvent,
       trackEvent,
       createEventBuilder,
+      activeProviderId,
       cardState,
     ],
   );
@@ -204,15 +222,20 @@ const MoneyOnboardingCard = () => {
 
   // Prevent a flash of earlier steps by rendering the computed step immediately,
   // while still persisting progress back to Redux via incremental updates.
-  const effectiveCurrentStep = Math.max(currentStep, targetStepFromCompletion);
+  // A forced step is a dev-menu preview and must not write stepper progress.
+  const isForcedStep = forcedStep !== undefined;
+  const effectiveCurrentStep = isForcedStep
+    ? forcedStep
+    : Math.max(currentStep, targetStepFromCompletion);
   const isVisibleAfterAutoSkip =
-    effectiveCurrentStep < MONEY_ONBOARDING_TOTAL_STEPS;
+    isForcedStep || effectiveCurrentStep < MONEY_ONBOARDING_TOTAL_STEPS;
 
   useEffect(() => {
-    if (currentStep < targetStepFromCompletion) {
-      incrementStep();
+    if (isForcedStep || currentStep >= targetStepFromCompletion) {
+      return;
     }
-  }, [currentStep, targetStepFromCompletion, incrementStep]);
+    incrementStep();
+  }, [currentStep, isForcedStep, targetStepFromCompletion, incrementStep]);
 
   useEffect(() => {
     if (
@@ -229,16 +252,19 @@ const MoneyOnboardingCard = () => {
     hasTrackedCardStepViewRef.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.MONEY_HOME,
-          entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-          card_state: cardState,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: CardScreens.MONEY_HOME,
+            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+            card_state: cardState,
+          }),
+        )
         .build(),
     );
   }, [
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     effectiveCurrentStep,
     isBalanceLoading,
     isCardAnalyticsReady,
@@ -247,22 +273,36 @@ const MoneyOnboardingCard = () => {
     cardState,
   ]);
 
-  const handleStep1CtaPressed = useCallback(() => {
-    trackOnboardingEvent({
-      step: currentStep + 1, // Use 1-based index for event tracking to match total_steps count.
-      step_title: strings('money.onboarding.step_1.title_no_apy', {
-        locale: 'en',
-      }),
-      total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
-      step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
-      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-    });
-    handleRedirectToCryptoDeposit();
-  }, [currentStep, handleRedirectToCryptoDeposit, trackOnboardingEvent]);
+  const handleStep1CtaPressed = useCallback(async () => {
+    try {
+      await navigateToMoneyDeposit({
+        track: ({ redirect_target }) => {
+          trackOnboardingEvent({
+            step: currentStep + 1, // Use 1-based index for event tracking to match total_steps count.
+            step_title: strings('money.onboarding.step_1.title_no_apy', {
+              locale: 'en',
+            }),
+            total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+            step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
+            redirect_target,
+          });
+        },
+      });
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: '[MoneyOnboardingCard] Failed to navigate to deposit',
+      });
+    }
+  }, [currentStep, navigateToMoneyDeposit, trackOnboardingEvent]);
 
   // REMINDER: Update MONEY_ONBOARDING_TOTAL_STEPS when steps are added or removed.
   const steps = useMemo((): StepperCardStep[] => {
-    if (!isOnboardingCardVisible || !isVisibleAfterAutoSkip) return [];
+    if (
+      !isForcedStep &&
+      (!isOnboardingCardVisible || !isVisibleAfterAutoSkip)
+    ) {
+      return [];
+    }
 
     const step1: StepperCardStep = {
       title: showApy
@@ -359,6 +399,7 @@ const MoneyOnboardingCard = () => {
 
     return [step1, step2];
   }, [
+    isForcedStep,
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
     showApy,
@@ -374,20 +415,22 @@ const MoneyOnboardingCard = () => {
     !isCardStateResolved && effectiveCurrentStep > 0;
 
   if (
-    isBalanceLoading ||
-    isWaitingForCardState ||
-    !isOnboardingCardVisible ||
-    !isVisibleAfterAutoSkip
+    !isForcedStep &&
+    (isBalanceLoading ||
+      isWaitingForCardState ||
+      !isOnboardingCardVisible ||
+      !isVisibleAfterAutoSkip)
   ) {
     return null;
   }
 
   return (
-    <Box twClassName="mx-4 mt-2">
+    <Box twClassName="mx-4 mt-2 mb-3">
       <StepperCard
         steps={steps}
         currentStep={effectiveCurrentStep}
         testID="money-onboarding-card"
+        isGlass={isGlass}
       />
     </Box>
   );

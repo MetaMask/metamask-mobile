@@ -2,9 +2,8 @@ import {
   isNonEvmChainId,
   formatChainIdToCaip,
   getNativeAssetForChainId,
-  sumAmounts,
 } from '@metamask/bridge-controller';
-import type { Hex } from '@metamask/utils';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import {
   useCallback,
   useContext,
@@ -30,15 +29,17 @@ import {
   isNumberValue,
 } from '../../../../util/number/bigint';
 import { useDisplayCurrencyValue } from '../../Bridge/hooks/useDisplayCurrencyValue';
+import { useFormatters } from '../../../hooks/useFormatters';
 import { useFormattedNetworkFee } from '../../Bridge/hooks/useFormattedNetworkFee';
 import type { BridgeToken } from '../../Bridge/types';
-import {
-  formatCurrency,
-  formatMinimumReceived,
-} from '../../Bridge/utils/currencyUtils';
+import { formatMinimumReceived } from '../../Bridge/utils/currencyUtils';
 import { FIAT_INPUT_DECIMALS } from '../../Bridge/utils/sourceAmountInputMode';
 import { isGaslessQuote } from '../../Bridge/utils/isGaslessQuote';
-import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
+import { useFeeDisclaimer } from '../../Bridge/hooks/useFeeDisclaimer';
+import {
+  calcUsdAmountFromFiat,
+  getTokenExchangeRate,
+} from '../../Bridge/utils/exchange-rates';
 import { isSameAsset, selectDefaultSourceToken } from '../tokenSelection';
 import type {
   QuickBuyAmountDisplayMode,
@@ -48,6 +49,17 @@ import type {
 } from '../types';
 import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
+import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMapping';
+import {
+  beginPostTradeShareSession,
+  patchPostTradeShareSession,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+import { getSocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
+import { resolveQuickBuySubmittedTxHash } from '../resolveQuickBuySubmittedTxHash';
+import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { isSpotPostTradeShareEligible } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
+import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
+import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
@@ -68,34 +80,65 @@ import {
   selectBridgeFeatureFlags,
   selectDestAddress,
   selectIsEvmNonEvmBridge,
+  selectIsGasIncludedSTXSendBundleSupported,
   selectIsNonEvmNonEvmBridge,
   selectIsNonEvmSourced,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectIsSlippageUserOverride,
   selectSlippage,
+  resetHardwareWalletsSwaps,
   setDestToken,
   setIsSubmittingTx,
   setSourceAmount,
   setSourceToken,
+  updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
+import { buildStartPayload } from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import {
+  BridgeEntryPoint,
+  isSameChainSwap,
+} from '../../HardwareWallet/Swaps/flowStrategy';
+import { registerHwSubmissionOutcomeListener } from '../../HardwareWallet/Swaps/hwSubmissionOutcome';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import {
+  buildCopyTradeIntentOptions,
+  postCopyTradeIntent,
+  type CopyTradeOrigin,
+} from '../../../../util/social/copyTradeIntent';
+import {
+  isSocialTradeSource,
+  recordSocialTrade,
+} from '../../../../util/social/socialActivityStorage';
 import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
+import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
+import { PopularList } from '../../../../util/networks/customNetworks';
+import {
+  clearSuppressedNetworkAddedToast,
+  suppressNextNetworkAddedToast,
+} from '../../../../util/networks/networkToastSuppression';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
 import { useInitialSlippage } from '../../Bridge/hooks/useInitialSlippage';
 import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance';
+import { useInsufficientNativeReserveError } from '../../Bridge/hooks/useInsufficientNativeReserveError';
+import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useIsNetworkFeeUnavailable } from '../../Bridge/hooks/useIsNetworkFeeUnavailable';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
+import { useShouldRenderMaxOption } from '../../Bridge/hooks/useShouldRenderMaxOption';
 import { usePriceImpactViewData } from '../../Bridge/hooks/usePriceImpactViewData';
 import { useRecipientInitialization } from '../../Bridge/hooks/useRecipientInitialization';
 import {
@@ -109,17 +152,23 @@ import {
   trackQuickBuyTrade,
   beginQuickBuySubmission,
   endQuickBuySubmission,
+  type TrackedQuickBuyPostTradePrompt,
 } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
+  | 'insufficient_native_reserve'
   | 'insufficient_gas'
   | 'no_quotes';
 
 const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
   insufficient_balance: 'bridge.insufficient_funds',
+  insufficient_native_reserve:
+    'social_leaderboard.quick_buy.insufficient_native_reserve',
   insufficient_gas: 'bridge.insufficient_gas',
   no_quotes: 'social_leaderboard.quick_buy.no_quotes',
 };
@@ -142,6 +191,8 @@ export interface UseQuickBuyControllerResult {
   sourceToken: BridgeToken | undefined;
   sourceChainId: Hex | undefined;
   sourceTokenOptions: BridgeToken[];
+  /** Networks the user holds a Pay with token on; scopes the Buy picker. */
+  payWithChainIds: CaipChainId[];
   selectedSourceToken: BridgeToken | undefined;
   isSourcePickerOpen: boolean;
   setIsSourcePickerOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -149,9 +200,9 @@ export interface UseQuickBuyControllerResult {
     React.SetStateAction<BridgeToken | undefined>
   >;
   // sell dest token (Sell mode "Receive with")
-  sellDestTokenOptions: BridgeToken[];
-  selectedDestStable: BridgeToken | undefined;
-  handleSelectDestStable: (token: BridgeToken) => void;
+  positionTokenFromSetup: BridgeToken | undefined;
+  selectedReceiveToken: BridgeToken | undefined;
+  handleSelectReceiveToken: (token: BridgeToken) => void;
   currentCurrency: string;
   // amount
   amountDisplayMode: QuickBuyAmountDisplayMode;
@@ -169,11 +220,23 @@ export interface UseQuickBuyControllerResult {
   maxSpendFiat: number;
   /** True when neither fiat nor token-balance gates allow slider interaction. */
   isSliderDisabled: boolean;
+  /** False when spending the full balance would leave nothing for gas. */
+  isMaxAmountAllowed: boolean;
   formattedExchangeRate: string | undefined;
+  /** Display-only current price of the asset shown in the header. */
+  tokenPrice?: number;
   metamaskFeePercent: number;
+  isGasless: boolean;
+  /** Fiat value of the quoted receive amount; undefined until a quote lands. */
+  estimatedReceiveFiat: string | undefined;
+  /** Gasless only: "-$x for gas" label shown beside Est. receive. */
+  gasFeeDeductionLabel: string | undefined;
+  discountBadge: ReturnType<typeof useFeeDisclaimer>['discountBadge'];
+  baseFeePercentage: string | undefined;
   estimatedReceiveAmount: string | undefined;
   sourceBalanceFiat: string;
   sourceBalanceDisplay: string | undefined;
+  hasInsufficientBalance: boolean;
   /**
    * Live fiat balance of the sell-mode "Receive" token, resynced from the
    * reactive receive-token list so it tracks underlying balance changes.
@@ -186,7 +249,6 @@ export interface UseQuickBuyControllerResult {
   formattedMinimumReceivedFiat: string | undefined;
   formattedPriceImpact: string;
   formattedRate: string | undefined;
-  totalAmountFiat: string;
   // quote state
   isQuoteLoading: boolean;
   /**
@@ -205,9 +267,7 @@ export interface UseQuickBuyControllerResult {
   >;
   handleSelectQuote: (requestId: string) => void;
   quotesLastFetchedAt: number | null;
-  refreshCount: number;
   quoteRefreshRateMs: number;
-  maxRefreshCount: number;
   refetchQuotes: () => void;
   // warnings (banner-level; can stack)
   isHardwareSolanaBlocked: boolean;
@@ -246,21 +306,32 @@ export interface UseQuickBuyControllerResult {
 export function useQuickBuyController(
   target: QuickBuyTarget,
   onClose: () => void,
-  analyticsContext?: QuickBuyAnalyticsContext,
+  analyticsContext: QuickBuyAnalyticsContext,
+  initialTradeMode: QuickBuyTradeMode = 'buy',
+  postTradeShare = false,
+  copyTradeOrigin?: CopyTradeOrigin,
+  postTradeShareOwner?: string,
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
+  const formatters = useFormatters();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
+  const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isProfileTradingActivityPrivate = useSelector(
+    selectIsProfileTradingActivityPrivate,
+  );
 
-  const traderAddress = analyticsContext?.traderAddress ?? '';
+  const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
     () => toAssetId(target.tokenAddress, target.chain) ?? '',
     [target.chain, target.tokenAddress],
   );
 
-  const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
+  const [tradeMode, setTradeMode] =
+    useState<QuickBuyTradeMode>(initialTradeMode);
 
   const {
     refs: { lastInputMethodRef, lastTrackedAmountRef, submitStartedAtRef },
@@ -273,6 +344,7 @@ export function useQuickBuyController(
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
+    preserveBridgeStateOnUnmount,
   } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext, tradeMode);
   const [fiatAmount, setFiatAmount] = useState('');
   const [sourceAmountTokens, setSourceAmountTokens] = useState('');
@@ -390,6 +462,13 @@ export function useQuickBuyController(
         : heldTokenOptions,
     [heldTokenOptions, destLookupKey],
   );
+  const payWithChainIds = useMemo(() => {
+    const chainIds = new Set<CaipChainId>();
+    for (const { chainId } of sourceTokenOptions) {
+      if (chainId) chainIds.add(formatChainIdToCaip(chainId));
+    }
+    return [...chainIds];
+  }, [sourceTokenOptions]);
 
   // True when the user holds nothing tradable to pay with on any bridge-enabled
   // chain (TSA-984). In this state `sourceToken` never resolves — the
@@ -480,11 +559,14 @@ export function useQuickBuyController(
 
   // If the position balance drops to zero while sell mode is active, fall back
   // to buy so the user is not stranded in a mode they can no longer use.
+  // Waits for setup so a sheet opened in Sell isn't dropped to Buy before the
+  // position token resolves.
   useEffect(() => {
+    if (isSetupLoading) return;
     if (positionToken === undefined && tradeMode === 'sell') {
       setTradeMode('buy');
     }
-  }, [positionToken, tradeMode]);
+  }, [isSetupLoading, positionToken, tradeMode]);
 
   // ─── Sell "Receive" options (stablecoins) ──────────────────────────────
   const receiveTokenOptions = useReceiveTokens(
@@ -500,8 +582,11 @@ export function useQuickBuyController(
       (token) => getTokenKey(token) !== soldKey,
     );
   }, [receiveTokenOptions, positionTokenFromSetup]);
-  const [selectedDestStable, setSelectedDestStable] = useState<
+  const [selectedReceiveToken, setSelectedReceiveToken] = useState<
     BridgeToken | undefined
+  >(undefined);
+  const [fetchedReceiveTokenRate, setFetchedReceiveTokenRate] = useState<
+    { key: string; rate: number } | undefined
   >(undefined);
 
   // Auto-select the default receive token. Prefer the native token of the
@@ -515,23 +600,49 @@ export function useQuickBuyController(
   // works even when the balance is still resolving.
   useEffect(() => {
     if (isSetupLoading) return;
-    if (sellDestTokenOptions.length > 0 && !selectedDestStable) {
-      setSelectedDestStable(
+    if (sellDestTokenOptions.length > 0 && !selectedReceiveToken) {
+      setSelectedReceiveToken(
         selectDefaultReceiveToken(sellDestTokenOptions, positionTokenFromSetup),
       );
     }
   }, [
     isSetupLoading,
     sellDestTokenOptions,
-    selectedDestStable,
+    selectedReceiveToken,
     positionTokenFromSetup,
   ]);
 
   // ─── Source / dest resolution (mode-dependent) ─────────────────────────
   const sourceToken = tradeMode === 'buy' ? selectedSourceToken : positionToken;
   const destToken =
-    tradeMode === 'buy' ? positionTokenFromSetup : selectedDestStable;
+    tradeMode === 'buy' ? positionTokenFromSetup : selectedReceiveToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
+  useEffect(() => {
+    if (tradeMode !== 'sell' || !destToken || destToken.currencyExchangeRate) {
+      return;
+    }
+    let isCancelled = false;
+    const key = getTokenKey(destToken);
+    getTokenExchangeRate({
+      chainId: destToken.chainId,
+      tokenAddress: destToken.address,
+      currency: currentCurrency,
+    })
+      .then((rate) => {
+        if (!isCancelled && typeof rate === 'number') {
+          setFetchedReceiveTokenRate({ key, rate });
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      isCancelled = true;
+    };
+  }, [tradeMode, destToken, currentCurrency]);
+  // Display-only: must not feed quote fetching, or a rate update would refetch.
+  const destTokenForFiat =
+    destToken && fetchedReceiveTokenRate?.key === getTokenKey(destToken)
+      ? { ...destToken, currencyExchangeRate: fetchedReceiveTokenRate.rate }
+      : destToken;
 
   // The entered amount is in the user's display currency, but the
   // `amount_usd` analytics property is contractually USD. Convert via the
@@ -590,6 +701,11 @@ export function useQuickBuyController(
 
   useRefreshSmartTransactionsLiveness(sourceChainId);
   useIsGasIncludedSTXSendBundleSupported(sourceChainId);
+  // Same as BridgeView: keep `selectGasIncludedQuoteParams` in sync with the
+  // *source* chain. Without this, a leftover 7702 flag from Ethereum makes
+  // QuickBuy request gas-included quotes (maxFeePerGas) for Robinhood sells
+  // that TransactionController then rejects (TSA-1008).
+  useIsGasIncluded7702Supported(sourceChainId);
 
   useEffect(() => {
     if (sourceToken && destToken) {
@@ -603,7 +719,7 @@ export function useQuickBuyController(
 
   // ─── Live selected-token balances (TSA-632) ────────────────────────────
   // The selected pay-with token (`selectedSourceToken`, buy mode) and receive
-  // token (`selectedDestStable`, sell mode) are `useState` snapshots, so their
+  // token (`selectedReceiveToken`, sell mode) are `useState` snapshots, so their
   // cached `balance` / `balanceFiat` freeze at selection time. The option lists
   // they were picked from — `usePayWithTokens` / `useReceiveTokens` — recompute
   // on every balance-state change because they subscribe (via `useSelector`) to
@@ -626,7 +742,7 @@ export function useQuickBuyController(
     sourceTokenOptions,
   );
   const liveSelectedDestBalance = resolveLiveTokenBalance(
-    selectedDestStable,
+    selectedReceiveToken,
     sellDestTokenOptions,
   );
 
@@ -779,16 +895,41 @@ export function useQuickBuyController(
     ],
   );
 
-  // When a buy pill exceeds balance the CTA routes to Ramp (Add funds) and no
-  // quote is ever used, so suppress the amount fed to the quotes hook. Passing
-  // undefined makes useQuickBuyQuotes short-circuit via its `!sourceTokenAmount`
-  // guard (resetQuotesIdle) — no bridge request and no blocking loading state,
-  // so the Add funds button is actionable immediately. The exported
-  // `sourceTokenAmount` is intentionally left untouched (still drives balance
-  // checks, the redux dispatch, and display).
-  const quotesSourceTokenAmount = isPresetAddFundsMode
-    ? undefined
-    : sourceTokenAmount;
+  // Keep fetching a quote when a Buy amount exceeds the pay-with balance so the
+  // sheet can still show an estimated receive amount. The CTA remains on the
+  // existing Add funds path and never submits this quote.
+  const quotesSourceTokenAmount = sourceTokenAmount;
+
+  const maybeSwapQuotes = useSwapQuotes();
+  const isBridgeControllerActive = Boolean(maybeSwapQuotes);
+  const quickBuyQuotes = useQuickBuyQuotes({
+    sourceToken,
+    destToken,
+    sourceTokenAmount: quotesSourceTokenAmount,
+    analyticsContext: quotesAnalyticsContext,
+    selectedQuoteRequestId,
+    insufficientBalance: isPresetAddFundsMode,
+    immediateFetchToken,
+  });
+
+  const quotesToUse = maybeSwapQuotes
+    ? {
+        activeQuote: maybeSwapQuotes.activeQuote ?? undefined,
+        sortedQuotes: maybeSwapQuotes.validQuotes ?? [],
+        destTokenAmount: maybeSwapQuotes.destTokenAmount,
+        isQuoteLoading: Boolean(maybeSwapQuotes.isLoading),
+        isNoQuotesAvailable: Boolean(maybeSwapQuotes.isNoQuotesAvailable),
+        quoteFetchError: maybeSwapQuotes.quoteFetchError ?? null,
+        isActiveQuoteForCurrentTokenPair: Boolean(
+          maybeSwapQuotes.isActiveQuoteForCurrentTokenPair,
+        ),
+        isQuoteRequestStale: Boolean(maybeSwapQuotes.needsNewQuote),
+        quoteCount: maybeSwapQuotes.validQuotes?.length ?? 0,
+        quotesLastFetchedAt: maybeSwapQuotes.quotesLastFetched,
+        quoteRefreshRateMs: maybeSwapQuotes.refreshRate,
+        refetchQuotes: maybeSwapQuotes.refreshQuotes,
+      }
+    : quickBuyQuotes;
 
   const {
     activeQuote,
@@ -800,18 +941,9 @@ export function useQuickBuyController(
     isActiveQuoteForCurrentTokenPair,
     isQuoteRequestStale,
     quotesLastFetchedAt,
-    refreshCount,
     quoteRefreshRateMs,
-    maxRefreshCount,
     refetchQuotes,
-  } = useQuickBuyQuotes({
-    sourceToken,
-    destToken,
-    sourceTokenAmount: quotesSourceTokenAmount,
-    analyticsContext: quotesAnalyticsContext,
-    selectedQuoteRequestId,
-    immediateFetchToken,
-  });
+  } = quotesToUse;
 
   // Reset manual quote selection whenever the user changes amount, token, or slippage.
   useEffect(() => {
@@ -861,20 +993,6 @@ export function useQuickBuyController(
 
   const formattedNetworkFee = useFormattedNetworkFee(activeQuote ?? null);
 
-  const networkFeeFiat = useMemo(() => {
-    if (!activeQuote) return null;
-    if (isGaslessQuote(activeQuote.quote)) {
-      const v = sumAmounts(activeQuote.quote.feeData.txFee)?.valueInCurrency;
-      return v != null && isNumberValue(v) ? parseFloat(v) : null;
-    }
-    const total = sumAmounts(
-      activeQuote.quote.feeData?.network,
-      activeQuote.quote.feeData?.relayer,
-    )?.valueInCurrency;
-    if (total != null && isNumberValue(total)) return parseFloat(total);
-    return null;
-  }, [activeQuote]);
-
   const formattedSlippage = useMemo(() => {
     if (slippage == null) return 'Auto';
     return `${slippage}%`;
@@ -891,7 +1009,7 @@ export function useQuickBuyController(
   const minReceivedTokenAmount = activeQuote?.quote?.dest?.minAmountNormalized;
   const formattedMinimumReceivedFiat = useDisplayCurrencyValue(
     minReceivedTokenAmount,
-    destToken,
+    destTokenForFiat,
   );
 
   // Derive both sides of the ratio from the same activeQuote so the rate is
@@ -922,35 +1040,33 @@ export function useQuickBuyController(
   }, [sourceToken, destToken, activeQuote, estimatedReceiveAmount]);
 
   const formattedPriceImpact = useMemo(() => {
+    const swapPriceImpact = maybeSwapQuotes?.formattedQuoteData?.priceImpact;
+    if (swapPriceImpact != null) {
+      return swapPriceImpact;
+    }
     const priceImpact = activeQuote?.quote?.priceData?.priceImpact?.amount;
     if (!priceImpact) return '-';
     return `${(Number(priceImpact) * 100).toFixed(2)}%`;
-  }, [activeQuote]);
+  }, [activeQuote, maybeSwapQuotes?.formattedQuoteData?.priceImpact]);
 
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote?.priceData?.priceImpact?.amount,
   );
 
-  const isPriceImpactError = useMemo(
-    () =>
-      exceedsPriceImpactErrorThreshold(
-        parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact?.amount),
-        bridgeFeatureFlags?.priceImpactThreshold?.error,
-      ),
-    [activeQuote, bridgeFeatureFlags],
-  );
-
-  const totalAmountFiat = useMemo(() => {
-    const inputNum = parseFloat(fiatAmount);
-    const zero = formatCurrency(0, currentCurrency);
-    if (!fiatAmount || isNaN(inputNum)) return zero;
-    // Both the entered amount and the quote's network fee (`valueInCurrency`)
-    // are already in the user's display currency.
-    if (activeQuote && networkFeeFiat !== null) {
-      return formatCurrency(inputNum + networkFeeFiat, currentCurrency);
+  const isPriceImpactError = useMemo(() => {
+    if (isBridgeControllerActive) {
+      return Boolean(maybeSwapQuotes?.shouldShowPriceImpactError);
     }
-    return zero;
-  }, [fiatAmount, activeQuote, networkFeeFiat, currentCurrency]);
+    return exceedsPriceImpactErrorThreshold(
+      parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact?.amount),
+      bridgeFeatureFlags?.priceImpactThreshold?.error,
+    );
+  }, [
+    activeQuote,
+    bridgeFeatureFlags,
+    maybeSwapQuotes?.shouldShowPriceImpactError,
+    isBridgeControllerActive,
+  ]);
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceTokenAmount,
@@ -959,12 +1075,26 @@ export function useQuickBuyController(
     quoteOverride: activeQuote ?? null,
   });
 
+  const hasInsufficientNativeReserve = Boolean(
+    useInsufficientNativeReserveError({
+      amount: sourceTokenAmount,
+      token: sourceToken,
+      latestAtomicBalance: latestSourceBalance?.atomicBalance,
+      walletAddress,
+      activeQuote,
+    }),
+  );
+
   const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientGas =
     !isNetworkFeeUnavailable && hasSufficientGas === false;
 
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  // Same flag Swap's `useSubmitBridgeTx` uses: STX + sendBundle on the *source*
+  // chain. `selectShouldUseSmartTransaction()` without a chainId is the
+  // currently selected network, which is wrong when QuickBuy sells on
+  // Robinhood while the wallet is still on Ethereum (TSA-1008).
+  const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
 
@@ -982,8 +1112,8 @@ export function useQuickBuyController(
   }, [latestSourceBalance?.displayBalance, liveSourceCurrencyExchangeRate]);
 
   const sourceBalanceFiat = useMemo(
-    () => formatCurrency(sourceBalanceFiatValue, currentCurrency),
-    [sourceBalanceFiatValue, currentCurrency],
+    () => formatters.formatCurrency(sourceBalanceFiatValue, currentCurrency),
+    [sourceBalanceFiatValue, currentCurrency, formatters],
   );
 
   const sourceBalanceDisplay = useMemo(() => {
@@ -1020,6 +1150,10 @@ export function useQuickBuyController(
   const isSliderDisabled = hasSourcePrice
     ? maxSpendFiat <= 0
     : maxSpendTokens <= 0;
+  const isMaxAmountAllowed = useShouldRenderMaxOption(
+    sourceToken,
+    latestSourceBalance?.displayBalance,
+  );
 
   // Display-only copy of the dest token enriched with a balance-independent
   // rate (`useDestTokenExchangeRate`) so the pre-quote pill renders even when
@@ -1060,11 +1194,40 @@ export function useQuickBuyController(
         : formatExchangeRate(sourceToken, destTokenForRate),
     [destToken, destTokenForRate, sourceToken, tradeMode],
   );
+  const tokenPrice =
+    tradeMode === 'sell'
+      ? sourceToken?.currencyExchangeRate
+      : destTokenForRate?.currencyExchangeRate;
 
   const metamaskFeePercent = useMemo(
     () => getMetamaskFeePercent(activeQuote),
     [activeQuote],
   );
+  const isGasless = isGaslessQuote(activeQuote?.quote);
+  const estimatedReceiveFiatValue = useDisplayCurrencyValue(
+    estimatedReceiveAmount,
+    destTokenForFiat,
+  );
+  // Prefer the quote's own fiat value: the local calc needs a cached market
+  // price for the dest token and renders $0.00 without one.
+  const quoteDestValueInCurrency = activeQuote?.quote?.dest?.valueInCurrency;
+  const quoteDestFiat = quoteDestValueInCurrency
+    ? formatters.formatCurrency(
+        Number(quoteDestValueInCurrency),
+        currentCurrency,
+      )
+    : undefined;
+  const estimatedReceiveFiat =
+    activeQuote && estimatedReceiveAmount
+      ? (quoteDestFiat ?? estimatedReceiveFiatValue)
+      : undefined;
+  const gasFeeDeductionLabel =
+    isGasless && formattedNetworkFee !== '-'
+      ? strings('bridge.gas_fee_deduction', { fee: formattedNetworkFee })
+      : undefined;
+  const { discountBadge, baseFeePercentage } = useFeeDisclaimer({
+    activeQuote,
+  });
 
   const handleClose = useCallback(() => {
     onClose();
@@ -1304,16 +1467,23 @@ export function useQuickBuyController(
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
+      // The shared picker returns balance tokens. Resolve the selected
+      // identity back to Quick Buy's enriched option so pricing data used to
+      // derive the quote amount is preserved.
+      const selectedToken =
+        sourceTokenOptions.find(
+          (option) => getTokenKey(option) === getTokenKey(token),
+        ) ?? token;
       const previousToken = selectedSourceToken?.symbol ?? '';
       const tokenChanged =
         !selectedSourceToken ||
-        getTokenKey(token) !== getTokenKey(selectedSourceToken);
+        getTokenKey(selectedToken) !== getTokenKey(selectedSourceToken);
 
-      if (tokenChanged && token.symbol !== previousToken) {
-        trackPayWithSelected(token.symbol, previousToken);
+      if (tokenChanged && selectedToken.symbol !== previousToken) {
+        trackPayWithSelected(selectedToken.symbol, previousToken);
       }
       isManualSelectionRef.current = true;
-      setSelectedSourceToken(token);
+      setSelectedSourceToken(selectedToken);
       // Preserve amount across pay-with changes. Only drop max-balance mode when
       // the token identity changes — re-selecting the same token must keep max
       // so we still spend the exact on-chain balance (not a fiat round-trip).
@@ -1321,19 +1491,40 @@ export function useQuickBuyController(
         setIsMaxSourceAmount(false);
       }
     },
-    [selectedSourceToken, trackPayWithSelected],
+    [selectedSourceToken, sourceTokenOptions, trackPayWithSelected],
   );
 
-  const handleSelectDestStable = useCallback(
+  const { addPopularNetwork } = useAddPopularNetwork();
+  const handleSelectReceiveToken = useCallback(
     (token: BridgeToken) => {
-      const previousToken = selectedDestStable?.symbol ?? '';
+      const previousToken = selectedReceiveToken?.symbol ?? '';
       if (token.symbol !== previousToken) {
         trackReceiveTokenSelected(token.symbol, previousToken);
       }
-      setSelectedDestStable(token);
+      // Quotes and fiat estimates need a configured network.
+      const popularNetwork = networkConfigurations[token.chainId as Hex]
+        ? undefined
+        : PopularList.find((network) => network.chainId === token.chainId);
+      if (popularNetwork) {
+        suppressNextNetworkAddedToast(popularNetwork.chainId);
+        addPopularNetwork(popularNetwork, false).catch((error) => {
+          clearSuppressedNetworkAddedToast(popularNetwork.chainId);
+          Logger.error(error, {
+            message: 'QuickBuy: failed to auto-add network',
+            chainId: token.chainId,
+          });
+        });
+      }
+      setSelectedReceiveToken(token);
       resetAmountState();
     },
-    [resetAmountState, selectedDestStable?.symbol, trackReceiveTokenSelected],
+    [
+      resetAmountState,
+      selectedReceiveToken?.symbol,
+      trackReceiveTokenSelected,
+      networkConfigurations,
+      addPopularNetwork,
+    ],
   );
 
   const handleAmountChange = useCallback(
@@ -1500,6 +1691,44 @@ export function useQuickBuyController(
     }
     markTradeSubmitted();
     submitStartedAtRef.current = Date.now();
+
+    // The HW signing screen reads the bridge slice this sheet populated, so
+    // it must outlive the sheet's dismissal; that screen resets it instead.
+    if (isHardwareAddress) {
+      preserveBridgeStateOnUnmount();
+    }
+    const submitWithHardwareWallet = () =>
+      new Promise<TransactionMeta>((resolve, reject) => {
+        const outcomeListenerId = registerHwSubmissionOutcomeListener(
+          (outcome) =>
+            outcome.status === 'submitted'
+              ? resolve(outcome.transaction)
+              : reject(new Error('Hardware wallet signing did not complete')),
+        );
+        dispatch(resetHardwareWalletsSwaps());
+        dispatch(
+          updateHardwareWalletsSwaps(
+            buildStartPayload(activeQuote, {
+              isSwap: isSameChainSwap(sourceToken, destToken),
+            }),
+          ),
+        );
+        navigation.navigate(Routes.BRIDGE.HARDWARE_WALLETS_SWAPS, {
+          bridgeEntryPoint: BridgeEntryPoint.QuickBuy,
+          submissionParams: {
+            quoteResponse: activeQuote,
+            postTradeModalParams: {
+              sourceAmount:
+                sourceTokenAmount ?? activeQuote.quote.src.normalizedAmount,
+              destAmount: amountTokenRaw,
+              sourceToken,
+              destToken,
+            },
+            outcomeListenerId,
+          },
+        });
+      });
+
     // Same-chain non-EVM swaps (Solana, Tron, Bitcoin) never reach a terminal
     // `BridgeStatusController` status, so the terminal toast must resolve from
     // `MultichainTransactionsController` instead. Cross-chain bridges (incl.
@@ -1515,18 +1744,100 @@ export function useQuickBuyController(
       tokenSymbol: target.tokenSymbol,
       counterTokenSymbol:
         (tradeMode === 'buy' ? sourceToken?.symbol : destToken?.symbol) ?? '',
-      fiatAmountLabel: formatCurrency(fiatAmountNumber, currentCurrency),
+      fiatAmountLabel: formatters.formatCurrency(
+        fiatAmountNumber,
+        currentCurrency,
+      ),
       rate: formattedRate,
       isNonEvmSwap,
     };
-    // Close the sheet and surface the pending toast immediately — the swap can
-    // take minutes to settle (cross-chain), so the user gets instant feedback
-    // on the trigger screen while submission happens in the background. The
-    // complete/failed toast later fires from the app-root registration.
+    // The comment is about the position token: the token bought, or the token
+    // sold. The pay token and the receive token (native or USDC) are not part
+    // of this slug.
+    const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
+    const previewChain = tradeInFlightChain ?? target.chain;
+    const sharePreview: SocialPostTradePreview = {
+      tokenSymbol: target.tokenSymbol,
+      tokenAddress: target.tokenAddress,
+      chain: previewChain,
+      side: tradeMode,
+      costLabel: tradeToastInfo.fiatAmountLabel,
+      entryPriceLabel: formattedRate,
+    };
+    // Public copy-trades always share. Private profiles use the normal
+    // Quick Buy toasts instead. Other swaps get the prompt chosen from the
+    // linked profile and how many share sheets it has already completed.
+    const canPostTradeShare =
+      isSpotPostTradeShareEligible(amountUsdValue) &&
+      !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
+    const isForcedPostTradeShare =
+      postTradeShare && !isProfileTradingActivityPrivate;
+    const shouldForcePostTradeShare =
+      isForcedPostTradeShare && canPostTradeShare;
+    const prompt = isForcedPostTradeShare
+      ? undefined
+      : resolvePostTradePrompt('swap');
+    let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
+    if (prompt?.kind === 'claim_sheet' && canPostTradeShare) {
+      trackedPostTradePrompt = prompt;
+    } else if (
+      prompt?.kind === 'share_sheet' &&
+      canPostTradeShare &&
+      tradeInFlightChain
+    ) {
+      trackedPostTradePrompt = prompt;
+    } else if (
+      prompt?.kind === 'post_to_feed_toast' &&
+      canPostTradeShare &&
+      tradeInFlightChain
+    ) {
+      trackedPostTradePrompt = {
+        kind: 'post_to_feed_toast',
+        tradeInFlightChain,
+        preview: sharePreview,
+      };
+    }
+    const isCreateProfilePrompt =
+      trackedPostTradePrompt?.kind === 'claim_sheet';
+    const shouldPostTradeShare =
+      isCreateProfilePrompt ||
+      ((shouldForcePostTradeShare ||
+        trackedPostTradePrompt?.kind === 'share_sheet') &&
+        Boolean(tradeInFlightChain));
+    const shareAnalyticsSource = getSocialEventSource(analyticsContext.source);
+    const beginShareSession = () =>
+      shouldPostTradeShare
+        ? beginPostTradeShareSession({
+            variant: isCreateProfilePrompt ? 'create_profile' : 'share',
+            target,
+            tradeMode,
+            ...(shareAnalyticsSource
+              ? { analyticsSource: shareAnalyticsSource }
+              : {}),
+            pairLabel:
+              sourceToken?.symbol && destToken?.symbol
+                ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
+                : undefined,
+            tradeInFlightChain,
+            copyTradeOrigin,
+            owner: postTradeShareOwner,
+            preview: sharePreview,
+          })
+        : undefined;
+    // HW: the share sheet would cover the signing screen and the pending toast
+    // would time out during on-device signing, so both wait until the signing
+    // screen hands back.
+    let postTradeShareSessionId = isHardwareAddress
+      ? undefined
+      : beginShareSession();
+    const showPendingToast = () =>
+      toastRef?.current?.showToast(
+        buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
+      );
     onClose();
-    toastRef?.current?.showToast(
-      buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
-    );
+    if (!shouldPostTradeShare && !isHardwareAddress) {
+      showPendingToast();
+    }
     // Medium impact acknowledging the Buy commit (catalog `PrimaryCTA`);
     // success/error feedback is deferred to the terminal complete/failed
     // states once the swap settles.
@@ -1542,16 +1853,67 @@ export function useQuickBuyController(
       // notification once submitTx resolves.
       beginQuickBuySubmission();
       dispatch(setIsSubmittingTx(true));
-      const submitResult = await Engine.context.BridgeStatusController.submitTx(
-        walletAddress,
-        activeQuote,
-        stxEnabled,
-      );
-      const txHash =
-        submitResult &&
-        typeof (submitResult as { hash?: unknown }).hash === 'string'
-          ? ((submitResult as { hash?: string }).hash as string)
-          : undefined;
+      if (copyTradeOrigin) {
+        postCopyTradeIntent(
+          () =>
+            sourceToken && activeQuote.quoteId
+              ? buildCopyTradeIntentOptions(
+                  copyTradeOrigin,
+                  `${formatChainIdToCaip(sourceToken.chainId)}:${walletAddress}`,
+                  {
+                    product: 'swaps',
+                    quoteId: activeQuote.quoteId,
+                  },
+                )
+              : undefined,
+          { surface: 'quick_buy', source: 'useQuickBuyController' },
+        );
+      }
+      const submitResult = isHardwareAddress
+        ? await submitWithHardwareWallet()
+        : activeQuote.quote.intent
+          ? await Engine.context.BridgeStatusController.submitIntent({
+              quoteResponse: activeQuote,
+              accountAddress: walletAddress,
+              location: undefined,
+              abTests: undefined,
+              activeAbTests: undefined,
+              tokenSecurityTypeDestination:
+                destToken?.securityData?.type ?? null,
+              inputPrimaryDenomination: 'token_amount',
+              quotesReceivedContext: undefined,
+              migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+            })
+          : await Engine.context.BridgeStatusController.submitTx({
+              accountAddress: walletAddress,
+              quoteResponses: [activeQuote],
+              isStxEnabled: stxEnabled,
+              tokenSecurityTypeDestination:
+                destToken?.securityData?.type ?? null,
+              inputPrimaryDenomination: 'token_amount',
+              migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+            });
+      if (isHardwareAddress) {
+        postTradeShareSessionId = beginShareSession();
+        if (!shouldPostTradeShare) {
+          showPendingToast();
+        }
+      }
+      if (isSocialTradeSource(analyticsContext.source)) {
+        recordSocialTrade();
+      }
+      const bridgeStatus = Engine.context.BridgeStatusController;
+      const txHash = resolveQuickBuySubmittedTxHash(submitResult, {
+        getHistoryItem:
+          typeof bridgeStatus.getBridgeHistoryItemByTxMetaId === 'function'
+            ? (key) => bridgeStatus.getBridgeHistoryItemByTxMetaId(key)
+            : undefined,
+        historyEntries: Object.entries(bridgeStatus.state?.txHistory ?? {}),
+        getTransaction: (id) =>
+          Engine.context.TransactionController?.state?.transactions?.find(
+            (transaction) => transaction.id === id,
+          ),
+      });
       const txMetaId = (submitResult as { id?: string } | undefined)?.id;
       if (txMetaId) {
         // For Solana the tx signature (`hash`) is the id used to find the tx in
@@ -1559,7 +1921,15 @@ export function useQuickBuyController(
         trackQuickBuyTrade(txMetaId, {
           ...tradeToastInfo,
           txSignature: txHash,
+          postTradeShare: shouldPostTradeShare,
+          postTradeShareSessionId,
+          postTradePrompt: trackedPostTradePrompt,
         });
+        if (postTradeShareSessionId && txHash) {
+          patchPostTradeShareSession(postTradeShareSessionId, {
+            transactionHash: txHash,
+          });
+        }
         // The swap may already have settled by the time submitTx resolves, in
         // which case the terminal stateChange events fired before this id was
         // tracked and the app-root handler ignored them. Reconcile against the
@@ -1574,7 +1944,7 @@ export function useQuickBuyController(
         trackTradeCompleted({
           ...tradeBaseProps,
           [QuickBuyEventProperties.AMOUNT_TOKEN]: amountToken,
-          [QuickBuyEventProperties.TX_HASH]: txHash,
+          ...(txHash ? { [QuickBuyEventProperties.TX_HASH]: txHash } : {}),
           [QuickBuyEventProperties.EXECUTION_TIME_MS]: elapsedMs(),
           [QuickBuyEventProperties.STATUS]: QuickBuyEventValues.STATUS.SUCCESS,
         });
@@ -1597,9 +1967,16 @@ export function useQuickBuyController(
       );
       // submitTx threw before publish (e.g. user rejection), so no bridge
       // history item will ever exist — surface the failure immediately.
-      toastRef?.current?.showToast(
-        buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
-      );
+      const sessionUpdated = postTradeShareSessionId
+        ? patchPostTradeShareSession(postTradeShareSessionId, {
+            status: 'failed',
+          })
+        : false;
+      if (!sessionUpdated) {
+        toastRef?.current?.showToast(
+          buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
+        );
+      }
       await playErrorNotification();
       if (tradeBaseProps) {
         trackTradeCompleted({
@@ -1633,28 +2010,39 @@ export function useQuickBuyController(
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,
     sourceToken,
-    destToken?.chainId,
+    destToken,
     fiatAmountNumber,
     toAmountUsd,
     currentCurrency,
     formattedRate,
+    formatters,
     traderAddress,
     caip19,
     tradeMode,
-    destToken?.symbol,
-    target.tokenSymbol,
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
     submitStartedAtRef,
+    isHardwareAddress,
+    preserveBridgeStateOnUnmount,
+    navigation,
+    postTradeShare,
+    isProfileTradingActivityPrivate,
+    resolvePostTradePrompt,
+    copyTradeOrigin,
+    postTradeShareOwner,
+    sourceTokenAmount,
+    estimatedReceiveAmount,
+    target,
+    analyticsContext.source,
   ]);
 
   // Preformatted headline value in the user's display currency (correct symbol
   // placement + separators for any locale/currency). The view renders this
   // string directly instead of concatenating a hardcoded "$".
   const fiatAmountLabel = useMemo(
-    () => formatCurrency(Number(fiatAmount) || 0, currentCurrency),
-    [fiatAmount, currentCurrency],
+    () => formatters.formatCurrency(Number(fiatAmount) || 0, currentCurrency),
+    [fiatAmount, currentCurrency, formatters],
   );
 
   const hasError = Boolean(quoteFetchError || isNoQuotesAvailable);
@@ -1773,6 +2161,7 @@ export function useQuickBuyController(
         isQuoteRequestStale ||
         isBlockingQuoteLoad ||
         hasInsufficientBalance ||
+        hasInsufficientNativeReserve ||
         isNetworkFeeUnavailable ||
         hasInsufficientGas ||
         isSubmittingTx ||
@@ -1787,9 +2176,13 @@ export function useQuickBuyController(
   const isConfirmLoading = isSubmittingTx;
 
   let buttonError: QuickBuyButtonError | null = null;
-  if (!isPresetAddFundsMode && !hasNoPayWithFunds) {
+  // An over-balance Sell keeps its "Sell" label; it is only disabled.
+  const isOverBalanceSell = tradeMode === 'sell' && hasInsufficientBalance;
+  if (!isPresetAddFundsMode && !hasNoPayWithFunds && !isOverBalanceSell) {
     if (hasInsufficientBalance || isNetworkFeeUnavailable) {
       buttonError = 'insufficient_balance';
+    } else if (hasInsufficientNativeReserve) {
+      buttonError = 'insufficient_native_reserve';
     } else if (hasInsufficientGas) {
       buttonError = 'insufficient_gas';
     } else if (hasError) {
@@ -1813,13 +2206,18 @@ export function useQuickBuyController(
     if (isPresetAddFundsMode || hasNoPayWithFunds) {
       return strings('social_leaderboard.quick_buy.add_funds');
     }
-    if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
+    if (buttonError) {
+      return strings(BUTTON_ERROR_LABELS[buttonError], {
+        ticker: sourceToken?.symbol,
+      });
+    }
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     return tradeMode === 'sell'
       ? strings('social_leaderboard.trader_position.sell')
       : strings('social_leaderboard.trader_position.buy');
   }, [
     buttonError,
+    sourceToken?.symbol,
     isPresetAddFundsMode,
     hasNoPayWithFunds,
     isSubmittingTx,
@@ -1838,12 +2236,13 @@ export function useQuickBuyController(
     sourceToken,
     sourceChainId,
     sourceTokenOptions,
+    payWithChainIds,
     selectedSourceToken,
     isSourcePickerOpen,
     setIsSourcePickerOpen,
     setSelectedSourceToken,
-    sellDestTokenOptions,
-    selectedDestStable,
+    positionTokenFromSetup,
+    selectedReceiveToken,
     currentCurrency,
     amountDisplayMode,
     fiatAmount,
@@ -1854,11 +2253,19 @@ export function useQuickBuyController(
     sliderPercent,
     maxSpendFiat,
     isSliderDisabled,
+    isMaxAmountAllowed,
     formattedExchangeRate,
+    tokenPrice,
     metamaskFeePercent,
+    isGasless,
+    estimatedReceiveFiat,
+    gasFeeDeductionLabel,
+    discountBadge,
+    baseFeePercentage,
     estimatedReceiveAmount,
     sourceBalanceFiat,
     sourceBalanceDisplay,
+    hasInsufficientBalance,
     destBalanceFiat,
     formattedNetworkFee,
     formattedSlippage,
@@ -1866,7 +2273,6 @@ export function useQuickBuyController(
     formattedMinimumReceivedFiat,
     formattedPriceImpact,
     formattedRate,
-    totalAmountFiat,
     isQuoteLoading,
     isBlockingQuoteLoad,
     isSubmittingTx,
@@ -1876,9 +2282,7 @@ export function useQuickBuyController(
     setSelectedQuoteRequestId,
     handleSelectQuote,
     quotesLastFetchedAt,
-    refreshCount,
     quoteRefreshRateMs,
-    maxRefreshCount,
     refetchQuotes,
     isHardwareSolanaBlocked,
     priceImpactViewData,
@@ -1899,7 +2303,7 @@ export function useQuickBuyController(
     handleAmountChange,
     handleToggleAmountDisplay,
     handleSelectSourceToken,
-    handleSelectDestStable,
+    handleSelectReceiveToken,
     handleConfirm,
   };
 }

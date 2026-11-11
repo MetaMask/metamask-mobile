@@ -2,10 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch } from 'react-redux';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
-import Routes from '../../../../constants/navigation/Routes';
-import { setSourceAmount } from '../../../../core/redux/slices/bridge';
 import { type BridgeToken, BridgeViewMode } from '../../../UI/Bridge/types';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the Bridge token-balance list + equality helper to hydrate "swap again"; route-isolation backlog */
 import { useTokensWithBalance } from '../../../UI/Bridge/hooks/useTokensWithBalance';
@@ -13,6 +10,10 @@ import { isSameBridgeToken } from '../../../UI/Bridge/utils/tokenUtils';
 /* eslint-enable import-x/no-restricted-paths */
 import type { TokenAmount } from '../../../../util/activity-adapters';
 import { toBridgeToken } from './activityDetailsDoItAgainUtils';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const ACTIVITY_DETAILS_SOURCE_PAGE = 'ActivityDetails';
 
@@ -83,6 +84,13 @@ export function useActivityDetailsDoItAgain({
     [destinationBridgeToken, heldTokens],
   );
 
+  const { goToSwaps } = useSwapBridgeNavigation({
+    sourcePage: ACTIVITY_DETAILS_SOURCE_PAGE,
+    sourceToken: hydratedSourceToken,
+    destToken: hydratedDestinationToken,
+    location: SwapBridgeNavigationLocation.MainView,
+  });
+
   return useCallback(() => {
     if (!hydratedSourceToken) {
       return;
@@ -91,28 +99,8 @@ export function useActivityDetailsDoItAgain({
     // Clear any amount left in the Bridge slice from a prior session so "swap
     // again" opens with an empty amount. We intentionally don't prefill one,
     // and useInitialSourceToken only sets the amount when a truthy one is passed.
-    dispatch(setSourceAmount(undefined));
-
-    navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: {
-        sourcePage: ACTIVITY_DETAILS_SOURCE_PAGE,
-        bridgeViewMode,
-        sourceToken: hydratedSourceToken,
-        destToken: hydratedDestinationToken,
-        // No sourceAmount: "swap again" opens with an empty amount so the user
-        // enters a fresh value instead of reusing the original swap's amount.
-        location: MetaMetricsSwapsEventSource.MainView,
-        scrollToTopOnNav: true,
-      },
-    });
-  }, [
-    bridgeViewMode,
-    dispatch,
-    hydratedDestinationToken,
-    navigation,
-    hydratedSourceToken,
-  ]);
+    goToSwaps(undefined, undefined, undefined, true);
+  }, [hydratedSourceToken, goToSwaps]);
 }
 
 export function canRenderActivityDetailsDoItAgain(

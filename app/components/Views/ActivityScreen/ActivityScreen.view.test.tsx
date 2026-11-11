@@ -1,26 +1,53 @@
 import '../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../__mocks__/@react-native-community/netinfo';
 
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
-import { getRouteProbeTestId } from '../../../../tests/component-view/render';
-import { describeForPlatforms } from '../../../../tests/component-view/platform';
+import { updateBgState } from '../../../core/redux/slices/engine';
+import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../tests/component-view/render';
+import {
+  describeForPlatforms,
+  itForPlatforms,
+} from '../../../../tests/component-view/platform';
 import {
   renderActivityScreenView,
   renderActivityScreenViewWithRoutes,
+  ActivityDetailsWithProviders,
 } from '../../../../tests/component-view/renderers/activity';
 import {
   ACTIVITY_CV_ACCOUNT,
   ACTIVITY_CV_NFT_COLLECTION_NAME,
   ACTIVITY_CV_NFT_CONTRACT,
   ACTIVITY_CV_PREDICT_MARKET_TITLE,
+  ACTIVITY_CV_RAMP_BUY_TX_HASH,
+  ACTIVITY_CV_RAMP_SELL_TX_HASH,
   ACTIVITY_CV_RECIPIENT,
+  ACTIVITY_CV_PERPS_DEPOSIT_HASH,
+  ACTIVITY_CV_PERPS_WITHDRAWAL_HASH,
   LINEA_ACTIVITY_HASH,
   MAINNET_ACTIVITY_HASH,
   activityCvBridgeHistoryEntry,
+  activityCvBridgeMonToBaseHistoryEntry,
   activityCvCrossChainSwapBridgeHistoryEntry,
+  activityCvPendingBridgeMonToBaseHistoryEntry,
+  activityCvPerpsCanceledTakeProfitRowHash,
+  activityCvPerpsFundingRowHash,
+  activityCvPerpsTradeRowHash,
   activityLineaNetworkOverride,
+  activityMonToBaseTokenRatesOverride,
+  activityMonadBaseNetworkOverride,
+  activityPerpsTradingEnabledFlag,
   activityPredictTradingEnabledFlag,
+  buildActivityCvPerpsOverviewEngineSeed,
+  buildActivityCvRampBuyMusdOrder,
+  buildActivityCvRampSellEthOrder,
+  buildConfirmedLocalBridgeMonToBaseTransaction,
   buildConfirmedLocalBridgeTransaction,
   buildConfirmedLocalContractInteractionTransaction,
   buildConfirmedLocalCrossChainSwapTransaction,
@@ -32,24 +59,84 @@ import {
   buildConfirmedLocalUsdcRevokeTransaction,
   buildConfirmedLocalUsdcSendTransaction,
   buildConfirmedLocalUsdcUnlimitedApproveTransaction,
+  buildPendingLocalBridgeMonToBaseTransaction,
   buildPredictBuyActivity,
   buildPredictClaimActivity,
   buildPredictSellActivity,
+  initialStateActivity,
   initialStateActivityWithAccountsApi,
   initialStateActivityWithLocalTransactions,
+  initialStateActivityWithPerpsDetails,
+  initialStateActivityWithRampOrders,
 } from '../../../../tests/component-view/presets/activity';
 import {
   clearAccountsTransactionsApiMocks,
   setupAccountsTransactionsApiMock,
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
+import {
+  clearLimitOrdersDataServiceMock,
+  setupGetLimitOrderApiMock,
+  setupLimitOrdersDataServiceMock,
+} from '../../../../tests/component-view/api-mocking/limitOrders';
+import { BridgeLimitOrderActivityNavigator } from '../../../../tests/component-view/renderers/bridge';
+import { MOCK_LIMIT_FILLED_ORDER } from '../../UI/Bridge/api/limitOrders/getLimitOrders/mock';
+import {
+  LimitOrderState,
+  type LimitOrder,
+} from '../../UI/Bridge/api/limitOrders/getLimitOrders/types';
+import type { LimitOrdersQueryParams } from '../../UI/Bridge/queries/limitOrders';
+import { OpenOrderRowSelectorsIDs } from '../../UI/Bridge/components/OpenOrderRow/OpenOrderRow.testIds';
+import { BridgeTabKey } from '../../UI/Bridge/Views/BridgeView/BridgeView.constants';
+import { SwapsLimitOrderActivityPageSelectorsIDs } from '../../UI/Bridge/Views/SwapsLimitOrderActivityPage/SwapsLimitOrderActivityPage.testIds';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { PERPS_AGGREGATE_FILLS } from '../../../constants/storage';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
 import { ActivityTypeFilter, PerpsActivityFilter } from './types';
 
+// Details and list testIDs mirrored locally so this route suite does not import
+// from the sibling ActivityDetails / ActivityList routes (ADR 0020).
+const ACTIVITY_DETAILS_SCREEN = 'activity-details-screen';
+const ACTIVITY_DETAILS_AMOUNT_HEADER = 'activity-details-amount-header';
+const ACTIVITY_DETAILS_STATUS_PILL = 'activity-details-status-pill';
+const ACTIVITY_DETAILS_NETWORK_ROW = 'activity-details-network-row';
+const ACTIVITY_DETAILS_FEE_ROW = 'activity-details-fee-row';
+const ACTIVITY_DETAILS_TOTAL_ROW = 'activity-details-total-row';
+const ACTIVITY_LIST_LOADING_INDICATOR = 'activity-list-loading';
+const ACTIVITY_LIST_CONTAINER = 'activity-list';
+const AGGREGATED_CHECKBOX_CHECK_ICON = `${ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX}-check-icon`;
+
+const monToBaseBridgeState = (
+  transaction: ReturnType<typeof buildPendingLocalBridgeMonToBaseTransaction>,
+  historyEntry:
+    | typeof activityCvPendingBridgeMonToBaseHistoryEntry
+    | typeof activityCvBridgeMonToBaseHistoryEntry,
+) =>
+  initialStateActivityWithLocalTransactions([transaction])
+    .withOverrides(activityMonadBaseNetworkOverride)
+    .withOverrides(activityMonToBaseTokenRatesOverride)
+    .withOverrides({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+          BridgeStatusController: {
+            txHistory: {
+              [transaction.id]: historyEntry,
+            },
+          },
+        },
+      },
+    } as never)
+    .build();
+
 // Row testIDs mirror ActivityListItemRow markup. Defined locally so this route
 // suite does not import from the sibling ActivityList route (ADR 0020).
+const activityListRowItemTestId = (index: number): string =>
+  `transaction-item-${index}`;
 const activityListRowTitleTestId = (hash: string): string =>
   `activity-title-${hash}`;
 const activityListRowSubtitleTestId = (hash: string): string =>
@@ -62,6 +149,54 @@ const activityListRowAvatarSingleTestId = (hash: string): string =>
   `activity-row-avatar-single-${hash}`;
 const activityListRowAvatarStackTestId = (hash: string): string =>
   `activity-row-avatar-stack-${hash}`;
+// Container wraps the a11y-hidden spinner (PendingActivityListItemRow).
+const activityListRowPendingSpinnerTestId = (hash: string): string =>
+  `activity-pending-spinner-container-${hash}`;
+const activityListLimitOrderRowTestId = (orderId: string): string =>
+  `activity-limit-order-${orderId}`;
+
+/** Patch Engine.state then UPDATE_BG_STATE so Redux selectors see live controller updates. */
+const syncEngineControllerState = (
+  store: ReturnType<typeof renderActivityScreenViewWithRoutes>['store'],
+  key: 'TransactionController' | 'BridgeStatusController',
+  patch: Record<string, unknown>,
+) => {
+  const engineWithState = Engine as unknown as {
+    state?: Record<string, unknown>;
+  };
+  const backgroundState = store.getState().engine.backgroundState as Record<
+    string,
+    unknown
+  >;
+  const existing =
+    (backgroundState[key] as Record<string, unknown> | undefined) ?? {};
+  const existingEngine =
+    (engineWithState.state?.[key] as Record<string, unknown> | undefined) ?? {};
+
+  engineWithState.state = {
+    ...(engineWithState.state ?? {}),
+    [key]: {
+      ...existing,
+      ...existingEngine,
+      ...patch,
+    },
+  };
+
+  store.dispatch(updateBgState({ key }));
+};
+
+/**
+ * A row's testID is its transaction id, which for a trade fill is now derived from the fill's
+ * content - no trailing list index to match loosely.
+ */
+const activityListRowTitleTestIdPattern = (hash: string): string =>
+  `activity-title-${hash}`;
+const activityListRowSubtitleTestIdPattern = (hash: string): string =>
+  `activity-subtitle-${hash}`;
+const activityListRowPrimaryAmountTestIdPattern = (hash: string): string =>
+  `activity-primary-amount-${hash}`;
+const activityListRowSecondaryAmountTestIdPattern = (hash: string): string =>
+  `activity-secondary-amount-${hash}`;
 
 const USDC_MAINNET = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
@@ -96,11 +231,20 @@ const emptyActivityStateFunded = () =>
   initialStateActivityWithAccountsApi().withOverrides({
     engine: {
       backgroundState: {
-        TokenBalancesController: {
-          tokenBalances: {
-            [ACTIVITY_CV_ACCOUNT]: {
-              '0x1': {
-                [USDC_MAINNET]: '0x5f5e100', // 100 USDC
+        AssetsController: {
+          selectedCurrency: 'usd',
+          assetsInfo: {
+            [`eip155:1/erc20:${USDC_MAINNET.toLowerCase()}`]: {
+              type: 'erc20' as const,
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+            },
+          },
+          assetsBalance: {
+            'acc-1': {
+              [`eip155:1/erc20:${USDC_MAINNET.toLowerCase()}`]: {
+                amount: '100',
               },
             },
           },
@@ -110,6 +254,37 @@ const emptyActivityStateFunded = () =>
   } as never);
 
 describeForPlatforms('ActivityScreen', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  const waitForActivityListLoaded = async (
+    queryByTestId: (testId: string) => unknown,
+  ) => {
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 10000 },
+    );
+  };
+
+  const waitForActivityListRow = async (
+    findByTestId: (testId: string) => Promise<unknown>,
+    queryByTestId: (testId: string) => unknown,
+    transactionHash: string,
+  ) => {
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 15000 },
+    );
+    expect(
+      await findByTestId(activityListRowTitleTestId(transactionHash)),
+    ).toBeOnTheScreen();
+  };
+
   it('updates the selected type filter through the real screen controls', async () => {
     const { getByTestId, getAllByText, findByTestId } =
       renderActivityScreenView();
@@ -244,52 +419,64 @@ describeForPlatforms('ActivityScreen', () => {
         lineaTx,
       ])
         .withOverrides(activityLineaNetworkOverride)
+        // The All-filter loader also waits on Predict. The flag defaults on
+        // when absent, and this test's accounts nock blocks that fetch, so
+        // the spinner can outlive the EVM rows. This case only asserts EVM
+        // network filtering.
+        .withRemoteFeatureFlags({
+          predictTradingEnabled: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        })
         .build();
 
       const { getByTestId, findByTestId, queryByTestId } =
         renderActivityScreenView({ state });
+
+      await waitForActivityListLoaded(queryByTestId);
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListRow(
+        findByTestId,
+        queryByTestId,
+        MAINNET_ACTIVITY_HASH,
+      );
+      expect(
+        queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:59144')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListRow(
+        findByTestId,
+        queryByTestId,
+        LINEA_ACTIVITY_HASH,
+      );
+      expect(
+        queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListRow(
+        findByTestId,
+        queryByTestId,
+        MAINNET_ACTIVITY_HASH,
+      );
+      expect(
+        queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
     } finally {
       clearAccountsTransactionsApiMocks();
     }
@@ -347,6 +534,78 @@ describeForPlatforms('ActivityScreen', () => {
     });
   });
 
+  it('shows the Aggregated checkbox on Perps Trades and hides it on Deposits', async () => {
+    const { getByTestId, queryByTestId, findByTestId } =
+      renderActivityScreenView();
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Perps)));
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP));
+    fireEvent.press(
+      await findByTestId(perpsOptionTestId(PerpsActivityFilter.Deposits)),
+    );
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      ).toBeNull();
+    });
+  });
+
+  it('saves the Aggregated choice when switching Perps Trades to individual fills', async () => {
+    const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+    try {
+      const { getByTestId, queryByTestId, findByTestId } =
+        renderActivityScreenView();
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+      fireEvent.press(
+        await findByTestId(optionTestId(ActivityTypeFilter.Perps)),
+      );
+      expect(
+        await findByTestId(AGGREGATED_CHECKBOX_CHECK_ICON),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      );
+
+      await waitFor(() => {
+        expect(queryByTestId(AGGREGATED_CHECKBOX_CHECK_ICON)).toBeNull();
+      });
+      expect(setItemSpy).toHaveBeenCalledWith(PERPS_AGGREGATE_FILLS, 'false');
+    } finally {
+      setItemSpy.mockRestore();
+    }
+  });
+
+  it('restores a saved individual-fills choice on Perps Trades', async () => {
+    const getItemSyncSpy = jest
+      .spyOn(StorageWrapper, 'getItemSync')
+      .mockImplementation((key: string) =>
+        key === PERPS_AGGREGATE_FILLS ? 'false' : null,
+      );
+    try {
+      const { getByTestId, queryByTestId, findByTestId } =
+        renderActivityScreenView();
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+      fireEvent.press(
+        await findByTestId(optionTestId(ActivityTypeFilter.Perps)),
+      );
+
+      expect(
+        await findByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(AGGREGATED_CHECKBOX_CHECK_ICON)).toBeNull();
+    } finally {
+      getItemSyncSpy.mockRestore();
+    }
+  });
+
   it('navigates back to home tabs when opened as the root activity route', async () => {
     const { getByTestId, findByTestId } = renderActivityScreenViewWithRoutes({
       extraRoutes: [{ name: Routes.HOME_TABS }],
@@ -377,7 +636,7 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_unfunded.action',
     );
 
-    const { getAllByText, findByTestId, findByText } =
+    const { getAllByText, findByTestId, findByText, queryByTestId } =
       renderActivityScreenViewWithRoutes({
         state: emptyActivityStateWithGeo().build(),
         extraRoutes: [{ name: Routes.RAMP.TOKEN_SELECTION }],
@@ -390,10 +649,16 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
-    expect(
-      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 10000 },
+    );
+
+    // Empty-state copy is the stable signal after the list fetch settles.
     expect(await findByText(unfundedDescription)).toBeOnTheScreen();
+    expect(await findByText(addFundsLabel)).toBeOnTheScreen();
 
     fireEvent.press(await findByText(addFundsLabel));
 
@@ -410,10 +675,34 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { findByTestId, findByText } = renderActivityScreenViewWithRoutes({
+    const {
+      getAllByText,
+      findByTestId,
+      findByText,
+      queryByTestId,
+      queryByText,
+    } = renderActivityScreenViewWithRoutes({
       state: emptyActivityStateFunded().build(),
       extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
     });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    // The funded copy is the assertion subject. The list spinner is only gone
+    // once history has settled; waiting on the spinner alone flakes when that
+    // request never leaves `isInitialLoading`.
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+        expect(queryByText(fundedDescription)).toBeOnTheScreen();
+      },
+      { timeout: 10000 },
+    );
 
     expect(
       await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
@@ -464,6 +753,9 @@ describeForPlatforms('ActivityScreen — empty state', () => {
   });
 
   it('shows Make a prediction CTA on the Predictions empty state', async () => {
+    const predictionsDescription = strings(
+      'activity_view.empty_state.predictions.description',
+    );
     const makePredictionLabel = strings(
       'activity_view.empty_state.predictions.action',
     );
@@ -476,7 +768,13 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       })
       .build();
 
-    const { getByTestId, findByTestId, findByText } = renderActivityScreenView({
+    const {
+      getByTestId,
+      getAllByText,
+      findByTestId,
+      findByText,
+      queryByTestId,
+    } = renderActivityScreenView({
       state,
     });
 
@@ -485,10 +783,29 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       await findByTestId(optionTestId(ActivityTypeFilter.Predictions)),
     );
 
-    expect(
-      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
-    expect(await findByText(makePredictionLabel)).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 10000 },
+    );
+
+    await waitFor(
+      () => {
+        const emptyState = getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE);
+        const scope = within(emptyState);
+        expect(scope.getByText(predictionsDescription)).toBeOnTheScreen();
+        expect(scope.getByText(makePredictionLabel)).toBeOnTheScreen();
+      },
+      { timeout: 10000 },
+    );
   });
 
   it('shows Perps empty state and Browse markets opens perps market list', async () => {
@@ -566,52 +883,37 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
   });
 
   // Default type filter is Transactions (`All` is off the sheet for now).
-  it('shows Send ETH under Transactions filter with negative primary amount and a single avatar', async () => {
-    const sendTransaction = buildConfirmedLocalSendTransaction();
-    const sendHash = sendTransaction.hash as string;
-    const state = initialStateActivityWithLocalTransactions([
-      sendTransaction,
-    ]).build();
+  it('shows send, receive, swap, bridge, approval, contract, and NFT rows under Transactions after load', async () => {
+    const sendEth = buildConfirmedLocalSendTransaction();
+    const sendUsdc = buildConfirmedLocalUsdcSendTransaction();
+    const bridge = buildConfirmedLocalBridgeTransaction();
+    const crossChainSwap = buildConfirmedLocalCrossChainSwapTransaction();
+    const approve = buildConfirmedLocalUsdcApproveTransaction();
+    const increase = buildConfirmedLocalUsdcIncreaseAllowanceTransaction();
+    const unlimitedApprove =
+      buildConfirmedLocalUsdcUnlimitedApproveTransaction();
+    const revoke = buildConfirmedLocalUsdcRevokeTransaction();
+    const contract = buildConfirmedLocalContractInteractionTransaction();
 
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+    const sendEthHash = sendEth.hash as string;
+    const sendUsdcHash = sendUsdc.hash as string;
+    const bridgeHash = bridge.hash as string;
+    const crossChainSwapHash = crossChainSwap.hash as string;
+    const approveHash = approve.hash as string;
+    const increaseHash = increase.hash as string;
+    const unlimitedApproveHash = unlimitedApprove.hash as string;
+    const revokeHash = revoke.hash as string;
+    const contractHash = contract.hash as string;
+    const receiveEthHash = '0xactivitycvreceiveeth';
+    const receiveUsdcHash = '0xactivitycvreceiveusdc';
+    const apiSwapHash = '0xactivitycvswapethusdc';
+    const mintHash = '0xactivitycvnftmint';
+    const zeroAddress = '0x0000000000000000000000000000000000000000';
 
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await findByTestId(activityListRowTitleTestId(sendHash));
-    expect(title).toHaveTextContent('Sent ETH');
-
-    const subtitle = await findByTestId(
-      activityListRowSubtitleTestId(sendHash),
-    );
-    expect(subtitle).toBeOnTheScreen();
-    expect(subtitle).toHaveTextContent('To: 0x80181...229cC');
-
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(sendHash),
-    );
-    expect(primaryAmount).toHaveTextContent(/^-.*ETH/);
-
-    const secondaryAmount = await findByTestId(
-      activityListRowSecondaryAmountTestId(sendHash),
-    );
-    expect(secondaryAmount).toHaveTextContent(/^-\$2,500\.00/);
-
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(sendHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows Receive ETH under Transactions filter with positive primary amount and a single avatar', async () => {
-    const receiveHash = '0xactivitycvreceiveeth';
     setupAccountsTransactionsApiMock([
       {
-        hash: receiveHash,
-        timestamp: new Date().toISOString(),
+        hash: receiveEthHash,
+        timestamp: new Date(1_716_367_800_000).toISOString(),
         chainId: 1,
         from: ACTIVITY_CV_RECIPIENT,
         to: ACTIVITY_CV_ACCOUNT,
@@ -623,81 +925,14 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
             amount: '1000000000000000000',
             symbol: 'ETH',
             decimal: 18,
-            // Omit transferType so shouldSkipTransaction keeps this inbound row.
           },
         ],
         isError: false,
         transactionCategory: 'STANDARD',
       },
-    ]);
-
-    const state = initialStateActivityWithAccountsApi().build();
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await waitFor(
-      () => findByTestId(activityListRowTitleTestId(receiveHash)),
-      { timeout: 10000 },
-    );
-    expect(title).toHaveTextContent('Received ETH');
-
-    const subtitle = await findByTestId(
-      activityListRowSubtitleTestId(receiveHash),
-    );
-    expect(subtitle).toBeOnTheScreen();
-    expect(subtitle).toHaveTextContent('From: 0x80181...229cC');
-
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(receiveHash),
-    );
-    expect(primaryAmount).toHaveTextContent(/^\+.*ETH/);
-
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(receiveHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows Send USDC under Transactions filter with negative primary amount and a single avatar', async () => {
-    const sendTransaction = buildConfirmedLocalUsdcSendTransaction();
-    const sendHash = sendTransaction.hash as string;
-    const state = initialStateActivityWithLocalTransactions([
-      sendTransaction,
-    ]).build();
-
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await findByTestId(activityListRowTitleTestId(sendHash));
-    expect(title).toHaveTextContent('Sent USDC');
-
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(sendHash),
-    );
-    expect(primaryAmount).toHaveTextContent(/^-.*USDC/);
-
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(sendHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows Receive USDC under Transactions filter with positive primary amount and a single avatar', async () => {
-    const receiveHash = '0xactivitycvreceiveusdc';
-    setupAccountsTransactionsApiMock([
       {
-        hash: receiveHash,
-        timestamp: new Date().toISOString(),
+        hash: receiveUsdcHash,
+        timestamp: new Date(1_716_367_801_000).toISOString(),
         chainId: 1,
         from: ACTIVITY_CV_RECIPIENT,
         to: ACTIVITY_CV_ACCOUNT,
@@ -709,7 +944,6 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
             amount: '1000000',
             symbol: 'USDC',
             decimal: 6,
-            // Omit contractAddress so shouldSkipTransaction keeps this inbound row.
             name: 'USD Coin',
             transferType: 'ERC20',
           },
@@ -717,41 +951,9 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
         isError: false,
         transactionCategory: 'TRANSFER',
       },
-    ]);
-
-    const state = initialStateActivityWithAccountsApi().build();
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await waitFor(
-      () => findByTestId(activityListRowTitleTestId(receiveHash)),
-      { timeout: 10000 },
-    );
-    expect(title).toHaveTextContent('Received USDC');
-
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(receiveHash),
-    );
-    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
-
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(receiveHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows Swap ETH to USDC under Transactions filter with dual avatar and negative spent amount', async () => {
-    const swapHash = '0xactivitycvswapethusdc';
-    const aggregator = ACTIVITY_CV_RECIPIENT;
-    setupAccountsTransactionsApiMock([
       {
-        hash: swapHash,
-        timestamp: new Date().toISOString(),
+        hash: apiSwapHash,
+        timestamp: new Date(1_716_367_802_000).toISOString(),
         chainId: 1,
         from: ACTIVITY_CV_ACCOUNT,
         to: ACTIVITY_CV_ACCOUNT,
@@ -759,7 +961,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
         valueTransfers: [
           {
             from: ACTIVITY_CV_ACCOUNT,
-            to: aggregator,
+            to: ACTIVITY_CV_RECIPIENT,
             amount: '1000000000000000000',
             decimal: 18,
             symbol: 'ETH',
@@ -767,7 +969,7 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
             transferType: 'normal',
           },
           {
-            from: aggregator,
+            from: ACTIVITY_CV_RECIPIENT,
             to: ACTIVITY_CV_ACCOUNT,
             amount: '1000000',
             decimal: 6,
@@ -780,321 +982,10 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
         isError: false,
         transactionCategory: 'EXCHANGE',
       },
-    ]);
-
-    const state = initialStateActivityWithAccountsApi().build();
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await waitFor(
-      () => findByTestId(activityListRowTitleTestId(swapHash)),
-      { timeout: 10000 },
-    );
-    // Title "Swapped"; pair in subtitle ("ETH → USDC").
-    expect(title).toHaveTextContent('Swapped');
-    expect(
-      await findByTestId(activityListRowSubtitleTestId(swapHash)),
-    ).toHaveTextContent('ETH → USDC');
-
-    // Destination (+USDC) primary; spent ETH secondary.
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(swapHash),
-    );
-    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
-
-    const secondaryAmount = await findByTestId(
-      activityListRowSecondaryAmountTestId(swapHash),
-    );
-    expect(secondaryAmount).toHaveTextContent(/^-.*ETH/);
-
-    expect(
-      await findByTestId(activityListRowAvatarStackTestId(swapHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows Bridge under Transactions filter with dual avatar, primary amount and secondary amount', async () => {
-    const bridgeTransaction = buildConfirmedLocalBridgeTransaction();
-    const bridgeHash = bridgeTransaction.hash as string;
-    const state = initialStateActivityWithLocalTransactions([bridgeTransaction])
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            BridgeStatusController: {
-              txHistory: {
-                [bridgeTransaction.id]: activityCvBridgeHistoryEntry,
-              },
-            },
-          },
-        },
-      } as never)
-      .build();
-
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await findByTestId(activityListRowTitleTestId(bridgeHash));
-    expect(title).toHaveTextContent('Bridged USDC');
-    expect(
-      await findByTestId(activityListRowSubtitleTestId(bridgeHash)),
-    ).toHaveTextContent('Ethereum → Linea');
-
-    // Dest amount present → +USDC primary, -ETH secondary.
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(bridgeHash),
-    );
-    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
-
-    const secondaryAmount = await findByTestId(
-      activityListRowSecondaryAmountTestId(bridgeHash),
-    );
-    expect(secondaryAmount).toHaveTextContent(/^-.*ETH/);
-
-    expect(
-      await findByTestId(activityListRowAvatarStackTestId(bridgeHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows Swapped under Transactions filter with dual avatar with bridged tokens in the subtitle, primary amount and secondary amount, when bridging different tokens on different networks', async () => {
-    const swapTransaction = buildConfirmedLocalCrossChainSwapTransaction();
-    const swapHash = swapTransaction.hash as string;
-    const state = initialStateActivityWithLocalTransactions([swapTransaction])
-      .withOverrides({
-        engine: {
-          backgroundState: {
-            BridgeStatusController: {
-              txHistory: {
-                [swapTransaction.id]:
-                  activityCvCrossChainSwapBridgeHistoryEntry,
-              },
-            },
-          },
-        },
-      } as never)
-      .build();
-
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await findByTestId(activityListRowTitleTestId(swapHash));
-    // Cross-chain different-token unified swap: "Swapped" + token-pair subtitle.
-    expect(title).toHaveTextContent('Swapped');
-    expect(
-      await findByTestId(activityListRowSubtitleTestId(swapHash)),
-    ).toHaveTextContent('ETH → USDC');
-
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(swapHash),
-    );
-    expect(primaryAmount).toHaveTextContent(/^\+.*USDC/);
-
-    const secondaryAmount = await findByTestId(
-      activityListRowSecondaryAmountTestId(swapHash),
-    );
-    expect(secondaryAmount).toHaveTextContent(/^-.*ETH/);
-
-    expect(
-      await findByTestId(activityListRowAvatarStackTestId(swapHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows Approve USDC under Transactions filter with unsigned primary amount and a single avatar', async () => {
-    const approveTransaction = buildConfirmedLocalUsdcApproveTransaction();
-    const approveHash = approveTransaction.hash as string;
-    const state = initialStateActivityWithLocalTransactions([
-      approveTransaction,
-    ]).build();
-
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await findByTestId(activityListRowTitleTestId(approveHash));
-    expect(title).toHaveTextContent('Approved spending cap');
-    expect(
-      await findByTestId(activityListRowSubtitleTestId(approveHash)),
-    ).toHaveTextContent('USDC');
-
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(approveHash),
-    );
-    expect(primaryAmount).toHaveTextContent('100 USDC');
-    expect(primaryAmount).not.toHaveTextContent(/^[+-]/);
-
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(approveHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows increased spending cap under Transactions filter with amount and a single avatar with subtitle of token', async () => {
-    const increaseTransaction =
-      buildConfirmedLocalUsdcIncreaseAllowanceTransaction();
-    const increaseHash = increaseTransaction.hash as string;
-    const state = initialStateActivityWithLocalTransactions([
-      increaseTransaction,
-    ]).build();
-
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await findByTestId(activityListRowTitleTestId(increaseHash));
-    expect(title).toHaveTextContent('Increased spending cap');
-    expect(
-      await findByTestId(activityListRowSubtitleTestId(increaseHash)),
-    ).toHaveTextContent('USDC');
-
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(increaseHash),
-    );
-    expect(primaryAmount).toHaveTextContent('100 USDC');
-    expect(primaryAmount).not.toHaveTextContent(/^[+-]/);
-
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(increaseHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows Contract interaction under Transactions filter with no amount sign and a single avatar', async () => {
-    const contractTransaction =
-      buildConfirmedLocalContractInteractionTransaction();
-    const contractHash = contractTransaction.hash as string;
-    const state = initialStateActivityWithLocalTransactions([
-      contractTransaction,
-    ]).build();
-
-    const { findByTestId, queryByTestId, getAllByText } =
-      renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await findByTestId(activityListRowTitleTestId(contractHash));
-    expect(title).toHaveTextContent(
-      strings('transactions.smart_contract_interaction'),
-    );
-
-    // Zero-value interaction has no primary amount.
-    expect(
-      queryByTestId(activityListRowPrimaryAmountTestId(contractHash)),
-    ).toBeNull();
-
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(contractHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows Unlimited Approval of USDC under Transactions filter with unsigned primary amount and a single avatar', async () => {
-    const approveTransaction =
-      buildConfirmedLocalUsdcUnlimitedApproveTransaction();
-    const approveHash = approveTransaction.hash as string;
-    const state = initialStateActivityWithLocalTransactions([
-      approveTransaction,
-    ]).build();
-
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await findByTestId(activityListRowTitleTestId(approveHash));
-    expect(title).toHaveTextContent('Approved spending cap');
-    expect(
-      await findByTestId(activityListRowSubtitleTestId(approveHash)),
-    ).toHaveTextContent('USDC');
-
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(approveHash),
-    );
-    expect(primaryAmount).toHaveTextContent(
-      `${strings('confirm.unlimited')} USDC`,
-    );
-    expect(primaryAmount).not.toHaveTextContent(/^[+-]/);
-
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(approveHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows revoke approval of USDC under Transactions filter with unsigned primary amount and a single avatar', async () => {
-    const revokeTransaction = buildConfirmedLocalUsdcRevokeTransaction();
-    const revokeHash = revokeTransaction.hash as string;
-    const state = initialStateActivityWithLocalTransactions([
-      revokeTransaction,
-    ]).build();
-
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await findByTestId(activityListRowTitleTestId(revokeHash));
-    expect(title).toHaveTextContent(
-      strings('transactions.activity_revoke_spending_cap'),
-    );
-    expect(
-      await findByTestId(activityListRowSubtitleTestId(revokeHash)),
-    ).toHaveTextContent('USDC');
-
-    const primaryAmount = await findByTestId(
-      activityListRowPrimaryAmountTestId(revokeHash),
-    );
-    expect(primaryAmount).toHaveTextContent('0 USDC');
-    expect(primaryAmount).not.toHaveTextContent(/^[+-]/);
-
-    expect(
-      await findByTestId(activityListRowAvatarSingleTestId(revokeHash)),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows NFT mint under Transactions filter with the collection name in the title', async () => {
-    const mintHash = '0xactivitycvnftmint';
-    const zeroAddress = '0x0000000000000000000000000000000000000000';
-    setupAccountsTransactionsApiMock([
       {
         hash: mintHash,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(1_716_367_803_000).toISOString(),
         chainId: 1,
-        // from = selected account so shouldSkipTransaction does not drop this mint.
         from: ACTIVITY_CV_ACCOUNT,
         to: ACTIVITY_CV_NFT_CONTRACT,
         value: '0',
@@ -1114,8 +1005,274 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
       },
     ]);
 
-    const state = initialStateActivityWithAccountsApi().build();
-    const { findByTestId, getAllByText } = renderActivityScreenView({ state });
+    const state = initialStateActivityWithLocalTransactions([
+      sendEth,
+      sendUsdc,
+      bridge,
+      crossChainSwap,
+      approve,
+      increase,
+      unlimitedApprove,
+      revoke,
+      contract,
+    ])
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              privacyMode: false,
+            },
+            BridgeStatusController: {
+              txHistory: {
+                [bridge.id]: activityCvBridgeHistoryEntry,
+                [crossChainSwap.id]: activityCvCrossChainSwapBridgeHistoryEntry,
+              },
+            },
+          },
+        },
+      } as never)
+      .build();
+
+    const { findByTestId, queryByTestId, getAllByText } =
+      renderActivityScreenView({ state });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const sendEthTitle = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(sendEthHash)),
+      { timeout: 10000 },
+    );
+    expect(sendEthTitle).toHaveTextContent('Sent ETH');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(sendEthHash)),
+    ).toHaveTextContent('To: 0x80181...229cC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(sendEthHash)),
+    ).toHaveTextContent(/^-.*ETH/);
+    expect(
+      await findByTestId(activityListRowSecondaryAmountTestId(sendEthHash)),
+    ).toHaveTextContent(/^-\$2,500\.00/);
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(sendEthHash)),
+    ).toBeOnTheScreen();
+
+    const receiveEthTitle = await findByTestId(
+      activityListRowTitleTestId(receiveEthHash),
+    );
+    expect(receiveEthTitle).toHaveTextContent('Received ETH');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(receiveEthHash)),
+    ).toHaveTextContent('From: 0x80181...229cC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(receiveEthHash)),
+    ).toHaveTextContent(/^\+.*ETH/);
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(receiveEthHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(sendUsdcHash)),
+    ).toHaveTextContent('Sent USDC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(sendUsdcHash)),
+    ).toHaveTextContent(/^-.*USDC/);
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(sendUsdcHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(receiveUsdcHash)),
+    ).toHaveTextContent('Received USDC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(receiveUsdcHash)),
+    ).toHaveTextContent(/^\+.*USDC/);
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(receiveUsdcHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(apiSwapHash)),
+    ).toHaveTextContent('Swapped');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(apiSwapHash)),
+    ).toHaveTextContent('ETH → USDC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(apiSwapHash)),
+    ).toHaveTextContent(/^\+.*USDC/);
+    expect(
+      await findByTestId(activityListRowSecondaryAmountTestId(apiSwapHash)),
+    ).toHaveTextContent(/^-.*ETH/);
+    expect(
+      await findByTestId(activityListRowAvatarStackTestId(apiSwapHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(bridgeHash)),
+    ).toHaveTextContent('Bridged USDC');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(bridgeHash)),
+    ).toHaveTextContent('Ethereum → Linea');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(bridgeHash)),
+    ).toHaveTextContent(/^\+.*USDC/);
+    expect(
+      await findByTestId(activityListRowSecondaryAmountTestId(bridgeHash)),
+    ).toHaveTextContent(/^-.*ETH/);
+    expect(
+      await findByTestId(activityListRowAvatarStackTestId(bridgeHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(crossChainSwapHash)),
+    ).toHaveTextContent('Swapped');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(crossChainSwapHash)),
+    ).toHaveTextContent('ETH → USDC');
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestId(crossChainSwapHash),
+      ),
+    ).toHaveTextContent(/^\+.*USDC/);
+    expect(
+      await findByTestId(
+        activityListRowSecondaryAmountTestId(crossChainSwapHash),
+      ),
+    ).toHaveTextContent(/^-.*ETH/);
+    expect(
+      await findByTestId(activityListRowAvatarStackTestId(crossChainSwapHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(approveHash)),
+    ).toHaveTextContent('Approved spending cap');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(approveHash)),
+    ).toHaveTextContent('USDC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(approveHash)),
+    ).toHaveTextContent('100 USDC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(approveHash)),
+    ).not.toHaveTextContent(/^[+-]/);
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(approveHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(increaseHash)),
+    ).toHaveTextContent('Increased spending cap');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(increaseHash)),
+    ).toHaveTextContent('USDC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(increaseHash)),
+    ).toHaveTextContent('100 USDC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(increaseHash)),
+    ).not.toHaveTextContent(/^[+-]/);
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(increaseHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(contractHash)),
+    ).toHaveTextContent(strings('transactions.smart_contract_interaction'));
+    expect(
+      queryByTestId(activityListRowPrimaryAmountTestId(contractHash)),
+    ).toBeNull();
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(contractHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(unlimitedApproveHash)),
+    ).toHaveTextContent('Approved spending cap');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(unlimitedApproveHash)),
+    ).toHaveTextContent('USDC');
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestId(unlimitedApproveHash),
+      ),
+    ).toHaveTextContent(`${strings('confirm.unlimited')} USDC`);
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestId(unlimitedApproveHash),
+      ),
+    ).not.toHaveTextContent(/^[+-]/);
+    expect(
+      await findByTestId(
+        activityListRowAvatarSingleTestId(unlimitedApproveHash),
+      ),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(revokeHash)),
+    ).toHaveTextContent(strings('transactions.activity_revoke_spending_cap'));
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(revokeHash)),
+    ).toHaveTextContent('USDC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(revokeHash)),
+    ).toHaveTextContent('0 USDC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(revokeHash)),
+    ).not.toHaveTextContent(/^[+-]/);
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(revokeHash)),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(mintHash)),
+    ).toHaveTextContent(
+      `${strings('transactions.activity_nft_mint')} ${ACTIVITY_CV_NFT_COLLECTION_NAME}`,
+    );
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(mintHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Swapped when Accounts API returns the same hash as Smart contract interaction', async () => {
+    const swapTransaction = buildConfirmedLocalCrossChainSwapTransaction();
+    const swapHash = swapTransaction.hash as string;
+    const aggregator = '0x1111111254eeb25477b68fb85ed929f73a960582';
+
+    setupAccountsTransactionsApiMock([
+      {
+        hash: swapHash,
+        timestamp: new Date(swapTransaction.time).toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_ACCOUNT,
+        to: aggregator,
+        value: '0',
+        valueTransfers: [],
+        isError: false,
+        transactionCategory: 'CONTRACT_CALL',
+      },
+    ]);
+
+    const state = initialStateActivityWithLocalTransactions([swapTransaction])
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            BridgeStatusController: {
+              txHistory: {
+                [swapTransaction.id]:
+                  activityCvCrossChainSwapBridgeHistoryEntry,
+              },
+            },
+          },
+        },
+      } as never)
+      .build();
+
+    const { findByTestId, getAllByTestId, getAllByText, queryByText } =
+      renderActivityScreenView({ state });
 
     await waitFor(() => {
       expect(
@@ -1125,16 +1282,23 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     });
 
     const title = await waitFor(
-      () => findByTestId(activityListRowTitleTestId(mintHash)),
+      () => findByTestId(activityListRowTitleTestId(swapHash)),
       { timeout: 10000 },
     );
-    expect(title).toHaveTextContent(
-      `${strings('transactions.activity_nft_mint')} ${ACTIVITY_CV_NFT_COLLECTION_NAME}`,
-    );
 
+    expect(getAllByTestId(activityListRowTitleTestId(swapHash))).toHaveLength(
+      1,
+    );
+    expect(title).toHaveTextContent('Swapped');
+    expect(title).not.toHaveTextContent(
+      strings('transactions.smart_contract_interaction'),
+    );
     expect(
-      await findByTestId(activityListRowAvatarSingleTestId(mintHash)),
-    ).toBeOnTheScreen();
+      queryByText(strings('transactions.smart_contract_interaction')),
+    ).toBeNull();
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(swapHash)),
+    ).toHaveTextContent('ETH → USDC');
   });
 });
 
@@ -1143,13 +1307,27 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     clearAccountsTransactionsApiMocks();
     (
       Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([]);
+    ).mockResolvedValue({ activities: [], nextCursor: undefined });
   });
 
-  it('shows Account funded under Predictions with balance subtitle, + fiat, and USDC secondary', async () => {
+  it('shows deposit, withdrawal, claim, cash-out, and placed rows under Predictions after load', async () => {
     const deposit = buildConfirmedLocalPredictDepositTransaction();
+    const withdraw = buildConfirmedLocalPredictWithdrawTransaction();
+    const claim = buildPredictClaimActivity();
+    const sell = buildPredictSellActivity();
+    const buy = buildPredictBuyActivity();
     const depositHash = deposit.hash as string;
-    const state = initialStateActivityWithLocalTransactions([deposit])
+    const withdrawHash = withdraw.hash as string;
+
+    setupAccountsTransactionsApiMock([]);
+    (
+      Engine.context.PredictController.getActivity as jest.Mock
+    ).mockResolvedValue({
+      activities: [claim, sell, buy],
+      nextCursor: undefined,
+    });
+
+    const state = initialStateActivityWithLocalTransactions([deposit, withdraw])
       .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
       .build();
 
@@ -1175,17 +1353,17 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
       await findByTestId(activityListRowSubtitleTestId(depositHash)),
     ).toHaveTextContent(strings('transactions.activity_predictions_balance'));
 
-    const primaryAmount = await findByTestId(
+    const depositPrimary = await findByTestId(
       activityListRowPrimaryAmountTestId(depositHash),
     );
-    expect(primaryAmount).toHaveTextContent(/^\+/);
-    expect(primaryAmount).toHaveTextContent(/USD|\$/);
+    expect(depositPrimary).toHaveTextContent(/^\+/);
+    expect(depositPrimary).toHaveTextContent(/USD|\$/);
 
-    const secondaryAmount = await findByTestId(
+    const depositSecondary = await findByTestId(
       activityListRowSecondaryAmountTestId(depositHash),
     );
-    expect(secondaryAmount).toHaveTextContent(/4,?000 USDC/);
-    expect(secondaryAmount).not.toHaveTextContent(/^\+/);
+    expect(depositSecondary).toHaveTextContent(/4,?000 USDC/);
+    expect(depositSecondary).not.toHaveTextContent(/^\+/);
 
     expect(
       await findByTestId(activityListRowAvatarSingleTestId(depositHash)),
@@ -1193,26 +1371,6 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     expect(
       queryByTestId(activityListRowAvatarStackTestId(depositHash)),
     ).toBeNull();
-  });
-
-  it('shows Prediction withdrawal under Predictions with balance subtitle and negative amounts', async () => {
-    const withdraw = buildConfirmedLocalPredictWithdrawTransaction();
-    const withdrawHash = withdraw.hash as string;
-    const state = initialStateActivityWithLocalTransactions([withdraw])
-      .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
-      .build();
-
-    const { findByTestId, getAllByText } = renderActivityScreenView({
-      state,
-      params: { initialTypeFilter: ActivityTypeFilter.Predictions },
-    });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
 
     expect(
       await findByTestId(activityListRowTitleTestId(withdrawHash)),
@@ -1221,61 +1379,37 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
       await findByTestId(activityListRowSubtitleTestId(withdrawHash)),
     ).toHaveTextContent(strings('transactions.activity_predictions_balance'));
 
-    const primaryAmount = await findByTestId(
+    const withdrawPrimary = await findByTestId(
       activityListRowPrimaryAmountTestId(withdrawHash),
     );
-    expect(primaryAmount).toHaveTextContent(/^-/);
-    expect(primaryAmount).toHaveTextContent(/USD|\$/);
+    expect(withdrawPrimary).toHaveTextContent(/^-/);
+    expect(withdrawPrimary).toHaveTextContent(/USD|\$/);
 
-    const secondaryAmount = await findByTestId(
+    const withdrawSecondary = await findByTestId(
       activityListRowSecondaryAmountTestId(withdrawHash),
     );
-    expect(secondaryAmount).toHaveTextContent(/^-.*4,?000 USDC/);
+    expect(withdrawSecondary).toHaveTextContent(/^-.*4,?000 USDC/);
 
     expect(
       await findByTestId(activityListRowAvatarSingleTestId(withdrawHash)),
     ).toBeOnTheScreen();
-  });
 
-  it('shows Claimed winnings under Predictions with market subtitle and + fiat primary', async () => {
-    const claim = buildPredictClaimActivity();
-    (
-      Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([claim]);
-
-    const state = initialStateActivityWithAccountsApi()
-      .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
-      .build();
-
-    const { findByTestId, getAllByText, queryByTestId } =
-      renderActivityScreenView({
-        state,
-        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
-      });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await waitFor(
+    const claimTitle = await waitFor(
       () => findByTestId(activityListRowTitleTestId(claim.id)),
       { timeout: 10000 },
     );
-    expect(title).toHaveTextContent(
+    expect(claimTitle).toHaveTextContent(
       strings('predict.transactions.claim_title'),
     );
     expect(
       await findByTestId(activityListRowSubtitleTestId(claim.id)),
     ).toHaveTextContent(ACTIVITY_CV_PREDICT_MARKET_TITLE);
 
-    const primaryAmount = await findByTestId(
+    const claimPrimary = await findByTestId(
       activityListRowPrimaryAmountTestId(claim.id),
     );
-    expect(primaryAmount).toHaveTextContent(/^\+/);
-    expect(primaryAmount).toHaveTextContent(/\$/);
+    expect(claimPrimary).toHaveTextContent(/^\+/);
+    expect(claimPrimary).toHaveTextContent(/\$/);
 
     expect(
       queryByTestId(activityListRowSecondaryAmountTestId(claim.id)),
@@ -1283,45 +1417,19 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     expect(
       await findByTestId(activityListRowAvatarSingleTestId(claim.id)),
     ).toBeOnTheScreen();
-  });
 
-  it('shows Cashed out under Predictions with market subtitle and + fiat primary', async () => {
-    const sell = buildPredictSellActivity();
-    (
-      Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([sell]);
-
-    const state = initialStateActivityWithAccountsApi()
-      .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
-      .build();
-
-    const { findByTestId, getAllByText, queryByTestId } =
-      renderActivityScreenView({
-        state,
-        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
-      });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await waitFor(
-      () => findByTestId(activityListRowTitleTestId(sell.id)),
-      { timeout: 10000 },
-    );
-    expect(title).toHaveTextContent(strings('predict.transactions.sell_title'));
+    expect(
+      await findByTestId(activityListRowTitleTestId(sell.id)),
+    ).toHaveTextContent(strings('predict.transactions.sell_title'));
     expect(
       await findByTestId(activityListRowSubtitleTestId(sell.id)),
     ).toHaveTextContent(ACTIVITY_CV_PREDICT_MARKET_TITLE);
 
-    const primaryAmount = await findByTestId(
+    const sellPrimary = await findByTestId(
       activityListRowPrimaryAmountTestId(sell.id),
     );
-    expect(primaryAmount).toHaveTextContent(/^\+/);
-    expect(primaryAmount).toHaveTextContent(/\$/);
+    expect(sellPrimary).toHaveTextContent(/^\+/);
+    expect(sellPrimary).toHaveTextContent(/\$/);
 
     expect(
       queryByTestId(activityListRowSecondaryAmountTestId(sell.id)),
@@ -1329,47 +1437,19 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     expect(
       await findByTestId(activityListRowAvatarSingleTestId(sell.id)),
     ).toBeOnTheScreen();
-  });
 
-  it('shows Prediction placed under Predictions with market subtitle and - fiat primary', async () => {
-    const buy = buildPredictBuyActivity();
-    (
-      Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([buy]);
-
-    const state = initialStateActivityWithAccountsApi()
-      .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
-      .build();
-
-    const { findByTestId, getAllByText, queryByTestId } =
-      renderActivityScreenView({
-        state,
-        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
-      });
-
-    await waitFor(() => {
-      expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
-          .length,
-      ).toBeGreaterThan(0);
-    });
-
-    const title = await waitFor(
-      () => findByTestId(activityListRowTitleTestId(buy.id)),
-      { timeout: 10000 },
-    );
-    expect(title).toHaveTextContent(
-      strings('transactions.activity_prediction_placed'),
-    );
+    expect(
+      await findByTestId(activityListRowTitleTestId(buy.id)),
+    ).toHaveTextContent(strings('transactions.activity_prediction_placed'));
     expect(
       await findByTestId(activityListRowSubtitleTestId(buy.id)),
     ).toHaveTextContent(ACTIVITY_CV_PREDICT_MARKET_TITLE);
 
-    const primaryAmount = await findByTestId(
+    const buyPrimary = await findByTestId(
       activityListRowPrimaryAmountTestId(buy.id),
     );
-    expect(primaryAmount).toHaveTextContent(/^-/);
-    expect(primaryAmount).toHaveTextContent(/\$/);
+    expect(buyPrimary).toHaveTextContent(/^-/);
+    expect(buyPrimary).toHaveTextContent(/\$/);
 
     expect(
       queryByTestId(activityListRowSecondaryAmountTestId(buy.id)),
@@ -1378,4 +1458,891 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
       await findByTestId(activityListRowAvatarSingleTestId(buy.id)),
     ).toBeOnTheScreen();
   });
+});
+
+interface PerpsControllerOverviewStubs {
+  getActiveProvider: jest.Mock;
+  getActiveProviderOrNull: jest.Mock;
+  getOrderFills: jest.Mock;
+  getOrders: jest.Mock;
+  getFunding: jest.Mock;
+}
+
+const stubPerpsOverviewEngine = () => {
+  const seed = buildActivityCvPerpsOverviewEngineSeed();
+  const perpsController = Engine.context
+    .PerpsController as unknown as PerpsControllerOverviewStubs;
+  const provider = {
+    ping: jest.fn().mockResolvedValue(true),
+    getUserHistory: jest.fn().mockResolvedValue(seed.userHistory),
+    getFunding: jest.fn().mockResolvedValue(seed.funding),
+    getOrderFills: jest.fn().mockResolvedValue(seed.fills),
+  };
+
+  perpsController.getActiveProvider.mockReturnValue(provider);
+  perpsController.getActiveProviderOrNull.mockReturnValue(provider);
+  perpsController.getOrderFills.mockResolvedValue(seed.fills);
+  perpsController.getOrders.mockResolvedValue(seed.orders);
+  perpsController.getFunding.mockResolvedValue(seed.funding);
+
+  return { perpsController, seed };
+};
+
+const restorePerpsOverviewEngine = (
+  perpsController: PerpsControllerOverviewStubs,
+) => {
+  perpsController.getActiveProviderOrNull.mockReturnValue(null);
+  perpsController.getOrderFills.mockResolvedValue([]);
+  perpsController.getOrders.mockResolvedValue([]);
+  perpsController.getFunding.mockResolvedValue([]);
+};
+
+const renderPerpsOverview = (initialPerpsFilter?: PerpsActivityFilter) => {
+  const state = initialStateActivityWithPerpsDetails()
+    .withRemoteFeatureFlags(activityPerpsTradingEnabledFlag)
+    .build();
+
+  return renderActivityScreenView({
+    state,
+    params: {
+      initialTypeFilter: ActivityTypeFilter.Perps,
+      ...(initialPerpsFilter ? { initialPerpsFilter } : {}),
+    },
+  });
+};
+
+describeForPlatforms('ActivityScreen — buy/sell rows', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  it('shows Bought mUSD and Sold ETH under Buy/Sell after load, and hides a Transactions send', async () => {
+    const sendTransaction = buildConfirmedLocalSendTransaction();
+    const sendHash = sendTransaction.hash as string;
+    setupAccountsTransactionsApiMock([]);
+    const state = initialStateActivityWithRampOrders([
+      buildActivityCvRampBuyMusdOrder(),
+      buildActivityCvRampSellEthOrder(),
+    ])
+      .withOverrides({
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [sendTransaction],
+              swapsTransactions: {},
+            },
+          },
+        },
+      } as never)
+      .build();
+
+    const { findByTestId, getAllByText, queryByTestId } =
+      renderActivityScreenView({
+        state,
+        params: { initialTypeFilter: ActivityTypeFilter.BuySell },
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.BuySell))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const buyTitle = await findByTestId(
+      activityListRowTitleTestId(ACTIVITY_CV_RAMP_BUY_TX_HASH),
+    );
+    expect(buyTitle).toHaveTextContent('Bought mUSD');
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestId(ACTIVITY_CV_RAMP_BUY_TX_HASH),
+      ),
+    ).toHaveTextContent(/^\+5\.01 mUSD/);
+    expect(
+      await findByTestId(
+        activityListRowAvatarSingleTestId(ACTIVITY_CV_RAMP_BUY_TX_HASH),
+      ),
+    ).toBeOnTheScreen();
+
+    const sellTitle = await findByTestId(
+      activityListRowTitleTestId(ACTIVITY_CV_RAMP_SELL_TX_HASH),
+    );
+    expect(sellTitle).toHaveTextContent('Sold ETH');
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestId(ACTIVITY_CV_RAMP_SELL_TX_HASH),
+      ),
+    ).toHaveTextContent(/^-0\.085 ETH/);
+    expect(
+      await findByTestId(
+        activityListRowAvatarSingleTestId(ACTIVITY_CV_RAMP_SELL_TX_HASH),
+      ),
+    ).toBeOnTheScreen();
+
+    expect(
+      queryByTestId(activityListRowTitleTestId(sendHash)),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+describeForPlatforms('ActivityScreen — limit orders', () => {
+  const OLDER_FILLED_ORDER: LimitOrder = {
+    ...MOCK_LIMIT_FILLED_ORDER,
+    id: 'mock-limit-order-filled-older',
+    timingData: {
+      ...MOCK_LIMIT_FILLED_ORDER.timingData,
+      closedAt: '2026-09-02T13:00:00.000Z',
+    },
+  };
+
+  const SEND_HASH = buildConfirmedLocalSendTransaction().hash as string;
+
+  /**
+   * Renders Activity with a confirmed send and waits for its row. The list
+   * holds local rows back until the accounts API answers, so this also keeps
+   * that request from outliving the test.
+   */
+  const renderLimitOrdersActivity = async ({
+    enabled = true,
+    enabledChainIds,
+    extraRoutes = [],
+  }: {
+    enabled?: boolean;
+    enabledChainIds?: string[];
+    extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
+  } = {}) => {
+    const view = renderActivityScreenViewWithRoutes({
+      state: initialStateActivityWithLocalTransactions([
+        buildConfirmedLocalSendTransaction(),
+      ])
+        .withOverrides(activityLineaNetworkOverride)
+        .withRemoteFeatureFlags({
+          swapsLimitOrder: {
+            enabled,
+            ...(enabledChainIds ? { enabledChainIds } : {}),
+          },
+        })
+        .build(),
+      extraRoutes,
+    });
+    expect(
+      await view.findByTestId(activityListRowTitleTestId(SEND_HASH)),
+    ).toBeOnTheScreen();
+    return view;
+  };
+
+  const serveLimitOrders = (orders: LimitOrder[]) => {
+    const requests: LimitOrdersQueryParams[] = [];
+    setupLimitOrdersDataServiceMock({
+      limitOrders: async ({ cursor: _cursor, ...params }) => {
+        requests.push(params);
+        return { orders, total: orders.length };
+      },
+    });
+    return requests;
+  };
+
+  const selectLimitOrdersFilter = async (
+    view: ReturnType<typeof renderActivityScreenViewWithRoutes>,
+  ) => {
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
+    );
+    fireEvent.press(
+      await view.findByTestId(optionTestId(ActivityTypeFilter.LimitOrders)),
+    );
+    await waitFor(() => {
+      expect(
+        view.getAllByText(
+          selectedTypeFilterLabel(ActivityTypeFilter.LimitOrders),
+        ).length,
+      ).toBeGreaterThan(0);
+    });
+  };
+
+  beforeEach(() => {
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    netInfoMock.__resetMockNetInfo();
+    // Also tears down the limit order nock, which shares the nock teardown.
+    clearAccountsTransactionsApiMocks();
+    clearLimitOrdersDataServiceMock();
+  });
+
+  it('shows only filled limit orders, newest first, and hides transaction rows', async () => {
+    const requests = serveLimitOrders([
+      OLDER_FILLED_ORDER,
+      MOCK_LIMIT_FILLED_ORDER,
+    ]);
+    const view = await renderLimitOrdersActivity();
+
+    await selectLimitOrdersFilter(view);
+
+    const newerRow = await view.findByTestId(
+      activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+    );
+    expect(
+      within(newerRow).getByTestId(OpenOrderRowSelectorsIDs.TITLE),
+    ).toHaveTextContent(
+      strings('bridge.limit.pair', {
+        source: MOCK_LIMIT_FILLED_ORDER.src.asset.symbol,
+        dest: MOCK_LIMIT_FILLED_ORDER.dest.asset.symbol,
+      }),
+    );
+    expect(
+      within(newerRow).getByTestId(OpenOrderRowSelectorsIDs.PRIMARY),
+    ).toHaveTextContent('+220.00 USDC');
+    expect(
+      within(newerRow).getByTestId(OpenOrderRowSelectorsIDs.SECONDARY),
+    ).toHaveTextContent('-0.10 ETH');
+
+    const olderRow = view.getByTestId(
+      activityListLimitOrderRowTestId(OLDER_FILLED_ORDER.id),
+    );
+    const rowIds = view
+      .getAllByTestId(/^activity-limit-order-/)
+      .map((row) => row.props.testID);
+    expect(rowIds).toEqual([
+      activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+      activityListLimitOrderRowTestId(OLDER_FILLED_ORDER.id),
+    ]);
+    expect(olderRow).toBeOnTheScreen();
+
+    expect(
+      view.queryByTestId(activityListRowTitleTestId(SEND_HASH)),
+    ).not.toBeOnTheScreen();
+    expect(requests.at(-1)).toEqual(
+      expect.objectContaining({
+        walletAddress: ACTIVITY_CV_ACCOUNT.toLowerCase(),
+        states: [LimitOrderState.Filled],
+      }),
+    );
+  });
+
+  it('opens the limit order activity page when a filled order is pressed', async () => {
+    serveLimitOrders([MOCK_LIMIT_FILLED_ORDER]);
+    setupGetLimitOrderApiMock({ order: MOCK_LIMIT_FILLED_ORDER });
+    const view = await renderLimitOrdersActivity({
+      extraRoutes: [
+        {
+          name: Routes.BRIDGE.ROOT,
+          Component: BridgeLimitOrderActivityNavigator,
+        },
+      ],
+    });
+    await selectLimitOrdersFilter(view);
+
+    const row = await view.findByTestId(
+      activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+    );
+    await act(async () => {
+      fireEvent.press(
+        within(row).getByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+      );
+    });
+
+    expect(
+      await view.findByTestId(SwapsLimitOrderActivityPageSelectorsIDs.SCREEN),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the Limit orders empty state, whose action opens swaps on the Limit tab', async () => {
+    serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      extraRoutes: [
+        {
+          name: Routes.BRIDGE.ROOT,
+          Component: createRouteParamsProbe(Routes.BRIDGE.ROOT),
+        },
+      ],
+    });
+    await selectLimitOrdersFilter(view);
+
+    expect(
+      await view.findByText(
+        strings('activity_view.empty_state.limit_orders.description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(view.queryByTestId(/^activity-limit-order-/)).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      view.getByText(strings('activity_view.empty_state.limit_orders.action')),
+    );
+
+    const paramsProbe = await view.findByTestId(
+      getRouteParamsProbeTestId(Routes.BRIDGE.ROOT),
+    );
+    expect(JSON.parse(paramsProbe.props.children)).toMatchObject({
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        initialTab: BridgeTabKey.Limit,
+        sourceToken: { chainId: '0x1', symbol: 'ETH' },
+      },
+    });
+  });
+
+  it('opens limit swaps with the selected network default pair from the empty state', async () => {
+    serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      enabledChainIds: ['eip155:1', 'eip155:59144'],
+      extraRoutes: [
+        {
+          name: Routes.BRIDGE.ROOT,
+          Component: createRouteParamsProbe(Routes.BRIDGE.ROOT),
+        },
+      ],
+    });
+    await selectLimitOrdersFilter(view);
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+    fireEvent.press(
+      await view.findByTestId(networkOptionTestId('eip155:59144')),
+    );
+
+    fireEvent.press(
+      await view.findByText(
+        strings('activity_view.empty_state.limit_orders.action'),
+      ),
+    );
+
+    const paramsProbe = await view.findByTestId(
+      getRouteParamsProbeTestId(Routes.BRIDGE.ROOT),
+    );
+    expect(JSON.parse(paramsProbe.props.children)).toMatchObject({
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        initialTab: BridgeTabKey.Limit,
+        sourceToken: { chainId: '0xe708' },
+      },
+    });
+  });
+
+  it('offers only limit order networks in the network filter', async () => {
+    serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      enabledChainIds: ['eip155:59144'],
+    });
+    await selectLimitOrdersFilter(view);
+
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+
+    expect(
+      await view.findByTestId(networkOptionTestId('eip155:59144')),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(networkOptionTestId('eip155:1')),
+    ).not.toBeOnTheScreen();
+    expect(view.getByText(strings('trending.all_networks'))).toBeOnTheScreen();
+  });
+
+  it('resets a network limit orders do not support to All networks', async () => {
+    const requests = serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      enabledChainIds: ['eip155:59144'],
+    });
+
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    );
+    fireEvent.press(await view.findByTestId(networkOptionTestId('eip155:1')));
+    await waitFor(() => {
+      expect(
+        view.queryByText(strings('activity_view.filter_all_networks')),
+      ).toBeNull();
+    });
+
+    await selectLimitOrdersFilter(view);
+
+    await waitFor(() => {
+      expect(
+        view.getAllByText(strings('activity_view.filter_all_networks')).length,
+      ).toBeGreaterThan(0);
+    });
+    await waitFor(() => {
+      expect(requests.length).toBeGreaterThan(0);
+    });
+    expect(requests.every((params) => params.chainId === undefined)).toBe(true);
+  });
+
+  it('does not request limit orders while offline', async () => {
+    netInfoMock.__setMockNetInfo({ isInternetReachable: false });
+    const requests = serveLimitOrders([MOCK_LIMIT_FILLED_ORDER]);
+    const view = await renderLimitOrdersActivity();
+    await selectLimitOrdersFilter(view);
+
+    expect(
+      await view.findByText(
+        strings('activity_view.empty_state.limit_orders.description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(
+        activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(requests).toEqual([]);
+  });
+
+  it('does not offer the Limit orders filter when limit orders are disabled', async () => {
+    const requests = serveLimitOrders([MOCK_LIMIT_FILLED_ORDER]);
+    const view = await renderLimitOrdersActivity({ enabled: false });
+
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
+    );
+
+    expect(
+      await view.findByTestId(optionTestId(ActivityTypeFilter.BuySell)),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(optionTestId(ActivityTypeFilter.LimitOrders)),
+    ).not.toBeOnTheScreen();
+    expect(requests).toEqual([]);
+  });
+});
+
+describeForPlatforms('ActivityScreen — perps funds', () => {
+  let perpsController: PerpsControllerOverviewStubs;
+
+  beforeEach(() => {
+    ({ perpsController } = stubPerpsOverviewEngine());
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    restorePerpsOverviewEngine(perpsController);
+    clearAccountsTransactionsApiMocks();
+  });
+
+  it('shows Account funded and Perps withdrawal under Perps Deposits after load, and hides a Perps trade', async () => {
+    const { findByTestId, getAllByText, queryByTestId } = renderPerpsOverview(
+      PerpsActivityFilter.Deposits,
+    );
+
+    await waitFor(() => {
+      expect(
+        getAllByText(perpsFilterLabel(PerpsActivityFilter.Deposits)).length,
+      ).toBeGreaterThan(0);
+    });
+
+    const depositTitle = await waitFor(
+      () =>
+        findByTestId(
+          activityListRowTitleTestId(ACTIVITY_CV_PERPS_DEPOSIT_HASH),
+        ),
+      { timeout: 10000 },
+    );
+    expect(depositTitle).toHaveTextContent(
+      strings('transactions.activity_perps_account_funded'),
+    );
+    expect(
+      await findByTestId(
+        activityListRowSubtitleTestId(ACTIVITY_CV_PERPS_DEPOSIT_HASH),
+      ),
+    ).toHaveTextContent(strings('transactions.activity_perps_balance'));
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestId(ACTIVITY_CV_PERPS_DEPOSIT_HASH),
+      ),
+    ).toHaveTextContent(/^\+/);
+    expect(
+      await findByTestId(
+        activityListRowSecondaryAmountTestId(ACTIVITY_CV_PERPS_DEPOSIT_HASH),
+      ),
+    ).toHaveTextContent(/1,?000 USDC/);
+    expect(
+      await findByTestId(
+        activityListRowAvatarSingleTestId(ACTIVITY_CV_PERPS_DEPOSIT_HASH),
+      ),
+    ).toBeOnTheScreen();
+
+    expect(
+      await findByTestId(
+        activityListRowTitleTestId(ACTIVITY_CV_PERPS_WITHDRAWAL_HASH),
+      ),
+    ).toHaveTextContent(strings('transactions.activity_perps_withdrawal'));
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestId(ACTIVITY_CV_PERPS_WITHDRAWAL_HASH),
+      ),
+    ).toHaveTextContent(/^-/);
+    expect(
+      await findByTestId(
+        activityListRowSecondaryAmountTestId(ACTIVITY_CV_PERPS_WITHDRAWAL_HASH),
+      ),
+    ).toHaveTextContent(/^-.*1,?000 USDC/);
+
+    expect(
+      queryByTestId(
+        activityListRowTitleTestIdPattern(
+          activityCvPerpsTradeRowHash('openLong'),
+        ),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('ActivityScreen — perps trades', () => {
+  let perpsController: PerpsControllerOverviewStubs;
+
+  beforeEach(() => {
+    ({ perpsController } = stubPerpsOverviewEngine());
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    restorePerpsOverviewEngine(perpsController);
+    clearAccountsTransactionsApiMocks();
+  });
+
+  it('shows open and close long and short under Perps Trades after load, and hides a Perps order', async () => {
+    const openLongHash = activityCvPerpsTradeRowHash('openLong');
+    const openShortHash = activityCvPerpsTradeRowHash('openShort');
+    const closeLongHash = activityCvPerpsTradeRowHash('closeLong');
+    const closeShortHash = activityCvPerpsTradeRowHash('closeShort');
+    const orderHash = activityCvPerpsCanceledTakeProfitRowHash();
+
+    const { findByTestId, getAllByText, queryByTestId } = renderPerpsOverview();
+
+    await waitFor(() => {
+      expect(
+        getAllByText(perpsFilterLabel(PerpsActivityFilter.Trades)).length,
+      ).toBeGreaterThan(0);
+    });
+
+    const openLongTitle = await waitFor(
+      () => findByTestId(activityListRowTitleTestIdPattern(openLongHash)),
+      { timeout: 10000 },
+    );
+    expect(openLongTitle).toHaveTextContent(
+      strings('transactions.activity_perps_open_long'),
+    );
+    expect(
+      await findByTestId(activityListRowSubtitleTestIdPattern(openLongHash)),
+    ).toHaveTextContent('0.0001 BTC');
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestIdPattern(openLongHash),
+      ),
+    ).toHaveTextContent(/^-\$0\.50/);
+    expect(
+      queryByTestId(activityListRowSecondaryAmountTestIdPattern(openLongHash)),
+    ).toBeNull();
+
+    expect(
+      await findByTestId(activityListRowTitleTestIdPattern(openShortHash)),
+    ).toHaveTextContent(strings('transactions.activity_perps_open_short'));
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestIdPattern(openShortHash),
+      ),
+    ).toHaveTextContent(/^-\$0\.50/);
+
+    expect(
+      await findByTestId(activityListRowTitleTestIdPattern(closeLongHash)),
+    ).toHaveTextContent(strings('transactions.activity_perps_close_long'));
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestIdPattern(closeLongHash),
+      ),
+    ).toHaveTextContent(/^\+\$45\.67/);
+
+    expect(
+      await findByTestId(activityListRowTitleTestIdPattern(closeShortHash)),
+    ).toHaveTextContent(strings('transactions.activity_perps_close_short'));
+    expect(
+      await findByTestId(
+        activityListRowPrimaryAmountTestIdPattern(closeShortHash),
+      ),
+    ).toHaveTextContent(/^-\$12\.34/);
+
+    expect(
+      queryByTestId(activityListRowTitleTestId(orderHash)),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('ActivityScreen — perps orders', () => {
+  let perpsController: PerpsControllerOverviewStubs;
+
+  beforeEach(() => {
+    ({ perpsController } = stubPerpsOverviewEngine());
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    restorePerpsOverviewEngine(perpsController);
+    clearAccountsTransactionsApiMocks();
+  });
+
+  it('shows canceled take-profit close short under Perps Orders after load, and hides a Perps trade', async () => {
+    const orderHash = activityCvPerpsCanceledTakeProfitRowHash();
+    const tradeHash = activityCvPerpsTradeRowHash('openLong');
+
+    const { findByTestId, getAllByText, queryByTestId } = renderPerpsOverview(
+      PerpsActivityFilter.Orders,
+    );
+
+    await waitFor(() => {
+      expect(
+        getAllByText(perpsFilterLabel(PerpsActivityFilter.Orders)).length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(orderHash)),
+      { timeout: 10000 },
+    );
+    expect(title).toHaveTextContent(
+      strings('transactions.activity_trigger_order_close', {
+        orderType: strings('perps.order.type.take_profit_limit.title'),
+        direction: strings('perps.market.close_short').toLowerCase(),
+      }),
+    );
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(orderHash)),
+    ).toHaveTextContent(strings('transactions.activity_order_status_canceled'));
+
+    expect(
+      queryByTestId(activityListRowTitleTestIdPattern(tradeHash)),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('ActivityScreen — perps funding', () => {
+  let perpsController: PerpsControllerOverviewStubs;
+
+  beforeEach(() => {
+    ({ perpsController } = stubPerpsOverviewEngine());
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    restorePerpsOverviewEngine(perpsController);
+    clearAccountsTransactionsApiMocks();
+  });
+
+  it('shows Paid and Received funding fees under Perps Fundings after load, and hides a Perps trade', async () => {
+    const paidHash = activityCvPerpsFundingRowHash('paid');
+    const receivedHash = activityCvPerpsFundingRowHash('received');
+    const tradeHash = activityCvPerpsTradeRowHash('openLong');
+
+    const { findByTestId, getAllByText, queryByTestId } = renderPerpsOverview(
+      PerpsActivityFilter.Fundings,
+    );
+
+    await waitFor(() => {
+      expect(
+        getAllByText(perpsFilterLabel(PerpsActivityFilter.Fundings)).length,
+      ).toBeGreaterThan(0);
+    });
+
+    const paidTitle = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(paidHash)),
+      { timeout: 10000 },
+    );
+    expect(paidTitle).toHaveTextContent(
+      strings('transactions.activity_perps_paid_funding_fees'),
+    );
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(paidHash)),
+    ).toHaveTextContent('BTC');
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(paidHash)),
+    ).toHaveTextContent(/^-/);
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(receivedHash)),
+    ).toHaveTextContent(
+      strings('transactions.activity_perps_received_funding_fees'),
+    );
+    expect(
+      await findByTestId(activityListRowPrimaryAmountTestId(receivedHash)),
+    ).toHaveTextContent(/^\+/);
+
+    expect(
+      queryByTestId(activityListRowTitleTestIdPattern(tradeHash)),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('ActivityScreen — Monad bridge status', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  const assertPendingList = async (
+    screen: ReturnType<typeof renderActivityScreenViewWithRoutes>,
+    bridgeHash: string,
+  ) => {
+    expect(
+      await screen.findByTestId(activityListRowTitleTestId(bridgeHash)),
+    ).toHaveTextContent('Bridging USDC');
+    expect(
+      await screen.findByTestId(activityListRowSubtitleTestId(bridgeHash)),
+    ).toHaveTextContent('Monad → Base');
+    expect(
+      await screen.findByTestId(
+        activityListRowPendingSpinnerTestId(bridgeHash),
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Swapping')).toBeNull();
+    expect(screen.queryByText('Swapped')).toBeNull();
+  };
+
+  const assertBridgedList = async (
+    screen: ReturnType<typeof renderActivityScreenViewWithRoutes>,
+    bridgeHash: string,
+  ) => {
+    expect(
+      await screen.findByTestId(activityListRowTitleTestId(bridgeHash)),
+    ).toHaveTextContent('Bridged USDC');
+    expect(
+      await screen.findByTestId(activityListRowSubtitleTestId(bridgeHash)),
+    ).toHaveTextContent('Monad → Base');
+    expect(
+      screen.queryByTestId(activityListRowPendingSpinnerTestId(bridgeHash)),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Swapping')).toBeNull();
+    expect(screen.queryByText('Swapped')).toBeNull();
+  };
+
+  const assertDetailsAmountFeeTotal = async (
+    screen: ReturnType<typeof renderActivityScreenViewWithRoutes>,
+  ) => {
+    expect(
+      await screen.findByTestId(ACTIVITY_DETAILS_SCREEN),
+    ).toBeOnTheScreen();
+    expect(await screen.findByText('Bridged USDC')).toBeOnTheScreen();
+
+    const amountHeader = await screen.findByTestId(
+      ACTIVITY_DETAILS_AMOUNT_HEADER,
+    );
+    expect(
+      screen.getByText(strings('activity_details.you_sent')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('activity_details.you_received')),
+    ).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^-.*MON/)).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^\+.*USDC/)).toBeOnTheScreen();
+
+    expect(
+      await screen.findByTestId(ACTIVITY_DETAILS_STATUS_PILL),
+    ).toHaveTextContent(strings('transaction.confirmed'));
+
+    const networkRow = screen.getByTestId(ACTIVITY_DETAILS_NETWORK_ROW);
+    expect(networkRow).toHaveTextContent('Monad', { exact: false });
+    expect(networkRow).toHaveTextContent('Base', { exact: false });
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ACTIVITY_DETAILS_FEE_ROW)).toHaveTextContent(
+        /\$/,
+      );
+    });
+    expect(screen.getByTestId(ACTIVITY_DETAILS_TOTAL_ROW)).toHaveTextContent(
+      /\$/,
+    );
+  };
+
+  // One tree: pending list → live controller update → Bridged → press → Details
+  it('shows Bridging then Bridged after dest completes, not Swap, with Amount Fee Total via details nav', async () => {
+    setupAccountsTransactionsApiMock([]);
+
+    const pendingBridge = buildPendingLocalBridgeMonToBaseTransaction();
+    const confirmedBridge = buildConfirmedLocalBridgeMonToBaseTransaction();
+    const bridgeHash = pendingBridge.hash as string;
+
+    const screen = renderActivityScreenViewWithRoutes({
+      state: monToBaseBridgeState(
+        pendingBridge,
+        activityCvPendingBridgeMonToBaseHistoryEntry,
+      ),
+      extraRoutes: [
+        {
+          name: Routes.ACTIVITY_DETAILS,
+          Component: ActivityDetailsWithProviders,
+        },
+      ],
+    });
+
+    await assertPendingList(screen, bridgeHash);
+
+    act(() => {
+      syncEngineControllerState(screen.store, 'TransactionController', {
+        transactions: [confirmedBridge],
+        swapsTransactions: {},
+      });
+      syncEngineControllerState(screen.store, 'BridgeStatusController', {
+        txHistory: {
+          [confirmedBridge.id]: activityCvBridgeMonToBaseHistoryEntry,
+        },
+      });
+    });
+
+    await assertBridgedList(screen, bridgeHash);
+
+    fireEvent.press(screen.getByTestId(activityListRowItemTestId(1)));
+
+    await assertDetailsAmountFeeTotal(screen);
+  });
+});
+
+describe('ActivityScreen — glass header', () => {
+  const renderWithGlassHeaders = (enabled: boolean) =>
+    renderActivityScreenView({
+      state: initialStateActivity()
+        .withRemoteFeatureFlags({
+          glassHeaders: { enabled, minimumVersion: '0.0.0' },
+        })
+        .build(),
+    });
+
+  itForPlatforms(
+    'pads the list and its refresh spinner below the floating header',
+    async () => {
+      const { findByTestId } = renderWithGlassHeaders(true);
+
+      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+      const { paddingTop } = list.props.contentContainerStyle;
+
+      expect(paddingTop).toBeGreaterThan(0);
+      expect(list.props.refreshControl.props.progressViewOffset).toBe(
+        paddingTop,
+      );
+    },
+  );
+
+  itForPlatforms(
+    'keeps the list at the top edge when glass headers are off',
+    async () => {
+      const { findByTestId } = renderWithGlassHeaders(false);
+
+      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+
+      expect(list.props.contentContainerStyle.paddingTop).toBe(0);
+      expect(list.props.refreshControl.props.progressViewOffset).toBe(0);
+    },
+  );
+
+  itForPlatforms(
+    'opens the type filter sheet from a glass filter chip',
+    async () => {
+      const { getByTestId, findByTestId } = renderWithGlassHeaders(true);
+
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+
+      expect(
+        await findByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET),
+      ).toBeOnTheScreen();
+    },
+  );
 });

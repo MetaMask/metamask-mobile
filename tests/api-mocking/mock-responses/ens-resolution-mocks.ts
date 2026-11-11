@@ -68,7 +68,7 @@ const ENS_INDEX_HTML = `<!DOCTYPE html>
 <body>
   <h1>vitalik.eth</h1>
   <nav>
-    <a href="./categories/general.html">General</a>
+    <a id="ens-general-link" href="./categories/general.html">General</a>
   </nav>
 </body>
 </html>`;

@@ -370,19 +370,30 @@ export const selectMusdBalanceChainIds = createSelector(
 );
 
 /**
- * Selector for Merkl campaign claiming feature flag
- * Controls visibility of Merkl rewards claiming functionality in the UI
- *
- * @returns boolean - true if Merkl campaign claiming should be shown, false otherwise
+ * Selects whether the Earn section is rendered on Explore page.
  */
-export const selectMerklCampaignClaimingEnabledFlag = createSelector(
+export const selectExploreEarnSectionEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING === 'true';
+    const localFlag = process.env.MM_EXPLORE_EARN_SECTION_ENABLED === 'true';
     const remoteFlag =
-      remoteFeatureFlags?.earnMerklCampaignClaiming as unknown as VersionGatedFeatureFlag;
+      remoteFeatureFlags?.earnExploreSectionEnabled as unknown as VersionGatedFeatureFlag;
 
-    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the redesigned Earn row is rendered in the Trade menu.
+ */
+export const selectEarnTradeMenuRowRedesignEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_EARN_TRADE_MENU_ROW_REDESIGN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnTradeMenuRowRedesignEnabled as unknown as VersionGatedFeatureFlag;
+
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );

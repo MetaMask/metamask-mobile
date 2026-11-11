@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import { usePredictPortfolio } from '../../../../hooks/usePredictPortfolio';
+import { GlassView } from 'expo-glass-effect';
 import PredictPortfolioModule from './PredictPortfolioModule';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
@@ -17,6 +18,20 @@ const mockTrackPortfolioPositionsButtonTapped = jest.fn();
 const mockTrackPortfolioTransactionInitiated = jest.fn();
 let mockPrivacyMode = false;
 let mockEnableDepositWalletWithdraw = false;
+
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -71,6 +86,8 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
       'predict.portfolio.available_amount': `${params?.amount} available`,
       'predict.portfolio.value_accessibility': `Portfolio value, ${params?.value}`,
       'predict.portfolio.value_hidden_accessibility': 'Portfolio value hidden',
+      'predict.portfolio.value_unavailable_accessibility':
+        'Portfolio value unavailable',
       'predict.tabs.positions': 'Positions',
       'predict.unrealized_pnl_value': `${params?.amount} (${params?.percent})`,
     };
@@ -162,6 +179,22 @@ describe('PredictPortfolioModule', () => {
     ).toBeNull();
   });
 
+  it('draws the Positions, Add funds and Withdraw tiles on glass', () => {
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictPortfolioModule isGlass />,
+    );
+
+    expect(UNSAFE_getAllByType(GlassView)).toHaveLength(3);
+  });
+
+  it('keeps the portfolio tiles off glass by default', () => {
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <PredictPortfolioModule />,
+    );
+
+    expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+  });
+
   it('renders returning state with P&L, available balance, and badge', () => {
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({
@@ -183,6 +216,36 @@ describe('PredictPortfolioModule', () => {
     expect(screen.getByText('3')).toBeOnTheScreen();
   });
 
+  it('keeps the available balance visible when positions fail to load', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        availableBalance: 250,
+        error: new Error('Positions failed'),
+      }),
+    );
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    expect(screen.getAllByText('—')).toHaveLength(2);
+    expect(screen.getByText('$250.00 available')).toBeOnTheScreen();
+  });
+
+  it('hides the available balance when it fails to load', () => {
+    const balanceError = new Error('Balance failed');
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        availableBalance: 250,
+        balanceError,
+        error: balanceError,
+      }),
+    );
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    expect(screen.queryByText('$250.00 available')).toBeNull();
+    expect(screen.getByText('— available')).toBeOnTheScreen();
+  });
+
   it('renders claim CTA when claimable winnings exist', () => {
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({
@@ -194,6 +257,22 @@ describe('PredictPortfolioModule', () => {
     renderWithProvider(<PredictPortfolioModule />);
 
     expect(screen.getByText('Claim $46.35')).toBeOnTheScreen();
+  });
+
+  it('draws the claim CTA on glass with the portfolio tiles', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        claimableAmount: 46.35,
+        hasClaimableWinnings: true,
+      }),
+    );
+
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictPortfolioModule isGlass />,
+    );
+
+    // Three portfolio tiles plus the claim button.
+    expect(UNSAFE_getAllByType(GlassView)).toHaveLength(4);
   });
 
   it('supports privacy mode with sensitive values hidden', () => {

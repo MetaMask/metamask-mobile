@@ -63,7 +63,9 @@ function fetchTokenBatch(assetIds: string[]): Promise<TokenAsset[]> {
   return promise;
 }
 
-async function fetchTokenAssets(assetIds: string[]): Promise<TokenAsset[]> {
+export async function fetchTokenAssets(
+  assetIds: string[],
+): Promise<TokenAsset[]> {
   const batches: string[][] = [];
   for (let i = 0; i < assetIds.length; i += MAX_BATCH_SIZE) {
     batches.push(assetIds.slice(i, i + MAX_BATCH_SIZE));

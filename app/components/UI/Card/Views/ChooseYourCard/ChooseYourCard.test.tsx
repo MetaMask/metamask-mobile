@@ -16,6 +16,11 @@ const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: mockAddProperties,
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -120,6 +125,10 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
 
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     HeaderStandard: () => null,
     Box: ({
       children,
@@ -257,6 +266,7 @@ describe('ChooseYourCard', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.CHOOSE_YOUR_CARD,
         flow: 'onboarding',
       });
@@ -272,6 +282,7 @@ describe('ChooseYourCard', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.CHOOSE_CARD_CONTINUE,
         card_type: CardType.VIRTUAL,
         flow: 'onboarding',

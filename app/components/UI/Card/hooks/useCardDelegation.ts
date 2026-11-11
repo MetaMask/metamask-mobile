@@ -19,6 +19,8 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ARBITRARY_ALLOWANCE } from '../constants';
+import { withCardProvider } from '../util/metrics';
+import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
@@ -390,7 +392,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
     async (params: DelegationParams) => {
       setState({ isLoading: true, error: null });
 
-      const metricsProps = {
+      const metricsProps = withCardProvider(CardProviderIds.Baanx, {
         token_symbol: params.currency,
         token_chain_id: params.network,
         delegation_type:
@@ -399,7 +401,7 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
           ? 0
           : Number(params.amount),
         faucet: params.faucet ?? false,
-      };
+      });
 
       try {
         trackEvent(

@@ -1,15 +1,25 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
-import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  BtcScope,
+  SolAccountType,
+  EthScope,
+  SolScope,
+} from '@metamask/keyring-api';
 import { IconName, toast } from '@metamask/design-system-react-native';
+import { FlashList } from '@shopify/flash-list';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import { AddressList } from './AddressList';
 import { MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
-import { toFormattedAddress } from '../../../../util/address';
+import {
+  renderShortAddress,
+  toFormattedAddress,
+} from '../../../../util/address';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { strings } from '../../../../../locales/i18n';
@@ -23,12 +33,17 @@ const TITLE = 'Test Address List';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
+let mockFocusCleanup: (() => void) | undefined;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
     setOptions: mockSetOptions,
+  }),
+  useFocusEffect: jest.fn((callback) => {
+    const cleanup = callback();
+    mockFocusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
   }),
 }));
 
@@ -83,7 +98,7 @@ const mockEthEoaAccount = {
   scopes: [EthScope.Eoa],
   groupId: 'entropy:wallet-id-1/1"',
 };
-const shortenedEthAddress = '0x4FeC2...fdcB5';
+const shortenedEthAddress = renderShortAddress(mockEthEoaAccount.address);
 
 const mockSolAccount = {
   ...createMockInternalAccount(
@@ -94,14 +109,29 @@ const mockSolAccount = {
   scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
   type: SolAccountType.DataAccount,
 };
-const shortenedSolAddress = 'FcdCd3m...GPZgj';
+const shortenedSolAddress = renderShortAddress(mockSolAccount.address);
 
-const renderWithAddressList = () => {
+const mockBtcAccount = {
+  ...createMockInternalAccount(
+    'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
+    'Btc Account 1',
+  ),
+  id: 'mock-btc-account-1',
+  scopes: [BtcScope.Mainnet],
+  type: BtcAccountType.P2wpkh,
+};
+
+const renderWithAddressList = ({ includeBtcAccount = false } = {}) => {
+  const btcAccounts = includeBtcAccount ? [mockBtcAccount] : [];
+
   const mockAccountsControllerState = {
     internalAccounts: {
       accounts: {
         [mockEthEoaAccount.id]: mockEthEoaAccount,
         [mockSolAccount.id]: mockSolAccount,
+        ...Object.fromEntries(
+          btcAccounts.map((account) => [account.id, account]),
+        ),
       },
     },
   };
@@ -114,7 +144,11 @@ const renderWithAddressList = () => {
           metadata: { name: 'Mock Wallet' },
           groups: {
             [ACCOUNT_GROUP_ID]: {
-              accounts: [mockEthEoaAccount.id, mockSolAccount.id],
+              accounts: [
+                mockEthEoaAccount.id,
+                mockSolAccount.id,
+                ...btcAccounts.map((account) => account.id),
+              ],
               id: ACCOUNT_GROUP_ID,
             },
           },
@@ -146,6 +180,11 @@ const renderWithAddressList = () => {
 
   const mockMultichainNetworkController = {
     multichainNetworkConfigurationsByChainId: {
+      [BtcScope.Mainnet]: {
+        name: 'Bitcoin',
+        chainId: BtcScope.Mainnet,
+        isTestnet: false,
+      },
       [SolScope.Mainnet]: {
         name: 'Solana Mainnet',
         chainId: SolScope.Mainnet,
@@ -183,6 +222,7 @@ const renderWithAddressList = () => {
 describe('AddressList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocusCleanup = undefined;
 
     const { useParams } = jest.requireMock(
       '../../../../util/navigation/navUtils',
@@ -212,6 +252,15 @@ describe('AddressList', () => {
     expect(getByText('Solana Mainnet')).toBeDefined();
   });
 
+  it('shows the Bitcoin account type label beside the plain network name', () => {
+    const { getByText, getAllByText } = renderWithAddressList({
+      includeBtcAccount: true,
+    });
+
+    expect(getByText('Bitcoin')).toBeDefined();
+    expect(getAllByText('Native SegWit')).toHaveLength(1);
+  });
+
   it('sets navigation options when title is provided', () => {
     renderWithAddressList();
 
@@ -235,7 +284,9 @@ describe('AddressList', () => {
 
     expect(navOptionsWithHeader).toBeDefined();
 
-    const { getByTestId, unmount } = render(navOptionsWithHeader.header());
+    const { getByTestId, unmount } = renderWithProvider(
+      navOptionsWithHeader.header(),
+    );
     fireEvent.press(getByTestId(AddressListIds.GO_BACK));
 
     expect(mockGoBack).toHaveBeenCalled();
@@ -280,6 +331,47 @@ describe('AddressList', () => {
         },
       },
     );
+  });
+
+  it('calls route onLoad once when FlashList loads', () => {
+    const onLoad = jest.fn();
+    const { useParams } = jest.requireMock(
+      '../../../../util/navigation/navUtils',
+    );
+    useParams.mockReturnValue({
+      title: TITLE,
+      groupId: ACCOUNT_GROUP_ID,
+      source: 'copy_button',
+      onLoad,
+    });
+
+    const { UNSAFE_getByType, unmount } = renderWithAddressList();
+
+    UNSAFE_getByType(FlashList).props.onLoad({ elapsedTimeInMs: 10 });
+    mockFocusCleanup?.();
+    unmount();
+
+    expect(onLoad).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls route onLoad when the screen loses focus before FlashList loads', () => {
+    const onLoad = jest.fn();
+    const { useParams } = jest.requireMock(
+      '../../../../util/navigation/navUtils',
+    );
+    useParams.mockReturnValue({
+      title: TITLE,
+      groupId: ACCOUNT_GROUP_ID,
+      source: 'copy_button',
+      onLoad,
+    });
+
+    const { unmount } = renderWithAddressList();
+
+    mockFocusCleanup?.();
+    unmount();
+
+    expect(onLoad).toHaveBeenCalledTimes(1);
   });
 
   describe('Analytics tracking', () => {

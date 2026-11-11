@@ -50,7 +50,7 @@ const createStyles = (
       backgroundColor: colors.primary.muted,
       height: 3,
       borderRadius: 3,
-      marginVertical: 15,
+      marginVertical: 16,
     },
     progressBar: {
       backgroundColor: colors.primary.default,
@@ -77,7 +77,7 @@ const createStyles = (
       zIndex: 2,
     },
     backgroundShapes: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 1,
       justifyContent: 'center',
       alignItems: 'center',

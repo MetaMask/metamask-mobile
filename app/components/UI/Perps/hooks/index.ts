@@ -1,4 +1,5 @@
 // Core hooks (direct controller access)
+export { useBottomSafeAreaInset } from '../../../hooks/useBottomSafeAreaInset';
 export { usePerpsCategories } from './usePerpsCategories';
 export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';
@@ -23,6 +24,13 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
 export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
+export { usePerpsVisibleCandleCount } from './usePerpsVisibleCandleCount';
+export { usePerpsProOrderBookExpanded } from './usePerpsProOrderBookExpanded';
+export { usePerpsProOrderBookPosition } from './usePerpsProOrderBookPosition';
+export { usePerpsOrderBookPreferences } from './usePerpsOrderBookPreferences';
+export { usePerpsProOrdersPreferences } from './usePerpsProOrdersPreferences';
+export { usePerpsProPositionsPreferences } from './usePerpsProPositionsPreferences';
+export { usePerpsSyncedChartPrice } from './usePerpsSyncedChartPrice';
 
 // Connection management hooks
 export { usePerpsConnection } from './usePerpsConnection';
@@ -39,6 +47,7 @@ export { usePerpsPrices } from './usePerpsPrices';
 export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
+export { usePerpsPositionModifyPreview } from './usePerpsPositionModifyPreview';
 export {
   usePerpsMarketData,
   type UsePerpsMarketDataParams,
@@ -67,6 +76,8 @@ export { useColorPulseAnimation } from './useColorPulseAnimation';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
+export { usePerpsQuotedFeeReservation } from './usePerpsQuotedFeeReservation';
+export { usePerpsRebateQuote } from './usePerpsRebateQuote';
 export { usePerpsRewards } from './usePerpsRewards';
 export { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
 export { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
@@ -80,16 +91,29 @@ export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
+export { useIsActivePerpsTrader } from './useIsActivePerpsTrader';
+// Removed from barrel: usePerpsClosePositionForm consumes this barrel.
+// Import directly: import { usePerpsClosePositionForm } from './hooks/usePerpsClosePositionForm';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
 export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 export { usePerpsTPSLForm } from './usePerpsTPSLForm';
-export { default as usePerpsToasts } from './usePerpsToasts';
+export {
+  default as usePerpsToasts,
+  getPerpsToastLabels,
+} from './usePerpsToasts';
+
+// A/B tests
+export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
+export { usePerpsHomeExploreAbTest } from './usePerpsHomeExploreAbTest';
+export { usePerpsFeeDisplayAbTest } from './usePerpsFeeDisplayAbTest';
+export { usePerpsLiveTradesAbTest } from './usePerpsLiveTradesAbTest';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsMarketFills } from './usePerpsMarketFills';
+export { usePerpsRecordedOrderFees } from './usePerpsRecordedOrderFees';
 export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 export { useWithdrawalRequests } from './useWithdrawalRequests';

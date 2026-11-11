@@ -181,12 +181,49 @@ describe('useOHLCVRealtime', () => {
     await act(async () => {
       barUpdatedHandler({
         channel:
-          'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+          'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
         bar,
       });
     });
 
     expect(result.current.latestBar).toEqual(bar);
+  });
+
+  it('keeps the same latestBar reference when an identical bar arrives twice', async () => {
+    const { result } = renderHook(() =>
+      useOHLCVRealtime(arrangeDefaultOptions()),
+    );
+
+    const barUpdatedHandler = mockSubscribe.mock.calls.find(
+      (call) => call[0] === 'OHLCVService:barUpdated',
+    )?.[1];
+
+    const bar = {
+      timestamp: 1700000000,
+      open: 100,
+      high: 105,
+      low: 99,
+      close: 103,
+      volume: 5000,
+    };
+    const channel =
+      'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd';
+
+    await act(async () => {
+      barUpdatedHandler({ channel, bar });
+    });
+
+    const firstBarReference = result.current.latestBar;
+    expect(firstBarReference).toEqual(bar);
+
+    await act(async () => {
+      // New object, but field-for-field identical to the previous bar.
+      barUpdatedHandler({ channel, bar: { ...bar } });
+    });
+
+    // areBarsEqual should detect the duplicate and skip the state update,
+    // so the reference stays the original bar object (no re-render triggered).
+    expect(result.current.latestBar).toBe(firstBarReference);
   });
 
   it('ignores barUpdated events for different channels', async () => {
@@ -200,7 +237,7 @@ describe('useOHLCVRealtime', () => {
 
     await act(async () => {
       barUpdatedHandler({
-        channel: 'market-data.v1.eip155:1/slip44:60.15m.usd',
+        channel: 'ohlcv.v1.eip155:1/slip44:60.15m.usd',
         bar: {
           timestamp: 1700000000,
           open: 100,
@@ -228,7 +265,7 @@ describe('useOHLCVRealtime', () => {
     await act(async () => {
       barUpdatedHandler({
         channel:
-          'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+          'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
         bar: {
           timestamp: 1700000000,
           open: 100,
@@ -245,6 +282,224 @@ describe('useOHLCVRealtime', () => {
     rerender({ ...arrangeDefaultOptions(), interval: '1h' });
 
     expect(result.current.latestBar).toBeNull();
+  });
+
+  it('does not report the previous asset bar on the render the asset changes', async () => {
+    const latestBarsByAssetId: [string, unknown][] = [];
+    const { rerender } = renderHook(
+      (props) => {
+        const { latestBar } = useOHLCVRealtime(props);
+        latestBarsByAssetId.push([props.assetId, latestBar]);
+        return latestBar;
+      },
+      { initialProps: arrangeDefaultOptions() },
+    );
+
+    const barUpdatedHandler = mockSubscribe.mock.calls.find(
+      (call) => call[0] === 'OHLCVService:barUpdated',
+    )?.[1];
+
+    await act(async () => {
+      barUpdatedHandler({
+        channel:
+          'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+        bar: {
+          timestamp: 1700000000,
+          open: 1,
+          high: 1,
+          low: 1,
+          close: 1,
+          volume: 5000,
+        },
+      });
+    });
+
+    const nextAssetId = 'eip155:1/slip44:60';
+    rerender({ ...arrangeDefaultOptions(), assetId: nextAssetId });
+
+    const nextAssetBars = latestBarsByAssetId
+      .filter(([assetId]) => assetId === nextAssetId)
+      .map(([, latestBar]) => latestBar);
+    expect(nextAssetBars.length).toBeGreaterThan(0);
+    expect(nextAssetBars.every((latestBar) => latestBar === null)).toBe(true);
+  });
+
+  describe('isLoading', () => {
+    const channel =
+      'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd';
+    const bar = {
+      timestamp: 1700000000,
+      open: 100,
+      high: 105,
+      low: 99,
+      close: 103,
+      volume: 5000,
+    };
+
+    it('is true until the first price for the asset is known', () => {
+      const { result } = renderHook(() =>
+        useOHLCVRealtime(arrangeDefaultOptions()),
+      );
+
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('is false once the first /latest poll returns a bar', async () => {
+      mockFetch.mockResolvedValue(
+        makeFetchResponse({ ...bar, timestamp: 1700000000000 }),
+      );
+      const { result } = renderHook(() =>
+        useOHLCVRealtime(arrangeDefaultOptions()),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      expect(result.current.latestBar).not.toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('is false once the first /latest poll answers without a bar', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 });
+      const { result } = renderHook(() =>
+        useOHLCVRealtime(arrangeDefaultOptions()),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      expect(result.current.latestBar).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('is false once the first /latest poll throws', async () => {
+      mockFetch.mockRejectedValue(new Error('network down'));
+      const { result } = renderHook(() =>
+        useOHLCVRealtime(arrangeDefaultOptions()),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('is false once a bar arrives over the socket', async () => {
+      const { result } = renderHook(() =>
+        useOHLCVRealtime(arrangeDefaultOptions()),
+      );
+      const barUpdatedHandler = mockSubscribe.mock.calls.find(
+        (call) => call[0] === 'OHLCVService:barUpdated',
+      )?.[1];
+
+      await act(async () => {
+        barUpdatedHandler({ channel, bar });
+      });
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('is false when OHLCVService:subscribe throws and no poll follows', async () => {
+      mockCall.mockRejectedValueOnce(new Error('WS subscribe failed'));
+      const { result } = renderHook(() =>
+        useOHLCVRealtime(arrangeDefaultOptions()),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('is true again from the render the asset changes', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 });
+      const isLoadingByAssetId: [string, boolean][] = [];
+      const { rerender } = renderHook(
+        (props) => {
+          const { isLoading } = useOHLCVRealtime(props);
+          isLoadingByAssetId.push([props.assetId, isLoading]);
+          return isLoading;
+        },
+        { initialProps: arrangeDefaultOptions() },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+      expect(isLoadingByAssetId[isLoadingByAssetId.length - 1][1]).toBe(false);
+
+      const nextAssetId = 'eip155:1/slip44:60';
+      rerender({ ...arrangeDefaultOptions(), assetId: nextAssetId });
+
+      const nextAssetLoadingStates = isLoadingByAssetId
+        .filter(([assetId]) => assetId === nextAssetId)
+        .map(([, isLoading]) => isLoading);
+      expect(nextAssetLoadingStates.length).toBeGreaterThan(0);
+      expect(nextAssetLoadingStates.every(Boolean)).toBe(true);
+    });
+
+    it.each([
+      { name: 'disabled', overrides: { enabled: false } },
+      { name: 'missing an asset id', overrides: { assetId: '' } },
+    ])('is false when $name', ({ overrides }) => {
+      const { result } = renderHook(() =>
+        useOHLCVRealtime({ ...arrangeDefaultOptions(), ...overrides }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  describe('/latest host', () => {
+    const pollOnce = async (
+      options: Parameters<typeof useOHLCVRealtime>[0],
+    ) => {
+      mockFetch.mockResolvedValue(
+        makeFetchResponse({
+          timestamp: 1700000000000,
+          open: 100,
+          high: 110,
+          low: 95,
+          close: 108,
+          volume: 9000,
+        }),
+      );
+
+      renderHook(() => useOHLCVRealtime(options));
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      return mockFetch.mock.calls[0][0] as string;
+    };
+
+    // Bridge's live rate and the legacy chart both reach this hook without a
+    // provider, so prod is what it must ask for.
+    it('requests prod outside a PriceApiHostProvider', async () => {
+      const url = await pollOnce(arrangeDefaultOptions());
+
+      expect(url).toContain('https://price.api.cx.metamask.io/v3/ohlcv/');
+      expect(url).toContain('/latest');
+    });
+
+    // The fallback has to ask the host that holds the history the chart is
+    // already drawing, or the in-progress candle never arrives for a token
+    // the prod stream does not carry.
+    it('requests the given host instead of prod', async () => {
+      const url = await pollOnce({
+        ...arrangeDefaultOptions(),
+        baseUrl: 'https://price.dev-api.cx.metamask.io',
+      });
+
+      expect(url).toContain('https://price.dev-api.cx.metamask.io/v3/ohlcv/');
+      expect(url).toContain('/latest');
+    });
   });
 
   describe('staleness fallback', () => {
@@ -317,7 +572,7 @@ describe('useOHLCVRealtime', () => {
       await act(async () => {
         barUpdatedHandler({
           channel:
-            'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+            'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
           bar: {
             timestamp: 1700000000,
             open: 100,
@@ -454,7 +709,7 @@ describe('useOHLCVRealtime', () => {
       await act(async () => {
         subscriptionErrorHandler({
           channel:
-            'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
+            'ohlcv.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd',
           error: 'WS subscribe failed',
           operation: 'subscribe',
         });

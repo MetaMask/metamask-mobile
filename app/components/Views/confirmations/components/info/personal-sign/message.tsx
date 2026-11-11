@@ -4,7 +4,6 @@ import { hexToText } from '@metamask/controller-utils';
 import { numberToHex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../locales/i18n';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../styles/common';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -16,6 +15,7 @@ import InfoDate from '../../UI/info-row/info-value/info-date';
 import InfoRow from '../../UI/info-row';
 import Network from '../../UI/info-row/info-value/network';
 import SignatureMessageSection from '../../signature-message-section';
+import { Text } from '@metamask/design-system-react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;

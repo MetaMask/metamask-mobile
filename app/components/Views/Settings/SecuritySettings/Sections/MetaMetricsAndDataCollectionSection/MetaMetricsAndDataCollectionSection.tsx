@@ -7,15 +7,11 @@ import {
   FontWeight,
   Text,
   TextColor,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { TextVariant as LibraryTextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../../../constants/urls';
 import React, { useEffect, useState } from 'react';
 import createStyles from '../../SecuritySettings.styles';
@@ -45,11 +41,20 @@ import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
   analyticsLocation?: 'settings' | 'onboarding_default_settings';
+  /** Ref to the MetaMetrics sub-section, used as a scroll target. */
+  metaMetricsRef?: React.Ref<View>;
+  /** Ref to the marketing data collection sub-section, used as a scroll target. */
+  dataCollectionRef?: React.Ref<View>;
 }
 
 const MetaMetricsAndDataCollectionSection: React.FC<
   MetaMetricsAndDataCollectionSectionProps
-> = ({ hideMarketingSection = false, analyticsLocation = 'settings' }) => {
+> = ({
+  hideMarketingSection = false,
+  analyticsLocation = 'settings',
+  metaMetricsRef,
+  dataCollectionRef,
+}) => {
   const { styles, theme } = useStyles(createStyles, {});
   const { colors } = theme;
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
@@ -228,7 +233,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   };
 
   const renderMetaMetricsSection = () => (
-    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
+    <View
+      ref={metaMetricsRef}
+      style={styles.halfSetting}
+      testID={META_METRICS_SECTION}
+    >
       <View style={styles.titleContainer}>
         <Text
           variant={TextVariant.BodyMd}
@@ -260,19 +269,19 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         style={styles.desc}
       >
         {strings('app_settings.metametrics_description')}{' '}
-        <Button
-          variant={ButtonVariants.Link}
-          size={ButtonSize.Auto}
-          labelTextVariant={LibraryTextVariant.BodySMMedium}
+        <TextButton
+          variant={TextVariant.BodySm}
           onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-          label={strings('app_settings.learn_more')}
-        />
+        >
+          {strings('app_settings.learn_more')}
+        </TextButton>
       </Text>
     </View>
   );
 
   const renderDataCollectionSection = () => (
     <View
+      ref={dataCollectionRef}
       style={styles.halfSetting}
       testID={META_METRICS_DATA_MARKETING_SECTION}
     >

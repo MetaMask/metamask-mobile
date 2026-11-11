@@ -41,27 +41,29 @@ function PerpsHeroIcon({ symbol }: { symbol: string | undefined }) {
   const displaySymbol = getPerpsDisplaySymbol(symbol);
 
   return (
-    <AvatarBase
-      size={AvatarBaseSize.Xl}
-      shape={AvatarBaseShape.Circle}
-      fallbackText={showFallback ? displaySymbol.substring(0, 2) : undefined}
-    >
-      {!showFallback && imageUri ? (
-        <Image
-          source={{ uri: imageUri }}
-          style={imageStyle.fill}
-          contentFit="contain"
-          cachePolicy="memory-disk"
-          onError={() => {
-            if (!useFallbackUrl && iconUrls?.fallback) {
-              setUseFallbackUrl(true);
-            } else {
-              setHasError(true);
-            }
-          }}
-        />
-      ) : null}
-    </AvatarBase>
+    <Box testID={ActivityDetailsSelectorsIDs.AMOUNT_AVATAR_SINGLE}>
+      <AvatarBase
+        size={AvatarBaseSize.Xl}
+        shape={AvatarBaseShape.Circle}
+        fallbackText={showFallback ? displaySymbol.substring(0, 2) : undefined}
+      >
+        {!showFallback && imageUri ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={imageStyle.fill}
+            contentFit="contain"
+            cachePolicy="memory-disk"
+            onError={() => {
+              if (!useFallbackUrl && iconUrls?.fallback) {
+                setUseFallbackUrl(true);
+              } else {
+                setHasError(true);
+              }
+            }}
+          />
+        ) : null}
+      </AvatarBase>
+    </Box>
   );
 }
 

@@ -1,31 +1,33 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect } from 'react';
-import { Image, StatusBar, View, useWindowDimensions } from 'react-native';
+import { StatusBar } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { brandColor } from '@metamask/design-tokens';
+import { Theme, useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../../locales/i18n';
-import StackedCardsImage from '../../../../../images/stacked-cards.png';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
-import createStyles, { GRADIENT_COLORS } from './CardWelcome.styles';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
+import CardWelcomeCardsAnimation from './CardWelcomeCardsAnimation';
+import { useCardEducationAnimationState } from './useCardEducationAnimationState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
-import { selectHasCardholderAccounts } from '../../../../../selectors/cardController';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { trackCardLinkRoutingDisagreement } from '../../util/trackCardLinkRoutingDisagreement';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  selectCardEntryRouting,
+  selectHasCardSignInLink,
+} from '../../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  ButtonBase,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import MarketingMoment from '../../../MarketingMoment';
+import { colors } from '../../../../../styles/common';
+
+const GRADIENT_COLORS = [colors.cardWelcomeGradientDark, brandColor.purple800];
 
 interface TransitionEndEvent {
   data?: { closing?: boolean };
@@ -43,18 +45,22 @@ const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
   const { goBack, navigate } = navigation;
-  const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
+  const cardEntryRouting = useSelector(selectCardEntryRouting);
+  const hasSignInLink = useSelector(selectHasCardSignInLink);
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
-  const dimensions = useWindowDimensions();
-  const styles = createStyles(theme, dimensions);
+  const tw = useTailwind();
+  const animationState = useCardEducationAnimationState();
+  const shouldAnimateCards = animationState === 'animate';
 
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.WELCOME,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.WELCOME,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -99,16 +105,21 @@ const CardWelcome = () => {
     goBack();
   }, [goBack]);
 
+  const shouldGoToSignIn = cardEntryRouting.hasCard || hasSignInLink;
+
   const handleButtonPress = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VERIFY_ACCOUNT_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.VERIFY_ACCOUNT_BUTTON,
+          }),
+        )
         .build(),
     );
+    trackCardLinkRoutingDisagreement(cardEntryRouting, 'card_welcome');
 
-    if (hasCardholderAccounts) {
+    if (shouldGoToSignIn) {
       navigate(
         Routes.CARD.AUTHENTICATION,
         postAuthRedirect ? { postAuthRedirect } : undefined,
@@ -120,7 +131,8 @@ const CardWelcome = () => {
       );
     }
   }, [
-    hasCardholderAccounts,
+    cardEntryRouting,
+    shouldGoToSignIn,
     navigate,
     postAuthRedirect,
     trackEvent,
@@ -128,75 +140,51 @@ const CardWelcome = () => {
   ]);
 
   return (
-    <LinearGradient
-      colors={GRADIENT_COLORS}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.pageContainer}
+    <MarketingMoment
       testID="card-gtm-modal-container"
-    >
-      {/* Header Section */}
-      <SafeAreaView style={styles.headerContainer} edges={['top']}>
-        <Text
-          style={styles.title}
-          variant={TextVariant.HeadingLg}
-          testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
-        >
-          {strings('card.card_onboarding.title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          style={styles.titleDescription}
-          testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
-        >
-          {strings('card.card_onboarding.description')}
-        </Text>
-      </SafeAreaView>
-
-      {/* Image Section - Positioned absolutely to extend behind footer */}
-      <View style={styles.imageContainer}>
-        <Image
-          source={StackedCardsImage}
-          style={styles.image}
-          resizeMode="contain"
-          testID={CardWelcomeSelectors.CARD_IMAGE}
+      theme={Theme.Dark}
+      background={
+        <LinearGradient
+          colors={GRADIENT_COLORS}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={tw.style('flex-1')}
         />
-      </View>
-
-      {/* Footer Section - Positioned absolutely at bottom */}
-      <SafeAreaView style={styles.footerContainer} edges={['bottom']}>
-        <ButtonBase
-          onPress={handleButtonPress}
-          testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-          size={ButtonSize.Lg}
-          style={styles.getStartedButton}
-          isFullWidth
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            style={styles.getStartedButtonText}
-          >
-            {strings(
-              hasCardholderAccounts
-                ? 'card.card_onboarding.login_button'
-                : 'card.card_onboarding.apply_now_button',
-            )}
-          </Text>
-        </ButtonBase>
-        <Button
-          variant={ButtonVariant.Secondary}
-          onPress={handleClose}
-          testID={CardWelcomeSelectors.NOT_NOW_BUTTON}
-          size={ButtonSize.Lg}
-          style={styles.notNowButton}
-          isFullWidth
-        >
-          <Text variant={TextVariant.BodyMd} style={styles.notNowButtonText}>
-            {strings('card.card_onboarding.not_now_button')}
-          </Text>
-        </Button>
-      </SafeAreaView>
-    </LinearGradient>
+      }
+      title={strings('card.card_onboarding.title')}
+      description={strings('card.card_onboarding.description')}
+      titleProps={{
+        testID: CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT,
+        twClassName: 'text-accent02-light text-center',
+      }}
+      descriptionProps={{
+        testID: CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
+        // padding to prevent orphan
+        twClassName: 'text-accent02-light text-center px-3',
+      }}
+      artwork={
+        animationState === 'pending' ? null : (
+          <CardWelcomeCardsAnimation
+            animate={shouldAnimateCards}
+            style={tw.style('h-full w-full')}
+          />
+        )
+      }
+      primaryAction={{
+        label: strings(
+          shouldGoToSignIn
+            ? 'card.card_onboarding.login_button'
+            : 'card.card_onboarding.apply_now_button',
+        ),
+        onPress: handleButtonPress,
+        testID: CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON,
+      }}
+      secondaryAction={{
+        label: strings('card.card_onboarding.not_now_button'),
+        onPress: handleClose,
+        testID: CardWelcomeSelectors.NOT_NOW_BUTTON,
+      }}
+    />
   );
 };
 

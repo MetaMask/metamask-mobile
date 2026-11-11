@@ -1,0 +1,35 @@
+import type { NotificationPreferenceSection } from './hooks/useNotificationStoragePreferences';
+
+export interface FeatureNotificationsGateCopy {
+  titleKey: string;
+  descriptionKey: string;
+  previewTitleKey: string;
+  previewMessageKey: string;
+  previewTimestampKey: string;
+}
+
+// Copy shown by the notifications gate for each supported feature.
+export const FEATURE_NOTIFICATIONS_GATE_COPY = {
+  priceAlerts: {
+    titleKey: 'notifications.feature_gate.price_alerts.title',
+    descriptionKey: 'notifications.feature_gate.price_alerts.description',
+    previewTitleKey: 'notifications.feature_gate.price_alerts.preview.title',
+    previewMessageKey:
+      'notifications.feature_gate.price_alerts.preview.message',
+    previewTimestampKey:
+      'notifications.feature_gate.price_alerts.preview.timestamp',
+  },
+  socialAI: {
+    titleKey: 'notifications.feature_gate.social_ai.title',
+    descriptionKey: 'notifications.feature_gate.social_ai.description',
+    previewTitleKey: 'notifications.feature_gate.social_ai.preview.title',
+    previewMessageKey: 'notifications.feature_gate.social_ai.preview.message',
+    previewTimestampKey:
+      'notifications.feature_gate.social_ai.preview.timestamp',
+  },
+} as const satisfies Partial<
+  Record<NotificationPreferenceSection, FeatureNotificationsGateCopy>
+>;
+
+export type FeatureNotificationsGateFeature =
+  keyof typeof FEATURE_NOTIFICATIONS_GATE_COPY;

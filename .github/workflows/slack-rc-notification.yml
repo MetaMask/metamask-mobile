@@ -2,7 +2,7 @@
 #
 # Slack RC Notification (reusable)
 #
-# Posts an RC build notification to the release Slack channel.
+# Posts an RC or production build notification to the release Slack channel.
 # Callers can pass build metadata (semver, build numbers) directly from build
 # outputs for accuracy, or omit them to fall back to reading from the branch.
 #
@@ -36,6 +36,11 @@ on:
         required: false
         type: string
         default: ''
+      build_kind:
+        description: 'rc (default) or production — changes header copy and Android download target'
+        required: false
+        type: string
+        default: 'rc'
 
 permissions:
   actions: read
@@ -46,29 +51,26 @@ jobs:
     name: Post Slack Notification
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.source_branch }}
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Download Android Play Store check report (optional)
         id: download-play-store-check
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-play-store-check-slack
           path: android-play-store-check-out
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
       - name: Read build metadata from repo
         if: inputs.semver == '' || inputs.ios_build_number == '' || inputs.android_build_number == ''
         id: build-meta
         run: ./scripts/get-build-metadata.sh --ci
-      - name: Install dependencies
-        run: yarn install --immutable
       - name: Post Slack notification
         run: |
           if node ./scripts/slack-rc-notification.mjs; then
@@ -84,5 +86,6 @@ jobs:
           ANDROID_PUBLIC_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          BUILD_KIND: ${{ inputs.build_kind }}
           # Disable android check msg for now
           #ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE: ${{ github.workspace }}/android-play-store-check-out/android-play-store-check-slack.md

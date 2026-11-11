@@ -36,8 +36,6 @@ import {
   Text,
   TextVariant,
   TextColor,
-  Button,
-  ButtonVariant,
   ButtonSize,
   Icon,
   IconName,
@@ -56,6 +54,7 @@ import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsigh
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { isSafeUrl } from '../../utils/marketInsightsFormatting';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import PerpsDirectionButton from '../../../Perps/components/PerpsDirectionButton';
 import type {
   MarketInsightsTweet,
   MarketInsightsTrend,
@@ -65,6 +64,10 @@ import {
   selectMarketInsightsPerpsEnabled,
 } from '../../../../../selectors/featureFlagController/marketInsights';
 import { endTrace, TraceName } from '../../../../../util/trace';
+import {
+  getMarketInsightsTraceEndData,
+  getMarketInsightsTraceId,
+} from '../../utils/marketInsightsPerformance';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
@@ -89,6 +92,7 @@ import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTrackin
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import { useStickyQuickBuy } from '../../../TokenDetails/hooks/useStickyQuickBuy';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -209,10 +213,21 @@ const MarketInsightsView: React.FC = () => {
   const isMarketInsightsEnabled = isPerps
     ? isPerpsInsightsEnabled
     : isTokenInsightsEnabled;
+  const assetType = isPerps ? 'perps' : 'token';
+  const fullViewTraceId = getMarketInsightsTraceId(
+    assetIdentifier,
+    routeSource,
+    'full_view',
+  );
 
   const { report, reportAssetId, isLoading, error } = useMarketInsights(
     assetIdentifier,
     isMarketInsightsEnabled,
+    {
+      source: routeSource,
+      stage: 'full_view',
+      assetType,
+    },
   );
 
   const isDarkMode = useColorScheme() === 'dark';
@@ -505,7 +520,7 @@ const MarketInsightsView: React.FC = () => {
         return;
       }
       trackMarketInsightsInteraction('source_click', { source_url: url });
-      Linking.openURL(url);
+      Linking.openURL(url).catch(() => undefined);
     },
     [trackMarketInsightsInteraction],
   );
@@ -609,8 +624,6 @@ const MarketInsightsView: React.FC = () => {
       return;
     }
 
-    endTrace({ name: TraceName.MarketInsightsViewLoad });
-
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({
         ...assetIdProperty,
@@ -630,6 +643,41 @@ const MarketInsightsView: React.FC = () => {
     createEventBuilder,
     routeSource,
   ]);
+
+  useEffect(() => {
+    if (reportAssetId !== assetIdentifier) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.MarketInsightsViewLoad,
+      id: fullViewTraceId,
+      data: getMarketInsightsTraceEndData('success'),
+    });
+  }, [assetIdentifier, fullViewTraceId, reportAssetId]);
+
+  useEffect(() => {
+    if (isLoading || report) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.MarketInsightsViewLoad,
+      id: fullViewTraceId,
+      data: getMarketInsightsTraceEndData(error ? 'error' : 'empty'),
+    });
+  }, [error, fullViewTraceId, isLoading, report]);
+
+  useEffect(
+    () => () => {
+      endTrace({
+        name: TraceName.MarketInsightsViewLoad,
+        id: fullViewTraceId,
+        data: getMarketInsightsTraceEndData('cancelled'),
+      });
+    },
+    [fullViewTraceId],
+  );
 
   if (showLoadingSkeleton && !report && !error) {
     return (
@@ -837,24 +885,24 @@ const MarketInsightsView: React.FC = () => {
               twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
             >
               <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-                <Button
-                  variant={ButtonVariant.Primary}
+                <PerpsDirectionButton
+                  direction="long"
                   size={ButtonSize.Lg}
                   twClassName="flex-1"
                   onPress={() => handlePerpsDirectionPress('long')}
                   testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
                 >
                   {strings('perps.market.long')}
-                </Button>
-                <Button
-                  variant={ButtonVariant.Primary}
+                </PerpsDirectionButton>
+                <PerpsDirectionButton
+                  direction="short"
                   size={ButtonSize.Lg}
                   twClassName="flex-1"
                   onPress={() => handlePerpsDirectionPress('short')}
                   testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
                 >
                   {strings('perps.market.short')}
-                </Button>
+                </PerpsDirectionButton>
               </Box>
               <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
                 <Text
@@ -910,12 +958,14 @@ const MarketInsightsView: React.FC = () => {
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={closeEligibilityModal}
-              contentKey="geo_block"
-              testID="market-insights-geo-block-tooltip"
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey="geo_block"
+                testID="market-insights-geo-block-tooltip"
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}

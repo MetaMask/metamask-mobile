@@ -1,4 +1,5 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
+import { debounce } from 'lodash';
 import BN from 'bnjs4';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -16,17 +17,29 @@ import {
   type SnapOnAmountInputResult,
 } from './useSnapAmountOnInput';
 
+const AMOUNT_VALIDATION_DEBOUNCE_MS = 300;
+
 export const useAmountValidation = () => {
   const { asset, value } = useSendContext();
   const { decimals, rawBalanceBN } = useBalance();
   const { isNonEvmSendType } = useSendType();
   const { validateAmountWithSnap } = useSnapAmountOnInput();
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
+  const unmountedRef = useRef(false);
+  const hasAttemptedContinueRef = useRef(false);
+  // Monotonic id for validation runs — only the latest run may write
+  // amountError, so a slow snap response can't overwrite a newer result.
+  const validationSeqRef = useRef(0);
 
-  const setAndReturnError = useCallback((errorMessage: string | undefined) => {
-    setAmountError(errorMessage);
-    return errorMessage;
-  }, []);
+  const setAndReturnErrorIfLatest = useCallback(
+    (seq: number, errorMessage: string | undefined) => {
+      if (!unmountedRef.current && seq === validationSeqRef.current) {
+        setAmountError(errorMessage);
+      }
+      return errorMessage;
+    },
+    [],
+  );
 
   const validateNonEvmAmount = useCallback(
     async (amount: string): Promise<string | undefined> => {
@@ -58,8 +71,11 @@ export const useAmountValidation = () => {
   );
 
   const validateAmountAsync = useCallback(async () => {
+    validationSeqRef.current += 1;
+    const seq = validationSeqRef.current;
+
     if (!value) {
-      return setAndReturnError(undefined);
+      return setAndReturnErrorIfLatest(seq, undefined);
     }
 
     const normalizedValue = normalizeAmount(value);
@@ -74,29 +90,85 @@ export const useAmountValidation = () => {
     for (const validation of validations) {
       const error = await Promise.resolve(validation());
       if (error) {
-        return setAndReturnError(error);
+        return setAndReturnErrorIfLatest(seq, error);
       }
     }
 
-    return setAndReturnError(undefined);
+    return setAndReturnErrorIfLatest(seq, undefined);
   }, [
     asset,
     rawBalanceBN,
     decimals,
     value,
     validateNonEvmAmount,
-    setAndReturnError,
+    setAndReturnErrorIfLatest,
   ]);
 
   // This callback is needed for non-EVM validation when nothing is typed into amount
   const validateNonEvmAmountAsync = useCallback(async () => {
-    const error = await validateNonEvmAmount(normalizeAmount(value));
-    return setAndReturnError(error);
-  }, [value, validateNonEvmAmount, setAndReturnError]);
+    hasAttemptedContinueRef.current = true;
+    validationSeqRef.current += 1;
+    const seq = validationSeqRef.current;
 
+    const normalizedValue = normalizeAmount(value);
+    const syncError =
+      validatePositiveNumericString(normalizedValue) ??
+      validateERC1155Balance(asset as AssetType | Nft, normalizedValue) ??
+      validateTokenBalance(normalizedValue, rawBalanceBN, decimals ?? 0);
+    if (syncError) {
+      return setAndReturnErrorIfLatest(seq, syncError);
+    }
+
+    const error = await validateNonEvmAmount(normalizedValue);
+    return setAndReturnErrorIfLatest(seq, error);
+  }, [
+    value,
+    asset,
+    rawBalanceBN,
+    decimals,
+    validateNonEvmAmount,
+    setAndReturnErrorIfLatest,
+  ]);
+
+  const validateAmountAsyncRef = useRef(validateAmountAsync);
+  validateAmountAsyncRef.current = validateAmountAsync;
+
+  const debouncedSnapValidation = useMemo(
+    () =>
+      debounce(() => {
+        validateAmountAsyncRef.current();
+      }, AMOUNT_VALIDATION_DEBOUNCE_MS),
+    [],
+  );
+
+  // Track mount state once so async validation can't set state after unmount.
   useEffect(() => {
-    validateAmountAsync();
-  }, [validateAmountAsync]);
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+    };
+  }, []);
+
+  // EVM: run immediately — no snap RPC, so amountError must never be stale.
+  useEffect(() => {
+    if (!isNonEvmSendType) {
+      validateAmountAsync();
+    }
+  }, [isNonEvmSendType, validateAmountAsync]);
+
+  // Non-EVM: debounce to avoid a snap RPC call on every keystroke.
+  // Deferred until the first Continue press so errors never flash while the
+  // user is still typing; after that it re-runs on every value change so
+  // amountError never goes stale. Cancel on cleanup gives real debounce
+  // semantics across keystrokes.
+  useEffect(() => {
+    if (isNonEvmSendType && hasAttemptedContinueRef.current) {
+      debouncedSnapValidation();
+    }
+    return () => {
+      debouncedSnapValidation.cancel();
+    };
+  }, [isNonEvmSendType, value, debouncedSnapValidation]);
 
   return { amountError, validateNonEvmAmountAsync };
 };

@@ -112,7 +112,7 @@ const shouldTopAlignToastContent = ({
     return false;
   }
 
-  if (titleLineCount !== null && titleLineCount > 1 && hasDescription) {
+  if (titleLineCount !== null && titleLineCount > 1) {
     return true;
   }
 
@@ -211,6 +211,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const visibleTranslateY = useSharedValue(0);
   const gestureStartY = useSharedValue(0);
   const toastHeight = useSharedValue(0);
+  // True after onStart until onEnd/onFinalize recovers. Used so a failed pan
+  // (e.g. failOffsetX after activation) still springs back and resumes dismiss.
+  const isSwipeActive = useSharedValue(false);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoDismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -218,9 +221,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const animationStartedRef = useRef(false);
   const visibleAtRef = useRef<number | null>(null);
   const hasNoTimeoutRef = useRef(false);
+  const visibilityDurationRef = useRef(visibilityDuration);
   const isDismissing = useSharedValue(false);
   const topOffset = toastOptions?.customTopOffset ?? 0;
   hasNoTimeoutRef.current = Boolean(toastOptions?.hasNoTimeout);
+  visibilityDurationRef.current = toastOptions?.timeoutMs ?? visibilityDuration;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
@@ -238,7 +243,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     hasActionButton,
     hasTrailingTextButton: hasTrailingTextButtonOption,
   });
-  const baseStyle: StyleProp<ViewStyle> = useMemo(
+  const baseStyle = useMemo(
     () => [
       styles.base,
       !hasDescription && styles.baseWithoutDescription,
@@ -272,6 +277,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     animationStartedRef.current = false;
     visibleAtRef.current = null;
     isDismissing.value = false;
+    isSwipeActive.value = false;
     clearScheduledAutoDismiss();
     setDescriptionLineCount(null);
     setTitleLineCount(null);
@@ -303,7 +309,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   const beginAutoDismiss = () => {
     visibleAtRef.current = Date.now();
-    scheduleAutoDismiss(visibilityDuration);
+    scheduleAutoDismiss(visibilityDurationRef.current);
   };
 
   const ensureAutoDismissAfterIncompleteSwipe = () => {
@@ -332,12 +338,12 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     }
 
     const elapsed = Date.now() - visibleAtRef.current;
-    if (elapsed >= visibilityDuration) {
+    if (elapsed >= visibilityDurationRef.current) {
       startDismissAnimation();
       return;
     }
 
-    scheduleAutoDismiss(visibilityDuration - elapsed);
+    scheduleAutoDismiss(visibilityDurationRef.current - elapsed);
   };
 
   const syncDismissTargetAfterRemeasure = () => {
@@ -353,12 +359,12 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     clearScheduledAutoDismiss();
     cancelAnimation(translateYProgress);
 
-    if (elapsed >= visibilityDuration) {
+    if (elapsed >= visibilityDurationRef.current) {
       startDismissAnimation();
       return;
     }
 
-    scheduleAutoDismiss(visibilityDuration - elapsed);
+    scheduleAutoDismiss(visibilityDurationRef.current - elapsed);
   };
 
   const handleTitleTextLayout = (
@@ -399,6 +405,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       animationStartedRef.current = false;
       visibleAtRef.current = null;
       isDismissing.value = false;
+      isSwipeActive.value = false;
       setDescriptionLineCount(null);
       setTitleLineCount(null);
       setToastOptions(undefined);
@@ -433,75 +440,98 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     swipeCallbacks.current[name]();
   };
 
-  const swipeGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetY(TOAST_SWIPE_ACTIVE_OFFSET_Y)
-        .failOffsetX([-TOAST_SWIPE_FAIL_OFFSET_X, TOAST_SWIPE_FAIL_OFFSET_X])
-        .onStart(() => {
-          // Don't interrupt an in-progress dismiss animation.
-          if (isDismissing.value) {
-            return;
-          }
-          runOnJS(invokeSwipeCallback)('clearScheduledAutoDismiss');
-          cancelAnimation(translateYProgress);
-          gestureStartY.value = translateYProgress.value;
-        })
-        .onUpdate((event) => {
-          if (isDismissing.value) {
-            return;
-          }
-          const nextTranslateY = gestureStartY.value + event.translationY;
-          // Toast sits at the top; only allow dragging upward (more negative).
-          translateYProgress.value = Math.min(
-            nextTranslateY,
-            visibleTranslateY.value,
-          );
-        })
-        .onEnd((event) => {
-          if (isDismissing.value) {
-            return;
-          }
-          const { translationY, velocityY } = event;
-          const dismissDistance = Math.max(
-            toastHeight.value * TOAST_DISMISS_DISTANCE_THRESHOLD,
-            TOAST_DISMISS_MINIMUM_PX,
-          );
-          const hasReachedDismissOffset = translationY <= -dismissDistance;
-          const hasReachedSwipeThreshold =
-            Math.abs(velocityY) > TOAST_DISMISS_VELOCITY_THRESHOLD;
-          const isQuickDismissing = velocityY < 0;
+  const swipeGesture = useMemo(() => {
+    const springBackAfterSwipe = () => {
+      'worklet';
+      // Start (or keep) auto-dismiss before spring-back so a later toast
+      // replace cannot be dismissed by a stale spring completion.
+      runOnJS(invokeSwipeCallback)('ensureAutoDismissAfterIncompleteSwipe');
 
-          const shouldDismiss =
-            hasReachedDismissOffset ||
-            (hasReachedSwipeThreshold && isQuickDismissing);
-
-          if (shouldDismiss) {
-            runOnJS(invokeSwipeCallback)('closeToast');
-            return;
+      translateYProgress.value = withSpring(
+        visibleTranslateY.value,
+        TOAST_SPRING_CONFIG,
+        (finished) => {
+          // A new pan cancels this spring via cancelAnimation; only resume
+          // auto-dismiss when the spring-back completed naturally.
+          if (finished) {
+            runOnJS(invokeSwipeCallback)('resumeAutoDismissAfterSwipe');
           }
+        },
+      );
+    };
 
-          // Start (or keep) auto-dismiss before spring-back so a later toast
-          // replace cannot be dismissed by a stale spring completion.
-          runOnJS(invokeSwipeCallback)('ensureAutoDismissAfterIncompleteSwipe');
+    return Gesture.Pan()
+      .activeOffsetY(TOAST_SWIPE_ACTIVE_OFFSET_Y)
+      .failOffsetX([-TOAST_SWIPE_FAIL_OFFSET_X, TOAST_SWIPE_FAIL_OFFSET_X])
+      .onStart(() => {
+        // Don't interrupt an in-progress dismiss animation.
+        if (isDismissing.value) {
+          return;
+        }
+        isSwipeActive.value = true;
+        runOnJS(invokeSwipeCallback)('clearScheduledAutoDismiss');
+        cancelAnimation(translateYProgress);
+        gestureStartY.value = translateYProgress.value;
+      })
+      .onUpdate((event) => {
+        if (!isSwipeActive.value || isDismissing.value) {
+          return;
+        }
+        const nextTranslateY = gestureStartY.value + event.translationY;
+        // Toast sits at the top; only allow dragging upward (more negative).
+        translateYProgress.value = Math.min(
+          nextTranslateY,
+          visibleTranslateY.value,
+        );
+      })
+      .onEnd((event) => {
+        if (!isSwipeActive.value) {
+          return;
+        }
+        // Clear before the isDismissing early-return so a pan cancelled during
+        // dismiss cannot leave isSwipeActive stuck true across toasts.
+        isSwipeActive.value = false;
+        if (isDismissing.value) {
+          return;
+        }
+        const { translationY, velocityY } = event;
+        const dismissDistance = Math.max(
+          toastHeight.value * TOAST_DISMISS_DISTANCE_THRESHOLD,
+          TOAST_DISMISS_MINIMUM_PX,
+        );
+        const hasReachedDismissOffset = translationY <= -dismissDistance;
+        const hasReachedSwipeThreshold =
+          Math.abs(velocityY) > TOAST_DISMISS_VELOCITY_THRESHOLD;
+        const isQuickDismissing = velocityY < 0;
 
-          translateYProgress.value = withSpring(
-            visibleTranslateY.value,
-            TOAST_SPRING_CONFIG,
-            (finished) => {
-              // A new pan cancels this spring via cancelAnimation; only resume
-              // auto-dismiss when the spring-back completed naturally.
-              if (finished) {
-                runOnJS(invokeSwipeCallback)('resumeAutoDismissAfterSwipe');
-              }
-            },
-          );
-        }),
+        const shouldDismiss =
+          hasReachedDismissOffset ||
+          (hasReachedSwipeThreshold && isQuickDismissing);
+
+        if (shouldDismiss) {
+          runOnJS(invokeSwipeCallback)('closeToast');
+          return;
+        }
+
+        springBackAfterSwipe();
+      })
+      .onFinalize(() => {
+        // onEnd is skipped when the pan fails/cancels after activation
+        // (e.g. horizontal travel past failOffsetX). Recover position and
+        // auto-dismiss so the toast is not left stuck mid-offset.
+        if (!isSwipeActive.value) {
+          return;
+        }
+        isSwipeActive.value = false;
+        if (isDismissing.value) {
+          return;
+        }
+        springBackAfterSwipe();
+      });
     // Shared values and invokeSwipeCallback (via swipeCallbacks ref) are stable
     // for the component lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  }, []);
 
   useImperativeHandle(ref, () => ({
     showToast,

@@ -11,17 +11,18 @@ import {
   IconColor,
   IconName,
   IconSize,
+  HelpText,
+  HelpTextSeverity,
   Text,
+  TextColor,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
@@ -55,14 +56,14 @@ const VerifyIdentity = () => {
       success: colors.success.default,
       buttonRadius: 12,
       iOSFont: {
-        regular: 'Geist-Regular',
-        medium: 'Geist-Medium',
-        bold: 'Geist-SemiBold',
+        regular: 'Inter-Regular',
+        medium: 'Inter-Medium',
+        bold: 'Inter-SemiBold',
       },
       androidFont: {
-        regular: 'Geist-Regular',
-        medium: 'Geist-Medium',
-        bold: 'Geist-SemiBold',
+        regular: 'Inter-Regular',
+        medium: 'Inter-Medium',
+        bold: 'Inter-SemiBold',
       },
     }),
     [colors],
@@ -79,9 +80,11 @@ const VerifyIdentity = () => {
   const handleContinue = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VERIFY_IDENTITY_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.VERIFY_IDENTITY_BUTTON,
+          }),
+        )
         .build(),
     );
 
@@ -102,26 +105,53 @@ const VerifyIdentity = () => {
           case VeriffSdk.statusCanceled:
             break;
           case VeriffSdk.statusError:
-            Logger.error(
-              new Error('Veriff verification failed'),
-              `Veriff verification failed with error=${result.error}`,
-            );
+            Logger.error(new Error('Veriff verification failed'), {
+              tags: { feature: 'card', provider: 'baanx' },
+              context: {
+                name: 'VerifyIdentity',
+                data: {
+                  method: 'veriffSdk',
+                  status: 'error',
+                  errorCode: result.error,
+                  country: selectedCountry?.key,
+                },
+              },
+            });
             break;
         }
       } catch (error) {
-        Logger.error(error as Error, 'Veriff SDK launch failed unexpectedly');
+        Logger.error(error as Error, {
+          tags: { feature: 'card', provider: 'baanx' },
+          context: {
+            name: 'VerifyIdentity',
+            data: {
+              method: 'veriffSdk',
+              status: 'launch_failed',
+              country: selectedCountry?.key,
+            },
+          },
+        });
       } finally {
         setIsLaunchingVeriff(false);
       }
     }
-  }, [navigation, sessionUrl, trackEvent, createEventBuilder, veriffBranding]);
+  }, [
+    navigation,
+    sessionUrl,
+    trackEvent,
+    createEventBuilder,
+    veriffBranding,
+    selectedCountry?.key,
+  ]);
 
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.VERIFY_IDENTITY,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.VERIFY_IDENTITY,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -143,7 +173,8 @@ const VerifyIdentity = () => {
         />
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="flex-1 flex-shrink text-text-alternative"
+          color={TextColor.TextAlternative}
+          twClassName="flex-1 flex-shrink"
         >
           {strings('card.card_onboarding.verify_identity.terms_1')}
         </Text>
@@ -156,7 +187,8 @@ const VerifyIdentity = () => {
         />
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="flex-1 flex-shrink text-text-alternative"
+          color={TextColor.TextAlternative}
+          twClassName="flex-1 flex-shrink"
         >
           {selectedCountry?.key === 'US'
             ? strings('card.card_onboarding.verify_identity.terms_2_us')
@@ -165,48 +197,43 @@ const VerifyIdentity = () => {
       </Box>
 
       {startVerificationIsError ? (
-        <Text
-          variant={TextVariant.BodySm}
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
           testID="verify-identity-start-verification-error"
-          twClassName="text-error-default text-center"
+          twClassName="text-center"
         >
           {startVeriricationErr}
-        </Text>
+        </HelpText>
       ) : !sessionUrl && !startVerificationIsLoading ? (
-        <Text
-          variant={TextVariant.BodySm}
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
           testID="verify-identity-start-verification-error"
-          twClassName="text-error-default text-center"
+          twClassName="text-center"
         >
           {strings(
             'card.card_onboarding.verify_identity.start_verification_error',
           )}
-        </Text>
-      ) : (
-        <></>
-      )}
+        </HelpText>
+      ) : null}
     </>
   );
 
-  const renderActions = () => (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      isFullWidth
-      isDisabled={!sessionUrl || isLaunchingVeriff}
-      isLoading={isLaunchingVeriff}
-      testID="verify-identity-continue-button"
-    >
-      {strings('card.card_onboarding.continue_button')}
-    </Button>
-  );
   return (
     <OnboardingStep
       title={strings('card.card_onboarding.verify_identity.title')}
       description={strings('card.card_onboarding.verify_identity.description')}
       formFields={renderFormFields()}
-      actions={renderActions()}
+      primaryButtonProps={{
+        children: strings('card.card_onboarding.continue_button'),
+        onPress: handleContinue,
+        isDisabled: !sessionUrl || isLaunchingVeriff,
+        isLoading: isLaunchingVeriff,
+        testID: 'verify-identity-continue-button',
+      }}
       headerMode="close-with-confirmation"
     />
   );

@@ -2,16 +2,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Network } from '../../components/Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  BtcScope,
-  SolScope,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TrxScope,
-  ///: END:ONLY_INCLUDE_IF
-  XlmScope,
-} from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -229,9 +220,22 @@ export const PopularList = [
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://robinhoodchain.blockscout.com',
+      blockExplorerUrl: 'https://robin.etherscan.io/',
       imageUrl: 'ROBINHOOD',
       imageSource: require('../../images/robinhood.png'),
+    },
+  },
+  {
+    chainId: toHex('50'),
+    nickname: 'XDC Network',
+    rpcUrl: `https://xdc-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
+    ticker: 'XDC',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://xdcscan.com',
+      imageUrl: 'XDC',
+      imageSource: require('../../images/xdc.png'),
     },
   },
 ];
@@ -269,14 +273,12 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
       return require('../../images/bitcoin-testnet-logo.png');
     case BtcScope.Signet:
       return require('../../images/bitcoin-signet-logo.svg');
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     case TrxScope.Mainnet:
       return require('../../images/tron.png');
     case TrxScope.Nile:
       return require('../../images/tron.png');
     case TrxScope.Shasta:
       return require('../../images/tron.png');
-    ///: END:ONLY_INCLUDE_IF(tron)
     case XlmScope.Pubnet:
       return require('../../images/xlm.png');
     default:
@@ -455,6 +457,7 @@ export const NETWORK_CHAIN_ID: {
   readonly KONET_MAINNET: '0x4341';
   readonly ROBINHOOD_CHAIN: '0x1237';
   readonly GNOSIS: '0x64';
+  readonly ZERO_G: '0x4115';
   readonly SOMNIA: '0x13a7';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
@@ -507,6 +510,7 @@ export const NETWORK_CHAIN_ID: {
   ARC: '0x13b2',
   KONET_MAINNET: '0x4341',
   ROBINHOOD_CHAIN: '0x1237',
+  ZERO_G: '0x4115',
   SOMNIA: '0x13a7',
   ...CHAIN_IDS,
 };
@@ -566,5 +570,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.ARC]: require('../../images/arc-network-logo.png'),
   [NETWORK_CHAIN_ID.KONET_MAINNET]: require('../../images/konet.png'),
   [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: require('../../images/robinhood.png'),
+  [NETWORK_CHAIN_ID.ZERO_G]: require('../../images/0g-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.SOMNIA]: require('../../images/somnia.png'),
 };

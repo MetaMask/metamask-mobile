@@ -30,13 +30,13 @@ export function ActivityDetailsStandardTemplate({
   addressRows?: { from?: string; to?: string };
 }) {
   return (
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1 gap-2">
       {header}
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={0} />
       <ActivityDetailsMetadata item={item} addressRows={addressRows} />
       {showFeesAndTotal ? (
         <>
-          <SectionDivider marginVertical={3} />
+          <SectionDivider marginVertical={0} />
           {showTotal ? (
             <ActivityDetailsFeesAndTotal
               item={item}

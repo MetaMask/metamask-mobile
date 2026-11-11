@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -11,7 +11,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -20,18 +19,38 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
-import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
+import {
+  usePerpsBlockExplorerUrl,
+  usePerpsRecordedOrderFees,
+} from '../../hooks';
 import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
   formatTransactionDate,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import {
+  getOrderPriceRowVisibility,
+  getValidPerpsPrice,
+  resolvePerpsTransactionOrderType,
+} from '../../utils/orderUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
-const PerpsOrderTransactionView: React.FC = () => {
+interface PerpsOrderDetailRow {
+  key: string;
+  label: string;
+  value: string | number | undefined;
+  testID?: string;
+}
+
+const PerpsOrderTransactionViewContent: React.FC = () => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -44,21 +63,25 @@ const PerpsOrderTransactionView: React.FC = () => {
   const transaction = route.params?.transaction;
 
   // Call hooks before conditional return
-  const { totalFee, protocolFee, metamaskFee } = usePerpsOrderFees({
-    orderType: transaction?.order?.type ?? 'market',
-    amount: transaction?.order?.size ?? '0',
-  });
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
+  const {
+    totalFee,
+    isLoading: isFeeLoading,
+    hasError: hasFeeError,
+  } = usePerpsRecordedOrderFees(
+    transaction?.order?.orderId,
+    transaction?.asset ?? '',
+    transaction?.timestamp,
+  );
 
   if (!transaction) {
     return (
       <ScreenView>
-        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
+        <HeaderStandardGlass
+          isGlass={isBrandRefresh}
+          isFloating={false}
+          includesTopInset
+          onBack={() => navigation.goBack()}
+        />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -87,53 +110,81 @@ const PerpsOrderTransactionView: React.FC = () => {
     });
   };
 
+  const order = transaction.order;
+  const orderType = order ? resolvePerpsTransactionOrderType(order) : undefined;
+  const { showTriggerPrice, showLimitPrice } =
+    getOrderPriceRowVisibility(orderType);
+
+  const priceRows: PerpsOrderDetailRow[] = [];
+  if (order && showTriggerPrice) {
+    const triggerPrice = getValidPerpsPrice(order.triggerPrice);
+    if (triggerPrice !== null) {
+      priceRows.push({
+        key: 'trigger-price',
+        label: strings('perps.order.trigger_price'),
+        value: formatPerpsFiat(triggerPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        }),
+        testID: PerpsTransactionSelectorsIDs.TRIGGER_PRICE_ROW,
+      });
+    }
+  }
+
+  if (order && showLimitPrice) {
+    const limitPrice = getValidPerpsPrice(order.limitPrice);
+    if (limitPrice !== null) {
+      priceRows.push({
+        key: 'limit-price',
+        label: strings('perps.transactions.order.limit_price'),
+        value: formatPerpsFiat(limitPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        }),
+        testID: PerpsTransactionSelectorsIDs.LIMIT_PRICE_ROW,
+      });
+    }
+  }
+
   // Main detail rows based on design
-  const mainDetailRows = [
+  const mainDetailRows: PerpsOrderDetailRow[] = [
     {
+      key: 'date',
       label: strings('perps.transactions.order.date'),
       value: formatTransactionDate(transaction.timestamp),
     },
-    // Add order-specific fields when available from transaction data
     {
+      key: 'size',
       label: strings('perps.transactions.order.size'),
       value: formatPerpsFiat(transaction.order?.size ?? 0),
     },
+    ...priceRows,
     {
-      label: strings('perps.transactions.order.limit_price'),
-      value: formatPerpsFiat(transaction.order?.limitPrice ?? 0, {
-        ranges: PRICE_RANGES_UNIVERSAL,
-      }),
-    },
-    {
+      key: 'filled',
       label: strings('perps.transactions.order.filled'),
       value: transaction.order?.filled,
     },
   ];
 
-  const isFilled = transaction.order?.text === 'Filled';
-
-  // Fee breakdown - use PRICE_RANGES_UNIVERSAL to show exact values instead of "< $0.01"
+  // Use universal ranges to show the exact recorded fee instead of "< $0.01".
   const formatFee = (fee: number) =>
     formatPerpsFiat(fee, { ranges: PRICE_RANGES_UNIVERSAL });
 
+  const feeValue =
+    isFeeLoading || hasFeeError || totalFee === undefined
+      ? '—'
+      : formatFee(totalFee);
+
   const feeRows = [
     {
-      label: strings('perps.transactions.order.metamask_fee'),
-      value: formatFee(isFilled ? metamaskFee : 0),
-    },
-    {
-      label: strings('perps.transactions.order.hyperliquid_fee'),
-      value: formatFee(isFilled ? protocolFee : 0),
-    },
-    {
       label: strings('perps.transactions.order.total_fee'),
-      value: formatFee(isFilled ? totalFee : 0),
+      value: feeValue,
     },
   ];
 
   return (
     <ScreenView>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={transaction.title}
         onBack={() => navigation.goBack()}
@@ -152,7 +203,8 @@ const PerpsOrderTransactionView: React.FC = () => {
           <View style={styles.detailsContainer}>
             {mainDetailRows.map((detail, index) => (
               <View
-                key={index}
+                key={detail.key}
+                testID={detail.testID}
                 style={[
                   styles.detailRow,
                   index === mainDetailRows.length - 1 && styles.detailRowLast,
@@ -176,7 +228,7 @@ const PerpsOrderTransactionView: React.FC = () => {
             {/* Separator between sections */}
             <View style={styles.sectionSeparator} />
 
-            {/* Fee breakdown */}
+            {/* Recorded execution fee */}
             {feeRows.map((detail, index) => (
               <View
                 key={`fee-${index}`}
@@ -217,5 +269,13 @@ const PerpsOrderTransactionView: React.FC = () => {
     </ScreenView>
   );
 };
+
+const PerpsOrderTransactionView: React.FC = () => (
+  <PerpsConnectionProvider suppressErrorView>
+    <PerpsStreamProvider>
+      <PerpsOrderTransactionViewContent />
+    </PerpsStreamProvider>
+  </PerpsConnectionProvider>
+);
 
 export default PerpsOrderTransactionView;

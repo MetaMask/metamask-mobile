@@ -5,14 +5,23 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView, useWindowDimensions } from 'react-native';
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
 import { Image } from 'expo-image';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
   BoxFlexDirection,
   FontWeight,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -20,6 +29,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
 import {
@@ -40,6 +51,7 @@ import {
   getVariant,
   resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
+import { resolveReferencePriceWindow } from '../../utils/referencePriceWindow';
 import { TimeSlotPicker } from '../TimeSlotPicker';
 import { findLiveMarket, getCurrentSeriesWindowMs } from '../../utils/series';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
@@ -47,6 +59,9 @@ import PredictCryptoUpDownPositions from '../PredictCryptoUpDownPositions';
 import { usePredictSeriesPositions } from '../../hooks/usePredictSeriesPositions';
 import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
 import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenOutcomes';
+import { strings } from '../../../../../../locales/i18n';
+import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import PredictCryptoTwapInfoSheet from './PredictCryptoTwapInfoSheet';
 
 // Chart sizing tuned for the Figma layout: without positions, the chart
 // occupies roughly the middle half of the viewport. When positions exist, the
@@ -124,12 +139,23 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const { height: windowHeight } = useWindowDimensions();
   const [selectedMarket, setSelectedMarket] =
     useState<PredictMarketWithSeries>(market);
   const previousMarketIdRef = useRef(market.id);
   const marketRef = useRef(market);
   const [currentPrice, setCurrentPrice] = useState<number>();
+  const {
+    sheetRef: twapInfoSheetRef,
+    isVisible: isTwapInfoSheetVisible,
+    handleSheetClosed: handleTwapInfoSheetClosed,
+    getRefHandlers: getTwapInfoSheetRefHandlers,
+  } = usePredictBottomSheet();
+  const twapInfoSheetHandlers = useMemo(
+    () => getTwapInfoSheetRefHandlers(),
+    [getTwapInfoSheetRefHandlers],
+  );
   marketRef.current = market;
 
   const { handleSharePress } = usePredictShare({
@@ -244,6 +270,9 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     selectedMarket.endDate,
     selectedMarket.series.recurrence,
   );
+  const referenceWindowSeconds = resolveReferencePriceWindow(
+    selectedMarket.twapWindowSeconds,
+  );
   const { data: targetPrice, isFetching: isTargetPriceFetching } =
     useCryptoTargetPrice({
       eventId: selectedMarket.id,
@@ -251,6 +280,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       eventStartTime: targetPriceEventStartTime ?? '',
       variant: getVariant(selectedMarket.series.recurrence),
       endDate: selectedMarket.endDate ?? '',
+      twapWindowSeconds: referenceWindowSeconds,
       enabled:
         !!targetPriceSymbol &&
         !!targetPriceEventStartTime &&
@@ -277,6 +307,11 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       ? (live as PredictMarketWithSeries)
       : { ...live, series: market.series };
   }, [currentSeriesMarkets, market.series, selectedMarket]);
+  const chartTargetPrice =
+    liveMarketForChart.id === selectedMarket.id ||
+    liveMarketForChart.twapWindowSeconds === selectedMarket.twapWindowSeconds
+      ? validatedTargetPrice
+      : undefined;
   const isSelectedMarketLive = liveMarketForChart.id === selectedMarket.id;
 
   const { openOutcomes: selectedOpenOutcomes } = useOpenOutcomes({
@@ -285,7 +320,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const canClaim = Boolean(onClaimPress && hasPositivePnl);
   const shouldRenderActions = Boolean(onBetPress || canClaim);
 
-  const handleCurrentPriceChange = useCallback((value: number) => {
+  const handleCurrentPriceChange = useCallback((value: number | undefined) => {
     setCurrentPrice(value);
   }, []);
 
@@ -472,6 +507,48 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const currentPriceAccentColor =
     CRYPTO_SYMBOL_TO_ACCENT_COLOR[targetPriceSymbol ?? ''] ??
     DEFAULT_CRYPTO_ACCENT_COLOR;
+  const twapWindowSeconds = referenceWindowSeconds;
+  const bottomAccessory = twapWindowSeconds ? (
+    <Box flexDirection={BoxFlexDirection.Row} twClassName="items-center gap-1">
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
+        {subtitle}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={strings(
+          'predict.crypto_up_down.twap_info.accessibility_label',
+        )}
+        hitSlop={8}
+        onPress={twapInfoSheetHandlers.onOpenBottomSheet}
+        testID={PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_BUTTON}
+      >
+        <Icon
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      </Pressable>
+    </Box>
+  ) : undefined;
+
+  const headerProps = {
+    onBack,
+    backButtonProps: {
+      testID: PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON,
+    },
+    endButtonIconProps: [
+      {
+        iconName: IconName.Share,
+        onPress: handleSharePress,
+        testID: PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON,
+      },
+    ],
+    testID: PredictCryptoUpDownDetailsSelectorsIDs.HEADER,
+  };
 
   return (
     <SafeAreaView
@@ -479,20 +556,11 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       edges={['left', 'right', 'top']}
       testID={PredictCryptoUpDownDetailsSelectorsIDs.SCREEN}
     >
-      <HeaderCompactStandard
-        onBack={onBack}
-        backButtonProps={{
-          testID: PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON,
-        }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Share,
-            onPress: handleSharePress,
-            testID: PredictCryptoUpDownDetailsSelectorsIDs.SHARE_BUTTON,
-          },
-        ]}
-        testID={PredictCryptoUpDownDetailsSelectorsIDs.HEADER}
-      />
+      {isBrandRefresh ? (
+        <HeaderStandardGlass isFloating={false} {...headerProps} />
+      ) : (
+        <HeaderCompactStandard {...headerProps} />
+      )}
 
       <ScrollView
         testID={PredictCryptoUpDownDetailsSelectorsIDs.SCROLL_VIEW}
@@ -524,7 +592,8 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
               </Box>
             }
             title={title}
-            bottomLabel={subtitle}
+            bottomLabel={twapWindowSeconds ? undefined : subtitle}
+            bottomAccessory={bottomAccessory}
             twClassName="px-4 pt-1 pb-3"
           />
         </Box>
@@ -624,7 +693,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <Box twClassName="px-4 pt-1">
           <PredictCryptoUpDownChart
             market={liveMarketForChart}
-            targetPrice={validatedTargetPrice}
+            targetPrice={chartTargetPrice}
             onCurrentPriceChange={handleCurrentPriceChange}
             color={currentPriceAccentColor}
             height={chartAreaHeight}
@@ -654,6 +723,16 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
           />
         </Box>
       )}
+      {isTwapInfoSheetVisible && twapWindowSeconds && targetPriceSymbol ? (
+        <Box testID={PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_SHEET}>
+          <PredictCryptoTwapInfoSheet
+            ref={twapInfoSheetRef}
+            windowSeconds={twapWindowSeconds}
+            symbol={targetPriceSymbol}
+            onClose={handleTwapInfoSheetClosed}
+          />
+        </Box>
+      ) : null}
     </SafeAreaView>
   );
 };

@@ -4,7 +4,6 @@ import { View } from 'react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useSignatureRequest } from '../../../hooks/signatures/useSignatureRequest';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTypedSignSimulationEnabled } from '../../../hooks/signatures/useTypedSignSimulationEnabled';
 import { parseNormalizeAndSanitizeSignTypedData } from '../../../utils/signature';
@@ -14,6 +13,7 @@ import DataTree from '../../data-tree';
 import SignatureMessageSection from '../../signature-message-section';
 import { DataTreeInput } from '../../data-tree/data-tree';
 import styleSheet from './message.styles';
+import { Text } from '@metamask/design-system-react-native';
 
 /**
  * If a token contract is found within the dataTree, fetch the token decimal of this contract

@@ -5,15 +5,13 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
 import {
-  __clearLastMockedMethods,
-  __getLastMockedMethods,
-  __mockRiveFireState,
-} from '../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../__mocks__/rive-app-react-native';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
-  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
   WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS,
   WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
 } from './walletHomeOnboardingChecklistRive';
@@ -21,6 +19,24 @@ import { walletHomeOnboardingProgressRatioForStep } from './walletHomeOnboarding
 import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import { strings } from '../../../../locales/i18n';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/BoxGlass';
+
+let mockIsGlass = false;
+jest.mock('../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockIsGlass,
+}));
+jest.mock('../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlass,
+    }),
+  };
+});
 
 jest.mock('./walletHomeOnboardingProgressAnimation', () => {
   const actual = jest.requireActual('./walletHomeOnboardingProgressAnimation');
@@ -63,8 +79,7 @@ async function flushWalletHomeStepTransition() {
 describe('WalletHomeOnboardingSteps', () => {
   beforeEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: false });
-    __clearLastMockedMethods();
-    __mockRiveFireState.mockClear();
+    __resetRiveMocks();
     mockUseIsFocused.mockReturnValue(true);
     animateProgressRatioSpy.mockClear();
     animateProgressRatioSpy.mockImplementation(
@@ -324,6 +339,32 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
+  describe('Skip on glass', () => {
+    afterEach(() => {
+      mockIsGlass = false;
+    });
+
+    it('keeps the opaque Skip button by default', () => {
+      const { queryByTestId } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
+      });
+
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeNull();
+    });
+
+    it('draws Skip on glass when the home surfaces are glass', () => {
+      mockIsGlass = true;
+      const { getByTestId } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
+      });
+
+      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('advances from trade step when Skip is pressed', async () => {
     const { getByTestId, store } = renderSteps({
       walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
@@ -409,8 +450,9 @@ describe('WalletHomeOnboardingSteps', () => {
       jest.advanceTimersByTime(60);
     });
 
-    expect(__mockRiveFireState).toHaveBeenCalledWith(
-      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+    // Nitro binds the state machine via the `stateMachineName` prop, so
+    // triggerInput only receives the trigger name.
+    expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
       WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
     );
 
@@ -579,8 +621,8 @@ describe('WalletHomeOnboardingSteps', () => {
     ).toBe(2);
   });
 
-  it('shows first-step shell with awaiting hero and disabled primary when isAwaitingBalance', () => {
-    const { getByTestId } = renderWithProvider(
+  it('shows first-step shell without a loading indicator when isAwaitingBalance', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <WalletHomeOnboardingSteps testID="steps-root" isAwaitingBalance />,
       {
         state: {
@@ -596,8 +638,10 @@ describe('WalletHomeOnboardingSteps', () => {
       },
     );
 
-    expect(getByTestId('steps-root-hero-awaiting-balance')).toBeOnTheScreen();
     expect(getByTestId('steps-root-hero-fund')).toBeOnTheScreen();
+    expect(
+      queryByTestId('steps-root-hero-awaiting-balance'),
+    ).not.toBeOnTheScreen();
     expect(getByTestId(primaryTestId)).toBeDisabled();
   });
 
@@ -612,12 +656,10 @@ describe('WalletHomeOnboardingSteps', () => {
 
   it('fires checklist Rive outro before advancing from fund step', async () => {
     const { getByTestId, store } = renderSteps();
-    const fundStepRiveMethods = __getLastMockedMethods();
 
     fireEvent.press(getByTestId(primaryTestId));
 
-    expect(fundStepRiveMethods?.fireState).toHaveBeenCalledWith(
-      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+    expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
       WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
     );
     expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(

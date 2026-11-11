@@ -16,15 +16,6 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
-jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
-  useQuickBuyQuickAmountPreferences: jest.fn(() => ({
-    buyAmounts: [10, 50, 100, 250],
-    sellPercentages: [25, 50, 75, 100],
-    savePreferences: jest.fn(),
-    isLoaded: true,
-  })),
-}));
-
 const mockTarget: QuickBuyTarget = {
   tokenAddress: '0x1234567890123456789012345678901234567890',
   tokenSymbol: 'PEPE',
@@ -57,6 +48,7 @@ const buildController = (
   sourceToken: undefined,
   sourceChainId: '0x1',
   sourceTokenOptions: [],
+  payWithChainIds: [],
   selectedSourceToken: undefined,
   isSourcePickerOpen: false,
   setIsSourcePickerOpen: jest.fn(),
@@ -79,7 +71,6 @@ const buildController = (
   formattedMinimumReceivedFiat: undefined,
   formattedPriceImpact: '-',
   formattedRate: undefined,
-  totalAmountFiat: '$0',
   isQuoteLoading: false,
   isBlockingQuoteLoad: false,
   isSubmittingTx: false,
@@ -89,13 +80,11 @@ const buildController = (
   setSelectedQuoteRequestId: jest.fn(),
   handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
-  refreshCount: 0,
   quoteRefreshRateMs: 30000,
-  maxRefreshCount: 5,
   refetchQuotes: jest.fn(),
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {
-    textColor: TextColor.TextAlternative,
+    textColor: TextColor.TextDefault,
     icon: undefined,
     title: 'bridge.price_impact_info_title',
     description: 'bridge.price_impact_info_description',
@@ -103,6 +92,12 @@ const buildController = (
   isPriceImpactError: false,
   isPresetAddFundsMode: false,
   hasNoPayWithFunds: false,
+  hasInsufficientBalance: false,
+  isGasless: false,
+  estimatedReceiveFiat: undefined,
+  gasFeeDeductionLabel: undefined,
+  discountBadge: undefined,
+  baseFeePercentage: undefined,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: false,
@@ -124,9 +119,10 @@ const buildController = (
   sourceTokenAmount: undefined,
   hasSourcePrice: true,
   isSliderDisabled: false,
-  sellDestTokenOptions: [],
-  selectedDestStable: undefined,
-  handleSelectDestStable: jest.fn(),
+  isMaxAmountAllowed: true,
+  positionTokenFromSetup: undefined,
+  selectedReceiveToken: undefined,
+  handleSelectReceiveToken: jest.fn(),
   handleConfirm: jest.fn().mockResolvedValue(undefined),
   ...overrides,
 });
@@ -153,6 +149,7 @@ function renderProvider(
       target={mockTarget}
       onClose={jest.fn()}
       features={features}
+      analyticsContext={{ source: 'profile_position' }}
       activeScreen="amount"
       setActiveScreen={setActiveScreen}
     >
@@ -310,18 +307,21 @@ describe('QuickBuyProvider — isKeypadOpen', () => {
     expect(ctx.current.isKeypadOpen).toBe(true);
   });
 
-  // TSA-984: there is no amount to type against without funds, so the keypad
-  // must never occupy the sheet in that state.
-  it('force-collapses the keypad when the user has nothing to pay with', () => {
+  // Regression guard: gating the keypad on funds made the sheet's height depend
+  // on a flag that is not settled on the first render, so a funded account
+  // opened collapsed and then expanded — a visible flash. The keypad must stay
+  // expanded regardless of funds; `QuickBuyAmountScreen` dims and blocks it
+  // instead, which keeps the height constant.
+  it('keeps the keypad open even when the user has nothing to pay with', () => {
     (useQuickBuyController as jest.Mock).mockReturnValue(
       buildController({ hasNoPayWithFunds: true }),
     );
 
     const ctx = renderProvider(featuresWithModal);
-    expect(ctx.current.isKeypadOpen).toBe(false);
+    expect(ctx.current.isKeypadOpen).toBe(true);
   });
 
-  it('cannot be reopened by a consumer while the user has nothing to pay with', () => {
+  it('lets a consumer collapse and reopen the keypad regardless of funds', () => {
     (useQuickBuyController as jest.Mock).mockReturnValue(
       buildController({ hasNoPayWithFunds: true }),
     );
@@ -329,11 +329,13 @@ describe('QuickBuyProvider — isKeypadOpen', () => {
     const ctx = renderProvider(featuresWithModal);
 
     act(() => {
+      ctx.current.setIsKeypadOpen(false);
+    });
+    expect(ctx.current.isKeypadOpen).toBe(false);
+
+    act(() => {
       ctx.current.setIsKeypadOpen(true);
     });
-
-    // Deriving the flag (rather than no-oping the setter) is what guarantees
-    // this — no screen can reopen the keypad into a dead state.
-    expect(ctx.current.isKeypadOpen).toBe(false);
+    expect(ctx.current.isKeypadOpen).toBe(true);
   });
 });

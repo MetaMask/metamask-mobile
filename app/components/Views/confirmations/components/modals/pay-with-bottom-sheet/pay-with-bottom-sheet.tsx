@@ -15,8 +15,9 @@ import { useDismissOnPaymentChange } from '../../../hooks/pay/useDismissOnPaymen
 import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
-export const PAY_WITH_BOTTOM_SHEET_TEST_ID = 'pay-with-bottom-sheet';
+export const PAY_WITH_BOTTOM_SHEET_TEST_ID = PayWithBottomSheetIDs.BOTTOM_SHEET;
 
 export function PayWithBottomSheet() {
   const sheetRef = useRef<BottomSheetRef>(null);

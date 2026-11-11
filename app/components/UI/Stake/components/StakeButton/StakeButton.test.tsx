@@ -11,6 +11,7 @@ import {
 } from '../../__mocks__/stakeMockData';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
@@ -23,6 +24,7 @@ import {
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
+import { earnSelectors } from '../../../../../selectors/earnController/earn';
 
 const mockNavigate = jest.fn();
 
@@ -214,6 +216,7 @@ const renderComponent = (state = STATE_MOCK) =>
 const selectPrimaryEarnExperienceTypeForAssetMock = jest.requireMock(
   '../../../../../selectors/earnController/earn',
 ).earnSelectors.selectPrimaryEarnExperienceTypeForAsset as jest.Mock;
+const selectEarnTokenMock = jest.mocked(earnSelectors.selectEarnToken);
 
 const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
   typeof useStakingEligibility
@@ -253,6 +256,20 @@ describe('StakeButton', () => {
       const { getByText } = renderComponent();
 
       expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
+    });
+
+    it('rounds APR halfway values up to one decimal place in the CTA', () => {
+      selectEarnTokenMock.mockReturnValueOnce({
+        ...MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE,
+        balanceFiatNumber: Number(
+          MOCK_ETH_MAINNET_ASSET_WITH_MINIMUM_BALANCE.balance,
+        ),
+        experience: { apr: '4.25' },
+      } as unknown as ReturnType<typeof earnSelectors.selectEarnToken>);
+
+      const { getByText } = renderComponent();
+
+      expect(getByText(`${strings('stake.stake')} 4.3%`)).toBeOnTheScreen();
     });
 
     it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
@@ -377,10 +394,10 @@ describe('StakeButton', () => {
       balance: MOCK_MINIMUM_BALANCE_AS_STRING,
     };
 
-    it('navigates to Stake Input screen when TRX has POOLED_STAKING experience', async () => {
+    it('navigates to Stake Input screen when TRX has TRX_STAKING experience', async () => {
       mockIsTronChainId.mockReturnValue(true);
       selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
-        EARN_EXPERIENCES.POOLED_STAKING,
+        EARN_EXPERIENCES.TRX_STAKING,
       );
 
       const { getByTestId } = renderWithProvider(
@@ -400,6 +417,86 @@ describe('StakeButton', () => {
           },
         });
       });
+    });
+
+    it('renders Stake as CTA label for TRX staking', () => {
+      mockIsTronChainId.mockReturnValue(true);
+      selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
+        EARN_EXPERIENCES.TRX_STAKING,
+      );
+
+      const { getByText } = renderWithProvider(
+        <StakeButton asset={MOCK_TRX_ASSET} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
+    });
+
+    it('tracks TRX_STAKING when the TRX stake CTA is pressed', async () => {
+      const mockTrackEvent = jest.fn();
+      mockIsTronChainId.mockReturnValue(true);
+      selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
+        EARN_EXPERIENCES.TRX_STAKING,
+      );
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+        }),
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <StakeButton asset={MOCK_TRX_ASSET} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              action_type: 'deposit',
+              experience: EARN_EXPERIENCES.TRX_STAKING,
+              text: 'Stake',
+              token: 'TRX',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('renders TRX staking CTA when pooled staking and lending are disabled', () => {
+      (
+        selectPooledStakingEnabledFlag as jest.MockedFunction<
+          typeof selectPooledStakingEnabledFlag
+        >
+      ).mockReturnValue(false);
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(false);
+      mockIsTronChainId.mockReturnValue(true);
+      selectPrimaryEarnExperienceTypeForAssetMock.mockReturnValueOnce(
+        EARN_EXPERIENCES.TRX_STAKING,
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <StakeButton asset={MOCK_TRX_ASSET} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 

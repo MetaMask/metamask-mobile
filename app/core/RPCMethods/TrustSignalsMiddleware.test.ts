@@ -1,7 +1,11 @@
 import { JsonRpcEngine } from '@metamask/json-rpc-engine';
 import type { JsonRpcRequest, JsonRpcParams } from '@metamask/utils';
-import type { PhishingController } from '@metamask/phishing-controller';
+import {
+  RequestSourceFlow,
+  type PhishingController,
+} from '@metamask/phishing-controller';
 import type { NetworkController } from '@metamask/network-controller';
+import type { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../../util/Logger';
 import { createTrustSignalsMiddleware } from './TrustSignalsMiddleware';
 import {
@@ -96,6 +100,14 @@ function createMockNetworkController(options?: {
   } as unknown as NetworkController;
 }
 
+function createMockPreferencesController(
+  securityAlertsEnabled = true,
+): PreferencesController {
+  return {
+    state: { securityAlertsEnabled },
+  } as unknown as PreferencesController;
+}
+
 function createNetworkControllerWithoutChain(): NetworkController {
   return {
     state: {},
@@ -150,6 +162,7 @@ describe('createTrustSignalsMiddleware', () => {
     const middleware = createTrustSignalsMiddleware({
       phishingController,
       networkController,
+      preferencesController: createMockPreferencesController(),
     });
 
     await callThroughMiddleware({
@@ -163,8 +176,58 @@ describe('createTrustSignalsMiddleware', () => {
       },
     });
 
-    expect(mockScanUrl).toHaveBeenCalledWith(phishingController, origin);
+    expect(mockScanUrl).toHaveBeenCalledWith(
+      phishingController,
+      origin,
+      RequestSourceFlow.RpcTrustSignals,
+    );
   });
+
+  it.each([
+    ['eth_requestAccounts', RequestSourceFlow.DappConnection],
+    ['wallet_requestPermissions', RequestSourceFlow.DappConnection],
+    ['wallet_sendCalls', RequestSourceFlow.Confirmations],
+    ['wallet_addEthereumChain', RequestSourceFlow.Confirmations],
+    ['wallet_switchEthereumChain', RequestSourceFlow.Confirmations],
+    ['wallet_watchAsset', RequestSourceFlow.Confirmations],
+    ['personal_sign', RequestSourceFlow.Confirmations],
+  ])(
+    'scans origin URL for %s with the %s flow',
+    async (method, expectedFlow) => {
+      const phishingController = createMockPhishingController();
+      const networkController = createMockNetworkController();
+      const origin = 'https://example.com';
+
+      // These mocks only keep the middleware off the address-scanning paths.
+      // The flow comes from the real getOriginScanFlow, which classifies by
+      // method name and does not use the mocked helpers.
+      mockIsEthSendTransaction.mockReturnValue(false);
+      mockIsEthSignTypedData.mockReturnValue(false);
+
+      const middleware = createTrustSignalsMiddleware({
+        phishingController,
+        networkController,
+        preferencesController: createMockPreferencesController(),
+      });
+
+      await callThroughMiddleware({
+        middleware,
+        request: {
+          jsonrpc,
+          id: 1,
+          method,
+          origin,
+          params: [] as JsonRpcParams,
+        },
+      });
+
+      expect(mockScanUrl).toHaveBeenCalledWith(
+        phishingController,
+        origin,
+        expectedFlow,
+      );
+    },
+  );
 
   it('does not scan origin URL when origin is not provided', async () => {
     const phishingController = createMockPhishingController();
@@ -176,6 +239,7 @@ describe('createTrustSignalsMiddleware', () => {
     const middleware = createTrustSignalsMiddleware({
       phishingController,
       networkController,
+      preferencesController: createMockPreferencesController(),
     });
 
     await callThroughMiddleware({
@@ -202,6 +266,7 @@ describe('createTrustSignalsMiddleware', () => {
     const middleware = createTrustSignalsMiddleware({
       phishingController,
       networkController,
+      preferencesController: createMockPreferencesController(),
     });
 
     await callThroughMiddleware({
@@ -222,6 +287,7 @@ describe('createTrustSignalsMiddleware', () => {
     const networkController = createMockNetworkController({ chainId: '0x1' });
     const to = '0xabc';
     const data = '0xdata';
+    const origin = 'https://example.com';
 
     mockIsEthSendTransaction.mockReturnValue(true);
     mockHasValidTransactionParams.mockReturnValue(true);
@@ -230,6 +296,7 @@ describe('createTrustSignalsMiddleware', () => {
     const middleware = createTrustSignalsMiddleware({
       phishingController,
       networkController,
+      preferencesController: createMockPreferencesController(),
     });
 
     await callThroughMiddleware({
@@ -238,10 +305,16 @@ describe('createTrustSignalsMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'eth_sendTransaction',
+        origin,
         params: [{ to, data }] as JsonRpcParams,
       },
     });
 
+    expect(mockScanUrl).toHaveBeenCalledWith(
+      phishingController,
+      origin,
+      RequestSourceFlow.Confirmations,
+    );
     expect(mockExtractSpenderFromApprovalData).toHaveBeenCalledWith(data);
     expect(mockScanAddress).toHaveBeenCalledWith(phishingController, '0x1', to);
     expect(mockScanAddress).toHaveBeenCalledWith(
@@ -257,6 +330,7 @@ describe('createTrustSignalsMiddleware', () => {
 
     const verifyingContract = '0xcontract';
     const spender = '0xpermitSpender';
+    const origin = 'https://example.com';
 
     mockIsEthSendTransaction.mockReturnValue(false);
     mockIsEthSignTypedData.mockReturnValue(true);
@@ -271,6 +345,7 @@ describe('createTrustSignalsMiddleware', () => {
     const middleware = createTrustSignalsMiddleware({
       phishingController,
       networkController,
+      preferencesController: createMockPreferencesController(),
     });
 
     await callThroughMiddleware({
@@ -279,10 +354,16 @@ describe('createTrustSignalsMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'eth_signTypedData_v4',
+        origin,
         params: ['0x1', { message: 'data' }] as JsonRpcParams,
       },
     });
 
+    expect(mockScanUrl).toHaveBeenCalledWith(
+      phishingController,
+      origin,
+      RequestSourceFlow.Confirmations,
+    );
     expect(mockParseTypedDataMessage).toHaveBeenCalled();
     expect(mockScanAddress).toHaveBeenCalledWith(
       phishingController,
@@ -293,6 +374,98 @@ describe('createTrustSignalsMiddleware', () => {
       phishingController,
       '0x1',
       spender,
+    );
+  });
+
+  it('does not scan the origin URL when security alerts are disabled', async () => {
+    const phishingController = createMockPhishingController();
+    const networkController = createMockNetworkController();
+
+    mockIsEthSendTransaction.mockReturnValue(false);
+    mockIsEthSignTypedData.mockReturnValue(false);
+
+    const middleware = createTrustSignalsMiddleware({
+      phishingController,
+      networkController,
+      preferencesController: createMockPreferencesController(false),
+    });
+
+    const { nextMiddleware } = await callThroughMiddleware({
+      middleware,
+      request: {
+        jsonrpc,
+        id: 1,
+        method: 'eth_chainId',
+        origin: 'https://example.com',
+        params: [] as JsonRpcParams,
+      },
+    });
+
+    expect(mockScanUrl).not.toHaveBeenCalled();
+    expect(nextMiddleware).toHaveBeenCalled();
+  });
+
+  it('does not scan addresses when security alerts are disabled', async () => {
+    const phishingController = createMockPhishingController();
+    const networkController = createMockNetworkController({ chainId: '0x1' });
+
+    mockIsEthSendTransaction.mockReturnValue(true);
+    mockHasValidTransactionParams.mockReturnValue(true);
+    mockExtractSpenderFromApprovalData.mockReturnValue('0xspender');
+
+    const middleware = createTrustSignalsMiddleware({
+      phishingController,
+      networkController,
+      preferencesController: createMockPreferencesController(false),
+    });
+
+    await callThroughMiddleware({
+      middleware,
+      request: {
+        jsonrpc,
+        id: 1,
+        method: 'eth_sendTransaction',
+        params: [{ to: '0xabc', data: '0xdata' }] as JsonRpcParams,
+      },
+    });
+
+    expect(mockScanAddress).not.toHaveBeenCalled();
+  });
+
+  it('picks up preference changes without rebuilding the middleware', async () => {
+    const phishingController = createMockPhishingController();
+    const networkController = createMockNetworkController();
+    const preferencesState = { securityAlertsEnabled: false };
+
+    mockIsEthSendTransaction.mockReturnValue(false);
+    mockIsEthSignTypedData.mockReturnValue(false);
+
+    const middleware = createTrustSignalsMiddleware({
+      phishingController,
+      networkController,
+      preferencesController: {
+        state: preferencesState,
+      } as unknown as PreferencesController,
+    });
+
+    const request: TrustSignalsTestRequest = {
+      jsonrpc,
+      id: 1,
+      method: 'eth_chainId',
+      origin: 'https://example.com',
+      params: [] as JsonRpcParams,
+    };
+
+    await callThroughMiddleware({ middleware, request });
+    expect(mockScanUrl).not.toHaveBeenCalled();
+
+    preferencesState.securityAlertsEnabled = true;
+
+    await callThroughMiddleware({ middleware, request });
+    expect(mockScanUrl).toHaveBeenCalledWith(
+      phishingController,
+      'https://example.com',
+      RequestSourceFlow.RpcTrustSignals,
     );
   });
 
@@ -308,6 +481,7 @@ describe('createTrustSignalsMiddleware', () => {
     const middleware = createTrustSignalsMiddleware({
       phishingController,
       networkController,
+      preferencesController: createMockPreferencesController(),
     });
 
     const { response, nextMiddleware } = await callThroughMiddleware({

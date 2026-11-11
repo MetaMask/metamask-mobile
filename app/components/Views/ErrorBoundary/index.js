@@ -41,6 +41,7 @@ import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import {
   confirmSupportConsent,
   navigateToSupportConsent,
+  openSupportWithSavedPreference,
   rejectSupportConsent,
 } from '../../../util/support';
 import StandaloneSupportConsentModal from '../../UI/SupportConsentSheet/StandaloneSupportConsentModal';
@@ -167,17 +168,33 @@ export const Fallback = (props) => {
       props.openTicket?.();
       return;
     }
+    if (
+      openSupportWithSavedPreference(
+        (url) => Linking.openURL(url),
+        METAMASK_SUPPORT_URL,
+      )
+    ) {
+      return;
+    }
     setConsentModalVisible(true);
   };
 
   const handleConfirmStandaloneConsent = () => {
     setConsentModalVisible(false);
-    confirmSupportConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
+    // eslint-disable-next-line no-void -- Support opening handles its own errors.
+    void confirmSupportConsent(
+      (url) => Linking.openURL(url),
+      METAMASK_SUPPORT_URL,
+    );
   };
 
   const handleRejectStandaloneConsent = () => {
     setConsentModalVisible(false);
-    rejectSupportConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
+    // eslint-disable-next-line no-void -- Support opening handles its own errors.
+    void rejectSupportConsent(
+      (url) => Linking.openURL(url),
+      METAMASK_SUPPORT_URL,
+    );
   };
 
   const handleTryAgain = () => {

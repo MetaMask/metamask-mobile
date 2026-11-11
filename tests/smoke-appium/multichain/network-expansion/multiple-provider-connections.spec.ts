@@ -5,11 +5,7 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
 } from '../../../framework/fixtures/FixtureBuilder.js';
-import {
-  DappVariants,
-  PlaywrightAssertions,
-  asPlaywrightElement,
-} from '../../../framework/index.js';
+import { DappVariants, Assertions } from '../../../framework/index.js';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -18,12 +14,17 @@ import {
   loginToAppPlaywright,
   dismissPushNotificationExistingUserSheet,
 } from '../../../flows/wallet.flow.js';
-import { navigateToBrowserView } from '../../../flows/browser.flow.js';
+import {
+  navigateToBrowserView,
+  waitForTestDappToLoad,
+} from '../../../flows/browser.flow.js';
 import BrowserView from '../../../page-objects/Browser/BrowserView.js';
 import TestDApp from '../../../page-objects/Browser/TestDApp.js';
 import DappConnectionModal from '../../../page-objects/MMConnect/DappConnectionModal.js';
+import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers.js';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds.js';
+import { openConnectedAccountsAfterConnect } from './helpers/open-connected-accounts.helpers.js';
 
 async function setupAndNavigateToTestDapp(): Promise<void> {
   ChromeCdpHelpers.resetMetaMaskWebViewCache();
@@ -31,6 +32,19 @@ async function setupAndNavigateToTestDapp(): Promise<void> {
   await navigateToBrowserView();
   await dismissPushNotificationExistingUserSheet();
   await BrowserView.navigateToTestDApp();
+  // On Android the WebView container and heading text must appear before
+  // requestPermissions fires — window.ethereum may not yet be injected if we
+  // proceed immediately. evaluateInWebView swallows the error silently.
+  await waitForTestDappToLoad();
+}
+
+/**
+ * The "Permissions updated" toast shown after connecting overlays the browser
+ * URL bar, so taps on the account button are swallowed until it dismisses.
+ */
+async function openConnectedAccountsSheet(): Promise<void> {
+  await ToastModal.waitForToastToDismiss();
+  await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
 }
 
 appiumTest.describe(
@@ -77,13 +91,13 @@ appiumTest.describe(
             await TestDApp.requestPermissions();
 
             // The account already permitted (Account 2) should be pre-selected
-            await PlaywrightAssertions.expectTextDisplayed('Account 2');
+            await Assertions.expectTextDisplayed('Account 2');
 
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // Only the already-permitted EVM account should remain connected
-            await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
-            await PlaywrightAssertions.expectTextDisplayed('Account 2');
+            await openConnectedAccountsAfterConnect();
+            await Assertions.expectTextDisplayed('Account 2');
           },
         );
       },
@@ -105,31 +119,27 @@ appiumTest.describe(
             await TestDApp.tapDappConnectButton();
 
             // Account 1 should be the default selection
-            await PlaywrightAssertions.expectTextDisplayed('Account 1');
+            await Assertions.expectTextDisplayed('Account 1');
 
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
-            await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
-            await PlaywrightAssertions.expectTextDisplayed('Account 1');
+            await openConnectedAccountsAfterConnect();
+            await Assertions.expectTextDisplayed('Account 1');
 
             // Navigate to the permissions summary and open the network editor
             await DappConnectionModal.tapPermissionsTabButton();
             await DappConnectionModal.tapEditNetworksButton();
 
             // Both Solana and Ethereum Main Network should be visible as permitted
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(
-                DappConnectionModal.getNetworkButton(
-                  NetworkNonPemittedBottomSheetSelectorsText.SOLANA_NETWORK_NAME,
-                ),
+            await Assertions.expectElementToBeVisible(
+              DappConnectionModal.getNetworkButton(
+                NetworkNonPemittedBottomSheetSelectorsText.SOLANA_NETWORK_NAME,
               ),
               { timeout: 10_000 },
             );
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(
-                DappConnectionModal.getNetworkButton(
-                  NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
-                ),
+            await Assertions.expectElementToBeVisible(
+              DappConnectionModal.getNetworkButton(
+                NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
               ),
               { timeout: 10_000 },
             );
@@ -156,13 +166,13 @@ appiumTest.describe(
             });
 
             // Account 1 should be pre-selected
-            await PlaywrightAssertions.expectTextDisplayed('Account 1');
+            await Assertions.expectTextDisplayed('Account 1');
 
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // EVM account should be connected
-            await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
-            await PlaywrightAssertions.expectTextDisplayed('Account 1');
+            await openConnectedAccountsAfterConnect();
+            await Assertions.expectTextDisplayed('Account 1');
           },
         );
       },

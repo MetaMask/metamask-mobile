@@ -3,7 +3,19 @@ import { useSelector } from 'react-redux';
 import { playImpact, ImpactMoment } from '../../util/haptics';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
-import { useFollowToggle, useFollowToggleMany } from './useFollowToggle';
+import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
+import { selectIsUnlocked } from '../../selectors/keyringController';
+import { selectFollowingProfileIds } from '../../selectors/socialController';
+import {
+  resetFollowingSyncForTests,
+  syncFollowingState,
+} from '../../util/social/followingSync';
+import { FOLLOWING_FEED_QUERY_KEY_PREFIX } from '../UI/SocialFeed/data/socialFeedQueries';
+import {
+  resetFollowToggleSharedStateForTests,
+  useFollowToggle,
+  useFollowToggleMany,
+} from './useFollowToggle';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn().mockReturnValue([]),
@@ -11,6 +23,14 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../selectors/socialController', () => ({
   selectFollowingProfileIds: jest.fn(),
+}));
+
+jest.mock('../../selectors/keyringController', () => ({
+  selectIsUnlocked: jest.fn(),
+}));
+
+jest.mock('../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
 }));
 
 const mockTrack = jest.fn();
@@ -53,14 +73,43 @@ jest.mock('../../util/haptics', () => ({
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockPlayImpact = jest.mocked(playImpact);
 
+const DEFAULT_SELECTED_ADDRESS = '0xabc';
+
+const selectorState = {
+  followingProfileIds: [] as string[],
+  isUnlocked: true,
+  selectedAddress: DEFAULT_SELECTED_ADDRESS as string | undefined,
+};
+
+const mockFollowToggleSelectors = (): void => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectFollowingProfileIds) {
+      return selectorState.followingProfileIds;
+    }
+    if (selector === selectIsUnlocked) {
+      return selectorState.isUnlocked;
+    }
+    if (selector === selectSelectedInternalAccountAddress) {
+      return selectorState.selectedAddress;
+    }
+    return undefined;
+  });
+};
+
 describe('useFollowToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue([]);
+    resetFollowToggleSharedStateForTests();
+    resetFollowingSyncForTests();
+    selectorState.followingProfileIds = [];
+    selectorState.isUnlocked = true;
+    selectorState.selectedAddress = DEFAULT_SELECTED_ADDRESS;
+    mockFollowToggleSelectors();
     (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
       followed: [],
       unfollowed: [],
     });
+    mockInvalidateQueries.mockResolvedValue(undefined);
     mockTrack.mockReset();
   });
 
@@ -72,7 +121,7 @@ describe('useFollowToggle', () => {
     });
 
     it('returns true when the trader is in followingProfileIds', () => {
-      mockUseSelector.mockReturnValue(['trader-1']);
+      selectorState.followingProfileIds = ['trader-1'];
 
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
@@ -95,7 +144,7 @@ describe('useFollowToggle', () => {
     });
 
     it('calls unfollowTrader when the trader is currently followed', async () => {
-      mockUseSelector.mockReturnValue(['trader-1']);
+      selectorState.followingProfileIds = ['trader-1'];
 
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
@@ -109,7 +158,7 @@ describe('useFollowToggle', () => {
       );
     });
 
-    it('invalidates the fetchFollowing query after a successful follow', async () => {
+    it('invalidates following and followers queries after a successful follow', async () => {
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
       await act(async () => {
@@ -118,11 +167,20 @@ describe('useFollowToggle', () => {
 
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ['SocialService:fetchFollowing'],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchMyFollowers'],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFollowers'],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchTraderFollowing'],
       });
     });
 
-    it('invalidates the fetchFollowing query after a successful unfollow', async () => {
-      mockUseSelector.mockReturnValue(['trader-1']);
+    it('invalidates following and followers queries after a successful unfollow', async () => {
+      selectorState.followingProfileIds = ['trader-1'];
 
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
@@ -133,6 +191,65 @@ describe('useFollowToggle', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ['SocialService:fetchFollowing'],
       });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchMyFollowers'],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFollowers'],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchTraderFollowing'],
+      });
+    });
+
+    it('invalidates the following feed after a successful follow', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: FOLLOWING_FEED_QUERY_KEY_PREFIX,
+      });
+    });
+
+    it('invalidates the following feed after a successful unfollow', async () => {
+      selectorState.followingProfileIds = ['trader-1'];
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: FOLLOWING_FEED_QUERY_KEY_PREFIX,
+      });
+    });
+
+    it('keeps the follow and reports the failure when the following feed invalidation rejects', async () => {
+      mockInvalidateQueries.mockImplementation(({ queryKey }) =>
+        queryKey === FOLLOWING_FEED_QUERY_KEY_PREFIX
+          ? Promise.reject(new Error('feed boom'))
+          : Promise.resolve(),
+      );
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(result.current.isFollowing).toBe(true);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            surface: 'follow',
+            operation: 'invalidate_following_feed',
+            endpoint: 'feed',
+          }),
+        }),
+      );
     });
 
     it('does not invalidate the fetchFollowing query when the API call rejects', async () => {
@@ -253,7 +370,7 @@ describe('useFollowToggle', () => {
     });
 
     it('fires follow toggle haptic when unfollowing a currently followed trader', async () => {
-      mockUseSelector.mockReturnValue(['trader-1']);
+      selectorState.followingProfileIds = ['trader-1'];
 
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
@@ -328,7 +445,12 @@ describe('useFollowToggle', () => {
 describe('useFollowToggleMany', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue([]);
+    resetFollowToggleSharedStateForTests();
+    resetFollowingSyncForTests();
+    selectorState.followingProfileIds = [];
+    selectorState.isUnlocked = true;
+    selectorState.selectedAddress = DEFAULT_SELECTED_ADDRESS;
+    mockFollowToggleSelectors();
     (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
       followed: [],
       unfollowed: [],
@@ -347,6 +469,91 @@ describe('useFollowToggleMany', () => {
 
     expect(result.current.isFollowing('trader-1')).toBe(true);
     expect(result.current.isFollowing('trader-2')).toBe(false);
+  });
+
+  it('reports a known-followed trader as followed when followingProfileIds is stale', () => {
+    const { result } = renderHook(() => useFollowToggleMany());
+
+    expect(result.current.isFollowing('trader-1', true)).toBe(true);
+  });
+
+  it('unfollows a known-followed trader on the first toggle when followingProfileIds is stale', async () => {
+    const { result } = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      await result.current.toggleFollow('trader-1', undefined, true);
+    });
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'SocialController:unfollowTrader',
+      { targets: ['trader-1'] },
+    );
+  });
+
+  it('keeps an in-flight unfollow override after followingProfileIds already agrees', async () => {
+    let resolveCall: (value: unknown) => void = () => undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCall = resolve;
+        }),
+    );
+    selectorState.followingProfileIds = ['trader-1'];
+    const { result, rerender } = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      result.current.toggleFollow('trader-1', undefined, true);
+    });
+    selectorState.followingProfileIds = [];
+    rerender(undefined);
+    await act(async () => undefined);
+
+    expect(result.current.isFollowing('trader-1', true)).toBe(false);
+
+    await act(async () => {
+      resolveCall({ followed: [], unfollowed: [] });
+    });
+  });
+
+  it('re-syncs following state after a toggle that lands during an in-flight sync', async () => {
+    let resolveSync: (value: unknown) => void = () => undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      (action: string) =>
+        action === 'SocialController:updateFollowing'
+          ? new Promise((resolve) => {
+              resolveSync = resolve;
+            })
+          : Promise.resolve({ followed: [], unfollowed: [] }),
+    );
+    syncFollowingState();
+    const { result } = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      await result.current.toggleFollow('trader-1', undefined, true);
+    });
+    await act(async () => {
+      resolveSync({ following: [] });
+    });
+
+    const updateFollowingCalls = (
+      Engine.controllerMessenger.call as jest.Mock
+    ).mock.calls.filter(
+      ([action]) => action === 'SocialController:updateFollowing',
+    );
+    expect(updateFollowingCalls).toHaveLength(2);
+  });
+
+  it('does not re-sync following state when no sync is in flight', async () => {
+    const { result } = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      await result.current.toggleFollow('trader-1');
+    });
+
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+      'SocialController:updateFollowing',
+    );
   });
 
   it('allows concurrent toggles for different traders', async () => {
@@ -417,7 +624,7 @@ describe('useFollowToggleMany', () => {
         }),
     );
 
-    const { result } = renderHook(() => useFollowToggleMany());
+    const { result, rerender } = renderHook(() => useFollowToggleMany());
 
     // Kick off the follow (optimistic = true) without resolving the API call.
     await act(async () => {
@@ -425,7 +632,8 @@ describe('useFollowToggleMany', () => {
     });
 
     // Redux updates to an empty list (hasn't caught up yet).
-    mockUseSelector.mockReturnValue([]);
+    selectorState.followingProfileIds = [];
+    rerender(undefined);
     await act(async () => {
       resolveCall({ followed: [], unfollowed: [] });
     });
@@ -435,7 +643,7 @@ describe('useFollowToggleMany', () => {
   });
 
   it('removes optimistic overrides once redux catches up with the intended value', async () => {
-    const { result } = renderHook(() => useFollowToggleMany());
+    const { result, rerender } = renderHook(() => useFollowToggleMany());
 
     // Follow the trader optimistically.
     await act(async () => {
@@ -443,12 +651,128 @@ describe('useFollowToggleMany', () => {
     });
 
     // Now redux reflects the follow — the optimistic override is no longer needed.
-    mockUseSelector.mockReturnValue(['trader-1']);
+    selectorState.followingProfileIds = ['trader-1'];
+    rerender(undefined);
     await act(async () => {
       // Trigger a re-render so the cleanup effect sees the updated selector.
     });
 
     // isFollowing should still be true (from redux now, not the optimistic map).
     expect(result.current.isFollowing('trader-1')).toBe(true);
+  });
+
+  it('shares optimistic follow state across hook instances', async () => {
+    let resolveCall: (value: unknown) => void = () => undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCall = resolve;
+        }),
+    );
+
+    const first = renderHook(() => useFollowToggleMany());
+    const second = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      first.result.current.toggleFollow('trader-1');
+    });
+
+    expect(first.result.current.isFollowing('trader-1')).toBe(true);
+    expect(second.result.current.isFollowing('trader-1')).toBe(true);
+
+    await act(async () => {
+      resolveCall({ followed: [], unfollowed: [] });
+    });
+  });
+
+  it('ignores a second instance toggle for the same trader while in flight', async () => {
+    let resolveCall: (value: unknown) => void = () => undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCall = resolve;
+        }),
+    );
+
+    const first = renderHook(() => useFollowToggleMany());
+    const second = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      first.result.current.toggleFollow('trader-1');
+    });
+    await act(async () => {
+      second.result.current.toggleFollow('trader-1');
+    });
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'SocialController:followTrader',
+      { targets: ['trader-1'] },
+    );
+
+    await act(async () => {
+      resolveCall({ followed: [], unfollowed: [] });
+    });
+  });
+
+  it('clears optimistic follow after the selected account changes', async () => {
+    let resolveCall: (value: unknown) => void = () => undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCall = resolve;
+        }),
+    );
+
+    const { result, rerender } = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      result.current.toggleFollow('trader-1');
+    });
+    expect(result.current.isFollowing('trader-1')).toBe(true);
+
+    selectorState.selectedAddress = '0xdef';
+    await act(async () => {
+      rerender(undefined);
+    });
+
+    expect(result.current.isFollowing('trader-1')).toBe(false);
+
+    await act(async () => {
+      resolveCall({ followed: [], unfollowed: [] });
+    });
+  });
+
+  it('allows a follow after lock even when a prior request never settled', async () => {
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    const { result, rerender } = renderHook(() => useFollowToggleMany());
+
+    await act(async () => {
+      result.current.toggleFollow('trader-1');
+    });
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+
+    selectorState.isUnlocked = false;
+    await act(async () => {
+      rerender(undefined);
+    });
+    selectorState.isUnlocked = true;
+    await act(async () => {
+      rerender(undefined);
+    });
+
+    (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
+      followed: [],
+      unfollowed: [],
+    });
+
+    await act(async () => {
+      await result.current.toggleFollow('trader-1');
+    });
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(2);
   });
 });

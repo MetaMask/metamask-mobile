@@ -7,15 +7,14 @@ import React, {
   useState,
 } from 'react';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import { Animated, Dimensions, Easing, Image, View } from 'react-native';
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Easing,
-  Image,
-  View,
-} from 'react-native';
-import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
+  Alignment,
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+} from '@rive-app/react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -25,13 +24,15 @@ import {
   BoxJustifyContent,
   Button,
   ButtonSize,
-  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ButtonGlass from '../../../component-library/components-temp/ButtonGlass';
+import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
+import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { strings } from '../../../../locales/i18n';
 import {
   suppressWalletHomeOnboardingSteps,
@@ -84,7 +85,7 @@ const SLIDE_DISTANCE = Dimensions.get('window').width;
 export interface WalletHomeOnboardingStepsProps {
   testID?: string;
   /**
-   * When true, show the first-step shell with a loading hero and disabled primary until
+   * When true, show the first-step shell with an empty hero and disabled primary until
    * aggregated balance / empty-state is resolved (in-flow users reopening the app).
    */
   isAwaitingBalance?: boolean;
@@ -128,8 +129,17 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   canAdvanceFundStepAfterBalance = false,
 }) => {
   const tw = useTailwind();
+  const isGlass = useIsGlassSurfaceEnabled(
+    selectHomeBrandRefreshSurfacesEnabled,
+  );
   const isFocused = useIsFocused();
-  const checklistRiveRef = useRef<RiveRef>(null);
+  const { riveFile: checklistRiveFile } = useRiveFile(
+    onboardChecklistV07Animation,
+  );
+  // `riveRef.current` only becomes populated once the mounted view is ready to
+  // receive inputs; re-registers automatically when the keyed view remounts.
+  const { riveRef: checklistRiveRef, setHybridRef: setChecklistHybridRef } =
+    useRive();
   const prevSuspendRiveForCurtainRef = useRef(false);
   const [checklistFadeOpacity] = useState(() => new Animated.Value(1));
   const dispatch = useDispatch();
@@ -270,7 +280,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       checklistRiveRef.current?.play();
     }
     prevSuspendRiveForCurtainRef.current = suspendRiveForCurtain;
-  }, [suspendRiveForCurtain]);
+  }, [suspendRiveForCurtain, checklistRiveRef]);
 
   /**
    * Decode every hero PNG while step 1 is visible so step 2/3 transitions don't briefly keep
@@ -338,10 +348,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         return;
       }
       try {
-        rive.fireState(
-          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
-          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
-        );
+        // onboard_checklist_v07.riv does not expose the Main input on every artboard.
+        // Unlike the old runtime (Android JNI abort), Nitro surfaces a missing input
+        // as a catchable JS error, and it cannot play a named linear animation as a
+        // fallback — so always fire the trigger and let the catch below absorb a miss.
+        // TODO(#33825): Re-export v07 with Main on every artboard.
+        rive.triggerInput(WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER);
         rive.play();
       } catch (error) {
         Logger.error(
@@ -355,7 +367,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn]);
+  }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn, checklistRiveRef]);
 
   const currentStep = visibleSteps[visualStepIndexForProgress];
 
@@ -483,8 +495,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       const rive = checklistRiveRef.current;
       if (rive) {
         try {
-          rive.fireState(
-            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+          rive.triggerInput(
             WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
           );
         } catch (error) {
@@ -531,6 +542,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     slideX,
     slideY,
     checklistFadeOpacity,
+    checklistRiveRef,
   ]);
 
   useLayoutEffect(() => {
@@ -751,26 +763,18 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           justifyContent={BoxJustifyContent.Center}
           twClassName="relative z-10 flex-1 w-full min-h-0 self-stretch"
         >
-          {isAwaitingBalance ? (
-            <ActivityIndicator
-              size="large"
-              accessibilityLabel={strings(
-                'wallet.home_onboarding_steps.balance_loading_a11y',
-              )}
-              testID={`${testID}-hero-awaiting-balance`}
-            />
-          ) : !hasTestOverrides ? (
-            <Rive
+          {!isAwaitingBalance && !hasTestOverrides && checklistRiveFile ? (
+            <RiveView
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
-              ref={checklistRiveRef}
-              source={onboardChecklistV07Animation}
+              hybridRef={setChecklistHybridRef}
+              file={checklistRiveFile}
               artboardName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD[currentStep.kind]
               }
               style={WALLET_HOME_ONBOARDING_HERO_MEDIA_LAYOUT_STYLE}
               fit={Fit.Contain}
               alignment={Alignment.Center}
-              autoplay={!skipIntroAfterDeferredNavReturn}
+              autoPlay={!skipIntroAfterDeferredNavReturn}
               stateMachineName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE
               }
@@ -825,11 +829,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             gap={3}
             twClassName="w-full"
           >
-            <Button
-              variant={ButtonVariant.Secondary}
+            <ButtonGlass
+              isGlass={isGlass}
               size={ButtonSize.Lg}
               onPress={goNextOrComplete}
               twClassName="min-w-0 flex-1"
+              containerStyle={tw.style('min-w-0 flex-1')}
               isDisabled={
                 isStepTransitioning ||
                 isAwaitingBalance ||
@@ -838,7 +843,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
             >
               {strings('wallet.home_onboarding_steps.skip')}
-            </Button>
+            </ButtonGlass>
             <Button
               size={ButtonSize.Lg}
               onPress={handlePrimaryPress}

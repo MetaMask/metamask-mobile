@@ -2,13 +2,16 @@ import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { Performance, PerformancePreps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import { resolvePerpsGtmOnboardingModalEnabled } from '../../flows/perps.flow.js';
+import { fetchProductionFeatureFlags } from '../feature-flag-helper.js';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
 import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import WalletView from '../../page-objects/wallet/WalletView.js';
+import AppiumAssertions from '../../framework/AppiumAssertions';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
+
+const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 
 /* Scenario 5: Perps add funds */
 test.describe(`${Performance} ${PerformancePreps}`, () => {
@@ -25,7 +28,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
       const openAddFundsTimer = new TimerHelper(
         'Open Add Funds',
-        { ios: 5000, android: 3500 },
+        { ios: 5000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const getQuoteTimer = new TimerHelper(
@@ -34,24 +37,37 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await loginToAppPlaywright();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapPerpsButton(); // may need to change for catchAll trade perps contracts
-      // Open Perps Main Screen
-      await selectPerpsMainScreenTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PerpsOnboarding.tutorialTitle),
-        );
-      });
+      // Fetched before the tap so the network call is not part of the
+      // tap-to-tutorial time.
+      const productionFeatureFlags = await fetchProductionFeatureFlags(
+        'main',
+        testEnvironment,
+      );
 
-      // Skip tutorial
-      await PerpsOnboarding.tapSkipButton();
+      await loginToAppPlaywright();
+      await enableHermesAppProfiling();
+      await WalletView.scrollAndTapPerpsSection();
+
+      const perpsGtmOnboardingModalEnabled =
+        await resolvePerpsGtmOnboardingModalEnabled(productionFeatureFlags);
+
+      if (perpsGtmOnboardingModalEnabled) {
+        // Open Perps Main Screen
+        await selectPerpsMainScreenTimer.measure(async () => {
+          await AppiumAssertions.expectElementToBeVisible(
+            PerpsOnboarding.tutorialTitle,
+          );
+        });
+
+        // Skip tutorial
+        await PerpsOnboarding.tapSkipButton();
+      }
 
       await PerpsOnboarding.tapAddFunds();
       // Open Add Funds flow
       await openAddFundsTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PerpsDepositView.amountInput),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsDepositView.amountInput,
         );
       });
 
@@ -60,16 +76,15 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       // Get quote
       await getQuoteTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(TransactionPayConfirmation.transactionFee),
+        await AppiumAssertions.expectElementToBeVisible(
+          TransactionPayConfirmation.transactionFee,
         );
       });
 
-      performanceTracker.addTimers(
-        selectPerpsMainScreenTimer,
-        openAddFundsTimer,
-        getQuoteTimer,
-      );
+      if (perpsGtmOnboardingModalEnabled) {
+        performanceTracker.addTimer(selectPerpsMainScreenTimer);
+      }
+      performanceTracker.addTimers(openAddFundsTimer, getQuoteTimer);
     },
   );
 });

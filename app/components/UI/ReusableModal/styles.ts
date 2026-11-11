@@ -16,10 +16,10 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
   return StyleSheet.create({
     absoluteFill: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     overlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: colors.overlay.default,
     },
   });

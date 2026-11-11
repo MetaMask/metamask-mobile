@@ -4,7 +4,6 @@ import {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
-import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 
 const UNDERLINE_HEIGHT = 2;
 const TAB_PADDING_BOTTOM = 8;
@@ -43,7 +42,7 @@ const createStyles = (params: { theme: Theme }) => {
     },
     tabBar: {
       borderColor: borderMuted,
-      backgroundColor: getElevatedSurfaceColor(theme),
+      backgroundColor: theme.colors.background.elevated1,
     },
     // edit network menu
     editNetworkMenu: {

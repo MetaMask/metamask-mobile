@@ -48,7 +48,11 @@ const useSpendingLimitData = (): UseSpendingLimitDataReturn => {
 
   const fetchData = useCallback(async () => {
     if (!isAuthenticated) return;
-    await fetchDelegationSettings();
+    try {
+      await fetchDelegationSettings();
+    } catch {
+      // Surfaced via useGetDelegationSettings error.
+    }
   }, [isAuthenticated, fetchDelegationSettings]);
 
   return {

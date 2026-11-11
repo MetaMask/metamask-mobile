@@ -1,12 +1,22 @@
 // Unit test: `usePerpsProOrderForm` is mocked to isolate container → presentational
-// prop/sheet wiring from business logic. A full component-view test (real Redux
-// state + stream fixtures) is deferred until the Pro form's view-test renderer is
-// established alongside PerpsOrderView.view.test.tsx.
+// prop/sheet wiring from business logic. User-visible order-type behavior is
+// covered by PerpsProMarketView.view.test.tsx with real Redux selectors.
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  PERPS_CONSTANTS,
+  TRIGGER_ORDER_TYPES,
+  type OrderType,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+
+jest.mock('../../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 import type {
+  PerpsProScaleOrderModel,
   PerpsProSizeInputModel,
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm/PerpsProOrderForm.types';
@@ -15,16 +25,50 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
+import {
+  selectPerpsMobileScaleEnabledFlag,
+  selectPerpsMobileChaseEnabledFlag,
+  selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
+} from '../../../selectors/featureFlags';
+import { selectPerpsProvider } from '../../../selectors/perpsController';
+
+const mockUseSelector = jest.fn();
+const selectorValues = new Map<unknown, unknown>();
+const mockUsePerpsProvider = jest.fn();
+const mockUseIsPerpsProModeActive = jest.fn();
+const mockUsePerpsProOrderForm = jest.fn();
+const mockOrderTypeBottomSheet = jest.fn();
+const mockCheckOrderCapability = jest.fn().mockResolvedValue(true);
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+jest.mock('../../../utils/perpsModeSwitch', () => ({
+  useIsPerpsProModeActive: () => mockUseIsPerpsProModeActive(),
+}));
+
+jest.mock('../../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: (params: unknown) => mockUsePerpsProvider(params),
+}));
 
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
+jest.mock('../../../../../../util/haptics');
 
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
 // Provider is a passthrough; the orchestration hook is mocked below so the
-// container test focuses purely on prop/sheet wiring.
+// container test focuses purely on prop/sheet wiring. `setActivePriceField`
+// is captured so the panel's focus-composition wiring can be
+// asserted without needing a real PerpsOrderProvider.
+const mockSetActivePriceField = jest.fn();
 jest.mock('../../../contexts/PerpsOrderContext', () => ({
   PerpsOrderProvider: ({ children }: { children: React.ReactNode }) => children,
+  usePerpsOrderContext: () => ({
+    setActivePriceField: mockSetActivePriceField,
+  }),
 }));
 
 const DEFAULT_SIZE_INPUT: PerpsProSizeInputModel = {
@@ -45,23 +89,57 @@ const DEFAULT_SIZE_SLIDER: PerpsProSizeSliderModel = {
   onDragCancel: jest.fn(),
 };
 
+const DEFAULT_SCALE_ORDER: PerpsProScaleOrderModel = {
+  startPrice: '',
+  endPrice: '',
+  totalOrders: '',
+  sizeSkew: '1.00',
+  onStartPriceChange: jest.fn(),
+  onStartPriceBlur: jest.fn(),
+  onEndPriceChange: jest.fn(),
+  onEndPriceBlur: jest.fn(),
+  onTotalOrdersChange: jest.fn(),
+  onTotalOrdersBlur: jest.fn(),
+  onSizeSkewChange: jest.fn(),
+  onSizeSkewBlur: jest.fn(),
+  onSizeSkewInfoPress: jest.fn(),
+  rungs: [],
+  margin: PERPS_CONSTANTS.FallbackPriceDisplay,
+  liquidationPrice: PERPS_CONSTANTS.FallbackPriceDisplay,
+  fees: PERPS_CONSTANTS.FallbackPriceDisplay,
+};
+
 const DEFAULT_MOCK_HOOK_RESULT = {
   direction: 'long' as 'long' | 'short',
   onDirectionChange: jest.fn(),
   leverage: 5,
   onLeveragePress: jest.fn(),
-  orderType: 'market' as 'market' | 'limit',
+  orderType: 'market' as OrderType,
+  scaleOrder: DEFAULT_SCALE_ORDER,
   onOrderTypeButtonPress: jest.fn(),
   limitPrice: '',
   onLimitPriceChange: jest.fn(),
   onLimitPriceBlur: jest.fn(),
   onUseMidPricePress: jest.fn(),
+  triggerPrice: '',
+  onTriggerPriceChange: jest.fn(),
+  onTriggerPriceBlur: jest.fn(),
   sizeInput: DEFAULT_SIZE_INPUT,
   sizeSlider: DEFAULT_SIZE_SLIDER,
   availableBalance: '$500 available',
   onAddFundsPress: jest.fn(),
   reduceOnly: false,
   onReduceOnlyChange: jest.fn(),
+  twap: {
+    days: '',
+    hours: '',
+    minutes: '5',
+    randomize: false,
+    onDaysChange: jest.fn(),
+    onHoursChange: jest.fn(),
+    onMinutesChange: jest.fn(),
+    onRandomizeChange: jest.fn(),
+  },
   isTPSLConfigured: false,
   onTPSLPress: jest.fn(),
   notices: [] as { id: string; variant: string; message?: string }[],
@@ -90,41 +168,45 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   feeProtocolFeeRate: 0.02,
   feeOriginalMetamaskFeeRate: 0.01,
   feeDiscountPercentage: 10,
+  marginMode: 'isolated' as 'isolated' | 'cross',
+  isMarginModeLocked: false,
+  isCrossMarginAvailableForMarket: false,
+  refreshMarginModeLock: jest.fn(),
+  onMarginModeSelect: jest.fn(),
 };
 
 // Mutated in place by tests; fully restored in beforeEach via Object.assign so
 // no property mutation leaks across tests. The mock closure below captures this
 // reference, so it must never be reassigned.
 const mockHookResult = { ...DEFAULT_MOCK_HOOK_RESULT };
-
 jest.mock('./PerpsProOrderForm/usePerpsProOrderForm', () => ({
-  usePerpsProOrderForm: () => mockHookResult,
+  usePerpsProOrderForm: (params: unknown) => {
+    mockUsePerpsProOrderForm(params);
+    return mockHookResult;
+  },
 }));
 
 // Lightweight sheet mocks that surface their key callbacks for wiring assertions.
-jest.mock(
-  '../../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView',
-  () => {
-    const { Pressable: P } = jest.requireActual('react-native');
-    const ReactActual = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: ({
-        isVisible,
-        onSelect,
-      }: {
-        isVisible: boolean;
-        onSelect: (type: string) => void;
-      }) =>
-        isVisible
-          ? ReactActual.createElement(P, {
-              testID: 'mock-order-type-select',
-              onPress: () => onSelect('limit'),
-            })
-          : null,
-    };
-  },
-);
+jest.mock('../../../components/PerpsOrderTypeBottomSheet', () => {
+  const { Pressable: P } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: (props: {
+      isVisible: boolean;
+      onSelect: (type: string) => void;
+      availableOrderTypes: readonly string[];
+    }) => {
+      mockOrderTypeBottomSheet(props);
+      return props.isVisible
+        ? ReactActual.createElement(P, {
+            testID: 'mock-order-type-select',
+            onPress: () => props.onSelect('limit'),
+          })
+        : null;
+    },
+  };
+});
 
 jest.mock('../../../components/PerpsLeverageBottomSheet', () => {
   const { Pressable: P } = jest.requireActual('react-native');
@@ -134,13 +216,18 @@ jest.mock('../../../components/PerpsLeverageBottomSheet', () => {
     default: ({
       isVisible,
       onConfirm,
+      enableConfirmHaptics,
     }: {
       isVisible: boolean;
       onConfirm: (leverage: number) => void;
+      enableConfirmHaptics?: boolean;
     }) =>
       isVisible
         ? ReactActual.createElement(P, {
             testID: 'mock-leverage-confirm',
+            accessibilityLabel: enableConfirmHaptics
+              ? 'confirm-haptics-enabled'
+              : 'confirm-haptics-off',
             onPress: () => onConfirm(10),
           })
         : null,
@@ -178,7 +265,11 @@ jest.mock('../../../components/PerpsBottomSheetTooltip', () => {
   };
 });
 
-const market = { symbol: 'BTC', name: 'Bitcoin' } as PerpsMarketData;
+const market = {
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  providerId: 'hyperliquid',
+} as PerpsMarketData;
 
 const renderPanel = (
   props: Partial<React.ComponentProps<typeof PerpsProOrderFormPanel>> = {},
@@ -187,6 +278,30 @@ const renderPanel = (
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    selectorValues.clear();
+    selectorValues.set(selectPerpsProTriggeredOrdersEnabledFlag, true);
+    selectorValues.set(selectPerpsProTwapEnabledFlag, true);
+    selectorValues.set(selectPerpsMobileScaleEnabledFlag, true);
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, true);
+    selectorValues.set(selectPerpsProvider, 'hyperliquid');
+    mockUseSelector.mockImplementation((selector: unknown) =>
+      selectorValues.get(selector),
+    );
+    mockUsePerpsProvider.mockReturnValue({
+      isLoadingOrderCapabilities: false,
+      orderCapabilities: {
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['twap', 'scale', 'chase'],
+      },
+      supportsTwapOrders: true,
+      supportsScaleOrders: true,
+      supportsChaseOrders: true,
+      checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+      checkTriggerOrderSupport: mockCheckOrderCapability,
+    });
+    mockUseIsPerpsProModeActive.mockReturnValue(true);
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
     Object.assign(mockHookResult, DEFAULT_MOCK_HOOK_RESULT);
@@ -203,6 +318,154 @@ describe('PerpsProOrderFormPanel', () => {
     expect(
       screen.getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('requests order capabilities for the market route', () => {
+    const routedMarket: PerpsMarketData = {
+      ...market,
+      providerId: 'hyperliquid',
+    };
+
+    renderPanel({ market: routedMarket });
+
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith({
+      symbol: 'BTC',
+      providerId: 'hyperliquid',
+    });
+  });
+
+  it('skips capability discovery when all advanced order flags are disabled', () => {
+    selectorValues.set(selectPerpsProTriggeredOrdersEnabledFlag, false);
+    selectorValues.set(selectPerpsProTwapEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileScaleEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
+
+    renderPanel();
+
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith(undefined);
+  });
+
+  it('loads shared capabilities when only triggered orders are enabled', () => {
+    selectorValues.set(selectPerpsProTwapEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileScaleEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
+
+    renderPanel();
+
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith({
+      symbol: 'BTC',
+      providerId: 'hyperliquid',
+    });
+  });
+
+  it('loads shared capabilities when only Chase is enabled', () => {
+    selectorValues.set(selectPerpsProTwapEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileScaleEnabledFlag, false);
+
+    renderPanel();
+
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith({
+      symbol: 'BTC',
+      providerId: 'hyperliquid',
+    });
+  });
+
+  it('forwards the provider route resolved by capabilities to the order form', () => {
+    renderPanel();
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isTwapEnabled: true,
+        isTwapAvailabilityPending: false,
+        resolvedTwapProviderId: 'hyperliquid',
+        checkTwapOrderSupport: expect.any(Function),
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        checkScaleOrderSupport: expect.any(Function),
+        isChaseAvailabilityPending: false,
+        isChaseEnabled: true,
+        chaseProviderId: 'hyperliquid',
+        refreshChaseCapability: expect.any(Function),
+      }),
+    );
+  });
+
+  it('forwards blurred focus without hiding the order form', () => {
+    renderPanel({ isScreenFocused: false });
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({ isScreenFocused: false }),
+    );
+    expect(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('rechecks Chase support against the shared concrete provider route', async () => {
+    renderPanel();
+    const params = mockUsePerpsProOrderForm.mock.calls[0][0] as {
+      refreshChaseCapability: () => Promise<string | null>;
+    };
+    let providerId: string | null = null;
+
+    await act(async () => {
+      providerId = await params.refreshChaseCapability();
+    });
+
+    expect(mockCheckOrderCapability).toHaveBeenCalledWith(
+      'chase',
+      'hyperliquid',
+    );
+    expect(providerId).toBe('hyperliquid');
+  });
+
+  it('fails Chase closed when shared capabilities omit Chase', () => {
+    mockUsePerpsProvider.mockReturnValue({
+      isLoadingOrderCapabilities: false,
+      orderCapabilities: {
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['twap', 'scale'],
+      },
+      supportsTwapOrders: true,
+      supportsScaleOrders: true,
+      supportsChaseOrders: false,
+      checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+      checkTriggerOrderSupport: mockCheckOrderCapability,
+    });
+
+    renderPanel();
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isChaseEnabled: false,
+        chaseProviderId: null,
+      }),
+    );
+  });
+
+  it('keeps Chase gated off when shared capabilities support it', () => {
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
+
+    renderPanel();
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isChaseEnabled: false,
+        chaseProviderId: null,
+      }),
+    );
+  });
+
+  it('forwards the selected Scale provider route to the order form', () => {
+    renderPanel();
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scaleProviderId: 'hyperliquid',
+      }),
+    );
   });
 
   it('uses top inset on the form panel without a book separator border', () => {
@@ -274,6 +537,29 @@ describe('PerpsProOrderFormPanel', () => {
     expect(mockHookResult.onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
   });
 
+  it('opens and closes the TWAP duration sheet from the compact Runtime row', () => {
+    mockHookResult.orderType = 'twap';
+    renderPanel();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.TWAP_DURATION_BUTTON),
+    );
+
+    expect(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.TWAP_DURATION_SHEET),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProOrderFormSelectorsIDs.TWAP_DURATION_SHEET_CLOSE,
+      ),
+    );
+
+    expect(
+      screen.queryByTestId(PerpsProOrderFormSelectorsIDs.TWAP_DURATION_SHEET),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders the size denomination returned by the hook', () => {
     mockHookResult.sizeInput = {
       ...mockHookResult.sizeInput,
@@ -336,6 +622,10 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onLeverageConfirm).toHaveBeenCalledWith(10);
+    expect(screen.getByTestId('mock-leverage-confirm')).toHaveProp(
+      'accessibilityLabel',
+      'confirm-haptics-enabled',
+    );
   });
 
   it('renders the leverage sheet inside the Android modal gesture root', () => {
@@ -373,6 +663,147 @@ describe('PerpsProOrderFormPanel', () => {
     expect(mockHookResult.onOrderTypeSelect).toHaveBeenCalledWith('limit');
   });
 
+  it('passes one ordered collection of implemented gated order types', () => {
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        asset: 'BTC',
+        direction: 'long',
+        showOrderTypeIcons: true,
+        availableOrderTypes: [
+          'market',
+          'limit',
+          'stop_limit',
+          'stop_market',
+          'take_profit_limit',
+          'take_profit_market',
+          'twap',
+          'scale',
+          'chase',
+        ],
+        title: 'Choose order type',
+      }),
+    );
+  });
+
+  it('keeps only Basic types when Pro mode is inactive', () => {
+    mockUseIsPerpsProModeActive.mockReturnValue(false);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableOrderTypes: ['market', 'limit'],
+      }),
+    );
+  });
+
+  it('omits Triggered types when their remote flag is disabled', () => {
+    selectorValues.set(selectPerpsProTriggeredOrdersEnabledFlag, false);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableOrderTypes: ['market', 'limit', 'twap', 'scale', 'chase'],
+      }),
+    );
+  });
+
+  it('omits TWAP when market capabilities do not support it', () => {
+    mockUsePerpsProvider.mockReturnValue({
+      isLoadingOrderCapabilities: false,
+      orderCapabilities: {
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['scale', 'chase'],
+      },
+      supportsTwapOrders: false,
+      supportsScaleOrders: true,
+      supportsChaseOrders: true,
+      checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+      checkTriggerOrderSupport: mockCheckOrderCapability,
+    });
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableOrderTypes: [
+          'market',
+          'limit',
+          'stop_limit',
+          'stop_market',
+          'take_profit_limit',
+          'take_profit_market',
+          'scale',
+          'chase',
+        ],
+      }),
+    );
+  });
+
+  it('offers supported Lighter Scale while TWAP awaits its form limits', () => {
+    mockUsePerpsProvider.mockReturnValue({
+      isLoadingOrderCapabilities: false,
+      orderCapabilities: {
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: ['twap', 'scale'],
+      },
+      supportsTwapOrders: true,
+      supportsScaleOrders: true,
+      supportsChaseOrders: false,
+      checkOrderCapability: mockCheckOrderCapability,
+      supportedTriggerOrderTypes: [],
+      checkTriggerOrderSupport: mockCheckOrderCapability,
+    });
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableOrderTypes: ['market', 'limit', 'scale'],
+      }),
+    );
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isScaleOrdersEnabled: true,
+        scaleProviderId: 'lighter',
+      }),
+    );
+  });
+
+  it('keeps Chase available when the TWAP rollout flag is absent', () => {
+    selectorValues.delete(selectPerpsProTwapEnabledFlag);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableOrderTypes: [
+          'market',
+          'limit',
+          'stop_limit',
+          'stop_market',
+          'take_profit_limit',
+          'take_profit_market',
+          'scale',
+          'chase',
+        ],
+      }),
+    );
+  });
+
   it('renders the fees tooltip when a tooltip is selected', () => {
     // Arrange
     mockHookResult.selectedTooltip = 'fees';
@@ -393,5 +824,70 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(screen.getByTestId('mock-tooltip-geo_block')).toBeOnTheScreen();
+  });
+
+  describe('focused price field composition', () => {
+    const getMountedInput = (testID: string) =>
+      screen.getByTestId(testID, { includeHiddenElements: true });
+
+    it('marks the limit price as the active field on focus', () => {
+      mockHookResult.orderType = 'limit';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('limit');
+    });
+
+    it('marks the trigger price as the active field on focus', () => {
+      mockHookResult.orderType = 'stop_market';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.TRIGGER_PRICE_INPUT),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('trigger');
+    });
+
+    it('marks the Scale start price as the active field on focus', () => {
+      mockHookResult.orderType = 'scale';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.SCALE_START_PRICE),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('scaleStart');
+    });
+
+    it('marks the Scale end price as the active field on focus', () => {
+      mockHookResult.orderType = 'scale';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.SCALE_END_PRICE),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('scaleEnd');
+    });
+
+    it('marks Chase max distance as the active field on focus', () => {
+      mockHookResult.orderType = 'chase';
+      renderPanel();
+
+      fireEvent(
+        getMountedInput(PerpsProOrderFormSelectorsIDs.CHASE_MAX_DISTANCE_INPUT),
+        'focus',
+      );
+
+      expect(mockSetActivePriceField).toHaveBeenCalledWith('chaseMaxDistance');
+    });
   });
 });

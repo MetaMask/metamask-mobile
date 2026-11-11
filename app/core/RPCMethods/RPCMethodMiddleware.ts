@@ -6,7 +6,7 @@ import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { SetFlowLoadingTextOptions } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import { rejectOriginPendingApprovals } from '../../util/permissions';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
 import {
   getPermissionsHandler,
   requestPermissionsHandler,
@@ -28,7 +28,7 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
-import PPOMUtil from '../../lib/ppom/ppom-util';
+import PPOMUtil, { type PPOMRequest } from '../../lib/ppom/ppom-util';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -55,14 +55,12 @@ const Engine = ImportedEngine as any;
 
 let appVersion = '';
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 export const SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES = {
   confirmAccountCreation: 'snap_manageAccounts:confirmAccountCreation',
   confirmAccountRemoval: 'snap_manageAccounts:confirmAccountRemoval',
   showSnapAccountRedirect: 'snap_manageAccounts:showSnapAccountRedirect',
   showNameSnapAccount: 'snap_manageAccounts:showNameSnapAccount',
 };
-///: END:ONLY_INCLUDE_IF
 
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
@@ -77,11 +75,10 @@ export enum ApprovalTypes {
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
   SMART_TRANSACTION_STATUS = 'smart_transaction_status',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  CONFIRM_MEMBERSHIP = 'confirm_membership',
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   SNAP_DIALOG = 'snap_dialog',
-  ///: END:ONLY_INCLUDE_IF
 }
 
 export interface RPCMethodsMiddleParameters {
@@ -105,6 +102,37 @@ export interface RPCMethodsMiddleParameters {
   analytics: { [key: string]: string | boolean };
 }
 
+/**
+ * Determines the CAIP-2 scope of a request, used to narrow the permitted
+ * accounts that the request's address is validated against. Uses, in order of
+ * precedence: the explicit chain ID, the `scope` added to the request by the
+ * multichain middleware, and the chain ID of the request's network client.
+ *
+ * @param networkClientId - The ID of the network client the request was made on.
+ * @param chainId - An explicit chain ID (hex, decimal string or number), if the request specifies one.
+ * @param requestScope - The CAIP-2 scope of the request, if it was made through the multichain API.
+ * @returns The CAIP-2 scope.
+ */
+const getRequestScope = (
+  networkClientId: string,
+  chainId?: number | string,
+  requestScope?: CaipChainId,
+): CaipChainId | undefined => {
+  if (chainId) {
+    return `eip155:${BigInt(chainId).toString(10)}`;
+  }
+
+  if (requestScope) {
+    return requestScope;
+  }
+
+  const { chainId: networkChainId } =
+    Engine.context.NetworkController.getNetworkClientById(
+      networkClientId,
+    ).configuration;
+  return `eip155:${hexToBigInt(networkChainId).toString(10)}`;
+};
+
 // Also used by WalletConnect.js.
 export const checkActiveAccountAndChainId = async ({
   address,
@@ -113,13 +141,15 @@ export const checkActiveAccountAndChainId = async ({
   hostname,
   isWalletConnect,
   networkClientId,
+  scope,
 }: {
   address?: string;
   chainId?: number | string;
   channelId?: string;
   hostname: string;
   isWalletConnect: boolean;
-  networkClientId?: string;
+  networkClientId: string;
+  scope?: CaipChainId;
 }) => {
   let isInvalidAccount = false;
   const origin = channelId ?? hostname;
@@ -146,7 +176,9 @@ export const checkActiveAccountAndChainId = async ({
       permissionsController.state,
     );
 
-    const accounts = getPermittedAccounts(origin);
+    const accounts = getPermittedAccounts(origin, {
+      scope: getRequestScope(networkClientId, chainId, scope),
+    });
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
     if (!normalizedAccounts.includes(formattedAddress)) {
@@ -272,6 +304,7 @@ const generateRawSignature = async ({
     chainId,
     isWalletConnect,
     networkClientId: req.networkClientId,
+    scope: req.scope,
   });
 
   const rawSig = await signatureController.newUnsignedTypedMessage(
@@ -439,6 +472,30 @@ export const getRpcMethodMiddleware = ({
     if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
     return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
   };
+
+  /**
+   * Drop `req.origin` when the request arrived over a remote transport
+   * (WalletConnect / SDK v1 / MetaMask Connect), so it never influences the
+   * PPOM security scan. On those paths the origin is self-reported by the
+   * dapp and unverifiable, and Blockaid treats the URL as a core heuristic
+   * that can flip a verdict between malicious and benign. In-app browser
+   * requests keep their origin, which the wallet itself verified by loading
+   * the page.
+   */
+  const sanitizeRequestForPPOM = <Request extends PPOMRequest>(
+    req: Request,
+  ) => {
+    const isVerifiableOrigin =
+      getSource() === AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+    return isVerifiableOrigin ? req : { ...req, origin: undefined };
+  };
+
+  /**
+   * Validate a request with PPOM, dropping `req.origin` for remote
+   * transports (see {@link sanitizeRequestForPPOM}).
+   */
+  const validateRequestWithPPOM = (req: PPOMRequest) =>
+    PPOMUtil.validateRequest(sanitizeRequestForPPOM(req));
 
   const hooks = getRpcMethodMiddlewareHooks({
     origin,
@@ -703,7 +760,17 @@ export const getRpcMethodMiddleware = ({
         };
         return RPCMethods.eth_sendTransaction({
           hostname,
-          req,
+          // eth_sendTransaction forwards this request to the PPOM security
+          // scan. ppom-util already drops origins it can recognize as
+          // unverifiable (transport prefixes, bare connection UUIDs,
+          // deeplink/qr-code placeholders), but that net has a hole: SDK v1
+          // channel ids arrive via deeplink params unvalidated, so a
+          // malicious sender could pick a domain-looking channel id that
+          // slips through and reaches Blockaid as a plausible origin. The
+          // transport is known here, so drop the origin at the source for
+          // anything that is not the in-app browser, mirroring the signature
+          // handlers (validateRequestWithPPOM).
+          req: sanitizeRequestForPPOM(req),
           res,
           sendTransaction: addTransaction,
           validateAccountAndChainId: async ({
@@ -720,6 +787,7 @@ export const getRpcMethodMiddleware = ({
               chainId,
               isWalletConnect,
               networkClientId: req.networkClientId,
+              scope: req.scope,
             });
           },
           analytics: transactionAnalytics,
@@ -763,13 +831,15 @@ export const getRpcMethodMiddleware = ({
           channelId,
           address: params.from,
           isWalletConnect,
+          networkClientId: req.networkClientId,
+          scope: req.scope,
         });
 
         DevLogger.log(`personal_sign`, params, pageMeta, hostname);
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         const rawSig = await signatureController.newUnsignedPersonalMessage(
@@ -828,11 +898,13 @@ export const getRpcMethodMiddleware = ({
           channelId,
           address: req.params[1],
           isWalletConnect,
+          networkClientId: req.networkClientId,
+          scope: req.scope,
         });
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         const rawSig = await signatureController.newUnsignedTypedMessage(
@@ -863,7 +935,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         res.result = await generateRawSignature({
@@ -892,7 +964,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         res.result = await generateRawSignature({

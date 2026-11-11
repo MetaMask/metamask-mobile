@@ -10,7 +10,6 @@ import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants.js';
 import Gestures from '../../framework/Gestures.js';
 import Matchers from '../../framework/Matchers.js';
 import Utilities from '../../framework/Utilities.js';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
@@ -123,9 +122,7 @@ appiumTest.describe.skip(
             );
 
             const initialBalanceText =
-              (await (
-                await asPlaywrightElement(balanceValueElement)
-              ).textContent()) || '0';
+              (await Utilities.getElementText(balanceValueElement)) || '0';
             const initialBalance =
               parseFloat(initialBalanceText.replace(/[^0-9.-]/g, '')) || 0;
 
@@ -165,9 +162,7 @@ appiumTest.describe.skip(
             await Utilities.executeWithRetry(
               async () => {
                 const currentText =
-                  (await (
-                    await asPlaywrightElement(balanceValueElement)
-                  ).textContent()) || '0';
+                  (await Utilities.getElementText(balanceValueElement)) || '0';
                 const current =
                   parseFloat(currentText.replace(/[^0-9.-]/g, '')) || 0;
                 await Assertions.checkIfValueIsDefined(

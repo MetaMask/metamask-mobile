@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -10,14 +11,41 @@ import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
 import useApprovalRequest from '../../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { usePayWithPredictSection } from './usePayWithPredictSection';
+import { useClearPaymentOverride } from './useClearPaymentOverride';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
+// This test stubs every selector with one value; Predict serves the legacy
+// lane, as it does wherever this pay-with section exists.
+jest.mock(
+  '../../../../../UI/PredictNext/implementation/usePredictImplementation',
+  () => {
+    const legacyLane = { status: 'ready', implementation: 'legacy' };
+    return { usePredictImplementation: () => legacyLane };
+  },
+);
+// The availability and capability gate reads the store; this test has no
+// Provider, so it drives the gate directly.
+let mockIsPredictDepositAvailable = true;
+let mockIsPredictDepositAvailableNow = true;
+jest.mock(
+  '../../../../../UI/PredictNext/funding/usePredictLegacyDeposit',
+  () => {
+    const isAvailableNow = () => mockIsPredictDepositAvailableNow;
+    return {
+      usePredictLegacyDeposit: () => ({
+        isAvailable: mockIsPredictDepositAvailable,
+        isAvailableNow,
+      }),
+    };
+  },
+);
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: { balance?: string }) => {
     const translations: Record<string, string> = {
@@ -39,6 +67,7 @@ jest.mock('../../../../../UI/Predict/contexts', () => ({
 }));
 jest.mock('../../useApprovalRequest');
 jest.mock('../../transactions/useTransactionMetadataRequest');
+jest.mock('./useClearPaymentOverride');
 
 describe('usePayWithPredictSection', () => {
   const useSelectorMock = jest.mocked(useSelector);
@@ -50,6 +79,7 @@ describe('usePayWithPredictSection', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useClearPaymentOverrideMock = jest.mocked(useClearPaymentOverride);
   const dismissActivePreviewSheetMock = jest.mocked(dismissActivePreviewSheet);
 
   const navigateMock = jest.fn();
@@ -57,10 +87,13 @@ describe('usePayWithPredictSection', () => {
   const onRejectMock = jest.fn();
   const resetSelectedPaymentTokenMock = jest.fn();
   const onPaymentTokenChangeMock = jest.fn();
+  const clearPaymentOverrideMock = jest.fn();
   const formatFiatMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockIsPredictDepositAvailable = true;
+    mockIsPredictDepositAvailableNow = true;
 
     formatFiatMock.mockImplementation(
       (value: { toString: () => string }) =>
@@ -93,7 +126,8 @@ describe('usePayWithPredictSection', () => {
       onReject: onRejectMock,
     } as never);
 
-    useSelectorMock.mockReturnValue({ image: 'https://example.com/pusd.png' });
+    useSelectorMock.mockReturnValue(undefined);
+    useClearPaymentOverrideMock.mockReturnValue(clearPaymentOverrideMock);
   });
 
   it('returns null when the transaction type is not predictDepositAndOrder', () => {
@@ -155,6 +189,14 @@ describe('usePayWithPredictSection', () => {
     );
   });
 
+  it('marks the row as not selected when Money Account is selected', () => {
+    useSelectorMock.mockReturnValue(PaymentOverride.MoneyAccount);
+
+    const { result } = renderHook(() => usePayWithPredictSection());
+
+    expect(result.current?.rows[0].isSelected).toBe(false);
+  });
+
   it('treats a missing balance as zero', () => {
     usePredictBalanceMock.mockReturnValue({ data: undefined } as never);
 
@@ -171,6 +213,7 @@ describe('usePayWithPredictSection', () => {
     });
 
     expect(resetSelectedPaymentTokenMock).toHaveBeenCalledTimes(1);
+    expect(clearPaymentOverrideMock).toHaveBeenCalledTimes(1);
     expect(goBackMock).toHaveBeenCalledTimes(1);
   });
 
@@ -200,5 +243,46 @@ describe('usePayWithPredictSection', () => {
     rerender();
 
     expect(result.current).toBe(firstResult);
+  });
+
+  describe('while the legacy Predict deposit does not serve the Active Venue', () => {
+    beforeEach(() => {
+      mockIsPredictDepositAvailable = false;
+      mockIsPredictDepositAvailableNow = false;
+    });
+
+    it('returns no section for a predictDepositAndOrder transaction', () => {
+      const { result } = renderHook(() => usePayWithPredictSection());
+
+      expect(result.current).toBeNull();
+    });
+
+    it('does not read the legacy Predict balance', () => {
+      renderHook(() => usePayWithPredictSection());
+
+      expect(usePredictBalanceMock).toHaveBeenCalledWith({ enabled: false });
+    });
+  });
+
+  it('reads the legacy Predict balance while the legacy deposit is available', () => {
+    renderHook(() => usePayWithPredictSection());
+
+    expect(usePredictBalanceMock).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('keeps the confirmation and opens nothing when Add is pressed after the Active Venue changed', () => {
+    const { result } = renderHook(() => usePayWithPredictSection());
+    const trailing = result.current?.rows[0].trailingElement as
+      | { props: { onPress: () => void } }
+      | undefined;
+    mockIsPredictDepositAvailableNow = false;
+
+    act(() => {
+      trailing?.props.onPress();
+    });
+
+    expect(onRejectMock).not.toHaveBeenCalled();
+    expect(dismissActivePreviewSheetMock).not.toHaveBeenCalled();
+    expect(navigateMock).not.toHaveBeenCalled();
   });
 });

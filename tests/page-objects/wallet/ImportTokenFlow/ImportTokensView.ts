@@ -5,52 +5,52 @@ import {
   ImportTokenViewSelectorsText,
 } from '../../../../app/components/Views/AddAsset/ImportAssetView.testIds';
 import { CellComponentSelectorsIDs } from '../../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
-import { logger, EncapsulatedElementType } from '../../../framework';
+import { logger, type AppiumElement } from '../../../framework';
 
 class ImportTokensView {
-  get searchTokenResult(): EncapsulatedElementType {
+  get searchTokenResult(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
     );
   }
 
-  get nextButton(): EncapsulatedElementType {
+  get nextButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
   }
 
-  get networkInput(): EncapsulatedElementType {
+  get networkInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON,
     );
   }
 
-  get symbolInput(): EncapsulatedElementType {
+  get symbolInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SYMBOL_INPUT);
   }
 
-  get tokenSymbolText(): EncapsulatedElementType {
+  get tokenSymbolText(): Promise<AppiumElement> {
     return Matchers.getElementByText(ImportTokenViewSelectorsText.TOKEN_SYMBOL);
   }
 
-  get addressInput(): EncapsulatedElementType {
+  get addressInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.ADDRESS_INPUT);
   }
 
-  get decimalInput(): EncapsulatedElementType {
+  get decimalInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.DECIMAL_INPUT);
   }
 
-  get customTokenTab(): EncapsulatedElementType {
+  get customTokenTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ImportTokenViewSelectorsText.CUSTOM_TOKEN_TAB,
     );
   }
 
-  get searchTokenBar(): EncapsulatedElementType {
+  get searchTokenBar(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SEARCH_BAR);
   }
 
-  get networkList(): EncapsulatedElementType {
+  get networkList(): Promise<AppiumElement> {
     return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, 0);
   }
 

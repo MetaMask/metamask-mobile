@@ -37,6 +37,14 @@ Write a short description of the changes included in this pull request, also inc
 2. What is the improvement/solution?
 -->
 
+## Test layer placement
+
+<!-- mms-check: type=text required=false -->
+
+<!--
+Optional. If this PR adds or changes tests, record which test layer(s) you chose and why (from `mms-mobile-testing`). Leave empty otherwise.
+-->
+
 ## **Changelog**
 
 <!-- mms-check: type=changelog required=true blocking=true -->

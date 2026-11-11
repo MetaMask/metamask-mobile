@@ -2,7 +2,7 @@ import {
   TransactionBatchMeta,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
@@ -11,11 +11,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
-import Text from '../../../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
@@ -29,6 +24,8 @@ import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfir
 import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useAutomaticGasFeeTokenSelect } from '../../../../hooks/useAutomaticGasFeeTokenSelect';
+import { useAlerts } from '../../../../context/alert-system-context';
+import { useConfirmationContext } from '../../../../context/confirmation-context';
 import { GasFeeTokenToast } from '../../../gas/gas-fee-token-toast';
 import { GasSpeed } from '../../../gas/gas-speed';
 import { SelectedGasFeeToken } from '../../../gas/selected-gas-fee-token';
@@ -45,7 +42,13 @@ import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import TagColored, {
   TagColor,
 } from '../../../../../../../component-library/components-temp/TagColored';
+import { TextVariant as LegacyTextVariant } from '../../../../../../../component-library/components/Texts/Text';
 import { shouldApplyGasFeeSponsorship } from '../../../../utils/transaction';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const PaidByMetaMask = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -54,7 +57,7 @@ const PaidByMetaMask = () => {
       color={TagColor.Success}
       style={styles.paidByMetaMask}
       labelProps={{
-        variant: TextVariant.BodySM,
+        variant: LegacyTextVariant.BodySM,
         style: {
           textTransform: 'none',
           textAlign: 'center',
@@ -258,8 +261,14 @@ const GasFeesDetailsRow = ({
   hideSpeed = false,
   noSection = false,
 }) => {
-  const [gasModalVisible, setGasModalVisible] = useState(false);
+  const {
+    isGasFeeModalVisible: gasModalVisible,
+    setIsGasFeeModalVisible: setGasModalVisible,
+  } = useConfirmationContext();
+  const { alertModalVisible } = useAlerts();
   const { styles } = useStyles(styleSheet, {});
+
+  useEffect(() => () => setGasModalVisible(false), [setGasModalVisible]);
   useAutomaticGasFeeTokenSelect();
 
   const transactionMetadata = useTransactionMetadataRequest();
@@ -328,7 +337,7 @@ const GasFeesDetailsRow = ({
           alertField={RowAlertKey.EstimatedFee}
           label={strings('transactions.network_fee')}
           tooltip={confirmGasFeeTokenTooltip}
-          tooltipColor={IconColor.Muted}
+          tooltipColor={IconColor.Alternative}
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>
@@ -354,8 +363,8 @@ const GasFeesDetailsRow = ({
             <View style={styles.gasFeeTokenContainer}>
               <Text
                 data-testid="gas-fee-token-fee"
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
                 style={styles.gasFeeTokenText}
               >
                 {showGasFeeTokenInfo
@@ -379,7 +388,8 @@ const GasFeesDetailsRow = ({
             </AlertRow>
           )}
       </Container>
-      {gasModalVisible && (
+      {/* Wait for the alert modal to close, as iOS can't stack native modals reliably. */}
+      {gasModalVisible && !alertModalVisible && !disableUpdate && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />
       )}
       <GasFeeTokenToast />

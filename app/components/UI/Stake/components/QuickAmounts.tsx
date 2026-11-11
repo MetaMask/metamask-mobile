@@ -33,7 +33,8 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       paddingHorizontal: 16,
       alignItems: 'center',
-      borderRadius: 20,
+      // Match Keypad.Button rounded-square radius (12).
+      borderRadius: 12,
     },
     amountHighlighted: {
       flex: 1,
@@ -44,7 +45,7 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       paddingHorizontal: 16,
       alignItems: 'center',
-      borderRadius: 20,
+      borderRadius: 12,
     },
   });
 
@@ -76,7 +77,7 @@ const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
     <>
       <ButtonBase
         onPress={handlePress}
-        size={ButtonSize.Md}
+        size={ButtonSize.Lg}
         width={ButtonWidthTypes.Full}
         label={label}
         labelColor={isHighlighted ? TextColor.Primary : TextColor.Default}

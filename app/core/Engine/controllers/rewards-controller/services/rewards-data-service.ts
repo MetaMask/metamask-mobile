@@ -1,4 +1,5 @@
 import type { Messenger } from '@metamask/messenger';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import { getVersion } from 'react-native-device-info';
 import type {
   LoginResponseDto,
@@ -22,7 +23,6 @@ import type {
   SeasonStateDto,
   SubscriptionBenefitDto,
   LineaTokenRewardDto,
-  ApplyReferralDto,
   ApplyBonusCodeDto,
   CampaignDto,
   CampaignParticipantStatusDto,
@@ -36,13 +36,18 @@ import type {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
+  PerpsTradingCampaignPrizePoolDto,
   PerpsTradingCampaignParticipantOutcomeDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
   PredictThePitchCampaignParticipantOutcomeDto,
   PredictThePitchPrizePoolDto,
-  FirstPredictOnUsDto,
+  MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesVolumeStatsDto,
+  MoneyAccountSweepstakesDrawProofDto,
+  MoneyAccountSweepstakesOutcomeDto,
   VipDashboardDto,
   VipEquityMultiplierDto,
   VipRefereeMeDto,
@@ -51,6 +56,7 @@ import type {
   VipTransactionType,
   PaginatedVipTransactionsDto,
   VipTransactionsLastUpdatedDto,
+  TradingFeeGrantResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -106,6 +112,44 @@ const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+const TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS = 2000;
+
+export const MAX_PERPS_TRADING_FEE_GRANT_BIPS = 999.99;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isTradingFeeGrantResponse(
+  value: unknown,
+): value is TradingFeeGrantResponseDto {
+  if (!isRecord(value) || !Object.hasOwn(value, 'grant')) {
+    return false;
+  }
+  if (value.grant === null) {
+    return true;
+  }
+  if (
+    !isRecord(value.grant) ||
+    typeof value.grant.programId !== 'string' ||
+    typeof value.grant.expiresAt !== 'string' ||
+    !Number.isFinite(Date.parse(value.grant.expiresAt)) ||
+    !isRecord(value.grant.hyperliquid) ||
+    typeof value.grant.hyperliquid.builderCode !== 'string' ||
+    typeof value.grant.hyperliquid.builderFeeBips !== 'string'
+  ) {
+    return false;
+  }
+
+  const feeString = value.grant.hyperliquid.builderFeeBips;
+  const fee = Number(feeString);
+  return (
+    /^(?:0|[1-9]\d{0,2})(?:\.\d{1,2})?$/u.test(feeString) &&
+    Number.isFinite(fee) &&
+    fee >= 0 &&
+    fee <= MAX_PERPS_TRADING_FEE_GRANT_BIPS
+  );
+}
 
 // Auth endpoint action types
 
@@ -147,11 +191,6 @@ export interface RewardsDataServiceGetSeasonStatusAction {
 export interface RewardsDataServiceGetReferralDetailsAction {
   type: `${typeof SERVICE_NAME}:getReferralDetails`;
   handler: RewardsDataService['getReferralDetails'];
-}
-
-export interface RewardsDataServiceValidateReferralCodeAction {
-  type: `${typeof SERVICE_NAME}:validateReferralCode`;
-  handler: RewardsDataService['validateReferralCode'];
 }
 
 export interface RewardsDataServiceMobileJoinAction {
@@ -199,11 +238,6 @@ export interface RewardsDataServiceGetSeasonOneLineaRewardTokensAction {
   handler: RewardsDataService['getSeasonOneLineaRewardTokens'];
 }
 
-export interface RewardsDataServiceApplyReferralCodeAction {
-  type: `${typeof SERVICE_NAME}:applyReferralCode`;
-  handler: RewardsDataService['applyReferralCode'];
-}
-
 export interface RewardsDataServiceValidateBonusCodeAction {
   type: `${typeof SERVICE_NAME}:validateBonusCode`;
   handler: RewardsDataService['validateBonusCode'];
@@ -237,11 +271,6 @@ export interface RewardsDataServiceGetCampaignParticipantStatusAction {
 export interface RewardsDataServiceGetClientVersionRequirementsAction {
   type: `${typeof SERVICE_NAME}:getClientVersionRequirements`;
   handler: RewardsDataService['getClientVersionRequirements'];
-}
-
-export interface RewardsDataServiceGetFirstPredictOnUsAction {
-  type: `${typeof SERVICE_NAME}:getFirstPredictOnUs`;
-  handler: RewardsDataService['getFirstPredictOnUs'];
 }
 
 export interface RewardsDataServiceGetOndoCampaignLeaderboardAction {
@@ -293,6 +322,11 @@ export interface RewardsDataServiceGetPerpsTradingCampaignVolumeAction {
   type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignVolume`;
   handler: RewardsDataService['getPerpsTradingCampaignVolume'];
 }
+
+export interface RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction {
+  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignPrizePool`;
+  handler: RewardsDataService['getPerpsTradingCampaignPrizePool'];
+}
 export interface RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction {
   type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`;
   handler: RewardsDataService['getPerpsTradingCampaignParticipantOutcome'];
@@ -321,6 +355,36 @@ export interface RewardsDataServiceGetPredictThePitchParticipantOutcomeAction {
 export interface RewardsDataServiceGetPredictThePitchPrizePoolAction {
   type: `${typeof SERVICE_NAME}:getPredictThePitchPrizePool`;
   handler: RewardsDataService['getPredictThePitchPrizePool'];
+}
+
+export interface RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesStatsMe`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesStatsMe'];
+}
+
+export interface RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesPrizePool`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesPrizePool'];
+}
+
+export interface RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesVolumeStats`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesVolumeStats'];
+}
+
+export interface RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesDrawProof`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesDrawProof'];
+}
+
+export interface RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesParticipantOutcome`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesParticipantOutcome'];
+}
+
+export interface RewardsDataServiceRegisterMoneyAccountBindingAction {
+  type: `${typeof SERVICE_NAME}:registerMoneyAccountBinding`;
+  handler: RewardsDataService['registerMoneyAccountBinding'];
 }
 
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
@@ -368,6 +432,11 @@ export interface RewardsDataServiceGetVipFeesAction {
   handler: RewardsDataService['getVipFees'];
 }
 
+export interface RewardsDataServiceGetTradingFeeGrantsAction {
+  type: `${typeof SERVICE_NAME}:getTradingFeeGrants`;
+  handler: RewardsDataService['getTradingFeeGrants'];
+}
+
 export interface RewardsDataServiceGetVipTransactionsAction {
   type: `${typeof SERVICE_NAME}:getVipTransactions`;
   handler: RewardsDataService['getVipTransactions'];
@@ -398,7 +467,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
@@ -408,7 +476,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
-  | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
@@ -422,6 +489,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
+  | RewardsDataServiceGetTradingFeeGrantsAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetVipTransactionsAction
   | RewardsDataServiceLookupVipTransactionAction
@@ -429,7 +497,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
-  | RewardsDataServiceGetFirstPredictOnUsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
@@ -440,16 +507,26 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction
   | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction
   | RewardsDataServiceGetPredictThePitchLeaderboardAction
   | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
   | RewardsDataServiceGetPredictThePitchPositionsAction
   | RewardsDataServiceGetPredictThePitchParticipantOutcomeAction
-  | RewardsDataServiceGetPredictThePitchPrizePoolAction;
+  | RewardsDataServiceGetPredictThePitchPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
+  | RewardsDataServiceRegisterMoneyAccountBindingAction;
+
+type AllowedActions =
+  AuthenticationController.AuthenticationControllerGetBearerTokenAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
-  RewardsDataServiceActions,
+  RewardsDataServiceActions | AllowedActions,
   never
 >;
 
@@ -521,10 +598,6 @@ export class RewardsDataService {
       this.getReferralDetails.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:validateReferralCode`,
-      this.validateReferralCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:mobileJoin`,
       this.mobileJoin.bind(this),
     );
@@ -559,10 +632,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonOneLineaRewardTokens`,
       this.getSeasonOneLineaRewardTokens.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:applyReferralCode`,
-      this.applyReferralCode.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:validateBonusCode`,
@@ -629,6 +698,10 @@ export class RewardsDataService {
       this.getPerpsTradingCampaignVolume.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPerpsTradingCampaignPrizePool`,
+      this.getPerpsTradingCampaignPrizePool.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`,
       this.getPerpsTradingCampaignParticipantOutcome.bind(this),
     );
@@ -651,6 +724,30 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPredictThePitchPrizePool`,
       this.getPredictThePitchPrizePool.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesStatsMe`,
+      this.getMoneyAccountSweepstakesStatsMe.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesPrizePool`,
+      this.getMoneyAccountSweepstakesPrizePool.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesVolumeStats`,
+      this.getMoneyAccountSweepstakesVolumeStats.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesDrawProof`,
+      this.getMoneyAccountSweepstakesDrawProof.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesParticipantOutcome`,
+      this.getMoneyAccountSweepstakesParticipantOutcome.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:registerMoneyAccountBinding`,
+      this.registerMoneyAccountBinding.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -689,6 +786,10 @@ export class RewardsDataService {
       this.getVipFees.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getTradingFeeGrants`,
+      this.getTradingFeeGrants.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipTransactions`,
       this.getVipTransactions.bind(this),
     );
@@ -707,10 +808,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClientVersionRequirements`,
       this.getClientVersionRequirements.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getFirstPredictOnUs`,
-      this.getFirstPredictOnUs.bind(this),
     );
   }
 
@@ -775,26 +872,6 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as ClientVersionRequirementDto;
-  }
-
-  /**
-   * Fetch the visible first predict on us content from the public API.
-   * @returns The first predict on us DTO, or null when no visible entry exists.
-   */
-  async getFirstPredictOnUs(): Promise<FirstPredictOnUsDto | null> {
-    const response = await this.makeRequest('/public/first-predict-on-us', {
-      method: 'GET',
-    });
-
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error(`Get first predict on us failed: ${response.status}`);
-    }
-
-    return (await response.json()) as FirstPredictOnUsDto;
   }
 
   /**
@@ -1013,7 +1090,7 @@ export class RewardsDataService {
 
   /**
    * Perform optin via signature for the current account.
-   * @param body - The login request body containing account, timestamp, signature and referral code.
+   * @param body - The login request body containing account, timestamp and signature.
    * @returns The login response DTO.
    */
   async mobileOptin(body: MobileOptinDto): Promise<LoginResponseDto> {
@@ -1122,30 +1199,6 @@ export class RewardsDataService {
     }
     const data = await response.json();
     return data as SubscriptionReferralDetailsDto;
-  }
-
-  /**
-   * Validate a referral code.
-   * @param code - The referral code to validate.
-   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
-   */
-  async validateReferralCode(
-    code: string,
-  ): Promise<{ valid: boolean; isVipCode?: boolean }> {
-    const response = await this.makeRequest(
-      `/referral/validate?code=${encodeURIComponent(code)}`,
-      {
-        method: 'GET',
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to validate referral code. Please try again shortly.`,
-      );
-    }
-
-    return (await response.json()) as { valid: boolean; isVipCode?: boolean };
   }
 
   /**
@@ -1468,40 +1521,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Apply a referral code to an existing subscription.
-   * @param dto - The apply referral request body containing the referral code.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise that resolves when the referral code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyReferralCode(
-    dto: ApplyReferralDto,
-    subscriptionId: string,
-  ): Promise<void> {
-    const response = await this.makeRequest(
-      '/wr/subscriptions/apply-referral',
-      {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      // Handle 204 No Content as success (already handled by response.ok)
-      if (response.status === 204) {
-        return;
-      }
-
-      const errorData = await response.json();
-      const errorMessage =
-        errorData?.message || `Apply referral code failed: ${response.status}`;
-
-      throw new Error(errorMessage);
-    }
-  }
-
-  /**
    * Apply a bonus code to a subscription.
    * @param dto - The DTO containing the bonus code to apply.
    * @param subscriptionId - The subscription ID to apply the bonus code to.
@@ -1759,6 +1778,45 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as VipFeesResponseDto;
+  }
+
+  /**
+   * Fetch the active profile's trading-fee grant using Profile Sync auth.
+   */
+  async getTradingFeeGrants(): Promise<TradingFeeGrantResponseDto> {
+    const token = await this.#messenger.call(
+      'AuthenticationController:getBearerToken',
+    );
+    if (!token) {
+      throw new Error('Profile Sync bearer token is required');
+    }
+
+    const response = await this.makeRequest(
+      '/trading-fee-grants',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      undefined,
+      TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS,
+    );
+    if (!response.ok) {
+      throw new Error(`Get trading fee grants failed: ${response.status}`);
+    }
+
+    const result: unknown = await response.json();
+    if (!isTradingFeeGrantResponse(result)) {
+      throw new Error('Invalid trading fee grant response');
+    }
+
+    const currentToken = await this.#messenger.call(
+      'AuthenticationController:getBearerToken',
+    );
+    if (currentToken !== token) {
+      throw new Error('Profile changed during trading fee grant request');
+    }
+
+    return result;
   }
 
   async getVipTransactions(
@@ -2102,6 +2160,23 @@ export class RewardsDataService {
     return (await response.json()) as PerpsTradingCampaignVolumeDto;
   }
 
+  async getPerpsTradingCampaignPrizePool(
+    campaignId: string,
+  ): Promise<PerpsTradingCampaignPrizePoolDto> {
+    const response = await this.makeRequest(
+      `/perps-trading/${campaignId}/prize-pool`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get perps trading campaign prize pool failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PerpsTradingCampaignPrizePoolDto;
+  }
+
   async getPerpsTradingCampaignParticipantOutcome(
     campaignId: string,
     subscriptionId: string,
@@ -2213,5 +2288,152 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as PredictThePitchPrizePoolDto;
+  }
+
+  async getMoneyAccountSweepstakesStatsMe(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<MoneyAccountSweepstakesStatsMeDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/stats/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes stats failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesStatsMeDto;
+  }
+
+  async getMoneyAccountSweepstakesPrizePool(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesPrizePoolDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/prize-pool`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes prize pool failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesPrizePoolDto;
+  }
+
+  async getMoneyAccountSweepstakesVolumeStats(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesVolumeStatsDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/stats/volume`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes volume stats failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesVolumeStatsDto;
+  }
+
+  async getMoneyAccountSweepstakesDrawProof(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesDrawProofDto | null> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/draw-proof`,
+      { method: 'GET' },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes draw proof failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesDrawProofDto;
+  }
+
+  async getMoneyAccountSweepstakesParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<MoneyAccountSweepstakesOutcomeDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/outcome/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes participant outcome failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesOutcomeDto;
+  }
+
+  /**
+   * Register (or re-assert) the Money Account holder address for a subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param moneyAccountAddress - The Money Account holder address to bind.
+   * @param timestamp - The timestamp (ms) included in the signed message.
+   * @param signature - The Money Account signature of the binding message.
+   * @returns `'bound'` on 201/200, or `'conflict'` when the address is already
+   * bound to a different subscription (409).
+   */
+  async registerMoneyAccountBinding(
+    subscriptionId: string,
+    moneyAccountAddress: string,
+    timestamp: number,
+    signature: string,
+  ): Promise<'bound' | 'conflict'> {
+    const response = await this.makeRequest(
+      '/wr/money-account/binding/signed',
+      {
+        method: 'POST',
+        body: JSON.stringify({ moneyAccountAddress, timestamp, signature }),
+      },
+      subscriptionId,
+    );
+
+    if (response.status === 409) {
+      return 'conflict';
+    }
+
+    if (!response.ok) {
+      let errorData: { code?: string; serverTime?: number } | undefined;
+      try {
+        errorData = (await response.json()) as {
+          code?: string;
+          serverTime?: number;
+        };
+      } catch {
+        // Body may be empty or non-JSON; fall through to the generic error.
+      }
+
+      if (errorData?.code === 'TIMESTAMP_OUT_OF_WINDOW') {
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Number(errorData.serverTime),
+        );
+      }
+
+      throw new Error(
+        `Register Money Account binding failed: ${response.status}`,
+      );
+    }
+
+    return 'bound';
   }
 }

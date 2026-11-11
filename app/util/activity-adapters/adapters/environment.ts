@@ -7,9 +7,7 @@ import {
   IN_PROGRESS_TRANSACTION_STATUSES,
   NATIVE_TOKEN_ADDRESS,
   STATIC_MAINNET_TOKEN_LIST,
-  SWAPS_WRAPPED_TOKENS_ADDRESSES,
   SmartTransactionStatus,
-  TOKEN_TRANSFER_LOG_TOPIC_HASH,
   TransactionGroupStatus,
   equalsIgnoreCase,
   parseStandardTokenTransactionData,
@@ -23,7 +21,8 @@ export interface ActivityTokenMetadata {
   assetId?: string;
 }
 
-export interface ParsedStandardTokenTransactionData {
+interface ParsedStandardTokenTransactionData {
+  name?: string;
   args?: Record<string, unknown>;
 }
 
@@ -47,7 +46,6 @@ export interface ActivityAdapterEnvironment {
     success: string;
   };
   staticMainnetTokenList: Record<string, ActivityTokenMetadata>;
-  tokenTransferLogTopicHash: string;
   toAssetId: (
     address: string,
     chainId: string | undefined,
@@ -56,7 +54,6 @@ export interface ActivityAdapterEnvironment {
     cancelled: string;
     pending: string;
   };
-  wrappedTokenAddresses: Record<string, string>;
 }
 
 export const mobileActivityAdapterEnvironment: ActivityAdapterEnvironment = {
@@ -74,8 +71,6 @@ export const mobileActivityAdapterEnvironment: ActivityAdapterEnvironment = {
   parseStandardTokenTransactionData,
   smartTransactionStatus: SmartTransactionStatus,
   staticMainnetTokenList: STATIC_MAINNET_TOKEN_LIST,
-  tokenTransferLogTopicHash: TOKEN_TRANSFER_LOG_TOPIC_HASH,
   toAssetId,
   transactionGroupStatus: TransactionGroupStatus,
-  wrappedTokenAddresses: SWAPS_WRAPPED_TOKENS_ADDRESSES,
 };

@@ -4,7 +4,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { useEstimationFailed } from '../../../hooks/gas/useEstimationFailed';
@@ -17,6 +16,7 @@ import { GasFeeTokenIcon, GasFeeTokenIconSize } from '../gas-fee-token-icon';
 import { GasFeeTokenModal } from '../gas-fee-token-modal';
 import styleSheet from './selected-gas-fee-token.styles';
 import { useNativeCurrencySymbol } from '../../../hooks/useNativeCurrencySymbol';
+import { Text } from '@metamask/design-system-react-native';
 
 export function SelectedGasFeeToken() {
   const [isModalOpen, setIsModalOpen] = useState(false);

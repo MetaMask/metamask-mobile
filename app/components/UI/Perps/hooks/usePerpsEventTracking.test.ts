@@ -9,6 +9,10 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getPerpsUtmAttributionProperties } from '../utils/perpsAnalyticsAttribution';
 import { PERPS_MODE_ANALYTICS_PROPERTY } from '../utils/perpsModeAnalytics';
+import {
+  resetNavigationAnalyticsAttributionForTests,
+  type NavigationAnalyticsContext,
+} from '../../../../util/analytics/navigationAnalyticsAttribution';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -28,6 +32,7 @@ const mockGetPerpsUtmAttributionProperties = jest.mocked(
 describe('usePerpsEventTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNavigationAnalyticsAttributionForTests();
     jest.spyOn(Date, 'now').mockReturnValue(1234567890);
     mockGetPerpsUtmAttributionProperties.mockReturnValue({});
 
@@ -105,6 +110,7 @@ describe('usePerpsEventTracking', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       const customProps = {
         screen_type: 'home',
+        source: 'homescreen_balance_breakdown',
         [PERPS_EVENT_PROPERTY.OPEN_POSITION]: 2,
       };
 
@@ -134,6 +140,7 @@ describe('usePerpsEventTracking', () => {
       expect(assetViewedProperties).toEqual({
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         screen_type: 'home',
+        source: 'homescreen_balance_breakdown',
         open_positions_count: 2,
         trade_type: 'Perps',
         implementation_type: 'native',
@@ -249,6 +256,57 @@ describe('usePerpsEventTracking', () => {
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         asset: 'ETH',
       });
+    });
+
+    it('keeps navigation attribution across reset-key emissions', () => {
+      const navigationAnalyticsContext: NavigationAnalyticsContext = {
+        id: 'balance-breakdown-navigation',
+        attribution: 'homescreen_balance_breakdown',
+      };
+      const { rerender } = renderHook(
+        ({ resetKey }: { resetKey: string }) =>
+          usePerpsEventTracking({
+            eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+            resetKey,
+            conditions: [true],
+            navigationAnalyticsContext,
+            properties: {
+              asset: resetKey,
+              source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+            },
+          }),
+        {
+          initialProps: { resetKey: 'BTC' },
+        },
+      );
+
+      const firstScreenBuilder = mockCreateEventBuilder.mock.results[0].value;
+      const firstAssetBuilder = mockCreateEventBuilder.mock.results[1].value;
+      expect(firstScreenBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'homescreen_balance_breakdown',
+        }),
+      );
+      expect(firstAssetBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'homescreen_balance_breakdown',
+        }),
+      );
+
+      rerender({ resetKey: 'ETH' });
+
+      const secondScreenBuilder = mockCreateEventBuilder.mock.results[2].value;
+      const secondAssetBuilder = mockCreateEventBuilder.mock.results[3].value;
+      expect(secondScreenBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'homescreen_balance_breakdown',
+        }),
+      );
+      expect(secondAssetBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'homescreen_balance_breakdown',
+        }),
+      );
     });
   });
 });

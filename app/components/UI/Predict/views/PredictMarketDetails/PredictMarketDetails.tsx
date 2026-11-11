@@ -1,10 +1,7 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { InteractionManager, RefreshControl, ScrollView } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
@@ -12,7 +9,6 @@ import { TraceName } from '../../../../../util/trace';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { estimateLineCount } from '../../utils/format';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import Engine from '../../../../../core/Engine';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -42,6 +38,7 @@ import PredictDetailsContentSkeleton from '../../components/PredictDetailsConten
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 import PredictCryptoUpDownDetails from '../../components/PredictCryptoUpDownDetails';
 import { isCryptoUpDown } from '../../utils/cryptoUpDown';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import {
   selectPredictUpDownEnabledFlag,
   selectPredictFeeCollectionFlag,
@@ -57,6 +54,7 @@ import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
+import PredictOffline from '../../components/PredictOffline';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -72,7 +70,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const tw = useTailwind();
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
-  const insets = useSafeAreaInsets();
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
@@ -99,6 +96,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     marketId: currentSeriesMarketId,
     isLoading: isCurrentSeriesMarketLoading,
     isFetching: isCurrentSeriesMarketFetching,
+    error: currentSeriesMarketError,
     refetch: refetchCurrentSeriesMarket,
   } = useCurrentPredictMarketFromSeries({
     series,
@@ -114,8 +112,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const {
     data: marketData,
-    isLoading: isMarketLoading,
+    isPending: isMarketPending,
     isFetching: isMarketFetching,
+    error: marketError,
     refetch: refetchMarket,
   } = usePredictMarket({
     id: resolvedMarketId ?? '',
@@ -127,7 +126,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     !resolvedMarketId &&
     isCurrentSeriesMarketLoading;
   const isResolvedMarketLoading =
-    isMarketLoading || isResolvingMarketFromSeries;
+    isMarketPending || isResolvingMarketFromSeries;
   const isResolvedMarketFetching =
     isMarketFetching || isCurrentSeriesMarketFetching;
 
@@ -154,11 +153,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
     return [1];
   }, [isResolvedMarketLoading, isMarketUnresolved]);
-
-  const titleLineCount = useMemo(
-    () => estimateLineCount(title ?? market?.title),
-    [title, market?.title],
-  );
 
   // active positions
   const {
@@ -449,12 +443,32 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   }, [market, tabsReady, activeTab, tabs, trackMarketDetailsOpened]);
 
-  // see if there are any positions with positive percentPnl
-  const hasPositivePnl = claimablePositions.some(
-    (position) => position.percentPnl > 0,
+  const actionableClaimablePositions = claimablePositions.filter(
+    isActionableClaimablePosition,
   );
+  const hasPositivePnl = actionableClaimablePositions.length > 0;
 
   const isMarketUnavailable = isMarketUnresolved;
+  const resolvedMarketError = marketError ?? currentSeriesMarketError;
+
+  if (resolvedMarketError && !market) {
+    return (
+      <SafeAreaView
+        style={tw.style('flex-1 bg-default')}
+        edges={['left', 'right', 'bottom']}
+        testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+      >
+        <PredictMarketDetailsHeader
+          isLoading={false}
+          market={null}
+          title={title}
+          image={image}
+          onBackPress={handleBackPress}
+        />
+        <PredictOffline onRetry={handleRefresh} />
+      </SafeAreaView>
+    );
+  }
 
   if (upDownEnabled && market && isCryptoUpDown(market)) {
     return (
@@ -481,7 +495,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         refreshing={isRefreshing}
         onBetPress={handleBuyPress}
         onClaimPress={handleClaimPress}
-        claimableAmount={claimablePositions.reduce(
+        claimableAmount={actionableClaimablePositions.reduce(
           (sum, p) => sum + (p.currentValue ?? 0),
           0,
         )}
@@ -503,8 +517,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         market={market}
         title={title}
         image={image}
-        titleLineCount={titleLineCount}
-        insetsTop={insets.top}
         onBackPress={handleBackPress}
       />
 

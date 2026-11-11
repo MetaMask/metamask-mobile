@@ -214,6 +214,40 @@ export const getRelayFixedSpreadRoutesWithSymbols = (
     .filter((route): route is RelayFixedSpreadAliasRoute => route !== null);
 };
 
+/** Monad mUSD → Hyperliquid perps USDC, as listed in the fixed-spread flag. */
+export const PERPS_MONEY_ACCOUNT_NO_FEE_ROUTE = [
+  'monad',
+  'musd',
+  'hyperliquid',
+  'hypercore_usdc',
+] as const;
+
+/**
+ * True when {@link remoteValue} lists {@link expectedRoute} in `routes`.
+ * Alias names are compared exactly. Missing or invalid payloads are false.
+ */
+export const hasRelayFixedSpreadAliasRoute = (
+  remoteValue: unknown,
+  expectedRoute: readonly [string, string, string, string],
+): boolean => {
+  if (remoteValue === undefined || remoteValue === null || remoteValue === '') {
+    return false;
+  }
+
+  const parsed =
+    typeof remoteValue === 'string' ? tryJsonParse(remoteValue) : remoteValue;
+  if (!isStringRecord(parsed) || !Array.isArray(parsed.routes)) {
+    return false;
+  }
+
+  return parsed.routes.some(
+    (tuple) =>
+      Array.isArray(tuple) &&
+      tuple.length === expectedRoute.length &&
+      expectedRoute.every((alias, index) => tuple[index] === alias),
+  );
+};
+
 const addressesEqual = (
   a: string | undefined,
   b: string | undefined,
@@ -244,23 +278,6 @@ export const isSubsidizedSource = (
  * Reserved for callsites that know the destination of the transaction being
  * built; not yet wired in to the MM Pay picker.
  */
-/**
- * Returns true when the given token appears in any route as either source or
- * target. Used to decide whether a pay token is a stablecoin for prefill
- * percentage logic.
- */
-export const isRouteToken = (
-  config: RelayFixedSpreadConfig,
-  endpoint: RouteEndpoint,
-): boolean =>
-  config.routes.some(
-    (route) =>
-      (addressesEqual(route.sourceChain, endpoint.chainId) &&
-        addressesEqual(route.sourceToken, endpoint.address)) ||
-      (addressesEqual(route.targetChain, endpoint.chainId) &&
-        addressesEqual(route.targetToken, endpoint.address)),
-  );
-
 export const isSubsidizedRoute = (
   config: RelayFixedSpreadConfig,
   source: RouteEndpoint,

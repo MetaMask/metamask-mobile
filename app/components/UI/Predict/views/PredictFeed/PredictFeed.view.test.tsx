@@ -98,7 +98,7 @@ const createCryptoUpDownMarket = (
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
-const RETRY_TEXT = 'Retry';
+const RETRY_TEXT = 'Try again';
 
 interface PredictRootRouteParams {
   screen?: string;
@@ -221,10 +221,12 @@ describe('PredictFeed', () => {
     // Re-establish getBalance: spying on it in a test and calling mockRestore()
     // wipes the shared Engine mock's implementation (spyOn returns the existing
     // jest.fn), which would make the balance query resolve undefined → error
-    // state instead of the balance card.
-    (
-      Engine.context.PredictController.getBalance as jest.Mock
-    ).mockResolvedValue(0);
+    // state instead of the balance card. Also clear its call history: no jest
+    // config sets clearMocks, so calls from earlier tests would otherwise count
+    // toward call-count assertions.
+    (Engine.context.PredictController.getBalance as jest.Mock)
+      .mockClear()
+      .mockResolvedValue(0);
   });
 
   describe('search interaction', () => {
@@ -769,18 +771,22 @@ describe('PredictFeed', () => {
         'btc',
       );
 
-      expect(
-        await findByTestId(
-          getPredictSearchSelector.resultCard(0),
-          {},
-          { timeout: 3000 },
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        await findByTestId(
-          PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
-        ),
-      ).toBeOnTheScreen();
+      // The Up/Down live card re-renders every second via a shared
+      // useSyncExternalStore clock, adding re-render pressure between the
+      // search debounce, the query fetch, and FlashList's first item render.
+      // Under contended CI runners these awaits need generous budgets
+      // (see also the re-query note before the press below).
+      // Until the series loads, the card renders a skeleton under the same result testID,
+      // so wait for the live badge inside card 0 before reading the card.
+      await waitFor(
+        () =>
+          expect(
+            within(
+              getByTestId(getPredictSearchSelector.resultCard(0)),
+            ).getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE),
+          ).toBeOnTheScreen(),
+        { timeout: 10000 },
+      );
       expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);
 
       // Re-query immediately before press: the live card clock re-renders every
@@ -861,6 +867,15 @@ describe('PredictFeed', () => {
 
       const { findByTestId, findByText } = renderPredictFeedViewWithRoutes({
         extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
+        overrides: {
+          engine: {
+            backgroundState: {
+              PredictController: {
+                eligibility: { status: 'ineligible' as const, country: 'US' },
+              },
+            },
+          },
+        },
       });
 
       await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD);
@@ -907,7 +922,7 @@ describe('PredictFeed', () => {
       searchMarketsSpy.mockRestore();
     });
 
-    it('calls searchMarkets again when the user presses Retry after an error', async () => {
+    it('calls searchMarkets again when the user presses Try again after an error', async () => {
       const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
         'searchMarkets',
@@ -932,7 +947,7 @@ describe('PredictFeed', () => {
       // Make subsequent calls succeed so the retry completes quickly.
       searchMarketsSpy.mockResolvedValue({ markets: [], totalResults: 0 });
 
-      fireEvent.press(await findByText('Retry'));
+      fireEvent.press(await findByText(RETRY_TEXT));
 
       await waitFor(() => {
         expect(searchMarketsSpy.mock.calls.length).toBeGreaterThan(

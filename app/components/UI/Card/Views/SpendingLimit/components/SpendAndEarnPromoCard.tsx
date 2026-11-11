@@ -19,7 +19,10 @@ import {
   CardActions,
   CardEntryPoint,
   CardScreens,
+  withCardProvider,
 } from '../../../util/metrics';
+import { useSelector } from 'react-redux';
+import { selectCardActiveProviderId } from '../../../../../../selectors/cardController';
 
 export interface SpendAndEarnPromoCardProps {
   apyPercent?: number;
@@ -61,6 +64,7 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
 }) => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedViewRef = useRef(false);
 
   const resolvedAccessibilityLabel =
@@ -68,36 +72,41 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
     strings('card.card_spending_limit.use_money_account_cta');
 
   useEffect(() => {
-    if (hasTrackedViewRef.current || !analytics) return;
+    // Wait for a known provider so we don't permanently lock provider: null.
+    if (hasTrackedViewRef.current || !analytics || !activeProviderId) return;
     hasTrackedViewRef.current = true;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: analytics.screen,
-          entrypoint: analytics.entrypoint,
-          flow: analytics.flow,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen: analytics.screen,
+            entrypoint: analytics.entrypoint,
+            flow: analytics.flow,
+          }),
+        )
         .build(),
     );
-  }, [analytics, trackEvent, createEventBuilder]);
+  }, [analytics, trackEvent, createEventBuilder, activeProviderId]);
 
   const handlePress = useCallback(() => {
     if (analytics) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            screen: analytics.screen,
-            entrypoint: analytics.entrypoint,
-            flow: analytics.flow,
-            action: CardActions.SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              screen: analytics.screen,
+              entrypoint: analytics.entrypoint,
+              flow: analytics.flow,
+              action: CardActions.SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON,
+            }),
+          )
           .build(),
       );
     }
 
     onPress();
-  }, [analytics, trackEvent, createEventBuilder, onPress]);
+  }, [analytics, trackEvent, createEventBuilder, activeProviderId, onPress]);
 
   return (
     <TouchableOpacity

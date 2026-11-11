@@ -10,6 +10,7 @@ import {
   buildGameData,
   extractNeededTeamsFromEvents,
   getLeagueTeamOrder,
+  getPredictSportsLeagueFromTeamApi,
 } from './gameParser';
 import {
   PolymarketApiEvent,
@@ -71,6 +72,19 @@ describe('gameParser', () => {
     });
   });
 
+  describe('getPredictSportsLeagueFromTeamApi', () => {
+    it('maps API league aliases back to Predict league ids', () => {
+      expect(getPredictSportsLeagueFromTeamApi('csgo')).toBe('cs2');
+      expect(getPredictSportsLeagueFromTeamApi('valorant')).toBe('val');
+      expect(getPredictSportsLeagueFromTeamApi('nfl')).toBe('nfl');
+    });
+
+    it('returns undefined for missing or unknown API leagues', () => {
+      expect(getPredictSportsLeagueFromTeamApi()).toBeUndefined();
+      expect(getPredictSportsLeagueFromTeamApi('unknown')).toBeUndefined();
+    });
+  });
+
   describe('getEventLeague', () => {
     it('returns "nfl" for event with nfl tag, games tag, and valid slug', () => {
       const event = createMockEvent();
@@ -93,6 +107,10 @@ describe('gameParser', () => {
       ['bel1', 'bel1-clu-gen-2026-05-21', 'bel1'],
       ['elc', 'elc-lee-sou-2026-05-21', 'efl-championship'],
       ['lib', 'lib-riv-boc-2026-05-21', 'lib'],
+      ['usc', 'usc-psg-av-2026-08-12', 'uefa-super-cup'],
+      ['efa', 'efa-ayu-fla-2026-08-07', 'fa-cup'],
+      ['clf', 'clf-mun-lee-2026-08-12', 'clf'],
+      ['saf1', 'saf1-ama-orl-2026-08-12', 'saf1'],
       ['kbo', 'kbo-kiw-doo-2026-04-09', 'kbo'],
       ['npb', 'npb-tok-chu-2026-06-26', 'npb'],
       ['cpbl', 'cpbl-chi-uni-2026-06-27', 'cpbl'],
@@ -406,6 +424,10 @@ describe('gameParser', () => {
       ['bel1', 'bel1-clu-gen-2026-05-21', 'gen', 'clu'],
       ['elc', 'elc-lee-sou-2026-05-21', 'sou', 'lee'],
       ['lib', 'lib-riv-boc-2026-05-21', 'boc', 'riv'],
+      ['usc', 'usc-psg-av-2026-08-12', 'av', 'psg'],
+      ['efa', 'efa-ayu-fla-2026-08-07', 'fla', 'ayu'],
+      ['clf', 'clf-mun-lee-2026-08-12', 'lee', 'mun'],
+      ['saf1', 'saf1-ama-orl-2026-08-12', 'orl', 'ama'],
       ['kbo', 'kbo-kiw-doo-2026-04-09', 'kiw', 'doo'],
       ['npb', 'npb-tok-chu-2026-06-26', 'chu', 'tok'],
       ['cpbl', 'cpbl-chi-uni-2026-06-27', 'uni', 'chi'],

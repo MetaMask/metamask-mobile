@@ -1,5 +1,8 @@
 import type { Position } from '@metamask/perps-controller';
-import { validateReduceOnlyOrder } from './reduceOnlyValidation';
+import {
+  validateReduceOnlyOrder,
+  getReduceOnlyPositionError,
+} from './reduceOnlyValidation';
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>
   ({
@@ -141,5 +144,47 @@ describe('validateReduceOnlyOrder', () => {
 
     expect(result.isValid).toBe(true);
     expect(result.isFullClose).toBe(false);
+  });
+});
+
+describe('getReduceOnlyPositionError', () => {
+  it('returns undefined when reduceOnly is off', () => {
+    const result = getReduceOnlyPositionError({
+      reduceOnly: false,
+      direction: 'long',
+      position: null,
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns no_position when there is no open position', () => {
+    const result = getReduceOnlyPositionError({
+      reduceOnly: true,
+      direction: 'short',
+      position: null,
+    });
+
+    expect(result).toBe('no_position');
+  });
+
+  it('returns wrong_side when the order matches the open position', () => {
+    const result = getReduceOnlyPositionError({
+      reduceOnly: true,
+      direction: 'long',
+      position: createPosition({ size: '1' }),
+    });
+
+    expect(result).toBe('wrong_side');
+  });
+
+  it('returns undefined for the closing side regardless of size', () => {
+    const result = getReduceOnlyPositionError({
+      reduceOnly: true,
+      direction: 'short',
+      position: createPosition({ size: '1' }),
+    });
+
+    expect(result).toBeUndefined();
   });
 });

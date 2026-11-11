@@ -15,7 +15,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { NotificationMoment } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  NotificationMoment,
+  useHaptics,
+} from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
@@ -30,6 +34,7 @@ import usePerpsToasts, {
   type PerpsToastOptions,
 } from '../../hooks/usePerpsToasts';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -47,12 +52,17 @@ interface PerpsCloseAllPositionsViewProps {
   onClose?: () => void;
   /** When provided, only these positions are shown and closed. */
   positions?: Position[];
+  /** Drops "all" from the title, which would misdescribe a filtered subset. */
+  isFiltered?: boolean;
+  enableHaptics?: boolean;
 }
 
 const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   sheetRef: externalSheetRef,
   onClose: onExternalClose,
   positions: propPositions,
+  isFiltered = false,
+  enableHaptics = false,
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -60,6 +70,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { showToast } = usePerpsToasts();
+  const { playImpact } = useHaptics();
 
   // Fetch positions from live stream (used only when no positions prop is passed)
   const liveResult = usePerpsLivePositions({
@@ -83,7 +94,6 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     positions: positions || [],
     priceData,
   });
-
   // Check opt-in status for rewards
   const { accountOptedIn, account: rewardsAccount } =
     usePerpsRewardAccountOptedIn(calculations?.totalEstimatedPoints);
@@ -207,6 +217,16 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       },
     });
 
+  const handleCloseAllPress = useCallback(() => {
+    if (isClosing) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    }
+    handleCloseAll();
+  }, [enableHaptics, handleCloseAll, isClosing, playImpact]);
+
   const handleClose = useCallback(() => {
     if (externalSheetRef) {
       sheetRef.current?.onCloseBottomSheet(() => {
@@ -239,19 +259,28 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     [handleKeepButtonPress, isClosing],
   );
 
+  const closeCount = positions?.length ?? 0;
+
   const primaryButtonProps = useMemo(
     () => ({
       children: isClosing
         ? strings('perps.close_all_modal.closing')
-        : strings('perps.close_all_modal.close_all'),
-      onPress: handleCloseAll,
+        : strings('perps.close_all_modal.close_count', { count: closeCount }),
+      onPress: handleCloseAllPress,
       size: ButtonSize.Lg,
       isDisabled: isClosing,
       isDanger: true,
       testID: PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON,
     }),
-    [handleCloseAll, isClosing],
+    [closeCount, handleCloseAllPress, isClosing],
   );
+
+  const title = isFiltered
+    ? strings('perps.close_all_modal.title_filtered')
+    : strings('perps.close_all_modal.title');
+  const description = strings('perps.close_all_modal.description', {
+    count: closeCount,
+  });
 
   const goBack = externalSheetRef ? undefined : navigation.goBack;
   const onClose = externalSheetRef ? onExternalClose : undefined;
@@ -269,7 +298,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
-          {strings('perps.close_all_modal.title')}
+          {title}
         </BottomSheetHeader>
         <Box paddingHorizontal={4}>
           <View style={styles.loadingContainer}>
@@ -296,7 +325,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
-          {strings('perps.close_all_modal.title')}
+          {title}
         </BottomSheetHeader>
         <Box paddingHorizontal={4}>
           <View style={styles.emptyContainer}>
@@ -324,7 +353,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={handleClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
       >
-        {strings('perps.close_all_modal.title')}
+        {title}
       </BottomSheetHeader>
 
       <Box twClassName="py-2">
@@ -335,7 +364,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             style={styles.description}
             testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
           >
-            {strings('perps.close_all_modal.description')}
+            {description}
           </Text>
         </Box>
 
@@ -363,7 +392,9 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             totalMargin={calculations.totalMargin}
             totalPnl={calculations.totalPnl}
             totalFees={calculations.totalFees}
+            originalTotalFees={calculations.originalTotalFees}
             feeDiscountPercentage={calculations.avgFeeDiscountPercentage}
+            feeDiscountKind={calculations.feeDiscountKind}
             metamaskFeeRate={calculations.avgMetamaskFeeRate}
             protocolFeeRate={calculations.avgProtocolFeeRate}
             originalMetamaskFeeRate={calculations.avgOriginalMetamaskFeeRate}
@@ -377,6 +408,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             accountOptedIn={accountOptedIn}
             rewardsAccount={rewardsAccount}
             enableTooltips={false}
+            afterFees={<PerpsRebateBanner containerTwClassName="px-4 mb-3" />}
+            testIDs={{
+              feesValue: PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE,
+              marginValue: PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,
+              receiveValue:
+                PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
+            }}
           />
         )}
       </Box>

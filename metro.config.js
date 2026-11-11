@@ -56,19 +56,47 @@ const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
+const { withStorybook } = require('@storybook/react-native/withStorybook');
 
-// Escapes a filesystem path for safe embedding in a RegExp so the mm CLI
-// daemon-artifact blockList entries below only match paths anchored at the
+// Escapes a filesystem path for safe embedding in a RegExp so local artifact
+// blockList entries only match paths anchored at the
 // worktree root, not the same substring appearing anywhere in node_modules.
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// mm CLI (visual testing) daemon artifacts, anchored to this worktree root.
+const artifactDirectoryPattern = (relativeDir) =>
+  new RegExp(
+    `^${escapeRegExp(path.resolve(__dirname, relativeDir))}(?:[/\\\\]|$)`,
+  );
+
+const additionalArtifactDirs = (
+  process.env.METRO_ADDITIONAL_ARTIFACT_DIRS ?? ''
+)
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean)
+  .map((relativeDir) => {
+    if (
+      path.isAbsolute(relativeDir) ||
+      relativeDir === '.' ||
+      relativeDir.split(/[\\/]/).includes('..') ||
+      path.resolve(__dirname, relativeDir) === __dirname
+    ) {
+      throw new Error(
+        'METRO_ADDITIONAL_ARTIFACT_DIRS accepts only non-root checkout-relative directories without `..`.',
+      );
+    }
+    return relativeDir;
+  });
+
+// Local runtime and visual-testing artifacts, anchored to this worktree root.
 // Anchoring prevents an unrelated dependency whose path merely *contains*
-// `.mm-server` or `test-artifacts/` from being silently dropped from the bundle.
-const mmDaemonArtifactBlockList = [
+// one of these names from being silently dropped from the bundle.
+const localArtifactBlockList = [
   new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-daemon.log'))}$`),
-  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-server'))}`),
-  new RegExp(`^${escapeRegExp(path.join(__dirname, 'test-artifacts'))}/`),
+  artifactDirectoryPattern('.mm-server'),
+  artifactDirectoryPattern('test-artifacts'),
+  artifactDirectoryPattern('temp'),
+  ...additionalArtifactDirs.map(artifactDirectoryPattern),
 ];
 
 // True when the module being resolved was requested from a file inside
@@ -98,16 +126,19 @@ module.exports = function (baseConfig) {
         !isPerformanceTest && process.env.HAS_TEST_OVERRIDES === 'true';
 
       /**
-       * E2E Metro redirects under tests/module-mocking.
-       * Enables both: @metamask/seedless-onboarding-controller + OAuthLoginHandlers mocks.
-       * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
-       * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
-       * even though hasTestOverrides is false (preventing real OAuth calls to production).
+       * Seedless / OAuth Metro redirects under tests/module-mocking.
+       *
+       * Split intentionally:
+       * - E2E CI (`HAS_TEST_OVERRIDES`): mock SeedlessOnboardingController so TOPRF
+       *   stays mocked/offline in smoke tests (plus Mockttp TOPRF SSS mocks).
+       * - Performance (`E2E_MOCK_OAUTH` + `IS_PERFORMANCE_TEST`): mock only
+       *   OAuthLoginHandlers to skip native Google/Apple UI; keep the real
+       *   SeedlessOnboardingController so onboarding perf hits live UAT TOPRF.
        */
       const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
-      const e2eAllowsSeedlessOAuthMetroMocks =
-        hasTestOverrides || isE2EMockOAuth;
+      const e2eMocksSeedlessController = hasTestOverrides;
+      const e2eMocksOAuthHandlers = hasTestOverrides || isE2EMockOAuth;
 
       // For less powerful machines, leave room to do other tasks. For instance,
       // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -138,212 +169,258 @@ module.exports = function (baseConfig) {
           ? 'with-srp'
           : 'without-srp');
 
-      return wrapWithReanimatedMetroConfig(
-        mergeConfig(defaultConfig, {
-          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
-          resolver: {
-            // Exclude mm CLI daemon artifacts from the file watcher so that
-            // log writes, state updates and test-artifact captures don't
-            // trigger unnecessary Fast Refresh cycles during visual testing.
-            blockList: [
-              ...(Array.isArray(defaultConfig.resolver.blockList)
-                ? defaultConfig.resolver.blockList
-                : defaultConfig.resolver.blockList
-                  ? [defaultConfig.resolver.blockList]
-                  : []),
-              ...mmDaemonArtifactBlockList,
-            ],
-            unstable_enablePackageExports: true,
-            assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
-            sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
-            resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
-            extraNodeModules: {
-              ...defaultConfig.resolver.extraNodeModules,
-              'node:crypto': require.resolve('react-native-crypto'),
-              crypto: require.resolve('react-native-crypto'),
-              stream: require.resolve('stream-browserify'),
-              _stream_transform: require.resolve('readable-stream/transform'),
-              _stream_readable: require.resolve('readable-stream/readable'),
-              _stream_writable: require.resolve('readable-stream/writable'),
-              _stream_duplex: require.resolve('readable-stream/duplex'),
-              _stream_passthrough: require.resolve(
-                'readable-stream/passthrough',
-              ),
-              http: require.resolve('@tradle/react-native-http'),
-              https: require.resolve('https-browserify'),
-              vm: require.resolve('vm-browserify'),
-              os: require.resolve('react-native-os'),
-              zlib: require.resolve('browserify-zlib'),
-              net: require.resolve('react-native-tcp-socket'),
-              fs: require.resolve('react-native-level-fs'),
-              images: path.resolve(__dirname, 'app/images'),
-              'base64-js': 'react-native-quick-base64',
-              base64: 'react-native-quick-base64',
-              'js-base64': 'react-native-quick-base64',
-              buffer: '@craftzdog/react-native-buffer',
-              'node:buffer': '@craftzdog/react-native-buffer',
-            },
-            resolveRequest: (context, moduleName, platform) => {
-              // MYXProvider is intentionally excluded from @metamask/perps-controller's
-              // published dist (extension-only). The dynamic import() uses webpackIgnore
-              // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
-              // to resolve it statically. Return an empty module stub.
-              if (
-                moduleName === './providers/MYXProvider' &&
-                isPerpsControllerOrigin(context)
-              ) {
-                return { type: 'empty' };
-              }
-              // @metamask/perps-controller@9.2.1's CJS build (standaloneInfoClient.cjs,
-              // HyperLiquidClientService.cjs) contains a leftover absolute file:// require
-              // from the package's own CI build machine instead of `@nktkas/hyperliquid`
-              // (the ESM build correctly imports `@nktkas/hyperliquid`, confirming this is
-              // a CJS-transpile bug in the published package). Redirect to the real package
-              // until upstream ships a patched release.
-              if (
-                moduleName ===
-                  'file:///home/runner/work/hyperliquid/hyperliquid/src/mod.ts' &&
-                isPerpsControllerOrigin(context)
-              ) {
-                return context.resolveRequest(
-                  context,
-                  '@nktkas/hyperliquid',
-                  platform,
+      // Off unless STORYBOOK_ENABLED=true, which swaps index.js for
+      // .rnstorybook/index.tsx. Otherwise the config is returned unchanged.
+      return withStorybook(
+        wrapWithReanimatedMetroConfig(
+          mergeConfig(defaultConfig, {
+            cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
+            resolver: {
+              // Exclude local runtime artifacts from the file watcher so that
+              // log writes, state updates, and artifact captures don't
+              // trigger unnecessary Fast Refresh cycles during visual testing.
+              blockList: [
+                ...(Array.isArray(defaultConfig.resolver.blockList)
+                  ? defaultConfig.resolver.blockList
+                  : defaultConfig.resolver.blockList
+                    ? [defaultConfig.resolver.blockList]
+                    : []),
+                ...localArtifactBlockList,
+              ],
+              unstable_enablePackageExports: true,
+              assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
+              sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
+              resolverMainFields: [
+                'sbmodern',
+                'react-native',
+                'browser',
+                'main',
+              ],
+              extraNodeModules: {
+                ...defaultConfig.resolver.extraNodeModules,
+                'node:crypto': require.resolve('react-native-crypto'),
+                crypto: require.resolve('react-native-crypto'),
+                stream: require.resolve('stream-browserify'),
+                _stream_transform: require.resolve('readable-stream/transform'),
+                _stream_readable: require.resolve('readable-stream/readable'),
+                _stream_writable: require.resolve('readable-stream/writable'),
+                _stream_duplex: require.resolve('readable-stream/duplex'),
+                _stream_passthrough: require.resolve(
+                  'readable-stream/passthrough',
+                ),
+                http: require.resolve('@tradle/react-native-http'),
+                https: require.resolve('https-browserify'),
+                vm: require.resolve('vm-browserify'),
+                os: require.resolve('react-native-os'),
+                zlib: require.resolve('browserify-zlib'),
+                net: require.resolve('react-native-tcp-socket'),
+                fs: require.resolve('react-native-level-fs'),
+                images: path.resolve(__dirname, 'app/images'),
+                'base64-js': 'react-native-quick-base64',
+                base64: 'react-native-quick-base64',
+                'js-base64': 'react-native-quick-base64',
+                buffer: '@craftzdog/react-native-buffer',
+                'node:buffer': '@craftzdog/react-native-buffer',
+              },
+              resolveRequest: (context, moduleName, platform) => {
+                // Bare package only: subpaths (e.g. jest/mock) must resolve to node_modules.
+                // Jest does not remap this package — mapping breaks jest/mock's requireActual().
+                if (moduleName === 'react-native-safe-area-context') {
+                  return {
+                    type: 'sourceFile',
+                    filePath: path.resolve(
+                      __dirname,
+                      'app/shims/react-native-safe-area-context.tsx',
+                    ),
+                  };
+                }
+                // WalletConnect relay auth: sign and derive keys with native
+                // ed25519 instead of relay-auth's bundled pure-JS curve (about
+                // 500 ms of JS thread at unlock). The shim re-exports the real
+                // package, so its own import must resolve to it.
+                if (moduleName === '@walletconnect/relay-auth') {
+                  const relayAuthShim = path.resolve(
+                    __dirname,
+                    'app/shims/walletconnect-relay-auth.ts',
+                  );
+                  if (context.originModulePath !== relayAuthShim) {
+                    return { type: 'sourceFile', filePath: relayAuthShim };
+                  }
+                }
+                // reflect-metadata's only job is to add metadata APIs
+                // (Reflect.defineMetadata etc.) to the global Reflect object.
+                // getPolyfills above already runs it once at bundle startup,
+                // before lavamoat lockdown freezes Reflect — so the job is done.
+                //
+                // But Metro can't tell that polyfill and a require() from app
+                // code (Ledger DMK, inversify, on-ramp-sdk) are the same file,
+                // so it bundles it a second time. Running that second copy
+                // would re-define properties on the now-frozen Reflect object
+                // and crash with "TypeError: property is not configurable".
+                //
+                // Returning an empty module prevents the second run. Safe here
+                // because no importer uses the module's exports — the DMK
+                // closure only reads the global Reflect, patched at startup.
+                if (moduleName === 'reflect-metadata') {
+                  return {
+                    type: 'empty',
+                  };
+                }
+                // @metamask/perps-controller@9.2.1's CJS build (standaloneInfoClient.cjs,
+                // HyperLiquidClientService.cjs) contains a leftover absolute file:// require
+                // from the package's own CI build machine instead of `@nktkas/hyperliquid`
+                // (the ESM build correctly imports `@nktkas/hyperliquid`, confirming this is
+                // a CJS-transpile bug in the published package). Redirect to the real package
+                // until upstream ships a patched release.
+                if (
+                  moduleName ===
+                    'file:///home/runner/work/hyperliquid/hyperliquid/src/mod.ts' &&
+                  isPerpsControllerOrigin(context)
+                ) {
+                  return context.resolveRequest(
+                    context,
+                    '@nktkas/hyperliquid',
+                    platform,
+                  );
+                }
+                // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
+                // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
+                // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
+                const ledgerhqSubpathMatch = moduleName.match(
+                  /^(@ledgerhq\/[^/]+)\/(.+)$/,
                 );
-              }
-              // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
-              // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
-              // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
-              const ledgerhqSubpathMatch = moduleName.match(
-                /^(@ledgerhq\/[^/]+)\/(.+)$/,
-              );
-              if (ledgerhqSubpathMatch) {
-                const [, pkgName, subpath] = ledgerhqSubpathMatch;
-                try {
+                if (ledgerhqSubpathMatch) {
+                  const [, pkgName, subpath] = ledgerhqSubpathMatch;
+                  try {
+                    return {
+                      filePath: require.resolve(`${pkgName}/lib/${subpath}`),
+                      type: 'sourceFile',
+                    };
+                  } catch {
+                    // fall through to default resolution if lib/ mapping doesn't exist
+                  }
+                }
+                // Use axios browser build so Node-only deps (e.g. http2) are never pulled in
+                if (
+                  moduleName === 'axios' ||
+                  moduleName.includes('axios/dist/node/')
+                ) {
                   return {
-                    filePath: require.resolve(`${pkgName}/lib/${subpath}`),
+                    filePath: require.resolve('axios/dist/browser/axios.cjs'),
                     type: 'sourceFile',
                   };
-                } catch {
-                  // fall through to default resolution if lib/ mapping doesn't exist
                 }
-              }
-              // Use axios browser build so Node-only deps (e.g. http2) are never pulled in
-              if (
-                moduleName === 'axios' ||
-                moduleName.includes('axios/dist/node/')
-              ) {
-                return {
-                  filePath: require.resolve('axios/dist/browser/axios.cjs'),
-                  type: 'sourceFile',
-                };
-              }
-              // Use contentful browser build so Node-only built-ins (tty, zlib, etc.) are never pulled in
-              if (moduleName === 'contentful') {
-                return {
-                  filePath: require.resolve(
-                    'contentful/dist/contentful.browser.js',
-                  ),
-                  type: 'sourceFile',
-                };
-              }
-              if (hasTestOverrides) {
-                if (moduleName === '@sentry/react-native') {
+                // Use contentful browser build so Node-only built-ins (tty, zlib, etc.) are never pulled in
+                if (moduleName === 'contentful') {
                   return {
-                    type: 'sourceFile',
-                    filePath: path.resolve(
-                      __dirname,
-                      'tests/module-mocking/sentry/react-native.ts',
+                    filePath: require.resolve(
+                      'contentful/dist/contentful.browser.js',
                     ),
-                  };
-                }
-                if (moduleName === '@sentry/core') {
-                  return {
                     type: 'sourceFile',
-                    filePath: path.resolve(
-                      __dirname,
-                      'tests/module-mocking/sentry/core.ts',
-                    ),
                   };
                 }
-              }
-              if (e2eAllowsSeedlessOAuthMetroMocks) {
-                // Wallet owns SeedlessOnboardingController construction, so E2E
-                // replaces the package class. Importers under
-                // tests/module-mocking/seedless still resolve the real package
-                // to avoid a circular mock.
-                if (moduleName === '@metamask/seedless-onboarding-controller') {
-                  const originModulePath = context.originModulePath || '';
-                  if (
-                    originModulePath.includes(
-                      `${path.sep}tests${path.sep}module-mocking${path.sep}seedless${path.sep}`,
-                    )
-                  ) {
+                if (hasTestOverrides) {
+                  if (moduleName === '@sentry/react-native') {
                     return {
                       type: 'sourceFile',
-                      filePath: require.resolve(
-                        '@metamask/seedless-onboarding-controller',
+                      filePath: path.resolve(
+                        __dirname,
+                        'tests/module-mocking/sentry/react-native.ts',
                       ),
                     };
                   }
-                  return {
-                    type: 'sourceFile',
-                    filePath: path.resolve(
-                      __dirname,
-                      'tests/module-mocking/seedless/package.ts',
-                    ),
-                  };
+                  if (moduleName === '@sentry/core') {
+                    return {
+                      type: 'sourceFile',
+                      filePath: path.resolve(
+                        __dirname,
+                        'tests/module-mocking/sentry/core.ts',
+                      ),
+                    };
+                  }
                 }
-                // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
-                if (
-                  moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
-                  moduleName.endsWith(
-                    'OAuthService/OAuthLoginHandlers/index',
-                  ) ||
-                  moduleName === './OAuthLoginHandlers' ||
-                  moduleName === '../OAuthLoginHandlers'
-                ) {
-                  return {
-                    type: 'sourceFile',
-                    filePath: path.resolve(
-                      __dirname,
-                      'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
-                    ),
-                  };
+                if (e2eMocksSeedlessController) {
+                  // Wallet owns SeedlessOnboardingController construction, so E2E
+                  // replaces the package class. Importers under
+                  // tests/module-mocking/seedless still resolve the real package
+                  // to avoid a circular mock.
+                  if (
+                    moduleName === '@metamask/seedless-onboarding-controller'
+                  ) {
+                    const originModulePath = context.originModulePath || '';
+                    if (
+                      originModulePath.includes(
+                        `${path.sep}tests${path.sep}module-mocking${path.sep}seedless${path.sep}`,
+                      )
+                    ) {
+                      return {
+                        type: 'sourceFile',
+                        filePath: require.resolve(
+                          '@metamask/seedless-onboarding-controller',
+                        ),
+                      };
+                    }
+                    return {
+                      type: 'sourceFile',
+                      filePath: path.resolve(
+                        __dirname,
+                        'tests/module-mocking/seedless/package.ts',
+                      ),
+                    };
+                  }
                 }
-              }
-              return context.resolveRequest(context, moduleName, platform);
-            },
-          },
-          transformer: {
-            babelTransformerPath: require.resolve('./metro.transform.js'),
-            assetPlugins: [
-              'react-native-svg-asset-plugin',
-              'expo-asset/tools/hashAssetFiles',
-            ],
-            svgAssetPlugin: {
-              pngCacheDir: '.png-cache',
-              scales: [1],
-              output: {
-                compressionLevel: 6,
+                if (e2eMocksOAuthHandlers) {
+                  // Skips native Google/Apple UI; see module mock for token path.
+                  if (
+                    moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
+                    moduleName.endsWith(
+                      'OAuthService/OAuthLoginHandlers/index',
+                    ) ||
+                    moduleName === './OAuthLoginHandlers' ||
+                    moduleName === '../OAuthLoginHandlers'
+                  ) {
+                    return {
+                      type: 'sourceFile',
+                      filePath: path.resolve(
+                        __dirname,
+                        'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
+                      ),
+                    };
+                  }
+                }
+                return context.resolveRequest(context, moduleName, platform);
               },
             },
-            getTransformOptions: async () => ({
-              transform: {
-                experimentalImportSupport: true,
-                inlineRequires: true,
+            transformer: {
+              babelTransformerPath: require.resolve('./metro.transform.js'),
+              assetPlugins: [
+                'react-native-svg-asset-plugin',
+                'expo-asset/tools/hashAssetFiles',
+              ],
+              svgAssetPlugin: {
+                pngCacheDir: '.png-cache',
+                scales: [1],
+                output: {
+                  compressionLevel: 6,
+                },
               },
-            }),
-          },
-          serializer: lockdownSerializer(
-            { hermesRuntime: true },
-            {
-              getPolyfills,
+              getTransformOptions: async () => ({
+                transform: {
+                  experimentalImportSupport: true,
+                  inlineRequires: true,
+                },
+              }),
             },
-          ),
-          resetCache: process.env.METRO_RESET_CACHE !== 'false',
-          maxWorkers,
-        }),
+            serializer: lockdownSerializer(
+              { hermesRuntime: true },
+              {
+                getPolyfills,
+              },
+            ),
+            resetCache: process.env.METRO_RESET_CACHE !== 'false',
+            maxWorkers,
+          }),
+        ),
       );
     },
   });

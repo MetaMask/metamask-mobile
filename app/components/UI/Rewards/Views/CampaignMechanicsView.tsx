@@ -2,10 +2,13 @@ import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import ContentfulRichText, {
   isDocument,
@@ -13,6 +16,8 @@ import ContentfulRichText, {
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
+import MoneyAccountSweepstakesRulesAccordion from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesRulesAccordion';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -28,6 +33,7 @@ export const CAMPAIGN_MECHANICS_TEST_IDS = {
 
 const CampaignMechanicsView: React.FC = () => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<CampaignMechanicsRouteParams, 'CampaignMechanics'>>();
@@ -46,6 +52,8 @@ const CampaignMechanicsView: React.FC = () => {
 
   const howItWorks = campaign?.details?.howItWorks ?? null;
   const notes = howItWorks?.notes ?? null;
+  const isMoneyAccountSweepstakes =
+    campaign?.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES;
 
   return (
     <ErrorBoundary navigation={navigation} view="CampaignMechanicsView">
@@ -54,32 +62,40 @@ const CampaignMechanicsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={CAMPAIGN_MECHANICS_TEST_IDS.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.campaign_mechanics.title')}
+          titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'campaign-mechanics-back-button' }}
           includesTopInset
         />
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-4')}
+          contentContainerStyle={tw.style('py-4')}
         >
-          {howItWorks && (
-            <>
-              <Box
-                twClassName="px-4 py-4"
-                testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
-              >
-                <CampaignHowItWorks howItWorks={howItWorks} />
-              </Box>
-              {/* ── Divider ── */}
-              <Box twClassName="my-1 border-b border-border-muted" />
-            </>
+          {howItWorks && !isMoneyAccountSweepstakes && (
+            <Box
+              twClassName="px-4"
+              testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
+            >
+              <CampaignHowItWorks howItWorks={howItWorks} />
+            </Box>
           )}
 
-          {isDocument(notes) && (
+          {isDocument(notes) && isMoneyAccountSweepstakes && (
             <Box
-              twClassName="px-4 py-4"
+              twClassName="px-4"
+              testID={CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION}
+            >
+              <MoneyAccountSweepstakesRulesAccordion rulesDocument={notes} />
+            </Box>
+          )}
+
+          {isDocument(notes) && !isMoneyAccountSweepstakes && (
+            <Box
+              twClassName="px-4"
               testID={CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION}
             >
               <ContentfulRichText document={notes} />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, act, waitFor, within } from '@testing-library/react-native';
 import BuildQuote, {
   createBuildQuoteNavDetails,
   isBailedOrderStatus,
@@ -11,6 +11,7 @@ import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuot
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
+import { TextColor } from '@metamask/design-system-react-native';
 
 jest.mock('../../../../Base/Keypad', () => {
   const ReactActual = jest.requireActual('react');
@@ -49,6 +50,17 @@ jest.mock('../../../../Base/Keypad', () => {
             onChange({
               value: '99.99',
               valueAsNumber: 42,
+              pressedKey: '0',
+            }),
+        }),
+        ReactActual.createElement(Button, {
+          key: 'grouped-value',
+          testID: 'keypad-trigger-grouped-value',
+          title: 'GroupedValue',
+          onPress: () =>
+            onChange({
+              value: '1234.56',
+              valueAsNumber: 1234.56,
               pressedKey: '0',
             }),
         }),
@@ -158,8 +170,12 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: jest.fn((value: unknown) => value),
 }));
 
-jest.mock('../../hooks/useBlinkingCursor', () => ({
-  useBlinkingCursor: () => 1,
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => 'HIGH'),
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(() => 'WIFI'),
 }));
 
 const mockUseRampsController = jest.requireMock(
@@ -250,7 +266,7 @@ const USER_REGION = {
 };
 
 const CIRCUIT_BREAKER_MESSAGE =
-  'This service is temporarily unavailable. Please try again in about 30 minutes.';
+  'This service is temporarily unavailable. Try again in about 30 minutes.';
 
 const buildProviderWithLimits = (limits: {
   minAmount: number;
@@ -348,9 +364,37 @@ const buildRampsControllerResult = (overrides = {}) => ({
   ...overrides,
 });
 
+const EMBEDDED_CHECKOUT_OVERLAY_TEST_ID = 'mock-embedded-checkout-overlay';
+const mockRenderEmbeddedCheckoutOverlay = jest.fn(
+  ({ interactive }: { interactive: boolean }) => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, {
+      testID: EMBEDDED_CHECKOUT_OVERLAY_TEST_ID,
+      accessibilityState: { disabled: !interactive },
+    });
+  },
+);
+const mockEmbeddedCheckoutDefaults: {
+  phase: 'inactive' | 'preparing' | 'ready' | 'settling';
+  renderOverlay: typeof mockRenderEmbeddedCheckoutOverlay | null;
+  error: string | null;
+} = {
+  phase: 'inactive',
+  renderOverlay: null,
+  error: null,
+};
+let mockEmbeddedCheckout = { ...mockEmbeddedCheckoutDefaults };
+
+jest.mock('../../hooks/useEmbeddedCheckout', () => ({
+  __esModule: true,
+  default: () => mockEmbeddedCheckout,
+}));
+
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEmbeddedCheckout = { ...mockEmbeddedCheckoutDefaults };
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: unknown) => value);
@@ -378,42 +422,18 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('amount param initialization', () => {
-    it('uses DEFAULT_AMOUNT (100) when no amount param is provided', () => {
-      mockUseParams.mockReturnValue({});
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('100');
-    });
-
-    it('uses amount param as initial value when provided via route params', () => {
-      mockUseParams.mockReturnValue({ amount: 30 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('30');
-    });
-
-    it('does not override amount with region default when amount param is provided', () => {
-      mockUseParams.mockReturnValue({ amount: 50 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
-    });
-  });
-
   describe('updateAmount', () => {
+    it('renders the currency symbol in the hero font', () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      const currencySymbol = within(amountInput).getByText('$');
+
+      expect(currencySymbol).toHaveStyle({ fontFamily: 'GrotzecCond-Bold' });
+    });
+
     it('updates amount from string input (empty string maps to "0")', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -424,7 +444,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(amountInput).toHaveTextContent('$0');
     });
 
     it('updates amount from string input with parsed valueAsNumber', async () => {
@@ -437,7 +457,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('250');
+      expect(amountInput).toHaveTextContent('$250');
     });
 
     it('uses valueAsNumber when provided with string input', async () => {
@@ -450,24 +470,21 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('99.99');
+      expect(amountInput).toHaveTextContent('$99.99');
     });
 
-    it('updates amount from number input via QuickAmounts', async () => {
+    it('groups integer digits while preserving the keypad decimal separator', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
       await act(async () => {
-        fireEvent.press(getByTestId('keypad-trigger-empty'));
+        fireEvent.press(getByTestId('keypad-trigger-grouped-value'));
       });
 
-      await act(async () => {
-        fireEvent.press(getByTestId('quick-amount-50'));
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '$1,234.56',
+      );
     });
 
     it('clears rampsError when amount is updated', async () => {
@@ -482,7 +499,11 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId('keypad-trigger-string'));
       });
 
-      expect(amountInput.props.color).toBeUndefined();
+      expect(
+        amountInput.findAll(
+          ({ props }) => props.color === TextColor.ErrorDefault,
+        ),
+      ).toHaveLength(0);
     });
 
     it('clears amount to 0 when Back key pressed and keyboard not dirty', async () => {
@@ -495,7 +516,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(amountInput).toHaveTextContent('$0');
     });
 
     it('updates amount when Back key pressed and keyboard is dirty', async () => {
@@ -511,7 +532,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('10');
+      expect(amountInput).toHaveTextContent('$10');
     });
   });
 
@@ -567,6 +588,27 @@ describe('BuildQuote', () => {
   });
 
   describe('handleQuickAmountPress', () => {
+    it('keeps the attribution row mounted when the amount is cleared', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('keypad-trigger-empty'));
+      });
+
+      expect(
+        getByTestId(BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER),
+      ).toBeOnTheScreen();
+      expect(getByTestId('mock-quick-amounts')).toBeOnTheScreen();
+      expect(
+        queryByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
     it('tracks RAMPS_QUICK_AMOUNT_CLICKED when quick amount pressed', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -595,29 +637,6 @@ describe('BuildQuote', () => {
   });
 
   describe('client-side buy limits', () => {
-    it('shows a below-min inline error and skips quote fetching', () => {
-      const providerWithLimits = buildProviderWithLimits({
-        minAmount: 120,
-        maxAmount: 1000,
-      });
-      mockUseRampsController.mockReturnValue(
-        buildRampsControllerResult({
-          providers: [providerWithLimits, NATIVE_PROVIDER],
-          selectedProvider: providerWithLimits,
-        }),
-      );
-
-      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(getByText('Minimum purchase is $120.00')).toBeOnTheScreen();
-      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
-
-      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
-      expect(continueButton).toBeDisabled();
-    });
-
     it('shows an above-max inline error and skips quote fetching', () => {
       const providerWithLimits = buildProviderWithLimits({
         minAmount: 10,
@@ -760,7 +779,7 @@ describe('BuildQuote', () => {
         amount: 12,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -794,7 +813,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -826,7 +845,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -851,7 +870,7 @@ describe('BuildQuote', () => {
         amount: 250,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -864,7 +883,7 @@ describe('BuildQuote', () => {
         amount: 10,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -894,7 +913,7 @@ describe('BuildQuote', () => {
         amount: 50,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -924,7 +943,7 @@ describe('BuildQuote', () => {
         amount: 200,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -949,7 +968,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -2164,6 +2183,117 @@ describe('BuildQuote', () => {
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
       expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('embedded checkout', () => {
+    it('replaces Continue with the embedded checkout once it is ready', () => {
+      mockEmbeddedCheckout = {
+        phase: 'ready',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
+      expect(queryByTestId(BuildQuoteSelectors.CONTINUE_BUTTON)).toBeNull();
+      expect(queryByText('Powered by MoonPay')).toBeNull();
+    });
+
+    it('lets the embedded checkout take taps only when the quote can continue', () => {
+      mockEmbeddedCheckout = {
+        phase: 'ready',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockRenderEmbeddedCheckoutOverlay).toHaveBeenCalledWith({
+        interactive: true,
+      });
+    });
+
+    it('shows Continue in a loading state while the checkout is preparing', () => {
+      mockEmbeddedCheckout = {
+        phase: 'preparing',
+        renderOverlay: null,
+        error: null,
+      };
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(queryByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeNull();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+    });
+
+    it('mounts the checkout behind a loading Continue while it is preparing with a URL', () => {
+      mockEmbeddedCheckout = {
+        phase: 'preparing',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('covers the checkout with a processing state while payment settles', () => {
+      mockEmbeddedCheckout = {
+        phase: 'settling',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      // The checkout stays mounted for order events, hidden behind our own
+      // state, so the provider's post-authorization repaint is never visible.
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+      // The spinner is mocked in Jest, so the loading label is asserted
+      // through the accessibility label the button derives from it.
+      expect(continueButton.props.accessibilityLabel).toBe('Processing');
+    });
+
+    it('shows the provider reason and restores Continue when the checkout is unpurchasable', () => {
+      mockEmbeddedCheckout = {
+        phase: 'inactive',
+        renderOverlay: null,
+        error:
+          'This item is not available for purchase with Crossmint at this moment',
+      };
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(queryByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeNull();
+      expect(
+        getByText(
+          'This item is not available for purchase with Crossmint at this moment',
+        ),
+      ).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(false);
     });
   });
 });

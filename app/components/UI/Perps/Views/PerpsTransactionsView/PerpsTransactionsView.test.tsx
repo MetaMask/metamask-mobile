@@ -47,6 +47,7 @@ jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTransactionHistory: jest.fn(),
   usePerpsEventTracking: jest.fn(),
+  usePerpsNetwork: jest.fn(() => 'mainnet'),
 }));
 
 // Mock the asset metadata hook to avoid network calls
@@ -254,9 +255,12 @@ describe('PerpsTransactionsView', () => {
 
     await waitFor(() => {
       // The hook is called with skipInitialFetch: false when connected
-      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
-        skipInitialFetch: false,
-      });
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipInitialFetch: false,
+          aggregateFills: true,
+        }),
+      );
     });
   });
 
@@ -300,9 +304,12 @@ describe('PerpsTransactionsView', () => {
     });
 
     // The hook is called with skipInitialFetch: true when not connected
-    expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
-      skipInitialFetch: true,
-    });
+    expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skipInitialFetch: true,
+        aggregateFills: true,
+      }),
+    );
   });
 
   it('should switch between filter tabs', async () => {

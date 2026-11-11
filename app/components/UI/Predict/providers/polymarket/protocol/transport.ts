@@ -4,6 +4,7 @@ import { getPolymarketEndpoints } from '../utils';
 import type { Permit2FeeAuthorization } from '../safe/types';
 import type { PolymarketProtocolDefinition } from './definitions';
 import type { ProtocolRelayerOrder } from './orderCodec';
+import { fetchWithTimeout } from '../fetchWithTimeout';
 
 function normalizeRelayerHeaders(headers: ClobHeaders): Record<string, string> {
   const normalizedHeaders: Record<string, string> = { ...headers };
@@ -45,7 +46,7 @@ export async function submitProtocolClobOrder({
   };
 
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: 'POST',
       headers: requestHeaders,
       body: JSON.stringify(body),

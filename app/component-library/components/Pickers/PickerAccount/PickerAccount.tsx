@@ -7,6 +7,7 @@ import type { View } from 'react-native';
 // External dependencies.
 import DSText, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
+import { IconSize } from '../../Icons/Icon';
 
 // Internal dependencies.
 import PickerBase from '../PickerBase';
@@ -25,6 +26,8 @@ const PickerAccount = forwardRef<View, PickerAccountProps>(
         onPress={onPress}
         hitSlop={hitSlop}
         {...props}
+        iconSize={IconSize.Sm}
+        dropdownIconStyle={styles.dropdownIcon}
       >
         <DSText
           variant={TextVariant.BodyMDMedium}

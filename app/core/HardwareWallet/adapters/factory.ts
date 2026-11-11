@@ -1,5 +1,6 @@
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapter, HardwareWalletAdapterOptions } from '../types';
+import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
 import { QRWalletAdapter } from './QRWalletAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
@@ -11,18 +12,23 @@ import { NonHardwareAdapter } from './NonHardwareAdapter';
  * This function always returns an adapter. For null or
  * unknown wallet types, it returns a NonHardwareAdapter (passthrough).
  *
- *
  * @param walletType - The type of hardware wallet (null for non-hardware accounts)
  * @param options - Adapter options including event callbacks
+ * @param enableDmk - The Ledger DMK mode seeded at Engine initialization;
+ * callers pass `getLedgerDmkMode()` so the adapter stack agrees with the
+ * keyring bridge. The factory never resolves flags itself.
  * @returns An adapter instance that implements HardwareWalletAdapter
  */
 export function createAdapter(
   walletType: HardwareWalletType | null,
   options: HardwareWalletAdapterOptions,
+  enableDmk: boolean,
 ): HardwareWalletAdapter {
   switch (walletType) {
     case HardwareWalletType.Ledger:
-      return new LedgerBluetoothAdapter(options);
+      return enableDmk
+        ? new LedgerBluetoothDMKAdapter(options)
+        : new LedgerBluetoothAdapter(options);
 
     case HardwareWalletType.Qr:
       return new QRWalletAdapter(options);

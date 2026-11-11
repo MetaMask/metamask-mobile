@@ -20,6 +20,7 @@ import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
 import TagColored, {
   TagColor,
 } from '../../../../component-library/components-temp/TagColored';
+import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
 const FEE_NETWORK_BADGE_SIZE = 12;
 const FEE_NETWORK_BADGE_RADIUS = 4;
@@ -89,7 +90,7 @@ export function ActivityFeeTokenValue({
               name={symbol}
               src={tokenImageSource}
               size={AvatarTokenSize.Xs}
-              testID="fee-token-avatar"
+              testID={ActivityDetailsSelectorsIDs.FEE_TOKEN_AVATAR}
             />
           </BadgeWrapper>
           <Text

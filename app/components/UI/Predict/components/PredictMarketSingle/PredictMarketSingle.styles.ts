@@ -17,7 +17,8 @@ const styleSheet = (params: {
       backgroundColor: theme.colors.background.section,
       borderRadius: 12,
       padding: 16,
-      marginVertical: vars.isCarousel ? 0 : 8,
+      marginTop: 0,
+      marginBottom: vars.isCarousel ? 0 : 12,
     },
     marketHeader: {
       flexDirection: 'row',

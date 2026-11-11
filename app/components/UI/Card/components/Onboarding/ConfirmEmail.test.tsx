@@ -28,6 +28,9 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
 
@@ -35,12 +38,14 @@ jest.mock('./OnboardingStep', () => {
     title,
     description,
     formFields,
-    actions,
+    ...footerProps
   }: {
     title: string;
     description: string;
     formFields: React.ReactNode;
-    actions: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     React.createElement(
       View,
@@ -56,7 +61,11 @@ jest.mock('./OnboardingStep', () => {
         { testID: 'onboarding-step-form-fields' },
         formFields,
       ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        mockRenderFooterButtons(footerProps),
+      ),
     );
 });
 
@@ -66,6 +75,42 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text } = jest.requireActual('react-native');
 
   return {
+    // Added for the CARD-682 layout pass (CardFormField / HelpText / TextButton).
+    HelpText: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    TextButton: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    HelpTextSeverity: { Danger: 'danger' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+      ErrorDefault: 'ErrorDefault',
+    },
+    FontWeight: { Medium: '500', Regular: '400' },
     Box: ({
       children,
       testID,
@@ -145,6 +190,34 @@ jest.mock('@metamask/design-system-react-native', () => {
       Sm: 'Sm',
       Md: 'Md',
       Lg: 'Lg',
+    },
+    IconName: {
+      UserCheck: 'UserCheck',
+    },
+    TextField: ({
+      value,
+      onChangeText,
+      onBlur,
+      onFocus,
+      inputRef,
+      inputProps,
+    }: {
+      value?: string;
+      onChangeText?: (text: string) => void;
+      onBlur?: () => void;
+      onFocus?: () => void;
+      inputRef?: React.Ref<unknown>;
+      inputProps?: Record<string, unknown>;
+    }) => {
+      const { TextInput } = jest.requireActual('react-native');
+      return React.createElement(TextInput, {
+        value,
+        onChangeText,
+        onBlur,
+        onFocus,
+        ref: inputRef,
+        ...inputProps,
+      });
     },
   };
 });
@@ -462,6 +535,8 @@ describe('ConfirmEmail Component', () => {
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,
+      isFocused: () => true,
+      addListener: jest.fn(() => jest.fn()),
     } as never);
     mockUseParams.mockReturnValue({
       email: 'test@example.com',
@@ -520,6 +595,7 @@ describe('ConfirmEmail Component', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.CONFIRM_EMAIL,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -548,6 +624,7 @@ describe('ConfirmEmail Component', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.CONFIRM_EMAIL_BUTTON,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -595,7 +672,10 @@ describe('ConfirmEmail Component', () => {
       );
 
       const codeField = getByTestId('confirm-email-code-field');
-      expect(codeField).toBeTruthy();
+      expect(codeField.props.autoFocus).not.toBe(true);
+      expect(codeField.props.keyboardType).toBe('number-pad');
+      expect(codeField.props.textContentType).toBe('oneTimeCode');
+      expect(codeField.props.autoComplete).toBe('one-time-code');
     });
 
     it('renders code field input element', () => {

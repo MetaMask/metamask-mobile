@@ -2,8 +2,9 @@
 
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, ImageSourcePropType } from 'react-native';
+import { ImageSourcePropType } from 'react-native';
 import { SvgUri } from 'react-native-svg';
+import { Image } from 'expo-image';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
@@ -59,12 +60,15 @@ const AvatarNetwork = ({
           testID={AVATARNETWORK_IMAGE_TESTID}
         />
       ) : (
+        // expo-image caches by URI on disk by default, unlike react-native's
+        // plain `Image`, which otherwise re-fetches the same network badge
+        // every time this component remounts (e.g. on list re-renders).
         <Image
           source={imageSource as ImageSourcePropType}
           style={styles.image}
           onError={onError}
           testID={AVATARNETWORK_IMAGE_TESTID}
-          resizeMode={'contain'}
+          contentFit="contain"
         />
       )}
     </AvatarBase>

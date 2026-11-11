@@ -1,67 +1,31 @@
 import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 import Matchers from '../../framework/Matchers';
-import {
-  asDetoxElement,
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import {
-  encapsulatedAction,
-  Gestures,
-  PlaywrightGestures,
-} from '../../framework';
+import Gestures from '../../framework/Gestures';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 class OnboardingView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
-  get existingWalletButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
-          {
-            exact: true,
-          },
-        ),
-    });
+  get existingWalletButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+    );
   }
 
-  get newWalletButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          OnboardingSelectorIDs.NEW_WALLET_BUTTON,
-          {
-            exact: true,
-          },
-        ),
-    });
+  get newWalletButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
   }
 
   async tapCreateWallet(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.tap(asDetoxElement(this.newWalletButton), {
-          elemDescription: 'Onboarding Create New Wallet Button',
-        });
-      },
-      appium: async () => {
-        const elem = await asPlaywrightElement(this.newWalletButton);
-        await PlaywrightGestures.waitForElementStable(elem);
-
-        // Re-fetch to avoid stale reference after stability wait
-        const freshElem = await asPlaywrightElement(this.newWalletButton);
-        await freshElem.unwrap().click();
-      },
+    await Gestures.waitAndTap(this.newWalletButton, {
+      elemDescription: 'Onboarding Create New Wallet Button',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
+      checkStability: true,
+      timeout: 15_000,
     });
   }
 
@@ -69,23 +33,14 @@ class OnboardingView {
     await this.tapCreateWallet();
   }
 
-  async tapHaveAnExistingWallet() {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.tap(asDetoxElement(this.existingWalletButton), {
-          elemDescription: 'Onboarding Have an Existing Wallet Button',
-        });
-      },
-      appium: async () => {
-        // Wait for element to be stable and JS bridge to be ready
-        const elem = await asPlaywrightElement(this.existingWalletButton);
-        await PlaywrightGestures.waitForElementStable(elem);
-
-        // Appium is tapping faster than the element is ready to be tapped on
-        // even after checking for stability so we need to re-fetch the element
-        const freshElem = await asPlaywrightElement(this.existingWalletButton);
-        await freshElem.unwrap().click();
-      },
+  async tapHaveAnExistingWallet(): Promise<void> {
+    await Gestures.waitAndTap(this.existingWalletButton, {
+      elemDescription: 'Onboarding Have an Existing Wallet Button',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
+      checkStability: true,
+      timeout: 15_000,
     });
   }
 }

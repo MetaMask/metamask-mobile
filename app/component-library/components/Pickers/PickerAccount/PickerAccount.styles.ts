@@ -19,8 +19,7 @@ const styleSheet = (params: {
   theme: Theme;
   vars: PickerAccountStyleSheetVars;
 }) => {
-  const { vars, theme } = params;
-  const { colors } = theme;
+  const { vars } = params;
   const { style } = vars;
   return StyleSheet.create({
     base: {
@@ -28,9 +27,8 @@ const styleSheet = (params: {
       flexDirection: 'row',
       borderWidth: 0,
     },
-    accountAddressLabel: {
-      color: colors.text.alternative,
-      textAlign: 'center',
+    dropdownIcon: {
+      marginLeft: 8,
     },
   });
 };
