@@ -1,6 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { RequestSourceFlow } from '@metamask/phishing-controller';
 import AccountApproval from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -9,6 +10,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountApprovalSelectorsIDs } from './AccountApproval.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
+import createStyles from './styles';
+import { mockTheme } from '../../../util/theme';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -38,8 +41,8 @@ const mockGetPhishingTestResultAsync = jest.fn().mockResolvedValue({
   result: false,
 });
 jest.mock('../../../util/phishingDetection', () => ({
-  getPhishingTestResultAsync: (origin: string) =>
-    mockGetPhishingTestResultAsync(origin),
+  getPhishingTestResultAsync: (origin: string, flow: RequestSourceFlow) =>
+    mockGetPhishingTestResultAsync(origin, flow),
 }));
 
 // Linking.openURL is already globally mocked in testSetup.js
@@ -136,6 +139,20 @@ describe('AccountApproval', () => {
     mockGetPhishingTestResultAsync.mockResolvedValue({ result: false });
   });
 
+  it('uses a 16 horizontal gutter for the sheet content and actions', () => {
+    const styles = createStyles(mockTheme.colors, mockTheme.typography);
+
+    expect(styles.accountCardWrapper.paddingHorizontal).toBe(16);
+    expect(styles.warning.paddingHorizontal).toBe(16);
+    expect(styles.actionContainer.paddingHorizontal).toBe(16);
+    expect(styles.bottom.marginHorizontal).toBe(16);
+    expect(styles.intro_reconnect.marginLeft).toBe(16);
+    expect(styles.intro_reconnect.marginRight).toBe(16);
+    expect(styles.touchableOption.marginLeft).toBe(16);
+    expect(styles.touchableOption.marginRight).toBe(16);
+    expect(styles.rememberme.marginLeft).toBe(16);
+  });
+
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(
       <AccountApproval
@@ -221,12 +238,16 @@ describe('AccountApproval', () => {
     );
 
     // The full URL (with path) must be forwarded to the scanner, not the hostname.
-    expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
-      'https://shared-host.example/view/test-path',
-    );
-    expect(mockGetPhishingTestResultAsync).not.toHaveBeenCalledWith(
-      'shared-host.example',
-    );
+    await waitFor(() => {
+      expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
+        'https://shared-host.example/view/test-path',
+        RequestSourceFlow.DappConnection,
+      );
+      expect(mockGetPhishingTestResultAsync).not.toHaveBeenCalledWith(
+        'shared-host.example',
+        expect.anything(),
+      );
+    });
   });
 
   it('renders warning banner when hostname is flagged as phishing', async () => {

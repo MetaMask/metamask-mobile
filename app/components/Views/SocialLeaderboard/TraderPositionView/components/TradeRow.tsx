@@ -1,6 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   Text,
   TextVariant,
@@ -8,16 +11,23 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
+  IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Trade } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
-import { formatUsd, formatTradeTime } from '../../utils/formatters';
-import PerpBadges from '../../components/PerpBadges';
-import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+import {
+  formatUsd,
+  formatTradeTime,
+} from '../../../../UI/SocialFeed/utils/formatters';
+import { isPerpTrade } from '../../../../UI/SocialFeed/utils/perp';
+import {
+  getTradeActionI18nKey,
+  type TradeAction,
+} from '../../../../UI/SocialFeed/utils/tradeAction';
+
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
 const AVATAR_SIZE = 32;
 /** How long the highlight lingers before fading out, ms. */
@@ -25,8 +35,19 @@ const EMPHASIS_FADE_MS = 1600;
 
 export interface TradeRowProps {
   trade: Trade;
+  /**
+   * Where this fill sits in the position's lifecycle, as provided by the API.
+   * Missing lifecycle metadata falls back to a neutral trade label.
+   */
+  action?: TradeAction;
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
+  /**
+   * Replaces the trader photo with a plus or minus avatar. Plus when this fill
+   * adds to the position, minus when it leaves it, matching the amount's color.
+   */
+  showValueAvatar?: boolean;
   /** When provided, the row is tappable (e.g. to focus the chart on this trade). */
   onPress?: (trade: Trade) => void;
   /**
@@ -38,8 +59,11 @@ export interface TradeRowProps {
 
 const TradeRow: React.FC<TradeRowProps> = ({
   trade,
+  action,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
+  showValueAvatar = false,
   onPress,
   isEmphasized = false,
 }) => {
@@ -60,16 +84,10 @@ const TradeRow: React.FC<TradeRowProps> = ({
 
   const isEntry = trade.intent === 'enter';
   const isPerp = isPerpTrade(trade);
-  const perpDirection = getPerpTradeDirection(trade);
 
-  // Perp fills read as "opened"/"closed" (vs spot "bought"/"sold").
-  const actionLabel = isPerp
-    ? isEntry
-      ? strings('social_leaderboard.trader_position.opened')
-      : strings('social_leaderboard.trader_position.closed_action')
-    : isEntry
-      ? strings('social_leaderboard.trader_position.bought')
-      : strings('social_leaderboard.trader_position.sold');
+  const actionLabel = strings(
+    getTradeActionI18nKey('trader_position', isPerp, action),
+  );
 
   return (
     <Pressable
@@ -107,11 +125,23 @@ const TradeRow: React.FC<TradeRowProps> = ({
           gap={4}
           twClassName="flex-1 min-w-0 mr-3"
         >
-          <TraderAvatar
-            imageUrl={traderImageUrl}
-            address={traderAddress}
-            size={AVATAR_SIZE}
-          />
+          {showValueAvatar ? (
+            <AvatarIcon
+              iconName={isEntry ? IconName.Add : IconName.Minus}
+              severity={
+                isEntry ? AvatarIconSeverity.Success : AvatarIconSeverity.Danger
+              }
+              size={AvatarIconSize.Lg}
+              testID={`trade-row-value-avatar-${trade.transactionHash}`}
+            />
+          ) : (
+            <TraderAvatar
+              imageUrl={traderImageUrl}
+              address={traderAddress}
+              profileId={traderProfileId}
+              size={AVATAR_SIZE}
+            />
+          )}
           <Box twClassName="flex-1 min-w-0">
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -127,13 +157,6 @@ const TradeRow: React.FC<TradeRowProps> = ({
               >
                 {actionLabel}
               </Text>
-              {perpDirection ? (
-                <PerpBadges
-                  direction={perpDirection}
-                  leverage={trade.perpLeverage}
-                  testID={`trade-row-perp-badges-${trade.transactionHash}`}
-                />
-              ) : null}
             </Box>
             <Text
               variant={TextVariant.BodySm}

@@ -1,6 +1,5 @@
 /* eslint-disable import-x/no-namespace */
 import * as Sentry from '@sentry/react-native';
-import { dedupeIntegration, extraErrorDataIntegration } from '@sentry/browser';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';
 import {
   updateId,
@@ -15,6 +14,7 @@ import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
+import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
 import { getTraceTags } from './tags';
 import {
   groupDiskSpaceSentryReport,
@@ -45,9 +45,6 @@ export const sentryStateMask = {
   collectibles: true,
   engine: {
     backgroundState: {
-      AccountTrackerController: {
-        [AllProperties]: false,
-      },
       AccountsController: {
         internalAccounts: {
           accounts: {
@@ -86,9 +83,8 @@ export const sentryStateMask = {
       ApprovalController: {
         [AllProperties]: false,
       },
-      CurrencyRateController: {
-        currencyRates: true,
-        currentCurrency: true,
+      AssetsController: {
+        [AllProperties]: false,
       },
       GasFeeController: {
         estimatedGasFeeTimeBounds: true,
@@ -164,20 +160,6 @@ export const sentryStateMask = {
       SubjectMetadataController: {
         [AllProperties]: false,
       },
-      TokenRatesController: {
-        [AllProperties]: false,
-      },
-      TokensController: {
-        allDetectedTokens: {
-          [AllProperties]: false,
-        },
-        allIgnoredTokens: {
-          [AllProperties]: false,
-        },
-        allTokens: {
-          [AllProperties]: false,
-        },
-      },
       TransactionController: {
         [AllProperties]: false,
       },
@@ -197,10 +179,16 @@ export const sentryStateMask = {
         isSignedIn: false,
         srpSessionData: false,
       },
+      ProfileMetricsController: {
+        accountSourceBackfillEnqueued: true,
+        reportedAccounts: false,
+      },
       UserStorageController: {
         isBackupAndSyncEnabled: true,
         isBackupAndSyncUpdateLoading: false,
         isAccountSyncingEnabled: true,
+        isContactSyncingEnabled: true,
+        isRampsSyncingEnabled: true,
       },
     },
   },
@@ -261,13 +249,12 @@ export const captureSentryFeedback = ({
   sentryId,
   comments,
 }: CaptureSentryFeedbackOptions): void => {
-  const userFeedback = {
-    event_id: sentryId,
+  Sentry.captureFeedback({
+    associatedEventId: sentryId,
+    message: comments,
     name: '',
     email: '',
-    comments,
-  };
-  Sentry.captureUserFeedback(userFeedback);
+  });
 };
 
 function getProtocolFromURL(url: string): string {
@@ -500,6 +487,14 @@ export function excludeEvents(event: SentryEvent | null): SentryEvent | null {
     return null;
   }
 
+  // NavigationChildren is the root native-stack wrapper in NavigationProvider,
+  // not a screen. Its ui.load transaction shadows the real screen in Mobile
+  // Vitals, reporting a TTID that starts at navigator mount instead of route
+  // start. App start is reported separately via standalone app start tracing.
+  if (event?.transaction === 'NavigationChildren') {
+    return null;
+  }
+
   return event;
 }
 
@@ -689,8 +684,8 @@ export async function setupSentry(
     // is true (both hold for this config). Adding it explicitly would be a no-op after
     // the SDK's name-deduplication pass.
     const integrations = [
-      dedupeIntegration(),
-      extraErrorDataIntegration(),
+      Sentry.dedupeIntegration(),
+      Sentry.extraErrorDataIntegration(),
       getNavIntegration(),
     ];
     const environment = deriveSentryEnvironment(
@@ -724,7 +719,15 @@ export async function setupSentry(
       enabled: forceEnabled || hasConsent,
       // Use tracePropagationTargets from v5 SDK as default
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
+      _experiments: {
+        // Send app start as its own `App Start` transaction instead of
+        // attaching it to the first ui.load. Without this the app start spans
+        // land on the dropped NavigationChildren transaction and are lost.
+        enableStandaloneAppStartTracing: true,
+      },
     });
+
+    beginNavigationInitializationAppStart();
 
     // Set EAS update context after Sentry initialization
     setEASUpdateContext();

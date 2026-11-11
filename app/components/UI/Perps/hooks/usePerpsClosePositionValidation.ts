@@ -8,6 +8,7 @@ import {
 } from '@metamask/perps-controller';
 import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
 import { isPriceOutsideDeviationBand } from '../utils/orderUtils';
+import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionValidationParams {
@@ -23,7 +24,7 @@ interface UsePerpsClosePositionValidationParams {
   minimumOrderAmount: number; // Minimum order size in USD
   closingValue: number; // Value being closed in USD
   remainingPositionValue: number; // Value remaining after close (kept for interface completeness)
-  receiveAmount: number; // Amount user will receive after fees
+  receiveAmount: number | undefined; // Amount user will receive after fees; undefined while unknown
   isPartialClose: boolean;
   skipValidation?: boolean;
 }
@@ -190,7 +191,7 @@ export function usePerpsClosePositionValidation(
       }
 
       // Warn if user will receive negative amount (but allow them to proceed)
-      if (receiveAmount < 0) {
+      if (receiveAmount !== undefined && receiveAmount < 0) {
         warnings.push(
           strings('perps.close_position.negative_receive_warning', {
             amount: Math.abs(receiveAmount).toFixed(2),
@@ -223,9 +224,7 @@ export function usePerpsClosePositionValidation(
             LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
           )
         ) {
-          errors.push(
-            strings('perps.order.limit_price_modal.limit_price_too_far'),
-          );
+          errors.push(getLimitPriceTooFarMessage(bandReferencePrice));
         }
 
         // Add warning if the limit price is far from the live mark price

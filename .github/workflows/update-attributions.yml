@@ -4,15 +4,20 @@ on:
   issue_comment:
     types: created
 
+permissions: {}
+
 jobs:
   is-fork-pull-request:
     name: Determine whether this issue comment was on a pull request from a fork
+    permissions:
+      contents: read
+      pull-requests: read
     if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '@metamaskbot update-attributions') }}
     runs-on: ubuntu-latest
     outputs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Determine whether this PR is from a fork
         id: is-fork
         run: echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${PR_NUMBER}" )" >> "$GITHUB_OUTPUT"
@@ -40,7 +45,7 @@ jobs:
             contents: write
             pull_requests: write
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: React to the comment
         run: |
           gh api \
@@ -56,6 +61,9 @@ jobs:
 
   prepare:
     name: Prepare dependencies
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-latest
     needs: is-fork-pull-request
     # Early exit if this is a fork, since later steps are skipped for forks
@@ -64,19 +72,19 @@ jobs:
       COMMIT_SHA: ${{ steps.commit-sha.outputs.COMMIT_SHA }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -88,6 +96,9 @@ jobs:
 
   update-attributions:
     name: Update Attributions
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-latest
     needs:
       - prepare
@@ -96,19 +107,19 @@ jobs:
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       - name: Install dependencies from cache with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -117,7 +128,7 @@ jobs:
       - name: Generate Attributions
         run: yarn build:attribution
       - name: Cache attributions file
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v6
         with:
           path: attribution.txt
           key: cache-build-${{ needs.prepare.outputs.COMMIT_SHA }}
@@ -145,7 +156,7 @@ jobs:
             contents: write
             pull_requests: write
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # Use installation token to ensure that the commit later can trigger status check workflows
           token: ${{ steps.get-token.outputs.token }}
@@ -158,7 +169,7 @@ jobs:
         id: commit-sha
         run: echo "COMMIT_SHA=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
       - name: Restore attributions file
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v6
         with:
           path: attribution.txt
           key: cache-build-${{ needs.prepare.outputs.COMMIT_SHA }}
@@ -194,6 +205,7 @@ jobs:
 
   check-status:
     name: Check whether the attributions update succeeded
+    permissions: {}
     runs-on: ubuntu-latest
     needs:
       - commit-updated-attributions
@@ -227,7 +239,7 @@ jobs:
             metadata: read
             contents: write
             pull_requests: write
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Post comment if the update failed

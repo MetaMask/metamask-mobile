@@ -17,6 +17,11 @@ import {
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
+
+jest.mock('../../../../UI/Money/utils/moneyAccountTransactions', () => ({
+  syncMoneyAccountWithdrawTransfer: jest.fn(),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -65,12 +70,10 @@ const REQUIRED_TOKEN_MOCK = {
 } as unknown as TransactionPayRequiredToken;
 
 function runHook({
-  currency,
   payToken,
   type,
   requiredTokens,
 }: {
-  currency?: string;
   payToken?: TransactionPaymentToken;
   type?: TransactionType;
   requiredTokens?: TransactionPayRequiredToken[];
@@ -86,19 +89,6 @@ function runHook({
       },
     },
   };
-
-  if (currency) {
-    mockState.engine.backgroundState.CurrencyRateController = {
-      currentCurrency: currency,
-      currencyRates: {
-        ETH: {
-          conversionDate: 1732887955.694,
-          conversionRate: 2,
-          usdConversionRate: 4,
-        },
-      },
-    };
-  }
 
   if (type) {
     mockState.engine.backgroundState.TransactionController.transactions[0].type =
@@ -121,6 +111,10 @@ describe('useTransactionPayToken', () => {
 
   const fetchGasFeeEstimatesMock = jest.mocked(
     Engine.context.GasFeeController.fetchGasFeeEstimates,
+  );
+
+  const syncMoneyAccountWithdrawTransferMock = jest.mocked(
+    syncMoneyAccountWithdrawTransfer,
   );
 
   beforeEach(() => {
@@ -161,6 +155,25 @@ describe('useTransactionPayToken', () => {
       tokenAddress: PAY_TOKEN_MOCK.address,
       chainId: PAY_TOKEN_MOCK.chainId,
     });
+  });
+
+  it('syncs a money account withdrawal transfer with the new token', async () => {
+    const { result } = runHook();
+
+    result.current.setPayToken({
+      address: PAY_TOKEN_MOCK.address,
+      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+    });
+
+    await flushPromises();
+
+    expect(syncMoneyAccountWithdrawTransferMock).toHaveBeenCalledWith(
+      expect.objectContaining({ id: TRANSACTION_ID_MOCK }),
+      {
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId,
+      },
+    );
   });
 
   it('returns isNative true when pay token is native address', () => {

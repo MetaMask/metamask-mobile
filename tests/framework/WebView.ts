@@ -10,6 +10,7 @@ import {
   type AndroidWebViewTapOptions,
 } from './AndroidWebViewNative.ts';
 import Gestures from './Gestures.ts';
+import { tapWebIdFallingBackToDomClick } from './IosWebViewTap.ts';
 import Matchers from './Matchers.ts';
 import { type AppiumElement } from './AppiumElement.ts';
 import AppiumGestures from './AppiumGestures.ts';
@@ -31,8 +32,8 @@ export type { AndroidWebViewScrollOptions, AndroidWebViewTapOptions };
  * Multi-platform WebView interaction by HTML id.
  *
  * Android Appium uses native UiAutomator (`AndroidWebViewNative`) to avoid
- * Chromedriver context flakes. iOS Appium and Detox use the existing web-context
- * element path + Gestures.
+ * Chromedriver context flakes. iOS Appium uses the web-context element path.
+ * If that click hits LavaMoat scuttling, it falls back to a page-script click.
  */
 export default class WebView {
   /**
@@ -71,9 +72,11 @@ export default class WebView {
     await this.withContext(options.pageUrl, async () => {
       const webElement = await this.getElementById(webId, options);
       await Gestures.scrollToWebViewPort(webElement);
-      await Gestures.tap(webElement, {
-        elemDescription: options.description ?? `WebView tapById: ${webId}`,
-      });
+      await tapWebIdFallingBackToDomClick(webId, () =>
+        Gestures.tap(webElement, {
+          elemDescription: options.description ?? `WebView tapById: ${webId}`,
+        }),
+      );
     });
   }
 
@@ -111,6 +114,10 @@ export default class WebView {
 
   /**
    * Select an option in an HTML `<select>` by visible option text.
+   *
+   * Appium-only (MMQA-2230): Android uses native UiAutomator (`selectAndroidWebId`);
+   * iOS switches WebView context and applies a React-safe value setter (mirrors
+   * `AndroidWebViewCdpHelpers.selectOptionById`).
    */
   static async selectOptionById(
     webId: string,
@@ -126,10 +133,17 @@ export default class WebView {
       return;
     }
 
+    // iOS Appium path. Mirror Android CDP React-controlled <select> handling:
+    // plain `el.value = …` often leaves React state on the previous option
+    // (e.g. SRP 2), so Invalid entropy / network selects flake silently.
     await this.withContext(options.pageUrl, async () => {
       await getDriver().execute(
         (id: string, searchText: string) => {
-          const el = document.getElementById(id) as HTMLSelectElement | null;
+          const el = document.getElementById(id) as
+            | (HTMLSelectElement & {
+                _valueTracker?: { setValue?: (v: string) => void };
+              })
+            | null;
           if (!el?.options) {
             throw new Error(`Select element #${id} not found`);
           }
@@ -141,9 +155,32 @@ export default class WebView {
               `Option containing "${searchText}" not found in #${id}`,
             );
           }
-          el.value = option.value;
+          const next = option.value;
+          const proto = Object.getPrototypeOf(el);
+          const valueDesc =
+            Object.getOwnPropertyDescriptor(proto, 'value') ||
+            Object.getOwnPropertyDescriptor(
+              window.HTMLSelectElement.prototype,
+              'value',
+            );
+          if (valueDesc?.set) {
+            valueDesc.set.call(el, next);
+          } else {
+            el.value = next;
+          }
+          option.selected = true;
+          const tracker = el._valueTracker;
+          if (tracker && typeof tracker.setValue === 'function') {
+            tracker.setValue('');
+          }
           el.dispatchEvent(new Event('input', { bubbles: true }));
           el.dispatchEvent(new Event('change', { bubbles: true }));
+          const selectedText = el.selectedOptions?.[0]?.text ?? '';
+          if (!selectedText.includes(searchText)) {
+            throw new Error(
+              `Select #${id} still shows "${selectedText}" after choosing "${searchText}"`,
+            );
+          }
         },
         webId,
         optionText,

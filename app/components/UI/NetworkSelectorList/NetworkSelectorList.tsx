@@ -4,7 +4,6 @@ import { ListRenderItem, ImageSourcePropType, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 
 // External dependencies.
-import { useStyles } from '../../../component-library/hooks';
 import {
   AvatarSize,
   AvatarVariant,
@@ -18,7 +17,6 @@ import {
   NetworkConnectMultiSelectorProps,
   Network,
 } from './NetworkSelectorList.types';
-import styleSheet from './NetworkSelectorList.styles';
 
 const NetworkSelectorList = ({
   onSelectNetwork,
@@ -32,7 +30,6 @@ const NetworkSelectorList = ({
   ...props
 }: NetworkConnectMultiSelectorProps) => {
   const networksLengthRef = useRef<number>(0);
-  const { styles } = useStyles(styleSheet, {});
   /**
    * Ref for the FlatList component.
    * The type of the ref is not explicitly defined.
@@ -99,7 +96,6 @@ const NetworkSelectorList = ({
 
   return (
     <FlatList
-      style={styles.networkList}
       ref={networkListRef}
       onContentSizeChange={onContentSizeChanged}
       data={networks}

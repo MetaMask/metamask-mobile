@@ -6,7 +6,6 @@ import React, {
   useMemo,
 } from 'react';
 import {
-  HeaderStandard,
   Text,
   TextColor,
   TextFieldSearch,
@@ -46,6 +45,7 @@ import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PerpsMode,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -62,6 +62,7 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import Routes from '../../../../../constants/navigation/Routes';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
@@ -71,7 +72,14 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
-import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
+import { preserveHomeDroppedFromHistory } from '../../utils/perpsModeSwitch';
+import { usePerpsDroppedHomeBack } from '../../hooks/usePerpsDroppedHomeBack';
+import {
+  selectPerpsMode,
+  selectPerpsWatchlistMarkets,
+} from '../../selectors/perpsController';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 // Stable empty reference so the always-mounted list header doesn't churn when
 // the Recently Viewed rail has nothing to show.
@@ -85,6 +93,7 @@ const PerpsMarketListView = ({
   showBalanceActions: propShowBalanceActions,
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const { styles, theme } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const listContentContainerStyle = useMemo(
@@ -102,10 +111,9 @@ const PerpsMarketListView = ({
   const title = route.params?.title ?? propTitle;
   const showBalanceActions =
     route.params?.showBalanceActions ?? propShowBalanceActions ?? true;
-  const showWatchlistOnly =
-    route.params?.showWatchlistOnly ?? propShowWatchlistOnly ?? false;
-  const defaultMarketTypeFilter =
-    route.params?.defaultMarketTypeFilter ?? 'all';
+  const requestedShowWatchlistOnly =
+    route.params?.showWatchlistOnly ?? propShowWatchlistOnly;
+  const defaultMarketTypeFilter = route.params?.defaultMarketTypeFilter;
   const defaultSortOptionId = route.params?.defaultSortOptionId;
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
@@ -113,6 +121,12 @@ const PerpsMarketListView = ({
   const enableHaptics = route.params?.enableHaptics === true;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  // Hide a persisted watchlist-only filter while Watchlist V2 is disabled.
+  // This is a route override, so it does not erase the stored preference and
+  // the preference can be restored if the flag is enabled again.
+  const showWatchlistOnly = isWatchlistEnabled
+    ? requestedShowWatchlistOnly
+    : false;
   const isRecentlyViewedEnabled = useSelector(
     selectPerpsRecentlyViewedEnabledFlag,
   );
@@ -320,6 +334,9 @@ const PerpsMarketListView = ({
           market,
           source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
           source_section,
+          ...(replaceOnSelect
+            ? { detailGenerationTrigger: 'market_switch' as const }
+            : {}),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),
@@ -342,7 +359,10 @@ const PerpsMarketListView = ({
                 ...routes,
                 {
                   name: Routes.PERPS.MARKET_DETAILS,
-                  params: detailsParams,
+                  params: preserveHomeDroppedFromHistory(detailsParams, {
+                    index: state.index,
+                    routes: state.routes,
+                  }),
                 },
               ],
             });
@@ -356,7 +376,13 @@ const PerpsMarketListView = ({
         // component's ROOT-based navigation), which would skip MARKET_LIST on
         // back and land the user on PERPS_HOME instead.
         navigation.dispatch(
-          StackActions.push(Routes.PERPS.MARKET_DETAILS, detailsParams),
+          StackActions.push(
+            Routes.PERPS.MARKET_DETAILS,
+            preserveHomeDroppedFromHistory(
+              detailsParams,
+              navigation.getState(),
+            ),
+          ),
         );
       }
     },
@@ -440,15 +466,35 @@ const PerpsMarketListView = ({
 
   useEffect(() => {
     if (filteredMarkets.length > 0) {
+      // The fade is gated on markets arriving, so its duration lands on top of
+      // however long the list took to load rather than overlapping it. Keep it
+      // short enough that it softens the pop-in without reading as latency.
       Animated.timing(fadeAnimation, {
         toValue: 1,
-        duration: 300,
+        duration: AnimationDuration.Fast,
         useNativeDriver: true,
       }).start();
     }
   }, [filteredMarkets.length, fadeAnimation]);
 
-  const handleBackPressed = perpsNavigation.navigateBack;
+  const perpsMode = useSelector(selectPerpsMode);
+  const { navigateBack, resetToHome, navigateToWallet, canGoBack } =
+    perpsNavigation;
+
+  const leaveViaFallback = useCallback(() => {
+    if (perpsMode === PerpsMode.Pro) {
+      navigateToWallet();
+      return;
+    }
+    resetToHome(PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS);
+  }, [resetToHome, navigateToWallet, perpsMode]);
+
+  const handleBackPressed = usePerpsDroppedHomeBack({
+    canGoBack,
+    navigateBack,
+    navigation,
+    leaveViaFallback,
+  });
 
   // emit the search query + results/no-results screen view.
   // Stored in a ref (event-callback pattern) so both the debounce timer and the
@@ -925,7 +971,9 @@ const PerpsMarketListView = ({
 
   return (
     <View style={styles.container}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}
@@ -946,6 +994,7 @@ const PerpsMarketListView = ({
             onChangeText={setSearchQuery}
             onPressClearButton={() => setSearchQuery('')}
             placeholder={strings('perps.search_by_token_symbol')}
+            inputAccessibilityLabel={strings('perps.search_by_token_symbol')}
             clearButtonProps={{
               testID: PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
             }}

@@ -1,6 +1,5 @@
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { providerErrors } from '@metamask/rpc-errors';
-import { TokensControllerState } from '@metamask/assets-controllers';
 import {
   TransactionType,
   type TransactionMeta,
@@ -13,8 +12,6 @@ import { generateTransferData } from '../../../../util/transactions';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
-import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
-import { store } from '../../../../store';
 import {
   createMusdConversionTransaction,
   ensureMusdTokenRegistered,
@@ -53,14 +50,10 @@ jest.mock('../../../Views/confirmations/utils/transaction', () => ({
   parseStandardTokenTransactionData: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/assets/assets-migration', () => ({
-  getTokensControllerAllTokens: jest.fn(),
-}));
-
-jest.mock('../../../../store', () => ({
-  store: {
-    getState: jest.fn(),
-  },
+jest.mock('../../Bridge/hooks/useAssetMetadata/utils', () => ({
+  toAssetId: jest.fn(
+    (address: string, caipChainId: string) => `${caipChainId}/erc20:${address}`,
+  ),
 }));
 
 jest.mock('../constants/musd', () => ({
@@ -110,19 +103,24 @@ interface MockedEngineContext {
   ApprovalController?: {
     rejectRequest: jest.Mock<void, [string, unknown]>;
   };
-  TokensController?: {
-    addToken: jest.Mock<
+  AssetsController?: {
+    addCustomAsset: jest.Mock<
       Promise<void>,
       [
+        string,
+        string,
         {
           address: string;
           decimals: number;
           name: string;
           symbol: string;
-          networkClientId: string;
+          chainId: string;
         },
       ]
     >;
+    state: {
+      customAssets: Record<string, string[]>;
+    };
   };
 }
 
@@ -131,11 +129,6 @@ const mockedProviderErrors = providerErrors as jest.Mocked<
 >;
 const mockedEngineService = EngineService as jest.Mocked<typeof EngineService>;
 const mockedEngine = Engine as unknown as { context: MockedEngineContext };
-const mockedGetTokensControllerAllTokens =
-  getTokensControllerAllTokens as jest.MockedFunction<
-    typeof getTokensControllerAllTokens
-  >;
-const mockedStore = store as jest.Mocked<typeof store>;
 
 const mockedGenerateTransferData = generateTransferData as jest.MockedFunction<
   typeof generateTransferData
@@ -200,20 +193,26 @@ describe('musdConversionTransaction', () => {
 
   const approvalControllerReject = jest.fn<void, [string, unknown]>();
 
-  const tokensControllerAddToken = jest.fn<
+  const assetsControllerAddCustomAsset = jest.fn<
     Promise<void>,
     [
+      string,
+      string,
       {
         address: string;
         decimals: number;
         name: string;
         symbol: string;
-        networkClientId: string;
+        chainId: string;
       },
     ]
   >();
 
+  // Mutable per-account custom-asset map read via AssetsController.state.
+  let mockCustomAssets: Record<string, string[]>;
+
   beforeEach(() => {
+    mockCustomAssets = {};
     jest.clearAllMocks();
 
     mockedEngine.context = {
@@ -233,18 +232,16 @@ describe('musdConversionTransaction', () => {
       ApprovalController: {
         rejectRequest: approvalControllerReject,
       },
-      TokensController: {
-        addToken: tokensControllerAddToken,
+      AssetsController: {
+        addCustomAsset: assetsControllerAddCustomAsset,
+        state: {
+          customAssets: mockCustomAssets,
+        },
       },
     };
 
     (MUSD_TOKEN_ADDRESS_BY_CHAIN as Record<string, Hex>)['0x1'] =
       '0xmusdTokenAddress';
-
-    mockedStore.getState.mockReturnValue(
-      {} as ReturnType<typeof store.getState>,
-    );
-    mockedGetTokensControllerAllTokens.mockReturnValue({});
 
     networkControllerFindNetworkClientIdByChainId.mockReturnValue(
       'networkClientId',
@@ -786,7 +783,7 @@ describe('musdConversionTransaction', () => {
   describe('ensureMusdTokenRegistered', () => {
     const MUSD_ADDRESS = '0xmusdAddress' as Hex;
     const CHAIN_ID = '0x1' as Hex;
-    const NETWORK_CLIENT_ID = 'mainnet';
+    const ACCOUNT_ID = 'account-1';
 
     beforeEach(() => {
       (MUSD_TOKEN_ADDRESS_BY_CHAIN as Record<string, Hex>)[CHAIN_ID] =
@@ -794,88 +791,95 @@ describe('musdConversionTransaction', () => {
     });
 
     describe('when mUSD token address is not configured for the chain', () => {
-      it('returns early without calling addToken', async () => {
+      it('returns early without calling addCustomAsset', async () => {
         const unknownChainId = '0xdead' as Hex;
 
         await ensureMusdTokenRegistered({
           chainId: unknownChainId,
-          networkClientId: NETWORK_CLIENT_ID,
+          accountId: ACCOUNT_ID,
         });
 
-        expect(tokensControllerAddToken).not.toHaveBeenCalled();
+        expect(assetsControllerAddCustomAsset).not.toHaveBeenCalled();
       });
     });
 
-    describe('when mUSD token is already registered for the chain', () => {
-      it('does not call addToken when the token exists for one account', async () => {
-        mockedGetTokensControllerAllTokens.mockReturnValue({
-          [CHAIN_ID]: {
-            '0xaccountAddress': [{ address: MUSD_ADDRESS }],
-          },
-        } as unknown as TokensControllerState['allTokens']);
+    describe('when accountId is not provided', () => {
+      it('returns early without calling addCustomAsset', async () => {
+        await ensureMusdTokenRegistered({
+          chainId: CHAIN_ID,
+        });
+
+        expect(assetsControllerAddCustomAsset).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when mUSD token is already registered for the account', () => {
+      it('does not call addCustomAsset when the account already has mUSD', async () => {
+        mockCustomAssets[ACCOUNT_ID] = [`eip155:1/erc20:${MUSD_ADDRESS}`];
 
         await ensureMusdTokenRegistered({
           chainId: CHAIN_ID,
-          networkClientId: NETWORK_CLIENT_ID,
+          accountId: ACCOUNT_ID,
         });
 
-        expect(tokensControllerAddToken).not.toHaveBeenCalled();
+        expect(assetsControllerAddCustomAsset).not.toHaveBeenCalled();
+      });
+
+      it('still registers mUSD when only a different account already has it', async () => {
+        // mUSD registered for another account must not short-circuit
+        // registration for the account being processed.
+        mockCustomAssets['other-account'] = [`eip155:1/erc20:${MUSD_ADDRESS}`];
+        assetsControllerAddCustomAsset.mockResolvedValue(undefined);
+
+        await ensureMusdTokenRegistered({
+          chainId: CHAIN_ID,
+          accountId: ACCOUNT_ID,
+        });
+
+        expect(assetsControllerAddCustomAsset).toHaveBeenCalledTimes(1);
+        expect(assetsControllerAddCustomAsset).toHaveBeenCalledWith(
+          ACCOUNT_ID,
+          `eip155:1/erc20:${MUSD_ADDRESS}`,
+          expect.objectContaining({ address: MUSD_ADDRESS }),
+        );
       });
     });
 
     describe('when mUSD token is not yet registered', () => {
-      it('calls addToken with the correct token metadata and networkClientId', async () => {
-        mockedGetTokensControllerAllTokens.mockReturnValue({});
-        tokensControllerAddToken.mockResolvedValue(undefined);
+      it('calls addCustomAsset with the correct token metadata and accountId', async () => {
+        assetsControllerAddCustomAsset.mockResolvedValue(undefined);
 
         await ensureMusdTokenRegistered({
           chainId: CHAIN_ID,
-          networkClientId: NETWORK_CLIENT_ID,
+          accountId: ACCOUNT_ID,
         });
 
-        expect(tokensControllerAddToken).toHaveBeenCalledTimes(1);
-        expect(tokensControllerAddToken).toHaveBeenCalledWith({
-          address: MUSD_ADDRESS,
-          decimals: 6,
-          name: 'MetaMask USD',
-          symbol: 'mUSD',
-          networkClientId: NETWORK_CLIENT_ID,
-        });
-      });
-
-      it('calls addToken when the chain entry exists but no accounts hold mUSD', async () => {
-        mockedGetTokensControllerAllTokens.mockReturnValue({
-          [CHAIN_ID]: {
-            '0xaccountAddress': [{ address: '0xdifferentTokenAddress' }],
+        expect(assetsControllerAddCustomAsset).toHaveBeenCalledTimes(1);
+        expect(assetsControllerAddCustomAsset).toHaveBeenCalledWith(
+          ACCOUNT_ID,
+          `eip155:1/erc20:${MUSD_ADDRESS}`,
+          {
+            address: MUSD_ADDRESS,
+            decimals: 6,
+            name: 'MetaMask USD',
+            symbol: 'mUSD',
+            chainId: CHAIN_ID,
           },
-        } as unknown as TokensControllerState['allTokens']);
-        tokensControllerAddToken.mockResolvedValue(undefined);
-
-        await ensureMusdTokenRegistered({
-          chainId: CHAIN_ID,
-          networkClientId: NETWORK_CLIENT_ID,
-        });
-
-        expect(tokensControllerAddToken).toHaveBeenCalledTimes(1);
-        expect(tokensControllerAddToken).toHaveBeenCalledWith({
-          address: MUSD_ADDRESS,
-          decimals: 6,
-          name: 'MetaMask USD',
-          symbol: 'mUSD',
-          networkClientId: NETWORK_CLIENT_ID,
-        });
+        );
       });
 
-      it('calls addToken when allTokens has no entry for the chain', async () => {
-        mockedGetTokensControllerAllTokens.mockReturnValue({ '0xe708': {} });
-        tokensControllerAddToken.mockResolvedValue(undefined);
+      it('calls addCustomAsset when the account has other custom assets but not mUSD', async () => {
+        mockCustomAssets[ACCOUNT_ID] = [
+          'eip155:1/erc20:0xdifferentTokenAddress',
+        ];
+        assetsControllerAddCustomAsset.mockResolvedValue(undefined);
 
         await ensureMusdTokenRegistered({
           chainId: CHAIN_ID,
-          networkClientId: NETWORK_CLIENT_ID,
+          accountId: ACCOUNT_ID,
         });
 
-        expect(tokensControllerAddToken).toHaveBeenCalledTimes(1);
+        expect(assetsControllerAddCustomAsset).toHaveBeenCalledTimes(1);
       });
     });
   });

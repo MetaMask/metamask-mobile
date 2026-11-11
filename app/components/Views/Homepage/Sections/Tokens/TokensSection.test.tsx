@@ -80,17 +80,8 @@ jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => mockNetworkConfigurations),
 }));
 
-jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
-  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
-}));
-
 jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHubEnabledFlag: jest.fn(() => false),
-}));
-
-const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
-jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
 }));
 
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
@@ -370,14 +361,10 @@ describe('TokensSection', () => {
       error: null,
       refetch: jest.fn(),
     });
-    // Cash section disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
-    jest
-      .requireMock('../../../../UI/Earn/selectors/featureFlags')
-      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    // Money hub disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
     jest
       .requireMock('../../../../UI/Money/selectors/featureFlags')
       .selectMoneyHubEnabledFlag.mockReturnValue(false);
-    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
   });
 
   it('renders section title for account with balance', () => {
@@ -388,6 +375,32 @@ describe('TokensSection', () => {
     );
 
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
+  });
+
+  it('only notifies Homepage after primary content becomes ready', () => {
+    const onContentReadyChange = jest.fn();
+
+    const { rerender } = renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).not.toHaveBeenCalled();
+
+    mockUseIsZeroBalanceAccount.mockReturnValue(true);
+
+    rerender(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).toHaveBeenCalledWith(true);
   });
 
   it('renders "Tokens" title for zero balance account', () => {
@@ -527,15 +540,11 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
   });
 
-  it('filters out mUSD from displayed tokens when Cash section is enabled', () => {
+  it('filters out mUSD from displayed tokens when the Money hub is enabled', () => {
     const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-    jest
-      .requireMock('../../../../UI/Earn/selectors/featureFlags')
-      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
     jest
       .requireMock('../../../../UI/Money/selectors/featureFlags')
       .selectMoneyHubEnabledFlag.mockReturnValue(true);
-    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: MUSD_ADDRESS, isStaked: false },
@@ -666,7 +675,7 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('error-state')).toBeNull();
   });
 
-  it('renders ErrorState when account has balance but selector returns no tokens', () => {
+  it('keeps the token list when the account has balance but no homepage tokens', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
     mockAccountGroupBalance.mockReturnValue({
@@ -678,29 +687,10 @@ describe('TokensSection', () => {
       <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
-    expect(screen.getByText('Unable to load tokens')).toBeOnTheScreen();
-  });
-
-  it('retries data fetch when retry is pressed on heuristic error', async () => {
-    mockUseIsZeroBalanceAccount.mockReturnValue(false);
-    mockSortedTokenKeys.mockReturnValue([]);
-    mockAccountGroupBalance.mockReturnValue({
-      totalBalanceInUserCurrency: 100,
-      userCurrency: 'usd',
-    });
-
-    renderWithProvider(
-      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-
-    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
-
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('error-state-retry-button'));
-    });
-
-    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('error-state')).toBeNull();
+    expect(
+      screen.getByTestId(homepageSectionTitleTestId('tokens')),
+    ).toBeOnTheScreen();
   });
 
   it('does not show RemoveTokenBottomSheet by default', () => {

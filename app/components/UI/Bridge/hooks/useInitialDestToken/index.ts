@@ -13,14 +13,14 @@ import {
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-import usePrevious from '../../../../hooks/usePrevious';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 // Need to pass in the initial source token to avoid a race condition with useInitialSourceToken
 // Can't just use selectSourceToken because of race condition
 export const useInitialDestToken = (
   initialSourceToken?: BridgeToken,
   initialDestToken?: BridgeToken,
+  initializationKey?: string,
 ) => {
   const dispatch = useDispatch();
   const selectedChainId = useSelector(selectChainId);
@@ -28,21 +28,37 @@ export const useInitialDestToken = (
   const destToken = useSelector(selectDestToken);
   const sourceToken = useSelector(selectSourceToken);
   const bip44DefaultPair = useSelector(selectBip44DefaultPair);
+  const hasInitializedRef = useRef(false);
+  const initializationKeyRef = useRef<string | undefined>(undefined);
 
   const isSwap =
     bridgeViewMode === BridgeViewMode.Swap ||
     bridgeViewMode === BridgeViewMode.Unified;
 
-  const prevInitialDestToken = usePrevious(initialDestToken);
-
   useEffect(() => {
-    // If dest token is already set in Redux (pre-populated before navigation), skip initialization
-    if (destToken && !initialDestToken) {
+    if (
+      hasInitializedRef.current &&
+      initializationKeyRef.current === initializationKey
+    ) {
       return;
     }
 
-    if (initialDestToken && prevInitialDestToken !== initialDestToken) {
+    if (initialDestToken) {
+      hasInitializedRef.current = true;
+      initializationKeyRef.current = initializationKey;
       dispatch(setDestToken(initialDestToken));
+      return;
+    }
+
+    if (bridgeViewMode === undefined) {
+      return;
+    }
+
+    hasInitializedRef.current = true;
+    initializationKeyRef.current = initializationKey;
+
+    // If dest token is already set in Redux (pre-populated before navigation), skip initialization
+    if (destToken) {
       return;
     }
 
@@ -100,8 +116,9 @@ export const useInitialDestToken = (
       dispatch(setDestToken(defaultDestToken));
     }
   }, [
+    bridgeViewMode,
     initialDestToken,
-    prevInitialDestToken,
+    initializationKey,
     dispatch,
     initialSourceToken,
     sourceToken,

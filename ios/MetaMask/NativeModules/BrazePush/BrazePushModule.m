@@ -1,0 +1,67 @@
+#import <Foundation/Foundation.h>
+#import <BrazeKit/BrazeKit-Swift.h>
+#import <React/RCTBridgeModule.h>
+#import "MetaMask-Swift.h"
+
+@interface BrazePushModule : NSObject <RCTBridgeModule>
+@end
+
+@implementation BrazePushModule
+
+RCT_EXPORT_MODULE();
+
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
+RCT_REMAP_METHOD(
+  registerPush,
+  registerPushWithResolver:(RCTPromiseResolveBlock)resolve
+  rejecter:(RCTPromiseRejectBlock)reject
+) {
+  Braze *braze = AppDelegate.braze;
+  if (braze == nil) {
+    reject(@"SDK_UNAVAILABLE", @"Braze is not initialized", nil);
+    return;
+  }
+
+  AppDelegate.brazePushRegistrationRequested = YES;
+  NSData *deviceToken = AppDelegate.apnsDeviceToken;
+  if (deviceToken == nil) {
+    // APNs token delivery is asynchronous. AppDelegate completes registration
+    // when didRegisterForRemoteNotifications receives the token.
+    resolve(nil);
+    return;
+  }
+
+  [braze.notifications registerDeviceToken:deviceToken];
+  resolve(nil);
+}
+
+RCT_REMAP_METHOD(
+  unregisterPush,
+  unregisterPushWithResolver:(RCTPromiseResolveBlock)resolve
+  rejecter:(RCTPromiseRejectBlock)reject
+) {
+  AppDelegate.brazePushRegistrationRequested = NO;
+  Braze *braze = AppDelegate.braze;
+  if (braze == nil) {
+    reject(@"SDK_UNAVAILABLE", @"Braze is not initialized", nil);
+    return;
+  }
+
+  [braze.notifications unregisterPushWithCompletion:^(NSError *error) {
+    if (error == nil) {
+      resolve(@{@"success": @YES});
+      return;
+    }
+
+    resolve(@{
+      @"success": @NO,
+      @"message": error.localizedDescription
+    });
+  }];
+}
+
+@end

@@ -37,17 +37,19 @@ const isHoodiChainId = (chainId?: string) => {
  * TRX native is considered stakeable only when the TRX staking flag is enabled.
  */
 export const selectIsStakeableToken = createSelector(
-  [(_state: RootState, asset: TokenI) => asset, selectTrxStakingEnabled],
-  (asset, trxStakingEnabled) => {
-    if (!asset) return false;
-
+  [
+    (_state: RootState, asset?: TokenI) => asset?.isETH,
+    (_state: RootState, asset?: TokenI) => asset?.chainId,
+    (_state: RootState, asset?: TokenI) => asset?.ticker,
+    selectTrxStakingEnabled,
+  ],
+  (isETH, chainId, ticker, trxStakingEnabled) => {
     // Only allow staking/earn for ETH on Ethereum mainnet or Hoodi testnet
-    if (asset.isETH) {
-      return isMainnetByChainId(asset.chainId) || isHoodiChainId(asset.chainId);
+    if (isETH) {
+      return isMainnetByChainId(chainId) || isHoodiChainId(chainId);
     }
 
-    const isTronNative =
-      asset.ticker === 'TRX' && asset.chainId?.startsWith('tron:');
+    const isTronNative = ticker === 'TRX' && chainId?.startsWith('tron:');
 
     if (isTronNative && trxStakingEnabled) {
       return true;

@@ -18,11 +18,10 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTestEnvironment } from '../../../util/test/utils';
+import ScreenTtcProbeHost from '../../../hooks/performance/ScreenTtcProbeHost';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
-///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
 import reactQueryService from '../../../core/ReactQueryService';
@@ -32,6 +31,16 @@ import {
   createUIMessenger,
   UIMessenger,
 } from '../../../messengers/ui-messenger';
+
+// Only enabled via `MM_PERPS_LIGHTER_PROVIDER_ENABLED=true`; otherwise the
+// embedded signer is dead-code-eliminated out of release bundles. Keep this a
+// literal `process.env` comparison so Metro can constant-fold it.
+const LighterSignerWebView: React.ComponentType | null =
+  process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the ~10 MB embedded signer out of bundles that don't opt in
+      require('../../UI/Perps/Lighter/LighterSignerWebView')
+        .LighterSignerWebView
+    : null;
 
 const styles = StyleSheet.create({
   gestureRoot: {
@@ -103,16 +112,18 @@ const Root = ({ foxCode }: RootProps) => {
             <PersistGate persistor={persistor}>
               <ErrorBoundary view="Root">
                 {
-                  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
                   // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
                   <SnapsExecutionWebView />
-                  ///: END:ONLY_INCLUDE_IF
                 }
                 <QueryClientProvider client={reactQueryService.queryClient}>
                   <FeatureFlagOverrideProvider>
                     <ThemeProvider>
                       <NavigationProvider>
                         <ControllersGate>
+                          {
+                            // The signer observes the initialized keyring's lock lifecycle.
+                            LighterSignerWebView && <LighterSignerWebView />
+                          }
                           <UIMessengerProvider value={uiMessenger}>
                             <ToastContextWrapper>
                               <HardwareWalletProvider>
@@ -120,6 +131,7 @@ const Root = ({ foxCode }: RootProps) => {
                                   mode={ReduceMotion.Never}
                                 />
                                 <App />
+                                <ScreenTtcProbeHost />
                               </HardwareWalletProvider>
                             </ToastContextWrapper>
                           </UIMessengerProvider>

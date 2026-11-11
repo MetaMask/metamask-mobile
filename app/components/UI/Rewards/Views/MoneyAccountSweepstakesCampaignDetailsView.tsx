@@ -11,16 +11,22 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import MoneyAccountSweepstakesCampaignCTA from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignCTA';
 import MoneyAccountSweepstakesDrawScheduleSection from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawScheduleSection';
 import MoneyAccountSweepstakesCampaignOverview from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignOverview';
 import MoneyAccountSweepstakesLearnMoreRows from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesLearnMoreRows';
+import MoneyAccountSweepstakesCampaignEndedStats from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignEndedStats';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import { useGetMoneyAccountSweepstakesPrizePool } from '../hooks/useGetMoneyAccountSweepstakesPrizePool';
 import { useGetMoneyAccountSweepstakesStatsMe } from '../hooks/useGetMoneyAccountSweepstakesStatsMe';
+import { useGetMoneyAccountSweepstakesVolumeStats } from '../hooks/useGetMoneyAccountSweepstakesVolumeStats';
 import { useMoneyAccountSweepstakesBinding } from '../hooks/useMoneyAccountSweepstakesBinding';
+import { useMoneyAccountSweepstakesIngestLag } from '../hooks/useMoneyAccountSweepstakesIngestLag';
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
@@ -96,6 +102,7 @@ const MoneyAccountSweepstakesCampaignDetailsSkeleton: React.FC = () => {
 
 const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const conflictToastShownRef = useRef(false);
 
@@ -114,12 +121,41 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const { ensureBound } = useMoneyAccountSweepstakesBinding();
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
+  const isSeriesActive = seriesStatus === 'active';
+  const isSeriesPrevious = seriesStatus === 'previous';
+  const showPersonalOverview = isSeriesActive && optedInAny;
+  const showCampaignEndedStats = isSeriesPrevious;
+  const personalStatsCampaignId = showPersonalOverview
+    ? displayCampaign?.id
+    : undefined;
+  const endedStatsCampaignId = showCampaignEndedStats
+    ? displayCampaign?.id
+    : undefined;
+
   const {
     stats,
     isLoading: isStatsLoading,
     hasError: hasStatsError,
     refetch: refetchStats,
-  } = useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
+  } = useGetMoneyAccountSweepstakesStatsMe(personalStatsCampaignId);
+
+  const { isIngestLagging } = useMoneyAccountSweepstakesIngestLag(
+    stats?.dataAsOf,
+  );
+
+  const {
+    volumeStats,
+    isLoading: isVolumeStatsLoading,
+    hasError: hasVolumeStatsError,
+    refetch: refetchVolumeStats,
+  } = useGetMoneyAccountSweepstakesVolumeStats(endedStatsCampaignId);
+
+  const {
+    prizePool,
+    isLoading: isPrizePoolLoading,
+    hasError: hasPrizePoolError,
+    refetch: refetchPrizePool,
+  } = useGetMoneyAccountSweepstakesPrizePool(endedStatsCampaignId);
 
   const tileCampaign = useMemo(
     () => buildMoneyAccountSweepstakesTileCampaign(series),
@@ -132,7 +168,10 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
 
   const hasBalance = (stats?.currentBalanceUsd ?? 0) > 0;
   const showHowItWorksSection =
-    Boolean(displayCampaign?.details?.howItWorks) && !optedInAny && !hasBalance;
+    Boolean(displayCampaign?.details?.howItWorks) &&
+    isSeriesActive &&
+    !optedInAny &&
+    !hasBalance;
 
   useTrackRewardsPageView({
     page_type: 'money_account_sweepstakes_campaign_details',
@@ -201,7 +240,9 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
           MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS.CONTAINER
         }
       >
-        <HeaderCompactStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={displayCampaign?.name ?? ''}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
@@ -237,13 +278,14 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
               <MoneyAccountSweepstakesCampaignOverview
                 campaign={statusCampaign}
                 localizedText={localizedText}
-                isParticipating={optedInAny}
+                isParticipating={showPersonalOverview}
                 stats={stats}
                 isStatsLoading={isStatsLoading}
                 hasStatsError={hasStatsError}
                 onRetryStats={refetchStats}
+                isIngestLagging={isIngestLagging}
               >
-                {optedInAny && (
+                {showPersonalOverview && (
                   <MoneyAccountSweepstakesCampaignCTA
                     campaign={displayCampaign ?? statusCampaign}
                     seriesStatus={seriesStatus}
@@ -253,11 +295,29 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                 )}
               </MoneyAccountSweepstakesCampaignOverview>
 
+              {showCampaignEndedStats && (
+                <>
+                  <Box twClassName="border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <MoneyAccountSweepstakesCampaignEndedStats
+                      volumeStats={volumeStats}
+                      prizePool={prizePool}
+                      isVolumeStatsLoading={isVolumeStatsLoading}
+                      isPrizePoolLoading={isPrizePoolLoading}
+                      hasVolumeStatsError={hasVolumeStatsError}
+                      hasPrizePoolError={hasPrizePoolError}
+                      onRetryVolumeStats={refetchVolumeStats}
+                      onRetryPrizePool={refetchPrizePool}
+                    />
+                  </Box>
+                </>
+              )}
+
               {showHowItWorksSection &&
                 displayCampaign?.details?.howItWorks && (
                   <>
                     <Box twClassName="border-b border-border-muted" />
-                    <Box twClassName="px-4 pt-4">
+                    <Box twClassName="p-4">
                       <CampaignHowItWorks
                         howItWorks={
                           displayCampaign.details
@@ -277,12 +337,12 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                         }
                       />
                     </Box>
-                    <Box twClassName="border-b border-border-muted" />
                   </>
                 )}
 
               {campaigns.length > 0 && (
                 <>
+                  <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">
                     <MoneyAccountSweepstakesDrawScheduleSection
                       campaigns={campaigns}

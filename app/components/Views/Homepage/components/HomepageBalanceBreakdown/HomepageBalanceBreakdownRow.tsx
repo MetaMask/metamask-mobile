@@ -1,13 +1,20 @@
-import React from 'react';
-import { View, type ViewStyle } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  BottomSheet,
+  BottomSheetHeader,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   FontWeight,
-  Icon,
   IconColor,
   IconName,
   IconSize,
@@ -18,51 +25,114 @@ import {
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
+import Logger from '../../../../../util/Logger';
+import { useTheme } from '../../../../../util/theme';
 import { useFormatters } from '../../../../hooks/useFormatters';
-import type { SliceData } from '../../BalanceBreakdown/types';
-import type { HomepageBalanceBreakdownLayout } from '../../abTestConfig';
-import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
+import DottedUnderline from '../../../../UI/DottedUnderline';
 import {
-  getSliceLabel,
-  SLICE_ICONS,
-  SLICE_ICON_SYMBOLS,
-} from './homepageBalanceBreakdown.constants';
+  COMPONENT_NAMES,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../../../UI/Money/constants/moneyEvents';
+import { useMoneyDepositNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics';
+import type { SliceData } from '../../BalanceBreakdown/types';
+import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
+import { getSliceLabel } from './homepageBalanceBreakdown.constants';
 
-const getAllocationColorStyle = (slice: SliceData): ViewStyle => ({
-  backgroundColor: slice.color,
+const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+  },
 });
 
-const allocationDotStyle: ViewStyle = {
-  width: 8,
-  height: 8,
-  borderRadius: 999,
-  marginRight: 4,
+interface HomepageBalanceBreakdownMoneyAddButtonProps {
+  accessibilityLabel: string;
+  label: string;
+}
+
+const HomepageBalanceBreakdownMoneyAddButton = ({
+  accessibilityLabel,
+  label,
+}: HomepageBalanceBreakdownMoneyAddButtonProps) => {
+  const { trackButtonClicked } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.WALLET_HOME,
+    component_name: COMPONENT_NAMES.MONEY_ROW_BALANCE_BREAKDOWN,
+  });
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+
+  const handleAddPress = useCallback(async () => {
+    try {
+      await navigateToMoneyDeposit({
+        track: ({ button_intent, redirect_target }) => {
+          trackButtonClicked({
+            button_type: MONEY_BUTTON_TYPES.TEXT,
+            button_intent,
+            label_key: 'money.balance_card.add',
+            redirect_target,
+          });
+        },
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[HomepageBalanceBreakdownRow] Failed to initiate deposit',
+      );
+    }
+  }, [navigateToMoneyDeposit, trackButtonClicked]);
+
+  return label.length > 3 ? (
+    <ButtonIcon
+      accessibilityLabel={accessibilityLabel}
+      iconName={IconName.Add}
+      iconProps={{ size: IconSize.Sm }}
+      onPress={handleAddPress}
+      size={ButtonIconSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
+      twClassName="w-10 mx-1"
+      variant={ButtonIconVariant.Filled}
+    />
+  ) : (
+    <Button
+      accessibilityLabel={accessibilityLabel}
+      onPress={handleAddPress}
+      size={ButtonSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
+      twClassName="h-7 shrink-0 px-4"
+      variant={ButtonVariant.Secondary}
+    >
+      {label}
+    </Button>
+  );
 };
 
 export interface HomepageBalanceBreakdownRowProps {
   slice: SliceData;
   userCurrency: string;
   onPress: () => void;
-  layout: HomepageBalanceBreakdownLayout;
-  showArrow: boolean;
 }
 
 const HomepageBalanceBreakdownRow = ({
   slice,
   userCurrency,
   onPress,
-  layout,
-  showArrow,
 }: HomepageBalanceBreakdownRowProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
+  const { colors } = useTheme();
   const { formatCurrency } = useFormatters();
+  const errorSheetRef = useRef<BottomSheetRef>(null);
+  const [isErrorSheetVisible, setIsErrorSheetVisible] = useState(false);
   const isLoading = slice.status === 'loading';
+  const hasError = slice.status === 'error';
+  const isMoneyRow = slice.key === 'money';
   const percentageLabel =
     slice.status !== 'ready'
       ? null
@@ -93,46 +163,39 @@ const HomepageBalanceBreakdownRow = ({
     formattedMoneyApy !== undefined
       ? strings('money.apy_label', { percentage: formattedMoneyApy })
       : undefined;
-  const accessibilityLabel = privacyMode
-    ? getSliceLabel(slice.key)
-    : [
-        getSliceLabel(slice.key),
-        slice.status === 'ready' ? displayValue : undefined,
-        percentageLabel,
-        apyLabel,
-      ]
-        .filter(Boolean)
-        .join(', ');
-  const showIcon = layout === 'icons';
-  const showAllocationDot = layout === 'allocation';
-  const iconName = SLICE_ICONS[slice.key];
-  const iconSymbol = SLICE_ICON_SYMBOLS[slice.key];
+  const moneyAddLabel = strings('money.balance_card.add');
+  const rowAccessibilityLabel = [
+    getSliceLabel(slice.key),
+    !privacyMode && slice.status === 'ready' ? displayValue : undefined,
+    !privacyMode ? percentageLabel : undefined,
+    !privacyMode ? apyLabel : undefined,
+    hasError
+      ? strings('balance_breakdown.error.accessibility_label')
+      : undefined,
+  ]
+    .filter(Boolean)
+    .join(', ');
+  const accessibilityLabel = [
+    rowAccessibilityLabel,
+    isMoneyRow ? moneyAddLabel : undefined,
+  ]
+    .filter(Boolean)
+    .join(', ');
+  const handleErrorPress = useCallback(() => {
+    setIsErrorSheetVisible(true);
+  }, []);
+  const handleErrorSheetClose = useCallback(() => {
+    setIsErrorSheetVisible(false);
+  }, []);
+  const handleErrorSheetRequestClose = useCallback(() => {
+    errorSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
-  const avatar = showIcon ? (
-    <Box
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="h-8 w-8 rounded-full bg-muted"
-    >
-      {iconName ? (
-        <Icon
-          color={IconColor.IconDefault}
-          name={iconName}
-          size={IconSize.Md}
-          testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
-        />
-      ) : (
-        <Text
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Medium}
-          testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
-          variant={TextVariant.HeadingSm}
-        >
-          {iconSymbol}
-        </Text>
-      )}
-    </Box>
-  ) : undefined;
+  useEffect(() => {
+    if (isErrorSheetVisible) {
+      errorSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isErrorSheetVisible]);
 
   const title = (
     <Box
@@ -147,17 +210,11 @@ const HomepageBalanceBreakdownRow = ({
         twClassName="min-w-0 shrink"
         gap={1}
       >
-        {showAllocationDot ? (
-          <View
-            testID={HomepageBalanceBreakdownTestIds.DOT(slice.key)}
-            style={[allocationDotStyle, getAllocationColorStyle(slice)]}
-          />
-        ) : null}
         <Text
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
-          twClassName="shrink"
+          twClassName="shrink-0"
           variant={TextVariant.BodyMd}
         >
           {getSliceLabel(slice.key)}
@@ -173,8 +230,11 @@ const HomepageBalanceBreakdownRow = ({
             <SensitiveText
               color={TextColor.TextAlternative}
               isHidden={privacyMode}
+              ellipsizeMode="clip"
               length={SensitiveTextLength.Short}
+              numberOfLines={1}
               testID={HomepageBalanceBreakdownTestIds.PERCENTAGE(slice.key)}
+              twClassName="shrink"
               variant={TextVariant.BodyMd}
             >
               {percentageLabel}
@@ -182,7 +242,7 @@ const HomepageBalanceBreakdownRow = ({
           </>
         ) : null}
       </Box>
-      {slice.key === 'money' && slice.apyLoading ? (
+      {isMoneyRow && slice.apyLoading ? (
         <Skeleton
           height={20}
           testID={HomepageBalanceBreakdownTestIds.APY_SKELETON}
@@ -206,46 +266,136 @@ const HomepageBalanceBreakdownRow = ({
     </Box>
   );
 
-  const value = (
+  const balanceText = (
+    <SensitiveText
+      color={valueColor}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Medium}
+      testID={HomepageBalanceBreakdownTestIds.VALUE(slice.key)}
+      variant={TextVariant.BodyMd}
+    >
+      {displayValue}
+    </SensitiveText>
+  );
+
+  const balanceValue = (
     <Skeleton
       hideChildren={isLoading}
       testID={HomepageBalanceBreakdownTestIds.SKELETON(slice.key)}
     >
-      <SensitiveText
-        color={valueColor}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Medium}
-        testID={HomepageBalanceBreakdownTestIds.VALUE(slice.key)}
-        variant={TextVariant.BodyMd}
-      >
-        {displayValue}
-      </SensitiveText>
+      {hasError ? (
+        balanceText
+      ) : (
+        <DottedUnderline
+          color={colors.text.alternative}
+          testID={HomepageBalanceBreakdownTestIds.VALUE_UNDERLINE(slice.key)}
+        >
+          {balanceText}
+        </DottedUnderline>
+      )}
     </Skeleton>
   );
 
-  return (
-    <ListItem
-      accessibilityLabel={accessibilityLabel}
-      avatar={avatar}
-      endAccessory={
-        showArrow ? (
-          <Icon
-            color={IconColor.IconAlternative}
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            testID={HomepageBalanceBreakdownTestIds.ARROW(slice.key)}
-            twClassName="ml-1"
-          />
-        ) : undefined
-      }
-      isInteractive
-      onPress={onPress}
-      testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
-      title={title}
-      twClassName="min-h-10 py-0"
-      value={value}
-      variant={ListItemVariant.OneLine}
+  const errorIndicator = hasError ? (
+    <ButtonIcon
+      accessibilityLabel={strings(
+        'balance_breakdown.error.accessibility_label',
+      )}
+      iconName={IconName.Danger}
+      iconProps={{
+        color: IconColor.IconAlternative,
+        size: IconSize.Sm,
+      }}
+      onPress={handleErrorPress}
+      size={ButtonIconSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.ERROR_WARNING(slice.key)}
+      twClassName="self-center"
     />
+  ) : null;
+
+  const value = isMoneyRow ? (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      flexDirection={BoxFlexDirection.Row}
+      gap={2}
+    >
+      <HomepageBalanceBreakdownMoneyAddButton
+        accessibilityLabel={accessibilityLabel}
+        label={moneyAddLabel}
+      />
+      {errorIndicator}
+      {balanceValue}
+    </Box>
+  ) : (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      flexDirection={BoxFlexDirection.Row}
+      gap={2}
+    >
+      {errorIndicator}
+      {balanceValue}
+    </Box>
+  );
+
+  return (
+    <>
+      <ListItem
+        accessibilityLabel={
+          isMoneyRow ? rowAccessibilityLabel : accessibilityLabel
+        }
+        isInteractive
+        onPress={onPress}
+        testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
+        title={title}
+        twClassName="min-h-10 py-0"
+        value={value}
+        variant={ListItemVariant.OneLine}
+      />
+      {hasError && isErrorSheetVisible ? (
+        <Modal
+          animationType="none"
+          onRequestClose={handleErrorSheetRequestClose}
+          presentationStyle="overFullScreen"
+          statusBarTranslucent
+          transparent
+          visible
+        >
+          <ModalSafeAreaProvider>
+            <GestureHandlerRootView
+              style={styles.gestureRoot}
+              testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET_GESTURE_ROOT(
+                slice.key,
+              )}
+            >
+              <BottomSheet
+                ref={errorSheetRef}
+                onClose={handleErrorSheetClose}
+                testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET(slice.key)}
+              >
+                <BottomSheetHeader onClose={handleErrorSheetRequestClose}>
+                  <Text variant={TextVariant.HeadingSm}>
+                    {strings('balance_breakdown.error.title')}
+                  </Text>
+                </BottomSheetHeader>
+                <Box twClassName="px-4 pb-8">
+                  <Text
+                    color={TextColor.TextAlternative}
+                    testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET_DESCRIPTION(
+                      slice.key,
+                    )}
+                    variant={TextVariant.BodyMd}
+                  >
+                    {strings('balance_breakdown.error.description', {
+                      primitive: getSliceLabel(slice.key),
+                    })}
+                  </Text>
+                </Box>
+              </BottomSheet>
+            </GestureHandlerRootView>
+          </ModalSafeAreaProvider>
+        </Modal>
+      ) : null}
+    </>
   );
 };
 

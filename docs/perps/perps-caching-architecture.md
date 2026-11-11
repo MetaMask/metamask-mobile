@@ -33,7 +33,7 @@ What happens when the app launches:
 
 The key coupling point: `MarketDataChannel.getCachedData()` falls back to the controller's REST cache. With disk hydration, this fallback returns MMKV-hydrated data instantly on cold start — no loading skeleton.
 
-When configured, the Hyperliquid schema-v2 Terminal snapshot is the preferred global-market preload. Core accepts it only for the exact provider/network/static-DEX identity and marks every returned row with snapshot provenance; an invalid, stale, partial, or unavailable snapshot falls back to the provider. Positions, orders, and account state are fetched as one account-scoped atomic snapshot and seeded into all three Mobile channels before any subscriber is notified.
+When configured, the Hyperliquid schema-v4 Terminal snapshot is the preferred global-market preload. Core accepts it only for the exact provider/network/static-DEX identity and marks every returned row with snapshot provenance; an invalid, stale, partial, or unavailable snapshot falls back to the provider. Positions, orders, and account state are fetched as one account-scoped atomic snapshot and seeded into all three Mobile channels before any subscriber is notified.
 
 ## Per-Layer Details
 

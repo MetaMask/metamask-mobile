@@ -16,7 +16,10 @@ import {
   GET_POPULAR_TOKENS_BASE_RESPONSE,
   toSSEResponse,
 } from './constants';
-import { setupSpotPricesMock } from './swap-mocks';
+import {
+  setupSpotPricesMock,
+  setupSwapSocialAndComplianceMocks,
+} from './swap-mocks';
 import { toQuoteResponseV2 } from '@metamask/bridge-controller';
 
 const BRIDGE_TX_STATUS_COMPLETE = {
@@ -71,6 +74,7 @@ export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
   await setupSpotPricesMock(mockServer);
+  await setupSwapSocialAndComplianceMocks(mockServer);
 
   await setupRemoteFeatureFlagsMock(mockServer, {
     bridgeConfigV2: {
@@ -85,10 +89,6 @@ export const testSpecificMock: TestSpecificMock = async (
         { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', name: 'Solana' },
       ],
     },
-    stxMigrationBatchStatus: false,
-    stxMigrationCancel: false,
-    stxMigrationGetFees: false,
-    stxMigrationSubmitTransactions: false,
   });
   // Mock Ethereum token list
   await setupMockRequest(mockServer, {
@@ -271,10 +271,6 @@ export const createBridgeQuoteStatusManagerMock = (
         ],
       },
       bridgeQuoteStatusManager: { enabled: true },
-      stxMigrationBatchStatus: false,
-      stxMigrationCancel: false,
-      stxMigrationGetFees: false,
-      stxMigrationSubmitTransactions: false,
     });
 
     // Mock Ethereum token list

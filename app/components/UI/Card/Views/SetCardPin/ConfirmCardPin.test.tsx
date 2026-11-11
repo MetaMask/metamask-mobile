@@ -149,6 +149,9 @@ jest.mock('../../../../Base/Keypad', () => {
 jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text, Pressable } = jest.requireActual('react-native');
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box: ({ children, ...props }: { children?: React.ReactNode }) => (
       <View {...props}>{children}</View>
     ),

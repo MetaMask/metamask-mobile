@@ -21,7 +21,6 @@ import {
   ButtonSize,
   Text,
   TextVariant,
-  HeaderStandard,
   toast,
   ToastSeverity,
 } from '@metamask/design-system-react-native';
@@ -38,6 +37,8 @@ import { getCardWebBaseUrlForMetaMaskEnv } from '../../util/mapCardWebUrl';
 import { useSelector } from 'react-redux';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import type { CardLocation } from '../../types';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 // Single document-end injection. We intentionally do NOT use
 // `injectedJavaScriptBeforeContentLoaded`, which blanks the page on iOS WKWebView.
@@ -134,6 +135,7 @@ type ForgotPasswordModalParams = {
 };
 
 const ForgotPasswordModal: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<ForgotPasswordModalParams, 'CardForgotPasswordModal'>>();
@@ -257,7 +259,9 @@ const ForgotPasswordModal: React.FC = () => {
       ]}
       testID="forgot-password-container"
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleClose}
         backButtonProps={{ testID: 'forgot-password-back-button' }}
         twClassName="bg-background-default"

@@ -10,7 +10,7 @@
 //   (e.g. `browser-tab-shared-styles.ts` consumed by both `BrowserTab/`
 //   and `DiscoveryTab/`). Every route's `except` list includes it.
 // - The React Navigation root navigator
-//   (`app/components/Nav/Main/MainNavigator.js`) lives outside `Views/`,
+//   (`app/components/Nav/Main/MainNavigator.tsx`) lives outside `Views/`,
 //   so it is naturally outside any zone's `target` and does not need an
 //   explicit exemption.
 //

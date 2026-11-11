@@ -5,15 +5,14 @@ import {
 } from '../../../../util/activity-adapters';
 import { ApprovalDetails } from './ApprovalDetails';
 import { BridgeDetails } from './BridgeDetails';
-import { ClaimMusdBonusDetails } from './ClaimMusdBonusDetails';
 import { ContractInteractionDetails } from './ContractInteractionDetails';
 import { DefaultDetails } from './DefaultDetails';
-import { DepositDetails } from './DepositDetails';
+import { DepositDetails } from './Earn/DepositDetails';
 import { NftDetails } from './NftDetails';
 import { SmartAccountUpgradeDetails } from './SmartAccountUpgradeDetails';
-import { PerpsDetails } from './PerpsDetails';
-import { PredictDetails } from './PredictDetails';
-import { isRampActivityListItem, RampDetails } from './RampDetails';
+import { PerpsDetails } from './Perps/PerpsDetails';
+import { PredictActivityDetails } from '../../../UI/PredictNext';
+import { RampDetails } from './Ramps/RampDetails';
 import { SendDetails } from './SendDetails';
 import { SwapDetails } from './SwapDetails';
 
@@ -58,7 +57,6 @@ export function TemplateLoader({
     case 'contractInteraction':
       return <ContractInteractionDetails item={item} />;
     case 'claimMusdBonus':
-      return <ClaimMusdBonusDetails item={item} />;
     case 'claim':
     case 'stake':
     case 'unstake':
@@ -66,26 +64,19 @@ export function TemplateLoader({
     case 'smartAccountUpgrade':
       return <SmartAccountUpgradeDetails item={item} />;
     case 'deposit':
-      return isRampActivityListItem(item) ? (
-        <RampDetails item={item} />
-      ) : (
-        <DepositDetails item={item} />
-      );
+      return <DepositDetails item={item} />;
     case 'buy':
     case 'sell':
     case 'rampBuy':
     case 'rampSell':
-      return isRampActivityListItem(item) ? (
-        <RampDetails item={item} />
-      ) : (
-        <DefaultDetails item={item} />
-      );
+      return <RampDetails item={item} />;
     case 'predictionsAddFunds':
     case 'predictionsWithdrawFunds':
     case 'predictionClaimWinnings':
+    case 'predictionSettled':
     case 'predictionCashedOut':
     case 'predictionPlaced':
-      return <PredictDetails item={item} />;
+      return <PredictActivityDetails item={item} />;
     case 'perpsAddFunds':
     case 'perpsWithdraw':
     case 'perpsOpenLong':

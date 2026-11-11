@@ -23,6 +23,8 @@ export interface DeeplinkUrlParams {
   request?: string;
   attributionId?: string;
   attribution_id?: string;
+  referral?: string;
+  ref?: string; // Money referral code
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -38,8 +40,17 @@ export interface DeeplinkUrlParams {
   amount?: string;
   asset?: string;
 
-  // Swap-specific parameters
+  // Market Swap-specific parameters
   slippage?: string;
+
+  // Limit Order-specific parameters
+  expiresInMinutes?: string;
+  priceTolerance?: string;
+
+  // Recurring Buy-specific parameters
+  every?: string;
+  unit?: string;
+  repeatCount?: string;
 
   // Perps-specific parameters
   symbol?: string;
@@ -69,6 +80,11 @@ export interface DeeplinkUrlParams {
   // Which privacy settings section to scroll to (e.g. 'metametrics',
   // 'data-collection')
   setting?: string;
+
+  // Notification settings-specific parameters
+  // Which notification preference section to open (e.g. 'wallet-activity',
+  // 'price-alerts')
+  section?: string;
 
   // What's Happening-specific parameters
   // Id of a market overview front-page item to render as the first, "outdated"
@@ -106,10 +122,6 @@ export interface HandleSwapUrlParams {
 /**
  * Navigation parameter interfaces for deep link routing
  */
-export interface RewardsNavigationParams {
-  referral?: string;
-}
-
 export interface PerpsNavigationParams {
   screen?: 'tabs' | 'markets' | 'asset' | 'tutorial';
   symbol?: string;
@@ -139,6 +151,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.PERPS,
   ACTIONS.PERPS_MARKETS,
   ACTIONS.PERPS_ASSET,
+  ACTIONS.PERPS_OUTREACH,
   ACTIONS.REWARDS,
   ACTIONS.WC,
   ACTIONS.ONBOARDING,
@@ -146,6 +159,8 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.TRENDING,
   ACTIONS.WHATS_HAPPENING,
   ACTIONS.TOP_TRADERS,
+  ACTIONS.SOCIAL,
+  ACTIONS.SOCIAL_TRADER,
   ACTIONS.SOCIAL_TRADER_POSITION,
   ACTIONS.CARD_ONBOARDING,
   ACTIONS.CARD_HOME,
@@ -154,6 +169,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.AGENTIC_CLI,
   ACTIONS.ON_RAMP,
   ACTIONS.PRIVACY,
+  ACTIONS.NOTIFICATIONS_SETTINGS,
   // MetaMask SDK deeplinks (`@metamask/sdk` / sdk-communication-layer, a.k.a.
   // "SDKv1"; the `connect`/`mmsdk`/`bind` actions). Listed here so they resolve
   // to a SupportedAction and get a DeepLinkRoute (SDK_CONNECT / SDK_MMSDK) for
@@ -164,6 +180,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.MMSDK,
   ACTIONS.ANDROID_SDK,
   ACTIONS.MONEY,
+  ACTIONS.MONEY_ACCOUNT_DEPOSIT,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

@@ -5,4 +5,5 @@ export const AddWalletTestIds = {
   IMPORT_ACCOUNT_BUTTON: 'add-account-import-account',
   CONNECT_HARDWARE_BUTTON: 'add-wallet-connect-hardware-button',
   LINK_METAMASK_EXTENSION_BUTTON: 'add-wallet-link-metamask-extension-button',
+  ROW_ARROW: 'add-wallet-row-arrow',
 } as const;

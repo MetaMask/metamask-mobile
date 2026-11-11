@@ -3,7 +3,7 @@ import {
   WalletDevice,
   type TransactionMeta,
   TransactionEnvelopeType,
-  IsAtomicBatchSupportedRequest,
+  type IsAtomicBatchSupportedRequest,
   getAccountAddressRelationship,
 } from '@metamask/transaction-controller';
 import { cloneDeep, omit } from 'lodash';
@@ -33,7 +33,16 @@ const {
 } = TransactionControllerUtils;
 
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
+  GasFeeEstimateType: {
+    GasPrice: 'eth_gasPrice',
+  },
+  TransactionEnvelopeType: {
+    feeMarket: '0x2',
+    legacy: '0x0',
+  },
+  WalletDevice: {
+    MM_MOBILE: 'metamask_mobile',
+  },
   getAccountAddressRelationship: jest.fn(),
 }));
 
@@ -274,7 +283,7 @@ describe('Transaction Controller Util', () => {
       ).toHaveBeenCalledWith(EIP_1559_TRANSACTION_PARAMS_MOCK, {
         ...TRANSACTION_OPTIONS_MOCK,
         excludeNativeTokenForFee: true,
-        gasFeeToken: '0x20c0000000000000000000000000000000000000',
+        gasFeeToken: '0x20c0000000000000000000006a37da5c996874be',
       });
       expect(
         Engine.context.TransactionController.addTransactionBatch,

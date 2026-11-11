@@ -125,4 +125,43 @@ describe('getSnapPermissionSpecifications', () => {
       expect(result).toBe(expectedResult);
     });
   });
+
+  describe('getPreferences', () => {
+    it('returns the selected currency from AssetsController', () => {
+      const messenger = getMessenger();
+      messenger.registerActionHandler(
+        'PreferencesController:getState',
+        () =>
+          ({
+            privacyMode: true,
+            showTestNetworks: false,
+          }) as ReturnType<
+            Extract<
+              SnapPermissionSpecificationsActions,
+              { type: 'PreferencesController:getState' }
+            >['handler']
+          >,
+      );
+      messenger.registerActionHandler(
+        'AssetsController:getState',
+        () =>
+          ({ selectedCurrency: 'eur' }) as ReturnType<
+            Extract<
+              SnapPermissionSpecificationsActions,
+              { type: 'AssetsController:getState' }
+            >['handler']
+          >,
+      );
+
+      getSnapPermissionSpecifications(messenger);
+
+      const { getPreferences } = getCapturedOptions() as {
+        getPreferences: () => { currency: string; hideBalances: boolean };
+      };
+      expect(getPreferences()).toMatchObject({
+        currency: 'eur',
+        hideBalances: true,
+      });
+    });
+  });
 });

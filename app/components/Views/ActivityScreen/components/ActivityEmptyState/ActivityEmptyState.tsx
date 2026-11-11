@@ -2,6 +2,8 @@ import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
+import type { CaipChainId } from '@metamask/utils';
+import { EthScope } from '@metamask/keyring-api';
 import {
   Theme,
   useTheme as useDesignSystemTheme,
@@ -9,7 +11,6 @@ import {
 import { Box, TabEmptyState } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { selectAddressHasTokenBalances } from '../../../../../selectors/tokenBalancesController';
 import ActivityEmptyDarkIcon from '../../../../../images/activity-empty-dark.svg';
 import ActivityEmptyLightIcon from '../../../../../images/activity-empty-light.svg';
@@ -23,13 +24,20 @@ import {
   ActivityEmptyStateAction,
   getActivityEmptyState,
 } from './empty-states';
-import { BridgeViewMode } from '../../../../UI/Bridge/types';
-import { startSwapBridgePageLoadTrace } from '../../../../UI/Bridge/utils/swapBridgePageLoadTrace';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { BridgeTabKey } from '../../../../UI/Bridge/Views/BridgeView/BridgeView.constants';
+import { getDefaultTokenPairForChains } from '../../../../UI/Bridge/utils/tokenUtils';
+import { usePredictEntryActions } from '../../../../UI/PredictNext';
 
 export interface ActivityEmptyStateProps {
   /** Currently selected type filter — drives copy + CTA. */
   typeFilter: ActivityTypeFilter;
   perpsSubFilterActive?: boolean;
+  /** Currently selected network filter; `null`/empty means all networks. */
+  networkFilter?: CaipChainId[] | null;
 }
 
 /**
@@ -40,11 +48,13 @@ export interface ActivityEmptyStateProps {
 const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   typeFilter,
   perpsSubFilterActive = false,
+  networkFilter,
 }) => {
   const designSystemTheme = useDesignSystemTheme();
   const navigation = useNavigation<AppNavigationProp>();
   const { goToBuy } = useRampNavigation();
   const hasFunds = useSelector(selectAddressHasTokenBalances);
+  const { openPredict } = usePredictEntryActions();
 
   const Icon =
     designSystemTheme === Theme.Dark
@@ -57,29 +67,34 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
     perpsSubFilterActive,
   });
 
+  const { goToSwaps } = useSwapBridgeNavigation({
+    sourcePage: 'ActivityEmptyState',
+    location: SwapBridgeNavigationLocation.MainView,
+  });
   const handleAction = useCallback(() => {
     switch (emptyState.action) {
       case ActivityEmptyStateAction.Swap:
-        {
-          const params = startSwapBridgePageLoadTrace({
-            sourcePage: 'ActivityEmptyState',
-            bridgeViewMode: BridgeViewMode.Unified,
-            location: MetaMetricsSwapsEventSource.MainView,
-          });
-
-          navigation.navigate(Routes.BRIDGE.ROOT, {
-            screen: Routes.BRIDGE.BRIDGE_VIEW,
-            params,
-          });
-        }
+        goToSwaps();
         return;
+      case ActivityEmptyStateAction.SwapLimitOrder: {
+        const defaultPair = getDefaultTokenPairForChains([
+          networkFilter?.[0] ?? EthScope.Mainnet,
+        ]);
+        goToSwaps(
+          defaultPair?.sourceToken,
+          defaultPair?.destToken,
+          undefined,
+          undefined,
+          undefined,
+          BridgeTabKey.Limit,
+        );
+        return;
+      }
       case ActivityEmptyStateAction.AddFunds:
         goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE });
         return;
       case ActivityEmptyStateAction.MakePrediction:
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MARKET_LIST,
-        });
+        openPredict({ type: 'home' });
         return;
       case ActivityEmptyStateAction.BrowsePerpsMarkets:
         navigation.navigate(Routes.PERPS.ROOT, {
@@ -93,7 +108,14 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       default:
         return;
     }
-  }, [emptyState.action, navigation, goToBuy]);
+  }, [
+    emptyState.action,
+    navigation,
+    goToBuy,
+    goToSwaps,
+    networkFilter,
+    openPredict,
+  ]);
 
   return (
     <Box

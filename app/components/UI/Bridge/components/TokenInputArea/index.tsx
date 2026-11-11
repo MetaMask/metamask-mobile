@@ -12,8 +12,7 @@ import {
   StyleProp,
   ViewStyle,
   Platform,
-  TextInputSelectionChangeEventData,
-  NativeSyntheticEvent,
+  TextInputSelectionChangeEvent,
   TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -40,29 +39,22 @@ import OldButton, {
   ButtonVariants as OldButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import {
-  CaipChainId,
-  isCaipAssetType,
-  parseCaipAssetType,
-} from '@metamask/utils';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import {
-  FeatureId,
   formatAddressToAssetId,
   isNativeAddress,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
+import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
@@ -128,10 +120,16 @@ const createStyles = ({
     secondaryValueContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 1,
       alignSelf: 'flex-start',
       paddingVertical: 4,
       paddingHorizontal: 4,
+    },
+    destinationGasFeeLabel: {
+      backgroundColor: theme.colors.info.muted,
+      borderRadius: 6,
+      paddingHorizontal: 6,
+      marginLeft: 4,
     },
     currencyContainer: {
       flex: 1,
@@ -180,9 +178,7 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   selection?: { start: number; end: number };
-  onSelectionChange?: (
-    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-  ) => void;
+  onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -193,15 +189,6 @@ interface TokenInputAreaProps {
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
   showFiatAmountAsPrimary?: boolean;
-  /**
-   * When provided, restricts the network list to these chains instead
-   * of the default allowed chainRanking.
-   */
-  enabledChainIds?: CaipChainId[];
-  /**
-   * When true, the token selector hides real-world asset tokens.
-   */
-  excludeRwaTokens?: boolean;
   /**
    * When true, no fiat value is shown for a token that has no fiat rate,
    * rather than the "$0.00" such a token would otherwise be priced at.
@@ -221,6 +208,7 @@ interface TokenInputAreaProps {
    * Test ID for the `amountReplacementLabel` text.
    */
   amountReplacementLabelTestID?: string;
+  destinationGasFeeLabel?: string;
 }
 
 export const TokenInputArea = forwardRef<
@@ -254,15 +242,15 @@ export const TokenInputArea = forwardRef<
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
       showFiatAmountAsPrimary = false,
-      enabledChainIds,
-      excludeRwaTokens,
       hideFiatValueWhenUnpriced = false,
       hideAmount = false,
       amountReplacementLabel,
       amountReplacementLabelTestID,
+      destinationGasFeeLabel,
     },
     ref,
   ) => {
+    const featureId = useSwapsFeatureId();
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     // Need to fetch the exchange rate for the token if we don't have it already
@@ -293,45 +281,29 @@ export const TokenInputArea = forwardRef<
       isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
-    const navigation = useNavigation<AppNavigationProp>();
     const tokenSelectorType =
       tokenType === TokenInputAreaType.Source || isSourceToken
         ? TokenSelectorType.Source
         : TokenSelectorType.Dest;
 
-    const trackAssetPickerOpened = useCallback((type: TokenSelectorType) => {
-      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-        UnifiedSwapBridgeEventName.AssetPickerOpened,
-        {
-          asset_location:
-            type === TokenSelectorType.Source ? 'source' : 'destination',
-          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
-        },
-      );
-    }, []);
+    const trackAssetPickerOpened = useCallback(
+      (type: TokenSelectorType) => {
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+          UnifiedSwapBridgeEventName.AssetPickerOpened,
+          {
+            asset_location:
+              type === TokenSelectorType.Source ? 'source' : 'destination',
+            feature_id: featureId,
+          },
+        );
+      },
+      [featureId],
+    );
 
     const handleTokenButtonPress = useCallback(() => {
       trackAssetPickerOpened(tokenSelectorType);
       onTokenPress?.();
     }, [onTokenPress, tokenSelectorType, trackAssetPickerOpened]);
-
-    const navigateToDestTokenSelector = () => {
-      trackAssetPickerOpened(TokenSelectorType.Dest);
-      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Dest,
-        enabledChainIds,
-        excludeRwaTokens,
-      });
-    };
-
-    const navigateToSourceTokenSelector = () => {
-      trackAssetPickerOpened(TokenSelectorType.Source);
-      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Source,
-        enabledChainIds,
-        excludeRwaTokens,
-      });
-    };
 
     const tokenAmount = balanceCheckAmount ?? amount;
     const isInsufficientBalance = useIsInsufficientBalance({
@@ -414,10 +386,22 @@ export const TokenInputArea = forwardRef<
         return defaultCurrencyValue;
       }
 
-      return amount && amount !== '0'
-        ? formatAmountWithLocaleSeparators(amount)
-        : amount;
-    }, [amount, defaultCurrencyValue, shouldShowFiatAmountAsPrimary]);
+      if (!amount || amount === '0') {
+        return amount;
+      }
+
+      const displayAmount =
+        tokenType === TokenInputAreaType.Destination
+          ? (formatSecondaryTokenAmount(amount) ?? amount)
+          : amount;
+
+      return formatAmountWithLocaleSeparators(displayAmount);
+    }, [
+      amount,
+      defaultCurrencyValue,
+      shouldShowFiatAmountAsPrimary,
+      tokenType,
+    ]);
 
     const { fontSize, onContainerLayout } = useAutoSizingFont({
       text: `${inputPrefix ?? ''}${primaryAmountDisplayValue || '0'}`,
@@ -506,11 +490,7 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariant.Primary}
-                onPress={
-                  isSourceToken
-                    ? navigateToSourceTokenSelector
-                    : navigateToDestTokenSelector
-                }
+                onPress={handleTokenButtonPress}
                 testID={testID}
               >
                 {strings(tokenButtonText)}
@@ -535,9 +515,25 @@ export const TokenInputArea = forwardRef<
                       }
                     >
                       {shouldShowSecondaryAmount ? (
-                        <Text color={TextColor.Alternative}>
-                          {secondaryAmountDisplayValue}
-                        </Text>
+                        <>
+                          <Text color={TextColor.Alternative}>
+                            {secondaryAmountDisplayValue}
+                          </Text>
+                          {tokenType === TokenInputAreaType.Destination &&
+                          destinationGasFeeLabel ? (
+                            <Box
+                              style={styles.destinationGasFeeLabel}
+                              testID="destination-gas-fee-label"
+                            >
+                              <Text
+                                variant={TextVariant.BodyXS}
+                                color={TextColor.Primary}
+                              >
+                                {destinationGasFeeLabel}
+                              </Text>
+                            </Box>
+                          ) : null}
+                        </>
                       ) : null}
                       {onAmountTypeTogglePress ? (
                         <Icon

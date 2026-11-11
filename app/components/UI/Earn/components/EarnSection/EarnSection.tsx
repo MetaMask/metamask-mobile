@@ -1,0 +1,531 @@
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ScrollView, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  SectionHeader,
+  SensitiveText,
+  SensitiveTextLength,
+  Skeleton,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
+import { strings } from '../../../../../../locales/i18n';
+import EarnSectionAssetCard from '../EarnSectionAssetCard';
+import EarnSectionCard from '../EarnSectionCard';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useNavigation } from '@react-navigation/native';
+import EarnAssetIcon from '../EarnAssetIcon/EarnAssetIcon';
+import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
+import { formatEarnRatePercentage } from '../../utils';
+import { deriveEarnAssetDisplayData } from '../../utils/earnAssets';
+import type { EarnAssetDisplayData } from '../../utils/earnAssets/deriveEarnAssetDisplayData';
+import useEarnOpportunityNavigation, {
+  getEarnAssetSelectionRedirectTarget,
+} from '../../hooks/useEarnOpportunityNavigation';
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
+import { getMoneyEntryDecision } from '../../../Money/navigation/moneyEntryDecision';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import type { EarnAsset } from '../../types/earnAssets';
+import EarnNewTag from '../EarnNewTag';
+import Logger from '../../../../../util/Logger';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
+import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
+import useExploreSectionVisibility from '../../../../Views/TrendingView/hooks/useExploreSectionVisibility';
+import { EarnSectionTestIds } from './EarnSection.testIds';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { useMoneyAnalytics } from '../../../Money/hooks/useMoneyAnalytics';
+import { COMPONENT_NAMES as MONEY_COMPONENT_NAMES } from '../../../Money/constants/moneyEvents';
+import {
+  EARN_MODULE_BUTTON_INTENTS,
+  EARN_MODULE_BUTTON_TYPES,
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_REDIRECT_TARGETS,
+} from '../../constants/earnModuleEvents';
+import {
+  buildEarnModuleNavigationContext,
+  getEarnModuleAssetProperties,
+} from '../../utils/earnModuleAnalytics';
+import type { EarnModuleSurfaceLocation } from '../../types/earnModuleEvents.types';
+import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
+
+export interface EarnSectionProps {
+  tokenDetailsSource: TokenDetailsSource;
+  analyticsContext: EarnModuleSurfaceLocation;
+  refresh: RefreshConfig;
+  enabled?: boolean;
+}
+
+const renderAssetCardSkeleton = (key: string) => (
+  <EarnSectionCard key={key} testID={key}>
+    <Skeleton height={40} width={40} twClassName="rounded-full" />
+    <Box twClassName="gap-2">
+      <Skeleton height={16} width={64} />
+      <Skeleton height={20} width={112} />
+      <Skeleton height={20} width={88} />
+    </Box>
+  </EarnSectionCard>
+);
+
+const renderUnavailableAssetCard = (key: string) => (
+  <EarnSectionAssetCard
+    key={key}
+    icon={
+      <Icon
+        name={IconName.Warning}
+        color={IconColor.IconAlternative}
+        size={IconSize.Lg}
+      />
+    }
+    primaryText={strings('earn_module.asset_unavailable')}
+    secondaryText=""
+    tertiaryText={strings('earn_module.rate_unavailable')}
+    testID={key}
+  />
+);
+
+const renderAssetSecondaryText = ({
+  hasMinDepositAmount,
+  fiatBalance,
+  metadata,
+  privacyMode,
+}: Pick<
+  EarnAssetDisplayData,
+  'hasMinDepositAmount' | 'fiatBalance' | 'metadata'
+> & { privacyMode: boolean }) => {
+  if (!hasMinDepositAmount) {
+    return metadata.name ?? metadata.ticker ?? metadata.symbol;
+  }
+
+  if (!fiatBalance) {
+    return strings('earn_module.balance_unavailable');
+  }
+
+  return (
+    <SensitiveText
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Medium}
+    >
+      {fiatBalance}
+    </SensitiveText>
+  );
+};
+
+// Module-level promise to prevent multiple concurrent refreshes.
+let refreshPromise: Promise<void> | undefined;
+
+export const resetEarnSectionRefreshForTests = () => {
+  refreshPromise = undefined;
+};
+
+const EarnSection = ({
+  tokenDetailsSource,
+  analyticsContext,
+  refresh: exploreFeedRefreshConfig,
+  enabled = true,
+}: EarnSectionProps) => {
+  const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
+
+  const privacyMode = useSelector(selectPrivacyMode);
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+
+  const sectionViewRef = useRef<View>(null);
+  const isRetryingRef = useRef(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const {
+    assetSlots,
+    hasMoreAssets,
+    moneyApyPercent,
+    moneyRateStatus,
+    isLoading,
+    hasError,
+    refresh: refreshEarnSectionAssets,
+  } = useEarnSectionAssets({ enabled });
+
+  const {
+    totalFiatFormatted: moneyAccountBalanceFiat,
+    totalFiatRaw: moneyAccountBalanceRaw,
+    isBalanceLoading: isMoneyAccountBalanceLoading,
+    refetchBalance: refetchMoneyAccountBalance,
+  } = useMoneyAccountBalance({
+    enabled: enabled && isMoneyAccountVisible,
+  });
+
+  const { navigateToMoneyHome } = useMoneyNavigation();
+  const moneyEntryContext = useSelector(selectMoneyEntryContext);
+  const isMoneyOnboardingRedirectNeeded =
+    getMoneyEntryDecision('home', moneyEntryContext).destination ===
+    'onboarding';
+  const {
+    screen_name: earnScreenName,
+    entry_point: earnEntryPoint,
+    component_name: earnSectionComponentName,
+  } = analyticsContext;
+
+  // Money and Earn analytics intentionally separate because Money events have additional properties injected that are not relevant to Earn.
+  const { trackSurfaceClicked: trackMoneySurfaceClicked } = useMoneyAnalytics({
+    screen_name: earnScreenName,
+  });
+
+  const {
+    trackButtonClicked: trackEarnButtonClicked,
+    trackComponentViewed: trackEarnComponentViewed,
+    trackSurfaceClicked: trackEarnSurfaceClicked,
+  } = useEarnAnalytics(analyticsContext);
+  const hasTrackedExploreViewRef = useRef(false);
+  const {
+    isVisible: isExploreSectionVisible,
+    onLayout: onExploreSectionLayout,
+  } = useExploreSectionVisibility(sectionViewRef, enabled, isLoading);
+  const earnListAnalyticsContext = useMemo(
+    () =>
+      buildEarnModuleNavigationContext({
+        entry_point: earnEntryPoint,
+        screen_name: earnScreenName,
+      }),
+    [earnEntryPoint, earnScreenName],
+  );
+
+  const refresh = useCallback(async () => {
+    refreshPromise ??= Promise.all([
+      refetchMoneyAccountBalance(),
+      refreshEarnSectionAssets(),
+    ])
+      .then(() => undefined)
+      .finally(() => {
+        refreshPromise = undefined;
+      });
+
+    return refreshPromise;
+  }, [refetchMoneyAccountBalance, refreshEarnSectionAssets]);
+
+  const handleExploreFeedRefresh = useCallback(async () => {
+    try {
+      await refresh();
+    } catch (error: unknown) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'EarnSection: Failed to refresh section data',
+      );
+    }
+  }, [refresh]);
+
+  /**
+   * Refreshes Earn data when the parent requests a page refresh.
+   * Currently used for Explore pull-to-refresh.
+   */
+  useFeedRefresh(exploreFeedRefreshConfig, handleExploreFeedRefresh, enabled);
+
+  // Explore view tracking
+  useEffect(() => {
+    if (!enabled) {
+      hasTrackedExploreViewRef.current = false;
+      return;
+    }
+    if (
+      isLoading ||
+      !isExploreSectionVisible ||
+      hasTrackedExploreViewRef.current
+    )
+      return;
+    hasTrackedExploreViewRef.current = true;
+    trackEarnComponentViewed({
+      component_name: earnSectionComponentName,
+    });
+  }, [
+    enabled,
+    earnSectionComponentName,
+    isExploreSectionVisible,
+    isLoading,
+    trackEarnComponentViewed,
+  ]);
+
+  const handleEarnSectionHeaderPress = useCallback(() => {
+    trackEarnSurfaceClicked({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_HEADER,
+      redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
+    });
+    navigation.navigate(Routes.EARN.ROOT, {
+      screen: Routes.EARN.SEARCH_LIST,
+      params: {
+        analyticsContext: earnListAnalyticsContext,
+      },
+    });
+  }, [earnListAnalyticsContext, navigation, trackEarnSurfaceClicked]);
+
+  const handleViewMore = useCallback(() => {
+    trackEarnSurfaceClicked({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_VIEW_MORE_CARD,
+      redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
+    });
+    navigation.navigate(Routes.EARN.ROOT, {
+      screen: Routes.EARN.SEARCH_LIST,
+      params: {
+        analyticsContext: earnListAnalyticsContext,
+      },
+    });
+  }, [earnListAnalyticsContext, navigation, trackEarnSurfaceClicked]);
+
+  const handleAssetCardPress = useCallback(
+    (asset: EarnAsset, position: number) => {
+      const assetsInList = assetSlots.filter(
+        (slot) => slot.kind === 'asset',
+      ).length;
+
+      trackEarnSurfaceClicked({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ASSET_CARD,
+        ...getEarnModuleAssetProperties(asset, position, assetsInList),
+        redirect_target: getEarnAssetSelectionRedirectTarget(
+          asset,
+          moneyEntryContext,
+        ),
+      });
+
+      navigateFromEarnAsset(
+        asset,
+        tokenDetailsSource,
+        buildEarnModuleNavigationContext(
+          {
+            entry_point: earnEntryPoint,
+            screen_name: earnScreenName,
+          },
+          position,
+          assetsInList,
+        ),
+      );
+    },
+    [
+      assetSlots,
+      earnEntryPoint,
+      earnScreenName,
+      moneyEntryContext,
+      navigateFromEarnAsset,
+      tokenDetailsSource,
+      trackEarnSurfaceClicked,
+    ],
+  );
+
+  const moneyAccountCardSecondaryText = useMemo(() => {
+    if (isMoneyOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
+      return strings('earn_module.get_started');
+    }
+
+    if (!isMoneyOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
+      return strings('money.asset_overview.cta.start_earning');
+    }
+
+    if (!moneyAccountBalanceFiat) {
+      return strings('earn_module.balance_unavailable');
+    }
+
+    return (
+      <SensitiveText
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        isHidden={privacyMode}
+        length={SensitiveTextLength.Medium}
+      >
+        {moneyAccountBalanceFiat}
+      </SensitiveText>
+    );
+  }, [
+    isMoneyOnboardingRedirectNeeded,
+    moneyAccountBalanceFiat,
+    moneyAccountBalanceRaw,
+    privacyMode,
+  ]);
+
+  const handleMoneyAccountCardPress = useCallback(() => {
+    navigateToMoneyHome({
+      track: ({ redirect_target }) => {
+        trackMoneySurfaceClicked({
+          component_name: MONEY_COMPONENT_NAMES.EARN_SECTION_MONEY_CARD,
+          redirect_target,
+        });
+      },
+    });
+  }, [navigateToMoneyHome, trackMoneySurfaceClicked]);
+
+  const handleRetry = useCallback(async () => {
+    if (isRetryingRef.current) {
+      return;
+    }
+
+    trackEarnButtonClicked({
+      button_type: EARN_MODULE_BUTTON_TYPES.TEXT,
+      button_intent: EARN_MODULE_BUTTON_INTENTS.RETRY,
+      label_key: 'earn_module.retry',
+      component_name:
+        EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ERROR_RETRY_BUTTON,
+    });
+    isRetryingRef.current = true;
+    setIsRetrying(true);
+
+    try {
+      await refresh();
+    } catch (error: unknown) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'EarnSection: Failed to refresh Earn data',
+      );
+    } finally {
+      isRetryingRef.current = false;
+      setIsRetrying(false);
+    }
+  }, [refresh, trackEarnButtonClicked]);
+
+  const renderedAssetCards = useMemo(
+    () =>
+      assetSlots.map((slot, index) => {
+        if (slot.kind === 'unavailable') {
+          return renderUnavailableAssetCard(slot.key);
+        }
+
+        const { asset } = slot;
+        const { metadata, hasMinDepositAmount, fiatBalance, highestRateCopy } =
+          deriveEarnAssetDisplayData(asset);
+
+        return (
+          <EarnSectionAssetCard
+            key={slot.key}
+            icon={<EarnAssetIcon asset={asset} />}
+            primaryText={metadata.ticker ?? metadata.symbol}
+            secondaryText={renderAssetSecondaryText({
+              hasMinDepositAmount,
+              fiatBalance,
+              metadata,
+              privacyMode,
+            })}
+            tertiaryText={highestRateCopy}
+            testID={EarnSectionTestIds.ASSET_CARD(index)}
+            onPress={() => handleAssetCardPress(asset, index + 1)}
+          />
+        );
+      }),
+    [assetSlots, handleAssetCardPress, privacyMode],
+  );
+
+  return (
+    <View ref={sectionViewRef} onLayout={onExploreSectionLayout}>
+      <Box testID="earn-section">
+        <SectionHeader
+          title={strings('homepage.sections.earn')}
+          isInteractive
+          onPress={handleEarnSectionHeaderPress}
+          testID={EarnSectionTestIds.HEADER}
+        />
+        {hasError && (
+          <BannerAlert
+            severity={BannerAlertSeverity.Warning}
+            description={strings('earn_module.assets_unavailable')}
+            actionButtonLabel={strings('earn_module.retry')}
+            actionButtonOnPress={handleRetry}
+            actionButtonProps={{
+              isDisabled: isRetrying,
+              isLoading: isRetrying,
+              testID: EarnSectionTestIds.ERROR_RETRY_BUTTON,
+            }}
+            testID={EarnSectionTestIds.ERROR}
+            twClassName="mx-4 mt-3"
+          />
+        )}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('gap-3 px-4 pb-3 pt-3')}
+        >
+          {/* Money Account Card */}
+          {isMoneyAccountVisible && (
+            <EarnSectionAssetCard
+              icon={
+                <MoneyBalanceIcon width={40} height={40} name="money-balance" />
+              }
+              tag={moneyAccountBalanceRaw === '0' ? <EarnNewTag /> : undefined}
+              primaryText={strings('earn_module.money_account')}
+              secondaryText={
+                isMoneyAccountBalanceLoading ? (
+                  <Skeleton
+                    height={20}
+                    width={85}
+                    testID={EarnSectionTestIds.MONEY_ACCOUNT_BALANCE_SKELETON}
+                  />
+                ) : (
+                  moneyAccountCardSecondaryText
+                )
+              }
+              tertiaryText={
+                moneyRateStatus === 'loading' ? (
+                  <Skeleton
+                    height={20}
+                    width={70}
+                    testID={EarnSectionTestIds.MONEY_ACCOUNT_APY_SKELETON}
+                  />
+                ) : moneyApyPercent === undefined ? (
+                  strings('earn_module.rate_unavailable')
+                ) : (
+                  strings('earn_module.rate_apy', {
+                    percentage: formatEarnRatePercentage(moneyApyPercent),
+                  })
+                )
+              }
+              testID={EarnSectionTestIds.MONEY_ACCOUNT_CARD}
+              onPress={handleMoneyAccountCardPress}
+            />
+          )}
+          {isLoading
+            ? assetSlots.map(({ key }) => renderAssetCardSkeleton(key))
+            : renderedAssetCards}
+          {!isLoading && hasMoreAssets && (
+            <EarnSectionCard
+              testID={EarnSectionTestIds.VIEW_MORE_CARD}
+              onPress={handleViewMore}
+            >
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="w-full flex-1 gap-2"
+              >
+                <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  numberOfLines={1}
+                >
+                  {strings('earn_module.view_more')}
+                </Text>
+              </Box>
+            </EarnSectionCard>
+          )}
+        </ScrollView>
+      </Box>
+    </View>
+  );
+};
+
+export default React.memo(EarnSection);

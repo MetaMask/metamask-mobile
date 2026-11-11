@@ -1,9 +1,14 @@
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { TraderRowMetric } from '../../Homepage/Sections/TopTraders/components/TraderRow';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import type {
+  TopTrader,
+  TraderRowMetric,
+} from '../../Homepage/Sections/TopTraders/types';
+/* eslint-enable import-x/no-restricted-paths */
 import type { LeaderboardSort } from '../components/Filters';
-import { formatPercent, formatSignedUsd } from '../utils/formatters';
+import {
+  formatPercent,
+  formatSignedUsd,
+} from '../../../UI/SocialFeed/utils/formatters';
 
 /** The trader's value for the active ranking metric, in the loaded window. */
 const getMetricValue = (

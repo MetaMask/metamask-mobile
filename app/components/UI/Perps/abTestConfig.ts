@@ -1,46 +1,270 @@
+import { PerpsMode } from '@metamask/perps-controller';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 
 /**
- * TAT-1937: Long/Short Button Color Test
+ * Shared Perps screen vs bottom-sheet experiment.
  *
- * Tests the impact of button colors on trading behavior:
- * - Control (default/fallback): White buttons for both, reduces risk anxiety and promotes balanced participation
- * - Colors: Traditional green (long) / red (short), familiar and intuitive
+ * Assignment is independent of Lite/Pro mode: bottom-sheet users get that
+ * mode's new sheets, while screen users keep full-page flows in both modes.
  *
- * `control` is the required fallback key for `useABTest` (see `app/hooks/useABTest.ts`),
- * so it is always what's shown when the flag is absent, invalid, or the test is inactive —
- * white is therefore the default experience, and `colors` is the active-experiment variant.
+ * LaunchDarkly: JSON threshold array, default 0% bottom sheets (`control`
+ * served to 100%) until product signs off. See
+ * `docs/perps/perps-ab-testing.md`.
  *
- * Migrated to the canonical A/B testing standard (see `docs/ab-testing.md`) under TAT-3308.
+ * Consume via `usePerpsScreenVsBottomSheetAbTest()` — do not call `useABTest`
+ * with this flag from conversion tickets.
  *
- * LaunchDarkly flag setup: version-gated to app version 8.3.0+ using the
- * `versions` + `thresholdVersion: 2` composition (resolved entirely by
- * RemoteFeatureFlagController — no app-side version check needed). See
- * `docs/perps/perps-feature-flags.md` for the exact flag JSON.
+ * Flag key follows `{team}{TICKET}Abtest{TestName}` using TAT-3938 (the
+ * experiment-setup ticket). Later conversion tickets reuse this same key.
  */
-export const PERPS_BUTTON_COLOR_AB_TEST_KEY = 'perpsTAT1937AbtestButtonColor';
+export const PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY =
+  'perpsTAT3938AbtestScreenVsBottomSheet';
 
-export enum ButtonColorVariant {
+export enum ScreenVsBottomSheetVariant {
   Control = 'control',
-  Colors = 'colors',
+  Treatment = 'treatment',
 }
 
-export interface ButtonColorVariantConfig {
-  long: string;
-  short: string;
+export interface ScreenVsBottomSheetVariantConfig {
+  useBottomSheet: boolean;
 }
 
-export const BUTTON_COLOR_VARIANTS: Record<
-  ButtonColorVariant,
-  ButtonColorVariantConfig
+export const SCREEN_VS_BOTTOM_SHEET_VARIANTS: Record<
+  ScreenVsBottomSheetVariant,
+  ScreenVsBottomSheetVariantConfig
 > = {
-  [ButtonColorVariant.Control]: { long: 'white', short: 'white' },
-  [ButtonColorVariant.Colors]: { long: 'green', short: 'red' },
+  [ScreenVsBottomSheetVariant.Control]: { useBottomSheet: false },
+  [ScreenVsBottomSheetVariant.Treatment]: { useBottomSheet: true },
 };
 
-export const BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
-  flagKey: PERPS_BUTTON_COLOR_AB_TEST_KEY,
-  validVariants: Object.values(ButtonColorVariant),
-  eventNames: [EVENT_NAME.PERPS_SCREEN_VIEWED, EVENT_NAME.PERPS_UI_INTERACTION],
+export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Screen vs Bottom Sheet',
+  variationNames: {
+    control: 'Screen',
+    treatment: 'Bottom sheet',
+  },
+} as const;
+
+export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+    validVariants: Object.values(ScreenVsBottomSheetVariant),
+    eventNames: [
+      EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
+      EVENT_NAME.PERPS_MARGIN_ADJUSTMENT_TRANSACTION,
+      EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+      EVENT_NAME.PERPS_TRADE_QUOTE_RECEIVED,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+    ],
+  };
+
+/**
+ * Pro-mode Perps entry points open the market list.
+ *
+ * Eligible users are already in Pro mode, or are switching into Pro from the
+ * Perps Home lite pill. Lite and casual callers still resolve the assignment,
+ * but they skip Experiment Viewed and keep today's home target.
+ * Missing or invalid flags fall back to `control` via `useABTest`.
+ *
+ * LaunchDarkly JSON threshold array (50/50 at launch; dark-launch at 100%
+ * control first). Team token is `perps`, matching the other Perps experiments.
+ */
+export const PERPS_HEADER_AB_TEST_KEY =
+  'perpsTAT4021AbtestPerpsHeaderMarketList';
+
+export enum PerpsHeaderNavVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface PerpsHeaderNavVariantConfig {
+  destination: 'lastViewedMarket' | 'marketList';
+}
+
+export const PERPS_HEADER_NAV_VARIANTS: Record<
+  PerpsHeaderNavVariant,
+  PerpsHeaderNavVariantConfig
+> = {
+  [PerpsHeaderNavVariant.Control]: { destination: 'lastViewedMarket' },
+  [PerpsHeaderNavVariant.Treatment]: { destination: 'marketList' },
 };
+
+export const PERPS_HEADER_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Header Market List Redirect',
+  variationNames: {
+    control: 'Deep-link to market details',
+    treatment: 'Open market list',
+  },
+} as const;
+
+export const PERPS_HEADER_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
+  flagKey: PERPS_HEADER_AB_TEST_KEY,
+  validVariants: Object.values(PerpsHeaderNavVariant),
+  eventNames: [
+    EVENT_NAME.PERPS_UI_INTERACTION,
+    EVENT_NAME.PERPS_SCREEN_VIEWED,
+    EVENT_NAME.PERPS_TRADE_TRANSACTION,
+  ],
+  // Lite/casual Perps events carry perps_mode: 'lite' and stay unassigned.
+  injectWhenPropertiesMatch: {
+    perps_mode: PerpsMode.Pro,
+  },
+};
+
+/**
+ * TAT-3793: Perps home Explore table.
+ *
+ * Control keeps the stacked Watchlist, Products, and category sections.
+ * Treatment replaces those six sections with one tabbed Explore table.
+ *
+ * Dark-launch the LaunchDarkly JSON flag at 100% control (control threshold
+ * `1`, treatment threshold `0`), then move to 50/50. Missing, invalid, or
+ * unresolved assignments fall back to `control` inside `useABTest`.
+ *
+ * Consume via `usePerpsHomeExploreAbTest()` — do not read the raw flag.
+ */
+export const PERPS_HOME_EXPLORE_AB_TEST_KEY =
+  'perpsTAT3793AbtestPerpsHomeExplore';
+
+export enum PerpsHomeExploreVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface PerpsHomeExploreVariantConfig {
+  showExploreTable: boolean;
+}
+
+export const PERPS_HOME_EXPLORE_VARIANTS: Record<
+  PerpsHomeExploreVariant,
+  PerpsHomeExploreVariantConfig
+> = {
+  [PerpsHomeExploreVariant.Control]: { showExploreTable: false },
+  [PerpsHomeExploreVariant.Treatment]: { showExploreTable: true },
+};
+
+export const PERPS_HOME_EXPLORE_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Home Explore Table',
+  variationNames: {
+    control: 'Stacked sections',
+    treatment: 'Explore table',
+  },
+} as const;
+
+export const PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_HOME_EXPLORE_AB_TEST_KEY,
+    validVariants: Object.values(PerpsHomeExploreVariant),
+    eventNames: [
+      EVENT_NAME.PERPS_SCREEN_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.PERPS_ERROR,
+    ],
+  };
+
+/**
+ * Perps Fee Display Format — $ vs. Taker/Maker %.
+ *
+ * Control keeps today's single blended dollar fee amount on the order
+ * entry/review fee row. Treatment replaces it with "Taker X.XXX% / Maker
+ * Y.YYY%", sourced from the user's actual applicable rate per side
+ * (`usePerpsOrderFees`'s `takerFeeRate` / `makerFeeRate` — protocol +
+ * MetaMask combined, reflecting VIP-tier discounts), not a static default.
+ *
+ * In scope: the fee row for `create_position` and `increase_exposure`, Lite
+ * (full page) and Pro mode. Position close, deposit/withdraw, TWAP, and the
+ * Pro scale-order ladder preview stay on the dollar amount.
+ *
+ * Consume via `usePerpsFeeDisplayAbTest()` — do not call `useABTest` with
+ * this flag directly.
+ */
+export const FEE_DISPLAY_AB_TEST_KEY = 'perpsTAT4046AbtestFeeDisplayFormat';
+
+export enum FeeDisplayVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface FeeDisplayVariantConfig {
+  feeDisplayMode: 'dollar' | 'percentage';
+}
+
+export const FEE_DISPLAY_VARIANTS: Record<
+  FeeDisplayVariant,
+  FeeDisplayVariantConfig
+> = {
+  [FeeDisplayVariant.Control]: { feeDisplayMode: 'dollar' },
+  [FeeDisplayVariant.Treatment]: { feeDisplayMode: 'percentage' },
+};
+
+export const FEE_DISPLAY_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Fee Display Format',
+  variationNames: {
+    control: 'Dollar fee amount',
+    treatment: 'Taker/Maker percentage rates',
+  },
+} as const;
+
+export const FEE_DISPLAY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
+  flagKey: FEE_DISPLAY_AB_TEST_KEY,
+  validVariants: Object.values(FeeDisplayVariant),
+  eventNames: [
+    EVENT_NAME.PERPS_SCREEN_VIEWED,
+    EVENT_NAME.PERPS_TRADE_TRANSACTION,
+  ],
+};
+
+/**
+ * TAT-4267: Perps home Live trades.
+ *
+ * Control keeps the Social section as it is (Trending first and default).
+ * Treatment adds a Live trades tab as the first and default tab.
+ *
+ * Dark-launch the LaunchDarkly JSON flag at 100% control (control threshold
+ * `1`, treatment threshold `0`), then move to 50/50. Missing, invalid, or
+ * unresolved assignments fall back to `control` inside `useABTest`.
+ *
+ * Consume via `usePerpsLiveTradesAbTest()` — do not read the raw flag.
+ */
+export const PERPS_LIVE_TRADES_AB_TEST_KEY = 'perpsTAT4267AbtestLiveTrades';
+
+export enum PerpsLiveTradesVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface PerpsLiveTradesVariantConfig {
+  showLiveTrades: boolean;
+}
+
+export const PERPS_LIVE_TRADES_VARIANTS: Record<
+  PerpsLiveTradesVariant,
+  PerpsLiveTradesVariantConfig
+> = {
+  [PerpsLiveTradesVariant.Control]: { showLiveTrades: false },
+  [PerpsLiveTradesVariant.Treatment]: { showLiveTrades: true },
+};
+
+export const PERPS_LIVE_TRADES_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Home Live Trades',
+  variationNames: {
+    control: 'Trending first',
+    treatment: 'Live trades first',
+  },
+} as const;
+
+export const PERPS_LIVE_TRADES_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_LIVE_TRADES_AB_TEST_KEY,
+    validVariants: Object.values(PerpsLiveTradesVariant),
+    eventNames: [
+      EVENT_NAME.PERPS_SCREEN_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.PERPS_ERROR,
+    ],
+  };

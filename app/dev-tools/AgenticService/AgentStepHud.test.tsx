@@ -1,9 +1,22 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render, act, screen } from '@testing-library/react-native';
+import { Platform } from 'react-native';
+import { FullWindowOverlay } from 'react-native-screens';
 import AgentStepHud, { emitStepHud } from './AgentStepHud';
+
+jest.mock('react-native-screens', () => ({
+  FullWindowOverlay: jest.fn(
+    ({ children }: React.PropsWithChildren) => children,
+  ),
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 47, right: 0, bottom: 34, left: 0 }),
+}));
 
 describe('AgentStepHud', () => {
   const originalDev = (globalThis as unknown as { __DEV__: boolean }).__DEV__;
+  const originalPlatform = Platform.OS;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -12,6 +25,7 @@ describe('AgentStepHud', () => {
 
   afterAll(() => {
     (globalThis as unknown as { __DEV__: boolean }).__DEV__ = originalDev;
+    Platform.OS = originalPlatform;
   });
 
   it('renders nothing when no step is active', () => {
@@ -113,5 +127,43 @@ describe('AgentStepHud', () => {
     });
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('keeps the HUD in the root view on Android', () => {
+    Platform.OS = 'android';
+    render(<AgentStepHud />);
+
+    act(() => {
+      emitStepHud({ id: 'step-1', intent: 'Android validation' });
+    });
+
+    expect(FullWindowOverlay).not.toHaveBeenCalled();
+  });
+
+  it('uses the native window overlay on iOS', () => {
+    Platform.OS = 'ios';
+    render(<AgentStepHud />);
+
+    act(() => {
+      emitStepHud({ id: 'step-1', intent: 'iOS validation' });
+    });
+
+    expect(FullWindowOverlay).toHaveBeenCalled();
+  });
+
+  it.each([
+    [undefined, { bottom: 34 }, 'top'],
+    ['bottom' as const, { bottom: 34 }, 'top'],
+    ['top' as const, { top: 47 }, 'bottom'],
+  ])('sits where the step placement %s says', (placement, position, unset) => {
+    Platform.OS = 'android';
+    render(<AgentStepHud />);
+
+    act(() => {
+      emitStepHud({ id: 'step-1', intent: 'Placement', placement });
+    });
+
+    expect(screen.root).toHaveStyle(position);
+    expect(screen.root).not.toHaveStyle({ [unset]: expect.anything() });
   });
 });

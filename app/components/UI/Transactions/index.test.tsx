@@ -1,5 +1,8 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { UnconnectedTransactions, mapStateToProps } from '.';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -18,10 +21,13 @@ import {
 import { speedUpTransaction } from '../../../util/transaction-controller';
 import {
   selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectNetworkClientId,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 
 const mockGroupActivityListItems = jest.fn();
 const mockMapTransactionToActivityItem = jest.fn();
@@ -42,6 +48,7 @@ interface FlashListHarnessProps {
   onScroll?: (event: { nativeEvent: { contentOffset: { y: number } } }) => void;
   refreshControl?: React.ReactElement<{ onRefresh?: () => void }>;
   renderItem: (args: { item: FlashListItem; index: number }) => React.ReactNode;
+  contentContainerStyle?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
@@ -67,6 +74,7 @@ jest.mock('@shopify/flash-list', () => {
           onScroll,
           refreshControl,
           renderItem,
+          contentContainerStyle,
           testID,
         }: FlashListHarnessProps,
         ref: React.ForwardedRef<FlashListHarnessRef>,
@@ -76,7 +84,7 @@ jest.mock('@shopify/flash-list', () => {
         }));
 
         return (
-          <View testID={testID}>
+          <View testID={testID} style={contentContainerStyle}>
             {data.length ? (
               data.map((item, index) => (
                 <View key={keyExtractor(item, index)}>
@@ -277,6 +285,7 @@ jest.mock('../../../component-library/hooks', () => {
 });
 jest.mock('../../../actions/alert', () => ({ showAlert: jest.fn() }));
 jest.mock('../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
 jest.mock('../../../selectors/accountTrackerController', () => ({
@@ -293,16 +302,17 @@ jest.mock('../../../selectors/gasFeeController', () => ({
 }));
 jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
   selectNetworkClientId: jest.fn(),
   selectNetworkConfigurations: jest.fn(),
   selectProviderConfig: jest.fn(),
   selectProviderType: jest.fn(),
 }));
+jest.mock('../../../selectors/bridgeStatusController', () => ({
+  selectBridgeHistoryForAccount: jest.fn(),
+}));
 jest.mock('../../../selectors/settings', () => ({
   selectPrimaryCurrency: jest.fn(),
-}));
-jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
-  selectIsActivityRedesignEnabled: jest.fn(),
 }));
 jest.mock('../../../reducers/collectibles', () => ({
   collectibleContractsSelector: jest.fn(),
@@ -540,6 +550,7 @@ describe('UnconnectedTransactions', () => {
 
     it('opens the asset chain explorer for asset details', () => {
       const transaction = { id: 'transaction', time: 1 };
+      mockGroupActivityListItems.mockReturnValue([]);
       (findBlockExplorerUrlForChain as jest.Mock).mockReturnValue(
         'https://polygonscan.com',
       );
@@ -618,15 +629,12 @@ describe('UnconnectedTransactions', () => {
   describe('grouped activity', () => {
     it('creates pending, date, and local transaction activity items', () => {
       const transaction = { id: 'transaction', time: 1 };
+      const activityItem = { type: 'activity' };
       const activityRow = {
         type: 'activity',
-        item: {
-          raw: {
-            data: { primaryTransaction: transaction },
-            type: 'localTransaction',
-          },
-        },
+        item: activityItem,
       };
+      mockMapTransactionToActivityItem.mockReturnValue(activityItem);
       mockGroupActivityListItems.mockReturnValue([
         { type: 'pending-header' },
         { date: 1, type: 'date-header' },
@@ -634,7 +642,6 @@ describe('UnconnectedTransactions', () => {
       ]);
 
       const rendered = renderTransactions({
-        isActivityRedesignEnabled: true,
         location: TransactionDetailLocation.AssetDetails,
         transactions: [transaction],
       });
@@ -878,6 +885,7 @@ describe('mapStateToProps', () => {
   const mockState = {} as never;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     jest.mocked(selectChainId).mockReturnValue('0x1');
     jest.mocked(selectProviderConfig).mockReturnValue({
       type: 'mainnet',
@@ -916,6 +924,31 @@ describe('mapStateToProps', () => {
       expect(first.providerConfig).toBe(second.providerConfig);
       expect(selectProviderConfig).not.toHaveBeenCalled();
     });
+
+    it('selects asset enrichment data once in the parent', () => {
+      const internalAccount = { metadata: { importTime: 123 } };
+      const networkConfigurations = { '0x89': { nativeCurrency: 'POL' } };
+      const bridgeHistory = { bridge: {} };
+      jest
+        .mocked(selectSelectedInternalAccount)
+        .mockReturnValue(internalAccount as never);
+      jest
+        .mocked(selectEvmNetworkConfigurationsByChainId)
+        .mockReturnValue(networkConfigurations as never);
+      jest
+        .mocked(selectBridgeHistoryForAccount)
+        .mockReturnValue(bridgeHistory as never);
+
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          accountImportTime: 123,
+          networkConfigurationsByChainId: networkConfigurations,
+          bridgeHistory,
+        }),
+      );
+    });
   });
 
   describe('when used for the Activity tab (no tokenChainId)', () => {
@@ -936,5 +969,42 @@ describe('mapStateToProps', () => {
       expect(result.networkClientId).toBe('mainnet-client');
       expect(result.networkType).toBe('mainnet');
     });
+
+    it('does not select asset enrichment data', () => {
+      mapStateToProps(mockState, ownProps);
+
+      expect(selectSelectedInternalAccount).not.toHaveBeenCalled();
+      expect(selectEvmNetworkConfigurationsByChainId).not.toHaveBeenCalled();
+      expect(selectBridgeHistoryForAccount).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('Transactions list bottom inset', () => {
+  it('keeps the default bottom padding', () => {
+    renderTransactions({ transactions: [] });
+
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toHaveStyle({ paddingBottom: 80 });
+  });
+
+  it('pads the list to clear a footer floating over it', () => {
+    renderTransactions({ transactions: [], contentBottomInset: 120 });
+
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toHaveStyle({ paddingBottom: 120 });
+  });
+});
+
+describe('Transactions refresh spinner', () => {
+  it('moves the spinner below a floating header', () => {
+    renderTransactions({ transactions: [], refreshControlOffset: 96 });
+
+    expect(
+      screen.UNSAFE_getByType(FlashList).props.refreshControl.props
+        .progressViewOffset,
+    ).toBe(96);
   });
 });

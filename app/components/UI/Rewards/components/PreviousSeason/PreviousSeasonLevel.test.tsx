@@ -4,6 +4,7 @@ import PreviousSeasonLevel from './PreviousSeasonLevel';
 import { SeasonTierDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { buildSeasonSubscriptionCompositeKey } from '../../../../../reducers/rewards/compositeKeys';
 
 // Mock Tailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => {
@@ -96,6 +97,7 @@ jest.mock('./PreviousSeasonSummaryTile', () => {
 
 describe('PreviousSeasonLevel', () => {
   const mockSeasonId = 'season-123';
+  const mockSubscriptionId = 'test-subscription-id';
   const mockCurrentTier: SeasonTierDto = {
     id: 'tier-1',
     name: 'Origin',
@@ -114,10 +116,42 @@ describe('PreviousSeasonLevel', () => {
     },
     engine: {
       backgroundState: {
-        RewardsController: {},
+        RewardsController: {
+          activeAccount: { subscriptionId: mockSubscriptionId },
+        },
       },
     },
   };
+
+  const createRewardsState = ({
+    seasonId,
+    loading = false,
+    error = null,
+    currentTier = mockCurrentTier,
+  }: {
+    seasonId: string | null;
+    loading?: boolean;
+    error?: string | null;
+    currentTier?: SeasonTierDto | null;
+  }) => ({
+    candidateSubscriptionId: mockSubscriptionId,
+    seasonId,
+    seasonUserStatuses:
+      seasonId == null
+        ? {}
+        : {
+            [buildSeasonSubscriptionCompositeKey(seasonId, mockSubscriptionId)]:
+              {
+                balanceTotal: null,
+                balanceUpdatedAt: null,
+                currentTier,
+                nextTier: null,
+                nextTierPointsNeeded: null,
+                loading,
+                error,
+              },
+          },
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -126,12 +160,10 @@ describe('PreviousSeasonLevel', () => {
   it('returns null when seasonId is missing', () => {
     const state = {
       ...defaultState,
-      rewards: {
+      rewards: createRewardsState({
         seasonId: null,
-        seasonStatusLoading: false,
-        seasonStatusError: null,
         currentTier: mockCurrentTier,
-      },
+      }),
     };
 
     const { queryByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
@@ -145,12 +177,10 @@ describe('PreviousSeasonLevel', () => {
   it('returns null when currentTier is missing', () => {
     const state = {
       ...defaultState,
-      rewards: {
+      rewards: createRewardsState({
         seasonId: mockSeasonId,
-        seasonStatusLoading: false,
-        seasonStatusError: null,
         currentTier: null,
-      },
+      }),
     };
 
     const { queryByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
@@ -164,12 +194,11 @@ describe('PreviousSeasonLevel', () => {
   it('returns null when there is an error and not loading', () => {
     const state = {
       ...defaultState,
-      rewards: {
+      rewards: createRewardsState({
         seasonId: mockSeasonId,
-        seasonStatusLoading: false,
-        seasonStatusError: 'Error message',
+        error: 'Error message',
         currentTier: mockCurrentTier,
-      },
+      }),
     };
 
     const { queryByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
@@ -183,12 +212,7 @@ describe('PreviousSeasonLevel', () => {
   it('renders component with rocket icon', () => {
     const state = {
       ...defaultState,
-      rewards: {
-        seasonId: mockSeasonId,
-        seasonStatusLoading: false,
-        seasonStatusError: null,
-        currentTier: mockCurrentTier,
-      },
+      rewards: createRewardsState({ seasonId: mockSeasonId }),
     };
 
     const { getByTestId, getByText } = renderWithProvider(
@@ -207,12 +231,7 @@ describe('PreviousSeasonLevel', () => {
   it('renders tier level number', () => {
     const state = {
       ...defaultState,
-      rewards: {
-        seasonId: mockSeasonId,
-        seasonStatusLoading: false,
-        seasonStatusError: null,
-        currentTier: mockCurrentTier,
-      },
+      rewards: createRewardsState({ seasonId: mockSeasonId }),
     };
 
     const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
@@ -225,12 +244,7 @@ describe('PreviousSeasonLevel', () => {
   it('renders tier name', () => {
     const state = {
       ...defaultState,
-      rewards: {
-        seasonId: mockSeasonId,
-        seasonStatusLoading: false,
-        seasonStatusError: null,
-        currentTier: mockCurrentTier,
-      },
+      rewards: createRewardsState({ seasonId: mockSeasonId }),
     };
 
     const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {
@@ -243,12 +257,11 @@ describe('PreviousSeasonLevel', () => {
   it('returns null when seasonLoading is true and seasonId is missing', () => {
     const state = {
       ...defaultState,
-      rewards: {
+      rewards: createRewardsState({
         seasonId: null,
-        seasonStatusLoading: true,
-        seasonStatusError: null,
+        loading: true,
         currentTier: mockCurrentTier,
-      },
+      }),
     };
 
     const { queryByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
@@ -263,12 +276,10 @@ describe('PreviousSeasonLevel', () => {
   it('does not show loading state when seasonId exists even if loading', () => {
     const state = {
       ...defaultState,
-      rewards: {
+      rewards: createRewardsState({
         seasonId: mockSeasonId,
-        seasonStatusLoading: true,
-        seasonStatusError: null,
-        currentTier: mockCurrentTier,
-      },
+        loading: true,
+      }),
     };
 
     const { getByTestId } = renderWithProvider(<PreviousSeasonLevel />, {
@@ -288,12 +299,10 @@ describe('PreviousSeasonLevel', () => {
 
     const state = {
       ...defaultState,
-      rewards: {
+      rewards: createRewardsState({
         seasonId: mockSeasonId,
-        seasonStatusLoading: false,
-        seasonStatusError: null,
         currentTier: customTier,
-      },
+      }),
     };
 
     const { getByText } = renderWithProvider(<PreviousSeasonLevel />, {

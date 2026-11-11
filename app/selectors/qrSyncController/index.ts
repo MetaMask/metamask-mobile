@@ -1,9 +1,13 @@
 import { createSelector } from 'reselect';
+import {
+  AccountWalletPayloadType,
+  type AccountWalletMnemonicPayload,
+} from '@metamask/account-tree-controller';
+import { encodeMnemonicWords } from '@metamask/keyring-sdk';
 import type { RootState } from '../../reducers';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
 } from '../../core/QrSync/constants';
 import type { QrSyncControllerState } from '../../core/QrSync/controller-types';
 
@@ -25,27 +29,29 @@ export const selectQrSyncError = createSelector(
   (qrSyncState) => qrSyncState.error,
 );
 
-export const selectQrSyncPrimaryMnemonic = createSelector(
-  selectQrSyncControllerState,
-  (qrSyncState) =>
-    qrSyncState.pendingSecretImports?.find(
-      (entry) => entry.type === QrSyncSecretTypes.MNEMONIC && entry.isPrimary,
-    )?.value ?? null,
-);
-
 export const selectQrSyncImportMnemonic = createSelector(
   selectQrSyncControllerState,
-  (qrSyncState) =>
-    qrSyncState.pendingSecretImports?.find(
-      (entry) => entry.type === QrSyncSecretTypes.MNEMONIC,
-    )?.value ?? null,
+  (qrSyncState) => {
+    const primaryWallet = qrSyncState.pendingSecretImports?.wallets.find(
+      (w): w is AccountWalletMnemonicPayload =>
+        w.type === AccountWalletPayloadType.Mnemonic,
+    );
+    if (!primaryWallet?.value) {
+      return null;
+    }
+    try {
+      return encodeMnemonicWords(new Uint8Array(primaryWallet.value));
+    } catch {
+      return null;
+    }
+  },
 );
 
 export const selectQrSyncHasPendingSecrets = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
     qrSyncState.pendingSecretImports !== null &&
-    qrSyncState.pendingSecretImports.length > 0,
+    qrSyncState.pendingSecretImports.wallets.length > 0,
 );
 
 export const selectQrSyncIsBusy = createSelector(
@@ -95,7 +101,7 @@ export const selectQrSyncShouldNavigateToImport = createSelector(
     qrSyncState.provisioningStatus ===
       QrSyncProvisioningStatuses.AWAITING_PASSWORD &&
     qrSyncState.pendingSecretImports !== null &&
-    qrSyncState.pendingSecretImports.length > 0,
+    qrSyncState.pendingSecretImports.wallets.length > 0,
 );
 
 export const selectQrSyncNeedsProvisioning = createSelector(

@@ -162,6 +162,10 @@ describe('PerpsMarketFiltersBar', () => {
       );
 
       expect(getByText('42 markets')).toBeTruthy();
+      expect(getByText('42 markets')).toHaveStyle({
+        fontSize: 16,
+        fontFamily: 'Inter-Medium',
+      });
     });
 
     it('updates displayed count when marketCount prop changes', () => {

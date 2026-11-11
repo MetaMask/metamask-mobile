@@ -8,6 +8,20 @@ import type {
 } from '../../types';
 
 export type GameSelection = 'away' | 'home';
+
+export type GameTeamOrder = readonly [GameSelection, GameSelection];
+
+const AWAY_FIRST: GameTeamOrder = ['away', 'home'];
+const HOME_FIRST: GameTeamOrder = ['home', 'away'];
+
+/**
+ * The order Teams appear in across a Game's UI: header, cards, footer and
+ * line pickers. The API sends it per Game; when absent the away Team comes
+ * first.
+ */
+export const getGameTeamOrder = (game?: PredictGame): GameTeamOrder =>
+  game?.teamOrder === 'home_first' ? HOME_FIRST : AWAY_FIRST;
+
 export type GamePresentationVariant = 'compact' | 'featured' | 'detail';
 
 export interface GameStatusLine {
@@ -48,8 +62,12 @@ export const getEventGame = (event: PredictEvent): PredictGame | undefined =>
 const getStatusLabel = (status: PredictGameStatus) =>
   strings(`predict.game_status.${STATUS_KEYS[status]}`);
 
-const getTeamAbbreviation = (team: PredictTeam): string =>
-  (team.abbreviation ?? team.name.slice(0, 3)).toUpperCase();
+/**
+ * A Team's short label: its abbreviation, else its first three letters. A
+ * blank abbreviation counts as missing, so the label is never empty.
+ */
+export const getTeamAbbreviation = (team: PredictTeam): string =>
+  (team.abbreviation?.trim() || team.name.slice(0, 3)).toUpperCase();
 
 const TIME_OPTIONS: Intl.DateTimeFormatOptions = {
   hour: 'numeric',
@@ -75,6 +93,34 @@ const formatStart = (
     return undefined;
   }
 
+  const { date, time } = formatDateTime(startsAt, dateOptions);
+  return `${date} · ${time}`;
+};
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Days a weekday name stays unambiguous on either side of today. */
+const WEEKDAY_WINDOW_DAYS = 7;
+
+const startOfLocalDay = (date: Date): number =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+
+/**
+ * A Game's start for small cards, in the app locale and the device time
+ * zone: "Mon · 8:15 PM" within a week of today, else "Nov 23 · 1:00 PM".
+ */
+export const formatGameStartShort = (
+  startsAt: string,
+  now: Date = new Date(),
+): string => {
+  // Rounding absorbs the 23 or 25 hour days around a daylight saving change.
+  const days = Math.round(
+    (startOfLocalDay(new Date(startsAt)) - startOfLocalDay(now)) / DAY_MS,
+  );
+  const dateOptions: Intl.DateTimeFormatOptions =
+    Math.abs(days) < WEEKDAY_WINDOW_DAYS
+      ? { weekday: 'short' }
+      : { month: 'short', day: 'numeric' };
   const { date, time } = formatDateTime(startsAt, dateOptions);
   return `${date} · ${time}`;
 };
