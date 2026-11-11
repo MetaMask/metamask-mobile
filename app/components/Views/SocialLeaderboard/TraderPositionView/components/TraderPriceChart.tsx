@@ -2,12 +2,7 @@
 import { Box } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Dimensions,
-  GestureResponderEvent,
-  PanResponder,
-  View,
-} from 'react-native';
+import { Dimensions, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
@@ -20,6 +15,7 @@ import {
   CHART_DATA_THRESHOLD,
   TOKEN_OVERVIEW_CHART_HEIGHT,
 } from '../../../../UI/AssetOverview/Price/tokenOverviewChart.constants';
+import { createChartPanResponder } from '../../../../UI/AssetOverview/PriceChart/createChartPanResponder';
 import PriceChartContext from '../../../../UI/AssetOverview/PriceChart/PriceChart.context';
 import styleSheet from '../../../../UI/AssetOverview/PriceChart/PriceChart.styles';
 import { mapTradesToMarkers } from '../utils/tradeMarkers';
@@ -158,37 +154,8 @@ const TraderPriceChart = ({
     onActiveIndexChange(value);
   };
 
-  const prevTouch = useRef({ x: 0, y: 0 });
   const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponderCapture: () => true,
-      onPanResponderTerminationRequest: () => true,
-      onPanResponderGrant: (evt: GestureResponderEvent) => {
-        prevTouch.current = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-        updatePosition(evt.nativeEvent.locationX);
-      },
-      onPanResponderMove: (evt: GestureResponderEvent) => {
-        const deltaX = evt.nativeEvent.locationX - prevTouch.current.x;
-        const deltaY = evt.nativeEvent.locationY - prevTouch.current.y;
-        const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
-        setIsChartBeingTouched(isHorizontalSwipe);
-        updatePosition(isHorizontalSwipe ? evt.nativeEvent.locationX : -1);
-        prevTouch.current = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-      },
-      onPanResponderRelease: () => {
-        setIsChartBeingTouched(false);
-        updatePosition(-1);
-      },
-    }),
+    createChartPanResponder({ updatePosition, setIsChartBeingTouched }),
   );
 
   // ── SVG decorators ────────────────────────────────────────────────────────

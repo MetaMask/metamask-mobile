@@ -8,12 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Dimensions,
-  GestureResponderEvent,
-  PanResponder,
-  View,
-} from 'react-native';
+import { Dimensions, View } from 'react-native';
 import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
@@ -27,6 +22,7 @@ import {
   CHART_DATA_THRESHOLD,
   TOKEN_OVERVIEW_CHART_HEIGHT,
 } from '../Price/tokenOverviewChart.constants';
+import { createChartPanResponder } from './createChartPanResponder';
 import styleSheet from './PriceChart.styles';
 import PriceChartContext from './PriceChart.context';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
@@ -74,51 +70,6 @@ export function findNearestIndex(
   }
   return lo;
 }
-
-interface ChartPanHandlers {
-  updatePosition: (pixelX: number) => void;
-  setIsChartBeingTouched: (isTouched: boolean) => void;
-}
-
-// Module scope: the compiler rejects refs captured by render-time config objects ("Cannot access refs during render").
-const createChartPanResponder = ({
-  updatePosition,
-  setIsChartBeingTouched,
-}: ChartPanHandlers) => {
-  const prevTouch = { current: { x: 0, y: 0 } };
-  return PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onStartShouldSetPanResponderCapture: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponderCapture: () => true,
-    onPanResponderTerminationRequest: () => true,
-    onPanResponderGrant: (evt: GestureResponderEvent) => {
-      prevTouch.current = {
-        x: evt.nativeEvent.locationX,
-        y: evt.nativeEvent.locationY,
-      };
-      updatePosition(evt.nativeEvent.locationX);
-    },
-    onPanResponderMove: (evt: GestureResponderEvent) => {
-      const deltaX = evt.nativeEvent.locationX - prevTouch.current.x;
-      const deltaY = evt.nativeEvent.locationY - prevTouch.current.y;
-      const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
-
-      setIsChartBeingTouched(isHorizontalSwipe);
-      updatePosition(isHorizontalSwipe ? evt.nativeEvent.locationX : -1);
-
-      prevTouch.current = {
-        x: evt.nativeEvent.locationX,
-        y: evt.nativeEvent.locationY,
-      };
-    },
-
-    onPanResponderRelease: () => {
-      setIsChartBeingTouched(false);
-      updatePosition(-1);
-    },
-  });
-};
 
 // Ref lives inside the hook so the compiler does not see it ("Cannot access refs during render"); keeps the PanResponder alive across prop/layout updates mid-drag.
 const useStableCallback = <Args extends unknown[]>(
