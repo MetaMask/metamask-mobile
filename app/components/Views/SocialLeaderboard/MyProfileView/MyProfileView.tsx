@@ -108,7 +108,6 @@ import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
-import MyProfileCompactStats from './components/MyProfileCompactStats';
 import MyProfilePerformanceStats from './components/MyProfilePerformanceStats';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfilePositionsTab from './components/ProfilePositionsTab';
@@ -802,17 +801,6 @@ const MyProfileView: React.FC = () => {
                 }
                 variant="compact"
                 testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
-              />
-            ) : undefined
-          }
-          subtitle={
-            overlayedStats && !isContentHidden ? (
-              <MyProfileCompactStats
-                winRateLabel={overlayedStats.winRateLabel}
-                isWinRatePositive={overlayedStats.isWinRatePositive}
-                pnlLabel={overlayedStats.pnlLabel}
-                hasPnl={overlayedStats.hasPnl}
-                isPnlPositive={overlayedStats.isPnlPositive}
               />
             ) : undefined
           }

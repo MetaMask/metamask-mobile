@@ -598,18 +598,18 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('@giga-whale.metamask');
   });
 
-  it('renders the owner identity and stats in the compact header', () => {
+  it('renders the owner name in the compact header without the stats', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY),
     ).toHaveTextContent(/Giga Whale/);
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_WIN_RATE),
-    ).toHaveTextContent('*60%');
+      screen.queryByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_WIN_RATE),
+    ).toBeNull();
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_PNL),
-    ).toHaveTextContent('*+$7,100.00');
+      screen.queryByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_PNL),
+    ).toBeNull();
   });
 
   it('renders the owner avatar preset in the compact header', () => {
@@ -730,9 +730,6 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_WIN_RATE),
     ).toHaveTextContent('42%');
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_PNL),
-    ).toHaveTextContent('+$1,200.00');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
     ).toHaveTextContent('+$1,200.00');
