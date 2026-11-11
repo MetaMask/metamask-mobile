@@ -128,6 +128,9 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
           operation,
           input,
         ),
+      // Receipt observation can request a signed reconciliation scan.
+      signRead: (proposed) =>
+        initMessenger.call('PredictDeviceAuthService:signRead', proposed),
       invalidateSigningSession: () =>
         initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
     }),

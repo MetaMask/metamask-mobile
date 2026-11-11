@@ -197,7 +197,8 @@ const URI_SAFE = /^[A-Za-z0-9\-._~!$&'()*+,;=:@/%?]*$/u;
  * `reads.allow` — method plus a path pattern where a `{param}` segment
  * matches exactly one non-empty path segment — the path stays within
  * `maxPathLength`, the query within `MAX_READ_QUERY_LENGTH`, and both are
- * plain URI characters. A `{param}` segment never matches `.` or `..`.
+ * plain URI characters. Decoded segments cannot be `.` or `..`, contain
+ * separators, or retain escapes that another decoder could reinterpret.
  * The server runs the same check before it proposes or relays, so the two
  * sides agree on what is signable.
  */
@@ -215,9 +216,19 @@ export const readAllowed = (
     !URI_SAFE.test(proposed.query) ||
     proposed.path.includes('?') ||
     proposed.query.includes('?') ||
-    proposed.path
-      .split('/')
-      .some((segment) => segment === '.' || segment === '..')
+    proposed.path.split('/').some((segment) => {
+      try {
+        const decoded = decodeURIComponent(segment);
+        return (
+          decoded === '.' ||
+          decoded === '..' ||
+          !URI_SAFE.test(decoded) ||
+          /[/%?]/u.test(decoded)
+        );
+      } catch {
+        return true;
+      }
+    })
   ) {
     return false;
   }

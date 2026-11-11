@@ -11,7 +11,7 @@ ADR-0003 settled that the Predict API builds every account-scoped Venue request 
 1. **Kalshi shipped the V2 trading API.** Reads (`orderbook`, `positions`, `balance`, `activity`) and the order-create call are documented endpoints with stable shapes. The spike (mobile #38300, api #67) built reads as server-driven operations and steps with client step memory; a read reveals nothing the profile's read allowlist does not already expose, so an L1 allowlist check is enough and the step machinery is not.
 2. **The signing profile is now a signed document** with an allowlist of read patterns and per-intent payload kinds. The phone's copy is the security boundary; the Predict API loads the same document only to know what it may propose and to verify envelopes.
 
-The conflict ADR-0003 resolved — the signature must prove what the phone *meant*, not just that the app was open — does not depend on who builds the bytes. It depends on the phone checking the bytes against pinned data before signing. That check now runs for server proposals (reads) and phone-rendered requests (mutations) alike.
+The conflict ADR-0003 resolved — the signature must prove what the phone _meant_, not just that the app was open — does not depend on who builds the bytes. It depends on the phone checking the bytes against pinned data before signing. That check now runs for server proposals (reads) and phone-rendered requests (mutations) alike.
 
 ## Decision
 
@@ -33,6 +33,8 @@ The conflict ADR-0003 resolved — the signature must prove what the phone *mean
 ## Consequences
 
 - The phone's generic signer gains `signRead(proposed)`; intents stay mutations-only.
+- Read-path checks inspect decoded segments as well as the signed bytes: dot segments, encoded separators, malformed escapes and nested escapes are refused. Ordinary escaped identifier characters remain allowed; query encoding is unchanged.
+- The Engine Order client delegates `PredictDeviceAuthService:signRead` alongside mutation signing so receipt observation and reconciliation scans use the same read-signing boundary as portfolio reads.
 - The Predict API owns two read lanes: bearer (preview, onboarding probes) and proposed-signed (trading reads and reconciliation scans). Both are allowlisted from the same profile document.
 - The profile's readable source (`kalshi-trading-1.profile.json` in predict-api) is reviewed in git; `yarn venue-profile:sign` produces the document, and parity tests in predict-api pin the payload to that source.
 - Onboarding flows still run on ADR-0003's model and the `v:2` envelope; they are temporary and demo-only, and Universal KYC replaces them.

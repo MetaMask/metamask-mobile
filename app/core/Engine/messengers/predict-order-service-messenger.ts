@@ -49,6 +49,7 @@ export type PredictOrderServiceInitMessenger = Messenger<
       {
         type:
           | 'PredictDeviceAuthService:signOperation'
+          | 'PredictDeviceAuthService:signRead'
           | 'PredictDeviceAuthService:invalidateA2t';
       }
     >,
@@ -69,6 +70,7 @@ export const getPredictOrderServiceInitMessenger = (
     actions: [
       'AuthenticationController:getBearerToken',
       'PredictDeviceAuthService:signOperation',
+      'PredictDeviceAuthService:signRead',
       'PredictDeviceAuthService:invalidateA2t',
     ],
     events: [],
