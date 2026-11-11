@@ -9,7 +9,7 @@ The time between the two legs is the user, and is not measured. Both legs have o
 
 Both legs are new transactions. The existing `UI Startup`, `Homepage Ready` and `Deeplink Navigated` traces are unchanged: the legs do not start, end or cancel them.
 
-Each leg is sent once it has ended, as one finished transaction event, sampled like any other transaction. No live span is started, so sending a leg does not stop the profile of a transaction that is running, cannot take the app start data Sentry adds to the first transaction of a launch, and adds no tags to other events.
+Each leg is sent once it has ended, as one finished transaction event. Legs are sampled at 1%, or at the app's rate for other transactions when that is lower (3% in production). Builds that keep every transaction, such as dev builds, keep every leg. The rate is `MAX_SAMPLE_RATE` in `app/core/Performance/finishedTransaction.ts`. Each leg records the rate it was sampled at, so Sentry's estimated counts stay right. No live span is started, so sending a leg does not stop the profile of a transaction that is running, cannot take the app start data Sentry adds to the first transaction of a launch, and adds no tags to other events.
 
 ```
 process start                                                                  usable homepage

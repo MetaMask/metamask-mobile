@@ -28,6 +28,16 @@ export interface FinishedChildSpan extends FinishedSpan {
   parent?: number;
 }
 
+/**
+ * The most a transaction sent here is sampled at, below the app's rate for
+ * other transactions. An app rate of 1 is a build that keeps every
+ * transaction, such as a dev build, and is not lowered.
+ */
+const MAX_SAMPLE_RATE = 0.01;
+
+const getSampleRate = (appSampleRate: number): number =>
+  appSampleRate < 1 ? Math.min(appSampleRate, MAX_SAMPLE_RATE) : appSampleRate;
+
 const toSeconds = (ms: number) => ms / 1000;
 
 const getAttributes = ({ op, tags, data }: FinishedSpan) => ({
@@ -39,9 +49,10 @@ const getAttributes = ({ op, tags, data }: FinishedSpan) => ({
 
 /**
  * Sends spans that have already ended as one transaction, sampled the way a
- * transaction started now would be. Tags and data become span attributes, as
- * with `trace()`, and the tags are also the transaction's tags. Like
- * `trace()`, it sends nothing without metrics consent.
+ * transaction started now would be, but at no more than `MAX_SAMPLE_RATE`.
+ * Tags and data become span attributes, as with `trace()`, and the tags are
+ * also the transaction's tags. Like `trace()`, it sends nothing without
+ * metrics consent.
  *
  * Starting live spans instead has side effects on the SDK: a new transaction
  * stops the profile of the one running, it can take the app start data
@@ -62,12 +73,13 @@ export const sendFinishedTransaction = (
   }
   const attributes = getAttributes(transaction);
   const sampleRand = Math.random(); // NOSONAR - a sampling roll, not security-sensitive
-  const [sampled, sampleRate, localSampleRateWasApplied] = sampleSpan(
+  const [appSampled, appSampleRate = 0, localSampleRateWasApplied] = sampleSpan(
     client.getOptions(),
     { name: transaction.name, attributes },
     sampleRand,
   );
-  if (!sampled) {
+  const sampleRate = getSampleRate(appSampleRate);
+  if (!appSampled || sampleRand >= sampleRate) {
     client.recordDroppedEvent('sample_rate', 'transaction');
     return;
   }

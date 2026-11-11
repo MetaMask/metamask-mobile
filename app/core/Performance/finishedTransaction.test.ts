@@ -228,6 +228,66 @@ describe('sendFinishedTransaction', () => {
     );
   });
 
+  describe('sample rate', () => {
+    let mockRandom: jest.SpyInstance<number, []>;
+
+    beforeEach(() => {
+      mockRandom = jest.spyOn(Math, 'random');
+    });
+
+    afterEach(() => {
+      mockRandom.mockRestore();
+    });
+
+    it('samples at 1% when the app samples other transactions at a higher rate', async () => {
+      mockRandom.mockReturnValue(0.005);
+      const client = initClient({ tracesSampleRate: 0.03 });
+
+      sendFinishedTransaction(TRANSACTION, CHILDREN);
+
+      const [{ event, trace }] = await getSentTransactions(client);
+      expect(event.contexts?.trace?.data?.['sentry.sample_rate']).toBe(0.01);
+      expect(trace).toMatchObject({
+        sample_rand: '0.005',
+        sample_rate: '0.01',
+      });
+    });
+
+    it('drops a transaction that only the app rate would keep', async () => {
+      mockRandom.mockReturnValue(0.02);
+      const client = initClient({ tracesSampleRate: 0.03 });
+      const recordDroppedEvent = jest.spyOn(client, 'recordDroppedEvent');
+
+      sendFinishedTransaction(TRANSACTION, CHILDREN);
+
+      expect(await getSentTransactions(client)).toEqual([]);
+      expect(recordDroppedEvent).toHaveBeenCalledWith(
+        'sample_rate',
+        'transaction',
+      );
+    });
+
+    it('keeps the app rate when it is below 1%', async () => {
+      mockRandom.mockReturnValue(0.004);
+      const client = initClient({ tracesSampleRate: 0.005 });
+
+      sendFinishedTransaction(TRANSACTION, CHILDREN);
+
+      const [{ trace }] = await getSentTransactions(client);
+      expect(trace).toMatchObject({ sample_rate: '0.005' });
+    });
+
+    it('keeps every transaction when the app keeps every transaction', async () => {
+      mockRandom.mockReturnValue(0.5);
+      const client = initClient({ tracesSampleRate: 1 });
+
+      sendFinishedTransaction(TRANSACTION, CHILDREN);
+
+      const [{ trace }] = await getSentTransactions(client);
+      expect(trace).toMatchObject({ sample_rand: '0.5', sample_rate: '1' });
+    });
+  });
+
   it('sends nothing when tracing is off', async () => {
     const client = initClient({ tracesSampleRate: undefined });
     const recordDroppedEvent = jest.spyOn(client, 'recordDroppedEvent');
