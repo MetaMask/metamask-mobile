@@ -1,17 +1,8 @@
-import React, { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
@@ -56,7 +47,6 @@ export function useCardWalletProvisioning(
   },
 ) {
   const navigation = useNavigation<AppStackNavigationProp>();
-  const { toastRef } = useContext(ToastContext);
   const walletProvisioning = data?.walletProvisioning ?? null;
 
   const userAddressForProvisioning = useMemo(() => {
@@ -99,23 +89,13 @@ export function useCardWalletProvisioning(
       if (Platform.OS === 'ios') {
         navigation.replace(Routes.CARD.APPLE_PAY_CONFIRMATION);
       } else {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Plain,
-          labelOptions: [
-            {
-              label: strings('card.push_provisioning.success_message', {
-                walletName: getWalletName(),
-              }),
-            },
-          ],
-          startAccessory: (
-            <Icon
-              name={IconName.Confirmation}
-              color={IconColor.SuccessDefault}
-              size={IconSize.Lg}
-            />
-          ),
+        toast({
+          title: strings('card.push_provisioning.success_message', {
+            walletName: getWalletName(),
+          }),
+          severity: ToastSeverity.Success,
           hasNoTimeout: false,
+          showCloseButton: false,
         });
       }
       options?.onSuccess?.();
@@ -124,23 +104,13 @@ export function useCardWalletProvisioning(
       if (provisioningError.code === ProvisioningErrorCode.WALLET_DECLINED) {
         return;
       }
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label:
-              provisioningError.message ||
-              strings('card.push_provisioning.error_unknown'),
-          },
-        ],
-        startAccessory: (
-          <Icon
-            name={IconName.Danger}
-            color={IconColor.ErrorDefault}
-            size={IconSize.Lg}
-          />
-        ),
+      toast({
+        title:
+          provisioningError.message ||
+          strings('card.push_provisioning.error_unknown'),
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     },
   });

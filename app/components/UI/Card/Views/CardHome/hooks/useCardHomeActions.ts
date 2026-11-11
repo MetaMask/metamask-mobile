@@ -1,20 +1,15 @@
-import { useCallback, useContext } from 'react';
+import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
-import { useTheme } from '../../../../../../util/theme';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
   selectCardActiveProviderId,
 } from '../../../../../../selectors/cardController';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -61,8 +56,6 @@ export function useCardHomeActions({
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { reauthenticate } = useAuthentication();
 
   const { navigateToTravelPage, navigateToCardTosPage } = useNavigateToCardPage(
@@ -102,26 +95,18 @@ export function useCardHomeActions({
 
   // --- Freeze ---
 
-  const showFreezeSuccessToast = useCallback(
-    (wasFrozen: boolean) => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings(
-              wasFrozen
-                ? 'card.card_home.manage_card_options.unfreeze_success'
-                : 'card.card_home.manage_card_options.freeze_success',
-            ),
-          },
-        ],
-        iconName: IconName.Confirmation,
-        iconColor: theme.colors.success.default,
-        hasNoTimeout: false,
-      });
-    },
-    [toastRef, theme],
-  );
+  const showFreezeSuccessToast = useCallback((wasFrozen: boolean) => {
+    toast({
+      title: strings(
+        wasFrozen
+          ? 'card.card_home.manage_card_options.unfreeze_success'
+          : 'card.card_home.manage_card_options.freeze_success',
+      ),
+      severity: ToastSeverity.Success,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
+  }, []);
 
   const handleToggleFreeze = useCallback(async () => {
     if (!isAuthenticated) {
@@ -152,7 +137,6 @@ export function useCardHomeActions({
     await withBiometricAuth({
       reauthenticate,
       navigation,
-      toastRef,
       passwordDescription: strings(
         'card.password_bottomsheet.description_unfreeze',
       ),
@@ -183,7 +167,6 @@ export function useCardHomeActions({
     trackEvent,
     createEventBuilder,
     activeProviderId,
-    toastRef,
     showFreezeSuccessToast,
   ]);
 
@@ -208,15 +191,11 @@ export function useCardHomeActions({
         }),
       );
     } catch {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings('card.card_home.manage_card_options.view_pin_error'),
-          },
-        ],
+      toast({
+        title: strings('card.card_home.manage_card_options.view_pin_error'),
+        severity: ToastSeverity.Warning,
         hasNoTimeout: false,
-        iconName: IconName.Warning,
+        showCloseButton: false,
       });
     } finally {
       resetPinToken();
@@ -224,7 +203,6 @@ export function useCardHomeActions({
   }, [
     generatePinToken,
     navigation,
-    toastRef,
     resetPinToken,
     trackEvent,
     createEventBuilder,
@@ -240,7 +218,6 @@ export function useCardHomeActions({
     await withBiometricAuth({
       reauthenticate,
       navigation,
-      toastRef,
       passwordDescription: strings(
         'card.password_bottomsheet.description_view_pin',
       ),
@@ -252,7 +229,6 @@ export function useCardHomeActions({
     reauthenticate,
     fetchAndShowPin,
     navigation,
-    toastRef,
   ]);
 
   const setPinAction = useCallback(async () => {
@@ -276,7 +252,6 @@ export function useCardHomeActions({
     await withBiometricAuth({
       reauthenticate,
       navigation,
-      toastRef,
       passwordDescription: strings(
         'card.password_bottomsheet.description_set_pin',
       ),
@@ -290,7 +265,6 @@ export function useCardHomeActions({
     activeProviderId,
     reauthenticate,
     navigation,
-    toastRef,
     trackEvent,
     createEventBuilder,
   ]);
