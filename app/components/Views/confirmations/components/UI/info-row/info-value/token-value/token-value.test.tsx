@@ -4,6 +4,11 @@ import { render } from '@testing-library/react-native';
 
 import TokenValue from './token-value';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('TokenValue', () => {
   it('should render value correctly', () => {
     const { getByText } = render(

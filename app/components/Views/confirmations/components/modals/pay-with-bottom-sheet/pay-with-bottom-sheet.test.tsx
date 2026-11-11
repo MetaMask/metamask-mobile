@@ -10,6 +10,11 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { PayWithSectionConfig } from './pay-with-bottom-sheet.types';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));

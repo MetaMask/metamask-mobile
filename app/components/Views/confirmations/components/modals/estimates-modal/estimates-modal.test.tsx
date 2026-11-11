@@ -4,6 +4,11 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { EstimatesModal } from './estimates-modal';
 import { useGasOptions } from '../../../hooks/gas/useGasOptions';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../hooks/gas/useGasOptions', () => ({
   useGasOptions: jest.fn(() => {
     const { noop } = jest.requireActual('lodash');
