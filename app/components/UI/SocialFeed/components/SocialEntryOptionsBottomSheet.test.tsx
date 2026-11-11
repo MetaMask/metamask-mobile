@@ -44,6 +44,11 @@ jest.mock(
   }),
 );
 
+const mockOpenSocialSupport = jest.fn();
+jest.mock('../hooks/useOpenSocialSupport', () => ({
+  useOpenSocialSupport: () => mockOpenSocialSupport,
+}));
+
 const mockReportSocialServiceFailure = jest.fn();
 jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
   reportSocialServiceFailure: (...args: unknown[]) =>
@@ -192,7 +197,9 @@ describe('SocialEntryOptionsBottomSheet', () => {
 
     fireEvent.press(
       screen.getByTestId(
-        getSocialEntryReportReasonTestId(SocialEntryReportReason.Spam),
+        getSocialEntryReportReasonTestId(
+          SocialEntryReportReason.ScamsAndPhishing,
+        ),
       ),
     );
     fireEvent.press(
@@ -201,7 +208,9 @@ describe('SocialEntryOptionsBottomSheet', () => {
       ),
     );
 
-    expect(onReport).toHaveBeenCalledWith(SocialEntryReportReason.Spam);
+    expect(onReport).toHaveBeenCalledWith(
+      SocialEntryReportReason.ScamsAndPhishing,
+    );
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -228,6 +237,49 @@ describe('SocialEntryOptionsBottomSheet', () => {
 
     expect(onReport).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('opens customer support for impersonation and skips the report', () => {
+    const onClose = jest.fn();
+    const onReport = jest.fn();
+
+    renderWithProvider(
+      <SocialEntryOptionsBottomSheet
+        isOpen
+        onClose={onClose}
+        onReport={onReport}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(SocialEntryOptionsBottomSheetSelectorsIDs.REPORT),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(SocialEntryReportReason.Impersonation),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+      ),
+    );
+
+    expect(onReport).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT_CONTACT,
+      ),
+    );
+
+    expect(mockOpenSocialSupport).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -387,16 +439,32 @@ describe('SocialEntryOptionsBottomSheet', () => {
       renderFeed({ postId: 'one', commentId: 'comment-1' });
 
       openOptionsFor('one');
-      submitReport(SocialEntryReportReason.Harassment);
+      submitReport(SocialEntryReportReason.HarassmentHateAndThreats);
 
       expect(screen.queryByTestId('post-one')).toBeNull();
       await waitFor(() =>
         expect(mockBlockComment).toHaveBeenCalledWith(
           'comment-1',
-          'harassment',
+          'harassment_hate_and_threats',
         ),
       );
       await waitFor(() => expect(mockInvalidateBlockLists).toHaveBeenCalled());
+    });
+
+    it('keeps an impersonation report off the social API', () => {
+      renderFeed({ postId: 'one', commentId: 'comment-1' });
+
+      openOptionsFor('one');
+      submitReport(SocialEntryReportReason.Impersonation);
+
+      expect(screen.getByTestId('post-one')).toBeOnTheScreen();
+      expect(mockBlockComment).not.toHaveBeenCalled();
+      expect(mockBlockProfile).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId(
+          SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('offers no report for a post without a comment', () => {

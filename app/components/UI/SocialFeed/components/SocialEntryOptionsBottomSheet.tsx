@@ -3,17 +3,7 @@ import {
   BottomSheetDialog,
   BottomSheetHeader,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, {
@@ -35,25 +25,13 @@ import {
   type SocialModerationTarget,
   useSocialModerationActions,
 } from '../hooks/useSocialModerationActions';
+import { SocialEntryReportReason } from '../reportReasons';
 import { isViewerSocialAuthor } from '../utils/isViewerSocialAuthor';
-import {
-  getSocialEntryReportReasonTestId,
-  SocialEntryOptionsBottomSheetSelectorsIDs,
-} from './SocialEntryOptionsBottomSheet.testIds';
+import SocialImpersonationSupport from './SocialImpersonationSupport';
+import SocialReportReasonPicker from './SocialReportReasonPicker';
+import { SocialEntryOptionsBottomSheetSelectorsIDs } from './SocialEntryOptionsBottomSheet.testIds';
 
-export enum SocialEntryReportReason {
-  Spam = 'spam',
-  Harassment = 'harassment',
-  Misleading = 'misleading',
-  Other = 'other',
-}
-
-const REPORT_REASONS = [
-  SocialEntryReportReason.Spam,
-  SocialEntryReportReason.Harassment,
-  SocialEntryReportReason.Misleading,
-  SocialEntryReportReason.Other,
-] as const;
+export { SocialEntryReportReason };
 
 export type SocialEntryOptionsTarget = SocialModerationTarget;
 
@@ -92,16 +70,23 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const [showReportReasons, setShowReportReasons] = useState(false);
+  const [step, setStep] = useState<'options' | 'reasons' | 'support'>(
+    'options',
+  );
   const [selectedReason, setSelectedReason] =
     useState<SocialEntryReportReason | null>(null);
 
   const handleReport = useCallback(() => {
-    setShowReportReasons(true);
+    setStep('reasons');
   }, []);
 
   const handleSubmitReport = useCallback(() => {
     if (!selectedReason) {
+      return;
+    }
+    // Impersonation is handled by customer support, not the social API.
+    if (selectedReason === SocialEntryReportReason.Impersonation) {
+      setStep('support');
       return;
     }
     onReport?.(selectedReason);
@@ -133,97 +118,38 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
           <BottomSheetDialog
             onClose={onClose}
             testID={
-              showReportReasons
-                ? SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_REASON_SHEET
-                : SocialEntryOptionsBottomSheetSelectorsIDs.SHEET
+              step === 'support'
+                ? SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT
+                : step === 'reasons'
+                  ? SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_REASON_SHEET
+                  : SocialEntryOptionsBottomSheetSelectorsIDs.SHEET
             }
           >
             <BottomSheetHeader
               onClose={onClose}
               closeButtonProps={{
-                testID: showReportReasons
-                  ? SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_REASON_CLOSE_BUTTON
-                  : SocialEntryOptionsBottomSheetSelectorsIDs.CLOSE_BUTTON,
+                testID:
+                  step === 'reasons'
+                    ? SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_REASON_CLOSE_BUTTON
+                    : SocialEntryOptionsBottomSheetSelectorsIDs.CLOSE_BUTTON,
               }}
             >
               {strings(
-                showReportReasons
-                  ? 'social_leaderboard.entry_options.report_reason_title'
-                  : 'social_leaderboard.entry_options.title',
+                step === 'support'
+                  ? 'social_leaderboard.entry_options.impersonation_support_title'
+                  : step === 'reasons'
+                    ? 'social_leaderboard.entry_options.report_reason_title'
+                    : 'social_leaderboard.entry_options.title',
               )}
             </BottomSheetHeader>
-            {showReportReasons ? (
-              <Box twClassName="px-4 pb-10">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  twClassName="mb-4"
-                >
-                  {strings(
-                    'social_leaderboard.entry_options.report_reason_description',
-                  )}
-                </Text>
-                <Box gap={4}>
-                  {REPORT_REASONS.map((reason) => {
-                    const isSelected = selectedReason === reason;
-                    return (
-                      <Pressable
-                        key={reason}
-                        onPress={() => setSelectedReason(reason)}
-                        style={({ pressed }) =>
-                          tw.style(pressed && 'opacity-70')
-                        }
-                        accessibilityRole="radio"
-                        accessibilityState={{ selected: isSelected }}
-                        testID={getSocialEntryReportReasonTestId(reason)}
-                      >
-                        <Box
-                          flexDirection={BoxFlexDirection.Row}
-                          alignItems={BoxAlignItems.Center}
-                          gap={3}
-                          twClassName="py-1"
-                        >
-                          <Box
-                            twClassName={`h-6 w-6 rounded-full border ${
-                              isSelected
-                                ? 'border-primary-default'
-                                : 'border-muted'
-                            }`}
-                            alignItems={BoxAlignItems.Center}
-                            justifyContent={BoxJustifyContent.Center}
-                          >
-                            {isSelected ? (
-                              <Box twClassName="h-3 w-3 rounded-full bg-primary-default" />
-                            ) : null}
-                          </Box>
-                          <Text
-                            variant={TextVariant.BodyMd}
-                            fontWeight={FontWeight.Regular}
-                          >
-                            {strings(
-                              `social_leaderboard.entry_options.report_reasons.${reason}`,
-                            )}
-                          </Text>
-                        </Box>
-                      </Pressable>
-                    );
-                  })}
-                </Box>
-                <Box twClassName="mt-6">
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSize.Lg}
-                    isFullWidth
-                    isDisabled={selectedReason === null}
-                    onPress={handleSubmitReport}
-                    testID={
-                      SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT
-                    }
-                  >
-                    {strings('social_leaderboard.entry_options.submit_report')}
-                  </Button>
-                </Box>
-              </Box>
+            {step === 'support' ? (
+              <SocialImpersonationSupport />
+            ) : step === 'reasons' ? (
+              <SocialReportReasonPicker
+                selectedReason={selectedReason}
+                onSelectReason={setSelectedReason}
+                onSubmit={handleSubmitReport}
+              />
             ) : (
               <Box twClassName="pb-4">
                 {canReport ? (

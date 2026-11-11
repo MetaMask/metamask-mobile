@@ -1,8 +1,18 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import {
+  getSocialEntryReportReasonTestId,
+  SocialEntryOptionsBottomSheetSelectorsIDs,
+} from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
+import { SocialEntryReportReason } from '../../../../UI/SocialFeed/reportReasons';
 import ProfileOptionsSheet from './ProfileOptionsSheet';
 import { ProfileOptionsSheetSelectorsIDs } from './ProfileOptionsSheet.testIds';
+
+const mockOpenSocialSupport = jest.fn();
+jest.mock('../../../../UI/SocialFeed/hooks/useOpenSocialSupport', () => ({
+  useOpenSocialSupport: () => mockOpenSocialSupport,
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -32,6 +42,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 describe('ProfileOptionsSheet', () => {
   const onBlock = jest.fn();
+  const onReport = jest.fn();
   const onClose = jest.fn();
 
   beforeEach(() => {
@@ -43,19 +54,23 @@ describe('ProfileOptionsSheet', () => {
       <ProfileOptionsSheet
         traderName="doji"
         onBlock={onBlock}
+        onReport={onReport}
         onClose={onClose}
       />,
     );
 
-  it('renders the title, description, and block action', () => {
+  it('renders the title, description, report, and block actions', () => {
     renderSheet();
 
     expect(screen.getByText('Profile options')).toBeOnTheScreen();
     expect(
       screen.getByTestId(ProfileOptionsSheetSelectorsIDs.DESCRIPTION),
     ).toHaveTextContent(
-      "Blocking hides this profile's posts and positions on this device for this session. It also unfollows them.",
+      'Report this profile, or block them to hide their posts and positions on this device for this session. Blocking also unfollows them.',
     );
+    expect(
+      screen.getByTestId(ProfileOptionsSheetSelectorsIDs.REPORT_BUTTON),
+    ).toHaveTextContent('Report @doji');
     expect(
       screen.getByTestId(ProfileOptionsSheetSelectorsIDs.BLOCK_BUTTON),
     ).toHaveTextContent('Block @doji');
@@ -81,5 +96,58 @@ describe('ProfileOptionsSheet', () => {
 
     expect(onBlock).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports the profile with the chosen reason', () => {
+    renderSheet();
+
+    fireEvent.press(
+      screen.getByTestId(ProfileOptionsSheetSelectorsIDs.REPORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(SocialEntryReportReason.Privacy),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+      ),
+    );
+
+    expect(onReport).toHaveBeenCalledWith(SocialEntryReportReason.Privacy);
+    expect(onBlock).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens customer support for impersonation and does not report', () => {
+    renderSheet();
+
+    fireEvent.press(
+      screen.getByTestId(ProfileOptionsSheetSelectorsIDs.REPORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(SocialEntryReportReason.Impersonation),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+      ),
+    );
+
+    expect(onReport).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText('Contact customer support')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'Impersonation claims are handled by customer support. They will ask for your email address and follow up with you.',
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByText('Contact support'));
+
+    expect(mockOpenSocialSupport).toHaveBeenCalledTimes(1);
   });
 });

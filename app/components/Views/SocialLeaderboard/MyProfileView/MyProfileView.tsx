@@ -91,6 +91,7 @@ import {
   useTraderProfile,
 } from '../TraderProfileView/hooks';
 import ProfileOptionsSheet from '../TraderProfileView/components/ProfileOptionsSheet';
+import { SocialEntryReportReason } from '../../../UI/SocialFeed/reportReasons';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
 import type {
   SocialV1FeedAuthor,
@@ -623,26 +624,44 @@ const MyProfileView: React.FC = () => {
     traderAddress,
   ]);
 
+  const blockAndUnfollow = useCallback(
+    async (reason?: string) => {
+      const wasFollowing = isFollowing;
+      const didBlock =
+        reason === undefined ? await block() : await block(reason);
+      if (didBlock && wasFollowing) {
+        await toggleFollow({
+          source: 'trader_profile',
+          traderAddress:
+            traderAddress || liveProfile.profile?.profile.address || '',
+          traderUsername: displayProfile?.displayName,
+          traderAvatarUri: displayProfile?.imageUrl,
+        });
+      }
+    },
+    [
+      block,
+      displayProfile,
+      isFollowing,
+      liveProfile.profile,
+      toggleFollow,
+      traderAddress,
+    ],
+  );
+
   const handleBlock = useCallback(async () => {
-    const wasFollowing = isFollowing;
-    const didBlock = await block();
-    if (didBlock && wasFollowing) {
-      await toggleFollow({
-        source: 'trader_profile',
-        traderAddress:
-          traderAddress || liveProfile.profile?.profile.address || '',
-        traderUsername: displayProfile?.displayName,
-        traderAvatarUri: displayProfile?.imageUrl,
-      });
-    }
-  }, [
-    block,
-    displayProfile,
-    isFollowing,
-    liveProfile.profile,
-    toggleFollow,
-    traderAddress,
-  ]);
+    await blockAndUnfollow();
+  }, [blockAndUnfollow]);
+
+  const handleReport = useCallback(
+    async (reason: SocialEntryReportReason) => {
+      if (reason === SocialEntryReportReason.Impersonation) {
+        return;
+      }
+      await blockAndUnfollow(reason);
+    },
+    [blockAndUnfollow],
+  );
 
   const handleUnblock = useCallback(async () => {
     await unblock();
@@ -1312,6 +1331,7 @@ const MyProfileView: React.FC = () => {
           <ProfileOptionsSheet
             traderName={displayProfile.handle}
             onBlock={handleBlock}
+            onReport={handleReport}
             onClose={handleCloseProfileOptions}
           />
         ) : null}

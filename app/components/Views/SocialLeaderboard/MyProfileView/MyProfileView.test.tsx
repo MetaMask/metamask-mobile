@@ -18,6 +18,11 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MyProfileView from './MyProfileView';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import { ProfileOptionsSheetSelectorsIDs } from '../TraderProfileView/components/ProfileOptionsSheet.testIds';
+import {
+  getSocialEntryReportReasonTestId,
+  SocialEntryOptionsBottomSheetSelectorsIDs,
+} from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
+import { SocialEntryReportReason } from '../../../UI/SocialFeed/reportReasons';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import type { UseMyProfilePostsResult } from './hooks/useMyProfilePosts';
@@ -1609,12 +1614,84 @@ describe('MyProfileView', () => {
     });
 
     expect(mockBlock).toHaveBeenCalledTimes(1);
+    expect(mockBlock).toHaveBeenCalledWith();
     expect(toggleFollow).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'trader_profile',
         traderAddress: '0xabc',
       }),
     );
+  });
+
+  it('reports a followed trader with the reason and unfollows them', async () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    const toggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTraderProfile.mockReturnValue(
+      foreignTraderProfileResult(true, toggleFollow),
+    );
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(ProfileOptionsSheetSelectorsIDs.REPORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(
+          SocialEntryReportReason.ScamsAndPhishing,
+        ),
+      ),
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+        ),
+      );
+    });
+
+    expect(mockBlock).toHaveBeenCalledWith('scams_and_phishing');
+    expect(toggleFollow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'trader_profile',
+        traderAddress: '0xabc',
+      }),
+    );
+  });
+
+  it('keeps an impersonation report off the block request', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderProfile.mockReturnValue(
+      foreignTraderProfileResult(false, jest.fn()),
+    );
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(ProfileOptionsSheetSelectorsIDs.REPORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(SocialEntryReportReason.Impersonation),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+      ),
+    );
+
+    expect(mockBlock).not.toHaveBeenCalled();
+    expect(screen.getByText('Contact customer support')).toBeOnTheScreen();
   });
 
   it('hides owner actions and shows follow for another trader', () => {
