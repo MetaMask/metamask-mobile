@@ -403,6 +403,129 @@ jobs:
       collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
+  # Classifies failed @PerformanceShadow scenarios. When only the learned
+  # cache or a step's wording is stale (the agent re-planned it in the run and
+  # every pinned check passed), opens one draft PR against the branch that
+  # ran. Anything else is reported in the job summary only.
+  scenario-heal:
+    name: Heal agent-driven scenarios
+    needs:
+      [
+        prepare,
+        run-android-onboarding-tests-testmu,
+        run-android-imported-wallet-tests-testmu,
+      ]
+    if: >-
+      always() && !cancelled() &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      contains(needs.prepare.outputs.grep_pattern, '@PerformanceShadow') &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'schedule' ||
+        (
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        )
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    env:
+      BASE_REF: ${{ inputs.branch_name }}
+      HEAL_BRANCH: perf-scenario-heal/${{ github.run_id }}
+    steps:
+      # Same bot token as the release PR workflow, so the heal PR runs CI.
+      # Falls back to GITHUB_TOKEN (its PRs do not trigger workflows).
+      - name: Get bot token
+        id: get-token
+        continue-on-error: true
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+            pull_requests: write
+
+      - name: Checkout the branch that ran
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch_name }}
+          token: ${{ steps.get-token.outputs.token || github.token }}
+
+      - name: Download test results
+        uses: actions/download-artifact@v7
+        with:
+          pattern: testmu-he-*-test-results-*
+          path: ${{ runner.temp }}/scenario-artifacts
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Yarn dependencies
+        run: yarn install --immutable
+
+      - name: List open heal PRs
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token || github.token }}
+        run: |
+          gh pr list --repo "$GITHUB_REPOSITORY" --state open --label perf-scenario-heal \
+            --json url,body --limit 100 > "$RUNNER_TEMP/open-heal-prs.json" \
+            || echo '[]' > "$RUNNER_TEMP/open-heal-prs.json"
+
+      - name: Classify scenarios and build the heal
+        id: heal
+        run: |
+          yarn tsx .github/scripts/qa-automation/performance-tests/scenario-heal.ts \
+            --artifacts "$RUNNER_TEMP/scenario-artifacts" \
+            --out "$RUNNER_TEMP/scenario-heal" \
+            --existing-prs "$RUNNER_TEMP/open-heal-prs.json" \
+            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --base-ref "$BASE_REF" \
+            --apply
+
+      - name: Open draft heal PR
+        if: steps.heal.outputs.has_pr == 'true'
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token || github.token }}
+          PR_TITLE: ${{ steps.heal.outputs.title }}
+          BODY_FILE: ${{ steps.heal.outputs.body_file }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$HEAL_BRANCH"
+          git add -- 'tests/performance/**/*.scenario.cache.json' 'tests/performance/**/*.scenario.md'
+          if [ -n "$(git status --porcelain --untracked-files=no | grep -v '^[AM] ' || true)" ]; then
+            echo "::error::Unexpected changes outside scenario caches and Markdown; not opening a PR."
+            git status --porcelain
+            exit 1
+          fi
+          git commit -m "$PR_TITLE"
+          git push origin "$HEAL_BRANCH"
+          PR_URL="$(gh pr create --repo "$GITHUB_REPOSITORY" --draft \
+            --base "$BASE_REF" --head "$HEAL_BRANCH" \
+            --title "$PR_TITLE" --body-file "$BODY_FILE")"
+          echo "Opened $PR_URL"
+          echo "Heal PR: $PR_URL" >> "$GITHUB_STEP_SUMMARY"
+          for label in team-qa perf-scenario-heal; do
+            gh pr edit "$PR_URL" --add-label "$label" \
+              || echo "::warning::Could not add label $label (does it exist?)"
+          done
+
+      - name: Upload heal plan
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: scenario-heal-plan
+          path: ${{ runner.temp }}/scenario-heal
+          if-no-files-found: ignore
+          retention-days: 14
+
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest

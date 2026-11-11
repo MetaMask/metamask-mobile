@@ -89,6 +89,40 @@ only when an element is missing. The log shows `Step N changed: was ..., now
 ...` for every step that resolved differently. Commit the file to share what
 the agent learned. Delete it to start over.
 
+## Heal PRs from CI
+
+Each scenario run writes `scenario-outcome-<name>.json` to
+`tests/reporters/reports/`. After a CI run that selected `@PerformanceShadow`,
+the `Heal agent-driven scenarios` job classifies every outcome:
+
+- **Repairable**: every step ran (so every pinned check passed), no threshold
+  failed, and each invalid timer ended on a model-chosen element that the
+  agent re-resolved after the window. The job opens one draft PR against the
+  branch that ran (`perf-scenario-heal/<run id>`), labelled `team-qa` and
+  `perf-scenario-heal`, with the healed cache and any step wording the agent
+  proposed.
+- **Report only**: a pinned check failed, a threshold was exceeded, the submit
+  guard or an app alert stopped the run, a timeout or crash, or the model
+  found no path. These may be app bugs; the job summary lists them.
+
+A heal may only change `*.scenario.cache.json` and the wording of do/expect
+steps in `*.scenario.md`. Pins, `[if:]`, timers, thresholds, tags, Secret/App
+steps and every other file are rejected in code
+(`tests/framework/scenario-agent/heal.ts`), and the job aborts instead.
+
+Dry run on a downloaded run (artifacts named `testmu-he-*-test-results-*`):
+
+```bash
+gh run download <run id> --pattern 'testmu-he-*-test-results-*' --dir /tmp/run
+SCENARIO_HEAL_DRY_RUN=true yarn tsx \
+  .github/scripts/qa-automation/performance-tests/scenario-heal.ts \
+  --artifacts /tmp/run --out /tmp/heal
+```
+
+It prints the summary and the heal diff, and writes `summary.md`,
+`heal-plan.json`, `heal-pr-body.md` and `heal.diff` to `--out`. Nothing in
+the repo changes.
+
 ## How timing stays honest
 
 For a timed step, the model picks the tap and predicts the element that will
