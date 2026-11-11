@@ -96,7 +96,11 @@ const PrivateComposerContent: React.FC = () => {
                 />
               </Box>
               <Box gap={1} twClassName="w-full">
-                <Text variant={TextVariant.HeadingSm} twClassName="text-center">
+                <Text
+                  variant={TextVariant.HeadingSm}
+                  accessibilityRole="header"
+                  twClassName="text-center"
+                >
                   {strings(
                     'social_leaderboard.trader_profile.private_title_own',
                   )}

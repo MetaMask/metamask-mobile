@@ -1503,6 +1503,16 @@ describe('SocialPostComposerView', () => {
       ).toBeNull();
     });
 
+    it('marks the private state title as a heading', () => {
+      renderWithProvider(<SocialPostComposerView />);
+
+      expect(
+        screen.getByRole('header', {
+          name: 'social_leaderboard.trader_profile.private_title_own',
+        }),
+      ).toBeOnTheScreen();
+    });
+
     it('opens trading activity settings from the privacy settings button', () => {
       renderWithProvider(<SocialPostComposerView />);
 
