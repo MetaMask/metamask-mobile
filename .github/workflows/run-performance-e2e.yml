@@ -474,7 +474,7 @@ jobs:
           GH_TOKEN: ${{ steps.get-token.outputs.token || github.token }}
         run: |
           gh pr list --repo "$GITHUB_REPOSITORY" --state open --label perf-scenario-heal \
-            --json url,body --limit 100 > "$RUNNER_TEMP/open-heal-prs.json" \
+            --json url,body,headRefOid --limit 100 > "$RUNNER_TEMP/open-heal-prs.json" \
             || echo '[]' > "$RUNNER_TEMP/open-heal-prs.json"
 
       - name: Classify scenarios and build the heal
@@ -485,10 +485,12 @@ jobs:
             --out "$RUNNER_TEMP/scenario-heal" \
             --existing-prs "$RUNNER_TEMP/open-heal-prs.json" \
             --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --repository-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
             --base-ref "$BASE_REF" \
             --apply
 
       - name: Open draft heal PR
+        id: open
         if: steps.heal.outputs.has_pr == 'true'
         env:
           GH_TOKEN: ${{ steps.get-token.outputs.token || github.token }}
@@ -511,11 +513,70 @@ jobs:
             --base "$BASE_REF" --head "$HEAL_BRANCH" \
             --title "$PR_TITLE" --body-file "$BODY_FILE")"
           echo "Opened $PR_URL"
+          {
+            echo "pr_url=$PR_URL"
+            echo "commit_sha=$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
           echo "Heal PR: $PR_URL" >> "$GITHUB_STEP_SUMMARY"
           for label in team-qa perf-scenario-heal; do
             gh pr edit "$PR_URL" --add-label "$label" \
               || echo "::warning::Could not add label $label (does it exist?)"
           done
+
+      # Repairable only. Deduped scenarios keep the existing PR link; a new PR
+      # is filled in here. Non-repairable failures are not posted.
+      - name: Render heal Slack message
+        id: slack
+        if: steps.heal.outputs.notify_slack == 'true' && steps.open.outcome != 'failure'
+        env:
+          PR_URL: ${{ steps.open.outputs.pr_url }}
+          COMMIT_SHA: ${{ steps.open.outputs.commit_sha }}
+        run: |
+          ARGS=(
+            --artifacts "$RUNNER_TEMP/scenario-artifacts"
+            --out "$RUNNER_TEMP/scenario-heal"
+            --existing-prs "$RUNNER_TEMP/open-heal-prs.json"
+            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            --repository-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+            --base-ref "$BASE_REF"
+          )
+          if [ -n "$PR_URL" ] && [ -n "$COMMIT_SHA" ]; then
+            ARGS+=(--pr-url "$PR_URL" --commit-sha "$COMMIT_SHA")
+          fi
+          yarn tsx .github/scripts/qa-automation/performance-tests/scenario-heal.ts "${ARGS[@]}"
+          if [ ! -s "$RUNNER_TEMP/scenario-heal/slack.txt" ]; then
+            echo "text=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          {
+            echo "text<<SLACK_EOF"
+            cat "$RUNNER_TEMP/scenario-heal/slack.txt"
+            echo "SLACK_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check heal Slack webhook
+        id: webhook
+        if: steps.slack.outputs.text != ''
+        env:
+          WEBHOOK: ${{ secrets.PERF_SCENARIO_HEAL_SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::warning::PERF_SCENARIO_HEAL_SLACK_WEBHOOK_URL is unset; not posting to #mm-qa-legends-ai-alerts."
+            echo "post=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "post=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post heal to #mm-qa-legends-ai-alerts
+        if: steps.webhook.outputs.post == 'true'
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.PERF_SCENARIO_HEAL_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ${{ toJSON(steps.slack.outputs.text) }}
+            }
 
       - name: Upload heal plan
         if: always()

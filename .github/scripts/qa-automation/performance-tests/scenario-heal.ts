@@ -19,12 +19,16 @@ import path from 'path';
 import {
   buildHealChanges,
   classifyOutcome,
+  completeSlackNotices,
   healKey,
   healRuleViolations,
+  indexHealPrs,
   OUTCOME_FILE_PREFIX,
-  proposedKeys,
   renderHealPr,
+  renderHealSlackMessage,
   renderSummary,
+  type Classification,
+  type SlackHealNotice,
   type FileChange,
   type HealedScenario,
   type ScenarioOutcome,
@@ -37,7 +41,8 @@ export interface HealOptions {
   apply: boolean;
   runUrl: string;
   baseRef: string;
-  existingPrBodies: string[];
+  /** Open heal PRs, used to dedupe and to link the Slack message. */
+  existingPrs: { url?: string; body?: string; headSha?: string }[];
 }
 
 export interface HealRunResult {
@@ -47,6 +52,8 @@ export interface HealRunResult {
   summary: string;
   changes: FileChange[];
   diff: string;
+  /** Repairable scenarios to announce. New PRs have an empty prUrl until opened. */
+  slackNotices: SlackHealNotice[];
 }
 
 function walk(dir: string, found: string[] = []): string[] {
@@ -165,10 +172,26 @@ export function runHeal(options: HealOptions): HealRunResult {
     return fs.existsSync(full) ? fs.readFileSync(full, 'utf8') : null;
   };
   const outcomes = readOutcomes(options.artifactsDir);
-  const proposed = proposedKeys(options.existingPrBodies);
+  const heJobUrls = readHeJobUrls(options.artifactsDir);
+  const openPrs = indexHealPrs(options.existingPrs);
   const rows: Parameters<typeof renderSummary>[0] = [];
   const healed: HealedScenario[] = [];
+  const slackNotices: SlackHealNotice[] = [];
   const extra: string[] = [];
+  const noticeFor = (
+    outcome: ScenarioOutcome,
+    classification: Classification,
+    pr?: { url?: string; headSha?: string },
+  ): SlackHealNotice => ({
+    scenario: outcome.title,
+    step: classification.step,
+    reason: classification.reason,
+    runUrl: options.runUrl,
+    heJobUrls,
+    prUrl: pr?.url ?? '',
+    commitSha: pr?.headSha ?? '',
+    commitUrl: '',
+  });
 
   for (const outcome of outcomes) {
     const classification = classifyOutcome(outcome);
@@ -176,12 +199,14 @@ export function runHeal(options: HealOptions): HealRunResult {
       rows.push({ outcome, classification });
       continue;
     }
-    if (proposed.has(healKey(outcome, classification.step))) {
+    const existing = openPrs.get(healKey(outcome, classification.step));
+    if (existing) {
       rows.push({
         outcome,
         classification,
         note: 'already proposed by an open heal PR',
       });
+      slackNotices.push(noticeFor(outcome, classification, existing));
       continue;
     }
     const { changes, notes } = buildHealChanges(outcome, readFile);
@@ -195,6 +220,7 @@ export function runHeal(options: HealOptions): HealRunResult {
     }
     rows.push({ outcome, classification, note: 'heal PR' });
     healed.push({ outcome, classification, changes, notes });
+    slackNotices.push(noticeFor(outcome, classification));
   }
 
   let changes = healed.flatMap((h) => h.changes);
@@ -226,6 +252,10 @@ export function runHeal(options: HealOptions): HealRunResult {
   }
 
   const hasPr = changes.length > 0;
+  // A blocked heal must not announce a PR that was never opened.
+  const notices = hasPr
+    ? slackNotices
+    : slackNotices.filter((notice) => notice.prUrl);
   const { title, body } = renderHealPr(
     healed.filter(() => hasPr),
     {
@@ -256,7 +286,11 @@ export function runHeal(options: HealOptions): HealRunResult {
       2,
     )}\n`,
   );
-  return { hasPr, title, bodyFile, summary, changes, diff };
+  fs.writeFileSync(
+    path.join(options.outDir, 'slack-notices.json'),
+    `${JSON.stringify(notices, null, 2)}\n`,
+  );
+  return { hasPr, title, bodyFile, summary, changes, diff, slackNotices: notices };
 }
 
 function argValue(argv: string[], name: string): string | undefined {
@@ -272,26 +306,61 @@ export function main(argv = process.argv.slice(2), env = process.env): void {
   const dryRun = env.SCENARIO_HEAL_DRY_RUN === 'true' || argv.includes('--dry-run');
   const existingFile = argValue(argv, '--existing-prs');
   const existing = existingFile && fs.existsSync(existingFile)
-    ? (JSON.parse(fs.readFileSync(existingFile, 'utf8')) as { body?: string }[])
+    ? (JSON.parse(fs.readFileSync(existingFile, 'utf8')) as {
+        url?: string;
+        body?: string;
+        headSha?: string;
+        headRefOid?: string;
+      }[])
     : [];
+  const outDir = path.resolve(argValue(argv, '--out') ?? 'tmp/scenario-heal');
   const result = runHeal({
     artifactsDir,
     repoRoot: path.resolve(argValue(argv, '--repo-root') ?? process.cwd()),
-    outDir: path.resolve(argValue(argv, '--out') ?? 'tmp/scenario-heal'),
+    outDir,
     apply: argv.includes('--apply') && !dryRun,
     runUrl: argValue(argv, '--run-url') ?? '',
     baseRef: argValue(argv, '--base-ref') ?? '',
-    existingPrBodies: existing.map((pr) => pr.body ?? ''),
+    existingPrs: existing.map((pr) => ({
+      url: pr.url,
+      body: pr.body,
+      headSha: pr.headSha ?? pr.headRefOid,
+    })),
   });
 
-  if (env.GITHUB_STEP_SUMMARY) fs.appendFileSync(env.GITHUB_STEP_SUMMARY, result.summary);
-  console.log(result.summary);
-  if (dryRun) console.log(result.diff || '(no heal diff)');
+  const repositoryUrl = argValue(argv, '--repository-url') ?? '';
+  const opened =
+    argValue(argv, '--pr-url') && argValue(argv, '--commit-sha')
+      ? {
+          prUrl: argValue(argv, '--pr-url') as string,
+          commitSha: argValue(argv, '--commit-sha') as string,
+          repositoryUrl,
+        }
+      : undefined;
+  const slackText = renderHealSlackMessage(
+    completeSlackNotices(result.slackNotices, opened),
+  );
+
+  const fillingInOpenedPr = Boolean(opened);
+  if (env.GITHUB_STEP_SUMMARY && !fillingInOpenedPr) {
+    fs.appendFileSync(env.GITHUB_STEP_SUMMARY, result.summary);
+  }
+  if (!fillingInOpenedPr) console.log(result.summary);
+  if (dryRun) {
+    console.log(result.diff || '(no heal diff)');
+    console.log(
+      slackText
+        ? `Would post to Slack:\n${slackText}`
+        : 'Would not post to Slack.',
+    );
+  }
+  if (slackText) fs.writeFileSync(path.join(outDir, 'slack.txt'), slackText);
   if (env.GITHUB_OUTPUT) {
     fs.appendFileSync(
       env.GITHUB_OUTPUT,
       [
         `has_pr=${result.hasPr && !dryRun}`,
+        `notify_slack=${result.slackNotices.length > 0 && !dryRun}`,
         `title=${result.title.replace(/\n/g, ' ')}`,
         `body_file=${result.bodyFile}`,
         '',

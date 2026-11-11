@@ -77,7 +77,7 @@ describe('scenario-heal', () => {
   it('dry run writes a cache-only diff and summary without touching the repo', () => {
     const { root, artifacts, out, git } = setup(outcome(healed));
 
-    const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: false, runUrl: 'https://run/1', baseRef: 'main', existingPrBodies: [] });
+    const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: false, runUrl: 'https://run/1', baseRef: 'main', existingPrs: [] });
 
     expect(result.hasPr).toBe(true);
     expect(result.changes.map((c) => c.path)).toEqual([CACHE_PATH]);
@@ -90,7 +90,7 @@ describe('scenario-heal', () => {
   it('apply writes only the allowed file', () => {
     const { root, artifacts, out, git } = setup(outcome(healed));
 
-    const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: true, runUrl: '', baseRef: 'main', existingPrBodies: [] });
+    const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: true, runUrl: '', baseRef: 'main', existingPrs: [] });
 
     expect(result.hasPr).toBe(true);
     expect(git('status', '--porcelain').trim()).toBe(`M ${CACHE_PATH}`);
@@ -101,7 +101,7 @@ describe('scenario-heal', () => {
       outcome({ ...healed, 'Log in to the wallet': tap('password-input') }),
     );
 
-    const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: true, runUrl: '', baseRef: 'main', existingPrBodies: [] });
+    const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: true, runUrl: '', baseRef: 'main', existingPrs: [] });
 
     expect(result.hasPr).toBe(false);
     expect(result.summary).toContain('**Heal aborted.**');
@@ -113,7 +113,13 @@ describe('scenario-heal', () => {
 
     const result = runHeal({
       artifactsDir: artifacts, repoRoot: root, outDir: out, apply: false, runUrl: '', baseRef: 'main',
-      existingPrBodies: [`<!-- perf-scenario-heal: ${MD_PATH}#3 -->`],
+      existingPrs: [
+        {
+          url: 'https://github.com/org/repo/pull/9',
+          headSha: 'abc1234',
+          body: `<!-- perf-scenario-heal: ${MD_PATH}#3 -->`,
+        },
+      ],
     });
 
     expect(result.hasPr).toBe(false);
@@ -124,7 +130,7 @@ describe('scenario-heal', () => {
     const failed = { ...outcome(healed, 'FAIL'), failedStep: { number: 2, text: 'Tap the Swap button on the wallet home', error: "the scenario's check failed: testID=x" } };
     const { root, artifacts, out } = setup(failed);
 
-    const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: false, runUrl: '', baseRef: 'main', existingPrBodies: [] });
+    const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: false, runUrl: '', baseRef: 'main', existingPrs: [] });
 
     expect(result.hasPr).toBe(false);
     expect(result.summary).toContain('| FAIL | pinned-check | 2 |');

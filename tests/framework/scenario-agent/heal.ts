@@ -503,12 +503,87 @@ const marker = (key: string) => `<!-- ${HEAL_MARKER}: ${key} -->`;
 
 /** Keys already proposed by an open heal PR. */
 export function proposedKeys(existingPrBodies: string[]): Set<string> {
-  const keys = new Set<string>();
-  const pattern = new RegExp(`<!-- ${HEAL_MARKER}: (.+?) -->`, 'g');
-  for (const body of existingPrBodies) {
-    for (const match of body.matchAll(pattern)) keys.add(match[1]);
+  return new Set(
+    indexHealPrs(existingPrBodies.map((body) => ({ body }))).keys(),
+  );
+}
+
+export interface ExistingHealPr {
+  url?: string;
+  body?: string;
+  /** Head commit of the open heal PR. */
+  headSha?: string;
+}
+
+const HEAL_KEY_PATTERN = new RegExp(`<!-- ${HEAL_MARKER}: (.+?) -->`, 'g');
+
+/** Open heal PRs keyed by the scenario step they already propose. */
+export function indexHealPrs(
+  prs: ExistingHealPr[],
+): Map<string, ExistingHealPr> {
+  const indexed = new Map<string, ExistingHealPr>();
+  for (const pr of prs) {
+    for (const match of (pr.body ?? '').matchAll(HEAL_KEY_PATTERN)) {
+      if (!indexed.has(match[1])) indexed.set(match[1], pr);
+    }
   }
-  return keys;
+  return indexed;
+}
+
+/** One repairable scenario to announce in #mm-qa-legends-ai-alerts. */
+export interface SlackHealNotice {
+  scenario: string;
+  step: number | null;
+  reason: string;
+  runUrl: string;
+  heJobUrls: string[];
+  /** Set when an open heal PR already covers this step. */
+  prUrl: string;
+  commitSha: string;
+  commitUrl: string;
+}
+
+/**
+ * Fills in the PR and commit for notices whose PR this run is about to open.
+ * Notices that still have no PR (the open step failed) are dropped.
+ */
+export function completeSlackNotices(
+  notices: SlackHealNotice[],
+  opened?: { prUrl: string; commitSha: string; repositoryUrl: string },
+): SlackHealNotice[] {
+  return notices.flatMap((notice) => {
+    if (notice.prUrl && notice.commitSha) return [notice];
+    if (!opened?.prUrl || !opened.commitSha) return [];
+    return [
+      {
+        ...notice,
+        prUrl: opened.prUrl,
+        commitSha: opened.commitSha,
+        commitUrl: `${opened.repositoryUrl.replace(/\/$/, '')}/commit/${opened.commitSha}`,
+      },
+    ];
+  });
+}
+
+/** Slack text for repairable heals. Empty when there is nothing to announce. */
+export function renderHealSlackMessage(notices: SlackHealNotice[]): string {
+  return notices
+    .map((notice) =>
+      [
+        `Repairable performance scenario: ${notice.scenario}`,
+        `Failed step: ${notice.step ?? 'n/a'}`,
+        `Reason: ${notice.reason}`,
+        `Run: ${notice.runUrl || 'n/a'}`,
+        notice.heJobUrls.length
+          ? `HyperExecute: ${notice.heJobUrls.join(', ')}`
+          : '',
+        `Heal PR: ${notice.prUrl}`,
+        `Commit: ${notice.commitSha}${notice.commitUrl ? ` (${notice.commitUrl})` : ''}`,
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    )
+    .join('\n\n');
 }
 
 export const summarizeActions = (actions: AgentAction[] | null): string =>

@@ -3,10 +3,12 @@ import {
   buildHealChanges,
   buildScenarioOutcome,
   classifyOutcome,
+  completeSlackNotices,
   healKey,
   healRuleViolations,
   proposedKeys,
   renderHealPr,
+  renderHealSlackMessage,
   type FileChange,
   type ScenarioOutcome,
 } from './heal.ts';
@@ -386,5 +388,49 @@ describe('heal PR', () => {
     expect(body).toContain('https://github.com/run/1');
     expect(body).toContain('https://he/job');
     expect(proposedKeys([body])).toEqual(new Set([healKey(healedOutcome, 3)]));
+  });
+});
+
+describe('renderHealSlackMessage', () => {
+  const notice = {
+    scenario: 'Predict Available Balance [scenario shadow]',
+    step: 2,
+    reason: 'end element testID=old did not appear',
+    runUrl: 'https://github.com/org/repo/actions/runs/1',
+    heJobUrls: ['https://hyperexecute.example/job/1'],
+    prUrl: '',
+    commitSha: '',
+    commitUrl: '',
+  };
+
+  it('names the scenario, step, reason, run, HyperExecute job, PR and commit', () => {
+    const [ready] = completeSlackNotices([notice], {
+      prUrl: 'https://github.com/org/repo/pull/9',
+      commitSha: 'abc1234',
+      repositoryUrl: 'https://github.com/org/repo',
+    });
+
+    expect(renderHealSlackMessage([ready])).toBe(
+      [
+        'Repairable performance scenario: Predict Available Balance [scenario shadow]',
+        'Failed step: 2',
+        'Reason: end element testID=old did not appear',
+        'Run: https://github.com/org/repo/actions/runs/1',
+        'HyperExecute: https://hyperexecute.example/job/1',
+        'Heal PR: https://github.com/org/repo/pull/9',
+        'Commit: abc1234 (https://github.com/org/repo/commit/abc1234)',
+      ].join('\n'),
+    );
+  });
+
+  it('keeps an existing heal PR and drops a notice whose PR was never opened', () => {
+    const existing = {
+      ...notice,
+      prUrl: 'https://github.com/org/repo/pull/8',
+      commitSha: 'def5678',
+      commitUrl: 'https://github.com/org/repo/commit/def5678',
+    };
+
+    expect(completeSlackNotices([notice, existing])).toEqual([existing]);
   });
 });

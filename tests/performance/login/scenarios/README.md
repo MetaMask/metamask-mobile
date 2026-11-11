@@ -110,6 +110,14 @@ steps in `*.scenario.md`. Pins, `[if:]`, timers, thresholds, tags, Secret/App
 steps and every other file are rejected in code
 (`tests/framework/scenario-agent/heal.ts`), and the job aborts instead.
 
+When a heal PR is opened, or an open heal PR already covers the same scenario
+step, the job posts to Slack channel `#mm-qa-legends-ai-alerts`: the scenario,
+the failed step, the reason, the run, the HyperExecute job, the PR, and the
+commit. That needs an incoming-webhook secret
+`PERF_SCENARIO_HEAL_SLACK_WEBHOOK_URL` for that channel. If it is unset, the
+step warns and skips. Non-repairable failures are not posted from this job.
+A dry run prints `Would post to Slack:` and does not post.
+
 Dry run on a downloaded run (artifacts named `testmu-he-*-test-results-*`):
 
 ```bash
