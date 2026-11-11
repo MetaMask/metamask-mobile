@@ -25,8 +25,8 @@ const CARD_GAP = 8;
 interface HomeTrendingSectionProps {
   events: readonly PredictEvent[];
   isLoading: boolean;
-  /** Opens the Trending screen. */
-  onOpen: () => void;
+  /** Opens the Trending screen. Without it the header is a plain title. */
+  onOpen?: () => void;
   onOpenEvent: (event: PredictEvent) => void;
   onOrder?: (
     event: PredictEvent,
@@ -47,11 +47,12 @@ const TrendingCardSkeleton = () => (
 );
 
 /**
- * Home's Trending row: a "Trending" header that opens the Trending screen,
- * then a snap carousel of featured Event cards with pagination dots under it.
- * The row spans the screen edge to edge, so the first card starts 16pt in and
- * the next one peeks; the header keeps its own 16pt padding. Skeleton cards
- * stand in while loading, and nothing renders once loaded without an Event.
+ * Home's Trending row: a "Trending" header that opens the Trending screen
+ * when there is one, then a snap carousel of featured Event cards with
+ * pagination dots under it. The row spans the screen edge to edge, so the
+ * first card starts 16pt in and the next one peeks; the header keeps its own
+ * 16pt padding. Skeleton cards stand in while loading, and nothing renders
+ * once loaded without an Event.
  */
 export const HomeTrendingSection = ({
   events,
@@ -103,10 +104,16 @@ export const HomeTrendingSection = ({
       <SectionHeader
         testID={PredictHomeTestIds.HOME_TRENDING_HEADER}
         title={strings('predict_next.home_feed.trending')}
-        isInteractive
-        onPress={onOpen}
-        endIconProps={{ testID: PredictHomeTestIds.HOME_TRENDING_CHEVRON }}
         twClassName="py-0"
+        {...(onOpen
+          ? {
+              isInteractive: true,
+              onPress: onOpen,
+              endIconProps: {
+                testID: PredictHomeTestIds.HOME_TRENDING_CHEVRON,
+              },
+            }
+          : {})}
       />
       <Carousel<PredictEvent>
         data={data}

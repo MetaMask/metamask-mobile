@@ -85,6 +85,19 @@ describe('HomeTrendingSection', () => {
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
+  it('shows a plain header with no chevron when there is no Trending screen', () => {
+    renderSection({ onOpen: undefined });
+
+    const header = screen.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER);
+    expect(header).toHaveTextContent('Trending');
+    expect(
+      screen.queryByTestId(PredictHomeTestIds.HOME_TRENDING_CHEVRON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole('button', { name: 'Trending' }),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows a featured card per Event, in order, in a 340pt carousel', () => {
     renderSection();
 

@@ -514,16 +514,139 @@ describe('PredictHome', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('opens the Explore Trending screen from the Trending header', async () => {
+    it('opens the Trending Feed Screen from the Trending header and returns Home', async () => {
       const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      messengerCall.mockClear();
 
       fireEvent.press(
-        await view.findByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
+        view.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(
+        within(view.getByTestId(PredictFeedScreenTestIds.HEADER)).getByText(
+          'Trending',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(within(feedScreen).getByTestId(PredictFeedScreenTestIds.TABS))
+          .getAllByRole('button')
+          .map((tab) => tab.props.accessibilityLabel),
+      ).toEqual(['NFL', 'NCAAF']);
+      const list = await view.findByTestId(PredictFeedScreenTestIds.LIST);
+      expect(
+        await within(list).findByTestId(
+          PredictHomeTestIds.event('kalshi', 'nfl-1'),
+        ),
+      ).toBeOnTheScreen();
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getFeed',
+        'kalshi',
+        NFL_GAMES_FEED_ID,
+        { limit: 20 },
+      );
+      // Trending stays inside Predict: the app's Explore tab never opens.
+      expect(
+        view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.BACK));
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.HOME),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens its own Feed Screen from each of the Trending, Sports and Politics headers', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      /** Opens a Feed Screen from a Home header, checks its title, returns
+       * its tab labels, and goes back to Home. */
+      const openFeedScreenFrom = async (
+        headerTestId: string,
+        title: string,
+      ): Promise<string[]> => {
+        fireEvent.press(view.getByTestId(headerTestId));
+        const header = await view.findByTestId(PredictFeedScreenTestIds.HEADER);
+        expect(within(header).getByText(title)).toBeOnTheScreen();
+        const tabs = within(view.getByTestId(PredictFeedScreenTestIds.TABS))
+          .getAllByRole('button')
+          .map((tab) => tab.props.accessibilityLabel);
+        fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.BACK));
+        await waitFor(() =>
+          expect(
+            view.queryByTestId(PredictFeedScreenTestIds.VIEW),
+          ).not.toBeOnTheScreen(),
+        );
+        return tabs;
+      };
+
+      expect(
+        await openFeedScreenFrom(
+          PredictHomeTestIds.HOME_TRENDING_HEADER,
+          'Trending',
+        ),
+      ).toEqual(['NFL', 'NCAAF']);
+      expect(
+        await openFeedScreenFrom(
+          PredictHomeTestIds.HOME_SPORTS_HEADER,
+          'Sports',
+        ),
+      ).toEqual(['Games', 'Props']);
+      expect(
+        await openFeedScreenFrom(
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+          'Politics',
+        ),
+      ).toEqual(['Trump', 'Congress', 'Iran']);
+      expect(
+        view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the Trending header a plain title when the Venue cannot back a Trending screen', async () => {
+      // Politics only: a Game in its read fills Trending, but neither Games
+      // Feed a Trending tab needs exists.
+      configurePredictNextFeeds({
+        politics: [
+          makePredictNextGameEvent('politics-game', 'Owls', 'Hawks', 'NFL'),
+        ],
+      });
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          politics: KALSHI_STATIC_VENUE_CATALOG.feeds.politics,
+          'politics-trump': KALSHI_STATIC_VENUE_CATALOG.feeds['politics-trump'],
+        },
+        categories: ['politics'],
+      });
+      const view = renderPredictNext();
+
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.HOME_TRENDING,
+      );
+      await within(trending).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'politics-game'),
+      );
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING_CHEVRON),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByRole('button', { name: 'Trending' }),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
       );
 
       expect(
-        await view.findByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
-      ).toBeOnTheScreen();
+        view.queryByTestId(PredictFeedScreenTestIds.VIEW),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
+      ).not.toBeOnTheScreen();
     });
 
     it('opens the NFL Feed Screen from the Sports header and returns without rereading Home', async () => {

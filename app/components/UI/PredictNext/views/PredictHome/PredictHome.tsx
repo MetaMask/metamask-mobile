@@ -19,8 +19,6 @@ import { useHeaderGlassInset } from '../../../../../component-library/components
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
-import Routes from '../../../../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
@@ -32,6 +30,8 @@ import {
   FEED_SCREENS,
   NFL_FEED_SCREEN_ID,
   POLITICS_FEED_SCREEN_ID,
+  TRENDING_FEED_SCREEN_ID,
+  resolveFeedScreenTabs,
   type FeedScreenDefinition,
   type FeedScreenId,
 } from '../../navigation/feedScreens';
@@ -109,7 +109,6 @@ const PredictHomeView = ({
 }: PredictHomeViewProps) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
-  const appNavigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
@@ -225,10 +224,16 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
-  // The Trending header leaves Predict for the app's Explore tab.
+  // The Trending header opens the Trending Feed Screen, and only when the
+  // Venue supports one of its tabs.
+  const canOpenTrending = useMemo(
+    () =>
+      resolveFeedScreenTabs(TRENDING_FEED_SCREEN_ID, capabilities).length > 0,
+    [capabilities],
+  );
   const openTrending = useCallback(
-    () => appNavigation.navigate(Routes.TRENDING_VIEW),
-    [appNavigation],
+    () => openFeedScreen(TRENDING_FEED_SCREEN_ID),
+    [openFeedScreen],
   );
   const openSports = useCallback(
     () => openFeedScreen(NFL_FEED_SCREEN_ID),
@@ -382,7 +387,7 @@ const PredictHomeView = ({
           <HomeTrendingSection
             events={liveRows.trending}
             isLoading={isTrendingLoading}
-            onOpen={openTrending}
+            onOpen={canOpenTrending ? openTrending : undefined}
             onOpenEvent={openEvent}
             onOrder={canBuy ? openOrder : undefined}
             onLayout={onSectionLayout(TRENDING_ROW)}
