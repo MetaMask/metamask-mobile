@@ -61,6 +61,7 @@ export interface UseMoneyActivityItemsResult {
    * merchant enrichment land in place once the index catches up.
    */
   isSettling: boolean;
+  /** True while historical card valuations are resolving. */
   isValuationSettling: boolean;
   moneyAddress: string | undefined;
   cardEnrichmentByHash: Map<string, CardTransaction>;
@@ -81,14 +82,15 @@ const EMPTY_NEOBANK_ACTIVITY: NeobankBankTransferActivity[] = [];
 export interface UseMoneyActivityItemsOptions {
   /**
    * Keep fetching pages until `bucket` holds at least `count` safe
-   * (above-watermark) rows, the activity is exhausted, or the
-   * {@link AUTO_FILL_MAX_PAGES} budget is spent. The home preview fills the
-   * "All" bucket to its preview size; the full activity view fills the active
-   * tab's bucket to a screenful so `onEndReached` pagination can take over.
+   * (above-watermark) rows, the activity is exhausted, or `maxPages`
+   * is spent. The home preview fills the "All" bucket to its preview size;
+   * the full activity view fills the active tab's bucket to a screenful so
+   * `onEndReached` pagination can take over.
    */
   fill?: {
     bucket: MoneyActivityFilter;
     count: number;
+    /** Defaults to {@link AUTO_FILL_MAX_PAGES}. */
     maxPages?: number;
   };
 }
@@ -423,7 +425,6 @@ export function useMoneyActivityItems({
   // visible — enrichment updates land in place.
   const isSettling =
     isLoading ||
-    isValuationSettling ||
     (fillCount === 0 &&
       ((enrichmentEnabled && isEnrichmentSettling) ||
         ((completedActivityEnabled || pendingActivityEnabled) &&

@@ -10,7 +10,7 @@ export function renderMoneyActivityView({
   historicalValuationsEnabled,
 }: {
   historicalValuationsEnabled: boolean;
-}) {
+}): ReturnType<typeof renderScreenWithRoutes> {
   const state = moneyActivityViewState({ historicalValuationsEnabled });
 
   return renderScreenWithRoutes(

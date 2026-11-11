@@ -112,6 +112,7 @@ export function MoneyApiActivityDetailsView() {
   const params = useRoute<ActivityDetailsRoute>().params;
   const routeActivity = params?.activity;
   const { activity: liveActivities } = useMoneyAccountApiActivity();
+  // The route snapshot can predate a valuation that resolves while this screen is open.
   const activity =
     routeActivity &&
     liveActivities.find(

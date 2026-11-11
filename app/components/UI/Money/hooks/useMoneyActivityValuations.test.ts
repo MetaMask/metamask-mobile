@@ -251,6 +251,32 @@ describe('useMoneyActivityValuations', () => {
     );
   });
 
+  it('does not persist an ambiguous valuation that cannot resolve the row', async () => {
+    const row = activity(TX_HASH);
+    const response = valuationResponse([row]);
+    mockEngineCall.mockResolvedValue({
+      ...response,
+      results: [
+        {
+          ...response.results[0],
+          valuations: [
+            response.results[0].valuations[0],
+            {
+              ...response.results[0].valuations[0],
+              log_index: 2,
+            },
+          ],
+        },
+      ],
+    });
+    renderValuations({ pages: [[row]] });
+
+    const [query] = getQueryOptions(0);
+    await query.queryFn?.();
+
+    expect(mockWriteCache).not.toHaveBeenCalled();
+  });
+
   it('performs no requests when every target is cached', () => {
     const row = activity(TX_HASH);
     mockReadCache.mockReturnValue([cacheEntry(row)]);

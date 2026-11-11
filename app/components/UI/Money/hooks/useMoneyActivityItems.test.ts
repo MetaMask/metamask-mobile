@@ -1018,7 +1018,7 @@ describe('useMoneyActivityItems', () => {
     expect(loadMore).not.toHaveBeenCalled();
   });
 
-  it('reports settling until historical card amounts resolve', () => {
+  it('exposes valuation settling without hiding populated activity', () => {
     mockUseMoneyAccountApiActivity.mockReturnValue(
       apiResult({
         activity: [cardTx('0xa' as Hex, 200)],
@@ -1028,7 +1028,7 @@ describe('useMoneyActivityItems', () => {
 
     const { result } = renderHook(() => useMoneyActivityItems(fillAll(5)));
 
-    expect(result.current.isSettling).toBe(true);
+    expect(result.current.isSettling).toBe(false);
     expect(result.current.isValuationSettling).toBe(true);
   });
 

@@ -89,23 +89,8 @@ function isVaultShareTokenOnChain(
   );
 }
 
-/** Inbound mUSD credit to the money account — the cashback settlement leg. */
-function inboundMusdTransfer(
-  tx: AccountsApiTransaction,
-  moneyAddress: string,
-): AccountsApiValueTransfer | undefined {
-  const chainId = parseChainId(tx.chainId);
-  if (!chainId) {
-    return undefined;
-  }
-  return (tx.valueTransfers ?? []).find(
-    (vt) =>
-      areAddressesEqual(vt.to, moneyAddress) &&
-      isMusdTokenOnChain(vt.contractAddress, chainId),
-  );
-}
-
-function inboundCashbackTransfer(
+/** Inbound mUSD or configured vault-share credit to the money account. */
+function inboundSettlementTransfer(
   tx: AccountsApiTransaction,
   moneyAddress: string,
   vaultShareTokens: readonly VaultShareToken[],
@@ -237,7 +222,7 @@ export function parseAccountsApiActivity(
         }
         return [{ ...parsed, kind: 'card', paidTo: outbound.to as Hex }];
       }
-      const inbound = inboundMusdTransfer(tx, moneyAddress);
+      const inbound = inboundSettlementTransfer(tx, moneyAddress, []);
       const parsed = parseSettlement(tx, inbound);
       if (!parsed || !inbound) {
         return [];
@@ -252,7 +237,7 @@ export function parseAccountsApiActivity(
         vaultShareTokens,
       )
     ) {
-      const transfer = inboundCashbackTransfer(
+      const transfer = inboundSettlementTransfer(
         tx,
         moneyAddress,
         vaultShareTokens,
@@ -301,7 +286,7 @@ function isCashbackTransaction(
   }
   if (
     !isCashbackMultisendTarget(tx.to, cashbackMultisendContracts) ||
-    !inboundCashbackTransfer(tx, moneyAddress, vaultShareTokens)
+    !inboundSettlementTransfer(tx, moneyAddress, vaultShareTokens)
   ) {
     return false;
   }

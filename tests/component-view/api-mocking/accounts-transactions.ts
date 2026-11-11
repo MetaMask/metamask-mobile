@@ -17,7 +17,7 @@ import {
 
 const ACCOUNTS_API_ORIGIN = 'https://accounts.api.cx.metamask.io';
 const TRANSACTIONS_PATH = '/v4/multiaccount/transactions';
-const moneyTransactionsPath = (address: string) =>
+const moneyTransactionsPath = (address: string): string =>
   `/v1/accounts/${address}/transactions`;
 
 export interface MockAccountsApiTransaction {
@@ -115,6 +115,6 @@ export function clearAccountsTransactionsApiMocks(address?: string): void {
     restoreFetchPath(ACCOUNTS_API_ORIGIN, moneyTransactionsPath(address));
   }
   // Re-enable net connect so later suites in the same Jest worker are not left
-  // blocked from disableNetConnect in setup.
+  // blocked by disableNetConnect in setup.
   teardownNock();
 }

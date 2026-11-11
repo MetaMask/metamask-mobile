@@ -1,4 +1,6 @@
 import type { MoneyAccount } from '@metamask/money-account-controller';
+import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
+import type { RootState } from '../../../app/reducers';
 import ExtendedKeyringTypes from '../../../app/constants/keyringTypes';
 import { createStateFixture } from '../stateFixture';
 
@@ -46,7 +48,7 @@ export function moneyActivityViewState({
   historicalValuationsEnabled,
 }: {
   historicalValuationsEnabled: boolean;
-}) {
+}): DeepPartial<RootState> {
   const account = moneyAccount();
 
   return createStateFixture()

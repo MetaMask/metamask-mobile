@@ -211,9 +211,27 @@ export function useMoneyActivityValuations({
                     vaultAddresses: configuredVaults.map(
                       (token) => token.address,
                     ),
+                  }).filter((entry) => {
+                    const activity = page.activities.find((candidate) => {
+                      const key = cacheKeyForActivity(candidate, moneyAddress);
+                      return (
+                        key !== undefined &&
+                        getVaultShareValuationCacheIdentity(key) ===
+                          getVaultShareValuationCacheIdentity(entry)
+                      );
+                    });
+                    return (
+                      activity !== undefined &&
+                      getHistoricalVaultShareDisplayAmount(
+                        activity,
+                        entry.valuations,
+                      ) !== undefined
+                    );
                   });
-                  await writeCachedVaultShareValuations(newEntries);
-                  entries = [...entries, ...newEntries];
+                  if (newEntries.length > 0) {
+                    await writeCachedVaultShareValuations(newEntries);
+                    entries = [...entries, ...newEntries];
+                  }
                 }
               }
 
@@ -264,7 +282,7 @@ export function useMoneyActivityValuations({
         token.address,
         { chainId: numericChainId(token.chainId) },
       ],
-      queryFn: () =>
+      queryFn: (): Promise<VaultRateResponse> =>
         Engine.controllerMessenger.call(
           'MoneyAccountApiDataService:fetchVaultRate',
           token.address,
