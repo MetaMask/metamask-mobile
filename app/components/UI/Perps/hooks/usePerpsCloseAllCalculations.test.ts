@@ -346,6 +346,7 @@ describe('usePerpsCloseAllCalculations', () => {
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.totalMargin).toBe(1500);
+      expect(result.current.summaryMarginMode).toBeUndefined();
     });
 
     it('returns a winning cross position margin without its PnL', async () => {
@@ -358,6 +359,7 @@ describe('usePerpsCloseAllCalculations', () => {
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.totalMargin).toBe(1000);
+      expect(result.current.summaryMarginMode).toBe('cross');
       expect(result.current.totalPnl).toBe(500);
       expect(result.current.totalFees).toBeCloseTo(36.975);
       expect(result.current.receiveAmount).toBe(1463.02);
@@ -373,6 +375,7 @@ describe('usePerpsCloseAllCalculations', () => {
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.totalMargin).toBe(1250);
+      expect(result.current.summaryMarginMode).toBe('cross');
       expect(result.current.totalPnl).toBe(480);
       expect(result.current.totalFees).toBeCloseTo(37.874);
       expect(result.current.receiveAmount).toBeCloseTo(1712.12, 10);

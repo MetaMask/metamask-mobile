@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import {
   estimateCloseReceive,
   formatAccountToCaipAccountId,
+  type MarginMode,
   type Position,
   type FeeCalculationResult,
   type PerpsFeeSource,
@@ -66,6 +67,11 @@ export interface CloseAllCalculationsResult {
   hasError: boolean;
   /** Whether rewards should be shown (at least one position has valid rewards) */
   shouldShowRewards: boolean;
+  /**
+   * `cross` when the flag is on and any position's margin excludes its P&L,
+   * so the summary labels P&L separately. Undefined keeps "includes P&L".
+   */
+  summaryMarginMode?: MarginMode;
 }
 
 interface UsePerpsCloseAllCalculationsParams {
@@ -628,5 +634,10 @@ export function usePerpsCloseAllCalculations({
     isFetchingInBackground,
     hasError: hasCalculationError,
     shouldShowRewards: aggregatedResults.shouldShowRewards,
+    summaryMarginMode:
+      isCrossMarginEnabled &&
+      positions.some((position) => position.leverage?.type === 'cross')
+        ? 'cross'
+        : undefined,
   };
 }

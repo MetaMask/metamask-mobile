@@ -3,7 +3,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -40,7 +39,6 @@ import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -262,11 +260,6 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   );
 
   const closeCount = positions?.length ?? 0;
-  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
-  // Cross margin excludes P&L, so any cross position changes the summary label.
-  const hasCrossPosition =
-    isCrossMarginEnabled &&
-    (positions ?? []).some((position) => position.leverage?.type === 'cross');
 
   const primaryButtonProps = useMemo(
     () => ({
@@ -397,7 +390,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         ) : (
           <PerpsCloseSummary
             totalMargin={calculations.totalMargin}
-            marginMode={hasCrossPosition ? 'cross' : undefined}
+            marginMode={calculations.summaryMarginMode}
             totalPnl={calculations.totalPnl}
             totalFees={calculations.totalFees}
             originalTotalFees={calculations.originalTotalFees}
