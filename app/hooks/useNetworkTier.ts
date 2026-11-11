@@ -1,49 +1,58 @@
+import { useSyncExternalStore } from 'react';
 import { useNetInfo } from '@react-native-community/netinfo';
-import { computeNetworkTier } from '../util/deviceCapability/computeNetworkTier';
-import type { NetworkTier } from '../util/deviceCapability/types';
+import {
+  computeNetworkTier,
+  readCellularGeneration,
+} from '../util/deviceCapability/computeNetworkTier';
+import {
+  getLatencySnapshot,
+  subscribeLatency,
+} from '../util/deviceCapability/latencyStore';
+import { resolveNetworkTier } from '../util/deviceCapability/resolveNetworkTier';
+import type {
+  LatencyBucket,
+  NetworkTier,
+} from '../util/deviceCapability/types';
 
-export type { NetworkTier };
+export type { LatencyBucket, NetworkTier };
 
 export interface NetworkTierState {
+  /** Transport tier folded with measured latency. */
   tier: NetworkTier | null;
+  /** NetInfo-only tier, before the latency fold. */
+  transportTier: NetworkTier | null;
+  latency: LatencyBucket;
+  /** Describes NetInfo only. */
   isResolved: boolean;
 }
 
 /**
- * Current network tier derived from `useNetInfo()`.
- *
- * Adds no extra NetInfo listener beyond the calling component's subscription.
+ * Current network tier: the NetInfo transport tier, forced to `SLOW_CELLULAR` when
+ * measured fetch latency is `slow` on any transport other than `NONE`.
  */
 export function useNetworkTier(): NetworkTier | null {
   return useNetworkTierState().tier;
 }
 
 /**
- * Current network tier and whether NetInfo has moved past its initial unknown
- * state. A resolved `null` tier is still a valid unknown cohort, for example
- * VPN or cellular without a recognized generation.
+ * Folded tier plus its causes, and whether NetInfo has moved past its initial
+ * unknown state. A resolved `null` tier is still a valid unknown cohort, for
+ * example VPN or cellular without a recognized generation.
  */
 export function useNetworkTierState(): NetworkTierState {
   const { type, isInternetReachable, details } = useNetInfo();
-  const tier = computeNetworkTier({
+  const bucket = useSyncExternalStore(subscribeLatency, getLatencySnapshot);
+  const transportTier = computeNetworkTier({
     type,
     cellularGeneration: readCellularGeneration(details),
     isInternetReachable,
   });
+  const { tier, latency } = resolveNetworkTier(transportTier, bucket);
 
   return {
     tier,
-    isResolved: tier !== null || (type !== null && type !== 'unknown'),
+    transportTier,
+    latency,
+    isResolved: transportTier !== null || (type !== null && type !== 'unknown'),
   };
-}
-
-function readCellularGeneration(
-  details: ReturnType<typeof useNetInfo>['details'],
-): string | null {
-  if (!details || !('cellularGeneration' in details)) {
-    return null;
-  }
-
-  const { cellularGeneration } = details;
-  return typeof cellularGeneration === 'string' ? cellularGeneration : null;
 }

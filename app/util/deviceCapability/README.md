@@ -28,15 +28,21 @@ resolved but unclassified transport, use `useNetworkTierState()`:
 ```ts
 import { useNetworkTierState } from '../../hooks/useNetworkTier';
 
-const { tier, isResolved } = useNetworkTierState();
+const { tier, transportTier, latency, isResolved } = useNetworkTierState();
 ```
 
 `isResolved` is `false` only while NetInfo still reports its initial
-`unknown` state. A resolved `null` tier remains an unknown cohort.
+`unknown` state. It describes NetInfo only. A resolved `null` tier remains an unknown cohort.
 
-Maps `useNetInfo()` in the calling component. No extra NetInfo listener. Network changes, so this is a hook, not `getNetworkTier()`.
+Maps `useNetInfo()` in the calling component, then folds in measured fetch latency. Network changes, so this is a hook, not `getNetworkTier()`.
 
-These tiers are **transport / generation heuristics**, not measured network quality. `WIFI` does not guarantee a fast or unmetered link, and `4g` / `5g` ignore congestion, signal strength, and latency — do not treat `WIFI` / `FAST_CELLULAR` as proof that network-heavy work is cheap.
+**Transport tier** (`transportTier`) comes from NetInfo: 2g / 3g are `SLOW_CELLULAR`, `wifi` / `ethernet` are `WIFI`, 4g / 5g are `FAST_CELLULAR`.
+
+**Measured latency** (`latency`: `'unknown' | 'ok' | 'slow'`) comes from an in-memory window over production `global.fetch` (`app/core/NitroFetchSetup.ts`, `latencyStore.ts`). `slow` is entered when two of the newest five calls in the last 60 s pass the hardware row's `hungMs`, or when at least three calls have a median above its `slowMs`. It is left only after three good calls in a row, and never on age-out. Backgrounding then resuming, or a NetInfo transport change, resets it to `unknown`. Samples hold only `{ atMs, durationMs }` — no URL, hostname, headers, or body — and never go to Redux, Sentry, or analytics.
+
+**Fold** (`tier`): `NONE` transport stays `NONE` (latency reported `unknown`). Latency `slow` forces `SLOW_CELLULAR` on every other transport, including `WIFI`, `FAST_CELLULAR`, and `null`, on every hardware tier, in every country. Otherwise `tier` is the transport tier. A trace that needs the cause reads `transportTier` and `latency`; `latency === 'slow'` is the measured-latency trigger, since `tier === 'SLOW_CELLULAR'` also matches 2g / 3g.
+
+**Hardware tier calibrates latency only.** The JS timer includes JS-thread wait, so `getHardwareTier()` (read once when the fetch wrapper is installed; `null` uses `MID`) selects the `LATENCY_THRESHOLDS` row. It is never folded into the network tier: a slow phone on a good link stays off `SLOW_CELLULAR`.
 
 `null` means unknown — do not treat it as offline or low-end. `'NONE'` means we know there is no usable internet (`type === 'none'` or `isInternetReachable === false`). Explicit unreachability wins over `type === 'unknown'` / `null`. `vpn` / `bluetooth` / `wimax` / `other` / cellular with no generation are `null`.
 
@@ -57,6 +63,8 @@ Applies to **any screen you touch** (new or existing) that uses animation (inclu
 | **HIGH**            | Same as LOW × `NONE`                      | Still save radio (images, prefetch)    | Full experience                                     | Product default                           |
 | **`null` hardware** | Network only (`NONE` row)                 | Network only                           | Product default                                     | Product default                           |
 
+`WIFI` and `FAST_CELLULAR` are not speed. Measured latency is what can move either one to `SLOW_CELLULAR`. The remaining difference is LAN (`wifi` and `ethernet`) versus cellular radio (`4g` and `5g`). Do not derive bandwidth or a data cap from either tier.
+
 Levers: Rive vs static fallback, FlashList window / `getItemType`, poll interval, prefetch, image quality, blur/shadows.
 
 `HIGH` + `WIFI` / `FAST_CELLULAR` = ship the designed experience. `LOW` + `NONE` = local only. Do not “cut everything” because a screen feels slow.
@@ -72,16 +80,34 @@ Android bands are lower because `MemoryInfo.totalMem` reports below advertised s
 
 Do not check hardware tier on the iOS simulator — it can report the Mac’s RAM.
 
+Latency cutoffs per hardware tier (`LATENCY_THRESHOLDS`, from 90 days of production `http.client` spans on well-connected countries):
+
+| Hardware tier      | `hungMs` | `slowMs` |
+| ------------------ | -------- | -------- |
+| `HIGH`             | 8000     | 2500     |
+| `MID` (and `null`) | 15000    | 5500     |
+| `LOW`              | 30000    | 12500    |
+
+A call of about 3 s is above `slowMs` on `HIGH` only. On `MID` the median cutoff is 5.5 s, and on `LOW` it is 12.5 s. `global.fetch` records the real duration. It does not add delay. Enter `slow` with 2 samples at or above `hungMs` among the newest 5, or with at least 3 samples whose median is above `slowMs`. Leave `slow` only when the newest 3 are all at or below `slowMs`.
+
+Not sampled: `stream: true` fetches, `nitroPrefetched` cache hits, an `AbortError` under 8000 ms, fetches while the transport is `NONE`, XHR, axios, and WebSocket. A connection failure, or an `AbortError` at or above 8000 ms, records `max(elapsed, hungMs)`.
+
 ## Files
 
-| File                          | Role                          |
-| ----------------------------- | ----------------------------- |
-| `types.ts`                    | `HardwareTier`, `NetworkTier` |
-| `thresholds.ts`               | Per-platform RAM cutoffs      |
-| `computeHardwareTier.ts`      | Pure RAM → tier               |
-| `computeNetworkTier.ts`       | Pure NetInfo fields → tier    |
-| `index.ts`                    | `getHardwareTier()`           |
-| `app/hooks/useNetworkTier.ts` | Hook over `useNetInfo()`      |
+| File                                               | Role                                           |
+| -------------------------------------------------- | ---------------------------------------------- |
+| `types.ts`                                         | `HardwareTier`, `NetworkTier`, `LatencyBucket` |
+| `thresholds.ts`                                    | Per-platform RAM cutoffs, latency cutoffs      |
+| `computeHardwareTier.ts`                           | Pure RAM → tier                                |
+| `computeNetworkTier.ts`                            | Pure NetInfo fields → transport tier           |
+| `latencyThresholdsFor.ts`                          | Hardware tier → latency row                    |
+| `classifyFetchSample.ts`                           | Pure settled fetch → sample or skip            |
+| `computeLatencyBucket.ts`                          | Pure samples → `unknown` / `ok` / `slow`       |
+| `resolveNetworkTier.ts`                            | Pure transport tier + latency → folded tier    |
+| `latencyStore.ts`                                  | In-memory samples, bucket, and reset listeners |
+| `index.ts`                                         | `getHardwareTier()`                            |
+| `app/hooks/useNetworkTier.ts`                      | Hook over `useNetInfo()` and the latency store |
+| `app/components/Views/Root/LatencyDebugSquare.tsx` | `__DEV__` overlay with the latency window      |
 
 ## Out of scope (this module)
 

@@ -30,6 +30,10 @@ jest.mock('./Engine/controllers/remote-feature-flag-controller/utils', () => ({
 }));
 
 import './NitroFetchSetup';
+import {
+  clearLatencySamples,
+  getLatencyDebugSnapshot,
+} from '../util/deviceCapability/latencyStore';
 
 const mockNitroFetch = jest.mocked(nitroFetch);
 const mockPrefetchOnAppStart = jest.mocked(prefetchOnAppStart);
@@ -310,6 +314,71 @@ describe('NitroFetchSetup', () => {
         const [, passedInit] = mockNitroFetch.mock.calls[0];
         expect(passedInit?.method).toBe('POST');
         expect(passedInit?.body).toBe(JSON.stringify({ data: 'value' }));
+      });
+    });
+
+    describe('latency sampling', () => {
+      const sampleCount = () => getLatencyDebugSnapshot(Date.now()).sampleCount;
+
+      beforeEach(() => {
+        clearLatencySamples();
+      });
+
+      it('records one sample for an HTTP response', async () => {
+        mockNitroFetch.mockResolvedValueOnce(
+          new Response(null, { status: 500 }),
+        );
+
+        await global.fetch('https://example.com/api?secret=1');
+
+        expect(sampleCount()).toBe(1);
+      });
+
+      it('records a connection failure as hung and rethrows it', async () => {
+        const failure = new Error(
+          'Cronet failed: net::ERR_CONNECTION_TIMED_OUT',
+        );
+        mockNitroFetch.mockRejectedValueOnce(failure);
+
+        await expect(global.fetch('https://example.com')).rejects.toBe(failure);
+
+        const { sampleCount: count, hungCount } = getLatencyDebugSnapshot(
+          Date.now(),
+        );
+        expect(count).toBe(1);
+        expect(hungCount).toBe(1);
+      });
+
+      it('skips a short AbortError and rethrows it', async () => {
+        const abort = new Error('Aborted');
+        abort.name = 'AbortError';
+        mockNitroFetch.mockRejectedValueOnce(abort);
+
+        await expect(global.fetch('https://example.com')).rejects.toBe(abort);
+
+        expect(sampleCount()).toBe(0);
+      });
+
+      it('skips a nitroPrefetched response', async () => {
+        mockNitroFetch.mockResolvedValueOnce(
+          new Response(null, { headers: { nitroPrefetched: 'true' } }),
+        );
+
+        await global.fetch(METAMASK_STALELIST_URL);
+
+        expect(sampleCount()).toBe(0);
+      });
+
+      it('passes a stream fetch through without a sample', async () => {
+        const init = { stream: true } as RequestInit;
+
+        await global.fetch('https://example.com/stream', init);
+
+        expect(mockNitroFetch).toHaveBeenCalledWith(
+          'https://example.com/stream',
+          init,
+        );
+        expect(sampleCount()).toBe(0);
       });
     });
 

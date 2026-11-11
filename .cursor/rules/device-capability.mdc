@@ -24,6 +24,10 @@ const network = useNetworkTier(); // 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' 
 
 Keep the two values **separate**. Do not fold them into one “worst of RAM and network” flag.
 
+The network tier is the NetInfo transport tier plus measured fetch latency: latency `slow` forces `SLOW_CELLULAR` on any non-`NONE` transport (including `WIFI`, `FAST_CELLULAR`, and `null`), on any hardware tier, in any country. Hardware tier only calibrates the latency thresholds; it is never folded into the network tier. Median cutoffs are HIGH 2500 ms, MID 5500 ms, LOW 12500 ms. A call of about 3 s is slow on HIGH only. Hung cutoffs are HIGH 8000 ms, MID 15000 ms, LOW 30000 ms. Enter `slow` on two hung samples among the newest five, or on at least three samples whose median is above `slowMs`. Leave it only after three good samples in a row. For the cause, read `transportTier` and `latency` from `useNetworkTierState()` — do not invent a second tier enum. The matrix `SLOW_CELLULAR` column therefore applies on Wi-Fi and VPN too. `FAST_CELLULAR` and `WIFI` stay separate enum values and share one matrix column.
+
+`WIFI` and `FAST_CELLULAR` are not speed. Measured latency is what can move either one to `SLOW_CELLULAR`. The remaining difference is LAN (`wifi` and `ethernet`) versus cellular radio (`4g` and `5g`). Do not derive bandwidth or a data cap from either tier.
+
 `null` means unknown — never treat it as LOW, offline, or `'NONE'`. `'NONE'` is known no usable internet.
 
 ## Required
