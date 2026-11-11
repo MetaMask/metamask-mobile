@@ -6,6 +6,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useIsFocused } from '@react-navigation/native';
+import {
+  FlashList,
+  type FlashListProps,
+  type FlashListRef,
+  type ListRenderItemInfo,
+} from '@shopify/flash-list';
 import React, {
   useCallback,
   useEffect,
@@ -40,11 +46,7 @@ import {
 } from '../utils/buildSocialFeedListItems';
 import { getFeedItemId } from '../utils/feedItemId';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
-import {
-  FEED_ROW_LAYOUT_TRANSITION,
-  FEED_ROW_LAYOUT_TRANSITION_LOW,
-  createFeedItemEntryScheduler,
-} from './FeedItemEntryAnimation';
+import { createFeedItemEntryScheduler } from './FeedItemEntryAnimation';
 import { useSocialEntryModeration } from './SocialEntryOptionsBottomSheet';
 import type {
   SocialFeedInlineRow,
@@ -74,21 +76,43 @@ export const REFRESH_MIN_DURATION_MS = 1000;
 /** Skeleton rows when the device or network is constrained. */
 const CONSTRAINED_SKELETON_COUNT = 2;
 
-/** FlatList window: rows rendered up front and screens kept mounted. */
-const LIST_WINDOW = {
-  default: { initialNumToRender: 6, windowSize: 5 },
-  low: { initialNumToRender: 4, windowSize: 3 },
+/** FlashList overscan, reduced on constrained devices to cap mounted work. */
+const LIST_DRAW_DISTANCE = {
+  default: 400,
+  low: 200,
 } as const;
 
 /**
- * Rows FlatList adds per render pass. A post inserted at the top leaves the
- * row that drops out of the window with a stale measurement, and the list
- * renders one extra batch past its window until the rows are re-measured, then
- * unmounts it. One row keeps that churn to a single card per insertion.
+ * The feed explicitly owns top insertion: live rows appear at offset zero,
+ * while rows received away from the top stay behind the pending-posts pill.
+ * FlashList otherwise preserves the visible item by default, which would hide
+ * a newly revealed first row.
  */
-const MAX_TO_RENDER_PER_BATCH = 1;
+const MAINTAIN_VISIBLE_CONTENT_POSITION = { disabled: true } as const;
 
 const NO_INLINE_ROWS: readonly SocialFeedInlineRow[] = [];
+
+type SocialFeedFlashListProps = FlashListProps<SocialFeedListItem> & {
+  ref?: React.Ref<FlashListRef<SocialFeedListItem>>;
+};
+
+const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList as unknown as React.ComponentType<SocialFeedFlashListProps>,
+) as unknown as React.ComponentType<SocialFeedFlashListProps>;
+
+/** Keeps structurally different rows in separate FlashList recycling pools. */
+export const getSocialFeedListItemType = (item: SocialFeedListItem): string => {
+  switch (item.kind) {
+    case 'post':
+      return `post-${item.post.item.variant}`;
+    case 'inline':
+      return `inline-${item.row.key}`;
+    case 'placeholder':
+      return 'placeholder';
+    default:
+      return item satisfies never;
+  }
+};
 
 interface ScrollContext extends Record<string, unknown> {
   nearTop?: boolean;
@@ -119,7 +143,7 @@ const SocialFeedFirstContentTrace: React.FC<
 };
 
 /**
- * The feed as its own virtualized list, for full-screen tabs. Fetches only
+ * The feed as its own recycling list, for full-screen tabs. Fetches only
  * while focused and online, streams posts in when `realtime` is set, and
  * scales its render window and entrances to the device.
  */
@@ -160,7 +184,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const { profileId: viewerProfileId } = useSocialProfileId();
   const livePrices = useSocialLivePrices();
   const { isEntryHidden } = useSocialEntryModeration();
-  const listRef = useRef<Animated.FlatList<SocialFeedListItem>>(null);
+  const listRef = useRef<FlashListRef<SocialFeedListItem>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [clock, setClock] = useState(() => Date.now());
@@ -169,7 +193,9 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
 
   const isLowHardware = hardwareTier === 'LOW';
   const isOffline = networkTier === 'NONE';
-  const listWindow = isLowHardware ? LIST_WINDOW.low : LIST_WINDOW.default;
+  const drawDistance = isLowHardware
+    ? LIST_DRAW_DISTANCE.low
+    : LIST_DRAW_DISTANCE.default;
 
   const query = useMemo(
     (): SocialFeedQuery => ({
@@ -355,17 +381,17 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const entrances = live?.entrances;
   const lastIndex = listItems.length - 1;
   const renderItem = useCallback(
-    ({ item, index }: { item: SocialFeedListItem; index: number }) => {
+    ({ item, index }: ListRenderItemInfo<SocialFeedListItem>) => {
+      const itemKey = getSocialFeedListItemKey(item);
       const dividerTestID =
         index < lastIndex
-          ? getSocialV1FeedEntryDividerTestId(
-              `${location}-${getSocialFeedListItemKey(item)}`,
-            )
+          ? getSocialV1FeedEntryDividerTestId(`${location}-${itemKey}`)
           : undefined;
       switch (item.kind) {
         case 'post':
           return (
             <SocialFeedRow
+              key={itemKey}
               post={item.post}
               requireSocialTerms
               requireSocialProfile={requireSocialProfile}
@@ -383,13 +409,18 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
         case 'inline':
           return (
             <SocialFeedInlineRowItem
+              key={itemKey}
               row={item.row}
               dividerTestID={dividerTestID}
             />
           );
         case 'placeholder':
           return (
-            <SocialFeedPlaceholder state={state} emptyState={emptyState} />
+            <SocialFeedPlaceholder
+              key={itemKey}
+              state={state}
+              emptyState={emptyState}
+            />
           );
         default:
           return item satisfies never;
@@ -444,22 +475,17 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               performance={performance.context}
             />
           ) : null}
-          <Animated.FlatList
+          <AnimatedFlashList
             ref={listRef}
             data={listItems}
             renderItem={renderItem}
             keyExtractor={getSocialFeedListItemKey}
+            getItemType={getSocialFeedListItemType}
             style={tw.style('flex-1')}
             contentContainerStyle={tw.style('flex-grow pb-8')}
             showsVerticalScrollIndicator={false}
-            initialNumToRender={listWindow.initialNumToRender}
-            maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
-            windowSize={listWindow.windowSize}
-            itemLayoutAnimation={
-              isLowHardware
-                ? FEED_ROW_LAYOUT_TRANSITION_LOW
-                : FEED_ROW_LAYOUT_TRANSITION
-            }
+            drawDistance={drawDistance}
+            maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
             onScroll={scrollHandler}
             scrollEventThrottle={16}
             onMomentumScrollEnd={handleScrollSettled}
