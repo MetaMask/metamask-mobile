@@ -142,7 +142,7 @@ describe('MembershipBanner', () => {
       ),
     ).toHaveTextContent(
       strings('pro_hub.membership_alert.low_balance.title', {
-        date: 'Oct 12, 2026',
+        date: 'Oct 11, 2026',
       }),
       { exact: false },
     );
@@ -162,7 +162,7 @@ describe('MembershipBanner', () => {
       ),
     ).toHaveTextContent(
       strings('pro_hub.membership_alert.cancelled.description', {
-        date: 'Oct 12, 2026',
+        date: 'Oct 11, 2026',
       }),
       { exact: false },
     );
