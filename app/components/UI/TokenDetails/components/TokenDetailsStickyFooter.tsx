@@ -171,7 +171,6 @@ interface TokenStickyFooterProps {
    * container type mid-load and remounting the buttons (flicker).
    */
   reserveTraderPositionLayout?: boolean;
-  /** Reports the laid-out height of the sticky footer, including its safe-area inset. */
   onFooterLayout?: (height: number) => void;
 }
 
@@ -310,6 +309,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       },
     );
   }, [expandedDetailsProgress, isTraderPositionExpanded]);
+
+  useEffect(() => {
+    if (!showTraderPositionLayout) {
+      onFooterLayout?.(0);
+    }
+  }, [onFooterLayout, showTraderPositionLayout]);
 
   const handleExpandedDetailsLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -610,7 +615,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   ) : null;
 
   const handleFooterLayout = (event: LayoutChangeEvent) => {
-    onFooterLayout?.(event.nativeEvent.layout.height);
+    if (expandedDetailsProgress.value === 0) {
+      onFooterLayout?.(event.nativeEvent.layout.height);
+    }
   };
 
   const positionContent = traderPositionPnl ? (
@@ -809,9 +816,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       </GestureDetector>
     </BottomSheetDialog>
   ) : (
-    <View onLayout={handleFooterLayout} style={legacyFooterStyle}>
-      {footerActions}
-    </View>
+    <View style={legacyFooterStyle}>{footerActions}</View>
   );
 
   return (

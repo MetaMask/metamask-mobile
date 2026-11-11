@@ -91,7 +91,6 @@ import {
 } from './components/Skeletons';
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
-import TraderProfileCompactStats from './components/TraderProfileCompactStats';
 import TraderStatsSheet from './components/TraderStatsSheet';
 import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
@@ -452,11 +451,6 @@ const TraderProfileView = () => {
               variant="compact"
               testID={TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
             />
-          ) : undefined
-        }
-        subtitle={
-          headlineStats ? (
-            <TraderProfileCompactStats stats={headlineStats} />
           ) : undefined
         }
         onBack={handleBack}

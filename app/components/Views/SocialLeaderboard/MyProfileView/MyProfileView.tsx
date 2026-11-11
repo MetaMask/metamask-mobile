@@ -23,7 +23,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
-  useFocusEffect,
   useIsFocused,
   useNavigation,
   useRoute,
@@ -91,7 +90,6 @@ import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import { useSpotCopyTradeQuickBuy } from '../hooks/useSpotCopyTradeQuickBuy';
 import { PostTradeShareOwner } from '../PostTradeShareBottomSheet';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
-import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   useTraderBlock,
   useTraderPositions,
@@ -111,7 +109,6 @@ import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
-import MyProfileCompactStats from './components/MyProfileCompactStats';
 import MyProfilePerformanceStats from './components/MyProfilePerformanceStats';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfilePositionsTab from './components/ProfilePositionsTab';
@@ -357,7 +354,6 @@ const MyProfileView: React.FC = () => {
       if (!nextTab || nextTab === activeTab) {
         return;
       }
-      // A later layout must not scroll for a note press the user has left.
       pendingUncountedScrollRef.current = false;
       cancelPendingUncountedHeaderFocus();
       scrollContentSizeStaleRef.current = true;
@@ -371,16 +367,6 @@ const MyProfileView: React.FC = () => {
   const uncountedSectionRef = useRef<View>(null);
   const uncountedHeaderRef = useRef<View>(null);
   const postsFeedRef = useRef<SocialFeedRefreshHandle>(null);
-  useFocusEffect(
-    useCallback(() => {
-      // Every new post lands here, pinned at the top of the Posts tab.
-      if (isOwner && consumePostsTabFocus()) {
-        scrollContentSizeStaleRef.current = true;
-        setActiveTab('posts');
-        scrollRef.current?.scrollTo({ y: 0, animated: true });
-      }
-    }, [isOwner]),
-  );
   const isSocialV1 = useSelector(selectIsSocialV1Enabled);
   const networkTier = useNetworkTier();
   // Read once per mount, as SocialV1View does. Only the SocialV1 poll uses it.
@@ -807,7 +793,6 @@ const MyProfileView: React.FC = () => {
       if (nextFilter === assetFilter) {
         return;
       }
-      // A later layout must not scroll for a note press the user has left.
       pendingUncountedScrollRef.current = false;
       cancelPendingUncountedHeaderFocus();
       trackInteraction(Interaction.FILTER_APPLIED, {
@@ -946,17 +931,6 @@ const MyProfileView: React.FC = () => {
                 }
                 variant="compact"
                 testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
-              />
-            ) : undefined
-          }
-          subtitle={
-            overlayedStats && !isContentHidden ? (
-              <MyProfileCompactStats
-                winRateLabel={overlayedStats.winRateLabel}
-                isWinRatePositive={overlayedStats.isWinRatePositive}
-                pnlLabel={overlayedStats.pnlLabel}
-                hasPnl={overlayedStats.hasPnl}
-                isPnlPositive={overlayedStats.isPnlPositive}
               />
             ) : undefined
           }
