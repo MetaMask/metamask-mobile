@@ -1,5 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules -- reads the scenario next to its spec */
 import fs from 'fs';
+import path from 'path';
 import type TimerHelper from '../../../framework/TimerHelper';
 import { test } from '../../../framework/fixtures/playwright';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
@@ -9,7 +10,15 @@ import {
   requireSecretEnv,
   type AppCommand,
 } from '../../../framework/scenario-agent/scenario';
-import { ScenarioAgent } from '../../../framework/scenario-agent/ScenarioAgent';
+import {
+  ScenarioAgent,
+  type StepCache,
+} from '../../../framework/scenario-agent/ScenarioAgent';
+import {
+  buildScenarioOutcome,
+  OUTCOME_FILE_PREFIX,
+} from '../../../framework/scenario-agent/heal';
+import QualityGatesValidator from '../../../framework/quality-gates/QualityGatesValidator';
 import {
   enableHermesAppProfiling,
   skipHermesCollectionUntilRestart,
@@ -76,6 +85,15 @@ export interface ScenarioTestOptions {
 
 export { missingEnv };
 
+const REPO_ROOT = path.resolve(__dirname, '../../../..');
+/** Uploaded by HyperExecute with the performance reports. */
+const OUTCOME_DIR = path.resolve(__dirname, '../../../reporters/reports');
+
+const readCache = (cachePath: string): StepCache | null =>
+  fs.existsSync(cachePath)
+    ? (JSON.parse(fs.readFileSync(cachePath, 'utf8')) as StepCache)
+    : null;
+
 export function scenarioTest(
   scenarioPath: string,
   hints: unknown[],
@@ -121,10 +139,12 @@ export function scenarioTest(
           ? await fetchProductionFeatureFlags('main', testEnvironment)
           : null;
 
+        const cachePath = scenarioPath.replace(/\.md$/, '.cache.json');
+        const cacheBefore = readCache(cachePath);
         const result = await new ScenarioAgent({
           scenario,
           platform: currentDeviceDetails.platform,
-          cachePath: scenarioPath.replace(/\.md$/, '.cache.json'),
+          cachePath,
           tracker: performanceTracker,
           hints: vocabulary,
           runCodeCheck: async (name) => {
@@ -204,6 +224,28 @@ export function scenarioTest(
           body: JSON.stringify(result, null, 2),
           contentType: 'application/json',
         });
+        // Read by the CI heal job; gates are pre-checked here because the
+        // fixture only validates them after the test body.
+        const gates = new QualityGatesValidator().validateTimers(
+          scenario.title,
+          performanceTracker.timers,
+        );
+        const outcome = buildScenarioOutcome({
+          scenario,
+          scenarioPath: path.relative(REPO_ROOT, scenarioPath),
+          result,
+          cacheBefore,
+          cacheAfter: readCache(cachePath),
+          thresholdViolations: gates.violations.map((v) => v.message),
+        });
+        fs.mkdirSync(OUTCOME_DIR, { recursive: true });
+        fs.writeFileSync(
+          path.join(
+            OUTCOME_DIR,
+            `${OUTCOME_FILE_PREFIX}${path.basename(scenarioPath, '.scenario.md')}.json`,
+          ),
+          `${JSON.stringify(outcome, null, 2)}\n`,
+        );
         if (result.status !== 'PASS') {
           throw new Error(
             `Scenario ${result.status}: ${JSON.stringify(

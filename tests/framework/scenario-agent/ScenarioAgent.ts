@@ -151,6 +151,16 @@ export interface AgentRunResult {
   }[];
   changedSteps: number[];
   modelCalls: number;
+  /**
+   * Page source when the run failed (never a secret screen), so a failure can
+   * be judged without the device.
+   */
+  failureScreen?: string;
+  /**
+   * Step wording the model proposed because the screen no longer matches it,
+   * kept only for steps it then completed. A heal PR may apply these.
+   */
+  rewordings?: { number: number; text: string }[];
 }
 
 export interface ScenarioAgentOptions {
@@ -1236,6 +1246,7 @@ function parseReply(raw: string): {
   action: AgentAction;
   final: boolean;
   satisfied: boolean;
+  reword?: string;
 } {
   const json = raw.replace(/^[\s\S]*?(\{[\s\S]*\})[\s\S]*$/, '$1');
   const reply = JSON.parse(json) as {
@@ -1243,6 +1254,7 @@ function parseReply(raw: string): {
     type?: string;
     final?: boolean;
     satisfied?: boolean;
+    rewordStep?: unknown;
   };
   // Smaller models sometimes drop the {"action": ...} wrapper.
   const candidate = (reply.action ??
@@ -1268,10 +1280,15 @@ function parseReply(raw: string): {
   if (!action || !valid)
     throw new Error(`Model returned an unusable action: ${raw}`);
   if (action.type === 'type') delete action.method;
+  const reword =
+    typeof reply.rewordStep === 'string' && reply.rewordStep.trim()
+      ? reply.rewordStep.trim()
+      : undefined;
   return {
     action,
     final: reply.final === true,
     satisfied: reply.satisfied === true,
+    ...(reword ? { reword } : {}),
   };
 }
 
@@ -1297,6 +1314,7 @@ export class ScenarioAgent {
   private readonly log: (message: string) => void;
   private readonly cache: StepCache;
   private readonly learned: StepCache = {};
+  private readonly rewordProposals = new Map<number, string>();
   private windowOpen = false;
   private modelCalls = 0;
   private readonly result: AgentRunResult = {
@@ -1380,6 +1398,7 @@ export class ScenarioAgent {
     } catch (error) {
       this.log(`FAIL at step ${current?.number ?? 0}: ${errorMessage(error)}`);
       this.result.status = 'FAIL';
+      await this.captureFailureScreen();
       this.result.steps.push({
         number: current?.number ?? 0,
         text: current?.text ?? '',
@@ -1402,6 +1421,18 @@ export class ScenarioAgent {
     }
     this.result.modelCalls = this.modelCalls;
     return this.result;
+  }
+
+  private async captureFailureScreen(): Promise<void> {
+    if (!this.device.pageSource) return;
+    try {
+      const xml = await this.device.pageSource();
+      if (!pageSourceContainsSecrets(xml)) {
+        this.result.failureScreen = xml.slice(0, PAGE_SOURCE_LIMIT);
+      }
+    } catch {
+      // The session may be gone (crash, timeout); the error says why.
+    }
   }
 
   /** Every model call goes through here, so the timed-window rule has one guard. */
@@ -1480,6 +1511,7 @@ export class ScenarioAgent {
         '"dismissKeyboard" closes the keyboard or keypad by tapping the visible element L, which must be a non-interactive element outside the keypad (for example a label or a dismiss target). Omit L only for the system keyboard. The runner checks that the keypad is gone.',
         'An "expect" action may add "textPattern": a JavaScript regex the element text must match. Use it when the expectation is about a value (for example a positive amount: "[1-9]"), because the element itself may already be on screen before the value appears.',
         'Every step is checked by code afterwards: claiming "final" when the step has not taken effect only costs a correction.',
+        'If the step\'s wording no longer matches the screen (for example a button was renamed), you may add "rewordStep": "<the step rewritten for the current screen, same intent>" to your reply. A person reviews it; never use it to change what the step does.',
         `Page source:\n${screen.pageSource}`,
       ]
         .filter(Boolean)
@@ -1507,7 +1539,11 @@ export class ScenarioAgent {
   ): Promise<{ action: AgentAction; final: boolean; satisfied: boolean }> {
     const raw = await this.askModel(step, mode, history, note);
     try {
-      return parseReply(raw);
+      const reply = parseReply(raw);
+      if (reply.reword && reply.reword !== step.text) {
+        this.rewordProposals.set(step.number, reply.reword);
+      }
+      return reply;
     } catch (error) {
       if (!retry) throw error;
       this.log(`Step ${step.number}: unusable model reply; asking once more`);
@@ -2508,6 +2544,13 @@ export class ScenarioAgent {
     });
     // Pinned checks live in the Markdown; the cache never holds them.
     if (source === 'secret' || source === 'fixed') return;
+    const reword = this.rewordProposals.get(step.number);
+    if (source === 'agent' && reword) {
+      (this.result.rewordings ??= []).push({
+        number: step.number,
+        text: reword,
+      });
+    }
     this.learned[step.text] = actions;
     const before = this.cache[step.text];
     if (JSON.stringify(before) !== JSON.stringify(actions)) {
