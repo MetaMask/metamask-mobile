@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PositionCardStats, {
+  arePositionCardStatsPropsEqual,
   type PositionCardStatRow,
   type PositionCardStatsLayout,
 } from './PositionCardStats';
@@ -62,6 +63,30 @@ describe('PositionCardStats', () => {
     expect(
       within(screen.getByTestId('stat-cost')).getByText('\u2014'),
     ).toBeOnTheScreen();
+  });
+
+  it('skips a render when rebuilt rows show the same values', () => {
+    const copy = () => ROWS.map((row) => ({ ...row }));
+
+    const equal = arePositionCardStatsPropsEqual(
+      { rows: copy(), cardId: CARD_ID },
+      { rows: copy(), cardId: CARD_ID },
+    );
+
+    expect(equal).toBe(true);
+  });
+
+  it('renders when a value changes', () => {
+    const changed = ROWS.map((row) =>
+      row.key === 'cost' ? { ...row, value: '$1.00' } : row,
+    );
+
+    const equal = arePositionCardStatsPropsEqual(
+      { rows: ROWS, cardId: CARD_ID },
+      { rows: changed, cardId: CARD_ID },
+    );
+
+    expect(equal).toBe(false);
   });
 
   // Nothing to separate means no divider and no gap left behind it.

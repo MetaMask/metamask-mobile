@@ -20,7 +20,6 @@ import Animated, {
   useComposedEventHandler,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import useInterval from '../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialContentState } from '../../../../util/social/socialPerformance';
@@ -65,9 +64,6 @@ import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testId
 
 /** Scroll offset under which the list counts as at the top. */
 const NEAR_TOP_OFFSET_PX = 4;
-
-/** How often relative post ages ("3m ago") are recomputed. */
-const AGE_TICK_MS = 60_000;
 
 /** Hold the refresh spinner for a beat so a fast refetch does not flicker. */
 export const REFRESH_MIN_DURATION_MS = 1000;
@@ -166,8 +162,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const listRef = useRef<Animated.FlatList<SocialFeedListItem>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [clock, setClock] = useState(() => Date.now());
-  useInterval(() => setClock(Date.now()), { delay: AGE_TICK_MS });
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const isLowHardware = hardwareTier === 'LOW';
@@ -397,7 +391,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               onAuthorPress={onAuthorPress}
               onCopyTrade={onCopyTrade}
               onPositionPress={handlePositionPress}
-              now={clock}
               viewerProfileId={viewerProfileId}
             />
           );
@@ -417,7 +410,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       }
     },
     [
-      clock,
       emptyState,
       entrances,
       isLowHardware,

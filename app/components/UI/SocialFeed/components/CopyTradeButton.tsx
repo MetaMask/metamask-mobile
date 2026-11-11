@@ -42,4 +42,4 @@ const CopyTradeButton: React.FC<CopyTradeButtonProps> = ({
   );
 };
 
-export default CopyTradeButton;
+export default React.memo(CopyTradeButton);

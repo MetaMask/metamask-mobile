@@ -143,17 +143,6 @@ describe('areSocialFeedRowPropsEqual', () => {
     expect(equal).toBe(false);
   });
 
-  it('rerenders when the clock moves so relative ages stay current', () => {
-    const previous = { ...rowProps(), now: 1_000 };
-
-    const equal = areSocialFeedRowPropsEqual(previous, {
-      ...previous,
-      now: 61_000,
-    });
-
-    expect(equal).toBe(false);
-  });
-
   it('rerenders when the viewer profile ID changes', () => {
     const previous = rowProps({ viewerProfileId: 'profile-1' });
 

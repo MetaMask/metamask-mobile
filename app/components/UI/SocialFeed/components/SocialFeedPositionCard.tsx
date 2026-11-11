@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
@@ -166,6 +166,10 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
     },
   );
 
+  const handleCopyTrade = useCallback(
+    () => onCopyTrade?.(item),
+    [onCopyTrade, item],
+  );
   const mode = getPositionCardMode(item, { expanded });
 
   if (
@@ -236,7 +240,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
             <PositionCardStats rows={stats} cardId={item.id} />
             {showCopyTradeButton ? (
               <CopyTradeButton
-                onPress={onCopyTrade ? () => onCopyTrade(item) : undefined}
+                onPress={onCopyTrade ? handleCopyTrade : undefined}
                 testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
               />
             ) : null}
