@@ -718,6 +718,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       ),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   }, []);
 

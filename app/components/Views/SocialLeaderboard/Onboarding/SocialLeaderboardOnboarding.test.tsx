@@ -897,6 +897,7 @@ describe('SocialLeaderboardOnboarding', () => {
       description: "We'll send you transactions, price alerts, and updates.",
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   });
 

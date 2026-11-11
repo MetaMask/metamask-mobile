@@ -523,6 +523,7 @@ const MarketInsightsView: React.FC = () => {
       title: strings('market_insights.feedback_submitted'),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   }, []);
 
