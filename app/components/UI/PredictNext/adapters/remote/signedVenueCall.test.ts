@@ -196,21 +196,39 @@ describe('sendSigned', () => {
 });
 
 describe('sendSignedRead', () => {
-  const PROPOSAL_BODY = {
-    kind: 'sign_required',
-    request: { method: 'GET', path: '/upstream/balance', query: '?a=1' },
-    proposal: 'token-1',
+  const PROPOSED = {
+    method: 'GET',
+    path: '/upstream/balance',
+    query: 'a=1',
   };
+  const PROPOSAL_BODY = { kind: 'sign_required', request: PROPOSED };
   /** A sign_required reply, with just enough Response shape. */
-  const propose = {
-    ok: true,
-    status: 200,
-    json: async () => PROPOSAL_BODY,
-  } as unknown as Response;
-  const result = {
-    ok: true,
-    status: 200,
-  } as unknown as Response;
+  const proposing = (request = PROPOSED) =>
+    ({
+      ok: true,
+      status: 200,
+      json: async () => ({ kind: 'sign_required', request }),
+    }) as unknown as Response;
+  const propose = proposing();
+  const result = { ok: true, status: 200 } as unknown as Response;
+
+  const readAttempt = async (response: Response) => {
+    if (!response.ok) {
+      const body = (await response.json().catch(() => undefined)) as
+        | { code?: unknown }
+        | undefined;
+      return {
+        status: response.status,
+        code: typeof body?.code === 'string' ? body.code : undefined,
+      };
+    }
+    const json = (response as unknown as { json?: () => Promise<unknown> })
+      .json;
+    return {
+      status: response.status,
+      signRequired: json ? ((await json()) as typeof PROPOSAL_BODY) : null,
+    };
+  };
 
   const run = async ({
     replies,
@@ -221,110 +239,44 @@ describe('sendSignedRead', () => {
   }) => {
     const invalidate = jest.fn();
     const queue = [...replies];
-    const send = jest.fn(
-      async (deviceAuth?: { name: string }, proposal?: string) => {
-        if (deviceAuth && proposal !== 'token-1') {
-          throw new Error('unexpected proposal');
-        }
-        return queue.shift() as Response;
-      },
-    );
-    const readAttempt = async (response: Response) => {
-      if (!response.ok) {
-        const body = (await response.json().catch(() => undefined)) as
-          | { code?: unknown }
-          | undefined;
-        return {
-          status: response.status,
-          code: typeof body?.code === 'string' ? body.code : undefined,
-        };
-      }
-      return {
-        status: response.status,
-        signRequired: (
-          response as unknown as {
-            json?: () => Promise<typeof PROPOSAL_BODY>;
-          }
-        ).json
-          ? PROPOSAL_BODY
-          : null,
-      };
-    };
-    const result = await sendSignedRead(
+    const send = jest.fn(async () => queue.shift() as Response);
+    const returned = await sendSignedRead(
       { signRead, invalidateSigningSession: invalidate },
       send,
       readAttempt,
     );
-    return { result, send, signRead, invalidate };
+    return { result: returned, send, signRead, invalidate };
   };
 
-  it('proposes bearer-only, then signs and re-calls with the token', async () => {
-    const { send, signRead } = await run({
-      replies: [propose, result],
-    });
+  it('proposes bearer-only, then signs and re-calls naming the signed GET', async () => {
+    const { send, signRead } = await run({ replies: [propose, result] });
 
     expect(send).toHaveBeenCalledTimes(2);
-    expect(signRead).toHaveBeenCalledWith(PROPOSAL_BODY.request);
+    expect(send).toHaveBeenNthCalledWith(1);
+    expect(send).toHaveBeenNthCalledWith(2, HEADER, PROPOSED);
+    expect(signRead).toHaveBeenCalledWith(PROPOSED);
   });
 
   it('returns the first response when it is not a proposal', async () => {
-    const { send, signRead } = await run({
-      replies: [result],
-    });
+    const { send, signRead } = await run({ replies: [result] });
 
     expect(send).toHaveBeenCalledTimes(1);
     expect(signRead).not.toHaveBeenCalled();
   });
 
-  it('follows a chained proposal: signs each relayed read in turn', async () => {
-    // The second sign_required carries a different proposal token.
-    const chained = {
-      ok: true,
-      status: 200,
-      json: async () => ({
-        kind: 'sign_required',
-        request: { method: 'GET', path: '/upstream/positions', query: '' },
-        proposal: 'token-2',
-      }),
-    } as unknown as Response;
-    const send = jest
-      .fn()
-      .mockResolvedValueOnce(propose)
-      .mockResolvedValueOnce(chained)
-      .mockResolvedValueOnce(result);
-    const signRead = jest.fn().mockResolvedValue(HEADER);
-    const readAttempt = async (response: Response) => ({
-      status: response.status,
-      signRequired: (response as unknown as { json?: unknown }).json
-        ? ((await response.json()) as typeof PROPOSAL_BODY)
-        : null,
+  it('signs a fresh proposal once when the route now expects another GET', async () => {
+    const moved = { method: 'GET', path: '/upstream/balance', query: 'a=2' };
+    const { send, signRead } = await run({
+      replies: [propose, proposing(moved), result],
     });
 
-    const returned = await sendSignedRead(
-      { signRead, invalidateSigningSession: jest.fn() },
-      send,
-      readAttempt,
-    );
-
-    expect(returned).toBe(result);
     expect(send).toHaveBeenCalledTimes(3);
-    expect(signRead).toHaveBeenNthCalledWith(1, PROPOSAL_BODY.request);
-    expect(signRead).toHaveBeenNthCalledWith(2, {
-      method: 'GET',
-      path: '/upstream/positions',
-      query: '',
-    });
+    expect(signRead).toHaveBeenNthCalledWith(2, moved);
   });
 
-  it('stops at its proposal bound instead of looping forever', async () => {
+  it('stops after its signature bound instead of looping forever', async () => {
     const send = jest.fn().mockResolvedValue(propose);
     const signRead = jest.fn().mockResolvedValue(HEADER);
-    const readAttempt = async (response: Response) => ({
-      status: response.status,
-      signRequired: (response as unknown as { json?: unknown }).json
-        ? ((await response.json()) as typeof PROPOSAL_BODY)
-        : null,
-    });
 
     await expect(
       sendSignedRead(
@@ -333,7 +285,7 @@ describe('sendSignedRead', () => {
         readAttempt,
       ),
     ).rejects.toBeInstanceOf(VenueSigningUnavailableError);
-    expect(signRead).toHaveBeenCalledTimes(10);
+    expect(signRead).toHaveBeenCalledTimes(2);
   });
 
   it('re-proposes and signs again once when the signature expired', async () => {
@@ -342,11 +294,26 @@ describe('sendSignedRead', () => {
       status: 409,
       json: async () => ({ code: 'venue_signature_expired' }),
     } as unknown as Response;
-    const { send, signRead } = await run({
+    const { send, signRead, invalidate } = await run({
       replies: [propose, stale, propose, result],
     });
 
     expect(send).toHaveBeenCalledTimes(4);
     expect(signRead).toHaveBeenCalledTimes(2);
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+
+  it('drops the A2T and signs again once when it was rejected', async () => {
+    const invalid = {
+      ok: false,
+      status: 403,
+      json: async () => ({ code: 'venue_authorization_invalid' }),
+    } as unknown as Response;
+    const { invalidate, result: returned } = await run({
+      replies: [propose, invalid, propose, invalid],
+    });
+
+    expect(invalidate).toHaveBeenCalledTimes(1);
+    expect(returned).toBe(invalid);
   });
 });

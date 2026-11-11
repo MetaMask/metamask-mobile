@@ -10,6 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import I18n, { strings } from '../../../../../../../locales/i18n';
+import type { InvariantDisplay } from '../../../auth/signing/profileTemplates';
 import type { PredictOrderPreview } from '../../../types';
 
 import { OrderPreviewRows } from './OrderPreviewRows';
@@ -22,6 +23,10 @@ const EXPIRY_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
 
 interface OrderApprovalProps {
   preview: PredictOrderPreview;
+  /** The worst case the phone signs, from the profile's invariant. Until it
+   * is known (or when the profile refuses the quote) Approve is disabled:
+   * the user approves what is signed, not only what was quoted. */
+  display?: InvariantDisplay;
   /** Whether the Preview can no longer be committed, locally or at the venue. */
   isExpired: boolean;
   /** The sheet is stale: no approval, refresh or edit may run. */
@@ -33,13 +38,14 @@ interface OrderApprovalProps {
 
 /**
  * The explicit approval step between the quoted Order Preview and its
- * Commit: the exact quoted values — contracts, prices, fees, Total Debit,
- * and expiry — are shown verbatim for approval. Committing sends nothing
- * but the Preview reference, so nothing quoted can change here. An expired
- * Preview degrades to a re-quote affordance, never a failure.
+ * Commit: the quoted values, with the total replaced by the bound the
+ * phone signs (maximum cost for a buy, minimum proceeds for a sell), and
+ * the expiry. An expired Preview degrades to a re-quote affordance, never
+ * a failure.
  */
 export const OrderApproval = ({
   preview,
+  display,
   isExpired,
   isDisabled = false,
   onApprove,
@@ -50,7 +56,7 @@ export const OrderApproval = ({
     <Text variant={TextVariant.HeadingSm}>
       {strings('predict_next.order_approval.title')}
     </Text>
-    <OrderPreviewRows preview={preview} />
+    <OrderPreviewRows preview={preview} display={display} />
     <Text
       variant={TextVariant.BodyXs}
       color={TextColor.TextAlternative}
@@ -90,7 +96,7 @@ export const OrderApproval = ({
           size={ButtonSize.Lg}
           isFullWidth
           onPress={onApprove}
-          isDisabled={isDisabled}
+          isDisabled={isDisabled || display === undefined}
           testID={PredictOrderFlowTestIds.APPROVE}
         >
           {strings('predict_next.order_approval.approve')}

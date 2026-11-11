@@ -29,7 +29,8 @@ export interface VenuePortfolioAdapter {
     params: FetchPositionsParams,
     options?: PredictReadOptions,
   ): Promise<PredictPositionsPage>;
-  /** Totals over every holding, computed by the backend. */
+  /** Totals over every holding: the backend's holdings totals plus the
+   * Balance. */
   fetchPortfolioSummary(
     options?: PredictReadOptions,
   ): Promise<PredictPortfolioSummary>;
@@ -41,21 +42,27 @@ export interface VenuePortfolioAdapter {
 
 /** Trading is a write-adjacent capability: requests are never cached and
  * never blindly retried. Committing an approved Order Preview is the only
- * placement path; the backend is idempotent by Preview reference, so
- * repeating a Commit observes and reconciles one operation instead of
- * placing another. */
+ * placement path and is signed once; the backend is idempotent by Preview
+ * reference. Observing reads the operation's receipt and never submits. */
 export interface VenueTradingAdapter {
   previewOrder(
     params: PredictOrderPreviewParams,
     options?: PredictReadOptions,
   ): Promise<PredictOrderPreview>;
   /** Commits an approved Order Preview and returns its canonical Order
-   * Receipt. Sends the Preview reference only. `signing` is the intent the
-   * phone renders and signs. Safe to repeat for the same `previewId`, never
-   * automatic. */
+   * Receipt. Sends the `create_order` bytes the phone renders and signs
+   * from `signing`. Safe to repeat for the same `previewId`, never
+   * automatic: each call needs a signature. */
   commitOrder(
     previewId: string,
     signing: SignOperationInput,
+    options?: PredictReadOptions,
+  ): Promise<PredictOrderReceipt>;
+  /** The operation's canonical Order Receipt. Never submits; while the
+   * backend reconciles an ambiguous submission it device-signs the venue
+   * order scan. `ORDER_NOT_FOUND` when no operation exists. */
+  observeOrder(
+    previewId: string,
     options?: PredictReadOptions,
   ): Promise<PredictOrderReceipt>;
 }

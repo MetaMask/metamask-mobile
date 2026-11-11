@@ -119,6 +119,17 @@ const position = {
   },
 };
 
+/** The signed Commit POST: `/orders/{previewId}/commit`. */
+const isCommitUrl = (url: unknown): boolean =>
+  /\/orders\/[^/]+\/commit$/u.test(String(url));
+/** The receipt read that observes it: `GET /orders/{previewId}`. */
+const isObserveUrl = (url: unknown): boolean =>
+  /\/orders\/[^/]+$/u.test(String(url)) &&
+  !String(url).endsWith('/orders/preview');
+/** The Preview reference a commit or observe URL names. */
+const previewIdOf = (url: unknown): string =>
+  /\/orders\/([^/]+)(?:\/commit)?$/u.exec(String(url))?.[1] ?? '';
+
 describe('PredictNext Order Preview request', () => {
   const harnesses: ReturnType<typeof createPredictNextIntegrationHarness>[] =
     [];
@@ -219,7 +230,7 @@ describe('PredictNext Order Preview request', () => {
     harness: ReturnType<typeof createPredictNextIntegrationHarness>,
   ): unknown[] =>
     harness.fetchMock.mock.calls
-      .filter(([url]) => String(url).endsWith('/orders/commit'))
+      .filter(([url]) => isCommitUrl(url))
       .map(([, init]) => JSON.parse(String(init?.body)));
 
   /** The intent the Order sheet hands the service at approval: the amount or
@@ -439,7 +450,7 @@ describe('PredictNext Order Preview request', () => {
       if (String(url).endsWith('/orders/preview') && init?.method === 'POST') {
         return { body: sellPreviewResponse };
       }
-      if (String(url).endsWith('/orders/commit') && init?.method === 'POST') {
+      if (isCommitUrl(url) && init?.method === 'POST') {
         return { body: sellReceiptResponse };
       }
       if (String(url).endsWith('/positions')) {
@@ -510,8 +521,8 @@ describe('PredictNext Order Preview request', () => {
       status: 'filled',
       netProceeds: '30.89',
     });
-    // The device signs the venue create_order payload; those exact bytes go
-    // on the wire with the approved Preview reference merged in.
+    // The device signs the venue create_order payload; those exact bytes are
+    // the whole body. The Preview reference rides in the path.
     expect(commitBodies(harness)).toEqual([
       {
         ticker: 'KXTEST-26-A',
@@ -521,7 +532,6 @@ describe('PredictNext Order Preview request', () => {
         price: '0.4000',
         time_in_force: 'immediate_or_cancel',
         self_trade_prevention_type: 'taker_at_cross',
-        previewId: sellReceiptResponse.previewId,
       },
     ]);
 
@@ -556,7 +566,7 @@ describe('PredictNext Order Preview request', () => {
       if (String(url).endsWith('/orders/preview') && init?.method === 'POST') {
         return { body: previewResponse };
       }
-      if (String(url).endsWith('/orders/commit') && init?.method === 'POST') {
+      if (isCommitUrl(url) && init?.method === 'POST') {
         return { body: buyReceiptResponse };
       }
       if (String(url).endsWith('/balance')) {
@@ -629,7 +639,6 @@ describe('PredictNext Order Preview request', () => {
         price: '0.4651',
         time_in_force: 'immediate_or_cancel',
         self_trade_prevention_type: 'taker_at_cross',
-        previewId: buyReceiptResponse.previewId,
       },
     ]);
 
@@ -668,6 +677,7 @@ describe('PredictNext Order Preview request', () => {
 
     it('stops an observation loop without further commits or portfolio refreshes', async () => {
       let commitCalls = 0;
+      let observeCalls = 0;
       let releaseObservation: (body: unknown) => void = () => undefined;
       const harness = buildPredictNextIntegrationHarness((url) => {
         if (String(url).includes('/balance')) {
@@ -678,11 +688,12 @@ describe('PredictNext Order Preview request', () => {
         if (String(url).endsWith('/orders/preview')) {
           return { body: previewResponse };
         }
-        if (String(url).endsWith('/orders/commit')) {
+        if (isCommitUrl(url)) {
           commitCalls += 1;
-          if (commitCalls === 1) {
-            return { body: pendingReceipt };
-          }
+          return { body: pendingReceipt };
+        }
+        if (isObserveUrl(url)) {
+          observeCalls += 1;
           // The observation the test abandons: it stays open until released.
           return new Promise<{ body: unknown }>((resolve) => {
             releaseObservation = (body) => resolve({ body });
@@ -717,7 +728,7 @@ describe('PredictNext Order Preview request', () => {
         buyReceiptResponse.previewId,
         commitSigning('buy', previewResponse as never, { amount: '20.00' }),
       );
-      await until(() => commitCalls === 2);
+      await until(() => observeCalls === 1);
 
       // The platform reset replaces the Predict User while the second
       // observation is in flight.
@@ -725,11 +736,12 @@ describe('PredictNext Order Preview request', () => {
       await expect(commit).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
 
       // The observation's terminal receipt arrives after the reset: the loop
-      // sends no further Commit and refreshes no portfolio read.
+      // sends no further request and refreshes no portfolio read.
       releaseObservation(buyReceiptResponse);
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      expect(commitCalls).toBe(2);
+      expect(commitCalls).toBe(1);
+      expect(observeCalls).toBe(1);
       expect(balanceCalls()).toBe(1);
     });
   });
@@ -854,6 +866,12 @@ describe('PredictNext Order Preview request', () => {
       harness.fetchMock.mock.calls.filter(([url]) =>
         String(url).endsWith(route),
       );
+    const commitsTo = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+    ) => harness.fetchMock.mock.calls.filter(([url]) => isCommitUrl(url));
+    const observationsOf = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+    ) => harness.fetchMock.mock.calls.filter(([url]) => isObserveUrl(url));
 
     it('before the quote returns: aborts the quote and never makes its Preview approvable', async () => {
       let answerQuote: () => void = () => undefined;
@@ -880,7 +898,7 @@ describe('PredictNext Order Preview request', () => {
       await expect(
         orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId),
       ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
-      expect(callsTo(harness, '/orders/commit')).toHaveLength(0);
+      expect(commitsTo(harness)).toHaveLength(0);
       expect(resolutions).toHaveLength(0);
     });
 
@@ -899,26 +917,30 @@ describe('PredictNext Order Preview request', () => {
       await expect(
         orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId),
       ).rejects.toMatchObject({ code: 'PREVIEW_EXPIRED' });
-      expect(callsTo(harness, '/orders/commit')).toHaveLength(0);
+      expect(commitsTo(harness)).toHaveLength(0);
       expect(resolutions).toHaveLength(0);
     });
 
     it('during the Commit: keeps the original Venue and Preview, keeps observing, and notifies once', async () => {
       let commits = 0;
+      let observations = 0;
       let answerFirstCommit: () => void = () => undefined;
       const harness = buildPredictNextIntegrationHarness((url) => {
         if (String(url).endsWith('/orders/preview')) {
           return { body: freshPreview() };
         }
-        if (String(url).endsWith('/orders/commit')) {
+        if (isCommitUrl(url)) {
           commits += 1;
-          if (commits === 1) {
-            return new Promise((resolve) => {
-              answerFirstCommit = () => resolve({ body: pendingReceipt });
-            });
-          }
+          return new Promise((resolve) => {
+            answerFirstCommit = () => resolve({ body: pendingReceipt });
+          });
+        }
+        if (isObserveUrl(url)) {
+          observations += 1;
           // Still working through the bounded loop, filled afterwards.
-          return { body: commits < 6 ? pendingReceipt : buyReceiptResponse };
+          return {
+            body: observations < 5 ? pendingReceipt : buyReceiptResponse,
+          };
         }
         if (String(url).includes('/balance')) {
           return {
@@ -944,25 +966,27 @@ describe('PredictNext Order Preview request', () => {
       await expect(commit).resolves.toMatchObject({ status: 'pending' });
       await until(() => resolutions.length === 1, 5_000);
 
-      // Every request after the switch observes the same operation at the
-      // original Venue, with the original Preview and the same person.
-      const commitCalls = callsTo(harness, '/orders/commit');
-      expect(commitCalls.length).toBe(6);
-      // Every re-POST of the operation re-sends the exact signed bytes: a
-      // byte difference would break the signature's content digest.
-      const firstBody = commitCalls[0]?.[1]?.body;
-      expect(JSON.parse(String(firstBody))).toMatchObject({
+      // One signed Commit; every request after it reads the same
+      // operation at the original Venue, with the original Preview and the
+      // same person, and signs nothing.
+      const commitCalls = commitsTo(harness);
+      expect(commitCalls).toHaveLength(1);
+      expect(commitCalls[0]?.[0]).toBe(
+        `https://predict.example/v1/venues/kalshi/orders/${previewResponse.previewId}/commit`,
+      );
+      expect(JSON.parse(String(commitCalls[0]?.[1]?.body))).toMatchObject({
         ticker: 'KXTEST-26-A',
         side: 'bid',
         count: '41.00',
         price: '0.4651',
-        previewId: previewResponse.previewId,
       });
-      for (const [url, init] of commitCalls) {
+      const observeCalls = observationsOf(harness);
+      expect(observeCalls).toHaveLength(5);
+      for (const [url, init] of observeCalls) {
         expect(url).toBe(
-          'https://predict.example/v1/venues/kalshi/orders/commit',
+          `https://predict.example/v1/venues/kalshi/orders/${previewResponse.previewId}`,
         );
-        expect(init?.body).toBe(firstBody);
+        expect(init?.method).toBe('GET');
         expect(init?.headers).toMatchObject({
           Authorization: 'Bearer test-bearer-token',
         });
@@ -989,29 +1013,31 @@ describe('PredictNext Order Preview request', () => {
 
       // Nothing more is observed or notified.
       await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(callsTo(harness, '/orders/commit')).toHaveLength(6);
+      expect(commitsTo(harness)).toHaveLength(1);
+      expect(observationsOf(harness)).toHaveLength(5);
       expect(resolutions).toHaveLength(1);
     });
 
     it('with a lost response the backend received: observes it only after expiry, with the same Preview, and notifies once', async () => {
       const operations = new Set<string>();
       let commits = 0;
+      let observations = 0;
       const preview = freshPreview(500);
       const harness = buildPredictNextIntegrationHarness((url, init) => {
         if (String(url).endsWith('/orders/preview')) {
           return { body: preview };
         }
-        if (String(url).endsWith('/orders/commit')) {
+        if (isCommitUrl(url) && init?.method === 'POST') {
           commits += 1;
-          const { previewId } = JSON.parse(String(init?.body));
-          if (commits === 1) {
-            // The backend creates the operation; the response never arrives.
-            operations.add(previewId);
-            throw new TypeError('Network request failed');
-          }
-          return operations.has(previewId)
+          // The backend creates the operation; the response never arrives.
+          operations.add(previewIdOf(url));
+          throw new TypeError('Network request failed');
+        }
+        if (isObserveUrl(url)) {
+          observations += 1;
+          return operations.has(previewIdOf(url))
             ? { body: buyReceiptResponse }
-            : { status: 410, body: { code: 'preview_expired' } };
+            : { status: 404, body: { code: 'operation_not_found' } };
         }
         return { status: 404 };
       });
@@ -1028,24 +1054,18 @@ describe('PredictNext Order Preview request', () => {
       store.selectVenue('polymarket');
       await expect(commit).rejects.toMatchObject({ code: 'NETWORK_ERROR' });
 
-      // Ambiguous, not cancelled: no automatic re-POST inside the validity
-      // window, where it could have placed the Order.
+      // Ambiguous, not cancelled: nothing is read inside the validity
+      // window, where a missing operation would prove nothing.
       const expiresAt = Date.parse(preview.expiresAt);
       while (Date.now() < expiresAt) {
-        expect(commits).toBe(1);
+        expect(observations).toBe(0);
         await new Promise((resolve) => setTimeout(resolve, 20));
       }
 
       await until(() => resolutions.length === 1, 5_000);
-      expect(commits).toBe(2);
-      // The re-quote is the same signed bytes: one operation, one payload.
-      const commitBodiesSent = callsTo(harness, '/orders/commit');
-      expect(commitBodiesSent[1][1]?.body).toBe(commitBodiesSent[0][1]?.body);
-      expect(JSON.parse(String(commitBodiesSent[1][1]?.body))).toMatchObject({
-        ticker: 'KXTEST-26-A',
-        count: '41.00',
-        previewId: previewResponse.previewId,
-      });
+      // One signed Commit, then a read of the same Preview reference.
+      expect(commits).toBe(1);
+      expect(observations).toBe(1);
       expect(callsTo(harness, '/orders/preview')).toHaveLength(1);
       expect(resolutions[0]).toMatchObject({
         previewId: previewResponse.previewId,
@@ -1054,23 +1074,26 @@ describe('PredictNext Order Preview request', () => {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(commits).toBe(2);
+      expect(commits).toBe(1);
+      expect(observations).toBe(1);
       expect(resolutions).toHaveLength(1);
     });
 
     it('with a lost request the backend never received: concludes "not placed" after expiry, never a second Order', async () => {
       let commits = 0;
+      let observations = 0;
       const preview = freshPreview(500);
       const harness = buildPredictNextIntegrationHarness((url) => {
         if (String(url).endsWith('/orders/preview')) {
           return { body: preview };
         }
-        if (String(url).endsWith('/orders/commit')) {
+        if (isCommitUrl(url)) {
           commits += 1;
-          if (commits === 1) {
-            throw new TypeError('Network request failed');
-          }
-          return { status: 410, body: { code: 'preview_expired' } };
+          throw new TypeError('Network request failed');
+        }
+        if (isObserveUrl(url)) {
+          observations += 1;
+          return { status: 404, body: { code: 'operation_not_found' } };
         }
         return { status: 404 };
       });
@@ -1089,11 +1112,12 @@ describe('PredictNext Order Preview request', () => {
 
       await until(() => resolutions.length === 1, 5_000);
       expect(resolutions[0]).toMatchObject({
-        outcome: { status: 'not_placed', code: 'PREVIEW_EXPIRED' },
+        outcome: { status: 'not_placed', code: 'ORDER_NOT_FOUND' },
         presented: false,
       });
       await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(commits).toBe(2);
+      expect(commits).toBe(1);
+      expect(observations).toBe(1);
       expect(callsTo(harness, '/orders/preview')).toHaveLength(1);
     });
   });
@@ -1131,8 +1155,8 @@ describe('PredictNext Order Preview request', () => {
       ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
       await new Promise((resolve) => setTimeout(resolve, 20));
       expect(
-        harness.fetchMock.mock.calls.filter(([url]) =>
-          String(url).endsWith('/orders/commit'),
+        harness.fetchMock.mock.calls.filter(
+          ([url]) => isCommitUrl(url) || isObserveUrl(url),
         ),
       ).toHaveLength(0);
     });

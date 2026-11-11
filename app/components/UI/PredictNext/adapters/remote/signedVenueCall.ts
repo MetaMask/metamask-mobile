@@ -26,9 +26,9 @@ export interface ProposedRead {
 }
 
 /**
- * Signs one server-proposed read after the caller's L1 allowlist check.
- * Provided by the Engine. Throws `TemplateError` when the proposal is not
- * allowed; undefined means signing is unavailable.
+ * Signs one server-proposed read. Provided by the Engine, which checks the
+ * read against the profile's allowlist itself. Throws `TemplateError` when
+ * the proposal is not allowed; undefined means signing is unavailable.
  */
 export type SignRead = (
   proposed: ProposedRead,
@@ -71,10 +71,7 @@ export interface SignedAttempt {
   /** The `code` of the response body, when it has one. */
   code?: string;
   /** A `sign_required` body, parsed by the caller for `sendSignedRead`. */
-  signRequired?: {
-    request: ProposedRead;
-    proposal: string;
-  } | null;
+  signRequired?: { request: ProposedRead } | null;
 }
 
 /**
@@ -144,23 +141,26 @@ export const sendSigned = async <Response>(
 
 /**
  * Two-phase signed read (ADR-0004): `send()` first goes out bearer-only and
- * answers with a `sign_required` proposal, which the phone L1-checks and
- * signs, then re-calls the SAME route URL with the envelope and the
- * proposal token. A route whose DTO needs several upstream reads chains
- * them: every fulfilled relayed read answers with the NEXT `sign_required`
- * proposal, and the phone signs again — each proposal is L1-checked, so a
- * proposal outside the profile's allowlist is refused, and the chain is
- * bounded at `MAX_READ_PROPOSALS`. A response that says the signature or
- * the A2T is stale is proposed and signed again (without a fresh
- * confirmation) once; a second failure is the caller's error. Anything the
- * proposal flow does not describe — an error status, an unexpected body —
- * is returned as-is so the caller treats it like an ordinary response.
+ * answers with a `sign_required` proposal of the one venue GET the route
+ * needs. The phone signs that GET and re-calls the SAME route with the
+ * envelope and the signed GET's coordinates. Nothing is kept on the server
+ * between the two calls.
+ *
+ * The signed call can itself answer `sign_required` when the route now
+ * expects a different GET (its inputs moved between the calls); that fresh
+ * proposal is signed once more. A response that says the signature or the
+ * A2T is stale is proposed and signed again once. Anything the proposal
+ * flow does not describe — an error status, an unexpected body — is
+ * returned as-is so the caller treats it like an ordinary response.
  */
-const MAX_READ_PROPOSALS = 10;
+const MAX_READ_SIGNATURES = 2;
 
 export const sendSignedRead = async <Response>(
   deps: SignedReadDependencies,
-  send: (deviceAuth?: DeviceAuthHeader, proposal?: string) => Promise<Response>,
+  send: (
+    deviceAuth?: DeviceAuthHeader,
+    signed?: ProposedRead,
+  ) => Promise<Response>,
   readAttempt: (response: Response) => Promise<SignedAttempt> | SignedAttempt,
 ): Promise<Response> => {
   const sign = async (proposed: ProposedRead): Promise<DeviceAuthHeader> => {
@@ -180,64 +180,55 @@ export const sendSignedRead = async <Response>(
     return header;
   };
 
-  /** Reads one response's `sign_required` proposal, when it names one the
-   * phone can act on. */
+  /** The response's `sign_required` proposal, when it names one. */
   const describedProposal = async (
     response: Response,
-  ): Promise<{ request: ProposedRead; proposal: string } | undefined> => {
-    const described = await readAttempt(response);
-    const signRequired = described.signRequired;
-    if (typeof signRequired !== 'object' || signRequired === null) {
-      return undefined;
-    }
-    const request = signRequired.request;
-    const proposal = signRequired.proposal;
+  ): Promise<ProposedRead | undefined> => {
+    const { signRequired } = await readAttempt(response);
+    const request = signRequired?.request;
     if (
       !request ||
-      typeof request !== 'object' ||
       typeof request.method !== 'string' ||
       typeof request.path !== 'string' ||
-      typeof request.query !== 'string' ||
-      typeof proposal !== 'string' ||
-      proposal.length === 0
+      typeof request.query !== 'string'
     ) {
       return undefined;
     }
-    return { request, proposal };
+    return request;
   };
 
   const attempt = async (retried: boolean): Promise<Response> => {
-    // Phase one: the proposal GET. No header, no signature.
-    const proposed = await send();
-    const first = await describedProposal(proposed);
-    if (first === undefined) {
-      return proposed;
+    // Phase one: bearer-only. No header, no signature.
+    const first = await send();
+    let proposed = await describedProposal(first);
+    if (proposed === undefined) {
+      return first;
     }
-    // Phase two: sign each proposed upstream read and re-call. A fulfilled
-    // read may itself answer with the next `sign_required` proposal of the
-    // route's relay plan.
-    let signed = first;
-    for (let hop = 0; hop < MAX_READ_PROPOSALS; hop += 1) {
-      const response = await send(await sign(signed.request), signed.proposal);
+    for (
+      let signatures = 0;
+      signatures < MAX_READ_SIGNATURES;
+      signatures += 1
+    ) {
+      const response = await send(await sign(proposed), proposed);
       const next = await describedProposal(response);
       if (next === undefined) {
         if (retried) {
           return response;
         }
-        const retry = await readAttempt(response);
-        if (!isRenewable(retry)) {
+        const described = await readAttempt(response);
+        if (!isRenewable(described)) {
           return response;
         }
-        if (retry.code === 'venue_authorization_invalid') {
+        if (described.code === 'venue_authorization_invalid') {
           deps.invalidateSigningSession();
         }
         return attempt(true);
       }
-      signed = next;
+      proposed = next;
     }
     Logger.log(
-      'PredictNext: venue read relay exceeded its proposal bound',
-      MAX_READ_PROPOSALS,
+      'PredictNext: the route kept proposing a different venue read',
+      MAX_READ_SIGNATURES,
     );
     throw new VenueSigningUnavailableError();
   };

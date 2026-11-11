@@ -156,8 +156,13 @@ export const resetVenueProfile = (): void => {
  */
 export const VENUE_AUTHORIZATION_HEADER = 'Venue-Authorization';
 
-/** Header carrying the server's opaque proposal token on a signed read. */
-export const VENUE_PROPOSAL_HEADER = 'venue-proposal';
+/** Header naming the venue GET a signed read covers: `<path>` or
+ * `<path>?<query>`, exactly the signed `@path` and `@query` bytes. */
+export const VENUE_READ_HEADER = 'venue-read';
+
+/** The longest raw query the phone signs. predict-api proposes nothing
+ * longer. */
+export const MAX_READ_QUERY_LENGTH = 2048;
 
 /**
  * The RFC 9421 covered components for one request, from the profile's
@@ -183,12 +188,18 @@ export const coveredComponents = (
     : [...read, 'content-digest', 'content-type', 'idempotency-key'];
 };
 
+/** RFC 3986 path and query characters only: nothing that could break a
+ * line of the RFC 9421 signing base, and no fragment. */
+const URI_SAFE = /^[A-Za-z0-9\-._~!$&'()*+,;=:@/%?]*$/u;
+
 /**
  * L1 read check: the phone signs a server-proposed GET only if it matches
  * `reads.allow` — method plus a path pattern where a `{param}` segment
- * matches exactly one non-empty path segment — and the path stays within
- * `maxPathLength`. The server runs the same check before it relays, so the
- * two sides agree on what is signable.
+ * matches exactly one non-empty path segment — the path stays within
+ * `maxPathLength`, the query within `MAX_READ_QUERY_LENGTH`, and both are
+ * plain URI characters. A `{param}` segment never matches `.` or `..`.
+ * The server runs the same check before it proposes or relays, so the two
+ * sides agree on what is signable.
  */
 export const readAllowed = (
   profile: SigningProfile,
@@ -197,7 +208,17 @@ export const readAllowed = (
   if (proposed.method !== 'GET') {
     return false;
   }
-  if (proposed.path.length > profile.reads.maxPathLength) {
+  if (
+    proposed.path.length > profile.reads.maxPathLength ||
+    proposed.query.length > MAX_READ_QUERY_LENGTH ||
+    !URI_SAFE.test(proposed.path) ||
+    !URI_SAFE.test(proposed.query) ||
+    proposed.path.includes('?') ||
+    proposed.query.includes('?') ||
+    proposed.path
+      .split('/')
+      .some((segment) => segment === '.' || segment === '..')
+  ) {
     return false;
   }
   return profile.reads.allow.some((entry) => {
@@ -586,8 +607,26 @@ const validateHttpRfc9421Payload = (
   ) {
     return false;
   }
+  // Invariants are code in this build: an unknown one is refused at load,
+  // never at signing time.
+  if (
+    value.invariants !== undefined &&
+    (!Array.isArray(value.invariants) ||
+      !value.invariants.every(
+        (entry: unknown) =>
+          isRecord(entry) &&
+          typeof entry.implementation === 'string' &&
+          KNOWN_INVARIANTS.includes(entry.implementation) &&
+          (entry.params === undefined || isRecord(entry.params)),
+      ))
+  ) {
+    return false;
+  }
   return true;
 };
+
+/** The invariants this build implements (`profileTemplates.ts`). */
+const KNOWN_INVARIANTS: readonly string[] = ['binary-limit-order-v1'];
 
 const validatePayload = (value: unknown): boolean => {
   if (!isRecord(value)) {
@@ -643,7 +682,9 @@ function validateSigningProfile(value: unknown): SigningProfile | undefined {
       intent.confirm.kind !== 'per-intent' ||
       typeof intent.confirm.signLimit !== 'number' ||
       !Number.isSafeInteger(intent.confirm.signLimit) ||
-      intent.confirm.signLimit < 1
+      intent.confirm.signLimit < 1 ||
+      (intent.invariant !== undefined &&
+        !KNOWN_INVARIANTS.includes(intent.invariant as string))
     ) {
       return undefined;
     }
@@ -660,8 +701,9 @@ function validateSigningProfile(value: unknown): SigningProfile | undefined {
       return undefined;
     }
   }
-  // Reads: allow patterns and a path-length ceiling.
-  if (value.reads !== undefined) {
+  // Reads: allow patterns and a path-length ceiling. Required: every
+  // signer needs them.
+  {
     if (!isRecord(value.reads) || !Array.isArray(value.reads.allow)) {
       return undefined;
     }
@@ -683,7 +725,8 @@ function validateSigningProfile(value: unknown): SigningProfile | undefined {
     }
   }
   // Implementation: the RFC 9421 parameters this build signs under.
-  if (value.implementation !== undefined) {
+  // Required: signing is impossible without it.
+  {
     const impl = value.implementation;
     if (!isRecord(impl) || impl.id !== 'device-p256-rfc9421-v1') {
       return undefined;

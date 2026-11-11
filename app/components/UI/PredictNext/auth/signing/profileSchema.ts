@@ -52,7 +52,8 @@ export interface HttpRfc9421Payload {
   };
   /** Phone-generated id; renders to the `Idempotency-Key` header. */
   readonly idempotencyKey?: Source;
-  /** Server-checked invariants; the phone re-checks for the display. */
+  /** Cross-field checks the phone runs on the rendered body before it
+   * signs; they also produce the confirmation sheet's figures. */
   readonly invariants?: readonly {
     readonly implementation: string;
     readonly params?: Readonly<Record<string, string | number | boolean>>;
@@ -72,11 +73,9 @@ export interface Intent {
   readonly id: string;
   /** The payloads a single confirmation signs, in order. */
   readonly payloads: readonly string[];
-  /** Server-checked invariants covering the whole intent. */
-  readonly invariant?: {
-    readonly implementation: string;
-    readonly params: Readonly<Record<string, string | number | boolean>>;
-  };
+  /** The invariant the intent's payloads carry, by id. Informational: the
+   * payload's own `invariants` entry, with its params, is what runs. */
+  readonly invariant?: string;
   readonly confirm: {
     readonly kind: 'per-intent';
     /** Signatures allowed per confirmed payload body. */

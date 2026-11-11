@@ -3,6 +3,7 @@ import type {
   PredictOrderPreview,
   PredictOutcomeSide,
 } from '../../types';
+import type { TemplateInputs, TemplateValues } from './profileTemplates';
 
 /** Whole cents from a dollar amount the user typed, or undefined. */
 export const amountToCents = (amount: string): number | undefined => {
@@ -63,4 +64,74 @@ export const venueOrderValues = (
   return countText && priceText
     ? { count: countText, price: priceText }
     : undefined;
+};
+
+/** How far below the quoted average price a sell may sign its limit, in
+ * ten-thousandths of a dollar: a 10¢ slippage bound. The quote's limit is
+ * the worst bid its walk reached; a limit further below the average than
+ * this is refused rather than signed. */
+const SELL_SLIPPAGE_TEN_THOUSANDTHS = 1_000;
+
+/** The lowest outcome price a sell may sign, four decimal places: the
+ * quoted average less the slippage bound, never below the 1¢ floor. */
+const sellFloor = (averagePrice: PredictDecimal): string | undefined => {
+  const match = /^0(?:\.(\d{1,4}))?$|^1(?:\.0{1,4})?$/u.exec(averagePrice);
+  if (!match) {
+    return undefined;
+  }
+  const tenThousandths = averagePrice.startsWith('1')
+    ? 10_000
+    : Number((match[1] ?? '').padEnd(4, '0') || '0');
+  const floor = Math.max(100, tenThousandths - SELL_SLIPPAGE_TEN_THOUSANDTHS);
+  return `0.${String(floor).padStart(4, '0')}`;
+};
+
+/** What the Commit of one quoted intent signs. */
+export interface CommitSigning {
+  inputs: TemplateInputs;
+  values: TemplateValues;
+  confirmed: true;
+}
+
+/**
+ * The commit signing for a quoted Preview: the inputs pinned when it was
+ * quoted (never what is typed now) and the venue values from the quote.
+ * A sell also signs a price floor, so a limit the quote's own average does
+ * not support is refused by the invariant. Undefined when the quote cannot
+ * be signed.
+ */
+export const commitSigningFor = (
+  intent: {
+    marketId: string;
+    action: 'buy' | 'sell';
+    side: PredictOutcomeSide;
+  },
+  pinned: { idempotencyKey: string; amount?: string; contracts?: string },
+  preview: PredictOrderPreview,
+): CommitSigning | undefined => {
+  const values = venueOrderValues(intent.action, intent.side, preview);
+  if (!values) {
+    return undefined;
+  }
+  const shared = {
+    marketId: intent.marketId,
+    idempotencyKey: pinned.idempotencyKey,
+    action: intent.action,
+    outcome: intent.side,
+  };
+  if (intent.action === 'buy') {
+    const cents = amountToCents(pinned.amount ?? '');
+    return cents === undefined
+      ? undefined
+      : { inputs: { ...shared, amountCents: cents }, values, confirmed: true };
+  }
+  const floor = sellFloor(preview.averagePrice);
+  if (!pinned.contracts || !floor) {
+    return undefined;
+  }
+  return {
+    inputs: { ...shared, contracts: pinned.contracts, minOutcomePrice: floor },
+    values,
+    confirmed: true,
+  };
 };

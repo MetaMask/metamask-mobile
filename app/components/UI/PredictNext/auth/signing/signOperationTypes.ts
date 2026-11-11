@@ -34,11 +34,4 @@ export interface SignOperationInput {
    * not need it.
    */
   confirmed?: boolean;
-  /**
-   * Caller-known fields merged into the rendered body before signing, under
-   * the template's key order. Only keys the template does not render are
-   * allowed (the commit's `previewId`); a colliding key is a `TemplateError`
-   * and signs nothing.
-   */
-  bodyOverlay?: Readonly<Record<string, unknown>>;
 }

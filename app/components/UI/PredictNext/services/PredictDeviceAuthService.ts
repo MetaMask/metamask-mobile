@@ -19,6 +19,7 @@ import {
 } from '../auth/venueAuthProfiles';
 import {
   loadVenueProfile,
+  readAllowed,
   VENUE_AUTHORIZATION_HEADER,
   type SigningProfile,
 } from '../auth/venueSigningProfiles';
@@ -244,12 +245,7 @@ export class PredictDeviceAuthService {
     if (!profile) {
       return undefined;
     }
-    const requests = this.#renderIntent(
-      profile,
-      intent,
-      input,
-      input.bodyOverlay,
-    );
+    const requests = this.#renderIntent(profile, intent, input);
     return requests.find((request) => request.display !== undefined)?.display;
   }
 
@@ -276,12 +272,7 @@ export class PredictDeviceAuthService {
       return undefined;
     }
     const nowMs = this.#deps.nowMs();
-    const requests = this.#renderIntent(
-      profile,
-      intent,
-      input,
-      input.bodyOverlay,
-    );
+    const requests = this.#renderIntent(profile, intent, input);
     const { maxSignatures } = profile.implementation.params;
     if (requests.length > maxSignatures) {
       throw new TemplateError('max_signatures', intent);
@@ -346,10 +337,8 @@ export class PredictDeviceAuthService {
         maxSignatures,
       }),
     };
-    // The overlay may not collide with a rendered key, so a template with a
-    // body has exactly one signed body: the mutation this envelope covers.
-    // Its idempotency key is the signature's own `idempotency-key`
-    // component.
+    // One signed body: the mutation this envelope covers. Its idempotency
+    // key is the signature's own `idempotency-key` component.
     const mutation = requests.find(
       (request) => request.idempotencyKey !== undefined,
     );
@@ -361,10 +350,11 @@ export class PredictDeviceAuthService {
   }
 
   /**
-   * Signs one proposed read after the caller checked it against the
-   * profile's `reads.allow` (the client re-checks here as defense in
-   * depth). Returns the `Venue-Authorization` header to re-send the read
-   * with, or undefined when signing is not available.
+   * Signs one server-proposed read. This is the security boundary for
+   * reads: the GET must match the verified profile's `reads.allow`, within
+   * its size limits and in plain URI characters, or nothing is signed and
+   * a `TemplateError` is thrown. Returns the `Venue-Authorization` header
+   * to re-send the read with, or undefined when signing is not available.
    */
   async signRead(
     proposed: ProposedRead,
@@ -375,6 +365,9 @@ export class PredictDeviceAuthService {
     const profile = binding ? await loadVenueProfile() : undefined;
     if (!binding || !profile) {
       return undefined;
+    }
+    if (!readAllowed(profile, proposed)) {
+      throw new TemplateError('class', 'read not allowed by the profile');
     }
     const request: RenderedRequest = {
       name: 'proposal',
@@ -573,11 +566,10 @@ export class PredictDeviceAuthService {
     profile: SigningProfile,
     intent: string,
     input: SignOperationInput,
-    overlay: Readonly<Record<string, unknown>> | undefined,
   ): RenderedRequest[] {
     const intentRule = profile.intents.find((rule) => rule.id === intent);
     if (!intentRule) {
-      throw new TemplateError('operation', intent);
+      throw new TemplateError('intent', intent);
     }
     const context = {
       inputs: input.inputs ?? {},
@@ -587,7 +579,7 @@ export class PredictDeviceAuthService {
     return intentRule.payloads.map((payloadName) => {
       const payload = profile.payloads[payloadName];
       if (!payload) {
-        throw new TemplateError('operation', payloadName);
+        throw new TemplateError('payload', payloadName);
       }
       if (payload.kind !== 'http-rfc9421') {
         throw new TemplateError('template', payloadName);
@@ -602,7 +594,7 @@ export class PredictDeviceAuthService {
         idempotencyKey: payload.idempotencyKey,
         invariants: payload.invariants,
       };
-      return renderRequest(payloadName, template, context, overlay ?? {});
+      return renderRequest(payloadName, template, context);
     });
   }
 }

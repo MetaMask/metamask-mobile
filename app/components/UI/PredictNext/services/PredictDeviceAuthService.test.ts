@@ -433,48 +433,55 @@ describe('PredictDeviceAuthService.signOperation', () => {
     });
   });
 
-  it('merges the bodyOverlay keys AFTER the rendered keys', async () => {
+  it('signs exactly the profile payload: no field the profile does not render', async () => {
     const { service } = createService();
-    const idempotencyKey = 'a1b2c3d4-1111-4222-8333-444455556666';
 
     const signed = await service.signOperation('order.place', {
       inputs: {
         marketId: 'MKT-1',
-        idempotencyKey,
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
         action: 'buy',
         outcome: 'yes',
         amountCents: 5000,
       },
       values: { count: '10.00', price: '0.5000' },
       confirmed: true,
-      bodyOverlay: { previewId: 'preview-1' },
     });
 
-    // JSON key order is the byte order the signature covers: the caller's
-    // overlay follows the template's rendered keys.
-    expect(signed?.body?.endsWith('"previewId":"preview-1"}')).toBe(true);
+    expect(Object.keys(JSON.parse(signed?.body ?? '{}'))).toEqual([
+      'ticker',
+      'client_order_id',
+      'side',
+      'count',
+      'price',
+      'time_in_force',
+      'self_trade_prevention_type',
+    ]);
   });
 
-  it('refuses an overlay key the template also renders', async () => {
+  it.each([
+    [
+      'a path outside the allowlist',
+      '/trade-api/v2/portfolio/events/orders',
+      '',
+    ],
+    ['a dot segment', '/trade-api/v2/portfolio/orders/..', ''],
+    [
+      'a line break in the query',
+      '/trade-api/v2/portfolio/balance',
+      'a=1\nb=2',
+    ],
+    [
+      'an oversized query',
+      '/trade-api/v2/portfolio/balance',
+      'a='.padEnd(2100, 'x'),
+    ],
+  ])('refuses to sign a proposed read with %s', async (_label, path, query) => {
     const { service } = createService();
 
     await expect(
-      service.signOperation('order.place', {
-        inputs: {
-          marketId: 'MKT-1',
-          idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
-          action: 'buy',
-          outcome: 'yes',
-          amountCents: 5000,
-        },
-        values: { count: '10.00', price: '0.5000' },
-        confirmed: true,
-        bodyOverlay: { ticker: 'evil-ticker' },
-      }),
-    ).rejects.toMatchObject({
-      name: 'TemplateError',
-      rule: 'body',
-    });
+      service.signRead({ method: 'GET', path, query }),
+    ).rejects.toMatchObject({ name: 'TemplateError', rule: 'class' });
   });
 
   it('returns undefined when signing is not available', async () => {
@@ -499,7 +506,7 @@ describe('PredictDeviceAuthService.signOperation', () => {
 
     await expect(
       service.signOperation('order.cancel', {}),
-    ).rejects.toMatchObject({ name: 'TemplateError', rule: 'operation' });
+    ).rejects.toMatchObject({ name: 'TemplateError', rule: 'intent' });
   });
 
   it('keeps previewOperation rendering without an overlay', async () => {

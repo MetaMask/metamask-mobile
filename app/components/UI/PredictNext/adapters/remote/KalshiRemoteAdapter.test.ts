@@ -76,6 +76,7 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   searchEvents: jest.fn(),
   fetchOrderPreview: jest.fn(),
   commitOrder: jest.fn(),
+  observeOrder: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter', () => {
@@ -677,38 +678,51 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
-  it('parses the canonical Portfolio Summary from the Predict API', async () => {
-    const summary = {
+  it('composes the Portfolio Summary from the holdings totals and the Balance', async () => {
+    const holdings = {
       venueId: 'kalshi',
       currency: 'USD',
-      availableBalance: '50.00',
       positionsValue: '24.40',
       claimableValue: '0',
-      totalValue: '74.40',
       unrealizedPnl: '1.78',
       unrealizedPnlPercent: '7.85',
       asOf: '2026-10-23T12:00:05.120Z',
       complete: false,
     };
-    client.fetchPortfolioSummary.mockResolvedValue(summary);
+    client.fetchPortfolioSummary.mockResolvedValue(holdings);
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '50.0000',
+    });
     const signal = new AbortController().signal;
 
     const result = await adapter.portfolio.fetchPortfolioSummary({ signal });
 
-    expect(result).toEqual(summary);
+    expect(result).toEqual({
+      ...holdings,
+      availableBalance: '50.0000',
+      totalValue: '74.40',
+    });
     expect(client.fetchPortfolioSummary).toHaveBeenCalledWith(adapter.venueId, {
+      signal,
+    });
+    expect(client.fetchBalance).toHaveBeenCalledWith(adapter.venueId, {
       signal,
     });
   });
 
   it('rejects a Portfolio Summary for another Venue', async () => {
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '0',
+    });
     client.fetchPortfolioSummary.mockResolvedValue({
       venueId: 'other',
       currency: 'USD',
-      availableBalance: '0',
       positionsValue: '0',
       claimableValue: '0',
-      totalValue: '0',
       unrealizedPnl: '0',
       asOf: '2026-10-23T12:00:05.120Z',
       complete: true,
@@ -854,7 +868,12 @@ describe('KalshiRemoteAdapter', () => {
       expect(client.fetchOrderPreview).toHaveBeenCalledWith(
         adapter.venueId,
         // Version tolerance: no `action` key reaches the wire for a buy.
-        { marketId, side: 'yes', amount: '20' },
+        {
+          marketId,
+          side: 'yes',
+          amount: '20',
+          idempotencyKey: previewParams.idempotencyKey,
+        },
         undefined,
       );
     });
@@ -1042,6 +1061,35 @@ describe('KalshiRemoteAdapter', () => {
         undefined,
         SIGN_SIGNING,
       );
+    });
+
+    it('observes the operation receipt without signing a commit', async () => {
+      client.observeOrder.mockResolvedValue(receiptPayload);
+
+      const result = await adapter.trading.observeOrder(
+        receiptPayload.previewId,
+      );
+
+      expect(result.status).toBe('submitted');
+      expect(client.observeOrder).toHaveBeenCalledWith(
+        adapter.venueId,
+        { previewId: receiptPayload.previewId },
+        undefined,
+      );
+      expect(client.commitOrder).not.toHaveBeenCalled();
+    });
+
+    it('maps a missing operation to ORDER_NOT_FOUND', async () => {
+      client.observeOrder.mockRejectedValue(
+        new PredictHttpError(404, 'operation_not_found'),
+      );
+
+      await expect(
+        adapter.trading.observeOrder(receiptPayload.previewId),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.ORDER_NOT_FOUND,
+        metadata: { status: 404, bodyCode: 'operation_not_found' },
+      });
     });
 
     it('forwards Order Receipt cancellation', async () => {

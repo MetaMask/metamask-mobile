@@ -6,8 +6,7 @@ import type {
   SignedOperation,
 } from '../../auth/signing/signOperationTypes';
 import {
-  loadVenueProfile,
-  readAllowed,
+  VENUE_READ_HEADER,
   type VenueIntentName,
 } from '../../auth/venueSigningProfiles';
 import type {
@@ -89,6 +88,13 @@ export interface PredictApiReadTransport {
     options?: PredictReadOptions,
     signing?: SignOperationInput,
   ): Promise<unknown>;
+  /** The operation's receipt for an approved Preview. Device-signs the
+   * venue order scan the backend proposes while it reconciles. */
+  observeOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
 }
 
 type PredictApiReadQueryParams = FetchFeedParams &
@@ -96,7 +102,6 @@ type PredictApiReadQueryParams = FetchFeedParams &
     range?: PredictMarketHistoryRange;
     status?: string;
     sort?: FetchPositionsParams['sort'];
-    next?: string;
   };
 
 export interface PredictApiReadClientOptions {
@@ -113,8 +118,8 @@ export interface PredictApiReadClientOptions {
    */
   signOperation?: SignOperation;
   /**
-   * Signs one server-proposed read after the phone's allowlist check.
-   * Returns undefined when signing is unavailable.
+   * Signs one server-proposed read; the Engine checks it against the
+   * profile's allowlist. Returns undefined when signing is unavailable.
    */
   signRead?: SignRead;
   /** Drops the cached A2T after `venue_authorization_invalid`. */
@@ -131,9 +136,6 @@ const parseBaseUrl = (baseUrl?: string): URL | undefined => {
     return undefined;
   }
 };
-
-/** Signed calls one paged read may make, follow-up pages included. */
-const MAX_SIGNED_PAGE_CALLS = 25;
 
 export class PredictHttpError extends Error {
   readonly status: number;
@@ -203,7 +205,6 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       ['v1', 'venues', venueId, 'balance'],
       undefined,
       options,
-      (body) => body.balance !== undefined,
     );
   }
 
@@ -217,7 +218,6 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       // The route takes the status filter as a comma-separated list.
       { ...params, status: status?.length ? status.join(',') : undefined },
       options,
-      (body) => body.positions !== undefined,
     );
   }
 
@@ -229,7 +229,6 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       ['v1', 'venues', venueId, 'portfolio', 'summary'],
       undefined,
       options,
-      (body) => body.availableBalance !== undefined,
     );
   }
 
@@ -242,7 +241,6 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       ['v1', 'venues', venueId, 'activity'],
       params,
       options,
-      (body) => body.activity !== undefined,
     );
   }
 
@@ -310,9 +308,10 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   }
 
   /**
-   * Commits an approved Order Preview. The body carries the Preview
-   * reference only; `signing` is the intent the phone renders and signs.
-   * The envelope covers the exact body bytes.
+   * Commits an approved Order Preview. The Preview reference rides in the
+   * path; the body is exactly the `create_order` bytes the phone rendered
+   * and signed from `signing`, which the backend relays to the venue
+   * unchanged.
    */
   async commitOrder(
     venueId: PredictVenueId,
@@ -325,11 +324,26 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     }
     return this.#postSigned(
       'order.place',
-      ['v1', 'venues', venueId, 'orders', 'commit'],
-      params,
+      ['v1', 'venues', venueId, 'orders', params.previewId, 'commit'],
       options,
       signing,
-      { previewId: params.previewId },
+    );
+  }
+
+  /**
+   * The operation's receipt for an approved Preview: bearer-only while the
+   * outcome is known, a device-signed venue order scan while the backend
+   * reconciles an ambiguous submission. Never submits anything.
+   */
+  observeOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#getSigned(
+      ['v1', 'venues', venueId, 'orders', params.previewId],
+      undefined,
+      options,
     );
   }
 
@@ -357,56 +371,29 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   /**
    * Two-phase signed read (ADR-0004): the first GET is bearer-only; a 200
-   * `sign_required` body proposes the upstream bytes, which the phone checks
-   * against the profile's read allowlist and signs before re-calling the
-   * SAME route URL with the envelope and the proposal token. A result page
-   * may name the `next` proposal token for its follow-up; the follow-up
-   * repeats phase one with `?next=` on the same path, which runs the full
-   * allowlist check again.
-   *
-   * When the follow-up cap trips, what the read gathered so far is returned
-   * and the trailing `next` token is dropped: the UI renders the pages it
-   * has, without an error, and a later refresh continues.
+   * `sign_required` body names the one venue GET the route needs, which the
+   * Engine checks against the profile's read allowlist and signs. The phone
+   * re-calls the SAME route URL with the envelope and the signed GET's
+   * coordinates. Pagination is the route's own cursor: every page is a new
+   * read that goes through the same check.
    */
   async #getSigned(
     segments: readonly string[],
     params: PredictApiReadQueryParams | undefined,
     options: PredictReadOptions | undefined,
-    ready: (body: Record<string, unknown>) => boolean,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
-    for (let calls = 0; calls < MAX_SIGNED_PAGE_CALLS; calls += 1) {
-      const pageParams = params;
-      const response = await this.#getSignedOnce((deviceAuth, proposal) =>
-        this.#fetchRead(
-          segments,
-          pageParams,
-          options,
-          bearerToken,
-          deviceAuth,
-          proposal,
-        ),
-      );
-      const body = await this.#parseBody(response);
-      if (typeof body !== 'object' || body === null) {
-        return body;
-      }
-      const record = body as Record<string, unknown>;
-      if (ready(record)) {
-        return body;
-      }
-      // The route proposed the next page instead of answering with one.
-      if (typeof record.next !== 'string' || record.next.length === 0) {
-        return body;
-      }
-      if (calls === MAX_SIGNED_PAGE_CALLS - 1) {
-        // Cap reached: give the UI what accumulated so far. Dropping
-        // `next` marks the page list as truncated without an error.
-        const { next: _dropped, ...partial } = record;
-        return partial;
-      }
-      params = { ...params, next: record.next };
-    }
+    const response = await this.#getSignedOnce((deviceAuth, signed) =>
+      this.#fetchRead(
+        segments,
+        params,
+        options,
+        bearerToken,
+        deviceAuth,
+        signed,
+      ),
+    );
+    return this.#parseBody(response);
   }
 
   async #get(
@@ -424,14 +411,15 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     return this.#parseBody(response);
   }
 
-  /** One GET to a read route, with the envelope and proposal when signed. */
+  /** One GET to a read route, with the envelope and the signed venue GET
+   * when signed. */
   #fetchRead(
     segments: readonly string[],
     params: PredictApiReadQueryParams | undefined,
     options: PredictReadOptions | undefined,
     bearerToken: string,
     deviceAuth?: DeviceAuthHeader,
-    proposal?: string,
+    signed?: ProposedRead,
   ): Promise<Response> {
     const url = new URL(
       segments.map(encodeURIComponent).join('/'),
@@ -450,25 +438,31 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         'x-metamask-clientversion': this.#clientVersion,
         Authorization: `Bearer ${bearerToken}`,
         ...(deviceAuth ? { [deviceAuth.name]: deviceAuth.value } : {}),
-        ...(deviceAuth && proposal ? { 'venue-proposal': proposal } : {}),
+        ...(deviceAuth && signed
+          ? {
+              [VENUE_READ_HEADER]: signed.query
+                ? `${signed.path}?${signed.query}`
+                : signed.path,
+            }
+          : {}),
       },
       signal: options?.signal,
     });
   }
 
   /**
-   * The two-phase exchange of one page: send bearer-only; when the 200 body
-   * proposes bytes, L1-check them against the profile's `reads.allow`, sign,
-   * and re-call the SAME route URL with the envelope and the proposal token.
-   * A response that says the signature or the A2T is stale is proposed and
-   * signed again once; a second failure is the caller's error. Anything the
-   * proposal flow does not describe — an error status, an unexpected body —
-   * is returned as-is, and never a 4XX acts as signing control flow.
+   * The two-phase exchange of one read: send bearer-only; when the 200 body
+   * proposes a venue GET, have the Engine check and sign it, and re-call the
+   * SAME route URL with the envelope and the signed GET. A response that
+   * says the signature or the A2T is stale is proposed and signed again
+   * once; a second failure is the caller's error. Anything the proposal flow
+   * does not describe — an error status, an unexpected body — is returned
+   * as-is, and never a 4XX acts as signing control flow.
    */
   async #getSignedOnce(
     send: (
       deviceAuth?: DeviceAuthHeader,
-      proposal?: string,
+      signed?: ProposedRead,
     ) => Promise<Response>,
   ): Promise<Response> {
     const signRead = this.#signRead;
@@ -478,7 +472,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     try {
       return await sendSignedRead(
         {
-          signRead: (proposed) => this.#signProposedRead(signRead, proposed),
+          signRead,
           invalidateSigningSession: () => this.#invalidateSigningSession?.(),
         },
         send,
@@ -505,42 +499,10 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     }
   }
 
-  /**
-   * The phone's L1 check runs on the PROPOSED upstream bytes BEFORE anything
-   * is signed: a proposal outside the profile's `reads.allow` is refused,
-   * never sent.
-   */
-  async #signProposedRead(
-    signRead: SignRead,
-    proposed: ProposedRead,
-  ): Promise<DeviceAuthHeader> {
-    const profile = await loadVenueProfile();
-    if (!profile) {
-      throw new VenueSigningUnavailableError();
-    }
-    if (
-      proposed.method !== 'GET' ||
-      !readAllowed(profile, {
-        method: 'GET',
-        path: proposed.path,
-        query: proposed.query,
-      })
-    ) {
-      // A read outside the profile's `reads.allow` is refused at the class
-      // level, before anything is signed.
-      throw new VenueSigningRefusedError('class');
-    }
-    const header = await signRead(proposed);
-    if (!header) {
-      throw new VenueSigningUnavailableError();
-    }
-    return header;
-  }
-
   /** Reads a `sign_required` proposal from a 200 body, if it is one. */
   async #describeProposal(
     response: Response,
-  ): Promise<{ request: ProposedRead; proposal: string } | undefined> {
+  ): Promise<{ request: ProposedRead } | undefined> {
     let body: unknown;
     try {
       body = await response.clone().json();
@@ -555,7 +517,6 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       return undefined;
     }
     const request = record.request;
-    const proposal = record.proposal;
     if (typeof request !== 'object' || request === null) {
       return undefined;
     }
@@ -563,9 +524,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     if (
       described.method !== 'GET' ||
       typeof described.path !== 'string' ||
-      typeof described.query !== 'string' ||
-      typeof proposal !== 'string' ||
-      proposal.length === 0
+      typeof described.query !== 'string'
     ) {
       return undefined;
     }
@@ -575,7 +534,6 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         path: described.path,
         query: described.query,
       },
-      proposal,
     };
   }
 
@@ -623,18 +581,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   /**
    * One signed POST. The envelope covers the exact body bytes: the signer
-   * returns them, this sends them verbatim, and the idempotency-key header
-   * is the signature's own component. `body` carries the caller-known
-   * fields merged into the rendered body under the template's key order
-   * (the commit's `previewId`).
+   * returns them and this sends them verbatim.
    */
   async #postSigned(
     intent: VenueIntentName,
     segments: readonly string[],
-    body: FetchOrderCommitParams,
     options: PredictReadOptions | undefined,
     signing: SignOperationInput,
-    overlay?: Readonly<Record<string, unknown>>,
   ): Promise<unknown> {
     const signOperation = this.#signOperation;
     if (!signOperation) {
@@ -673,7 +626,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
           invalidateSigningSession: () => this.#invalidateSigningSession?.(),
         },
         intent,
-        { ...signing, bodyOverlay: overlay },
+        signing,
         send,
         async (response) => ({
           status: response.status,

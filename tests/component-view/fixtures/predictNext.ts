@@ -719,7 +719,6 @@ const signOperation: SignOperation = async (operation, input) => {
       values: input?.values ?? {},
       nowMs: Date.now(),
     },
-    input?.bodyOverlay,
   );
   return {
     header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },

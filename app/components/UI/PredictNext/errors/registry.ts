@@ -17,6 +17,8 @@ export enum PredictErrorCode {
   INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
   INSUFFICIENT_POSITION = 'INSUFFICIENT_POSITION',
   POSITION_UNAVAILABLE = 'POSITION_UNAVAILABLE',
+  /** No Order operation exists for the Preview (yet). */
+  ORDER_NOT_FOUND = 'ORDER_NOT_FOUND',
   /** The user has no enabled venue account yet. Onboarding resolves it. */
   VENUE_ACCOUNT_NOT_ENABLED = 'VENUE_ACCOUNT_NOT_ENABLED',
   UNKNOWN = 'UNKNOWN',
@@ -81,6 +83,11 @@ export const predictErrorRegistry: Record<
   [PredictErrorCode.SERVICE_DEGRADED]: {
     category: 'degraded',
     message: 'Prediction data may be temporarily out of date.',
+    recoverable: true,
+  },
+  [PredictErrorCode.ORDER_NOT_FOUND]: {
+    category: 'action_failed',
+    message: 'Your order was not placed.',
     recoverable: true,
   },
   [PredictErrorCode.MARKET_NOT_FOUND]: {

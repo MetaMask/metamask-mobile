@@ -1,4 +1,8 @@
-import { amountToCents, venueOrderValues } from './orderCommit';
+import {
+  amountToCents,
+  commitSigningFor,
+  venueOrderValues,
+} from './orderCommit';
 import type { PredictOrderPreview } from '../../types';
 
 describe('amountToCents', () => {
@@ -82,5 +86,63 @@ describe('venueOrderValues', () => {
         limitPrice: '1.2',
       } as unknown as PredictOrderPreview),
     ).toBeUndefined();
+  });
+});
+
+describe('commitSigningFor', () => {
+  const intent = { marketId: 'MKT-1', side: 'yes' as const };
+  const pinned = {
+    idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+    amount: '20',
+    contracts: '6',
+  };
+
+  it('signs a buy from the pinned amount and the quote', () => {
+    const preview = {
+      action: 'buy',
+      estimatedContracts: 41,
+      limitPrice: '0.4651',
+      averagePrice: '0.4600',
+    } as unknown as PredictOrderPreview;
+
+    expect(
+      commitSigningFor({ ...intent, action: 'buy' }, pinned, preview),
+    ).toEqual({
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: pinned.idempotencyKey,
+        action: 'buy',
+        outcome: 'yes',
+        amountCents: 2000,
+      },
+      values: { count: '41.00', price: '0.4651' },
+      confirmed: true,
+    });
+  });
+
+  it('signs a sell with a price floor 10¢ under the quoted average', () => {
+    const preview = {
+      action: 'sell',
+      requestedContracts: 6,
+      limitPrice: '0.3000',
+      averagePrice: '0.4500',
+    } as unknown as PredictOrderPreview;
+
+    expect(
+      commitSigningFor({ ...intent, action: 'sell' }, pinned, preview)?.inputs,
+    ).toMatchObject({ contracts: '6', minOutcomePrice: '0.3500' });
+  });
+
+  it('never floors a sell below the 1¢ venue minimum', () => {
+    const preview = {
+      action: 'sell',
+      requestedContracts: 6,
+      limitPrice: '0.0100',
+      averagePrice: '0.0500',
+    } as unknown as PredictOrderPreview;
+
+    expect(
+      commitSigningFor({ ...intent, action: 'sell' }, pinned, preview)?.inputs,
+    ).toMatchObject({ minOutcomePrice: '0.0100' });
   });
 });

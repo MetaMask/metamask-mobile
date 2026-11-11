@@ -1,7 +1,7 @@
 import {
+  composePredictPortfolioSummary,
   parsePredictActivityPage,
   parsePredictBalance,
-  parsePredictPortfolioSummary,
   parsePredictPositionsPage,
 } from '../../contracts/v1/portfolio';
 import {
@@ -30,9 +30,10 @@ import {
   PredictRequestNotSentError,
 } from './PredictApiReadClient';
 
-/** Backend canonical trading error codes (preview and commit) → client
- * error codes. */
+/** Backend canonical trading error codes (preview, commit and observe) →
+ * client error codes. */
 const TRADING_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
+  operation_not_found: PredictErrorCode.ORDER_NOT_FOUND,
   market_not_found: PredictErrorCode.MARKET_NOT_FOUND,
   market_not_tradeable: PredictErrorCode.MARKET_NOT_TRADEABLE,
   quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
@@ -208,8 +209,7 @@ export class KalshiRemoteAdapter {
           return mapTradingError(error);
         }
       },
-      // One network attempt per invocation; observation and reconciliation
-      // re-commit deliberately, never automatically.
+      // One signed submission per invocation; observation is observeOrder.
       commitOrder: async (previewId, signing, options) => {
         try {
           const value = await client.commitOrder(
@@ -217,6 +217,25 @@ export class KalshiRemoteAdapter {
             { previewId },
             options,
             signing,
+          );
+          const result = parsePredictOrderReceipt(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.previewId !== previewId
+          ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapTradingError(error);
+        }
+      },
+      observeOrder: async (previewId, options) => {
+        try {
+          const value = await client.observeOrder(
+            this.venueId,
+            { previewId },
+            options,
           );
           const result = parsePredictOrderReceipt(value);
           if (
@@ -266,13 +285,19 @@ export class KalshiRemoteAdapter {
           return mapError(error);
         }
       },
+      // The backend serves the holdings totals; the available balance is
+      // the Balance route's value, so each route reads one venue page.
       fetchPortfolioSummary: async (options) => {
         try {
-          const value = await client.fetchPortfolioSummary(
-            this.venueId,
-            options,
-          );
-          const result = parsePredictPortfolioSummary(value);
+          const [holdings, balanceValue] = await Promise.all([
+            client.fetchPortfolioSummary(this.venueId, options),
+            client.fetchBalance(this.venueId, options),
+          ]);
+          const balance = parsePredictBalance(balanceValue);
+          if (balance.venueId !== this.venueId) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          const result = composePredictPortfolioSummary(holdings, balance);
           if (result.venueId !== this.venueId) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }

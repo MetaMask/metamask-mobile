@@ -10,11 +10,11 @@
  * the network; callers find the payload in the verified profile document and
  * adapt it to a `RequestTemplate`.
  *
- * The phone checks invariants on the rendered body text and returns the
- * figures for its confirmation sheet; predict-api checks the same invariants
- * on the body object and returns nothing. The phone also enforces the
- * envelope bound (`max_signatures`) itself, and predict-api enforces it when
- * it verifies the envelope.
+ * The phone checks invariants on the rendered body text before it signs and
+ * returns the figures for its confirmation sheet. predict-api renders
+ * nothing: it field-checks the signed bytes against its stored quote. The
+ * phone also enforces the envelope bound (`max_signatures`) itself, and
+ * predict-api enforces it when it verifies the envelope.
  */
 
 export type Scalar = string | number | boolean;
@@ -127,8 +127,8 @@ export interface InvariantDisplay {
 }
 
 export type TemplateRule =
-  | 'operation'
-  | 'step'
+  | 'intent'
+  | 'payload'
   | 'class'
   | 'template'
   | 'input'
@@ -433,16 +433,11 @@ const INTEGER_LIKE_KEY = /^(0|[1-9]\d*)$/u;
 const renderBody = (
   template: RequestTemplate,
   context: RenderContext,
-  overlay: Readonly<Record<string, unknown>> = {},
 ): string => {
   if (template.body === undefined || template.body === 'empty') {
-    if (Object.keys(overlay).length > 0) {
-      throw new TemplateError('body', 'overlay on a bodyless request');
-    }
     return '';
   }
   const object: Record<string, unknown> = Object.create(null);
-  const overlayKeys = new Set(Object.keys(overlay));
   for (const field of template.body.json) {
     // JSON.stringify writes integer-like keys first, whatever their order in
     // the template, which would break the template's key order.
@@ -452,15 +447,7 @@ const renderBody = (
     if (has(object, field.key)) {
       throw new TemplateError('body', `duplicate key ${field.key}`);
     }
-    if (overlayKeys.has(field.key)) {
-      // An overlay key the template also renders would silently override a
-      // signed field: refused, never merged.
-      throw new TemplateError('body', `overlay key ${field.key}`);
-    }
     object[field.key] = resolve(field.value, context);
-  }
-  for (const key of Object.keys(overlay)) {
-    object[key] = overlay[key];
   }
   const text = JSON.stringify(object);
   if (new TextEncoder().encode(text).length > template.body.maxBytes) {
@@ -634,7 +621,6 @@ export const renderRequest = (
   name: string,
   template: RequestTemplate,
   context: RenderContext,
-  overlay: Readonly<Record<string, unknown>> = {},
 ): RenderedRequest => {
   const base = {
     name,
@@ -649,9 +635,6 @@ export const renderRequest = (
     }
     if (template.method !== 'GET') {
       throw new TemplateError('template', `${name} is a read that is not GET`);
-    }
-    if (Object.keys(overlay).length > 0) {
-      throw new TemplateError('body', 'overlay on a read');
     }
     return { ...base, body: '' };
   }
@@ -673,7 +656,7 @@ export const renderRequest = (
   if (typeof key !== 'string' || key.length === 0 || key.length > 128) {
     throw new TemplateError('idempotency_key', name);
   }
-  const body = renderBody(template, context, overlay);
+  const body = renderBody(template, context);
   return {
     ...base,
     body,

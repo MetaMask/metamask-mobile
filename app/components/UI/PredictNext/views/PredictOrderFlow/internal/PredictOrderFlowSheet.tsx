@@ -50,7 +50,6 @@ import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 import {
   isPreviewExpired,
-  type PredictOrderCommitSigning,
   type PredictOrderResolution,
   type PredictOrderService,
 } from '../../../services/PredictOrderService';
@@ -64,11 +63,9 @@ import { OrderQuickContracts } from './OrderQuickContracts';
 import { OrderPreviewRows } from './OrderPreviewRows';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
 import { OrderSummaryRows } from './OrderSummaryRows';
-import {
-  amountToCents,
-  venueOrderValues,
-} from '../../../auth/signing/orderCommit';
-import type { TemplateInputs } from '../../../auth/signing/profileTemplates';
+import { commitSigningFor } from '../../../auth/signing/orderCommit';
+import type { InvariantDisplay } from '../../../auth/signing/profileTemplates';
+import { previewOperation } from '../../../auth/previewOperation';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 const QUOTE_DEBOUNCE_MS = 500;
@@ -437,6 +434,41 @@ export const PredictOrderFlowSheet = ({
     setQuoteNonce((nonce) => nonce + 1);
   }, [isStale, releasePresentation]);
 
+  /** What the Commit of this Preview signs: the quoted inputs pinned at
+   * quote time plus the venue values from the quote. Undefined when the
+   * quote cannot be signed. */
+  const signing = useMemo(
+    () =>
+      preview && quoteSigning
+        ? commitSigningFor(intent, quoteSigning, preview)
+        : undefined,
+    [intent, preview, quoteSigning],
+  );
+
+  /** The worst case the phone would sign, from the profile's invariant: the
+   * figures the approval shows. Undefined while it is computed or when the
+   * profile refuses the order, which keeps Confirm disabled. */
+  const [signedDisplay, setSignedDisplay] = useState<InvariantDisplay>();
+  useEffect(() => {
+    setSignedDisplay(undefined);
+    if (!signing) {
+      return undefined;
+    }
+    let current = true;
+    previewOperation('order.place', signing)
+      .then((display) => {
+        if (current) {
+          setSignedDisplay(display);
+        }
+      })
+      .catch((error: unknown) => {
+        Logger.log('PredictNext: the signing profile refused the quote', error);
+      });
+    return () => {
+      current = false;
+    };
+  }, [signing]);
+
   const handleReview = useCallback(() => {
     if (!canReview) {
       return;
@@ -454,58 +486,13 @@ export const PredictOrderFlowSheet = ({
     if (phase !== 'approval' || !preview || isStale) {
       return;
     }
-    if (!quoteSigning) {
-      // The quote that produced this Preview pinned a signing snapshot;
-      // without it there is nothing the phone can sign.
+    if (!signing || !signedDisplay) {
+      // Nothing the phone checked can be signed: Confirm stays disabled,
+      // and this is the same refusal if it is reached anyway.
       setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
       setPhase('approval');
       return;
     }
-    const signingInputs: TemplateInputs | undefined =
-      intent.action === 'buy'
-        ? (() => {
-            const cents = amountToCents(quoteSigning.amount ?? '');
-            if (cents === undefined) {
-              // The pinned amount no longer parses: nothing safe to sign.
-              return undefined;
-            }
-            return {
-              marketId: intent.marketId,
-              idempotencyKey: quoteSigning.idempotencyKey,
-              action: intent.action,
-              outcome: intent.side,
-              amountCents: cents,
-            };
-          })()
-        : {
-            marketId: intent.marketId,
-            idempotencyKey: quoteSigning.idempotencyKey,
-            action: intent.action,
-            outcome: intent.side,
-            contracts: quoteSigning.contracts ?? '',
-          };
-    if (!signingInputs) {
-      setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
-      setPhase('approval');
-      return;
-    }
-    // The template's `value` sources validate but do not normalize: the
-    // wire contract is count at 2 and price at 4 decimal places, both from
-    // the quoted Preview — a buy Preview carries no `count`/`price` wire
-    // fields, so the signed figures come from its quote columns.
-    const values = venueOrderValues(intent.action, intent.side, preview);
-    if (!values) {
-      // The preview lacks the figures the venue order needs: nothing safe
-      // to sign. Same surface as an unparseable pinned amount.
-      setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
-      setPhase('approval');
-      return;
-    }
-    const signing: PredictOrderCommitSigning = {
-      inputs: signingInputs,
-      values,
-      confirmed: true,
-    };
     setCommitError(null);
     setPhase('submitting');
     if (!releasePresentationRef.current) {
@@ -548,22 +535,24 @@ export const PredictOrderFlowSheet = ({
     }
   }, [
     handleResolution,
-    intent,
+    intent.venueId,
     isStale,
     phase,
     preview,
-    quoteSigning,
     service,
+    signedDisplay,
+    signing,
   ]);
 
-  /** Observes an unresolved receipt by committing the same Preview again —
-   * idempotent by Preview reference, so it never places a second Order. */
+  /** Observes an unresolved receipt by reading it again; observing never
+   * submits and never signs a Commit. */
   const handleKeepChecking = useCallback(async () => {
     if (!receipt || isStale) {
       return;
     }
     setIsRechecking(true);
     try {
+      // The operation is already committed: this reads its receipt.
       setReceipt(
         await service.commitPreview(intent.venueId, receipt.previewId),
       );
@@ -916,6 +905,7 @@ export const PredictOrderFlowSheet = ({
                   {isStale ? statusMessage : null}
                   <OrderApproval
                     preview={preview}
+                    display={signedDisplay}
                     isExpired={approvalExpired}
                     isDisabled={isStale}
                     onApprove={handleCommit}

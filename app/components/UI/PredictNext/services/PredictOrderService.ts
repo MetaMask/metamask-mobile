@@ -23,7 +23,7 @@ import { withPredictNextTrace } from './withPredictNextTrace';
 export const PREDICT_ORDER_SERVICE_NAME = 'PredictOrderService' as const;
 
 /** Receipt statuses in which the backend has accepted the Commit and is
- * still working; they are observed by committing the same Preview again. */
+ * still working; they are observed by reading the operation's receipt. */
 const IN_PROGRESS_RECEIPT_STATUSES: readonly PredictOrderReceiptStatus[] = [
   'pending',
   'submitted',
@@ -38,11 +38,12 @@ const TERMINAL_RECEIPT_STATUSES: readonly PredictOrderReceiptStatus[] = [
   'needs_manual_review',
 ];
 
-/** How many re-POSTs observe one in-flight Commit before handing control
- * back to the caller. The backend's own Commit is fast, so this stays small. */
+/** How many receipt reads observe one in-flight Commit before handing
+ * control back to the caller. The backend's own Commit is fast, so this
+ * stays small. */
 const MAX_COMMIT_OBSERVATIONS = 3;
 
-/** How long to wait between observation re-POSTs, in milliseconds. */
+/** How long to wait between observation reads, in milliseconds. */
 const COMMIT_OBSERVATION_DELAY_MS = 500;
 
 /** Delays between the background observations of an unresolved operation,
@@ -56,17 +57,17 @@ const BACKGROUND_OBSERVATION_DELAYS_MS: readonly number[] = [
  * Positions and Activity reads. */
 const BACKGROUND_OBSERVATION_WINDOW_MS = 5 * 60_000;
 
-/** Most background observations of one operation. Each one is a signed
- * Commit call, so this bounds re-signing even if the window is never hit. */
+/** Most background observations of one operation, even if the window is
+ * never hit. One may sign a venue order scan while the backend reconciles. */
 const MAX_BACKGROUND_OBSERVATIONS = 12;
 
 /**
- * How long after a Preview's expiry the background waits before it re-POSTs
- * a Commit that never returned a Receipt. The backend looks up an existing
- * operation before it checks expiry, so a re-POST sent after expiry can only
- * observe an operation, never create one. The grace covers a first request
- * that the backend was still revalidating at the expiry instant, plus modest
- * clock skew.
+ * How long after a Preview's expiry the background waits before it reads a
+ * Commit that never returned a Receipt. A Commit sent before expiry may
+ * still create the operation until then, so only a read after the grace
+ * that finds no operation proves none exists. The grace covers a first
+ * request the backend was still revalidating at the expiry instant, plus
+ * modest clock skew.
  */
 const AMBIGUOUS_COMMIT_GRACE_MS = 15_000;
 
@@ -88,7 +89,7 @@ type OrderOperationState =
   | 'cancelled'
   /** A Commit was handed to the transport, so it may have reached the
    * backend: submitted or ambiguous, never cancellable. Only the same
-   * Preview reference may be re-POSTed, which observes the operation. */
+   * Preview reference may be observed. */
   | 'dispatched'
   /** A terminal Receipt, or a conclusive backend answer that no operation
    * exists, ended it. */
@@ -119,8 +120,12 @@ interface OrderOperation {
   readonly expiresAt: number;
   /** The context the Preview was quoted under. */
   readonly contextEpoch: number;
-  /** What the next commit of this Preview signs. */
+  /** What the Commit of this Preview signs. */
   signing?: PredictOrderCommitSigning;
+  /** The signed Commit was handed to the transport. Every later call
+   * observes the receipt instead; it is reset only when the backend proved
+   * nothing was created, so a re-approval may sign again. */
+  posted: boolean;
   state: OrderOperationState;
   /** When the first Commit was dispatched. */
   dispatchedAt?: number;
@@ -153,6 +158,7 @@ const isTerminalReceipt = (receipt: PredictOrderReceipt): boolean =>
  * operation, so nothing was submitted to the Venue.
  */
 const PRE_OPERATION_COMMIT_CODES: ReadonlySet<string> = new Set([
+  'operation_not_found',
   'preview_not_found',
   'preview_expired',
   'market_not_found',
@@ -265,22 +271,22 @@ export interface PredictOrderServiceOptions {
  * context change ({@link PredictOrderService.cancelUncommittedPreviews})
  * cancels it and its Commit is refused locally. After that, the Commit may
  * have reached the backend: it is submitted or ambiguous, never cancelled.
- * Only the same Preview reference is ever re-POSTed, and the backend is
- * idempotent by that reference, so re-POSTs observe the one operation
- * instead of placing another. A canonical backend failure code proves no
- * operation exists, which puts a Preview with no ambiguous history back
- * before the boundary.
+ * The Commit is signed and POSTed once; afterwards the operation is only
+ * read (GET by Preview reference), which never submits. A canonical
+ * backend failure code proves no operation exists, which puts a Preview
+ * with no ambiguous history back before the boundary, so a re-approval
+ * signs a fresh Commit.
  *
  * **Observation.** An unresolved operation keeps being observed in the
  * background, whether or not a screen still shows it and whichever Venue is
  * active. When the Commit never returned a Receipt, the background waits
- * until the Preview has expired before it re-POSTs, so an automatic re-POST
- * can observe an operation but never create one. Only the Predict User's
- * explicit re-approval re-POSTs within the validity window.
+ * until the Preview has expired before it reads, because only then can a
+ * missing operation prove the Commit created none. While the backend
+ * reconciles an ambiguous submission, a read signs its venue order scan.
  *
  * **Identity.** Observation is bound to the Predict User who approved the
  * Preview. {@link PredictOrderService.abandonCommits} forgets every Preview,
- * so none of them is ever re-POSTed with the next person's bearer token.
+ * so none of them is ever observed with the next person's bearer token.
  *
  * **Process lifetime.** Nothing is persisted (ADR-0002). After process death
  * no operation is observed or notified again, and this process never
@@ -386,10 +392,10 @@ export class PredictOrderService {
    * Commits an approved Order Preview and resolves with its canonical Order
    * Receipt. Repeated calls for one Preview coalesce into the single
    * in-flight Commit. While the backend reports `pending` or `submitted`,
-   * the Commit is observed with a bounded number of re-POSTs; a
+   * the Commit is observed with a bounded number of receipt reads; a
    * `reconciliation_required` receipt resolves so the caller can render it.
    * Either way the operation keeps being observed in the background, and an
-   * explicit later call re-POSTs straight away. A terminal receipt also
+   * explicit later call observes straight away. A terminal receipt also
    * invalidates the authoritative portfolio reads.
    *
    * Deliberately not `async`: the cancellation check and the move across
@@ -416,7 +422,7 @@ export class PredictOrderService {
     const operation = this.#operations.get(previewId);
     if (!operation) {
       // Not quoted by the current Predict User in this process: after a
-      // wallet reset or a relaunch nothing may re-POST it.
+      // wallet reset or a relaunch nothing may commit or observe it.
       return Promise.reject(
         PredictError.from(PredictErrorCode.UNAUTHENTICATED),
       );
@@ -479,7 +485,7 @@ export class PredictOrderService {
   /**
    * Abandons every Commit underway and forgets every Preview. Called when
    * the platform replaces the Predict User: the Previews were approved by
-   * somebody else, so the service must neither re-POST them nor refresh the
+   * somebody else, so the service must neither observe them nor refresh the
    * portfolio reads their receipts describe, nor notify their outcome.
    *
    * A Preview quoted after this returns is a new person's Preview and is
@@ -522,6 +528,7 @@ export class PredictOrderService {
       state: 'quoted',
       receiptSeen: false,
       ambiguous: false,
+      posted: false,
       backgroundObservations: 0,
       presenters: new Set(),
     });
@@ -529,7 +536,7 @@ export class PredictOrderService {
 
   /** Crosses the submission boundary (if not already across) and commits
    * and observes the operation once. A caller's Commit observes with the
-   * bounded loop; a background tick sends a single re-POST, because its
+   * bounded loop; a background tick sends a single read, because its
    * own schedule is the loop. */
   #dispatch(
     operation: OrderOperation,
@@ -614,25 +621,15 @@ export class PredictOrderService {
   }
 
   /** Commits once, then observes an in-progress operation with bounded
-   * re-POSTs. Each POST signs the same intent the user confirmed. The
-   * Commit is idempotent by Preview reference, so each re-POST observes
-   * the same operation instead of placing another Order. */
+   * receipt reads. Only the first call signs the intent the user
+   * confirmed; observing never submits and never needs his confirmation. */
   async #observe(
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
     maxObservations: number,
   ): Promise<PredictOrderReceipt> {
-    const signing = operation.signing;
-    if (!signing) {
-      throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
-    }
-    const receipt = await this.#commitOnce(
-      operation,
-      generation,
-      signal,
-      signing,
-    );
+    const receipt = await this.#commitOnce(operation, generation, signal);
     if (!isInProgressReceipt(receipt) || maxObservations <= 0) {
       return receipt;
     }
@@ -640,24 +637,31 @@ export class PredictOrderService {
     return this.#observe(operation, generation, signal, maxObservations - 1);
   }
 
-  /** One observation POST. The generation is checked before the request, so
-   * an abandoned Commit is never sent again, and after the response, so a
-   * receipt that arrives for it is not treated as the current person's. */
+  /** The signed Commit the first time, a receipt read afterwards. The
+   * generation is checked before the request, so an abandoned Commit is
+   * never sent again, and after the response, so a receipt that arrives for
+   * it is not treated as the current person's. */
   async #commitOnce(
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
-    signing: PredictOrderCommitSigning,
   ): Promise<PredictOrderReceipt> {
     this.#assertNotAbandoned(generation);
-    // Only the Predict User's approval confirms. Every later POST of this
-    // operation, re-POST or background, signs the intent he pinned.
-    operation.signing = { ...signing, confirmed: false };
-    const receipt = await this.#trading.commitOrder(
-      operation.previewId,
-      signing,
-      { signal },
-    );
+    let receipt: PredictOrderReceipt;
+    if (operation.posted) {
+      receipt = await this.#trading.observeOrder(operation.previewId, {
+        signal,
+      });
+    } else {
+      const signing = operation.signing;
+      if (!signing) {
+        throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+      }
+      operation.posted = true;
+      receipt = await this.#trading.commitOrder(operation.previewId, signing, {
+        signal,
+      });
+    }
     this.#assertNotAbandoned(generation);
     operation.receiptSeen = true;
     return receipt;
@@ -698,8 +702,10 @@ export class PredictOrderService {
       operation.presenters.size > 0;
     if (canReturnBeforeBoundary) {
       // Nothing was submitted, and the surface that showed the failure may
-      // still re-approve the same Preview: it is pre-submit again.
+      // still re-approve the same Preview: it is pre-submit again, and the
+      // re-approval signs a fresh Commit.
       operation.state = 'quoted';
+      operation.posted = false;
       return;
     }
     this.#resolve(operation, { status: 'not_placed', code: error.code });
@@ -754,8 +760,8 @@ export class PredictOrderService {
     const delay =
       delays[Math.min(operation.backgroundObservations, delays.length - 1)] ??
       COMMIT_OBSERVATION_DELAY_MS;
-    // With no Receipt, the operation may not exist yet: an automatic
-    // re-POST inside the validity window could create it.
+    // With no Receipt, the operation may not exist yet, and a read that
+    // finds none inside the validity window proves nothing.
     const earliest = operation.receiptSeen
       ? now
       : operation.expiresAt + this.#ambiguousCommitGraceMs;
@@ -770,7 +776,7 @@ export class PredictOrderService {
       }
       // Timers run on the event loop's clock, which can trail `Date.now()`
       // under load, so one may fire just before `earliest`. A refusal to a
-      // re-POST sent then proves nothing (`sentAfterGrace` is false) and
+      // read sent then proves nothing (`sentAfterGrace` is false) and
       // would cost another round trip, so wait out the remainder instead.
       const remaining = earliest - Date.now();
       if (remaining > 0) {
@@ -841,7 +847,7 @@ export class PredictOrderService {
 
   destroy(): void {
     // Nothing may observe or refresh a Commit once the service is gone: a
-    // destroyed Engine must not re-POST the previous person's Commit.
+    // destroyed Engine must not observe the previous person's Commit.
     this.abandonCommits();
     this.#messenger.unregisterActionHandler('PredictOrderService:requestQuote');
     this.#messenger.unregisterActionHandler(

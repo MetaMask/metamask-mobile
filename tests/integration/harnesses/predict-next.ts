@@ -297,7 +297,6 @@ export const buildPredictNextIntegrationHarness = (
             values: input?.values ?? {},
             nowMs: Date.now(),
           },
-          input?.bodyOverlay ?? {},
         );
         return {
           header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
