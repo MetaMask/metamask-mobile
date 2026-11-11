@@ -36,6 +36,12 @@ const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
 const mockSocialFeed = jest.fn();
 const mockFeedScrollToOffset = jest.fn();
+const mockBottomTabPressListeners = new Set<() => void>();
+let mockIsFocused = true;
+const pressSocialBottomTab = () =>
+  act(() => {
+    mockBottomTabPressListeners.forEach((listener) => listener());
+  });
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   profile: null,
   isLoading: false,
@@ -302,9 +308,16 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       setParams: mockSetParams,
+      addListener: (event: string, listener: () => void) => {
+        if (event !== 'tabPress') {
+          return () => undefined;
+        }
+        mockBottomTabPressListeners.add(listener);
+        return () => mockBottomTabPressListeners.delete(listener);
+      },
     }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsFocused,
     useFocusEffect: (callback: () => void | (() => void)) => {
       ReactActual.useEffect(() => callback(), [callback]);
     },
@@ -387,6 +400,7 @@ describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+    mockIsFocused = true;
     act(() => {
       resetPendingPosts();
     });
@@ -472,6 +486,80 @@ describe('SocialV1View', () => {
       0,
       true,
     );
+  });
+
+  describe('when Social is tapped again in the bottom nav', () => {
+    const openFollowing = () => {
+      fireEvent.press(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      );
+      mockTrack.mockClear();
+      mockFeedScrollToOffset.mockClear();
+    };
+
+    it('scrolls a scrolled page to the top and keeps its tab', () => {
+      renderWithProvider(<SocialV1View />);
+      openFollowing();
+      fireEvent.scroll(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+        { nativeEvent: { contentOffset: { y: 400, x: 0 } } },
+      );
+
+      pressSocialBottomTab();
+
+      expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+        'social_following',
+        0,
+        true,
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({ interaction_type: 'tab_changed' }),
+      );
+    });
+
+    it('returns to the first tab once the page is already at the top', () => {
+      renderWithProvider(<SocialV1View />);
+      openFollowing();
+
+      pressSocialBottomTab();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({
+          interaction_type: 'tab_changed',
+          tab: 'tab_trending',
+          tab_change_method: 'tap',
+        }),
+      );
+    });
+
+    it('keeps the scroll position when Social is opened from another tab', () => {
+      renderWithProvider(<SocialV1View />);
+      openFollowing();
+      fireEvent.scroll(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+        { nativeEvent: { contentOffset: { y: 400, x: 0 } } },
+      );
+      mockIsFocused = false;
+      screen.rerender(<SocialV1View />);
+
+      pressSocialBottomTab();
+
+      expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('does nothing on the first tab when it is already at the top', () => {
+      renderWithProvider(<SocialV1View />);
+
+      pressSocialBottomTab();
+
+      expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({ interaction_type: 'tab_changed' }),
+      );
+    });
   });
 
   it('omits tab sub-navigation pills', () => {

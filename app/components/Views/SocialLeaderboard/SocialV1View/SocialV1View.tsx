@@ -16,8 +16,10 @@ import {
   useNavigation,
   useRoute,
   type NavigationProp,
+  type ParamListBase,
   type RouteProp,
 } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
@@ -199,6 +201,8 @@ const SocialV1ViewContent: React.FC = () => {
   const tw = useTailwind();
   const livePrices = useSocialLivePrices();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const tabNavigation =
+    useNavigation<BottomTabNavigationProp<ParamListBase>>();
   const route =
     useRoute<
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
@@ -674,14 +678,8 @@ const SocialV1ViewContent: React.FC = () => {
     }
   }, [activeIndex, navigation, requestedTab, selectTab, tabOrder]);
 
-  // Marks the next index change as a tap. Pressing the active tab instead
-  // scrolls its page back to the top.
-  const handleTabPress = useCallback(
+  const scrollPageToTop = useCallback(
     (index: number) => {
-      programmaticTabChangeRef.current = index !== activeIndex;
-      if (index !== activeIndex) {
-        return;
-      }
       const pageRef = {
         trending: trendingPageRef,
         following: followingPageRef,
@@ -690,7 +688,41 @@ const SocialV1ViewContent: React.FC = () => {
       }[tabOrder[index]];
       pageRef?.current?.scrollToOffset(0, true);
     },
-    [activeIndex, tabOrder],
+    [tabOrder],
+  );
+
+  // Marks the next index change as a tap. Pressing the active tab instead
+  // scrolls its page back to the top.
+  const handleTabPress = useCallback(
+    (index: number) => {
+      programmaticTabChangeRef.current = index !== activeIndex;
+      if (index === activeIndex) {
+        scrollPageToTop(index);
+      }
+    },
+    [activeIndex, scrollPageToTop],
+  );
+
+  // Re-tapping Social in the bottom nav first scrolls the active page to the
+  // top, then, once it's already there, returns to the first tab. Focus comes
+  // from the last render: the tab's own `tabPress` listener navigates here
+  // synchronously, so `navigation.isFocused()` is already true on a switch.
+  useEffect(
+    () =>
+      tabNavigation.addListener('tabPress', () => {
+        if (!isFocused) {
+          return;
+        }
+        if (scrollY.value > 0) {
+          scrollPageToTop(activeIndex);
+          return;
+        }
+        if (activeIndex !== LANDING_INDEX) {
+          programmaticTabChangeRef.current = true;
+          changeTab(LANDING_INDEX);
+        }
+      }),
+    [activeIndex, changeTab, isFocused, scrollPageToTop, scrollY, tabNavigation],
   );
 
   const renderTabBar = useCallback(
