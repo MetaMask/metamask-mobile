@@ -1,5 +1,6 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { act, render } from '@testing-library/react-native';
 
 import { GraduationProgress } from './GraduationProgress';
 import {
@@ -8,6 +9,7 @@ import {
 } from './GraduationProgress.testIds';
 import type { TokenAssetLaunchpadData } from '../../queries/tokenAssetQuery';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
+import { mockTheme } from '../../../../../util/theme';
 
 jest.mock('react-native-linear-gradient', () => {
   const { View } = jest.requireActual('react-native');
@@ -94,7 +96,7 @@ describe('GraduationProgress', () => {
     expect(queryByTestId(GraduationProgressSelectors.AURA)).toBeNull();
   });
 
-  it('exposes the bar as a progressbar with the rounded percent value', () => {
+  it('exposes the bar as a progressbar with the exact percent value', () => {
     const { getByTestId } = renderGraduationProgress({
       graduationPercent: '64.4',
       graduationStage: 'bonding',
@@ -105,11 +107,43 @@ describe('GraduationProgress', () => {
     expect(bar.props.accessibilityValue).toStrictEqual({
       max: 100,
       min: 0,
-      now: 64,
+      now: 64.4,
     });
     expect(bar.props.accessibilityLabel).toStrictEqual(
       'Graduation progress. BONDING. $44.4K raised · $24.6K to graduation',
     );
+  });
+
+  it('exposes the stage label on the tag for screen readers', () => {
+    const { getByTestId } = renderGraduationProgress({
+      graduationPercent: '64',
+      graduationStage: 'bonding',
+    });
+
+    expect(getByTestId(GraduationProgressSelectors.TAG).props).toEqual(
+      expect.objectContaining({
+        accessible: true,
+        accessibilityLabel: 'BONDING',
+      }),
+    );
+  });
+
+  it('sizes the gradient band from the laid-out track width', () => {
+    const { getByTestId } = renderGraduationProgress({
+      graduationPercent: '64',
+      graduationStage: 'bonding',
+    });
+
+    act(() => {
+      getByTestId(GraduationProgressSelectors.BAR).props.onLayout({
+        nativeEvent: { layout: { width: 336 } },
+      });
+    });
+
+    const bandStyle = StyleSheet.flatten(
+      getByTestId(GraduationProgressSelectors.GRADIENT).props.style,
+    );
+    expect(bandStyle.width).toStrictEqual(672);
   });
 
   it('renders the new-token card with single-line percent copy', () => {
@@ -124,13 +158,20 @@ describe('GraduationProgress', () => {
     expect(getByText('0% to graduation')).toBeTruthy();
   });
 
-  it('shows the near-graduation aura and fires one selection haptic', () => {
+  it('shows the near-graduation aura around the fill and fires one selection haptic', () => {
     const { getByTestId } = renderGraduationProgress({
       graduationPercent: '94',
       graduationStage: 'bonding',
     });
 
-    expect(getByTestId(GraduationProgressSelectors.AURA)).toBeTruthy();
+    const auraStyle = StyleSheet.flatten(
+      getByTestId(GraduationProgressSelectors.AURA).props.style,
+    );
+    expect(auraStyle.backgroundColor).toStrictEqual(
+      mockTheme.colors.success.default,
+    );
+    expect(auraStyle.end).toStrictEqual(undefined);
+    expect(auraStyle.top).toStrictEqual(-3);
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 

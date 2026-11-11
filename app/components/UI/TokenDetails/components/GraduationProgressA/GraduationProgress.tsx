@@ -1,4 +1,11 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   I18nManager,
   TextInput,
@@ -60,8 +67,8 @@ const COUNT_UP_DELTA_DURATION_MS = 300;
 const REDUCED_MOTION_SETTLE_MS = 200;
 const GRADIENT_FLOW_LOOP_MS = 2400;
 const AURA_PULSE_DURATION_MS = 800;
-const AURA_MIN_OPACITY = 0.4;
-const AURA_MAX_OPACITY = 0.9;
+const AURA_MIN_OPACITY = 0.25;
+const AURA_MAX_OPACITY = 0.55;
 const BAR_HEIGHT = 8;
 const BAR_RADIUS = 4;
 const AURA_SPREAD = 3;
@@ -72,7 +79,6 @@ const START_EDGE_STYLE = { start: 0 };
 const AURA_BASE_STYLE = {
   borderRadius: BAR_RADIUS + AURA_SPREAD,
   bottom: -AURA_SPREAD,
-  end: 0,
   start: 0,
   top: -AURA_SPREAD,
 };
@@ -113,6 +119,7 @@ const GraduationProgressCard = ({
   const auraOpacity = useSharedValue(AURA_MIN_OPACITY);
   const isMountAnimation = useRef(true);
   const nearGraduationHapticFired = useRef(false);
+  const [trackWidthPx, setTrackWidthPx] = useState(0);
 
   useEffect(() => {
     cancelAnimation(percent);
@@ -210,6 +217,7 @@ const GraduationProgressCard = ({
       },
     }: LayoutChangeEvent): void => {
       trackWidth.set(width);
+      setTrackWidthPx(width);
     },
     [trackWidth],
   );
@@ -220,10 +228,9 @@ const GraduationProgressCard = ({
   });
 
   const gradientStyle = useAnimatedStyle(
-    (): { width: number; transform: [{ translateX: number }] } => {
+    (): { transform: [{ translateX: number }] } => {
       const direction = isRtl ? -1 : 1;
       return {
-        width: trackWidth.get() * GRADIENT_TRACKS,
         transform: [
           { translateX: (flow.get() - 1) * direction * trackWidth.get() },
         ],
@@ -231,9 +238,12 @@ const GraduationProgressCard = ({
     },
   );
 
-  const auraStyle = useAnimatedStyle((): { opacity: number } => ({
-    opacity: auraOpacity.get(),
-  }));
+  const auraStyle = useAnimatedStyle(
+    (): { opacity: number; width: number } => ({
+      opacity: auraOpacity.get(),
+      width: Math.min(1, Math.max(0, percent.get() / 100)) * trackWidth.get(),
+    }),
+  );
 
   const percentTextProps = useAnimatedProps((): { text: string } => ({
     text: formatGraduationPercentLabel(percentText.get()),
@@ -262,11 +272,15 @@ const GraduationProgressCard = ({
     () => ({ backgroundColor: colors.border.muted }),
     [colors.border.muted],
   );
-  const auraStyleBase = useMemo(
-    () => ({ ...AURA_BASE_STYLE, backgroundColor: colors.success.muted }),
-    [colors.success.muted],
+  const gradientBandStyle = useMemo(
+    () => ({ width: trackWidthPx * GRADIENT_TRACKS }),
+    [trackWidthPx],
   );
-  const tickColor = colors.background.alternative;
+  const auraStyleBase = useMemo(
+    () => ({ ...AURA_BASE_STYLE, backgroundColor: colors.success.default }),
+    [colors.success.default],
+  );
+  const tickColor = colors.border.default;
 
   return (
     <Box
@@ -283,6 +297,8 @@ const GraduationProgressCard = ({
         justifyContent={BoxJustifyContent.Between}
       >
         <Tag
+          accessible
+          accessibilityLabel={viewModel.stageLabel}
           severity={isBonding ? TagSeverity.Success : TagSeverity.Neutral}
           startAccessory={
             <View style={[tw.style('h-1.5 w-1.5 rounded-full'), tagDotStyle]} />
@@ -323,7 +339,7 @@ const GraduationProgressCard = ({
           accessibilityValue={{
             min: 0,
             max: 100,
-            now: Math.round(viewModel.percent),
+            now: viewModel.percent,
           }}
           onLayout={handleTrackLayout}
           style={trackStyle}
@@ -342,8 +358,10 @@ const GraduationProgressCard = ({
               style={[
                 tw.style('absolute top-0 bottom-0'),
                 START_EDGE_STYLE,
+                gradientBandStyle,
                 gradientStyle,
               ]}
+              testID={GraduationProgressSelectors.GRADIENT}
             >
               <LinearGradient
                 colors={flowColors}
@@ -364,7 +382,7 @@ const GraduationProgressCard = ({
       </View>
 
       <Text
-        color={TextColor.TextMuted}
+        color={TextColor.TextAlternative}
         numberOfLines={2}
         style={TABULAR_NUMS}
         testID={GraduationProgressSelectors.DETAIL}
