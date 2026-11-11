@@ -486,7 +486,6 @@ const MyProfileView: React.FC = () => {
     if (!traderId) {
       return;
     }
-    playSelection().catch(() => undefined);
     runShare(() =>
       shareSocialProfile(
         traderId,
@@ -529,7 +528,6 @@ const MyProfileView: React.FC = () => {
     if (!profileId) {
       return;
     }
-    playSelection().catch(() => undefined);
     const displayName = myProfile?.displayName;
     const handle = myProfile?.handle;
     runShare(() =>
@@ -662,6 +660,7 @@ const MyProfileView: React.FC = () => {
           position,
           author: positionSheetAuthor(displayProfile, traderAddress),
           isClosed,
+          shareSource: 'profile_position',
         });
         return;
       }

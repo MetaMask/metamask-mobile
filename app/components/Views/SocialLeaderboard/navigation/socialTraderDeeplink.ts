@@ -62,18 +62,19 @@ export const buildSocialTraderDeeplink = (traderId: string): string => {
   return url.toString();
 };
 
+/** The link, in exactly one of `message` or `url`. */
+export type SocialShareContent = { message: string } | { url: string };
+
 /**
- * iOS `Share.share` gives other apps `url`, but the sheet's Copy action
- * copies `message` and ignores `url` when `message` is absent. The link has
- * to be in both fields. Android has no `url` field and shares `message`.
+ * `react-native-share` hands iOS `message` and `url` as separate items, so
+ * passing both shares the link twice. iOS gets `url`, which keeps the link
+ * preview and still works with Copy. Android shares `message` as the text.
  */
 const toShareContent = (
   sharedUrl: string,
   os: typeof Platform.OS,
-): { message: string; url?: string } =>
-  os === 'ios'
-    ? { message: sharedUrl, url: sharedUrl }
-    : { message: sharedUrl };
+): SocialShareContent =>
+  os === 'ios' ? { url: sharedUrl } : { message: sharedUrl };
 
 /**
  * Universal link for a trader position. The same URL opens the shared
@@ -92,24 +93,23 @@ export const buildSocialTraderPositionDeeplink = (
 };
 
 /**
- * Share payload for a trader profile. iOS puts the URL in both `message`
- * and `url`; Android shares it as the message text.
+ * Share payload for a trader profile. iOS shares the URL as `url`; Android
+ * shares it as the message text.
  */
 export const buildSocialTraderShareContent = (
   traderId: string,
   os: typeof Platform.OS = Platform.OS,
-): { message: string; url?: string } =>
+): SocialShareContent =>
   toShareContent(buildSocialTraderDeeplink(traderId), os);
 
 /**
- * Share payload for a trader position. Same iOS message/url split as a
- * profile, because both go through `Share.share`.
+ * Share payload for a trader position. Same iOS / Android split as a profile.
  */
 export const buildSocialTraderPositionShareContent = (
   positionId: string,
   traderId: string,
   os: typeof Platform.OS = Platform.OS,
-): { message: string; url?: string } =>
+): SocialShareContent =>
   toShareContent(buildSocialTraderPositionDeeplink(positionId, traderId), os);
 
 /**
@@ -311,13 +311,12 @@ const didCompleteNativeShare = (result: {
 }): boolean => result.success === true && result.dismissedAction !== true;
 
 const openShareSheet = (
-  content: { message: string; url?: string },
+  content: SocialShareContent,
   onShared?: () => void,
 ): void => {
   logSocialOgShare('Opening share sheet', content);
   Share.open({
-    message: content.message,
-    ...(content.url ? { url: content.url } : {}),
+    ...content,
     failOnCancel: false,
   })
     .then((result) => {
