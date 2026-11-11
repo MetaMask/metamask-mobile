@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Modal, StyleSheet } from 'react-native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -20,6 +19,9 @@ import {
 
 import { strings } from '../../../../../locales/i18n';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 // Box always applies `flex: 1`. This comes after that class so the sheet hugs
 // its title and description instead of filling the screen.
@@ -53,6 +55,7 @@ const ProfileToggleCard = ({
   isOn,
   onValueChange,
 }: ProfileToggleCardProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
@@ -136,9 +139,12 @@ const ProfileToggleCard = ({
             goBack={handleInfoClosed}
             testID={ManageProfileSelectorsIDs.TRADING_ACTIVITY_INFO_SHEET}
           >
-            <BottomSheetHeader onClose={handleDismissInfo}>
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
+              onClose={handleDismissInfo}
+            >
               {strings('manage_profile.show_trading_activity')}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <Box twClassName="px-4 pb-4" style={styles.sheetContent}>
               <Text variant={TextVariant.BodyMd}>
                 {strings('manage_profile.trading_activity_info_description')}
