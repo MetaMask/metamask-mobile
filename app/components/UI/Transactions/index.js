@@ -480,6 +480,7 @@ const Transactions = (props) => {
       description: resolveTransactionUpdateErrorMessage(error),
       severity: ToastSeverity.Danger,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   };
 

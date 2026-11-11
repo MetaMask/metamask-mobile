@@ -11,6 +11,8 @@ import {
   TextColor,
   FontWeight,
   TextProps,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 
@@ -120,6 +122,12 @@ describe('QRAccountDisplay', () => {
     expect(ClipboardManager.setString).toHaveBeenCalledWith(ACCOUNT);
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
     expect(ClipboardManager.getString()).toBe(ACCOUNT);
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Address copied to clipboard',
+      severity: ToastSeverity.Success,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
   });
 
   it('renders Solana account address without 0x prefix', () => {

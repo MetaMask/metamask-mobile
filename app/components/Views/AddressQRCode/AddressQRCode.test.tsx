@@ -99,6 +99,7 @@ describe('AddressQRCode', () => {
         title: expect.any(String),
         severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     });
   });

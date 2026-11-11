@@ -55,6 +55,7 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
       title: strings(`notifications.address_copied_to_clipboard`),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   };
 

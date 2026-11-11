@@ -115,6 +115,7 @@ export function useUnifiedTxActions() {
       description: resolveTransactionUpdateErrorMessage(error),
       severity: ToastSeverity.Danger,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   }, []);
 

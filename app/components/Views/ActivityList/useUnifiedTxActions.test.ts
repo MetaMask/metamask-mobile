@@ -282,6 +282,7 @@ describe('useUnifiedTxActions', () => {
       description: 'replacement failed',
       severity: ToastSeverity.Danger,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
     expect(result.current.speedUpIsOpen).toBe(false);
     expect(speedUpTransaction).not.toHaveBeenCalled();
@@ -305,6 +306,7 @@ describe('useUnifiedTxActions', () => {
       description: 'cancellation failed',
       severity: ToastSeverity.Danger,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
     expect(result.current.cancelIsOpen).toBe(false);
     expect(

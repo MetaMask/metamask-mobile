@@ -871,6 +871,7 @@ describe('UnconnectedTransactions', () => {
         description: 'replacement failed',
         severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     });
 
@@ -894,6 +895,7 @@ describe('UnconnectedTransactions', () => {
         description: 'cancellation failed',
         severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     });
 
