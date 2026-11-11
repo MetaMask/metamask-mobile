@@ -389,6 +389,38 @@ describe('useSocialFeedRealtime', () => {
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(2));
   });
 
+  it('never renders socket posts of the previous request', () => {
+    const rows = [buildRow({ positionId: 'pos-a' })];
+    const renderedPosts: (string | undefined)[][] = [];
+    const { rerender } = renderHook(
+      ({ streamKey }: { streamKey: string }) => {
+        const realtime = useSocialFeedRealtime(
+          { rows, dataUpdatedAt: 1, refresh },
+          {
+            realtimeScope: 'all',
+            active: true,
+            paused: false,
+            nearTop: true,
+            holdNewPosts: false,
+            streamKey,
+          },
+        );
+        renderedPosts.push(positionIds(realtime?.posts ?? []));
+        return realtime;
+      },
+      { initialProps: { streamKey: 'token-a' } },
+    );
+    emit(buildEvent('pos-b'));
+    const rendersBeforeChange = renderedPosts.length;
+
+    rerender({ streamKey: 'token-b' });
+
+    expect(renderedPosts[rendersBeforeChange - 1]).toEqual(['pos-b', 'pos-a']);
+    renderedPosts
+      .slice(rendersBeforeChange)
+      .forEach((posts) => expect(posts).toEqual(['pos-a']));
+  });
+
   it('does not catch up on a request change before its first page loads', () => {
     const { rerender } = renderRealtime({ streamKey: 'token-a' });
 

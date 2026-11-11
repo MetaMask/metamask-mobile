@@ -94,7 +94,10 @@ interface RealtimeStore {
   evicted: Map<string, number>;
 }
 
-type RealtimeView = Omit<RealtimeStore, 'evicted'>;
+type RealtimeView = Omit<RealtimeStore, 'evicted'> & {
+  /** The request the rows were streamed for. */
+  stream: string | null;
+};
 
 interface CachedFeedPost {
   core: CoreFeedItem;
@@ -111,6 +114,12 @@ const createStore = (): RealtimeStore => ({
 });
 
 const EMPTY_POSTS: SocialV1FeedPost[] = [];
+const EMPTY_VIEW: RealtimeView = {
+  socketRows: [],
+  revisedRows: new Map(),
+  pending: new Map(),
+  stream: null,
+};
 const EMPTY_ROWS_BY_ID: ReadonlyMap<string, TraderFeedRow> = new Map();
 const noop = () => undefined;
 
@@ -139,12 +148,20 @@ export const useSocialFeedRealtime = (
   }: UseSocialFeedRealtimeOptions,
 ): UseSocialFeedRealtimeResult | null => {
   const isLive = realtimeScope !== null && active;
+  const stream =
+    realtimeScope === null ? null : `${realtimeScope}:${streamKey}`;
+  const streamRef = useRef(stream);
+  streamRef.current = stream;
   const storeRef = useRef<RealtimeStore>(createStore());
-  const [view, setView] = useState<RealtimeView>(() => ({
+  const [publishedView, setView] = useState<RealtimeView>(() => ({
     socketRows: [],
     revisedRows: new Map(),
     pending: new Map(),
+    stream,
   }));
+  // The store resets after the render that changes the request, so that
+  // render must not show what was streamed for the previous one.
+  const view = publishedView.stream === stream ? publishedView : EMPTY_VIEW;
   const [drainVersion, setDrainVersion] = useState(0);
   const [revealRequested, setRevealRequested] = useState(false);
   const [catchUpVersion, setCatchUpVersion] = useState(0);
@@ -178,7 +195,12 @@ export const useSocialFeedRealtime = (
 
   const publish = useCallback(() => {
     const { socketRows, revisedRows, pending } = storeRef.current;
-    setView({ socketRows, revisedRows, pending: new Map(pending) });
+    setView({
+      socketRows,
+      revisedRows,
+      pending: new Map(pending),
+      stream: streamRef.current,
+    });
   }, []);
 
   const catchUpPendingRef = useRef(false);
@@ -369,10 +391,9 @@ export const useSocialFeedRealtime = (
   // so it catches up on what the socket brought while it was not shown.
   const lastStreamRef = useRef<string | null>(null);
   useEffect(() => {
-    if (realtimeScope === null) {
+    if (stream === null) {
       return;
     }
-    const stream = `${realtimeScope}:${streamKey}`;
     if (lastStreamRef.current !== null && lastStreamRef.current !== stream) {
       storeRef.current = createStore();
       publish();
@@ -381,7 +402,7 @@ export const useSocialFeedRealtime = (
       }
     }
     lastStreamRef.current = stream;
-  }, [markCatchUp, publish, realtimeScope, streamKey]);
+  }, [markCatchUp, publish, stream]);
 
   useEffect(() => {
     if (!realtimeScope || !active) {
