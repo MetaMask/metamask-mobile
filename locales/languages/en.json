@@ -5503,8 +5503,12 @@
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "General",
+    "preferences_and_display_title": "Preferences and display",
+    "general_desc": "Currency conversion, primary currency, language and search engine.",
     "advanced_title": "Advanced",
+    "advanced_desc": "Access developer features, reset account, set up testnets, state logs, and custom RPC.",
     "notifications_title": "Notifications",
+    "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
     "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Choose what you're notified about and how.",
@@ -5556,6 +5560,7 @@
     "no_permissions_desc": "If you connect an account to a site or an app, you’ll see it here.",
     "security_title": "Security and privacy",
     "back": "Back",
+    "security_desc": "Privacy settings, MetaMetrics, private key, Secret Recovery Phrase, and IPFS gateway.",
     "networks_title": "Networks",
     "networks_default_title": "Default network",
     "network_delete": "If you delete this network, you will need to add it again to view your assets in this network",
@@ -5606,6 +5611,7 @@
     "info_title_beta": "About MetaMask Beta",
     "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimental",
+    "experimental_desc": "WalletConnect and more...",
     "legal_title": "Legal",
     "conversion_title": "Currency conversion",
     "conversion_desc": "Display fiat values in using a specific currency throughout the application.",
@@ -5702,6 +5708,7 @@
     "manage_sdk_connections_text": "Remove connections to sites and/or MetaMask SDK.",
     "fiat_on_ramp": {
       "title": "Buy and sell crypto",
+      "description": "Region and more...",
       "current_region": "Current region",
       "reset_region": "Reset region",
       "change_region": "Change region",
@@ -5805,6 +5812,7 @@
     "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to a malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snaps",
+      "description": "Overview and manage your snaps",
       "snap_ui": {
         "link": {
           "accessibilityHint": "Opens in a new tab"
@@ -5895,6 +5903,7 @@
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
     "simulation_details_learn_more": "Learn more.",
     "aes_crypto_test_form_title": "AES crypto - test form",
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, report it to MetaMask support.",
     "developer_options": {
       "title": "Developer options",
       "generate_trace_test": "Generate trace test",
@@ -5981,7 +5990,8 @@
       }
     },
     "feature_flag_override": {
-      "title": "Feature flag override"
+      "title": "Feature flag override",
+      "description": "Override the feature flags for the app locally."
     },
     "add_device": {
       "title": "Add device",
@@ -11157,6 +11167,7 @@
   },
   "backupAndSync": {
     "title": "Backup and sync",
+    "description": "Back up your accounts and sync settings.",
     "enabling": "Enabling backup and sync",
     "disabling": "Disabling backup and sync",
     "enable": {

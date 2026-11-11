@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { StyleSheet, ScrollView, View } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,6 +24,8 @@ import HeaderStandardGlass from '../../../component-library/components-temp/Head
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  Box,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
@@ -37,26 +39,9 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const SettingsGroupHeader = ({
-  title,
-  testID,
-}: {
-  title: string;
-  testID?: string;
-}) => {
-  const tw = useTailwind();
-
-  return (
-    <View style={tw.style('px-4 py-3')} testID={testID}>
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {title}
-      </Text>
-    </View>
-  );
-};
-
 const Settings = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const tw = useTailwind();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
@@ -138,6 +123,7 @@ const Settings = () => {
   };
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
       <HeaderStandardGlass
@@ -153,13 +139,17 @@ const Settings = () => {
         style={styles.wrapper}
         testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
       >
-        <SettingsGroupHeader
-          title={strings('app_settings.groups.general')}
+        <Box
+          style={tw.style('px-4 py-3')}
           testID={SettingsViewSelectorsIDs.GROUP_GENERAL}
-        />
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('app_settings.groups.general')}
+          </Text>
+        </Box>
         <SettingsDrawer
           onPress={onPressGeneral}
-          title={strings('app_settings.general_title')}
+          title={strings('app_settings.preferences_and_display_title')}
           testID={SettingsViewSelectorsIDs.GENERAL}
         />
         {isNotificationsFeatureEnabled() && (
@@ -170,10 +160,15 @@ const Settings = () => {
           />
         )}
 
-        <SettingsGroupHeader
-          title={strings('app_settings.groups.security_and_privacy')}
+        <SectionDivider marginVertical={1} twClassName="mx-4" />
+        <Box
+          style={tw.style('px-4 py-3')}
           testID={SettingsViewSelectorsIDs.GROUP_SECURITY_AND_PRIVACY}
-        />
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('app_settings.groups.security_and_privacy')}
+          </Text>
+        </Box>
         <SettingsDrawer
           onPress={onPressSecurity}
           title={strings('app_settings.security_title')}
@@ -190,20 +185,30 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
         />
 
-        <SettingsGroupHeader
-          title={strings('app_settings.groups.transactions_and_assets')}
+        <SectionDivider marginVertical={1} twClassName="mx-4" />
+        <Box
+          style={tw.style('px-4 py-3')}
           testID={SettingsViewSelectorsIDs.GROUP_TRANSACTIONS_AND_ASSETS}
-        />
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('app_settings.groups.transactions_and_assets')}
+          </Text>
+        </Box>
         <SettingsDrawer
           title={strings('app_settings.fiat_on_ramp.title')}
           onPress={onPressOnRamp}
           testID={SettingsViewSelectorsIDs.ON_RAMP}
         />
 
-        <SettingsGroupHeader
-          title={strings('app_settings.groups.more')}
+        <SectionDivider marginVertical={1} twClassName="mx-4" />
+        <Box
+          style={tw.style('px-4 py-3')}
           testID={SettingsViewSelectorsIDs.GROUP_MORE}
-        />
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('app_settings.groups.more')}
+          </Text>
+        </Box>
         <SettingsDrawer
           onPress={onPressAdvanced}
           title={strings('app_settings.advanced_title')}
