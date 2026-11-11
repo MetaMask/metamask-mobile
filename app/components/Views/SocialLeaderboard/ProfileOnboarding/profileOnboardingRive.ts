@@ -17,6 +17,7 @@ export const PROFILE_ONBOARDING_RIVE_ASSETS = {
  * images are pushed in.
  *
  * `Main` view model:
+ * - `lightMode` (boolean, RN → Rive): true is Theme Light, false is Theme Dark.
  * - `continue` (trigger, RN → Rive): Podium → Activity → Post.
  * - `back` (trigger, RN → Rive): Post → Activity → Podium.
  * - `currentStep` (number, Rive → RN): 1 Podium, 2 Activity, 3 Post.
@@ -27,6 +28,7 @@ export const PROFILE_ONBOARDING_RIVE_ARTBOARD = 'content';
 export const PROFILE_ONBOARDING_RIVE_STATE_MACHINE = 'State Machine 1';
 
 export const PROFILE_ONBOARDING_RIVE_PATHS = {
+  LIGHT_MODE: 'lightMode',
   CONTINUE: 'continue',
   BACK: 'back',
   CURRENT_STEP: 'currentStep',
