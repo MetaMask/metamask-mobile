@@ -1,7 +1,7 @@
-import { useCallback, useContext, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   selectIsMetamaskNotificationsEnabled,
@@ -13,6 +13,14 @@ import NotificationService, {
   getPushPermission,
 } from '../../../../util/notifications/services/NotificationService';
 import useRewardsToast from './useRewardsToast';
+
+const dismissToast = () => {
+  try {
+    toast.dismiss();
+  } catch {
+    // Toaster is registered at app root; ignore if it is not mounted yet.
+  }
+};
 
 type NotificationsEnabledAction = () => Promise<void> | void;
 
@@ -50,7 +58,6 @@ export function useRewardsNotificationsNudge(
   const isMetaMaskPushNotificationsEnabled = useSelector(
     selectIsMetaMaskPushNotificationsEnabled,
   );
-  const { toastRef } = useContext(ToastContext);
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const { enableNotifications } = useEnableNotifications({
     nudgeEnablePush: true,
@@ -78,9 +85,9 @@ export function useRewardsNotificationsNudge(
     // loading → success toast). Calling closeToast here would kill the success
     // toast that was just shown, so we skip it.
     if (!areNotificationsEnabledRef.current) {
-      toastRef?.current?.closeToast();
+      dismissToast();
     }
-  }, [toastRef]);
+  }, []);
 
   const handleTurnOnNotifications = useCallback(async () => {
     if (!enabled || notificationsEnableInFlightRef.current) {
@@ -96,7 +103,7 @@ export function useRewardsNotificationsNudge(
     try {
       const permission = await getPushPermission();
       if (permission === 'denied') {
-        toastRef?.current?.closeToast();
+        dismissToast();
         NotificationService.openSystemSettings();
         appStateSubscriptionRef.current = AppState.addEventListener(
           'change',
@@ -115,10 +122,10 @@ export function useRewardsNotificationsNudge(
             );
             try {
               await enableNotifications();
-              toastRef?.current?.closeToast();
+              dismissToast();
               onNotificationsEnabledRef.current?.();
             } catch {
-              toastRef?.current?.closeToast();
+              dismissToast();
               showToast(
                 RewardsToastOptions.error(
                   strings('rewards.notifications_nudge.enable_error'),
@@ -132,10 +139,10 @@ export function useRewardsNotificationsNudge(
         return;
       }
       await enableNotifications();
-      toastRef?.current?.closeToast();
+      dismissToast();
       onNotificationsEnabledRef.current?.();
     } catch {
-      toastRef?.current?.closeToast();
+      dismissToast();
       showToast(
         RewardsToastOptions.error(
           strings('rewards.notifications_nudge.enable_error'),
@@ -144,7 +151,7 @@ export function useRewardsNotificationsNudge(
     } finally {
       notificationsEnableInFlightRef.current = false;
     }
-  }, [enableNotifications, enabled, toastRef, showToast, RewardsToastOptions]);
+  }, [enableNotifications, enabled, showToast, RewardsToastOptions]);
 
   const showEnableNotificationsNudge = useCallback(() => {
     if (!shouldPromptToEnableNotifications) {
@@ -156,20 +163,12 @@ export function useRewardsNotificationsNudge(
       onPress: handleTurnOnNotifications,
     });
 
-    showToast(
-      nudgeConfig.closeButtonOptions
-        ? {
-            ...nudgeConfig,
-            closeButtonOptions: {
-              ...nudgeConfig.closeButtonOptions,
-              onPress: () => {
-                pendingActionRef.current = null;
-                nudgeConfig.closeButtonOptions?.onPress?.();
-              },
-            },
-          }
-        : nudgeConfig,
-    );
+    showToast({
+      ...nudgeConfig,
+      onClose: () => {
+        pendingActionRef.current = null;
+      },
+    });
     return true;
   }, [
     RewardsToastOptions,
@@ -210,7 +209,7 @@ export function useRewardsNotificationsNudge(
 
     const pendingAction = pendingActionRef.current;
     pendingActionRef.current = null;
-    toastRef?.current?.closeToast();
+    dismissToast();
     showToast(
       RewardsToastOptions.loading(
         strings('rewards.notifications_nudge.loading'),
@@ -218,20 +217,14 @@ export function useRewardsNotificationsNudge(
       ),
     );
     Promise.resolve(pendingAction()).catch(() => {
-      toastRef?.current?.closeToast();
+      dismissToast();
       showToast(
         RewardsToastOptions.error(
           strings('rewards.notifications_nudge.enable_error'),
         ),
       );
     });
-  }, [
-    areNotificationsEnabled,
-    enabled,
-    toastRef,
-    showToast,
-    RewardsToastOptions,
-  ]);
+  }, [areNotificationsEnabled, enabled, showToast, RewardsToastOptions]);
 
   useEffect(() => {
     if (!enabled) {
