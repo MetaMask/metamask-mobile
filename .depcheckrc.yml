@@ -77,6 +77,12 @@ ignores:
   - 'eslint-import-resolver-typescript'
   - 'eslint-plugin-prettier'
   - 'eslint-plugin-react-native'
+  # Loaded by name through `extends: ['@react-native']` in .eslintrc.js (via
+  # @react-native/eslint-config's `plugins: ['ft-flow']`), so it is not imported
+  # in source. Declared at 3.0.11 so the plugin supports ESLint 9 and resolves
+  # from the project root instead of the 2.0.3 copy nested under
+  # @react-native/eslint-config.
+  - 'eslint-plugin-ft-flow'
 
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used

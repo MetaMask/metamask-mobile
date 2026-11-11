@@ -30,6 +30,8 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { useIsMemeToken } from '../../../UI/TokenDetails/hooks/useIsMemeToken';
+import { toFeedAssetId } from '../../../UI/SocialFeed/data/socialFeedSource';
 import TraderPositionQuickBuy, {
   positionToQuickBuyTarget,
 } from '../../../UI/QuickBuy';
@@ -45,6 +47,16 @@ import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProf
 import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
+import {
+  buildSocialTradeOgImageRequest,
+  fetchPerpOgSeries,
+  getEarliestTradeMs,
+} from '../navigation/socialOgImageCards';
+import { logSocialOgShare } from '../navigation/socialOgShareLog';
+import { buildSocialPositionOpenGraph } from '../navigation/socialShareOpenGraph';
+import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
+import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
+import { SocialEvent, useSocialAnalytics } from '../analytics';
 import { playSelection } from '../../../../util/haptics';
 import {
   formatAbbreviatedUsd,
@@ -94,6 +106,7 @@ const PositionDetailsSheet = () => {
     isClosed: isClosedParam,
     isSnapshotLive,
     orderSource,
+    shareSource,
   } = useParams<PositionDetailsSheetParams>();
 
   const live = useLivePosition({
@@ -115,6 +128,20 @@ const PositionDetailsSheet = () => {
     { isNetworkAvailable },
   );
   const isChartLoading = data.isPricesLoading || live.isLoading;
+  // One lookup per opened spot position. Perps and a confirmed offline tier
+  // skip it. The query aborts when this sheet unmounts.
+  const spotAssetId =
+    data.isPerp || !position
+      ? null
+      : toFeedAssetId({
+          chain: position.chain,
+          tokenAddress: position.tokenAddress,
+          tokenSymbol: position.tokenSymbol,
+        });
+  const { isMeme } = useIsMemeToken({
+    assetId: spotAssetId,
+    enabled: isNetworkAvailable && spotAssetId != null,
+  });
   const reveal = useChartLineReveal({
     isChartReady: !isChartLoading,
     hasChartData: data.prices.length >= 2,
@@ -272,6 +299,83 @@ const PositionDetailsSheet = () => {
     });
   }, [author, closeThen, navigation, profile]);
 
+  const { trackInteraction: trackSocialPost } = useSocialAnalytics();
+  const { isSharing, runShare } = useSocialShareInProgress();
+  const handleSharePosition = useCallback(() => {
+    const sharedPositionId = position?.positionId ?? positionId;
+    if (!sharedPositionId || !shareSource) {
+      return;
+    }
+    const sharedPosition = position;
+    const buildOgImageRequest = sharedPosition
+      ? async () => {
+          const prices = data.isPerp
+            ? await fetchPerpOgSeries(
+                sharedPosition.tokenSymbol,
+                getEarliestTradeMs(sharedPosition.trades),
+                Date.now(),
+              )
+            : data.prices;
+          logSocialOgShare('Building trade card on the position sheet', {
+            positionId: sharedPositionId,
+            isPerp: data.isPerp,
+            isClosed: data.isClosed,
+            priceSource: data.isPerp ? 'hyperliquid candles' : 'sheet chart',
+            pricePoints: prices.length,
+          });
+          return buildSocialTradeOgImageRequest({
+            traderId: author.id,
+            positionId: sharedPositionId,
+            username: author.username,
+            avatarUrl: author.avatarUri,
+            position: sharedPosition,
+            market: data.symbol,
+            marketIconUrl: sharedPosition.tokenImageUrl ?? data.tokenImageUrl,
+            isPerp: data.isPerp,
+            isClosed: data.isClosed,
+            pnlUsd: data.pnlValue,
+            pnlPct: data.pnlPercent,
+            markPrice: data.currentPrice,
+            prices,
+          });
+        }
+      : undefined;
+    runShare(() =>
+      shareSocialTraderPosition(
+        sharedPositionId,
+        author.id,
+        () => {
+          trackSocialPost({
+            interaction_type: SocialEvent.Interaction.POST_SHARED,
+            screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
+            share_destination: SocialEvent.ShareDestination.EXTERNAL,
+            source: shareSource,
+          });
+        },
+        buildSocialPositionOpenGraph({
+          traderName: author.username,
+          assetSymbol: data.symbol,
+        }),
+        buildOgImageRequest,
+      ),
+    );
+  }, [
+    author,
+    data.currentPrice,
+    data.isClosed,
+    data.isPerp,
+    data.pnlPercent,
+    data.pnlValue,
+    data.prices,
+    data.symbol,
+    data.tokenImageUrl,
+    position,
+    positionId,
+    runShare,
+    shareSource,
+    trackSocialPost,
+  ]);
+
   // Quick Buy lives in this route, so a spot action hides the sheet but keeps
   // the route until Quick Buy closes. Popping it then lets the post-trade and
   // failure sheets, hosted at the app root, show above.
@@ -343,8 +447,10 @@ const PositionDetailsSheet = () => {
   const cardQuotesMarketCap = fillMarketCapPerPrice != null;
   const showMarketCapToggle =
     !data.isPerp && ((data.marketCap ?? 0) > 0 || cardQuotesMarketCap);
+  // Price until the meme check returns. A meme coin then opens on market cap.
+  // A choice the user already made stays put.
   const headlineMode: HeadlineValueMode =
-    headlineChoice ?? (cardQuotesMarketCap ? 'marketCap' : 'price');
+    headlineChoice ?? (isMeme && showMarketCapToggle ? 'marketCap' : 'price');
   const headlineIsMarketCap =
     showMarketCapToggle && headlineMode === 'marketCap';
   const quotedMarketCap =
@@ -441,6 +547,8 @@ const PositionDetailsSheet = () => {
               author={author}
               isOwnPost={isOwnPost}
               onPressTrader={handleOpenTraderProfile}
+              onShare={shareSource ? handleSharePosition : undefined}
+              isSharing={isSharing}
             />
           </View>
           {/* Bounded so content past the screen scrolls instead of being clipped. */}
@@ -459,6 +567,7 @@ const PositionDetailsSheet = () => {
             <PositionSheetPriceHeader
               assetName={data.assetName}
               isPerp={data.isPerp}
+              leverage={data.leverage}
               valueLabel={headerLabel}
               isMarketCapMode={headlineIsMarketCap}
               changePercent={headerChange}

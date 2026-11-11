@@ -79,32 +79,48 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/glassHeaders',
-  () => ({
-    selectGlassHeadersEnabled: jest.fn(() => false),
-  }),
-);
+// Mock OnboardingStep component
+jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
 
-jest.mock('../../hooks/useCardHeaderHandlers', () => ({
-  useCardHeaderHandlers: () => ({
-    onClose: jest.fn(),
-    closeButtonProps: { testID: 'card-header-close-button' },
-  }),
-}));
-
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderStandardGlass',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () =>
-        ReactActual.createElement(View, { testID: 'header-standard-glass' }),
-    };
-  },
-);
+  return ({
+    title,
+    description,
+    formFields,
+    ...footerProps
+  }: {
+    title: string;
+    description: string;
+    formFields: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
+  }) =>
+    React.createElement(
+      View,
+      { testID: 'onboarding-step' },
+      React.createElement(Text, { testID: 'onboarding-step-title' }, title),
+      React.createElement(
+        Text,
+        { testID: 'onboarding-step-description' },
+        description,
+      ),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-form-fields' },
+        formFields,
+      ),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        mockRenderFooterButtons(footerProps),
+      ),
+    );
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');

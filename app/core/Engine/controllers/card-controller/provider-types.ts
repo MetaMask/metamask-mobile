@@ -194,6 +194,8 @@ export interface CardAuthResult {
 
 // -- Auth Flow --
 
+export type CardOtpMode = 'SMS' | 'TOTP';
+
 export type CardMfaMethod = 'phone' | 'email';
 
 export interface CardMfaOption {
@@ -204,7 +206,7 @@ export interface CardMfaOption {
 
 export type CardAuthStep =
   | { type: 'email_password' }
-  | { type: 'otp'; destination: string }
+  | { type: 'otp'; destination: string; mode?: CardOtpMode }
   | { type: 'siwe'; message: string }
   | { type: 'mfa_select'; options: CardMfaOption[] }
   | {
@@ -227,6 +229,12 @@ export type CardCredentials =
       type: 'email_password';
       email: string;
       password: string;
+      otpCode?: string;
+    }
+  | {
+      type: 'email_code';
+      email: string;
+      code: string;
       otpCode?: string;
     }
   | { type: 'siwe'; signature: string }
@@ -736,6 +744,7 @@ export interface ICardProvider {
     session: CardAuthSession,
     credentials: CardCredentials,
   ): Promise<CardAuthResult>;
+  requestEmailLoginCode?(email: string): Promise<void>;
   executeStepAction?(session: CardAuthSession): Promise<void>;
   refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity;

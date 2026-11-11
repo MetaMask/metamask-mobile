@@ -7,7 +7,7 @@ import {
 } from '@metamask/bridge-controller';
 import { BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import type { BridgeToken } from '../../Bridge/types';
-import { formatCurrency } from '../../Bridge/utils/currencyUtils';
+import { getFormatters } from '../../../hooks/useFormatters';
 import { calcTokenFiatRate } from '../../Bridge/utils/exchange-rates';
 import { safeToChecksumAddress } from '../../../../util/address';
 import type { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
@@ -73,7 +73,7 @@ export interface EnrichTokenBalanceOptions {
 
 const zeroEnrichment = (currentCurrency: string): TokenBalanceEnrichment => ({
   balance: '0',
-  balanceFiat: formatCurrency(0, currentCurrency),
+  balanceFiat: getFormatters().formatCurrency(0, currentCurrency),
   tokenFiatAmount: 0,
   currencyExchangeRate: undefined,
 });
@@ -100,7 +100,10 @@ const priced = (
   const tokenFiatAmount = balanceNum * exchangeRate;
   return {
     balance,
-    balanceFiat: formatCurrency(tokenFiatAmount, currentCurrency),
+    balanceFiat: getFormatters().formatCurrency(
+      tokenFiatAmount,
+      currentCurrency,
+    ),
     tokenFiatAmount,
     currencyExchangeRate: exchangeRate,
   };

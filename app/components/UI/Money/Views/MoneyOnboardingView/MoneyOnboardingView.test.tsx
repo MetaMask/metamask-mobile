@@ -26,7 +26,7 @@ import {
   MoneyPostOnboardingRedirectType,
   type MoneyOnboardingParams,
 } from '../../types/navigation';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import type { NavigationAnalyticsContext } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
   __fireRiveTrigger,
@@ -96,7 +96,7 @@ jest.mock('../../hooks/useMoneyVaultApy', () => ({
   default: () => mockApy,
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 
@@ -765,6 +765,13 @@ describe('MoneyOnboardingView', () => {
         params: { screen: Routes.CARD.AUTHENTICATION },
       });
       expect(mockNavigateToMoneyDeposit).not.toHaveBeenCalled();
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 5,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+          redirect_target: SCREEN_NAMES.CARD_HOME,
+        }),
+      );
     });
 
     it('initiates deposit with preferred token after completing onboarding', async () => {

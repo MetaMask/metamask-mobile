@@ -52,7 +52,6 @@ const placeholderTextColor = mockTheme.colors.text.muted;
 
 const baseEditForm: NetworkFormState = {
   rpcUrl: 'https://rpc1.example.com',
-  failoverRpcUrls: undefined,
   rpcName: 'RPC One',
   rpcUrlForm: 'https://new-rpc.example.com',
   rpcNameForm: 'New RPC',
@@ -184,8 +183,18 @@ function createRpcValidation(
 }
 
 describe('RpcEndpointSection', () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env = {
+      ...originalEnv,
+      QUICKNODE_MAINNET_URL: 'https://mainnet.quicknode.example',
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   it('renders inline RPC form fields in add mode', () => {
@@ -210,6 +219,50 @@ describe('RpcEndpointSection', () => {
     expect(
       getByTestId(NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the failover tag for an endpoint with a failover', () => {
+    const formHook = createRpcModalFormHook({
+      form: { rpcUrl: 'https://mainnet.infura.io/v3/key', chainId: '0x1' },
+      showMultiRpcAddModal: false,
+      rpcModalShowForm: false,
+    });
+
+    const { queryByText } = render(
+      <RpcEndpointSection
+        formHook={formHook}
+        validation={createRpcValidation()}
+        onValidationSuccess={jest.fn()}
+        isRpcFailoverEnabled
+        styles={styles}
+        themeAppearance="light"
+        placeholderTextColor={placeholderTextColor}
+      />,
+    );
+
+    expect(queryByText(strings('app_settings.failover'))).toBeOnTheScreen();
+  });
+
+  it('hides the failover tag for an endpoint without a failover', () => {
+    const formHook = createRpcModalFormHook({
+      form: { rpcUrl: 'https://rpc1.example.com', chainId: '0x1' },
+      showMultiRpcAddModal: false,
+      rpcModalShowForm: false,
+    });
+
+    const { queryByText } = render(
+      <RpcEndpointSection
+        formHook={formHook}
+        validation={createRpcValidation()}
+        onValidationSuccess={jest.fn()}
+        isRpcFailoverEnabled
+        styles={styles}
+        themeAppearance="light"
+        placeholderTextColor={placeholderTextColor}
+      />,
+    );
+
+    expect(queryByText(strings('app_settings.failover'))).not.toBeOnTheScreen();
   });
 
   it('renders RPC selector in edit mode', () => {
@@ -426,7 +479,6 @@ describe('RpcEndpointModals', () => {
     await waitFor(() => {
       expect(formHook.onRpcUrlChangeWithName).toHaveBeenCalledWith(
         'https://rpc2.example.com',
-        undefined,
         'RPC Two',
         RpcEndpointType.Custom,
       );

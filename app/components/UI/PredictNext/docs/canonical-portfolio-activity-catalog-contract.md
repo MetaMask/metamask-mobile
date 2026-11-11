@@ -60,16 +60,32 @@ interface PredictEntryContext {
   marketQuestion: string;
   outcomeLabel: string;
   imageUrl?: PredictHttpsUrl;
+  marketLabels?: string[];
 }
 ```
 
-| Field            | Rule                                                                                                                    | Needed by                                                          |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `eventId`        | Canonical Event ID for navigation to the Event Screen.                                                                  | Home rows `onPress`, Portfolio and Activity row navigation         |
-| `eventTitle`     | Event title.                                                                                                            | Home rows, Portfolio rows, Activity `eventTitle`, Activity details |
-| `marketQuestion` | Market question. Distinguishes Markets in multi-Market Events.                                                          | Portfolio rows, Activity rows and details                          |
-| `outcomeLabel`   | Label of the held or traded Outcome. Required, because a catalog Market always has both Outcomes.                       | Home rows ("on Yes"), Portfolio rows, Activity details             |
-| `imageUrl`       | Most specific approved image: the Market image, else the Event image. The backend chooses it. Replaces `eventImageUrl`. | Home rows, Portfolio rows, Activity `icon`                         |
+| Field            | Rule                                                                                                                    | Needed by                                                                                        |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `eventId`        | Canonical Event ID for navigation to the Event Screen.                                                                  | Home rows `onPress`, Portfolio and Activity row navigation                                       |
+| `eventTitle`     | Event title.                                                                                                            | Home rows, Portfolio rows, Activity `eventTitle`, Activity details                               |
+| `marketQuestion` | Market question. Distinguishes Markets in multi-Market Events.                                                          | Portfolio rows, Activity rows and details                                                        |
+| `outcomeLabel`   | Label of the held or traded Outcome. Required, because a catalog Market always has both Outcomes.                       | Home rows ("on Yes"), Portfolio rows, Activity details                                           |
+| `imageUrl`       | Most specific approved image: the Market image, else the Event image. The backend chooses it. Replaces `eventImageUrl`. | Home rows, Portfolio rows, Activity `icon`                                                       |
+| `marketLabels`   | Ordered, display-ready parts naming the Market beyond its Outcome. See below.                                           | Home, Portfolio and Activity rows, Activity details, Cash Out sheet, Event screen Position cards |
+
+An entry's name is `[outcomeLabel, ...marketLabels].join(' · ')`. The backend owns all per-group-type formatting and sends each part ready to show; mobile only joins them and never reads a group type. Today only threshold lines send `marketLabels`: their `outcomeLabel` is only "Yes" or "No", so without it two Players' Positions in one Game read the same.
+
+```json
+"context": {
+  "eventId": "KXNFLGAME-26NOV08NESEA",
+  "eventTitle": "Patriots at Seahawks",
+  "marketQuestion": "Josh Jacobs: 60+",
+  "outcomeLabel": "Yes",
+  "marketLabels": ["Josh Jacobs", "60+"]
+}
+```
+
+This context renders "Yes · Josh Jacobs · 60+". A line without a Player sends `["60+"]` ("Yes · 60+"). When there is nothing to add, `marketLabels` is absent and the entry shows `outcomeLabel` alone. When present it has at least one element, and every element is a non-blank string; mobile drops a malformed `marketLabels` and keeps the entry, so it falls back to `outcomeLabel` alone.
 
 When `context` is absent, mobile renders neutral fallback copy and the Outcome side. It never renders a raw Venue identifier as a title.
 
@@ -218,7 +234,7 @@ PRED-1376 implements the client side:
 
 - **Vocabulary.** `PREDICT_FEED_KEYS` in `types/index.ts`. Mobile types `PredictFeedKey` as that closed union rather than a branded string; the parser drops keys outside it, so the wire format is unchanged. Add a key there before the backend serves it.
 - **Mapping table.** `capabilities/surfaceFeedKeys.ts` maps Homepage slots, Explore tabs, Rewards campaign rows, and PredictNext Home sections and Feed Screen tabs to keys.
-- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions, Feed keys, and fields. A malformed known field, a known key without a Feed ID, or another Venue's `venueId` rejects the whole catalog.
+- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions, Feed keys, and fields. A malformed known field, a known key without a Feed ID, or another Venue's `venueId` rejects the whole catalog. `categories` is the exception: it only drives Home's chip row, so an entry that is not a string, not a Feed key in `feeds`, or a repeat is dropped and logged (`Logger.log`), as is a `categories` that is not an array. It never rejects the catalog.
 - **Sources.** Polymarket is static client config (`config/venueCatalogs.ts`) until PRED-1356. Kalshi is read through `PredictMarketDataService:getVenueCatalog`, whose adapter method serves the static Kalshi catalog until PRED-1403 swaps in this route.
 - **Failure.** `useVenueCapabilities` re-validates every catalog. A failed refresh keeps the last valid catalog. With no valid catalog, the result is `loading` or `unavailable` and enables no action, Feed, or search; there is no fallback to the bundled catalog or to another Venue. The Order flow refuses to open an action the Venue does not list.
 

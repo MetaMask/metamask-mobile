@@ -35,7 +35,7 @@ const POLLING_TIMEOUT_MS = 30000;
  * - REJECTED: Navigate to KYC_FAILED
  * - PENDING: After 30 seconds of polling, go to Card home (pending state)
  *
- * Visual: centred verifying-identity terminal (same Rive + TitleStandard
+ * Visual: centred VBA verifying-identity terminal (same Rive + TitleStandard
  * pattern as the Immersve "Finish verifying" reopen prompt).
  */
 const VerifyingVeriffKYC = () => {
