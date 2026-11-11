@@ -10,9 +10,9 @@ import {
   IconColor,
   IconName,
   IconSize,
+  ListItem,
   Switch,
   Text,
-  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -165,31 +165,28 @@ const MoneyMoreSheet = () => {
       </BottomSheetHeader>
       <View style={styles.list}>
         {mfaStatus === 'unavailable' ? null : (
-          <View style={styles.row} testID={MoneyMoreSheetTestIds.MFA_OPTION}>
-            <Icon
-              name={IconName.SecurityTick}
-              size={IconSize.Lg}
-              color={IconColor.IconDefault}
-            />
-            <View style={styles.rowText}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('money.mfa.more_sheet_title')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.mfa.more_sheet_description')}
-              </Text>
-            </View>
-            <Switch
-              isOn={isMfaOn}
-              isDisabled={mfaStatus === 'setting_up'}
-              onValueChange={handleMfaToggle}
-              accessibilityLabel={strings('money.mfa.more_sheet_title')}
-              testID={MoneyMoreSheetTestIds.MFA_SWITCH}
-            />
-          </View>
+          <ListItem
+            accessoryGap={4}
+            startAccessory={
+              <Icon
+                name={IconName.SecurityTick}
+                size={IconSize.Lg}
+                color={IconColor.IconDefault}
+              />
+            }
+            title={strings('money.mfa.more_sheet_title')}
+            description={strings('money.mfa.more_sheet_description')}
+            endAccessory={
+              <Switch
+                isOn={isMfaOn}
+                isDisabled={mfaStatus === 'setting_up'}
+                onValueChange={handleMfaToggle}
+                accessibilityLabel={strings('money.mfa.more_sheet_title')}
+                testID={MoneyMoreSheetTestIds.MFA_SWITCH}
+              />
+            }
+            testID={MoneyMoreSheetTestIds.MFA_OPTION}
+          />
         )}
         {options.map((item) => (
           <TouchableOpacity

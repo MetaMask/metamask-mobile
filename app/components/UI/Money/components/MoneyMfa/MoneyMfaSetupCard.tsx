@@ -1,14 +1,14 @@
 import React from 'react';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
   Button,
   ButtonSize,
   ButtonVariant,
+  Card,
   FontWeight,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -32,17 +32,14 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
   const isStarting = useActiveMfaFlow()?.state.step.name === 'idle';
 
   return (
-    <Box
-      twClassName="mx-4 mt-2 mb-2 flex-row gap-4 rounded-2xl bg-muted p-4"
+    <Card
+      twClassName="mx-4 mt-2 mb-2 flex-row gap-4 bg-muted"
       testID={MoneyMfaTestIds.SETUP_CARD}
     >
-      <Box twClassName="h-9 w-9 items-center justify-center rounded-full bg-muted">
-        <Icon
-          name={IconName.SecurityTick}
-          size={IconSize.Md}
-          color={IconColor.SuccessDefault}
-        />
-      </Box>
+      <AvatarIcon
+        iconName={IconName.SecurityTick}
+        severity={AvatarIconSeverity.Success}
+      />
       <Box twClassName="flex-1 items-start gap-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('money.mfa.card_title')}
@@ -62,7 +59,7 @@ const MoneyMfaSetupCard = ({ onSetUp }: MoneyMfaSetupCardProps) => {
           {strings('money.mfa.card_cta')}
         </Button>
       </Box>
-    </Box>
+    </Card>
   );
 };
 
