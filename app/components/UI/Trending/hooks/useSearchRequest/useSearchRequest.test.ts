@@ -335,6 +335,55 @@ describe('useSearchRequest', () => {
     unmount();
   });
 
+  it('keeps results and cursor when loading more returns an API error', async () => {
+    const page1Results = [createMockSearchResult({ symbol: 'ETH' })];
+    const page2Results = [createMockSearchResult({ symbol: 'BTC' })];
+
+    spySearchTokens
+      .mockResolvedValueOnce({
+        data: page1Results,
+        pageInfo: { hasNextPage: true, endCursor: 'cursor-page-2' },
+      } as never)
+      .mockResolvedValueOnce({ data: [], error: 'Transient failure' } as never)
+      .mockResolvedValueOnce({
+        data: page2Results,
+        pageInfo: { hasNextPage: false, endCursor: undefined },
+      } as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    expect(result.current.results).toEqual(page1Results);
+    expect(result.current.hasNextPage).toBe(true);
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    expect(result.current.results).toEqual([...page1Results, ...page2Results]);
+    expect(spySearchTokens).toHaveBeenNthCalledWith(
+      3,
+      expect.anything(),
+      'ETH',
+      expect.objectContaining({ after: 'cursor-page-2' }),
+    );
+
+    unmount();
+  });
+
   it('loadMore is a no-op when hasNextPage is false', async () => {
     const mockResults = [createMockSearchResult()];
     spySearchTokens.mockResolvedValue({
@@ -404,6 +453,174 @@ describe('useSearchRequest', () => {
 
     expect(result.current.results).toEqual(newQueryResults);
     expect(result.current.hasNextPage).toBe(false);
+
+    unmount();
+  });
+
+  it('does not append a stale next page after the query changes', async () => {
+    const page1Results = [createMockSearchResult({ symbol: 'ETH' })];
+    const stalePageResults = [createMockSearchResult({ symbol: 'STALE' })];
+    const newQueryResults = [createMockSearchResult({ symbol: 'DAI' })];
+
+    let resolveStalePage: ((value: unknown) => void) | undefined;
+    spySearchTokens
+      .mockResolvedValueOnce({
+        data: page1Results,
+        pageInfo: { hasNextPage: true, endCursor: 'cursor-page-2' },
+      } as never)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStalePage = resolve;
+          }) as never,
+      )
+      .mockResolvedValueOnce({ data: newQueryResults } as never);
+
+    const { result, unmount } = renderHookWithProvider(() => {
+      const [query, setQuery] = useState('ETH');
+      return {
+        ...useSearchRequest({
+          chainIds: ['eip155:1'],
+          query,
+          limit: 10,
+        }),
+        setQuery,
+      };
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    let staleLoad: Promise<void> | undefined;
+    act(() => {
+      staleLoad = result.current.loadMore();
+    });
+
+    act(() => {
+      result.current.setQuery('DAI');
+    });
+
+    await waitFor(() => {
+      expect(result.current.results).toEqual(newQueryResults);
+    });
+    expect(result.current.isLoadingMore).toBe(false);
+
+    await act(async () => {
+      resolveStalePage?.({ data: stalePageResults });
+      await staleLoad;
+    });
+
+    expect(result.current.results).toEqual(newQueryResults);
+
+    unmount();
+  });
+
+  it('does not append a stale next page after the chain changes', async () => {
+    const page1Results = [createMockSearchResult({ symbol: 'ETH' })];
+    const stalePageResults = [createMockSearchResult({ symbol: 'STALE' })];
+    const newChainResults = [createMockSearchResult({ symbol: 'MATIC' })];
+
+    let resolveStalePage: ((value: unknown) => void) | undefined;
+    spySearchTokens
+      .mockResolvedValueOnce({
+        data: page1Results,
+        pageInfo: { hasNextPage: true, endCursor: 'cursor-page-2' },
+      } as never)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStalePage = resolve;
+          }) as never,
+      )
+      .mockResolvedValueOnce({ data: newChainResults } as never);
+
+    let chainIds: CaipChainId[] = ['eip155:1'];
+    const { result, rerender, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds,
+        query: 'ETH',
+        limit: 10,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    let staleLoad: Promise<void> | undefined;
+    act(() => {
+      staleLoad = result.current.loadMore();
+    });
+
+    chainIds = ['eip155:137'];
+    rerender(undefined);
+
+    await waitFor(() => {
+      expect(result.current.results).toEqual(newChainResults);
+    });
+
+    await act(async () => {
+      resolveStalePage?.({ data: stalePageResults });
+      await staleLoad;
+    });
+
+    expect(result.current.results).toEqual(newChainResults);
+
+    unmount();
+  });
+
+  it('does not append a stale next page after the query is cleared', async () => {
+    const page1Results = [createMockSearchResult({ symbol: 'ETH' })];
+
+    let resolveStalePage: ((value: unknown) => void) | undefined;
+    spySearchTokens
+      .mockResolvedValueOnce({
+        data: page1Results,
+        pageInfo: { hasNextPage: true, endCursor: 'cursor-page-2' },
+      } as never)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStalePage = resolve;
+          }) as never,
+      );
+
+    const { result, unmount } = renderHookWithProvider(() => {
+      const [query, setQuery] = useState('ETH');
+      return {
+        ...useSearchRequest({
+          chainIds: ['eip155:1'],
+          query,
+          limit: 10,
+        }),
+        setQuery,
+      };
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    let staleLoad: Promise<void> | undefined;
+    act(() => {
+      staleLoad = result.current.loadMore();
+    });
+
+    act(() => {
+      result.current.setQuery('');
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      resolveStalePage?.({ data: [createMockSearchResult()] });
+      await staleLoad;
+    });
+
+    expect(result.current.results).toEqual([]);
 
     unmount();
   });

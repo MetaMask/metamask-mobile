@@ -85,6 +85,9 @@ export const useSearchRequest = (options: {
 
   const searchTokensRequest = useCallback(async () => {
     if (!debouncedQuery) {
+      requestIdRef.current += 1;
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
       setResults([]);
       setError(null);
       setIsFetching(false);
@@ -96,6 +99,8 @@ export const useSearchRequest = (options: {
 
     // Increment request ID to mark this as the current request
     const currentRequestId = ++requestIdRef.current;
+    isLoadingMoreRef.current = false;
+    setIsLoadingMore(false);
     setIsFetching(true);
     setError(null);
     setEndCursor(undefined);
@@ -146,6 +151,7 @@ export const useSearchRequest = (options: {
     if (!hasNextPage || !endCursor || isLoadingMoreRef.current || isFetching)
       return;
 
+    const currentRequestId = requestIdRef.current;
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
     try {
@@ -155,6 +161,8 @@ export const useSearchRequest = (options: {
         includeTokenSecurityData: true,
         after: endCursor,
       });
+      if (currentRequestId !== requestIdRef.current) return;
+      if (more?.error) return;
       if (more?.data) {
         setResults((prev) => [...prev, ...(more.data as SearchResult[])]);
       }
@@ -163,8 +171,10 @@ export const useSearchRequest = (options: {
     } catch {
       // Pagination errors are silent; existing results stay intact
     } finally {
-      isLoadingMoreRef.current = false;
-      setIsLoadingMore(false);
+      if (currentRequestId === requestIdRef.current) {
+        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
+      }
     }
   }, [
     hasNextPage,

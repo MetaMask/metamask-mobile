@@ -57,6 +57,13 @@ import useAssetVisibility, {
 } from '../../../../UI/TokenDetails/components/useAssetVisibility';
 import { filterExcludedImportAssets } from '../../../../../enablement/assets/networks-customization';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import { useTokenCatalog } from './useTokenCatalog';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+
+const LOW_END_HARDWARE_DRAW_DISTANCE = 200;
+const DEFAULT_END_REACHED_THRESHOLD = 0.5;
+const SLOW_NETWORK_END_REACHED_THRESHOLD = 0.1;
 
 interface Props {
   /**
@@ -96,6 +103,16 @@ function assetIdBelongsToChain(assetId: string, caipChainId: string): boolean {
   try {
     const { chain } = parseCaipAssetType(assetId as CaipAssetType);
     return `${chain.namespace}:${chain.reference}` === caipChainId;
+  } catch {
+    return false;
+  }
+}
+
+function isNativeAssetId(assetId: string): boolean {
+  try {
+    return (
+      parseCaipAssetType(assetId as CaipAssetType).assetNamespace === 'slip44'
+    );
   } catch {
     return false;
   }
@@ -148,11 +165,43 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [searchQuery, setSearchQuery] = useState('');
 
+  const caipChainId = selectedChainId
+    ? formatChainIdToCaip(selectedChainId)
+    : undefined;
+
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+
+  // Empty search on non-EVM chains browses the full asset catalog, while EVM
+  // keeps the curated trending list. Typed search always uses search.
+  const isBrowsingCatalog =
+    !!selectedChainId &&
+    isNonEvmChainId(selectedChainId) &&
+    !searchQuery.trim();
+  const canRequestCatalog = isBrowsingCatalog && networkTier !== 'NONE';
+
+  const {
+    assets: catalogAssets,
+    isLoading: isCatalogLoading,
+    error: catalogError,
+    loadMore: loadMoreCatalog,
+    isLoadingMore: isCatalogLoadingMore,
+    hasNextPage: catalogHasNextPage,
+  } = useTokenCatalog(isBrowsingCatalog ? caipChainId : undefined, {
+    enabled: canRequestCatalog,
+  });
+
   // Fetch search results from the API based on user's search query.
   // Debouncing and loading state (including debounce period) are handled
   // internally by useSearchRequest.
-  const { data: apiResults, isLoading } = useTrendingSearch({
-    chainIds: selectedChainId ? [formatChainIdToCaip(selectedChainId)] : [],
+  const {
+    data: apiResults,
+    isLoading,
+    loadMore: loadMoreSearchResults,
+    isLoadingMore: isSearchLoadingMore,
+    hasNextPage: searchHasNextPage,
+  } = useTrendingSearch({
+    chainIds: caipChainId ? [caipChainId] : [],
     searchQuery,
     sortBy: 'h24_trending',
     includeMarketData: false,
@@ -164,16 +213,38 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     includeStocks: true,
   });
 
+  // Catalog browsing falls back to trending if the chain's catalog is
+  // unavailable (e.g. unsupported testnets return 400).
+  const isCatalogActive = isBrowsingCatalog && !catalogError;
+
   // Convert API search results to ImportAsset format, hiding excluded
   // homonym ERC-20s (e.g. Arc USDC) which duplicate the native gas token.
   const allTokens = useMemo(() => {
     if (!selectedChainId) return [];
 
+    // Non-EVM native assets are inherent to the chain and never imported;
+    // EVM keeps its native row (already-added) to preserve trending results.
+    const isNonEvm = isNonEvmChainId(selectedChainId);
+    const sourceAssets = (isCatalogActive ? catalogAssets : apiResults).filter(
+      (asset) => !isNonEvm || !isNativeAssetId(asset.assetId),
+    );
+
     return filterExcludedImportAssets(
-      convertTrendingAssetsToImporAssets(apiResults),
+      convertTrendingAssetsToImporAssets(sourceAssets),
       selectedChainId,
     );
-  }, [apiResults, selectedChainId]);
+  }, [apiResults, catalogAssets, isCatalogActive, selectedChainId]);
+
+  const resultsLoading = isCatalogActive ? isCatalogLoading : isLoading;
+  const resultsLoadMore = isCatalogActive
+    ? loadMoreCatalog
+    : loadMoreSearchResults;
+  const resultsHasNextPage = isCatalogActive
+    ? catalogHasNextPage
+    : searchHasNextPage;
+  const resultsIsLoadingMore = isCatalogActive
+    ? isCatalogLoadingMore
+    : isSearchLoadingMore;
 
   const [selectedAssets, setSelectedAssets] = useState<ImportAsset[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -204,9 +275,9 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       return addresses;
     }
 
-    const caipChainId = formatChainIdToCaip(selectedChainId);
+    const selectedCaipChainId = formatChainIdToCaip(selectedChainId);
     const account = selectInternalAccountByScope(
-      caipChainId as SupportedCaipChainId,
+      selectedCaipChainId as SupportedCaipChainId,
     );
     if (!account?.id) {
       return addresses;
@@ -219,7 +290,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     ]);
 
     presentAssetIds.forEach((assetId) => {
-      if (!assetIdBelongsToChain(assetId, caipChainId)) {
+      if (!assetIdBelongsToChain(assetId, selectedCaipChainId)) {
         return;
       }
       if (assetPreferences[assetId as CaipAssetType]?.hidden === true) {
@@ -478,7 +549,18 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           selectedAsset={selectedAssets}
           networkName={networkName}
           alreadyAddedTokens={alreadyAddedTokens}
-          isLoading={isLoading}
+          isLoading={resultsLoading}
+          isLoadingMore={resultsIsLoadingMore}
+          hasNextPage={resultsHasNextPage}
+          onEndReached={networkTier === 'NONE' ? undefined : resultsLoadMore}
+          drawDistance={
+            hardwareTier === 'LOW' ? LOW_END_HARDWARE_DRAW_DISTANCE : undefined
+          }
+          endReachedThreshold={
+            networkTier === 'SLOW_CELLULAR'
+              ? SLOW_NETWORK_END_REACHED_THRESHOLD
+              : DEFAULT_END_REACHED_THRESHOLD
+          }
         />
       </Box>
 
