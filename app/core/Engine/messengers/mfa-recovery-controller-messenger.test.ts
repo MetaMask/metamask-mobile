@@ -13,6 +13,21 @@ describe('MFA recovery controller messengers', () => {
     );
   });
 
+  it('delegates the AuthenticationController actions the controller calls', () => {
+    const rootMessenger = new Messenger({ namespace: 'Root' });
+    const delegate = jest.spyOn(rootMessenger, 'delegate');
+
+    getMfaRecoveryControllerMessenger(rootMessenger);
+
+    expect(delegate).toHaveBeenCalledWith({
+      actions: [
+        'AuthenticationController:refreshCanonicalProfileId',
+        'AuthenticationController:requestMfaApproval',
+      ],
+      messenger: expect.any(Messenger),
+    });
+  });
+
   it('delegates the initialization dependencies', () => {
     const rootMessenger = new Messenger({ namespace: 'Root' });
     const delegate = jest.spyOn(rootMessenger, 'delegate');
@@ -25,7 +40,6 @@ describe('MFA recovery controller messengers', () => {
         'AuthenticationController:refreshCanonicalProfileId',
         'AuthenticationController:requestMfaApproval',
         'KeyringController:signPersonalMessage',
-        'KeyringController:exportEncryptionKey',
         'KeyringController:getState',
         'RemoteFeatureFlagController:getState',
       ],

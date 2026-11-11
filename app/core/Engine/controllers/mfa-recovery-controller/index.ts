@@ -1,14 +1,9 @@
-import { Messenger } from '@metamask/messenger';
 import type {
   MfaRecoveryController,
   MfaRecoveryControllerState,
 } from '@metamask/mfa-recovery-controller';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { isMfaRecoveryConfigured } from './config';
-import {
-  AuthenticationRecoveryAuthProvider,
-  type AuthenticationRecoveryAuthProviderMessenger,
-} from './auth/auth-provider';
 import { mobilePasskeyAdapter } from '../../../../util/identity/mfa/passkeyAdapter';
 import { MfaRecoveryControllerError } from './errors';
 import {
@@ -49,8 +44,6 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
   };
   const signPersonalMessage: SignPersonalMessage = async (params) =>
     await initMessenger.call('KeyringController:signPersonalMessage', params);
-  const exportEncryptionKey = async () =>
-    await initMessenger.call('KeyringController:exportEncryptionKey');
   const isEnabled = () => {
     const rffState = initMessenger.call('RemoteFeatureFlagController:getState');
     const flagEnabled = selectMfaRecoveryEnabled.resultFunc(
@@ -59,33 +52,20 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
     return flagEnabled && isMfaRecoveryConfigured();
   };
 
-  const authProviderMessenger: AuthenticationRecoveryAuthProviderMessenger =
-    new Messenger({
-      namespace: 'AuthApiRecoveryAuthProvider',
-      parent: initMessenger,
-    });
-  initMessenger.delegate({
-    actions: [
-      'AuthenticationController:refreshCanonicalProfileId',
-      'AuthenticationController:requestMfaApproval',
-    ],
-    messenger: authProviderMessenger,
-  });
-
   const result = createMfaRecoveryController({
     messenger: controllerMessenger,
     state: persistedState.MfaRecoveryController as
       | Partial<MfaRecoveryControllerState>
       | undefined,
-    authProvider: new AuthenticationRecoveryAuthProvider({
-      messenger: authProviderMessenger,
-    }),
+    getAuthenticatedProfileId: async () =>
+      await initMessenger.call(
+        'AuthenticationController:refreshCanonicalProfileId',
+      ),
     getBearerToken: async () =>
       await initMessenger.call('AuthenticationController:getBearerToken'),
     getAddress,
     signPersonalMessage,
     getPasskeyAssertion: mobilePasskeyAdapter.get,
-    exportEncryptionKey,
     isEnabled,
   });
   identifierRouter = result.identifierRouter;

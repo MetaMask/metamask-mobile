@@ -1,86 +1,57 @@
-import type { PendingOperation } from '@metamask/mfa-recovery-controller';
-import { createKeyringPendingOperationEncryptor } from './pending-operation-encryptor';
+import { Encryptor } from '../../../Encryptor';
+import { createPendingOperationEncryptor } from './pending-operation-encryptor';
 
-const mockImportKey = jest.fn();
-const mockEncryptWithKey = jest.fn();
-const mockDecryptWithKey = jest.fn();
+const mockEncryptor = {
+  importKey: jest.fn(),
+  exportKey: jest.fn(),
+  generateSalt: jest.fn(),
+  encryptWithKey: jest.fn(),
+  decryptWithKey: jest.fn(),
+  keyFromPassword: jest.fn().mockResolvedValue('derived-key'),
+};
 
 jest.mock('../../../Encryptor', () => ({
-  Encryptor: jest.fn(() => ({
-    importKey: mockImportKey,
-    encryptWithKey: mockEncryptWithKey,
-    decryptWithKey: mockDecryptWithKey,
-  })),
-  LEGACY_DERIVATION_OPTIONS: {
+  Encryptor: jest.fn(() => mockEncryptor),
+  DERIVATION_OPTIONS_MINIMUM_OWASP2023: {
     algorithm: 'PBKDF2',
-    params: { iterations: 5000 },
+    params: { iterations: 600000 },
   },
 }));
 
-const pendingOperation = {
-  phase: 'authorizing' as const,
-  mutation: {
-    id: 'mutation-1',
-    profileId: 'profile-1',
-    operation: 'register' as const,
-    expectedVersion: 0,
-    newVersion: 1,
-    payloadHash: '0xpayload',
-    audiences: ['cubist'],
-    requestHash: '0xrequest',
-  },
-  identifier: null,
-  payload: {
-    identifiers: [],
-    recoverySecret: '0xsecret',
-  },
-} satisfies PendingOperation;
+describe('createPendingOperationEncryptor', () => {
+  it('creates an encryptor configured like KeyringController', () => {
+    createPendingOperationEncryptor();
 
-describe('createKeyringPendingOperationEncryptor', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockImportKey.mockResolvedValue('imported-key');
-    mockEncryptWithKey.mockResolvedValue({
-      cipher: 'ciphertext',
-      iv: 'iv',
-      keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 5000 } },
-      lib: 'quick-crypto',
+    expect(Encryptor).toHaveBeenCalledWith({
+      keyDerivationOptions: {
+        algorithm: 'PBKDF2',
+        params: { iterations: 600000 },
+      },
     });
-    mockDecryptWithKey.mockResolvedValue(pendingOperation);
   });
 
-  it('encrypts pending operations using the exported keyring key', async () => {
-    const encryptor = createKeyringPendingOperationEncryptor({
-      exportEncryptionKey: jest.fn().mockResolvedValue('exported-key'),
-    });
+  it('passes the key and encryption methods through', () => {
+    const encryptor = createPendingOperationEncryptor();
 
-    await expect(encryptor.encrypt(pendingOperation)).resolves.toBe(
-      JSON.stringify({
-        cipher: 'ciphertext',
-        iv: 'iv',
-        keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 5000 } },
-        lib: 'quick-crypto',
-      }),
-    );
-    expect(mockImportKey).toHaveBeenCalledWith('exported-key');
-    expect(mockEncryptWithKey).toHaveBeenCalledWith(
-      'imported-key',
-      pendingOperation,
-    );
+    expect(encryptor).toMatchObject({
+      importKey: mockEncryptor.importKey,
+      exportKey: mockEncryptor.exportKey,
+      generateSalt: mockEncryptor.generateSalt,
+      encryptWithKey: mockEncryptor.encryptWithKey,
+      decryptWithKey: mockEncryptor.decryptWithKey,
+    });
   });
 
-  it('decrypts pending operations using the exported keyring key', async () => {
-    const encryptor = createKeyringPendingOperationEncryptor({
-      exportEncryptionKey: jest.fn().mockResolvedValue('exported-key'),
-    });
-    const ciphertext = JSON.stringify({ cipher: 'ciphertext' });
+  it('derives keys with the configured derivation options', async () => {
+    const encryptor = createPendingOperationEncryptor();
 
-    await expect(encryptor.decrypt(ciphertext)).resolves.toEqual(
-      pendingOperation,
+    await expect(
+      encryptor.keyFromPassword('password', 'salt', true, { ignored: true }),
+    ).resolves.toBe('derived-key');
+    expect(mockEncryptor.keyFromPassword).toHaveBeenCalledWith(
+      'password',
+      'salt',
+      true,
     );
-    expect(mockImportKey).toHaveBeenCalledWith('exported-key');
-    expect(mockDecryptWithKey).toHaveBeenCalledWith('imported-key', {
-      cipher: 'ciphertext',
-    });
   });
 });

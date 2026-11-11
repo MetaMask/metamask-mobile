@@ -1,45 +1,33 @@
-import type {
-  PendingOperation,
-  PendingOperationEncryptor,
-} from '@metamask/mfa-recovery-controller';
-import type { Json } from '@metamask/utils';
-import type { EncryptionResult } from '../../../Encryptor/types';
+import type { PendingOperationEncryptor } from '@metamask/mfa-recovery-controller';
+import {
+  DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+  Encryptor,
+} from '../../../Encryptor';
+import type { EncryptionKey, EncryptionResult } from '../../../Encryptor/types';
 
-interface KeyringPendingOperationEncryptorOptions {
-  exportEncryptionKey: () => Promise<string>;
-}
+/** The pending operation encryptor over the mobile Encryptor's key types. */
+export type MobilePendingOperationEncryptor = PendingOperationEncryptor<
+  EncryptionKey,
+  EncryptionResult
+>;
 
 /**
- * Encrypts controller pending state with the wallet vault encryption key.
+ * Creates the encryptor the controller generates its `encryptionKey` with and
+ * encrypts pending state under, configured like KeyringController's.
  */
-export function createKeyringPendingOperationEncryptor({
-  exportEncryptionKey,
-}: KeyringPendingOperationEncryptorOptions): PendingOperationEncryptor {
-  const encryptorPromise = import('../../../Encryptor').then(
-    ({ Encryptor, DERIVATION_OPTIONS_DEFAULT_OWASP2023 }) =>
-      new Encryptor({
-        keyDerivationOptions: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
-      }),
-  );
-
-  const importCurrentKey = async () =>
-    await (await encryptorPromise).importKey(await exportEncryptionKey());
-
+export function createPendingOperationEncryptor(): MobilePendingOperationEncryptor {
+  const encryptor = new Encryptor({
+    keyDerivationOptions: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+  });
   return {
-    async encrypt(operation: PendingOperation): Promise<string> {
-      const key = await importCurrentKey();
-      const encrypted = await (
-        await encryptorPromise
-      ).encryptWithKey(key, operation as unknown as Json);
-      return JSON.stringify(encrypted);
-    },
-
-    async decrypt(ciphertext: string): Promise<PendingOperation> {
-      const key = await importCurrentKey();
-      const payload = JSON.parse(ciphertext) as EncryptionResult;
-      return (await (
-        await encryptorPromise
-      ).decryptWithKey(key, payload)) as PendingOperation;
-    },
+    importKey: encryptor.importKey,
+    exportKey: encryptor.exportKey,
+    generateSalt: encryptor.generateSalt,
+    encryptWithKey: encryptor.encryptWithKey,
+    decryptWithKey: encryptor.decryptWithKey,
+    // The controller types derivation options as `unknown`; the encryptor's
+    // configured options apply instead.
+    keyFromPassword: async (password, salt, exportable) =>
+      await encryptor.keyFromPassword(password, salt, exportable),
   };
 }

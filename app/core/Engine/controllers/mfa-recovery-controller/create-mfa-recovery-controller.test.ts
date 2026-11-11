@@ -3,6 +3,7 @@ import {
   MfaRecoveryController,
   type MfaRecoveryControllerMessenger,
 } from '@metamask/mfa-recovery-controller';
+import type { MobilePendingOperationEncryptor } from './pending-operation-encryptor';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
 
 const mockController = {
@@ -47,21 +48,21 @@ describe('createMfaRecoveryController', () => {
 
   it('creates the controller with production providers and persisted state', () => {
     const pendingOperationEncryptor = {
-      encrypt: jest.fn(),
-      decrypt: jest.fn(),
-    };
+      importKey: jest.fn(),
+      exportKey: jest.fn(),
+      keyFromPassword: jest.fn(),
+      generateSalt: jest.fn(),
+      encryptWithKey: jest.fn(),
+      decryptWithKey: jest.fn(),
+    } as unknown as MobilePendingOperationEncryptor;
     const messenger = {} as MfaRecoveryControllerMessenger;
-    const authProvider = {
-      getAuthenticatedProfileId: jest.fn(),
-      authorizeRecoveryRequest: jest.fn(),
-    };
     const getAddress = jest.fn().mockReturnValue('0xabc');
     const signPersonalMessage = jest.fn();
 
     const result = createMfaRecoveryController({
       messenger,
       state: { pendingOperation: null },
-      authProvider,
+      getAuthenticatedProfileId: jest.fn(),
       getBearerToken: jest.fn(),
       getAddress,
       signPersonalMessage,
@@ -79,15 +80,8 @@ describe('createMfaRecoveryController', () => {
       expect.objectContaining({
         messenger,
         state: { pendingOperation: null },
-        pendingOperationEncryptor: {
-          encrypt: expect.any(Function),
-          decrypt: expect.any(Function),
-        },
+        encryptor: pendingOperationEncryptor,
         escrows: [expect.objectContaining({ id: 'cubist' })],
-        authProvider: {
-          getAuthenticatedProfileId: expect.any(Function),
-          authorizeRecoveryRequest: expect.any(Function),
-        },
         identifierAuthProvider: result.identifierRouter,
       }),
     );

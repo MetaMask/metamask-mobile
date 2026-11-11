@@ -29,7 +29,6 @@ import { useMfa } from '../../../../../util/identity/mfa/useMfa';
 import { clearPendingOperationForDev } from '../../../../../core/Engine/controllers/mfa-recovery-controller/dev/clear-pending-operation';
 import { getLastApplyMutationFailure } from '../../../../../core/Engine/controllers/mfa-recovery-controller/dev/apply-mutation-diagnostics';
 import { createSocialIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
-import { getLastApprovalDiagnostic } from '../../../../../core/Engine/controllers/mfa-recovery-controller/dev/pending-operation-diagnostics';
 import {
   getMfaRecoveryErrorCode,
   getMfaRecoveryErrorDetail,
@@ -125,11 +124,7 @@ function formatFailureCode(runError: unknown): string {
   const detail = getMfaRecoveryErrorDetail(runError);
   const escrowFailure =
     code === 'incomplete_mutation' ? getLastApplyMutationFailure() : undefined;
-  const approvalCheck =
-    code === 'invalid_pending_operation'
-      ? getLastApprovalDiagnostic()
-      : undefined;
-  return [code, detail, escrowFailure, approvalCheck]
+  return [code, detail, escrowFailure]
     .filter((part) => part !== undefined)
     .map((part, index) => (index === 0 ? part : `(${part})`))
     .join(' ');

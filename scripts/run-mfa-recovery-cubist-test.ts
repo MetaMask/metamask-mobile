@@ -22,6 +22,7 @@ import {
 } from '../app/components/Views/Settings/DeveloperOptions/MfaRecoveryDeveloperOptionsSection/runMfaRecoveryCubistTest';
 import { MfaRecoveryControllerError } from '../app/core/Engine/controllers/mfa-recovery-controller/errors';
 import { createMfaRecoveryController } from '../app/core/Engine/controllers/mfa-recovery-controller/create-mfa-recovery-controller';
+import type { MobilePendingOperationEncryptor } from '../app/core/Engine/controllers/mfa-recovery-controller/pending-operation-encryptor';
 import { getJwtSubject } from '../app/core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   MOCK_ANY_NAMESPACE,
@@ -32,9 +33,6 @@ import {
 } from '@metamask/messenger';
 import type {
   MfaRecoveryControllerMessenger,
-  PendingOperation,
-  PendingOperationEncryptor,
-  RecoveryAuthProvider,
 } from '@metamask/mfa-recovery-controller';
 
 interface TestAuthOptions {
@@ -270,43 +268,56 @@ type RootMessenger = Messenger<
   MessengerEvents<MfaRecoveryControllerMessenger>
 >;
 
-const inMemoryPendingOperationEncryptor: PendingOperationEncryptor = {
-  async encrypt(operation: PendingOperation): Promise<string> {
-    return JSON.stringify(operation);
-  },
-
-  async decrypt(ciphertext: string): Promise<PendingOperation> {
-    return JSON.parse(ciphertext) as PendingOperation;
-  },
-};
+/** Passthrough encryptor: this process keeps pending state in memory only. */
+const inMemoryPendingOperationEncryptor = {
+  importKey: async (key: string) => key,
+  exportKey: async (key: string) => key,
+  keyFromPassword: async () => 'in-memory-key',
+  generateSalt: () => 'in-memory-salt',
+  encryptWithKey: async (_key: string, data: unknown) => ({
+    data: JSON.stringify(data),
+    iv: '',
+  }),
+  decryptWithKey: async (_key: string, payload: { data: string }) =>
+    JSON.parse(payload.data),
+} as unknown as MobilePendingOperationEncryptor;
 
 /**
- * Recovery approvals come from AuthenticationController after an interactive
- * MFA verification, which this standalone process cannot perform.
+ * Stands in for the AuthenticationController actions the controller calls.
+ * Recovery approvals need an interactive MFA verification, which this
+ * standalone process cannot perform.
  */
-function createStandaloneAuthProvider(
+function getControllerMessenger(
   getBearerToken: () => Promise<string>,
-): RecoveryAuthProvider {
-  return {
-    getAuthenticatedProfileId: async () =>
-      getJwtSubject(await getBearerToken()),
-    authorizeRecoveryRequest: async () => {
+): MfaRecoveryControllerMessenger {
+  const rootMessenger: RootMessenger = new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  rootMessenger.registerActionHandler(
+    'AuthenticationController:refreshCanonicalProfileId',
+    async () => getJwtSubject(await getBearerToken()),
+  );
+  rootMessenger.registerActionHandler(
+    'AuthenticationController:requestMfaApproval',
+    async () => {
       throw new MfaRecoveryControllerError(
         'Recovery approvals need an AuthenticationController MFA verification; run this flow from Developer Options',
         'mfa_approval_unavailable',
       );
     },
-  };
-}
-
-function getControllerMessenger(): MfaRecoveryControllerMessenger {
-  const rootMessenger: RootMessenger = new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-  return new Messenger({
+  );
+  const messenger: MfaRecoveryControllerMessenger = new Messenger({
     namespace: 'MfaRecoveryController',
     parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: [
+      'AuthenticationController:refreshCanonicalProfileId',
+      'AuthenticationController:requestMfaApproval',
+    ],
+    messenger,
+  });
+  return messenger;
 }
 
 /** Runs the same live round trip as Developer Options without React Native. */
@@ -344,8 +355,9 @@ export async function main(): Promise<void> {
     const getBearerToken = async () =>
       (await wallet.getAuthSession()).accessToken;
     const { controller, identifierRouter } = createMfaRecoveryController({
-      messenger: getControllerMessenger(),
-      authProvider: createStandaloneAuthProvider(getBearerToken),
+      messenger: getControllerMessenger(getBearerToken),
+      getAuthenticatedProfileId: async () =>
+        getJwtSubject(await getBearerToken()),
       getBearerToken,
       getAddress: () => wallet.address,
       signPersonalMessage: wallet.signPersonalMessage,

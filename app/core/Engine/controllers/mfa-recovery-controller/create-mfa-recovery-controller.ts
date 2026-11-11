@@ -3,34 +3,30 @@ import {
   MfaRecoveryController,
   type MfaRecoveryControllerMessenger,
   type MfaRecoveryControllerState,
-  type PendingOperationEncryptor,
-  type RecoveryAuthProvider,
 } from '@metamask/mfa-recovery-controller';
 import { createCubistSessionTokenProvider } from './auth/auth-provider';
 import { CUBIST_AUTH_AUDIENCE } from './constants';
 import { createCubistClientGetter } from './cubist-escrow-provider';
 import { tryGetCubistKeys } from './config';
-import { MfaRecoveryControllerError } from './errors';
 import { RecoveryIdentifierRouter } from './auth/identifier-auth-provider';
 import type { SocialIdTokenProvider } from './auth/social-identifier-auth-provider';
 import type { PasskeyAssertionGetter } from './auth/passkey-identifier-auth-provider';
 import type { SignPersonalMessage } from './auth/identifiers';
-import { createKeyringPendingOperationEncryptor } from './pending-operation-encryptor';
 import {
-  withApprovalDiagnostics,
-  withPendingCapture,
-} from './dev/pending-operation-diagnostics';
+  createPendingOperationEncryptor,
+  type MobilePendingOperationEncryptor,
+} from './pending-operation-encryptor';
 import { withApplyMutationDiagnostics } from './dev/apply-mutation-diagnostics';
 
 export interface CreateMfaRecoveryControllerOptions {
   messenger: MfaRecoveryControllerMessenger;
   state?: Partial<MfaRecoveryControllerState>;
-  authProvider: RecoveryAuthProvider;
+  /** Resolves the canonical profile ID for Cubist sessions. */
+  getAuthenticatedProfileId: () => Promise<string>;
   getBearerToken: () => Promise<string>;
   getAddress: () => string;
   signPersonalMessage: SignPersonalMessage;
-  exportEncryptionKey?: () => Promise<string>;
-  pendingOperationEncryptor?: PendingOperationEncryptor;
+  pendingOperationEncryptor?: MobilePendingOperationEncryptor;
   isEnabled?: () => boolean;
   /** Issues social ID tokens bound to a nonce; unavailable until sign-in supports it. */
   getSocialIdToken?: SocialIdTokenProvider;
@@ -45,18 +41,17 @@ export interface CreateMfaRecoveryControllerOptions {
 export function createMfaRecoveryController({
   messenger,
   state,
-  authProvider,
+  getAuthenticatedProfileId,
   getBearerToken,
   getAddress,
   signPersonalMessage,
-  exportEncryptionKey,
   pendingOperationEncryptor,
   isEnabled = () => true,
   getSocialIdToken,
   getPasskeyAssertion,
 }: CreateMfaRecoveryControllerOptions) {
   const tokenProvider = createCubistSessionTokenProvider(
-    authProvider,
+    getAuthenticatedProfileId,
     getBearerToken,
   );
   const identifierRouter = new RecoveryIdentifierRouter({
@@ -73,23 +68,14 @@ export function createMfaRecoveryController({
   });
   withApplyMutationDiagnostics(escrow);
   const encryptor =
-    pendingOperationEncryptor ??
-    (exportEncryptionKey === undefined
-      ? (() => {
-          throw new MfaRecoveryControllerError(
-            'An encryption key exporter is required',
-            'missing_encryptor',
-          );
-        })()
-      : createKeyringPendingOperationEncryptor({ exportEncryptionKey }));
+    pendingOperationEncryptor ?? createPendingOperationEncryptor();
 
   const controller = new MfaRecoveryController({
     messenger,
     state,
-    authProvider: withApprovalDiagnostics(authProvider),
     identifierAuthProvider: identifierRouter,
     escrows: [escrow],
-    pendingOperationEncryptor: withPendingCapture(encryptor),
+    encryptor,
   });
 
   return { controller, identifierRouter };

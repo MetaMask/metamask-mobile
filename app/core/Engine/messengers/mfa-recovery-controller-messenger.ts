@@ -6,7 +6,6 @@ import {
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type {
-  KeyringControllerExportEncryptionKeyAction,
   KeyringControllerGetStateAction,
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerUnlockEvent,
@@ -21,10 +20,18 @@ type AllowedEvents = MessengerEvents<MfaRecoveryControllerMessenger>;
 export function getMfaRecoveryControllerMessenger(
   rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
 ): MfaRecoveryControllerMessenger {
-  return new Messenger({
+  const messenger: MfaRecoveryControllerMessenger = new Messenger({
     namespace: 'MfaRecoveryController',
     parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    actions: [
+      'AuthenticationController:refreshCanonicalProfileId',
+      'AuthenticationController:requestMfaApproval',
+    ],
+    messenger,
+  });
+  return messenger;
 }
 
 type MfaRecoveryControllerInitMessengerActions =
@@ -32,7 +39,6 @@ type MfaRecoveryControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
   | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
   | KeyringControllerSignPersonalMessageAction
-  | KeyringControllerExportEncryptionKeyAction
   | KeyringControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction;
 
@@ -61,7 +67,6 @@ export function getMfaRecoveryControllerInitMessenger(
       'AuthenticationController:refreshCanonicalProfileId',
       'AuthenticationController:requestMfaApproval',
       'KeyringController:signPersonalMessage',
-      'KeyringController:exportEncryptionKey',
       'KeyringController:getState',
       'RemoteFeatureFlagController:getState',
     ],
