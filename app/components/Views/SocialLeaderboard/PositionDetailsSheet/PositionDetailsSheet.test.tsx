@@ -1,11 +1,14 @@
 import React from 'react';
+import { StyleSheet, type ViewStyle } from 'react-native';
 import {
   act,
   fireEvent,
   render,
+  renderHook,
   screen,
   within,
 } from '@testing-library/react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   fireGestureHandler,
   getByGestureTestId,
@@ -224,12 +227,35 @@ const buildSheetData = (
   setChartPeriod: jest.fn(),
   summaryTitle: '2 PEPE',
   summaryTagLabel: undefined,
-  summarySubtitle: 'Opened · 2 hr ago',
+  summarySubtitle: '2 hr ago',
   pnlPercentLabel: '+20.00%',
   pnlValueLabel: '+$40.00',
   isPnlPositive: true,
   ...overrides,
 });
+
+/** Walks up from the label to the tag box, which owns the fill. */
+const tagFill = (label: string) => {
+  let node: { parent?: unknown; props?: { style?: unknown } } | null =
+    screen.getByText(label);
+  while (node) {
+    const backgroundColor = (
+      StyleSheet.flatten(node.props?.style) as ViewStyle | undefined
+    )?.backgroundColor;
+    if (backgroundColor) return backgroundColor;
+    node = (node.parent as typeof node) ?? null;
+  }
+  return undefined;
+};
+
+const tagFills = () => {
+  const { result } = renderHook(() => useTailwind());
+  const tw = result.current;
+  return {
+    muted: (tw.style('bg-background-muted') as ViewStyle).backgroundColor,
+    error: (tw.style('bg-error-muted') as ViewStyle).backgroundColor,
+  };
+};
 
 const perpData = (overrides: Partial<PositionSheetData> = {}) =>
   buildSheetData({
@@ -632,27 +658,16 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityLabel,
-    ).toContain('40x');
+    ).toBe('BTC, $120, +3.49%, Today');
+    expect(
+      within(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
+      ).queryByText('40x'),
+    ).toBeNull();
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityHint,
     ).toBe('Opens market details');
-  });
-
-  it('omits the leverage tag when a perp has none', () => {
-    mockParams = {
-      ...mockParams,
-      position: buildPerpPosition(),
-    };
-    mockSheetData = perpData({ leverage: undefined });
-
-    render(<PositionDetailsSheet />);
-
-    expect(
-      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
-        .accessibilityLabel,
-    ).toBe('BTC, $120, +3.49%, Today');
-    expect(screen.queryByText(/\dx/)).toBeNull();
   });
 
   it('keeps the sheet open when a perp has no trade symbol', () => {
@@ -976,6 +991,14 @@ describe('PositionDetailsSheet', () => {
       expect(screen.getByTestId('trade-row-0xadd')).toBeOnTheScreen();
       expect(screen.getByTestId('trade-row-0xopen')).toBeOnTheScreen();
       expect(
+        screen.getByTestId('trade-row-value-avatar-0xopen'),
+      ).toBeOnTheScreen();
+      expect(
+        within(screen.getByTestId('trade-row-0xopen')).UNSAFE_getByProps({
+          name: IconName.Add,
+        }),
+      ).toBeTruthy();
+      expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_EMPTY),
       ).toBeNull();
     });
@@ -1194,7 +1217,7 @@ describe('PositionDetailsSheet', () => {
     fireEvent.press(summary);
 
     expect(within(summary).getByText('2 PEPE')).toBeOnTheScreen();
-    expect(within(summary).getByText('Opened · 2 hr ago')).toBeOnTheScreen();
+    expect(within(summary).getByText('2 hr ago')).toBeOnTheScreen();
     expect(summary).toHaveTextContent(/\+\$40\.00/);
     expect(within(summary).queryByTestId('position-token-avatar')).toBeNull();
   });
@@ -1216,7 +1239,24 @@ describe('PositionDetailsSheet', () => {
 
     expect(within(summary).getByText('40x Short')).toBeOnTheScreen();
     expect(within(summary).getByText('-$1.86')).toBeOnTheScreen();
-    expect(within(summary).queryByText('Opened · 2 hr ago')).toBeNull();
+    expect(within(summary).queryByText('2 hr ago')).toBeNull();
+    expect(tagFill('40x Short')).toBe(tagFills().error);
+  });
+
+  it('uses a neutral tag and the age alone when the position is closed', () => {
+    mockSheetData = buildSheetData({
+      isClosed: true,
+      isPerp: true,
+      perpDirection: 'short',
+      summaryTagLabel: 'Closed 40x Short',
+      summarySubtitle: '3d ago',
+    });
+
+    render(<PositionDetailsSheet />);
+
+    expect(screen.getByText('Closed 40x Short')).toBeOnTheScreen();
+    expect(screen.getByText('3d ago')).toBeOnTheScreen();
+    expect(tagFill('Closed 40x Short')).toBe(tagFills().muted);
   });
 
   it('shows a long tag', () => {

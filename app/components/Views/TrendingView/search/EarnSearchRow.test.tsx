@@ -11,6 +11,8 @@ import useEarnOpportunityNavigation, {
 import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
 import { useMoneyAnalytics } from '../../../UI/Money/hooks/useMoneyAnalytics';
 import { useEarnAnalytics } from '../../../UI/Earn/hooks/useEarnAnalytics';
+import { selectMoneyEntryContext } from '../../../UI/Money/selectors/entry';
+import type { MoneyEntryContext } from '../../../UI/Money/navigation/moneyEntryDecision';
 import {
   EARN_MODULE_COMPONENT_NAMES,
   EARN_MODULE_ENTRY_POINTS,
@@ -73,7 +75,10 @@ jest.mock('../feeds/earn/EarnSearchAssetRow', () => ({
 }));
 
 const mockNavigateToMoneyHome = jest.fn();
-let mockIsOnboardingRedirectNeeded = false;
+let mockMoneyEntryContext: MoneyEntryContext = {
+  accessBlockReason: undefined,
+  isOnboardingRedirectNeeded: false,
+};
 const mockNavigateFromEarnAsset = jest.fn();
 const mockTrackMoneySurfaceClicked = jest.fn();
 const mockTrackEarnSurfaceClicked = jest.fn();
@@ -129,10 +134,26 @@ const createEarnAsset = (): EarnSectionRankedAsset => ({
 describe('EarnSearchRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsOnboardingRedirectNeeded = false;
-    jest.mocked(useSelector).mockReturnValue(false);
+    mockMoneyEntryContext = {
+      accessBlockReason: undefined,
+      isOnboardingRedirectNeeded: false,
+    };
+    jest
+      .mocked(useSelector)
+      .mockImplementation((selector) =>
+        selector === selectMoneyEntryContext ? mockMoneyEntryContext : false,
+      );
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      track?.({
+        redirect_target: mockMoneyEntryContext.isOnboardingRedirectNeeded
+          ? 'money_onboarding'
+          : 'money_home',
+        button_intent: mockMoneyEntryContext.isOnboardingRedirectNeeded
+          ? 'go_to_money_onboarding'
+          : 'go_to_money_home',
+      });
+    });
     jest.mocked(useMoneyNavigation).mockReturnValue({
-      isOnboardingRedirectNeeded: mockIsOnboardingRedirectNeeded,
       navigateToMoneyHome: mockNavigateToMoneyHome,
     } as unknown as ReturnType<typeof useMoneyNavigation>);
     jest.mocked(useEarnOpportunityNavigation).mockReturnValue({
@@ -174,7 +195,10 @@ describe('EarnSearchRow', () => {
       screen_name: 'explore_search',
       entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_SEARCH,
     });
-    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({ pop: false });
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({
+      pop: false,
+      track: expect.any(Function),
+    });
   });
 
   it('tracks Earn surface ownership and preserves Explore search source', () => {
@@ -208,7 +232,7 @@ describe('EarnSearchRow', () => {
     );
     expect(mockGetEarnAssetSelectionRedirectTarget).toHaveBeenCalledWith(
       item.asset,
-      false,
+      mockMoneyEntryContext,
     );
     expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
       item.asset,
@@ -246,7 +270,7 @@ describe('EarnSearchRow', () => {
 
       expect(mockGetEarnAssetSelectionRedirectTarget).toHaveBeenCalledWith(
         item.asset,
-        false,
+        mockMoneyEntryContext,
       );
       expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -257,11 +281,10 @@ describe('EarnSearchRow', () => {
   );
 
   it('tracks Money onboarding as destination for new users', () => {
-    mockIsOnboardingRedirectNeeded = true;
-    jest.mocked(useMoneyNavigation).mockReturnValue({
+    mockMoneyEntryContext = {
+      accessBlockReason: undefined,
       isOnboardingRedirectNeeded: true,
-      navigateToMoneyHome: mockNavigateToMoneyHome,
-    } as unknown as ReturnType<typeof useMoneyNavigation>);
+    };
 
     const item = {
       kind: 'money-account',

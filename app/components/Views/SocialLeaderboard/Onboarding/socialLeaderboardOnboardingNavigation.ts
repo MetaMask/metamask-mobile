@@ -243,13 +243,13 @@ export const navigateToSocialTab = (
 };
 
 /**
- * Leaves profile onboarding after **Let's go** on the manual path. Pops the
- * onboarding screen off the stack and selects the Social tab under Home, so the
- * bottom tab bar stays visible and Back returns to the previous screen.
+ * Pops the root stack and selects the Social tab under Home (Social V1 only).
+ * Unlike `navigateToSocialTab`, it skips the terms, profile and onboarding
+ * gates, so call it only after the user has passed them.
  *
- * @param navigation - The onboarding screen's navigation object.
+ * @param navigation - The caller's navigation object.
  */
-export const finishProfileOnboardingToSocialTab = (
+export const popToSocialTab = (
   navigation: Pick<AppNavigationProp, 'navigate'>,
 ): void => {
   navigation.navigate(
@@ -257,6 +257,22 @@ export const finishProfileOnboardingToSocialTab = (
     { screen: Routes.SOCIAL.TAB },
     { pop: true },
   );
+};
+
+/**
+ * Leaves profile onboarding after **Let's go** on the manual path. Pops the
+ * onboarding screen off the stack and selects the Social tab under Home, so the
+ * bottom tab bar stays visible and Back returns to the previous screen.
+ *
+ * The pop uses the onboarding screen's animation. The ready step sets that to
+ * `slide_from_left` before Let's go, so the ready screen leaves to the left.
+ *
+ * @param navigation - The onboarding screen's navigation object.
+ */
+export const finishProfileOnboardingToSocialTab = (
+  navigation: Pick<AppNavigationProp, 'navigate'>,
+): void => {
+  popToSocialTab(navigation);
 };
 
 /**

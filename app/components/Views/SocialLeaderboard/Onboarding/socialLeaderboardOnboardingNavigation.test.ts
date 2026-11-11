@@ -12,6 +12,7 @@ import {
 import {
   canOpenSocialTabDirectly,
   finishProfileOnboardingToSocialTab,
+  popToSocialTab,
   getFollowTradingHomeRoute,
   hasSeenSocialLeaderboardOnboarding,
   isSocialV1Treatment,
@@ -546,6 +547,21 @@ describe('finishProfileOnboardingToSocialTab', () => {
     const navigate = jest.fn();
 
     finishProfileOnboardingToSocialTab({ navigate });
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB },
+      { pop: true },
+    );
+  });
+});
+
+describe('popToSocialTab', () => {
+  it('pops the current flow back to Home and selects the Social tab', () => {
+    const navigate = jest.fn();
+
+    popToSocialTab({ navigate });
 
     expect(navigate).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenCalledWith(

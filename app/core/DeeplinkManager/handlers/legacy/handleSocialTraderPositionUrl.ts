@@ -5,6 +5,7 @@ import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
   getFollowTradingHomeRoute,
   isSocialV1Treatment,
+  popToSocialTab,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import {
@@ -17,13 +18,16 @@ interface HandleSocialTraderPositionUrlParams {
 }
 
 const navigateToFallback = () => {
-  if (
-    isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(
-      NavigationService.navigation.navigate,
-      navigateToFallback,
-    )
-  ) {
+  if (isSocialV1Treatment()) {
+    if (
+      !ensureSocialTermsAccepted(
+        NavigationService.navigation.navigate,
+        navigateToFallback,
+      )
+    ) {
+      return;
+    }
+    popToSocialTab(NavigationService.navigation);
     return;
   }
   NavigationService.navigation.navigate(

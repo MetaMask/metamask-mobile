@@ -1154,66 +1154,10 @@
       "powered_by": "技术支持：",
       "button": "获取账户详情"
     },
-    "verify_identity": {
-      "title": "验证您的身份",
-      "description": "这通常只需几分钟。您需要准备好政府签发的带照片的有效身份证件。",
-      "step_photograph_id": "拍摄您的身份证件",
-      "step_take_selfie": "拍摄自拍照",
-      "step_confirm_details": "确认您的详细信息",
-      "step_answer_questions": "回答几个问题",
-      "footer": "您的信息会加密，并安全地共享给我们的验证服务提供商。继续之前，您将有机会查看这些详细信息。",
-      "powered_by": "技术支持：",
-      "disclaimers_error": "无法加载条款与条件。",
-      "disclaimers_retry": "请重试",
-      "button": "继续",
-      "terms_sheet_title": "数据和隐私",
-      "terms_sheet_description": "为验证您的身份，您的信息将安全地共享给以下服务提供商。继续之前，请查看提供商的政策和条款。",
-      "metamask_privacy_policy": "MetaMask 隐私政策",
-      "metamask_terms": "MetaMask 条款和条件",
-      "terms_sheet_button": "同意并开始验证"
-    },
-    "kyc_email": {
-      "error_title": "无法开始验证",
-      "error_description": "打开电子邮件验证时出现问题。请重试。"
-    },
-    "sumsub_kyc": {
-      "more_info_title": "我们需要更多信息",
-      "more_info_description": "有时我们需要额外信息才能完成验证。请查看下方所需内容以继续。",
-      "more_info_item_title": "地址证明",
-      "more_info_item_description": "上传一份近期文件，显示您的姓名和当前家庭住址",
-      "more_info_button": "继续",
-      "more_info_help": "需要验证帮助？",
-      "error_title": "无法开始验证",
-      "error_description": "打开身份验证时出现问题。请重试。",
-      "retry": "请重试"
-    },
-    "kyc_taking_longer": {
-      "title": "正在验证您的身份",
-      "description": "大多数检查大约会在 10 秒内完成。您可以稍后回来，检查完成后我们会通知您。",
-      "button": "稍后回来"
-    },
-    "identity_verified": {
-      "title": "身份已验证",
-      "description": "您的身份验证已完成。",
-      "button": "继续"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "正在等待 MoonPay 批准您的账户"
-    },
-    "kyc_rejected": {
-      "title": "我们无法验证您的身份",
-      "description": "有几项详细信息需要您处理。请查看下方每一项，然后联系支持团队。",
-      "retry_description": "有几项详细信息需要您处理。请查看下方每一项，然后重试。",
-      "identity_document_title": "检查您的身份证件",
-      "identity_document_description": "确保其有效、清晰且完整可见",
-      "selfie_title": "重新拍摄您的自拍",
-      "selfie_description": "请使用良好的光线，并清晰展示您的面部",
-      "details_title": "查看您的详细信息",
-      "details_description": "确保您的信息与您的证件一致",
-      "button": "联系支持团队",
-      "retry_button": "请重试"
     },
     "account_provisioning_error": {
       "title": "无法创建您的账户",
@@ -1271,6 +1215,64 @@
       "load_error": "无法刷新存款。我们会再试一次。",
       "setup_error": "无法创建您的账户。",
       "retry": "请重试"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "验证您的身份",
+      "description": "这通常只需几分钟。您需要准备好政府签发的带照片的有效身份证件。",
+      "step_photograph_id": "拍摄您的身份证件",
+      "step_take_selfie": "拍摄自拍照",
+      "step_confirm_details": "确认您的详细信息",
+      "step_answer_questions": "回答几个问题",
+      "footer": "您的信息会加密，并安全地共享给我们的验证服务提供商。继续之前，您将有机会查看这些详细信息。",
+      "powered_by": "技术支持：",
+      "disclaimers_error": "无法加载条款与条件。",
+      "disclaimers_retry": "请重试",
+      "button": "继续",
+      "terms_sheet_title": "数据和隐私",
+      "terms_sheet_description": "为验证您的身份，您的信息将安全地共享给以下服务提供商。继续之前，请查看提供商的政策和条款。",
+      "metamask_privacy_policy": "MetaMask 隐私政策",
+      "metamask_terms": "MetaMask 条款和条件",
+      "terms_sheet_button": "同意并开始验证"
+    },
+    "kyc_email": {
+      "error_title": "无法开始验证",
+      "error_description": "打开电子邮件验证时出现问题。请重试。"
+    },
+    "sumsub_kyc": {
+      "more_info_title": "我们需要更多信息",
+      "more_info_description": "有时我们需要额外信息才能完成验证。请查看下方所需内容以继续。",
+      "more_info_item_title": "地址证明",
+      "more_info_item_description": "上传一份近期文件，显示您的姓名和当前家庭住址",
+      "more_info_button": "继续",
+      "more_info_help": "需要验证帮助？",
+      "error_title": "无法开始验证",
+      "error_description": "打开身份验证时出现问题。请重试。",
+      "retry": "请重试"
+    },
+    "kyc_taking_longer": {
+      "title": "正在验证您的身份",
+      "description": "大多数检查大约会在 10 秒内完成。您可以稍后回来，检查完成后我们会通知您。",
+      "button": "稍后回来"
+    },
+    "identity_verified": {
+      "title": "身份已验证",
+      "description": "您的身份验证已完成。",
+      "button": "继续"
+    },
+    "kyc_rejected": {
+      "title": "我们无法验证您的身份",
+      "description": "有几项详细信息需要您处理。请查看下方每一项，然后联系支持团队。",
+      "retry_description": "有几项详细信息需要您处理。请查看下方每一项，然后重试。",
+      "identity_document_title": "检查您的身份证件",
+      "identity_document_description": "确保其有效、清晰且完整可见",
+      "selfie_title": "重新拍摄您的自拍",
+      "selfie_description": "请使用良好的光线，并清晰展示您的面部",
+      "details_title": "查看您的详细信息",
+      "details_description": "确保您的信息与您的证件一致",
+      "button": "联系支持团队",
+      "retry_button": "请重试"
     }
   },
   "social": {

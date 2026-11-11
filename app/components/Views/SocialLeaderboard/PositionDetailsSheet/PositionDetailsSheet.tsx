@@ -416,6 +416,7 @@ const PositionDetailsSheet = () => {
           title={data.summaryTitle}
           tagLabel={data.summaryTagLabel}
           direction={data.perpDirection}
+          isClosed={data.isClosed}
           subtitle={data.summarySubtitle}
           pnlPercentLabel={data.pnlPercentLabel}
           pnlValueLabel={data.pnlValueLabel}
@@ -464,7 +465,6 @@ const PositionDetailsSheet = () => {
             <PositionSheetPriceHeader
               assetName={data.assetName}
               isPerp={data.isPerp}
-              leverage={data.leverage}
               valueLabel={headerLabel}
               isMarketCapMode={headlineIsMarketCap}
               changePercent={headerChange}

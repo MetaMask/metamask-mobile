@@ -196,8 +196,8 @@ const renderSharePositionSheet = ({
           : createParamsProbe(Routes.SOCIAL.POST_COMPOSER),
       },
       {
-        name: Routes.SOCIAL.V1,
-        Component: createParamsProbe(Routes.SOCIAL.V1),
+        name: Routes.HOME_TABS,
+        Component: createParamsProbe(Routes.HOME_TABS),
       },
     ],
   });
@@ -326,8 +326,11 @@ describe('PerpsSharePositionView', () => {
     );
 
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
+    expect(routeParamsByName[Routes.HOME_TABS]).toEqual({
+      screen: Routes.SOCIAL.TAB,
+    });
     expect(messengerSpy).toHaveBeenCalledWith(
       'SocialService:createSwapComment',
       expect.objectContaining({ positionUid: socialEthLong.positionId }),

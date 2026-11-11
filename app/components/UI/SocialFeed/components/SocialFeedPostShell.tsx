@@ -43,6 +43,7 @@ import ReactionPickerBalloon, {
 import { PositionCardBody } from './SocialFeedPositionCard';
 import SocialFeedGif from './SocialFeedGif';
 import { useSocialFeedTracking } from '../socialFeedTracking';
+import { useSocialFeedSurface } from '../SocialFeedSurface';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
@@ -245,6 +246,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   now,
 }) => {
   const tracked = useSocialFeedTracking();
+  const { location } = useSocialFeedSurface();
+  const showEngagement = location !== 'social_live';
   const notifyCopy = onCopyTradeInteraction ?? tracked.onCopyTradeInteraction;
   const notifyReaction = onReactionInteraction ?? tracked.onReactionInteraction;
   const notifyPicker = onReactionPickerOpened ?? tracked.onReactionPickerOpened;
@@ -512,19 +515,21 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             </Box>
           ) : null}
 
-          <SocialFeedPostFooter
-            postId={post.id}
-            canReact={canReact}
-            copyCount={post.copyCount}
-            chips={chips}
-            userReaction={userReaction}
-            burst={burst}
-            onToggleEmotion={toggleEmotion}
-            onBurstAnchor={placeBurst}
-            onOpenPicker={openPicker}
-            reactionAnchorRef={reactionAnchorRef}
-            emojiColor={colors.icon.alternative}
-          />
+          {showEngagement ? (
+            <SocialFeedPostFooter
+              postId={post.id}
+              canReact={canReact}
+              copyCount={post.copyCount}
+              chips={chips}
+              userReaction={userReaction}
+              burst={burst}
+              onToggleEmotion={toggleEmotion}
+              onBurstAnchor={placeBurst}
+              onOpenPicker={openPicker}
+              reactionAnchorRef={reactionAnchorRef}
+              emojiColor={colors.icon.alternative}
+            />
+          ) : null}
         </Box>
       </SocialTraderIdentityRow>
 

@@ -626,6 +626,20 @@ describe('SocialFeedPostShell', () => {
       expect(screen.getByTestId(copiesTestId)).toHaveTextContent('0');
     });
 
+    it('hides the engagement row on the live tab', () => {
+      renderShell(basePost({ copyCount: 3 }), { location: 'social_live' });
+
+      expect(screen.queryByTestId(copiesTestId)).toBeNull();
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId('social-feed-position-card-item-1'),
+      ).toBeOnTheScreen();
+    });
+
     it('shows the new count when the copy count changes', () => {
       const { rerenderWithPost } = renderShell(basePost({ copyCount: 3 }));
 
