@@ -33,7 +33,10 @@ import {
   handleTransactionAddedEventForMetrics,
   handleTransactionFinalizedEventForMetrics,
 } from '../../controllers/transaction-controller/event-handlers/metrics';
-import { handleShowNotification } from '../../controllers/transaction-controller/event-handlers/notification';
+import {
+  handleShowNotification,
+  handleShowSolanaPayStatusNotification,
+} from '../../controllers/transaction-controller/event-handlers/notification';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from '../../controllers/transaction-controller/event-handlers/money-account-override';
 import { TransactionControllerInitMessenger } from '../messengers/transaction-controller-messenger';
 import type { PreferencesStateWithSavedGasFees } from '../../controllers/preferences-controller-types';
@@ -163,6 +166,7 @@ export function setupTransactionControllerListeners({
   messenger.subscribe(
     'TransactionController:transactionSubmitted',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleShowSolanaPayStatusNotification(transactionMeta);
       handleTransactionSubmittedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
