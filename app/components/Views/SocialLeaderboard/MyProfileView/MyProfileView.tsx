@@ -25,6 +25,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -83,6 +84,8 @@ import TraderMuteChip, {
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useSpotCopyTradeQuickBuy } from '../hooks/useSpotCopyTradeQuickBuy';
+import { PostTradeShareOwner } from '../PostTradeShareBottomSheet';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
@@ -91,7 +94,9 @@ import {
   useTraderProfile,
 } from '../TraderProfileView/hooks';
 import ProfileOptionsSheet from '../TraderProfileView/components/ProfileOptionsSheet';
-import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialFeedPostShell, {
+  type SocialFeedPostShellProps,
+} from '../../../UI/SocialFeed/components/SocialFeedPostShell';
 import type {
   SocialV1FeedAuthor,
   SocialV1FeedPost,
@@ -211,6 +216,7 @@ interface ProfilePostsContentProps {
   visiblePosts: SocialV1FeedPost[];
   onRetry: () => void;
   showCopyTrade: boolean;
+  onCopyTrade: SocialFeedPostShellProps['onCopyTrade'];
 }
 
 const ProfilePostsContent = ({
@@ -221,6 +227,7 @@ const ProfilePostsContent = ({
   visiblePosts,
   onRetry,
   showCopyTrade,
+  onCopyTrade,
 }: ProfilePostsContentProps) => {
   if (showInitialPostSkeletons) {
     return <ProfilePostsLoadingState />;
@@ -274,6 +281,7 @@ const ProfilePostsContent = ({
             post={post}
             requireSocialTerms
             showCopyTrade={showCopyTrade}
+            onCopyTrade={onCopyTrade}
           />
         )}
       />
@@ -314,6 +322,13 @@ const MyProfileView: React.FC = () => {
     requireSocialProfile: true,
   });
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
+  const isFocused = useIsFocused();
+  const { onCopyTrade: handleSpotCopyTrade, quickBuySheet } =
+    useSpotCopyTradeQuickBuy({
+      source: SocialEvent.Source.TRADER_FEED,
+      postTradeShareOwner: PostTradeShareOwner.socialV1Profile,
+      isActive: isFocused && !isOwner,
+    });
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
       return myProfile;
@@ -1252,6 +1267,7 @@ const MyProfileView: React.FC = () => {
                     visiblePosts={visiblePosts}
                     onRetry={handlePostsRetry}
                     showCopyTrade={!isOwner}
+                    onCopyTrade={handleSpotCopyTrade}
                   />
                 )}
                 {activeTab === 'posts' &&
@@ -1321,6 +1337,7 @@ const MyProfileView: React.FC = () => {
             onClose={handleCloseUncountedSheet}
           />
         ) : null}
+        {quickBuySheet}
       </SafeAreaView>
     </SocialFeedSurfaceProvider>
   );
