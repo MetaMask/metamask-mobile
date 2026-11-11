@@ -1,4 +1,5 @@
 import type {
+  FeedItem as CoreFeedItem,
   SocialFeedEvent,
   SocialFeedRealtimeScope,
 } from '@metamask/social-controllers';
