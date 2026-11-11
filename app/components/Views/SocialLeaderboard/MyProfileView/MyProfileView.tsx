@@ -24,6 +24,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -70,6 +71,8 @@ import TraderMuteChip, {
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useSpotCopyTradeQuickBuy } from '../hooks/useSpotCopyTradeQuickBuy';
+import { PostTradeShareOwner } from '../PostTradeShareBottomSheet';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
@@ -223,6 +226,13 @@ const MyProfileView: React.FC = () => {
     requireSocialProfile: true,
   });
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
+  const isFocused = useIsFocused();
+  const { onCopyTrade: handleSpotCopyTrade, quickBuySheet } =
+    useSpotCopyTradeQuickBuy({
+      source: SocialEvent.Source.TRADER_FEED,
+      postTradeShareOwner: PostTradeShareOwner.socialV1Profile,
+      isActive: isFocused && !isOwner,
+    });
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
       return myProfile;
@@ -1109,6 +1119,7 @@ const MyProfileView: React.FC = () => {
                       realtime
                       refreshRef={postsFeedRef}
                       filterPost={filterProfilePost}
+                      onCopyTrade={handleSpotCopyTrade}
                       emptyState={
                         <ProfilePostsEmptyState message={postsEmptyMessage} />
                       }
@@ -1172,6 +1183,7 @@ const MyProfileView: React.FC = () => {
             onClose={handleCloseUncountedSheet}
           />
         ) : null}
+        {quickBuySheet}
       </SafeAreaView>
     </SocialFeedSurfaceProvider>
   );

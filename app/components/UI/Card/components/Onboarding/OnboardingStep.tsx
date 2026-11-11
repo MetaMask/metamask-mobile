@@ -56,8 +56,8 @@ interface OnboardingStepProps {
  * Shared layout for Card onboarding steps.
  *
  * The title block is MMDS `TitleStandard` (title plus `bottomLabel`
- * description, built-in spacing), as in the shipped KYC VerifyIdentity and
- * PartnerTerms screens, with 16pt to the form.
+ * description, built-in 4px gap), as in the shipped KYC VerifyIdentity and
+ * PartnerTerms screens, with 12px above the title and 16pt to the form.
  *
  * Buttons render through the shared `FooterGlass`, pinned outside the scroll
  * and lifted above the keyboard. The pinned container (pt-4, bottom inset plus
@@ -144,7 +144,7 @@ const OnboardingStep = ({
             titleProps={{ testID: 'onboarding-step-title' }}
             bottomLabel={description}
             bottomLabelProps={{ testID: 'onboarding-step-description' }}
-            twClassName="shrink-0"
+            twClassName="mt-3 shrink-0"
           />
           <Box testID="onboarding-step-form" twClassName="gap-4 flex-1">
             {formFields}
