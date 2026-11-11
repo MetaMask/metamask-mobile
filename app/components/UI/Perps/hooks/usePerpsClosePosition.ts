@@ -230,21 +230,13 @@ export const usePerpsClosePosition = (
 
         showToast({
           ...toast,
-          labelOptions: [
-            {
-              label: strings('perps.close_position.failed_to_close_position'),
-              isBold: true,
-            },
-            { label: '\n' },
-            {
-              label: handlePerpsError({
-                error: failure,
-                fallbackMessage: strings(
-                  'perps.close_position.your_position_is_still_active',
-                ),
-              }),
-            },
-          ],
+          title: strings('perps.close_position.failed_to_close_position'),
+          description: handlePerpsError({
+            error: failure,
+            fallbackMessage: strings(
+              'perps.close_position.your_position_is_still_active',
+            ),
+          }),
         });
       };
       // Guard against double-toasting: the { success: false } branch shows the

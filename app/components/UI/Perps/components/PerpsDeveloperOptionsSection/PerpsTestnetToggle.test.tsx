@@ -3,24 +3,15 @@ import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PerpsTestnetToggle } from './PerpsTestnetToggle';
 import { PerpsTestnetToggleSelectorsIDs } from '../../Perps.testIds';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 
-// Mock Toast Context to test toast functionality
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: mockCloseToast,
-  },
-};
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 // Mock Perps hooks
 const mockToggleTestnet = jest.fn();
@@ -34,26 +25,20 @@ jest.mock('../../hooks', () => ({
   usePerpsNetwork: () => mockUsePerpsNetwork(),
 }));
 
-const renderWithToastContext = (component: React.ReactElement) =>
-  renderWithProvider(
-    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      {component}
-    </ToastContext.Provider>,
-  );
+const renderToggle = (component: React.ReactElement) =>
+  renderWithProvider(component);
 
 describe('PerpsTestnetToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockToggleTestnet.mockClear();
-    mockShowToast.mockClear();
+    (toast as unknown as jest.Mock).mockClear();
   });
 
   it('renders correctly with testnet network', () => {
     mockUsePerpsNetwork.mockReturnValue('testnet');
 
-    const { getByTestId, getByText } = renderWithToastContext(
-      <PerpsTestnetToggle />,
-    );
+    const { getByTestId, getByText } = renderToggle(<PerpsTestnetToggle />);
 
     const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
     expect(switchElement.props.value).toBe(true);
@@ -65,9 +50,7 @@ describe('PerpsTestnetToggle', () => {
   it('renders correctly with mainnet network', () => {
     mockUsePerpsNetwork.mockReturnValue('mainnet');
 
-    const { getByTestId, getByText } = renderWithToastContext(
-      <PerpsTestnetToggle />,
-    );
+    const { getByTestId, getByText } = renderToggle(<PerpsTestnetToggle />);
 
     const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
     expect(switchElement.props.value).toBe(false);
@@ -83,7 +66,7 @@ describe('PerpsTestnetToggle', () => {
       isTestnet: false,
     });
 
-    const { getByTestId } = renderWithToastContext(<PerpsTestnetToggle />);
+    const { getByTestId } = renderToggle(<PerpsTestnetToggle />);
 
     const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
     expect(switchElement.props.value).toBe(true);
@@ -96,7 +79,7 @@ describe('PerpsTestnetToggle', () => {
       expect(mockToggleTestnet).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it('toggles from mainnet to testnet successfully', async () => {
@@ -106,7 +89,7 @@ describe('PerpsTestnetToggle', () => {
       isTestnet: true,
     });
 
-    const { getByTestId } = renderWithToastContext(<PerpsTestnetToggle />);
+    const { getByTestId } = renderToggle(<PerpsTestnetToggle />);
 
     const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
     expect(switchElement.props.value).toBe(false);
@@ -119,7 +102,7 @@ describe('PerpsTestnetToggle', () => {
       expect(mockToggleTestnet).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it('displays error toast when toggle fails', async () => {
@@ -128,7 +111,7 @@ describe('PerpsTestnetToggle', () => {
       success: false,
     });
 
-    const { getByTestId } = renderWithToastContext(<PerpsTestnetToggle />);
+    const { getByTestId } = renderToggle(<PerpsTestnetToggle />);
 
     const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
 
@@ -140,16 +123,10 @@ describe('PerpsTestnetToggle', () => {
       expect(mockToggleTestnet).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: IconColor.Error,
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({
-            label: 'Failed to toggle network',
-          }),
-        ]),
+        title: 'Failed to toggle network',
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
       }),
     );
@@ -165,9 +142,7 @@ describe('PerpsTestnetToggle', () => {
     });
     mockToggleTestnet.mockReturnValue(togglePromise);
 
-    const { getByTestId, queryByTestId } = renderWithToastContext(
-      <PerpsTestnetToggle />,
-    );
+    const { getByTestId, queryByTestId } = renderToggle(<PerpsTestnetToggle />);
 
     const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
 
@@ -203,7 +178,7 @@ describe('PerpsTestnetToggle', () => {
       isTestnet: false,
     });
 
-    const { getByTestId } = renderWithToastContext(<PerpsTestnetToggle />);
+    const { getByTestId } = renderToggle(<PerpsTestnetToggle />);
 
     const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
     expect(switchElement.props.value).toBe(true);
@@ -223,7 +198,7 @@ describe('PerpsTestnetToggle', () => {
       success: false,
     });
 
-    const { getByTestId } = renderWithToastContext(<PerpsTestnetToggle />);
+    const { getByTestId } = renderToggle(<PerpsTestnetToggle />);
 
     const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
     expect(switchElement.props.value).toBe(true);
@@ -233,7 +208,7 @@ describe('PerpsTestnetToggle', () => {
     });
 
     await waitFor(() => {
-      expect(mockShowToast).toHaveBeenCalled();
+      expect(toast).toHaveBeenCalled();
     });
 
     // Switch should maintain original state since toggle failed
@@ -244,7 +219,7 @@ describe('PerpsTestnetToggle', () => {
     // Start with testnet
     mockUsePerpsNetwork.mockReturnValue('testnet');
 
-    const { getByTestId, getByText, rerender } = renderWithToastContext(
+    const { getByTestId, getByText, rerender } = renderToggle(
       <PerpsTestnetToggle />,
     );
 
@@ -257,11 +232,7 @@ describe('PerpsTestnetToggle', () => {
     // Simulate external network change to mainnet
     mockUsePerpsNetwork.mockReturnValue('mainnet');
 
-    rerender(
-      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-        <PerpsTestnetToggle />
-      </ToastContext.Provider>,
-    );
+    rerender(<PerpsTestnetToggle />);
 
     // Should now show mainnet
     await waitFor(() => {

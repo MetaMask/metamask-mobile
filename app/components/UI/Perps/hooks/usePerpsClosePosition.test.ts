@@ -887,11 +887,9 @@ describe('usePerpsClosePosition', () => {
           });
 
           const failureToast = mockShowToast.mock.calls[1][0];
-          expect(failureToast).not.toHaveProperty('linkButtonOptions');
+          expect(failureToast).not.toHaveProperty('actionButtonLabel');
           expect(failureToast).not.toHaveProperty('hasNoTimeout', true);
-          expect(failureToast.labelOptions).toContainEqual(
-            expect.objectContaining({ label: 'perps.errors.iocCancel' }),
-          );
+          expect(failureToast.description).toBe('perps.errors.iocCancel');
         });
 
         it('should show failure toast for partial position market close', async () => {
@@ -948,10 +946,8 @@ describe('usePerpsClosePosition', () => {
           });
 
           const failureToast = mockShowToast.mock.calls[1][0];
-          expect(failureToast).not.toHaveProperty('linkButtonOptions');
-          expect(failureToast.labelOptions).toContainEqual(
-            expect.objectContaining({ label: 'perps.errors.priceMoved' }),
-          );
+          expect(failureToast).not.toHaveProperty('actionButtonLabel');
+          expect(failureToast.description).toBe('perps.errors.priceMoved');
         });
 
         it('should show failure toast when size is empty string (treated as full close)', async () => {

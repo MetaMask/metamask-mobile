@@ -4,12 +4,9 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import React from 'react';
 import { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
-import { ToastContext } from '../../../../component-library/components/Toast';
 
 const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
 const mockSubscribe = jest.fn();
 const mockUnsubscribe = jest.fn();
 const mockActiveHandlers = new Set<unknown>();
@@ -41,17 +38,6 @@ const emitAccount = (spendableBalance: string) => {
   );
 };
 
-const toastContextValue = {
-  toastRef: { current: { showToast: jest.fn(), closeToast: mockCloseToast } },
-};
-
-const wrapper = ({ children }: { children: React.ReactNode }) =>
-  React.createElement(
-    ToastContext.Provider,
-    { value: toastContextValue },
-    children,
-  );
-
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
   default: () => ({
@@ -64,7 +50,7 @@ jest.mock('./usePerpsToasts', () => ({
             transactionId,
           })),
           takingLonger: {
-            closeButtonOptions: { onPress: undefined },
+            actionButtonOnPress: undefined,
           },
           tradeCanceled: { tradeCanceled: true },
           orderNotPlaced: { orderNotPlaced: true },
@@ -201,17 +187,13 @@ describe('usePerpsOrderDepositTracking', () => {
   });
 
   it('returns handleDepositConfirm function', () => {
-    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-      wrapper,
-    });
+    const { result } = renderHook(() => usePerpsOrderDepositTracking());
 
     expect(typeof result.current.handleDepositConfirm).toBe('function');
   });
 
   it('does nothing when transaction type is not perpsDepositAndOrder', () => {
-    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-      wrapper,
-    });
+    const { result } = renderHook(() => usePerpsOrderDepositTracking());
     const otherMeta = {
       id: 'other-id',
       type: TransactionType.simpleSend,
@@ -228,10 +210,8 @@ describe('usePerpsOrderDepositTracking', () => {
     expect(callback).not.toHaveBeenCalled();
   });
 
-  it('shows persistent progress toast with close button and subscribes to controller when type is perpsDepositAndOrder', () => {
-    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-      wrapper,
-    });
+  it('shows persistent progress toast and subscribes to controller when type is perpsDepositAndOrder', () => {
+    const { result } = renderHook(() => usePerpsOrderDepositTracking());
 
     act(() => {
       result.current.handleDepositConfirm(perpsDepositMeta, jest.fn());
@@ -241,13 +221,7 @@ describe('usePerpsOrderDepositTracking', () => {
     const progressToastArg = mockShowToast.mock.calls[0][0];
     expect(progressToastArg).toMatchObject({
       hasNoTimeout: true,
-      closeButtonOptions: expect.objectContaining({
-        onPress: expect.any(Function),
-      }),
     });
-
-    progressToastArg.closeButtonOptions.onPress();
-    expect(mockCloseToast).toHaveBeenCalled();
 
     expect(mockSubscribe).toHaveBeenCalledWith(
       'TransactionController:transactionFailed',
@@ -262,9 +236,7 @@ describe('usePerpsOrderDepositTracking', () => {
   describe('HyperLiquid credit', () => {
     it('does not place the order when the deposit transaction confirms before the credit', () => {
       const handlers = captureTransactionHandlers();
-      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-        wrapper,
-      });
+      const { result } = renderHook(() => usePerpsOrderDepositTracking());
       const callback = jest.fn();
       act(() => {
         result.current.handleDepositConfirm(perpsDepositMeta, callback, '3.39');
@@ -280,9 +252,7 @@ describe('usePerpsOrderDepositTracking', () => {
 
     it('places the order once the Perps balance rises by the required credit', () => {
       const handlers = captureTransactionHandlers();
-      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-        wrapper,
-      });
+      const { result } = renderHook(() => usePerpsOrderDepositTracking());
       const callback = jest.fn();
       act(() => {
         result.current.handleDepositConfirm(perpsDepositMeta, callback, '3.39');
@@ -314,9 +284,7 @@ describe('usePerpsOrderDepositTracking', () => {
 
     it('places the order at once when the credit landed before the confirmation event', () => {
       const handlers = captureTransactionHandlers();
-      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-        wrapper,
-      });
+      const { result } = renderHook(() => usePerpsOrderDepositTracking());
       const callback = jest.fn();
       act(() => {
         result.current.handleDepositConfirm(perpsDepositMeta, callback, '3.39');
@@ -334,9 +302,7 @@ describe('usePerpsOrderDepositTracking', () => {
 
     it('treats any Perps balance increase as the credit when no amount is required', () => {
       const handlers = captureTransactionHandlers();
-      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-        wrapper,
-      });
+      const { result } = renderHook(() => usePerpsOrderDepositTracking());
       const callback = jest.fn();
       act(() => {
         result.current.handleDepositConfirm(perpsDepositMeta, callback);
@@ -354,9 +320,7 @@ describe('usePerpsOrderDepositTracking', () => {
 
     it('places the order only once when the credit is followed by more balance updates', () => {
       const handlers = captureTransactionHandlers();
-      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-        wrapper,
-      });
+      const { result } = renderHook(() => usePerpsOrderDepositTracking());
       const callback = jest.fn();
       act(() => {
         result.current.handleDepositConfirm(perpsDepositMeta, callback, '3.39');
@@ -374,9 +338,7 @@ describe('usePerpsOrderDepositTracking', () => {
     it('uses the first delivery as the baseline when no account snapshot exists yet', () => {
       const handlers = captureTransactionHandlers();
       mockAccountSnapshot = null;
-      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-        wrapper,
-      });
+      const { result } = renderHook(() => usePerpsOrderDepositTracking());
       const callback = jest.fn();
       act(() => {
         result.current.handleDepositConfirm(perpsDepositMeta, callback, '3.39');
@@ -401,9 +363,7 @@ describe('usePerpsOrderDepositTracking', () => {
   describe('account switch', () => {
     it('places no order and reports it when another account is selected during the credit wait', () => {
       const handlers = captureTransactionHandlers();
-      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-        wrapper,
-      });
+      const { result } = renderHook(() => usePerpsOrderDepositTracking());
       const callback = jest.fn();
       act(() => {
         result.current.handleDepositConfirm(perpsDepositMeta, callback, '3.39');
@@ -431,9 +391,7 @@ describe('usePerpsOrderDepositTracking', () => {
       'places no order when the %s changes on the same account during the credit wait',
       (_context, switchContext) => {
         const handlers = captureTransactionHandlers();
-        const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-          wrapper,
-        });
+        const { result } = renderHook(() => usePerpsOrderDepositTracking());
         const callback = jest.fn();
         act(() => {
           result.current.handleDepositConfirm(
@@ -461,9 +419,7 @@ describe('usePerpsOrderDepositTracking', () => {
   describe('credit timeout', () => {
     it('shows the deposit received, order not placed toast and places no order', () => {
       const handlers = captureTransactionHandlers();
-      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-        wrapper,
-      });
+      const { result } = renderHook(() => usePerpsOrderDepositTracking());
       const callback = jest.fn();
       act(() => {
         result.current.handleDepositConfirm(perpsDepositMeta, callback, '3.39');
@@ -486,9 +442,7 @@ describe('usePerpsOrderDepositTracking', () => {
 
     it('does not start the credit timeout before the deposit confirms', () => {
       captureTransactionHandlers();
-      const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-        wrapper,
-      });
+      const { result } = renderHook(() => usePerpsOrderDepositTracking());
       act(() => {
         result.current.handleDepositConfirm(
           perpsDepositMeta,
@@ -507,9 +461,7 @@ describe('usePerpsOrderDepositTracking', () => {
   });
 
   it('does not place the order when the credit arrives after cancel trade requested', () => {
-    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-      wrapper,
-    });
+    const { result } = renderHook(() => usePerpsOrderDepositTracking());
     const handlers: {
       statusUpdated?: (payload: { transactionMeta: TransactionMeta }) => void;
     } = {};
@@ -534,11 +486,11 @@ describe('usePerpsOrderDepositTracking', () => {
     jest.advanceTimersByTime(100);
 
     const takingLongerCall = mockShowToast.mock.calls[callCountBeforeAdvance];
-    const closeButtonOptions = takingLongerCall?.[0] as {
-      closeButtonOptions?: { onPress: () => void };
+    const takingLongerArg = takingLongerCall?.[0] as {
+      actionButtonOnPress?: () => void;
     };
     act(() => {
-      closeButtonOptions?.closeButtonOptions?.onPress?.();
+      takingLongerArg?.actionButtonOnPress?.();
     });
 
     expect(mockTrack).toHaveBeenCalledWith(
@@ -571,9 +523,7 @@ describe('usePerpsOrderDepositTracking', () => {
   });
 
   it('shows error toast when transaction fails with matching id', () => {
-    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-      wrapper,
-    });
+    const { result } = renderHook(() => usePerpsOrderDepositTracking());
     const handlers: {
       failed?: (payload: { transactionMeta: TransactionMeta }) => void;
     } = {};
@@ -618,9 +568,7 @@ describe('usePerpsOrderDepositTracking', () => {
   });
 
   it('shows taking longer toast after delay', () => {
-    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
-      wrapper,
-    });
+    const { result } = renderHook(() => usePerpsOrderDepositTracking());
 
     act(() => {
       result.current.handleDepositConfirm(perpsDepositMeta, jest.fn());
@@ -641,7 +589,7 @@ describe('usePerpsOrderDepositTracking', () => {
 
     expect(mockShowToast).toHaveBeenCalled();
     expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-      closeButtonOptions: expect.any(Object),
+      actionButtonOnPress: expect.any(Function),
     });
   });
 });

@@ -14,6 +14,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import {
   ImpactMoment,
@@ -21,8 +22,6 @@ import {
   useHaptics,
 } from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
 import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
@@ -115,46 +114,30 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   const showSuccessToast = useCallback(
     (title: string, message?: string) => {
       const toastConfig: PerpsToastOptions = {
-        variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
-        backgroundColor: theme.colors.accent03.normal,
-        iconColor: theme.colors.accent03.dark,
+        severity: ToastSeverity.Success,
         hapticsType: NotificationMoment.Success,
         hasNoTimeout: false,
-        labelOptions: message
-          ? [
-              { label: title, isBold: true },
-              { label: '\n', isBold: false },
-              { label: message, isBold: false },
-            ]
-          : [{ label: title, isBold: true }],
-      } as PerpsToastOptions;
+        title,
+        description: message,
+      };
       showToast(toastConfig);
     },
-    [showToast, theme.colors.accent03],
+    [showToast],
   );
 
   // Toast helper for errors
   const showErrorToast = useCallback(
     (title: string, message?: string) => {
       const toastConfig: PerpsToastOptions = {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        backgroundColor: theme.colors.accent01.light,
-        iconColor: theme.colors.accent01.dark,
+        severity: ToastSeverity.Danger,
         hapticsType: NotificationMoment.Error,
         hasNoTimeout: false,
-        labelOptions: message
-          ? [
-              { label: title, isBold: true },
-              { label: '\n', isBold: false },
-              { label: message, isBold: false },
-            ]
-          : [{ label: title, isBold: true }],
-      } as PerpsToastOptions;
+        title,
+        description: message,
+      };
       showToast(toastConfig);
     },
-    [showToast, theme.colors.accent01],
+    [showToast],
   );
 
   // Handle success callback from hook

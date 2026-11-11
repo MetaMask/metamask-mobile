@@ -1,7 +1,8 @@
 import {
-  IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import {
   TransactionMeta,
@@ -11,11 +12,7 @@ import {
 } from '@metamask/transaction-controller';
 import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ToastVariants } from '../../../../component-library/components/Toast';
-import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
-import { useAppThemeFromContext } from '../../../../util/theme';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { isPerpsPredictMoneyWithdraw } from '../../Money/utils/moneyTransactionGuards';
 import { store } from '../../../../store';
@@ -37,12 +34,10 @@ function getWithdrawConfirmedDescription(transactionId: string): string {
 }
 
 export const usePerpsWithdrawToastRegistrations = (): ToastRegistration[] => {
-  const theme = useAppThemeFromContext();
-
   const processedRef = React.useRef<Set<string>>(new Set());
 
   const handleTransactionStatusUpdated = useCallback(
-    (payload: unknown, showToast: ToastRef['showToast']): void => {
+    (payload: unknown): void => {
       const { transactionMeta } = payload as {
         transactionMeta: TransactionMeta;
       };
@@ -61,26 +56,12 @@ export const usePerpsWithdrawToastRegistrations = (): ToastRegistration[] => {
       processedRef.current.add(key);
 
       if (status === TransactionStatus.approved) {
-        showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('perps.withdrawal.toast_pending_title'),
-              isBold: true,
-            },
-            { label: '\n', isBold: false },
-            {
-              label: strings('perps.withdrawal.toast_pending_subtitle'),
-              isBold: false,
-            },
-          ],
-          iconName: IconName.Loading,
+        toast({
+          title: strings('perps.withdrawal.toast_pending_title'),
+          description: strings('perps.withdrawal.toast_pending_subtitle'),
           hasNoTimeout: false,
           startAccessory: (
-            <Spinner
-              color={ReactNativeDsIconColor.IconDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
-            />
+            <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
           ),
         });
         return;
@@ -91,46 +72,25 @@ export const usePerpsWithdrawToastRegistrations = (): ToastRegistration[] => {
           return;
         }
 
-        const description = getWithdrawConfirmedDescription(id);
-
-        showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('perps.withdrawal.toast_completed_title'),
-              isBold: true,
-            },
-            { label: '\n', isBold: false },
-            { label: description, isBold: false },
-          ],
-          iconName: IconName.Confirmation,
-          iconColor: theme.colors.success.default,
+        toast({
+          title: strings('perps.withdrawal.toast_completed_title'),
+          description: getWithdrawConfirmedDescription(id),
+          severity: ToastSeverity.Success,
           hasNoTimeout: false,
         });
         return;
       }
 
       if (status === TransactionStatus.failed) {
-        showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('perps.withdrawal.toast_error_title'),
-              isBold: true,
-            },
-            { label: '\n', isBold: false },
-            {
-              label: strings('perps.withdrawal.toast_error_description'),
-              isBold: false,
-            },
-          ],
-          iconName: IconName.Error,
-          iconColor: theme.colors.error.default,
+        toast({
+          title: strings('perps.withdrawal.toast_error_title'),
+          description: strings('perps.withdrawal.toast_error_description'),
+          severity: ToastSeverity.Danger,
           hasNoTimeout: false,
         });
       }
     },
-    [theme.colors.error.default, theme.colors.success.default],
+    [],
   );
 
   return useMemo(

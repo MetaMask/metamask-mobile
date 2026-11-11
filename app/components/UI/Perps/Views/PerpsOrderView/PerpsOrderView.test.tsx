@@ -7792,11 +7792,11 @@ describe('PerpsOrderView', () => {
       await fill();
 
       const toast = showToast.mock.calls.at(-1)?.[0];
-      expect(toast.linkButtonOptions.label).toBe(
+      expect(toast.actionButtonLabel).toBe(
         'social_leaderboard.post_trade_share.post_to_feed',
       );
 
-      toast.linkButtonOptions.onPress();
+      toast.actionButtonOnPress();
 
       expect(openPostTradeComposer).toHaveBeenCalledWith({
         tradeInFlight: expect.objectContaining({
@@ -7858,7 +7858,7 @@ describe('PerpsOrderView', () => {
 
       expect(showToast).toHaveBeenCalled();
       expect(
-        showToast.mock.calls.at(-1)?.[0]?.linkButtonOptions,
+        showToast.mock.calls.at(-1)?.[0]?.actionButtonLabel,
       ).toBeUndefined();
     });
   });

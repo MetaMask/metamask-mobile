@@ -42,15 +42,10 @@ const mockInsufficientFundsMessage = strings(
 );
 const mockShowToast = jest.fn();
 const mockGetPerpsToastLabels = jest.fn(
-  (primary: string, secondary?: string) => [
-    { label: primary, isBold: true },
-    ...(secondary
-      ? [
-          { label: '\n', isBold: false },
-          { label: secondary, isBold: false },
-        ]
-      : []),
-  ],
+  (primary: string, secondary?: string) => ({
+    title: primary,
+    description: secondary,
+  }),
 );
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -5452,24 +5447,15 @@ describe('usePerpsProOrderForm', () => {
       expect(mockShowToast).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          labelOptions: [
+          title: strings('perps.pro_order_form.scale.orders_submitted'),
+          description: strings(
+            'perps.pro_order_form.scale.submission_summary',
             {
-              label: strings('perps.pro_order_form.scale.orders_submitted'),
-              isBold: true,
+              totalCount: 3,
+              size: '3.725',
+              assetSymbol: 'BTC',
             },
-            {
-              label: '\n',
-              isBold: false,
-            },
-            {
-              label: strings('perps.pro_order_form.scale.submission_summary', {
-                totalCount: 3,
-                size: '3.725',
-                assetSymbol: 'BTC',
-              }),
-              isBold: false,
-            },
-          ],
+          ),
         }),
       );
     });
@@ -5497,25 +5483,13 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockShowToast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [
-            {
-              label: strings('perps.pro_order_form.scale.orders_placed'),
-              isBold: true,
-            },
-            {
-              label: '\n',
-              isBold: false,
-            },
-            {
-              label: strings('perps.pro_order_form.scale.placement_summary', {
-                submittedCount: 3,
-                totalCount: 3,
-                size: '3.725',
-                assetSymbol: 'BTC',
-              }),
-              isBold: false,
-            },
-          ],
+          title: strings('perps.pro_order_form.scale.orders_placed'),
+          description: strings('perps.pro_order_form.scale.placement_summary', {
+            submittedCount: 3,
+            totalCount: 3,
+            size: '3.725',
+            assetSymbol: 'BTC',
+          }),
         }),
       );
     });
@@ -5542,30 +5516,16 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockShowToast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [
+          title: strings('perps.pro_order_form.scale.orders_partially_placed'),
+          description: strings(
+            'perps.pro_order_form.scale.partial_placement_summary',
             {
-              label: strings(
-                'perps.pro_order_form.scale.orders_partially_placed',
-              ),
-              isBold: true,
+              submittedCount: 2,
+              totalCount: 3,
+              size: '2.222',
+              assetSymbol: 'BTC',
             },
-            {
-              label: '\n',
-              isBold: false,
-            },
-            {
-              label: strings(
-                'perps.pro_order_form.scale.partial_placement_summary',
-                {
-                  submittedCount: 2,
-                  totalCount: 3,
-                  size: '2.222',
-                  assetSymbol: 'BTC',
-                },
-              ),
-              isBold: false,
-            },
-          ],
+          ),
         }),
       );
     });
@@ -5618,25 +5578,13 @@ describe('usePerpsProOrderForm', () => {
 
         expect(mockShowToast).toHaveBeenLastCalledWith(
           expect.objectContaining({
-            labelOptions: [
-              {
-                label: strings(titleKey),
-                isBold: true,
-              },
-              {
-                label: '\n',
-                isBold: false,
-              },
-              {
-                label: strings(summaryKey, {
-                  submittedCount: acceptedCount,
-                  totalCount: 3,
-                  size: acceptedSize,
-                  assetSymbol: 'BTC',
-                }),
-                isBold: false,
-              },
-            ],
+            title: strings(titleKey),
+            description: strings(summaryKey, {
+              submittedCount: acceptedCount,
+              totalCount: 3,
+              size: acceptedSize,
+              assetSymbol: 'BTC',
+            }),
           }),
         );
       },

@@ -3194,7 +3194,7 @@ export const usePerpsProOrderForm = ({
             latestScale.submissionPositionSize,
             latestScale.orderForm.asset,
           ),
-          labelOptions: getPerpsToastLabels(
+          ...getPerpsToastLabels(
             strings('perps.pro_order_form.scale.orders_submitted'),
             scaleSubmissionSummary,
           ),
@@ -3289,10 +3289,7 @@ export const usePerpsProOrderForm = ({
                 acceptedSize,
                 latestScale.orderForm.asset,
               )),
-          labelOptions: getPerpsToastLabels(
-            scalePlacementTitle,
-            scalePlacementSummary,
-          ),
+          ...getPerpsToastLabels(scalePlacementTitle, scalePlacementSummary),
         });
         if (lighterReceipt && !lighterReceipt.isComplete) return;
         Engine.context.PerpsController?.clearPendingTradeConfiguration(

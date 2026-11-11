@@ -36,6 +36,7 @@ import {
   IconColor,
   KeyValueRow,
   KeyValueRowVariant,
+  toast as designSystemToast,
 } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
@@ -259,7 +260,6 @@ import {
   incrementShareSheetCount,
   markClaimSheetSeen,
 } from '../../../../../util/social/postTradePromptStorage';
-import ToastService from '../../../../../core/ToastService';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -1386,25 +1386,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderId && prompt?.kind === 'post_to_feed_toast'
               ? {
                   ...confirmedToast,
-                  linkButtonOptions: {
-                    label: strings(
-                      'social_leaderboard.post_trade_share.post_to_feed',
-                    ),
-                    onPress: () => {
-                      ToastService.toastRef?.current?.closeToast();
-                      openPostTradeComposer(
-                        buildPerpsPostTradeComposerParams({
-                          orderId,
-                          preview: buildPerpsPostTradePreview({
-                            asset: orderForm.asset,
-                            direction: orderForm.direction,
-                            leverage: orderForm.leverage,
-                            amountUsd: orderForm.amount,
-                            entryPrice: result?.averagePrice,
-                          }),
+                  actionButtonLabel: strings(
+                    'social_leaderboard.post_trade_share.post_to_feed',
+                  ),
+                  actionButtonOnPress: () => {
+                    designSystemToast.dismiss();
+                    openPostTradeComposer(
+                      buildPerpsPostTradeComposerParams({
+                        orderId,
+                        preview: buildPerpsPostTradePreview({
+                          asset: orderForm.asset,
+                          direction: orderForm.direction,
+                          leverage: orderForm.leverage,
+                          amountUsd: orderForm.amount,
+                          entryPrice: result?.averagePrice,
                         }),
-                      );
-                    },
+                      }),
+                    );
                   },
                 }
               : confirmedToast,
