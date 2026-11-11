@@ -25,8 +25,6 @@ export interface MfaRecoveryFullRetrievalDependencies
   /** Mints an approval for the TOPRF nodes; needs a verification session. */
   mintAal2Token: () => Promise<string>;
   seedless: MfaRecoveryFullRetrievalSeedless;
-  /** Password of the local vault rebuilt from the recovered SRPs. */
-  password: string;
 }
 
 export type MfaRecoveryFullRetrievalStep =
@@ -72,8 +70,8 @@ async function srpFingerprints(
  * with SIWE, recovers the vault from TOPRF with that secret, then checks that
  * every SRP the vault held before is back in the seedless controller.
  *
- * Recovering rebuilds the local vault under `password`, which replaces this
- * device's vault.
+ * Recovering does not create a local vault or need a password. The recovered
+ * vault keys stay in memory until a local password is set.
  */
 export async function runMfaRecoveryFullRetrieval(
   dependencies: MfaRecoveryFullRetrievalDependencies,
@@ -109,9 +107,9 @@ export async function runMfaRecoveryFullRetrieval(
     groupedAuthConnectionId: TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID,
   });
   onStep('recovering_vault');
+  // No password: the vault keys stay in memory until setLocalPassword runs.
   const recoveredItems = await seedless.recoverWithRecoverySecret({
     recoverySecret,
-    password: dependencies.password,
   });
 
   // 4) Every pre-recovery SRP should be back.

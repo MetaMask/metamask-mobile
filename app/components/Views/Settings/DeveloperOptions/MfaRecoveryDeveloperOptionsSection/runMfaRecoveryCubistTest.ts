@@ -71,7 +71,6 @@ export async function runMfaRecoveryCubistTest(
     dependencies,
     onStep,
   );
-  const { siweIdentifier, passkeyIdentifier } = identifiers;
   const newSecret = () =>
     new Uint8Array(dependencies.randomBytes(RECOVERY_SECRET_LENGTH));
   const readAndCompare = async (identifier: Identifier, secret: Uint8Array) => {
@@ -82,55 +81,69 @@ export async function runMfaRecoveryCubistTest(
     };
   };
 
-  let secret: Uint8Array;
-  let result: MfaRecoveryTestResult;
-  // Prefer SIWE for mutations when recovery already exists — the platform
-  // passkey may not match the enrolled one after a prior run or restart.
-  let mutationIdentifier: Identifier = passkeyIdentifier;
+  // Only an existing Cubist registration is tested; nothing is registered here.
+  const registeredIdentifier = await pickRegisteredIdentifier(
+    controller,
+    identifiers,
+  );
+  const recovered = await readRecoverySecret(
+    controller,
+    registeredIdentifier,
+    onStep,
+  );
+  const originalSecret = new Uint8Array(recovered.recoverySecret);
+  lastRegisteredSecret = new Uint8Array(originalSecret);
 
-  try {
-    const recovered = await readRecoverySecret(
-      controller,
-      siweIdentifier,
-      onStep,
-    );
-    secret = new Uint8Array(recovered.recoverySecret);
-    lastRegisteredSecret = new Uint8Array(secret);
-    result = { epoch: recovered.epoch, matches: true };
-    mutationIdentifier = siweIdentifier;
-  } catch {
-    onStep('registering_recovery_secret');
-    secret = newSecret();
-    await controller.register(secret, [siweIdentifier, passkeyIdentifier]);
-    lastRegisteredSecret = new Uint8Array(secret);
-    result = await readAndCompare(siweIdentifier, secret);
-  }
+  // Test a new secret, then put the original back so the escrow keeps the
+  // secret the other runs and recoveries expect.
+  onStep('updating_recovery_secret');
+  const testSecret = newSecret();
+  await controller.updateRecoverySecret(
+    registeredIdentifier,
+    testSecret,
+    recovered.epoch,
+  );
+  const afterUpdate = await readAndCompare(registeredIdentifier, testSecret);
 
-  if (result.matches) {
-    // Test a new secret, then put the original back so the escrow keeps the
-    // secret the other runs and recoveries expect.
-    const originalSecret = secret;
-    onStep('updating_recovery_secret');
-    const testSecret = newSecret();
-    await controller.updateRecoverySecret(
-      mutationIdentifier,
-      testSecret,
-      result.epoch,
-    );
-    result = await readAndCompare(mutationIdentifier, testSecret);
+  onStep('restoring_recovery_secret');
+  await controller.updateRecoverySecret(
+    registeredIdentifier,
+    originalSecret,
+    afterUpdate.epoch,
+  );
+  lastRegisteredSecret = new Uint8Array(originalSecret);
+  const result = await readAndCompare(registeredIdentifier, originalSecret);
 
-    onStep('restoring_recovery_secret');
-    await controller.updateRecoverySecret(
-      mutationIdentifier,
-      originalSecret,
-      result.epoch,
-    );
-    secret = originalSecret;
-    lastRegisteredSecret = new Uint8Array(originalSecret);
-    result = await readAndCompare(mutationIdentifier, originalSecret);
-  }
   onStep('completed');
   return result;
+}
+
+/**
+ * Picks the Auth-approved identifier that Cubist has enrolled, preferring
+ * SIWE. Throws when Cubist has neither, or when the read fails.
+ */
+async function pickRegisteredIdentifier(
+  controller: MfaRecoveryController,
+  identifiers: MfaRecoveryRunIdentifiers,
+): Promise<Identifier> {
+  let enrolledTypes: readonly string[] = [];
+  try {
+    enrolledTypes = (await controller.getIdentifiers()).identifiers.map(
+      (identifier) => identifier.type,
+    );
+  } catch {
+    enrolledTypes = [];
+  }
+  if (enrolledTypes.includes('siwe')) {
+    return identifiers.siweIdentifier;
+  }
+  if (enrolledTypes.includes('passkey')) {
+    return identifiers.passkeyIdentifier;
+  }
+  throw new MfaRecoveryControllerError(
+    'Cubist recovery is not set up',
+    'recovery_not_registered',
+  );
 }
 
 /** The identifier type used to authenticate a secret read. */

@@ -28,6 +28,11 @@ const AUTH_SOCIAL_IDENTIFIER: Identifier = {
   namespace: 'https://accounts.google.com',
   value: 'auth-social',
 };
+const SEEDLESS_SOCIAL_IDENTIFIER: Identifier = {
+  type: 'social',
+  namespace: 'https://accounts.google.com',
+  value: 'google-user',
+};
 const RECOVERY_SECRET = new Uint8Array(32).fill(7);
 
 function createController() {
@@ -36,7 +41,11 @@ function createController() {
 
 /** Starts not envelope-managed; `migrateToEnvelope` sets the envelope. */
 function createSeedless() {
-  const state: { envelope?: { v: 1; vaultAuthPubKey: string } } = {};
+  const state: {
+    envelope?: { v: 1; vaultAuthPubKey: string };
+    authConnection?: string;
+    userId?: string;
+  } = { authConnection: 'google', userId: 'google-user' };
   return {
     state,
     authenticateForRecovery: jest.fn().mockResolvedValue(undefined),
@@ -87,25 +96,44 @@ describe('getRegistrationIdentifiers', () => {
     AUTH_SOCIAL_IDENTIFIER,
   ];
 
+  const getSocialIdentifier = () => SEEDLESS_SOCIAL_IDENTIFIER;
+
   it.each([
     ['siwe_passkey', [SIWE_IDENTIFIER, AUTH_PASSKEY_IDENTIFIER]],
-    ['siwe_social', [SIWE_IDENTIFIER, AUTH_SOCIAL_IDENTIFIER]],
-    ['passkey_social', [AUTH_PASSKEY_IDENTIFIER, AUTH_SOCIAL_IDENTIFIER]],
+    ['siwe_social', [SIWE_IDENTIFIER, SEEDLESS_SOCIAL_IDENTIFIER]],
+    ['passkey_social', [AUTH_PASSKEY_IDENTIFIER, SEEDLESS_SOCIAL_IDENTIFIER]],
   ] as const)('returns the %s identifiers', (combination, expected) => {
     expect(
-      getRegistrationIdentifiers(authIdentifiers, SIWE_IDENTIFIER, combination),
+      getRegistrationIdentifiers(
+        authIdentifiers,
+        SIWE_IDENTIFIER,
+        combination,
+        getSocialIdentifier,
+      ),
     ).toStrictEqual(expected);
   });
 
-  it.each([
-    ['siwe_social', [AUTH_PASSKEY_IDENTIFIER]],
-    ['passkey_social', [AUTH_PASSKEY_IDENTIFIER]],
-    ['siwe_passkey', [AUTH_SOCIAL_IDENTIFIER]],
-  ] as const)(
-    'throws identifier_not_approved for %s when Auth lacks a type',
-    (combination, approved) => {
+  it('uses the seedless social identifier without Auth approving one', () => {
+    expect(
+      getRegistrationIdentifiers(
+        [AUTH_PASSKEY_IDENTIFIER],
+        SIWE_IDENTIFIER,
+        'siwe_social',
+        getSocialIdentifier,
+      ),
+    ).toStrictEqual([SIWE_IDENTIFIER, SEEDLESS_SOCIAL_IDENTIFIER]);
+  });
+
+  it.each(['siwe_passkey', 'passkey_social'] as const)(
+    'throws identifier_not_approved for %s when Auth approved no passkey',
+    (combination) => {
       expect(() =>
-        getRegistrationIdentifiers(approved, SIWE_IDENTIFIER, combination),
+        getRegistrationIdentifiers(
+          [AUTH_SOCIAL_IDENTIFIER],
+          SIWE_IDENTIFIER,
+          combination,
+          getSocialIdentifier,
+        ),
       ).toThrow(expect.objectContaining({ code: 'identifier_not_approved' }));
     },
   );
@@ -150,16 +178,29 @@ describe('runMfaRecoverySetup', () => {
 
     expect(controller.register).toHaveBeenCalledWith(RECOVERY_SECRET, [
       AUTH_PASSKEY_IDENTIFIER,
-      AUTH_SOCIAL_IDENTIFIER,
+      SEEDLESS_SOCIAL_IDENTIFIER,
     ]);
   });
 
-  it('does not register when Auth approved no identifier of a requested type', async () => {
+  it('registers the seedless social login without Auth approving it', async () => {
+    await runMfaRecoverySetup(
+      createDependencies(seedless),
+      undefined,
+      'siwe_social',
+    );
+
+    expect(controller.register).toHaveBeenCalledWith(RECOVERY_SECRET, [
+      SIWE_IDENTIFIER,
+      SEEDLESS_SOCIAL_IDENTIFIER,
+    ]);
+  });
+
+  it('does not register when Auth approved no passkey', async () => {
     await expect(
       runMfaRecoverySetup(
-        createDependencies(seedless),
-        undefined,
-        'siwe_social',
+        createDependencies(seedless, {
+          getAuthIdentifiers: jest.fn().mockResolvedValue([]),
+        }),
       ),
     ).rejects.toMatchObject({ code: 'identifier_not_approved' });
     expect(controller.register).not.toHaveBeenCalled();

@@ -56,7 +56,6 @@ function createDependencies(
     mintAal2Token: jest.fn().mockResolvedValue('aal2-token'),
     seedless:
       seedless as unknown as MfaRecoveryFullRetrievalDependencies['seedless'],
-    password: 'new-local-password',
   };
 }
 
@@ -76,7 +75,7 @@ describe('runMfaRecoveryFullRetrieval', () => {
     });
   });
 
-  it('reads the recovery secret with SIWE and recovers the vault with it and the password', async () => {
+  it('reads the recovery secret with SIWE and recovers the vault keys with it, without a password', async () => {
     const seedless = createSeedless({
       before: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
       recovered: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
@@ -97,7 +96,6 @@ describe('runMfaRecoveryFullRetrieval', () => {
     });
     expect(seedless.recoverWithRecoverySecret).toHaveBeenCalledWith({
       recoverySecret: RECOVERY_SECRET,
-      password: 'new-local-password',
     });
   });
 

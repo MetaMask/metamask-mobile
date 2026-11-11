@@ -9,6 +9,7 @@ import {
   TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
 import { MfaRecoveryControllerError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
+import { createSocialIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   prepareRecoveryRun,
   type MfaRecoveryTestDependencies,
@@ -31,7 +32,7 @@ export type MfaRecoverySeedless = Pick<
 > & {
   state: Pick<
     SeedlessOnboardingControllerState,
-    'envelope' | 'recoverySession'
+    'envelope' | 'recoverySession' | 'authConnection' | 'userId'
   >;
 };
 
@@ -75,21 +76,23 @@ const COMBINATION_TYPES: Record<
 
 /**
  * Returns the identifiers to register for a combination. SIWE is the primary
- * account's identifier, which the controller proves with a wallet signature.
+ * account's identifier and social is the seedless login's; neither is checked
+ * against Auth's approved identifiers. The passkey comes from Auth as-is.
  *
- * The controller and escrow only accept non-SIWE identifiers exactly as Auth
- * approved them, so passkey and social identifiers come from Auth as-is.
- *
- * @throws If Auth approved no identifier of a requested non-SIWE type.
+ * @throws If Auth approved no passkey, or social is requested without a login.
  */
 export function getRegistrationIdentifiers(
   authIdentifiers: readonly Identifier[],
   siweIdentifier: Identifier,
   combination: MfaRecoveryIdentifierCombination,
+  getSocialIdentifier: () => Identifier,
 ): Identifier[] {
   return COMBINATION_TYPES[combination].map((type) => {
     if (type === 'siwe') {
       return siweIdentifier;
+    }
+    if (type === 'social') {
+      return getSocialIdentifier();
     }
     const approved = authIdentifiers.find(
       (identifier) => identifier.type === type,
@@ -128,6 +131,7 @@ export async function runMfaRecoverySetup(
     await dependencies.getAuthIdentifiers(),
     identifiers.siweIdentifier,
     combination,
+    () => createSocialIdentifier(seedless.state),
   );
   const recoverySecret = new Uint8Array(
     dependencies.randomBytes(RECOVERY_SECRET_LENGTH),

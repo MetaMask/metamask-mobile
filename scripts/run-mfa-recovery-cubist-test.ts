@@ -366,7 +366,7 @@ export async function main(): Promise<void> {
     });
     console.log(`Authentication token source: ${tokenSource}`);
     console.log(
-      'Running live Cubist recovery test: register and updateRecoverySecret with MPC request-bound authorization.',
+      'Running live Cubist recovery test on the existing registration: read, updateRecoverySecret and restore with MPC request-bound authorization.',
     );
     const result = await runMfaRecoveryCubistTest(
       {

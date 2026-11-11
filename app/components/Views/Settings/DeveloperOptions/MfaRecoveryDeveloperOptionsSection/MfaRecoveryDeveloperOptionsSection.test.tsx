@@ -13,6 +13,29 @@ const mockRunToprfRecoverySecretTest = jest.fn();
 const mockVerifyOrEnroll = jest.fn();
 const mockRequestMfaApproval = jest.fn();
 const mockGetMfaRecoveryErrorCode = jest.fn();
+const mockExchangeSocialAccessToken = jest.fn();
+const mockRefreshCanonicalProfileId = jest.fn();
+const mockLinkSocialLogin = jest.fn();
+const mockGetIdentifiers = jest.fn();
+const mockSetLocalPassword = jest.fn();
+const mockResetPasswordWithVaultKeys = jest.fn();
+const mockRunAddCubistIdentifier = jest.fn();
+const mockRunRemoveCubistIdentifier = jest.fn();
+
+jest.mock('./manageCubistIdentifiers', () => ({
+  ...jest.requireActual('./manageCubistIdentifiers'),
+  runAddCubistIdentifier: (dependencies: unknown, onStep: unknown) =>
+    mockRunAddCubistIdentifier(dependencies, onStep),
+  runRemoveCubistIdentifier: (
+    dependencies: unknown,
+    identifier: unknown,
+    onStep: unknown,
+  ) => mockRunRemoveCubistIdentifier(dependencies, identifier, onStep),
+}));
+
+jest.mock('./linkSocialLogin', () => ({
+  linkSocialLogin: (dependencies: unknown) => mockLinkSocialLogin(dependencies),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -23,12 +46,21 @@ jest.mock('../../../../../core/Engine', () => ({
         signPersonalMessage: jest.fn(),
       },
       AuthenticationController: {
+        state: { srpSessionData: {} },
         requestMfaApproval: (request: unknown) =>
           mockRequestMfaApproval(request),
+        exchangeSocialAccessToken: () => mockExchangeSocialAccessToken(),
+        refreshCanonicalProfileId: () => mockRefreshCanonicalProfileId(),
+        getVerificationToken: () => ({ accessToken: 'aal2-access-token' }),
       },
-      MfaRecoveryController: {},
+      MfaRecoveryController: {
+        getIdentifiers: () => mockGetIdentifiers(),
+      },
       SeedlessOnboardingController: {
         state: { authConnection: 'google', userId: 'google-user' },
+        setLocalPassword: (args: unknown) => mockSetLocalPassword(args),
+        resetPasswordWithVaultKeys: (args: unknown) =>
+          mockResetPasswordWithVaultKeys(args),
       },
     },
   },
@@ -102,14 +134,60 @@ jest.mock('./runMfaRecoveryFullRetrieval', () => ({
 }));
 
 const FULL_RETRIEVAL_BUTTON_TEST_ID = 'mfa-recovery-dev-full-retrieval-button';
-const FULL_RETRIEVAL_PASSWORD_TEST_ID =
-  'mfa-recovery-dev-full-retrieval-password';
+const SET_LOCAL_PASSWORD_BUTTON_TEST_ID =
+  'mfa-recovery-dev-set-local-password-button';
+const RESET_PASSWORD_BUTTON_TEST_ID = 'mfa-recovery-dev-reset-password-button';
+const PASSWORD_PROMPT_INPUT_TEST_ID = 'mfa-recovery-dev-password-prompt-input';
+const PASSWORD_PROMPT_CONFIRM_TEST_ID =
+  'mfa-recovery-dev-password-prompt-confirm';
 
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
-const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button-siwe';
-const RECOVER_BUTTON_TEST_ID_PREFIX = 'mfa-recovery-dev-recover-secret-button';
-const SETUP_BUTTON_TEST_ID_PREFIX = 'mfa-recovery-dev-setup-recovery-button';
-const SETUP_BUTTON_TEST_ID = `${SETUP_BUTTON_TEST_ID_PREFIX}-siwe_passkey`;
+const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button';
+const RECOVER_OPTION_TEST_ID_PREFIX = 'mfa-recovery-dev-recover-option';
+const SETUP_BUTTON_TEST_ID = 'mfa-recovery-dev-setup-recovery-button';
+const SETUP_OPTION_TEST_ID_PREFIX = 'mfa-recovery-dev-setup-option';
+
+async function pressRunButton(getByTestId: (testId: string) => unknown) {
+  await waitFor(() => {
+    expect(getByTestId(RUN_BUTTON_TEST_ID)).not.toBeDisabled();
+  });
+  fireEvent.press(getByTestId(RUN_BUTTON_TEST_ID) as never);
+}
+
+async function chooseRecoverOption(
+  getByTestId: (testId: string) => unknown,
+  identifierType = 'siwe',
+) {
+  await waitFor(() => {
+    expect(getByTestId(RECOVER_BUTTON_TEST_ID)).not.toBeDisabled();
+  });
+  fireEvent.press(getByTestId(RECOVER_BUTTON_TEST_ID) as never);
+  fireEvent.press(
+    getByTestId(`${RECOVER_OPTION_TEST_ID_PREFIX}-${identifierType}`) as never,
+  );
+}
+
+async function chooseSetupOption(
+  getByTestId: (testId: string) => unknown,
+  combination = 'siwe_passkey',
+) {
+  await waitFor(() => {
+    expect(getByTestId(SETUP_BUTTON_TEST_ID)).not.toBeDisabled();
+  });
+  fireEvent.press(getByTestId(SETUP_BUTTON_TEST_ID) as never);
+  fireEvent.press(
+    getByTestId(`${SETUP_OPTION_TEST_ID_PREFIX}-${combination}`) as never,
+  );
+}
+const ADD_CUBIST_IDENTIFIER_BUTTON_TEST_ID =
+  'mfa-recovery-dev-add-cubist-identifier-button';
+const REMOVE_CUBIST_IDENTIFIER_BUTTON_TEST_ID =
+  'mfa-recovery-dev-remove-cubist-identifier-button';
+const CUBIST_IDENTIFIER_ROW_TEST_ID = 'mfa-recovery-dev-cubist-identifier-row';
+const LINK_SOCIAL_LOGIN_BUTTON_TEST_ID =
+  'mfa-recovery-dev-link-social-login-button';
+const CHECK_SOCIAL_LINK_BUTTON_TEST_ID =
+  'mfa-recovery-dev-check-social-link-button';
 const TOPRF_TEST_BUTTON_TEST_ID =
   'mfa-recovery-dev-toprf-recovery-secret-button';
 
@@ -153,6 +231,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       expiresIn: 300,
     });
     mockGetMfaRecoveryErrorCode.mockReturnValue('unknown_error');
+    mockGetIdentifiers.mockRejectedValue(new Error('not registered'));
   });
 
   afterEach(() => {
@@ -167,12 +246,6 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     expect(getByText('MFA recovery')).toBeOnTheScreen();
     expect(getByTestId(RUN_BUTTON_TEST_ID)).toBeOnTheScreen();
     expect(getByTestId(RECOVER_BUTTON_TEST_ID)).toBeOnTheScreen();
-    expect(
-      getByTestId(`${RECOVER_BUTTON_TEST_ID_PREFIX}-passkey`),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(`${RECOVER_BUTTON_TEST_ID_PREFIX}-social`),
-    ).toBeOnTheScreen();
     expect(getByTestId(SETUP_BUTTON_TEST_ID)).toBeOnTheScreen();
   });
 
@@ -186,10 +259,14 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       const { getByTestId, getByText } = renderWithProvider(
         <MfaRecoveryDeveloperOptionsSection />,
       );
+      await waitFor(() => {
+        expect(getByTestId(SETUP_BUTTON_TEST_ID)).not.toBeDisabled();
+      });
+      fireEvent.press(getByTestId(SETUP_BUTTON_TEST_ID));
       expect(getByText(label)).toBeOnTheScreen();
 
       fireEvent.press(
-        getByTestId(`${SETUP_BUTTON_TEST_ID_PREFIX}-${combination}`),
+        getByTestId(`${SETUP_OPTION_TEST_ID_PREFIX}-${combination}`),
       );
 
       await waitFor(() => {
@@ -202,12 +279,48 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     },
   );
 
+  it('disables setup once Cubist has identifiers registered', async () => {
+    mockGetIdentifiers.mockResolvedValue({
+      identifiers: [
+        { type: 'siwe', namespace: 'metamask.io:1', value: '0xabc' },
+      ],
+      epoch: 1,
+      authIdentifiers: [],
+    });
+    const { getByTestId, getByText } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText('Set up recovery (already registered in Cubist)'),
+      ).toBeOnTheScreen();
+    });
+    expect(getByTestId(SETUP_BUTTON_TEST_ID)).toBeDisabled();
+  });
+
+  it('enables setup when Cubist returns no identifiers', async () => {
+    mockGetIdentifiers.mockResolvedValue({
+      identifiers: [],
+      epoch: 0,
+      authIdentifiers: [],
+    });
+    const { getByTestId, getByText } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId(SETUP_BUTTON_TEST_ID)).not.toBeDisabled();
+    });
+    expect(getByText('Set up recovery (dev)')).toBeOnTheScreen();
+  });
+
   it('runs recovery setup and displays the status before and after', async () => {
     const { getByTestId, getByText } = renderWithProvider(
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.press(getByTestId(SETUP_BUTTON_TEST_ID));
+    await chooseSetupOption(getByTestId);
 
     await waitFor(() => {
       expect(mockRunMfaRecoverySetup).toHaveBeenCalledTimes(1);
@@ -224,7 +337,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.press(getByTestId(SETUP_BUTTON_TEST_ID));
+    await chooseSetupOption(getByTestId);
 
     await waitFor(() => {
       expect(mockRunMfaRecoverySetup).toHaveBeenCalledTimes(1);
@@ -250,7 +363,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.press(getByTestId(SETUP_BUTTON_TEST_ID));
+    await chooseSetupOption(getByTestId);
 
     await waitFor(() => {
       expect(
@@ -266,7 +379,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.press(getByTestId(RUN_BUTTON_TEST_ID));
+    await pressRunButton(getByTestId);
 
     await waitFor(() => {
       expect(mockRunMfaRecoveryCubistTest).toHaveBeenCalledTimes(1);
@@ -281,9 +394,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
         <MfaRecoveryDeveloperOptionsSection />,
       );
 
-      fireEvent.press(
-        getByTestId(`${RECOVER_BUTTON_TEST_ID_PREFIX}-${identifierType}`),
-      );
+      await chooseRecoverOption(getByTestId, identifierType);
 
       await waitFor(() => {
         expect(mockRunMfaRecoveryCubistRecover).toHaveBeenCalledWith(
@@ -301,7 +412,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.press(getByTestId(`${RECOVER_BUTTON_TEST_ID_PREFIX}-social`));
+    await chooseRecoverOption(getByTestId, 'social');
 
     await waitFor(() => {
       expect(mockRunMfaRecoveryCubistRecover).toHaveBeenCalledWith(
@@ -318,7 +429,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.press(getByTestId(RECOVER_BUTTON_TEST_ID));
+    await chooseRecoverOption(getByTestId);
 
     await waitFor(() => {
       expect(mockRunMfaRecoveryCubistRecover).toHaveBeenCalledTimes(1);
@@ -339,13 +450,78 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.press(getByTestId(RECOVER_BUTTON_TEST_ID));
+    await chooseRecoverOption(getByTestId);
 
     await waitFor(() => {
       expect(
         getByText(/secret matches last registration: yes/),
       ).toBeOnTheScreen();
     });
+  });
+
+  it('disables the run button when Cubist has no identifiers registered', async () => {
+    mockGetIdentifiers.mockResolvedValue({
+      identifiers: [],
+      epoch: 0,
+      authIdentifiers: [],
+    });
+    const { getByTestId, getByText } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText('Run Cubist recovery test (not registered in Cubist)'),
+      ).toBeOnTheScreen();
+    });
+    expect(getByTestId(RUN_BUTTON_TEST_ID)).toBeDisabled();
+    expect(mockRunMfaRecoveryCubistTest).not.toHaveBeenCalled();
+  });
+
+  it('disables the recover button when Cubist has no identifiers registered', async () => {
+    mockGetIdentifiers.mockResolvedValue({
+      identifiers: [],
+      epoch: 0,
+      authIdentifiers: [],
+    });
+    const { getByTestId, getByText } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText('Recover secret (not registered in Cubist)'),
+      ).toBeOnTheScreen();
+    });
+    expect(getByTestId(RECOVER_BUTTON_TEST_ID)).toBeDisabled();
+  });
+
+  it('disables recover options for identifier types that are not enrolled', async () => {
+    mockGetIdentifiers.mockResolvedValue({
+      identifiers: [
+        { type: 'siwe', namespace: 'metamask.io:1', value: '0xabc' },
+      ],
+      epoch: 1,
+      authIdentifiers: [],
+    });
+    const { getByTestId, getByText } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    await waitFor(() => {
+      expect(getByText('Recover secret (dev)')).toBeOnTheScreen();
+    });
+    fireEvent.press(getByTestId(RECOVER_BUTTON_TEST_ID) as never);
+
+    expect(
+      getByTestId(`${RECOVER_OPTION_TEST_ID_PREFIX}-siwe`),
+    ).not.toBeDisabled();
+    expect(
+      getByTestId(`${RECOVER_OPTION_TEST_ID_PREFIX}-passkey`),
+    ).toBeDisabled();
+    expect(
+      getByTestId(`${RECOVER_OPTION_TEST_ID_PREFIX}-social`),
+    ).toBeDisabled();
   });
 
   it('disables both recovery buttons while a flow is running', async () => {
@@ -355,7 +531,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.press(getByTestId(RUN_BUTTON_TEST_ID));
+    await pressRunButton(getByTestId);
 
     await waitFor(() => {
       expect(
@@ -457,7 +633,7 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.press(getByTestId(RUN_BUTTON_TEST_ID));
+    await pressRunButton(getByTestId);
 
     await waitFor(() => {
       expect(
@@ -468,30 +644,341 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     });
   });
 
-  it('runs the full retrieval with the entered password and displays the SRP check', async () => {
-    mockRunMfaRecoveryFullRetrieval.mockResolvedValue({
+  describe('passwordless full retrieval and local password', () => {
+    const SUCCESSFUL_RETRIEVAL = {
       expectedSrpCount: 2,
       recoveredSrpCount: 2,
       matchedSrpCount: 2,
       allSrpsRecovered: true,
+    };
+
+    const runFullRetrieval = async (getByTestId: (id: string) => unknown) => {
+      fireEvent.press(getByTestId(FULL_RETRIEVAL_BUTTON_TEST_ID) as never);
+      await waitFor(() => {
+        expect(mockRunMfaRecoveryFullRetrieval).toHaveBeenCalledTimes(1);
+      });
+    };
+
+    it('runs the full retrieval without a password and shows the SRP check', async () => {
+      mockRunMfaRecoveryFullRetrieval.mockResolvedValue(SUCCESSFUL_RETRIEVAL);
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+
+      expect(queryByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID)).toBeNull();
+      await runFullRetrieval(getByTestId);
+
+      expect(
+        mockRunMfaRecoveryFullRetrieval.mock.calls[0][0],
+      ).not.toHaveProperty('password');
+      await waitFor(() => {
+        expect(
+          getByText(
+            'Full retrieval finished: SRPs before 2, recovered 2, matched 2; all recovered: yes.',
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('shows set and reset password buttons after a successful retrieval', async () => {
+      mockRunMfaRecoveryFullRetrieval.mockResolvedValue(SUCCESSFUL_RETRIEVAL);
+      const { getByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+
+      await runFullRetrieval(getByTestId);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID),
+        ).not.toBeDisabled();
+      });
+      expect(getByTestId(RESET_PASSWORD_BUTTON_TEST_ID)).toBeDisabled();
+    });
+
+    it('sets the local password from the prompt and then enables reset', async () => {
+      mockRunMfaRecoveryFullRetrieval.mockResolvedValue(SUCCESSFUL_RETRIEVAL);
+      mockSetLocalPassword.mockResolvedValue(undefined);
+      const { getByTestId, getByText } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+      await runFullRetrieval(getByTestId);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID),
+        ).not.toBeDisabled();
+      });
+      fireEvent.press(getByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID) as never);
+      fireEvent.changeText(
+        getByTestId(PASSWORD_PROMPT_INPUT_TEST_ID) as never,
+        'local-pw',
+      );
+      fireEvent.press(getByTestId(PASSWORD_PROMPT_CONFIRM_TEST_ID) as never);
+
+      await waitFor(() => {
+        expect(mockSetLocalPassword).toHaveBeenCalledWith({
+          password: 'local-pw',
+        });
+        expect(
+          getByText(
+            'Local password set; the recovered vault is now on this device.',
+          ),
+        ).toBeOnTheScreen();
+        expect(getByTestId(RESET_PASSWORD_BUTTON_TEST_ID)).not.toBeDisabled();
+      });
+      expect(getByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID)).toBeDisabled();
+    });
+
+    it('resets the global password after the local password is set', async () => {
+      mockRunMfaRecoveryFullRetrieval.mockResolvedValue(SUCCESSFUL_RETRIEVAL);
+      mockSetLocalPassword.mockResolvedValue(undefined);
+      mockResetPasswordWithVaultKeys.mockResolvedValue(undefined);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+      await runFullRetrieval(getByTestId);
+      await waitFor(() => {
+        expect(
+          getByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID),
+        ).not.toBeDisabled();
+      });
+      fireEvent.press(getByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID) as never);
+      fireEvent.changeText(
+        getByTestId(PASSWORD_PROMPT_INPUT_TEST_ID) as never,
+        'local-pw',
+      );
+      fireEvent.press(getByTestId(PASSWORD_PROMPT_CONFIRM_TEST_ID) as never);
+      await waitFor(() => {
+        expect(getByTestId(RESET_PASSWORD_BUTTON_TEST_ID)).not.toBeDisabled();
+      });
+
+      fireEvent.press(getByTestId(RESET_PASSWORD_BUTTON_TEST_ID) as never);
+      fireEvent.changeText(
+        getByTestId(PASSWORD_PROMPT_INPUT_TEST_ID) as never,
+        'global-pw',
+      );
+      fireEvent.press(getByTestId(PASSWORD_PROMPT_CONFIRM_TEST_ID) as never);
+
+      await waitFor(() => {
+        expect(mockResetPasswordWithVaultKeys).toHaveBeenCalledWith({
+          newPassword: 'global-pw',
+        });
+        expect(queryByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID)).toBeNull();
+      });
+    });
+
+    it('shows the error code when setting the local password fails', async () => {
+      mockRunMfaRecoveryFullRetrieval.mockResolvedValue(SUCCESSFUL_RETRIEVAL);
+      mockSetLocalPassword.mockRejectedValueOnce(new Error('no recovery'));
+      mockGetMfaRecoveryErrorCode.mockReturnValue('recovery_required');
+      const { getByTestId, getByText } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+      await runFullRetrieval(getByTestId);
+      await waitFor(() => {
+        expect(
+          getByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID),
+        ).not.toBeDisabled();
+      });
+
+      fireEvent.press(getByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID) as never);
+      fireEvent.changeText(
+        getByTestId(PASSWORD_PROMPT_INPUT_TEST_ID) as never,
+        'local-pw',
+      );
+      fireEvent.press(getByTestId(PASSWORD_PROMPT_CONFIRM_TEST_ID) as never);
+
+      await waitFor(() => {
+        expect(
+          getByText(/Recovery test failed: recovery_required/),
+        ).toBeOnTheScreen();
+      });
+      expect(getByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID)).not.toBeDisabled();
+    });
+  });
+
+  it('shows that the social login is linked when the exchanged profile matches this wallet', async () => {
+    mockExchangeSocialAccessToken.mockResolvedValue({
+      profile: { canonicalProfileId: 'profile-1' },
+    });
+    mockRefreshCanonicalProfileId.mockResolvedValue('profile-1');
+    const { getByTestId, getByText } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    fireEvent.press(getByTestId(CHECK_SOCIAL_LINK_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(
+        getByText('Social login link: linked_to_this_profile'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it('links the social login and displays the paired identifier types', async () => {
+    mockLinkSocialLogin.mockResolvedValue({
+      status: 'linked',
+      httpStatus: 200,
+      pairedIdentifierTypes: ['SRP', 'GOOGLE'],
     });
     const { getByTestId, getByText } = renderWithProvider(
       <MfaRecoveryDeveloperOptionsSection />,
     );
 
-    fireEvent.changeText(getByTestId(FULL_RETRIEVAL_PASSWORD_TEST_ID), 'pw');
-    fireEvent.press(getByTestId(FULL_RETRIEVAL_BUTTON_TEST_ID));
+    fireEvent.press(getByTestId(LINK_SOCIAL_LOGIN_BUTTON_TEST_ID));
 
     await waitFor(() => {
-      expect(mockRunMfaRecoveryFullRetrieval).toHaveBeenCalledWith(
-        expect.objectContaining({ password: 'pw' }),
-        expect.any(Function),
-      );
       expect(
-        getByText(
-          'Full retrieval finished: SRPs before 2, recovered 2, matched 2; all recovered: yes.',
-        ),
+        getByText('Link social login: linked 200 SRP,GOOGLE'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  it('links the social login with the aal:2 token from an authenticator app verification', async () => {
+    mockLinkSocialLogin.mockResolvedValue({ status: 'linked' });
+    const { getByTestId } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    fireEvent.press(getByTestId(LINK_SOCIAL_LOGIN_BUTTON_TEST_ID));
+
+    await waitFor(() => expect(mockLinkSocialLogin).toHaveBeenCalled());
+    expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
+      expect.objectContaining({ methods: ['totp'], verifyWith: 'totp' }),
+    );
+    const { getBearerToken } = mockLinkSocialLogin.mock.calls[0][0] as {
+      getBearerToken: () => Promise<string>;
+    };
+    expect(await getBearerToken()).toBe('aal2-access-token');
+  });
+
+  describe('Cubist identifiers', () => {
+    const SIWE = {
+      type: 'siwe',
+      namespace: 'metamask.io:1',
+      value: '0xabc',
+    };
+    const PASSKEY = {
+      type: 'passkey',
+      namespace: 'auth.example',
+      value: 'credential',
+    };
+    const SOCIAL = {
+      type: 'social',
+      namespace: 'https://accounts.google.com',
+      value: 'google-user',
+    };
+
+    it('names the missing identifier type on the add button', async () => {
+      mockGetIdentifiers.mockResolvedValue({
+        identifiers: [SIWE, SOCIAL],
+        epoch: 2,
+        authIdentifiers: [PASSKEY],
+      });
+      const { getByText } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Add Cubist identifier: passkey')).toBeOnTheScreen();
+      });
+    });
+
+    it('disables the add button once every identifier type is enrolled', async () => {
+      mockGetIdentifiers.mockResolvedValue({
+        identifiers: [SIWE, PASSKEY, SOCIAL],
+        epoch: 2,
+        authIdentifiers: [PASSKEY],
+      });
+      const { getByText, getByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText('Add Cubist identifier (all added)'),
+        ).toBeOnTheScreen();
+      });
+      expect(getByTestId(ADD_CUBIST_IDENTIFIER_BUTTON_TEST_ID)).toBeDisabled();
+    });
+
+    it('adds the missing identifier and shows the new epoch', async () => {
+      mockGetIdentifiers.mockResolvedValue({
+        identifiers: [SIWE, SOCIAL],
+        epoch: 2,
+        authIdentifiers: [PASSKEY],
+      });
+      mockRunAddCubistIdentifier.mockResolvedValue({
+        identifierType: 'passkey',
+        change: 'added',
+        epoch: 3,
+      });
+      const { getByText, getByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+      await waitFor(() => {
+        expect(getByText('Add Cubist identifier: passkey')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId(ADD_CUBIST_IDENTIFIER_BUTTON_TEST_ID));
+
+      await waitFor(() => {
+        expect(
+          getByText('Added passkey to Cubist (epoch 3).'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('lists the enrolled identifiers in a sheet and removes the pressed one', async () => {
+      mockGetIdentifiers.mockResolvedValue({
+        identifiers: [SIWE, PASSKEY, SOCIAL],
+        epoch: 2,
+        authIdentifiers: [PASSKEY],
+      });
+      mockRunRemoveCubistIdentifier.mockResolvedValue({
+        identifierType: 'social',
+        change: 'removed',
+        epoch: 3,
+      });
+      const { getByText, getByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+      await waitFor(() => {
+        expect(
+          getByTestId(REMOVE_CUBIST_IDENTIFIER_BUTTON_TEST_ID),
+        ).not.toBeDisabled();
+      });
+
+      fireEvent.press(getByTestId(REMOVE_CUBIST_IDENTIFIER_BUTTON_TEST_ID));
+      fireEvent.press(getByTestId(`${CUBIST_IDENTIFIER_ROW_TEST_ID}-social`));
+
+      await waitFor(() => {
+        expect(mockRunRemoveCubistIdentifier).toHaveBeenCalledWith(
+          expect.anything(),
+          SOCIAL,
+          expect.any(Function),
+        );
+        expect(
+          getByText('Removed social from Cubist (epoch 3).'),
+        ).toBeOnTheScreen();
+      });
+    });
+  });
+
+  it('shows that the social login is not linked when Auth reports it unpaired', async () => {
+    const notPairedError = new Error('not paired');
+    notPairedError.name = 'SocialIdentifierNotPairedError';
+    mockExchangeSocialAccessToken.mockRejectedValue(notPairedError);
+    mockRefreshCanonicalProfileId.mockResolvedValue('profile-1');
+    const { getByTestId, getByText } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    fireEvent.press(getByTestId(CHECK_SOCIAL_LINK_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(getByText('Social login link: not_linked')).toBeOnTheScreen();
     });
   });
 });
