@@ -26,13 +26,13 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import type { TokenI } from '../../../Tokens/types';
@@ -52,13 +52,17 @@ interface GraduationProgressProps {
 
 const RAIL_WIDTH = 48;
 const CAP_ROW_HEIGHT = 16;
-const RAIL_BOTTOM_RESERVE = 44;
+const PERCENT_ROW_HEIGHT = 22;
+const TRACK_HEIGHT = 104;
+const RAIL_BOTTOM_RESERVE = 12;
 const TRACK_LEFT = 22;
 const TRACK_WIDTH = 4;
-const AVATAR_RING_SIZE = 26;
-const AVATAR_RING_OFFSET = -13;
-const AVATAR_RING_LEFT = 11;
-const PILL_ANCHOR_TOP = 16;
+const AVATAR_RING_SIZE = 24;
+const AVATAR_RING_OFFSET = -AVATAR_RING_SIZE / 2;
+const AVATAR_RING_LEFT = TRACK_LEFT + TRACK_WIDTH / 2 - AVATAR_RING_SIZE / 2;
+const CAP_SIZE = 12;
+const CAP_INNER_SIZE = 6;
+const CAP_LEFT = TRACK_LEFT + TRACK_WIDTH / 2 - CAP_SIZE / 2;
 const MILESTONES = [25, 50, 75];
 
 const MOUNT_DURATION_MS = 900;
@@ -72,11 +76,12 @@ const SPARK_RISE_DP = 10;
 const SPARK_TOP = -12;
 
 const SPARK_OFFSETS = [0, 0.25, 0.5, 0.75];
-const SPARK_LEFTS = [17, 20.5, 26.5, 30];
+const SPARK_LEFTS = [30, 34, 38, 42];
+const SPARK_TOPS = [4, 7, 2, 9];
 
 const styles = StyleSheet.create({
   trackZone: {
-    flex: 1,
+    height: TRACK_HEIGHT,
     alignSelf: 'stretch',
   },
   track: {
@@ -103,7 +108,6 @@ const styles = StyleSheet.create({
   },
   spark: {
     position: 'absolute',
-    top: SPARK_TOP,
     width: 3,
     height: 3,
     borderRadius: 1.5,
@@ -145,19 +149,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pillAnchor: {
-    position: 'absolute',
-    top: PILL_ANCHOR_TOP,
-    left: 0,
-    right: 0,
+  capRow: {
+    height: CAP_ROW_HEIGHT,
+  },
+  capSpacer: {
+    width: CAP_LEFT,
+  },
+  capRing: {
+    width: CAP_SIZE,
+    height: CAP_SIZE,
+    borderRadius: CAP_SIZE / 2,
+    borderWidth: 1.5,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  capInner: {
+    width: CAP_INNER_SIZE,
+    height: CAP_INNER_SIZE,
+    borderRadius: CAP_INNER_SIZE / 2,
+  },
+  percentRow: {
+    height: PERCENT_ROW_HEIGHT,
   },
   railColumn: {
     width: RAIL_WIDTH,
     alignSelf: 'stretch',
-  },
-  dexSpacer: {
-    width: 4,
   },
   milestoneDotPassed: {
     borderWidth: 1.5,
@@ -230,10 +246,12 @@ const SparkDot = ({
   spark,
   offset,
   left,
+  top,
 }: {
   spark: SharedValue<number>;
   offset: number;
   left: number;
+  top: number;
 }) => {
   const { colors } = useTheme();
   const animatedStyle = useAnimatedStyle(() => {
@@ -249,7 +267,7 @@ const SparkDot = ({
       testID={TokenDetailsIds.graduation.spark}
       style={[
         styles.spark,
-        { left, backgroundColor: colors.success.default },
+        { left, top, backgroundColor: colors.success.default },
         animatedStyle,
       ]}
     />
@@ -258,7 +276,6 @@ const SparkDot = ({
 
 const DEXCap = ({ isNearGraduation }: { isNearGraduation: boolean }) => {
   const reducedMotion = useReducedMotion();
-  const tw = useTailwind();
   const { colors } = useTheme();
   const capScale = useSharedValue(1);
 
@@ -269,7 +286,7 @@ const DEXCap = ({ isNearGraduation }: { isNearGraduation: boolean }) => {
     }
     capScale.set(
       withRepeat(
-        withTiming(1.3, {
+        withTiming(1.25, {
           duration: CAP_PULSE_DURATION_MS,
           easing: Easing.inOut(Easing.ease),
         }),
@@ -287,11 +304,20 @@ const DEXCap = ({ isNearGraduation }: { isNearGraduation: boolean }) => {
     <Animated.View
       testID={TokenDetailsIds.graduation.dexCap}
       style={[
-        tw.style('h-3 w-3 rounded-full'),
-        { backgroundColor: colors.success.default },
+        styles.capRing,
+        {
+          borderColor: colors.icon.muted,
+          backgroundColor: colors.background.default,
+        },
         animatedStyle,
       ]}
-    />
+    >
+      {isNearGraduation ? (
+        <View
+          style={[styles.capInner, { backgroundColor: colors.success.default }]}
+        />
+      ) : null}
+    </Animated.View>
   );
 };
 
@@ -425,18 +451,37 @@ const LaunchRail = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        style={{ height: CAP_ROW_HEIGHT }}
+        twClassName="bg-default"
+        style={styles.capRow}
       >
-        <View style={{ width: TRACK_LEFT - 6 }} />
+        <View style={styles.capSpacer} />
         <DEXCap isNearGraduation={viewModel.isNearGraduation} />
-        <View style={styles.dexSpacer} />
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextMuted}
-          allowFontScaling={false}
+      </Box>
+
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        justifyContent={BoxJustifyContent.Center}
+        alignItems={BoxAlignItems.Center}
+        twClassName="bg-default"
+        style={styles.percentRow}
+      >
+        <Box
+          testID={TokenDetailsIds.graduation.percentPill}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="h-5 rounded-full bg-alternative border border-muted px-1.5"
         >
-          {strings('token_details_v1.graduation.dex_label')}
-        </Text>
+          <CountUpPercentText
+            percent={viewModel.percent}
+            testID={TokenDetailsIds.graduation.percentText}
+            style={[
+              typography.sBodyXS as TextStyle,
+              { color: colors.text.default },
+              TABULAR_NUMS_STYLE,
+              styles.percentPillText,
+            ]}
+          />
+        </Box>
       </Box>
 
       <View
@@ -509,38 +554,21 @@ const LaunchRail = ({
               { backgroundColor: colors.background.default },
             ]}
           >
-            <AssetLogo asset={token} size={AvatarTokenSize.Sm} />
+            <AssetLogo asset={token} size={AvatarTokenSize.Xs} />
           </View>
-          <View style={styles.pillAnchor}>
-            <Box
-              testID={TokenDetailsIds.graduation.percentPill}
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="h-6 rounded-full bg-alternative border border-muted px-2"
-            >
-              <CountUpPercentText
-                percent={viewModel.percent}
-                testID={TokenDetailsIds.graduation.percentText}
-                style={[
-                  typography.sBodyXS as TextStyle,
-                  { color: colors.text.default },
-                  TABULAR_NUMS_STYLE,
-                  styles.percentPillText,
-                ]}
-              />
-            </Box>
-          </View>
-          {viewModel.isLastBand && !reducedMotion
-            ? SPARK_OFFSETS.map((offset, index) => (
-                <SparkDot
-                  key={offset}
-                  spark={spark}
-                  offset={offset}
-                  left={SPARK_LEFTS[index]}
-                />
-              ))
-            : null}
         </Animated.View>
+
+        {viewModel.isLastBand && !reducedMotion
+          ? SPARK_OFFSETS.map((offset, index) => (
+              <SparkDot
+                key={offset}
+                spark={spark}
+                offset={offset}
+                left={SPARK_LEFTS[index]}
+                top={SPARK_TOPS[index]}
+              />
+            ))
+          : null}
 
         {MILESTONES.map((milestone) => (
           <Text

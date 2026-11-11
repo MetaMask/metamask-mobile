@@ -115,9 +115,11 @@ describeForPlatforms('TokenDetailsV1', () => {
         TOKEN_DETAILS_V1_AGE_LABEL,
       ),
     ).toBeOnTheScreen();
-    expect(getByTestId(SecurityPillSelectors.VERDICT)).toHaveTextContent(
-      strings('token_details_v1.security_pill.screened'),
-    );
+    await waitFor(() => {
+      expect(getByTestId(SecurityPillSelectors.VERDICT)).toHaveTextContent(
+        strings('token_details_v1.security_pill.screened'),
+      );
+    });
     STAT_VALUES.forEach(([key, text]) => {
       expect(getByTestId(StatBarSelectors.value(key))).toHaveTextContent(text);
     });

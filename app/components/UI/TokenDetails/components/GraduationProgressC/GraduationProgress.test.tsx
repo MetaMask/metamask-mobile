@@ -157,17 +157,16 @@ describe('GraduationProgress', () => {
     ).toHaveDisplayValue('94%');
   });
 
-  it('renders the DEX cap label', () => {
+  it('renders the destination cap without a text label', () => {
     const launchpadData = baseLaunchpadData({
       graduationStage: 'bonding',
       graduationPercent: '94',
     });
 
-    const { getByText } = renderWithHero(launchpadData);
+    const { getByTestId, queryByText } = renderWithHero(launchpadData);
 
-    expect(
-      getByText(strings('token_details_v1.graduation.dex_label')),
-    ).toBeOnTheScreen();
+    expect(getByTestId(TokenDetailsIds.graduation.dexCap)).toBeOnTheScreen();
+    expect(queryByText('DEX')).toBeNull();
   });
 
   it('renders the milestone labels', () => {
@@ -242,6 +241,20 @@ describe('GraduationProgress', () => {
 
     expect(queryByTestId(TokenDetailsIds.graduation.rail)).toBeNull();
     expect(getByText(HERO_CONTENT)).toBeOnTheScreen();
+  });
+
+  it('renders the rail for a token in the new stage', () => {
+    const launchpadData = baseLaunchpadData({
+      graduationStage: 'new',
+      graduationPercent: '24',
+    });
+
+    const { getByTestId } = renderWithHero(launchpadData);
+
+    expect(getByTestId(TokenDetailsIds.graduation.rail)).toBeOnTheScreen();
+    expect(getByTestId(TokenDetailsIds.graduation.moneyRow)).toHaveTextContent(
+      `24% ${strings('token_details_v1.graduation.remaining_phrase')}`,
+    );
   });
 
   it('hides the spark dots outside the last band', () => {

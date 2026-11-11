@@ -59,6 +59,11 @@ describe('isGraduationProgressVisible', () => {
     expect(isGraduationProgressVisible(launchpadData)).toBe(true);
   });
 
+  it('returns true for a new token without a percent', () => {
+    const launchpadData = baseLaunchpadData({ graduationStage: 'new' });
+    expect(isGraduationProgressVisible(launchpadData)).toBe(true);
+  });
+
   it('returns true for a bonding token below 100 percent', () => {
     const launchpadData = baseLaunchpadData({
       graduationStage: 'bonding',
@@ -172,6 +177,20 @@ describe('getGraduationProgressViewModel', () => {
     );
   });
 
+  it('derives the created view model for a new-stage token', () => {
+    const launchpadData = baseLaunchpadData({
+      protocol: 'pumpfun',
+      graduationStage: 'new',
+      graduationPercent: '24',
+    });
+
+    const viewModel = getGraduationProgressViewModel(launchpadData);
+
+    expect(viewModel.stage).toBe('created');
+    expect(viewModel.percent).toBe(24);
+    expect(viewModel.moneyRowLeadingLabel).toBe('24%');
+  });
+
   it('treats a missing percent on a created token as zero', () => {
     const launchpadData = baseLaunchpadData({
       graduationStage: 'created',
@@ -258,6 +277,37 @@ describe('getGraduationProgressViewModel', () => {
     const viewModel = getGraduationProgressViewModel(launchpadData);
 
     expect(viewModel.moneyRowTrailingLabel).toBe(
+      ` · ${strings('token_details_v1.graduation.raised', {
+        amount: '$34.5K',
+      })} · ${strings('token_details_v1.graduation.to_graduation', {
+        amount: '$34.5K',
+      })}`,
+    );
+  });
+
+  it('normalizes protocol spellings with separators', () => {
+    const fourDotMeme = baseLaunchpadData({
+      protocol: 'four.meme',
+      graduationStage: 'bonding',
+      graduationPercent: '50',
+    });
+    const pumpDotFun = baseLaunchpadData({
+      protocol: 'pump.fun',
+      graduationStage: 'bonding',
+      graduationPercent: '50',
+    });
+
+    const fourDotMemeViewModel = getGraduationProgressViewModel(fourDotMeme);
+    const pumpDotFunViewModel = getGraduationProgressViewModel(pumpDotFun);
+
+    expect(fourDotMemeViewModel.moneyRowTrailingLabel).toBe(
+      ` · ${strings('token_details_v1.graduation.raised', {
+        amount: '$24.0K',
+      })} · ${strings('token_details_v1.graduation.to_graduation', {
+        amount: '$24.0K',
+      })}`,
+    );
+    expect(pumpDotFunViewModel.moneyRowTrailingLabel).toBe(
       ` · ${strings('token_details_v1.graduation.raised', {
         amount: '$34.5K',
       })} · ${strings('token_details_v1.graduation.to_graduation', {

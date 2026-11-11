@@ -16,6 +16,9 @@ export interface GraduationProgressViewModel {
 }
 
 const GRADUATION_STAGE_CREATED = 'created';
+// The launch API has been observed sending both spellings for a token that has
+// not started bonding yet; treat them as the same stage.
+const GRADUATION_FRESH_STAGES = ['created', 'new'];
 const GRADUATION_STAGE_BONDING = 'bonding';
 
 const FIAT_CURRENCY_CODE = 'usd';
@@ -50,7 +53,10 @@ export const isGraduationProgressVisible = (
   if (launchpadData == null) {
     return false;
   }
-  if (launchpadData.graduationStage === GRADUATION_STAGE_CREATED) {
+  if (
+    launchpadData.graduationStage != null &&
+    GRADUATION_FRESH_STAGES.includes(launchpadData.graduationStage)
+  ) {
     return true;
   }
   if (launchpadData.graduationStage === GRADUATION_STAGE_BONDING) {
@@ -60,15 +66,18 @@ export const isGraduationProgressVisible = (
   return false;
 };
 
+const normalizeLaunchpadProtocol = (protocol: string): string =>
+  protocol.toLowerCase().replace(/[.\s_-]/g, '');
+
 const getGraduationTargetUsd = (
   launchpadData: TokenAssetLaunchpadData,
 ): number => {
-  const protocol = launchpadData.protocol?.toLowerCase();
+  const protocol = launchpadData.protocol;
   if (protocol == null) {
     return FALLBACK_GRADUATION_TARGET_USD;
   }
   return (
-    GRADUATION_TARGET_USD_BY_PROTOCOL[protocol] ??
+    GRADUATION_TARGET_USD_BY_PROTOCOL[normalizeLaunchpadProtocol(protocol)] ??
     FALLBACK_GRADUATION_TARGET_USD
   );
 };
@@ -81,10 +90,12 @@ const formatUsd = (value: number): string => {
 export const getGraduationProgressViewModel = (
   launchpadData: TokenAssetLaunchpadData,
 ): GraduationProgressViewModel => {
-  const stage: GraduationProgressStage =
-    launchpadData.graduationStage === GRADUATION_STAGE_CREATED
-      ? GRADUATION_STAGE_CREATED
-      : GRADUATION_STAGE_BONDING;
+  const stageValue = launchpadData.graduationStage;
+  const isFreshStage =
+    stageValue != null && GRADUATION_FRESH_STAGES.includes(stageValue);
+  const stage: GraduationProgressStage = isFreshStage
+    ? GRADUATION_STAGE_CREATED
+    : GRADUATION_STAGE_BONDING;
   const percent = parseGraduationPercent(launchpadData.graduationPercent) ?? 0;
   const percentLabel = `${Math.round(percent)}`;
 

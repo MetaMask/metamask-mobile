@@ -6762,7 +6762,6 @@
     },
     "tab_placeholder": "Coming soon",
     "graduation": {
-      "dex_label": "DEX",
       "remaining_phrase": "to graduation",
       "bonded": "{{percent}}% bonded",
       "raised": "{{amount}} raised",
