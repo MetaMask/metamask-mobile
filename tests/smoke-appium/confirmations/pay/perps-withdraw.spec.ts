@@ -36,7 +36,10 @@ const PERPS_WITHDRAW_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Perps withdraw'), () => {
-  appiumTest.describe.configure({ timeout: 250_000 });
+  // Multi-step CI path (Trade→Perps, pay picker, keypad, confirm, wallet
+  // settle, Activity) finishes in ~174–240s when it passes, and main kills it
+  // at 250s. 320s is the headroom #38155 described but did not land.
+  appiumTest.describe.configure({ timeout: 320_000 });
 
   appiumTest(
     'withdraws Perps balance to Arbitrum ETH',
