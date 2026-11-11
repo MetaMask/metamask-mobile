@@ -6,7 +6,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { configureStore } from '@reduxjs/toolkit';
 import RewardsNavigator from './RewardsNavigator';
 import Routes from '../../../constants/navigation/Routes';
-import { OnboardingStep } from '../../../actions/rewards';
 
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
@@ -405,7 +404,6 @@ describe('RewardsNavigator', () => {
       reducer: {
         rewards: (
           state = {
-            onboardingActiveStep: OnboardingStep.INTRO,
             candidateSubscriptionId: null,
           },
         ) => state,
