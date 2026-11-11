@@ -116,6 +116,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   onMarketPress,
   showLeadingDivider = true,
   displayMetric,
+  virtualized = true,
   testID = PerpsWatchlistSelectorsIDs.SECTION,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -187,7 +188,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
           <Box style={styles.skeletonContainer}>
             <PerpsRowSkeleton count={3} />
           </Box>
-        ) : (
+        ) : virtualized ? (
           <FlatList
             data={markets}
             renderItem={renderMarket}
@@ -195,6 +196,14 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
             showsVerticalScrollIndicator={false}
             scrollEnabled={false}
           />
+        ) : (
+          <View testID={PerpsWatchlistSelectorsIDs.INLINE_ROWS}>
+            {markets.map((item) => (
+              <React.Fragment key={item.symbol}>
+                {renderMarket({ item })}
+              </React.Fragment>
+            ))}
+          </View>
         )}
       </Box>
     </Box>

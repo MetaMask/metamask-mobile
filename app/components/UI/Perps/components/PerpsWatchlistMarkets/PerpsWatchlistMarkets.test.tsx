@@ -680,6 +680,19 @@ describe('PerpsWatchlistMarkets', () => {
       expect(screen.getByTestId('perps-watchlist-section')).toBeOnTheScreen();
     });
 
+    it('renders rows inline without a FlatList when virtualized is false', () => {
+      render(
+        <PerpsWatchlistMarkets markets={mockMarkets} virtualized={false} />,
+      );
+
+      expect(
+        screen.getByTestId('perps-watchlist-inline-rows'),
+      ).toBeOnTheScreen();
+      expect(screen.UNSAFE_queryByType(FlatList)).toBeNull();
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+    });
+
     it('does not render suggested markets', () => {
       render(
         <PerpsWatchlistMarkets
