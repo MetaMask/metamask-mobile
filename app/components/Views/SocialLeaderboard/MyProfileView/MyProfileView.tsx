@@ -23,7 +23,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
-  useFocusEffect,
   useIsFocused,
   useNavigation,
   useRoute,
@@ -88,7 +87,6 @@ import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import { useSpotCopyTradeQuickBuy } from '../hooks/useSpotCopyTradeQuickBuy';
 import { PostTradeShareOwner } from '../PostTradeShareBottomSheet';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
-import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   useTraderBlock,
   useTraderPositions,
@@ -335,15 +333,6 @@ const MyProfileView: React.FC = () => {
   );
   const scrollRef = useRef<Animated.ScrollView>(null);
   const postsFeedRef = useRef<SocialFeedRefreshHandle>(null);
-  useFocusEffect(
-    useCallback(() => {
-      // Every new post lands here, pinned at the top of the Posts tab.
-      if (isOwner && consumePostsTabFocus()) {
-        setActiveTab('posts');
-        scrollRef.current?.scrollTo({ y: 0, animated: true });
-      }
-    }, [isOwner]),
-  );
   const isSocialV1 = useSelector(selectIsSocialV1Enabled);
   const networkTier = useNetworkTier();
   // Read once per mount, as SocialV1View does. Only the SocialV1 poll uses it.

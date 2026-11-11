@@ -37,7 +37,6 @@ import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTrade
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
-import { requestPostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_NEXT_PAGE_TEST_ID,
@@ -61,27 +60,6 @@ jest.mock('../navigation/socialOgImageService', () => ({
 }));
 
 const mockGoBack = jest.fn();
-const mockFocusEffect: { current: (() => void) | null } = { current: null };
-const mockScrollTo = jest.fn();
-
-// The RN test ScrollView exposes no instance, so stand in one with `scrollTo`.
-jest.mock('react-native-reanimated', () => {
-  const actual = jest.requireActual('react-native-reanimated');
-  const { forwardRef, createElement, useImperativeHandle } =
-    jest.requireActual('react');
-  const { ScrollView } = jest.requireActual('react-native');
-  const MockAnimatedScrollView = forwardRef(
-    (props: Record<string, unknown>, ref: unknown) => {
-      useImperativeHandle(ref, () => ({ scrollTo: mockScrollTo }));
-      return createElement(ScrollView, props);
-    },
-  );
-  return {
-    ...actual,
-    __esModule: true,
-    default: { ...actual.default, ScrollView: MockAnimatedScrollView },
-  };
-});
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockOpenComposer = jest.fn();
@@ -205,9 +183,7 @@ jest.mock('@react-navigation/native', () => ({
     push: mockPush,
   }),
   useRoute: () => ({ params: mockProfileRouteParams }),
-  useFocusEffect: (effect: () => void) => {
-    mockFocusEffect.current = effect;
-  },
+  useFocusEffect: jest.fn(),
   useIsFocused: () => true,
 }));
 
@@ -1973,40 +1949,6 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
     ).not.toBeOnTheScreen();
-  });
-
-  it('returns to Posts when focused right after the viewer posts', () => {
-    renderWithProvider(<MyProfileView />);
-    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
-    ).toBeNull();
-
-    requestPostsTabFocus();
-    act(() => {
-      mockFocusEffect.current?.();
-    });
-
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
-    ).toBeNull();
-  });
-
-  it('scrolls back to the top when focused right after the viewer posts', () => {
-    renderWithProvider(<MyProfileView />);
-
-    requestPostsTabFocus();
-    act(() => {
-      mockFocusEffect.current?.();
-    });
-
-    expect(mockScrollTo).toHaveBeenCalledWith({ y: 0, animated: true });
   });
 
   it('prefetches positions with the viewed profile address', () => {
