@@ -42,13 +42,33 @@ export const PREDICT_LIVE_RESOLVE_RETRY_GAP_MS = 200;
 type TimerId = ReturnType<typeof setTimeout>;
 
 /**
- * Which of an Event's Markets a watcher needs live prices for. `all` is every
- * Market (Event Screen); `card` is only the Markets a Home/Feed card prices,
- * so hidden props and grouped lines stay off the wire until the Event opens.
+ * Markets an Event Screen actually renders, named by id. The ids travel with
+ * the scope, so an empty list means "no Markets", never "every Market". Ids
+ * that are not Markets of the watched Event are ignored.
  */
-export type LiveMarketScope = 'all' | 'card';
+export interface VisibleLiveMarketScope {
+  type: 'visible';
+  marketIds: readonly PredictEntityId[];
+}
 
-const LIVE_MARKET_SCOPES: readonly LiveMarketScope[] = ['all', 'card'];
+/**
+ * Which of an Event's Markets a watcher needs live prices for. `all` is every
+ * Market; `card` is only the Markets a Home/Feed card prices, so hidden props
+ * and grouped lines stay off the wire until the Event opens; `visible` is the
+ * explicit list of Markets the Event Screen shows in its current state.
+ */
+export type LiveMarketScope = 'all' | 'card' | VisibleLiveMarketScope;
+
+type LiveMarketScopeKind = 'all' | 'card' | 'visible';
+
+const LIVE_MARKET_SCOPE_KINDS: readonly LiveMarketScopeKind[] = [
+  'all',
+  'card',
+  'visible',
+];
+
+const scopeKindOf = (scope: LiveMarketScope): LiveMarketScopeKind =>
+  typeof scope === 'string' ? scope : scope.type;
 
 const LIVE_GAME_STATUSES: ReadonlySet<PredictGameStatus> = new Set([
   'in_progress',
@@ -103,14 +123,26 @@ export const msUntilGameWindow = (
   return delay > 0 ? delay : undefined;
 };
 
-/** Market ids one scope needs, in the order they should be subscribed. */
+/**
+ * Market ids one scope needs, in the order they should be subscribed. A
+ * `visible` list is resolved against the Event's own Markets: ids the Event
+ * does not have are dropped, duplicates collapse, and the result follows the
+ * Event's `markets` order whatever order the list came in.
+ */
 export const getScopedMarketIds = (
   event: PredictEvent,
   scope: LiveMarketScope,
-): PredictEntityId[] =>
-  scope === 'card'
-    ? getEventCardLiveMarketIds(event)
-    : [...new Set(event.markets.map(({ id }) => id))];
+): PredictEntityId[] => {
+  if (scope === 'card') {
+    return getEventCardLiveMarketIds(event);
+  }
+  const eventMarketIds = [...new Set(event.markets.map(({ id }) => id))];
+  if (scope === 'all') {
+    return eventMarketIds;
+  }
+  const wanted = new Set(scope.marketIds);
+  return eventMarketIds.filter((marketId) => wanted.has(marketId));
+};
 
 interface ResolvedEventSubscription {
   event: PredictEvent;
@@ -120,7 +152,14 @@ interface ResolvedEventSubscription {
 }
 
 interface EventSubscriptionEntry {
-  watchers: Record<LiveMarketScope, number>;
+  watchers: Record<LiveMarketScopeKind, number>;
+  /**
+   * Ref counts of the Market ids `visible` watchers asked for. Each `visible`
+   * watch adds its ids and the matching unwatch removes them, so a surface
+   * that re-scopes (watch the new list, then unwatch the old one) changes
+   * only the ids that differ.
+   */
+  visibleMarketIds: Map<PredictEntityId, number>;
   resolving: boolean;
   resolved?: ResolvedEventSubscription;
   /**
@@ -139,7 +178,11 @@ interface EventSubscriptionEntry {
 }
 
 const totalWatchers = (entry: EventSubscriptionEntry): number =>
-  LIVE_MARKET_SCOPES.reduce((sum, scope) => sum + entry.watchers[scope], 0);
+  LIVE_MARKET_SCOPE_KINDS.reduce((sum, kind) => sum + entry.watchers[kind], 0);
+
+/** A `visible` scope's ids, each once, so watch and unwatch count alike. */
+const visibleIdsOf = (scope: LiveMarketScope): readonly PredictEntityId[] =>
+  typeof scope === 'string' ? [] : [...new Set(scope.marketIds)];
 
 export interface LiveEventSubscriptionsOptions {
   /** Cached REST Event read; the Event's `markets[].id` are what get subscribed. */
@@ -171,11 +214,14 @@ export interface LiveEventSubscriptionsOptions {
  * resolves the Event through the cached REST read, subscribes the Markets its
  * scope needs (in the Event's own `markets` order) and, when
  * {@link shouldWatchGame} says so, the Event's `game` subject. Further
- * watchers only widen the Market set (a `card` Feed row under an `all` Event
- * Screen holds every Market); releasing a watcher narrows it back to what the
- * remaining scopes need, and the last watcher releases everything. Surfaces
- * never see Market ids, so Home and Feed showing the same Event share one
- * upstream subscription per Market.
+ * watchers only widen the Market set (a `card` Feed row under an Event Screen
+ * holds its card Markets plus whatever the screen shows); releasing a watcher
+ * narrows it back to what the remaining scopes need, and the last watcher
+ * releases everything. List surfaces never see Market ids, so Home and Feed
+ * showing the same Event share one upstream subscription per Market. The
+ * Event Screen is the exception: it names the Markets it renders through a
+ * `visible` scope, and changes that list by watching the new scope before
+ * unwatching the old one, so only the difference reaches the transport.
  *
  * A watch released before its resolution settles subscribes nothing. A
  * retryable failure is retried with backoff while the Event stays watched,
@@ -219,13 +265,20 @@ export class LiveEventSubscriptions {
       let entry = this.#entries.get(eventId);
       if (!entry) {
         entry = {
-          watchers: { all: 0, card: 0 },
+          watchers: { all: 0, card: 0, visible: 0 },
+          visibleMarketIds: new Map(),
           resolving: false,
           resolveFailures: 0,
         };
         this.#entries.set(eventId, entry);
       }
-      entry.watchers[scope] += 1;
+      entry.watchers[scopeKindOf(scope)] += 1;
+      visibleIdsOf(scope).forEach((marketId) => {
+        entry.visibleMarketIds.set(
+          marketId,
+          (entry.visibleMarketIds.get(marketId) ?? 0) + 1,
+        );
+      });
       if (entry.resolved) {
         this.#join(eventId, entry, entry.resolved, scope);
         return;
@@ -242,18 +295,30 @@ export class LiveEventSubscriptions {
   ): void {
     eventIds.forEach((eventId) => {
       const entry = this.#entries.get(eventId);
-      if (!entry || entry.watchers[scope] === 0) {
+      const kind = scopeKindOf(scope);
+      if (!entry || entry.watchers[kind] === 0) {
         // Releasing what was never held is harmless here, but it means a
         // surface's watch/unwatch pairs have drifted apart; the subscription
         // it thinks it dropped belongs to someone else.
         Logger.log(
           'LiveEventSubscriptions: unwatch without a matching watch',
           eventId,
-          scope,
+          kind,
         );
         return;
       }
-      entry.watchers[scope] -= 1;
+      entry.watchers[kind] -= 1;
+      visibleIdsOf(scope).forEach((marketId) => {
+        const held = entry.visibleMarketIds.get(marketId);
+        if (held === undefined) {
+          return;
+        }
+        if (held > 1) {
+          entry.visibleMarketIds.set(marketId, held - 1);
+          return;
+        }
+        entry.visibleMarketIds.delete(marketId);
+      });
       if (totalWatchers(entry) > 0) {
         if (entry.resolved) {
           this.#syncMarkets(entry, entry.resolved);
@@ -414,15 +479,27 @@ export class LiveEventSubscriptions {
     }
   }
 
-  /** Market ids the Event's current watchers need, widest scope first. */
-  #desiredMarketIds(entry: EventSubscriptionEntry, event: PredictEvent) {
+  /**
+   * Market ids the Event's current watchers need. `all` covers everything;
+   * otherwise the union of what `card` and `visible` watchers ask for, in the
+   * Event's `markets` order so cap degradation keeps display order.
+   */
+  #desiredMarketIds(
+    entry: EventSubscriptionEntry,
+    event: PredictEvent,
+  ): PredictEntityId[] {
     if (entry.watchers.all > 0) {
       return getScopedMarketIds(event, 'all');
     }
-    if (entry.watchers.card > 0) {
-      return getScopedMarketIds(event, 'card');
+    const cardIds =
+      entry.watchers.card > 0 ? getScopedMarketIds(event, 'card') : [];
+    if (entry.watchers.visible === 0) {
+      return cardIds;
     }
-    return [];
+    return getScopedMarketIds(event, {
+      type: 'visible',
+      marketIds: [...cardIds, ...entry.visibleMarketIds.keys()],
+    });
   }
 
   /**

@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useState, type ReactNode } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useSelector } from 'react-redux';
 import {
   BadgeCount,
@@ -37,7 +43,10 @@ import {
   type MarketLayoutCard,
   type MarketLayoutSection,
 } from './createMarketLayoutProjection';
-import { EventMarketLayoutCard } from './EventMarketLayoutCard';
+import {
+  EventMarketLayoutCard,
+  getLayoutCardMarketIds,
+} from './EventMarketLayoutCard';
 import { EventMarketLayoutSectionTestIds } from './EventMarketLayoutSection.testIds';
 import {
   EventMarketLayoutSectionHeader,
@@ -84,6 +93,15 @@ export interface EventMarketListProps {
   onRulesPress: (market: PredictMarket) => void;
   /** Expresses Cash Out intent for one canonical Position. */
   onCashOut: (position: PredictPosition) => void;
+  /**
+   * Reports the Market ids the list renders in its current state, whenever
+   * that set changes: the active tab only, open sections only, the selected
+   * period of each, and the selected line of each line picker. The caller
+   * holds live prices for exactly these.
+   */
+  onVisibleMarketIdsChange?: (
+    marketIds: readonly PredictMarket['id'][],
+  ) => void;
   /** Static header content above the tabs in the same scrolling surface. */
   children?: ReactNode;
   /** Overrides the virtualized list's root test ID. */
@@ -187,6 +205,41 @@ const getRowKey = (row: ContentRow): string => {
 };
 
 /**
+ * Market ids one row prices. Section headers and "View all" rows price
+ * nothing; a closed section or an unselected period has no card rows at all.
+ */
+const getRowMarketIds = (
+  row: ContentRow,
+  selectedMarketIds: Readonly<Record<string, PredictMarket['id']>>,
+): readonly PredictMarket['id'][] => {
+  switch (row.type) {
+    case 'position':
+      return [row.position.marketId];
+    case 'sectionCard':
+      return getLayoutCardMarketIds(row.card, selectedMarketIds[row.card.key]);
+    case 'standard':
+      return [row.market.id];
+    case 'group': {
+      const selectedMarket =
+        row.markets.find(
+          (market) => market.id === selectedMarketIds[row.key],
+        ) ?? row.markets[0];
+      return selectedMarket ? [selectedMarket.id] : [];
+    }
+    default:
+      return [];
+  }
+};
+
+/** Market ids the given rows price, each once, in row order. */
+const getVisibleMarketIds = (
+  rows: readonly ContentRow[],
+  selectedMarketIds: Readonly<Record<string, PredictMarket['id']>>,
+): PredictMarket['id'][] => [
+  ...new Set(rows.flatMap((row) => getRowMarketIds(row, selectedMarketIds))),
+];
+
+/**
  * One tab per layout tab, with its sections; Markets without layout follow
  * the first tab's sections. Without layout, one Markets tab of flat rows.
  */
@@ -288,6 +341,7 @@ const EventMarketListContent = ({
   onOrder,
   onRulesPress,
   onCashOut,
+  onVisibleMarketIdsChange,
   children,
   testID = EventMarketListTestIds.ROOT,
 }: EventMarketListProps) => {
@@ -356,6 +410,16 @@ const EventMarketListContent = ({
     positions,
     selectedPeriods,
   ]);
+  // Keyed by content: a live tick rebuilds the rows without changing which
+  // Markets they price, and each report re-renders the caller.
+  const visibleMarketKey = JSON.stringify(
+    getVisibleMarketIds(rows, selectedMarketIds),
+  );
+  useEffect(() => {
+    onVisibleMarketIdsChange?.(
+      JSON.parse(visibleMarketKey) as PredictMarket['id'][],
+    );
+  }, [onVisibleMarketIdsChange, visibleMarketKey]);
   const tabs = [
     ...(positions.length > 0
       ? [
