@@ -89,7 +89,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         testID,
         accessibilityLabel,
       }: {
-        children?: ReactActual.ReactNode;
+        children?: import('react').ReactNode;
         onClose?: (hasCallback?: boolean) => void;
         onOpen?: () => void;
         goBack?: () => void;
@@ -98,7 +98,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         testID?: string;
         accessibilityLabel?: string;
       },
-      ref: ReactActual.Ref<{
+      ref: import('react').Ref<{
         onOpenBottomSheet: (callback?: () => void) => void;
         onCloseBottomSheet: (callback?: () => void) => void;
       }>,
