@@ -7,7 +7,7 @@ import '../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import { getBetaSupportUrl } from '../../../../util/support/betaSupportUrl';
 import ReduxService from '../../../../core/redux';
 import { OPT_OUT_SECTION_TEST_IDS } from '../components/Settings/OptOutSection.testIds';
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from '../components/Settings/ReferredByCodeSection.testIds';
@@ -115,11 +115,12 @@ describe('RewardsSettingsView', () => {
     );
   });
 
+  // Same fence as the tax contact sheet: Jest resolves the beta support URL,
+  // so this journey opens that URL directly. Consent stays in the unit tests.
   it('opens support in the modal webview from an off-device account', async () => {
     const view = renderRewardsSettingsView({
       persona: 'referee',
       subscriptionId: 'sub-1',
-      supportPreferenceSaved: true,
       handlers: {
         'RewardsController:getOffDeviceSubscriptionAccounts': () =>
           Promise.resolve([
@@ -127,7 +128,6 @@ describe('RewardsSettingsView', () => {
           ]),
       },
     });
-    // Consent reads the saved preference from ReduxService.
     ReduxService.store = view.store;
 
     fireEvent.press(
@@ -149,7 +149,7 @@ describe('RewardsSettingsView', () => {
       JSON.stringify({
         screen: Routes.WEBVIEW.SIMPLE,
         params: {
-          url: METAMASK_SUPPORT_URL,
+          url: getBetaSupportUrl(),
           title: strings('app_settings.contact_support'),
           isModal: false,
         },
