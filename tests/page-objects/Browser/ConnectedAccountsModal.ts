@@ -6,7 +6,13 @@ import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/Wa
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
 import { type AppiumElement } from '../../framework';
+import BrowserView from './BrowserView';
+import ToastModal from '../wallet/ToastModal';
+import NetworkListModal from '../Network/NetworkListModal';
+import DappConnectionModal from '../MMConnect/DappConnectionModal';
 
 class ConnectedAccountsModal {
   get container(): Promise<AppiumElement> {
@@ -148,6 +154,127 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Wait until the connected-accounts sheet is interactive and the accounts
+   * summary is showing. Prefer this before asserting account-name text —
+   * Appium can open the sheet while account cells are still mounting (iOS).
+   *
+   * `accounts-connected-modal-container` is declared but never assigned in
+   * the UI. The accounts tab mounts Edit accounts and Disconnect all.
+   */
+  async waitForAccountsSummaryReady(timeout: number = 20_000): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.accountListBottomSheet, {
+      timeout,
+      description: 'Edit accounts control on the connected accounts sheet',
+    });
+    await Assertions.expectElementToBeVisible(
+      this.disconnectAllAccountsAndNetworksButton,
+      {
+        timeout,
+        description: 'Disconnect all accounts and networks control',
+      },
+    );
+  }
+
+  /**
+   * Open the browser connected-accounts sheet with toast + network-picker recovery.
+   *
+   * A single avatar tap is not enough: toasts can swallow the tap, and the
+   * browser account button can briefly open the network selector while the
+   * permitted account is still propagating to the URL bar. Retry until Edit
+   * accounts (`account-list-bottom-sheet`) is visible.
+   *
+   * When `waitForConnectSheetClosed` is true, wait for the native connect
+   * sheet to close first — `account-list-bottom-sheet` is also present on
+   * that sheet, so trusting the shared ID too early is wrong.
+   */
+  async openFromBrowser(
+    options: {
+      timeout?: number;
+      waitForConnectSheetClosed?: boolean;
+    } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? 30_000;
+
+    await AppiumContextHelpers.switchToNativeContext();
+
+    if (options.waitForConnectSheetClosed) {
+      await Utilities.waitForElementToDisappear(
+        DappConnectionModal.connectButton,
+        15_000,
+      );
+    }
+
+    await ToastModal.waitForToastToDismiss();
+
+    await Utilities.executeWithRetry(
+      async () => {
+        if (
+          await Utilities.isElementVisible(this.accountListBottomSheet, 500)
+        ) {
+          return;
+        }
+
+        if (
+          await Utilities.isElementVisible(NetworkListModal.selectNetwork, 500)
+        ) {
+          await NetworkListModal.swipeToDismissModal();
+        }
+
+        if (
+          !(await Utilities.isElementVisible(
+            BrowserView.networkAvatarOrAccountButton,
+            1_500,
+          ))
+        ) {
+          throw new Error(
+            'Browser account button not visible while opening connected accounts',
+          );
+        }
+
+        await Gestures.waitAndTap(BrowserView.networkAvatarOrAccountButton, {
+          elemDescription: 'Network avatar or account button',
+          timeout: 3_000,
+        });
+        await Assertions.expectElementToBeVisible(this.accountListBottomSheet, {
+          timeout: 3_000,
+          description: 'Connected accounts sheet after browser avatar tap',
+        });
+      },
+      {
+        timeout,
+        interval: 500,
+        description: 'Open connected-accounts sheet from browser avatar',
+      },
+    );
+  }
+
+  async expectConnectedAccountDisplayed(
+    accountName: string,
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    await this.expectConnectedAccountsDisplayed([accountName], options);
+  }
+
+  /**
+   * Wait once for the accounts summary, then assert each connected account name.
+   * Prefer this after Connect returns — bare `expectTextDisplayed` on Account 2/3
+   * races the newly connected cells while Account 1 is already in the tree.
+   */
+  async expectConnectedAccountsDisplayed(
+    accountNames: string[],
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    await this.waitForAccountsSummaryReady();
+    const timeout = options.timeout ?? 30_000;
+    for (const accountName of accountNames) {
+      await Assertions.expectTextDisplayed(accountName, {
+        timeout,
+        description: `"${accountName}" in connected accounts summary`,
+      });
+    }
+  }
+
   async tapDisconnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectButton, {
       elemDescription: 'Disconnect button',
@@ -190,10 +317,20 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Confirm disconnect-all. Wait for the confirm control and the connected
+   * sheet's disconnect_all control to leave the tree — iOS can still show the
+   * sheet while the next specs already assert the browser chrome.
+   */
   async tapConfirmDisconnectNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmDisconnectNetworksButton, {
       elemDescription: 'Confirm disconnect networks button',
+      waitForElementToDisappear: true,
     });
+    await Utilities.waitForElementToDisappear(
+      this.disconnectAllAccountsAndNetworksButton,
+      15_000,
+    );
   }
 
   async scrollToBottomOfModal(): Promise<void> {

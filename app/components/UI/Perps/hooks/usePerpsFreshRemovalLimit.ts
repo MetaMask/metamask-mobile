@@ -1,0 +1,72 @@
+import { useEffect } from 'react';
+import type { Position } from '@metamask/perps-controller';
+import { MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS } from '../constants/perpsConfig';
+
+interface UsePerpsFreshRemovalLimitParams {
+  /** Safe max from a fresh read that stopped a removal, or null. */
+  freshMaxAmount: number | null;
+  setFreshMaxAmount: (amount: number | null) => void;
+  position: Position | null;
+  /** Floored max from the live snapshot. */
+  snapshotMaxAmount: number;
+  exchangeMaxAmount: number;
+  isAddMode: boolean;
+}
+
+const floorUsd = (value: number) => Math.floor(value * 100) / 100;
+
+/**
+ * Keeps a remove-margin form within the limit a fresh read returned after it
+ * stopped a removal, for a bounded window or until the position itself
+ * changes. The stream re-sends positions on every PnL tick, so a change means
+ * size, entry, leverage or collateral (margin net of unrealized PnL).
+ *
+ * @param params - Fresh limit state, live position and snapshot limits.
+ * @returns The max offered by Max/slider and the limit submissions are checked against.
+ */
+export const usePerpsFreshRemovalLimit = ({
+  freshMaxAmount,
+  setFreshMaxAmount,
+  position,
+  snapshotMaxAmount,
+  exchangeMaxAmount,
+  isAddMode,
+}: UsePerpsFreshRemovalLimitParams) => {
+  const collateral = position
+    ? (
+        Number.parseFloat(position.marginUsed) -
+        Number.parseFloat(position.unrealizedPnl)
+      ).toFixed(2)
+    : '';
+  const positionShape = position
+    ? `${position.size}|${position.entryPrice}|${position.leverage?.value}|${collateral}`
+    : '';
+  useEffect(() => {
+    setFreshMaxAmount(null);
+  }, [positionShape, setFreshMaxAmount]);
+  useEffect(() => {
+    if (freshMaxAmount === null) {
+      return undefined;
+    }
+    const timer = setTimeout(
+      () => setFreshMaxAmount(null),
+      MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [freshMaxAmount, setFreshMaxAmount]);
+
+  const capToFreshMax = (amount: number) =>
+    freshMaxAmount === null || isAddMode
+      ? amount
+      : Math.min(amount, freshMaxAmount);
+  const flooredMaxAmount = capToFreshMax(snapshotMaxAmount);
+  // Validate against what the exchange accepts, not the headroom-reduced max
+  // offered by Max/slider, so a price tick after choosing Max does not block it.
+  const submitLimitAmount = capToFreshMax(
+    Number.isFinite(exchangeMaxAmount) && exchangeMaxAmount > flooredMaxAmount
+      ? floorUsd(exchangeMaxAmount)
+      : flooredMaxAmount,
+  );
+
+  return { flooredMaxAmount, submitLimitAmount };
+};

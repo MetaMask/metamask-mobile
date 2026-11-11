@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../../reducers';
@@ -8,10 +9,8 @@ import {
   selectDestToken,
   selectSourceAmount,
   selectSourceToken,
-  setDestToken,
   setSourceAmount,
   setSourceAmountAsMax,
-  setSourceToken,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFlagController';
@@ -22,19 +21,12 @@ import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../../../hooks/useIsNetworkGasSponsored';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
-import { getDefaultTokenPairForChains } from '../../../utils/tokenUtils';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
-interface UseRecurringBuySwapInputsOptions {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-export const useRecurringBuySwapInputs = ({
-  latestSourceBalance,
-}: UseRecurringBuySwapInputsOptions) => {
+export const useRecurringBuySwapInputs = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -50,31 +42,6 @@ export const useRecurringBuySwapInputs = ({
     (state: RootState) =>
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
   );
-
-  // The view is unmounted/remounted each time its tab is switched away
-  // from/back to (see BridgeView's conditional rendering), so this effect runs
-  // exactly once per "switch into this tab" event as long as enabledChainIds is
-  // a stable reference (which is based on LD flags).
-  // sourceToken/destToken are shared bridge-wide Redux state and can be left
-  // over from another flow (e.g. Market order) whose chain isn't part of this
-  // flow's allowed chains, so always re-anchor both to this flow's default
-  // pair: Ethereum's ETH/mUSD when enabled, otherwise the default pair for the
-  // first enabled chain.
-  useEffect(() => {
-    if (!enabledChainIds) {
-      return;
-    }
-
-    const defaultPair = getDefaultTokenPairForChains(enabledChainIds);
-    if (!defaultPair) {
-      return;
-    }
-
-    dispatch(setSourceToken(defaultPair.sourceToken));
-    if (defaultPair.destToken) {
-      dispatch(setDestToken(defaultPair.destToken));
-    }
-  }, [enabledChainIds, dispatch]);
 
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -97,6 +64,7 @@ export const useRecurringBuySwapInputs = ({
   const isSourceNetworkGasSponsored = useIsNetworkGasSponsored(
     sourceToken?.chainId,
   );
+  const { latestSourceBalance } = useBridgeSession();
 
   // Gas sponsorship only covers trades that stay on a single sponsored chain.
   const isQuoteSponsored =
@@ -179,10 +147,12 @@ export const useRecurringBuySwapInputs = ({
   const handleDestTokenPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Dest,
-      enabledChainIds,
+      enabledChainIds: sourceToken?.chainId
+        ? [formatChainIdToCaip(sourceToken.chainId)]
+        : [],
       excludeRwaTokens: true,
     });
-  }, [enabledChainIds, navigation]);
+  }, [navigation, sourceToken?.chainId]);
 
   return {
     enabledChainIds,

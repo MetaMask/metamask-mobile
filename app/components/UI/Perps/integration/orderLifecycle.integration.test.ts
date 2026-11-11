@@ -1,5 +1,5 @@
 /**
- * Integration tests — perps order lifecycle (open / open-limit / close).
+ * Integration tests — perps order lifecycle (open / open-limit / strategy / close).
  *
  * Phase 1 of the perps integration rollout. Each test covers one row of the
  * order-lifecycle section of `tests/integration/harnesses/perps/perps-use-cases.md`. Real
@@ -104,6 +104,102 @@ describe('Perps order lifecycle — integration', () => {
           ],
         }),
       );
+    });
+
+    it('starts a randomized TWAP through the venue strategy action', async () => {
+      // Arrange
+      const { provider, setupTradingReady, mocks } =
+        buildPerpsIntegrationHarness();
+      setupTradingReady();
+
+      // Act
+      const result = await provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'twap',
+        currentPrice: 50_000,
+        twapDuration: 90,
+        twapRandomize: true,
+      });
+
+      // Assert
+      // The SDK returns a numeric venue TWAP id; the provider normalizes every
+      // app-facing order id to a string so strategy and ordinary results align.
+      expect(result).toEqual({
+        success: true,
+        orderId: '123',
+        submittedSize: '0.1',
+      });
+      expect(mocks.exchangeClient.twapOrder).toHaveBeenCalledWith({
+        twap: {
+          a: 0, // venue asset id
+          b: true, // buy
+          s: '0.1', // size
+          r: false, // reduce only
+          m: 90, // duration in minutes
+          t: true, // randomize child sizes
+        },
+      });
+      expect(mocks.exchangeClient.order).not.toHaveBeenCalled();
+    });
+
+    it('passes reduce-only through the real TWAP provider wire action', async () => {
+      const { provider, setupTradingReady, mocks } =
+        buildPerpsIntegrationHarness();
+      setupTradingReady();
+
+      const result = await provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: false,
+        size: '0.05',
+        orderType: 'twap',
+        currentPrice: 50_000,
+        reduceOnly: true,
+        twapDuration: 30,
+        twapRandomize: false,
+      });
+
+      expect(result.success).toBe(true);
+      expect(mocks.exchangeClient.twapOrder).toHaveBeenCalledWith({
+        twap: {
+          a: 0,
+          b: false,
+          s: '0.05',
+          r: true,
+          m: 30,
+          t: false,
+        },
+      });
+      expect(mocks.exchangeClient.order).not.toHaveBeenCalled();
+    });
+
+    it('returns a failed placement when the venue rejects a TWAP', async () => {
+      // Arrange
+      const { provider, setupTradingReady, mocks } =
+        buildPerpsIntegrationHarness();
+      setupTradingReady();
+      mocks.exchangeClient.twapOrder.mockResolvedValueOnce({
+        status: 'ok',
+        response: { data: { status: { error: 'TWAP capacity reached' } } },
+      });
+
+      // Act
+      const result = await provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: false,
+        size: '0.1',
+        orderType: 'twap',
+        currentPrice: 50_000,
+        twapDuration: 30,
+        twapRandomize: false,
+      });
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('TWAP capacity reached');
+      expect(mocks.exchangeClient.twapOrder).toHaveBeenCalledTimes(1);
+      expect(mocks.exchangeClient.order).not.toHaveBeenCalled();
     });
   });
 

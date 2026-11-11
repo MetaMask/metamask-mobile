@@ -7,9 +7,11 @@ import BaseControlBar, { BaseControlBarProps } from './BaseControlBar';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
+import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import {
   AvatarNetwork,
-  ButtonIcon,
+  Icon,
+  IconName,
   SelectButton,
 } from '@metamask/design-system-react-native';
 
@@ -43,6 +45,22 @@ jest.mock('../../../hooks/useStyles', () => ({
 
 jest.mock('../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['TokensBottomSheet', {}]),
+  getSortOption: (config: { key: string }) =>
+    config.key === 'tokenFiatAmount'
+      ? {
+          labelKey: 'wallet.sort_balance',
+          orderLabelKeys: {
+            dsc: 'wallet.sort_high_to_low',
+            asc: 'wallet.sort_low_to_high',
+          },
+        }
+      : {
+          labelKey: 'wallet.sort_name',
+          orderLabelKeys: {
+            asc: 'wallet.sort_a_to_z',
+            dsc: 'wallet.sort_z_to_a',
+          },
+        },
 }));
 
 jest.mock('../../NetworkManager', () => ({
@@ -190,6 +208,13 @@ describe('BaseControlBar', () => {
         NetworkInfosController: {
           networkName: 'Ethereum Mainnet',
         },
+        PreferencesController: {
+          tokenSortConfig: {
+            key: 'tokenFiatAmount',
+            order: 'dsc',
+            sortCallback: 'stringNumeric',
+          },
+        },
       },
     },
   };
@@ -237,9 +262,60 @@ describe('BaseControlBar', () => {
       expect(getByTestId('test-network-filter')).toBeTruthy();
     });
 
-    it('renders with sort button', () => {
-      const sortButtons = renderComponent().UNSAFE_getAllByType(ButtonIcon);
-      expect(sortButtons.length).toBeGreaterThan(0);
+    it('renders the sort button with the balance label and a down arrow by default', () => {
+      const { getByTestId, getByText, getByLabelText, UNSAFE_getAllByType } =
+        renderComponent();
+
+      expect(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON)).toBeOnTheScreen();
+      expect(getByText('wallet.sort_balance')).toBeOnTheScreen();
+      expect(
+        getByLabelText(
+          'wallet.sort_by, wallet.sort_balance, wallet.sort_high_to_low',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        UNSAFE_getAllByType(Icon).some(
+          (icon) => icon.props.name === IconName.Arrow2Down,
+        ),
+      ).toBe(true);
+    });
+
+    it('renders the name label and an up arrow when sorting by name ascending', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...defaultState.engine.backgroundState,
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'name',
+                order: 'asc',
+                sortCallback: 'alphaNumeric',
+              },
+            },
+          },
+        },
+      };
+
+      const { getByText, getByLabelText, UNSAFE_getAllByType } =
+        renderComponent({}, state);
+
+      expect(getByText('wallet.sort_name')).toBeOnTheScreen();
+      expect(
+        getByLabelText('wallet.sort_by, wallet.sort_name, wallet.sort_a_to_z'),
+      ).toBeOnTheScreen();
+      expect(
+        UNSAFE_getAllByType(Icon).some(
+          (icon) => icon.props.name === IconName.Arrow2Up,
+        ),
+      ).toBe(true);
+    });
+
+    it('does not render the sort button when hideSort is true', () => {
+      const { queryByTestId } = renderComponent({ hideSort: true });
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.SORT_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders additional buttons when provided', () => {
@@ -347,31 +423,37 @@ describe('BaseControlBar', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('calls default sort handler when no custom handler provided', () => {
-      const { UNSAFE_getAllByType } = renderComponent();
-      const buttonIcons = UNSAFE_getAllByType(ButtonIcon);
-      const sortButton = buttonIcons[0]; // First ButtonIcon should be sort button
+    it('navigates to the sort sheet when the sort button is pressed', () => {
+      const { getByTestId } = renderComponent();
 
-      fireEvent.press(sortButton);
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON));
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         'TokensBottomSheet',
         {},
       );
     });
+  });
 
-    it('calls custom sort handler when provided', () => {
-      const customSortHandler = jest.fn();
-      const { UNSAFE_getAllByType } = renderComponent({
-        onSortPress: customSortHandler,
+  describe('search query for analytics', () => {
+    it('forwards the search query to both sheets', () => {
+      const { createTokensBottomSheetNavDetails } = jest.requireMock(
+        '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet',
+      );
+      const { createNetworkManagerNavDetails } = jest.requireMock(
+        '../../NetworkManager',
+      );
+      const { getByTestId } = renderComponent({ searchQuery: 'eth' });
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON));
+      fireEvent.press(getByTestId('test-network-filter'));
+
+      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({
+        searchQuery: 'eth',
       });
-      const buttonIcons = UNSAFE_getAllByType(ButtonIcon);
-      const sortButton = buttonIcons[0];
-
-      fireEvent.press(sortButton);
-
-      expect(customSortHandler).toHaveBeenCalled();
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      expect(createNetworkManagerNavDetails).toHaveBeenCalledWith({
+        searchQuery: 'eth',
+      });
     });
   });
 
@@ -390,10 +472,11 @@ describe('BaseControlBar', () => {
 
     it('renders SelectButton for network filter', () => {
       const { UNSAFE_getAllByType } = renderComponent();
-      const selectButtons = UNSAFE_getAllByType(SelectButton);
+      const networkButton = UNSAFE_getAllByType(SelectButton).find(
+        (button) => button.props.testID === 'test-network-filter',
+      );
 
-      expect(selectButtons).toHaveLength(1);
-      expect(selectButtons[0].props.variant).toBe('primary');
+      expect(networkButton?.props.variant).toBe('primary');
     });
   });
 

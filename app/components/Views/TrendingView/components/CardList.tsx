@@ -17,6 +17,12 @@ export interface CardListProps<T> {
   listTestId?: string;
   /** @default 3 */
   skeletonCount?: number;
+  /**
+   * Adds `px-4` around the list. Set false when each row already owns
+   * horizontal padding, such as a design-system ListItem.
+   * @default true
+   */
+  horizontalInset?: boolean;
 }
 
 /**
@@ -32,14 +38,18 @@ function CardList<T>({
   idPrefix,
   listTestId,
   skeletonCount = DEFAULT_MAX_ITEMS,
+  horizontalInset = true,
 }: CardListProps<T>) {
   const tw = useTailwind();
   const displayData = useMemo(() => data.slice(0, max), [data, max]);
-  const contentInset = tw.style('px-4');
+  const contentInset = horizontalInset ? tw.style('px-4') : undefined;
 
   if (isLoading) {
     return (
-      <Box testID="explore-card-list" twClassName="px-4">
+      <Box
+        testID="explore-card-list"
+        twClassName={horizontalInset ? 'px-4' : undefined}
+      >
         {Array.from({ length: skeletonCount }).map((_, i) => (
           <Skeleton key={`${idPrefix}-skeleton-${i}`} />
         ))}

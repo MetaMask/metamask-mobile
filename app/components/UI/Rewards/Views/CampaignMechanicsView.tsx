@@ -5,8 +5,10 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { Box, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import ContentfulRichText, {
   isDocument,
@@ -31,6 +33,7 @@ export const CAMPAIGN_MECHANICS_TEST_IDS = {
 
 const CampaignMechanicsView: React.FC = () => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<CampaignMechanicsRouteParams, 'CampaignMechanics'>>();
@@ -59,7 +62,9 @@ const CampaignMechanicsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={CAMPAIGN_MECHANICS_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.campaign_mechanics.title')}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}

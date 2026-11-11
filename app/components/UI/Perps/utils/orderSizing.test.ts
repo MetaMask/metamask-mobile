@@ -2,6 +2,7 @@ import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import {
   deriveOrderSizing,
   getMaxAllowedAmountAtExecutionPrice,
+  getPayWithTokenDepositAmount,
   getProspectiveExecutionPrice,
   getReduceOnlyMaxUsdAmount,
   getTriggerMarketSlippageCapPrice,
@@ -62,6 +63,28 @@ describe('deriveOrderSizing', () => {
     // Assert
     expect(result.positionSize).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
     expect(result.marginRequired).toBeUndefined();
+  });
+
+  it('sizes and margins an exact base size instead of deriving one from the amount', () => {
+    // Arrange: $331.67 at 81,690 derives 0.00407 (the size covering the
+    // amount); an order-book row of 0.00406 must keep its own size.
+    const input = {
+      ...base,
+      amount: '331.67',
+      orderType: 'limit' as const,
+      limitPrice: '81690',
+      szDecimals: 5,
+    };
+
+    // Act
+    const derived = deriveOrderSizing(input);
+    const exact = deriveOrderSizing({ ...input, size: '0.00406' });
+
+    // Assert
+    expect(derived.positionSize).toBe('0.00407');
+    expect(exact.positionSize).toBe('0.00406');
+    // 0.00406 x 81,690 / 5x leverage
+    expect(exact.marginRequired).toBe('66.33');
   });
 
   it('returns no margin when the amount is empty', () => {
@@ -273,5 +296,83 @@ describe('getReduceOnlyMaxUsdAmount', () => {
     expect(
       getReduceOnlyMaxUsdAmount({ positionSize: '1', price: Number.NaN }),
     ).toBe(0);
+  });
+});
+
+describe('getPayWithTokenDepositAmount', () => {
+  const base = {
+    marginRequired: '3.39',
+    estimatedFeesUsd: 0.06,
+    maxSlippageBps: 300,
+  };
+
+  it('adds the slippage buffer and fees to the margin for market orders', () => {
+    // Arrange / Act
+    const result = getPayWithTokenDepositAmount({
+      ...base,
+      orderType: 'market',
+    });
+
+    // Assert: 3.39 * 1.03 + 0.06 = 3.5517, rounded up to cents
+    expect(result).toBe('3.56');
+  });
+
+  it('adds only fees for limit orders, whose margin is already at the limit price', () => {
+    // Arrange / Act
+    const result = getPayWithTokenDepositAmount({
+      ...base,
+      orderType: 'limit',
+    });
+
+    // Assert
+    expect(result).toBe('3.45');
+  });
+
+  it('adds only fees for trigger-market orders, whose margin already includes slippage', () => {
+    // Arrange / Act
+    const result = getPayWithTokenDepositAmount({
+      ...base,
+      orderType: 'stop_market',
+    });
+
+    // Assert
+    expect(result).toBe('3.45');
+  });
+
+  it('rounds up so the deposit never falls below margin plus headroom', () => {
+    // Arrange / Act
+    const result = getPayWithTokenDepositAmount({
+      marginRequired: '10.001',
+      estimatedFeesUsd: 0,
+      maxSlippageBps: 0,
+      orderType: 'market',
+    });
+
+    // Assert
+    expect(result).toBe('10.01');
+  });
+
+  it('ignores a non-finite fee estimate instead of producing NaN', () => {
+    // Arrange / Act
+    const result = getPayWithTokenDepositAmount({
+      ...base,
+      estimatedFeesUsd: Number.NaN,
+      orderType: 'limit',
+    });
+
+    // Assert
+    expect(result).toBe('3.39');
+  });
+
+  it('returns an empty amount while margin is unknown', () => {
+    // Arrange / Act
+    const result = getPayWithTokenDepositAmount({
+      ...base,
+      marginRequired: undefined,
+      orderType: 'market',
+    });
+
+    // Assert
+    expect(result).toBe('');
   });
 });

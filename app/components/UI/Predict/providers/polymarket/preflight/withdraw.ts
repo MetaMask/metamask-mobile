@@ -1,12 +1,15 @@
 import { TransactionType } from '@metamask/transaction-controller';
+import type { Hex } from '@metamask/utils';
 import type { Signer } from '../../types';
 import {
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
 import { OperationType, type SafeTransaction } from '../safe/types';
+import { getPreValidatedSafeTransactionCallData } from '../safe/utils';
 import { encodeErc20Transfer } from '../utils';
 import {
+  aggregateSafeTransactions,
   buildSignedSafeExecution,
   compileAllowanceMaintenanceTransactions,
   getRawTokenBalance,
@@ -130,4 +133,47 @@ export async function buildWithdrawTransaction({
     transactions: plan.transactions,
     type: TransactionType.predictWithdraw,
   });
+}
+
+/**
+ * Builds the same Safe withdraw call as `buildWithdrawTransaction`, but with a
+ * pre-validated owner signature instead of a real one. Use it to simulate the
+ * withdraw from the owner before the user signs.
+ *
+ * @param params - The parameters.
+ * @param params.signer - The Safe owner.
+ * @param params.safeAddress - The Safe address.
+ * @param params.requestedAmountRaw - The pUSD amount to withdraw, in raw units.
+ * @param params.protocol - The Polymarket protocol definition.
+ * @param params.safeLegacyUsdceBalance - The Safe's legacy USDC.e balance, if known.
+ * @returns The `to` and `data` of the Safe call.
+ */
+export async function buildUnsignedWithdrawTransaction({
+  signer,
+  safeAddress,
+  requestedAmountRaw,
+  protocol = POLYMARKET_V2_PROTOCOL,
+  safeLegacyUsdceBalance,
+}: {
+  signer: Signer;
+  safeAddress: string;
+  requestedAmountRaw: bigint;
+  protocol?: PolymarketProtocolDefinition;
+  safeLegacyUsdceBalance?: bigint;
+}): Promise<{ to: Hex; data: Hex }> {
+  const plan = await planWithdraw({
+    signer,
+    safeAddress,
+    requestedAmountRaw,
+    protocol,
+    safeLegacyUsdceBalance,
+  });
+
+  return {
+    to: safeAddress as Hex,
+    data: getPreValidatedSafeTransactionCallData({
+      ownerAddress: signer.address,
+      txn: aggregateSafeTransactions(plan.transactions),
+    }),
+  };
 }

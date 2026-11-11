@@ -1,7 +1,12 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Utilities from '../../framework/Utilities';
 import { CardHomeSelectors } from '../../../app/components/UI/Card/Views/CardHome/CardHome.testIds';
 import { type AppiumElement } from '../../framework';
+import WalletView from '../wallet/WalletView';
+
+/** Budget for Card Home open + on-chain asset fetch after a wallet Card tap. */
+const CARD_HOME_OPEN_TIMEOUT_MS = 45_000;
 
 class CardHomeView {
   get tryAgainButton(): Promise<AppiumElement> {
@@ -14,6 +19,10 @@ class CardHomeView {
 
   get addFundsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BUTTON);
+  }
+
+  get addFundsButtonSkeleton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON);
   }
 
   get addFundsBottomSheet(): Promise<AppiumElement> {
@@ -38,6 +47,46 @@ class CardHomeView {
 
   get swapScreenSourceTokenArea(): Promise<AppiumElement> {
     return Matchers.getElementByID('source-token-area');
+  }
+
+  /**
+   * Opens Card Home from wallet and retries until Add Funds is ready.
+   *
+   * Re-taps Card only while the wallet Card button remains visible so a
+   * successful navigation emits a single "Card Home Clicked" event.
+   *
+   * @param openSheet - Opens Card Home (typically `WalletView.tapNavbarCardButton`).
+   */
+  async openFromWallet(
+    openSheet: () => Promise<void>,
+    timeout = CARD_HOME_OPEN_TIMEOUT_MS,
+  ): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        if (await Utilities.isElementVisible(this.addFundsButton, 500)) {
+          return;
+        }
+
+        if (await Utilities.isElementVisible(this.tryAgainButton, 500)) {
+          await this.tapTryAgainButton();
+          throw new Error('Waiting for Add Funds after tapping Try Again');
+        }
+
+        if (
+          await Utilities.isElementVisible(WalletView.navbarCardButton, 500)
+        ) {
+          await openSheet();
+          throw new Error('Waiting for Add Funds after tapping Card');
+        }
+
+        throw new Error('Waiting for Card Home Add Funds button');
+      },
+      {
+        timeout,
+        interval: 2_000,
+        description: 'Open Card Home until Add Funds is ready',
+      },
+    );
   }
 
   async tapTryAgainButton(): Promise<void> {

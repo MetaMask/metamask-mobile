@@ -364,21 +364,22 @@ describe('useSelectedAccountMultichainBalances', () => {
         ...nonEvmState.engine,
         backgroundState: {
           ...nonEvmState.engine.backgroundState,
-          MultichainBalancesController: {
-            balances: {
+          AssetsController: {
+            ...nonEvmState.engine.backgroundState.AssetsController,
+            assetsInfo: {
+              'bip122:000000000019d6689c085ae165831e93/slip44:0': {
+                type: 'native' as const,
+                symbol: 'BTC',
+                name: 'Bitcoin',
+                decimals: 8,
+              },
+            },
+            assetsBalance: {
               [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
                 'bip122:000000000019d6689c085ae165831e93/slip44:0': {
                   amount: '0.5',
-                  unit: 'BTC',
                 },
               },
-            },
-          },
-          MultichainAssetsController: {
-            accountsAssets: {
-              [MOCK_ACCOUNT_BIP122_P2WPKH.id]: [
-                'bip122:000000000019d6689c085ae165831e93/slip44:0',
-              ],
             },
           },
         },
@@ -401,11 +402,14 @@ describe('useSelectedAccountMultichainBalances', () => {
         ...stateWithBalance.engine,
         backgroundState: {
           ...stateWithBalance.engine.backgroundState,
-          MultichainAssetsRatesController: {
-            conversionRates: {
+          AssetsController: {
+            ...stateWithBalance.engine.backgroundState.AssetsController,
+            assetsPrice: {
               'bip122:000000000019d6689c085ae165831e93/slip44:0': {
-                rate: '50000',
-                conversionTime: 0,
+                assetPriceType: 'fungible' as const,
+                price: 50000,
+                usdPrice: 50000,
+                lastUpdated: 0,
               },
             },
           },

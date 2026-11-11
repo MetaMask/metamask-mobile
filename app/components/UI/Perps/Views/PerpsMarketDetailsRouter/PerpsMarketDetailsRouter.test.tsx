@@ -1,17 +1,43 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import PerpsMarketDetailsRouter from './PerpsMarketDetailsRouter';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 
 jest.mock('./usePerpsProModeEnabled');
 
+const mockSwitchProvider = jest.fn();
+let mockActiveProvider = 'hyperliquid';
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: () => ({
+    activeProvider: mockActiveProvider,
+    switchProvider: mockSwitchProvider,
+  }),
+}));
+
+const mockUseRoute = jest.fn();
+const mockSetParams = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ setParams: mockSetParams }),
+  useRoute: () => mockUseRoute(),
+  useIsFocused: () => true,
+}));
+
 const mockSafeAreaMount = jest.fn();
+const mockProProps = jest.fn();
+const mockLiteProps = jest.fn();
+let mockIsBrandRefresh = false;
+let mockSafeAreaInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsBrandRefresh,
+}));
 
 jest.mock('react-native-safe-area-context', () => {
   const { View } = jest.requireActual('react-native');
   const ActualReact = jest.requireActual('react');
   return {
     ...jest.requireActual('react-native-safe-area-context'),
+    useSafeAreaInsets: () => mockSafeAreaInsets,
     SafeAreaView: ({ children, ...props }: { children?: React.ReactNode }) => {
       ActualReact.useEffect(() => mockSafeAreaMount(), []);
       return (
@@ -23,11 +49,28 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+let mockOutreachCampaign: {
+  id: string;
+  title: string;
+  body: string;
+  imageUrl: string;
+} | null = null;
+
+jest.mock('../../hooks/usePerpsOutreachCampaign', () => ({
+  usePerpsOutreachCampaign: () => ({
+    campaign: mockOutreachCampaign,
+    dismiss: jest.fn(),
+  }),
+}));
+
 jest.mock('../PerpsProMarketView', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="mock-pro-market-view" />,
+    default: (props: object) => {
+      mockProProps(props);
+      return <View testID="mock-pro-market-view" />;
+    },
   };
 });
 
@@ -35,13 +78,26 @@ jest.mock('../PerpsMarketDetailsView', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="mock-lite-market-details-view" />,
+    default: (props: object) => {
+      mockLiteProps(props);
+      return <View testID="mock-lite-market-details-view" />;
+    },
   };
 });
 
 const mockUsePerpsProModeEnabled = jest.mocked(usePerpsProModeEnabled);
 
 describe('PerpsMarketDetailsRouter', () => {
+  beforeEach(() => {
+    mockActiveProvider = 'hyperliquid';
+    mockOutreachCampaign = null;
+    mockIsBrandRefresh = false;
+    mockSafeAreaInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+    mockUseRoute.mockReturnValue({
+      params: { market: { symbol: 'ETH' } },
+    });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -79,6 +135,58 @@ describe('PerpsMarketDetailsRouter', () => {
     ]);
   });
 
+  it('hands the top inset to the outreach banner while it is shown', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(false);
+    mockOutreachCampaign = {
+      id: 'mobile-outreach-2026-09',
+      title: "You're a top perp trader",
+      body: 'Shape what we build next.',
+      imageUrl: 'https://metamask.io/images/mobile-perps-outreach.png',
+    };
+
+    const { getByTestId } = render(<PerpsMarketDetailsRouter />);
+
+    expect(getByTestId('safe-area-container')).toHaveProp('edges', [
+      'bottom',
+      'left',
+      'right',
+    ]);
+  });
+
+  it('runs the layout edge to edge and hands it the insets with the brand refresh on', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(false);
+    mockIsBrandRefresh = true;
+    mockSafeAreaInsets = { top: 47, right: 0, bottom: 34, left: 0 };
+
+    const { getByTestId } = render(<PerpsMarketDetailsRouter />);
+
+    expect(getByTestId('safe-area-container')).toHaveProp('edges', [
+      'left',
+      'right',
+    ]);
+    expect(mockLiteProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ edgeInsets: { top: 47, bottom: 34 } }),
+    );
+  });
+
+  it('leaves the top inset to the outreach banner with the brand refresh on', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+    mockIsBrandRefresh = true;
+    mockSafeAreaInsets = { top: 47, right: 0, bottom: 34, left: 0 };
+    mockOutreachCampaign = {
+      id: 'mobile-outreach-2026-09',
+      title: "You're a top perp trader",
+      body: 'Shape what we build next.',
+      imageUrl: 'https://metamask.io/images/mobile-perps-outreach.png',
+    };
+
+    render(<PerpsMarketDetailsRouter />);
+
+    expect(mockProProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ edgeInsets: { top: 0, bottom: 34 } }),
+    );
+  });
+
   it('keeps the safe-area container mounted across a mode switch', () => {
     mockUsePerpsProModeEnabled.mockReturnValue(false);
 
@@ -90,5 +198,75 @@ describe('PerpsMarketDetailsRouter', () => {
     // Remounting it would re-run the native inset layout pass, dropping the
     // header under the status bar until that pass lands.
     expect(mockSafeAreaMount).toHaveBeenCalledTimes(1);
+    expect(mockProProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ generationTrigger: 'mode_switch' }),
+    );
+  });
+
+  it('forwards an explicit header-picker market switch trigger', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+    mockUseRoute.mockReturnValue({
+      params: {
+        market: { symbol: 'BTC' },
+        detailGenerationTrigger: 'market_switch',
+      },
+    });
+
+    render(<PerpsMarketDetailsRouter />);
+
+    expect(mockProProps).toHaveBeenCalledWith(
+      expect.objectContaining({ generationTrigger: 'market_switch' }),
+    );
+    expect(mockSetParams).toHaveBeenCalledWith({
+      detailGenerationTrigger: undefined,
+    });
+  });
+
+  it('consumes the header-picker trigger before a later mode switch', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+    mockUseRoute.mockReturnValue({
+      params: {
+        market: { symbol: 'BTC' },
+        detailGenerationTrigger: 'market_switch',
+      },
+    });
+    const { rerender } = render(<PerpsMarketDetailsRouter />);
+
+    mockUsePerpsProModeEnabled.mockReturnValue(false);
+    rerender(<PerpsMarketDetailsRouter />);
+
+    expect(mockLiteProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ generationTrigger: 'mode_switch' }),
+    );
+  });
+  it('preserves market-switch attribution while selecting the venue', async () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+    mockUseRoute.mockReturnValue({
+      params: {
+        market: { symbol: 'BTC', providerId: 'lighter' },
+        detailGenerationTrigger: 'market_switch',
+      },
+    });
+    let finish!: () => void;
+    mockSwitchProvider.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = () => resolve({ success: true, providerId: 'lighter' });
+        }),
+    );
+    const { rerender } = render(<PerpsMarketDetailsRouter />);
+    mockActiveProvider = 'lighter';
+    rerender(<PerpsMarketDetailsRouter />);
+    expect(mockSetParams).not.toHaveBeenCalled();
+    expect(mockProProps).not.toHaveBeenCalled();
+
+    await act(async () => finish());
+
+    expect(mockProProps).toHaveBeenCalledWith(
+      expect.objectContaining({ generationTrigger: 'market_switch' }),
+    );
+    expect(mockSetParams).toHaveBeenCalledWith({
+      detailGenerationTrigger: undefined,
+    });
   });
 });

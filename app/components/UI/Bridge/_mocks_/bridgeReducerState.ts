@@ -34,6 +34,7 @@ export const mockBridgeReducerState: BridgeState = {
   isSubmittingTx: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
+  isNativeGasIncludedSupported: false,
   bridgeViewMode: BridgeViewMode.Bridge,
   isSelectingRecipient: false,
   isSelectingToken: false,
@@ -52,6 +53,11 @@ export const mockBridgeReducerState: BridgeState = {
 
   // Recurring
   recurring: initialRecurringState,
+
+  // Limit orders
+  limitOrderCostTolerance: undefined,
+  limitOrderExpirationMinutes: undefined,
+  limitOrderMarketComparison: undefined,
 
   // Orders (Limit + Recurring, Open + History)
   ordersNetworkFilter: undefined,

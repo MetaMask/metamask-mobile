@@ -5,6 +5,7 @@ import { Platform, ProviderName } from '../../../types.ts';
 import { EmulatorProvider } from './EmulatorProvider.ts';
 
 jest.mock('../../appium', () => ({
+  shouldSkipAppiumStop: jest.fn().mockReturnValue(false),
   startAppiumServer: jest.fn().mockResolvedValue(undefined),
   stopAppiumServer: jest.fn().mockResolvedValue(undefined),
 }));

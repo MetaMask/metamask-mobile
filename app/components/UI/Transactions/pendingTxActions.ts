@@ -8,6 +8,15 @@ type TransactionMetaWithSmartTransaction = TransactionMeta & {
   isSmartTransaction?: boolean;
 };
 
+export function showSpeedUp(type: TransactionMeta['type']) {
+  return (
+    type !== TransactionType.swap &&
+    type !== TransactionType.bridge &&
+    type !== TransactionType.swapApproval &&
+    type !== TransactionType.bridgeApproval
+  );
+}
+
 export interface PendingTxActionVisibility {
   /** Standard speed-up + cancel buttons (non-hardware, or submitted). */
   showSpeedUpCancel: boolean;

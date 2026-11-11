@@ -10,15 +10,15 @@ import {
   IconColor,
   IconName,
   IconSize,
+  type IconProps,
   SensitiveText,
   SensitiveTextLength,
-  Tag as DSTag,
+  Tag,
   TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -39,6 +39,11 @@ export interface MoneySheetOption {
    */
   label: string | MoneySheetOptionPrivacyMask;
   icon: IconName;
+  /**
+   * Extra `Icon` props for this row only (e.g. mirroring the arrow). Kept as
+   * a style passthrough because the design system has no up-left arrow icon.
+   */
+  iconProps?: Pick<IconProps, 'style'>;
   onPress?: () => void;
   testID: string;
   disabled?: boolean;
@@ -78,6 +83,7 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
             name={item.icon}
             size={IconSize.Lg}
             color={item.disabled ? IconColor.IconMuted : IconColor.IconDefault}
+            style={item.iconProps?.style}
           />
           {item.comingSoon ? (
             <View style={styles.disabledRowContent}>
@@ -92,10 +98,7 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                       .join(' ')
                   : item.label}
               </Text>
-              <Tag
-                label={strings('money.add_money_sheet.coming_soon')}
-                style={styles.comingSoonTag}
-              />
+              <Tag>{strings('money.add_money_sheet.coming_soon')}</Tag>
             </View>
           ) : (
             <View style={styles.rowLabelContainer}>
@@ -148,15 +151,14 @@ const MoneySheetOptionsList = ({ options }: MoneySheetOptionsListProps) => {
                     {item.label}
                   </Text>
                   {item.newBadge ? (
-                    <DSTag
-                      severity={TagSeverity.Info}
-                      startIconName={IconName.Sparkle}
+                    <Tag
+                      severity={TagSeverity.Neutral}
                       // Optically center the tag against the label — mathematical
                       // centering leaves it looking slightly high next to the text.
                       twClassName="mt-[1.25px]"
                     >
-                      {strings('money.add_money_sheet.new_badge')}
-                    </DSTag>
+                      {strings('money.add_money_sheet.no_fees')}
+                    </Tag>
                   ) : null}
                 </Box>
               )}

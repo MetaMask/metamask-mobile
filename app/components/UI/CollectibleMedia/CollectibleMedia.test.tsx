@@ -8,8 +8,7 @@ import CollectibleMedia from './CollectibleMedia';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
-// eslint-disable-next-line import-x/no-namespace
-import * as AssetControllers from '@metamask/assets-controllers';
+import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 
 const mockInitialState = {
   engine: {
@@ -42,6 +41,10 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('@metamask/assets-controllers', () => ({
+  getFormattedIpfsUrl: jest.fn(),
+}));
 
 describe('CollectibleMedia', () => {
   it('should render correctly', () => {
@@ -163,7 +166,7 @@ describe('CollectibleMedia', () => {
     ];
 
     const mockGetFormattedIpfsUrl = jest
-      .spyOn(AssetControllers, 'getFormattedIpfsUrl')
+      .mocked(getFormattedIpfsUrl)
       .mockResolvedValue(
         'https://bafybeidgklvljyifilhtrxzh77brgnhcy6s2wxoxqc2l73zr2nxlwuxfcy.ipfs.dweb.link',
       );

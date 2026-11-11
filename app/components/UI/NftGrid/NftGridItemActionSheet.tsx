@@ -1,5 +1,5 @@
 import React from 'react';
-import { Nft } from '@metamask/assets-controllers';
+import { Nft, Source } from '@metamask/assets-controllers';
 import { Alert } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
@@ -54,6 +54,9 @@ const NftGridItemActionSheet = ({
       longPressedCollectible.address,
       longPressedCollectible.tokenId,
       networkClientId,
+      // Refreshing is not a new add: Source.Detected never overwrites the
+      // stored source, whereas the default (Source.Custom) would.
+      { source: Source.Detected },
     );
   };
 

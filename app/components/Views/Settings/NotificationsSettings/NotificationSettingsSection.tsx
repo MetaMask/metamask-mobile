@@ -10,12 +10,17 @@ import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { strings } from '../../../../../locales/i18n';
 import { type NotificationPreferenceSection } from './hooks/useNotificationStoragePreferences';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
+import {
+  getNotificationSettingsSectionRouteParams,
+  resolveNotificationSettingsSection,
+} from './notificationSettingsSections';
 
 export interface NotificationSettingsSectionProps {
   navigation: NavigationProp<ParamListBase>;
@@ -23,8 +28,8 @@ export interface NotificationSettingsSectionProps {
     {
       params: {
         type: NotificationPreferenceSection;
-        title: string;
-        description: string;
+        title?: string;
+        description?: string;
       };
     },
     'params'
@@ -37,22 +42,38 @@ const NotificationSettingsSection = ({
 }: NotificationSettingsSectionProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const { type, title, description } = route.params;
+  const {
+    type,
+    title: titleParam,
+    description: descriptionParam,
+  } = route.params;
+  const catalogCopy = resolveNotificationSettingsSection(type);
+  const catalogParams = catalogCopy
+    ? getNotificationSettingsSectionRouteParams(catalogCopy)
+    : undefined;
+  const title = titleParam ?? catalogParams?.title;
+  const description = descriptionParam ?? catalogParams?.description;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
 
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
-      navigation.dispatch(StackActions.replace(Routes.SETTINGS.NOTIFICATIONS));
+      // Keep the destination pending until notifications are enabled.
+      navigation.dispatch(
+        StackActions.replace(Routes.SETTINGS.NOTIFICATIONS, { section: type }),
+      );
     }
-  }, [isMetamaskNotificationsEnabled, navigation]);
+  }, [isMetamaskNotificationsEnabled, navigation, type]);
 
   if (!isMetamaskNotificationsEnabled) return null;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <HeaderCompactStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.notifications_title')}
         onBack={() => navigation.goBack()}
       />

@@ -6,7 +6,6 @@ import {
   Box,
   BoxFlexDirection,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -55,9 +54,10 @@ import {
   formatCompactValue,
   formatRewardsTimeOnly,
 } from '../utils/formatUtils';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
-  INVITE_BUTTON: 'rewards-vip-view-invite-button',
   TRANSACTIONS_BUTTON: 'rewards-vip-view-transactions-button',
   SCROLL: 'rewards-vip-view-scroll',
   SKELETON: 'rewards-vip-view-skeleton',
@@ -82,6 +82,7 @@ const vipTierCardSkeletonStyle = {
 };
 
 const RewardsVipViewContent: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -174,17 +175,13 @@ const RewardsVipViewContent: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.VIP_VIEW}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title=""
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
           endButtonIconProps={[
-            {
-              iconName: IconName.UserCircleAdd,
-              onPress: () =>
-                navigation.navigate(Routes.REFERRAL_REWARDS_VIEW as never),
-              testID: REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON,
-            },
             {
               iconName: IconName.Activity,
               onPress: () =>

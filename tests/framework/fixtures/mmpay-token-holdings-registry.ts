@@ -25,10 +25,25 @@ export interface TokenHolding extends PredefinedToken {
   account?: string;
 }
 
+/**
+ * Default Anvil / Localhost (`0x539`) native ETH holding for confirmation and
+ * other local-node E2E fixtures when `assetsUnifyState` is ON.
+ */
+export const ANVIL_LOCAL_ETH_HOLDING: TokenHolding = {
+  symbol: 'ETH',
+  address: NATIVE_ADDRESS,
+  decimals: 18,
+  chainId: '0x539',
+  isNative: true,
+  usdValue: 1,
+  amount: '100',
+};
+
 const ETHEREUM_CHAIN_ID = '0x1';
 const POLYGON_CHAIN_ID = '0x89';
 const ARBITRUM_CHAIN_ID = '0xa4b1';
 const MONAD_CHAIN_ID = '0x8f';
+const BSC_CHAIN_ID = '0x38';
 
 export const PREDEFINED_TOKENS = {
   ETHEREUM: {
@@ -132,6 +147,10 @@ export function chainIdForRpcUrl(url: string): string | null {
   if (lower.includes('polygon')) return POLYGON_CHAIN_ID;
   if (lower.includes('arbitrum')) return ARBITRUM_CHAIN_ID;
   if (lower.includes('monad')) return MONAD_CHAIN_ID;
+  // bsc-mainnet.infura.io also contains "mainnet", so this must run first.
+  if (lower.includes('bsc-mainnet') || lower.includes('binance')) {
+    return BSC_CHAIN_ID;
+  }
   if (lower.includes('mainnet') || lower.includes('ethereum')) {
     return ETHEREUM_CHAIN_ID;
   }

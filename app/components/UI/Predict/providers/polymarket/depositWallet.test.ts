@@ -1,5 +1,6 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { query } from '@metamask/controller-utils';
+import type { Hex } from '@metamask/utils';
 import type { Signer } from '../types';
 import {
   DEPOSIT_WALLET_FACTORY_ADDRESS,
@@ -13,12 +14,16 @@ import {
   requestDepositWalletCreate,
   resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
+  syncDepositWalletPositionBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
 } from './depositWallet';
 import Engine from '../../../../../core/Engine';
-import { POLYMARKET_V2_PROTOCOL } from './protocol/definitions';
+import {
+  POLYMARKET_POSITIONS_PROTOCOL,
+  POLYMARKET_V2_PROTOCOL,
+} from './protocol/definitions';
 import { OperationType } from './safe/types';
 import { getL2Headers } from './utils';
 
@@ -122,7 +127,7 @@ describe('depositWallet', () => {
 
   it('resolves UUPS wallet when factory beacon is unavailable', async () => {
     const readFactoryBeacon = jest.fn().mockResolvedValue(undefined);
-    const isWalletDeployed = jest.fn();
+    const isWalletDeployed = jest.fn().mockResolvedValue(false);
 
     const result = await resolveDepositWalletAddress({
       ownerAddress,
@@ -132,7 +137,109 @@ describe('depositWallet', () => {
 
     expect(result).toBe(uupsWalletAddress);
     expect(readFactoryBeacon).toHaveBeenCalledTimes(1);
-    expect(isWalletDeployed).not.toHaveBeenCalled();
+    expect(isWalletDeployed).toHaveBeenCalledWith(uupsWalletAddress);
+  });
+
+  it('starts the UUPS deployment check before the factory beacon resolves', async () => {
+    let resolveBeacon: (value: Hex | undefined) => void = () => undefined;
+    let resolveDeployed: (value: boolean) => void = () => undefined;
+    const readFactoryBeacon = jest.fn(
+      () =>
+        new Promise<Hex | undefined>((resolve) => {
+          resolveBeacon = resolve;
+        }),
+    );
+    const isWalletDeployed = jest.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveDeployed = resolve;
+        }),
+    );
+
+    const pending = resolveDepositWalletAddress({
+      ownerAddress,
+      readFactoryBeacon,
+      isWalletDeployed,
+    });
+
+    expect(readFactoryBeacon).toHaveBeenCalledTimes(1);
+    expect(isWalletDeployed).toHaveBeenCalledWith(uupsWalletAddress);
+
+    resolveBeacon(beaconAddress);
+    resolveDeployed(false);
+
+    await expect(pending).resolves.toBe(beaconWalletAddress);
+  });
+
+  it('returns the UUPS address before the deployment check settles when the beacon is missing', async () => {
+    const readFactoryBeacon = jest.fn().mockResolvedValue(undefined);
+    let resolveDeployed: (value: boolean) => void = () => undefined;
+    const isWalletDeployed = jest.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveDeployed = resolve;
+        }),
+    );
+    let settled = false;
+
+    const pending = resolveDepositWalletAddress({
+      ownerAddress,
+      readFactoryBeacon,
+      isWalletDeployed,
+    }).then((address) => {
+      settled = true;
+      return address;
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(settled).toBe(true);
+    expect(isWalletDeployed).toHaveBeenCalledWith(uupsWalletAddress);
+
+    resolveDeployed(false);
+    await expect(pending).resolves.toBe(uupsWalletAddress);
+  });
+
+  it('returns the UUPS address when the beacon is missing and the deployment check fails', async () => {
+    const readFactoryBeacon = jest.fn().mockResolvedValue(undefined);
+    const isWalletDeployed = jest.fn().mockRejectedValue(new Error('rpc down'));
+
+    const result = await resolveDepositWalletAddress({
+      ownerAddress,
+      readFactoryBeacon,
+      isWalletDeployed,
+    });
+
+    expect(result).toBe(uupsWalletAddress);
+  });
+
+  it('throws the deployment check error when the factory beacon is present', async () => {
+    const readFactoryBeacon = jest.fn().mockResolvedValue(beaconAddress);
+    const isWalletDeployed = jest.fn().mockRejectedValue(new Error('rpc down'));
+
+    await expect(
+      resolveDepositWalletAddress({
+        ownerAddress,
+        readFactoryBeacon,
+        isWalletDeployed,
+      }),
+    ).rejects.toThrow('rpc down');
+  });
+
+  it('throws the beacon error when the beacon read and the deployment check both fail', async () => {
+    const readFactoryBeacon = jest
+      .fn()
+      .mockRejectedValue(new Error('beacon down'));
+    const isWalletDeployed = jest
+      .fn()
+      .mockRejectedValue(new Error('code down'));
+
+    await expect(
+      resolveDepositWalletAddress({
+        ownerAddress,
+        readFactoryBeacon,
+        isWalletDeployed,
+      }),
+    ).rejects.toThrow('beacon down');
   });
 
   it('resolves deployed UUPS wallet when factory exposes beacon', async () => {
@@ -312,6 +419,90 @@ describe('depositWallet', () => {
           calls,
         }),
       }),
+    });
+  });
+
+  describe('batch deadline', () => {
+    const deviceNowSeconds = 1_800_000_000;
+    const calls = [
+      {
+        target: POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
+        value: '0',
+        data: '0x1234',
+      },
+    ];
+
+    function getSignedDeadline(): unknown {
+      const [params] = jest.mocked(signer.signTypedMessage).mock.calls[0];
+      return (params.data as { message: { deadline: unknown } }).message
+        .deadline;
+    }
+
+    async function submitBatch(): Promise<void> {
+      mockFetch
+        .mockResolvedValueOnce(mockResponse({ nonce: '9' }))
+        .mockResolvedValueOnce(mockResponse({ transactionID: 'relayer-2' }));
+
+      await executeDepositWalletBatch({
+        signer,
+        walletAddress: deriveDepositWalletAddress(ownerAddress),
+        calls,
+      });
+    }
+
+    let dateNowSpy: jest.SpyInstance<number, []>;
+
+    beforeEach(() => {
+      dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(deviceNowSeconds * 1000);
+    });
+
+    afterEach(() => {
+      dateNowSpy.mockRestore();
+    });
+
+    it('counts 600s from the latest Polygon block when the device clock is behind', async () => {
+      mockQuery.mockResolvedValue({
+        timestamp: `0x${(deviceNowSeconds + 120).toString(16)}`,
+      });
+
+      await submitBatch();
+
+      const expectedDeadline = String(deviceNowSeconds + 120 + 600);
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.anything(),
+        'getBlockByNumber',
+        ['latest', false],
+      );
+      expect(getSignedDeadline()).toBe(expectedDeadline);
+      expect(getFetchBody(1)).toEqual(
+        expect.objectContaining({
+          body: expect.objectContaining({
+            depositWalletParams: expect.objectContaining({
+              deadline: expectedDeadline,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('counts 600s from the device clock when it is ahead of the latest Polygon block', async () => {
+      mockQuery.mockResolvedValue({
+        timestamp: `0x${(deviceNowSeconds - 30).toString(16)}`,
+      });
+
+      await submitBatch();
+
+      expect(getSignedDeadline()).toBe(String(deviceNowSeconds + 600));
+    });
+
+    it('falls back to the device clock when the Polygon block cannot be read', async () => {
+      mockQuery.mockRejectedValue(new Error('network offline'));
+
+      await submitBatch();
+
+      expect(getSignedDeadline()).toBe(String(deviceNowSeconds + 600));
     });
   });
 
@@ -563,6 +754,57 @@ describe('depositWallet', () => {
     expect(mockFetch).toHaveBeenCalledWith(
       'https://clob.polymarket.com/balance-allowance/update?asset_type=COLLATERAL&signature_type=3',
       expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('syncs positions balance allowance through direct CLOB endpoint', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ ok: true }));
+
+    await syncDepositWalletPositionBalanceAllowance({
+      protocol: POLYMARKET_POSITIONS_PROTOCOL,
+      signerAddress: ownerAddress,
+      apiKey: {
+        apiKey: 'api-key',
+        secret: 'secret',
+        passphrase: 'passphrase',
+      },
+      tokenId: '1234567890',
+    });
+
+    expect(mockGetL2Headers).toHaveBeenCalledWith({
+      l2HeaderArgs: {
+        method: 'GET',
+        requestPath: '/balance-allowance/update',
+      },
+      address: ownerAddress,
+      apiKey: {
+        apiKey: 'api-key',
+        secret: 'secret',
+        passphrase: 'passphrase',
+      },
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://clob.polymarket.com/balance-allowance/update?asset_type=CONDITIONAL-V2&token_id=1234567890&signature_type=3',
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('throws contextual error when positions balance allowance sync fails', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ error: 'not allowed' }, false));
+
+    await expect(
+      syncDepositWalletPositionBalanceAllowance({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
+        signerAddress: ownerAddress,
+        apiKey: {
+          apiKey: 'api-key',
+          secret: 'secret',
+          passphrase: 'passphrase',
+        },
+        tokenId: '1234567890',
+      }),
+    ).rejects.toThrow(
+      'Failed to sync deposit wallet position balance allowance: 500 {"error":"not allowed"}',
     );
   });
 });

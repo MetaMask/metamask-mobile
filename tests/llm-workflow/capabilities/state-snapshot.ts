@@ -21,7 +21,7 @@ const SCREEN_DETECTION_MAP = new Map<string, ScreenName>([
 ]);
 
 export interface StateSnapshotCapabilityOptions {
-  /** Resolver returning the current iOS platform driver (may be undefined if no session). */
+  /** Resolver returning the current mobile platform driver (may be undefined if no session). */
   getPlatformDriver: () => IPlatformDriver | undefined;
 }
 
@@ -37,21 +37,15 @@ export class MetaMaskMobileStateSnapshotCapability
   async getState(_page: Page, _options: StateOptions): Promise<StateSnapshot> {
     const platformDriver = this.getPlatformDriver();
     if (!platformDriver) {
-      return {
-        isLoaded: false,
-        currentUrl: '',
-        extensionId: '',
-        isUnlocked: false,
-        currentScreen: 'unknown',
-        accountAddress: null,
-        networkName: null,
-        chainId: null,
-        balance: null,
-      };
+      // No session: nothing can be read, so report only that.
+      return { isLoaded: false, extensionId: '', source: 'stub' };
     }
     const appState = await platformDriver.getAppState();
     const currentScreen = await this.detectCurrentScreen(_page);
-    return { ...appState, currentScreen };
+    // Report the screen only when a known testId identified it.
+    return currentScreen === 'unknown'
+      ? appState
+      : { ...appState, currentScreen };
   }
 
   async detectCurrentScreen(_page: Page): Promise<string> {

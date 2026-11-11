@@ -86,6 +86,7 @@ export const useGetOndoCampaignActivity = (
     fetchPage,
     onFirstPage,
     errorMessage: 'Failed to fetch activity',
+    feature: 'rewards',
   });
 
   return {

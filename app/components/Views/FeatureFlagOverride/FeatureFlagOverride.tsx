@@ -21,7 +21,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 
 import { useTheme } from '../../../util/theme';
@@ -38,6 +37,8 @@ import {
 } from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 interface FeatureFlagRowProps {
   flag: FeatureFlagInfo;
   onToggle: (key: string, newValue: unknown) => void;
@@ -116,6 +117,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         return (
           <Box twClassName="items-end">
             <Switch
+              testID={`feature-flag-override-switch-${flag.key}`}
               value={(localValue as MinimumVersionFlagValue).enabled}
               disabled={!isVersionSupported}
               onValueChange={(newValue: boolean) => {
@@ -408,6 +410,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
 };
 
 const FeatureFlagOverride: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const tw = useTailwind();
@@ -507,7 +510,9 @@ const FeatureFlagOverride: React.FC = () => {
       testID="feature-flag-override-screen"
       edges={['top', 'left', 'right']}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title="Feature Flag Override"
         onBack={handleGoBack}
         includesTopInset={false}
@@ -566,6 +571,7 @@ const FeatureFlagOverride: React.FC = () => {
         {/* Search and controls */}
         <Box twClassName="p-4 border-b border-border-muted">
           <TextInput
+            testID="feature-flag-override-search"
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search feature flags..."

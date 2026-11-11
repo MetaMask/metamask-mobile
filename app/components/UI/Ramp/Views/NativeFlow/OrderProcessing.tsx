@@ -18,20 +18,37 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import { ORDER_PROCESSING_TEST_IDS } from './OrderProcessing.testIds';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface OrderProcessingParams {
   orderId: string;
 }
 
 const V2OrderProcessing = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { orderId } = useParams<OrderProcessingParams>();
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.ORDER_PROCESSING,
+    contentReady: Boolean(order),
+    contentState:
+      order?.state === FIAT_ORDER_STATES.FAILED ||
+      order?.state === FIAT_ORDER_STATES.CANCELLED
+        ? RAMP_SCREEN_CONTENT_STATE.ERROR
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const handleMainAction = useCallback(() => {
     if (
@@ -78,7 +95,9 @@ const V2OrderProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={headerTitle}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -93,7 +112,9 @@ const V2OrderProcessing = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={headerTitle}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

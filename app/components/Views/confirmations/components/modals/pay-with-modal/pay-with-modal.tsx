@@ -7,7 +7,6 @@ import {
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import Engine from '../../../../../../core/Engine';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -32,15 +31,14 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
-import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
-import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
+import { useClearPaymentOverride } from '../../../hooks/pay/sections/useClearPaymentOverride';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 
 export interface PayWithModalParams {
@@ -69,9 +67,6 @@ export function PayWithModal() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
-  const { onPaymentTokenChange: onMusdPaymentTokenChange } =
-    useMusdPaymentToken();
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
@@ -90,6 +85,7 @@ export function PayWithModal() {
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
   const ensurePayToken = useEnsurePayToken();
+  const clearPaymentOverride = useClearPaymentOverride();
 
   const isMoneyAccount = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
@@ -138,12 +134,17 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      // An explicit token selection always replaces any dedicated payment
+      // override (e.g. Money Account). This is deliberately done here rather
+      // than when the picker is opened, so closing the picker without
+      // choosing a token leaves the previous selection intact.
       if (
         payToken &&
         payToken.address.toLowerCase() === token.address.toLowerCase() &&
         payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
       ) {
         close(() => {
+          clearPaymentOverride();
           if (dismissOnSelectCount > 1) {
             navigation.dispatch(StackActions.pop(dismissOnSelectCount));
           }
@@ -152,15 +153,10 @@ export function PayWithModal() {
       }
 
       const onClosed = async () => {
+        clearPaymentOverride();
+
         if (dismissOnSelectCount > 1) {
           navigation.dispatch(StackActions.pop(dismissOnSelectCount));
-        }
-
-        if (
-          hasTransactionType(transactionMeta, [TransactionType.musdConversion])
-        ) {
-          onMusdPaymentTokenChange(token);
-          return;
         }
 
         if (
@@ -181,35 +177,11 @@ export function PayWithModal() {
           return;
         }
 
-        // Ensure the token is tracked by TokensController so the pay
-        // controller can resolve its metadata (symbol, decimals, balance).
+        // Ensure the token is registered in unified assets state so the pay
+        // controller can resolve its metadata (symbol, decimals, balance) —
+        // otherwise it throws "Payment token not found".
         // Must complete before setPayToken so the controller can find the token.
         if (isWithdraw && token.balance === '0' && !token.isNative) {
-          const { TokensController, NetworkController } = Engine.context;
-          try {
-            const networkClientId =
-              NetworkController.findNetworkClientIdByChainId(
-                token.chainId as Hex,
-              );
-            await TokensController.addTokens(
-              [
-                {
-                  address: token.address,
-                  symbol: token.symbol,
-                  decimals: token.decimals,
-                  image: token.image || undefined,
-                },
-              ],
-              networkClientId,
-            );
-          } catch {
-            // Network not configured — skip
-          }
-
-          // Adding via TokensController only covers legacy metadata. Ensure the
-          // token is also registered in unified assets state, so the pay
-          // controller can resolve it (otherwise it throws "Payment token not
-          // found").
           await ensurePayToken({
             address: token.address as Hex,
             chainId: token.chainId as Hex,
@@ -228,13 +200,13 @@ export function PayWithModal() {
       close(onClosed);
     },
     [
+      clearPaymentOverride,
       close,
       dismissOnSelectCount,
       ensurePayToken,
       isPredictContext,
       isWithdraw,
       navigation,
-      onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
       payToken,
@@ -261,10 +233,6 @@ export function PayWithModal() {
       let filteredTokens: TokenListItem[] = availableTokens;
 
       if (
-        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
-      ) {
-        filteredTokens = musdTokenFilter(availableTokens);
-      } else if (
         hasTransactionType(transactionMeta, [
           TransactionType.perpsDepositAndOrder,
         ])
@@ -280,7 +248,6 @@ export function PayWithModal() {
       blockedTokens,
       fiatPayment,
       withdrawTokenFilter,
-      musdTokenFilter,
       payToken,
       requiredTokens,
       transactionMeta,
