@@ -281,6 +281,11 @@ else
 fi
 
 mkdir -p tests/reporters/reports tests/test-reports/playwright-report artifacts
+if [[ -n "$HE_JOB_ID" ]]; then
+  # Linked from the scenario heal PR and summary.
+  printf '{"jobId":"%s","buildType":"%s","url":"https://hyperexecute.lambdatest.com/hyperexecute/task?jobId=%s"}\n' \
+    "$HE_JOB_ID" "$BUILD_TYPE" "$HE_JOB_ID" > "tests/reporters/reports/hyperexecute-job-${BUILD_TYPE}.json"
+fi
 if [[ -d "$HE_ARTIFACTS_DIR" ]]; then
   cp -R "$HE_ARTIFACTS_DIR"/. artifacts/ 2>/dev/null || true
 fi
