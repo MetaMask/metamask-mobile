@@ -47,7 +47,10 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { MAX_PERPS_INPUT_DIGITS } from '../constants/perpsConfig';
-import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectPerpsClosePositionLimitOrderEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
+} from '../selectors/featureFlags';
 import { selectPerpsProvider } from '../selectors/perpsController';
 import {
   convertAssetAmountToUsd,
@@ -281,6 +284,7 @@ export function usePerpsClosePositionForm(
   const isClosePositionLimitOrderEnabled = useSelector(
     selectPerpsClosePositionLimitOrderEnabledFlag,
   );
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
 
   const [orderType, setOrderType] = useState<OrdinaryOrderType>(() =>
     isClosePositionLimitOrderEnabled ? lastCloseOrderType : 'market',
@@ -1012,7 +1016,11 @@ export function usePerpsClosePositionForm(
   }, [validationResult.errors]);
 
   const summaryPnl = closeEstimate.realizedPnl;
-  const summaryMarginMode = livePosition.leverage?.type;
+  // While the flag is off, a cross position keeps the isolated presentation,
+  // including P&L inside the reported margin.
+  const summaryMarginMode = isCrossMarginEnabled
+    ? livePosition.leverage?.type
+    : undefined;
   // Cross margin is shared collateral and never holds the position's PnL, so
   // only isolated margin is shown with the realized PnL folded in.
   let summaryMargin: number | undefined;

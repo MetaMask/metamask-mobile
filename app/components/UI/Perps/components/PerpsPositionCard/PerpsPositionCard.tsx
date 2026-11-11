@@ -439,13 +439,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                               'lite',
                               position.symbol,
                             )
-                          : undefined
+                          : PerpsPositionCardSelectorsIDs.ISOLATED_MARGIN_TAG
                       }
                     >
                       {strings(
                         isCross
-                          ? 'perps.cross_position.badge'
-                          : 'perps.pro_positions_panel.card.isolated',
+                          ? 'perps.margin_mode.cross_title'
+                          : 'perps.margin_mode.isolated_title',
                       )}
                     </Tag>
                   )}

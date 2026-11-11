@@ -1086,6 +1086,7 @@ export function renderPerpsClosePositionView(
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
     includeToasts?: boolean;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;

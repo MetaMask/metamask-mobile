@@ -13,6 +13,7 @@ import { applyFeeResolution } from '@metamask/perps-controller/utils/subscriptio
 import type { EstimatedPointsDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectPerpsCrossMarginEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsProvider } from '../selectors/perpsController';
 
 /**
@@ -49,10 +50,12 @@ const mockSelectors = ({
   account = { address: TEST_ADDRESS },
   chainId = '0xa4b1',
   provider = 'hyperliquid',
+  crossMarginEnabled = false,
 }: {
   account?: { address: string } | null;
   chainId?: string | null;
   provider?: string;
+  crossMarginEnabled?: boolean;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectSelectedAccountGroupEvmInternalAccount) {
@@ -63,6 +66,9 @@ const mockSelectors = ({
     }
     if (selector === selectPerpsProvider) {
       return provider;
+    }
+    if (selector === selectPerpsCrossMarginEnabledFlag) {
+      return crossMarginEnabled;
     }
     return undefined;
   });
@@ -291,9 +297,10 @@ describe('usePerpsCloseAllCalculations', () => {
   });
 
   describe('Close totals from Core estimateCloseReceive', () => {
-    // Reference rows: a winning cross long keeps its whole margin and adds the
-    // PnL; an isolated short's margin already holds its PnL, so it is taken
-    // out before the PnL at the close price is added back.
+    // Reference rows: a winning cross long returns its margin without the PnL,
+    // since cross margin never holds it; an isolated short's margin already
+    // holds its PnL, so it is taken out before the PnL at the close price is
+    // added back.
     const crossLong = createMockPosition({
       symbol: 'BTC',
       size: '0.5',
@@ -321,12 +328,15 @@ describe('usePerpsCloseAllCalculations', () => {
     const btcPriceOnly = { BTC: { price: '51000' } };
 
     beforeEach(() => {
+      mockSelectors({ crossMarginEnabled: true });
       mockCalculateFees.mockResolvedValue(
         createMockFeeResult({ feeRate: 0.00145 }),
       );
     });
 
-    it('keeps a winning cross position margin and adds its PnL', async () => {
+    it('keeps a cross position margin with its PnL while the flag is off', async () => {
+      mockSelectors();
+
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({
           positions: crossLongOnly,
@@ -336,6 +346,18 @@ describe('usePerpsCloseAllCalculations', () => {
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.totalMargin).toBe(1500);
+    });
+
+    it('returns a winning cross position margin without its PnL', async () => {
+      const { result } = renderHook(() =>
+        usePerpsCloseAllCalculations({
+          positions: crossLongOnly,
+          priceData: livePrices,
+        }),
+      );
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.totalMargin).toBe(1000);
       expect(result.current.totalPnl).toBe(500);
       expect(result.current.totalFees).toBeCloseTo(36.975);
       expect(result.current.receiveAmount).toBe(1463.02);
@@ -350,7 +372,7 @@ describe('usePerpsCloseAllCalculations', () => {
       );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.totalMargin).toBe(1750);
+      expect(result.current.totalMargin).toBe(1250);
       expect(result.current.totalPnl).toBe(480);
       expect(result.current.totalFees).toBeCloseTo(37.874);
       expect(result.current.receiveAmount).toBeCloseTo(1712.12, 10);
@@ -381,7 +403,7 @@ describe('usePerpsCloseAllCalculations', () => {
         }),
       );
 
-      expect(result.current.totalMargin).toBe(1500);
+      expect(result.current.totalMargin).toBe(1000);
       expect(result.current.totalFees).toBeUndefined();
       expect(result.current.receiveAmount).toBeUndefined();
       unmount();

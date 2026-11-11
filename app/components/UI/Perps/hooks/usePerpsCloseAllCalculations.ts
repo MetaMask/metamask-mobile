@@ -19,6 +19,7 @@ import type {
 import Engine from '../../../../core/Engine';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectPerpsCrossMarginEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsProvider } from '../selectors/perpsController';
 import { resolveProviderId } from '../utils/perpsPostTradeShare';
 
@@ -26,7 +27,11 @@ import { resolveProviderId } from '../utils/perpsPostTradeShare';
  * Aggregated calculations result for closing all positions
  */
 export interface CloseAllCalculationsResult {
-  /** Margin returned across all positions, including the P&L (undefined while any is unknown) */
+  /**
+   * Margin returned across all positions. With cross margin enabled, cross
+   * positions exclude their P&L; otherwise every position includes it.
+   * Undefined while any figure is unknown.
+   */
   totalMargin: number | undefined;
   /** P&L realized across all positions at the live price (undefined while any is unknown) */
   totalPnl: number | undefined;
@@ -132,6 +137,7 @@ export function usePerpsCloseAllCalculations({
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
   const activeProvider = useSelector(selectPerpsProvider);
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
 
   // Use ref to access latest priceData without triggering re-renders
   const priceDataRef = useRef(priceData);
@@ -577,18 +583,32 @@ export function usePerpsCloseAllCalculations({
         0,
       );
     return {
+      // Cross margin is shared collateral and never holds the position's P&L.
+      // With the flag off, those positions keep the isolated presentation.
       totalMargin: sum(
-        estimates.map(({ marginReturned, realizedPnl }) =>
-          marginReturned === undefined || realizedPnl === undefined
+        estimates.map(({ marginReturned, realizedPnl }, index) => {
+          if (
+            isCrossMarginEnabled &&
+            positions[index].leverage?.type === 'cross'
+          ) {
+            return marginReturned;
+          }
+          return marginReturned === undefined || realizedPnl === undefined
             ? undefined
-            : marginReturned + realizedPnl,
-        ),
+            : marginReturned + realizedPnl;
+        }),
       ),
       totalPnl: sum(estimates.map(({ realizedPnl }) => realizedPnl)),
       totalFees: sum(estimates.map(({ fee }) => fee)),
       receiveAmount: sum(estimates.map(({ receive }) => receive)),
     };
-  }, [positions, priceData, perPositionResults, activeProvider]);
+  }, [
+    positions,
+    priceData,
+    perPositionResults,
+    activeProvider,
+    isCrossMarginEnabled,
+  ]);
 
   return {
     totalMargin: closeTotals.totalMargin,

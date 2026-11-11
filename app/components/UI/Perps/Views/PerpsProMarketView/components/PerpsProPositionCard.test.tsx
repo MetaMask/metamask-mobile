@@ -101,15 +101,19 @@ describe('PerpsProPositionCard', () => {
       />,
     );
 
-    // Assert - none of this PR's Cross affordances render.
-    // Margin stays non-editable because canEditMargin already keyed off
-    // leverage.type === 'isolated' before this PR; the flag does not change that.
+    // Assert - the flag-off position uses the isolated presentation, including
+    // an editable margin and no margin-mode tag.
     expect(
       screen.queryByTestId('cross-margin-tag-pro-ETH'),
     ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Cross')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Isolated')).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId('cross-liquidation-info-pro-ETH'),
     ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN),
+    ).toBeOnTheScreen();
   });
 
   it.each([null, '2500'])(

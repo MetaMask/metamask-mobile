@@ -12,6 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPerpsFiat } from '../../utils/formatUtils';
 import {
@@ -46,10 +47,9 @@ const TONE_COLOR: Record<CrossMarginRatioTone, TextColor> = {
 const getToneColor = (tone: CrossMarginRatioTone | undefined) =>
   tone ? TONE_COLOR[tone] : TextColor.TextDefault;
 
-const labelStyle = {
-  textDecorationLine: 'underline',
-  textDecorationStyle: 'dashed',
-} as const;
+// `textDecorationStyle: 'dashed'` is iOS-only, so use the plain underline to
+// render the same tappable affordance on both platforms.
+const labelStyle = { textDecorationLine: 'underline' } as const;
 
 interface RowProps {
   tooltipKey: PerpsCrossMarginSummaryTooltipKey;
@@ -104,8 +104,6 @@ const SummaryRow: React.FC<RowProps> = ({
   );
 };
 
-const PLACEHOLDER = () => strings('perps.crossMarginSummary.placeholder');
-
 /**
  * Cross margin metrics shown under the perps balance: account ratio,
  * maintenance margin, account leverage and cross margin usage.
@@ -127,7 +125,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
       tooltipKey="account_ratio"
       value={
         accountRatio === undefined
-          ? PLACEHOLDER()
+          ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatCrossMarginRatio(accountRatio)
       }
       valueColor={getToneColor(getCrossMarginRatioTone(accountRatio))}
@@ -139,7 +137,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
       tooltipKey="maintenance_margin"
       value={
         maintenanceMargin === undefined
-          ? PLACEHOLDER()
+          ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatPerpsFiat(maintenanceMargin)
       }
       valueColor={TextColor.TextDefault}
@@ -151,7 +149,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
       tooltipKey="account_leverage"
       value={
         accountLeverage === undefined
-          ? PLACEHOLDER()
+          ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatAccountLeverage(accountLeverage)
       }
       valueColor={TextColor.TextDefault}
@@ -163,7 +161,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
       tooltipKey="cross_margin_usage"
       value={
         crossMarginUsage === undefined
-          ? PLACEHOLDER()
+          ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatCrossMarginRatio(crossMarginUsage)
       }
       valueColor={getToneColor(getCrossMarginRatioTone(crossMarginUsage))}

@@ -3553,8 +3553,7 @@
       "account_ratio": "Account ratio",
       "maintenance_margin": "Maintenance margin",
       "account_leverage": "Account leverage",
-      "cross_margin_usage": "Cross margin usage",
-      "placeholder": "--"
+      "cross_margin_usage": "Cross margin usage"
     },
     "sort": {
       "volume": "Volume (24h)",

@@ -462,6 +462,7 @@ describe('PerpsClosePositionView', () => {
     });
 
     const { stream } = renderPerpsClosePositionView({
+      crossMarginEnabled: true,
       initialParams: { position },
       streamOverrides: {
         account: createFundedAccountForViews('10000'),

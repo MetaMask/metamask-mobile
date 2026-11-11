@@ -118,5 +118,16 @@ describe('usePerpsCrossMarginSummary', () => {
     expect(mockUsePerpsLiveAccount).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
+    expect(mockUsePerpsLivePositions).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('skips the positions subscription when the caller disables it', () => {
+    renderHook(() => usePerpsCrossMarginSummary({ enabled: false }));
+
+    expect(mockUsePerpsLivePositions).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 });

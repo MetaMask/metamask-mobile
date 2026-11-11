@@ -360,11 +360,10 @@ describe('PerpsPositionCard', () => {
 
     render(<PerpsPositionCard position={mockPosition} />);
 
-    expect(
-      within(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
-      ).getByText('perps.pro_positions_panel.card.isolated'),
-    ).toBeOnTheScreen();
+    const isolatedTag = within(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+    ).getByTestId(PerpsPositionCardSelectorsIDs.ISOLATED_MARGIN_TAG);
+    expect(isolatedTag).toHaveTextContent('perps.margin_mode.isolated_title');
   });
 
   it('retains the isolated margin edit action', () => {

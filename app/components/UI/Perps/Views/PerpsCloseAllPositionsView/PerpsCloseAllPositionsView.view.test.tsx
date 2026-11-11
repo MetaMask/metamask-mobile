@@ -204,6 +204,7 @@ describe('PerpsCloseAllPositionsView', () => {
     };
 
     const { stream } = renderPerpsCloseAllPositionsView({
+      crossMarginEnabled: true,
       streamOverrides: { positions: [isolatedLong, crossShort] },
     });
     act(() => {
@@ -214,8 +215,9 @@ describe('PerpsCloseAllPositionsView', () => {
     });
 
     // Isolated long: 983.33 - 150 + (2650 - 2500) = 983.33, fee 3.8425
-    // Cross short: 800 kept + (50000 - 49500) × 0.2 = 900, fee 14.355
+    // Cross short: 800 margin + (50000 - 49500) × 0.2 = 900 received, fee 14.355
     // Receive: (983.33 - 3.84) + (900 - 14.36) = 1865.13
+    // Margin: 983.33 isolated + 800 cross (no P&L) = 1783.33
     expect(
       await screen.findByTestId(
         PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
@@ -223,7 +225,11 @@ describe('PerpsCloseAllPositionsView', () => {
     ).toHaveTextContent('$1,865.13');
     expect(
       screen.getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE),
-    ).toHaveTextContent('$1,883.33');
+    ).toHaveTextContent('$1,783.33');
+    // Cross margin never holds P&L, so the summary no longer says it does
+    expect(
+      screen.queryByText(strings('perps.close_position.includes_pnl')),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the receive amount as unavailable until the close fee is quoted', async () => {

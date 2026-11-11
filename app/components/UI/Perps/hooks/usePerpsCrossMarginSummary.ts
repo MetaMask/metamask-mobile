@@ -43,7 +43,10 @@ export const usePerpsCrossMarginSummary = (
     enabled: isActive,
     throttleMs,
   });
-  const { positions } = usePerpsLivePositions({ throttleMs });
+  const { positions } = usePerpsLivePositions({
+    enabled: isActive,
+    throttleMs,
+  });
 
   const hasCrossPosition = useMemo(
     () => positions.some((position) => position.leverage?.type === 'cross'),

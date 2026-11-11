@@ -198,8 +198,7 @@ const PerpsProPositionCard = ({
     position.leverage.type === 'isolated'
       ? strings('perps.pro_positions_panel.card.isolated')
       : strings('perps.pro_positions_panel.card.cross');
-  const canEditMargin =
-    position.leverage.type === 'isolated' && Boolean(onEditMargin);
+  const canEditMargin = !isCross && Boolean(onEditMargin);
 
   // Mark price is not stored on the position; derive it from notional.
   // With useLivePnl, enrichPositionsWithLivePnL keeps positionValue in sync
@@ -395,16 +394,21 @@ const PerpsProPositionCard = ({
                 value={marginDisplay}
                 isHidden={privacyMode}
                 labelAccessory={
-                  <Tag
-                    severity={TagSeverity.Neutral}
-                    testID={
-                      isCross
-                        ? getPerpsCrossMarginTagSelector('pro', position.symbol)
-                        : undefined
-                    }
-                  >
-                    {marginTypeLabel}
-                  </Tag>
+                  isCrossMarginEnabled ? (
+                    <Tag
+                      severity={TagSeverity.Neutral}
+                      testID={
+                        isCross
+                          ? getPerpsCrossMarginTagSelector(
+                              'pro',
+                              position.symbol,
+                            )
+                          : undefined
+                      }
+                    >
+                      {marginTypeLabel}
+                    </Tag>
+                  ) : undefined
                 }
                 onValuePress={
                   canEditMargin ? () => onEditMargin?.(position) : undefined

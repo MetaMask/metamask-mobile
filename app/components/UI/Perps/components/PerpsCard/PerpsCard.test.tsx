@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import PerpsCard from './PerpsCard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   defaultPerpsPositionMock,
   defaultPerpsOrderMock,
@@ -69,10 +68,7 @@ describe('PerpsCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: Cross margin flag on, privacy mode off
-    (useSelector as jest.Mock).mockImplementation(
-      (selector: unknown) => selector === selectPerpsCrossMarginEnabledFlag,
-    );
+    (useSelector as jest.Mock).mockReturnValue(false);
     // Set up default mock return value
     mockUsePerpsMarkets.mockReturnValue({
       markets: [
