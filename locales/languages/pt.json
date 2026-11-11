@@ -1211,6 +1211,8 @@
       "bank_name_label": "Nome do banco",
       "copy_label": "Copiar {{field}}",
       "copied_label": "Copiado {{field}}",
+      "copy_all_button": "Copiar todos os detalhes",
+      "copied_all_label": "Dados bancários copiados",
       "button": "Concluído",
       "waiting_for_details": "Os dados da sua conta aparecerão aqui em breve.",
       "loading_details": "Carregando dados da conta",
