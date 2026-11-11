@@ -13,8 +13,6 @@ import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
-import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
-import { useMoneyDepositNavigation } from './useMoneyNavigation';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
@@ -29,9 +27,9 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
-jest.mock('./useMoneyDepositNavigation');
-jest.mock('react-redux');
-jest.mock('./useMoneyNavigation');
+jest.mock('./useMoneyDepositNavigation', () => ({
+  useMoneyCtaDepositNavigation: jest.fn(),
+}));
 jest.mock('../../../../hooks/useABTest');
 
 const mockInitiateDeposit = jest.fn();
@@ -43,12 +41,6 @@ const mockUseMoneyAssetOverviewCtaVisibility = jest.mocked(
   useMoneyAssetOverviewCtaVisibility,
 );
 const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
-const mockSelectIsAaveOutputToken = jest.mocked(
-  earnSelectors.selectIsAaveOutputToken,
-);
-const mockSelectorState = {} as RootState;
-
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 const mockUseABTest = jest.mocked(useABTest);
 
 const asset = {
@@ -86,6 +78,11 @@ describe('useMoneyAssetOverviewCtas', () => {
       isBalanceCtaEligible: true,
       isFooterCtaEligible: true,
     });
+    mockUseABTest.mockReturnValue({
+      variant: { showMoneyDepositFooterCta: true },
+      variantName: 'treatment',
+      isActive: true,
+    });
   });
 
   it('initializes shared analytics for the Asset Overview screen', () => {
@@ -105,23 +102,6 @@ describe('useMoneyAssetOverviewCtas', () => {
   });
 
   it('skips the vault APY query when neither Asset Overview CTA is eligible', () => {
-    mockUseMoneyAssetOverviewCtaVisibility.mockReturnValue({
-      isBalanceCtaEligible: false,
-      isFooterCtaEligible: false,
-    });
-
-    renderHook(() =>
-      useMoneyAssetOverviewCtas({
-        asset,
-        balanceFiatUsd: 100,
-        hasBalance: true,
-      }),
-    );
-
-    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
-  });
-
-  it('tracks experiment exposure for eligible control users without fetching APY', () => {
     mockUseMoneyAssetOverviewCtaVisibility.mockReturnValue({
       isBalanceCtaEligible: false,
       isFooterCtaEligible: false,
@@ -205,20 +185,10 @@ describe('useMoneyAssetOverviewCtas', () => {
   });
 
   it('hides the footer CTA for a stablecoin in the control variant', () => {
-    mockUseABTest.mockImplementation((flagKey) => {
-      if (flagKey === EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY) {
-        return {
-          variant: { showMoneyDepositBalanceCta: true },
-          variantName: 'treatment',
-          isActive: true,
-        };
-      }
-
-      return {
-        variant: { showMoneyDepositFooterCta: false },
-        variantName: 'control',
-        isActive: true,
-      };
+    mockUseABTest.mockReturnValue({
+      variant: { showMoneyDepositFooterCta: false },
+      variantName: 'control',
+      isActive: true,
     });
 
     const { result } = renderHook(() =>
@@ -274,20 +244,10 @@ describe('useMoneyAssetOverviewCtas', () => {
   });
 
   it('shows an allowlisted aToken in the stablecoin control variant', () => {
-    mockUseABTest.mockImplementation((flagKey) => {
-      if (flagKey === EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY) {
-        return {
-          variant: { showMoneyDepositBalanceCta: true },
-          variantName: 'treatment',
-          isActive: true,
-        };
-      }
-
-      return {
-        variant: { showMoneyDepositFooterCta: false },
-        variantName: 'control',
-        isActive: true,
-      };
+    mockUseABTest.mockReturnValue({
+      variant: { showMoneyDepositFooterCta: false },
+      variantName: 'control',
+      isActive: true,
     });
 
     const { result } = renderHook(() =>
