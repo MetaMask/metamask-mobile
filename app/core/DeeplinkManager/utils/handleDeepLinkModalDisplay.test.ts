@@ -2,6 +2,7 @@ import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import NavigationService from '../../NavigationService';
 import ReduxService from '../../redux';
 import { RootState } from '../../../reducers';
+import { DeepLinkModalLinkType } from '../types/deepLink.types';
 
 jest.mock('../../NavigationService', () => ({
   navigation: {
@@ -22,10 +23,36 @@ jest.mock('../../../components/UI/DeepLinkModal', () => ({
   createDeepLinkModalNavDetails: jest.fn(() => ['DeepLinkModal', {}]),
 }));
 
+jest.mock('../../../selectors/settings', () => ({
+  selectDeepLinkModalDisabled: (state: RootState) =>
+    state.settings.deepLinkModalDisabled,
+}));
+
 describe('handleDeepLinkModalDisplay', () => {
   const mockReduxService = ReduxService as jest.Mocked<typeof ReduxService>;
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('shows a required private-link confirmation even when reminders are disabled', async () => {
+    const state = {
+      settings: { deepLinkModalDisabled: true },
+    } as RootState;
+    jest.mocked(mockReduxService.store.getState).mockReturnValue(state);
+    const onContinue = jest.fn();
+
+    await handleDeepLinkModalDisplay(
+      {
+        linkType: DeepLinkModalLinkType.PRIVATE,
+        pageTitle: 'MetaMask',
+        onContinue,
+        onBack: jest.fn(),
+      },
+      { forceShow: true },
+    );
+
+    expect(NavigationService.navigation.navigate).toHaveBeenCalled();
+    expect(onContinue).not.toHaveBeenCalled();
   });
 
   it.each`

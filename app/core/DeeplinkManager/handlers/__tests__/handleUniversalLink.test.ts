@@ -236,6 +236,123 @@ describe('handleUniversalLink', () => {
     jest.restoreAllMocks();
   });
 
+  describe('whole-path route matching', () => {
+    it('dispatches a wildcard match with its original path and query', async () => {
+      const registry = jest.requireActual<
+        typeof import('../../utils/universalLinkRoutes')
+      >('../../utils/universalLinkRoutes');
+      const { createRouteRegistry } = jest.requireActual<
+        typeof import('../../utils/createRouteRegistry')
+      >('../../utils/createRouteRegistry');
+      const wildcardRegistry = createRouteRegistry<{
+        pathname: string;
+        action: ACTIONS.REWARDS;
+      }>();
+      wildcardRegistry.addRoute({
+        pathname: '/rewards/*/details',
+        action: ACTIONS.REWARDS,
+      });
+      jest
+        .spyOn(registry, 'matchUniversalLinkRoute')
+        .mockImplementation(wildcardRegistry.matchRoute);
+      const testUrl =
+        'https://link.metamask.io/rewards/Alice%2FBob/details?page=musd';
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: extractURLParams(testUrl).urlObj,
+        url: testUrl,
+        source: 'external',
+      });
+
+      expect(handleRewardsUrl).toHaveBeenCalledWith({
+        rewardsPath: '/Alice%2FBob/details?page=musd',
+      });
+    });
+
+    it.each(['/home/extra', '/home/', '/social/unknown', '/social/feed'])(
+      'rejects %s instead of dispatching its root action',
+      async (pathname) => {
+        const testUrl = `https://link.metamask.io${pathname}`;
+
+        const result = await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: extractURLParams(testUrl).urlObj,
+          url: testUrl,
+          source: 'external',
+        });
+
+        expect(result).toBe(false);
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+          expect.objectContaining({ linkType: DeepLinkModalLinkType.INVALID }),
+        );
+        expect(mockNavigateToHomeUrl).not.toHaveBeenCalled();
+        expect(handleSocialLeaderboardUrl).not.toHaveBeenCalled();
+      },
+    );
+
+    it('matches uppercase paths without bypassing the interstitial', async () => {
+      const testUrl = 'https://link.metamask.io/HOME?openNetworkSelector=true';
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: extractURLParams(testUrl).urlObj,
+        url: testUrl,
+        source: 'external',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        expect.objectContaining({ linkType: DeepLinkModalLinkType.PUBLIC }),
+        { forceShow: true },
+      );
+      expect(mockNavigateToHomeUrl).toHaveBeenCalledWith({
+        homePath: '?openNetworkSelector=true',
+      });
+    });
+
+    it('verifies the original case-sensitive URL before dispatch', async () => {
+      const testUrl = 'https://link.metamask.io/HOME?sig=example';
+      const verify = jest
+        .spyOn(signatureUtils, 'verifyDeeplinkSignature')
+        .mockResolvedValue(signatureUtils.VALID);
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: extractURLParams(testUrl).urlObj,
+        url: testUrl,
+        source: 'external',
+      });
+
+      expect(verify).toHaveBeenCalledWith(new URL(testUrl));
+      expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith(
+        expect.objectContaining({ linkType: DeepLinkModalLinkType.PRIVATE }),
+        { forceShow: true },
+      );
+      expect(mockNavigateToHomeUrl).toHaveBeenCalled();
+    });
+
+    it('rejects an unmatched pathname during startup resolution', async () => {
+      const testUrl = 'https://link.metamask.io/rewards/extra';
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: extractURLParams(testUrl).urlObj,
+        url: testUrl,
+        source: 'external',
+        mode: 'resolve',
+      });
+
+      expect(result).toBeNull();
+      expect(createRewardsDeeplinkIntent).not.toHaveBeenCalled();
+      expect(handleRewardsUrl).not.toHaveBeenCalled();
+    });
+  });
+
   describe('SDK action analytics', () => {
     it('fires DEEP_LINK_USED for connect deeplink before handleMetaMaskDeeplink', async () => {
       const {
@@ -811,9 +928,9 @@ describe('handleUniversalLink', () => {
       it('calls _handleOpenHome when action is HOME', async () => {
         const homeUrlObj = {
           ...urlObj,
-          pathname: `/${ACTIONS.HOME}/additional/path`,
+          pathname: `/${ACTIONS.HOME}`,
         };
-        url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.HOME}/additional/path`;
+        url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.HOME}`;
         await handleUniversalLink({
           instance,
           handled,
@@ -1141,12 +1258,12 @@ describe('handleUniversalLink', () => {
 
   describe('ACTIONS.CREATE_ACCOUNT', () => {
     it('calls _handleCreateAccount when action is CREATE_ACCOUNT', async () => {
-      const createAccountUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.CREATE_ACCOUNT}/some-account-path`;
+      const createAccountUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.CREATE_ACCOUNT}`;
       const createAccountUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: createAccountUrl,
-        pathname: `/${ACTIONS.CREATE_ACCOUNT}/some-account-path`,
+        pathname: `/${ACTIONS.CREATE_ACCOUNT}`,
       };
 
       await handleUniversalLink({
@@ -1164,12 +1281,12 @@ describe('handleUniversalLink', () => {
 
   describe('ACTIONS.PERPS', () => {
     it('calls _handlePerps when action is PERPS', async () => {
-      const perpsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS}/markets`;
+      const perpsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS}?screen=markets`;
       const perpsUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: perpsUrl,
-        pathname: `/${ACTIONS.PERPS}/markets`,
+        pathname: `/${ACTIONS.PERPS}`,
       };
 
       await handleUniversalLink({
@@ -1852,7 +1969,6 @@ describe('handleUniversalLink', () => {
         '/profile/position?positionId=position-1&traderId=trader-1',
         handleSocialTraderPositionUrl,
       ],
-      ['/feed', handleSocialLeaderboardUrl],
     ])(
       'routes /social%s without showing the interstitial',
       async (actionPath, handler) => {

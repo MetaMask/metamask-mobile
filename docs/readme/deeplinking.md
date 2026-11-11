@@ -443,12 +443,43 @@ export enum ACTIONS {
 ### Step 2: Add to Supported Actions
 
 ```typescript
-// app/core/DeeplinkManager/handlers/handleUniversalLink.ts
-enum SUPPORTED_ACTIONS {
+// app/core/DeeplinkManager/utils/universalLinkRoutes.ts
+export const SUPPORTED_ACTIONS = {
   // ... existing actions
-  YOUR_NEW_ACTION = ACTIONS.YOUR_NEW_ACTION,
-}
+  YOUR_NEW_ACTION: ACTIONS.YOUR_NEW_ACTION,
+} as const;
 ```
+
+Each supported action automatically registers its exact `/{action}` pathname.
+Declare nested paths in `UNIVERSAL_LINK_ROUTES` in the same file, mapping each
+pattern to the action whose handler receives the original path and parameters:
+
+```typescript
+{ pathname: '/your-new-action/*/details', action: ACTIONS.YOUR_NEW_ACTION }
+```
+
+Matching follows the extension registry: it is case-insensitive, consumes the
+whole pathname, and treats `*` as exactly one nonempty encoded segment. It does
+not decode `%2F`, capture parameters, or accept arbitrary suffixes. `/home/` and
+`/home/extra` do not match `/home`. Unknown Social subpaths no longer fall back
+to Social home; register each supported nested path explicitly.
+
+Registration rejects duplicates and wildcard/literal siblings in either order.
+For example, `/social/*` conflicts with `/social/profile`, even if their later
+suffixes differ. Parent/child routes and shared wildcard prefixes are allowed.
+The production-registry unit test builds every registration, so these conflicts
+fail CI. It also checks whole-segment wildcard syntax and prohibits terminal
+`/*/` patterns, matching extension's authoring conventions.
+
+Mobile's `/dapp` and `/send` routes explicitly retain arbitrary-length embedded
+URL payloads; these are not wildcard matches. `/on-ramp/return` is an explicit
+callback path. Existing SDK interception remains separate from navigation route
+matching. Do not use these exceptions as a fallback for new navigation routes.
+
+Lookup never changes the URL passed to signature verification. Existing
+lowercase-action interstitial decisions remain unchanged. Newly accepted
+uppercase root actions require confirmation, including when private-link
+reminders are disabled; they do not inherit a new interstitial bypass.
 
 ### Step 3: Create Handler Function
 
