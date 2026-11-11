@@ -21,8 +21,6 @@ const TIMEOUT = {
   NETWORK_SELECT: 10000,
   TOKEN_SELECT: 30000,
   KEYPAD_DIGIT: 10000,
-  /** Matches useSearchTokens debouncedSearch (300ms) + list settle. */
-  TOKEN_SEARCH_SETTLE: 1000,
   /** Overall Android Activity → Quote → Wallet dismiss retry budget. */
   ANDROID_SWAP_DISMISS: 12000,
 } as const;
@@ -182,66 +180,102 @@ class QuoteView {
     });
   }
 
-  async tapToken(chainId: string, symbol: string): Promise<void> {
-    let tokenElement = this.getTokenElement(chainId, symbol);
-    // When the row is mounted but iOS reports displayed:false (keyboard /
-    // FlatList clip), require existence then tap without a displayed gate.
-    let allowClippedTap = false;
+  /**
+   * Token FlatList is mounted. There is no loading-spinner testID on this
+   * screen, so the list container is the ready signal (same role as
+   * NotificationMenuView.waitForListReady).
+   */
+  async waitForTokenListReady(): Promise<void> {
+    await Assertions.expectElementToExist(
+      Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_LIST),
+      {
+        timeout: TIMEOUT.TOKEN_SELECT,
+        description: 'Bridge token list',
+      },
+    );
+  }
 
-    // Prefer waiting first. Forced scroll on a not-yet-mounted search hit
-    // burns maxScrolls against a stale element (CI fail).
-    try {
-      await Assertions.expectElementToBeVisible(tokenElement, {
-        timeout: 5000,
-        description: `Token ${symbol} visible without scroll`,
-      });
-    } catch {
-      // Keyboard / FlatList clipping can leave rows displayed:false even
-      // after search — force blur again, then scroll + wait for hierarchy.
-      await Gestures.dismissKeyboardAfterTokenSearch();
-      tokenElement = this.getTokenElement(chainId, symbol);
-      // Brief existence probe so we do not burn the full scroll budget while
-      // search results are still mounting (late Base token list).
-      try {
-        await Assertions.expectElementToExist(tokenElement, {
-          timeout: 10000,
-          description: `Token ${symbol} in hierarchy before scroll`,
-        });
-      } catch {
-        // FlatList may still need a scroll pass to mount the filtered row.
-      }
-      try {
-        tokenElement = this.getTokenElement(chainId, symbol);
-        // Gestures.scrollToElement uses Detox direction semantics and inverts
-        // for Appium scrollIntoView. Pass 'down' so Appium receives 'up'
-        // (matches prior AppiumGestures.scrollIntoView direction: 'up').
-        // iOS bridge smoke hits the same clip — do not gate scroll on Android.
+  /**
+   * iOS `mobile: hideKeyboard` tapOutside fails on this TextFieldSearch
+   * ("Did not know how to dismiss the keyboard"), which leaves result rows
+   * displayed:false. The single-line search field blurs on submit, so press
+   * Return while the keyboard is up. Skip the press once it is already gone
+   * so a later scroll pass is not blocked by a missing Return key.
+   */
+  async blurTokenSearch(): Promise<void> {
+    if (!(await Gestures.isKeyboardShown())) {
+      return;
+    }
+    if (PlatformDetector.isAndroid()) {
+      await Gestures.hideKeyboard();
+      return;
+    }
+    await Gestures.tapKeyboardReturnKey('Return');
+  }
+
+  /**
+   * FlatList may not mount the row until it is scrolled into view. One long
+   * scroll budget fails at WDIO's scroll limit; retry short passes until the
+   * token-select timeout, resetting toward the top between attempts.
+   */
+  async scrollTokenIntoView(chainId: string, symbol: string): Promise<void> {
+    let attempt = 0;
+    await Utilities.executeWithRetry(
+      async () => {
+        if (attempt > 0) {
+          await Gestures.swipe(
+            Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_LIST),
+            'down',
+            {
+              speed: 'fast',
+              elemDescription: `Token list scroll toward top for ${symbol}`,
+            },
+          );
+        }
+        attempt += 1;
+        // 'down' is inverted for Appium scrollIntoView, so the list moves up.
+        // 10s is about 3 scrolls per pass.
         await Gestures.scrollToElement(
-          tokenElement,
+          this.getTokenElement(chainId, symbol),
           Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
           {
             direction: 'down',
-            timeout: 15000,
+            timeout: 10_000,
             elemDescription: `Scroll to token symbol ${symbol}`,
           },
         );
-      } catch {
-        // Token may already be in view after search filters the list.
-      }
-      tokenElement = this.getTokenElement(chainId, symbol);
-      // Prefer hierarchy over isDisplayed — clipped Bridge token rows on iOS
-      // stay displayed:false for the full TOKEN_SELECT budget (CI: ~1.5–2s
-      // waitForDisplayed remnant after a 30s poll).
-      await Assertions.expectElementToExist(tokenElement, {
+      },
+      {
         timeout: TIMEOUT.TOKEN_SELECT,
-        description: `Token ${symbol} should be in hierarchy`,
-      });
-      allowClippedTap = true;
+        interval: 1_000,
+        description: `Token ${symbol} visible in list`,
+      },
+    );
+  }
+
+  async tapToken(chainId: string, symbol: string): Promise<void> {
+    await this.waitForTokenListReady();
+    let tokenElement = this.getTokenElement(chainId, symbol);
+
+    // A short visible hit skips scroll. Search rows can be mounted but covered
+    // by the keyboard and stay displayed:false.
+    if (!(await Utilities.isElementVisible(tokenElement, 5000))) {
+      await this.blurTokenSearch();
+      tokenElement = this.getTokenElement(chainId, symbol);
     }
+    if (!(await Utilities.isElementVisible(tokenElement, 5000))) {
+      await this.scrollTokenIntoView(chainId, symbol);
+      tokenElement = this.getTokenElement(chainId, symbol);
+      await Assertions.expectElementToBeVisible(tokenElement, {
+        timeout: TIMEOUT.TOKEN_SELECT,
+        description: `Token ${symbol} should be visible`,
+      });
+    }
+
     await Gestures.waitAndTap(tokenElement, {
-      checkForDisplayed: !allowClippedTap,
-      checkEnabled: !allowClippedTap,
-      delay: 1000,
+      checkForDisplayed: true,
+      checkEnabled: true,
+      delay: 0,
       elemDescription: `Select token symbol ${symbol}`,
     });
   }
@@ -251,11 +285,10 @@ class QuoteView {
       elemDescription: `Search Token with symbol ${symbol}`,
       hideKeyboard: false,
     });
-    // Wait for BridgeTokenSelector debouncedSearch (300ms) + result settle.
-    await sleep(TIMEOUT.TOKEN_SEARCH_SETTLE);
-    // iOS soft keyboard covers the list (rows stay displayed:false).
-    // tapOutside alone is flaky — also tap the pills strip to force blur.
-    await Gestures.dismissKeyboardAfterTokenSearch();
+    // No settle sleep here. The debounced search result is awaited by the
+    // retrying scroll in tapToken (scrollTokenIntoView), not by this method.
+    // Do not tap a screen percentage: ~28% hits network pills and ~42% hits token rows.
+    await this.blurTokenSearch();
   }
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {

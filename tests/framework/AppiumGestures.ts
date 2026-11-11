@@ -696,6 +696,16 @@ export default class AppiumGestures {
   }
 
   /**
+   * Whether the soft keyboard is currently shown.
+   * Page objects use Gestures.isKeyboardShown so they do not touch the driver.
+   */
+  static async isKeyboardShown(): Promise<boolean> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    return drv.isKeyboardShown();
+  }
+
+  /**
    * Hide keyboard for both Android and iOS
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
@@ -728,11 +738,10 @@ export default class AppiumGestures {
   }
 
   /**
-   * Dismiss the soft keyboard after typing in Bridge / ramps token search.
+   * Dismiss the soft keyboard after typing in Bridge token search.
    * tapOutside alone is flaky on iOS TextFieldSearch — rows can stay
-   * `displayed:false` under the keyboard. Follow with a tap in the token
-   * list body (below the network pills) to force blur without accidentally
-   * re-selecting a destination network pill.
+   * `displayed:false` under the keyboard. Follow with a tap on the
+   * network-pills strip (below the search field) to force blur.
    */
   static async dismissKeyboardAfterTokenSearch(): Promise<void> {
     await AppiumGestures.hideKeyboard();
@@ -747,9 +756,7 @@ export default class AppiumGestures {
         .action('pointer', {
           parameters: { pointerType: 'touch' },
         })
-        // ~0.42 is into the token FlatList; ~0.28 was the network-pills strip
-        // and could change the selected dest chain on Bridge.
-        .move({ x: Math.floor(width / 2), y: Math.floor(height * 0.42) })
+        .move({ x: Math.floor(width / 2), y: Math.floor(height * 0.28) })
         .down()
         .pause(50)
         .up()
