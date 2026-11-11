@@ -821,6 +821,7 @@ const CardHome = () => {
               showInfoBadge={creditIncludedInBalance}
               onInfoPress={handleOpenCreditBalanceTooltip}
               infoBadgeTestID={CardHomeSelectors.CREDIT_BALANCE_INFO_BUTTON}
+              isUnavailable={primaryToken?.isUnavailable}
             />
           )}
 

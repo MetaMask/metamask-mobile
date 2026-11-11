@@ -13,10 +13,13 @@ import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { useQuery } from '@metamask/react-data-query';
 import {
   getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
   getMultichainAssetsRatesControllerConversionRates,
   getTokenRatesControllerMarketData,
   getTokensControllerAllTokens,
 } from '../../../../selectors/assets/assets-migration';
+import { safeToChecksumAddress } from '../../../../util/address';
+import { TOKEN_BALANCE_LOADING } from '../../Tokens/constants';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('@metamask/react-data-query', () => ({
@@ -73,6 +76,11 @@ jest.mock('../../../../util/number/bigint', () => ({
     const bal = parseFloat(balance);
     return (bal * rate).toString();
   }),
+}));
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0xwallet1',
+  })),
 }));
 jest.mock('../util/safeFormatChainIdToHex', () => ({
   safeFormatChainIdToHex: jest.fn((caipChainId: string) => {
@@ -160,6 +168,9 @@ describe('useAssetBalances', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    (getCurrencyRateControllerCurrentCurrency as jest.Mock).mockImplementation(
+      () => 'USD',
+    );
     networkConfigsState = { '0xe708': { nativeCurrency: 'ETH' } };
 
     // Default selector mock implementations
@@ -237,10 +248,41 @@ describe('useAssetBalances', () => {
       expect(balanceInfo?.rawTokenBalance).toBe(100);
     });
 
+    it('converts a USD-pegged balance into the selected currency', () => {
+      (getCurrencyRateControllerCurrentCurrency as jest.Mock).mockReturnValue(
+        'EUR',
+      );
+      mockGetCurrencyRateControllerCurrencyRates.mockReturnValue({
+        ETH: {
+          conversionRate: 1800,
+          conversionDate: 0,
+          usdConversionRate: 2000,
+        },
+      } as any);
+      mockFormatWithThreshold.mockImplementation(
+        (value: number | null) => `EUR ${value}`,
+      );
+
+      const { result } = renderHook(() => useAssetBalances([parityToken]));
+
+      const key = `${parityToken.address?.toLowerCase()}-${parityToken.caipChainId}-${parityToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBeCloseTo(90);
+      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+        90,
+        0.01,
+        'en-US',
+        expect.objectContaining({ style: 'currency', currency: 'EUR' }),
+      );
+    });
+
     it('prefers live market data over the parity fallback when available', () => {
       mockGetTokenRatesControllerMarketData.mockReturnValue({
         '0xe708': {
-          [parityToken.address?.toLowerCase() as any]: { price: 0.0005 },
+          [safeToChecksumAddress(parityToken.address ?? '') as string]: {
+            price: 0.0005,
+          },
         },
       } as any);
       mockFormatWithThreshold.mockReturnValue('$200.00');
@@ -280,7 +322,7 @@ describe('useAssetBalances', () => {
     it('returns balance info for single EVM token with spendableBalance', () => {
       mockGetTokenRatesControllerMarketData.mockReturnValue({
         '0xe708': {
-          [mockEvmToken.address?.toLowerCase() as any]: {
+          [safeToChecksumAddress(mockEvmToken.address ?? '') as string]: {
             price: 2.0,
           },
         },
@@ -674,7 +716,7 @@ describe('useAssetBalances', () => {
     it('calculates fiat from market data when available', () => {
       mockGetTokenRatesControllerMarketData.mockReturnValue({
         '0xe708': {
-          [mockEvmToken.address?.toLowerCase() as any]: {
+          [safeToChecksumAddress(mockEvmToken.address ?? '') as string]: {
             price: 1.0,
           },
         },
@@ -1746,6 +1788,54 @@ describe('useAssetBalances', () => {
 
       expect(balanceInfo?.rawFiatNumber).toBeCloseTo(105, 5);
       expect(balanceInfo?.balanceFiat).toBe('$105.00');
+    });
+
+    it('shows loading while the vault exchange rate is still being fetched', () => {
+      mockUseQuery.mockReturnValue({
+        data: undefined,
+        isFetching: true,
+      } as any);
+      setupSelectorMock({});
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.balanceFiat).toBe(TOKEN_BALANCE_LOADING);
+      expect(balanceInfo?.rawFiatNumber).toBeUndefined();
+      expect(balanceInfo?.isUnavailable).toBeUndefined();
+    });
+
+    it('does not borrow the selected wallet balance when a Money entry could not be read', () => {
+      const unreadMoneyToken: CardFundingToken = {
+        ...mockMoneyAccountToken,
+        spendableBalance: '',
+        walletAddress: '0x000000000000000000000000000000000000dEaD',
+      };
+      setupSelectorMock({});
+      mockUseTokensWithBalance.mockReturnValue([
+        {
+          address: unreadMoneyToken.address?.toLowerCase() || '',
+          chainId: '0xe708',
+          balance: '999',
+          balanceFiat: '$999.00',
+          symbol: 'mUSD',
+          decimals: 6,
+        } as any,
+      ]);
+
+      const { result } = renderHook(() => useAssetBalances([unreadMoneyToken]));
+
+      const key = `${unreadMoneyToken.address?.toLowerCase()}-${unreadMoneyToken.caipChainId}-${unreadMoneyToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.isUnavailable).toBe(true);
+      expect(balanceInfo?.rawFiatNumber).toBeUndefined();
+      expect(balanceInfo?.rawTokenBalance).toBeUndefined();
+      expect(balanceInfo?.balanceFiat).toBe('');
     });
 
     it('treats a share price of exactly 1.0 as unchanged mUSD value', () => {

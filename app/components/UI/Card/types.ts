@@ -118,6 +118,7 @@ export type CardFundingTokenWithBalance = CardFundingToken & {
   rawFiatNumber: number | undefined;
   rawTokenBalance: number | undefined;
   asset?: TokenI;
+  isUnavailable?: boolean;
 };
 
 export interface CardLoginInitiateResponse {

@@ -930,18 +930,22 @@ const MoneyHomeView = () => {
   // Money Account entries are already valued in USD. Other Card tokens report
   // their fiat value in the user's selected currency.
   const cardBalanceUsd = useMemo(() => {
-    const rawFiat = cardPrimaryToken?.rawFiatNumber;
-    const usd = cardPrimaryToken?.isMoneyAccountEntry
+    if (
+      cardPrimaryToken?.isUnavailable ||
+      cardPrimaryToken?.rawFiatNumber === undefined
+    ) {
+      return '—';
+    }
+    const rawFiat = cardPrimaryToken.rawFiatNumber;
+    const usd = cardPrimaryToken.isMoneyAccountEntry
       ? rawFiat
       : convertSelectedFiatToUsd(rawFiat, currencyRates);
-    return usd === undefined
-      ? formattedZero
-      : moneyFormatUsd(new BigNumber(usd));
+    return usd === undefined ? '—' : moneyFormatUsd(new BigNumber(usd));
   }, [
     cardPrimaryToken?.isMoneyAccountEntry,
+    cardPrimaryToken?.isUnavailable,
     cardPrimaryToken?.rawFiatNumber,
     currencyRates,
-    formattedZero,
   ]);
 
   const cardState = deriveCardState({
@@ -970,7 +974,7 @@ const MoneyHomeView = () => {
             showMetalCard={hasMetalCard}
             isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}
-            isBalanceStale={showBalanceUnavailableBanner}
+            isBalanceStale={cardHomeDataStatus === 'error'}
             privacyMode={privacyMode}
             apy={apyPercent}
             analyticsScreen={CardScreens.MONEY_HOME}
