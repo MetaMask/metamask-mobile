@@ -47,6 +47,10 @@ export const PREDICT_SURFACE_FEED_KEYS = {
       games: 'college-football-games',
       props: 'college-football-props',
     },
+    sports: {
+      nfl: 'nfl-games',
+      ncaaf: 'college-football-games',
+    },
     politics: {
       trump: 'politics-trump',
       congress: 'politics-congress',

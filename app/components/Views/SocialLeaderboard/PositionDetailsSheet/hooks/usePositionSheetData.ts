@@ -15,6 +15,7 @@ import {
   getSupportedXyzPerpMarketSymbol,
   type PerpDirection,
 } from '../../../../UI/SocialFeed/utils/perp';
+import { PERPS_COLLATERAL_SYMBOL } from '../../../../UI/Perps/constants/perpsConfig';
 import { toUnitPrice } from '../../../../UI/SocialFeed/utils/toSocialV1FeedItem';
 import { tradeTimestampToMs } from '../../../../UI/SocialFeed/utils/tradeTimestamp';
 import { useTraderPositionData } from '../../TraderPositionView/useTraderPositionData';
@@ -50,6 +51,7 @@ export interface PositionSheetData {
   isClosed: boolean;
   /** Display ticker (`BTC`, `PEPE`), HIP-3 prefix stripped. */
   symbol: string;
+  /** Header title: the token name for spot, `BTC-USD perp` for perps. */
   assetName: string;
   leverage: number | undefined;
   perpDirection: PerpDirection | null;
@@ -251,8 +253,12 @@ export function usePositionSheetData(
   ]);
 
   const symbol = base.symbol;
-  const assetName =
-    position?.tokenName && position.tokenName !== position.tokenSymbol
+  const assetName = isPerp
+    ? strings('perps.market_details.perp_pair', {
+        ticker: symbol,
+        collateral: PERPS_COLLATERAL_SYMBOL,
+      })
+    : position?.tokenName && position.tokenName !== position.tokenSymbol
       ? position.tokenName
       : symbol;
 

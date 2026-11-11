@@ -183,7 +183,11 @@ describe('EventCardGame', () => {
 
     renderCard(event, { variant: 'featured' });
 
-    expect(screen.getByText(event.title)).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId('predict-next-game-header-game-event'),
+      ).getByText(event.title),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId('predict-next-game-logo-game-event-away', {
         includeHiddenElements: true,
@@ -194,20 +198,174 @@ describe('EventCardGame', () => {
         includeHiddenElements: true,
       }),
     ).toHaveStyle({ transform: [{ scaleX: -1 }] });
-    expect(screen.getByText('Arizona Cardinals')).toHaveStyle({ width: 80 });
     expect(
-      screen.getByTestId('predict-next-game-matchup-game-event'),
-    ).toHaveStyle({ height: 96, paddingBottom: 16 });
+      screen.getByTestId('predict-next-game-logo-game-event-away', HIDDEN),
+    ).toHaveStyle({ width: 52, height: 48 });
     expect(
-      screen.getByTestId('predict-next-game-bar-game-event'),
-    ).toBeOnTheScreen();
+      screen.getByTestId('predict-next-game-team-label-game-event-away'),
+    ).toHaveTextContent('ARI');
+    expect(
+      screen.getByTestId('predict-next-game-team-label-game-event-home'),
+    ).toHaveTextContent('CAR');
+    expect(
+      within(
+        screen.getByTestId('predict-next-game-matchup-game-event'),
+      ).queryByText('Arizona Cardinals'),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText('17')).toHaveStyle({ fontSize: 32 });
+    expect(screen.getByTestId('predict-next-game-bar-game-event')).toHaveStyle({
+      flexDirection: 'row',
+      gap: 4,
+    });
     expect(
       screen.getByTestId('predict-next-game-bar-game-event-away'),
-    ).toHaveStyle({ width: '47%' });
+    ).toHaveStyle({ flex: 47, height: 4, borderRadius: 9999 });
+    expect(
+      screen.getByTestId('predict-next-game-bar-game-event-home'),
+    ).toHaveStyle({ flex: 53, height: 4, borderRadius: 9999 });
     expect(
       screen.queryByTestId('predict-next-game-event-footer'),
     ).not.toBeOnTheScreen();
     expect(screen.queryByText('2.13x')).not.toBeOnTheScreen();
+  });
+
+  it('shows the featured header row with the Competition and a divider', () => {
+    renderCard(createEvent(), { variant: 'featured' });
+
+    const header = screen.getByTestId('predict-next-game-header-game-event');
+    expect(within(header).getByText('Cardinals vs Panthers')).toHaveProp(
+      'numberOfLines',
+      1,
+    );
+    expect(
+      screen.getByTestId('predict-next-game-header-game-event-competition'),
+    ).toHaveTextContent('NFL');
+    expect(
+      screen.getByTestId('predict-next-game-header-game-event-divider'),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the featured header Competition when the Event has none', () => {
+    const event = createEvent();
+    if (event.sports) {
+      event.sports.competition = undefined;
+    }
+
+    renderCard(event, { variant: 'featured' });
+
+    expect(
+      within(
+        screen.getByTestId('predict-next-game-header-game-event'),
+      ).getByText(event.title),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('predict-next-game-header-game-event-competition'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the featured live dot and label in the success color', () => {
+    renderCard(createEvent(), { variant: 'featured' });
+
+    expect(
+      screen.getByTestId('predict-next-game-live-dot-game-event'),
+    ).toHaveStyle({
+      width: 8,
+      height: 8,
+      backgroundColor: lightTheme.colors.success.default,
+    });
+    expect(screen.getByText(strings('predict.game_status.live'))).toHaveStyle({
+      color: lightTheme.colors.success.default,
+    });
+    expect(screen.getByText('Q4 · 12:22')).toBeOnTheScreen();
+  });
+
+  it('labels the featured quote pills with the Team name and price', () => {
+    const event = createEvent();
+    const onOrder = jest.fn();
+
+    renderCard(event, { variant: 'featured', onOrder });
+
+    const away = screen.getByTestId('predict-next-game-quote-game-event-away');
+    const home = screen.getByTestId('predict-next-game-quote-game-event-home');
+    expect(away).toHaveTextContent(/^Arizona Cardinals\s*· 47¢$/);
+    expect(home).toHaveTextContent(/^Carolina Panthers\s*· 53¢$/);
+    expect(
+      screen.getByRole('button', {
+        name: 'Arizona Cardinals, 47¢, buy',
+      }),
+    ).toBeOnTheScreen();
+    expect(within(away).getByText('Arizona Cardinals')).toHaveProp(
+      'numberOfLines',
+      1,
+    );
+    expect(within(away).getByText('· 47¢')).toBeOnTheScreen();
+    expect(away).toHaveStyle({ height: 48, borderRadius: 9999 });
+    expect(home).toHaveStyle({ height: 48, borderRadius: 9999 });
+  });
+
+  it('fills the first featured quote with the neutral primary color and the second with its Team color', () => {
+    const event = createEvent();
+    const homeColor = getGame(event).homeTeam.primaryColor;
+    renderCard(event, { variant: 'featured', onOrder: jest.fn() });
+
+    expect(
+      screen.getByTestId('predict-next-game-quote-game-event-away'),
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.icon.default });
+    expect(
+      screen.getByTestId('predict-next-game-quote-game-event-home'),
+    ).toHaveStyle({ backgroundColor: homeColor });
+    expect(
+      screen.getByTestId('predict-next-game-bar-game-event-away'),
+    ).toHaveStyle({ backgroundColor: lightTheme.colors.text.default });
+    expect(
+      screen.getByTestId('predict-next-game-bar-game-event-home'),
+    ).toHaveStyle({ backgroundColor: homeColor });
+  });
+
+  it.each(['away', 'home'] as const)(
+    'opens the order flow for the %s Team Outcome from a featured quote',
+    (selection) => {
+      const event = createEvent();
+      const onOrder = jest.fn();
+      const onPress = jest.fn();
+      renderCard(event, { variant: 'featured', onOrder, onPress });
+
+      fireEvent.press(
+        screen.getByTestId(`predict-next-game-quote-game-event-${selection}`),
+      );
+
+      const market = event.markets[selection === 'away' ? 0 : 1];
+      expect(onOrder).toHaveBeenCalledWith(event, market, market.outcomes[0]);
+      expect(onPress).not.toHaveBeenCalled();
+    },
+  );
+
+  it('shows a featured quote without a price as a disabled Team name pill', () => {
+    const event = createEvent({
+      markets: [
+        createMarket('away', 'away', null),
+        createMarket('home', 'home', '0.53'),
+      ],
+    });
+    const onOrder = jest.fn();
+
+    renderCard(event, { variant: 'featured', onOrder });
+
+    const away = screen.getByTestId('predict-next-game-quote-game-event-away');
+    expect(away).toHaveTextContent('Arizona Cardinals');
+    expect(away).not.toHaveTextContent('¢');
+    expect(away).toBeDisabled();
+    fireEvent.press(away);
+    expect(onOrder).not.toHaveBeenCalled();
+  });
+
+  it('shows featured quotes as prices, not buttons, without an order handler', () => {
+    renderCard(createEvent(), { variant: 'featured' });
+
+    expect(
+      screen.getByTestId('predict-next-game-quote-game-event-away'),
+    ).toHaveTextContent(/^Arizona Cardinals\s*· 47¢$/);
+    expect(screen.queryByRole('button', { name: /buy/ })).not.toBeOnTheScreen();
   });
 
   it('lists the away Team first when the Game sends no Team order', () => {
@@ -269,7 +427,7 @@ describe('EventCardGame', () => {
     ]);
     expect(
       screen.getByTestId('predict-next-game-bar-game-event-home'),
-    ).toHaveStyle({ width: '53%' });
+    ).toHaveStyle({ flex: 53 });
     expect(renderedSelections('predict-next-game-quote-game-event')).toEqual([
       'home',
       'away',
@@ -564,5 +722,318 @@ describe('EventCardGame', () => {
 
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onOrder).toHaveBeenCalledTimes(1);
+  });
+
+  describe('small variant', () => {
+    // 2026-09-11T00:20Z is Thursday 8:20 PM in the test time zone.
+    const NOW = new Date('2026-09-08T16:00:00Z');
+
+    const createSmallEvent = (overrides: Partial<PredictEvent> = {}) => {
+      const event = createEvent(overrides);
+      getGame(event).status = 'scheduled';
+      return event;
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers({ now: NOW });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('shows the Competition and start in the header, then a row per Team', () => {
+      renderCard(createSmallEvent(), { variant: 'small' });
+
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-competition'),
+      ).toHaveTextContent('NFL');
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-start'),
+      ).toHaveTextContent(/^Thu · 8:20\sPM$/);
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-divider'),
+      ).toBeOnTheScreen();
+      expect(renderedSelections('predict-next-game-team-game-event')).toEqual([
+        'away',
+        'home',
+      ]);
+
+      const away = within(
+        screen.getByTestId('predict-next-game-team-game-event-away'),
+      );
+      expect(
+        away.getByTestId('predict-next-game-logo-game-event-away', HIDDEN),
+      ).toBeOnTheScreen();
+      expect(
+        away.getByTestId('predict-next-game-team-label-game-event-away'),
+      ).toHaveTextContent('ARI');
+      expect(
+        away.getByTestId('predict-next-game-quote-game-event-away'),
+      ).toHaveTextContent('47¢');
+
+      const home = within(
+        screen.getByTestId('predict-next-game-team-game-event-home'),
+      );
+      expect(
+        home.getByTestId(
+          'predict-next-game-logo-fallback-game-event-home',
+          HIDDEN,
+        ),
+      ).toHaveTextContent('CAR');
+      expect(
+        home.getByTestId('predict-next-game-team-label-game-event-home'),
+      ).toHaveTextContent('CAR');
+      expect(
+        home.getByTestId('predict-next-game-quote-game-event-home'),
+      ).toHaveTextContent('53¢');
+    });
+
+    it('renders no bar, multiplier, score, footer or volume', () => {
+      renderCard(createSmallEvent(), { variant: 'small' });
+
+      expect(
+        screen.queryByTestId('predict-next-game-bar-game-event'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-next-game-game-event-footer'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-next-game-status-game-event'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText(/x$/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/Vol/)).not.toBeOnTheScreen();
+    });
+
+    it('is 190pt wide', () => {
+      renderCard(createSmallEvent(), { variant: 'small' });
+
+      expect(
+        screen.getByTestId('predict-next-event-kalshi-game-event'),
+      ).toHaveStyle({ width: 190 });
+    });
+
+    it('lays the Competition and start out on one line', () => {
+      renderCard(createSmallEvent(), { variant: 'small' });
+
+      const row = screen.getByTestId('predict-next-game-header-game-event-row');
+      expect(row).toHaveStyle({
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      });
+      expect(
+        within(row).getByTestId(
+          'predict-next-game-header-game-event-competition',
+        ),
+      ).toHaveProp('numberOfLines', 1);
+      expect(
+        within(row).getByTestId('predict-next-game-header-game-event-start'),
+      ).toHaveProp('numberOfLines', 1);
+    });
+
+    it.each([
+      ['priced', [createMarket('away', 'away', '0.47')], jest.fn()],
+      [
+        'without an order handler',
+        [createMarket('away', 'away', '0.47')],
+        undefined,
+      ],
+      ['without an Ask Price', [createMarket('away', 'away', null)], jest.fn()],
+    ])('sizes the price pill 54x32 when %s', (_, markets, onOrder) => {
+      renderCard(
+        createSmallEvent({
+          markets: [...markets, createMarket('home', 'home')],
+        }),
+        { variant: 'small', onOrder },
+      );
+
+      expect(
+        screen.getByTestId('predict-next-game-quote-game-event-away'),
+      ).toHaveStyle({ width: 54, height: 32 });
+    });
+
+    it('keeps the layout and start time for a Game in progress', () => {
+      const event = createSmallEvent();
+      getGame(event).status = 'in_progress';
+
+      renderCard(event, { variant: 'small' });
+
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-start'),
+      ).toHaveTextContent(/^Thu · 8:20\sPM$/);
+      expect(screen.queryByText('17')).not.toBeOnTheScreen();
+      expect(screen.queryByText('21')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-next-game-live-dot-game-event'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows a short date for a Game more than a week out', () => {
+      renderCard(
+        createSmallEvent({
+          startsAt: '2026-11-23T18:00:00Z' as PredictTimestamp,
+        }),
+        { variant: 'small' },
+      );
+
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-start'),
+      ).toHaveTextContent(/^Nov 23 · 1:00\sPM$/);
+    });
+
+    it('keeps the start on the right without a Competition', () => {
+      const event = createSmallEvent();
+      if (event.sports) {
+        event.sports.competition = undefined;
+      }
+
+      renderCard(event, { variant: 'small' });
+
+      expect(
+        screen.queryByTestId('predict-next-game-header-game-event-competition'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-leading'),
+      ).toHaveStyle({ flexGrow: 1 });
+      expect(
+        within(screen.getByTestId('predict-next-game-header-game-event-row'))
+          .getAllByTestId(
+            /^predict-next-game-header-game-event-(leading|start)$/,
+          )
+          .map((part) => String(part.props.testID).split('-').pop()),
+      ).toEqual(['leading', 'start']);
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-start'),
+      ).toHaveTextContent(/^Thu · 8:20\sPM$/);
+    });
+
+    it('omits the start without a start time', () => {
+      renderCard(createSmallEvent({ startsAt: undefined }), {
+        variant: 'small',
+      });
+
+      expect(
+        screen.queryByTestId('predict-next-game-header-game-event-start'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-game-header-game-event-competition'),
+      ).toHaveTextContent('NFL');
+      expect(
+        screen.getByTestId('predict-next-game-team-game-event-away'),
+      ).toBeOnTheScreen();
+    });
+
+    it('lists the home Team first for a home_first Game', () => {
+      renderCard(createLogoEvent('home_first'), { variant: 'small' });
+
+      expect(renderedSelections('predict-next-game-team-game-event')).toEqual([
+        'home',
+        'away',
+      ]);
+    });
+
+    it('opens the order flow for the Team from a priced pill', () => {
+      const event = createSmallEvent();
+      const onPress = jest.fn();
+      const onOrder = jest.fn();
+      renderCard(event, { variant: 'small', onPress, onOrder });
+
+      fireEvent.press(
+        screen.getByRole('button', { name: 'Carolina Panthers, 53¢, buy' }),
+      );
+
+      expect(onOrder).toHaveBeenCalledWith(
+        event,
+        event.markets[1],
+        event.markets[1].outcomes[0],
+      );
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('opens the Event from the header and Team identities, not the pills', () => {
+      const onPress = jest.fn();
+      const onOrder = jest.fn();
+      renderCard(createSmallEvent(), { variant: 'small', onPress, onOrder });
+
+      fireEvent.press(
+        screen.getByTestId('predict-next-event-content-kalshi-game-event'),
+      );
+      fireEvent.press(
+        screen.getByTestId('predict-next-game-team-content-game-event-away'),
+      );
+      fireEvent.press(
+        screen.getByTestId('predict-next-game-team-content-game-event-home'),
+      );
+
+      expect(onPress).toHaveBeenCalledTimes(3);
+      expect(onOrder).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [
+        'without an Ask Price',
+        [createMarket('away', 'away', null), createMarket('home', 'home')],
+      ],
+      ['without a Market', [createMarket('home', 'home')]],
+    ])('shows "-" in a pill that does nothing %s', (_, markets) => {
+      const onPress = jest.fn();
+      const onOrder = jest.fn();
+      renderCard(createSmallEvent({ markets }), {
+        variant: 'small',
+        onPress,
+        onOrder,
+      });
+
+      const pill = screen.getByTestId(
+        'predict-next-game-quote-game-event-away',
+      );
+      expect(pill).toHaveTextContent(/^-$/);
+      expect(pill).toBeDisabled();
+      expect(pill).toHaveProp(
+        'accessibilityLabel',
+        'Arizona Cardinals, price unavailable',
+      );
+
+      fireEvent.press(pill);
+
+      expect(onOrder).not.toHaveBeenCalled();
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('shows the price, not a button, without an order handler', () => {
+      renderCard(createSmallEvent(), { variant: 'small' });
+
+      expect(
+        screen.getByTestId('predict-next-game-quote-game-event-away'),
+      ).toHaveTextContent('47¢');
+      expect(
+        screen.queryByRole('button', { name: /buy/ }),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the price, not a button, from an inactive Market', () => {
+      const onOrder = jest.fn();
+      renderCard(
+        createSmallEvent({
+          markets: [
+            createMarket('away', 'away', '0.47', 'inactive'),
+            createMarket('home', 'home', '0.53'),
+          ],
+        }),
+        { variant: 'small', onOrder },
+      );
+
+      const away = screen.getByTestId(
+        'predict-next-game-quote-game-event-away',
+      );
+      expect(away).toHaveTextContent('47¢');
+      expect(
+        screen.queryByRole('button', { name: 'Arizona Cardinals, 47¢, buy' }),
+      ).not.toBeOnTheScreen();
+      fireEvent.press(away);
+
+      expect(onOrder).not.toHaveBeenCalled();
+    });
   });
 });

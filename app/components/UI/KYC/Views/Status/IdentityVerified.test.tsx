@@ -1,9 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { CommonActions } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
 import KycIdentityVerified, {
   KycIdentityVerifiedSelectorsIDs,
 } from './IdentityVerified';
@@ -11,81 +9,58 @@ import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 
 jest.mock('../../hooks/useTrackKycResultViewed');
 
-const mockNavigate = jest.fn();
-const mockParentDispatch = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    dispatch: jest.fn(),
-    getState: () => ({
-      index: 0,
-      routeNames: ['VbaIdentityVerified'],
-      routes: [{ name: 'VbaIdentityVerified' }],
-    }),
-    getParent: () => ({
-      navigate: jest.fn(),
-      dispatch: mockParentDispatch,
-      getState: () => ({
-        index: 0,
-        routeNames: ['Home', 'RampVbaOnboarding', 'RampVbaDetails'],
-        routes: [{ name: 'Home' }],
-      }),
-      getParent: () => undefined,
-    }),
-  }),
-}));
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      registerMoneyAccountWallet: jest.fn(),
-      createAutoramp: jest.fn(),
-    },
-  },
-}));
-
 describe('KycIdentityVerified', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders copy and opens details from Continue without creating an account', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <KycIdentityVerified />,
+  it('renders the verified copy', () => {
+    const onExit = jest.fn();
+    const onContinue = jest.fn();
+    const { getByText } = renderWithProvider(
+      <KycIdentityVerified onExit={onExit} onContinue={onContinue} />,
     );
 
     expect(getByText(strings('kyc.identity_verified.title'))).toBeOnTheScreen();
     expect(
       getByText(strings('kyc.identity_verified.description')),
     ).toBeOnTheScreen();
+    expect(onContinue).not.toHaveBeenCalled();
+    expect(onExit).not.toHaveBeenCalled();
+  });
+
+  it('hands Continue to the caller', () => {
+    const onExit = jest.fn();
+    const onContinue = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <KycIdentityVerified onExit={onExit} onContinue={onContinue} />,
+    );
 
     fireEvent.press(
       getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
 
-    expect(mockParentDispatch).toHaveBeenCalledWith(
-      CommonActions.reset({
-        index: 1,
-        routes: [{ name: Routes.HOME_TABS }, { name: Routes.RAMP.VBA_DETAILS }],
-      }),
-    );
+    expect(onContinue).toHaveBeenCalledTimes(1);
+    expect(onExit).not.toHaveBeenCalled();
   });
 
-  it('returns to Money home from Back', () => {
-    const { getByTestId } = renderWithProvider(<KycIdentityVerified />);
+  it('hands Back to the caller', () => {
+    const onExit = jest.fn();
+    const onContinue = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <KycIdentityVerified onExit={onExit} onContinue={onContinue} />,
+    );
 
     fireEvent.press(getByTestId(KycIdentityVerifiedSelectorsIDs.BACK_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    expect(onExit).toHaveBeenCalledTimes(1);
+    expect(onContinue).not.toHaveBeenCalled();
   });
 
   it('reports the approved result as viewed', () => {
-    renderWithProvider(<KycIdentityVerified />);
+    renderWithProvider(
+      <KycIdentityVerified onExit={jest.fn()} onContinue={jest.fn()} />,
+    );
 
     expect(useTrackKycResultViewed).toHaveBeenCalledWith('approved');
   });

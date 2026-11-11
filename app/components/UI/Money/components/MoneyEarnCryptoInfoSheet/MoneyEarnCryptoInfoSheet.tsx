@@ -27,7 +27,7 @@ import {
   BOTTOM_SHEET_NAMES,
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
 
 type MoneyEarnCryptoInfoSheetVariant = 'default' | 'deposit';
 
@@ -43,7 +43,7 @@ const MoneyEarnCryptoInfoSheet = () => {
   const { showMoneyHomeCta = false, variant = 'default' } =
     useParams<MoneyEarnCryptoInfoSheetParams>();
   const { apyPercent } = useMoneyVaultApy();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
 
   const { trackBottomSheetViewed, trackButtonClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_EARN_CRYPTO_INFO_SHEET,

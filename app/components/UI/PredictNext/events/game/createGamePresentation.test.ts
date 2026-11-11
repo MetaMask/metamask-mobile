@@ -8,6 +8,7 @@ import type {
 } from '../../types';
 import {
   createGamePresentation,
+  formatGameStartShort,
   getEventGame,
   getGameTeamOrder,
   getTeamAbbreviation,
@@ -198,5 +199,36 @@ describe('createGamePresentation', () => {
       label: strings('predict.game_status.final'),
       metadata: 'Q4 · 12:22',
     });
+  });
+});
+
+describe('formatGameStartShort', () => {
+  const originalLocale = I18n.locale;
+  // Tuesday 2026-09-08, noon in the test time zone.
+  const now = new Date('2026-09-08T16:00:00Z');
+
+  beforeAll(() => {
+    I18n.locale = 'en-US';
+  });
+
+  afterAll(() => {
+    I18n.locale = originalLocale;
+  });
+
+  it.each([
+    ['later today', '2026-09-08T23:15:00Z', /^Tue · 7:15\sPM$/],
+    ['six days ahead', '2026-09-14T17:00:00Z', /^Mon · 1:00\sPM$/],
+    ['two days ago', '2026-09-06T17:00:00Z', /^Sun · 1:00\sPM$/],
+    ['seven days ahead', '2026-09-15T17:00:00Z', /^Sep 15 · 1:00\sPM$/],
+    ['weeks ahead', '2026-11-23T18:00:00Z', /^Nov 23 · 1:00\sPM$/],
+  ])('formats a start %s', (_, startsAt, expected) => {
+    expect(formatGameStartShort(startsAt, now)).toMatch(expected);
+  });
+
+  it('counts calendar days in the device time zone, not UTC', () => {
+    // 01:00 UTC on the 15th is still the 14th, 9 PM, in the test time zone.
+    expect(formatGameStartShort('2026-09-15T01:00:00Z', now)).toMatch(
+      /^Mon · 9:00\sPM$/,
+    );
   });
 });

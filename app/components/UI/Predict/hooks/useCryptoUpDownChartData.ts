@@ -154,6 +154,7 @@ export const useCryptoUpDownChartData = (
     !liveUpdatesEnabled && Boolean(options.historicalWindow);
   const symbol = getCryptoSymbol(market);
   const twapWindowSeconds = market.twapWindowSeconds;
+  const priceProvider = market.cryptoPriceProvider;
   const recurrence = market.series.recurrence;
   const variant = getVariant(recurrence);
   const eventStartTime = getEventStartTime(market.endDate, recurrence);
@@ -440,13 +441,24 @@ export const useCryptoUpDownChartData = (
   // tick and never flips back on a silent RTDS drop, whereas `liveStreamStale`
   // flips back to true when ticks stop arriving — correctly resuming HTTP
   // polling as a fallback.
-  const liveSubscriptionArgs: [
+  let liveSubscriptionArgs: [
     string,
     typeof handleLiveUpdate,
     twapWindowSeconds?: typeof twapWindowSeconds,
-  ] = twapWindowSeconds
-    ? [wsSymbol, handleLiveUpdate, twapWindowSeconds]
-    : [wsSymbol, handleLiveUpdate];
+    provider?: typeof priceProvider,
+  ];
+  if (priceProvider) {
+    liveSubscriptionArgs = [
+      wsSymbol,
+      handleLiveUpdate,
+      twapWindowSeconds,
+      priceProvider,
+    ];
+  } else if (twapWindowSeconds) {
+    liveSubscriptionArgs = [wsSymbol, handleLiveUpdate, twapWindowSeconds];
+  } else {
+    liveSubscriptionArgs = [wsSymbol, handleLiveUpdate];
+  }
   useLiveCryptoPrices(...liveSubscriptionArgs);
 
   const historyStartDate =

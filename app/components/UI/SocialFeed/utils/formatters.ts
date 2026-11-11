@@ -127,8 +127,9 @@ export function formatSignedUsd(value: number | null | undefined): string {
 
 /**
  * Signed USD with the full (non-abbreviated) number, thousands separators and
- * no fractional digits. Used for the profile 30D P&L headline
- * (e.g. `+$82,610,666`). Zero renders without a sign.
+ * no fractional digits. Used for the trader-profile 7D headline and onboarding
+ * (e.g. `+$82,610,666`). Zero renders without a sign. The profile compact
+ * header uses two fractional digits instead.
  */
 export function formatSignedFullUsdNoDecimals(
   value: number | null | undefined,

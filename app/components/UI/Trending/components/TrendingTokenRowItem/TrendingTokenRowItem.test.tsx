@@ -141,7 +141,6 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
       nickname: 'Ethereum Mainnet',
       ticker: 'ETH',
       rpcUrl: 'https://mainnet.infura.io/v3/test',
-      failoverRpcUrls: [],
       rpcPrefs: {
         blockExplorerUrl: 'https://etherscan.io',
         imageUrl: 'https://ethereum.png',
@@ -153,7 +152,6 @@ jest.mock('../../../../../util/networks/customNetworks', () => {
       nickname: 'Base',
       ticker: 'ETH',
       rpcUrl: 'https://mainnet.base.org',
-      failoverRpcUrls: [],
       rpcPrefs: {
         blockExplorerUrl: 'https://basescan.org',
         imageUrl: 'https://base.png',
@@ -284,7 +282,6 @@ describe('TrendingTokenRowItem', () => {
         nickname: 'Ethereum Mainnet',
         ticker: 'ETH',
         rpcUrl: 'https://mainnet.infura.io/v3/test',
-        failoverRpcUrls: [],
         rpcPrefs: {
           blockExplorerUrl: 'https://etherscan.io',
           imageUrl: 'https://ethereum.png',
@@ -296,7 +293,6 @@ describe('TrendingTokenRowItem', () => {
         nickname: 'Base',
         ticker: 'ETH',
         rpcUrl: 'https://mainnet.base.org',
-        failoverRpcUrls: [],
         rpcPrefs: {
           blockExplorerUrl: 'https://basescan.org',
           imageUrl: 'https://base.png',
