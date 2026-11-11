@@ -3350,7 +3350,7 @@ export const runQuickBuyControllerCases = ({
           });
 
           expect(getPostTradeShareSession()).toBeNull();
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
         });
 
         it('posts the copy-trade intent before signing', async () => {
