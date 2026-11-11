@@ -291,6 +291,11 @@ export type TaxMeDto = {
   clears_until: string | null;
   cleared: boolean;
   can_change_answer: boolean;
+  /**
+   * When the current determination was stored, or null when no form is
+   * stored. Absent on a response from an API that predates the field.
+   */
+  stored_at?: string | null;
 };
 
 /**
@@ -303,6 +308,16 @@ export type TaxFormSubmittedSnapshot = {
   state: TaxDocumentationState;
   next_action: TaxNextAction;
   reason: TaxDocumentationReason | null;
+  /**
+   * `stored_at` from the read remembered at submit. Null when that read had
+   * no stored form. A missing value is a snapshot written before the field.
+   */
+  stored_at?: string | null;
+  /**
+   * False when both status reads failed at submit, so this marker is not a
+   * `stored_at` baseline. Absent on a snapshot taken from a successful read.
+   */
+  confirmed?: boolean;
 };
 
 /** `POST /wr/tax/attestation` and `POST /wr/tax/w8-us-activity`. */
