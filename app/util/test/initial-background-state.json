@@ -419,6 +419,7 @@
       "avatarUrl": "",
       "tradingPrivacy": "public",
       "connectedToX": false,
+      "verified": false,
       "createdAt": "",
       "updatedAt": ""
     }
@@ -636,6 +637,7 @@
       "avatarUrl": "",
       "tradingPrivacy": "public",
       "connectedToX": false,
+      "verified": false,
       "createdAt": "",
       "updatedAt": ""
     }

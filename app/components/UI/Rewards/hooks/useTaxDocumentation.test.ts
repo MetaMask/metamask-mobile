@@ -28,6 +28,7 @@ import {
   clearTaxFormSession,
   mintRateLimitRemainingMs,
   readTaxFormSession,
+  UNCONFIRMED_TAX_FORM_SUBMISSION,
 } from '../utils/taxDocumentation';
 import {
   useTaxDocumentation,
@@ -351,6 +352,57 @@ describe('useTaxDocumentation', () => {
       );
     });
 
+    it('claims against the fresh summary when tax cleared the held income', async () => {
+      const freshSummary = { ...summary, minimum_musd_base_units: '1' };
+      mockFetchEarningsSummary.mockResolvedValue(freshSummary);
+      mockTaxRead(taxMe(clearedTaxMe));
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(taxHeldSummary, claim);
+      });
+
+      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith({ summary: freshSummary });
+    });
+
+    it('reads the summary once and claims against it when the gate is off on a held balance', async () => {
+      const freshSummary = { ...summary, minimum_musd_base_units: '1' };
+      mockFetchEarningsSummary.mockResolvedValue(freshSummary);
+      mockTaxRead(
+        taxMe({
+          state: 'UNDER_REVIEW',
+          next_action: 'NONE',
+          reason: 'GATE_OFF',
+          cleared: true,
+        }),
+      );
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(taxHeldSummary, claim);
+      });
+
+      expect(mockFetchEarningsSummary).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith({ summary: freshSummary });
+    });
+
+    it('still claims with the pressed summary when the fresh read fails', async () => {
+      mockFetchEarningsSummary.mockRejectedValue(new Error('offline'));
+      mockTaxRead(taxMe(clearedTaxMe));
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(taxHeldSummary, claim);
+      });
+
+      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith();
+    });
+
     it('refreshes the summary when a tax hold reads as already cleared', async () => {
       mockTaxRead(taxMe(clearedTaxMe));
       const claim = jest.fn().mockResolvedValue(undefined);
@@ -546,6 +598,83 @@ describe('useTaxDocumentation', () => {
         expect.anything(),
       );
       expect(claim).toHaveBeenCalledTimes(1);
+    });
+
+    it('follows a new stored form that presents the same reason', async () => {
+      mockCall.mockImplementation((action: string) => {
+        if (action === 'RewardsMoneyController:getTaxFormSubmitted') {
+          return Promise.resolve({
+            state: 'ACTION_REQUIRED',
+            next_action: 'OPEN_FORM',
+            reason: 'TIN_NOT_MATCHED',
+            stored_at: '2026-11-09T12:00:00.000Z',
+          });
+        }
+        return Promise.resolve(
+          taxMe({
+            next_action: 'OPEN_FORM',
+            reason: 'TIN_NOT_MATCHED',
+            stored_at: '2026-11-09T18:00:00.000Z',
+          }),
+        );
+      });
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(summary, claim);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+        expect.objectContaining({
+          description: localizedText.taxTinMismatchDescription,
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        expect.anything(),
+      );
+    });
+
+    it('adopts an unconfirmed submission and stays on the pending sheet', async () => {
+      const fresh = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'FORM_INVALID',
+        stored_at: '2026-11-09T12:00:00.000Z',
+      });
+      mockCall.mockImplementation((action: string) => {
+        if (action === 'RewardsMoneyController:getTaxFormSubmitted') {
+          return Promise.resolve(UNCONFIRMED_TAX_FORM_SUBMISSION);
+        }
+        return Promise.resolve(fresh);
+      });
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(summary, claim);
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        {
+          state: 'ACTION_REQUIRED',
+          next_action: 'OPEN_FORM',
+          reason: 'FORM_INVALID',
+          stored_at: '2026-11-09T12:00:00.000Z',
+        },
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        expect.objectContaining({
+          title: localizedText.taxFormPendingTitle,
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+        expect.anything(),
+      );
     });
 
     it('follows the new determination once the submitted snapshot changes', async () => {
@@ -1053,7 +1182,48 @@ describe('useTaxDocumentation', () => {
           state: 'ACTION_REQUIRED',
           next_action: 'OPEN_FORM',
           reason: 'NO_FORM',
+          stored_at: null,
         },
+      );
+    });
+
+    it('drops the snapshot when a new form is stored with the same reason', async () => {
+      const cached = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'TIN_NOT_MATCHED',
+        stored_at: '2026-11-09T12:00:00.000Z',
+      });
+      const fresh = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'TIN_NOT_MATCHED',
+        stored_at: '2026-11-09T18:00:00.000Z',
+      });
+      mockCall.mockImplementation(
+        (action: string, params?: { forceFresh?: boolean }) => {
+          if (action === 'RewardsMoneyController:getTaxMe') {
+            return Promise.resolve(params?.forceFresh ? fresh : cached);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+      const { result } = renderTaxHook(Routes.REWARDS_TAX_FORM_VIEW);
+
+      await act(async () => {
+        result.current.openPendingReview();
+        await Promise.resolve();
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        null,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(
+          Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+          expect.objectContaining({
+            description: localizedText.taxTinMismatchDescription,
+          }),
+        ),
       );
     });
 
@@ -1077,6 +1247,7 @@ describe('useTaxDocumentation', () => {
           state: 'ACTION_REQUIRED',
           next_action: 'OPEN_FORM',
           reason: 'FORM_INVALID',
+          stored_at: null,
         },
       );
       expect(mockDispatch).toHaveBeenCalledTimes(1);
@@ -1105,7 +1276,7 @@ describe('useTaxDocumentation', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('remembers the pre-webhook snapshot when the fresh read fails', async () => {
+    it('records an unconfirmed marker when both status reads fail', async () => {
       mockCall.mockImplementation((action: string) => {
         if (action === 'RewardsMoneyController:getTaxMe') {
           return Promise.reject(new Error('offline'));
@@ -1121,11 +1292,11 @@ describe('useTaxDocumentation', () => {
 
       expect(mockCall).toHaveBeenCalledWith(
         'RewardsMoneyController:noteTaxFormSubmitted',
-        {
-          state: 'ACTION_REQUIRED',
-          next_action: 'OPEN_FORM',
-          reason: 'NO_FORM',
-        },
+        UNCONFIRMED_TAX_FORM_SUBMISSION,
+      );
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        null,
       );
       expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
@@ -1172,6 +1343,7 @@ describe('useTaxDocumentation', () => {
           state: 'ACTION_REQUIRED',
           next_action: 'OPEN_FORM',
           reason: 'TIN_NOT_MATCHED',
+          stored_at: null,
         },
       );
 
@@ -1210,9 +1382,129 @@ describe('useTaxDocumentation', () => {
           state: 'ACTION_REQUIRED',
           next_action: 'OPEN_FORM',
           reason: 'TIN_NOT_MATCHED',
+          stored_at: null,
         },
       );
       expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the pending sheet when the cached read fails and the fresh read differs with no new stored form', async () => {
+      const fresh = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'FORM_INVALID',
+      });
+      mockCall.mockImplementation(
+        (action: string, params?: { forceFresh?: boolean }) => {
+          if (action === 'RewardsMoneyController:getTaxMe') {
+            return params?.forceFresh
+              ? Promise.resolve(fresh)
+              : Promise.reject(new Error('offline'));
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+      const { result } = renderTaxHook(Routes.REWARDS_TAX_FORM_VIEW);
+
+      await act(async () => {
+        result.current.openPendingReview();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        {
+          state: 'ACTION_REQUIRED',
+          next_action: 'OPEN_FORM',
+          reason: 'FORM_INVALID',
+          stored_at: null,
+        },
+      );
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        null,
+      );
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the pending sheet when the cached read fails and the fresh read already has a stored form', async () => {
+      const fresh = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'FORM_INVALID',
+        stored_at: '2026-11-09T12:00:00.000Z',
+      });
+      mockCall.mockImplementation(
+        (action: string, params?: { forceFresh?: boolean }) => {
+          if (action === 'RewardsMoneyController:getTaxMe') {
+            return params?.forceFresh
+              ? Promise.resolve(fresh)
+              : Promise.reject(new Error('offline'));
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+      const { result } = renderTaxHook(Routes.REWARDS_TAX_FORM_VIEW);
+
+      await act(async () => {
+        result.current.openPendingReview();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        {
+          state: 'ACTION_REQUIRED',
+          next_action: 'OPEN_FORM',
+          reason: 'FORM_INVALID',
+          stored_at: '2026-11-09T12:00:00.000Z',
+        },
+      );
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        null,
+      );
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops the snapshot when a stored form replaces a confirmed read with no stored form', async () => {
+      const cached = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'NO_FORM',
+        stored_at: null,
+      });
+      const fresh = taxMe({
+        next_action: 'OPEN_FORM',
+        reason: 'TIN_NOT_MATCHED',
+        stored_at: '2026-11-09T18:00:00.000Z',
+      });
+      mockCall.mockImplementation(
+        (action: string, params?: { forceFresh?: boolean }) => {
+          if (action === 'RewardsMoneyController:getTaxMe') {
+            return Promise.resolve(params?.forceFresh ? fresh : cached);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+      const { result } = renderTaxHook(Routes.REWARDS_TAX_FORM_VIEW);
+
+      await act(async () => {
+        result.current.openPendingReview();
+        await Promise.resolve();
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsMoneyController:noteTaxFormSubmitted',
+        null,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(
+          Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+          expect.objectContaining({
+            description: localizedText.taxTinMismatchDescription,
+          }),
+        ),
+      );
     });
   });
 });
