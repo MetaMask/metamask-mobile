@@ -297,6 +297,7 @@ jest.mock('../../app/core/Engine', () => {
         // Null is a first-time user; tests that resume a session override this.
         getSessionStatusForVendor: jest.fn().mockResolvedValue(null),
         startSession: jest.fn().mockResolvedValue(undefined),
+        reset: jest.fn().mockResolvedValue(undefined),
         fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
         recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
         // Fired, fire-and-forget, once the vendor-terms screen's initial

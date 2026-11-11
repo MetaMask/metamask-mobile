@@ -6,6 +6,7 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
@@ -15,8 +16,9 @@ import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/Mone
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
+import VbaOnboardingLoading from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
 import { VbaOnboardingRoutes } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/routes';
-import { renderScreenWithRoutes } from '../render';
+import { createRouteParamsProbe, renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
 
 export const VbaRendererTestIds = {
@@ -149,6 +151,55 @@ export const renderVbaMoneyEntry = (options: RenderVbaOptions = {}) => {
         name: Routes.RAMP.VBA_DETAILS,
         Component: VbaDetails as unknown as React.ComponentType,
       },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+const VBA_PROBED_ONBOARDING_ROUTES = Object.values(VbaOnboardingRoutes).filter(
+  (name) => name !== VbaOnboardingRoutes.LOADING,
+);
+
+const ProbedOnboardingStack = createNativeStackNavigator();
+
+const VbaProbedOnboardingNavigator = () => (
+  <ProbedOnboardingStack.Navigator screenOptions={{ headerShown: false }}>
+    <ProbedOnboardingStack.Screen
+      name={VbaOnboardingRoutes.LOADING}
+      component={VbaOnboardingLoading as unknown as React.ComponentType}
+    />
+    {VBA_PROBED_ONBOARDING_ROUTES.map((name) => (
+      <ProbedOnboardingStack.Screen
+        key={name}
+        name={name}
+        component={createRouteParamsProbe(name)}
+      />
+    ))}
+  </ProbedOnboardingStack.Navigator>
+);
+
+/**
+ * Like {@link renderVbaMoneyEntry}, but the loading screen is real and every
+ * other onboarding route is a params probe.
+ */
+export const renderVbaMoneyEntryWithDestinationProbes = (
+  options: RenderVbaOptions = {},
+) => {
+  const result = renderScreenWithRoutes(
+    VbaMoneyCaller,
+    { name: 'VbaMoneyCaller' },
+    [
+      {
+        name: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        Component: MoneyAddMoneySheet as unknown as React.ComponentType,
+      },
+      {
+        name: Routes.RAMP.VBA_ONBOARDING,
+        Component: VbaProbedOnboardingNavigator,
+      },
+      { name: Routes.RAMP.VBA_DETAILS },
     ],
     { state: buildVbaState(options) },
   );
