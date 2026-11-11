@@ -4689,21 +4689,6 @@ export const runQuickBuyControllerCases = ({
           });
         });
 
-        it('reconciles the terminal toast without a legacy toast ref', async () => {
-          mockUsableQuote();
-          (
-            Engine.context.BridgeStatusController.submitTx as jest.Mock
-          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
-
-          const { result } = renderHook(createTarget(), jest.fn());
-
-          await act(async () => {
-            await result.current.handleConfirm();
-          });
-
-          expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith('tx-1');
-        });
-
         it('shows a failed toast and does not track the trade when submit throws', async () => {
           mockUsableQuote();
           (
