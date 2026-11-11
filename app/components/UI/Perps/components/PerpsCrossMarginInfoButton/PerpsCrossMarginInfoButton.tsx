@@ -8,6 +8,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import PerpsProModalPortal from '../../Views/PerpsProMarketView/components/PerpsProModalPortal';
+import { PERPS_INFO_BUTTON_HIT_SLOP } from '../../constants/perpsConfig';
 
 interface PerpsCrossMarginInfoButtonProps {
   /** Whether the venue currently supplies a liquidation price. */
@@ -15,12 +16,6 @@ interface PerpsCrossMarginInfoButtonProps {
   /** Identifies this position's information button within its view. */
   testID: string;
 }
-
-/**
- * `ButtonIconSize.Xs` is a 20pt box. 12pt of slop on each side restores a
- * 44pt target without growing the icon.
- */
-const INFO_BUTTON_HIT_SLOP = 12;
 
 /** Explains the shared collateral behind a cross position's liquidation price. */
 const PerpsCrossMarginInfoButton = ({
@@ -38,7 +33,7 @@ const PerpsCrossMarginInfoButton = ({
         size={ButtonIconSize.Xs}
         iconProps={{ color: IconColor.IconAlternative }}
         accessibilityLabel={strings('perps.cross_position.liquidation_info')}
-        hitSlop={INFO_BUTTON_HIT_SLOP}
+        hitSlop={PERPS_INFO_BUTTON_HIT_SLOP}
         testID={testID}
         onPress={handleOpen}
       />

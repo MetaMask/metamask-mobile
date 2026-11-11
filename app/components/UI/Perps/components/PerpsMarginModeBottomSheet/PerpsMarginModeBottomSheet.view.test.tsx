@@ -86,6 +86,51 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
     },
   );
 
+  it('explains a position lock in a toast when the locked option is pressed', async () => {
+    renderPerpsCrossMarginOrderFormPanel({
+      includeToasts: true,
+      streamOverrides: { positions: [createLongPositionForViews()] },
+    });
+    await openMarginModeSheet();
+    await waitFor(() =>
+      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeDisabled(),
+    );
+
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+
+    // The sheet's lock notice and the toast carry the same copy.
+    await waitFor(() =>
+      expect(
+        screen.getAllByText(strings('perps.margin_mode.locked_by_position')),
+      ).toHaveLength(2),
+    );
+  });
+
+  it('explains an open-order lock in a toast when the locked option is pressed', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.getMarginModeLock)
+      .mockResolvedValue({
+        status: 'locked',
+        providerId: 'hyperliquid',
+        marginMode: 'isolated',
+        reason: 'open_order',
+      });
+    renderPerpsCrossMarginOrderFormPanel({ includeToasts: true });
+    await openMarginModeSheet();
+    await waitFor(() =>
+      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeDisabled(),
+    );
+
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+
+    // The sheet's lock notice and the toast carry the same copy.
+    await waitFor(() =>
+      expect(
+        screen.getAllByText(strings('perps.margin_mode.locked_by_open_order')),
+      ).toHaveLength(2),
+    );
+  });
+
   it('allows switching to Cross after the isolated position closes', async () => {
     const { stream } = renderPerpsCrossMarginOrderFormPanel({
       streamOverrides: { positions: [createLongPositionForViews()] },

@@ -2299,27 +2299,26 @@ describe('Perps market details margin mode', () => {
     ).toBeOnTheScreen();
   });
 
-  it('restores margin editing for a cross position when the flag is off', async () => {
+  it('keeps a cross position margin read-only when the flag is off', async () => {
     renderPerpsMarketDetailsView({
       overrides: eligible,
       streamOverrides: { positions: [ethPosition('cross')] },
     });
 
-    expect(
-      await screen.findByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(getPerpsCrossMarginTagSelector('lite', 'ETH')),
-    ).not.toBeOnTheScreen();
-
     fireEvent.press(
-      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+      await screen.findByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
     );
 
     expect(
-      await screen.findByTestId(
+      screen.queryByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getPerpsCrossMarginTagSelector('lite', 'ETH')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
         PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
       ),
-    ).toBeOnTheScreen();
+    ).not.toBeOnTheScreen();
   });
 });

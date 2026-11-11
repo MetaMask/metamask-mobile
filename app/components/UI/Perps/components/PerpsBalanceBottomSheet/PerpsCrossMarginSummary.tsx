@@ -16,17 +16,24 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
-import { strings } from '../../../../../../locales/i18n';
-import { formatPerpsFiat } from '../../utils/formatUtils';
 import {
-  formatAccountLeverage,
+  PERPS_CONSTANTS,
+  type PerpsAccountSummary,
+} from '@metamask/perps-controller';
+import { strings } from '../../../../../../locales/i18n';
+import {
   formatCrossMarginRatio,
+  formatLeverage,
+  formatPerpsFiat,
+} from '../../utils/formatUtils';
+import {
   getCrossMarginRatioTone,
-  type CrossMarginAccountSummary,
   type CrossMarginRatioTone,
 } from '../../utils/crossMarginSummary';
-import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsCrossMarginSummaryLabelSelector,
+  PerpsBalanceBottomSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 
 export type PerpsCrossMarginSummaryTooltipKey = Extract<
@@ -37,7 +44,7 @@ export type PerpsCrossMarginSummaryTooltipKey = Extract<
   | 'cross_margin_usage'
 >;
 
-interface PerpsCrossMarginSummaryProps extends CrossMarginAccountSummary {
+interface PerpsCrossMarginSummaryProps extends PerpsAccountSummary {
   privacyMode: boolean;
   onInfoPress: (key: PerpsCrossMarginSummaryTooltipKey) => void;
 }
@@ -116,6 +123,7 @@ const SummaryRow: React.FC<RowProps> = ({
         accessibilityRole="button"
         accessibilityLabel={label}
         hitSlop={LABEL_HIT_SLOP}
+        testID={getPerpsCrossMarginSummaryLabelSelector(tooltipKey)}
       >
         <Text
           variant={TextVariant.BodySm}
@@ -201,7 +209,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
       value={
         accountLeverage === undefined
           ? PERPS_CONSTANTS.FallbackDataDisplay
-          : formatAccountLeverage(accountLeverage)
+          : formatLeverage(accountLeverage)
       }
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_LEVERAGE_VALUE}

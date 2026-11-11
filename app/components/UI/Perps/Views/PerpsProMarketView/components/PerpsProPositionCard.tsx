@@ -198,7 +198,9 @@ const PerpsProPositionCard = ({
     position.leverage.type === 'isolated'
       ? strings('perps.pro_positions_panel.card.isolated')
       : strings('perps.pro_positions_panel.card.cross');
-  const canEditMargin = !isCross && Boolean(onEditMargin);
+  // The venue only adjusts isolated margin, whatever the cross margin flag.
+  const canEditMargin =
+    position.leverage.type === 'isolated' && Boolean(onEditMargin);
 
   // Mark price is not stored on the position; derive it from notional.
   // With useLivePnl, enrichPositionsWithLivePnL keeps positionValue in sync

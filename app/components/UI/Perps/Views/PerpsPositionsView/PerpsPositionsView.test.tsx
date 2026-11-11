@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
+import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
@@ -239,7 +240,13 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
         expect(screen.getByText('Margin used')).toBeOnTheScreen();
-        expect(screen.getAllByText('Margin').length).toBeGreaterThan(0);
+        expect(
+          within(
+            screen.getAllByTestId(
+              PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER,
+            )[0],
+          ).getByText('Margin'),
+        ).toBeOnTheScreen();
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
@@ -638,7 +645,13 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
         expect(screen.getByText('Margin used')).toBeOnTheScreen();
-        expect(screen.getAllByText('Margin').length).toBeGreaterThan(0);
+        expect(
+          within(
+            screen.getAllByTestId(
+              PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER,
+            )[0],
+          ).getByText('Margin'),
+        ).toBeOnTheScreen();
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
       });
     });

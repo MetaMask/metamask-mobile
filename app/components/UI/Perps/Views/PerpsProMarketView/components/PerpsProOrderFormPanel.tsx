@@ -19,6 +19,7 @@ import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import { usePerpsOrderContext } from '../../../contexts/PerpsOrderContext';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
@@ -26,7 +27,7 @@ import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomShe
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
 import PerpsCrossMarginConfirmBottomSheet from '../../../components/PerpsCrossMarginConfirmBottomSheet';
 import { usePerpsCrossMarginSummary } from '../../../hooks/usePerpsCrossMarginSummary';
-import { formatCrossMarginRatio } from '../../../utils/crossMarginSummary';
+import { formatCrossMarginRatio } from '../../../utils/formatUtils';
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
@@ -344,20 +345,23 @@ const PerpsProOrderFormPanel = ({
 
   const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
     usePerpsCrossMarginSummary({ enabled: isCrossMarginAvailableForMarket });
+  const privacyMode = useSelector(selectPrivacyMode);
   const marginModeTag = useMemo(
     () =>
       marginMode === 'cross' &&
       crossMarginRatio !== undefined &&
       (crossMarginTone === 'warning' || crossMarginTone === 'danger')
         ? {
-            label: formatCrossMarginRatio(crossMarginRatio),
+            label: privacyMode
+              ? strings(`perps.crossMarginSummary.tone_${crossMarginTone}`)
+              : formatCrossMarginRatio(crossMarginRatio),
             severity:
               crossMarginTone === 'danger'
                 ? TagSeverity.Danger
                 : TagSeverity.Warning,
           }
         : undefined,
-    [crossMarginRatio, crossMarginTone, marginMode],
+    [crossMarginRatio, crossMarginTone, marginMode, privacyMode],
   );
   const [isTwapDurationVisible, setIsTwapDurationVisible] = useState(false);
   const openTwapDuration = useCallback(

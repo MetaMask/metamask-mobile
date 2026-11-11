@@ -4,6 +4,8 @@ import PerpsBalanceBottomSheet from './PerpsBalanceBottomSheet';
 import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
@@ -73,7 +75,12 @@ const renderSheet = (
   privacyMode = false,
 ) =>
   renderWithProvider(
-    <PerpsBalanceBottomSheet isVisible onClose={jest.fn()} {...props} />,
+    <PerpsBalanceBottomSheet
+      isVisible
+      onClose={jest.fn()}
+      buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
+      {...props}
+    />,
     {
       state: {
         engine: {
@@ -115,6 +122,15 @@ describe('PerpsBalanceBottomSheet', () => {
     expect(
       queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
     ).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+    PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
+  ])('attributes deposit and withdraw to the %s opener', (buttonLocation) => {
+    renderSheet({ buttonLocation });
+
+    expect(usePerpsHomeActions).toHaveBeenCalledWith({ buttonLocation });
   });
 
   it('renders the sheet with balance, available, and PnL values', () => {

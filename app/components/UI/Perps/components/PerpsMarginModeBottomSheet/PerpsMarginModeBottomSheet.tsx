@@ -16,19 +16,19 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSelector } from 'react-redux';
 import type {
   MarginMode,
   MarginModeLockReason,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import CrossMarginIcon from '../../../../../images/perps/margin-mode/cross.svg';
 import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsSelectionOptionCard from '../PerpsSelectionBottomSheet/PerpsSelectionOptionCard';
 import PerpsCrossMarginRatioBanner from '../PerpsCrossMarginRatioBanner';
-import {
-  formatCrossMarginRatio,
-  getCrossMarginRatioTone,
-} from '../../utils/crossMarginSummary';
+import { getCrossMarginRatioTone } from '../../utils/crossMarginSummary';
+import { formatCrossMarginRatio } from '../../utils/formatUtils';
 
 interface PerpsMarginModeBottomSheetProps {
   isVisible?: boolean;
@@ -64,6 +64,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
   onMarginModeSelect,
 }) => {
   const tw = useTailwind();
+  const privacyMode = useSelector(selectPrivacyMode);
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
 
@@ -209,6 +210,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
           <PerpsCrossMarginRatioBanner
             ratio={formattedRatio}
             severity={ratioSeverity}
+            isRatioHidden={privacyMode}
             testID={PerpsMarginModeBottomSheetSelectorsIDs.RATIO_BANNER}
           />
         ) : null}

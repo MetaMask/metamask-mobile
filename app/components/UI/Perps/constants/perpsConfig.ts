@@ -202,6 +202,27 @@ export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
  */
 export const LIQUIDATION_DISTANCE_DECIMALS = 2;
 
+/** Cross margin account ratio at and above which the account is elevated risk. */
+export const CROSS_MARGIN_RATIO_WARNING_THRESHOLD = 0.5;
+
+/** Cross margin account ratio above which the account is critical risk. */
+export const CROSS_MARGIN_RATIO_DANGER_THRESHOLD = 0.75;
+
+/** Most decimal places shown for a cross margin ratio, e.g. "17.4%". */
+export const CROSS_MARGIN_RATIO_MAX_DECIMALS = 1;
+
+/**
+ * Spot USDC counted as cross collateral. `AccountState` does not expose spot
+ * collateral yet, so the account summary assumes none until Core provides it.
+ */
+export const CROSS_MARGIN_SPOT_COLLATERAL = 0;
+
+/**
+ * Hit slop for `ButtonIconSize.Xs` info buttons. The icon is a 20pt box, so
+ * 12pt on each side restores a 44pt target without growing the icon.
+ */
+export const PERPS_INFO_BUTTON_HIT_SLOP = 12;
+
 /**
  * Share of position notional kept back from the removable-margin maximum.
  * The exchange re-checks the transfer requirement at the mark price it sees on

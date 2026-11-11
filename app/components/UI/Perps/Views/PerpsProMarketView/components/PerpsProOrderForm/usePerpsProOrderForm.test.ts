@@ -4011,13 +4011,42 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.liquidationPrice).toBe('--');
     });
 
-    it('estimates a Cross order liquidation price from the cross account', () => {
+    // 0.002 BTC at $90,000 with a 40x max leverage (1/80 maintenance):
+    // 50 collateral - 20 existing - 2.25 new maintenance leaves 27.75.
+    it.each([
+      ['long', '$75,949'],
+      ['short', '$103,704'],
+    ] as const)(
+      'estimates a Cross %s liquidation price from the cross account',
+      (direction, expected) => {
+        mockOrderForm.direction = direction;
+        mockLiveAccount = {
+          crossMarginSummary: {
+            accountValue: '50',
+            maintenanceMargin: '20',
+            marginUsed: '40',
+            notional: '1600',
+          },
+        };
+        const { result } = renderWithCrossMargin();
+
+        act(() => {
+          result.current.onMarginModeSelect('cross');
+        });
+
+        expect(result.current.summary.liquidationPrice).toBe(expected);
+      },
+    );
+
+    it('waits for market max leverage before estimating a Cross liquidation price', () => {
+      mockMarketData = null;
+      mockMarketDataLoading = true;
       mockLiveAccount = {
         crossMarginSummary: {
-          accountValue: '10',
-          maintenanceMargin: '0',
-          marginUsed: '0',
-          notional: '0',
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
         },
       };
       const { result } = renderWithCrossMargin();
@@ -4026,7 +4055,7 @@ describe('usePerpsProOrderForm', () => {
         result.current.onMarginModeSelect('cross');
       });
 
-      expect(result.current.summary.liquidationPrice).toMatch(/\$/);
+      expect(result.current.summary.liquidationPrice).toBe('--');
     });
 
     it('keeps the liquidation estimate for an isolated order when Cross is available', () => {

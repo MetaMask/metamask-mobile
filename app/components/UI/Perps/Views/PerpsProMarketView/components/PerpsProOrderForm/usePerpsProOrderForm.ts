@@ -2116,14 +2116,22 @@ export const usePerpsProOrderForm = ({
     enabled: marginMode === 'cross',
   });
   const crossLiquidationPrice = useMemo(() => {
-    if (marginMode !== 'cross' || isScaleOrder || currentMarketPosition) {
+    // The default max leverage would estimate against the wrong maintenance
+    // margin, so wait for the market's own.
+    const marketMaxLeverage = marketData?.maxLeverage;
+    if (
+      marginMode !== 'cross' ||
+      isScaleOrder ||
+      currentMarketPosition ||
+      marketMaxLeverage === undefined
+    ) {
       return '';
     }
     const estimate = estimateCrossLiquidationPrice({
       entryPrice: effectivePrice,
       size: Number.parseFloat(positionSize),
       isLong: orderForm.direction === 'long',
-      maxLeverage,
+      maxLeverage: marketMaxLeverage,
       crossMarginSummary: liveAccount?.crossMarginSummary,
     });
     return estimate === undefined ? '' : String(estimate);
@@ -2134,7 +2142,7 @@ export const usePerpsProOrderForm = ({
     effectivePrice,
     positionSize,
     orderForm.direction,
-    maxLeverage,
+    marketData?.maxLeverage,
     liveAccount?.crossMarginSummary,
   ]);
   const liquidationPrice =

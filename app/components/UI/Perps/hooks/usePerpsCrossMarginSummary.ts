@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import type { PerpsAccountSummary } from '@metamask/perps-controller';
 import { selectPerpsCrossMarginEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsLiveAccount, usePerpsLivePositions } from './stream';
 import {
   calculateCrossMarginAccountSummaryFromAccount,
   getCrossMarginRatioTone,
-  type CrossMarginAccountSummary,
   type CrossMarginRatioTone,
 } from '../utils/crossMarginSummary';
 
@@ -16,8 +16,7 @@ export interface UsePerpsCrossMarginSummaryOptions {
   throttleMs?: number;
 }
 
-export interface UsePerpsCrossMarginSummaryReturn
-  extends CrossMarginAccountSummary {
+export interface UsePerpsCrossMarginSummaryReturn extends PerpsAccountSummary {
   /** Whether the cross margin feature flag is on. */
   isCrossMarginEnabled: boolean;
   /** Whether the account holds cross margin exposure. */

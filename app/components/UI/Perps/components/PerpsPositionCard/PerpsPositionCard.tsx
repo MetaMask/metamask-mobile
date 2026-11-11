@@ -122,7 +122,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
-  const marginPress = isCross ? undefined : onMarginPress;
+  // The venue only adjusts isolated margin, whatever the cross margin flag.
+  const marginPress =
+    position.leverage.type === 'isolated' ? onMarginPress : undefined;
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;

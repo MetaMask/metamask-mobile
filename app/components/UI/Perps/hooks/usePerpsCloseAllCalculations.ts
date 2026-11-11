@@ -557,6 +557,10 @@ export function usePerpsCloseAllCalculations({
     };
   }, [perPositionResults]);
 
+  const hasSummaryCrossMargin =
+    isCrossMarginEnabled &&
+    positions.some((position) => position.leverage?.type === 'cross');
+
   // Margin, P&L, fee and receive per position from Core's
   // `estimateCloseReceive`, at the live price and each position's quoted fee
   // rate. A total stays undefined while any position's figure is unknown.
@@ -589,14 +593,13 @@ export function usePerpsCloseAllCalculations({
         0,
       );
     return {
-      // Cross margin is shared collateral and never holds the position's P&L.
-      // With the flag off, those positions keep the isolated presentation.
+      // Any cross position switches the summary to a separate P&L row, so
+      // every position's margin must then exclude its P&L for Margin + P&L -
+      // fees to equal Receive. With the flag off, the isolated presentation
+      // (margin includes P&L) stays.
       totalMargin: sum(
-        estimates.map(({ marginReturned, realizedPnl }, index) => {
-          if (
-            isCrossMarginEnabled &&
-            positions[index].leverage?.type === 'cross'
-          ) {
+        estimates.map(({ marginReturned, realizedPnl }) => {
+          if (hasSummaryCrossMargin) {
             return marginReturned;
           }
           return marginReturned === undefined || realizedPnl === undefined
@@ -613,7 +616,7 @@ export function usePerpsCloseAllCalculations({
     priceData,
     perPositionResults,
     activeProvider,
-    isCrossMarginEnabled,
+    hasSummaryCrossMargin,
   ]);
 
   return {
@@ -634,10 +637,6 @@ export function usePerpsCloseAllCalculations({
     isFetchingInBackground,
     hasError: hasCalculationError,
     shouldShowRewards: aggregatedResults.shouldShowRewards,
-    summaryMarginMode:
-      isCrossMarginEnabled &&
-      positions.some((position) => position.leverage?.type === 'cross')
-        ? 'cross'
-        : undefined,
+    summaryMarginMode: hasSummaryCrossMargin ? 'cross' : undefined,
   };
 }

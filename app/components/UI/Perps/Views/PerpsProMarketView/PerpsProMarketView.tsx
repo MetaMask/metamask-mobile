@@ -836,6 +836,7 @@ const PerpsProMarketView = ({
       <PerpsBalanceBottomSheet
         isVisible={isBalanceSheetVisible}
         onClose={handleBalanceSheetClose}
+        buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS}
       />
     </View>
   );

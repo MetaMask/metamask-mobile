@@ -101,8 +101,8 @@ describe('PerpsProPositionCard', () => {
       />,
     );
 
-    // Assert - the flag-off position uses the isolated presentation, including
-    // an editable margin and no margin-mode tag.
+    // Assert - the flag-off position has no margin-mode tag, and its margin
+    // stays read-only because the venue only adjusts isolated margin.
     expect(
       screen.queryByTestId('cross-margin-tag-pro-ETH'),
     ).not.toBeOnTheScreen();
@@ -112,8 +112,8 @@ describe('PerpsProPositionCard', () => {
       screen.queryByTestId('cross-liquidation-info-pro-ETH'),
     ).not.toBeOnTheScreen();
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN),
+    ).not.toBeOnTheScreen();
   });
 
   it.each([null, '2500'])(

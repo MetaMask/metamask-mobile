@@ -42,6 +42,7 @@ import {
   formatPnl,
   formatPercentage,
   formatPerpsBalance,
+  formatCrossMarginRatio,
 } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -90,7 +91,6 @@ import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceAction
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCrossMarginRatioBanner from '../../components/PerpsCrossMarginRatioBanner';
 import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
-import { formatCrossMarginRatio } from '../../utils/crossMarginSummary';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
@@ -1410,6 +1410,7 @@ const PerpsHomeView = () => {
             <PerpsCrossMarginRatioBanner
               ratio={formatCrossMarginRatio(crossMarginRatio)}
               severity={crossMarginBannerSeverity}
+              isRatioHidden={privacyMode}
               testID={PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER}
             />
           </Box>
@@ -1474,6 +1475,7 @@ const PerpsHomeView = () => {
       <PerpsBalanceBottomSheet
         isVisible={isBalanceSheetVisible}
         onClose={closeBalanceSheet}
+        buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
       />
 
       {/* Cancel All Orders Bottom Sheet */}

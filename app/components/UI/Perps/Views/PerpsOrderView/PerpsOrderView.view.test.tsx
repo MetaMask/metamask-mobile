@@ -1564,6 +1564,51 @@ describe('PerpsOrderView', () => {
     ).toBeOnTheScreen();
     expect(placeOrder).not.toHaveBeenCalled();
   });
+
+  it('places an order on an existing cross position when cross margin is enabled', async () => {
+    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      crossMarginEnabled: true,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 10,
+      },
+      streamOverrides: {
+        account,
+        positions: [
+          {
+            ...defaultPositionForViews,
+            leverage: { value: 10, type: 'cross' },
+          },
+        ],
+        orders: [],
+        marketData: [ethMarket],
+      },
+      extraRoutes: [crossMarginWarningRoute, marketDetailsRoute],
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', isBuy: true }),
+      );
+    });
+    expect(
+      screen.queryByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
+    ).not.toBeOnTheScreen();
+    await waitForDeferredOrderData();
+  });
+
   describe('market order liquidity', () => {
     const bookLevel = (price: number, size: number): OrderBookLevel => ({
       price: String(price),

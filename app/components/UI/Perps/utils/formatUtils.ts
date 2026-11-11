@@ -7,7 +7,10 @@ import {
   getIntlDateTimeFormatter,
   getIntlNumberFormatter,
 } from '../../../../util/intl';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../constants/perpsConfig';
+import {
+  CROSS_MARGIN_RATIO_MAX_DECIMALS,
+  LIQUIDATION_DISTANCE_DECIMALS,
+} from '../constants/perpsConfig';
 import {
   type FiatRangeConfig,
   formatPerpsFiat,
@@ -1288,6 +1291,22 @@ export const formatLiquidationDistance = (
   const distance = (Math.abs(entry - liquidation) / entry) * 100;
   return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
 };
+
+/**
+ * Formats a 0..1 cross margin ratio as an unsigned, locale-aware percentage
+ * with at most one decimal.
+ * @example formatCrossMarginRatio(0.174) => "17.4%"
+ * @example formatCrossMarginRatio(0.63) => "63%"
+ */
+export const formatCrossMarginRatio = (
+  ratio: number,
+  locale?: string,
+): string =>
+  getPerpsNumberFormatter(locale, {
+    style: 'percent',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: CROSS_MARGIN_RATIO_MAX_DECIMALS,
+  }).format(ratio);
 
 /**
  * Parses formatted currency strings back to numeric values

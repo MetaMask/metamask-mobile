@@ -41,6 +41,7 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
+  getPerpsCrossMarginSummaryLabelSelector,
   getPerpsMarketRowItemSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsBottomSheetTooltipSelectorsIDs,
@@ -2510,7 +2511,9 @@ describe('Perps home cross margin risk', () => {
     ).toBeOnTheScreen();
 
     fireEvent.press(
-      screen.getByText(strings('perps.crossMarginSummary.account_ratio')),
+      screen.getByTestId(
+        getPerpsCrossMarginSummaryLabelSelector('account_ratio'),
+      ),
     );
 
     expect(
@@ -2545,6 +2548,14 @@ describe('Perps home cross margin risk', () => {
 
   it('announces the risk level without the figure while privacy mode is on', async () => {
     renderCrossHome(fundedCrossAccount('800', '800', '2000'), true);
+
+    expect(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER,
+      ),
+    ).toHaveTextContent(
+      strings('perps.crossMarginRatio.description_hidden_danger'),
+    );
 
     fireEvent.press(
       await screen.findByTestId(

@@ -1003,6 +1003,10 @@ export const PerpsBalanceBottomSheetSelectorsIDs = {
   CROSS_MARGIN_TOOLTIP: 'perps-balance-bottom-sheet-cross-margin-tooltip',
 };
 
+/** Tappable label of a cross margin summary row, keyed by its tooltip key. */
+export const getPerpsCrossMarginSummaryLabelSelector = (tooltipKey: string) =>
+  `perps-balance-bottom-sheet-${tooltipKey}-label`;
+
 export const PerpsChartAuxiliaryLinesSelectorsIDs = {
   // Auxiliary lines container (TP/SL lines)
   AUXILIARY_LINES: 'auxiliary-lines',

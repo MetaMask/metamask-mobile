@@ -64,6 +64,23 @@ describe('PerpsCloseTotals', () => {
     ).toHaveTextContent(strings('perps.tooltips.margin.content'));
   });
 
+  it('omits the margin explainer for cross margin, which can lose more than the margin', () => {
+    render(
+      <PerpsCloseTotals
+        pnl={2}
+        receiveAmount={17}
+        margin={15}
+        marginMode="cross"
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('omits the margin row when no margin mode is given', () => {
     render(<PerpsCloseTotals pnl={2} receiveAmount={17} margin={15} />);
 

@@ -18,6 +18,7 @@ import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip
 import PerpsProModalPortal from '../../PerpsProMarketView/components/PerpsProModalPortal';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import { formatPercentage } from '../../../utils/formatUtils';
+import { PERPS_INFO_BUTTON_HIT_SLOP } from '../../../constants/perpsConfig';
 import {
   formatCloseSummaryFiat,
   formatSignedCloseSummaryFiat,
@@ -31,8 +32,6 @@ import {
 // P&L keeps the plain formatted value.
 const formatSummaryPercentage = (value: number, pnl: number) =>
   Object.is(value, -0) && pnl < 0 ? '-0.00%' : formatPercentage(value);
-
-const MARGIN_INFO_HIT_SLOP = 12;
 
 export interface PerpsCloseTotalsProps {
   /** P&L realized by the close; undefined while unavailable. */
@@ -97,20 +96,23 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
                     : 'perps.margin_mode.isolated_title',
                 )}
               </Tag>
-              <ButtonIcon
-                iconName={IconName.Info}
-                size={ButtonIconSize.Xs}
-                iconProps={{ color: IconColor.IconAlternative }}
-                accessibilityLabel={strings(
-                  'perps.trade_sheet.margin_info_accessibility_label',
-                )}
-                // 20pt icon plus 12pt of slop per side is a 44pt target.
-                hitSlop={MARGIN_INFO_HIT_SLOP}
-                onPress={openMarginInfo}
-                testID={
-                  PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON
-                }
-              />
+              {/* The margin explainer says margin is the most you can lose,
+                  which only holds for isolated margin. */}
+              {marginMode === 'isolated' ? (
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  size={ButtonIconSize.Xs}
+                  iconProps={{ color: IconColor.IconAlternative }}
+                  accessibilityLabel={strings(
+                    'perps.trade_sheet.margin_info_accessibility_label',
+                  )}
+                  hitSlop={PERPS_INFO_BUTTON_HIT_SLOP}
+                  onPress={openMarginInfo}
+                  testID={
+                    PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON
+                  }
+                />
+              ) : null}
             </Box>
           }
           value={formatCloseSummaryFiat(margin)}

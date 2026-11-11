@@ -1,11 +1,7 @@
 import type { AccountState } from '@metamask/perps-controller';
 import {
-  calculateCrossMarginAccountSummary,
   calculateCrossMarginAccountSummaryFromAccount,
   estimateCrossLiquidationPrice,
-  formatAccountLeverage,
-  formatCrossMarginRatio,
-  getCrossCollateral,
   getCrossMarginRatioTone,
 } from './crossMarginSummary';
 
@@ -17,70 +13,8 @@ const crossMarginSummary = {
 };
 
 describe('crossMarginSummary', () => {
-  describe('getCrossCollateral', () => {
-    it('adds spot collateral to the cross account value', () => {
-      expect(getCrossCollateral(crossMarginSummary, 200)).toBe(1200);
-    });
-
-    it('returns undefined when the summary is missing', () => {
-      expect(getCrossCollateral(undefined)).toBeUndefined();
-    });
-  });
-
-  describe('calculateCrossMarginAccountSummary', () => {
-    it('derives ratio, leverage and usage from the cross summary', () => {
-      const result = calculateCrossMarginAccountSummary({
-        totalEquity: '1000',
-        crossMarginSummary,
-      });
-
-      expect(result).toEqual({
-        maintenanceMargin: 250,
-        accountRatio: 0.25,
-        accountLeverage: 12.5,
-        crossMarginUsage: 0.5,
-      });
-    });
-
-    it('returns undefined metrics when the summary is missing', () => {
-      const result = calculateCrossMarginAccountSummary({
-        totalEquity: '1000',
-        crossMarginSummary: undefined,
-      });
-
-      expect(result).toEqual({
-        maintenanceMargin: undefined,
-        accountRatio: undefined,
-        accountLeverage: undefined,
-        crossMarginUsage: undefined,
-      });
-    });
-
-    it('returns undefined ratios when collateral is zero', () => {
-      const result = calculateCrossMarginAccountSummary({
-        totalEquity: '0',
-        crossMarginSummary: { ...crossMarginSummary, accountValue: '0' },
-      });
-
-      expect(result.accountRatio).toBeUndefined();
-      expect(result.crossMarginUsage).toBeUndefined();
-      expect(result.accountLeverage).toBeUndefined();
-    });
-
-    it('returns undefined for non-numeric inputs', () => {
-      const result = calculateCrossMarginAccountSummary({
-        totalEquity: 'abc',
-        crossMarginSummary: { ...crossMarginSummary, maintenanceMargin: '' },
-      });
-
-      expect(result.maintenanceMargin).toBeUndefined();
-      expect(result.accountRatio).toBeUndefined();
-      expect(result.accountLeverage).toBeUndefined();
-    });
-  });
-
   describe('calculateCrossMarginAccountSummaryFromAccount', () => {
-    it('reads totals from the account state', () => {
+    it('derives the summary from the account with no spot collateral', () => {
       const account = {
         totalBalance: '2000',
         crossMarginSummary,
@@ -88,14 +22,21 @@ describe('crossMarginSummary', () => {
 
       const result = calculateCrossMarginAccountSummaryFromAccount(account);
 
-      expect(result.accountLeverage).toBe(6.25);
-      expect(result.accountRatio).toBe(0.25);
+      expect(result).toEqual({
+        maintenanceMargin: 250,
+        accountRatio: 0.25,
+        accountLeverage: 6.25,
+        crossMarginUsage: 0.5,
+      });
     });
 
-    it('handles a null account', () => {
-      expect(
-        calculateCrossMarginAccountSummaryFromAccount(null).accountRatio,
-      ).toBeUndefined();
+    it('returns undefined metrics for a null account', () => {
+      expect(calculateCrossMarginAccountSummaryFromAccount(null)).toEqual({
+        maintenanceMargin: undefined,
+        accountRatio: undefined,
+        accountLeverage: undefined,
+        crossMarginUsage: undefined,
+      });
     });
   });
 
@@ -110,22 +51,6 @@ describe('crossMarginSummary', () => {
       [1.2, 'danger'],
     ])('maps %s to %s', (ratio, tone) => {
       expect(getCrossMarginRatioTone(ratio)).toBe(tone);
-    });
-  });
-
-  describe('formatters', () => {
-    it('formats the ratio as a percentage with at most one decimal', () => {
-      expect(formatCrossMarginRatio(0.174)).toBe('17.4%');
-      expect(formatCrossMarginRatio(0.634)).toBe('63.4%');
-      expect(formatCrossMarginRatio(0.63)).toBe('63%');
-      expect(formatCrossMarginRatio(0.8)).toBe('80%');
-      expect(formatCrossMarginRatio(0.30004)).toBe('30%');
-    });
-
-    it('formats account leverage with at most 2 decimals', () => {
-      expect(formatAccountLeverage(12.5)).toBe('12.5x');
-      expect(formatAccountLeverage(3)).toBe('3x');
-      expect(formatAccountLeverage(1.23456)).toBe('1.23x');
     });
   });
 
@@ -159,7 +84,7 @@ describe('crossMarginSummary', () => {
       ).toBeUndefined();
     });
 
-    it('returns undefined without a cross summary or size', () => {
+    it('returns undefined without a cross summary, size, or max leverage', () => {
       expect(
         estimateCrossLiquidationPrice({
           ...params,
@@ -169,6 +94,13 @@ describe('crossMarginSummary', () => {
       ).toBeUndefined();
       expect(
         estimateCrossLiquidationPrice({ ...params, isLong: true, size: 0 }),
+      ).toBeUndefined();
+      expect(
+        estimateCrossLiquidationPrice({
+          ...params,
+          isLong: true,
+          maxLeverage: 0,
+        }),
       ).toBeUndefined();
     });
   });

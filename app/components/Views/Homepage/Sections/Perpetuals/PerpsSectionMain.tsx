@@ -32,6 +32,7 @@ import {
 } from '../../../../UI/Perps/hooks';
 
 import {
+  formatCrossMarginRatio,
   formatPnl,
   formatPercentage,
 } from '../../../../UI/Perps/utils/formatUtils';
@@ -41,7 +42,6 @@ import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsServiceInterruptionBanner from '../../../../UI/Perps/components/PerpsServiceInterruptionBanner';
 import PerpsCrossMarginRatioBanner from '../../../../UI/Perps/components/PerpsCrossMarginRatioBanner';
 import { usePerpsCrossMarginSummary } from '../../../../UI/Perps/hooks/usePerpsCrossMarginSummary';
-import { formatCrossMarginRatio } from '../../../../UI/Perps/utils/crossMarginSummary';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsTrendingCarousel from './components/PerpsTrendingCarousel';
@@ -561,6 +561,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               <PerpsCrossMarginRatioBanner
                 ratio={formatCrossMarginRatio(crossMarginRatio)}
                 severity={crossMarginBannerSeverity}
+                isRatioHidden={privacyMode}
                 testID={HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER}
               />
             </SectionRow>
@@ -587,6 +588,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                     position={position}
                     onPress={() => handlePositionPress(position)}
                     testID={`perps-position-row-${position.symbol}`}
+                    showMarginModeTag={false}
                   />
                 ))}
                 {displayOrders.map((order) => (

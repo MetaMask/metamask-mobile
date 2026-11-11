@@ -31,6 +31,27 @@ describe('PerpsCrossMarginRatioBanner', () => {
     expect(screen.getByText(descriptionFor('89%'))).toBeOnTheScreen();
   });
 
+  it.each([
+    [BannerAlertSeverity.Warning, 'description_hidden_warning'],
+    [BannerAlertSeverity.Danger, 'description_hidden_danger'],
+  ] as const)(
+    'describes a %s ratio without the figure while it is hidden',
+    (severity, key) => {
+      render(
+        <PerpsCrossMarginRatioBanner
+          ratio="89%"
+          severity={severity}
+          isRatioHidden
+        />,
+      );
+
+      expect(
+        screen.getByText(strings(`perps.crossMarginRatio.${key}`)),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText(/89%/u)).not.toBeOnTheScreen();
+    },
+  );
+
   it('renders with the default container test ID', () => {
     render(
       <PerpsCrossMarginRatioBanner

@@ -3547,7 +3547,9 @@
       "dismiss": "Got it"
     },
     "crossMarginRatio": {
-      "description": "Cross margin ratio is {{ratio}}."
+      "description": "Cross margin ratio is {{ratio}}.",
+      "description_hidden_warning": "Cross margin ratio is elevated.",
+      "description_hidden_danger": "Cross margin ratio is high."
     },
     "crossMarginSummary": {
       "account_ratio": "Account ratio",

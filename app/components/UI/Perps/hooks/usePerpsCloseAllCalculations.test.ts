@@ -365,7 +365,7 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.receiveAmount).toBe(1463.02);
     });
 
-    it('sums isolated and cross positions to the cent', async () => {
+    it('excludes P&L from every margin once any position is cross, so the rows add up to receive', async () => {
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({
           positions: crossAndIsolated,
@@ -374,14 +374,20 @@ describe('usePerpsCloseAllCalculations', () => {
       );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.totalMargin).toBe(1250);
+      // 1000 cross + (250 - -20) isolated
+      expect(result.current.totalMargin).toBe(1270);
       expect(result.current.summaryMarginMode).toBe('cross');
       expect(result.current.totalPnl).toBe(480);
       expect(result.current.totalFees).toBeCloseTo(37.874);
       expect(result.current.receiveAmount).toBeCloseTo(1712.12, 10);
+      const { totalMargin, totalPnl, totalFees, receiveAmount } =
+        result.current;
+      expect(
+        (totalMargin ?? 0) + (totalPnl ?? 0) - (totalFees ?? 0),
+      ).toBeCloseTo(receiveAmount ?? 0, 1);
     });
 
-    it('leaves every total unknown while a position has no live price', async () => {
+    it('leaves the price-dependent totals unknown while a position has no live price', async () => {
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({
           positions: crossAndIsolated,
@@ -390,7 +396,8 @@ describe('usePerpsCloseAllCalculations', () => {
       );
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.totalMargin).toBeUndefined();
+      // Margin without P&L does not depend on the close price.
+      expect(result.current.totalMargin).toBe(1270);
       expect(result.current.totalPnl).toBeUndefined();
       expect(result.current.totalFees).toBeUndefined();
       expect(result.current.receiveAmount).toBeUndefined();

@@ -22,7 +22,6 @@ import {
   TextVariant,
   TitleHub,
 } from '@metamask/design-system-react-native';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { usePerpsLiveAccount } from '../../hooks/stream';
@@ -37,6 +36,7 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { PerpsBalanceBottomSheetProps } from './PerpsBalanceBottomSheet.types';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import PerpsProModalPortal from '../../Views/PerpsProMarketView/components/PerpsProModalPortal';
 import PerpsCrossMarginSummary, {
   type PerpsCrossMarginSummaryTooltipKey,
 } from './PerpsCrossMarginSummary';
@@ -52,6 +52,7 @@ import PerpsCrossMarginSummary, {
 const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   isVisible,
   onClose,
+  buttonLocation,
   testID = PerpsBalanceBottomSheetSelectorsIDs.CONTAINER,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -74,9 +75,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
-  } = usePerpsHomeActions({
-    buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
-  });
+  } = usePerpsHomeActions({ buttonLocation });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
   const spendableBalance = perpsAccount?.spendableBalance || '0';
@@ -259,21 +258,14 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
       )}
 
       {activeTooltip && (
-        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
-        <View>
-          <Modal visible transparent animationType="none" statusBarTranslucent>
-            <ModalSafeAreaProvider>
-              <PerpsBottomSheetTooltip
-                isVisible
-                onClose={closeTooltip}
-                contentKey={activeTooltip}
-                testID={
-                  PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_TOOLTIP
-                }
-              />
-            </ModalSafeAreaProvider>
-          </Modal>
-        </View>
+        <PerpsProModalPortal onRequestClose={closeTooltip}>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={closeTooltip}
+            contentKey={activeTooltip}
+            testID={PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_TOOLTIP}
+          />
+        </PerpsProModalPortal>
       )}
     </>
   );
