@@ -266,7 +266,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           </Text>
         </Box>
         <Box
-          twClassName="w-full min-w-0 mt-1"
+          twClassName="w-full min-w-0"
           marginBottom={shouldShowSecondaryRow ? 2 : 3}
           onLayout={onContainerLayout}
         >
