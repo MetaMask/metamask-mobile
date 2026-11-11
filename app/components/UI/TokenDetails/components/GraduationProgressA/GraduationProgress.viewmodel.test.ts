@@ -212,6 +212,7 @@ describe('getGraduationProgressViewModel', () => {
       accessibilityLabel:
         'Graduation progress. BONDING. $64.9K raised · $4.1K to graduation',
       detailLabel: '$64.9K raised · $4.1K to graduation',
+      fillColorKey: 'warning',
       isNearGraduation: true,
       percent: 94,
       percentLabel: '94%',
@@ -298,6 +299,7 @@ describe('getGraduationProgressViewModel', () => {
     expect(viewModel).toStrictEqual({
       accessibilityLabel: 'Graduation progress. NEW. 0% to graduation',
       detailLabel: '0% to graduation',
+      fillColorKey: 'primary',
       isNearGraduation: false,
       percent: 0,
       percentLabel: '0%',
@@ -334,6 +336,27 @@ describe('getGraduationProgressViewModel', () => {
     });
 
     expect(viewModel?.detailLabel).toStrictEqual('24% to graduation');
+  });
+
+  it('maps the fill colour through percent bands', () => {
+    const buildFor = (graduationPercent: string) =>
+      getGraduationProgressViewModel({
+        currentCurrency: 'usd',
+        launchpad: 'pumpfun',
+        launchpadData: buildLaunchpadData({
+          graduationPercent,
+          graduationStage: 'bonding',
+        }),
+        marketData: null,
+      });
+
+    expect(buildFor('0')?.fillColorKey).toStrictEqual('primary');
+    expect(buildFor('24.9')?.fillColorKey).toStrictEqual('primary');
+    expect(buildFor('25')?.fillColorKey).toStrictEqual('success');
+    expect(buildFor('64')?.fillColorKey).toStrictEqual('success');
+    expect(buildFor('89.9')?.fillColorKey).toStrictEqual('success');
+    expect(buildFor('90')?.fillColorKey).toStrictEqual('warning');
+    expect(buildFor('94')?.fillColorKey).toStrictEqual('warning');
   });
 
   it('marks bonding progress near graduation at ninety percent or above', () => {

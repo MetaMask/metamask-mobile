@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { act, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 
 import { GraduationProgress } from './GraduationProgress';
 import {
@@ -10,11 +10,6 @@ import {
 import type { TokenAssetLaunchpadData } from '../../queries/tokenAssetQuery';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { mockTheme } from '../../../../../util/theme';
-
-jest.mock('react-native-linear-gradient', () => {
-  const { View } = jest.requireActual('react-native');
-  return ({ testID }: { testID?: string }) => <View testID={testID} />;
-});
 
 const mockPlaySelection = jest.fn();
 jest.mock('../../../../../util/haptics', () => ({
@@ -128,22 +123,45 @@ describe('GraduationProgress', () => {
     );
   });
 
-  it('sizes the gradient band from the laid-out track width', () => {
+  it('fills the bar with a solid theme-token view scaled by percent', () => {
     const { getByTestId } = renderGraduationProgress({
       graduationPercent: '64',
       graduationStage: 'bonding',
     });
 
-    act(() => {
-      getByTestId(GraduationProgressSelectors.BAR).props.onLayout({
-        nativeEvent: { layout: { width: 336 } },
-      });
+    const fillStyle = StyleSheet.flatten(
+      getByTestId(GraduationProgressSelectors.FILL).props.style,
+    );
+    expect(fillStyle.backgroundColor).toStrictEqual(
+      mockTheme.colors.success.default,
+    );
+    expect(fillStyle.transformOrigin).toStrictEqual('left center');
+    expect(fillStyle.transform).toStrictEqual([{ scaleX: 0 }]);
+    expect(fillStyle.width).toStrictEqual(undefined);
+  });
+
+  it('uses the primary colour for a fresh token and warning near graduation', () => {
+    const { getByTestId: freshQuery } = renderGraduationProgress({
+      graduationPercent: '0',
+      graduationStage: 'created',
+    });
+    const { getByTestId: nearQuery } = renderGraduationProgress({
+      graduationPercent: '94',
+      graduationStage: 'bonding',
     });
 
-    const bandStyle = StyleSheet.flatten(
-      getByTestId(GraduationProgressSelectors.GRADIENT).props.style,
+    const freshStyle = StyleSheet.flatten(
+      freshQuery(GraduationProgressSelectors.FILL).props.style,
     );
-    expect(bandStyle.width).toStrictEqual(672);
+    const nearStyle = StyleSheet.flatten(
+      nearQuery(GraduationProgressSelectors.FILL).props.style,
+    );
+    expect(freshStyle.backgroundColor).toStrictEqual(
+      mockTheme.colors.primary.default,
+    );
+    expect(nearStyle.backgroundColor).toStrictEqual(
+      mockTheme.colors.warning.default,
+    );
   });
 
   it('renders the new-token card with single-line percent copy', () => {
@@ -158,7 +176,7 @@ describe('GraduationProgress', () => {
     expect(getByText('0% to graduation')).toBeTruthy();
   });
 
-  it('shows the near-graduation aura around the fill and fires one selection haptic', () => {
+  it('shows the near-graduation aura over the fill and fires one selection haptic', () => {
     const { getByTestId } = renderGraduationProgress({
       graduationPercent: '94',
       graduationStage: 'bonding',
@@ -170,8 +188,9 @@ describe('GraduationProgress', () => {
     expect(auraStyle.backgroundColor).toStrictEqual(
       mockTheme.colors.success.default,
     );
-    expect(auraStyle.end).toStrictEqual(undefined);
+    expect(auraStyle.transformOrigin).toStrictEqual('left center');
     expect(auraStyle.top).toStrictEqual(-3);
+    expect(auraStyle.transform).toStrictEqual([{ scaleX: 0 }]);
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 

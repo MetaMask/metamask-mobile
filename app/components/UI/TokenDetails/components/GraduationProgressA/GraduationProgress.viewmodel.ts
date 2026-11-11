@@ -6,6 +6,8 @@ import { formatCompactFiat } from '../../utils/statBarFormat';
 
 export const NEAR_GRADUATION_THRESHOLD = 90;
 
+export const PRIMARY_FILL_MAX_PERCENT = 25;
+
 const USD_CURRENCY_CODE = 'usd';
 
 const GRADUATION_TARGET_USD_BY_LAUNCHPAD: Record<string, number> = {
@@ -18,6 +20,8 @@ const DEFAULT_GRADUATION_TARGET_USD = 69000;
 
 export type GraduationStage = 'created' | 'bonding';
 
+export type GraduationFillColorKey = 'primary' | 'success' | 'warning';
+
 export type GraduationPercentSource = number | string | null | undefined;
 
 export interface GraduationProgressViewModel {
@@ -25,6 +29,7 @@ export interface GraduationProgressViewModel {
   percent: number;
   percentLabel: string;
   isNearGraduation: boolean;
+  fillColorKey: GraduationFillColorKey;
   stageLabel: string;
   detailLabel: string;
   accessibilityLabel: string;
@@ -143,6 +148,16 @@ const buildDetailLabel = ({
   })}`;
 };
 
+const getFillColorKey = (percent: number): GraduationFillColorKey => {
+  if (percent < PRIMARY_FILL_MAX_PERCENT) {
+    return 'primary';
+  }
+  if (percent < NEAR_GRADUATION_THRESHOLD) {
+    return 'success';
+  }
+  return 'warning';
+};
+
 export const getGraduationProgressViewModel = ({
   launchpadData,
   launchpad,
@@ -183,6 +198,7 @@ export const getGraduationProgressViewModel = ({
     percent,
     percentLabel,
     isNearGraduation,
+    fillColorKey: getFillColorKey(percent),
     stageLabel,
     detailLabel,
     accessibilityLabel,

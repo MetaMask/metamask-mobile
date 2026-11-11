@@ -1,18 +1,5 @@
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  I18nManager,
-  TextInput,
-  View,
-  type LayoutChangeEvent,
-  type ViewStyle,
-} from 'react-native';
+import React, { memo, useEffect, useMemo, useRef } from 'react';
+import { I18nManager, TextInput, View, type ViewStyle } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -38,7 +25,6 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
 
 import { useHaptics } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
@@ -65,7 +51,6 @@ const FILL_DELTA_DURATION_MS = 300;
 const COUNT_UP_MOUNT_DURATION_MS = 800;
 const COUNT_UP_DELTA_DURATION_MS = 300;
 const REDUCED_MOTION_SETTLE_MS = 200;
-const GRADIENT_FLOW_LOOP_MS = 2400;
 const AURA_PULSE_DURATION_MS = 800;
 const AURA_MIN_OPACITY = 0.25;
 const AURA_MAX_OPACITY = 0.55;
@@ -73,12 +58,23 @@ const BAR_HEIGHT = 8;
 const BAR_RADIUS = 4;
 const AURA_SPREAD = 3;
 const TICK_WIDTH = 1;
-const GRADIENT_TRACKS = 2;
 
-const START_EDGE_STYLE = { start: 0 };
-const AURA_BASE_STYLE = {
-  borderRadius: BAR_RADIUS + AURA_SPREAD,
+const buildBarBaseStyle = (isRtl: boolean): ViewStyle => ({
+  bottom: 0,
+  end: 0,
+  position: 'absolute',
+  start: 0,
+  top: 0,
+  transformOrigin: isRtl ? 'right center' : 'left center',
+});
+
+const BAR_WRAPPER_STYLE = { height: BAR_HEIGHT };
+
+const AURA_BASE_STYLE: ViewStyle = {
   bottom: -AURA_SPREAD,
+  borderRadius: BAR_RADIUS + AURA_SPREAD,
+  end: 0,
+  position: 'absolute',
   start: 0,
   top: -AURA_SPREAD,
 };
@@ -114,12 +110,9 @@ const GraduationProgressCard = ({
 
   const percent = useSharedValue(0);
   const percentText = useSharedValue(0);
-  const flow = useSharedValue(1);
-  const trackWidth = useSharedValue(0);
   const auraOpacity = useSharedValue(AURA_MIN_OPACITY);
   const isMountAnimation = useRef(true);
   const nearGraduationHapticFired = useRef(false);
-  const [trackWidthPx, setTrackWidthPx] = useState(0);
 
   useEffect(() => {
     cancelAnimation(percent);
@@ -161,26 +154,6 @@ const GraduationProgressCard = ({
   }, [percent, percentText, reduceMotion, viewModel.percent]);
 
   useEffect(() => {
-    if (reduceMotion) {
-      flow.set(1);
-      return undefined;
-    }
-    cancelAnimation(flow);
-    flow.set(0);
-    flow.set(
-      withRepeat(
-        withTiming(1, {
-          duration: GRADIENT_FLOW_LOOP_MS,
-          easing: Easing.linear,
-        }),
-        -1,
-        false,
-      ),
-    );
-    return () => cancelAnimation(flow);
-  }, [flow, reduceMotion]);
-
-  useEffect(() => {
     if (!viewModel.isNearGraduation || reduceMotion) {
       return undefined;
     }
@@ -210,38 +183,16 @@ const GraduationProgressCard = ({
     haptics.playSelection();
   }, [haptics, reduceMotion, viewModel.isNearGraduation]);
 
-  const handleTrackLayout = useCallback(
-    ({
-      nativeEvent: {
-        layout: { width },
-      },
-    }: LayoutChangeEvent): void => {
-      trackWidth.set(width);
-      setTrackWidthPx(width);
-    },
-    [trackWidth],
-  );
-
-  const fillStyle = useAnimatedStyle((): { width: number } => {
-    const fraction = Math.min(1, Math.max(0, percent.get() / 100));
-    return { width: fraction * trackWidth.get() };
-  });
-
-  const gradientStyle = useAnimatedStyle(
-    (): { transform: [{ translateX: number }] } => {
-      const direction = isRtl ? -1 : 1;
-      return {
-        transform: [
-          { translateX: (flow.get() - 1) * direction * trackWidth.get() },
-        ],
-      };
-    },
+  const fillStyle = useAnimatedStyle(
+    (): { transform: [{ scaleX: number }] } => ({
+      transform: [{ scaleX: Math.min(1, Math.max(0, percent.get() / 100)) }],
+    }),
   );
 
   const auraStyle = useAnimatedStyle(
-    (): { opacity: number; width: number } => ({
+    (): { opacity: number; transform: [{ scaleX: number }] } => ({
       opacity: auraOpacity.get(),
-      width: Math.min(1, Math.max(0, percent.get() / 100)) * trackWidth.get(),
+      transform: [{ scaleX: Math.min(1, Math.max(0, percent.get() / 100)) }],
     }),
   );
 
@@ -250,16 +201,22 @@ const GraduationProgressCard = ({
   }));
 
   const isBonding = viewModel.stage === 'bonding';
-  const fillColors = viewModel.isNearGraduation
-    ? [colors.warning.default, colors.success.default]
-    : [colors.primary.default, colors.success.default];
-  const flowColors = [
-    fillColors[0],
-    fillColors[1],
-    fillColors[0],
-    fillColors[1],
-    fillColors[0],
-  ];
+  const fillBackgroundColor = colors[viewModel.fillColorKey].default;
+  const fillBaseStyle = useMemo(
+    () => ({
+      ...buildBarBaseStyle(isRtl),
+      backgroundColor: fillBackgroundColor,
+    }),
+    [fillBackgroundColor, isRtl],
+  );
+  const auraBaseStyle = useMemo(
+    () => ({
+      ...AURA_BASE_STYLE,
+      backgroundColor: colors.success.default,
+      transformOrigin: isRtl ? 'right center' : 'left center',
+    }),
+    [colors.success.default, isRtl],
+  );
   const tagDotStyle = useMemo(
     () => ({
       backgroundColor: isBonding
@@ -271,14 +228,6 @@ const GraduationProgressCard = ({
   const trackStyle = useMemo(
     () => ({ backgroundColor: colors.border.muted }),
     [colors.border.muted],
-  );
-  const gradientBandStyle = useMemo(
-    () => ({ width: trackWidthPx * GRADIENT_TRACKS }),
-    [trackWidthPx],
-  );
-  const auraStyleBase = useMemo(
-    () => ({ ...AURA_BASE_STYLE, backgroundColor: colors.success.default }),
-    [colors.success.default],
   );
   const tickColor = colors.border.default;
 
@@ -322,17 +271,7 @@ const GraduationProgressCard = ({
         />
       </Box>
 
-      <View style={{ height: BAR_HEIGHT }}>
-        {viewModel.isNearGraduation ? (
-          <Animated.View
-            style={[
-              tw.style('absolute rounded-full'),
-              auraStyleBase,
-              auraStyle,
-            ]}
-            testID={GraduationProgressSelectors.AURA}
-          />
-        ) : null}
+      <View style={BAR_WRAPPER_STYLE}>
         <Box
           accessibilityLabel={viewModel.accessibilityLabel}
           accessibilityRole="progressbar"
@@ -341,36 +280,14 @@ const GraduationProgressCard = ({
             max: 100,
             now: viewModel.percent,
           }}
-          onLayout={handleTrackLayout}
           style={trackStyle}
           twClassName="h-2 w-full overflow-hidden rounded"
           testID={GraduationProgressSelectors.BAR}
         >
           <Animated.View
-            style={[
-              tw.style('absolute top-0 bottom-0 rounded overflow-hidden'),
-              START_EDGE_STYLE,
-              fillStyle,
-            ]}
+            style={[fillBaseStyle, fillStyle]}
             testID={GraduationProgressSelectors.FILL}
-          >
-            <Animated.View
-              style={[
-                tw.style('absolute top-0 bottom-0'),
-                START_EDGE_STYLE,
-                gradientBandStyle,
-                gradientStyle,
-              ]}
-              testID={GraduationProgressSelectors.GRADIENT}
-            >
-              <LinearGradient
-                colors={flowColors}
-                end={{ x: isRtl ? 0 : 1, y: 0.5 }}
-                start={{ x: isRtl ? 1 : 0, y: 0.5 }}
-                style={tw.style('h-full w-full')}
-              />
-            </Animated.View>
-          </Animated.View>
+          />
           {GraduationTickPositions.map((position) => (
             <View
               key={position}
@@ -379,6 +296,12 @@ const GraduationProgressCard = ({
             />
           ))}
         </Box>
+        {viewModel.isNearGraduation ? (
+          <Animated.View
+            style={[auraBaseStyle, auraStyle]}
+            testID={GraduationProgressSelectors.AURA}
+          />
+        ) : null}
       </View>
 
       <Text

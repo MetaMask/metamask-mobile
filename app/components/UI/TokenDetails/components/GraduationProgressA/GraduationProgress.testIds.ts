@@ -8,7 +8,6 @@ export const GraduationProgressSelectors = {
   PERCENT: 'token-details-v1-graduation-percent',
   BAR: 'token-details-v1-graduation-bar',
   FILL: 'token-details-v1-graduation-bar-fill',
-  GRADIENT: 'token-details-v1-graduation-gradient',
   DETAIL: 'token-details-v1-graduation-detail',
   AURA: 'token-details-v1-graduation-aura',
   tick: (position: GraduationTickPosition) =>
