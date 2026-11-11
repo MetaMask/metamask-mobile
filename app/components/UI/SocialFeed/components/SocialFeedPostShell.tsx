@@ -474,6 +474,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
                 item={post.item}
                 onCopyTrade={copyTradeHandler}
                 showCopyTrade={showCopyTrade}
+                now={now}
               />
             </Pressable>
           ) : (
@@ -481,6 +482,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
               item={post.item}
               onCopyTrade={copyTradeHandler}
               showCopyTrade={showCopyTrade}
+              now={now}
             />
           )}
 
