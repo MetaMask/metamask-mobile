@@ -40,6 +40,7 @@ import {
   type FetchOutcome,
 } from '../util/deviceCapability/classifyFetchSample';
 import {
+  getLatencySampleEpoch,
   getLatencyThresholds,
   isLatencyTransportNone,
   recordFetchSample,
@@ -139,7 +140,11 @@ function isStreamInit(init?: RequestInit): boolean {
   return (init as { stream?: unknown } | undefined)?.stream === true;
 }
 
-function recordFetchOutcome(outcome: FetchOutcome, startMs: number): void {
+function recordFetchOutcome(
+  outcome: FetchOutcome,
+  startMs: number,
+  epochAtStart: number,
+): void {
   const sample = classifyFetchSample({
     isStream: false,
     isTransportNone: isLatencyTransportNone(),
@@ -149,7 +154,7 @@ function recordFetchOutcome(outcome: FetchOutcome, startMs: number): void {
     thresholds: getLatencyThresholds(),
   });
   if (sample) {
-    recordFetchSample(sample);
+    recordFetchSample(sample, epochAtStart);
   }
 }
 
@@ -167,12 +172,13 @@ function installProductionNitroFetch(): void {
       return nitroFetch(input, nitroInit);
     }
     const startMs = Date.now();
+    const epochAtStart = getLatencySampleEpoch();
     try {
       const response = await nitroFetch(input, nitroInit);
-      recordFetchOutcome({ response }, startMs);
+      recordFetchOutcome({ response }, startMs, epochAtStart);
       return response;
     } catch (error) {
-      recordFetchOutcome({ error }, startMs);
+      recordFetchOutcome({ error }, startMs, epochAtStart);
       throw error;
     }
   };

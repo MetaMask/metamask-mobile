@@ -25,7 +25,10 @@ describe('latencyStore', () => {
   let emitAppState: AppStateListener;
 
   const record = (durationMs: number, atMs = NOW_MS) =>
-    store.recordFetchSample({ atMs, durationMs });
+    store.recordFetchSample(
+      { atMs, durationMs },
+      store.getLatencySampleEpoch(),
+    );
 
   beforeEach(() => {
     jest.mocked(addNetInfoEventListener).mockImplementation((listener) => {
@@ -103,6 +106,25 @@ describe('latencyStore', () => {
     [8000, 8000].forEach((duration) => record(duration));
 
     expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('drops a sample started before clearLatencySamples', () => {
+    const epochAtStart = store.getLatencySampleEpoch();
+
+    store.clearLatencySamples();
+    store.recordFetchSample({ atMs: NOW_MS, durationMs: 8000 }, epochAtStart);
+    store.recordFetchSample({ atMs: NOW_MS, durationMs: 8000 }, epochAtStart);
+
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+  });
+
+  it('records a sample started after clearLatencySamples', () => {
+    store.clearLatencySamples();
+
+    record(8000);
+    record(8000);
+
+    expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
   it('resets slow to unknown on background to active', () => {

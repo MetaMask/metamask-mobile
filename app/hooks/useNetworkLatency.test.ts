@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useNetInfo } from '@react-native-community/netinfo';
 import {
   clearLatencySamples,
+  getLatencySampleEpoch,
   recordFetchSample,
 } from '../util/deviceCapability/latencyStore';
 import { useNetworkLatency } from './useNetworkLatency';
@@ -28,7 +29,10 @@ const MID_HUNG_MS = 15000;
 const recordSamples = (durations: number[]) =>
   act(() => {
     durations.forEach((durationMs) =>
-      recordFetchSample({ atMs: Date.now(), durationMs }),
+      recordFetchSample(
+        { atMs: Date.now(), durationMs },
+        getLatencySampleEpoch(),
+      ),
     );
   });
 

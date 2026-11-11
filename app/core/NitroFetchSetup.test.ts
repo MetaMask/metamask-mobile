@@ -39,9 +39,10 @@ jest.mock('../util/deviceCapability/latencyStore', () => {
     ...actual,
     recordFetchSample: (
       sample: Parameters<typeof actual.recordFetchSample>[0],
+      epochAtStart: Parameters<typeof actual.recordFetchSample>[1],
     ) => {
       mockRecordFetchSample(sample);
-      actual.recordFetchSample(sample);
+      actual.recordFetchSample(sample, epochAtStart);
     },
   };
 });
@@ -49,6 +50,7 @@ jest.mock('../util/deviceCapability/latencyStore', () => {
 import './NitroFetchSetup';
 import {
   clearLatencySamples,
+  getLatencySnapshot,
   getLatencyThresholds,
 } from '../util/deviceCapability/latencyStore';
 
@@ -338,6 +340,53 @@ describe('NitroFetchSetup', () => {
       beforeEach(() => {
         clearLatencySamples();
         mockRecordFetchSample.mockClear();
+      });
+
+      const settleHungFetches = async (duringFlight?: () => void) => {
+        const hungMs = getLatencyThresholds().hungMs;
+        const originalDateNow = Date.now;
+        let now = 0;
+        let started = 0;
+        let release: () => void = () => undefined;
+        const gate = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        Date.now = () => now;
+        mockNitroFetch.mockImplementation(async () => {
+          started += 1;
+          if (started === 2) {
+            duringFlight?.();
+            now = hungMs;
+            release();
+          }
+          await gate;
+          return new Response(null, { status: 200 });
+        });
+
+        try {
+          await Promise.all([
+            global.fetch('https://example.com/a'),
+            global.fetch('https://example.com/b'),
+          ]);
+        } finally {
+          Date.now = originalDateNow;
+          mockNitroFetch.mockResolvedValue({ ok: true, status: 200 });
+        }
+      };
+
+      it('drops fetches that were in flight across a latency clear', async () => {
+        await settleHungFetches(() => {
+          clearLatencySamples();
+        });
+
+        expect(mockRecordFetchSample).toHaveBeenCalledTimes(2);
+        expect(getLatencySnapshot()).toBe('UNKNOWN');
+      });
+
+      it('records hung fetches that settle without a latency clear', async () => {
+        await settleHungFetches();
+
+        expect(getLatencySnapshot()).toBe('SLOW');
       });
 
       it('records one sample for an HTTP response', async () => {

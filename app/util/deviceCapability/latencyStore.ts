@@ -23,6 +23,8 @@ let bucket: LatencyBucket = 'UNKNOWN';
 let thresholds: LatencyThresholds = latencyThresholdsFor(null);
 let isTransportNone = false;
 let isMonitoring = false;
+// Bumped on every clear. A fetch keeps the value from before its await.
+let sampleEpoch = 0;
 const listeners = new Set<() => void>();
 
 function setBucket(next: LatencyBucket): void {
@@ -36,12 +38,24 @@ function setBucket(next: LatencyBucket): void {
 /** Drops every sample and returns the bucket to `UNKNOWN`. */
 export function clearLatencySamples(): void {
   samples = [];
+  sampleEpoch += 1;
   setBucket('UNKNOWN');
 }
 
-/** The only write path from the `global.fetch` wrapper. */
-export function recordFetchSample(sample: LatencySample): void {
-  if (isTransportNone) {
+/** Epoch captured by `global.fetch` before the request is awaited. */
+export function getLatencySampleEpoch(): number {
+  return sampleEpoch;
+}
+
+/**
+ * The only write path from the `global.fetch` wrapper.
+ * `epochAtStart` must be the epoch from before the await; a clear in between drops the sample.
+ */
+export function recordFetchSample(
+  sample: LatencySample,
+  epochAtStart: number,
+): void {
+  if (isTransportNone || epochAtStart !== sampleEpoch) {
     return;
   }
   samples = [...samples, sample].slice(-LATENCY_SAMPLE_SIZE);
