@@ -195,10 +195,7 @@ const PerpsTestToastHost = ({ children }: { children: React.ReactNode }) => {
   const value = React.useMemo(() => ({ toastRef }), []);
   // Perps toasts go through the design-system `toast()` stub, which does not
   // paint. includeToasts still needs that title and description on screen.
-  React.useEffect(
-    () => subscribeToDesignSystemToast(setDesignSystemToast),
-    [],
-  );
+  React.useEffect(() => subscribeToDesignSystemToast(setDesignSystemToast), []);
   return (
     <ToastContext.Provider value={value}>
       {children}
