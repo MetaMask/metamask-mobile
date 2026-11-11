@@ -67,11 +67,6 @@ const chunkPairs = (cells: PerformanceCell[]): PerformanceCell[][] => {
 
 interface MyProfilePerformanceStatsProps {
   cells: PerformanceCell[];
-  /**
-   * Flagged positions the profile list is showing. The note stays hidden at 0
-   * and when the realized P&L cell is absent. It sits under the Performance title.
-   * The realized P&L cell label stays "Realized P&L".
-   */
   uncountedCount?: number;
   /** Scrolls the profile to the pinned uncounted section. */
   onUncountedPress?: () => void;

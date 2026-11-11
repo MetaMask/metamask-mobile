@@ -38,7 +38,6 @@ import React, {
 } from 'react';
 import {
   AccessibilityInfo,
-  ActivityIndicator,
   findNodeHandle,
   RefreshControl,
   type LayoutChangeEvent,
@@ -46,9 +45,7 @@ import {
   type NativeSyntheticEvent,
   type View,
 } from 'react-native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { RefreshControl, type LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
@@ -146,7 +143,6 @@ const { Filter, Interaction, Screen, ShareDestination, Trade } = SocialEvent;
 const PROFILE_CONTENT_TABS = ['posts', 'open', 'closed'] as const;
 type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
-const END_REACHED_THRESHOLD_PX = 600;
 const SCROLL_OFFSET_EPSILON_PX = 2;
 const UNCOUNTED_FOCUS_FALLBACK_MS = 400;
 const REFRESH_MIN_DURATION_MS = 1000;
@@ -362,8 +358,6 @@ const MyProfileView: React.FC = () => {
     [activeTab, cancelPendingUncountedHeaderFocus],
   );
   const scrollRef = useRef<Animated.ScrollView>(null);
-  // Content view inside the scroll host. measureLayout against the host
-  // returns a viewport y, which scrollTo would treat as a content offset.
   const scrollContentRef = useRef<View>(null);
   const uncountedSectionRef = useRef<View>(null);
   const uncountedHeaderRef = useRef<View>(null);
@@ -792,14 +786,6 @@ const MyProfileView: React.FC = () => {
   const handleCloseAssetFilter = useCallback(() => {
     setIsAssetFilterOpen(false);
   }, []);
-  const visiblePosts = useMemo(
-    () =>
-      posts.filter((post) =>
-        matchesProfileAssetFilter(post.position, assetFilter),
-      ),
-    [assetFilter, posts],
-  );
-
   const finishUncountedHeaderFocus = useCallback(
     (
       event: NativeSyntheticEvent<NativeScrollEvent>,
@@ -809,7 +795,6 @@ const MyProfileView: React.FC = () => {
         return;
       }
       const velocityY = event.nativeEvent.velocity?.y ?? 0;
-      // A drag release that still has speed glides. Wait for that to stop.
       if (!momentumFinished && velocityY !== 0) {
         return;
       }
@@ -817,57 +802,18 @@ const MyProfileView: React.FC = () => {
     },
     [focusUncountedHeader],
   );
-  const handleScrollSettled = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (activeTab !== 'posts' || !hasNextPage) {
-        return;
-      }
-      const { contentOffset, contentSize, layoutMeasurement } =
-        event.nativeEvent;
-      const distanceFromEnd =
-        contentSize.height - (contentOffset.y + layoutMeasurement.height);
-      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
-        loadMore();
-      }
-    },
-    [activeTab, hasNextPage, loadMore],
-  );
   const handleScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       finishUncountedHeaderFocus(event, false);
-      handleScrollSettled(event);
     },
-    [finishUncountedHeaderFocus, handleScrollSettled],
+    [finishUncountedHeaderFocus],
   );
   const handleMomentumScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       finishUncountedHeaderFocus(event, true);
-      handleScrollSettled(event);
     },
-    [finishUncountedHeaderFocus, handleScrollSettled],
+    [finishUncountedHeaderFocus],
   );
-
-  // A Tokens or Perps filter only sees posts already loaded. Keep paging
-  // until a match shows up, the feed ends, or the request fails.
-  const showFilteredPostLoading =
-    assetFilter !== 'all' &&
-    visiblePosts.length === 0 &&
-    !postsError &&
-    (isPostsLoading || isFetchingNextPage || hasNextPage);
-  const showInitialPostSkeletons =
-    (isPostsLoading && posts.length === 0) || showFilteredPostLoading;
-  const showPostsEmptyState =
-    !isPostsLoading &&
-    !isFetchingNextPage &&
-    visiblePosts.length === 0 &&
-    !postsError &&
-    !showFilteredPostLoading;
-  useEffect(() => {
-    if (!showFilteredPostLoading || isPostsLoading || isFetchingNextPage) {
-      return;
-    }
-    loadMore();
-  }, [isFetchingNextPage, isPostsLoading, loadMore, showFilteredPostLoading]);
   const isAwaitingPrivacy = isPrivacyPending && !privacyLoadError;
   const filterProfilePost = useCallback(
     (post: SocialV1FeedPost) =>

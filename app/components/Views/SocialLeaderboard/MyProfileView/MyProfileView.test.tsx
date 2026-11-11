@@ -2603,6 +2603,7 @@ describe('MyProfileView', () => {
         .spyOn(jest.requireActual('react-native'), 'findNodeHandle')
         .mockReturnValue(44);
       renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
       if (layout) {
         const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
         fireEvent(scroll, 'layout', {
@@ -2612,7 +2613,6 @@ describe('MyProfileView', () => {
         });
         fireEvent(scroll, 'contentSizeChange', 400, layout.content);
       }
-      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
       fireEvent.press(
         screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
       );

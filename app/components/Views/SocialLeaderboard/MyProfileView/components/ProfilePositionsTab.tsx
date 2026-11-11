@@ -46,11 +46,8 @@ export interface ProfilePositionsTabProps {
    * stays a normal row.
    */
   showFlaggedState?: boolean;
-  /** Measured so the P&L note can scroll this section into view. */
   uncountedSectionRef?: React.Ref<View>;
-  /** Header moved to after the profile scrolls to this section. */
   uncountedHeaderRef?: React.Ref<View>;
-  /** Called whenever the pinned section lays out. */
   onUncountedSectionLayout?: () => void;
   /** Opens the uncounted-positions explainer. */
   onUncountedHeaderPress?: () => void;
