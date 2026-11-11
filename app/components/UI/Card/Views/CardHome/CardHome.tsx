@@ -271,7 +271,7 @@ const CardHome = () => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
 
-  const { canEnableCard, enableCard, provisioningView } =
+  const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
     useCardEnableCard(data);
 
   // Still in identity review with no signed-in Card account: show the pending
@@ -885,6 +885,7 @@ const CardHome = () => {
                   isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
                   onAddFunds={actions.addFundsAction}
                   onEnableCard={enableCard ?? actions.enableCardAction}
+                  isEnableCardDisabled={isEnableCardPending}
                 />
               </Box>
             )}
