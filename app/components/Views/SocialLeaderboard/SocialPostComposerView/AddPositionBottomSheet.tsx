@@ -7,6 +7,7 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Box,
+  BoxAlignItems,
   FilterButton,
   FilterButtonGroup,
   FilterButtonSize,
@@ -276,7 +277,10 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                 )}
               </ScrollView>
               {showHiddenPositionLink ? (
-                <Box twClassName="items-center px-4 pt-2 pb-4">
+                <Box
+                  alignItems={BoxAlignItems.Start}
+                  twClassName="px-4 pt-2 pb-4"
+                >
                   <TextButton
                     onPress={handleShowHiddenPositionInfo}
                     testID={AddPositionBottomSheetSelectorsIDs.EMPTY_HELP}
