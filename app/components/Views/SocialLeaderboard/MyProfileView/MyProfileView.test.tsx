@@ -28,10 +28,15 @@ import { SocialEntryReportReason } from '../../../UI/SocialFeed/reportReasons';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import {
+  mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
 } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
+import {
+  FEED_CAIP2_CHAINS,
+  HYPERLIQUID_CAIP2_CHAIN_ID,
+} from '../../../UI/SocialFeed/data/feed-constants';
 import type { SocialFeedState } from '../../../UI/SocialFeed/data/useSocialFeed';
 import type {
   UseTraderPositionsOptions,
@@ -42,6 +47,7 @@ import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTrade
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
+import { ImpactMoment } from '../../../../util/haptics';
 import {
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_NEXT_PAGE_TEST_ID,
@@ -69,6 +75,7 @@ const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockOpenComposer = jest.fn();
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockFireImpact = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockFollowWithSetup = jest.fn(
   async (_isFollowing: boolean, performFollow: () => Promise<void>) => {
@@ -202,6 +209,7 @@ jest.mock('../hooks/useSpotCopyTradeQuickBuy', () => ({
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playSelection: () => mockPlaySelection(),
+  fireImpact: (...args: unknown[]) => mockFireImpact(...args),
   playImpact: jest.fn().mockResolvedValue(undefined),
   playErrorNotification: jest.fn().mockResolvedValue(undefined),
 }));
@@ -268,8 +276,8 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     profileId?: string;
     analyticsEnabled?: boolean;
     emptyState?: React.ReactNode;
-    filterPost?: (post: SocialV1FeedPost) => boolean;
     onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
+    onPositionPress?: (post: SocialV1FeedPost) => void;
     refreshRef?: React.Ref<{ refresh: () => Promise<void> }>;
     testID?: string;
   }) => {
@@ -278,7 +286,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     ReactActual.useImperativeHandle(props.refreshRef, () => ({
       refresh: result.refresh,
     }));
-    const matchingPosts = result.posts.map((post) => ({
+    const posts = result.posts.map((post) => ({
       ...post,
       commentId: post.commentId ?? 'comment-1',
       item: {
@@ -289,9 +297,6 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
         },
       },
     }));
-    const posts = props.filterPost
-      ? matchingPosts.filter(props.filterPost)
-      : matchingPosts;
 
     return (
       <View testID={props.testID}>
@@ -303,6 +308,14 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
           posts.map((post) => (
             <View key={post.id} testID={`my-profile-post-${post.id}`}>
               <Text>{post.id}</Text>
+              {props.onPositionPress && post.position ? (
+                <Pressable
+                  testID={`my-profile-post-position-${post.id}`}
+                  onPress={() => props.onPositionPress?.(post)}
+                >
+                  <Text>Position</Text>
+                </Pressable>
+              ) : null}
               {!props.analyticsEnabled ? (
                 <Pressable
                   testID={`my-profile-post-copy-trade-${post.id}`}
@@ -896,18 +909,19 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_SPINNER),
     ).toBeOnTheScreen();
+    expect(mockFireImpact).toHaveBeenCalledTimes(1);
+    expect(mockFireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
-        message:
-          'https://link.metamask.io/social/profile?traderId=current-user&share=1',
         url: 'https://link.metamask.io/social/profile?traderId=current-user&share=1',
         failOnCancel: false,
       });
     });
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(
       await screen.findByTestId(MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON),
     ).toBeOnTheScreen();
+    expect(mockFireImpact).toHaveBeenCalledTimes(2);
+    expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
   it('does not render a reset profile button on the owner profile header', () => {
@@ -990,6 +1004,78 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId('my-profile-post-copy-trade-post-1'),
     ).toBeOnTheScreen();
+  });
+
+  describe('post position press', () => {
+    const postPosition = { positionId: 'btc-perp' } as Position;
+    const setPosts = (posts: SocialV1FeedPost[]) =>
+      setMockSocialFeedState({
+        posts,
+        rows: [],
+        isLoading: false,
+        isFetchingNextPage: false,
+        hasNextPage: false,
+        loadMore: jest.fn(),
+        error: null,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+    it('opens the position sheet from an owner post', () => {
+      setPosts([mockMyProfilePost({ position: postPosition })]);
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+      fireEvent.press(screen.getByTestId('my-profile-post-position-post-1'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+        positionId: 'btc-perp',
+        position: postPosition,
+        author: expect.objectContaining({ id: 'current-user' }),
+        isClosed: false,
+        isSnapshotLive: false,
+        shareSource: 'trader_feed',
+      });
+    });
+
+    it('opens the position sheet from another trader post', () => {
+      mockProfileRouteParams = {
+        traderId: 'trader-1',
+        traderName: 'alpha.eth',
+        traderAddress: '0xabc',
+      };
+      mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
+      setPosts([
+        mockMyProfilePost({
+          item: mockClosedPerpsFeedItem({ id: 'post-1' }),
+          position: postPosition,
+        }),
+      ]);
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+      fireEvent.press(screen.getByTestId('my-profile-post-position-post-1'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+        positionId: 'btc-perp',
+        position: postPosition,
+        author: expect.objectContaining({ id: 'foreign-profile-id' }),
+        isClosed: true,
+        isSnapshotLive: false,
+        shareSource: 'trader_feed',
+      });
+    });
+
+    it('leaves a post without a position unpressable', () => {
+      setPosts([mockMyProfilePost()]);
+
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+      expect(screen.getByTestId('my-profile-post-post-1')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('my-profile-post-position-post-1'),
+      ).toBeNull();
+    });
   });
 
   describe('spot copy trade', () => {
@@ -1305,13 +1391,12 @@ describe('MyProfileView', () => {
 
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
-        message:
-          'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         url: 'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         failOnCancel: false,
       });
     });
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockFireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+    expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
   it('hides the trader deeplink share button on the owner profile', () => {
@@ -2153,63 +2238,50 @@ describe('MyProfileView', () => {
     expect(screen.queryByTestId('position-row-BTC')).toBeNull();
   });
 
-  it('applies the same Tokens filter on Posts', () => {
-    const spotPosition: Position = {
-      positionId: 'eth-spot',
-      tokenSymbol: 'ETH',
-      tokenName: 'Ethereum',
-      tokenAddress: '0xeth',
-      chain: 'ethereum',
-      positionAmount: 1,
-      boughtUsd: 100,
-      soldUsd: 0,
-      realizedPnl: 0,
-      costBasis: 100,
-      trades: [],
-      lastTradeAt: 1,
-    };
-    setMockSocialFeedState({
-      posts: [
-        mockMyProfilePost({ id: 'spot-post', position: spotPosition }),
-        mockMyProfilePost({
-          id: 'perp-post',
-          position: {
-            ...spotPosition,
-            positionId: 'btc-perp',
-            tokenSymbol: 'BTC',
-            chain: 'hyperliquid',
-            perpPositionType: 'long',
-          },
-        }),
-      ],
-      rows: [],
-      isLoading: false,
-      isFetchingNextPage: false,
-      hasNextPage: false,
-      loadMore: jest.fn(),
-      error: null,
-      refresh: jest.fn().mockResolvedValue(undefined),
-    });
-
+  it('requests every feed chain on Posts while the filter is All', () => {
     renderWithProvider(<MyProfileView />);
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
-    );
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
-    );
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
-    expect(screen.getByTestId('my-profile-post-spot-post')).toBeOnTheScreen();
-    expect(screen.queryByTestId('my-profile-post-perp-post')).toBeNull();
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
-    ).toBeOnTheScreen();
+    expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ chains: undefined }),
+    );
   });
 
-  it('shows the posts error when a filter hides every loaded post', () => {
+  it.each([
+    [
+      'Tokens',
+      MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS,
+      FEED_CAIP2_CHAINS.filter((chain) => chain !== HYPERLIQUID_CAIP2_CHAIN_ID),
+    ],
+    [
+      'Perps',
+      MyProfileViewSelectorsIDs.ASSET_FILTER_PERPS,
+      [HYPERLIQUID_CAIP2_CHAIN_ID],
+    ],
+  ])(
+    'asks the Posts feed for the %s chains',
+    (_label, filterTestId, expectedChains) => {
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+      );
+      fireEvent.press(screen.getByTestId(filterTestId));
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+      expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          chains: expectedChains,
+          profileId: 'current-user',
+          commentedOnly: true,
+        }),
+      );
+      expect(mockSocialFeedProps.mock.lastCall?.[0].filterPost).toBeUndefined();
+    },
+  );
+
+  it('shows the posts error when the filtered feed fails', () => {
     setMockSocialFeedState({
-      posts: [mockMyProfilePost()],
+      posts: [],
       rows: [],
       isLoading: false,
       isFetchingNextPage: false,
@@ -2300,6 +2372,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
   });
 
@@ -2347,6 +2420,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: true,
+      shareSource: 'profile_position',
     });
   });
 
@@ -2468,6 +2542,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
 
     fireEvent.press(
@@ -2556,6 +2631,7 @@ describe('MyProfileView', () => {
         xHandle: null,
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
   });
 

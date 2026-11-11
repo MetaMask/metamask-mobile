@@ -16,7 +16,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { LEARN_MORE_URL } from '../../../../../../constants/urls';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
@@ -41,9 +40,8 @@ const ProtectYourWallet = ({
   hintText,
   toggleHint,
 }: IProtectYourWalletProps) => {
-  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const styles = createStyles(colors);
+  const styles = createStyles();
   const navigation = useNavigation<AppNavigationProp>();
   const shouldShowSRPList = useSelector(hasMultipleHDKeyrings);
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);

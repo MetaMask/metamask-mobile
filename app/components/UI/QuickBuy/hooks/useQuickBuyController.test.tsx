@@ -33,6 +33,7 @@ jest.mock('../../../../util/social/socialActivityStorage', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+  useStore: jest.fn(() => ({ getState: () => ({ bridge: {} }) })),
   shallowEqual: jest.fn(),
 }));
 

@@ -42,6 +42,8 @@ interface HookProps {
   nearTop?: boolean;
   holdNewPosts?: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
+  matchesItem?: (item: CoreFeedItem) => boolean;
+  streamKey?: string;
 }
 
 const NO_ROWS: TraderFeedRow[] = [];
@@ -100,10 +102,21 @@ describe('useSocialFeedRealtime', () => {
         nearTop = true,
         holdNewPosts = false,
         filterPost,
+        matchesItem,
+        streamKey,
       }: HookProps) =>
         useSocialFeedRealtime(
           { rows, dataUpdatedAt, refresh },
-          { realtimeScope, active, paused, nearTop, holdNewPosts, filterPost },
+          {
+            realtimeScope,
+            active,
+            paused,
+            nearTop,
+            holdNewPosts,
+            filterPost,
+            matchesItem,
+            streamKey,
+          },
         ),
       { initialProps },
     );
@@ -327,6 +340,93 @@ describe('useSocialFeedRealtime', () => {
     emit(buildEvent('pos-kept'));
 
     expect(result.current?.realtime.pendingNewCount).toBe(1);
+  });
+
+  it("drops new posts outside the request's slice before holding or counting them", () => {
+    const matchesItem = (item: CoreFeedItem) => item.positionId !== 'pos-out';
+    const { result } = renderRealtime({ paused: true, matchesItem });
+
+    emit(buildEvent('pos-out'));
+    emit(buildEvent('pos-in'));
+
+    expect(result.current?.realtime.pendingNewCount).toBe(1);
+  });
+
+  it("adds a new post in the request's slice at the top", () => {
+    const matchesItem = (item: CoreFeedItem) => item.positionId === 'pos-in';
+    const { result } = renderRealtime({ matchesItem });
+
+    emit(buildEvent('pos-out'));
+    emit(buildEvent('pos-in'));
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-in']);
+  });
+
+  it("applies revisions to loaded posts without checking the request's slice", () => {
+    const rows = [buildRow({ positionId: 'pos-a', revision: 1, copyCount: 8 })];
+    const { result } = renderRealtime({ rows, matchesItem: () => false });
+
+    emit(buildEvent('pos-a', { revision: 2, data: { copyCount: 9 } }));
+
+    expect(result.current?.posts[0]?.copyCount).toBe(9);
+  });
+
+  it('drops socket posts and catches up when the streamed request changes', async () => {
+    const rows = [buildRow({ positionId: 'pos-a' })];
+    const { result, rerender } = renderRealtime({
+      rows,
+      dataUpdatedAt: 1,
+      streamKey: 'token-a',
+    });
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    emit(buildEvent('pos-b'));
+    const postsBefore = positionIds(result.current?.posts ?? []);
+
+    rerender({ rows, dataUpdatedAt: 1, streamKey: 'token-b' });
+
+    expect(postsBefore).toEqual(['pos-b', 'pos-a']);
+    expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(2));
+  });
+
+  it('never renders socket posts of the previous request', () => {
+    const rows = [buildRow({ positionId: 'pos-a' })];
+    const renderedPosts: (string | undefined)[][] = [];
+    const { rerender } = renderHook(
+      ({ streamKey }: { streamKey: string }) => {
+        const realtime = useSocialFeedRealtime(
+          { rows, dataUpdatedAt: 1, refresh },
+          {
+            realtimeScope: 'all',
+            active: true,
+            paused: false,
+            nearTop: true,
+            holdNewPosts: false,
+            streamKey,
+          },
+        );
+        renderedPosts.push(positionIds(realtime?.posts ?? []));
+        return realtime;
+      },
+      { initialProps: { streamKey: 'token-a' } },
+    );
+    emit(buildEvent('pos-b'));
+    const rendersBeforeChange = renderedPosts.length;
+
+    rerender({ streamKey: 'token-b' });
+
+    expect(renderedPosts[rendersBeforeChange - 1]).toEqual(['pos-b', 'pos-a']);
+    renderedPosts
+      .slice(rendersBeforeChange)
+      .forEach((posts) => expect(posts).toEqual(['pos-a']));
+  });
+
+  it('does not catch up on a request change before its first page loads', () => {
+    const { rerender } = renderRealtime({ streamKey: 'token-a' });
+
+    rerender({ streamKey: 'token-b' });
+
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('filters the merged posts', () => {

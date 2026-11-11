@@ -21,10 +21,20 @@ export type MoneyEntry = keyof typeof MONEY_ENTRIES;
 export interface MoneyEntryContext {
   accessBlockReason: MoneyAccountAccessBlockReason | undefined;
   isOnboardingRedirectNeeded: boolean;
+  /**
+   * CTA entries show the Money splash instead of onboarding while the splash is
+   * enabled and unseen. Tab and deeplink entries leave this unset.
+   */
+  isSplashRedirectNeeded?: boolean;
 }
 
 export interface MoneyEntryDecision {
-  destination: MoneyEntry | 'featureDisabled' | 'geoBlockSheet' | 'onboarding';
+  destination:
+    | MoneyEntry
+    | 'featureDisabled'
+    | 'geoBlockSheet'
+    | 'onboarding'
+    | 'splash';
   redirect_target:
     | (typeof SCREEN_NAMES)[keyof typeof SCREEN_NAMES]
     | (typeof BOTTOM_SHEET_NAMES)[keyof typeof BOTTOM_SHEET_NAMES];
@@ -39,7 +49,11 @@ export interface MoneyEntryDecision {
  */
 export const getMoneyEntryDecision = (
   entry: MoneyEntry,
-  { accessBlockReason, isOnboardingRedirectNeeded }: MoneyEntryContext,
+  {
+    accessBlockReason,
+    isOnboardingRedirectNeeded,
+    isSplashRedirectNeeded = false,
+  }: MoneyEntryContext,
 ): MoneyEntryDecision => {
   if (accessBlockReason === 'feature_disabled') {
     return {
@@ -54,6 +68,14 @@ export const getMoneyEntryDecision = (
       destination: 'geoBlockSheet',
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
       button_intent: MONEY_ENTRIES[entry].button_intent,
+    };
+  }
+
+  if (isSplashRedirectNeeded) {
+    return {
+      destination: 'splash',
+      redirect_target: SCREEN_NAMES.MONEY_SPLASH,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
     };
   }
 
