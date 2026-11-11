@@ -306,7 +306,6 @@ const PositionDetailsSheet = () => {
     if (!sharedPositionId || !shareSource) {
       return;
     }
-    void playSelection()?.catch(() => undefined);
     const sharedPosition = position;
     const buildOgImageRequest = sharedPosition
       ? async () => {
