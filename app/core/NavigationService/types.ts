@@ -1239,7 +1239,7 @@ export type RootStackParamList = {
   CardOnboardingPhysicalAddress: CardOnboardingStackParamList['CardOnboardingPhysicalAddress'];
   CardOnboardingComplete: CardOnboardingStackParamList['CardOnboardingComplete'];
   CardOnboardingKYCFailed: CardOnboardingStackParamList['CardOnboardingKYCFailed'];
-  CardOnboardingKYCPending: CardOnboardingStackParamList['CardOnboardingKYCPending'];
+  CardOnboardingImmersveKYC: CardOnboardingStackParamList['CardOnboardingImmersveKYC'];
   CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
   CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
@@ -1253,7 +1253,6 @@ export type RootStackParamList = {
   CardViewPinModal: CardModalsNavigationParamList['CardViewPinModal'];
   CardSpendingLimitOptionsModal: CardModalsNavigationParamList['CardSpendingLimitOptionsModal'];
   CardWaitlistFormModal: CardModalsNavigationParamList['CardWaitlistFormModal'];
-  CardImmersveKYCModal: CardModalsNavigationParamList['CardImmersveKYCModal'];
   CardForgotPasswordModal: CardModalsNavigationParamList['CardForgotPasswordModal'];
   CardCreditBalanceTooltipModal: CardModalsNavigationParamList['CardCreditBalanceTooltipModal'];
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];

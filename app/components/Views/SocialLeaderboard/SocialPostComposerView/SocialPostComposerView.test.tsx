@@ -550,6 +550,53 @@ describe('SocialPostComposerView', () => {
     dismissSpy.mockRestore();
   });
 
+  it('keeps the position and gif chips above the keyboard on Android', () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(Platform, 'OS');
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      get: () => 'android',
+    });
+    const listeners = new Map<string, ((event?: unknown) => void)[]>();
+    const addListenerMock = Keyboard.addListener as jest.Mock;
+    const originalAddListener = addListenerMock.getMockImplementation();
+    addListenerMock.mockImplementation((eventName, callback) => {
+      const callbacks = listeners.get(eventName) ?? [];
+      callbacks.push(callback as (event?: unknown) => void);
+      listeners.set(eventName, callbacks);
+      return { remove: jest.fn() } as unknown as ReturnType<
+        typeof Keyboard.addListener
+      >;
+    });
+
+    try {
+      renderWithProvider(<SocialPostComposerView />);
+
+      act(() => {
+        listeners.get('keyboardDidShow')?.forEach((callback) => {
+          callback({
+            endCoordinates: { height: 320 },
+          });
+        });
+      });
+
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId(SocialPostComposerViewSelectorsIDs.ACTION_BAR)
+            .props.style,
+        ).paddingBottom,
+      ).toBe(332);
+    } finally {
+      if (originalAddListener) {
+        addListenerMock.mockImplementation(originalAddListener);
+      } else {
+        addListenerMock.mockRestore();
+      }
+      if (platformDescriptor) {
+        Object.defineProperty(Platform, 'OS', platformDescriptor);
+      }
+    }
+  });
+
   it('dismisses the keyboard on drag and on taps the scroll content does not handle', () => {
     renderWithProvider(<SocialPostComposerView />);
 
@@ -1171,7 +1218,7 @@ describe('SocialPostComposerView', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('replaces the composer with Social V1 when openFeedAfterPost is set', async () => {
+  it('pops the composer to the Social tab when openFeedAfterPost is set', async () => {
     mockRouteParams = {
       position: openSpot,
       entryPoint: 'perps',
@@ -1188,10 +1235,13 @@ describe('SocialPostComposerView', () => {
     );
 
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1),
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB },
+        { pop: true },
       );
     });
+    expect(mockDispatch).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(1);
     expect(consumePostsTabFocus()).toBe(false);
     expect(mockGoBack).not.toHaveBeenCalled();

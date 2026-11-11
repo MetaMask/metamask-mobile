@@ -53,6 +53,9 @@ jest.mock('../../util/metrics', () => ({
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
 
@@ -60,12 +63,14 @@ jest.mock('./OnboardingStep', () => {
     title,
     description,
     formFields,
-    actions,
+    ...footerProps
   }: {
     title: string;
     description: string;
     formFields: React.ReactNode;
-    actions: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     React.createElement(
       View,
@@ -81,7 +86,11 @@ jest.mock('./OnboardingStep', () => {
         { testID: 'onboarding-step-form-fields' },
         formFields,
       ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        mockRenderFooterButtons(footerProps),
+      ),
     );
 });
 
@@ -91,6 +100,42 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text } = jest.requireActual('react-native');
 
   return {
+    // Added for the CARD-682 layout pass (CardFormField / HelpText / TextButton).
+    HelpText: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    TextButton: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    HelpTextSeverity: { Danger: 'danger' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+      ErrorDefault: 'ErrorDefault',
+    },
+    FontWeight: { Medium: '500', Regular: '400' },
     Box: ({
       children,
       ...props
@@ -128,6 +173,7 @@ const POLLING_TIMEOUT_MS = 30000;
 describe('VerifyingVeriffKYC', () => {
   const mockNavigate = jest.fn();
   const mockReset = jest.fn();
+  const mockDispatch = jest.fn();
   const mockStartPolling = jest.fn();
   const mockStopPolling = jest.fn();
 
@@ -140,6 +186,7 @@ describe('VerifyingVeriffKYC', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,
+      dispatch: mockDispatch,
     });
 
     (useUserRegistrationStatus as jest.Mock).mockReturnValue({
@@ -319,7 +366,7 @@ describe('VerifyingVeriffKYC', () => {
   });
 
   describe('Polling Timeout', () => {
-    it('navigates to KYC_PENDING after 30 seconds of polling', () => {
+    it('goes to Card home after 30 seconds of polling', () => {
       (useUserRegistrationStatus as jest.Mock).mockReturnValue({
         verificationState: 'PENDING',
         startPolling: mockStartPolling,
@@ -335,11 +382,11 @@ describe('VerifyingVeriffKYC', () => {
       expect(mockStopPolling).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     });
 
-    it('does not navigate to KYC_PENDING before 30 seconds', () => {
+    it('does not leave the screen before 30 seconds', () => {
       (useUserRegistrationStatus as jest.Mock).mockReturnValue({
         verificationState: 'PENDING',
         startPolling: mockStartPolling,
@@ -351,6 +398,7 @@ describe('VerifyingVeriffKYC', () => {
       jest.advanceTimersByTime(POLLING_TIMEOUT_MS - 1);
 
       expect(mockReset).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('clears timeout when VERIFIED state is reached before timeout', async () => {
@@ -378,7 +426,7 @@ describe('VerifyingVeriffKYC', () => {
 
       expect(mockReset).not.toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     });
 
@@ -407,7 +455,7 @@ describe('VerifyingVeriffKYC', () => {
 
       expect(mockReset).not.toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     });
 

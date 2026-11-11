@@ -17,6 +17,7 @@ export const MyProfileViewSelectorsIDs = {
   AVATAR: 'my-profile-view-avatar',
   EDIT_AVATAR_BUTTON: 'my-profile-view-edit-avatar-button',
   DISPLAY_NAME: 'my-profile-view-display-name',
+  VERIFIED_BADGE: 'my-profile-view-verified-badge',
   HANDLE: 'my-profile-view-handle',
   RANKING_TAG: 'my-profile-view-ranking-tag',
   X_LINK: 'my-profile-view-x-link',

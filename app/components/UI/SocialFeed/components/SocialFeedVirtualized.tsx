@@ -131,6 +131,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   commentedOnly,
   location,
   analyticsSource,
+  analyticsEnabled,
   showMockedFields,
   isActive,
   title,
@@ -139,6 +140,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   emptyState,
   realtime = false,
   paused = false,
+  comparePosts,
   inlineRows = NO_INLINE_ROWS,
   onRefresh,
   performance,
@@ -220,19 +222,18 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     isActive,
   );
 
-  const visiblePosts = useMemo(
-    () =>
-      posts.filter(
-        (post) =>
-          !isEntryHidden({
-            postId: post.id,
-            authorId: post.item.author.id,
-            authorHandle: post.authorHandle,
-            commentId: post.commentId,
-          }),
-      ),
-    [isEntryHidden, posts],
-  );
+  const visiblePosts = useMemo(() => {
+    const shown = posts.filter(
+      (post) =>
+        !isEntryHidden({
+          postId: post.id,
+          authorId: post.item.author.id,
+          authorHandle: post.authorHandle,
+          commentId: post.commentId,
+        }),
+    );
+    return comparePosts ? shown.sort(comparePosts) : shown;
+  }, [comparePosts, isEntryHidden, posts]);
   const { showSkeleton, showEmpty, showRetry } = getSocialFeedListState({
     postCount: visiblePosts.length,
     // Offline, the query is off: placeholders until a first page exists,
@@ -432,6 +433,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     <SocialFeedSurfaceProvider
       location={location}
       analyticsSource={analyticsSource}
+      analyticsEnabled={analyticsEnabled}
       showMockedFields={showMockedFields}
     >
       <SocialFeedRealtimeContext.Provider value={realtimeState}>

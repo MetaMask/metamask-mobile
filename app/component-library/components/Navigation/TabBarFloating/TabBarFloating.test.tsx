@@ -39,11 +39,14 @@ jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
 jest.mock('../../../../util/haptics');
 
 const mockNavigateToMoneyHome = jest.fn();
-jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
-    navigateToMoneyHome: mockNavigateToMoneyHome,
+jest.mock(
+  '../../../../components/UI/Money/hooks/useMoneyHomeNavigation',
+  () => ({
+    useMoneyHomeNavigation: () => ({
+      navigateToMoneyHome: mockNavigateToMoneyHome,
+    }),
   }),
-}));
+);
 
 const mockNavigateToSocialTab = jest.fn();
 jest.mock(

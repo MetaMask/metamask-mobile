@@ -8,7 +8,7 @@ import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
-import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../UI/Money/hooks/useMoneyHomeNavigation';
 import { useMoneyAnalytics } from '../../../UI/Money/hooks/useMoneyAnalytics';
 import { useEarnAnalytics } from '../../../UI/Earn/hooks/useEarnAnalytics';
 import { selectMoneyEntryContext } from '../../../UI/Money/selectors/entry';
@@ -26,8 +26,8 @@ import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => false),
 }));
-jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(),
+jest.mock('../../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: jest.fn(),
 }));
 jest.mock('../../../UI/Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -153,9 +153,9 @@ describe('EarnSearchRow', () => {
           : 'go_to_money_home',
       });
     });
-    jest.mocked(useMoneyNavigation).mockReturnValue({
+    jest.mocked(useMoneyHomeNavigation).mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
-    } as unknown as ReturnType<typeof useMoneyNavigation>);
+    } as unknown as ReturnType<typeof useMoneyHomeNavigation>);
     jest.mocked(useEarnOpportunityNavigation).mockReturnValue({
       navigateFromEarnAsset: mockNavigateFromEarnAsset,
       navigateToDepositForExperience: jest.fn(),

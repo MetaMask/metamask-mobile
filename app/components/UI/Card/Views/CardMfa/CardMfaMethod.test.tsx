@@ -92,23 +92,28 @@ jest.mock('../../hooks/useRegions', () => ({
 }));
 
 jest.mock('../../components/Onboarding/OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    '../../components/Onboarding/testUtils/mockOnboardingStepFooter',
+  );
   const { View, Text } = jest.requireActual('react-native');
   return ({
     title,
     description,
     formFields,
-    actions,
+    ...footerProps
   }: {
     title: string;
     description?: string;
     formFields: React.ReactNode;
-    actions: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) => (
     <View>
       <Text>{title}</Text>
       <Text>{description}</Text>
       {formFields}
-      {actions}
+      {mockRenderFooterButtons(footerProps)}
     </View>
   );
 });

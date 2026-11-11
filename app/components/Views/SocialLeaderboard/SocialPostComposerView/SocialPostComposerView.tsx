@@ -56,6 +56,8 @@ import {
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import Routes from '../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { popToSocialTab } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
 import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight/useKeyboardHeight';
 import { useTheme } from '../../../../util/theme';
@@ -427,7 +429,7 @@ const SocialPostComposerView: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const routeParams = route.params as SocialPostComposerViewParams | undefined;
   const tradeInFlightParams = routeParams?.tradeInFlight;
@@ -459,7 +461,14 @@ const SocialPostComposerView: React.FC = () => {
   const trackShareSheet = useSocialInteraction(Screen.SHARE_POSITION_SHEET, {
     source: analyticsSource,
   });
-  const isKeyboardVisible = useKeyboardHeight() > 0;
+  const keyboardHeight = useKeyboardHeight();
+  const isKeyboardVisible = keyboardHeight > 0;
+  // iOS KeyboardAvoidingView already lifts this bar. Android edge-to-edge
+  // does not resize the window, so the bar has to clear the keyboard itself.
+  const actionBarPaddingBottom =
+    Platform.OS === 'android' && keyboardHeight > 0
+      ? keyboardHeight + Math.max(insets.bottom, 12)
+      : Math.max(insets.bottom, 12);
   const [hardwareTier] = useState(() => getHardwareTier());
   const networkTier = useNetworkTier();
   // UX matrix (app/util/deviceCapability/README.md): offline, and LOW hardware on
@@ -687,8 +696,7 @@ const SocialPostComposerView: React.FC = () => {
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
       });
       if (openFeedAfterPost) {
-        // Replace so Back from the feed skips this already-posted composer.
-        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
+        popToSocialTab(navigation);
         return;
       }
       // Every other post lands on the viewer's Posts tab, where it is pinned.
@@ -860,8 +868,9 @@ const SocialPostComposerView: React.FC = () => {
             gap={2}
             twClassName="px-4 pt-3"
             style={tw.style({
-              paddingBottom: Math.max(insets.bottom, 12),
+              paddingBottom: actionBarPaddingBottom,
             })}
+            testID={SocialPostComposerViewSelectorsIDs.ACTION_BAR}
           >
             {selectedPosition || isTradeInFlightLocked ? null : (
               <ComposerChip
