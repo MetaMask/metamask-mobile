@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
 import {
   PR_TEMPLATE_SECTIONS,
   PR_TEMPLATE_SECTION_TITLES,
@@ -183,7 +186,7 @@ describe('hasValidIssueLink', () => {
 });
 
 describe('hasRealManualTesting', () => {
-  it('passes for real Gherkin without any template token', () => {
+  it('passes for real Gherkin that does not use the template When/And shape', () => {
     const real = `
 \`\`\`gherkin
 Feature: my actual feature
@@ -196,15 +199,40 @@ Feature: my actual feature
     expect(hasRealManualTesting(real).ok).toBe(true);
   });
 
+  it('passes for a When/And action list with one outcome per Then/And line', () => {
+    const real = `
+\`\`\`gherkin
+Feature: Swap ETH to USDC on Linea
+
+  Background:
+    Given feature flag swapsV2 is on (dev build)
+    And an SRP wallet with at least 0.02 ETH on Linea Mainnet
+
+  Scenario: User swaps ETH to USDC
+    When the user opens Swaps
+    And selects ETH to USDC for 0.01 ETH
+    And confirms the top quote
+    Then the swap completes
+    And a success toast is shown
+    And the transaction is shown on the Activity screen
+    And the ETH and USDC balances are properly updated
+\`\`\``;
+    expect(hasRealManualTesting(real).ok).toBe(true);
+  });
+
   it('passes for explicit N/A with rationale', () => {
     expect(hasRealManualTesting('N/A — code-only refactor').ok).toBe(true);
+  });
+
+  it('passes for a bare N/A', () => {
+    expect(hasRealManualTesting('N/A').ok).toBe(true);
   });
 
   it('fails for empty section', () => {
     expect(hasRealManualTesting('').ok).toBe(false);
   });
 
-  it('fails when the template Gherkin title is still present', () => {
+  it('fails when the previous template Gherkin title is still present', () => {
     expect(hasRealManualTesting('Feature: my feature name\nScenario: ...').ok).toBe(false);
   });
 
@@ -212,12 +240,20 @@ Feature: my actual feature
     '[verb for user action]',
     '[describe expected initial app state]',
     '[describe expected outcome]',
+    '[feature name]',
+    '[flag, build, account, network, or test data]',
+    '[any other shared setup]',
+    '[one behavior]',
+    '[first concrete action]',
+    '[next action, in order]',
+    '[expected outcome]',
+    '[side effect, such as an Activity entry or balance change]',
   ])('fails when placeholder %s is still present', (placeholder) => {
     const body = `Scenario: ${placeholder}`;
     expect(hasRealManualTesting(body).ok).toBe(false);
   });
 
-  it('fails for the verbatim template block', () => {
+  it('fails for the previous template skeleton', () => {
     const verbatim = `
 \`\`\`gherkin
 Feature: my feature name
@@ -229,6 +265,19 @@ Feature: my feature name
     Then [describe expected outcome]
 \`\`\``;
     expect(hasRealManualTesting(verbatim).ok).toBe(false);
+  });
+
+  it('fails for the Manual testing section shipped in pull-request-template.md', () => {
+    const template = fs.readFileSync(
+      path.join(__dirname, '../../pull-request-template.md'),
+      'utf8',
+    );
+    const section = extractSection(template, '## **Manual testing steps**');
+    expect(section).toContain('Feature: [feature name]');
+    expect(section).toContain('[first concrete action]');
+    // Guidance lives in an HTML comment and must not itself be the failure.
+    expect(section).not.toContain('one behavior per Scenario');
+    expect(hasRealManualTesting(section ?? '').ok).toBe(false);
   });
 });
 
@@ -470,13 +519,17 @@ Fixes:
 ## **Manual testing steps**
 
 \`\`\`gherkin
-Feature: my feature name
+Feature: [feature name]
 
-  Scenario: user [verb for user action]
-    Given [describe expected initial app state]
+  Background:
+    Given [flag, build, account, network, or test data]
+    And [any other shared setup]
 
-    When user [verb for user action]
-    Then [describe expected outcome]
+  Scenario: [one behavior]
+    When the user [first concrete action]
+    And [next action, in order]
+    Then [expected outcome]
+    And [side effect, such as an Activity entry or balance change]
 \`\`\`
 
 ## **Screenshots/Recordings**
