@@ -419,7 +419,7 @@ describe('getVbaHomeCard', () => {
     'capabilityAuthorization',
     'consents',
   ] as const)(
-    'renders finish_verification when relay KYC is approved at %s',
+    'renders kyc_pending when relay KYC is approved at %s',
     (currentStep) => {
       const card = getVbaHomeCard({
         ...baseInputs,
@@ -429,7 +429,7 @@ describe('getVbaHomeCard', () => {
         }),
       });
 
-      expect(card).toEqual({ type: 'finish_verification' });
+      expect(card).toEqual({ type: 'kyc_pending' });
     },
   );
 

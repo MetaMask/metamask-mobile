@@ -207,16 +207,15 @@ export function getVbaHomeCard({
   // 5. In review: the provider flow was submitted on this device, the
   // session step is `processing` (survives reinstall), or the relay decision
   // is pending or approved while the provider has not finalized. A known
-  // pre-submit step (OTP, capability authorization, consents, `kyc`) wins over
-  // the relay status, and `finalStatus === 'pending'` alone never means review.
-  // Both fall through to rule 6 so the user finishes verification instead
-  // of seeing a spinner.
+  // pre-submit step (OTP, capability authorization, consents, `kyc`) only
+  // overrides a pending relay status, and `finalStatus === 'pending'` alone
+  // never means review. Both fall through to rule 6 so the user finishes
+  // verification instead of seeing a spinner.
   const step = sessionStatus?.currentStep;
   if (
     isVbaKycSubmitted(providerFlowStatus, step) ||
-    (!isVbaKycPreSubmitStep(step) &&
-      (sessionStatus?.kycStatus === 'pending' ||
-        sessionStatus?.kycStatus === 'approved'))
+    sessionStatus?.kycStatus === 'approved' ||
+    (sessionStatus?.kycStatus === 'pending' && !isVbaKycPreSubmitStep(step))
   ) {
     return { type: 'kyc_pending' };
   }
