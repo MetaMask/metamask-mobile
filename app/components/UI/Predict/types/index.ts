@@ -164,9 +164,13 @@ export type PredictMarket = {
   isHighlighted?: boolean;
   priceToBeat?: number;
   twapWindowSeconds?: CryptoTwapWindowSeconds;
+  /** Vendor the market settles against, read from its Gamma resolution source. */
+  cryptoPriceProvider?: CryptoPriceProvider;
 };
 
 export type CryptoTwapWindowSeconds = 30 | 60;
+
+export type CryptoPriceProvider = 'chainlink' | 'binance';
 
 export type PredictSeries = {
   id: string;
@@ -342,6 +346,8 @@ export interface CryptoPriceUpdate {
 
 export interface CryptoPriceSubscriptionOptions {
   twapWindowSeconds?: CryptoTwapWindowSeconds;
+  /** Vendor to stream. Omit for the feed default, Chainlink. */
+  provider?: CryptoPriceProvider;
 }
 
 export interface OrderbookLevel {
@@ -494,10 +500,19 @@ export interface PredictPriceHistoryPoint {
 }
 
 export interface GetPriceHistoryParams {
+  /** Outcome token id. */
   marketId: string;
+  /**
+   * Bucket width in minutes. Omit it to let the server size the bucket to the
+   * window. An explicit width is served exactly, so a fine width over a window
+   * older than that grain's retention (about 7 days for 1-minute data) comes
+   * back empty.
+   */
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
+  /** Window start, epoch seconds. Used with `endTs`; the window may span at most 15 days. */
   startTs?: number;
+  /** Window end, epoch seconds (exclusive). */
   endTs?: number;
 }
 

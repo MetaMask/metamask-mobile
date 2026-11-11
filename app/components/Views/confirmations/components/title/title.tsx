@@ -104,7 +104,7 @@ const getTitleAndSubTitle = (
     hasTransactionType(transactionMetadata, MONEY_ACCOUNT_DEPOSIT_TYPES)
   ) {
     return {
-      title: strings('confirm.title.money_account_add_money'),
+      title: strings('confirm.title.money_account_deposit_header'),
     };
   }
 

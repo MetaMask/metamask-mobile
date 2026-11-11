@@ -1,11 +1,12 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
-import { View } from 'react-native';
+import { AccessibilityInfo, View } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
+import { translateComment } from '../translateComment';
 import {
   mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
@@ -16,7 +17,64 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
+import { playSelection } from '../../../../util/haptics';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import {
+  REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
+  REACTION_EMOJI_BURST_TEST_ID,
+} from './ReactionEmojiBurst';
 
+jest.mock('../../../../util/haptics');
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  ...jest.requireActual('../../../../util/deviceCapability'),
+  getHardwareTier: jest.fn(() => 'HIGH'),
+}));
+
+const mockGetHardwareTier = jest.mocked(getHardwareTier);
+
+const mockAnimatedNumericTextRender = jest.fn();
+
+jest.mock(
+  '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText',
+  () => {
+    const { createElement } = jest.requireActual('react');
+    const actual = jest.requireActual(
+      '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: object) => {
+        mockAnimatedNumericTextRender(props);
+        return createElement(actual, props);
+      },
+    };
+  },
+);
+
+jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
+
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: 'viewer-profile-id',
+    isLoading: false,
+  }),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getModel: () => Promise.resolve('iPhone 12'),
+  getApplicationName: () => Promise.resolve('applicationName'),
+  getVersion: jest.fn(() => '99.0.0'),
+  getSystemVersion: () => '14.5',
+  getBuildNumber: () => Promise.resolve('500'),
+  hasNotch: () => true,
+  getBrand: () => 'Apple',
+  getTotalMemorySync: () => 4 * 1024 ** 3,
+}));
+
+jest.mock('../translateComment', () => ({
+  translateComment: jest.fn().mockResolvedValue({ state: 'translationFailed' }),
+}));
 jest.mock('../commentReactionApi', () => ({
   reactToComment: jest.fn().mockResolvedValue({
     reactions: [{ emotion: '🔥', count: 1 }],
@@ -46,11 +104,20 @@ jest.mock('./TraderAvatar', () => {
       testID,
       imageUrl,
       address,
+      profileId,
     }: {
       testID?: string;
       imageUrl?: string | null;
       address?: string;
-    }) => <MockView testID={testID} imageUrl={imageUrl} address={address} />,
+      profileId?: string;
+    }) => (
+      <MockView
+        testID={testID}
+        imageUrl={imageUrl}
+        address={address}
+        profileId={profileId}
+      />
+    ),
   };
 });
 
@@ -93,12 +160,14 @@ jest.mock('./SocialFeedPositionCard', () => {
     PositionCardBody: ({
       item,
       onCopyTrade,
+      showCopyTrade = true,
     }: {
       item: { id: string };
       onCopyTrade?: () => void;
+      showCopyTrade?: boolean;
     }) => (
       <MockView testID={`social-feed-position-card-${item.id}`}>
-        {onCopyTrade ? (
+        {showCopyTrade && onCopyTrade ? (
           <Pressable
             testID={`social-feed-position-card-copy-trade-${item.id}`}
             onPress={onCopyTrade}
@@ -128,8 +197,18 @@ const renderShell = (
     onAuthorPress?: (post: SocialV1FeedPost) => void;
     onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
     onPositionPress?: (post: SocialV1FeedPost) => void;
+    requireSocialProfile?: boolean;
+    showCopyTrade?: boolean;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
+    /** Feed surface. Sets the Perps order source for that tab. */
+    location?:
+      | 'social_trending'
+      | 'social_following'
+      | 'social_live'
+      | 'my_profile';
+    /** Turns on `aiSocialCommentTranslation` for this render. */
+    translationEnabled?: boolean;
   },
 ) => {
   const queryClient = new QueryClient({
@@ -137,25 +216,59 @@ const renderShell = (
   });
   const showMockedFields =
     options && 'showMockedFields' in options ? options.showMockedFields : true;
-  const shell = (
-    <SocialFeedPostShell
-      post={post}
-      onAuthorPress={options?.onAuthorPress}
-      onPositionPress={options?.onPositionPress}
-      onCopyTrade={options?.onCopyTrade}
-    />
+  const renderTree = (currentPost: SocialV1FeedPost) => {
+    const shell = (
+      <SocialFeedPostShell
+        post={currentPost}
+        requireSocialTerms
+        requireSocialProfile={options?.requireSocialProfile}
+        onAuthorPress={options?.onAuthorPress}
+        onPositionPress={options?.onPositionPress}
+        onCopyTrade={options?.onCopyTrade}
+        showCopyTrade={options?.showCopyTrade}
+      />
+    );
+    return (
+      <QueryClientProvider client={queryClient}>
+        {showMockedFields === null ? (
+          shell
+        ) : (
+          <SocialFeedSurfaceProvider
+            showMockedFields={showMockedFields}
+            location={options?.location}
+          >
+            {shell}
+          </SocialFeedSurfaceProvider>
+        )}
+      </QueryClientProvider>
+    );
+  };
+  const rendered = renderWithProvider(
+    renderTree(post),
+    options?.translationEnabled
+      ? {
+          state: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    aiSocialCommentTranslation: {
+                      enabled: true,
+                      minimumVersion: '0.0.0',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }
+      : undefined,
   );
-  return renderWithProvider(
-    <QueryClientProvider client={queryClient}>
-      {showMockedFields === null ? (
-        shell
-      ) : (
-        <SocialFeedSurfaceProvider showMockedFields={showMockedFields}>
-          {shell}
-        </SocialFeedSurfaceProvider>
-      )}
-    </QueryClientProvider>,
-  );
+  return {
+    ...rendered,
+    rerenderWithPost: (nextPost: SocialV1FeedPost) =>
+      rendered.rerender(renderTree(nextPost)),
+  };
 };
 
 /** An item whose author reports nothing the stat line could show. */
@@ -175,6 +288,7 @@ const itemWithoutStats = (id: string, comment: string) => {
 describe('SocialFeedPostShell', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetHardwareTier.mockReturnValue('HIGH');
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
       cb(20, 100, 40, 24);
@@ -199,6 +313,8 @@ describe('SocialFeedPostShell', () => {
     fireEvent.press(
       screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🔥`),
     );
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(
@@ -311,7 +427,7 @@ describe('SocialFeedPostShell', () => {
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-post-1`),
-    ).toHaveTextContent('7 min ago');
+    ).toHaveTextContent('7m ago');
   });
 
   it('omits the stat line for a trader with no stats', () => {
@@ -369,12 +485,42 @@ describe('SocialFeedPostShell', () => {
     expect(screen.queryByText('0')).toBeNull();
   });
 
-  it('shows the add-reaction button when the post has no Call id', () => {
+  it('hides reaction controls on a trade-only card and keeps the copy count', () => {
+    renderShell(
+      basePost({
+        commentId: undefined,
+        reactions: [{ emotion: '🔥', count: 12 }],
+        copyCount: 3,
+      }),
+    );
+
+    expect(
+      screen.queryByTestId(
+        `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.COPIES}-post-1`),
+    ).toHaveTextContent('3');
+  });
+
+  it('omits the footer when a trade-only card has no copy count', () => {
     renderShell(basePost({ commentId: undefined, reactions: [] }));
 
     expect(
-      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(
+        `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.COPIES}-post-1`),
+    ).toBeNull();
   });
 
   it('keeps the add-reaction button next to existing chips', () => {
@@ -409,7 +555,11 @@ describe('SocialFeedPostShell', () => {
     });
 
     it('adds the reader to a chip when it is pressed', async () => {
-      renderShell(basePost({ commentId: undefined }));
+      jest.mocked(reactToComment).mockResolvedValueOnce({
+        reactions: [{ emotion: '🔥', count: 13 }],
+        userReaction: '🔥',
+      });
+      renderShell(basePost());
 
       fireEvent.press(screen.getByTestId(chipTestId));
 
@@ -419,12 +569,24 @@ describe('SocialFeedPostShell', () => {
       expect(screen.getByTestId(chipTestId)).toHaveProp('accessibilityState', {
         selected: true,
       });
+      await waitFor(() => {
+        const particles = screen.getAllByTestId(
+          REACTION_EMOJI_BURST_PARTICLE_TEST_ID,
+          { includeHiddenElements: true },
+        );
+        expect(particles.length).toBeGreaterThanOrEqual(4);
+        expect(particles.length).toBeLessThanOrEqual(7);
+        expect(particles[0]).toHaveTextContent('🔥');
+      });
     });
 
     it('removes the reader from their own chip when it is pressed', async () => {
+      jest.mocked(removeCommentReaction).mockResolvedValueOnce({
+        reactions: [{ emotion: '🔥', count: 1 }],
+        userReaction: null,
+      });
       renderShell(
         basePost({
-          commentId: undefined,
           reactions: [{ emotion: '🔥', count: 2 }],
           userReaction: '🔥',
         }),
@@ -435,6 +597,7 @@ describe('SocialFeedPostShell', () => {
       await waitFor(() => {
         expect(screen.getByTestId(chipTestId)).toHaveTextContent('🔥1');
       });
+      expect(screen.queryByTestId(REACTION_EMOJI_BURST_TEST_ID)).toBeNull();
     });
   });
 
@@ -451,6 +614,49 @@ describe('SocialFeedPostShell', () => {
       renderShell(basePost({ copyCount: 0 }));
 
       expect(screen.getByTestId(copiesTestId)).toHaveTextContent('0');
+    });
+
+    it('hides the engagement row on the live tab', () => {
+      renderShell(basePost({ copyCount: 3 }), { location: 'social_live' });
+
+      expect(screen.queryByTestId(copiesTestId)).toBeNull();
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId('social-feed-position-card-item-1'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the new count when the copy count changes', () => {
+      const { rerenderWithPost } = renderShell(basePost({ copyCount: 3 }));
+
+      rerenderWithPost(basePost({ copyCount: 4 }));
+
+      expect(screen.getByTestId(copiesTestId)).toHaveTextContent('4');
+      expect(screen.getByTestId(copiesTestId)).not.toHaveTextContent('3');
+    });
+
+    it('does not animate the count on low-tier hardware', () => {
+      mockGetHardwareTier.mockReturnValue('LOW');
+
+      renderShell(basePost({ copyCount: 3 }));
+
+      expect(mockAnimatedNumericTextRender).toHaveBeenLastCalledWith(
+        expect.objectContaining({ animated: false }),
+      );
+    });
+
+    it('keeps the count animated when the hardware tier is unknown', () => {
+      mockGetHardwareTier.mockReturnValue(null);
+
+      renderShell(basePost({ copyCount: 3 }));
+
+      expect(mockAnimatedNumericTextRender).toHaveBeenLastCalledWith(
+        expect.objectContaining({ animated: true }),
+      );
     });
 
     it('shows the count on a closed position', () => {
@@ -476,14 +682,14 @@ describe('SocialFeedPostShell', () => {
     });
   });
 
-  it('passes the profile id to the avatar when the author has no image', () => {
+  it('passes the wallet address and profile id to the avatar when the author has no image', () => {
     const seeded = mockOpenPerpsFeedItem({
       id: 'item-1',
       comment: 'Amazing position',
     });
     const item = {
       ...seeded,
-      author: { ...seeded.author, id: 'profile-alice' },
+      author: { ...seeded.author, id: 'profile-alice', address: undefined },
     };
 
     renderShell(basePost({ authorImageUrl: null, item }));
@@ -491,7 +697,8 @@ describe('SocialFeedPostShell', () => {
     const avatar = screen.getByTestId(
       `${SocialFeedPostShellSelectorsIDs.AVATAR}-post-1`,
     );
-    expect(avatar.props.address).toBe('profile-alice');
+    expect(avatar.props.profileId).toBe('profile-alice');
+    expect(avatar.props.address).toBeUndefined();
     expect(avatar.props.imageUrl).toBeNull();
   });
 
@@ -627,6 +834,48 @@ describe('SocialFeedPostShell', () => {
       mockSelectPerpsEligibility.mockReturnValue(true);
     });
 
+    it('opens a trending-feed perps order with the trending source', async () => {
+      renderShell(basePost(), { location: 'social_trending' });
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            params: expect.objectContaining({ source: 'social_trending' }),
+          }),
+        );
+      });
+    });
+
+    it('opens a profile perps order with the trader feed source, not the spot handler', async () => {
+      const onCopyTrade = jest.fn();
+      renderShell(basePost(), { location: 'my_profile', onCopyTrade });
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            screen: Routes.PERPS.ORDER_REDIRECT,
+            params: expect.objectContaining({
+              source: 'trader_feed',
+              useBottomSheet: true,
+              stayOnCurrentScreen: true,
+              copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
+            }),
+          }),
+        );
+      });
+      expect(onCopyTrade).not.toHaveBeenCalled();
+    });
+
     it('opens the perps order redirect as a bottom sheet for an open perp', async () => {
       renderShell(basePost());
 
@@ -700,6 +949,74 @@ describe('SocialFeedPostShell', () => {
       expect(onCopyTrade).not.toHaveBeenCalled();
     });
 
+    it('navigates to profile onboarding instead of copying without a linked wallet', () => {
+      mockEnsureSocialProfileOnboarding.mockImplementation(() => {
+        mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+        return false;
+      });
+
+      renderShell(basePost(), { requireSocialProfile: true });
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.PROFILE_ONBOARDING,
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.MODALS.ROOT,
+        expect.anything(),
+      );
+    });
+
+    it('copies a trade without a linked wallet when the profile gate is off', async () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValue(false);
+
+      renderShell(basePost());
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            screen: Routes.PERPS.ORDER_REDIRECT,
+          }),
+        );
+      });
+    });
+
+    it('forwards a spot copy only after the linked wallet gate passes', () => {
+      mockEnsureSocialProfileOnboarding.mockImplementation(() => {
+        mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+        return false;
+      });
+      const onCopyTrade = jest.fn();
+      const item = mockOpenSpotFeedItem({ id: 'item-spot' });
+
+      renderShell(basePost({ item }), {
+        onCopyTrade,
+        requireSocialProfile: true,
+      });
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-spot'),
+      );
+
+      expect(onCopyTrade).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.PROFILE_ONBOARDING,
+      );
+    });
+
+    it('hides copy trade when the profile opts out', () => {
+      renderShell(basePost(), { showCopyTrade: false });
+
+      expect(
+        screen.queryByTestId('social-feed-position-card-copy-trade-item-1'),
+      ).toBeNull();
+    });
+
     it('does not wire copy trade for a closed position', () => {
       renderShell(
         basePost({ item: mockClosedPerpsFeedItem({ id: 'item-closed' }) }),
@@ -726,6 +1043,160 @@ describe('SocialFeedPostShell', () => {
         ).toBeOnTheScreen();
       });
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('translation', () => {
+    const translate = translateComment as jest.Mock;
+
+    beforeEach(() => {
+      translate.mockReset();
+      translate.mockResolvedValue({ state: 'translationFailed' });
+    });
+
+    it('offers translation when the Call language is missing or not English', () => {
+      renderShell(basePost({ sourceLanguage: null }), {
+        translationEnabled: true,
+      });
+
+      expect(screen.getByText('See translation')).toBeOnTheScreen();
+    });
+
+    it('hides translation when the feature flag is off', () => {
+      renderShell(basePost({ sourceLanguage: 'ko' }));
+
+      expect(screen.queryByText('See translation')).toBeNull();
+      expect(screen.getByText('Amazing position')).toBeOnTheScreen();
+    });
+
+    it('offers translation for an English Call', () => {
+      renderShell(basePost({ sourceLanguage: 'en' }), {
+        translationEnabled: true,
+      });
+
+      expect(screen.getByText('See translation')).toBeOnTheScreen();
+      expect(screen.getByText('Amazing position')).toBeOnTheScreen();
+    });
+
+    it('hides translation on a pending post', () => {
+      renderShell(basePost({ isPending: true, sourceLanguage: 'ko' }), {
+        translationEnabled: true,
+      });
+
+      expect(screen.queryByText('See translation')).toBeNull();
+    });
+
+    it('swaps in the English text after a successful translation', async () => {
+      translate.mockResolvedValue({
+        state: 'translated',
+        sourceLanguage: 'ko',
+        translations: { en: 'This content is in Korean.' },
+      });
+      renderShell(
+        basePost({
+          sourceLanguage: 'ko',
+          item: mockOpenPerpsFeedItem({
+            id: 'item-1',
+            comment: '이 내용은 한국어입니다.',
+          }),
+        }),
+        { translationEnabled: true },
+      );
+
+      const announce = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+
+      expect(announce).toHaveBeenCalledWith('Translating...');
+      expect(screen.getByText('Translating...')).toBeOnTheScreen();
+      expect(screen.getByText('Translating...')).toHaveProp(
+        'accessibilityState',
+        { busy: true },
+      );
+      await waitFor(() => {
+        expect(
+          screen.getByText('This content is in Korean.'),
+        ).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Translated to English')).toBeOnTheScreen();
+      expect(announce).toHaveBeenCalledWith(
+        'This content is in Korean. Translated to English',
+      );
+      announce.mockRestore();
+      expect(screen.queryByText('이 내용은 한국어입니다.')).toBeNull();
+      expect(translate).toHaveBeenCalledWith({
+        commentId: 'comment-1',
+        targetLanguage: 'en',
+      });
+    });
+
+    it('keeps the original text and shows the translated label when the comment is already English', async () => {
+      translate.mockResolvedValue({
+        state: 'translated',
+        sourceLanguage: 'en',
+        translations: {},
+      });
+      renderShell(
+        basePost({
+          sourceLanguage: null,
+          item: mockOpenPerpsFeedItem({
+            id: 'item-1',
+            comment: 'Already English',
+          }),
+        }),
+        { translationEnabled: true },
+      );
+
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Translated to English')).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Already English')).toBeOnTheScreen();
+      expect(screen.queryByText("Couldn't translate.")).toBeNull();
+    });
+
+    it('keeps the original text and offers a retry when translation fails', async () => {
+      renderShell(basePost({ sourceLanguage: 'ko' }), {
+        translationEnabled: true,
+      });
+
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+
+      await waitFor(() => {
+        expect(screen.getByText("Couldn't translate.")).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Amazing position')).toBeOnTheScreen();
+
+      translate.mockResolvedValue({
+        state: 'translated',
+        sourceLanguage: 'ko',
+        translations: { en: 'Amazing position, in English' },
+      });
+      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Amazing position, in English'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('uses an English translation already on the post', () => {
+      renderShell(
+        basePost({
+          sourceLanguage: 'ko',
+          translations: { en: 'Already translated' },
+        }),
+        { translationEnabled: true },
+      );
+
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+
+      expect(screen.getByText('Already translated')).toBeOnTheScreen();
+      expect(translate).not.toHaveBeenCalled();
     });
   });
 });

@@ -124,6 +124,7 @@ import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
+  selectIsAccountGroupFunded,
   selectTokenBalancesStateForBalances,
   selectUnifiedBalanceBySelectedAccountGroup,
   getUnifiedBalanceForAccountGroup,
@@ -652,6 +653,39 @@ describe('assets balance and balance change selectors (mobile)', () => {
         totalBalanceInUserCurrency: 0,
         userCurrency: 'usd',
       });
+    });
+  });
+
+  describe('selectIsAccountGroupFunded', () => {
+    const balanceOf = (
+      totalBalanceInUserCurrency: number,
+    ): ReturnType<typeof selectAccountGroupBalanceForEmptyState> => ({
+      walletId: 'keyring:wallet-1',
+      groupId: 'keyring:wallet-1/group-1',
+      totalBalanceInUserCurrency,
+      userCurrency: 'usd',
+    });
+
+    it('returns true for a positive balance once loading has finished', () => {
+      expect(
+        selectIsAccountGroupFunded.resultFunc(balanceOf(3.12), false),
+      ).toBe(true);
+    });
+
+    it('returns false for a zero balance', () => {
+      expect(selectIsAccountGroupFunded.resultFunc(balanceOf(0), false)).toBe(
+        false,
+      );
+    });
+
+    it('returns false while the first asset load is in progress', () => {
+      expect(selectIsAccountGroupFunded.resultFunc(balanceOf(3.12), true)).toBe(
+        false,
+      );
+    });
+
+    it('returns false when no account group is selected', () => {
+      expect(selectIsAccountGroupFunded.resultFunc(null, false)).toBe(false);
     });
   });
 

@@ -1,6 +1,13 @@
+import { captureException } from '@sentry/react-native';
 import React from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
 import Routes from '../../../../constants/navigation/Routes';
@@ -10,32 +17,79 @@ import SocialPostComposerView from './SocialPostComposerView';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 import { AddPositionBottomSheetSelectorsIDs } from './AddPositionBottomSheet.testIds';
 import {
-  consumePostsTabFocus,
   getPendingPostsSnapshot,
   resetPendingPosts,
 } from '../pendingPosts/pendingPostsStore';
 import { isComposerCommentValid } from './commentValidation';
 import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
+import type { HardwareTier } from '../../../../util/deviceCapability';
+import type { NetworkTier } from '../../../../hooks/useNetworkTier';
 
 jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   __esModule: true,
   default: () => true,
 }));
 
+const mockTrackComposerInteraction = jest.fn();
 jest.mock('../analytics', () => ({
   ...jest.requireActual('../analytics'),
   useSocialInteraction: () => jest.fn(),
-  useSocialScreenAnalytics: () => jest.fn(),
+  useSocialScreenAnalytics: () => mockTrackComposerInteraction,
 }));
+
+const mockHeaderRender = jest.fn();
+jest.mock(
+  '../../../../component-library/components-temp/HeaderBaseGlass',
+  () => {
+    const Actual = jest.requireActual(
+      '../../../../component-library/components-temp/HeaderBaseGlass',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => {
+        mockHeaderRender();
+        return <Actual {...props} />;
+      },
+    };
+  },
+);
+
+const mockPositionCardBody = jest.fn<null, [unknown]>();
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPositionCard', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () => <View testID="composer-position-preview" />,
-    PositionCardBody: () => <View testID="composer-position-preview" />,
+    PositionCardBody: (props: unknown) => {
+      mockPositionCardBody(props);
+      return <View testID="composer-position-preview" />;
+    },
   };
 });
+
+jest.mock('../../../UI/SocialFeed/live/SocialLivePricesProvider', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View testID="composer-live-prices">{children}</View>
+    ),
+  };
+});
+
+let mockHardwareTier: HardwareTier | null = 'HIGH';
+let mockNetworkTier: NetworkTier | null = 'WIFI';
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  ...jest.requireActual('../../../../util/deviceCapability'),
+  getHardwareTier: () => mockHardwareTier,
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  ...jest.requireActual('../../../../hooks/useNetworkTier'),
+  useNetworkTier: () => mockNetworkTier,
+}));
 
 jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string }) =>
@@ -77,7 +131,6 @@ const linkedProfile = {
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  shareUrl: 'https://metamask.io/social/giga-whale',
   linkedAccountAddress: '0x1111111111111111111111111111111111111111',
 };
 
@@ -97,6 +150,11 @@ const openSpot: Position = {
   currentValueUSD: 720,
   pnlValueUsd: 278,
   pnlPercent: 0.02,
+};
+
+const liveSpot: Position = {
+  ...openSpot,
+  tokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -178,6 +236,17 @@ jest.mock('./createSwapCommentApi', () => ({
   createSwapComment: (...args: unknown[]) => mockCreateSwapComment(...args),
 }));
 
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
+const mockInvalidateModerationStatus = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../UI/SocialFeed/moderationApi', () => ({
+  ...jest.requireActual('../../../UI/SocialFeed/moderationApi'),
+  invalidateModerationStatus: () => mockInvalidateModerationStatus(),
+}));
+
 jest.mock('../../../../core/ReactQueryService', () => ({
   __esModule: true,
   default: {
@@ -191,6 +260,8 @@ describe('SocialPostComposerView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = undefined;
+    mockHardwareTier = 'HIGH';
+    mockNetworkTier = 'WIFI';
     mockNavigationState = OPENED_FROM_OWN_PROFILE;
     mockUseMyProfile.mockReturnValue({
       profile: linkedProfile,
@@ -240,7 +311,7 @@ describe('SocialPostComposerView', () => {
     ).toBeDisabled();
   });
 
-  it('enables Post when a position is selected, even with an empty caption', () => {
+  it('disables the Post button while the comment is empty', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.press(
@@ -250,20 +321,49 @@ describe('SocialPostComposerView', () => {
 
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    ).toBeEnabled();
+    ).toBeDisabled();
   });
 
-  it('clips typed text at 250 characters', () => {
+  it('keeps text past 250 characters and disables Post', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
       'a'.repeat(260),
     );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
 
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT).props.value,
-    ).toHaveLength(250);
+    ).toHaveLength(260);
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
+    ).toHaveTextContent(
+      'social_leaderboard.composer.character_count:{"count":260,"limit":250}',
+    );
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('keeps Post enabled at 250 characters', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'a'.repeat(250),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
   });
 
   it('rejects comments that contain a url', () => {
@@ -285,6 +385,110 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeEnabled();
+  });
+
+  it('disables the Post button when the comment is only whitespace', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      '   \n  ',
+    );
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('enables the Post button once the comment has text', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'hi',
+    );
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+  });
+
+  it('keeps Post disabled for a GIF-only comment', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('enables the Post button for written text with a GIF', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'hi',
+    );
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+  });
+
+  it('disables the Post button for a non-KLIPY image with no text', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    fireEvent(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'onImageChange',
+      { nativeEvent: { uri: 'https://media.test/party.gif' } },
+    );
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('does not submit a comment when the text is empty and no GIF is attached', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    expect(mockCreateSwapComment).not.toHaveBeenCalled();
   });
 
   it('replaces the selected position and removes it from the preview', () => {
@@ -345,6 +549,53 @@ describe('SocialPostComposerView', () => {
     dismissSpy.mockRestore();
   });
 
+  it('keeps the position and gif chips above the keyboard on Android', () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(Platform, 'OS');
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      get: () => 'android',
+    });
+    const listeners = new Map<string, ((event?: unknown) => void)[]>();
+    const addListenerMock = Keyboard.addListener as jest.Mock;
+    const originalAddListener = addListenerMock.getMockImplementation();
+    addListenerMock.mockImplementation((eventName, callback) => {
+      const callbacks = listeners.get(eventName) ?? [];
+      callbacks.push(callback as (event?: unknown) => void);
+      listeners.set(eventName, callbacks);
+      return { remove: jest.fn() } as unknown as ReturnType<
+        typeof Keyboard.addListener
+      >;
+    });
+
+    try {
+      renderWithProvider(<SocialPostComposerView />);
+
+      act(() => {
+        listeners.get('keyboardDidShow')?.forEach((callback) => {
+          callback({
+            endCoordinates: { height: 320 },
+          });
+        });
+      });
+
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId(SocialPostComposerViewSelectorsIDs.ACTION_BAR)
+            .props.style,
+        ).paddingBottom,
+      ).toBe(332);
+    } finally {
+      if (originalAddListener) {
+        addListenerMock.mockImplementation(originalAddListener);
+      } else {
+        addListenerMock.mockRestore();
+      }
+      if (platformDescriptor) {
+        Object.defineProperty(Platform, 'OS', platformDescriptor);
+      }
+    }
+  });
+
   it('dismisses the keyboard on drag and on taps the scroll content does not handle', () => {
     renderWithProvider(<SocialPostComposerView />);
 
@@ -400,6 +651,14 @@ describe('SocialPostComposerView', () => {
         source: 'metamask-mobile',
       });
     });
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith('post_shared', {
+      share_destination: 'metamask_post',
+      trade_type: 'spot',
+    });
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'post_submitted',
+      expect.not.objectContaining({ share_destination: expect.anything() }),
+    );
 
     await waitFor(() => {
       expect(getPendingPostsSnapshot()[0]?.post.gifUri).toBe(
@@ -452,8 +711,12 @@ describe('SocialPostComposerView', () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ['SocialService:fetchTraderFeed'],
     });
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+      { pop: true },
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
     const [entry] = getPendingPostsSnapshot();
     expect(entry).toMatchObject({
       commentId: 'comment-1',
@@ -465,7 +728,6 @@ describe('SocialPostComposerView', () => {
       authorHandle: 'Giga Whale',
       timestampMs: 1700000000 * 1000,
     });
-    expect(consumePostsTabFocus()).toBe(true);
   });
 
   it('falls back to the profile display name when the server sends no name', async () => {
@@ -478,6 +740,10 @@ describe('SocialPostComposerView', () => {
     mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
     renderWithProvider(<SocialPostComposerView />);
 
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
@@ -502,14 +768,50 @@ describe('SocialPostComposerView', () => {
     mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
     renderWithProvider(<SocialPostComposerView />);
 
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
 
     await waitFor(() => {
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+        { pop: true },
+      );
     });
     expect(getPendingPostsSnapshot()).toHaveLength(0);
+  });
+
+  it('refetches the moderation status when the post is refused with a 403', async () => {
+    mockCreateSwapComment.mockRejectedValue(
+      Object.assign(new Error('forbidden'), { httpStatus: 403 }),
+    );
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockInvalidateModerationStatus).toHaveBeenCalled();
+    });
+    expect(mockShowToast).toHaveBeenCalled();
   });
 
   it('stays on the composer and shows a toast when createSwapComment fails', async () => {
@@ -540,6 +842,49 @@ describe('SocialPostComposerView', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(0);
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
+  });
+
+  it('shows the post failure toast and reports to Sentry when creating a post takes longer than 7 seconds', async () => {
+    mockCreateSwapComment.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(6999);
+    });
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(captureException).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(1);
+    });
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'social_leaderboard.composer.post_failed' }],
+      }),
+    );
+    expect(captureException).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(getPendingPostsSnapshot()).toHaveLength(0);
   });
 
   it('closes the composer from the header close button', () => {
@@ -577,7 +922,266 @@ describe('SocialPostComposerView', () => {
     ).toBeNull();
   });
 
-  it('replaces the composer with the viewer profile on Posts when opened from the feed', async () => {
+  it('renders the expanded card without copy trade in the composer preview', () => {
+    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({ comment: '' }),
+        expanded: true,
+        showCopyTrade: false,
+      }),
+    );
+  });
+
+  it('does not re-render the screen chrome while typing', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    const input = screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT);
+    const headerRendersBeforeTyping = mockHeaderRender.mock.calls.length;
+
+    ['a', 'ab', 'abc'].forEach((text) => {
+      fireEvent.changeText(input, text);
+    });
+
+    expect(mockHeaderRender).toHaveBeenCalledTimes(headerRendersBeforeTyping);
+  });
+
+  it('does not rebuild the preview while typing', () => {
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+    renderWithProvider(<SocialPostComposerView />);
+    const input = screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT);
+    const previewRendersBeforeTyping = mockPositionCardBody.mock.calls.length;
+
+    fireEvent.changeText(input, 'this is alpha');
+
+    // The card never shows the caption, so typing leaves the preview alone.
+    expect(mockPositionCardBody).toHaveBeenCalledTimes(
+      previewRendersBeforeTyping,
+    );
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({ comment: '' }),
+      }),
+    );
+  });
+
+  it('keeps the character count a constant width with equal-width digits', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
+    ).toHaveStyle({ fontVariant: ['tabular-nums'] });
+  });
+
+  it('wraps the composer preview in the live price provider', () => {
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(
+      within(screen.getByTestId('composer-live-prices')).getByTestId(
+        'composer-position-preview',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('passes a live price source to the composer preview for an open position', () => {
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({
+          live: expect.objectContaining({ kind: 'spot' }),
+        }),
+      }),
+    );
+  });
+
+  it('keeps the composer preview static on the low hardware tier on a slow network', () => {
+    mockHardwareTier = 'LOW';
+    mockNetworkTier = 'SLOW_CELLULAR';
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(screen.queryByTestId('composer-live-prices')).toBeNull();
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.not.objectContaining({ live: expect.anything() }),
+      }),
+    );
+  });
+
+  it('keeps the composer preview static while offline', () => {
+    mockHardwareTier = 'HIGH';
+    mockNetworkTier = 'NONE';
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(screen.queryByTestId('composer-live-prices')).toBeNull();
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.not.objectContaining({ live: expect.anything() }),
+      }),
+    );
+  });
+
+  it('keeps the composer preview live on the high hardware tier on wifi', () => {
+    mockHardwareTier = 'HIGH';
+    mockNetworkTier = 'WIFI';
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(screen.getByTestId('composer-live-prices')).toBeOnTheScreen();
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({
+          live: expect.objectContaining({ kind: 'spot' }),
+        }),
+      }),
+    );
+  });
+
+  it('keeps the composer preview live on the low hardware tier on wifi', () => {
+    mockHardwareTier = 'LOW';
+    mockNetworkTier = 'WIFI';
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(screen.getByTestId('composer-live-prices')).toBeOnTheScreen();
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({
+          live: expect.objectContaining({ kind: 'spot' }),
+        }),
+      }),
+    );
+  });
+
+  it('keeps the composer preview live when the hardware tier is unknown on a slow network', () => {
+    mockHardwareTier = null;
+    mockNetworkTier = 'SLOW_CELLULAR';
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(screen.getByTestId('composer-live-prices')).toBeOnTheScreen();
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({
+          live: expect.objectContaining({ kind: 'spot' }),
+        }),
+      }),
+    );
+  });
+
+  it('keeps the composer preview live when the network tier is unknown', () => {
+    mockHardwareTier = 'HIGH';
+    mockNetworkTier = null;
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(screen.getByTestId('composer-live-prices')).toBeOnTheScreen();
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({
+          live: expect.objectContaining({ kind: 'spot' }),
+        }),
+      }),
+    );
+  });
+
+  it('marks the composer preview with the attached KLIPY GIF', () => {
+    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({
+          comment: '',
+          commentGifUrl: KLIPY_STATIC_GIF_EXAMPLE,
+        }),
+      }),
+    );
+  });
+
+  it('does not submit a GIF-only comment', () => {
+    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    expect(mockCreateSwapComment).not.toHaveBeenCalled();
+  });
+
+  it('keeps the caption text free of the GIF URL on the pending post', async () => {
+    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.GIF_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('gif-picker-select'));
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(getPendingPostsSnapshot()[0]?.post.item).toMatchObject({
+        comment: 'this is alpha',
+        commentGifUrl: KLIPY_STATIC_GIF_EXAMPLE,
+      });
+    });
+  });
+
+  const postWithOpenSpot = async () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+    await waitFor(() => {
+      expect(getPendingPostsSnapshot()).toHaveLength(1);
+    });
+  };
+
+  it('pops back to the Social V1 feed on Trending when opened from it', async () => {
     mockNavigationState = {
       index: 1,
       routes: [
@@ -587,90 +1191,110 @@ describe('SocialPostComposerView', () => {
     };
     mockRouteParams = { position: openSpot, entryPoint: 'perps' };
 
-    renderWithProvider(<SocialPostComposerView />);
-    fireEvent.press(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    );
+    await postWithOpenSpot();
 
-    await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1_PROFILE),
-      );
-    });
-    expect(getPendingPostsSnapshot()).toHaveLength(1);
-    expect(consumePostsTabFocus()).toBe(true);
-    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.popTo(
+        Routes.SOCIAL.V1,
+        { initialTab: 'trending' },
+        { merge: true },
+      ),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('goes back to the viewer profile when it was opened with their own trader id', async () => {
+  it('returns to the Social home tab on Trending when opened from it', async () => {
     mockNavigationState = {
       index: 1,
       routes: [
         {
-          name: Routes.SOCIAL.V1_PROFILE,
-          params: { traderId: linkedProfile.profileId },
+          name: Routes.HOME_TABS,
+          state: {
+            index: 1,
+            routes: [{ name: Routes.WALLET.HOME }, { name: Routes.SOCIAL.TAB }],
+          },
         },
         { name: Routes.SOCIAL.POST_COMPOSER },
       ],
     };
     mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
 
-    renderWithProvider(<SocialPostComposerView />);
-    fireEvent.press(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    );
+    await postWithOpenSpot();
 
-    await waitFor(() => {
-      expect(mockGoBack).toHaveBeenCalled();
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+      { pop: true },
+    );
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('replaces the composer with Social V1 when openFeedAfterPost is set', async () => {
-    mockRouteParams = {
-      position: openSpot,
-      entryPoint: 'perps',
-      openFeedAfterPost: true,
-    };
-
-    renderWithProvider(<SocialPostComposerView />);
-    fireEvent.press(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    );
-
-    await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1),
-      );
-    });
-    expect(getPendingPostsSnapshot()).toHaveLength(1);
-    expect(consumePostsTabFocus()).toBe(false);
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('does not go back to another trader profile after posting', async () => {
+  it('returns to the Social tab on Trending when opened from another home tab', async () => {
     mockNavigationState = {
       index: 1,
       routes: [
         {
-          name: Routes.SOCIAL.V1_PROFILE,
-          params: { traderId: 'someone-else' },
+          name: Routes.HOME_TABS,
+          state: { index: 0, routes: [{ name: Routes.WALLET.HOME }] },
         },
         { name: Routes.SOCIAL.POST_COMPOSER },
       ],
     };
     mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
 
-    renderWithProvider(<SocialPostComposerView />);
-    fireEvent.press(
-      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
-    );
+    await postWithOpenSpot();
 
-    await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1_PROFILE),
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+      { pop: true },
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['their own trader id', { traderId: 'current-user' }],
+    ['another trader', { traderId: 'someone-else' }],
+  ])(
+    'pops to the Social tab on Trending when opened from a profile with %s',
+    async (_label, params) => {
+      mockNavigationState = {
+        index: 1,
+        routes: [
+          { name: Routes.SOCIAL.V1_PROFILE, params },
+          { name: Routes.SOCIAL.POST_COMPOSER },
+        ],
+      };
+      mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+
+      await postWithOpenSpot();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+        { pop: true },
       );
-    });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    },
+  );
+
+  it('pops to the Social tab on Trending when shared from Perps', async () => {
+    mockNavigationState = {
+      index: 1,
+      routes: [
+        { name: 'PerpsSharePositionView' },
+        { name: Routes.SOCIAL.POST_COMPOSER },
+      ],
+    };
+    mockRouteParams = { position: openSpot, entryPoint: 'perps' };
+
+    await postWithOpenSpot();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+      { pop: true },
+    );
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
@@ -722,6 +1346,11 @@ describe('SocialPostComposerView', () => {
 
     renderWithProvider(<SocialPostComposerView />);
 
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
@@ -750,6 +1379,11 @@ describe('SocialPostComposerView', () => {
       </ToastContext.Provider>,
     );
 
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
+
     expect(
       screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
     ).toBeNull();
@@ -763,7 +1397,7 @@ describe('SocialPostComposerView', () => {
 
     await waitFor(() => {
       expect(mockCreateSwapComment).toHaveBeenCalledWith({
-        commentText: '',
+        commentText: 'this is alpha',
         tradeInFlight: {
           transactionHash: '0xabc',
           chain: 'base',
@@ -774,7 +1408,11 @@ describe('SocialPostComposerView', () => {
     });
 
     await waitFor(() => {
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+        { pop: true },
+      );
     });
     const [entry] = getPendingPostsSnapshot();
     expect(entry).toMatchObject({
@@ -785,7 +1423,6 @@ describe('SocialPostComposerView', () => {
         item: expect.objectContaining({ variant: 'spotShare' }),
       }),
     });
-    expect(consumePostsTabFocus()).toBe(true);
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
@@ -812,13 +1449,17 @@ describe('SocialPostComposerView', () => {
       </ToastContext.Provider>,
     );
 
+    fireEvent.changeText(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'this is alpha',
+    );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
 
     await waitFor(() => {
       expect(mockCreateSwapComment).toHaveBeenCalledWith({
-        commentText: '',
+        commentText: 'this is alpha',
         tradeInFlight: {
           orderId: '42',
           chain: 'hyperliquid',

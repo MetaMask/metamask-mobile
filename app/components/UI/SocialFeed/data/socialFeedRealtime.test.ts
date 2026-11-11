@@ -1,15 +1,24 @@
 import type {
+  AuthorComment,
   FeedItem as CoreFeedItem,
   SocialFeedEvent,
 } from '@metamask/social-controllers';
 import { mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
+import {
+  buildSocialFeedListItems,
+  getSocialFeedListItemKey,
+} from '../utils/buildSocialFeedListItems';
+import { getFeedItemId } from '../utils/feedItemId';
 import { mapFeedItem } from '../utils/mapFeedItem';
+import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 import {
   SOCIAL_FEED_REALTIME_BUFFER_SIZE,
   applyRealtimeEventToRow,
   countPendingNewPosts,
   foldRealtimeRows,
+  getRowFeedItemId,
+  getRowSortTimestamp,
   getVisiblePendingNewCount,
   mergeRealtimeFeedItem,
   mergeRealtimeRows,
@@ -58,6 +67,19 @@ const buildSocketRow = (event: SocialFeedEvent): SocialFeedRow => {
   return row;
 };
 
+const buildCall = (
+  uid: string,
+  engagement: AuthorComment['engagement'] = {
+    reactions: [],
+    userReaction: null,
+  },
+): AuthorComment => ({
+  uid,
+  text: 'this is alpha',
+  timestamp: 1_700_000_000,
+  engagement,
+});
+
 describe('socialFeedRealtime', () => {
   it('keeps the buffer below the page size so a catch-up covers evictions', () => {
     expect(SOCIAL_FEED_REALTIME_BUFFER_SIZE).toBeLessThan(FEED_PAGE_LIMIT);
@@ -84,6 +106,34 @@ describe('socialFeedRealtime', () => {
       });
     });
 
+    it('carries the envelope feed item id onto the merged item', () => {
+      const event = buildEvent({
+        feedItemId: 'item-comment',
+        data: { positionId: 'pos-spot-1' },
+      });
+
+      const merged = mergeRealtimeFeedItem(undefined, event);
+
+      expect(getFeedItemId(merged)).toBe('item-comment');
+    });
+
+    it('keys socket-only cards of one position apart in the list', () => {
+      const data = { positionId: 'pos-spot-1' };
+      const posts = [
+        buildEvent({ feedItemId: 'item-trade', eventId: 'event-1', data }),
+        buildEvent({ feedItemId: 'item-comment', eventId: 'event-2', data }),
+      ].map((event) => {
+        const [post] = toSocialFeedPosts([buildSocketRow(event)], 0);
+        return post;
+      });
+
+      const keys = buildSocialFeedListItems(posts, []).map(
+        getSocialFeedListItemKey,
+      );
+
+      expect(keys).toEqual(['item-trade', 'item-comment']);
+    });
+
     it('normalizes a full event without an HTTP row', () => {
       const event = buildEvent({ eventId: 'event-2', revision: 2 });
 
@@ -95,6 +145,137 @@ describe('socialFeedRealtime', () => {
         eventId: 'event-2',
         revision: 2,
       });
+    });
+
+    it('clears the rest authorComment when the realtime copy carries a null authorComment', () => {
+      const restCall = buildCall('call-rest');
+      const current = mockSpotFeedItem({ authorComment: restCall });
+      const event = buildEvent({ data: { authorComment: null } });
+
+      const merged = mergeRealtimeFeedItem(current, event);
+
+      expect(merged.authorComment).toBeNull();
+    });
+
+    it('keeps the rest authorComment when the realtime copy omits authorComment', () => {
+      const restCall = buildCall('call-rest');
+      const current = mockSpotFeedItem({ authorComment: restCall });
+      const event = buildEvent();
+
+      const merged = mergeRealtimeFeedItem(current, event);
+
+      expect(event.data).not.toHaveProperty('authorComment');
+      expect(merged.authorComment).toEqual(restCall);
+    });
+
+    it('takes the realtime authorComment when it carries a Call', () => {
+      const restCall = buildCall('call-rest');
+      const realtimeCall = buildCall('call-realtime');
+      const current = mockSpotFeedItem({ authorComment: restCall });
+      const event = buildEvent({ data: { authorComment: realtimeCall } });
+
+      const merged = mergeRealtimeFeedItem(current, event);
+
+      expect(merged.authorComment).toEqual(realtimeCall);
+    });
+
+    it('keeps known userReaction while accepting realtime engagement', () => {
+      const knownEngagement = {
+        reactions: [{ emotion: '👍', count: 1, profiles: [] }],
+        userReaction: '👍',
+      };
+      const knownCall = buildCall('call-shared', knownEngagement);
+      const realtimeCall = buildCall('call-shared', {
+        reactions: [{ emotion: '🔥', count: 2, profiles: [] }],
+        userReaction: null,
+      });
+      const current = mockSpotFeedItem({ authorComment: knownCall });
+      const event = buildEvent({ data: { authorComment: realtimeCall } });
+
+      const merged = mergeRealtimeFeedItem(current, event);
+
+      expect(merged.authorComment).toEqual({
+        ...realtimeCall,
+        engagement: {
+          ...realtimeCall.engagement,
+          userReaction: knownEngagement.userReaction,
+        },
+      });
+    });
+  });
+
+  describe('toSocialFeedRow', () => {
+    it('keys a row on the feed item id the HTTP feed returns', () => {
+      const row = buildRow({
+        positionId: 'pos-a',
+        feedItemId: 'item-a',
+      } as Partial<CoreFeedItem>);
+
+      const live = toSocialFeedRow(row);
+
+      expect(live.feedItemId).toBe('item-a');
+      expect(live.stableId).toBe('item-a');
+    });
+
+    it('keys a row on its position when the feed returns no item id', () => {
+      const row = buildRow({ positionId: 'pos-a' });
+
+      const live = toSocialFeedRow(row);
+
+      expect(live.feedItemId).toBe('pos-a');
+      expect(live.stableId).toBe(row.item.id);
+    });
+
+    it('gives two items of one position distinct identities', () => {
+      const comment = buildRow({
+        positionId: 'pos-a',
+        feedItemId: 'item-comment',
+      } as Partial<CoreFeedItem>);
+      const trade = buildRow({
+        positionId: 'pos-a',
+        feedItemId: 'item-trade',
+      } as Partial<CoreFeedItem>);
+
+      const merged = mergeRealtimeRows({
+        serverRows: [comment, trade],
+        socketRows: [],
+        revisedRows: new Map(),
+        pending: new Map(),
+      });
+
+      expect(merged.map((row) => row.stableId)).toEqual([
+        'item-comment',
+        'item-trade',
+      ]);
+    });
+  });
+
+  describe('getRowFeedItemId', () => {
+    it('prefers the feed item id over the position id', () => {
+      expect(
+        getRowFeedItemId(
+          buildRow({ feedItemId: 'item-a' } as Partial<CoreFeedItem>),
+        ),
+      ).toBe('item-a');
+    });
+  });
+
+  describe('getRowSortTimestamp', () => {
+    it('places a row at the time the server placed it', () => {
+      const row = buildRow({
+        timestamp: 1_700_000_000,
+        occurredAt: '2026-01-01T00:00:00.000Z',
+      });
+
+      expect(getRowSortTimestamp(row)).toBe(
+        Date.parse('2026-01-01T00:00:00.000Z'),
+      );
+    });
+
+    it('falls back to the latest trade when the row has no placement', () => {
+      const row = buildRow({ timestamp: 1_700_000_000 });
+
+      expect(getRowSortTimestamp(row)).toBe(row.item.timestamp);
     });
   });
 
@@ -125,6 +306,13 @@ describe('socialFeedRealtime', () => {
       const row = applyRealtimeEventToRow(buildRow(), event, undefined, true);
 
       expect(row?.realtimeEventId).toBe('event-2');
+    });
+
+    it('identifies a socket-only row by its feed item id', () => {
+      const row = buildSocketRow(buildEvent({ feedItemId: 'item-new' }));
+
+      expect(row.stableId).toBe('item-new');
+      expect(row.item.id).toBe('item-new');
     });
 
     it('keeps the entrance event ID across later revisions', () => {
@@ -217,7 +405,162 @@ describe('socialFeedRealtime', () => {
       );
 
       expect(folded.socketRows).toEqual([]);
-      expect(folded.revisedRows.get('pos-a')).toBe(socketRow);
+      expect(folded.revisedRows.get('pos-a')).toEqual(socketRow);
+    });
+
+    it('clears the rest authorComment when a promoted socket copy carries a null authorComment', () => {
+      const restCall = buildCall('call-rest');
+      const socketRow = buildSocketRow(
+        buildEvent({
+          feedItemId: 'pos-a',
+          revision: 3,
+          data: { authorComment: null },
+        }),
+      );
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: restCall,
+      });
+
+      const folded = foldRealtimeRows(
+        [socketRow],
+        new Map(),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(folded.revisedRows.get('pos-a')?.core.authorComment).toBeNull();
+    });
+
+    it('keeps the rest authorComment when a promoted socket copy omits authorComment', () => {
+      const restCall = buildCall('call-rest');
+      const socketRow = buildSocketRow(
+        buildEvent({ feedItemId: 'pos-a', revision: 3 }),
+      );
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: restCall,
+      });
+
+      const folded = foldRealtimeRows(
+        [socketRow],
+        new Map(),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(folded.revisedRows.get('pos-a')?.core.authorComment).toEqual(
+        restCall,
+      );
+    });
+
+    it('uses refreshed server engagement for a promoted socket copy', () => {
+      const serverCall = buildCall('call-shared', {
+        reactions: [{ emotion: '👍', count: 1, profiles: [] }],
+        userReaction: '👍',
+      });
+      const socketCall = buildCall('call-shared', {
+        reactions: [{ emotion: '🔥', count: 2, profiles: [] }],
+        userReaction: null,
+      });
+      const socketRow = buildSocketRow(
+        buildEvent({
+          feedItemId: 'pos-a',
+          revision: 3,
+          data: { authorComment: socketCall },
+        }),
+      );
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: serverCall,
+      });
+
+      const folded = foldRealtimeRows(
+        [socketRow],
+        new Map(),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(
+        folded.revisedRows.get('pos-a')?.core.authorComment?.engagement,
+      ).toEqual(serverCall.engagement);
+    });
+
+    it('refreshes engagement on a newer revised row from the server copy', () => {
+      const staleCall = buildCall('call-shared', {
+        reactions: [{ emotion: '🔥', count: 2, profiles: [] }],
+        userReaction: null,
+      });
+      const liveCall = buildCall('call-shared', {
+        reactions: [{ emotion: '👍', count: 1, profiles: [] }],
+        userReaction: '👍',
+      });
+      const revisedRow = buildSocketRow(
+        buildEvent({
+          feedItemId: 'pos-a',
+          revision: 3,
+          data: { authorComment: staleCall },
+        }),
+      );
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: liveCall,
+      });
+
+      const folded = foldRealtimeRows(
+        [],
+        new Map([['pos-a', revisedRow]]),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(
+        folded.revisedRows.get('pos-a')?.core.authorComment?.engagement,
+      ).toEqual(liveCall.engagement);
+      expect(folded.changed).toBe(true);
+    });
+
+    it('keeps live socket counts while the server engagement is unchanged', () => {
+      const serverRow = buildRow({
+        positionId: 'pos-a',
+        revision: 2,
+        authorComment: buildCall('call-shared', {
+          reactions: [{ emotion: '👍', count: 1, profiles: [] }],
+          userReaction: '👍',
+        }),
+      });
+      const revisedRow = applyRealtimeEventToRow(
+        serverRow,
+        buildEvent({
+          feedItemId: 'pos-a',
+          revision: 3,
+          data: {
+            authorComment: buildCall('call-shared', {
+              reactions: [{ emotion: '👍', count: 4, profiles: [] }],
+              userReaction: null,
+            }),
+          },
+        }),
+        undefined,
+        false,
+      );
+      if (!revisedRow) {
+        throw new Error('Expected the event to map');
+      }
+
+      const folded = foldRealtimeRows(
+        [],
+        new Map([['pos-a', revisedRow]]),
+        new Map([['pos-a', serverRow]]),
+      );
+
+      expect(folded.revisedRows.get('pos-a')).toBe(revisedRow);
+      expect(revisedRow.core.authorComment?.engagement).toEqual({
+        reactions: [{ emotion: '👍', count: 4, profiles: [] }],
+        userReaction: '👍',
+      });
+      expect(folded.changed).toBe(false);
     });
 
     it('forgets revisions the server caught up with or no longer loads', () => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -20,35 +21,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { SHOW_REFERRER_CLAIMABLE_AMOUNT } from './constants';
-
-export const CLAIMABLE_REWARDS_CARD_TEST_IDS = {
-  CONTAINER: 'claimable-rewards-card',
-  AMOUNT: 'claimable-rewards-card-amount',
-  BALANCE_BREAKDOWN: 'claimable-rewards-card-balance-breakdown',
-  CLAIM_BUTTON: 'claimable-rewards-card-claim-button',
-  PAUSED_BUTTON: 'claimable-rewards-card-paused-button',
-  CLAIMED_BUTTON: 'claimable-rewards-card-claimed-button',
-  LAST_7_DAYS: 'claimable-rewards-card-last-7-days',
-  RECORDED: 'claimable-rewards-card-recorded',
-  SKELETON: 'claimable-rewards-card-skeleton',
-} as const;
+import { isPositiveBaseUnits } from '../../utils/formatUtils';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
+import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
 
 export type ClaimButtonState = 'claim' | 'paused' | 'claimed' | 'hidden';
 
 function amountHeading(label: string, currency: string): string {
   return `${label} \u2022 ${currency}`;
-}
-
-function isPositiveBaseUnits(value: string | undefined): boolean {
-  if (!value) {
-    return false;
-  }
-  try {
-    return BigInt(value) > 0n;
-  } catch {
-    return false;
-  }
 }
 
 /**
@@ -62,8 +42,16 @@ export function claimButtonState(
   canClaim = false,
   held?: string,
   blocked?: string,
+  /**
+   * Income is held only until tax documentation is done. The button stays
+   * Claim. A blocked balance still shows Paused.
+   */
+  taxHeld = false,
 ): ClaimButtonState {
   if (canClaim && isPositiveBaseUnits(claimable)) {
+    return 'claim';
+  }
+  if (taxHeld && isPositiveBaseUnits(held) && !isPositiveBaseUnits(blocked)) {
     return 'claim';
   }
   if (isPositiveBaseUnits(held) || isPositiveBaseUnits(blocked)) {
@@ -82,18 +70,20 @@ export interface ClaimableRewardsCardProps {
   /** Formatted claimable balance. */
   claimableAmount: string;
   /**
-   * A referrer hides the claimable amount row while
-   * `SHOW_REFERRER_CLAIMABLE_AMOUNT` is false.
+   * A referrer shows the claimable amount row while Social V1 is enabled.
    */
   isReferrer?: boolean;
   /**
    * Base units in `held`. A positive value, or a positive `blocked`, shows
-   * Balance and Paused. Omitted for anyone who is not a referee.
+   * Balance and Paused. When the only hold is tax documentation and nothing
+   * is claimable, the row shows this balance under Held and stays Claim.
    */
   held?: string;
+  /** Formatted `held` balance. Shown when tax documentation is the only hold. */
+  heldAmount?: string;
   /**
    * Base units in `blocked`. A positive value, or a positive `held`, shows
-   * Balance and Paused. Omitted for anyone who is not a referee.
+   * Balance and Paused.
    */
   blocked?: string;
   /** Formatted lifetime total. */
@@ -104,6 +94,11 @@ export interface ClaimableRewardsCardProps {
   isLast7Loading: boolean;
   /** The cashback family reaches the summary minimum, so the press can call a claim route. */
   canClaim?: boolean;
+  /**
+   * The only held balance is income waiting on tax documentation. Claim
+   * stays Claim and still calls `onClaim`.
+   */
+  taxHeld?: boolean;
   isClaiming?: boolean;
   /** A Retry-After window. The button stays disabled without a spinner. */
   isClaimWaiting?: boolean;
@@ -169,8 +164,8 @@ const ClaimableRewardsCardSkeleton: React.FC<{
 };
 
 /**
- * Available-to-claim card. Claim is enabled only when `canClaim` is set,
- * which means the cashback family reaches the summary minimum.
+ * Available-to-claim card. Claim is enabled when cashback or follow-trade
+ * reaches the summary minimum, and when the only hold is tax documentation.
  */
 const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   localizedText,
@@ -179,12 +174,14 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   claimableAmount,
   isReferrer = false,
   held,
+  heldAmount,
   blocked,
   recordedAmount,
   last7Amount,
   isSummaryLoading,
   isLast7Loading,
   canClaim = false,
+  taxHeld = false,
   isClaiming = false,
   isClaimWaiting = false,
   onClaim,
@@ -192,7 +189,8 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   onBalanceBreakdown,
 }) => {
   const tw = useTailwind();
-  const showClaimableAmount = !isReferrer || SHOW_REFERRER_CLAIMABLE_AMOUNT;
+  const showReferrerClaimableAmount = useSelector(selectIsSocialV1Enabled);
+  const showClaimableAmount = !isReferrer || showReferrerClaimableAmount;
 
   if (isSummaryLoading) {
     return (
@@ -203,13 +201,36 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     );
   }
 
-  const button = claimButtonState(claimable, claimed, canClaim, held, blocked);
+  const button = claimButtonState(
+    claimable,
+    claimed,
+    canClaim,
+    held,
+    blocked,
+    taxHeld,
+  );
   const paused = button === 'paused';
+  // Nothing is payable yet, and the hold is only tax documentation. Show the
+  // held balance and keep Claim so the press opens the tax flow.
+  const taxHeldOnly =
+    button === 'claim' &&
+    taxHeld &&
+    isPositiveBaseUnits(held) &&
+    !isPositiveBaseUnits(claimable);
   const showLast7Skeleton = isLast7Loading && last7Amount === null;
   const heading = amountHeading(
-    paused ? localizedText.balance : localizedText.availableToClaim,
+    paused
+      ? localizedText.balance
+      : taxHeldOnly
+        ? localizedText.held
+        : localizedText.availableToClaim,
     localizedText.mUSD,
   );
+  const amount = paused
+    ? recordedAmount
+    : taxHeldOnly
+      ? (heldAmount ?? claimableAmount)
+      : claimableAmount;
   const claimInProgress = button === 'claim' && isClaiming;
   const claimCoolingDown =
     button === 'claim' && isClaimWaiting && !claimInProgress;
@@ -253,7 +274,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
                 variant={TextVariant.HeadingLg}
                 testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT}
               >
-                {paused ? recordedAmount : claimableAmount}
+                {amount}
               </Text>
               {onBalanceBreakdown ? (
                 <ButtonIcon

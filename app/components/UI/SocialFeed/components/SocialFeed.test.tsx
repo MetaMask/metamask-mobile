@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Text, View } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -9,7 +9,7 @@ import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialV1FeedPost } from '../types';
 import SocialFeed, {
   SOCIAL_FEED_NEXT_PAGE_TEST_ID,
-  type SocialFeedHeaderProps,
+  type SocialFeedRefreshHandle,
 } from './SocialFeed';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import {
@@ -47,6 +47,13 @@ jest.mock('./SocialFeedVirtualized', () => {
     ),
   };
 });
+
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
 
 const mockSelectEnabled = jest.mocked(selectSocialLeaderboardEnabled);
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
@@ -112,6 +119,7 @@ describe('SocialFeed', () => {
 
     expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
       filterPost: undefined,
+      realtime: false,
     });
     expect(screen.getByText('Trades')).toBeOnTheScreen();
     expect(screen.getByTestId('post-one')).toBeOnTheScreen();
@@ -202,6 +210,22 @@ describe('SocialFeed', () => {
     expect(loadMore).toHaveBeenCalled();
   });
 
+  it('keeps paging when a filter leaves the current page empty', () => {
+    const loadMore = jest.fn();
+    jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
+      cb(0, 100, 1, 1);
+    });
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [], hasNextPage: true, loadMore }),
+    );
+
+    renderWithProvider(
+      <SocialFeed {...query} location="my_profile" filterPost={() => false} />,
+    );
+
+    expect(loadMore).toHaveBeenCalled();
+  });
+
   it('does not load another page when the footer is still below the screen', () => {
     const loadMore = jest.fn();
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
@@ -218,25 +242,17 @@ describe('SocialFeed', () => {
     expect(loadMore).not.toHaveBeenCalled();
   });
 
-  it('renders the host header below the title with no pending posts', () => {
-    const renderHeader = jest.fn(
-      ({ pendingNewCount }: SocialFeedHeaderProps) => (
-        <Text>{`header ${pendingNewCount}`}</Text>
-      ),
-    );
-
+  it('renders the host header below the title', () => {
     renderWithProvider(
       <SocialFeed
         {...query}
         location="perps_market_details"
         title="Trades"
-        renderHeader={renderHeader}
+        renderHeader={() => <Text>header</Text>}
       />,
     );
-    const { onRevealPending } = renderHeader.mock.calls[0][0];
 
-    expect(screen.getByText('header 0')).toBeOnTheScreen();
-    expect(onRevealPending()).toBeUndefined();
+    expect(screen.getByText('header')).toBeOnTheScreen();
     expect(mockUseSocialFeed).toHaveBeenCalledTimes(1);
   });
 
@@ -251,7 +267,34 @@ describe('SocialFeed', () => {
       />,
     );
 
-    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, { filterPost });
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
+      filterPost,
+      realtime: false,
+    });
+  });
+
+  it('streams content-mode posts and exposes refresh to the host', async () => {
+    const refresh = jest.fn(async () => undefined);
+    const refreshRef = React.createRef<SocialFeedRefreshHandle>();
+    mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+
+    renderWithProvider(
+      <SocialFeed
+        {...query}
+        location="my_profile"
+        realtime
+        refreshRef={refreshRef}
+      />,
+    );
+
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
+      filterPost: undefined,
+      realtime: true,
+    });
+    await act(async () => {
+      await refreshRef.current?.refresh();
+    });
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 
   it('renders the virtualized feed for the virtualized scroll mode', () => {

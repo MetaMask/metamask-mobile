@@ -5,18 +5,33 @@ import type {
   LedgerEntryDto,
   ReferralLocalizedText,
   ReferralMeDto,
+  ReferralRole,
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { navigateToRewardsRoute } from '../../../utils';
+import { navigateToSocialLeaderboard } from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
-import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton';
-import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard';
-import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows';
-import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../RewardsPausedBanner';
-import EarningsTab, { EARNINGS_TAB_TEST_IDS } from './EarningsTab';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton.testIds';
+import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
+import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows.testIds';
+import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../RewardsPausedBanner.testIds';
+import EarningsTab from './EarningsTab';
+import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
+
+jest.mock('../../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => true),
+}));
+
+jest.mock('../../../hooks/useFollowTradeClaimOpen', () => ({
+  useFollowTradeClaimOpen: jest.fn(() => false),
+  useClaimMechanisms: jest.fn(() => ({
+    followTradeClaimOpen: false,
+    revShareClaimOpen: false,
+  })),
+}));
 
 const mockNavigate = jest.fn();
 
@@ -35,11 +50,25 @@ jest.mock('../../../utils', () => ({
   navigateToRewardsRoute: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialLeaderboard: jest.fn(),
+  }),
+);
+
 jest.mock('../../../hooks/useEarningsSummary');
 jest.mock('../../../hooks/useLast7DaysEarnings');
 jest.mock('../../../hooks/useEarningsHistory');
 const mockClaimEarningsHandlers: { onClaimsPaused?: () => void } = {};
 
+jest.mock('../../../hooks/useTaxDocumentation', () => ({
+  useTaxDocumentation: () => ({
+    prefetchTaxMe: jest.fn(),
+    onClaimPress: (_summary: unknown, claim: () => Promise<void>) => claim(),
+    openAfterClaimRefusal: jest.fn(),
+  }),
+}));
 jest.mock('../../../hooks/useClaimEarnings', () => ({
   useClaimEarnings: (
     _profileId: string,
@@ -93,6 +122,10 @@ const LOCALIZED_TEXT = {
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
+  copyTradingEmptyDescription:
+    'Share a trade to start earning from copies of it.',
+  copyTradingEmptyAction: 'Start sharing',
+  taxFormUrl: 'https://tax-form.test/form',
 } as unknown as ReferralLocalizedText;
 
 const branch = (lifetime: string) => ({
@@ -193,6 +226,8 @@ const renderTab = (
     historyLoading = false,
     historyError = null as string | null,
     onViewPerformance = jest.fn(),
+    roles,
+    localizedText = LOCALIZED_TEXT,
   }: {
     summary?: EarningsSummaryDto | null;
     summaryLoading?: boolean;
@@ -204,6 +239,8 @@ const renderTab = (
     historyLoading?: boolean;
     historyError?: string | null;
     onViewPerformance?: () => void;
+    roles?: ReferralRole[];
+    localizedText?: ReferralLocalizedText;
   } = {},
 ) => {
   (useEarningsSummary as jest.Mock).mockReturnValue({ fetchEarningsSummary });
@@ -235,7 +272,8 @@ const renderTab = (
               loading: false,
               error: false,
               data: {
-                localized_text: LOCALIZED_TEXT,
+                localized_text: localizedText,
+                roles,
               } as ReferralMeDto,
             },
           },
@@ -246,6 +284,7 @@ const renderTab = (
               data: summary,
             },
           },
+          commissionMechanisms: {},
         },
       },
     },
@@ -257,9 +296,8 @@ describe('EarningsTab', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the breakdown for a referrer and hides the claimable amount row', () => {
-    const { getByText, getByTestId, queryByTestId, queryByText } =
-      renderTab('referrer');
+  it('shows the breakdown and the claimable amount for a referrer while Social V1 is on', () => {
+    const { getByText, getByTestId, queryByTestId } = renderTab('referrer');
 
     expect(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeOnTheScreen();
     expect(
@@ -275,8 +313,10 @@ describe('EarningsTab', () => {
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByText('$41.75')).toBeOnTheScreen();
     expect(getByText('$9.15')).toBeOnTheScreen();
-    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
-    expect(queryByText('Available to claim')).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toBeOnTheScreen();
+    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
     ).toBeOnTheScreen();
@@ -305,78 +345,33 @@ describe('EarningsTab', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides the breakdown when a referee has only one earning type', () => {
+    const cashback = renderTab('referee', {
+      roles: ['CASHBACK_EXPERIMENT'],
+    });
+    const copyTrading = renderTab('referee', { roles: ['COPY_TRADING'] });
+    const both = renderTab('referee', {
+      roles: ['CASHBACK_EXPERIMENT', 'COPY_TRADING'],
+    });
+
+    expect(cashback.queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
+    expect(
+      copyTrading.queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN),
+    ).toBeNull();
+    expect(both.getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeOnTheScreen();
+    expect(
+      both.getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
+    ).toBeOnTheScreen();
+    expect(
+      both.getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
+    ).toBeOnTheScreen();
+  });
+
   it('omits the breakdown for a plain persona', () => {
     const { queryByTestId, getByTestId } = renderTab('plain');
 
     expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
     expect(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeOnTheScreen();
-  });
-
-  it('renders Claim when a referee has cashback of at least $1', () => {
-    const { getByTestId, queryByTestId } = renderTab('referee', {
-      summary: {
-        ...SUMMARY,
-        claimable: '1000000',
-        claimed: '50',
-        self_earned: {
-          ...SUMMARY.self_earned,
-          by_claim_family: {
-            REFERRAL_TRADE_FEE_CASHBACK: {
-              ...SUMMARY.self_earned.by_claim_family
-                .REFERRAL_TRADE_FEE_CASHBACK,
-              claimable: '1000000',
-            },
-          },
-        },
-      },
-    });
-
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
-    ).toBeNull();
-  });
-
-  it('renders a disabled Claimed button when a referee has only claimed', () => {
-    const { getByTestId, queryByTestId } = renderTab('referee', {
-      summary: { ...SUMMARY, claimable: '0', claimed: '50' },
-    });
-
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeNull();
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
-    ).toBeDisabled();
-  });
-
-  it('hides Claim and Claimed for a referrer with cashback of at least $1', () => {
-    const { queryByTestId } = renderTab('referrer', {
-      summary: {
-        ...SUMMARY,
-        claimable: '1000000',
-        claimed: '50',
-        self_earned: {
-          ...SUMMARY.self_earned,
-          by_claim_family: {
-            REFERRAL_TRADE_FEE_CASHBACK: {
-              ...SUMMARY.self_earned.by_claim_family
-                .REFERRAL_TRADE_FEE_CASHBACK,
-              claimable: '1000000',
-            },
-          },
-        },
-      },
-    });
-
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeNull();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
-    ).toBeNull();
   });
 
   it('shows Balance from lifetime and Paused for a referee whose claims are held', () => {
@@ -613,6 +608,16 @@ describe('EarningsTab', () => {
         claimable: '12000000',
         held: '0',
         blocked: '0',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '12000000',
+            },
+          },
+        },
       },
     });
 
@@ -633,19 +638,48 @@ describe('EarningsTab', () => {
     });
   });
 
-  it('does not show Paused for a referrer with a positive hold', () => {
-    const { queryByTestId } = renderTab('referrer', {
+  it('shows Paused for a referrer with a positive hold', () => {
+    const { getByTestId, queryByTestId } = renderTab('referrer', {
       summary: { ...SUMMARY, claimable: '0', held: '100000000', claimed: '50' },
     });
 
     expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
+  });
+
+  it('does not offer Claim when the only balance is closed revenue share', () => {
+    const { queryByTestId, getByTestId } = renderTab('referrer', {
+      summary: {
+        ...SUMMARY,
+        claimable: '1000000',
+        held: '0',
+        blocked: '0',
+        claimed: '0',
+        earned_by_others: {
+          ...SUMMARY.earned_by_others,
+          by_claim_family: {
+            ...SUMMARY.earned_by_others.by_claim_family,
+            REFERRAL_REV_SHARE: {
+              ...branch('1000000'),
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
     expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
     ).toBeNull();
   });
 
@@ -700,6 +734,44 @@ describe('EarningsTab', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
+  });
+
+  it('uses the copy-trading empty copy and opens the social leaderboard for a copy-trading-only sharer', () => {
+    const { getByTestId, getByText, queryByText } = renderTab('referee', {
+      roles: ['COPY_TRADING'],
+      historyItems: [],
+    });
+
+    expect(
+      getByText('Share a trade to start earning from copies of it.'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText('Your activity is empty now. Start trading to earn today!'),
+    ).toBeNull();
+
+    fireEvent.press(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY}-action`),
+    );
+
+    expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.anything(),
+    );
+  });
+
+  it('keeps the trading empty copy for a cashback-experiment member', () => {
+    const { getByText, queryByText } = renderTab('referee', {
+      roles: ['CASHBACK_EXPERIMENT'],
+      historyItems: [],
+    });
+
+    expect(
+      getByText('Your activity is empty now. Start trading to earn today!'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText('Share a trade to start earning from copies of it.'),
+    ).toBeNull();
   });
 
   it('opens performance from the breakdown and history from its header', () => {

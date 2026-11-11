@@ -3,9 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import {
+  isCopyTradingOnly,
   selectEarningsSummaryEntry,
+  selectReferralMeEntry,
   selectReferralMeLocalizedText,
 } from '../../../../reducers/rewardsMoney/selectors';
+import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
@@ -21,12 +24,7 @@ import TradingActivityListView from '../components/Money/TradingActivityListView
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { useInFlightClaims } from '../hooks/useInFlightClaims';
-
-export const REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS = {
-  CONTAINER: 'rewards-earnings-history-view',
-  LIST: 'rewards-earnings-history-list',
-  SKELETON_SLOT: 'rewards-earnings-history-skeleton-slot',
-} as const;
+import { REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS } from './RewardsEarningsHistoryView.testIds';
 
 const RewardsEarningsHistoryView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -37,12 +35,19 @@ const RewardsEarningsHistoryView: React.FC = () => {
   const earningsSummaryEntry = useSelector((state: RootState) =>
     selectEarningsSummaryEntry(state, profileId),
   );
+  const roles = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
+  );
+  const copyTradingOnly = isCopyTradingOnly(roles);
   useEarningsSummary(profileId);
   const list = useEarningsHistory(profileId);
   const openTradeActions = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
+  }, [navigation]);
+  const openSocialTab = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate);
   }, [navigation]);
   const inFlight = useInFlightClaims(profileId);
   const items = useMemo(
@@ -90,9 +95,17 @@ const RewardsEarningsHistoryView: React.FC = () => {
           ? `pending-${item.id}`
           : `${item.type}-${item.id}`
       }
-      emptyDescription={localizedText?.tradingActivityEmptyDescription ?? ''}
-      emptyActionLabel={localizedText?.tradingActivityEmptyAction}
-      emptyOnAction={openTradeActions}
+      emptyDescription={
+        (copyTradingOnly
+          ? localizedText?.copyTradingEmptyDescription
+          : localizedText?.tradingActivityEmptyDescription) ?? ''
+      }
+      emptyActionLabel={
+        copyTradingOnly
+          ? localizedText?.copyTradingEmptyAction
+          : localizedText?.tradingActivityEmptyAction
+      }
+      emptyOnAction={copyTradingOnly ? openSocialTab : openTradeActions}
       header={header}
     />
   );

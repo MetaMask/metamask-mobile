@@ -1,6 +1,9 @@
 import { TagSeverity, TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/perps-controller';
-import { getPerpsPositionHeaderDisplay } from './positionDisplay';
+import {
+  getPerpsPositionHeaderDisplay,
+  parsePositionRoePercentage,
+} from './positionDisplay';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -29,6 +32,30 @@ const createPosition = (overrides: Partial<Position> = {}): Position => ({
   takeProfitCount: 0,
   stopLossCount: 0,
   ...overrides,
+});
+
+describe('parsePositionRoePercentage', () => {
+  it.each([
+    ['0.103', 10.3],
+    ['-0.10', -10],
+    ['0', 0],
+  ])(
+    'converts the decimal ratio %s to %s percent',
+    (returnOnEquity, expected) => {
+      const result = parsePositionRoePercentage(returnOnEquity);
+
+      expect(result).toBeCloseTo(expected);
+    },
+  );
+
+  it.each([undefined, '', 'not-a-number'])(
+    'returns undefined for unavailable RoE %s',
+    (returnOnEquity) => {
+      const result = parsePositionRoePercentage(returnOnEquity);
+
+      expect(result).toBeUndefined();
+    },
+  );
 });
 
 describe('getPerpsPositionHeaderDisplay', () => {

@@ -11,12 +11,20 @@ import type {
   SocialFeedRealtimeScope,
   TokenFeedChain,
 } from '@metamask/social-controllers';
-import { FEED_CAIP2_CHAINS } from './feed-constants';
+import {
+  FEED_CAIP2_CHAINS,
+  HYPERLIQUID_CAIP2_CHAIN_ID,
+} from './feed-constants';
 import { chainNameToId } from '../utils/chainMapping';
 import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 
-/** The feed `SocialService:fetchFeed` serves: `following`, `leaderboard`, `all`, or `trending`. */
-export type FeedScope = NonNullable<FetchFeedOptions['scope']>;
+/**
+ * The feed `SocialService:fetchFeed` serves: `following`, `following_v1`,
+ * `leaderboard`, `all`, or `trending`. `following_v1` is the following feed in
+ * the shape of `all`: one item per post, ordered by `occurredAt`. The installed
+ * `@metamask/social-controllers` does not list it yet.
+ */
+export type FeedScope = NonNullable<FetchFeedOptions['scope']> | 'following_v1';
 
 /**
  * A slice of the social feed, as `SocialService:fetchFeed` filters it. Plain
@@ -70,8 +78,10 @@ type Paged = 'limit' | 'olderThan' | 'newerThan';
 export type SocialFeedRequest =
   | {
       action: 'SocialService:fetchFeed';
-      options: Required<Pick<FetchFeedOptions, 'scope'>> &
-        Pick<FetchFeedOptions, 'profileId' | 'commentedOnly'> & {
+      options: { scope: FeedScope } & Pick<
+        FetchFeedOptions,
+        'profileId' | 'commentedOnly'
+      > & {
           chains: readonly CaipChainId[];
           assetIds?: readonly CaipAssetType[];
         };
@@ -269,10 +279,12 @@ const coversEveryFeedChain = (chains: readonly CaipChainId[]): boolean =>
   FEED_CAIP2_CHAINS.every((chain) => chains.includes(chain));
 
 /**
- * The socket channel that streams a request, or `null` when none does. Only
- * an unnarrowed `all` or `trending` feed qualifies: socket events are not
- * filtered by chain, asset or trader, so a narrowed feed would receive rows
- * it should not show. There is no channel for `following` or `leaderboard`.
+ * The socket channel that streams a request, or `null` when none does.
+ *
+ * An unnarrowed `all` or `trending` feed uses its own channel. A commented
+ * profile feed has no channel, so it leases `all` and the reader drops every
+ * other trader. Asset and chain filters stay off the socket: those events are
+ * not narrowed, and there is no channel for `following` or `leaderboard`.
  */
 export const toSocialFeedRealtimeScope = (
   request: SocialFeedRequest | null,
@@ -281,12 +293,13 @@ export const toSocialFeedRealtimeScope = (
     return null;
   }
   const { scope, chains, assetIds, profileId, commentedOnly } = request.options;
-  if (
-    assetIds !== undefined ||
-    profileId !== undefined ||
-    commentedOnly === true ||
-    !coversEveryFeedChain(chains)
-  ) {
+  if (assetIds !== undefined || !coversEveryFeedChain(chains)) {
+    return null;
+  }
+  if (profileId !== undefined) {
+    return scope === 'all' && commentedOnly === true ? 'all' : null;
+  }
+  if (commentedOnly === true) {
     return null;
   }
   return scope === 'all' || scope === 'trending' ? scope : null;
@@ -301,33 +314,71 @@ export interface SocialFeedAssetRef {
   tokenSymbol?: string;
 }
 
+const PERP_ASSET_NAMESPACE = 'perp';
+
+const isHyperliquidAsset = (chainName: string): boolean =>
+  chainName.trim().toLowerCase() === HYPERLIQUID_CHAIN_NAME;
+
+/**
+ * The market id of a Hyperliquid row. Global-feed perp rows can arrive with an
+ * empty `tokenAddress`, so the symbol wins.
+ */
+const perpMarketOf = ({ tokenAddress, tokenSymbol }: SocialFeedAssetRef) =>
+  tokenSymbol?.trim() || tokenAddress.trim();
+
+/**
+ * The CAIP-19 asset type a feed row is about, as the feed's `assetIds` filter
+ * expects it, or `null` when the row's chain or asset has none.
+ *
+ * - EVM: `eip155:<id>/erc20:<lowercased address>`
+ * - Solana: `solana:<ref>/token:<mint>`
+ * - Hyperliquid: `eip155:999/perp:<market>`
+ *
+ * CAIP-19 references cannot hold a colon, so a HIP-3 market such as
+ * `xyz:NVDA` becomes `xyz.NVDA`.
+ */
+export const toFeedAssetId = (
+  assetRef: SocialFeedAssetRef,
+): CaipAssetType | null => {
+  const chain = assetRef.chain.trim().toLowerCase();
+  const address = assetRef.tokenAddress.trim();
+  let assetId: string;
+  if (isHyperliquidAsset(chain)) {
+    const market = perpMarketOf(assetRef);
+    if (!market) {
+      return null;
+    }
+    assetId = `${HYPERLIQUID_CAIP2_CHAIN_ID}/${PERP_ASSET_NAMESPACE}:${market.replace(/:/gu, '.')}`;
+  } else {
+    const caip2 = chain && address ? chainNameToId(chain) : undefined;
+    if (!caip2) {
+      return null;
+    }
+    const chainNamespace = caip2.split(':')[0];
+    const assetNamespace = TOKEN_ASSET_NAMESPACE[chainNamespace];
+    if (!assetNamespace) {
+      return null;
+    }
+    assetId = `${caip2}/${assetNamespace}:${normaliseContractAddress(
+      chainNamespace,
+      address,
+    )}`;
+  }
+  return isCaipAssetType(assetId) ? assetId : null;
+};
+
 /**
  * Builds the source for the asset a feed row is about. Hyperliquid rows become
  * perp sources keyed by their market symbol, because global-feed perp rows can
  * arrive with an empty `tokenAddress`.
  */
-export const socialFeedSourceFromAsset = ({
-  chain: chainName,
-  tokenAddress,
-  tokenSymbol,
-}: SocialFeedAssetRef): SocialFeedSource | null => {
-  const chain = chainName.trim().toLowerCase();
-  const address = tokenAddress.trim();
-  if (chain === HYPERLIQUID_CHAIN_NAME) {
-    const symbol = tokenSymbol?.trim() || address;
+export const socialFeedSourceFromAsset = (
+  assetRef: SocialFeedAssetRef,
+): SocialFeedSource | null => {
+  if (isHyperliquidAsset(assetRef.chain)) {
+    const symbol = perpMarketOf(assetRef);
     return symbol ? { kind: 'perp', symbol } : null;
   }
-  if (!chain || !address) {
-    return null;
-  }
-  const caip2 = chainNameToId(chain);
-  if (!caip2) {
-    return null;
-  }
-  const assetNamespace = TOKEN_ASSET_NAMESPACE[caip2.split(':')[0]];
-  if (!assetNamespace) {
-    return null;
-  }
-  const assetId = `${caip2}/${assetNamespace}:${address}`;
-  return isCaipAssetType(assetId) ? { kind: 'token', assetId } : null;
+  const assetId = toFeedAssetId(assetRef);
+  return assetId ? { kind: 'token', assetId } : null;
 };

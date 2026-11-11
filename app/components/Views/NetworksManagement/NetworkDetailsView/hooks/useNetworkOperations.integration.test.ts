@@ -16,7 +16,6 @@ import { useNetworkOperations } from './useNetworkOperations';
 
 const customNetworkForm: NetworkFormState = {
   rpcUrl: 'https://rpc.gnosischain.com',
-  failoverRpcUrls: undefined,
   rpcName: 'Gnosis RPC',
   rpcUrlForm: '',
   rpcNameForm: '',

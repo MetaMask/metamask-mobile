@@ -10,12 +10,12 @@ import type { VenueMarketDataAdapter } from '../adapters/types';
 import { PREDICT_NEXT_FEATURE_NAME } from '../constants';
 import { PredictError, PredictErrorCode } from '../errors';
 import {
-  KALSHI_VENUE_ID,
   type PredictEntityId,
   type PredictFeedId,
   type PredictTimestamp,
   type PredictVenueId,
 } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import {
   PredictMarketDataService,
   type PredictMarketDataServiceMessenger,
@@ -97,6 +97,7 @@ describe('PredictMarketDataService', () => {
       venueId: KALSHI_VENUE_ID,
       actions: ['buy' as const],
       feeds: { 'nfl-games': feedId },
+      categories: [],
       searchSupported: true,
     };
     const marketData = createMarketData();

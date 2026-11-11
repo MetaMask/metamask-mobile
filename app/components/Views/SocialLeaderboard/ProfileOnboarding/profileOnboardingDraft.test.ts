@@ -26,8 +26,12 @@ describe('profileOnboardingDraft', () => {
     jest.restoreAllMocks();
   });
 
-  it('normalizes a typed handle', () => {
-    expect(normalizeUsername('  @Wen_Cat ')).toBe('wen_cat');
+  it('removes whitespace and leading @ characters without changing casing', () => {
+    const value = '  @@Wen_Cat ';
+
+    const username = normalizeUsername(value);
+
+    expect(username).toBe('Wen_Cat');
   });
 
   it('starts the draft with a generated username and matching display name', () => {
@@ -43,19 +47,50 @@ describe('profileOnboardingDraft', () => {
     expect(displayNameFromUsername('wen_cat')).toBe('Wen Cat');
   });
 
+  it('keeps display name generation unchanged for mixed-case usernames', () => {
+    const username = 'wEN_cAT';
+
+    const displayName = displayNameFromUsername(username);
+
+    expect(displayName).toBe('Wen Cat');
+  });
+
   it('accepts letters, numbers, and underscores between 3 and 16 characters', () => {
-    expect(getUsernameStatus('ab')).toBe('invalid');
     expect(getUsernameStatus('bad-name')).toBe('invalid');
-    expect(getUsernameStatus('a'.repeat(17))).toBe('invalid');
+    expect(getUsernameStatus('bad name')).toBe('invalid');
     expect(getUsernameStatus('')).toBe('empty');
     expect(getUsernameStatus('wen_cat')).toBe('available');
     expect(getUsernameStatus('wen_cat_12')).toBe('available');
+    expect(getUsernameStatus('Wen_CAT_12')).toBe('available');
+  });
+
+  it('reports a handle above the maximum length before the pattern', () => {
+    expect(getUsernameStatus('a'.repeat(17))).toBe('tooLong');
+    expect(getUsernameStatus('a'.repeat(16))).toBe('available');
+    // Length outranks the pattern.
+    expect(getUsernameStatus('bad-name-that-is-long')).toBe('tooLong');
+  });
+
+  it('reports a handle under the minimum length before any other rule', () => {
+    expect(getUsernameStatus('a')).toBe('tooShort');
+    expect(getUsernameStatus('ab')).toBe('tooShort');
+    expect(getUsernameStatus('@a')).toBe('tooShort');
+    // Length outranks the pattern.
+    expect(getUsernameStatus('a-')).toBe('tooShort');
+    expect(getUsernameStatus('abc')).toBe('available');
+  });
+
+  it('accepts underscores at the edges and repeated underscores', () => {
+    expect(getUsernameStatus('hello_')).toBe('available');
+    expect(getUsernameStatus('_hello')).toBe('available');
+    expect(getUsernameStatus('hello__world')).toBe('available');
+    expect(getUsernameStatus('_bad__name')).toBe('available');
   });
 
   it('accepts an unedited X handle that fails the username pattern', () => {
     const draft = applyXOnboardingProfile(createInitialOnboardingDraft(), {
       ...X_IDENTITY,
-      username: '_bad__name',
+      username: 'bad-name',
     });
 
     expect(getUsernameStatus(draft.username)).toBe('invalid');
@@ -68,7 +103,7 @@ describe('profileOnboardingDraft', () => {
       canContinueUsernameStep({
         ...draft,
         useXUsername: false,
-        username: 'still_bad__name',
+        username: 'still-bad-name',
       }),
     ).toBe(false);
   });
@@ -86,6 +121,9 @@ describe('profileOnboardingDraft', () => {
     expect(fingerprint).toBe(onboardingProfileFingerprint(draft));
     expect(
       onboardingProfileFingerprint({ ...draft, username: 'moon_fox' }),
+    ).not.toBe(fingerprint);
+    expect(
+      onboardingProfileFingerprint({ ...draft, username: 'Wen_Cat' }),
     ).not.toBe(fingerprint);
     expect(
       onboardingProfileFingerprint(draft, ['eip155:1:0xabc', 'eip155:1:0xdef']),
@@ -130,7 +168,6 @@ describe('profileOnboardingDraft', () => {
     expect(profile.xHandle).toBeNull();
     expect(profile.connectedToX).toBe(false);
     expect(profile.rankingTag).toBeNull();
-    expect(profile.shareUrl).toBe('https://metamask.io/wen_cat');
   });
 
   it('keeps the mocked X handle and avatar when those toggles stay on', () => {
@@ -153,6 +190,21 @@ describe('profileOnboardingDraft', () => {
       buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID)
         .avatar_url,
     ).toBe(X_IDENTITY.avatarUrl);
+  });
+
+  it('preserves the casing of an imported X username in the draft and profile', () => {
+    const identity = { ...X_IDENTITY, username: 'DeganGirl' };
+
+    const draft = applyXOnboardingProfile(
+      createInitialOnboardingDraft(),
+      identity,
+    );
+    const profile = buildOnboardedSocialProfile(draft);
+
+    expect(draft.username).toBe(identity.username);
+    expect(draft.xUsername).toBe(identity.username);
+    expect(profile.handle).toBe(identity.username);
+    expect(profile.xHandle).toBe(identity.username);
   });
 
   it('clears the X path when manual onboarding starts', () => {
@@ -187,7 +239,7 @@ describe('profileOnboardingDraft', () => {
   it('maps a draft onto createProfile parameters', () => {
     const draft = {
       ...createInitialOnboardingDraft(),
-      username: 'wen_cat',
+      username: ' @Wen_Cat ',
       displayName: 'Wen Cat',
       linkedAccountAddress: '0xabc',
       shareTradingActivity: false,
@@ -197,7 +249,7 @@ describe('profileOnboardingDraft', () => {
       buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID),
     ).toEqual({
       profile_id: 'social-v1-profile',
-      username: 'wen_cat',
+      username: 'Wen_Cat',
       display_name: 'Wen Cat',
       bio: null,
       linked_addresses: ['eip155:1:0xabc'],

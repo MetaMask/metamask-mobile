@@ -13,6 +13,7 @@ import {
   BottomSheetHeader,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   FontWeight,
   IconColor,
   IconName,
@@ -32,14 +33,16 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
+import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import DottedUnderline from '../../../../UI/DottedUnderline';
 import {
   COMPONENT_NAMES,
+  MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../../../UI/Money/constants/moneyEvents';
-import { useMoneyAddMoney } from '../../../../UI/Money/hooks/useMoneyAddMoney';
+import { useMoneyDepositNavigation } from '../../../../UI/Money/hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics';
 import type { SliceData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
@@ -64,13 +67,40 @@ const HomepageBalanceBreakdownMoneyAddButton = ({
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_ROW_BALANCE_BREAKDOWN,
   });
-  const { handleAddPress } = useMoneyAddMoney({
-    buttonLabelKey: 'money.balance_card.add',
-    logTag: '[HomepageBalanceBreakdownRow]',
-    trackButtonClicked,
-  });
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
 
-  return (
+  const handleAddPress = useCallback(async () => {
+    try {
+      await navigateToMoneyDeposit({
+        track: ({ button_intent, redirect_target }) => {
+          trackButtonClicked({
+            button_type: MONEY_BUTTON_TYPES.TEXT,
+            button_intent,
+            label_key: 'money.balance_card.add',
+            redirect_target,
+          });
+        },
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[HomepageBalanceBreakdownRow] Failed to initiate deposit',
+      );
+    }
+  }, [navigateToMoneyDeposit, trackButtonClicked]);
+
+  return label.length > 3 ? (
+    <ButtonIcon
+      accessibilityLabel={accessibilityLabel}
+      iconName={IconName.Add}
+      iconProps={{ size: IconSize.Sm }}
+      onPress={handleAddPress}
+      size={ButtonIconSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
+      twClassName="w-10 mx-1"
+      variant={ButtonIconVariant.Filled}
+    />
+  ) : (
     <Button
       accessibilityLabel={accessibilityLabel}
       onPress={handleAddPress}
@@ -184,7 +214,7 @@ const HomepageBalanceBreakdownRow = ({
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
-          twClassName="shrink"
+          twClassName="shrink-0"
           variant={TextVariant.BodyMd}
         >
           {getSliceLabel(slice.key)}
@@ -200,8 +230,11 @@ const HomepageBalanceBreakdownRow = ({
             <SensitiveText
               color={TextColor.TextAlternative}
               isHidden={privacyMode}
+              ellipsizeMode="clip"
               length={SensitiveTextLength.Short}
+              numberOfLines={1}
               testID={HomepageBalanceBreakdownTestIds.PERCENTAGE(slice.key)}
+              twClassName="shrink"
               variant={TextVariant.BodyMd}
             >
               {percentageLabel}

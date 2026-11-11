@@ -24,6 +24,9 @@ interface FeedCardOverrides {
     pnl30d?: number | null;
     tradeCount30d?: number | null;
     followerCount?: number | null;
+    socialHandles?: {
+      twitter?: string | null;
+    };
   };
   commentCount?: number;
   replyCount?: number;
@@ -42,6 +45,8 @@ type CoreFeedItemOverrides = Omit<Partial<CoreFeedItem>, 'trades' | 'actor'> &
       uid: string;
       text: string;
       timestamp: number;
+      sourceLanguage?: string | null;
+      translations?: Record<string, string>;
       engagement: {
         reactions: { emotion: string; count: number; profiles?: unknown[] }[];
         userReaction: string | null;

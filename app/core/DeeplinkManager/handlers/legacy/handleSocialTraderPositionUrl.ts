@@ -1,47 +1,30 @@
 import Routes from '../../../../constants/navigation/Routes';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { analytics } from '../../../../util/analytics/analytics';
-import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
 import {
   getFollowTradingHomeRoute,
   isSocialV1Treatment,
+  popToSocialTab,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import {
+  parseSocialNotificationDeeplinkParams,
+  trackSocialNotificationClick,
+} from './socialNotificationDeeplink';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
 }
 
-interface SocialTraderPositionNavigationParams {
-  positionId?: string;
-  traderId?: string;
-  deduplicationId?: string;
-  notificationSubtype?: string;
-  notificationTemplateVariant?: string;
-}
-
-const parseSocialTraderPositionNavigationParams = (
-  actionPath: string,
-): SocialTraderPositionNavigationParams => {
-  const urlParams = new URLSearchParams(
-    actionPath.includes('?') ? actionPath.split('?')[1] : '',
-  );
-
-  return {
-    positionId: urlParams.get('positionId')?.trim() || undefined,
-    traderId: urlParams.get('traderId')?.trim() || undefined,
-    deduplicationId: urlParams.get('deduplication_id')?.trim() || undefined,
-    notificationSubtype:
-      urlParams.get('notification_subtype')?.trim() || undefined,
-    notificationTemplateVariant:
-      urlParams.get('notification_template_variant')?.trim() || undefined,
-  };
-};
-
 const navigateToFallback = () => {
+  if (isSocialV1Treatment()) {
+    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
+      return;
+    }
+    popToSocialTab(NavigationService.navigation);
+    return;
+  }
   NavigationService.navigation.navigate(
     getFollowTradingHomeRoute(),
     undefined,
@@ -78,7 +61,7 @@ export const handleSocialTraderPositionUrl = ({
       deduplicationId,
       notificationSubtype,
       notificationTemplateVariant,
-    } = parseSocialTraderPositionNavigationParams(actionPath);
+    } = parseSocialNotificationDeeplinkParams(actionPath);
     DevLogger.log(
       '[handleSocialTraderPositionUrl] Parsed navigation parameters:',
       {
@@ -113,24 +96,21 @@ export const handleSocialTraderPositionUrl = ({
       })
       .catch(logPositionQueryInvalidationError);
 
-    if (notificationSubtype !== undefined) {
-      const event = AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,
-      )
-        .addProperties({
-          [SocialLeaderboardEventProperties.NOTIFICATION_SUBTYPE]:
-            notificationSubtype,
-          ...(notificationTemplateVariant !== undefined && {
-            [SocialLeaderboardEventProperties.NOTIFICATION_TEMPLATE_VARIANT]:
-              notificationTemplateVariant,
-          }),
-        })
-        .build();
-      analytics.trackEvent(event);
-    }
+    trackSocialNotificationClick({
+      notificationSubtype,
+      notificationTemplateVariant,
+      deduplicationId,
+    });
 
     const openedFromNotification = notificationSubtype !== undefined;
 
+    const isV1Treatment = isSocialV1Treatment();
+    if (
+      isV1Treatment &&
+      !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+    ) {
+      return;
+    }
     NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
       positionId,
       traderId,
@@ -138,7 +118,7 @@ export const handleSocialTraderPositionUrl = ({
       originalEntryPoint: openedFromNotification ? 'notification' : 'deep_link',
       notificationSubtype,
       notificationTemplateVariant,
-      isSocialV1: isSocialV1Treatment(),
+      isSocialV1: isV1Treatment,
     });
   } catch (error) {
     DevLogger.log(

@@ -1,4 +1,5 @@
-import { take } from 'redux-saga/effects';
+import { runSaga, type Task } from 'redux-saga';
+import { call, cancel, delay, fork, take } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import { UserActionType, checkForDeeplink } from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
@@ -11,8 +12,12 @@ import {
   handleSnapsRegistry,
   parseDeeplink,
   parseDeeplinkAfterNavReady,
+  parseDeeplinkAfterOnboarding,
+  parseReferralDeeplink,
   mainNavigatorReadyStateMachine,
   __setMainNavigatorReadyForTesting,
+  __resetDeeplinkOpenedBeforeWalletForTesting,
+  __resetReferralLinkParseForTesting,
   __resetSDKServicesInitializationForTesting,
   requestAuthOnAppStart,
 } from './';
@@ -32,13 +37,21 @@ import Engine from '../../core/Engine';
 import AppLockService from '../../core/AppLock/AppLockService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  CLEAR_ONBOARDING,
+  setCompletedOnboarding,
+} from '../../actions/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
+import {
+  setPendingReferralCode,
+  setReferralLinkPending,
+} from '../../reducers/rewardsMoney';
+import { hydrateSocialTermsAcceptance } from '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 jest.mock('../../util/analytics/persistAttributionFromPendingDeeplink', () => ({
   getUtmAttributesFromDeeplinkUrl: jest.fn(),
   persistUtmAttributes: jest.fn(),
@@ -69,6 +82,13 @@ jest.mock('../../core/NavigationService', () => ({
 jest.mock('../../core/EngineService', () => ({
   start: jest.fn(),
 }));
+
+jest.mock(
+  '../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
+  () => ({
+    hydrateSocialTermsAcceptance: jest.fn(() => Promise.resolve()),
+  }),
+);
 
 jest.mock('../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
@@ -328,6 +348,7 @@ describe('startAppServices', () => {
     // Verify startup services are started without locked keychain-dependent work.
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
+    expect(hydrateSocialTermsAcceptance).toHaveBeenCalled();
     expect(WC2Manager.init).not.toHaveBeenCalled();
     expect(SDKConnect.init).not.toHaveBeenCalled();
   });
@@ -508,6 +529,8 @@ describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __setMainNavigatorReadyForTesting(true);
+    __resetDeeplinkOpenedBeforeWalletForTesting();
+    __resetReferralLinkParseForTesting();
     __resetSDKServicesInitializationForTesting();
     resetNextParseAppStartTypeForTesting();
     resetUnlockAppStartTypeForTesting();
@@ -759,6 +782,50 @@ describe('handleDeeplinkSaga', () => {
           expect(SDKConnect.init).not.toHaveBeenCalled();
         });
 
+        it('marks a link carrying a referral code as pending while it is parsed', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap?ref=WEYRTZ';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { completedOnboarding: true },
+            })
+            .put(setReferralLinkPending(true))
+            .fork.fn(parseReferralDeeplink)
+            .put(setReferralLinkPending(false))
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            'https://link.metamask.io/swap?ref=WEYRTZ',
+            expect.objectContaining({
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            }),
+          );
+        });
+
+        it('does not mark a link without a referral code as pending', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap?ref=a';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { completedOnboarding: true },
+            })
+            .not.put.actionType(setReferralLinkPending.type)
+            .fork.fn(parseDeeplinkAfterNavReady)
+            .dispatch(checkForDeeplink())
+            .silentRun();
+        });
+
         it('parses non-SDK deeplinks without starting SDK services', async () => {
           const rewardsLink = 'https://link.metamask.io/rewards';
           AppStateEventProcessor.pendingDeeplink = rewardsLink;
@@ -866,6 +933,85 @@ describe('handleDeeplinkSaga', () => {
           expect(mockGetUtmAttributesFromDeeplinkUrl).toHaveBeenCalledWith(
             onboardingLink,
           );
+        });
+
+        it('holds a link opened before the wallet until onboarding hands over to MainNavigator', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          // Wallet creation: the user exists and onboarding is marked complete.
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: true },
+            })
+            .fork.fn(parseDeeplinkAfterOnboarding)
+            .not.fork.fn(parseDeeplinkAfterNavReady)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+        });
+
+        it('does not hold an SDK connection link opened before the wallet', async () => {
+          const connectLink =
+            'https://link.metamask.io/connect?channelId=test-channel-id';
+          AppStateEventProcessor.pendingDeeplink = connectLink;
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: true },
+            })
+            .fork.fn(parseDeeplinkAfterNavReady)
+            .not.fork.fn(parseDeeplinkAfterOnboarding)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+        });
+
+        it('keeps the ready timeout for a link opened once the wallet exists', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/swap?ref=WEYRTZ';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/buy';
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: true },
+            })
+            .fork.fn(parseDeeplinkAfterNavReady)
+            .not.fork.fn(parseDeeplinkAfterOnboarding)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
         });
 
         it('handle onboarding deeplink when completed onboarding is false', async () => {
@@ -1035,6 +1181,37 @@ describe('parseDeeplink', () => {
       appStartType: 'cold',
     });
   });
+
+  it('forwards onHandled to parse', async () => {
+    const onHandled = jest.fn();
+
+    await expectSaga(
+      parseDeeplink,
+      TEST_URL,
+      TEST_ORIGIN,
+      undefined,
+      onHandled,
+    ).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+      onHandled,
+    });
+  });
+
+  it('returns false when parse throws', async () => {
+    jest
+      .mocked(SharedDeeplinkManager.parse)
+      .mockRejectedValueOnce(new Error('boom'));
+
+    const { returnValue } = await expectSaga(
+      parseDeeplink,
+      TEST_URL,
+      TEST_ORIGIN,
+    ).run();
+
+    expect(returnValue).toBe(false);
+  });
 });
 
 describe('parseDeeplinkAfterNavReady', () => {
@@ -1109,6 +1286,233 @@ describe('parseDeeplinkAfterNavReady', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+});
+
+describe('parseReferralDeeplink', () => {
+  const TEST_URL = 'https://link.metamask.io/swap?ref=WEYRTZ';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+  const CURRENT_PARSE_ID = 0;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetReferralLinkParseForTesting();
+  });
+
+  it('keeps the pending mark until an accepted link is handled', async () => {
+    const acceptedNotYetHandled = function* (): Generator {
+      yield delay(0);
+      return true;
+    };
+    const dispatched: unknown[] = [];
+
+    const task = runSaga(
+      { dispatch: (action) => dispatched.push(action), getState: () => ({}) },
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      acceptedNotYetHandled,
+      TEST_URL,
+      TEST_ORIGIN,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const isWaiting = task.isRunning();
+    const dispatchedBeforeCancel = [...dispatched];
+    task.cancel();
+
+    expect(isWaiting).toBe(true);
+    expect(dispatchedBeforeCancel).not.toContainEqual(
+      setReferralLinkPending(false),
+    );
+  });
+
+  it('releases the pending mark once an accepted link is handled', async () => {
+    const acceptedThenHandled = function* (
+      _deeplink: string,
+      _origin: string,
+      _appStartType?: 'cold' | 'warm',
+      onHandled?: () => void,
+    ): Generator {
+      yield delay(0);
+      onHandled?.();
+      return true;
+    };
+
+    await expectSaga(
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      acceptedThenHandled,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .put(setReferralLinkPending(false))
+      .run();
+  });
+
+  it('passes the handled signal through the real parse to the deeplink manager', async () => {
+    __setMainNavigatorReadyForTesting(true);
+    jest
+      .mocked(SharedDeeplinkManager.parse)
+      .mockImplementationOnce(async (_url, { onHandled }) => {
+        onHandled?.();
+        return true;
+      });
+
+    await expectSaga(
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      parseDeeplinkAfterNavReady,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .put(setReferralLinkPending(false))
+      .run();
+  });
+
+  it('releases the pending mark once a parse that rejects the link ends', async () => {
+    const parse = function* (): Generator {
+      yield delay(0);
+      return false;
+    };
+
+    await expectSaga(
+      parseReferralDeeplink,
+      CURRENT_PARSE_ID,
+      parse,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .put(setReferralLinkPending(false))
+      .run();
+  });
+
+  it('releases the pending mark when the parse throws', async () => {
+    const failingParse = function* (): Generator {
+      yield call(() => Promise.reject(new Error('parse failed')));
+    };
+
+    function* parseAndSwallow() {
+      try {
+        yield call(
+          parseReferralDeeplink,
+          CURRENT_PARSE_ID,
+          failingParse,
+          TEST_URL,
+          TEST_ORIGIN,
+        );
+      } catch {
+        // The failure itself is not under test.
+      }
+    }
+
+    await expectSaga(parseAndSwallow).put(setReferralLinkPending(false)).run();
+  });
+
+  it('releases the pending mark when the parse is cancelled', async () => {
+    const waitingParse = function* (): Generator {
+      yield take('NEVER_DISPATCHED');
+    };
+
+    function* forkThenCancel() {
+      const task: Task = yield fork(
+        parseReferralDeeplink,
+        CURRENT_PARSE_ID,
+        waitingParse,
+        TEST_URL,
+        TEST_ORIGIN,
+      );
+      yield cancel(task);
+    }
+
+    await expectSaga(forkThenCancel).put(setReferralLinkPending(false)).run();
+  });
+
+  it('keeps the pending mark when a newer referral link took over', async () => {
+    const parse = function* (): Generator {
+      yield delay(0);
+    };
+    const olderParseId = CURRENT_PARSE_ID - 1;
+
+    await expectSaga(
+      parseReferralDeeplink,
+      olderParseId,
+      parse,
+      TEST_URL,
+      TEST_ORIGIN,
+    )
+      .not.put(setReferralLinkPending(false))
+      .run();
+  });
+});
+
+describe('parseDeeplinkAfterOnboarding', () => {
+  const TEST_URL = 'https://link.metamask.io/swap?ref=WEYRTZ';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __setMainNavigatorReadyForTesting(false);
+  });
+
+  it('parses immediately when MainNavigator is already mounted', async () => {
+    __setMainNavigatorReadyForTesting(true);
+
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('parses once MainNavigator mounts', async () => {
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
+      .dispatch(mainNavigatorReady())
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('keeps waiting past the MainNavigator ready timeout', async () => {
+    jest.useFakeTimers();
+    try {
+      const sagaPromise = expectSaga(
+        parseDeeplinkAfterOnboarding,
+        TEST_URL,
+        TEST_ORIGIN,
+      ).run({ timeout: 10000, silenceTimeout: true });
+
+      jest.advanceTimersByTime(9000);
+
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1100);
+      await sagaPromise;
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('still parses once the post-unlock Home mounts after an auto-lock', async () => {
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
+      .dispatch({ type: UserActionType.LOGOUT })
+      .dispatch(mainNavigatorReady())
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('drops the destination but keeps the referral code when the wallet is reset before MainNavigator mounts', async () => {
+    await expectSaga(parseDeeplinkAfterOnboarding, TEST_URL, TEST_ORIGIN)
+      .dispatch({ type: CLEAR_ONBOARDING })
+      .put(setPendingReferralCode('WEYRTZ'))
+      .run();
+
+    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
   });
 });
 

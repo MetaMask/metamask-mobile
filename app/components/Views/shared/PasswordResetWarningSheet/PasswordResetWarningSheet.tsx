@@ -63,7 +63,7 @@ const PasswordResetWarningSheet = ({
     >
       <Box gap={4} twClassName="px-4">
         <TitleAlert
-          severity={IconAlertSeverity.Danger}
+          severity={IconAlertSeverity.Info}
           title={strings('choose_password.password_warning_title')}
           titleProps={{
             variant: TextVariant.HeadingMd,

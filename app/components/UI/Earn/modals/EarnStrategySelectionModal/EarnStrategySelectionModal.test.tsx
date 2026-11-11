@@ -10,6 +10,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
@@ -25,8 +26,9 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BOTTOM_SHEET_NAMES,
-  EARN_MODULE_SCREEN_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
   EARN_MODULE_REDIRECT_TARGETS,
+  EARN_MODULE_SCREEN_NAMES,
 } from '../../constants/earnModuleEvents';
 import type {
   EarnAsset,
@@ -35,8 +37,13 @@ import type {
   EarnExperienceType,
 } from '../../types/earnAssets';
 import Logger from '../../../../../util/Logger';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
+import type { MoneyEntryContext } from '../../../Money/navigation/moneyEntryDecision';
 
-let mockIsOnboardingRedirectNeeded = false;
+let mockMoneyEntryContext: MoneyEntryContext = {
+  accessBlockReason: undefined,
+  isOnboardingRedirectNeeded: false,
+};
 const mockEarnRedirectTargets = {
   TOKEN_DETAILS: 'token_details',
   MONEY_ONBOARDING: 'money_onboarding',
@@ -48,11 +55,11 @@ const mockEarnRedirectTargets = {
 const mockGetEarnExperienceDepositRedirectTarget = jest.fn(
   (
     experience: EarnExperience,
-    isOnboardingRedirectNeeded: boolean,
+    moneyEntryContext: MoneyEntryContext,
   ): string | undefined => {
     try {
       if (experience.type === 'MONEY_ACCOUNT_DEPOSIT') {
-        return isOnboardingRedirectNeeded
+        return moneyEntryContext.isOnboardingRedirectNeeded
           ? mockEarnRedirectTargets.MONEY_ONBOARDING
           : mockEarnRedirectTargets.MONEY_DEPOSIT;
       }
@@ -83,6 +90,9 @@ const mockGetEarnExperienceDepositRedirectTarget = jest.fn(
 );
 
 jest.mock('@react-navigation/native');
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 jest.mock('@metamask/design-system-twrnc-preset');
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -98,7 +108,7 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   getSelectedEarnStrategyRedirectTarget: jest.fn(
     (
       experience: EarnExperience,
-      isOnboardingRedirectNeeded: boolean,
+      moneyEntryContext: MoneyEntryContext,
       depositNavigationRoute?: EarnDepositNavigationRoute,
     ) => {
       if (depositNavigationRoute) {
@@ -111,7 +121,7 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
 
       return mockGetEarnExperienceDepositRedirectTarget(
         experience,
-        isOnboardingRedirectNeeded,
+        moneyEntryContext,
       );
     },
   ),
@@ -120,16 +130,11 @@ jest.mock('../../hooks/useEarnToasts');
 jest.mock('../../hooks/useEarnAnalytics', () => ({
   useEarnAnalytics: jest.fn(),
 }));
-jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(() => ({
-    isOnboardingRedirectNeeded: mockIsOnboardingRedirectNeeded,
-  })),
-}));
-
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
+const mockUseSelector = jest.mocked(useSelector);
 const mockUseTailwind = useTailwind as jest.MockedFunction<typeof useTailwind>;
 const mockUseEarnOpportunityNavigation =
   useEarnOpportunityNavigation as jest.MockedFunction<
@@ -228,7 +233,11 @@ const createUntrackedEarnAsset = (
 describe('EarnStrategySelectionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsOnboardingRedirectNeeded = false;
+    mockMoneyEntryContext = {
+      accessBlockReason: undefined,
+      isOnboardingRedirectNeeded: false,
+    };
+    mockUseSelector.mockReturnValue(mockMoneyEntryContext);
     mockUseEarnAnalytics.mockReturnValue({
       trackScreenViewed: jest.fn(),
       trackComponentViewed: jest.fn(),
@@ -731,7 +740,11 @@ describe('EarnStrategySelectionModal', () => {
   ])(
     'tracks final Money strategy and %s onboarding destination',
     async (isOnboardingNeeded, expectedRedirectTarget) => {
-      mockIsOnboardingRedirectNeeded = isOnboardingNeeded;
+      mockMoneyEntryContext = {
+        accessBlockReason: undefined,
+        isOnboardingRedirectNeeded: isOnboardingNeeded,
+      };
+      mockUseSelector.mockReturnValue(mockMoneyEntryContext);
       const earnAsset = createEarnAsset([
         createExperience('MONEY_ACCOUNT_DEPOSIT', 'money:usdc'),
         createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdc'),
@@ -740,8 +753,8 @@ describe('EarnStrategySelectionModal', () => {
         params: {
           earnAsset,
           analyticsContext: {
-            entry_point: 'homepage',
-            screen_name: EARN_MODULE_SCREEN_NAMES.WALLET_HOME,
+            entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+            screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
             asset_position: 2,
             assets_in_list: 5,
           },
@@ -774,8 +787,8 @@ describe('EarnStrategySelectionModal', () => {
         expect.objectContaining({
           bottom_sheet_name:
             EARN_MODULE_BOTTOM_SHEET_NAMES.STRATEGY_SELECTION_MODAL,
-          entry_point: 'homepage',
-          screen_name: EARN_MODULE_SCREEN_NAMES.WALLET_HOME,
+          entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+          screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
         }),
       );
       expect(mockTrackButtonClicked).toHaveBeenCalledWith(

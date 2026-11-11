@@ -6,7 +6,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './AdditionalVerification.styles';
@@ -19,6 +18,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 export interface V2AdditionalVerificationParams {
   quote: TransakBuyQuote;
   kycUrl: string;
@@ -28,6 +30,7 @@ export interface V2AdditionalVerificationParams {
 }
 
 const V2AdditionalVerification = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const {
     quote,
@@ -58,7 +61,9 @@ const V2AdditionalVerification = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('deposit.additional_verification.title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

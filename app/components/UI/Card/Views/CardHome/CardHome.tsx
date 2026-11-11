@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { Linking, Platform, RefreshControl, ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
   Box,
@@ -15,13 +15,14 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
+  TextButton,
   Icon,
   IconColor,
   IconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
@@ -62,9 +63,11 @@ import {
   FundingAssetStatus,
   CardProviderIds,
   type CardAction,
+  type CardAlert,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -97,6 +100,7 @@ import {
 import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
+import useSignedOutKycPending from './hooks/useSignedOutKycPending';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -126,10 +130,14 @@ import {
 } from '../../util/metrics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
   fromCardOnboarding?: boolean;
+  /** Opened from the KYC timeout or pending notification while still in review. */
+  fromKycPending?: boolean;
 }
 
 const SETUP_ALERT_TYPES = new Set([
@@ -240,11 +248,24 @@ const CardHome = () => {
   const {
     initiateProvisioning,
     isProvisioning,
-    walletEntry,
+    isLoading: isPushProvisioningLoading,
+    canAddToWallet,
+    isCardInWallet,
     pendingVerificationDevices,
     canOpenInWallet,
     openInWallet,
-  } = useCardWalletProvisioning(data, platformWalletSupported);
+    walletEntry,
+  } = useCardWalletProvisioning(data, { platformWalletSupported });
+  useApplePaySplashPrompt({
+    canAddToWallet,
+    isPushProvisioningLoading,
+    countryCode: data?.walletProvisioning?.countryCode,
+    cardProcessor: data?.walletProvisioning?.cardProcessor,
+  });
+  const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
+  const handleLearnMoreAboutApplePay = useCallback(() => {
+    Linking.openURL(applePayLearnMoreUrl).catch(() => undefined);
+  }, [applePayLearnMoreUrl]);
   const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
   const handleOpenInWallet = useCallback(() => {
     openInWallet().catch(() => undefined);
@@ -253,13 +274,32 @@ const CardHome = () => {
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);
 
+  // Still in identity review with no signed-in Card account: show the pending
+  // banner and the waiting layout (no Add funds or card management).
+  const isSignedOutKycPending = useSignedOutKycPending(
+    route.params?.fromKycPending,
+  );
+  const alerts = useMemo<CardAlert[]>(() => {
+    const dataAlerts = data?.alerts ?? [];
+    if (
+      !isSignedOutKycPending ||
+      dataAlerts.some((a) => a.type === 'kyc_pending')
+    ) {
+      return dataAlerts;
+    }
+    return [{ type: 'kyc_pending', dismissable: false }, ...dataAlerts];
+  }, [data?.alerts, isSignedOutKycPending]);
+
   const effectiveActions = useMemo<CardAction[]>(() => {
+    if (isSignedOutKycPending) {
+      return [];
+    }
     const providerActions = data?.actions ?? [];
     return canEnableCard &&
       !providerActions.some((a) => a.type === 'enable_card')
       ? [...providerActions, { type: 'enable_card' }]
       : providerActions;
-  }, [data?.actions, canEnableCard]);
+  }, [data?.actions, canEnableCard, isSignedOutKycPending]);
 
   const hasSetupActions = effectiveActions.some(
     (a) => a.type === 'enable_card',
@@ -539,9 +579,7 @@ const CardHome = () => {
     handleOpenUkMigrationSheet();
   }, [handleOpenUkMigrationSheet, isLoading, isUkMigrationSoft]);
 
-  const hasSetupAlerts = (data?.alerts ?? []).some((a) =>
-    SETUP_ALERT_TYPES.has(a.type),
-  );
+  const hasSetupAlerts = alerts.some((a) => SETUP_ALERT_TYPES.has(a.type));
 
   const hasAlertOnlyState = hasSetupAlerts && effectiveActions.length === 0;
 
@@ -559,14 +597,9 @@ const CardHome = () => {
   const canUnlinkMoneyAccount = useMemo(() => {
     if (!primaryToken?.isMoneyAccountEntry) return false;
 
-    const tokenMoneyAccountAddress = primaryToken.walletAddress;
-    const activeMoneyAccountAddress = primaryMoneyAccount?.address;
-    return Boolean(
-      tokenMoneyAccountAddress &&
-        activeMoneyAccountAddress &&
-        tokenMoneyAccountAddress.toLowerCase() ===
-          activeMoneyAccountAddress.toLowerCase(),
-    );
+    const tokenAddress = primaryToken.walletAddress?.toLowerCase();
+    const activeAddress = primaryMoneyAccount?.address?.toLowerCase();
+    return Boolean(tokenAddress && tokenAddress === activeAddress);
   }, [
     primaryMoneyAccount?.address,
     primaryToken?.isMoneyAccountEntry,
@@ -614,6 +647,7 @@ const CardHome = () => {
   ]);
 
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
@@ -629,7 +663,9 @@ const CardHome = () => {
   if (isError) {
     return (
       <Box twClassName="flex-1 bg-background-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
@@ -670,7 +706,9 @@ const CardHome = () => {
   // --- Main render ---
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}
@@ -696,7 +734,7 @@ const CardHome = () => {
 
         <Box twClassName="mx-4 mt-2">
           <CardAlertSection
-            alerts={(data?.alerts ?? []).filter(
+            alerts={alerts.filter(
               (a) =>
                 !(
                   a.type === 'close_to_spending_limit' &&
@@ -766,32 +804,38 @@ const CardHome = () => {
           <Animated.View
             style={[tw.style('w-full relative'), arrival.cardStyle]}
           >
-            {arrival.usesRiveCard ? (
-              <MoneyCardTiltAnimation
-                key={arrival.revealKey}
-                isMetalCard={hasMetalCard}
-                fillWidth
-                playRevealOnMount={arrival.playReveal}
-                revealDelayMs={arrival.revealDelayMs}
-                testID={CardHomeSelectors.CARD_ARRIVAL_RIVE}
-              />
-            ) : (
-              <CardImageSection
-                isLoading={isLoading}
-                isCardDetailsLoading={
-                  actions.isCardDetailsLoading ||
-                  actions.isSensitiveDetailsLoading
-                }
-                cardDetailsImageUrl={actions.cardDetailsImageUrl}
-                isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
-                onImageLoad={actions.onCardDetailsImageLoad}
-                onImageError={actions.onCardDetailsImageError}
-                cardSensitiveDetails={actions.cardSensitiveDetails}
-                onCopyDetail={actions.copyCardDetail}
-                cardType={data?.card?.type}
-                cardStatus={data?.card?.status}
-              />
-            )}
+            {/* Muted while identity is in review, so the card doesn't look ready. */}
+            <Box
+              twClassName={isSignedOutKycPending ? 'opacity-50' : undefined}
+              testID={CardHomeSelectors.CARD_ART}
+            >
+              {arrival.usesRiveCard ? (
+                <MoneyCardTiltAnimation
+                  key={arrival.revealKey}
+                  isMetalCard={hasMetalCard}
+                  fillWidth
+                  playRevealOnMount={arrival.playReveal}
+                  revealDelayMs={arrival.revealDelayMs}
+                  testID={CardHomeSelectors.CARD_ARRIVAL_RIVE}
+                />
+              ) : (
+                <CardImageSection
+                  isLoading={isLoading}
+                  isCardDetailsLoading={
+                    actions.isCardDetailsLoading ||
+                    actions.isSensitiveDetailsLoading
+                  }
+                  cardDetailsImageUrl={actions.cardDetailsImageUrl}
+                  isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
+                  onImageLoad={actions.onCardDetailsImageLoad}
+                  onImageError={actions.onCardDetailsImageError}
+                  cardSensitiveDetails={actions.cardSensitiveDetails}
+                  onCopyDetail={actions.copyCardDetail}
+                  cardType={data?.card?.type}
+                  cardStatus={data?.card?.status}
+                />
+              )}
+            </Box>
           </Animated.View>
 
           {!hasSetupActions && !hasAlertOnlyState && (
@@ -883,6 +927,16 @@ const CardHome = () => {
                 borderRadius={4}
               />
             )}
+            {Platform.OS === 'ios' && !isCardInWallet && (
+              <TextButton
+                variant={TextVariant.BodySm}
+                twClassName="mt-2"
+                onPress={handleLearnMoreAboutApplePay}
+                testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
+              >
+                {strings('card.apple_pay_usage.learn_more')}
+              </TextButton>
+            )}
           </Box>
         )}
 
@@ -946,6 +1000,8 @@ const CardHome = () => {
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
+            showHowToUseApplePay={isCardInWallet && !canAddToWallet}
+            onHowToUseApplePay={actions.howToUseApplePayAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
@@ -971,7 +1027,6 @@ const CardHome = () => {
         )}
 
         <CardHomeFooter
-          isAuthenticated={isAuthenticated}
           isLoading={isLoading}
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
@@ -994,7 +1049,6 @@ const CardHome = () => {
               : undefined
           }
           onNavigateToCardTos={actions.navigateToCardTosPage}
-          onLogout={actions.logoutAction}
         />
 
         <CardScreenshotDeterrent

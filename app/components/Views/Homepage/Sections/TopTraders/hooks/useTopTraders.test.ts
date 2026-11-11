@@ -10,6 +10,14 @@ import { useTopTraders } from './useTopTraders';
 import { measureSocialDataFetch } from '../../../../../../util/social/socialPerformance';
 
 const mockGetQueryData = jest.fn();
+let mockBlockedProfileIds = new Set<string>();
+
+jest.mock('../../../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
+  useSocialBlockLists: () => ({
+    blockedProfileIds: mockBlockedProfileIds,
+    blockedCommentIds: new Set<string>(),
+  }),
+}));
 
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),
@@ -126,6 +134,7 @@ describe('useTopTraders', () => {
     resetFollowToggleSharedStateForTests();
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockGetQueryData.mockReturnValue(undefined);
+    mockBlockedProfileIds = new Set();
     mockAddBreadcrumb.mockClear();
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsUnlocked) return true;
@@ -153,6 +162,19 @@ describe('useTopTraders', () => {
       expect(result.current.traders).toHaveLength(mockTraders.length);
     });
 
+    it('leaves out traders the viewer blocked', () => {
+      mockBlockedProfileIds = new Set([mockTraders[0].profileId]);
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: mockLeaderboardResponse as never }),
+      );
+
+      const { result } = renderHook(() => useTopTraders());
+
+      expect(result.current.traders.map((trader) => trader.id)).toEqual(
+        mockTraders.slice(1).map((trader) => trader.profileId),
+      );
+    });
+
     it('maps each field correctly for the first entry', () => {
       mockUseQuery.mockReturnValue(
         makeQueryResult({ data: mockLeaderboardResponse as never }),
@@ -174,7 +196,29 @@ describe('useTopTraders', () => {
         pnlPerChain: first.pnlPerChain ?? {},
         followerCount: first.followerCount,
         isFollowing: false,
+        xHandle: null,
       });
+    });
+
+    it('copies an X handle and drops a blank one', () => {
+      const connected = {
+        ...mockTraders[0],
+        socialHandles: { twitter: ' @alpha ' },
+      };
+      const blank = {
+        ...mockTraders[1],
+        socialHandles: { twitter: '  ' },
+      };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({
+          data: { traders: [connected, blank] } as never,
+        }),
+      );
+
+      const { result } = renderHook(() => useTopTraders());
+
+      expect(result.current.traders[0].xHandle).toBe('alpha');
+      expect(result.current.traders[1].xHandle).toBeNull();
     });
 
     it('converts the API win-rate fraction to a whole percent', () => {

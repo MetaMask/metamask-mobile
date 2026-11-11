@@ -171,9 +171,9 @@ export const LIMIT_ORDERS_CHAIN_CONFIG: Partial<
   >
 > = {
   [EthScope.Mainnet]: {
-    minAmountUSD: 50,
+    minAmountUSD: 100,
   },
   '*': {
-    minAmountUSD: 1,
+    minAmountUSD: 10,
   },
 };

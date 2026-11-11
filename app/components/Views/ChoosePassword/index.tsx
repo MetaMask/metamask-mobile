@@ -953,7 +953,7 @@ const ChoosePassword = () => {
         >
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="flex-1"
+            twClassName="flex-1 pt-3"
             gap={4}
             testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
           >
@@ -1112,9 +1112,7 @@ const ChoosePassword = () => {
             )}
 
             <FooterGlass
-              twClassName={`px-0 w-full mt-auto ${
-                Platform.OS === 'android' ? 'mb-6' : 'mb-4'
-              }`}
+              twClassName="px-0 w-full mt-auto py-2"
               primaryButtonProps={{
                 children: strings('choose_password.create_password_cta'),
                 onPress: onPressCreate,

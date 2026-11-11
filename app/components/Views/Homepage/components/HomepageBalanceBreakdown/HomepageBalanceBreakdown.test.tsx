@@ -1,6 +1,14 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { TextColor } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonIcon,
+  ButtonVariant,
+  ButtonIconVariant,
+  IconName,
+  IconSize,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
@@ -12,12 +20,14 @@ import type {
   SliceKey,
 } from '../../BalanceBreakdown/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectIsMoneyAccountGeoEligible } from '../../../../UI/Money/selectors/eligibility';
+import { selectMoneyAccountAccessBlockReason } from '../../../../UI/Money/selectors/visibility';
 import { mockTheme } from '../../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -27,6 +37,7 @@ import { getSliceLabel } from './homepageBalanceBreakdown.constants';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockInitiateMoneyDeposit = jest.fn();
 const mockTrackMoneyButtonClicked = jest.fn();
 const mockNavigateToPerpsHome = jest.fn();
@@ -44,8 +55,16 @@ const mockCreateEventBuilder = jest.fn(() => ({
 let mockPrivacyMode = false;
 let mockIsWalletHomeOnboardingActive = false;
 let mockIsMoneyAccountGeoEligible = true;
+let mockMoneyAccountAccessBlockReason: 'geo_blocked' | undefined;
 const mockAccountGroupBalance = jest.fn();
 const originalLocale = I18n.locale;
+
+// The PredictNext entry point's PredictRoot loads the whole Predict stack,
+// which this suite's navigation mocks cannot satisfy.
+jest.mock('../../../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -77,15 +96,14 @@ jest.mock('../../context/HomepageScrollContext', () => ({
   }),
 }));
 
-jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
+jest.mock('../../../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
   }),
 }));
-
-jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: () => ({
-    initiateDeposit: mockInitiateMoneyDeposit,
+jest.mock('../../../../UI/Money/hooks/useMoneyDepositNavigation', () => ({
+  useMoneyDepositNavigation: () => ({
+    navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
   }),
 }));
 
@@ -196,14 +214,55 @@ describe('HomepageBalanceBreakdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInitiateMoneyDeposit.mockResolvedValue(undefined);
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      if (!mockIsMoneyAccountGeoEligible) {
+        mockNavigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        });
+        track?.({
+          button_intent: 'go_to_money_home',
+          redirect_target: 'money_geo_block_sheet',
+        });
+        return;
+      }
+
+      track?.({
+        button_intent: 'go_to_money_home',
+        redirect_target: 'money_home',
+      });
+    });
+    mockNavigateToMoneyDeposit.mockImplementation(
+      async ({ track, ...options }) => {
+        if (!mockIsMoneyAccountGeoEligible) {
+          track?.({
+            button_intent: 'add_money',
+            redirect_target: 'money_geo_block_sheet',
+          });
+          mockNavigate(Routes.MONEY.MODALS.ROOT, {
+            screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+          });
+          return;
+        }
+
+        track?.({
+          button_intent: 'add_money',
+          redirect_target: 'money_deposit',
+        });
+        await mockInitiateMoneyDeposit(options);
+      },
+    );
     I18n.locale = 'en-US';
     mockPrivacyMode = false;
     mockIsWalletHomeOnboardingActive = false;
     mockIsMoneyAccountGeoEligible = true;
+    mockMoneyAccountAccessBlockReason = undefined;
     jest.mocked(useSelector).mockImplementation((selector) => {
       if (selector === selectPrivacyMode) return mockPrivacyMode;
       if (selector === selectIsMoneyAccountGeoEligible) {
         return mockIsMoneyAccountGeoEligible;
+      }
+      if (selector === selectMoneyAccountAccessBlockReason) {
+        return mockMoneyAccountAccessBlockReason;
       }
       if (selector === selectEvmChainId) return '0x1';
       if (selector === selectAccountGroupBalanceForEmptyState) {
@@ -212,7 +271,10 @@ describe('HomepageBalanceBreakdown', () => {
       if (selector === selectShouldShowWalletHomeOnboardingSteps) {
         return mockIsWalletHomeOnboardingActive;
       }
-      return undefined;
+      // Other selectors, such as Predict's Active Venue, read the default state.
+      return (selector as (state: unknown) => unknown)({
+        engine: { backgroundState },
+      });
     });
     jest.mocked(useBalanceBreakdown).mockReturnValue(breakdown);
   });
@@ -222,7 +284,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders the aggregate hero and iconless rows in screenshot order', () => {
-    const { getByTestId, getAllByTestId } = render(
+    const { getByTestId, getAllByTestId, UNSAFE_getByType } = render(
       <HomepageBalanceBreakdown />,
     );
 
@@ -268,7 +330,11 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('USD 10.00');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).toHaveTextContent('Add');
+    ).toBeOnTheScreen();
+    expect(UNSAFE_getByType(Button).props.children).toBe('Add');
+    expect(UNSAFE_getByType(Button).props.variant).toBe(
+      ButtonVariant.Secondary,
+    );
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
         .accessibilityLabel,
@@ -296,7 +362,9 @@ describe('HomepageBalanceBreakdown', () => {
   it('localizes balance percentages and APY numbers', () => {
     I18n.locale = 'de-DE';
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+    const { getByTestId, UNSAFE_getByType } = render(
+      <HomepageBalanceBreakdown />,
+    );
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('money')),
@@ -304,6 +372,11 @@ describe('HomepageBalanceBreakdown', () => {
     expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveTextContent(
       'APY von 4,1 %',
     );
+    expect(UNSAFE_getByType(ButtonIcon).props.iconName).toBe(IconName.Add);
+    expect(UNSAFE_getByType(ButtonIcon).props.variant).toBe(
+      ButtonIconVariant.Filled,
+    );
+    expect(UNSAFE_getByType(ButtonIcon).props.iconProps.size).toBe(IconSize.Sm);
   });
 
   it('omits slices hidden by their product flags', () => {
@@ -476,13 +549,11 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
     ).toHaveTextContent('USD 0.00');
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).toHaveTextContent('Add');
-    expect(getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY)).toHaveStyle({
-      borderRadius: 9999,
-      height: 28,
-    });
+    const moneyAddButton = getByTestId(
+      HomepageBalanceBreakdownTestIds.MONEY_BUY,
+    );
+    expect(moneyAddButton).toBeOnTheScreen();
+    expect(moneyAddButton).toHaveTextContent('Add');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,
@@ -506,6 +577,7 @@ describe('HomepageBalanceBreakdown', () => {
 
   it('opens the geo-block sheet when Add is pressed by an ineligible user', () => {
     mockIsMoneyAccountGeoEligible = false;
+    mockMoneyAccountAccessBlockReason = 'geo_blocked';
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
@@ -717,7 +789,9 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
     });
-    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({
+      analyticsContext: expect.any(Object),
+    });
   });
 
   it('keeps Money Add visible and shows an error warning for failed rows', () => {

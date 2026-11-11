@@ -4,13 +4,13 @@ import {
   PREDICT_NEXT_FEED_IDS,
   answerPredictNextCatalog,
   configurePredictNextCatalog,
+  expectPredictNextGameCard,
   publishPredictNextGameLiveUpdate,
   resetPredictNextCatalog,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
-  KALSHI_VENUE_ID,
   type PredictDecimal,
   type PredictEntityId,
   type PredictEvent,
@@ -19,9 +19,11 @@ import {
   type PredictOutcome,
   type PredictTimestamp,
 } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import {
   NCAA_FEED_SCREEN_ID,
   NFL_FEED_SCREEN_ID,
+  POLITICS_FEED_SCREEN_ID,
 } from '../../navigation/feedScreens';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
@@ -152,6 +154,11 @@ const configureFeeds = (feeds: Partial<Record<string, FeedResponse>> = {}) => {
   );
 };
 
+const makePoliticsEvent = (id: string, title: string): PredictEvent => ({
+  ...makeEvent(id, title),
+  category: 'Politics',
+});
+
 const gameEvent = makeGameEvent('game-1');
 const secondGameEvent = makeGameEvent('game-2');
 const propsEvent = makeEvent('props-1', 'NFL Win Total');
@@ -196,6 +203,137 @@ const renderFeedScrolledToSecondPage = async () => {
 
   return view;
 };
+
+describe('Politics Feed Screen', () => {
+  const {
+    politicsTrump: TRUMP_FEED_ID,
+    politicsCongress: CONGRESS_FEED_ID,
+    politicsIran: IRAN_FEED_ID,
+  } = PREDICT_NEXT_FEED_IDS;
+  const trumpEvent = makePoliticsEvent('trump-1', 'Trump approval above 45%?');
+  const congressEvent = makePoliticsEvent('congress-1', 'Budget passes?');
+  const iranEvent = makePoliticsEvent('iran-1', 'Ceasefire holds?');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetPredictNextCatalog();
+    configureFeeds({
+      [TRUMP_FEED_ID]: [trumpEvent],
+      [CONGRESS_FEED_ID]: [congressEvent],
+      [IRAN_FEED_ID]: [iranEvent],
+    });
+  });
+
+  it('shows the Trump, Congress and Iran tabs in order with Trump selected', async () => {
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: POLITICS_FEED_SCREEN_ID,
+    });
+
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event(KALSHI_VENUE_ID, trumpEvent.id),
+      ),
+    ).toBeOnTheScreen();
+    const tabs = within(view.getByTestId(PredictFeedScreenTestIds.TABS))
+      .getAllByRole('button')
+      .map((tab) => tab.props.accessibilityLabel);
+    expect(tabs).toEqual(['Trump', 'Congress', 'Iran']);
+    expect(
+      view.getByTestId(PredictFeedScreenTestIds.tab('trump')).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+    expect(getFeedCalls().map(([, , feedId]) => feedId)).toEqual([
+      TRUMP_FEED_ID,
+    ]);
+  });
+
+  it.each([
+    { tabId: 'congress', feedId: CONGRESS_FEED_ID, event: congressEvent },
+    { tabId: 'iran', feedId: IRAN_FEED_ID, event: iranEvent },
+  ])(
+    'lists the $tabId topic Events when that tab is selected',
+    async ({ tabId, feedId, event }) => {
+      const view = renderPredictFeedScreen({
+        venueId: KALSHI_VENUE_ID,
+        feedScreenId: POLITICS_FEED_SCREEN_ID,
+      });
+      await view.findByTestId(
+        PredictHomeTestIds.event(KALSHI_VENUE_ID, trumpEvent.id),
+      );
+
+      fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab(tabId)));
+
+      expect(
+        await view.findByTestId(
+          PredictHomeTestIds.event(KALSHI_VENUE_ID, event.id),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(
+          PredictHomeTestIds.event(KALSHI_VENUE_ID, trumpEvent.id),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getFeed',
+        KALSHI_VENUE_ID,
+        feedId,
+        { limit: 20 },
+      );
+    },
+  );
+
+  it('opens the Event screen from a Politics card', async () => {
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: POLITICS_FEED_SCREEN_ID,
+    });
+
+    fireEvent.press(
+      await view.findByTestId(
+        PredictHomeTestIds.eventContent(KALSHI_VENUE_ID, trumpEvent.id),
+      ),
+    );
+
+    expect(
+      await view.findByTestId(PredictEventScreenTestIds.VIEW),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the Trump tab when the Venue lacks its Feed key', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      feeds: {
+        'politics-congress':
+          KALSHI_STATIC_VENUE_CATALOG.feeds['politics-congress'],
+        'politics-iran': KALSHI_STATIC_VENUE_CATALOG.feeds['politics-iran'],
+      },
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: POLITICS_FEED_SCREEN_ID,
+    });
+
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event(KALSHI_VENUE_ID, congressEvent.id),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictFeedScreenTestIds.tab('trump')),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictFeedScreenTestIds.tab('congress')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictFeedScreenTestIds.tab('iran')),
+    ).toBeOnTheScreen();
+    expect(getFeedCalls().map(([, , feedId]) => feedId)).not.toContain(
+      TRUMP_FEED_ID,
+    );
+  });
+});
 
 const invalidFeedScreenParams = {
   venueId: KALSHI_VENUE_ID,
@@ -469,13 +607,15 @@ describe('PredictFeedScreen', () => {
       feedScreenId: NFL_FEED_SCREEN_ID,
     });
 
-    expect(
-      await view.findByTestId(PredictFeedScreenTestIds.LOADING),
-    ).toBeOnTheScreen();
-    await waitFor(() => expect(getFeedCalls()).toHaveLength(1));
-    expect(
-      view.getByTestId(PredictFeedScreenTestIds.LOADING),
-    ).toBeOnTheScreen();
+    // Capabilities and the Feed share LOADING. The catalog promise can
+    // unmount the capabilities skeleton between findBy and toBeOnTheScreen.
+    // Wait until getFeed is in flight, then re-query the Feed loading node.
+    await waitFor(() => {
+      expect(getFeedCalls()).toHaveLength(1);
+      expect(
+        view.getByTestId(PredictFeedScreenTestIds.LOADING),
+      ).toBeOnTheScreen();
+    });
 
     await act(async () => {
       resolveFeed({
@@ -636,10 +776,14 @@ describe('PredictFeedScreen', () => {
     const gameCard = view.getByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
     );
-    expect(within(gameCard).getByText('Packers')).toBeOnTheScreen();
-    expect(within(gameCard).getByText('Steelers')).toBeOnTheScreen();
-    expect(within(gameCard).getByText('17')).toBeOnTheScreen();
-    expect(within(gameCard).getByText('21')).toBeOnTheScreen();
+    expectPredictNextGameCard(gameCard, gameEvent.id, {
+      away: 'Packers',
+      home: 'Steelers',
+      awayScore: '17',
+      homeScore: '21',
+      awayQuote: /^GB\s*· 42¢$/,
+      homeQuote: /^PIT\s*· 42¢$/,
+    });
 
     const propsCard = view.getByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
@@ -650,8 +794,8 @@ describe('PredictFeedScreen', () => {
         PredictHomeTestIds.outcome(propsEvent.id, 'yes'),
       ),
     ).toBeOnTheScreen();
-    expect(within(propsCard).getByText('Sports')).toBeOnTheScreen();
-    expect(within(propsCard).getByText('$1.5M Vol')).toBeOnTheScreen();
+    expect(within(propsCard).queryByText('Sports')).not.toBeOnTheScreen();
+    expect(within(propsCard).getByText('$1.5M')).toBeOnTheScreen();
   });
 
   it('opens the Order flow from a tradeable Outcome row', async () => {

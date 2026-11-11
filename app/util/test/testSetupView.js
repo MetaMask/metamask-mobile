@@ -612,14 +612,16 @@ jest.mock('@react-native-cookies/cookies', () => ({
 jest.mock('@metamask/react-native-webview', () => {
   const React = require('react');
   const { View } = require('react-native');
+  const postMessage = jest.fn();
   const WebView = React.forwardRef((props, ref) => {
     React.useImperativeHandle(ref, () => ({
-      postMessage: jest.fn(),
+      postMessage,
       injectJavaScript: jest.fn(),
       reload: jest.fn(),
     }));
     return <View {...props} />;
   });
+  WebView.postMessage = postMessage;
   return { WebView };
 });
 
@@ -693,6 +695,11 @@ jest.mock('@sentry/react-native', () => ({
   setMeasurement: jest.fn(),
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
+  startInactiveSpan: jest.fn(() => ({ end: jest.fn() })),
+  extendAppStart: jest.fn(),
+  getExtendedAppStartSpan: jest.fn(),
+  finishExtendedAppStart: jest.fn(() => Promise.resolve()),
+  spanIsSampled: jest.fn(() => true),
   startTransaction: jest.fn(),
   lastEventId: jest.fn(),
   getGlobalScope: jest.fn(() => ({
@@ -917,8 +924,11 @@ jest.mock('../../components/Base/RemoteImage', () => {
 jest.mock('@metamask/design-system-react-native', () => {
   const React = require('react');
   const PropTypes = require('prop-types');
-  const { View } = require('react-native');
+  const { Pressable, View } = require('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
+  const {
+    DesignSystemBottomSheetMockSelectorsIDs,
+  } = require('../../../tests/component-view/designSystemBottomSheetMock.testIds');
 
   const BottomSheet = React.forwardRef(
     (
@@ -927,6 +937,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         onClose,
         onOpen,
         goBack,
+        isInteractable = true,
         style,
         twClassName: _twClassName,
         testID,
@@ -940,17 +951,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       React.useEffect(() => {
         onOpenRef.current?.();
       }, []);
+      // Backdrop press and onCloseBottomSheet share this dismiss sequence.
+      const closeSheet = (callback) => {
+        const hasCallback = Boolean(callback);
+        onClose?.(hasCallback);
+        goBack?.();
+        callback?.();
+      };
       React.useImperativeHandle(ref, () => ({
         onOpenBottomSheet: (callback) => {
           onOpen?.();
           callback?.();
         },
-        onCloseBottomSheet: (callback) => {
-          const hasCallback = Boolean(callback);
-          onClose?.(hasCallback);
-          goBack?.();
-          callback?.();
-        },
+        onCloseBottomSheet: closeSheet,
       }));
       return React.createElement(
         View,
@@ -960,6 +973,10 @@ jest.mock('@metamask/design-system-react-native', () => {
           accessibilityLabel,
         },
         children,
+        React.createElement(Pressable, {
+          testID: DesignSystemBottomSheetMockSelectorsIDs.CLOSE,
+          onPress: isInteractable ? () => closeSheet() : undefined,
+        }),
       );
     },
   );
@@ -969,6 +986,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     onClose: PropTypes.func,
     onOpen: PropTypes.func,
     goBack: PropTypes.func,
+    isInteractable: PropTypes.bool,
     style: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.array,
