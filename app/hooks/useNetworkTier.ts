@@ -1,19 +1,11 @@
-import { useSyncExternalStore } from 'react';
 import { useNetInfo } from '@react-native-community/netinfo';
 import {
   computeNetworkTier,
   readCellularGeneration,
 } from '../util/deviceCapability/computeNetworkTier';
-import {
-  getLatencySnapshot,
-  subscribeLatency,
-} from '../util/deviceCapability/latencyStore';
-import type {
-  LatencyBucket,
-  NetworkTier,
-} from '../util/deviceCapability/types';
+import type { NetworkTier } from '../util/deviceCapability/types';
 
-export type { LatencyBucket, NetworkTier };
+export type { NetworkTier };
 
 export interface NetworkTierState {
   tier: NetworkTier | null;
@@ -47,16 +39,4 @@ export function useNetworkTierState(): NetworkTierState {
     tier,
     isResolved: tier !== null || (type !== null && type !== 'unknown'),
   };
-}
-
-/**
- * Measured fetch latency, independent of the transport tier. `unknown` while
- * offline or without enough samples. Re-renders only when the bucket changes,
- * so it stays separate from `useNetworkTier` to keep that hook as stable as
- * the transport.
- */
-export function useNetworkLatency(): LatencyBucket {
-  const { tier } = useNetworkTierState();
-  const bucket = useSyncExternalStore(subscribeLatency, getLatencySnapshot);
-  return tier === 'NONE' ? 'unknown' : bucket;
 }

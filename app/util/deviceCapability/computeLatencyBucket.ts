@@ -46,7 +46,7 @@ export function summarizeLatencySamples({
 }
 
 /**
- * Next latency bucket. `slow` is entered on two hung samples or a slow median,
+ * Next latency bucket. `SLOW` is entered on two hung samples or a slow median,
  * and left only when the newest three recent samples are all good.
  */
 export function computeLatencyBucket({
@@ -57,19 +57,19 @@ export function computeLatencyBucket({
     summarizeLatencySamples(latencySamples);
   const { slowMs } = latencySamples.thresholds;
 
-  if (previous === 'slow') {
+  if (previous === 'SLOW') {
     const newest = recent.slice(-LATENCY_GOOD_TO_EXIT);
     const released =
       newest.length === LATENCY_GOOD_TO_EXIT &&
       newest.every(({ durationMs }) => durationMs <= slowMs);
-    return released ? 'ok' : 'slow';
+    return released ? 'OK' : 'SLOW';
   }
 
   if (hungCount >= LATENCY_HUNG_TO_ENTER) {
-    return 'slow';
+    return 'SLOW';
   }
   if (recent.length < LATENCY_MIN_SAMPLES) {
-    return 'unknown';
+    return 'UNKNOWN';
   }
-  return medianMs !== null && medianMs > slowMs ? 'slow' : 'ok';
+  return medianMs !== null && medianMs > slowMs ? 'SLOW' : 'OK';
 }

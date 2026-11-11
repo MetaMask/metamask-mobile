@@ -16,7 +16,7 @@ const samplesOf = (durations: number[], gapMs = 1000): LatencySample[] =>
 
 const bucketFor = (
   durations: number[],
-  previous: LatencyBucket = 'unknown',
+  previous: LatencyBucket = 'UNKNOWN',
   thresholds = LATENCY_THRESHOLDS.HIGH,
   gapMs = 1000,
 ) =>
@@ -29,34 +29,34 @@ const bucketFor = (
 describe('computeLatencyBucket', () => {
   describe('on HIGH', () => {
     it('enters slow on two 8000 ms samples among the newest five', () => {
-      expect(bucketFor([300, 8000, 300, 8000, 300])).toBe('slow');
+      expect(bucketFor([300, 8000, 300, 8000, 300])).toBe('SLOW');
     });
 
     it('enters slow on three 2600 ms samples', () => {
-      expect(bucketFor([2600, 2600, 2600])).toBe('slow');
+      expect(bucketFor([2600, 2600, 2600])).toBe('SLOW');
     });
 
     it('enters slow on three 2600 ms samples one minute apart', () => {
       expect(
         bucketFor(
           [2600, 2600, 2600],
-          'unknown',
+          'UNKNOWN',
           LATENCY_THRESHOLDS.HIGH,
           60_000,
         ),
-      ).toBe('slow');
+      ).toBe('SLOW');
     });
 
     it('gives ok on three 2400 ms samples', () => {
-      expect(bucketFor([2400, 2400, 2400])).toBe('ok');
+      expect(bucketFor([2400, 2400, 2400])).toBe('OK');
     });
 
     it('enters slow from ok', () => {
-      expect(bucketFor([8000, 8000], 'ok')).toBe('slow');
+      expect(bucketFor([8000, 8000], 'OK')).toBe('SLOW');
     });
 
     it('ignores a hung sample older than the newest five', () => {
-      expect(bucketFor([8000, 300, 300, 300, 8000, 300])).toBe('ok');
+      expect(bucketFor([8000, 300, 300, 300, 8000, 300])).toBe('OK');
     });
   });
 
@@ -64,40 +64,40 @@ describe('computeLatencyBucket', () => {
     const LOW = LATENCY_THRESHOLDS.LOW;
 
     it('does not enter slow on two 8000 ms samples', () => {
-      expect(bucketFor([8000, 8000], 'unknown', LOW)).not.toBe('slow');
+      expect(bucketFor([8000, 8000], 'UNKNOWN', LOW)).not.toBe('SLOW');
     });
 
     it('enters slow on two 30000 ms samples', () => {
-      expect(bucketFor([30000, 30000], 'unknown', LOW)).toBe('slow');
+      expect(bucketFor([30000, 30000], 'UNKNOWN', LOW)).toBe('SLOW');
     });
 
     it('gives ok on three 3300 ms samples', () => {
-      expect(bucketFor([3300, 3300, 3300], 'unknown', LOW)).toBe('ok');
+      expect(bucketFor([3300, 3300, 3300], 'UNKNOWN', LOW)).toBe('OK');
     });
   });
 
   describe('from slow', () => {
     it('stays slow on two good samples then one hung', () => {
-      expect(bucketFor([300, 300, 8000], 'slow')).toBe('slow');
+      expect(bucketFor([300, 300, 8000], 'SLOW')).toBe('SLOW');
     });
 
     it('gives ok on three good samples in a row', () => {
-      expect(bucketFor([8000, 8000, 300, 300, 300], 'slow')).toBe('ok');
+      expect(bucketFor([8000, 8000, 300, 300, 300], 'SLOW')).toBe('OK');
     });
 
     it('gives ok on three good samples one minute apart', () => {
       expect(
-        bucketFor([300, 300, 300], 'slow', LATENCY_THRESHOLDS.HIGH, 60_000),
-      ).toBe('ok');
+        bucketFor([300, 300, 300], 'SLOW', LATENCY_THRESHOLDS.HIGH, 60_000),
+      ).toBe('OK');
     });
 
     it('stays slow with fewer than three samples', () => {
-      expect(bucketFor([300, 300], 'slow')).toBe('slow');
+      expect(bucketFor([300, 300], 'SLOW')).toBe('SLOW');
     });
   });
 
   it('stays unknown with fewer than three samples from unknown', () => {
-    expect(bucketFor([300, 300])).toBe('unknown');
+    expect(bucketFor([300, 300])).toBe('UNKNOWN');
   });
 });
 

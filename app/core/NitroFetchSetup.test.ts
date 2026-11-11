@@ -29,10 +29,27 @@ jest.mock('./Engine/controllers/remote-feature-flag-controller/utils', () => ({
   getFeatureFlagAppEnvironment: jest.fn(() => 'production'),
 }));
 
+const mockRecordFetchSample = jest.fn();
+
+jest.mock('../util/deviceCapability/latencyStore', () => {
+  const actual = jest.requireActual<
+    typeof import('../util/deviceCapability/latencyStore')
+  >('../util/deviceCapability/latencyStore');
+  return {
+    ...actual,
+    recordFetchSample: (
+      sample: Parameters<typeof actual.recordFetchSample>[0],
+    ) => {
+      mockRecordFetchSample(sample);
+      actual.recordFetchSample(sample);
+    },
+  };
+});
+
 import './NitroFetchSetup';
 import {
   clearLatencySamples,
-  getLatencyDebugSnapshot,
+  getLatencyThresholds,
 } from '../util/deviceCapability/latencyStore';
 
 const mockNitroFetch = jest.mocked(nitroFetch);
@@ -318,10 +335,9 @@ describe('NitroFetchSetup', () => {
     });
 
     describe('latency sampling', () => {
-      const sampleCount = () => getLatencyDebugSnapshot().sampleCount;
-
       beforeEach(() => {
         clearLatencySamples();
+        mockRecordFetchSample.mockClear();
       });
 
       it('records one sample for an HTTP response', async () => {
@@ -331,7 +347,13 @@ describe('NitroFetchSetup', () => {
 
         await global.fetch('https://example.com/api?secret=1');
 
-        expect(sampleCount()).toBe(1);
+        expect(mockRecordFetchSample).toHaveBeenCalledTimes(1);
+        expect(mockRecordFetchSample).toHaveBeenCalledWith(
+          expect.objectContaining({
+            atMs: expect.any(Number),
+            durationMs: expect.any(Number),
+          }),
+        );
       });
 
       it('records a connection failure as hung and rethrows it', async () => {
@@ -342,9 +364,13 @@ describe('NitroFetchSetup', () => {
 
         await expect(global.fetch('https://example.com')).rejects.toBe(failure);
 
-        const { sampleCount: count, hungCount } = getLatencyDebugSnapshot();
-        expect(count).toBe(1);
-        expect(hungCount).toBe(1);
+        expect(mockRecordFetchSample).toHaveBeenCalledTimes(1);
+        const [{ durationMs }] = mockRecordFetchSample.mock.calls[0] as [
+          { durationMs: number },
+        ];
+        expect(durationMs).toBeGreaterThanOrEqual(
+          getLatencyThresholds().hungMs,
+        );
       });
 
       it('skips a short AbortError and rethrows it', async () => {
@@ -354,7 +380,7 @@ describe('NitroFetchSetup', () => {
 
         await expect(global.fetch('https://example.com')).rejects.toBe(abort);
 
-        expect(sampleCount()).toBe(0);
+        expect(mockRecordFetchSample).not.toHaveBeenCalled();
       });
 
       it('skips a nitroPrefetched response', async () => {
@@ -364,7 +390,7 @@ describe('NitroFetchSetup', () => {
 
         await global.fetch(METAMASK_STALELIST_URL);
 
-        expect(sampleCount()).toBe(0);
+        expect(mockRecordFetchSample).not.toHaveBeenCalled();
       });
 
       it('passes a stream fetch through without a sample', async () => {
@@ -376,7 +402,7 @@ describe('NitroFetchSetup', () => {
           'https://example.com/stream',
           init,
         );
-        expect(sampleCount()).toBe(0);
+        expect(mockRecordFetchSample).not.toHaveBeenCalled();
       });
     });
 

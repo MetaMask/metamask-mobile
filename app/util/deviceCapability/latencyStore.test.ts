@@ -61,7 +61,7 @@ describe('latencyStore', () => {
     [300, 400, 500].forEach((duration) => record(duration));
 
     expect(listener).not.toHaveBeenCalled();
-    expect(store.getLatencySnapshot()).toBe('ok');
+    expect(store.getLatencySnapshot()).toBe('OK');
   });
 
   it('keeps the same snapshot reference for a same-bucket sample', () => {
@@ -81,7 +81,7 @@ describe('latencyStore', () => {
     [8000, 8000, 8000].forEach((duration) => record(duration));
 
     expect(listener).toHaveBeenCalledTimes(1);
-    expect(store.getLatencySnapshot()).toBe('slow');
+    expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
   it('notifies once when three good samples release slow', () => {
@@ -92,7 +92,7 @@ describe('latencyStore', () => {
     [300, 300, 300].forEach((duration) => record(duration));
 
     expect(listener).toHaveBeenCalledTimes(1);
-    expect(store.getLatencySnapshot()).toBe('ok');
+    expect(store.getLatencySnapshot()).toBe('OK');
   });
 
   it('stops notifying after unsubscribe', () => {
@@ -111,8 +111,7 @@ describe('latencyStore', () => {
     emitAppState('background');
     emitAppState('active');
 
-    expect(store.getLatencySnapshot()).toBe('unknown');
-    expect(store.getLatencyDebugSnapshot().sampleCount).toBe(0);
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
   });
 
   it('keeps samples through inactive', () => {
@@ -121,7 +120,7 @@ describe('latencyStore', () => {
     emitAppState('inactive');
     emitAppState('active');
 
-    expect(store.getLatencySnapshot()).toBe('slow');
+    expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
   it('resets slow to unknown on a NetInfo value change', () => {
@@ -129,7 +128,7 @@ describe('latencyStore', () => {
 
     emitNetInfo(netInfoState('cellular', true, { cellularGeneration: '4g' }));
 
-    expect(store.getLatencySnapshot()).toBe('unknown');
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
   });
 
   it('keeps samples when NetInfo repeats the same values', () => {
@@ -137,7 +136,7 @@ describe('latencyStore', () => {
 
     emitNetInfo(netInfoState('wifi'));
 
-    expect(store.getLatencySnapshot()).toBe('slow');
+    expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
   it('adds no samples while the transport is NONE', () => {
@@ -146,43 +145,19 @@ describe('latencyStore', () => {
     [8000, 8000].forEach((duration) => record(duration));
 
     expect(store.isLatencyTransportNone()).toBe(true);
-    expect(store.getLatencySnapshot()).toBe('unknown');
-    expect(store.getLatencyDebugSnapshot().sampleCount).toBe(0);
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
   });
 
-  it('reports the debug values for the hardware row in use', () => {
-    [300, 8000, 500].forEach((duration) => record(duration));
-
-    const result = store.getLatencyDebugSnapshot();
-
-    expect(result).toEqual({
-      bucket: 'ok',
-      hardwareRow: 'HIGH',
-      medianMs: 500,
-      hungCount: 1,
-      sampleCount: 3,
-      transportLabel: 'wifi',
-    });
+  it('uses the HIGH thresholds for a HIGH hardware row', () => {
     expect(store.getLatencyThresholds()).toEqual({
       hungMs: 8000,
       slowMs: 2500,
     });
   });
 
-  it('reports cellular generation and other NetInfo types', () => {
-    emitNetInfo(netInfoState('cellular', true, { cellularGeneration: '5g' }));
-    expect(store.getLatencyDebugSnapshot().transportLabel).toBe('5g');
-
-    emitNetInfo(netInfoState('vpn'));
-    expect(store.getLatencyDebugSnapshot().transportLabel).toBe('vpn');
-  });
-
   it('uses the MID row for unknown hardware', () => {
     store.startLatencyMonitoring(null);
 
-    const result = store.getLatencyDebugSnapshot();
-
-    expect(result.hardwareRow).toBe('MID');
     expect(store.getLatencyThresholds()).toEqual({
       hungMs: 15000,
       slowMs: 5500,
