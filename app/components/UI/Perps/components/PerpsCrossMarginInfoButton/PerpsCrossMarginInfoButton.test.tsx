@@ -9,6 +9,18 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 describe('PerpsCrossMarginInfoButton', () => {
+  it('expands the small info icon to a 44pt tap target', () => {
+    render(
+      <PerpsCrossMarginInfoButton
+        hasLiquidationPrice={false}
+        testID="cross-info"
+      />,
+    );
+
+    // 20pt icon plus 12pt of slop on every side.
+    expect(screen.getByTestId('cross-info')).toHaveProp('hitSlop', 12);
+  });
+
   it('closes the explanation on the native modal dismissal request', () => {
     render(
       <PerpsCrossMarginInfoButton

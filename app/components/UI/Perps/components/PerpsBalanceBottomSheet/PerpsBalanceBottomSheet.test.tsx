@@ -259,11 +259,12 @@ describe('PerpsBalanceBottomSheet', () => {
       crossMarginUsage: 0.73,
     });
 
-    const { getByTestId } = renderSheet();
+    const { getByTestId, getByLabelText } = renderSheet();
 
     expect(
       getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE),
     ).toHaveTextContent('61%');
+    expect(getByLabelText('61%, Elevated risk')).toBeOnTheScreen();
     expect(
       getByTestId(PerpsBalanceBottomSheetSelectorsIDs.MAINTENANCE_MARGIN_VALUE),
     ).toHaveTextContent('$86.41');
@@ -273,16 +274,66 @@ describe('PerpsBalanceBottomSheet', () => {
     expect(
       getByTestId(PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE),
     ).toHaveTextContent('73%');
+    expect(getByLabelText('73%, Elevated risk')).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE}-tone`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('marks a safe value with no icon but still announces its risk level', () => {
+    Object.assign(mockCrossMarginSummary, {
+      hasCrossExposure: true,
+      accountRatio: 0.174,
+    });
+
+    const { getByLabelText, getByTestId, queryByTestId } = renderSheet();
+
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE),
+    ).toHaveTextContent('17.4%');
+    expect(getByLabelText('17.4%, Low risk')).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('announces the risk level without the figure while privacy mode is on', () => {
+    Object.assign(mockCrossMarginSummary, {
+      hasCrossExposure: true,
+      accountRatio: 0.8,
+      crossMarginUsage: 0.2,
+    });
+
+    const { getByLabelText, queryByLabelText } = renderSheet({}, true);
+
+    expect(getByLabelText('High risk')).toBeOnTheScreen();
+    expect(getByLabelText('Low risk')).toBeOnTheScreen();
+    expect(queryByLabelText('80%, High risk')).not.toBeOnTheScreen();
+    expect(queryByLabelText('20%, Low risk')).not.toBeOnTheScreen();
   });
 
   it('shows a placeholder for cross margin metrics that cannot be computed', () => {
     Object.assign(mockCrossMarginSummary, { hasCrossExposure: true });
 
-    const { getByTestId } = renderSheet();
+    const { getByTestId, queryByTestId } = renderSheet();
 
     expect(
       getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE),
     ).toHaveTextContent('--');
+    expect(
+      queryByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the explainer tooltip when a cross margin label is pressed', () => {

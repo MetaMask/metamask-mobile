@@ -159,10 +159,11 @@ export const getCrossMarginRatioTone = (
 };
 
 /**
- * Formats a 0..1 ratio as a whole percentage, e.g. `0.634` => `"63%"`.
+ * Formats a 0..1 ratio as a percentage with at most one decimal, e.g.
+ * `0.174` => `"17.4%"` and `0.63` => `"63%"`.
  */
 export const formatCrossMarginRatio = (ratio: number): string =>
-  `${Math.round(ratio * 100)}%`;
+  `${Number((ratio * 100).toFixed(1))}%`;
 
 /**
  * Formats account leverage with at most 2 decimals, e.g. `12.5` => `"12.5x"`.

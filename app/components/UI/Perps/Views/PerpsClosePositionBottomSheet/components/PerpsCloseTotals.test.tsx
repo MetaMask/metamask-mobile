@@ -1,9 +1,16 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { escapeRegExp } from 'lodash';
 import { strings } from '../../../../../../../locales/i18n';
 import PerpsCloseTotals from './PerpsCloseTotals';
-import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
+import {
+  PerpsBottomSheetTooltipSelectorsIDs,
+  PerpsClosePositionBottomSheetSelectorsIDs,
+} from '../../../Perps.testIds';
+
+jest.mock('../../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: jest.fn() }),
+}));
 
 describe('PerpsCloseTotals', () => {
   const label = escapeRegExp(strings('perps.close_position.included_pnl'));
@@ -33,6 +40,28 @@ describe('PerpsCloseTotals', () => {
 
     expect(row).toHaveTextContent(new RegExp(`^${label}\\+\\$[\\d.]+$`));
     expect(row).not.toHaveTextContent(/\[missing/iu);
+  });
+
+  it('explains the margin when its info icon is pressed', () => {
+    render(
+      <PerpsCloseTotals
+        pnl={2}
+        receiveAmount={17}
+        margin={15}
+        marginMode="isolated"
+      />,
+    );
+    const infoButton = screen.getByTestId(
+      PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON,
+    );
+
+    expect(infoButton).toHaveProp('hitSlop', 12);
+
+    fireEvent.press(infoButton);
+
+    expect(
+      screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(strings('perps.tooltips.margin.content'));
   });
 
   it('omits the margin row when no margin mode is given', () => {

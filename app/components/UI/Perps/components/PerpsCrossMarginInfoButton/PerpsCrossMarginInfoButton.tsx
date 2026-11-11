@@ -16,6 +16,12 @@ interface PerpsCrossMarginInfoButtonProps {
   testID: string;
 }
 
+/**
+ * `ButtonIconSize.Xs` is a 20pt box. 12pt of slop on each side restores a
+ * 44pt target without growing the icon.
+ */
+const INFO_BUTTON_HIT_SLOP = 12;
+
 /** Explains the shared collateral behind a cross position's liquidation price. */
 const PerpsCrossMarginInfoButton = ({
   hasLiquidationPrice,
@@ -32,6 +38,7 @@ const PerpsCrossMarginInfoButton = ({
         size={ButtonIconSize.Xs}
         iconProps={{ color: IconColor.IconAlternative }}
         accessibilityLabel={strings('perps.cross_position.liquidation_info')}
+        hitSlop={INFO_BUTTON_HIT_SLOP}
         testID={testID}
         onPress={handleOpen}
       />

@@ -114,9 +114,12 @@ describe('crossMarginSummary', () => {
   });
 
   describe('formatters', () => {
-    it('formats the ratio as a rounded percentage', () => {
-      expect(formatCrossMarginRatio(0.634)).toBe('63%');
-      expect(formatCrossMarginRatio(0.895)).toBe('90%');
+    it('formats the ratio as a percentage with at most one decimal', () => {
+      expect(formatCrossMarginRatio(0.174)).toBe('17.4%');
+      expect(formatCrossMarginRatio(0.634)).toBe('63.4%');
+      expect(formatCrossMarginRatio(0.63)).toBe('63%');
+      expect(formatCrossMarginRatio(0.8)).toBe('80%');
+      expect(formatCrossMarginRatio(0.30004)).toBe('30%');
     });
 
     it('formats account leverage with at most 2 decimals', () => {

@@ -6,6 +6,10 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -47,6 +51,24 @@ const TONE_COLOR: Record<CrossMarginRatioTone, TextColor> = {
 const getToneColor = (tone: CrossMarginRatioTone | undefined) =>
   tone ? TONE_COLOR[tone] : TextColor.TextDefault;
 
+/** Spoken risk level. The visible cue is an icon, matching the design. */
+const TONE_LABEL_KEY: Record<CrossMarginRatioTone, string> = {
+  safe: 'perps.crossMarginSummary.tone_safe',
+  warning: 'perps.crossMarginSummary.tone_warning',
+  danger: 'perps.crossMarginSummary.tone_danger',
+};
+
+/**
+ * Non-colour cue for elevated risk. A safe value has no icon, which keeps it
+ * as plain as the design shows it.
+ */
+const TONE_ICON: Partial<
+  Record<CrossMarginRatioTone, { name: IconName; color: IconColor }>
+> = {
+  warning: { name: IconName.Warning, color: IconColor.WarningDefault },
+  danger: { name: IconName.Danger, color: IconColor.ErrorDefault },
+};
+
 // `textDecorationStyle: 'dashed'` is iOS-only, so use the plain underline to
 // render the same tappable affordance on both platforms.
 const labelStyle = { textDecorationLine: 'underline' } as const;
@@ -55,6 +77,8 @@ interface RowProps {
   tooltipKey: PerpsCrossMarginSummaryTooltipKey;
   value: string;
   valueColor: TextColor;
+  /** Risk level, shown as an icon and spoken so colour is not the only signal. */
+  tone?: CrossMarginRatioTone;
   privacyMode: boolean;
   testID: string;
   onInfoPress: (key: PerpsCrossMarginSummaryTooltipKey) => void;
@@ -64,11 +88,22 @@ const SummaryRow: React.FC<RowProps> = ({
   tooltipKey,
   value,
   valueColor,
+  tone,
   privacyMode,
   testID,
   onInfoPress,
 }) => {
   const label = strings(`perps.crossMarginSummary.${tooltipKey}`);
+  const toneLabel = tone ? strings(TONE_LABEL_KEY[tone]) : undefined;
+  const toneIcon = tone ? TONE_ICON[tone] : undefined;
+  // Privacy mode must not put the figure into the accessible name. The risk
+  // word is not the balance, so it stays available to the screen reader.
+  let valueAccessibilityLabel: string | undefined;
+  if (toneLabel) {
+    valueAccessibilityLabel = privacyMode
+      ? toneLabel
+      : `${value}, ${toneLabel}`;
+  }
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -90,16 +125,33 @@ const SummaryRow: React.FC<RowProps> = ({
           {label}
         </Text>
       </Pressable>
-      <SensitiveText
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={valueColor}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Short}
-        testID={testID}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+        accessible={Boolean(toneLabel)}
+        accessibilityLabel={valueAccessibilityLabel}
       >
-        {value}
-      </SensitiveText>
+        {toneIcon ? (
+          <Icon
+            name={toneIcon.name}
+            color={toneIcon.color}
+            size={IconSize.Sm}
+            testID={`${testID}-tone`}
+          />
+        ) : null}
+        <SensitiveText
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={valueColor}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+          accessible={toneLabel ? false : undefined}
+          testID={testID}
+        >
+          {value}
+        </SensitiveText>
+      </Box>
     </Box>
   );
 };
@@ -129,6 +181,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
           : formatCrossMarginRatio(accountRatio)
       }
       valueColor={getToneColor(getCrossMarginRatioTone(accountRatio))}
+      tone={getCrossMarginRatioTone(accountRatio)}
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}
       onInfoPress={onInfoPress}
@@ -165,6 +218,7 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
           : formatCrossMarginRatio(crossMarginUsage)
       }
       valueColor={getToneColor(getCrossMarginRatioTone(crossMarginUsage))}
+      tone={getCrossMarginRatioTone(crossMarginUsage)}
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE}
       onInfoPress={onInfoPress}

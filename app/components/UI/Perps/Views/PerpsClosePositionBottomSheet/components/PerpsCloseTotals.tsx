@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { PERPS_CONSTANTS, type MarginMode } from '@metamask/perps-controller';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
   KeyValueRow,
   KeyValueRowVariant,
   Tag,
   TagSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
+import PerpsProModalPortal from '../../PerpsProMarketView/components/PerpsProModalPortal';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import { formatPercentage } from '../../../utils/formatUtils';
 import {
@@ -22,6 +31,8 @@ import {
 // P&L keeps the plain formatted value.
 const formatSummaryPercentage = (value: number, pnl: number) =>
   Object.is(value, -0) && pnl < 0 ? '-0.00%' : formatPercentage(value);
+
+const MARGIN_INFO_HIT_SLOP = 12;
 
 export interface PerpsCloseTotalsProps {
   /** P&L realized by the close; undefined while unavailable. */
@@ -56,62 +67,101 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   receiveAmount,
   margin,
   marginMode,
-}) => (
-  <>
-    {marginMode ? (
+}) => {
+  const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
+  const openMarginInfo = useCallback(() => setIsMarginInfoVisible(true), []);
+  const closeMarginInfo = useCallback(() => setIsMarginInfoVisible(false), []);
+
+  return (
+    <>
+      {marginMode ? (
+        <KeyValueRow
+          variant={KeyValueRowVariant.Summary}
+          keyLabel={strings('perps.close_position.margin')}
+          keyEndAccessory={
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+              accessible={false}
+            >
+              <Tag
+                severity={TagSeverity.Neutral}
+                testID={
+                  PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG
+                }
+              >
+                {strings(
+                  marginMode === 'cross'
+                    ? 'perps.margin_mode.cross_title'
+                    : 'perps.margin_mode.isolated_title',
+                )}
+              </Tag>
+              <ButtonIcon
+                iconName={IconName.Info}
+                size={ButtonIconSize.Xs}
+                iconProps={{ color: IconColor.IconAlternative }}
+                accessibilityLabel={strings(
+                  'perps.trade_sheet.margin_info_accessibility_label',
+                )}
+                // 20pt icon plus 12pt of slop per side is a 44pt target.
+                hitSlop={MARGIN_INFO_HIT_SLOP}
+                onPress={openMarginInfo}
+                testID={
+                  PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON
+                }
+              />
+            </Box>
+          }
+          value={formatCloseSummaryFiat(margin)}
+          valueTextProps={{
+            testID: PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+          }}
+        />
+      ) : null}
+
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
-        keyLabel={strings('perps.close_position.margin')}
-        keyEndAccessory={
-          <Tag
-            severity={TagSeverity.Neutral}
-            testID={PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG}
-          >
-            {strings(
-              marginMode === 'cross'
-                ? 'perps.margin_mode.cross_title'
-                : 'perps.margin_mode.isolated_title',
-            )}
-          </Tag>
-        }
-        value={formatCloseSummaryFiat(margin)}
+        keyLabel={strings('perps.close_position.total_receive')}
+        value={formatCloseSummaryFiat(receiveAmount)}
         valueTextProps={{
-          testID: PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+          testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
         }}
       />
-    ) : null}
 
-    <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
-      keyLabel={strings('perps.close_position.total_receive')}
-      value={formatCloseSummaryFiat(receiveAmount)}
-      valueTextProps={{
-        testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
-      }}
-    />
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        twClassName="mt-0.5"
+        // One native element carries the label with its value for automation.
+        accessible
+        testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
+        keyLabel={strings('perps.close_position.included_pnl')}
+        value={
+          pnl === undefined
+            ? PERPS_CONSTANTS.FallbackDataDisplay
+            : `${formatSignedCloseSummaryFiat(pnl)}${
+                roePercentage !== undefined
+                  ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
+                  : ''
+              }`
+        }
+        valueTextProps={{
+          color: getCloseSummaryPnlColor(pnl),
+          testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+        }}
+      />
 
-    <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
-      twClassName="mt-0.5"
-      // One native element carries the label with its value for automation.
-      accessible
-      testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
-      keyLabel={strings('perps.close_position.included_pnl')}
-      value={
-        pnl === undefined
-          ? PERPS_CONSTANTS.FallbackDataDisplay
-          : `${formatSignedCloseSummaryFiat(pnl)}${
-              roePercentage !== undefined
-                ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
-                : ''
-            }`
-      }
-      valueTextProps={{
-        color: getCloseSummaryPnlColor(pnl),
-        testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-      }}
-    />
-  </>
-);
+      {isMarginInfoVisible ? (
+        <PerpsProModalPortal onRequestClose={closeMarginInfo}>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={closeMarginInfo}
+            contentKey="margin"
+          />
+        </PerpsProModalPortal>
+      ) : null}
+    </>
+  );
+};
 
 export default PerpsCloseTotals;
