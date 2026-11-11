@@ -427,4 +427,47 @@ describe('AddPositionBottomSheet hidden position link', () => {
       screen.getByText('social_leaderboard.composer.hidden_position_title'),
     ).toBeOnTheScreen();
   });
+
+  it('centers the link when both lists are empty', () => {
+    mockUseTraderPositions.mockReturnValue(
+      createTraderPositions({ openPositions: [], closedPositions: [] }),
+    );
+
+    renderSheet();
+
+    expect(
+      screen.getByTestId(
+        AddPositionBottomSheetSelectorsIDs.EMPTY_HELP_CONTAINER,
+      ),
+    ).toHaveStyle({ alignItems: 'center' });
+  });
+
+  it('centers the link on the empty closed tab', () => {
+    mockUseTraderPositions.mockReturnValue(
+      createTraderPositions({ closedPositions: [] }),
+    );
+
+    renderSheet();
+    fireEvent.press(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.CLOSED_TAB),
+    );
+
+    expect(
+      screen.getByTestId(
+        AddPositionBottomSheetSelectorsIDs.EMPTY_HELP_CONTAINER,
+      ),
+    ).toHaveStyle({ alignItems: 'center' });
+  });
+
+  it('left-aligns the link below a populated list', () => {
+    mockUseTraderPositions.mockReturnValue(createTraderPositions());
+
+    renderSheet();
+
+    expect(
+      screen.getByTestId(
+        AddPositionBottomSheetSelectorsIDs.EMPTY_HELP_CONTAINER,
+      ),
+    ).toHaveStyle({ alignItems: 'flex-start' });
+  });
 });

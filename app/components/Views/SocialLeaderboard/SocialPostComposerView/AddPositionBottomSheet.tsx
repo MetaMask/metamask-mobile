@@ -74,9 +74,9 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
     openPositions.length === 0 &&
     closedPositions.length === 0;
   const showPostEmptyCopy = tab === 'open' || bothEmpty;
+  const isListEmpty = positions.length === 0;
   const showHiddenPositionLink =
-    !(error && positions.length === 0) &&
-    !(isLoading && positions.length === 0);
+    !(error && isListEmpty) && !(isLoading && isListEmpty);
 
   const openTokens = useMemo(
     () => openPositions.filter((position) => !isPerpPosition(position)),
@@ -278,7 +278,12 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
               </ScrollView>
               {showHiddenPositionLink ? (
                 <Box
-                  alignItems={BoxAlignItems.Start}
+                  alignItems={
+                    isListEmpty ? BoxAlignItems.Center : BoxAlignItems.Start
+                  }
+                  testID={
+                    AddPositionBottomSheetSelectorsIDs.EMPTY_HELP_CONTAINER
+                  }
                   twClassName="px-4 pt-2 pb-4"
                 >
                   <TextButton
