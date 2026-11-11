@@ -1,7 +1,13 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
-import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import {
+  IconAlert,
+  IconAlertSeverity,
+  IconSize,
+  toast,
+  ToastSeverity,
+} from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PushNotificationOnboarding from '.';
 import type { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
@@ -184,8 +190,17 @@ const expectNotificationsOnToast = () => {
       description: "We'll send you transactions, price alerts, and updates.",
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     }),
   );
+};
+
+const expectInfoIcon = (startAccessory: React.ReactElement | undefined) => {
+  expect(startAccessory?.type).toBe(IconAlert);
+  expect(startAccessory?.props).toMatchObject({
+    severity: IconAlertSeverity.Info,
+    size: IconSize.Lg,
+  });
 };
 
 const expectNotificationsOffToast = () => {
@@ -195,8 +210,13 @@ const expectNotificationsOffToast = () => {
       description: 'Turn them on anytime in Settings → Notifications.',
       severity: ToastSeverity.Default,
       hasNoTimeout: false,
+      showCloseButton: false,
     }),
   );
+  const call = mockToast.mock.calls.find(
+    ([options]) => options.title === 'Notifications are off',
+  );
+  expectInfoIcon(call?.[0].startAccessory as React.ReactElement | undefined);
 };
 
 const expectPersonalizedAlertsOnToast = () => {
@@ -206,6 +226,7 @@ const expectPersonalizedAlertsOnToast = () => {
       description: 'Manage this anytime in Settings.',
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     }),
   );
 };
@@ -217,8 +238,13 @@ const expectPersonalizedAlertsOffToast = () => {
       description: 'Turn it on anytime in Settings.',
       severity: ToastSeverity.Default,
       hasNoTimeout: false,
+      showCloseButton: false,
     }),
   );
+  const call = mockToast.mock.calls.find(
+    ([options]) => options.title === 'Personalized alerts is off',
+  );
+  expectInfoIcon(call?.[0].startAccessory as React.ReactElement | undefined);
 };
 
 describe('PushNotificationOnboarding', () => {

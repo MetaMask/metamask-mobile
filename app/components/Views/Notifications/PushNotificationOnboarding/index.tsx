@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import {
+  IconAlert,
+  IconAlertSeverity,
+  IconSize,
+  toast,
+  ToastSeverity,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useEnableMarketingConsent } from '../../../../util/notifications/hooks/useEnableMarketingConsent';
 import { usePushPermissionNotificationSetup } from '../../../../util/notifications/hooks/usePushPermissionNotificationSetup';
@@ -85,6 +91,10 @@ const PushNotificationOnboarding = ({
         description,
         severity: isEnabled ? ToastSeverity.Success : ToastSeverity.Default,
         hasNoTimeout: false,
+        showCloseButton: false,
+        startAccessory: isEnabled ? undefined : (
+          <IconAlert severity={IconAlertSeverity.Info} size={IconSize.Lg} />
+        ),
       });
     },
     [],
