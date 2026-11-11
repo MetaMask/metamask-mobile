@@ -102,7 +102,7 @@ jest.mock('../../../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
   }),
 }));
 jest.mock('../../../../UI/Money/hooks/useMoneyDepositNavigation', () => ({
-  useMoneyCtaDepositNavigation: () => ({
+  useMoneyDepositNavigation: () => ({
     navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
   }),
 }));

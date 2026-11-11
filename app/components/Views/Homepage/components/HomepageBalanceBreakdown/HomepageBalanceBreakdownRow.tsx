@@ -42,7 +42,7 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../../../UI/Money/constants/moneyEvents';
-import { useMoneyCtaDepositNavigation } from '../../../../UI/Money/hooks/useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from '../../../../UI/Money/hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics';
 import type { SliceData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
@@ -67,7 +67,7 @@ const HomepageBalanceBreakdownMoneyAddButton = ({
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_ROW_BALANCE_BREAKDOWN,
   });
-  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
 
   const handleAddPress = useCallback(async () => {
     try {

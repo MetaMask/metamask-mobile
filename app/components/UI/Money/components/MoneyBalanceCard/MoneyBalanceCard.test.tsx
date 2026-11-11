@@ -16,7 +16,7 @@ import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
-import { useMoneyCtaDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   BOTTOM_SHEET_NAMES,
@@ -102,7 +102,7 @@ jest.mock('../../hooks/useMoneyHomeNavigation', () => ({
 }));
 jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   __esModule: true,
-  useMoneyCtaDepositNavigation: jest.fn(),
+  useMoneyDepositNavigation: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/user/selectors', () => ({
@@ -161,9 +161,7 @@ const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
   selectMoneyEnableMoneyAccountFlag,
 );
 const mockUseMoneyHomeNavigation = jest.mocked(useMoneyHomeNavigation);
-const mockUseMoneyCtaDepositNavigation = jest.mocked(
-  useMoneyCtaDepositNavigation,
-);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 
 const getMockAccessDecision = () => {
   if (!mockSelectMoneyEnableMoneyAccountFlag(undefined as never)) {
@@ -331,7 +329,7 @@ describe('MoneyBalanceCard', () => {
         await mockInitiateDeposit(options);
       },
     );
-    mockUseMoneyCtaDepositNavigation.mockReturnValue({
+    mockUseMoneyDepositNavigation.mockReturnValue({
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
