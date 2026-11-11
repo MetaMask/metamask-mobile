@@ -324,6 +324,19 @@ describe('getVbaDestinationForSnapshot', () => {
     ).toBe('kycRejected');
   });
 
+  it('opens identity verification when a retry was submitted and the step is processing', () => {
+    expect(
+      getVbaDestinationForSnapshot(
+        snapshot({
+          ...consentedPending,
+          kycStatus: 'retry',
+          providerFlowStatus: 'submitted',
+          kycCurrentStep: 'processing',
+        }),
+      ),
+    ).toBe('identityVerification');
+  });
+
   it('opens the pending screen when the step is processing and there is no KYC status', () => {
     expect(
       getVbaDestinationForSnapshot(

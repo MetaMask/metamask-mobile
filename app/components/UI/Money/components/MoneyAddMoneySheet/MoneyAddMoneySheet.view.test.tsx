@@ -453,7 +453,13 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     ).not.toBeOnTheScreen();
   };
 
-  it.each(['kyc', 'capabilityAuthorization'] as const)(
+  it.each([
+    'kyc',
+    'emailOtpCollection',
+    'phoneOtpCollection',
+    'capabilityAuthorization',
+    'consents',
+  ] as const)(
     'opens identity verification from the bank account row when the session is still on %s',
     async (kycCurrentStep) => {
       mockHydrateVbaOnboarding.mockResolvedValue({
@@ -472,6 +478,36 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
       await expectSumSubLaunch(view);
     },
   );
+
+  it('opens the pending screen when a refresh moves the session from kyc to processing', async () => {
+    const launchProviderFlow = jest.mocked(
+      Engine.context.KycController.launchProviderFlow,
+    );
+    launchProviderFlow.mockResolvedValueOnce('submitted');
+    mockHydrateVbaOnboarding.mockImplementation(async () => ({
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'not_started' as const,
+      kycStatus: 'pending' as const,
+      kycCurrentStep:
+        launchProviderFlow.mock.calls.length > 0 ? 'processing' : 'kyc',
+      autorampStatus: 'not_ready' as const,
+    }));
+    const view = renderVbaMoneyEntry();
+
+    await openBankAccountRow(view);
+
+    expect(
+      await view.findByTestId(KycPendingSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(launchProviderFlow).toHaveBeenCalledWith({
+      locale: toSumSubLocale(I18n.locale),
+    });
+    expect(
+      view.queryByTestId(KycSumSubSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
 
   it('opens the pending screen from the bank account row when a submitted session was reinstalled', async () => {
     mockHydrateVbaOnboarding.mockResolvedValue({

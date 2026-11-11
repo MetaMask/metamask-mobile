@@ -204,12 +204,13 @@ export function getVbaHomeCard({
     return { type: 'kyc_decision' };
   }
 
-  // 5. Genuinely in review: the relay decision is pending or approved while
-  // the provider has not finalized, or the provider flow was submitted.
-  // `finalStatus === 'pending'` alone does NOT mean review — an abandoned flow
-  // keeps `finalStatus: 'pending'` with `kycStatus: 'new'` (observed on
-  // device), and must fall through to rule 6 so the user finishes verification
-  // instead of seeing a spinner.
+  // 5. In review: the provider flow was submitted on this device, the
+  // session step is `processing` (survives reinstall), or the relay decision
+  // is pending or approved while the provider has not finalized. A known
+  // pre-submit step (OTP, capability authorization, consents, `kyc`) wins over
+  // the relay status, and `finalStatus === 'pending'` alone never means review.
+  // Both fall through to rule 6 so the user finishes verification instead
+  // of seeing a spinner.
   const step = sessionStatus?.currentStep;
   if (
     isVbaKycSubmitted(providerFlowStatus, step) ||

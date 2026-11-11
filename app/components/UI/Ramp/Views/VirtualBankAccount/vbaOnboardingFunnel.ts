@@ -26,9 +26,17 @@ const PRE_SUBMIT_KYC_STEPS: ReadonlySet<string> = new Set([
   'consents',
 ]);
 
+/**
+ * Whether `step` is still before the vendor has the application.
+ * Covers OTP, capability authorization, consents, and `kyc`.
+ */
 export const isVbaKycPreSubmitStep = (step?: string | null): boolean =>
   typeof step === 'string' && PRE_SUBMIT_KYC_STEPS.has(step);
 
+/**
+ * Whether this device submitted, or the session step is `processing`,
+ * which still means submitted after a reinstall.
+ */
 export const isVbaKycSubmitted = (
   providerFlowStatus: string,
   step?: string | null,

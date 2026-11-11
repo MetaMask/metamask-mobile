@@ -371,12 +371,62 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_decision' });
   });
 
-  it.each(['kyc', 'capabilityAuthorization'] as const)(
+  it.each([
+    'kyc',
+    'emailOtpCollection',
+    'phoneOtpCollection',
+    'capabilityAuthorization',
+    'consents',
+  ] as const)(
     'renders finish_verification when relay KYC is pending at %s',
     (currentStep) => {
       const card = getVbaHomeCard({
         ...baseInputs,
         sessionStatus: makeSession({ currentStep }),
+      });
+
+      expect(card).toEqual({ type: 'finish_verification' });
+    },
+  );
+
+  it.each([
+    ['null', null],
+    ['unknown', 'not-a-step'],
+    ['empty', ''],
+  ] as const)(
+    'renders kyc_pending when relay KYC is pending and the step is %s',
+    (_label, currentStep) => {
+      const sessionStatus = makeSession();
+      if (currentStep === null) {
+        Object.defineProperty(sessionStatus, 'currentStep', { value: null });
+      } else {
+        sessionStatus.currentStep = currentStep;
+      }
+
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        sessionStatus,
+      });
+
+      expect(card).toEqual({ type: 'kyc_pending' });
+    },
+  );
+
+  it.each([
+    'kyc',
+    'emailOtpCollection',
+    'phoneOtpCollection',
+    'capabilityAuthorization',
+    'consents',
+  ] as const)(
+    'renders finish_verification when relay KYC is approved at %s',
+    (currentStep) => {
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        sessionStatus: makeSession({
+          kycStatus: 'approved',
+          currentStep,
+        }),
       });
 
       expect(card).toEqual({ type: 'finish_verification' });
@@ -430,18 +480,27 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_pending' });
   });
 
-  it('renders kyc_pending when the provider flow was submitted during the kyc step', () => {
-    const card = getVbaHomeCard({
-      ...baseInputs,
-      sessionStatus: makeSession({
-        kycStatus: 'pending',
-        currentStep: 'kyc',
-      }),
-      providerFlowStatus: 'submitted',
-    });
+  it.each([
+    'kyc',
+    'emailOtpCollection',
+    'phoneOtpCollection',
+    'capabilityAuthorization',
+    'consents',
+  ] as const)(
+    'renders kyc_pending when the provider flow was submitted at %s',
+    (currentStep) => {
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        sessionStatus: makeSession({
+          kycStatus: 'pending',
+          currentStep,
+        }),
+        providerFlowStatus: 'submitted',
+      });
 
-    expect(card).toEqual({ type: 'kyc_pending' });
-  });
+      expect(card).toEqual({ type: 'kyc_pending' });
+    },
+  );
 
   it('renders kyc_pending when the provider flow was submitted on a fresh session', () => {
     const card = getVbaHomeCard({
