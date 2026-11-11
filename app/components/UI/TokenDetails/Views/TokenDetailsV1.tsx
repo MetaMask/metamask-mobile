@@ -71,6 +71,7 @@ import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStar
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import { SECURITY_ATTRIBUTION_EXPLAINER } from '../components/V1/SecurityAttribution/SecurityAttribution';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
+import { GraduationProgress } from '../components/GraduationProgressD/GraduationProgress';
 import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
@@ -919,6 +920,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     <Price.Header showPeriodLabel={false} />
 
                     <Box twClassName="px-4">
+                      <GraduationProgress asset={tokenAsset} />
                       <SecuritySocialSection
                         securityVerdict={securityFacts.verdict}
                         securityRiskCount={securityFacts.risks.length}

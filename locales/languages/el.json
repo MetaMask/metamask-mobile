@@ -6383,6 +6383,19 @@
         "description": "Time since token creation. Seconds, minutes, hours, then days."
       }
     },
+    "graduation": {
+      "stage": {
+        "new": "New",
+        "bonding": "Bonding"
+      },
+      "raised": "{{amount}} raised",
+      "to_graduation": "{{amount}} to graduation",
+      "to_graduation_compact": "to graduation",
+      "accessibility": {
+        "bonding": "Bonding curve progress. {{percent}} percent bonded. {{raised}} raised. {{remaining}} to graduation.",
+        "new": "Graduation progress. {{percent}} percent to graduation."
+      }
+    },
     "stats": {
       "market_cap": "MCap",
       "liquidity": "Ρευστότητα",

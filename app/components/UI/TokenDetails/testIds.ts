@@ -10,6 +10,16 @@ export const TokenDetailsIds = {
     copyAddressButton: 'copy-contract-address-button',
   },
   v1: 'token-details-v1',
+  graduation: {
+    module: 'token-details-graduation-progress',
+    stageTag: 'token-details-graduation-stage-tag',
+    percent: 'token-details-graduation-percent',
+    cells: 'token-details-graduation-cells',
+    cell: (index: number): string => `token-details-graduation-cell-${index}`,
+    cellFill: (index: number): string =>
+      `token-details-graduation-cell-fill-${index}`,
+    moneyRow: 'token-details-graduation-money-row',
+  },
   scrollView: 'token-details-v1-scroll-view',
   tabPanelPrefix: 'token-details-v1-tab-panel',
   tabContent: TAB_CONTENT,
