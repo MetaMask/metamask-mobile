@@ -333,10 +333,7 @@ describe('SocialV1View initial tab', () => {
       await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).toBeOnTheScreen();
     // Pages mount lazily, so Trending has not rendered its feed yet.
-    const trendingPage = within(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
-    );
-    expect(trendingPage.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
   });
 
   it('opens on Trending when the initial tab is not a Social V1 tab', async () => {
