@@ -4,7 +4,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, type Json } from '@metamask/utils';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   DepositPrefillStatus,
@@ -125,22 +125,20 @@ function makeTransactionMeta(
   } as unknown as TransactionMeta;
 }
 
-function makePayToken(
-  overrides?: Partial<TransactionPaymentToken>,
-): TransactionPaymentToken {
+function makePayToken(overrides?: Partial<EvmPaymentToken>): EvmPaymentToken {
   return {
     address: ETHEREUM_USDT_ADDRESS,
     balanceUsd: '1000',
     chainId: CHAIN_ID_MOCK,
     ...overrides,
-  } as TransactionPaymentToken;
+  } as EvmPaymentToken;
 }
 
 /**
  * Sets the pay token together with the reactive balance the hook reads, so a
  * token's `balanceUsd` keeps describing what the wallet holds.
  */
-function setPayTokenWithBalance(payToken?: TransactionPaymentToken) {
+function setPayTokenWithBalance(payToken?: EvmPaymentToken) {
   useTransactionPayTokenMock.mockReturnValue({
     payToken,
   } as ReturnType<typeof useTransactionPayToken>);
@@ -155,7 +153,7 @@ function setupMocks(
     prefilledAmountDefault?: { enabled: boolean };
     prefilledAmountOverrides?: Record<string, { enabled: boolean }>;
     depositLimits?: Record<string, number>;
-    payToken?: TransactionPaymentToken | null;
+    payToken?: EvmPaymentToken | null;
     /** Reactive balance, when it must differ from the pay token snapshot. */
     payBalanceUsd?: number;
     transactionMeta?: TransactionMeta;

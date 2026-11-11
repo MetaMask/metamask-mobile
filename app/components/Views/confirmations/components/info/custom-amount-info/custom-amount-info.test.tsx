@@ -525,6 +525,7 @@ describe('CustomAmountInfo', () => {
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
+        assetId: 'eip155:1/erc20:0x123',
         address: '0x123',
         balanceHuman: '0',
         balanceFiat: '0',
@@ -1755,6 +1756,7 @@ describe('CustomAmountInfo', () => {
     it('falls back to 90% when pay token is native and the flow is not a withdraw (safeguard against sending entire native balance with no gas reserve)', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
+          assetId: 'eip155:1/erc20:0x123',
           address: '0x123',
           balanceHuman: '0',
           balanceFiat: '0',
@@ -1787,6 +1789,7 @@ describe('CustomAmountInfo', () => {
         } as never);
         useTransactionPayTokenMock.mockReturnValue({
           payToken: {
+            assetId: 'eip155:1/erc20:0x123',
             address: '0x123',
             balanceHuman: '0',
             balanceFiat: '0',
@@ -1839,6 +1842,7 @@ describe('CustomAmountInfo', () => {
       useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: true });
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
+          assetId: 'eip155:1/erc20:0x123',
           address: '0x123',
           balanceHuman: '0',
           balanceFiat: '0',

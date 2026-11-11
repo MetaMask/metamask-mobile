@@ -19,6 +19,7 @@ import {
 } from './musdConversionTransaction';
 
 jest.mock('@metamask/rpc-errors', () => ({
+  ...jest.requireActual('@metamask/rpc-errors'),
   providerErrors: {
     userRejectedRequest: jest.fn(),
   },
@@ -97,7 +98,7 @@ interface MockedEngineContext {
   TransactionPayController?: {
     updatePaymentToken: jest.Mock<
       void,
-      [{ transactionId: string; tokenAddress: Hex; chainId: Hex }]
+      [{ transactionId: string; assetId: string }]
     >;
   };
   ApprovalController?: {
@@ -119,6 +120,7 @@ interface MockedEngineContext {
       ]
     >;
     state: {
+      assetsInfo: Record<string, unknown>;
       customAssets: Record<string, string[]>;
     };
   };
@@ -188,7 +190,7 @@ describe('musdConversionTransaction', () => {
 
   const transactionPayControllerUpdatePaymentToken = jest.fn<
     void,
-    [{ transactionId: string; tokenAddress: Hex; chainId: Hex }]
+    [{ transactionId: string; assetId: string }]
   >();
 
   const approvalControllerReject = jest.fn<void, [string, unknown]>();
@@ -235,6 +237,7 @@ describe('musdConversionTransaction', () => {
       AssetsController: {
         addCustomAsset: assetsControllerAddCustomAsset,
         state: {
+          assetsInfo: {},
           customAssets: mockCustomAssets,
         },
       },
@@ -538,8 +541,7 @@ describe('musdConversionTransaction', () => {
 
       expect(transactionPayControllerUpdatePaymentToken).toHaveBeenCalledWith({
         transactionId: '0xnewTransactionId',
-        tokenAddress: '0xpayTokenAddress',
-        chainId: '0x1',
+        assetId: 'eip155:1/erc20:0xpayTokenAddress',
       });
 
       expect(mockedEngineService.flushState).toHaveBeenCalled();
