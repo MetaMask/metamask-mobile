@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -15,6 +14,9 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 
 interface PredictPreviewSheetProps {
   renderHeader?: () => React.ReactNode;
@@ -49,6 +51,7 @@ const PredictPreviewSheet = forwardRef<
     ref,
   ) => {
     const tw = useTailwind();
+    const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
     const {
       sheetRef,
       isVisible,
@@ -71,7 +74,8 @@ const PredictPreviewSheet = forwardRef<
         onClose={handleSheetClosed}
         testID={testID}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={closeSheet}
           // Override internal styles that set width of start accessory to same size as close button,
           // to allow for left aligned predict header content
@@ -126,7 +130,7 @@ const PredictPreviewSheet = forwardRef<
               </Box>
             </Box>
           )}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         {children(closeSheet)}
       </BottomSheet>
     );
