@@ -58,6 +58,7 @@ import {
   selectMoneyVbaPendingActivityEnabled,
 } from '../../selectors/featureFlags';
 import { useNeobankAutorampActivity } from '../../hooks/useNeobankAutorampActivity';
+import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import MoneyIcon from '../../../../../images/money.png';
 import { getMerchantCategoryLabel } from '../../../Card/utils/merchantCategoryLabel';
@@ -109,7 +110,18 @@ type ActivityDetailsRoute = RouteProp<
 export function MoneyApiActivityDetailsView() {
   const navigation = useNavigation<AppNavigationProp>();
   const params = useRoute<ActivityDetailsRoute>().params;
-  const activity = params?.activity;
+  const routeActivity = params?.activity;
+  const { activity: liveActivities } = useMoneyAccountApiActivity();
+  const activity =
+    routeActivity &&
+    liveActivities.find(
+      (candidate) =>
+        candidate.kind === routeActivity.kind &&
+        candidate.hash.toLowerCase() === routeActivity.hash.toLowerCase() &&
+        candidate.token.address.toLowerCase() ===
+          routeActivity.token.address.toLowerCase(),
+    );
+  const resolvedActivity = activity ?? routeActivity;
   const enrichment = params?.enrichment;
   const cardTransaction = params?.cardTransaction;
   const routeNeobankActivity = params?.neobankActivity;
@@ -136,11 +148,11 @@ export function MoneyApiActivityDetailsView() {
       navigation.goBack();
       return;
     }
-    if (!activity && !cardTransaction && !neobankActivity) {
+    if (!resolvedActivity && !cardTransaction && !neobankActivity) {
       navigation.goBack();
     }
   }, [
-    activity,
+    resolvedActivity,
     cardTransaction,
     neobankActivity,
     navigation,
@@ -156,20 +168,20 @@ export function MoneyApiActivityDetailsView() {
     return <NeobankBankTransferDetailsContent activity={neobankActivity} />;
   }
 
-  if (!activity) {
+  if (!resolvedActivity) {
     return null;
   }
 
-  if (activity.kind === 'card') {
+  if (resolvedActivity.kind === 'card') {
     return (
       <MoneySettledCardDetailsContent
-        activity={activity}
+        activity={resolvedActivity}
         enrichment={enrichment}
       />
     );
   }
 
-  return <MoneyApiActivityDetailsContent activity={activity} />;
+  return <MoneyApiActivityDetailsContent activity={resolvedActivity} />;
 }
 
 function formatActivityDate(timestamp: number): string {

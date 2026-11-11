@@ -103,7 +103,10 @@ import {
   selectIsCardStateResolved,
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
-import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEarningSectionEnabledFlag,
+  selectMoneyEnableHistoricalVaultShareValuationsFlag,
+} from '../../selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
@@ -250,6 +253,9 @@ const MoneyHomeView = () => {
     overrideToUsd: true,
   });
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const historicalValuationsEnabled = useSelector(
+    selectMoneyEnableHistoricalVaultShareValuationsFlag,
+  );
   // Share the single merge/bucket path with the full activity view so the home
   // preview and that view never diverge. The home preview shows the "All"
   // bucket.
@@ -261,6 +267,7 @@ const MoneyHomeView = () => {
     // predicate that drives its fetch loop, so the skeleton can neither
     // vanish mid-fill nor outlive a fill that stopped (budget spent, error).
     isSettling: isActivitySettling,
+    isValuationSettling,
     error: activityError,
     refetch: refetchActivity,
     moneyAddress,
@@ -269,6 +276,7 @@ const MoneyHomeView = () => {
     fill: {
       bucket: MoneyActivityFilter.All,
       count: MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
+      ...(historicalValuationsEnabled ? { maxPages: 1 } : {}),
     },
   });
   const activityItems = buckets[MoneyActivityFilter.All];
@@ -385,6 +393,24 @@ const MoneyHomeView = () => {
   // trace can't close before auto-fill rows are actually on screen. A failed
   // fetch ends the span as a failure rather than a (fast) success.
   const activityReady = !isActivitySettling;
+  const previewDisplayAmounts = activityItems
+    .slice(0, MONEY_HOME_ACTIVITY_PREVIEW_COUNT)
+    .flatMap((item) =>
+      item.kind === 'accountsApi' && item.tx.displayAmount
+        ? [item.tx.displayAmount]
+        : [],
+    );
+  const hasHistoricalActivityTargets =
+    historicalValuationsEnabled && previewDisplayAmounts.length > 0;
+  const hasUnresolvedHistoricalAmounts = previewDisplayAmounts.some(
+    (amount) => amount.type !== 'historical',
+  );
+  const historicalActivityReady =
+    hasHistoricalActivityTargets && !hasUnresolvedHistoricalAmounts;
+  const historicalActivityFailed =
+    hasHistoricalActivityTargets &&
+    hasUnresolvedHistoricalAmounts &&
+    !isValuationSettling;
 
   const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
@@ -458,6 +484,14 @@ const MoneyHomeView = () => {
       ready: activityReady,
       failed: activityError,
       contentState: activityItems.length > 0 ? 'filled' : 'empty',
+    },
+    {
+      name: TraceName.MoneyHomeHistoricalActivityTimeToContent,
+      enabled: hasHistoricalActivityTargets,
+      backdateToMount: true,
+      ready: historicalActivityReady,
+      failed: historicalActivityFailed,
+      contentState: historicalActivityReady ? 'filled' : 'empty',
     },
     {
       name: TraceName.MoneyHomeTimeToContent,

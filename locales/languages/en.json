@@ -9983,6 +9983,7 @@
       "date": "Date",
       "paid_with": "Paid with",
       "you_deposited": "You deposited",
+      "amount_unavailable": "Amount unavailable",
       "transaction_fees": "Transaction fees",
       "paid_by_metamask": "Paid by MetaMask",
       "total": "Total",

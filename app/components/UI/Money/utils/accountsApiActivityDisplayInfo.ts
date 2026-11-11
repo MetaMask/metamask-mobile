@@ -25,14 +25,27 @@ export function accountsApiActivityDisplayInfo(
     activity.kind === 'refund' ||
     activity.kind === 'bank_transfer';
   const sign = isIncoming ? '+' : '-';
+  const displayAmount =
+    activity.kind === 'card' || activity.kind === 'cashback'
+      ? activity.displayAmount
+      : undefined;
+  const usdValue =
+    displayAmount && displayAmount.type !== 'unavailable'
+      ? new BigNumber(displayAmount.value).shiftedBy(-displayAmount.decimals)
+      : new BigNumber(activity.amount).shiftedBy(-activity.token.decimals);
+  const approximatePrefix = displayAmount?.type === 'approximate' ? '≈' : '';
+  const amountUnavailable =
+    displayAmount?.type === 'unavailable'
+      ? strings('money.api_activity_details.amount_unavailable')
+      : undefined;
 
-  // Card activity amounts are already denominated in USD (mUSD is USD-pegged).
-  const usdValue = new BigNumber(activity.amount).dividedBy(
-    new BigNumber(10).pow(activity.token.decimals),
-  );
-
-  const primaryAmount = `${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`;
-  const fiatAmount = `${sign}${moneyFormatUsd(usdValue)}`;
+  const primaryAmount =
+    amountUnavailable ??
+    `${approximatePrefix}${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`;
+  const fiatAmount =
+    amountUnavailable === undefined
+      ? `${approximatePrefix}${sign}${moneyFormatUsd(usdValue)}`
+      : '';
 
   const base: MoneyTransactionDisplayInfo = {
     description:
@@ -45,8 +58,11 @@ export function accountsApiActivityDisplayInfo(
     isIncoming,
     icon: activity.kind === 'bank_transfer' ? IconName.Add : IconName.Card,
     status: 'confirmed',
-    showPrimaryAmount: activity.kind === 'bank_transfer',
-    isFiatAmountMuted: activity.kind === 'bank_transfer',
+    showPrimaryAmount:
+      activity.kind === 'bank_transfer' || displayAmount !== undefined,
+    isFiatAmountMuted:
+      activity.kind === 'bank_transfer' ||
+      (displayAmount !== undefined && activity.kind === 'card'),
   };
 
   if (activity.kind !== 'card' || !enrichment) {
