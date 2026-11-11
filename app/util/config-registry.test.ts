@@ -203,7 +203,6 @@ describe('config-registry util', () => {
         {
           type: 'infura',
           networkClientId: 'sei-mainnet',
-          failoverUrls: undefined,
           url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
         },
       ]);
@@ -213,13 +212,11 @@ describe('config-registry util', () => {
       const result = buildAddNetworkRpcEndpoint({
         nickname: 'Ethereum',
         rpcUrl: 'https://eth.llamarpc.com',
-        failoverRpcUrls: ['https://eth.quicknode.com'],
       });
       expect(result).toStrictEqual([
         {
           type: 'custom',
           url: 'https://eth.llamarpc.com',
-          failoverUrls: ['https://eth.quicknode.com'],
           name: 'Ethereum',
         },
       ]);
