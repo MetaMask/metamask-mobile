@@ -48,6 +48,7 @@ export const TokenDetailsIds = {
     rider: 'token-details-graduation-rider',
     percentPill: 'token-details-graduation-percent-pill',
     percentText: 'token-details-graduation-percent-text',
+    milestone: 'token-details-graduation-milestone',
     spark: 'token-details-graduation-spark',
     dexCap: 'token-details-graduation-dex-cap',
     moneyRow: 'token-details-graduation-money-row',

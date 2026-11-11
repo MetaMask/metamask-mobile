@@ -7,13 +7,6 @@ import type { TokenAssetLaunchpadData } from '../../queries/tokenAssetQuery';
 import { TokenDetailsIds } from '../../testIds';
 import type { TokenI } from '../../../Tokens/types';
 
-jest.mock('react-native-linear-gradient', () => {
-  const { View: RNView } = jest.requireActual('react-native');
-  return ({ children }: { children?: React.ReactNode }) => (
-    <RNView>{children}</RNView>
-  );
-});
-
 jest.mock('../../../Assets/components/AssetLogo/AssetLogo', () => {
   const { View: RNView } = jest.requireActual('react-native');
   return () => <RNView testID="mock-asset-logo" />;
@@ -175,11 +168,42 @@ describe('GraduationProgress', () => {
       graduationPercent: '94',
     });
 
-    const { getByText } = renderWithHero(launchpadData);
+    const { getByText, queryAllByTestId } = renderWithHero(launchpadData);
 
     expect(getByText('25')).toBeOnTheScreen();
     expect(getByText('50')).toBeOnTheScreen();
     expect(getByText('75')).toBeOnTheScreen();
+    expect(queryAllByTestId(TokenDetailsIds.graduation.milestone)).toHaveLength(
+      3,
+    );
+  });
+
+  it('renders the fill as a fixed-height layer cropped by transform', () => {
+    const launchpadData = baseLaunchpadData({
+      graduationStage: 'bonding',
+      graduationPercent: '94',
+    });
+
+    const { getByTestId } = renderWithHero(launchpadData);
+
+    const styleEntries = (
+      getByTestId(TokenDetailsIds.graduation.fill).props.style as unknown[]
+    ).flat();
+    const heights = styleEntries.map(
+      (entry) => (entry as { height?: number | string })?.height,
+    );
+
+    // The gradient layer must keep a fixed track-height layout and be cropped
+    // by a transform; animated percentage heights leave a cold-started native
+    // gradient unpainted.
+    expect(heights).toContain(104);
+    expect(heights.filter((height) => typeof height === 'string')).toHaveLength(
+      0,
+    );
+    const transforms = styleEntries.flatMap(
+      (entry) => (entry as { transform?: unknown[] })?.transform ?? [],
+    );
+    expect(transforms).toContainEqual({ scaleY: expect.any(Number) });
   });
 
   it('renders the token avatar on the rider', () => {

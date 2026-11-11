@@ -20,7 +20,12 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
+import Svg, {
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 import {
   AvatarTokenSize,
   Box,
@@ -73,7 +78,10 @@ const GRADIENT_FLOW_DURATION_MS = 2400;
 const CAP_PULSE_DURATION_MS = 600;
 const SPARK_CYCLE_DURATION_MS = 400;
 const SPARK_RISE_DP = 10;
-const SPARK_TOP = -12;
+const SHEEN_HEIGHT = 28;
+
+const FILL_GRADIENT_ID = 'graduation-fill-gradient';
+const SHEEN_GRADIENT_ID = 'graduation-sheen-gradient';
 
 const SPARK_OFFSETS = [0, 0.25, 0.5, 0.75];
 const SPARK_LEFTS = [30, 34, 38, 42];
@@ -92,19 +100,20 @@ const styles = StyleSheet.create({
     width: TRACK_WIDTH,
     borderRadius: TRACK_WIDTH / 2,
   },
-  fill: {
+  fillLayer: {
     position: 'absolute',
     left: TRACK_LEFT,
     bottom: 0,
     width: TRACK_WIDTH,
+    height: TRACK_HEIGHT,
     borderRadius: TRACK_WIDTH / 2,
-    overflow: 'hidden',
   },
   sheen: {
     position: 'absolute',
     left: 0,
     right: 0,
-    height: 28,
+    bottom: 0,
+    height: SHEEN_HEIGHT,
   },
   spark: {
     position: 'absolute',
@@ -426,15 +435,31 @@ const LaunchRail = ({
     );
   }, [reducedMotion, spark, viewModel.isLastBand]);
 
-  const fillHeightStyle = useAnimatedStyle(() => ({
+  const riderHeightStyle = useAnimatedStyle(() => ({
     height: `${progress.value * 100}%`,
   }));
+
+  // The fill is a full-track-height layer pinned at the bottom and cropped by
+  // scaleY. The gradient inside it (an SVG with a fixed size) paints once at
+  // its final layout, so progress changes can never leave it unpainted -- a
+  // legacy LinearGradient inside an animated-height view failed to paint on
+  // cold start.
+  const fillScaleStyle = useAnimatedStyle(() => {
+    // A near-zero floor keeps the transform invertible when fully collapsed.
+    const scale = Math.max(progress.value, 0.0001);
+    return {
+      transform: [
+        { translateY: (TRACK_HEIGHT * (1 - scale)) / 2 },
+        { scaleY: scale },
+      ],
+    };
+  });
 
   const sheenStyle = useAnimatedStyle(() => {
     const t = sheen.value;
     return {
-      bottom: `${t * 100}%`,
       opacity: Math.min(t * 4, 1) * (1 - t),
+      transform: [{ translateY: -(TRACK_HEIGHT - SHEEN_HEIGHT) * t }],
     };
   });
 
@@ -451,7 +476,6 @@ const LaunchRail = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="bg-default"
         style={styles.capRow}
       >
         <View style={styles.capSpacer} />
@@ -462,7 +486,6 @@ const LaunchRail = ({
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Center}
         alignItems={BoxAlignItems.Center}
-        twClassName="bg-default"
         style={styles.percentRow}
       >
         <Box
@@ -501,21 +524,56 @@ const LaunchRail = ({
         />
         <Animated.View
           testID={TokenDetailsIds.graduation.fill}
-          style={[styles.fill, fillHeightStyle]}
+          style={[styles.fillLayer, fillScaleStyle]}
         >
-          <LinearGradient
-            colors={[colors.success.default, colors.primary.default]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <Animated.View style={[styles.sheen, sheenStyle]}>
-            <LinearGradient
-              colors={['transparent', colors.success.muted, 'transparent']}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={StyleSheet.absoluteFill}
+          <Svg
+            width={TRACK_WIDTH}
+            height={TRACK_HEIGHT}
+            viewBox={`0 0 ${TRACK_WIDTH} ${TRACK_HEIGHT}`}
+          >
+            <Defs>
+              <SvgLinearGradient
+                id={FILL_GRADIENT_ID}
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <Stop offset="0" stopColor={colors.success.default} />
+                <Stop offset="1" stopColor={colors.primary.default} />
+              </SvgLinearGradient>
+            </Defs>
+            <Rect
+              width={TRACK_WIDTH}
+              height={TRACK_HEIGHT}
+              fill={`url(#${FILL_GRADIENT_ID})`}
             />
+          </Svg>
+          <Animated.View style={[styles.sheen, sheenStyle]}>
+            <Svg
+              width={TRACK_WIDTH}
+              height={SHEEN_HEIGHT}
+              viewBox={`0 0 ${TRACK_WIDTH} ${SHEEN_HEIGHT}`}
+            >
+              <Defs>
+                <SvgLinearGradient
+                  id={SHEEN_GRADIENT_ID}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <Stop offset="0" stopColor="transparent" />
+                  <Stop offset="0.5" stopColor={colors.success.muted} />
+                  <Stop offset="1" stopColor="transparent" />
+                </SvgLinearGradient>
+              </Defs>
+              <Rect
+                width={TRACK_WIDTH}
+                height={SHEEN_HEIGHT}
+                fill={`url(#${SHEEN_GRADIENT_ID})`}
+              />
+            </Svg>
           </Animated.View>
         </Animated.View>
 
@@ -543,7 +601,7 @@ const LaunchRail = ({
         })}
 
         <Animated.View
-          style={[styles.riderColumn, fillHeightStyle]}
+          style={[styles.riderColumn, riderHeightStyle]}
           pointerEvents="none"
         >
           <View
@@ -575,6 +633,7 @@ const LaunchRail = ({
             key={milestone}
             variant={TextVariant.BodyXs}
             color={TextColor.TextMuted}
+            testID={TokenDetailsIds.graduation.milestone}
             style={[
               styles.milestoneLabel,
               milestoneLabelSide,
