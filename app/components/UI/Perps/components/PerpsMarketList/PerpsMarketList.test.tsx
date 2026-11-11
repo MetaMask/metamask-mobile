@@ -258,6 +258,39 @@ describe('PerpsMarketList', () => {
       expect(screen.queryByTestId('perps-market-list-empty')).toBeNull();
     });
 
+    it('does not remount the empty state when the emptyComponent element is recreated', () => {
+      let emptyMountCount = 0;
+      const CustomEmpty = (): React.ReactElement => {
+        React.useEffect(() => {
+          emptyMountCount += 1;
+        }, []);
+        return <View testID="custom-empty" />;
+      };
+
+      const { rerender } = render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={<View testID="sticky" />}
+          emptyComponent={<CustomEmpty />}
+        />,
+      );
+
+      expect(emptyMountCount).toBe(1);
+
+      rerender(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={<View testID="sticky" />}
+          emptyComponent={<CustomEmpty />}
+        />,
+      );
+
+      expect(screen.getByTestId('custom-empty')).toBeOnTheScreen();
+      expect(emptyMountCount).toBe(1);
+    });
+
     it('renders the default message when no emptyComponent is provided', () => {
       render(
         <PerpsMarketList
