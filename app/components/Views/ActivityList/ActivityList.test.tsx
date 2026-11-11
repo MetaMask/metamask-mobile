@@ -41,6 +41,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: jest.fn(() => ({
+    navigateToMoneyHome: jest.fn(),
+  })),
+}));
+
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn((state) => state.selectedAccount),
 }));

@@ -13,10 +13,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
-import {
-  MOCK_SOCIAL_V1_FEED_ITEMS,
-  mockOpenPerpsFeedItem,
-} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import {
   addPendingPost,
@@ -81,14 +78,7 @@ jest.mock('../utils/socialTabVisit', () => ({
 }));
 
 // The feed pages fetch through `useSocialFeed`, which reads keyring state and
-// React Query. This suite covers the V1 chrome, so stand in for both data
-// sources while still driving the real pending-post store the pinning tests
-// depend on.
-jest.mock('./feed/hooks/useSocialV1Feed', () => ({
-  useSocialV1Feed: jest.requireActual('./feed/mocks/mockComposedFeedHook')
-    .mockUseSocialV1Feed,
-}));
-
+// React Query. This suite covers the V1 chrome, so stand in for it.
 jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(() => ({
     posts: [],
@@ -904,20 +894,32 @@ describe('SocialV1View', () => {
     expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
-  it('renders the mocked feed on Following after that tab is opened', () => {
+  it('renders Following through the shared virtualized feed once that tab is opened', () => {
     renderWithProvider(<SocialV1View />);
+    const followingFeedProps = () =>
+      mockSocialFeed.mock.calls
+        .map(([props]) => props)
+        .filter((props) => props.location === 'social_following')
+        .pop();
+    const beforeOpening = followingFeedProps();
 
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
     );
 
-    expect(
-      within(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-      ).getByTestId(
-        getSocialFeedPositionCardTestId(MOCK_SOCIAL_V1_FEED_ITEMS[0].id),
-      ),
-    ).toBeOnTheScreen();
+    expect(beforeOpening).toBeUndefined();
+    expect(followingFeedProps()).toEqual(
+      expect.objectContaining({
+        scope: 'following_v1',
+        scrollMode: 'virtualized',
+        showMockedFields: true,
+        isActive: true,
+        onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
+        performance: expect.objectContaining({ tab: 'following' }),
+      }),
+    );
+    expect(followingFeedProps()).not.toHaveProperty('realtime');
   });
 
   it('insets the header avatar so it shares the 16px tab padding', () => {

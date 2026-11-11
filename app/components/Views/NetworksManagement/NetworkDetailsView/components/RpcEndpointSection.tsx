@@ -28,6 +28,7 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../component-library/components/Cells/Cell/CellComponent.testIds';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { getFailoverUrlsForEndpoint } from '../../../../../util/networks/customNetworks';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import RpcFormFields from './RpcFormFields';
 import SelectField from './SelectField';
@@ -70,14 +71,7 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
   placeholderTextColor,
 }) => {
   const {
-    form: {
-      rpcUrl,
-      rpcName,
-      rpcUrlForm,
-      rpcNameForm,
-      failoverRpcUrls,
-      addMode,
-    },
+    form: { rpcUrl, rpcName, rpcUrlForm, rpcNameForm, chainId, addMode },
     inputRpcURL,
     inputNameRpcURL,
     openRpcModal,
@@ -125,8 +119,10 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
   const secondaryText =
     rpcName && rpcUrl ? formatNetworkRpcUrl(rpcUrl) : undefined;
 
-  const failoverTag =
-    isRpcFailoverEnabled && failoverRpcUrls && failoverRpcUrls.length > 0;
+  // Failover is configured per chain (NetworkController `failoverUrls`
+  // option) but only applies to Infura-hosted endpoints.
+  const failoverRpcUrls = getFailoverUrlsForEndpoint(chainId, rpcUrl);
+  const failoverTag = isRpcFailoverEnabled && failoverRpcUrls.length > 0;
 
   return (
     <>
@@ -160,16 +156,14 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
       </Box>
 
       {/* Failover RPC URLs (read-only) */}
-      {isRpcFailoverEnabled &&
-        failoverRpcUrls &&
-        failoverRpcUrls.length > 0 && (
-          <Box>
-            <Label>
-              {strings('app_settings.network_failover_rpc_url_label')}
-            </Label>
-            <TextField value={failoverRpcUrls[0]} isDisabled />
-          </Box>
-        )}
+      {isRpcFailoverEnabled && failoverRpcUrls.length > 0 && (
+        <Box>
+          <Label>
+            {strings('app_settings.network_failover_rpc_url_label')}
+          </Label>
+          <TextField value={failoverRpcUrls[0]} isDisabled />
+        </Box>
+      )}
     </>
   );
 };
@@ -182,12 +176,8 @@ interface RpcListItemProps {
   endpoint: RpcEndpoint;
   isSelected: boolean;
   isRpcFailoverEnabled: boolean;
-  onSelect: (
-    url: string,
-    failoverUrls: string[] | undefined,
-    name: string,
-    type: string,
-  ) => void | Promise<void>;
+  hasFailover: boolean;
+  onSelect: (url: string, name: string, type: string) => void | Promise<void>;
   onDelete: (url: string) => void | Promise<void>;
   styles: NetworkDetailsStyles;
 }
@@ -197,16 +187,17 @@ const RpcListItem: React.FC<RpcListItemProps> = React.memo(
     endpoint,
     isSelected,
     isRpcFailoverEnabled,
+    hasFailover,
     onSelect,
     onDelete,
     styles,
   }) => {
-    const { url, failoverUrls, name, type } = endpoint;
+    const { url, name, type } = endpoint;
     const formattedName = type === 'infura' ? 'Infura' : name;
 
     const handleSelect = useCallback(async () => {
-      await onSelect(url, failoverUrls, name ?? '', type);
-    }, [onSelect, url, failoverUrls, name, type]);
+      await onSelect(url, name ?? '', type);
+    }, [onSelect, url, name, type]);
 
     const handleDelete = useCallback(async () => {
       await onDelete(url);
@@ -226,11 +217,9 @@ const RpcListItem: React.FC<RpcListItemProps> = React.memo(
                 {formattedName || formatNetworkRpcUrl(url)}
               </Text>
             </View>
-            {isRpcFailoverEnabled &&
-              failoverUrls &&
-              failoverUrls.length > 0 && (
-                <Tag label={strings('app_settings.failover')} />
-              )}
+            {isRpcFailoverEnabled && hasFailover && (
+              <Tag label={strings('app_settings.failover')} />
+            )}
           </View>
         }
         secondaryText={formattedName ? formatNetworkRpcUrl(url) : ''}
@@ -384,17 +373,11 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
   };
 
   const onRpcUrlChangeWithNamePersisted = useCallback(
-    async (
-      url: string,
-      failoverUrls: string[] | undefined,
-      name: string,
-      type: string,
-    ) => {
+    async (url: string, name: string, type: string) => {
       setRpcSheetSubmitError(undefined);
       const nextForm = applyRpcSelectionToFormState(
         latestFormRef.current,
         url,
-        failoverUrls,
         name,
         type,
       );
@@ -407,7 +390,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
         );
         return;
       }
-      onRpcUrlChangeWithName(url, failoverUrls, name, type);
+      onRpcUrlChangeWithName(url, name, type);
       handleDismiss();
     },
     [onRpcUrlChangeWithName, onUrlSheetMutationCommitted, handleDismiss],
@@ -458,6 +441,9 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
                   endpoint={endpoint}
                   isSelected={rpcUrl === endpoint.url}
                   isRpcFailoverEnabled={isRpcFailoverEnabled}
+                  hasFailover={
+                    getFailoverUrlsForEndpoint(chainId, endpoint.url).length > 0
+                  }
                   onSelect={onRpcUrlChangeWithNamePersisted}
                   onDelete={onRpcUrlDeletePersisted}
                   styles={styles}

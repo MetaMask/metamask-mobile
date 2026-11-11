@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { Keyboard } from 'react-native';
+import { Dimensions, Keyboard } from 'react-native';
 import { useKeyboardHeight } from './useKeyboardHeight';
 
 describe('useKeyboardHeight', () => {
@@ -57,6 +57,24 @@ describe('useKeyboardHeight', () => {
       'keyboardDidHide',
       expect.any(Function),
     );
+  });
+
+  it('clears the keyboard down to the bottom of the screen', () => {
+    jest.spyOn(Dimensions, 'get').mockReturnValue({
+      width: 1080,
+      height: 2340,
+      scale: 2,
+      fontScale: 1,
+    });
+    const { result } = renderHook(() => useKeyboardHeight());
+
+    act(() => {
+      showListener({
+        endCoordinates: { height: 733, screenY: 1541 },
+      } as { endCoordinates: { height: number } });
+    });
+
+    expect(result.current).toBe(799);
   });
 
   it('should update height on show and reset on hide', () => {
