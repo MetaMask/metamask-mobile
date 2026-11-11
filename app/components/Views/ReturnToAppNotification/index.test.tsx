@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
+import { toast } from '@metamask/design-system-react-native';
 import ReturnToAppNotification from './index.tsx';
-import { ToastContext } from '../../../component-library/components/Toast/index.ts';
-import { ToastVariants } from '../../../component-library/components/Toast/Toast.types.ts';
 import { RPC_METHODS } from '../../../core/SDKConnect/SDKConnectConstants.ts';
 
 let mockRouteParams: {
@@ -39,21 +38,18 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
 const flushPromises = () => act(() => Promise.resolve());
 
 describe('ReturnToAppNotification', () => {
-  const createToastRef = () => ({
-    current: { showToast: jest.fn(), closeToast: jest.fn() },
-  });
-
-  const renderComponent = (toastRef = createToastRef()) => {
-    const utils = render(
-      <ToastContext.Provider value={{ toastRef }}>
-        <ReturnToAppNotification />
-      </ToastContext.Provider>,
-    );
-    return { ...utils, toastRef };
-  };
+  const renderComponent = () => render(<ReturnToAppNotification />);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -72,7 +68,7 @@ describe('ReturnToAppNotification', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('calls navigation.goBack when toastRef and favicon are ready', async () => {
+  it('calls navigation.goBack when favicon is ready', async () => {
     renderComponent();
     await flushPromises();
 
@@ -81,15 +77,14 @@ describe('ReturnToAppNotification', () => {
 
   it('shows return-to-app toast when hideReturnToApp is not set', async () => {
     mockRouteParams = { origin: 'https://example.com' };
-    const { toastRef } = renderComponent();
+    renderComponent();
     await flushPromises();
 
-    expect(toastRef.current.showToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: ToastVariants.App,
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
-        appIconSource: { uri: 'https://example.com/favicon.png' },
+        title: 'sdk_return_to_app_toast.returnToAppLabel',
         hasNoTimeout: false,
+        showCloseButton: false,
       }),
     );
   });
@@ -99,12 +94,12 @@ describe('ReturnToAppNotification', () => {
       origin: 'https://example.com',
       hideReturnToApp: true,
     };
-    const { toastRef } = renderComponent();
+    renderComponent();
     await flushPromises();
 
-    expect(toastRef.current.showToast).not.toHaveBeenCalledWith(
+    expect(toast).not.toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
+        title: 'sdk_return_to_app_toast.returnToAppLabel',
       }),
     );
   });
@@ -114,15 +109,12 @@ describe('ReturnToAppNotification', () => {
       method: RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
       origin: 'https://example.com',
     };
-    const { toastRef } = renderComponent();
+    renderComponent();
     await flushPromises();
 
-    expect(toastRef.current.showToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: ToastVariants.App,
-        labelOptions: [
-          { label: 'sdk_return_to_app_toast.networkSwitchMethodLabel' },
-        ],
+        title: 'sdk_return_to_app_toast.networkSwitchMethodLabel',
       }),
     );
   });
@@ -150,18 +142,19 @@ describe('ReturnToAppNotification', () => {
     expect(mockWait).toHaveBeenCalledTimes(1);
   });
 
-  it('uses Plain variant when favicon URI is empty', async () => {
+  it('omits start accessory when favicon URI is empty', async () => {
     mockUseFavicon.mockReturnValue({
       isLoaded: true,
       faviconURI: { uri: '' },
     });
     mockRouteParams = { origin: 'https://example.com' };
-    const { toastRef } = renderComponent();
+    renderComponent();
     await flushPromises();
 
-    expect(toastRef.current.showToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: ToastVariants.Plain,
+        title: 'sdk_return_to_app_toast.returnToAppLabel',
+        startAccessory: undefined,
       }),
     );
   });
@@ -177,48 +170,23 @@ describe('ReturnToAppNotification', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('does not execute effect when toastRef.current is null', async () => {
-    const toastRef = { current: null };
-    render(
-      <ToastContext.Provider value={{ toastRef: toastRef as never }}>
-        <ReturnToAppNotification />
-      </ToastContext.Provider>,
-    );
-    await flushPromises();
-
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('does not execute effect when toastRef is undefined', async () => {
-    render(
-      <ToastContext.Provider value={{ toastRef: undefined }}>
-        <ReturnToAppNotification />
-      </ToastContext.Provider>,
-    );
-    await flushPromises();
-
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
   it('does not show method label for non-switchEthereumChain methods', async () => {
     mockRouteParams = {
       method: RPC_METHODS.ETH_SENDTRANSACTION,
       origin: 'https://example.com',
     };
-    const { toastRef } = renderComponent();
+    renderComponent();
     await flushPromises();
 
-    expect(toastRef.current.showToast).not.toHaveBeenCalledWith(
+    expect(toast).not.toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [
-          { label: 'sdk_return_to_app_toast.networkSwitchMethodLabel' },
-        ],
+        title: 'sdk_return_to_app_toast.networkSwitchMethodLabel',
       }),
     );
 
-    expect(toastRef.current.showToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
+        title: 'sdk_return_to_app_toast.returnToAppLabel',
       }),
     );
   });
@@ -228,35 +196,28 @@ describe('ReturnToAppNotification', () => {
       method: RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
       origin: 'https://example.com',
     };
-    const { toastRef } = renderComponent();
+    renderComponent();
     await flushPromises();
 
-    expect(toastRef.current.showToast).toHaveBeenCalledTimes(2);
+    expect(toast).toHaveBeenCalledTimes(2);
 
-    expect(toastRef.current.showToast).toHaveBeenNthCalledWith(
+    expect(toast).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        labelOptions: [
-          { label: 'sdk_return_to_app_toast.networkSwitchMethodLabel' },
-        ],
+        title: 'sdk_return_to_app_toast.networkSwitchMethodLabel',
       }),
     );
 
-    expect(toastRef.current.showToast).toHaveBeenNthCalledWith(
+    expect(toast).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
+        title: 'sdk_return_to_app_toast.returnToAppLabel',
       }),
     );
   });
 
   it('does not execute effect more than once on re-render', async () => {
-    const toastRef = createToastRef();
-    const ui = (
-      <ToastContext.Provider value={{ toastRef }}>
-        <ReturnToAppNotification />
-      </ToastContext.Provider>
-    );
+    const ui = <ReturnToAppNotification />;
 
     const { rerender } = render(ui);
     await flushPromises();
@@ -300,13 +261,13 @@ describe('ReturnToAppNotification', () => {
 
   it('does not show method label when no method is provided', async () => {
     mockRouteParams = { origin: 'https://example.com' };
-    const { toastRef } = renderComponent();
+    renderComponent();
     await flushPromises();
 
-    expect(toastRef.current.showToast).toHaveBeenCalledTimes(1);
-    expect(toastRef.current.showToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [{ label: 'sdk_return_to_app_toast.returnToAppLabel' }],
+        title: 'sdk_return_to_app_toast.returnToAppLabel',
       }),
     );
   });
@@ -351,10 +312,10 @@ describe('ReturnToAppNotification', () => {
       origin: 'https://example.com',
       hideReturnToApp: true,
     };
-    const { toastRef } = renderComponent();
+    renderComponent();
     await flushPromises();
 
-    expect(toastRef.current.showToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it('shows only method label toast when hideReturnToApp is true and method is switchEthereumChain', async () => {
@@ -363,15 +324,13 @@ describe('ReturnToAppNotification', () => {
       origin: 'https://example.com',
       hideReturnToApp: true,
     };
-    const { toastRef } = renderComponent();
+    renderComponent();
     await flushPromises();
 
-    expect(toastRef.current.showToast).toHaveBeenCalledTimes(1);
-    expect(toastRef.current.showToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [
-          { label: 'sdk_return_to_app_toast.networkSwitchMethodLabel' },
-        ],
+        title: 'sdk_return_to_app_toast.networkSwitchMethodLabel',
       }),
     );
   });

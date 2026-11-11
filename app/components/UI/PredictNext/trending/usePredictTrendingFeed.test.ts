@@ -323,24 +323,46 @@ describe('usePredictTrendingFeed', () => {
       expect(result.current.data).toHaveLength(2);
     });
 
-    it.each(['now', 'macro', 'rwas', 'crypto'] as const)(
+    it.each(['now', 'crypto'] as const)(
       'reads nothing for the %s tab, whose Feed key Kalshi lacks',
+      async (tab) => {
+        givenVenue(KALSHI);
+
+        const { result } = renderWithCapabilities(
+          { tab },
+          { feed: KALSHI_GAMES },
+        );
+        await waitForCatalog(result);
+
+        expect(result.current.feed.data).toEqual([]);
+        expect(result.current.feed.isLoading).toBe(false);
+        expect(callsTo(messenger, GET_FEED)).toEqual([]);
+        expect(mockGetMarkets).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['macro', 'rwas'] as const)(
+      'reads the %s tab from the politics Feed Kalshi maps that key to',
       async (tab) => {
         givenVenue(KALSHI);
 
         const { result } = renderHook(() => usePredictTrendingFeed({ tab }), {
           wrapper: createWrapper({ feed: KALSHI_GAMES }),
         });
-        await waitFor(() =>
-          expect(
-            callsTo(messenger, 'PredictMarketDataService:getVenueCatalog'),
-          ).toHaveLength(1),
-        );
-        await settle();
 
-        expect(result.current.data).toEqual([]);
+        await waitFor(() => expect(result.current.data).toHaveLength(2));
         expect(result.current.isLoading).toBe(false);
-        expect(callsTo(messenger, GET_FEED)).toEqual([]);
+        expect(result.current.data.map(readNextTrendingEvent)).toEqual(
+          KALSHI_GAMES,
+        );
+        expect(callsTo(messenger, GET_FEED)).toEqual([
+          [
+            GET_FEED,
+            'kalshi',
+            KALSHI_STATIC_VENUE_CATALOG.feeds.politics,
+            { limit: 6 },
+          ],
+        ]);
         expect(mockGetMarkets).not.toHaveBeenCalled();
       },
     );
