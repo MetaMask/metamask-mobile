@@ -11,6 +11,7 @@ import { VerifiedCheckAnimationSelectors } from './VerifiedCheckAnimation.testId
 
 const mockUseRiveFile = jest.fn();
 const mockRiveView = jest.fn();
+let mockViewReady = true;
 
 jest.mock('@rive-app/react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -20,6 +21,10 @@ jest.mock('@rive-app/react-native', () => {
   return {
     ...actual,
     useRiveFile: (...args: unknown[]) => mockUseRiveFile(...args),
+    useRive: () => ({
+      riveViewRef: mockViewReady ? { ready: true } : null,
+      setHybridRef: { f: jest.fn() },
+    }),
     RiveView: (props: Record<string, unknown>) => {
       mockRiveView(props);
       return ReactActual.createElement(actual.RiveView, props);
@@ -43,6 +48,7 @@ describe('VerifiedCheckAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __resetRiveMocks();
+    mockViewReady = true;
     mockUseRiveFile.mockReturnValue(loadedFile);
   });
 
@@ -65,6 +71,31 @@ describe('VerifiedCheckAnimation', () => {
       }),
     );
     expect(onEntranceStart).toHaveBeenCalled();
+  });
+
+  it('waits for the native view before starting the entrance', () => {
+    mockViewReady = false;
+    const onEntranceStart = jest.fn();
+    const view = (
+      <VerifiedCheckAnimation
+        mode="animate"
+        onEntranceStart={onEntranceStart}
+      />
+    );
+
+    const { rerender } = render(view);
+
+    expect(onEntranceStart).not.toHaveBeenCalled();
+
+    mockViewReady = true;
+    rerender(
+      <VerifiedCheckAnimation
+        mode="animate"
+        onEntranceStart={onEntranceStart}
+      />,
+    );
+
+    expect(onEntranceStart).toHaveBeenCalledTimes(1);
   });
 
   it('shows the static checkmark in static mode', () => {

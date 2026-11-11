@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alignment,
   Fit,
   RiveView,
+  useRive,
   useRiveFile,
   type RiveError,
 } from '@rive-app/react-native';
@@ -31,7 +32,9 @@ const VerifiedCheckAnimation = ({
 }: VerifiedCheckAnimationProps) => {
   const tw = useTailwind();
   const { riveFile, error: riveFileError } = useRiveFile(verifiedCheck);
+  const { riveViewRef, setHybridRef } = useRive();
   const [hasViewError, setHasViewError] = useState(false);
+  const hasReportedEntranceStart = useRef(false);
   const hasRiveError = Boolean(riveFileError) || hasViewError;
 
   const handleError = useCallback((riveError: RiveError) => {
@@ -43,10 +46,16 @@ const VerifiedCheckAnimation = ({
   }, []);
 
   useEffect(() => {
-    if (mode === 'animate' && (riveFile || hasRiveError)) {
+    if (mode !== 'animate' || hasReportedEntranceStart.current) {
+      return;
+    }
+    // The file can load before the native view exists. Wait for the view so
+    // the copy cascade starts with Intro, not before it.
+    if (hasRiveError || (riveFile && riveViewRef)) {
+      hasReportedEntranceStart.current = true;
       onEntranceStart();
     }
-  }, [hasRiveError, mode, onEntranceStart, riveFile]);
+  }, [hasRiveError, mode, onEntranceStart, riveFile, riveViewRef]);
 
   if (mode === 'static' || hasRiveError) {
     return (
@@ -66,6 +75,7 @@ const VerifiedCheckAnimation = ({
     >
       {mode === 'animate' && riveFile ? (
         <RiveView
+          hybridRef={setHybridRef}
           file={riveFile}
           artboardName={RIVE_ARTBOARD}
           stateMachineName={RIVE_STATE_MACHINE}

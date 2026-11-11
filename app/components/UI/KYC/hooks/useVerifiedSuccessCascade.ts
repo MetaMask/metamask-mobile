@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Easing,
   useAnimatedStyle,
@@ -70,22 +70,29 @@ const useVerifiedSuccessCascade = () => {
     mode = 'static';
   }
 
-  const animate = mode === 'animate';
-  const isShown = mode === 'static' || (animate && hasEntranceStarted);
-  const titleStyle = useEntranceStyle(0, isShown, animate);
-  const descriptionStyle = useEntranceStyle(1, isShown, animate);
-  const buttonStyle = useEntranceStyle(2, isShown, animate);
+  // A screen that already showed the static layout stays that way if the
+  // network comes back. Otherwise Continue is visible and not tappable.
+  const showedStatic = useRef(false);
+  if (mode === 'static') {
+    showedStatic.current = true;
+  }
+  const playCascade = mode === 'animate' && !showedStatic.current;
+  const isShown =
+    mode === 'static' || showedStatic.current || hasEntranceStarted;
+  const titleStyle = useEntranceStyle(0, isShown, playCascade);
+  const descriptionStyle = useEntranceStyle(1, isShown, playCascade);
+  const buttonStyle = useEntranceStyle(2, isShown, playCascade);
 
   // A view at zero opacity still takes taps, so the button waits for its fade.
   useEffect(() => {
-    if (!animate) {
+    if (!playCascade) {
       return undefined;
     }
     const timeout = hasEntranceStarted
       ? setTimeout(() => setIsButtonReady(true), LEAD_MS + 2 * STAGGER_MS)
       : setTimeout(startEntrance, VERIFIED_SUCCESS_ENTRANCE_TIMEOUT_MS);
     return () => clearTimeout(timeout);
-  }, [animate, hasEntranceStarted, startEntrance]);
+  }, [playCascade, hasEntranceStarted, startEntrance]);
 
   return {
     mode,
@@ -93,7 +100,8 @@ const useVerifiedSuccessCascade = () => {
     titleStyle,
     descriptionStyle,
     buttonStyle,
-    isButtonInteractive: mode === 'static' || isButtonReady,
+    isButtonInteractive:
+      mode === 'static' || showedStatic.current || isButtonReady,
   };
 };
 

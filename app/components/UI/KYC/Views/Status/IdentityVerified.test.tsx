@@ -113,6 +113,27 @@ describe('KycIdentityVerified', () => {
     },
   );
 
+  it('keeps Continue pressable when the network returns after a static open', () => {
+    mockUseReduceMotionState.mockReturnValue(false);
+    mockUseNetworkTier.mockReturnValue('NONE');
+    const { getByTestId, rerender } = renderWithProvider(
+      <KycIdentityVerified onExit={jest.fn()} onContinue={jest.fn()} />,
+    );
+
+    expect(getByTestId(KycIdentityVerifiedSelectorsIDs.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'auto',
+    );
+
+    mockUseNetworkTier.mockReturnValue('WIFI');
+    rerender(<KycIdentityVerified onExit={jest.fn()} onContinue={jest.fn()} />);
+
+    expect(getByTestId(KycIdentityVerifiedSelectorsIDs.FOOTER)).toHaveProp(
+      'pointerEvents',
+      'auto',
+    );
+  });
+
   it('plays the tick and ignores Continue until its fade-in starts', () => {
     jest.useFakeTimers();
     mockUseReduceMotionState.mockReturnValue(false);
