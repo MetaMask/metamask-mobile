@@ -15,6 +15,7 @@ import {
 import Logger from '../../Logger';
 import {
   hasPushPrePromptBeenShown,
+  resetPushPrePromptShown,
   setPushPrePromptShown,
 } from '../constants/notification-storage-keys';
 import { isNotificationsFeatureEnabled } from '../constants';
@@ -309,6 +310,13 @@ export function usePushPrePromptVariant(): {
     await setPushPrePromptShown();
   }, []);
 
+  // Takes back markShown when a sheet is removed before the user answered it,
+  // so a sheet the user barely saw does not use up the one chance on this install.
+  const unmarkShown = useCallback(async () => {
+    hasPrePromptBeenShownRef.current = false;
+    await resetPushPrePromptShown();
+  }, []);
+
   const dismiss = useCallback(() => {
     setResolutionState((currentState) =>
       currentState.key === resolutionKey
@@ -329,6 +337,7 @@ export function usePushPrePromptVariant(): {
     isResolving: isCurrentResolution ? resolutionState.isResolving : true,
     isHomeUnobstructed,
     markShown,
+    unmarkShown,
     nativeOsPermissionEnabled: isCurrentResolution
       ? resolutionState.nativeOsPermissionEnabled
       : null,

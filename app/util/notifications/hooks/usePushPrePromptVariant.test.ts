@@ -636,6 +636,28 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.variant).toBeNull();
   });
 
+  it('takes back the shown flag so the prompt can resolve again', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+    await act(async () => {
+      await result.current.markShown();
+    });
+    await act(async () => {
+      await result.current.unmarkShown();
+    });
+
+    expect(storageWrapper.removeItem).toHaveBeenCalledWith(
+      PUSH_PRE_PROMPT_SHOWN,
+    );
+  });
+
   it('does not return a prompt while home is obstructed', async () => {
     mockUseIsHomeUnobstructed.mockReturnValue(false);
     mockNativePushPermissionStatus({

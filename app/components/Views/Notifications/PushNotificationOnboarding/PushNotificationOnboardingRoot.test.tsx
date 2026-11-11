@@ -49,6 +49,7 @@ const mockPushNotificationPermissionFallback = jest.mocked(
 
 const mockDismissPrePrompt = jest.fn();
 const mockMarkPrePromptShown = jest.fn();
+const mockUnmarkPrePromptShown = jest.fn();
 
 const mockPrePromptState = ({
   isHomeUnobstructed = true,
@@ -60,6 +61,7 @@ const mockPrePromptState = ({
     isHomeUnobstructed,
     isResolving: false,
     markShown: mockMarkPrePromptShown,
+    unmarkShown: mockUnmarkPrePromptShown,
     nativeOsPermissionEnabled,
     variant,
   });
@@ -73,6 +75,7 @@ const getLatestProps = () =>
 describe('PushNotificationOnboardingRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUnmarkPrePromptShown.mockResolvedValue(undefined);
     mockIsPrePromptEnabled = true;
     mockPrePromptState();
   });
@@ -149,6 +152,39 @@ describe('PushNotificationOnboardingRoot', () => {
     rerender(<PushNotificationOnboardingRoot />);
 
     expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('gives back the shown flag when home is obstructed before the user answers', () => {
+    mockPrePromptState({
+      nativeOsPermissionEnabled: true,
+      variant: 'push_permission',
+    });
+    const { rerender } = render(<PushNotificationOnboardingRoot />);
+
+    mockPrePromptState({ isHomeUnobstructed: false, variant: null });
+    rerender(<PushNotificationOnboardingRoot />);
+    rerender(<PushNotificationOnboardingRoot />);
+
+    expect(mockUnmarkPrePromptShown).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the shown flag when the user answers before home is obstructed', () => {
+    mockPrePromptState({
+      nativeOsPermissionEnabled: true,
+      variant: 'push_permission',
+    });
+    const { rerender } = render(<PushNotificationOnboardingRoot />);
+
+    // Once answered, the hook has the prompt marked shown and resolves nothing.
+    const { onComplete } = getLatestProps();
+    mockPrePromptState({ variant: null });
+    act(() => {
+      onComplete('dismiss' as PushPrePromptCompletionReason);
+    });
+    mockPrePromptState({ isHomeUnobstructed: false, variant: null });
+    rerender(<PushNotificationOnboardingRoot />);
+
+    expect(mockUnmarkPrePromptShown).not.toHaveBeenCalled();
   });
 
   it('latches the native OS permission status for the visible pre-prompt', () => {

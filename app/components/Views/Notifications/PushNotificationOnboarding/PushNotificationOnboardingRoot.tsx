@@ -23,6 +23,7 @@ const PushNotificationOnboardingRootContent = () => {
     isHomeUnobstructed,
     markShown: markPrePromptShown,
     nativeOsPermissionEnabled,
+    unmarkShown: unmarkPrePromptShown,
     variant,
   } = usePushPrePromptVariant();
 
@@ -37,12 +38,14 @@ const PushNotificationOnboardingRootContent = () => {
 
   // The latch above holds a shown sheet through resolution churn. Anything
   // presented over home (a deeplink, say) takes it down, so it never sits over
-  // the screen the user moved to.
+  // the screen the user moved to. The user has not answered it, so it is not
+  // counted as shown and can open again once home is clear.
   useEffect(() => {
     if (!isHomeUnobstructed && visiblePrePrompt) {
+      unmarkPrePromptShown().catch(() => undefined);
       setVisiblePrePrompt(null);
     }
-  }, [isHomeUnobstructed, visiblePrePrompt]);
+  }, [isHomeUnobstructed, unmarkPrePromptShown, visiblePrePrompt]);
 
   const currentPrePrompt =
     visiblePrePrompt ??
