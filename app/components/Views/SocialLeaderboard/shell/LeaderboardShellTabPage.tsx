@@ -9,7 +9,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, type ScrollView } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -23,7 +24,6 @@ import {
   type SocialLeaderboardFilters,
   type SocialLeaderboardHandle,
   type SocialLeaderboardSource,
-  type SocialLeaderboardVirtualizedListProps,
 } from '../../../UI/SocialLeaderboard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import {
@@ -67,7 +67,7 @@ export interface LeaderboardShellTabPageProps {
    * Scroll handler forwarded by the tabs container so the page's scroll drives
    * the parent's collapsing title.
    */
-  onScroll?: SocialLeaderboardVirtualizedListProps['onScroll'];
+  onScroll?: React.ComponentProps<typeof Animated.ScrollView>['onScroll'];
   /**
    * Lets the tabs container drive this page's scroll offset so the collapsing
    * title stays put when the user switches tabs.
@@ -115,6 +115,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   const [screenOutcome, setScreenOutcome] = useState<
     'content' | 'empty' | 'error' | null
   >(null);
+  const scrollRef = useRef<ScrollView>(null);
   const leaderboardRef = useRef<SocialLeaderboardHandle>(null);
   const hasFiredScreenViewedRef = useRef(false);
 
@@ -127,8 +128,8 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   useImperativeHandle(
     pageRef,
     () => ({
-      scrollToOffset: (offset: number, animated = false): void => {
-        leaderboardRef.current?.scrollToOffset(offset, animated);
+      scrollToOffset: (offset: number, animated = false) => {
+        scrollRef.current?.scrollTo({ y: offset, animated });
       },
     }),
     [],
@@ -206,56 +207,56 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
       {hasBeenActive && (
         <>
-          <SocialFeedSurfaceProvider showMockedFields>
-            <SocialLeaderboard
-              ref={leaderboardRef}
-              source={source}
-              location="social_leaderboard"
-              filters={filters}
-              showViewerRow
-              filteredEmpty={isFilterActive}
-              onClearFilters={onClearFilters}
-              emptyClassName="-mt-4"
-              onOutcomeChange={setScreenOutcome}
-              performance={performance}
-              requireSocialProfile
-              virtualizedListProps={{
-                style: tw.style('flex-1'),
-                showsVerticalScrollIndicator: false,
-                contentContainerStyle: tw.style(
-                  `pt-4 pb-[${24 + floatingTabBarInset}px]`,
-                ),
-                onScroll,
-                scrollEventThrottle: 16,
-                testID: TopTradersViewSelectorsIDs.TRADER_LIST,
-                refreshControl: (
-                  <RefreshControl
-                    colors={[colors.primary.default]}
-                    tintColor={colors.icon.default}
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                  />
-                ),
-                listHeaderComponent: (
-                  <SocialTabFilterBar
-                    onOpenFilters={onOpenFilters}
-                    isFilterActive={isFilterActive}
-                    filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
-                    testID={TopTradersViewSelectorsIDs.FILTER_BAR}
-                    twClassName="px-4 pb-4"
-                  >
-                    {isPerpsEnabled ? (
-                      <TypeFilterSelector
-                        value={selectedType}
-                        onPress={openTypeSheet}
-                        testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
-                      />
-                    ) : null}
-                  </SocialTabFilterBar>
-                ),
-              }}
-            />
-          </SocialFeedSurfaceProvider>
+          <Animated.ScrollView
+            ref={scrollRef}
+            style={tw.style('flex-1')}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style(
+              `pt-4 pb-[${24 + floatingTabBarInset}px]`,
+            )}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            testID={TopTradersViewSelectorsIDs.TRADER_LIST}
+            refreshControl={
+              <RefreshControl
+                colors={[colors.primary.default]}
+                tintColor={colors.icon.default}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+          >
+            <SocialTabFilterBar
+              onOpenFilters={onOpenFilters}
+              isFilterActive={isFilterActive}
+              filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
+              testID={TopTradersViewSelectorsIDs.FILTER_BAR}
+              twClassName="px-4 pb-4"
+            >
+              {isPerpsEnabled ? (
+                <TypeFilterSelector
+                  value={selectedType}
+                  onPress={openTypeSheet}
+                  testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
+                />
+              ) : null}
+            </SocialTabFilterBar>
+            <SocialFeedSurfaceProvider showMockedFields>
+              <SocialLeaderboard
+                ref={leaderboardRef}
+                source={source}
+                location="social_leaderboard"
+                filters={filters}
+                showViewerRow
+                filteredEmpty={isFilterActive}
+                onClearFilters={onClearFilters}
+                emptyClassName="-mt-4"
+                onOutcomeChange={setScreenOutcome}
+                performance={performance}
+                requireSocialProfile
+              />
+            </SocialFeedSurfaceProvider>
+          </Animated.ScrollView>
           <TypeFilterSheet
             isOpen={isTypeSheetOpen}
             value={selectedType}
