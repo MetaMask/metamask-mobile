@@ -135,4 +135,65 @@ describe('scenario-heal', () => {
     expect(result.hasPr).toBe(false);
     expect(result.summary).toContain('| FAIL | pinned-check | 2 |');
   });
+
+  describe('cache drift on a passing run', () => {
+    const drifted = {
+      ...outcome(healed, 'PASS'),
+      timers: [{ name: 'swap opens', valid: true, endPinned: false, untilStep: 3 }],
+      changedSteps: [],
+      attempt: 1,
+      cacheBaseline: { 'Tap the Swap button on the wallet home': tap('wallet-swap-button'), 'the swap screen is visible': expectEl('old') },
+      cacheDrift: [
+        { number: 3, text: 'the swap screen is visible', before: expectEl('old'), after: expectEl('swap-screen-v2') },
+      ],
+    };
+
+    it('opens a cache-only heal and names the drift distinctly', () => {
+      const { root, artifacts, out, git } = setup(drifted);
+
+      const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: true, runUrl: 'https://run/9', baseRef: 'main', existingPrs: [] });
+
+      expect(result.hasPr).toBe(true);
+      expect(result.changes.map((c) => c.path)).toEqual([CACHE_PATH]);
+      expect(git('status', '--porcelain').trim()).toBe(`M ${CACHE_PATH}`);
+      expect(result.summary).toContain('| Demo [scenario shadow] | PASS | cache-drift | 3 |');
+      expect(result.summary).toContain('heal PR (cache drift)');
+      const body = fs.readFileSync(result.bodyFile, 'utf8');
+      expect(body).toContain('Category: `cache-drift`');
+      expect(body).toContain('| 3. the swap screen is visible | expect testID=old | expect testID=swap-screen-v2 |');
+      expect(result.slackNotices[0]).toEqual(expect.objectContaining({ category: 'cache-drift', step: 3 }));
+    });
+
+    it('leaves the Markdown alone even when the outcome proposes a rewording', () => {
+      const { root, artifacts, out } = setup({
+        ...drifted,
+        rewordings: [{ number: 2, from: 'Tap the Swap button on the wallet home', to: 'Tap Trade' }],
+      });
+
+      const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: false, runUrl: '', baseRef: 'main', existingPrs: [] });
+
+      expect(result.changes.map((c) => c.path)).toEqual([CACHE_PATH]);
+    });
+
+    it('does not open a PR when an open heal PR already covers the step', () => {
+      const { root, artifacts, out } = setup(drifted);
+
+      const result = runHeal({
+        artifactsDir: artifacts, repoRoot: root, outDir: out, apply: false, runUrl: '', baseRef: 'main',
+        existingPrs: [{ url: 'https://github.com/org/repo/pull/9', headSha: 'abc1234', body: `<!-- perf-scenario-heal: ${MD_PATH}#3 -->` }],
+      });
+
+      expect(result.hasPr).toBe(false);
+      expect(result.slackNotices[0]).toEqual(expect.objectContaining({ prUrl: 'https://github.com/org/repo/pull/9' }));
+    });
+
+    it('does nothing for a clean pass', () => {
+      const { root, artifacts, out } = setup({ ...drifted, cacheDrift: [] });
+
+      const result = runHeal({ artifactsDir: artifacts, repoRoot: root, outDir: out, apply: true, runUrl: '', baseRef: 'main', existingPrs: [] });
+
+      expect(result.hasPr).toBe(false);
+      expect(result.summary).toContain('| PASS | passed |');
+    });
+  });
 });

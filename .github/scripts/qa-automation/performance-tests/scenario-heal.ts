@@ -20,7 +20,7 @@ import {
   buildHealChanges,
   classifyOutcome,
   completeSlackNotices,
-  healKey,
+  healKeys,
   healRuleViolations,
   indexHealPrs,
   OUTCOME_FILE_PREFIX,
@@ -184,6 +184,7 @@ export function runHeal(options: HealOptions): HealRunResult {
     pr?: { url?: string; headSha?: string },
   ): SlackHealNotice => ({
     scenario: outcome.title,
+    category: classification.category,
     step: classification.step,
     reason: classification.reason,
     runUrl: options.runUrl,
@@ -199,7 +200,11 @@ export function runHeal(options: HealOptions): HealRunResult {
       rows.push({ outcome, classification });
       continue;
     }
-    const existing = openPrs.get(healKey(outcome, classification.step));
+    // Already proposed when every step this heal covers is in an open heal PR.
+    const keys = healKeys(outcome, classification);
+    const existing = keys.every((key) => openPrs.has(key))
+      ? openPrs.get(keys[0])
+      : undefined;
     if (existing) {
       rows.push({
         outcome,
@@ -218,7 +223,14 @@ export function runHeal(options: HealOptions): HealRunResult {
       });
       continue;
     }
-    rows.push({ outcome, classification, note: 'heal PR' });
+    rows.push({
+      outcome,
+      classification,
+      note:
+        classification.category === 'cache-drift'
+          ? 'heal PR (cache drift)'
+          : 'heal PR',
+    });
     healed.push({ outcome, classification, changes, notes });
     slackNotices.push(noticeFor(outcome, classification));
   }
