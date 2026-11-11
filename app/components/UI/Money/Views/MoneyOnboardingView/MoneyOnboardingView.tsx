@@ -81,7 +81,6 @@ import ModalSafeAreaProvider from '../../../../../component-library/components-t
  */
 const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
 const RIVE_ARTBOARD_NAME = 'Money_Account';
-const CARD_CASHBACK_PERCENTAGE = 3;
 const CLOSE_TRIGGER = 'close';
 const ONBOARDING_COMPLETED_TRIGGER = 'onboardingCompleted';
 
@@ -468,11 +467,8 @@ const MoneyOnboardingView = () => {
         title: strings('money.rive_onboarding.step3_title'),
         content: strings(
           isUsUnauthenticatedNonCardholder
-            ? 'money.rive_onboarding.step3_body_card_ineligible'
-            : 'money.rive_onboarding.step3_body_card_eligible',
-          {
-            percentage: CARD_CASHBACK_PERCENTAGE,
-          },
+            ? 'money.rive_onboarding.step3_body_coming_soon'
+            : 'money.rive_onboarding.step3_body',
         ),
         footer: strings('money.rive_onboarding.step3_footer_text'),
       },
