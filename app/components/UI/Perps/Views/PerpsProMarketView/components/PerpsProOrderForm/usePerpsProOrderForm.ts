@@ -113,6 +113,7 @@ import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selecte
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
+  formatMaxSlippageNumber,
   formatPercentageNumber,
   formatPerpsFiat,
   formatPerpsPrice,
@@ -4085,17 +4086,17 @@ export const usePerpsProOrderForm = ({
     if (!hidesSlippage) {
       if (isTriggerMarketOrder) {
         slippage = strings('perps.slippage.row_format_max', {
-          value: bpsToPercent(resolvedMaxSlippageBps),
+          value: formatMaxSlippageNumber(resolvedMaxSlippageBps),
         });
       } else if (isMarketOrder) {
         slippage =
           estimatedSlippagePctDisplay === null
             ? strings('perps.slippage.row_format_pending', {
-                value: bpsToPercent(maxSlippageBps),
+                value: formatMaxSlippageNumber(maxSlippageBps),
               })
             : strings('perps.slippage.row_format', {
                 est: estimatedSlippagePctDisplay,
-                value: bpsToPercent(maxSlippageBps),
+                value: formatMaxSlippageNumber(maxSlippageBps),
               });
       }
     }

@@ -31,6 +31,7 @@ import {
   PerpsSlippageConfigSelectorsIDs,
   getPerpsSlippageConfigSelector,
 } from '../../Perps.testIds';
+import { formatMaxSlippageNumber } from '../../utils/formatUtils';
 import PerpsCustomSlippageBottomSheet from './PerpsCustomSlippageBottomSheet';
 
 interface PerpsSlippageBottomSheetProps {
@@ -123,7 +124,9 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
     );
   }
 
-  const customLabel = isCustom ? `${bpsToPercent(selectedBps)}%` : null;
+  const customLabel = isCustom
+    ? `${formatMaxSlippageNumber(selectedBps)}%`
+    : null;
 
   return (
     <BottomSheet
@@ -156,7 +159,7 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
                   size={FilterButtonSize.Lg}
                   testID={getPerpsSlippageConfigSelector.preset(pct)}
                 >
-                  {`${pct}%`}
+                  {`${formatMaxSlippageNumber(bps)}%`}
                 </FilterButton>
               );
             })}

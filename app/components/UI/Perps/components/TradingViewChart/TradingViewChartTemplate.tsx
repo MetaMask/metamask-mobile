@@ -576,7 +576,7 @@ export const createTradingViewChartTemplate = (
                             // current price value here and apply consistent formatting
                             if (window.currentPriceNumeric !== undefined &&
                                 Math.abs(price - window.currentPriceNumeric) < 0.0000001) {
-                                return window.formatPriceUniversal(price);
+                                return window.currentPriceLabel || window.formatPriceUniversal(price);
                             }
 
                             const absPrice = Math.abs(price);
@@ -1054,7 +1054,7 @@ export const createTradingViewChartTemplate = (
         };
         
         // Function to create/update current price line
-        window.updateCurrentPriceLine = function(currentPrice) {
+        window.updateCurrentPriceLine = function(currentPrice, currentPriceLabel) {
             if (!window.candlestickSeries) {
                 return;
             }
@@ -1068,6 +1068,7 @@ export const createTradingViewChartTemplate = (
                 }
                 window.priceLines.currentPrice = null;
                 window.currentPriceNumeric = undefined;
+                window.currentPriceLabel = undefined;
             }
 
             // Create new current price line if price is valid
@@ -1076,6 +1077,7 @@ export const createTradingViewChartTemplate = (
                     const priceNumeric = parseFloat(currentPrice);
                     // Store numeric value so priceFormatter can detect and use universal formatting
                     window.currentPriceNumeric = priceNumeric;
+                    window.currentPriceLabel = currentPriceLabel;
 
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: priceNumeric,
@@ -1345,7 +1347,7 @@ ${createLimitOrderOverlayScript({
 
             // Update current price line if provided
             if (lines.currentPrice) {
-                window.updateCurrentPriceLine(lines.currentPrice);
+                window.updateCurrentPriceLine(lines.currentPrice, lines.currentPriceLabel);
             }
             
             // Remove existing entry line if it exists

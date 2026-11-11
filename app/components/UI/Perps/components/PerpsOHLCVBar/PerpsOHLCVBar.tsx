@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   formatPerpsFiat,
-  formatCoinVolume,
+  formatPerpsCompact,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsOHLCVBar.styles';
@@ -71,7 +71,9 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
     });
 
     // Candle volume is base-asset size (coins), not USD.
-    const formattedVolume = volume ? formatCoinVolume(volume) : null;
+    const formattedVolume = volume
+      ? formatPerpsCompact(volume, { field: 'orderBookSize' })
+      : null;
 
     return {
       open: formattedOpen,

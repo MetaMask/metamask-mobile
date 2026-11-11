@@ -813,7 +813,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('BTC · -0.2300% Funding')).toBeOnTheScreen();
     });
 
-    it('displays zero funding rate when fundingRate is undefined', () => {
+    it('displays the funding placeholder when fundingRate is undefined', () => {
       const marketWithoutFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: undefined,
@@ -826,11 +826,10 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      // Should display zero funding rate using formatFundingRate utility
-      expect(screen.getByText('BTC · 0.0000% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · --% Funding')).toBeOnTheScreen();
     });
 
-    it('displays zero funding rate when fundingRate is null', () => {
+    it('displays the funding placeholder when fundingRate is null', () => {
       const marketWithNullFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: null as unknown as number,
@@ -843,8 +842,7 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      // Should display zero funding rate
-      expect(screen.getByText('BTC · 0.0000% Funding')).toBeOnTheScreen();
+      expect(screen.getByText('BTC · --% Funding')).toBeOnTheScreen();
     });
 
     it('displays zero funding rate when fundingRate is 0', () => {

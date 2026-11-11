@@ -14,12 +14,13 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import { useBlinkingCursor } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { formatLimitPriceInput } from '../../../utils/formatUtils';
 
 /** Muted stand-in that reads as an input the keypad is waiting to fill. */
-const EMPTY_LIMIT_PRICE_DISPLAY = '0.00';
+const EMPTY_LIMIT_PRICE_DRAFT = '0.00';
 
 export interface PerpsLimitPriceRowProps {
-  /** Numeric portion only; the row renders its own `$`. */
+  /** The complete localized draft, currency included (`formatLimitPriceInput`). */
   value: string;
   hasValue: boolean;
   error: string;
@@ -51,6 +52,9 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
   }
 
   const isEmptyInReview = !hasValue && !isEditing;
+  const displayValue = hasValue
+    ? value
+    : formatLimitPriceInput(EMPTY_LIMIT_PRICE_DRAFT);
 
   const cursor = isEditing ? (
     <Animated.View
@@ -67,9 +71,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={`${strings('perps.order.limit_price')}, ${
-          isEmptyInReview
-            ? strings('perps.order.set_price')
-            : `$${hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}`
+          isEmptyInReview ? strings('perps.order.set_price') : displayValue
         }`}
         onPress={onPress}
         testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW}
@@ -96,12 +98,6 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
               </Text>
             ) : (
               <>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  $
-                </Text>
                 {!hasValue ? cursor : null}
                 <Text
                   variant={TextVariant.BodyMd}
@@ -110,7 +106,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
                     PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
                   }
                 >
-                  {hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}
+                  {displayValue}
                 </Text>
                 {hasValue ? cursor : null}
               </>

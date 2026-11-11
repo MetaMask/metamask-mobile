@@ -388,7 +388,7 @@ describe('PerpsPositionsView', () => {
   });
 
   describe('Account Summary Calculations', () => {
-    it('handles missing account state values', async () => {
+    it('shows placeholders for missing account state values', async () => {
       // Arrange
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
@@ -405,9 +405,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        // Check that multiple zero values are properly formatted and displayed
-        const zeroValues = screen.getAllByText('$0.00');
-        expect(zeroValues.length).toBeGreaterThan(0);
+        expect(screen.getAllByText('--')).toHaveLength(2);
+        expect(screen.getByText('$---')).toBeOnTheScreen();
       });
     });
 

@@ -189,13 +189,6 @@ export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
   new Set([CHASE_ORDER_STATUS.Active, CHASE_ORDER_STATUS.TerminationPending]);
 
 /**
- * Decimal places used when displaying how far a position's current price sits
- * from its liquidation price, as a percentage. Whole-number rounding hid
- * meaningful headroom — a position 0.4% from liquidation displayed as 0%.
- */
-export const LIQUIDATION_DISTANCE_DECIMALS = 2;
-
-/**
  * Decimal places for the estimated and max slippage percentages in the order
  * forms. Mobile keeps its current 2 decimals while product decides whether it
  * moves to perps-controller's `PERPS_DISPLAY_PRECISION.SlippageEstimatePercent`

@@ -41,6 +41,7 @@ import {
 } from '@metamask/perps-controller';
 import {
   formatFundingSinceOpen,
+  FUNDING_SINCE_OPEN_ZERO_THRESHOLD,
   formatPercentage,
   formatPerpsFiat,
   formatPnl,
@@ -144,7 +145,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   // Funding cost (cumulative since open) formatting logic
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
   const fundingSinceOpen = parseFloat(fundingSinceOpenRaw);
-  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> neutral colour
+  const isNearZeroFunding =
+    Math.abs(fundingSinceOpen) < FUNDING_SINCE_OPEN_ZERO_THRESHOLD;
 
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
   let fundingColorFromValue: TextColor = TextColor.TextDefault;

@@ -959,7 +959,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_PROGRESS),
         ),
-      ).toHaveTextContent('40.00%');
+      ).toHaveTextContent('40%');
       expect(
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_ELAPSED),

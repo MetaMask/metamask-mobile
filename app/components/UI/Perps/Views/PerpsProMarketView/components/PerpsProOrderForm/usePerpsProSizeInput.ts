@@ -1,4 +1,7 @@
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_DISPLAY_PRECISION,
+} from '@metamask/perps-controller';
 import { BigNumber } from 'bignumber.js';
 import {
   useCallback,
@@ -411,7 +414,7 @@ export const usePerpsProSizeInput = ({
         ? preserveAssetIntent
           ? undefined
           : getDecimalPlaces(szDecimals)
-        : 2,
+        : PERPS_DISPLAY_PRECISION.UsdInput,
       acceptedDecimalSeparators: ['.', ','],
     }),
     [maxDigits, preserveAssetIntent, showsAssetSize, szDecimals],

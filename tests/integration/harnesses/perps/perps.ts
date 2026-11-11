@@ -558,11 +558,13 @@ function buildHarnessController(
 export function buildPerpsControllerHarness(): {
   controller: PerpsController;
   subscription: jest.Mocked<HyperLiquidSubscriptionService>;
+  wallet: jest.Mocked<HyperLiquidWalletService>;
 } {
   const { mocks } = buildPerpsIntegrationHarness();
   return {
     controller: buildHarnessController(mocks.infrastructure),
     subscription: mocks.subscription,
+    wallet: mocks.wallet,
   };
 }
 

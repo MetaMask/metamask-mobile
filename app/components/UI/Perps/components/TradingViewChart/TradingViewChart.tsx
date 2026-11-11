@@ -549,7 +549,18 @@ const TradingViewChart = React.forwardRef<
           // Update TPSL lines when they exist
           sendMessage({
             type: 'ADD_AUXILIARY_LINES',
-            lines: tpslLines,
+            lines: {
+              ...tpslLines,
+              // The WebView cannot import app code, so the current price axis
+              // label is formatted here to match the header, without the
+              // currency symbol the axis does not show.
+              currentPriceLabel: tpslLines.currentPrice
+                ? formatPerpsFiat(tpslLines.currentPrice, {
+                    ranges: PRICE_RANGES_UNIVERSAL,
+                    symbol: false,
+                  })
+                : undefined,
+            },
           });
         } else {
           // Clear TPSL lines when they don't exist (position closed)

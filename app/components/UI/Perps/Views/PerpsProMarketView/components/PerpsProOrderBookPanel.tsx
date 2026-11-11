@@ -18,7 +18,11 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  getPerpsOrderBookPriceFormat,
+  type PerpsOrderBookPriceFormat,
+} from '@metamask/perps-controller';
 import { AnimationDuration } from '@metamask/design-tokens';
 import React, {
   useCallback,
@@ -50,17 +54,16 @@ import {
 } from '../../../hooks/usePerpsProOrderBookPosition';
 import {
   formatPerpsFiat,
+  formatPerpsOrderBookPrice,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
   formatColumnValue,
-  formatOrderBookPrice,
   formatSpreadPercent,
   getDepthRatio,
   getDepthWidth,
-  getOrderBookPriceFormat,
   getOrderBookPriceValue,
   groupOrderBook,
   FAST_ORDER_BOOK_LEVELS,
@@ -68,7 +71,6 @@ import {
   selectDefaultGrouping,
   type OrderBookListCurrency,
   type OrderBookListMetric,
-  type OrderBookPriceFormat,
 } from '../../../utils/orderBookGrouping';
 import {
   getPerpsOrderBookSizeOnClickPreference,
@@ -135,7 +137,7 @@ interface OrderBookRowProps {
   depthMax: number;
   depthBarColor: string;
   szDecimals?: number;
-  priceFormat: OrderBookPriceFormat | null;
+  priceFormat: PerpsOrderBookPriceFormat | null;
   onSelectPrice?: (price: string, size: string) => void;
   /** Side the order-book column is pinned to; mirrors the row when 'left'. */
   layout: PerpsProOrderBookPosition;
@@ -173,7 +175,7 @@ const OrderBookRow = ({
     width: `${depthWidthSv.value}%`,
   }));
 
-  const priceLabel = formatOrderBookPrice(level.price, priceFormat);
+  const priceLabel = formatPerpsOrderBookPrice(level.price, priceFormat);
 
   const priceCell = (
     <Text
@@ -557,10 +559,14 @@ const PerpsProOrderBookPanel = ({
   }, [currentGrouping, midPriceValue]);
 
   // One shared price format for the whole ladder, derived from the grouping
-  // step — see `getOrderBookPriceFormat` for why per-row magnitude formatting
-  // is not usable here.
+  // step — see Core `getPerpsOrderBookPriceFormat` for why per-row magnitude
+  // formatting is not usable here.
   const priceFormat = useMemo(
-    () => getOrderBookPriceFormat(currentGrouping, midPriceValue, szDecimals),
+    () =>
+      getPerpsOrderBookPriceFormat(currentGrouping, {
+        midPrice: midPriceValue,
+        szDecimals,
+      }),
     [currentGrouping, midPriceValue, szDecimals],
   );
 

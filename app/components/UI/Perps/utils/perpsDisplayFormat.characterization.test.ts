@@ -279,9 +279,9 @@ describe('perps display format characterization', () => {
 
     expect(formatted).toMatchInlineSnapshot(`
       {
-        "0": "0.00%",
-        "10000": "100.00%",
-        "2500": "25.00%",
+        "0": "0%",
+        "10000": "100%",
+        "2500": "25%",
         "3333": "33.33%",
         "9999": "99.99%",
       }

@@ -188,12 +188,6 @@
       "prettier --write"
     ]
   },
-  "previewBuilds": {
-    "@metamask/perps-controller": {
-      "type": "breaking",
-      "previewVersion": "22.3.0-preview-a2a3d82"
-    }
-  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
@@ -440,7 +434,7 @@
     "@metamask/network-enablement-controller": "^7.1.0",
     "@metamask/notification-services-controller": "^29.0.3",
     "@metamask/permission-controller": "^14.0.0",
-    "@metamask/perps-controller": "^22.3.0",
+    "@metamask/perps-controller": "^23.1.0",
     "@metamask/phishing-controller": "^18.2.1",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",

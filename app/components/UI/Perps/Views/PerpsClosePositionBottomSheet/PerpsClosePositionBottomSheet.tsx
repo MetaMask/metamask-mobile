@@ -178,8 +178,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     [filteredErrors, limitPriceInput.error],
   );
 
-  // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
-  // standalone `$` and shows only the numeric portion next to it.
+  // `formattedLimitPrice` is the complete localized draft, currency included
+  // (`$1,234.50`, or `1.234,50 $` in German); the row renders it as is.
   const hasLimitPriceValue = Boolean(limitPriceInput.formattedLimitPrice);
   const needsLimitPriceHint =
     effectiveOrderType === 'limit' &&
@@ -241,7 +241,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {effectiveOrderType === 'limit' && (
         <PerpsLimitPriceRow
-          value={limitPriceInput.formattedLimitPrice.replace(/^\$/, '')}
+          value={limitPriceInput.formattedLimitPrice}
           hasValue={hasLimitPriceValue}
           error={limitPriceInput.error}
           isEditing={isEditingLimitPrice}

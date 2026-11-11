@@ -2467,8 +2467,10 @@ class AvailableToTradeStreamChannel extends StreamChannel<
         symbol: route.symbol,
         providerId: route.providerId,
         callback: (value: PerpsAvailableToTrade) => {
+          // A frame for the previous account can land after an account
+          // switch and before the connection manager reconnects.
           if (
-            !this.isSubscriptionGenerationCurrent(subscriptionContext) ||
+            !this.isSubscriptionContextCurrent(subscriptionContext) ||
             value.symbol !== route.symbol
           ) {
             return;
@@ -2478,7 +2480,7 @@ class AvailableToTradeStreamChannel extends StreamChannel<
           this.notifySubscribersForSymbols(value, [key]);
         },
         onError: (error: Error) => {
-          if (!this.isSubscriptionGenerationCurrent(subscriptionContext)) {
+          if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
             return;
           }
           this.cache.delete(key);

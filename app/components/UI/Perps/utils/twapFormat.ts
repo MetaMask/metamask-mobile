@@ -87,14 +87,15 @@ export const formatTwapElapsedClock = (
 };
 
 /**
- * Render basis points as a percent string at shared percentage precision,
- * e.g. 2500 -> `25.00%`.
+ * Render basis points as a percent string without trailing zeros, e.g.
+ * 2500 -> `25%`, 3333 -> `33.33%`.
  * The controller reports TWAP fill and time progress in bps.
  */
 export const formatTwapProgressPercent = (bps: number): string => {
   const clampedBps = Math.min(Math.max(bps, 0), 10000);
   return formatPercentage(clampedBps / 100, {
-    decimals: PERPS_DISPLAY_PRECISION.Percentage,
+    decimals: PERPS_DISPLAY_PRECISION.TwapProgressPercent,
+    stripTrailingZeros: true,
     sign: 'never',
   });
 };

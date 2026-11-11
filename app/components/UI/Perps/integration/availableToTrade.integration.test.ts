@@ -1,49 +1,30 @@
 /**
  * Integration test — order form "available to trade" from the real
  * PerpsController → HyperLiquidProvider chain into Mobile's shared stream
- * channel. Only the websocket subscription service (I/O) is mocked; Engine,
- * the connection manager and account lookup are app glue shims.
+ * channel. Only the websocket subscription service (I/O) is mocked; the stream
+ * harness owns the Engine binding, the connection manager state and the store.
  */
 
-// The harness installs the controller boundary mocks before the controller
-// entrypoint is evaluated.
-import { buildPerpsControllerHarness } from '../../../../../tests/integration/harnesses/perps/perps';
-import type { PerpsController } from '@metamask/perps-controller';
+// The harness installs the controller boundary and app-shell mocks before the
+// controller entrypoint and Engine are evaluated.
+import {
+  buildPerpsStreamHarness,
+  resetPerpsStreamHarness,
+  type PerpsStreamHarness,
+} from '../../../../../tests/integration/harnesses/perps/perps-stream';
 import type { ActiveAssetDataWsEvent } from '@nktkas/hyperliquid';
 import { PerpsStreamManager } from '../providers/PerpsStreamManager';
 
-let mockController: PerpsController | null = null;
-const mockAccount = { address: '0xabc', type: 'eip155:eoa' };
-
-jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      get PerpsController() {
-        return mockController;
-      },
-      AccountTreeController: {
-        getAccountsFromSelectedAccountGroup: () => [mockAccount],
-      },
-    },
-  },
-}));
-jest.mock('../services/PerpsConnectionManager', () => ({
-  __esModule: true,
-  default: {
-    getConnectionState: () => ({ isInitialized: true, isConnecting: false }),
-  },
-  PerpsConnectionManager: {
-    getConnectionState: () => ({ isInitialized: true, isConnecting: false }),
-  },
-}));
-jest.mock('../../../../store', () => ({
-  store: { getState: jest.fn(() => ({})) },
-}));
+const ACCOUNT_A: `0x${string}` = '0x0000000000000000000000000000000000000abc';
+const ACCOUNT_B: `0x${string}` = '0x0000000000000000000000000000000000000def';
 
 /** A venue `activeAssetData` event carrying the long and short values. */
-const venueEvent = (long: string, short: string): ActiveAssetDataWsEvent => ({
-  user: '0x0000000000000000000000000000000000000abc',
+const venueEvent = (
+  long: string,
+  short: string,
+  user: `0x${string}` = ACCOUNT_A,
+): ActiveAssetDataWsEvent => ({
+  user,
   coin: 'BTC',
   leverage: { type: 'cross', value: 10 },
   maxTradeSzs: ['0', '1'],
@@ -52,9 +33,8 @@ const venueEvent = (long: string, short: string): ActiveAssetDataWsEvent => ({
 });
 
 describe('Perps available to trade — integration', () => {
-  let subscription: ReturnType<
-    typeof buildPerpsControllerHarness
-  >['subscription'];
+  let harness: PerpsStreamHarness;
+  let subscription: PerpsStreamHarness['subscription'];
   let streamManager: PerpsStreamManager;
 
   const lastVenueSubscription = () => {
@@ -63,16 +43,14 @@ describe('Perps available to trade — integration', () => {
   };
 
   beforeEach(async () => {
-    const harness = buildPerpsControllerHarness();
+    harness = await buildPerpsStreamHarness();
+    harness.selectAccount(ACCOUNT_A);
     subscription = harness.subscription;
-    mockController = harness.controller;
-    await harness.controller.init();
     streamManager = new PerpsStreamManager();
   });
 
   afterEach(async () => {
-    await mockController?.disconnect();
-    mockController = null;
+    await resetPerpsStreamHarness();
   });
 
   it('delivers long and short values for the subscribed market, including zero', () => {
@@ -115,7 +93,7 @@ describe('Perps available to trade — integration', () => {
     expect(streamManager.availableToTrade.getSnapshot()).toBeNull();
   });
 
-  it('resets to unknown on an account reconnect and streams the new account value', () => {
+  it('resets to unknown on a channel reset and ignores the retired subscription', () => {
     // Arrange
     const callback = jest.fn();
     streamManager.availableToTrade.subscribeToMarket({
@@ -141,6 +119,50 @@ describe('Perps available to trade — integration', () => {
     expect(venueUnsubscribe).toHaveBeenCalled();
     expect(subscription.subscribeToActiveAssetData).toHaveBeenCalledTimes(2);
     expect(valueBeforeNextDelivery).toBeUndefined();
+    expect(callback).not.toHaveBeenCalledWith(
+      expect.objectContaining({ long: '1' }),
+    );
+    expect(callback).toHaveBeenLastCalledWith(
+      expect.objectContaining({ long: '2', short: '3' }),
+    );
+  });
+
+  it('switches account A to B: drops A frames, stays unknown, then shows B', async () => {
+    // Arrange
+    const callback = jest.fn();
+    streamManager.availableToTrade.subscribeToMarket({
+      symbol: 'BTC',
+      providerId: 'hyperliquid',
+      callback,
+      throttleMs: 0,
+    });
+    const accountAVenue = lastVenueSubscription();
+    accountAVenue.callback(venueEvent('8.65', '9.65', ACCOUNT_A));
+    const accountAValue =
+      callback.mock.calls[callback.mock.calls.length - 1][0];
+
+    // Act: the selected account changes, and an A frame lands before the
+    // connection manager reconnects.
+    harness.selectAccount(ACCOUNT_B);
+    accountAVenue.callback(venueEvent('1', '1', ACCOUNT_A));
+    const callsAfterLateAFrame = callback.mock.calls.length;
+    // The manager's reconnect: clear user-scoped channels, re-initialize the
+    // controller for the new account, then resubscribe the channels.
+    streamManager.availableToTrade.clearCache();
+    await harness.controller.disconnect();
+    await harness.controller.init();
+    streamManager.availableToTrade.reconnect();
+    const valueBeforeB = callback.mock.calls[callback.mock.calls.length - 1][0];
+    const accountBVenue = lastVenueSubscription();
+    accountBVenue.callback(venueEvent('2', '3', ACCOUNT_B));
+
+    // Assert
+    expect(accountAValue).toStrictEqual(
+      expect.objectContaining({ long: '8.65', short: '9.65' }),
+    );
+    expect(callsAfterLateAFrame).toBe(1);
+    expect(valueBeforeB).toBeUndefined();
+    expect(accountBVenue).not.toBe(accountAVenue);
     expect(callback).not.toHaveBeenCalledWith(
       expect.objectContaining({ long: '1' }),
     );

@@ -35,6 +35,7 @@ import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfo
 import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
 import {
   formatFundingSinceOpen,
+  FUNDING_SINCE_OPEN_ZERO_THRESHOLD,
   formatPerpsFiat,
   formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -235,7 +236,8 @@ const PerpsProPositionCard = ({
   const fundingSinceOpen = parseFloat(
     position.cumulativeFunding?.sinceOpen ?? '0',
   );
-  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005;
+  const isNearZeroFunding =
+    Math.abs(fundingSinceOpen) < FUNDING_SINCE_OPEN_ZERO_THRESHOLD;
   let fundingColor: TextColor = TextColor.TextDefault;
   if (!isNearZeroFunding && fundingSinceOpen > 0) {
     fundingColor = TextColor.ErrorDefault;

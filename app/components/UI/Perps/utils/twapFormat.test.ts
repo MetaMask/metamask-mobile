@@ -55,12 +55,12 @@ describe('formatTwapDuration', () => {
 });
 
 describe('formatTwapProgressPercent', () => {
-  it('converts basis points to a percent at the shared precision', () => {
+  it('converts basis points to a percent without trailing zeros', () => {
     // Arrange / Act
     const result = formatTwapProgressPercent(2500);
 
     // Assert
-    expect(result).toBe('25.00%');
+    expect(result).toBe('25%');
   });
 
   it('keeps an active schedule below one hundred percent', () => {
@@ -71,7 +71,7 @@ describe('formatTwapProgressPercent', () => {
     expect(result).toBe('99.99%');
   });
 
-  it('keeps fractional progress at shared percentage precision', () => {
+  it('keeps fractional progress at two decimals', () => {
     // Arrange / Act
     const result = formatTwapProgressPercent(2505);
 
@@ -84,7 +84,7 @@ describe('formatTwapProgressPercent', () => {
     const result = formatTwapProgressPercent(12000);
 
     // Assert
-    expect(result).toBe('100.00%');
+    expect(result).toBe('100%');
   });
 
   it('clamps a negative value to zero', () => {
@@ -92,7 +92,7 @@ describe('formatTwapProgressPercent', () => {
     const result = formatTwapProgressPercent(-500);
 
     // Assert
-    expect(result).toBe('0.00%');
+    expect(result).toBe('0%');
   });
 });
 
