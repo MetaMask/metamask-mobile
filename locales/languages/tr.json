@@ -1154,66 +1154,10 @@
       "powered_by": "Destekleyen",
       "button": "Hesap bilgilerini alın"
     },
-    "verify_identity": {
-      "title": "Kimliğinizi doğrulayın",
-      "description": "Bu işlem genellikle birkaç dakika sürer. Elinizin altında geçerli, resmi fotoğraflı bir kimlik belgesi olmalıdır.",
-      "step_photograph_id": "Kimlik belgenizin fotoğrafını çekin",
-      "step_take_selfie": "Selfie çekin",
-      "step_confirm_details": "Bilgilerinizi onaylayın",
-      "step_answer_questions": "Birkaç soruyu cevaplayın",
-      "footer": "Bilgileriniz şifrelenir ve güvenli bir şekilde doğrulama sağlayıcılarımızla paylaşılır. Devam etmeden önce bilgileri inceleyeceksiniz.",
-      "powered_by": "Destekleyen",
-      "disclaimers_error": "Şart ve koşullar yüklenemedi.",
-      "disclaimers_retry": "Tekrar dene",
-      "button": "Devam et",
-      "terms_sheet_title": "Veriler ve gizlilik",
-      "terms_sheet_description": "Kimliğinizi doğrulamak için bilgileriniz güvenli bir şekilde aşağıdaki sağlayıcılarla paylaşılacaktır. Devam etmeden önce politikalarını ve şartlarını inceleyin.",
-      "metamask_privacy_policy": "MetaMask Gizlilik Politikası",
-      "metamask_terms": "MetaMask Şart ve Koşulları",
-      "terms_sheet_button": "Kabul edin ve doğrulamayı başlatın"
-    },
-    "kyc_email": {
-      "error_title": "Doğrulama başlatılamadı",
-      "error_description": "E-posta doğrulama açılırken bir şeyler ters gitti. Lütfen tekrar deneyin."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Biraz daha bilgiye ihtiyacımız var",
-      "more_info_description": "Bazen doğrulama işlemini tamamlamak için daha fazla bilgiye ihtiyacımız olur. Devam etmek için gerekli olan bilgileri aşağıda inceleyebilirsiniz.",
-      "more_info_item_title": "Adres kanıtı",
-      "more_info_item_description": "Adınızı ve güncel ev adresinizi gösteren yakın tarihli bir belge yükleyin",
-      "more_info_button": "Devam Et",
-      "more_info_help": "Doğrulama konusunda yardıma mı ihtiyacınız var?",
-      "error_title": "Doğrulama başlatılamadı",
-      "error_description": "Kimlik doğrulama açılırken bir şeyler ters gitti. Lütfen tekrar deneyin.",
-      "retry": "Tekrar dene"
-    },
-    "kyc_taking_longer": {
-      "title": "Kimliğiniz doğrulanıyor",
-      "description": "Çoğu kontrol yaklaşık 10 saniye içinde biter. Daha sonra tekrar gelebilirsiniz, kontrolünüz tamamlandığında sizi bilgilendireceğiz.",
-      "button": "Daha sonra tekrar gelin"
-    },
-    "identity_verified": {
-      "title": "Kimlik doğrulandı",
-      "description": "Kimlik kontrolünüz tamamlandı.",
-      "button": "Devam Et"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "MoonPay'in hesabınızı onaylaması bekleniyor"
-    },
-    "kyc_rejected": {
-      "title": "Kimliğinizi doğrulayamadık",
-      "description": "Dikkatinizi gerektiren birkaç bilgi var. Aşağıdaki her bir ögeyi inceleyin, ardından destek bölümü ile iletişime geçin.",
-      "retry_description": "Dikkatinizi gerektiren birkaç bilgi var. Aşağıdaki her bir ögeyi inceleyin, ardından tekrar deneyin.",
-      "identity_document_title": "Kimlik belgenizi kontrol edin",
-      "identity_document_description": "Geçerli, okunaklı ve tamamen görünür olduğundan emin olun",
-      "selfie_title": "Selfienizi tekrar çekin",
-      "selfie_description": "İyi bir aydınlatma kullanın ve yüzünüz net bir şekilde görünsün",
-      "details_title": "Bilgilerinizi inceleyin",
-      "details_description": "Bilgilerinizin belgelerinizle uyumlu olduğundan emin olun",
-      "button": "Destek ile iletişime geç",
-      "retry_button": "Tekrar deneyin"
     },
     "account_provisioning_error": {
       "title": "Hesabınız oluşturulamadı",
@@ -1271,6 +1215,64 @@
       "load_error": "Para yatırma işlemi yenilenemedi. Tekrar deneyeceğiz.",
       "setup_error": "Hesabınız oluşturulamadı.",
       "retry": "Tekrar deneyin"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "Kimliğinizi doğrulayın",
+      "description": "Bu işlem genellikle birkaç dakika sürer. Elinizin altında geçerli, resmi fotoğraflı bir kimlik belgesi olmalıdır.",
+      "step_photograph_id": "Kimlik belgenizin fotoğrafını çekin",
+      "step_take_selfie": "Selfie çekin",
+      "step_confirm_details": "Bilgilerinizi onaylayın",
+      "step_answer_questions": "Birkaç soruyu cevaplayın",
+      "footer": "Bilgileriniz şifrelenir ve güvenli bir şekilde doğrulama sağlayıcılarımızla paylaşılır. Devam etmeden önce bilgileri inceleyeceksiniz.",
+      "powered_by": "Destekleyen",
+      "disclaimers_error": "Şart ve koşullar yüklenemedi.",
+      "disclaimers_retry": "Tekrar dene",
+      "button": "Devam et",
+      "terms_sheet_title": "Veriler ve gizlilik",
+      "terms_sheet_description": "Kimliğinizi doğrulamak için bilgileriniz güvenli bir şekilde aşağıdaki sağlayıcılarla paylaşılacaktır. Devam etmeden önce politikalarını ve şartlarını inceleyin.",
+      "metamask_privacy_policy": "MetaMask Gizlilik Politikası",
+      "metamask_terms": "MetaMask Şart ve Koşulları",
+      "terms_sheet_button": "Kabul edin ve doğrulamayı başlatın"
+    },
+    "kyc_email": {
+      "error_title": "Doğrulama başlatılamadı",
+      "error_description": "E-posta doğrulama açılırken bir şeyler ters gitti. Lütfen tekrar deneyin."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Biraz daha bilgiye ihtiyacımız var",
+      "more_info_description": "Bazen doğrulama işlemini tamamlamak için daha fazla bilgiye ihtiyacımız olur. Devam etmek için gerekli olan bilgileri aşağıda inceleyebilirsiniz.",
+      "more_info_item_title": "Adres kanıtı",
+      "more_info_item_description": "Adınızı ve güncel ev adresinizi gösteren yakın tarihli bir belge yükleyin",
+      "more_info_button": "Devam Et",
+      "more_info_help": "Doğrulama konusunda yardıma mı ihtiyacınız var?",
+      "error_title": "Doğrulama başlatılamadı",
+      "error_description": "Kimlik doğrulama açılırken bir şeyler ters gitti. Lütfen tekrar deneyin.",
+      "retry": "Tekrar dene"
+    },
+    "kyc_taking_longer": {
+      "title": "Kimliğiniz doğrulanıyor",
+      "description": "Çoğu kontrol yaklaşık 10 saniye içinde biter. Daha sonra tekrar gelebilirsiniz, kontrolünüz tamamlandığında sizi bilgilendireceğiz.",
+      "button": "Daha sonra tekrar gelin"
+    },
+    "identity_verified": {
+      "title": "Kimlik doğrulandı",
+      "description": "Kimlik kontrolünüz tamamlandı.",
+      "button": "Devam Et"
+    },
+    "kyc_rejected": {
+      "title": "Kimliğinizi doğrulayamadık",
+      "description": "Dikkatinizi gerektiren birkaç bilgi var. Aşağıdaki her bir ögeyi inceleyin, ardından destek bölümü ile iletişime geçin.",
+      "retry_description": "Dikkatinizi gerektiren birkaç bilgi var. Aşağıdaki her bir ögeyi inceleyin, ardından tekrar deneyin.",
+      "identity_document_title": "Kimlik belgenizi kontrol edin",
+      "identity_document_description": "Geçerli, okunaklı ve tamamen görünür olduğundan emin olun",
+      "selfie_title": "Selfienizi tekrar çekin",
+      "selfie_description": "İyi bir aydınlatma kullanın ve yüzünüz net bir şekilde görünsün",
+      "details_title": "Bilgilerinizi inceleyin",
+      "details_description": "Bilgilerinizin belgelerinizle uyumlu olduğundan emin olun",
+      "button": "Destek ile iletişime geç",
+      "retry_button": "Tekrar deneyin"
     }
   },
   "social": {
@@ -11910,7 +11912,6 @@
       "email_label": "E-posta",
       "password_label": "Şifre",
       "login_button": "Giriş yap",
-      "siwe_button": "Ethereum ile giriş yapın",
       "continue_button": "Devam et",
       "uk_login_button": "Bu hesapla giriş yap",
       "signup_button": "Kaydol",

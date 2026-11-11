@@ -1,6 +1,11 @@
 import '../../../../../tests/component-view/mocks';
 import { Linking } from 'react-native';
-import { userEvent, waitFor, within } from '@testing-library/react-native';
+import {
+  fireEvent,
+  userEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 
 import { renderTokenDetailsV1View } from '../../../../../tests/component-view/renderers/tokenDetailsV1';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
@@ -465,6 +470,67 @@ describeForPlatforms('TokenDetailsV1', () => {
     ).not.toBeOnTheScreen();
     expect(
       getByTestId(tokenDetailsV1TabPageTestId('overview')),
+    ).toBeOnTheScreen();
+  });
+
+  it('switches tabs from the docked tab bar once the page scrolls past it', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTokenDetailsV1View();
+    const tabBarSlot = await findByTestId(
+      TokenDetailsIds.tabBarSlot,
+      {},
+      FIND_TIMEOUT,
+    );
+    // Layout and scroll do not run in jest, so place the tab bar and scroll
+    // past it by hand.
+    fireEvent(tabBarSlot, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 400, width: 390, height: 48 } },
+    });
+    fireEvent.scroll(getByTestId(TokenDetailsIds.scrollView), {
+      nativeEvent: {
+        contentOffset: { x: 0, y: 900 },
+        contentSize: { width: 390, height: 3000 },
+        layoutMeasurement: { width: 390, height: 800 },
+      },
+    });
+
+    // Only the docked copy takes taps and is announced; the in-flow bar is
+    // hidden from both.
+    await waitFor(() => {
+      expect(
+        queryByTestId(getTokenDetailsV1TabTestId('security')),
+      ).not.toBeOnTheScreen();
+    });
+    await userEvent.press(getByTestId(TokenDetailsIds.pinnedTab('security')));
+
+    expect(
+      await findByTestId(SecurityTabSelectors.TAB, {}, FIND_TIMEOUT),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(tokenDetailsV1TabPageTestId('overview')),
+    ).not.toBeOnTheScreen();
+
+    // Scrolling back above the bar hands taps back to the in-flow copy.
+    fireEvent.scroll(getByTestId(TokenDetailsIds.scrollView), {
+      nativeEvent: {
+        contentOffset: { x: 0, y: 0 },
+        contentSize: { width: 390, height: 3000 },
+        layoutMeasurement: { width: 390, height: 800 },
+      },
+    });
+    await waitFor(() => {
+      expect(
+        queryByTestId(TokenDetailsIds.pinnedTab('overview')),
+      ).not.toBeOnTheScreen();
+    });
+    await userEvent.press(getByTestId(getTokenDetailsV1TabTestId('overview')));
+
+    expect(
+      await findByTestId(
+        tokenDetailsV1TabPageTestId('overview'),
+        {},
+        FIND_TIMEOUT,
+      ),
     ).toBeOnTheScreen();
   });
 });

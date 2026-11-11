@@ -1,14 +1,17 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  ScrollView,
-  StyleSheet,
+  Platform,
   View,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   BottomSheet,
   Box,
@@ -27,6 +30,8 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { useIsMemeToken } from '../../../UI/TokenDetails/hooks/useIsMemeToken';
+import { toFeedAssetId } from '../../../UI/SocialFeed/data/socialFeedSource';
 import TraderPositionQuickBuy, {
   positionToQuickBuyTarget,
 } from '../../../UI/QuickBuy';
@@ -43,7 +48,15 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
 import { playSelection } from '../../../../util/haptics';
+import {
+  formatAbbreviatedUsd,
+  formatTradeUnitPrice,
+} from '../../../UI/SocialFeed/utils/formatters';
+import { deriveMarketCapPerPrice } from '../../../UI/SocialFeed/utils/toSocialV1FeedItem';
 import PositionSheetChart from './components/PositionSheetChart';
+import PositionSheetChartControls, {
+  type HeadlineValueMode,
+} from './components/PositionSheetChartControls';
 import PositionSheetFooter from './components/PositionSheetFooter';
 import PositionSheetHeader from './components/PositionSheetHeader';
 import PositionSheetPriceHeader from './components/PositionSheetPriceHeader';
@@ -53,15 +66,10 @@ import PositionSheetTabs, {
 import PositionSheetTradeSummary from './components/PositionSheetTradeSummary';
 import { useLivePosition } from './hooks/useLivePosition';
 import { usePositionSheetData } from './hooks/usePositionSheetData';
-import { useTwoStepSheetReveal } from './hooks/useTwoStepSheetReveal';
-import { formatChartTimestamp } from './utils/chartWindow';
+import { useChartLineReveal } from './hooks/useChartLineReveal';
+import { formatChartTimestamp, type ChartPeriod } from './utils/chartWindow';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
-
-const styles = StyleSheet.create({
-  // Measured at its natural height while the clipping parent animates open.
-  detailsMeasure: { position: 'absolute', top: 0, left: 0, right: 0 },
-});
 
 const addressesMatch = (
   left: string | null | undefined,
@@ -75,9 +83,8 @@ const addressesMatch = (
 };
 
 /**
- * Social V1 position / trade details. Opens in two steps: the header and the
- * self-drawing price line first, then the sheet grows to show the trade
- * summary, the post (when there is one) and the actions.
+ * Social V1 position / trade details: the header, a self-drawing price line,
+ * the trade summary, the post (when there is one) and the actions.
  */
 const PositionDetailsSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -110,7 +117,21 @@ const PositionDetailsSheet = () => {
     { isNetworkAvailable },
   );
   const isChartLoading = data.isPricesLoading || live.isLoading;
-  const reveal = useTwoStepSheetReveal({
+  // One lookup per opened spot position. Perps and a confirmed offline tier
+  // skip it. The query aborts when this sheet unmounts.
+  const spotAssetId =
+    data.isPerp || !position
+      ? null
+      : toFeedAssetId({
+          chain: position.chain,
+          tokenAddress: position.tokenAddress,
+          tokenSymbol: position.tokenSymbol,
+        });
+  const { isMeme } = useIsMemeToken({
+    assetId: spotAssetId,
+    enabled: isNetworkAvailable && spotAssetId != null,
+  });
+  const reveal = useChartLineReveal({
     isChartReady: !isChartLoading,
     hasChartData: data.prices.length >= 2,
   });
@@ -123,22 +144,50 @@ const PositionDetailsSheet = () => {
     addressesMatch(author.address, profile?.linkedAccountAddress);
 
   const [scrubPoint, setScrubPoint] = useState<TokenPrice | null>(null);
+  const [headlineChoice, setHeadlineChoice] =
+    useState<HeadlineValueMode | null>(null);
+  const [headlinePositionId, setHeadlinePositionId] = useState(
+    position?.positionId,
+  );
+  if (headlinePositionId !== position?.positionId) {
+    setHeadlinePositionId(position?.positionId);
+    setHeadlineChoice(null);
+  }
   const [isTabsExpanded, setIsTabsExpanded] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [pinnedFooterHeight, setPinnedFooterHeight] = useState(0);
+  const { height: frameHeight } = useSafeAreaFrame();
+  const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();
+  // Matches the padding the design-system sheet adds under its content.
+  const sheetBottomPadding =
+    Platform.OS === 'ios' || Platform.OS === 'macos'
+      ? bottomInset
+      : bottomInset + 16;
+  const maxScrollHeight = Math.max(
+    0,
+    frameHeight -
+      topInset -
+      sheetBottomPadding -
+      headerHeight -
+      (isTabsExpanded ? pinnedFooterHeight : 0),
+  );
 
-  // Upward-only so a downward drag still dismisses the sheet. Collapsed, the
-  // footer sits right under the tab bar; scrolling up opens the active tab.
-  const expandGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .withTestId(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE)
-        .runOnJS(true)
-        .enabled(!isTabsExpanded)
-        .activeOffsetY(-6)
-        .failOffsetY(6)
-        .onEnd((event) => {
-          if (event.translationY < -SWIPE_THRESHOLD) setIsTabsExpanded(true);
-        }),
-    [isTabsExpanded],
+  const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+    setHeaderHeight(Math.ceil(event.nativeEvent.layout.height));
+  }, []);
+  const handlePinnedFooterLayout = useCallback((event: LayoutChangeEvent) => {
+    setPinnedFooterHeight(Math.ceil(event.nativeEvent.layout.height));
+  }, []);
+
+  // Scrolling up past the threshold opens the active tab. The sheet's own
+  // pan still dismisses on a downward drag.
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (event.nativeEvent.contentOffset.y > SWIPE_THRESHOLD) {
+        setIsTabsExpanded(true);
+      }
+    },
+    [],
   );
 
   // iOS bounce: pulling the open sheet down past its top closes the tab.
@@ -305,8 +354,34 @@ const PositionDetailsSheet = () => {
     openQuickBuy,
   ]);
 
+  const fillMarketCapPerPrice =
+    !data.isPerp && position ? deriveMarketCapPerPrice(position) : null;
+  const cardQuotesMarketCap = fillMarketCapPerPrice != null;
+  const showMarketCapToggle =
+    !data.isPerp && ((data.marketCap ?? 0) > 0 || cardQuotesMarketCap);
+  // Price until the meme check returns. A meme coin then opens on market cap.
+  // A choice the user already made stays put.
+  const headlineMode: HeadlineValueMode =
+    headlineChoice ?? (isMeme && showMarketCapToggle ? 'marketCap' : 'price');
+  const headlineIsMarketCap =
+    showMarketCapToggle && headlineMode === 'marketCap';
+  const quotedMarketCap =
+    (data.marketCap ?? 0) > 0 ? data.marketCap : undefined;
+  const marketCapPerPrice =
+    quotedMarketCap != null && data.currentPrice
+      ? quotedMarketCap / data.currentPrice
+      : (fillMarketCapPerPrice ?? undefined);
   const firstPrice = data.prices[0]?.[1];
-  const headerValue = scrubPoint ? scrubPoint[1] : data.currentPrice;
+  const headerValue = scrubPoint
+    ? headlineIsMarketCap && marketCapPerPrice
+      ? scrubPoint[1] * marketCapPerPrice
+      : scrubPoint[1]
+    : headlineIsMarketCap
+      ? (quotedMarketCap ??
+        (data.currentPrice != null && marketCapPerPrice != null
+          ? data.currentPrice * marketCapPerPrice
+          : undefined))
+      : data.currentPrice;
   const scrubChangePercent =
     firstPrice && scrubPoint
       ? ((scrubPoint[1] - firstPrice) / firstPrice) * 100
@@ -314,44 +389,60 @@ const PositionDetailsSheet = () => {
   const headerChange = scrubPoint
     ? scrubChangePercent
     : data.dailyChangePercent;
+  const headerLabel =
+    headerValue === undefined
+      ? undefined
+      : headlineIsMarketCap
+        ? formatAbbreviatedUsd(headerValue)
+        : formatTradeUnitPrice(headerValue);
+  const { setChartPeriod } = data;
+  const handlePeriodChange = useCallback(
+    (period: ChartPeriod) => {
+      setScrubPoint(null);
+      setChartPeriod(period);
+    },
+    [setChartPeriod],
+  );
   const headerCaption = scrubPoint
     ? formatChartTimestamp(Number(scrubPoint[0]))
     : strings('social_leaderboard.position_sheet.today');
 
-  const footer = (
-    <PositionSheetFooter
-      isPerp={data.isPerp}
-      isClosed={data.isClosed}
-      canSell={Boolean(heldBalance)}
-      onCopyTrade={handleCopyTrade}
-      onPerpsOrder={handlePerpsOrder}
-      onSpotTrade={openQuickBuy}
-    />
-  );
+  // Copy trade repeats the viewer's own position. Closed markets still offer
+  // a fresh Long, Short, Buy, or Sell.
+  const footer =
+    isOwnPost && !data.isClosed ? null : (
+      <PositionSheetFooter
+        isPerp={data.isPerp}
+        isClosed={data.isClosed}
+        canSell={Boolean(heldBalance)}
+        onCopyTrade={handleCopyTrade}
+        onPerpsOrder={handlePerpsOrder}
+        onSpotTrade={openQuickBuy}
+      />
+    );
 
   const details = (
-    <GestureDetector gesture={expandGesture}>
-      <View>
-        <Box twClassName="px-4 py-3" gap={2}>
-          <PositionSheetTradeSummary
-            title={data.summaryTitle}
-            tagLabel={data.summaryTagLabel}
-            direction={data.perpDirection}
-            subtitle={data.summarySubtitle}
-            pnlPercentLabel={data.pnlPercentLabel}
-            pnlValueLabel={data.pnlValueLabel}
-            isPnlPositive={data.isPnlPositive}
-          />
-        </Box>
-        <PositionSheetTabs
-          position={position}
-          author={author}
-          isExpanded={isTabsExpanded}
-          onExpandedChange={setIsTabsExpanded}
+    <View>
+      <Box twClassName="px-4 py-3" gap={2}>
+        <PositionSheetTradeSummary
+          title={data.summaryTitle}
+          tagLabel={data.summaryTagLabel}
+          direction={data.perpDirection}
+          isClosed={data.isClosed}
+          subtitle={data.summarySubtitle}
+          pnlPercentLabel={data.pnlPercentLabel}
+          pnlValueLabel={data.pnlValueLabel}
+          isPnlPositive={data.isPnlPositive}
         />
-        {isTabsExpanded ? null : footer}
-      </View>
-    </GestureDetector>
+      </Box>
+      <PositionSheetTabs
+        position={position}
+        author={author}
+        isExpanded={isTabsExpanded}
+        onExpandedChange={setIsTabsExpanded}
+      />
+      {isTabsExpanded ? null : footer}
+    </View>
   );
 
   return (
@@ -363,32 +454,42 @@ const PositionDetailsSheet = () => {
           goBack={handleSheetClosed}
           testID={PositionDetailsSheetSelectorsIDs.CONTAINER}
         >
-          <PositionSheetHeader
-            author={author}
-            isOwnPost={isOwnPost}
-            onPressTrader={handleOpenTraderProfile}
-          />
-          {/* Collapsed, everything fits and drags move the sheet instead. */}
+          <View onLayout={handleHeaderLayout}>
+            <PositionSheetHeader
+              author={author}
+              isOwnPost={isOwnPost}
+              onPressTrader={handleOpenTraderProfile}
+            />
+          </View>
+          {/* Bounded so content past the screen scrolls instead of being clipped. */}
           <ScrollView
-            scrollEnabled={isTabsExpanded}
+            style={
+              headerHeight > 0 ? { maxHeight: maxScrollHeight } : undefined
+            }
+            scrollEnabled
+            nestedScrollEnabled
+            scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
+            onScroll={handleScroll}
             onScrollEndDrag={handleScrollEndDrag}
             testID={PositionDetailsSheetSelectorsIDs.SCROLL}
           >
             <PositionSheetPriceHeader
               assetName={data.assetName}
               isPerp={data.isPerp}
-              leverage={data.leverage}
-              valueLabel={
-                headerValue !== undefined
-                  ? data.formatValue(headerValue)
-                  : undefined
-              }
-              isMarketCapMode={data.isMarketCapMode}
+              valueLabel={headerLabel}
+              isMarketCapMode={headlineIsMarketCap}
               changePercent={headerChange}
               changeCaption={headerCaption}
               position={position}
               onPressAsset={handleOpenAsset}
+            />
+            <PositionSheetChartControls
+              period={data.chartPeriod}
+              onPeriodChange={handlePeriodChange}
+              showValueToggle={showMarketCapToggle}
+              valueMode={headlineMode}
+              onValueModeChange={setHeadlineChoice}
             />
             <PositionSheetChart
               prices={data.prices}
@@ -400,25 +501,13 @@ const PositionDetailsSheet = () => {
               overlayStyle={reveal.overlayStyle}
               onScrub={setScrubPoint}
             />
-            {reveal.isAnimated ? (
-              <Animated.View
-                style={reveal.detailsContainerStyle}
-                testID={PositionDetailsSheetSelectorsIDs.DETAILS}
-              >
-                <Animated.View
-                  style={[styles.detailsMeasure, reveal.detailsContentStyle]}
-                  onLayout={reveal.onDetailsLayout}
-                >
-                  {details}
-                </Animated.View>
-              </Animated.View>
-            ) : (
-              <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
-                {details}
-              </View>
-            )}
+            <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
+              {details}
+            </View>
           </ScrollView>
-          {isTabsExpanded ? footer : null}
+          {isTabsExpanded ? (
+            <View onLayout={handlePinnedFooterLayout}>{footer}</View>
+          ) : null}
         </BottomSheet>
       )}
 

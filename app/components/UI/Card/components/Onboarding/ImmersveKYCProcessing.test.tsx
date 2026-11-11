@@ -60,18 +60,23 @@ jest.mock('../../util/metrics', () => ({
 }));
 
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return ({
     title,
     description,
     formFields,
-    actions,
+    ...footerProps
   }: {
     title?: string;
     description?: string;
     formFields: React.ReactNode;
-    actions: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     ReactActual.createElement(
       View,
@@ -83,7 +88,7 @@ jest.mock('./OnboardingStep', () => {
         description,
       ),
       formFields,
-      actions,
+      mockRenderFooterButtons(footerProps),
     );
 });
 
@@ -91,6 +96,42 @@ jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    // Added for the CARD-682 layout pass (CardFormField / HelpText / TextButton).
+    HelpText: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    TextButton: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    HelpTextSeverity: { Danger: 'danger' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+      ErrorDefault: 'ErrorDefault',
+    },
+    FontWeight: { Medium: '500', Regular: '400' },
     Box: ({ children, ...p }: React.PropsWithChildren<object>) =>
       ReactActual.createElement(View, p, children),
     Text: ({ children, ...p }: React.PropsWithChildren<object>) =>
@@ -122,6 +163,7 @@ const POLLING_TIMEOUT_MS = 30000;
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockDispatch = jest.fn();
 
 const setNextAction = (
   nextAction: ImmersveNextAction | null,
@@ -146,6 +188,7 @@ describe('ImmersveKYCProcessing', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,
+      dispatch: mockDispatch,
     });
     (useImmersveOnboardingRouter as jest.Mock).mockReturnValue(mockRoute);
     setNextAction(null);
@@ -165,13 +208,13 @@ describe('ImmersveKYCProcessing', () => {
     setNextAction({ type: 'kyc', url: 'https://verify.immersve.com/abc' });
     const { rerender } = render(<ImmersveKYCProcessing />);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      {
         url: 'https://verify.immersve.com/abc',
         redirectUrl: KYC_REDIRECT_URL,
       },
-    });
+    );
 
     // Re-render with the same kyc action must not re-open the webview.
     rerender(<ImmersveKYCProcessing />);
@@ -187,13 +230,13 @@ describe('ImmersveKYCProcessing', () => {
     setNextAction(null);
     render(<ImmersveKYCProcessing />);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      {
         url: 'https://verify.immersve.com/xyz',
         redirectUrl: KYC_REDIRECT_URL,
       },
-    });
+    );
   });
 
   it('does not navigate or route while pending', () => {
@@ -204,7 +247,7 @@ describe('ImmersveKYCProcessing', () => {
     expect(mockRoute).not.toHaveBeenCalled();
   });
 
-  it('holds a pending KYC on this screen instead of funding, then times out to KYC_PENDING', () => {
+  it('holds a pending KYC on this screen instead of funding, then times out to Card home', () => {
     const nextAction = deriveNextImmersveAction([
       {
         stage: 'funding',
@@ -233,21 +276,23 @@ describe('ImmersveKYCProcessing', () => {
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+      routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
     });
     expect(mockRoute).not.toHaveBeenCalled();
   });
 
-  it('resets to KYC_PENDING after the pending timeout', () => {
+  it('goes to Card home after the pending timeout', () => {
     setNextAction({ type: 'pending' });
     render(<ImmersveKYCProcessing />);
 
+    jest.advanceTimersByTime(POLLING_TIMEOUT_MS - 1);
     expect(mockReset).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+
+    jest.advanceTimersByTime(1);
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
-      routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+      routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
     });
   });
 
@@ -308,13 +353,13 @@ describe('ImmersveKYCProcessing', () => {
 
     // Tapping it reopens with the freshly polled url.
     fireEvent.press(reopen);
-    expect(mockNavigate).toHaveBeenLastCalledWith(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-      params: {
+    expect(mockNavigate).toHaveBeenLastCalledWith(
+      Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      {
         url: 'https://verify.immersve.com/abc',
         redirectUrl: KYC_REDIRECT_URL,
       },
-    });
+    );
   });
 
   it('shows the spinner (not the reopen prompt) while a re-poll is in flight', () => {

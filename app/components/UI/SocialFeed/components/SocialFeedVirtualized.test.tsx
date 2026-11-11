@@ -41,6 +41,13 @@ jest.mock('../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
   SocialFeedTrackingProvider: ({ children }: { children: React.ReactNode }) =>
@@ -301,6 +308,23 @@ describe('SocialFeedVirtualized', () => {
 
     expect(screen.queryByText('one')).toBeNull();
     expect(screen.getByText('two')).toBeOnTheScreen();
+  });
+
+  it('reorders the shown posts with comparePosts, ties keeping the feed order', () => {
+    const posts = [post('one'), post('two'), post('three')];
+    mockUseSocialFeed.mockReturnValue(feedState({ posts }));
+    const rank: Record<string, number> = { one: 1, two: 0, three: 1 };
+
+    renderFeed({
+      comparePosts: (left, right) => rank[left.id] - rank[right.id],
+    });
+
+    expect(
+      screen
+        .getAllByText(/^(one|two|three)$/u)
+        .map((node) => node.props.children),
+    ).toEqual(['two', 'one', 'three']);
+    expect(posts.map(({ id }) => id)).toEqual(['one', 'two', 'three']);
   });
 
   it('passes the realtime, pause, and filter options to the feed', () => {

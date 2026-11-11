@@ -16,7 +16,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../Money/hooks/useMoneyHomeNavigation';
+import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
+import type { MoneyEntryContext } from '../../../Money/navigation/moneyEntryDecision';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
@@ -39,7 +41,22 @@ const mockEarnTrackSurfaceClicked = jest.fn();
 const mockMoneyTrackSurfaceClicked = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
 
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+  useIsFocused: jest.fn(),
+}));
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
+    Navigator: ({ children }: { children?: React.ReactNode }) =>
+      children ?? null,
+    Screen: ({
+      children,
+    }: {
+      children?: React.ReactNode | (() => React.ReactNode);
+    }) => (typeof children === 'function' ? children() : (children ?? null)),
+  }),
+}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -58,7 +75,7 @@ jest.mock('../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
     trackSurfaceClicked: mockMoneyTrackSurfaceClicked,
   })),
 }));
-jest.mock('../../../../UI/Money/hooks/useMoneyNavigation');
+jest.mock('../../../../UI/Money/hooks/useMoneyHomeNavigation');
 jest.mock('../../../../UI/Earn/hooks/useEarnAnalytics', () => ({
   useEarnAnalytics: jest.fn(() => ({
     trackButtonClicked: mockEarnTrackButtonClicked,
@@ -87,9 +104,8 @@ const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseMoneyNavigation = useMoneyNavigation as jest.MockedFunction<
-  typeof useMoneyNavigation
->;
+const mockUseMoneyHomeNavigation =
+  useMoneyHomeNavigation as jest.MockedFunction<typeof useMoneyHomeNavigation>;
 const mockLoggerError = jest.mocked(Logger.error);
 type Tailwind = ReturnType<typeof useTailwind>;
 
@@ -208,6 +224,10 @@ const mockNavigateFromEarnAsset = jest.fn();
 const mockRefetchBalance = jest.fn();
 let mockMoneyAccountVisible = false;
 let mockPrivacyMode = false;
+let mockMoneyEntryContext: MoneyEntryContext = {
+  accessBlockReason: undefined,
+  isOnboardingRedirectNeeded: false,
+};
 
 const createSectionResult = (
   overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
@@ -266,7 +286,9 @@ describe('EarnSection', () => {
     mockUseSelector.mockImplementation((selector) =>
       selector === selectIsMoneyAccountVisible
         ? mockMoneyAccountVisible
-        : mockPrivacyMode,
+        : selector === selectMoneyEntryContext
+          ? mockMoneyEntryContext
+          : mockPrivacyMode,
     );
     mockUseNavigation.mockReturnValue({
       navigate,
@@ -278,10 +300,19 @@ describe('EarnSection', () => {
       isBalanceLoading: false,
       refetchBalance: mockRefetchBalance,
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
-    mockUseMoneyNavigation.mockReturnValue({
-      isOnboardingRedirectNeeded: false,
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      track?.({
+        redirect_target: mockMoneyEntryContext.isOnboardingRedirectNeeded
+          ? 'money_onboarding'
+          : 'money_home',
+        button_intent: mockMoneyEntryContext.isOnboardingRedirectNeeded
+          ? 'go_to_money_onboarding'
+          : 'go_to_money_home',
+      });
+    });
+    mockUseMoneyHomeNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
-    } as ReturnType<typeof useMoneyNavigation>);
+    } as ReturnType<typeof useMoneyHomeNavigation>);
     mockEarnOpportunityNavigation();
     mockSectionResult();
   });
@@ -612,10 +643,10 @@ describe('EarnSection', () => {
     'tracks Money account card presses with the $redirectTarget destination',
     ({ isOnboardingRedirectNeeded, redirectTarget }) => {
       mockMoneyAccountVisible = true;
-      mockUseMoneyNavigation.mockReturnValue({
+      mockMoneyEntryContext = {
+        accessBlockReason: undefined,
         isOnboardingRedirectNeeded,
-        navigateToMoneyHome: mockNavigateToMoneyHome,
-      } as ReturnType<typeof useMoneyNavigation>);
+      };
       mockSectionResult({ assetSlots: [] });
 
       renderEarnSection();
@@ -628,7 +659,9 @@ describe('EarnSection', () => {
         component_name: 'earn_section_money_card',
         redirect_target: redirectTarget,
       });
-      expect(mockNavigateToMoneyHome).toHaveBeenCalledWith();
+      expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({
+        track: expect.any(Function),
+      });
     },
   );
 

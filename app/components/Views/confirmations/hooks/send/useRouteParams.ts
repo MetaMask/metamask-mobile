@@ -3,9 +3,11 @@ import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { AssetType, Nft } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
@@ -74,6 +76,7 @@ const normalizeAssetConversionRate = (
 export const useRouteParams = () => {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const marketData = useSelector(selectTokenMarketData);
+  const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
   const flatAssets = useMemo(() => Object.values(assets).flat(), [assets]);
   const { nfts, isLoading: isNftsLoading } = useEVMNfts();
 
@@ -94,8 +97,14 @@ export const useRouteParams = () => {
           ? toHex(paramsAsset?.chainId)
           : paramsAsset?.chainId?.toString().toLowerCase();
 
+      const scopedAccountId = paramsAsset.chainId
+        ? getAccountByScope(formatChainIdToCaip(paramsAsset.chainId))?.id
+        : undefined;
+
       let filteredAsset = flatAssets?.find(
-        ({ assetId, chainId: tokenChainId }) =>
+        ({ assetId, chainId: tokenChainId, accountId }) =>
+          scopedAccountId &&
+          accountId === scopedAccountId &&
           paramChainId === tokenChainId.toLowerCase() &&
           assetId?.toLowerCase() === paramsAsset.address?.toLowerCase(),
       ) as AssetType | Nft | undefined;
@@ -127,7 +136,15 @@ export const useRouteParams = () => {
         updateAsset(createAssetFromParams(paramsAsset));
       }
     }
-  }, [asset, paramsAsset, nfts, flatAssets, marketData, updateAsset]);
+  }, [
+    asset,
+    paramsAsset,
+    nfts,
+    flatAssets,
+    marketData,
+    getAccountByScope,
+    updateAsset,
+  ]);
 
   // True while NFT processing is in progress and the asset hasn't been
   // resolved into the send context yet (i.e. navigated from NftDetails).

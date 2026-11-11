@@ -241,7 +241,7 @@ describe('EmulatorHelpers', () => {
         '-skin',
         '1440x3120',
         '-memory',
-        '10240',
+        '5120',
         '-cores',
         '8',
         '-dns-server',
@@ -338,7 +338,7 @@ describe('EmulatorHelpers', () => {
       for (const boot of boots) {
         expect(boot.args).toContain('-read-only');
         expect(boot.args).toContain('-snapshot');
-        expect(boot.args[boot.args.indexOf('-memory') + 1]).toBe('10240');
+        expect(boot.args[boot.args.indexOf('-memory') + 1]).toBe('5120');
         expect(boot.args[boot.args.indexOf('-port') + 1]).toBe(
           String(boot.port),
         );

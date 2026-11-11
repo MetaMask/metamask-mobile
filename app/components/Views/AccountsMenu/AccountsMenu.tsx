@@ -17,9 +17,9 @@ import {
   ActionListItem,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import MainActionButton from '../../../component-library/components-temp/MainActionButton';
-import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
+import MainActionButtonGlass from '../../../component-library/components-temp/MainActionButtonGlass';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 import { Authentication } from '../../../core/';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
@@ -43,6 +43,7 @@ import {
 } from '../../../selectors/notifications';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { getBetaSupportUrl } from './AccountsMenu.utils';
+import { isBetaBuild, isFlaskBuild } from '../../../util/environment';
 import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
 import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
 import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
@@ -133,6 +134,14 @@ const AccountsMenu = () => {
     rampGeodetectedRegion,
     rampsButtonClickData,
   ]);
+
+  const onPressActivity = useCallback(() => {
+    trackEvent(createEventBuilder(EVENT_NAME.ACTIVITY_CLICKED).build());
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { entryPoint: ActivityScreenEntryPoint.AccountsMenu },
+    });
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const onPressNotifications = useCallback(() => {
     navigation.navigate(Routes.NOTIFICATIONS.VIEW);
@@ -313,17 +322,15 @@ const AccountsMenu = () => {
   );
 
   const aboutMetaMaskTitle = useMemo(() => {
-    let title = strings('app_settings.info_title');
+    if (isFlaskBuild) {
+      return strings('app_settings.info_title_flask');
+    }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(flask)
-    title = strings('app_settings.info_title_flask');
-    ///: END:ONLY_INCLUDE_IF
+    if (isBetaBuild) {
+      return strings('app_settings.info_title_beta');
+    }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    title = strings('app_settings.info_title_beta');
-    ///: END:ONLY_INCLUDE_IF
-
-    return title;
+    return strings('app_settings.info_title');
   }, []);
 
   const isNotificationsEnabled = useMemo(
@@ -405,32 +412,44 @@ const AccountsMenu = () => {
         testID={AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID}
       >
         {/* Quick Actions Section */}
-        <Box style={tw.style('px-4 py-3 flex-row gap-4 justify-between')}>
+        <Box style={tw.style('px-4 pt-4 pb-3 flex-row gap-4 justify-between')}>
+          <Box style={tw.style('mb-2 flex-1')}>
+            <MainActionButtonGlass
+              iconName={IconName.Activity}
+              label={strings('activity_view.title')}
+              onPress={onPressActivity}
+              testID={AccountsMenuSelectorsIDs.ACTIVITY_BUTTON}
+              isGlass={isGlassHeader}
+            />
+          </Box>
+          <Box style={tw.style('mb-2 flex-1')}>
+            <MainActionButtonGlass
+              iconName={IconName.QrCode}
+              label={strings('accounts_menu.scan')}
+              onPress={openQRScanner}
+              testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+              isGlass={isGlassHeader}
+            />
+          </Box>
           <Box style={tw.style('mb-2 flex-1')}>
             {shouldRenderBatchSell ? (
-              <MainActionButton
-                iconName={LocalIconName.BuySell}
+              <MainActionButtonGlass
+                iconName={IconName.BuySell}
                 label={strings('asset_overview.batch_sell')}
                 onPress={onPressBatchSell}
                 isDisabled={!isSwapsEnabled}
                 testID={AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON}
+                isGlass={isGlassHeader}
               />
             ) : (
-              <MainActionButton
-                iconName={LocalIconName.AttachMoney}
+              <MainActionButtonGlass
+                iconName={IconName.AttachMoney}
                 label={strings('accounts_menu.buy')}
                 onPress={onPressDeposit}
                 testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
+                isGlass={isGlassHeader}
               />
             )}
-          </Box>
-          <Box style={tw.style('mb-2 flex-1')}>
-            <MainActionButton
-              iconName={LocalIconName.QrCode}
-              label={strings('accounts_menu.scan')}
-              onPress={openQRScanner}
-              testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-            />
           </Box>
         </Box>
 

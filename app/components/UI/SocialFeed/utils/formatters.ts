@@ -127,20 +127,22 @@ export function formatSignedUsd(value: number | null | undefined): string {
 
 /**
  * Signed USD with the full (non-abbreviated) number, thousands separators and
- * no fractional digits. Used for the profile 30D P&L headline
- * (e.g. `+$82,610,666`). Zero renders without a sign.
+ * no fractional digits. Used for the trader-profile 7D headline and onboarding
+ * (e.g. `+$82,610,666`). Zero renders without a sign. The profile compact
+ * header uses two fractional digits instead.
  */
 export function formatSignedFullUsdNoDecimals(
   value: number | null | undefined,
 ): string {
   if (value == null) return EM_DASH;
-  if (value === 0) {
+  const rounded = Math.round(value);
+  if (rounded === 0) {
     return formatPerpsFiat(0, { minimumDecimals: 0, maximumDecimals: 0 });
   }
-  const sign = value > 0 ? '+' : '-';
+  const sign = rounded > 0 ? '+' : '-';
   return (
     sign +
-    formatPerpsFiat(Math.abs(value), {
+    formatPerpsFiat(Math.abs(rounded), {
       minimumDecimals: 0,
       maximumDecimals: 0,
     })

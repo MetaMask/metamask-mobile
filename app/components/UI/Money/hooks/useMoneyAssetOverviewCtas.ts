@@ -11,26 +11,17 @@ import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import {
   COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
-import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../utils/projections';
-import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
 import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
-import { useABTest } from '../../../../hooks/useABTest';
-import {
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_EXPOSURE_METADATA,
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_VARIANTS,
-} from '../../TokenDetails/components/abTestConfig';
 
 const FOOTER_LABEL_KEY = 'money.asset_overview.cta.earn_apy';
 const BALANCE_BUTTON_LABEL_KEY = 'money.asset_overview.cta.start_earning';
@@ -73,17 +64,6 @@ export const useMoneyAssetOverviewCtas = ({
     isFooterCtaEligible: isFooterCtaEligibleFromVisibility,
   } = useMoneyAssetOverviewCtaVisibility(asset, hasBalance, balanceFiatUsd);
 
-  const { variant: balanceCtaVariant } = useABTest(
-    EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
-    EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_VARIANTS,
-    {
-      ...EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_EXPOSURE_METADATA,
-      trackExposure: isBalanceCtaEligible,
-    },
-  );
-  const isBalanceCtaEnabled =
-    isBalanceCtaEligible && balanceCtaVariant.showMoneyDepositBalanceCta;
-
   // Only aTokens with Money deposit fee subsidized are eligible for the footer CTA
   const isFooterCtaEligible =
     isFooterCtaEligibleFromVisibility &&
@@ -93,10 +73,9 @@ export const useMoneyAssetOverviewCtas = ({
       chainId: asset.chainId,
     });
 
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({
-    enabled: isBalanceCtaEnabled || isFooterCtaEligible,
+    enabled: isBalanceCtaEligible || isFooterCtaEligible,
   });
   const { trackTokenButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ASSET_DETAIL,
@@ -158,50 +137,39 @@ export const useMoneyAssetOverviewCtas = ({
         address: toHex(asset.address),
         chainId: toHex(asset.chainId),
       };
-      const redirectedToOnboarding = redirectToOnboardingIfNeeded({
-        postOnboardingRedirect: {
-          type: MoneyPostOnboardingRedirectType.DEPOSIT,
-          preferredPaymentToken,
-        },
-      });
-      const trackingProperties = {
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: redirectedToOnboarding
-          ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
-          : MONEY_BUTTON_INTENTS.ADD_MONEY,
-        component_name:
-          component === 'footer'
-            ? COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA
-            : COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
-        redirect_target: redirectedToOnboarding
-          ? SCREEN_NAMES.MONEY_ONBOARDING
-          : SCREEN_NAMES.MONEY_DEPOSIT,
-        token_symbol: asset.symbol ?? '',
-        token_position_in_list: 1,
-        token_chain_id: asset.chainId ?? '',
-        tokens_in_list: 1,
-        token_has_balance: hasBalance,
-      } as const;
-
-      if (component === 'footer') {
-        trackTokenButtonClicked({
-          ...trackingProperties,
-          label_en: footerEnglishLabel ?? label,
-          label_localized: label,
-        });
-      } else {
-        trackTokenButtonClicked({
-          ...trackingProperties,
-          label_key: labelKey,
-        });
-      }
-
-      if (redirectedToOnboarding) {
-        return;
-      }
-
       try {
-        await initiateDeposit({ preferredPaymentToken });
+        await navigateToMoneyDeposit({
+          preferredPaymentToken,
+          track: ({ redirect_target, button_intent }) => {
+            const trackingProperties = {
+              button_type: MONEY_BUTTON_TYPES.TEXT,
+              button_intent,
+              component_name:
+                component === 'footer'
+                  ? COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA
+                  : COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
+              redirect_target,
+              token_symbol: asset.symbol ?? '',
+              token_position_in_list: 1,
+              token_chain_id: asset.chainId ?? '',
+              tokens_in_list: 1,
+              token_has_balance: hasBalance,
+            } as const;
+
+            if (component === 'footer') {
+              trackTokenButtonClicked({
+                ...trackingProperties,
+                label_en: footerEnglishLabel ?? label,
+                label_localized: label,
+              });
+            } else {
+              trackTokenButtonClicked({
+                ...trackingProperties,
+                label_key: labelKey,
+              });
+            }
+          },
+        });
       } catch (error) {
         Logger.error(
           error as Error,
@@ -215,8 +183,7 @@ export const useMoneyAssetOverviewCtas = ({
       asset.symbol,
       footerEnglishLabel,
       hasBalance,
-      initiateDeposit,
-      redirectToOnboardingIfNeeded,
+      navigateToMoneyDeposit,
       trackTokenButtonClicked,
     ],
   );
@@ -239,8 +206,8 @@ export const useMoneyAssetOverviewCtas = ({
   return {
     footerLabelLocalized,
     isFooterCtaEligible,
-    isBalanceCtaLoading: isBalanceCtaEnabled && isApyLoading,
-    isBalanceCtaVisible: isBalanceCtaEnabled && hasApy,
+    isBalanceCtaLoading: isBalanceCtaEligible && isApyLoading,
+    isBalanceCtaVisible: isBalanceCtaEligible && hasApy,
     isFooterCtaLoading: isFooterCtaEligible && isApyLoading,
     isFooterCtaVisible: isFooterCtaEligible && hasApy,
     onBalancePress,

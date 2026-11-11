@@ -13,12 +13,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import {
+  Animated as RNAnimated,
+  type LayoutChangeEvent,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  type SharedValue,
   useAnimatedStyle,
-  useFrameCallback,
   useReducedMotion,
   useSharedValue,
   withDelay,
@@ -38,7 +41,6 @@ import {
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
 import {
-  advanceMarquee,
   DISPERSE,
   DOCK_LEFT,
   getDisperseMotion,
@@ -46,14 +48,11 @@ import {
   isPillOnScreen,
   LIGHT_FADE_DURATION,
   REASSEMBLE,
-  wrapOffset,
 } from './hotTokenRailMotion';
 import SelectedHotTokenChip from './SelectedHotTokenChip';
+import { useRailCrawl } from './useRailCrawl';
 
 const EMPTY_TOKENS: SocialV1HotToken[] = [];
-
-/** Slow news-footer crawl. */
-const MARQUEE_PIXELS_PER_SECOND = 24;
 
 const styles = StyleSheet.create({
   row: {
@@ -125,9 +124,10 @@ interface HotTokenPillProps {
   /** 0 for the primary track, 1 for the marquee's loop copy. */
   trackIndex: number;
   dispersal: PillDispersal | null;
-  offset: SharedValue<number>;
-  trackWidth: SharedValue<number>;
-  viewportWidth: SharedValue<number>;
+  /** Where the crawl sits right now, in px. Read on press and on scatter. */
+  readOffset: () => number;
+  trackWidth: number;
+  viewportWidth: number;
   onPress?: (token: SocialV1HotToken, origin: PillOrigin | null) => void;
 }
 
@@ -136,7 +136,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
   chipId,
   trackIndex,
   dispersal,
-  offset,
+  readOffset,
   trackWidth,
   viewportWidth,
   onPress,
@@ -159,9 +159,9 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
     if (!layout) {
       return null;
     }
-    const left = trackIndex * trackWidth.value + layout.x - offset.value;
+    const left = trackIndex * trackWidth + layout.x - readOffset();
     return { left, width: layout.width };
-  }, [offset, trackIndex, trackWidth]);
+  }, [readOffset, trackIndex, trackWidth]);
 
   useEffect(() => {
     const previous = previousDispersalRef.current;
@@ -170,7 +170,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
       return;
     }
     const placement = measureInViewport();
-    const viewport = viewportWidth.value;
+    const viewport = viewportWidth;
     const isOnScreen =
       placement !== null &&
       isPillOnScreen(placement.left, placement.width, viewport);
@@ -264,6 +264,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
     <Animated.View style={[styles.pill, pillStyle]} onLayout={handleLayout}>
       <ExplorePill
         testID={getSocialV1HotTokenChipTestId(chipId)}
+        twClassName="pl-2"
         accessibilityState={{ selected: false }}
         leading={
           <Box twClassName="mr-1">
@@ -291,7 +292,7 @@ const HotTokenTrack: React.FC<
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="pl-4 gap-2"
+    twClassName="pl-2 gap-2"
     onLayout={onLayout}
     testID={testID}
   >
@@ -313,22 +314,23 @@ const HotTokenTrack: React.FC<
  * HotTokensCarousel -- the rail of asset chips above the Social V1 feed. When
  * the chips overflow the viewport they crawl like a news ticker.
  *
- * Pressing a chip filters the feed on it: the crawl brakes, the other chips
+ * Pressing a chip filters the feed on it: the crawl stops, the other chips
  * scatter away from it, and a selected copy springs from its spot to the
  * rail's left edge, where its close icon slides open. Pressing that copy
  * clears the filter: it drops away and the chips rise back in, left to right,
  * with the crawl picking back up from where it stopped.
  *
- * The crawl is a `translateX` on the track, not `ScrollView.scrollTo`. A
- * gesture-handler ScrollView that `scrollTo`s every frame keeps a native
- * scroll gesture alive on PagerView page 0 and cancels taps on the rest of
- * Trending (reactions, overflow menu, Popular traders). A pan on this rail
- * still wins over the pager so scrubbing the chips does not change tabs.
+ * The crawl is a native-driver `Animated.timing` on `translateX`, not
+ * `ScrollView.scrollTo`. A gesture-handler ScrollView that `scrollTo`s every
+ * frame keeps a native scroll gesture alive on PagerView page 0 and cancels
+ * taps on the rest of Trending (reactions, overflow menu, Popular traders). A
+ * pan on this rail still wins over the pager so scrubbing the chips does not
+ * change tabs.
  *
- * The crawl runs a callback every frame, so low-end hardware keeps the rail
- * still, and its chips fade in place instead of scattering. Reduce Motion
- * gets the same fade, and the docked chip fades in place instead of flying.
- * The pan stays, so the chips can still be scrubbed.
+ * Low-end hardware keeps the rail still, and its chips fade in place instead
+ * of scattering. Reduce Motion gets the same fade, and the docked chip fades
+ * in place instead of flying. The pan stays, so the chips can still be
+ * scrubbed.
  *
  * Icons go through `PositionTokenAvatar`, the same resolution the position
  * cards use.
@@ -423,103 +425,43 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     setDocked((current) => (current?.key === key ? null : current));
   }, []);
 
-  const offset = useSharedValue(0);
-  const dragStartOffset = useSharedValue(0);
-  const paused = useSharedValue(false);
-  const speed = useSharedValue(0);
-  const trackWidthSv = useSharedValue(0);
-  const viewportWidthSv = useSharedValue(0);
   const [trackWidth, setTrackWidth] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
 
   const shouldMarquee =
     trackWidth > 0 && viewportWidth > 0 && trackWidth > viewportWidth;
 
-  // A docked chip holds the crawl. The scattered rail keeps its offset, so
-  // the chips come back where they left.
-  const parked = useSharedValue(isSelected);
-  useEffect(() => {
-    parked.value = isSelected;
-  }, [isSelected, parked]);
+  // A docked chip holds the crawl where it stopped, so the chips come back
+  // where they left.
+  const shouldRun = isActive && !isLowHardware && shouldMarquee && !isSelected;
+  const { translateX, readOffset, hold, scrubBy, release } = useRailCrawl({
+    trackWidth,
+    enabled: shouldRun,
+  });
 
-  const handleViewportLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const width = event.nativeEvent.layout.width;
-      viewportWidthSv.value = width;
-      setViewportWidth(width);
-    },
-    [viewportWidthSv],
-  );
+  const handleViewportLayout = useCallback((event: LayoutChangeEvent) => {
+    setViewportWidth(event.nativeEvent.layout.width);
+  }, []);
 
-  const handleTrackLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const width = event.nativeEvent.layout.width;
-      trackWidthSv.value = width;
-      setTrackWidth(width);
-    },
-    [trackWidthSv],
-  );
+  const handleTrackLayout = useCallback((event: LayoutChangeEvent) => {
+    setTrackWidth(event.nativeEvent.layout.width);
+  }, []);
 
   const pan = useMemo(
     () =>
       Gesture.Pan()
+        .runOnJS(true)
         .withTestId(SOCIAL_V1_HOT_TOKENS_PAN_GESTURE_ID)
         .enabled(!isSelected)
         .activeOffsetX([-10, 10])
         .failOffsetY([-12, 12])
-        .onBegin(() => {
-          'worklet';
-          paused.value = true;
-          speed.value = 0;
-          dragStartOffset.value = offset.value;
-        })
-        .onUpdate((event) => {
-          'worklet';
-          const width = trackWidthSv.value;
-          if (width <= 0) {
-            return;
-          }
-          offset.value = wrapOffset(
-            dragStartOffset.value - event.translationX,
-            width,
-          );
-        })
-        .onFinalize(() => {
-          'worklet';
-          paused.value = false;
-        }),
-    [dragStartOffset, isSelected, offset, paused, speed, trackWidthSv],
+        .onBegin(hold)
+        .onUpdate((event) => scrubBy(event.translationX))
+        .onFinalize(release),
+    [hold, isSelected, release, scrubBy],
   );
 
-  const tickMarquee = useCallback(
-    (frame: { timeSincePreviousFrame: number | null }) => {
-      'worklet';
-      if (paused.value) {
-        return;
-      }
-      const next = advanceMarquee(
-        offset.value,
-        speed.value,
-        parked.value ? 0 : MARQUEE_PIXELS_PER_SECOND,
-        frame.timeSincePreviousFrame ?? 0,
-        trackWidthSv.value,
-        viewportWidthSv.value,
-      );
-      offset.value = next.offset;
-      speed.value = next.speed;
-    },
-    [offset, parked, paused, speed, trackWidthSv, viewportWidthSv],
-  );
-
-  const marqueeFrameCallback = useFrameCallback(tickMarquee, false);
-
-  useEffect(() => {
-    marqueeFrameCallback.setActive(isActive && !isLowHardware);
-  }, [isActive, isLowHardware, marqueeFrameCallback]);
-
-  const trackStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: -offset.value }],
-  }));
+  const trackStyle = { transform: [{ translateX }] };
 
   const loopTokens = useMemo(
     () => (shouldMarquee ? tokens : []),
@@ -564,9 +506,9 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
 
   const trackProps = {
     dispersal,
-    offset,
-    trackWidth: trackWidthSv,
-    viewportWidth: viewportWidthSv,
+    readOffset,
+    trackWidth,
+    viewportWidth,
     onPress: handlePillPress,
   };
 
@@ -577,7 +519,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
       testID={SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}
     >
       <GestureDetector gesture={pan}>
-        <Animated.View
+        <RNAnimated.View
           style={[styles.row, trackStyle]}
           testID={SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID}
           pointerEvents={isSelected ? 'none' : 'auto'}
@@ -601,7 +543,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
               idSuffix="-loop"
             />
           ) : null}
-        </Animated.View>
+        </RNAnimated.View>
       </GestureDetector>
       {docked ? (
         <View pointerEvents="box-none" style={styles.dock}>

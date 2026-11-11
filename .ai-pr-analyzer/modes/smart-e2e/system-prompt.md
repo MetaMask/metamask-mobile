@@ -38,6 +38,7 @@ The following types of changes have zero functional impact and must NOT trigger 
 - Import reordering with no net change in imported symbols
   If a PR only contains cosmetic changes across all files, select zero E2E tags.
   Do NOT treat copy changes as cosmetic — sentence-case or string edits can break E2E text/label selectors.
+  When the seed comes from `en-locale-change`, its reasoning lists the locale keys that were modified or removed and the files that consume them. Select tags for the user flows those consumer files render. Do not select ALL just because `en.json` changed; added keys alone cannot break existing specs.
   Do NOT treat user-visible UI as cosmetic. Toasts, banners, modals, overlays, sheets, and Wallet/home root view changes are functional: they can intercept taps, block flows, or alter what smoke specs see. A high-confidence empty selection is invalid when any changed file adds or modifies that kind of UI.
 
 {{hard_rule_continue_section}}
