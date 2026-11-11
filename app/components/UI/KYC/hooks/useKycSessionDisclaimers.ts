@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KycCatalogDocument } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
+import { IRON_KYC_VENDOR } from '../vendors/iron';
 
 export type KycCatalogDisclaimerLink = KycCatalogDocument & {
   /** Stable list key; documents are unique per catalog group + `key`. */
@@ -30,8 +31,8 @@ const toLinks = (
  * Loads idOS + SumSub (KYC-provider) legal documents for the VBA Verify Identity
  * screen via {@link Engine.context.KycController.fetchSessionDisclaimers}.
  *
- * Loads the catalog for the geoCountry stored on the KYC controller, falling
- * back to {@link Engine.context.KycService.getGeoCountry}
+ * Loads the catalog for the residence country stored on the KYC controller's
+ * Iron entry, falling back to {@link Engine.context.KycService.getGeoCountry}
  * (`GET /disclaimers?country=`). A session kept after the detected country
  * changed stays on its stored country, so its terms match the consents
  * recorded before Sumsub launches. Session-scoped consents are posted later by
@@ -92,8 +93,8 @@ export const useKycSessionDisclaimers = (): UseKycSessionDisclaimersResult => {
             }
 
             const country =
-              kycController.state?.geoCountry ??
-              (await kycService.getGeoCountry());
+              kycController.state?.sessions?.[IRON_KYC_VENDOR.id]
+                ?.residenceCountry ?? (await kycService.getGeoCountry());
             return kycController.fetchSessionDisclaimers({ country });
           })(),
           abortedPromise,

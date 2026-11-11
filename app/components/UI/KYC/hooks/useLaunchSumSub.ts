@@ -62,11 +62,13 @@ async function recordSessionConsents(): Promise<void> {
   }
 
   const country =
-    KycController.state?.geoCountry ?? (await KycService.getGeoCountry());
+    KycController.state?.sessions?.[IRON_KYC_VENDOR.id]?.residenceCountry ??
+    (await KycService.getGeoCountry());
   const catalog = await KycController.fetchSessionDisclaimers({
     country,
   });
   await KycController.recordSessionDisclaimers({
+    vendor: IRON_KYC_VENDOR.id,
     providerDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.kycProvider),
     idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
     credentialReusabilityConsentGiven: false,
@@ -161,6 +163,7 @@ export const useLaunchSumSub = (
 
         trackKycVerificationUpdated({ status: 'started' });
         const outcome = await KycController.launchProviderFlow({
+          vendor: IRON_KYC_VENDOR.id,
           locale: toSumSubLocale(I18n.locale),
         });
         await stopKycResume();

@@ -9,6 +9,7 @@ import { selectKycSessionStatus } from '../../../../selectors/kycController';
 import { selectRampsControllerState } from '../../../../selectors/rampsController';
 import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
 import { hasVbaWalletEvidence } from '../../Ramp/Views/VirtualBankAccount/vbaWalletEvidence';
+import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
 import type { MicrodepositActivity } from '../types/moneyActivity';
 import { mapMicrodeposits } from '../utils/microdeposits';
 import { MONEY_SLOW_POLL_INTERVAL_MS } from '../constants/polling';
@@ -47,7 +48,9 @@ export function useMoneyMicrodeposits(address?: string): {
     (state: RootState) =>
       state.engine?.backgroundState?.KeyringController?.isUnlocked ?? false,
   );
-  const sessionStatus = useSelector(selectKycSessionStatus);
+  const sessionStatus = useSelector((state: RootState) =>
+    selectKycSessionStatus(state, VBA_KYC_VENDOR),
+  );
   const kycApproved = sessionStatus?.finalStatus === 'approved';
   // Registration or an autoramp is durable evidence that onboarding happened,
   // even when the persisted KYC session is gone.

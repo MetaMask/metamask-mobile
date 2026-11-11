@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KycDisclaimer } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
-import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
-import type { RootState } from '../../../../../../reducers';
-import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
 import { VBA_KYC_VENDOR } from '../constants';
-import { saveVbaVendorTermsAcceptance } from '../vbaVendorTermsStorage';
 
 export type { KycDisclaimer };
 
@@ -24,10 +20,11 @@ const FETCH_TIMEOUT_MS = 10_000;
 
 /**
  * Loads Iron / MoonPay Enterprise legal disclaimers (Privacy Policy / T&Cs)
- * and stores the accepted document ids locally per wallet.
+ * and stores the accepted document ids on the KYC controller's Iron entry,
+ * marked not yet submitted.
  *
- * The email step records the locally accepted ids against the customer after
- * creating the Iron session. This lets product show vendor terms before email
+ * The email step submits that acceptance to Iron after creating the Iron
+ * session. This lets product show vendor terms before email
  * even though the API requires an email/customer before remote acceptance.
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
@@ -43,6 +40,7 @@ const FETCH_TIMEOUT_MS = 10_000;
  */
 export const useKycDisclaimers = (): UseKycDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<KycDisclaimer[] | null>(null);
+  const [country, setCountry] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAccepting, setIsAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,23 +48,18 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
 
   const retry = useCallback(() => setRetryCount((count) => count + 1), []);
   const acceptDisclaimers = useCallback(async (): Promise<boolean> => {
-    if (!disclaimers?.length || isAccepting) {
+    if (!disclaimers?.length || !country || isAccepting) {
       return false;
     }
 
     setIsAccepting(true);
     setError(null);
     try {
-      const walletAddress = selectSelectedVbaWalletAddress(
-        ReduxService.store.getState() as RootState,
-      );
-      if (!walletAddress) {
-        throw new Error('No Money Account wallet is selected');
-      }
-      await saveVbaVendorTermsAcceptance(
-        walletAddress,
-        disclaimers.map(({ id }) => id),
-      );
+      Engine.context.KycController.acceptVendorDisclaimers({
+        vendor: VBA_KYC_VENDOR,
+        country,
+        disclaimerIds: disclaimers.map(({ id }) => id),
+      });
       return true;
     } catch (acceptError) {
       setError(
@@ -76,7 +69,7 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
     } finally {
       setIsAccepting(false);
     }
-  }, [disclaimers, isAccepting]);
+  }, [country, disclaimers, isAccepting]);
 
   useEffect(() => {
     let isMounted = true;
@@ -103,23 +96,21 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
         throw new Error('KYC service is unavailable');
       }
 
-      const country = await kycService.getGeoCountry();
+      const geoCountry = await kycService.getGeoCountry();
       return {
-        country,
+        country: geoCountry,
         loadedDisclaimers:
           await Engine.context.KycController.fetchVendorDisclaimers({
             vendor: VBA_KYC_VENDOR,
-            country,
+            country: geoCountry,
           }),
       };
     })();
 
     const loadDisclaimers = async () => {
       try {
-        const { country, loadedDisclaimers } = await Promise.race([
-          controllerLoad,
-          abortedPromise,
-        ]);
+        const { country: loadedCountry, loadedDisclaimers } =
+          await Promise.race([controllerLoad, abortedPromise]);
 
         if (!isMounted) {
           return;
@@ -133,7 +124,7 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
             tags: { feature: 'vba-kyc', provider: VBA_KYC_VENDOR },
             context: {
               name: 'useKycDisclaimers',
-              data: { country },
+              data: { country: loadedCountry },
             },
           });
           setDisclaimers(null);
@@ -142,6 +133,7 @@ export const useKycDisclaimers = (): UseKycDisclaimersResult => {
         }
 
         setDisclaimers(loadedDisclaimers);
+        setCountry(loadedCountry);
         setError(null);
       } catch (err) {
         const isTimeout =

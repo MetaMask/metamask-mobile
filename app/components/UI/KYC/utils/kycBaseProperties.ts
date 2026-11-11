@@ -48,12 +48,15 @@ export interface KycStateInput {
 export function buildKycBaseProperties(
   input: KycStateInput = {},
 ): Record<string, string> {
-  const state = Engine.context.KycController?.state;
+  const kycState = Engine.context.KycController?.state;
+  const entry = kycState?.sessions?.[IRON_KYC_VENDOR.id];
   const providerFlowStatus =
-    input.providerFlowStatus ?? state?.providerFlowStatus;
+    input.providerFlowStatus ?? entry?.providerFlowStatus;
   const kycStatus =
     input.kycStatus ??
-    (state ? getKycAnalyticsStatus(state.sessionStatus) : undefined);
+    (kycState
+      ? getKycAnalyticsStatus(entry?.sessionStatus ?? null)
+      : undefined);
 
   return {
     screen_name: input.screenName ?? KYC_ANALYTICS_SCREEN_NAME,

@@ -92,11 +92,13 @@ describe('KycSumSub', () => {
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        vendor: 'iron',
         locale: toSumSubLocale(I18n.locale),
       });
     });
     expect(mockKycService.getGeoCountry).toHaveBeenCalled();
     expect(mockKycController.recordSessionDisclaimers).toHaveBeenCalledWith({
+      vendor: 'iron',
       providerDisclaimersAccepted: [{ key: 'sumsub-terms', version: '2' }],
       idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
       credentialReusabilityConsentGiven: false,
@@ -127,6 +129,7 @@ describe('KycSumSub', () => {
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        vendor: 'iron',
         locale: toSumSubLocale(I18n.locale),
       });
     });

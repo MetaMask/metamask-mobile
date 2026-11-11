@@ -13,6 +13,8 @@ import KycIdentityVerificationModule from '../../../../KYC/Views/SumSub/Identity
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
 import { selectKycSessionStatus } from '../../../../../../selectors/kycController';
+import type { RootState } from '../../../../../../reducers';
+import { VBA_KYC_VENDOR } from '../constants';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
@@ -130,7 +132,9 @@ const VbaKycRejectedSupportAction = () => {
 };
 
 export const VbaKycRejectedAdapter = () => {
-  const sessionStatus = useSelector(selectKycSessionStatus);
+  const sessionStatus = useSelector((state: RootState) =>
+    selectKycSessionStatus(state, VBA_KYC_VENDOR),
+  );
   useEffect(() => {
     endVbaCufJourney(false, VBA_CUF_END_REASON.KYC_REJECTED);
   }, []);

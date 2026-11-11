@@ -73,14 +73,26 @@ const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
 const mockGetState = jest.fn();
-const mockHasAcceptedVbaVendorTerms = jest.fn();
-const mockGetVbaVendorTermsAcceptance = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockGetSessionStatusForVendor = jest.fn();
 const mockStartSession = jest.fn();
-const mockReset = jest.fn();
-const mockKycState: { email: string | null } = { email: null };
+interface MockVendorAcceptance {
+  disclaimerIds: string[];
+  acceptedAt: string | null;
+  submitted: boolean;
+}
+const mockKycState: {
+  sessions: {
+    iron?: { vendorDisclaimersAccepted: MockVendorAcceptance | null };
+  };
+} = { sessions: {} };
+/** Stores (or clears) Iron terms acceptance on the mocked KYC controller. */
+const setIronAcceptance = (acceptance: MockVendorAcceptance | null) => {
+  mockKycState.sessions = acceptance
+    ? { iron: { vendorDisclaimersAccepted: acceptance } }
+    : {};
+};
 const mockRampsState: {
   autoramps: { id: string; walletAddress: string; status: string }[];
 } = { autoramps: [] };
@@ -100,11 +112,10 @@ jest.mock('../../../../../../core/Engine', () => ({
       get state() {
         return mockKycState;
       },
-      readSessionStatus: () => mockReadSessionStatus(),
+      readSessionStatus: (...args: unknown[]) => mockReadSessionStatus(...args),
       getSessionStatusForVendor: (...args: unknown[]) =>
         mockGetSessionStatusForVendor(...args),
       startSession: (...args: unknown[]) => mockStartSession(...args),
-      reset: () => mockReset(),
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
     },
@@ -145,25 +156,15 @@ jest.mock('../vbaDevOverrides.env', () => ({
   readVbaKycStatusOverrideEnv: jest.fn(() => undefined),
 }));
 
-jest.mock('../vbaVendorTermsStorage', () => ({
-  hasAcceptedVbaVendorTerms: (...args: unknown[]) =>
-    mockHasAcceptedVbaVendorTerms(...args),
-  getVbaVendorTermsAcceptance: (...args: unknown[]) =>
-    mockGetVbaVendorTermsAcceptance(...args),
-}));
-
 describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetState.mockReturnValue({ address: '0xabc' });
-    mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
-    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    setIronAcceptance(null);
     mockRecordVendorDisclaimers.mockResolvedValue([]);
-    mockKycState.email = null;
     mockReadSessionStatus.mockReturnValue(null);
     mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
-    mockReset.mockResolvedValue(undefined);
     mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
     mockCreateAutoramp.mockResolvedValue({
       id: 'autoramp-1',
@@ -202,12 +203,15 @@ describe('useOpenVbaOnboarding', () => {
   });
 
   it('opens at email when vendor terms are accepted locally', async () => {
-    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+    setIronAcceptance({
+      disclaimerIds: ['terms'],
+      acceptedAt: null,
+      submitted: false,
+    });
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
     await result.current();
 
-    expect(mockHasAcceptedVbaVendorTerms).toHaveBeenCalledWith('0xabc');
     expectResetTo({ name: VbaOnboardingRoutes.EMAIL });
   });
 
@@ -277,9 +281,10 @@ describe('useOpenVbaOnboarding', () => {
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
     });
-    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
-    mockGetVbaVendorTermsAcceptance.mockResolvedValue({
+    setIronAcceptance({
       disclaimerIds: ['privacy', 'terms'],
+      acceptedAt: null,
+      submitted: false,
     });
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
@@ -287,7 +292,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expect(mockRecordVendorDisclaimers).toHaveBeenCalledWith({
-      disclaimerIds: ['privacy', 'terms'],
+      vendor: 'iron',
     });
     expectResetTo({
       name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
@@ -898,10 +903,8 @@ describe('resolveVbaOnboarding', () => {
     devGlobal.__DEV__ = true;
     jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
-    mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
-    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    setIronAcceptance(null);
     mockRecordVendorDisclaimers.mockResolvedValue([]);
-    mockKycState.email = null;
     mockReadSessionStatus.mockReturnValue(null);
     mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
@@ -1055,7 +1058,6 @@ describe('resolveVbaOnboarding', () => {
   });
 
   it('resumes a persisted KYC session when no email is stored', async () => {
-    mockKycState.email = null;
     mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
 
     await resolveVbaOnboarding('money-add-money-bank-account');
@@ -1154,84 +1156,6 @@ describe('resolveVbaOnboarding', () => {
     await expect(
       resolveVbaOnboarding('money-add-money-bank-account'),
     ).resolves.toEqual({ status: 'error' });
-    expect(mockHydrate).not.toHaveBeenCalled();
-  });
-
-  it('keeps the stored session when the geoCountry changed, then hydrates', async () => {
-    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
-    mockStartSession.mockRejectedValueOnce(
-      new Error(
-        'KycController already initialized with a different geoCountry',
-      ),
-    );
-
-    await expect(
-      resolveVbaOnboarding('money-add-money-bank-account'),
-    ).resolves.toEqual(expect.objectContaining({ status: 'ready' }));
-
-    expect(mockReset).not.toHaveBeenCalled();
-    expect(mockStartSession).toHaveBeenCalledTimes(1);
-    expect(mockHydrate).toHaveBeenCalled();
-    expect(Logger.error).not.toHaveBeenCalled();
-  });
-
-  it('resets empty KYC state when the geoCountry changed with no stored session', async () => {
-    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
-    mockStartSession
-      .mockRejectedValueOnce(
-        new Error(
-          'KycController already initialized with a different geoCountry',
-        ),
-      )
-      .mockResolvedValueOnce({ id: 'session-remote' });
-
-    await expect(
-      resolveVbaOnboarding('money-add-money-bank-account'),
-    ).resolves.toEqual(expect.objectContaining({ status: 'ready' }));
-
-    expect(mockReset).toHaveBeenCalledTimes(1);
-    expect(mockStartSession).toHaveBeenCalledTimes(2);
-    expect(mockReset.mock.invocationCallOrder[0]).toBeLessThan(
-      mockHydrate.mock.invocationCallOrder[0],
-    );
-  });
-
-  it('continues as a new user when the retry after a geoCountry reset has no session and no AAL2 token', async () => {
-    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
-    mockStartSession
-      .mockRejectedValueOnce(
-        new Error(
-          'KycController already initialized with a different geoCountry',
-        ),
-      )
-      .mockRejectedValueOnce(
-        new Error(
-          'KycController.startSession: aal2Token is required to create a KYC session.',
-        ),
-      );
-
-    await expect(
-      resolveVbaOnboarding('money-add-money-bank-account'),
-    ).resolves.toEqual(
-      expect.objectContaining({
-        status: 'ready',
-        destinationId: 'vendorTerms',
-      }),
-    );
-    expect(mockReset).toHaveBeenCalledTimes(1);
-    expect(mockHydrate).toHaveBeenCalled();
-  });
-
-  it('does not reset for an email mismatch and returns an error', async () => {
-    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
-    mockStartSession.mockRejectedValue(
-      new Error('KycController already initialized with a different email'),
-    );
-
-    await expect(
-      resolveVbaOnboarding('money-add-money-bank-account'),
-    ).resolves.toEqual({ status: 'error' });
-    expect(mockReset).not.toHaveBeenCalled();
     expect(mockHydrate).not.toHaveBeenCalled();
   });
 

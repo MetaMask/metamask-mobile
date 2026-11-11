@@ -20,7 +20,9 @@ const originalLocale = I18n.locale;
 jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
-      state: { geoCountry: null as string | null },
+      state: {
+        sessions: {} as { iron?: { residenceCountry: string | null } },
+      },
       fetchSessionDisclaimers: jest.fn(),
       recordSessionDisclaimers: jest.fn(),
       launchProviderFlow: jest.fn(),
@@ -44,7 +46,7 @@ jest.mock('../utils/kycVerificationAnalytics', () => ({
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
-  state: { geoCountry: string | null };
+  state: { sessions: { iron?: { residenceCountry: string | null } } };
   fetchSessionDisclaimers: jest.Mock;
   recordSessionDisclaimers: jest.Mock;
   launchProviderFlow: jest.Mock;
@@ -72,7 +74,7 @@ describe('useLaunchSumSub', () => {
       kycProvider: [],
     });
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
-    mockKycController.state.geoCountry = null;
+    mockKycController.state.sessions = {};
     mockMark.mockResolvedValue(undefined);
     mockClear.mockResolvedValue(undefined);
     jest
@@ -94,8 +96,8 @@ describe('useLaunchSumSub', () => {
     renderHook(() => useLaunchSumSub(onSubmitted, onAbandoned));
 
   describe('consent country', () => {
-    it('records consents from the catalog for the stored KYC geoCountry', async () => {
-      mockKycController.state.geoCountry = 'ARG';
+    it("records consents from the catalog for the Iron entry's residence country", async () => {
+      mockKycController.state.sessions = { iron: { residenceCountry: 'ARG' } };
       mockKycController.launchProviderFlow.mockResolvedValue('submitted');
 
       renderLaunch();
@@ -203,6 +205,7 @@ describe('useLaunchSumSub', () => {
 
       await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+        vendor: 'iron',
         locale: 'pt-BR',
       });
       expect(mockTrack).toHaveBeenCalledWith({ status: 'started' });

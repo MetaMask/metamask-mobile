@@ -162,6 +162,7 @@ describe('KycIdentityVerificationModule', () => {
 
       await waitFor(() => {
         expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+          vendor: 'iron',
           locale: toSumSubLocale(I18n.locale),
         });
       });
@@ -183,6 +184,7 @@ describe('KycIdentityVerificationModule', () => {
 
       await waitFor(() => {
         expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
+          vendor: 'iron',
           locale: toSumSubLocale(I18n.locale),
         });
       });

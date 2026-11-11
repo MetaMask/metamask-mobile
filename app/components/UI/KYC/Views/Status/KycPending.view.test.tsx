@@ -174,7 +174,7 @@ const engineContext = Engine.context as unknown as {
     createAutoramp?: jest.Mock;
   };
   KycController?: {
-    state: { email: string | null };
+    state: { sessions: Record<string, unknown> };
     readSessionStatus: jest.Mock;
     startSession: jest.Mock;
     refreshSessionStatus: jest.Mock;
@@ -201,15 +201,19 @@ const buildKycState = (session: KycSession) =>
       engine: {
         backgroundState: {
           KycController: {
-            sessionStatus: {
-              id: 'session-1',
-              externalUserId: 'user-1',
-              vendor: 'sumsub',
-              vendorStatus: 'pending',
-              finalStatus: session.finalStatus,
-              kycStatus: session.kycStatus,
+            sessions: {
+              iron: {
+                sessionStatus: {
+                  id: 'session-1',
+                  externalUserId: 'user-1',
+                  vendor: 'sumsub',
+                  vendorStatus: 'pending',
+                  finalStatus: session.finalStatus,
+                  kycStatus: session.kycStatus,
+                },
+                providerFlowStatus: 'submitted',
+              },
             },
-            providerFlowStatus: 'submitted',
           },
         },
       },
@@ -247,7 +251,7 @@ describeForPlatforms('KycPending', () => {
     engineContext.RampsController.registerMoneyAccountWallet = jest.fn();
     engineContext.RampsController.createAutoramp = jest.fn();
     engineContext.KycController = {
-      state: { email: 'user@example.com' },
+      state: { sessions: {} },
       readSessionStatus: jest.fn().mockReturnValue({ id: 'session-1' }),
       startSession: jest.fn().mockResolvedValue(undefined),
       refreshSessionStatus: jest.fn(),

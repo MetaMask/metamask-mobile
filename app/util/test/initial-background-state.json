@@ -809,20 +809,7 @@
   },
   "ComplianceController": {},
   "KycController": {
-    "email": null,
-    "vendor": null,
-    "geoCountry": null,
-    "sessionStatus": null,
-    "vendorDisclaimersAccepted": {
-      "moonpay": null,
-      "iron": null
-    },
-    "providerDisclaimersAccepted": {
-      "sumsub": null
-    },
-    "providerFlowStatus": "not_started",
-    "idosDisclaimersAccepted": null,
-    "credentialReusabilityConsentGiven": null
+    "sessions": {}
   },
   "ConnectivityController": {
     "connectivityStatus": "online"

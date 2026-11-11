@@ -5,8 +5,10 @@ import { useSelector } from 'react-redux';
 import { TERMINAL_SESSION_STATUSES } from '@metamask/kyc-controller';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Engine from '../../../../core/Engine';
+import { IRON_KYC_VENDOR } from '../vendors/iron';
 import Logger from '../../../../util/Logger';
 import { selectKycSessionStatus } from '../../../../selectors/kycController';
+import type { RootState } from '../../../../reducers';
 import {
   navigateToVbaOnboardingDestination,
   resolveVbaOnboarding,
@@ -29,7 +31,9 @@ export const isTerminalVbaKycStatus = ({
 
 export const useVbaKycStatusRedirect = (): (() => void) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const sessionStatus = useSelector(selectKycSessionStatus);
+  const sessionStatus = useSelector((state: RootState) =>
+    selectKycSessionStatus(state, IRON_KYC_VENDOR.id),
+  );
   const finalStatus = sessionStatus?.finalStatus ?? null;
   const kycStatus = sessionStatus?.kycStatus ?? null;
 
@@ -124,7 +128,9 @@ export const useVbaKycStatusRedirect = (): (() => void) => {
       return;
     }
     try {
-      Engine.context.KycController.refreshSessionStatus();
+      Engine.context.KycController.refreshSessionStatus({
+        vendor: IRON_KYC_VENDOR.id,
+      });
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'vba-onboarding' },
