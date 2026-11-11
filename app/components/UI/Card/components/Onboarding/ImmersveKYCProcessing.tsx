@@ -60,9 +60,9 @@ const ImmersveKYCProcessing = () => {
   const openKycWebview = useCallback(
     (url: string) => {
       hasOpenedWebview.current = true;
-      navigation.navigate(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-        params: { url, redirectUrl: KYC_REDIRECT_URL },
+      navigation.navigate(Routes.CARD.ONBOARDING.IMMERSVE_KYC, {
+        url,
+        redirectUrl: KYC_REDIRECT_URL,
       });
     },
     [navigation],
@@ -106,10 +106,11 @@ const ImmersveKYCProcessing = () => {
     }
   }, [kycUrl, openKycWebview]);
 
-  // Re-poll when the webview closes. The transparentModal keeps this screen
-  // mounted without blurring it, so useFocusEffect can't detect the close — the
-  // modal invokes this callback instead. The poll then decides: kyc still
-  // action-required ⇒ the user bailed (show a reopen prompt); otherwise route.
+  // Re-poll when the webview closes back onto this screen. Exit to the wallet
+  // tears this screen down before focus returns, so useFocusEffect cannot be
+  // the signal — the webview invokes this callback instead. The poll then
+  // decides: kyc still action-required ⇒ the user bailed (show a reopen
+  // prompt); otherwise route.
   useEffect(() => {
     setImmersveKycOnClose(() => {
       refresh().catch(() => undefined);
