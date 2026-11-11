@@ -160,6 +160,16 @@ interface EventSubscriptionEntry {
    * only the ids that differ.
    */
   visibleMarketIds: Map<PredictEntityId, number>;
+  /**
+   * Visible ids a membership re-read looked for and did not find: they belong
+   * to another Event. Remembered so a re-scope that keeps naming them does
+   * not read the Event again; forgotten once no watcher names them.
+   */
+  absentMarketIds: Set<PredictEntityId>;
+  /** A membership re-read of the resolved Event is in flight. */
+  refreshing: boolean;
+  /** A visible watch named a new unknown id while the re-read was in flight. */
+  refreshAgain: boolean;
   resolving: boolean;
   resolved?: ResolvedEventSubscription;
   /**
@@ -222,6 +232,9 @@ export interface LiveEventSubscriptionsOptions {
  * Event Screen is the exception: it names the Markets it renders through a
  * `visible` scope, and changes that list by watching the new scope before
  * unwatching the old one, so only the difference reaches the transport.
+ * A `visible` watcher that names a Market missing from the resolved snapshot
+ * (added by a later REST refresh) makes the manager read the Event again and
+ * adopt its Markets; ids the fresh Event does not list stay dropped.
  *
  * A watch released before its resolution settles subscribes nothing. A
  * retryable failure is retried with backoff while the Event stays watched,
@@ -267,6 +280,9 @@ export class LiveEventSubscriptions {
         entry = {
           watchers: { all: 0, card: 0, visible: 0 },
           visibleMarketIds: new Map(),
+          absentMarketIds: new Set(),
+          refreshing: false,
+          refreshAgain: false,
           resolving: false,
           resolveFailures: 0,
         };
@@ -318,6 +334,7 @@ export class LiveEventSubscriptions {
           return;
         }
         entry.visibleMarketIds.delete(marketId);
+        entry.absentMarketIds.delete(marketId);
       });
       if (totalWatchers(entry) > 0) {
         if (entry.resolved) {
@@ -538,6 +555,7 @@ export class LiveEventSubscriptions {
     scope: LiveMarketScope,
   ): void {
     const held = this.#syncMarkets(entry, resolved);
+    this.#refreshMembership(eventId, entry, resolved);
     const replayIds = getScopedMarketIds(resolved.event, scope).filter((id) =>
       held.has(id),
     );
@@ -547,6 +565,84 @@ export class LiveEventSubscriptions {
     if (resolved.watchGame) {
       this.#replay('game', [eventId]);
     }
+  }
+
+  /**
+   * Visible ids the resolved snapshot does not list and no re-read has ruled
+   * out yet.
+   */
+  #unknownVisibleIds(
+    entry: EventSubscriptionEntry,
+    resolved: ResolvedEventSubscription,
+  ): PredictEntityId[] {
+    const known = new Set(resolved.event.markets.map(({ id }) => id));
+    return [...entry.visibleMarketIds.keys()].filter(
+      (marketId) =>
+        !known.has(marketId) && !entry.absentMarketIds.has(marketId),
+    );
+  }
+
+  /**
+   * The resolved snapshot is the Event as the first watcher read it, and later
+   * watchers join without reading it again. When a `visible` watcher names a
+   * Market the snapshot does not list (one a REST refresh added since), read
+   * the Event again through the same cached read the screen renders from,
+   * adopt its Markets and sync. Ids the fresh Event still does not list belong
+   * to another Event: they stay dropped and do not trigger another read.
+   */
+  #refreshMembership(
+    eventId: PredictEntityId,
+    entry: EventSubscriptionEntry,
+    resolved: ResolvedEventSubscription,
+  ): void {
+    const unknownIds = this.#unknownVisibleIds(entry, resolved);
+    if (unknownIds.length === 0) {
+      return;
+    }
+    if (entry.refreshing) {
+      entry.refreshAgain = true;
+      return;
+    }
+    entry.refreshing = true;
+    entry.refreshAgain = false;
+    // Whether the read still applies: the Event was not released or
+    // re-resolved while it was in flight.
+    const settle = (): boolean => {
+      entry.refreshing = false;
+      return (
+        this.#entries.get(eventId) === entry && entry.resolved === resolved
+      );
+    };
+    this.#resolveEvent(eventId).then(
+      (event) => {
+        if (!settle()) {
+          return;
+        }
+        resolved.event = event;
+        const known = new Set(event.markets.map(({ id }) => id));
+        unknownIds.forEach((marketId) => {
+          if (!known.has(marketId) && entry.visibleMarketIds.has(marketId)) {
+            entry.absentMarketIds.add(marketId);
+          }
+        });
+        this.#syncMarkets(entry, resolved);
+        if (entry.refreshAgain) {
+          this.#refreshMembership(eventId, entry, resolved);
+        }
+      },
+      (error: unknown) => {
+        // The ids stay unknown, so the next visible watch reads again.
+        entry.refreshAgain = false;
+        if (!settle()) {
+          return;
+        }
+        Logger.log(
+          'PredictLiveDataService: could not refresh Event Markets for live data',
+          eventId,
+          error instanceof Error ? error.message : error,
+        );
+      },
+    );
   }
 
   #release(

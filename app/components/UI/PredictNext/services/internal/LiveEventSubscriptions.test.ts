@@ -641,6 +641,127 @@ describe('LiveEventSubscriptions', () => {
 
       expect(replay.mock.calls).toEqual([['market', [m2]]]);
     });
+
+    describe('when the Event gains Markets after it resolved', () => {
+      const m6 = id('m-6');
+      const grown = () =>
+        makeEvent({
+          eventId: 'event-1',
+          marketIds: [...marketIds, m6],
+          gameStatus: 'in_progress',
+        });
+
+      it('reads the Event again and subscribes the new Market without releasing the Event', async () => {
+        const current = events();
+        const { subscriptions, subscribe, unsubscribe, resolveEvent } =
+          createSubscriptions(current);
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        // A REST refresh adds m-6; the screen re-scopes to show it.
+        current['event-1'] = grown();
+        subscriptions.watch([id('event-1')], visible(m1, m6));
+        subscriptions.unwatch([id('event-1')], visible(m1));
+        await flush();
+
+        expect(resolveEvent).toHaveBeenCalledTimes(2);
+        expect(subscribe.mock.calls).toEqual([['market', [m6]]]);
+        expect(unsubscribe).not.toHaveBeenCalled();
+        expect(subscriptions.watchedEventIds).toEqual([id('event-1')]);
+      });
+
+      it('still drops ids of another Event, and reads once for them', async () => {
+        const { subscriptions, subscribe, resolveEvent } =
+          createSubscriptions(events());
+        const foreign = id('other-event-market');
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        subscriptions.watch([id('event-1')], visible(m1, foreign));
+        subscriptions.unwatch([id('event-1')], visible(m1));
+        await flush();
+        // A later re-scope that keeps naming it does not read again.
+        subscriptions.watch([id('event-1')], visible(m1, m2, foreign));
+        subscriptions.unwatch([id('event-1')], visible(m1, foreign));
+        await flush();
+
+        expect(resolveEvent).toHaveBeenCalledTimes(2);
+        expect(subscribe.mock.calls).toEqual([['market', [m2]]]);
+      });
+
+      it('reads again for a new id named while a read is in flight', async () => {
+        const current = events();
+        const { subscriptions, subscribe, resolveEvent } =
+          createSubscriptions(current);
+        const m7 = id('m-7');
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        current['event-1'] = grown();
+        subscriptions.watch([id('event-1')], visible(m1, m6));
+        // m-7 arrives in a refresh that lands after the first re-read began.
+        current['event-1'] = makeEvent({
+          eventId: 'event-1',
+          marketIds: [...marketIds, m6, m7],
+          gameStatus: 'in_progress',
+        });
+        subscriptions.watch([id('event-1')], visible(m1, m6, m7));
+        await flush();
+        await flush();
+
+        expect(resolveEvent).toHaveBeenCalledTimes(3);
+        expect(subscribe.mock.calls.flatMap(([, ids]) => ids)).toEqual([
+          m6,
+          m7,
+        ]);
+      });
+
+      it('subscribes nothing when the Event is released during the read', async () => {
+        const current = events();
+        const { subscriptions, subscribe } = createSubscriptions(current);
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        current['event-1'] = grown();
+        subscriptions.watch([id('event-1')], visible(m1, m6));
+        subscriptions.unwatch([id('event-1')], visible(m1));
+        subscriptions.unwatch([id('event-1')], visible(m1, m6));
+        await flush();
+
+        expect(subscribe).not.toHaveBeenCalled();
+        expect(subscriptions.watchedEventIds).toEqual([]);
+      });
+
+      it('keeps the held Markets when the read fails, and reads on the next watch', async () => {
+        const current: Record<string, PredictEvent | Error> = events();
+        const { subscriptions, subscribe, unsubscribe, resolveEvent } =
+          createSubscriptions(current);
+        subscriptions.watch([id('event-1')], visible(m1));
+        await flush();
+        subscribe.mockClear();
+
+        current['event-1'] = new Error('offline');
+        subscriptions.watch([id('event-1')], visible(m1, m6));
+        subscriptions.unwatch([id('event-1')], visible(m1));
+        await flush();
+        expect(subscribe).not.toHaveBeenCalled();
+        expect(unsubscribe).not.toHaveBeenCalled();
+
+        current['event-1'] = grown();
+        subscriptions.watch([id('event-1')], visible(m1, m2, m6));
+        await flush();
+
+        expect(resolveEvent).toHaveBeenCalledTimes(3);
+        expect(subscribe.mock.calls).toEqual([
+          ['market', [m2]],
+          ['market', [m6]],
+        ]);
+      });
+    });
   });
 
   describe('game window timer', () => {

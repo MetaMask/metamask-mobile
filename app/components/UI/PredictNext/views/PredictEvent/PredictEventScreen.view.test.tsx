@@ -51,6 +51,19 @@ import { EventMarketLayoutSectionTestIds } from './internal/EventMarketLayoutSec
 import { EventMarketPeriodChipsTestIds } from './internal/EventMarketPeriodChips.testIds';
 import { EventMarketSectionTestIds } from './internal/EventMarketSection.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { Messenger } from '@metamask/messenger';
+import {
+  PREDICT_LIVE_DATA_SERVICE_NAME,
+  PredictLiveDataService,
+  type PredictLiveDataServiceMessenger,
+} from '../../services/PredictLiveDataService';
+import {
+  PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_CONNECTION,
+  PredictLiveDataClient,
+  type PredictLiveDataClientOptions,
+} from '../../adapters/remote/PredictLiveDataClient';
+import { EVENT_LIST_LIVE_MARKET_BUDGET } from './internal/EventMarketList';
+import { TOP_CHART_MARKET_LIMIT } from './internal/selectTopChartMarkets';
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event-1' as PredictEntityId;
@@ -2701,6 +2714,215 @@ describe('PredictEventScreen', () => {
         ).toHaveTextContent('31¢'),
       );
       expect(callsSince(before)).toEqual([]);
+    });
+
+    it('does not re-scope on scroll while the tab is within the live budget', async () => {
+      const { view } = await renderFullGame();
+      const before = scopeCalls().length;
+
+      await act(async () => {
+        fireEvent(
+          view.getByTestId(EventMarketListTestIds.ROOT),
+          'onViewableItemsChanged',
+          { viewableItems: [] },
+        );
+        fireEvent(
+          view.getByTestId(EventMarketListTestIds.ROOT),
+          'onViewableItemsChanged',
+          {
+            viewableItems: [
+              {
+                item: {
+                  type: 'sectionHeader',
+                  stateKey: 'unknown',
+                },
+              },
+            ],
+          },
+        );
+      });
+
+      expect(callsSince(before)).toEqual([]);
+    });
+  });
+
+  describe('live market scope past the connection cap', () => {
+    const MARKET_COUNT = 260;
+    const marketId = (index: number) => `market-${index}`;
+    /** A flat Event of standard Markets, more than one connection holds. */
+    const createLargeFlatEvent = (): PredictEvent =>
+      createEvent({
+        markets: Array.from({ length: MARKET_COUNT }, (_, index) => ({
+          id: marketId(index) as PredictEntityId,
+          question: `Market ${index}?`,
+          status: 'active' as const,
+          outcomes: [
+            {
+              id: `${marketId(index)}-yes` as PredictEntityId,
+              side: 'yes' as const,
+              label: 'Yes',
+              // The chart charts the three highest asks: Markets 0 to 2.
+              askPrice: (index < 3 ? '0.9' : '0.1') as PredictDecimal,
+            },
+            {
+              id: `${marketId(index)}-no` as PredictEntityId,
+              side: 'no' as const,
+              label: 'No',
+            },
+          ],
+        })),
+      });
+    const CHART_MARKETS = [0, 1, 2].map(marketId);
+
+    /** The gateway side of the live-data socket: records subscribe frames. */
+    class FakeGatewaySocket {
+      static instances: FakeGatewaySocket[] = [];
+      readyState = 0;
+      onmessage: ((event: { data: string }) => void) | null = null;
+      onclose: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      readonly sent: {
+        type: 'subscribe' | 'unsubscribe';
+        topic: string;
+        markets?: string[];
+      }[] = [];
+      readonly url: string;
+      constructor(url: string) {
+        this.url = url;
+        FakeGatewaySocket.instances.push(this);
+      }
+      send = (data: string) => {
+        this.sent.push(JSON.parse(data));
+      };
+      close = () => {
+        this.readyState = 3;
+        this.onclose?.();
+      };
+      openAndWelcome() {
+        this.readyState = 1;
+        this.onmessage?.({
+          data: JSON.stringify({ type: 'welcome', protocol: 1 }),
+        });
+      }
+      /** Market ids the gateway holds, replaying every frame in order. */
+      subscribedMarketIds(): string[] {
+        const held = new Set<string>();
+        this.sent
+          .filter((frame) => frame.topic === 'market')
+          .forEach((frame) =>
+            frame.markets?.forEach((id) =>
+              frame.type === 'subscribe' ? held.add(id) : held.delete(id),
+            ),
+          );
+        return [...held].sort();
+      }
+    }
+
+    const restores: (() => void)[] = [];
+    afterEach(() => {
+      restores.splice(0).forEach((restore) => restore());
+      FakeGatewaySocket.instances = [];
+    });
+
+    /**
+     * Routes the screen's live-data watches to a real PredictLiveDataService
+     * and PredictLiveDataClient over a fake gateway socket, so the test reads
+     * what reaches the wire rather than what the hook asked for.
+     */
+    const routeLiveDataToRealService = (event: PredictEvent) => {
+      const messenger: PredictLiveDataServiceMessenger = new Messenger({
+        namespace: PREDICT_LIVE_DATA_SERVICE_NAME,
+      });
+      const service = new PredictLiveDataService({
+        messenger,
+        venueId,
+        resolveEvent: async () => event,
+        createClient: ({ onGameUpdate, onQuoteUpdate }) =>
+          new PredictLiveDataClient({
+            baseUrl: 'https://predict.example/',
+            getBearerToken: async () => 'test-bearer-token',
+            WebSocket: FakeGatewaySocket as unknown as typeof WebSocket,
+            AppState: {
+              addEventListener: () => ({ remove: () => undefined }),
+            } as unknown as PredictLiveDataClientOptions['AppState'],
+            onGameUpdate,
+            onQuoteUpdate,
+          }),
+      });
+      const controllerMessenger = Engine.controllerMessenger as unknown as {
+        call: (action: string, ...params: unknown[]) => unknown;
+      };
+      const originalCall = controllerMessenger.call;
+      restores.push(() => {
+        controllerMessenger.call = originalCall;
+        service.destroy();
+      });
+      controllerMessenger.call = (action: string, ...params: unknown[]) =>
+        action.startsWith(`${PREDICT_LIVE_DATA_SERVICE_NAME}:`)
+          ? (
+              messenger.call as unknown as (
+                action: string,
+                ...params: unknown[]
+              ) => unknown
+            )(action, ...params)
+          : originalCall(action, ...params);
+    };
+
+    const range = (from: number, to: number) =>
+      Array.from({ length: to - from + 1 }, (_, index) =>
+        marketId(from + index),
+      );
+    const sorted = (ids: readonly string[]) => [...new Set(ids)].sort();
+
+    it('keeps the list and chart within the default connection cap', () => {
+      expect(EVENT_LIST_LIVE_MARKET_BUDGET + TOP_CHART_MARKET_LIMIT).toBe(
+        PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_CONNECTION,
+      );
+    });
+
+    it('moves the live set to a Market past the cap when it scrolls into view', async () => {
+      const event = createLargeFlatEvent();
+      resolveEventForRoute(event);
+      routeLiveDataToRealService(event);
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(EventMarketListTestIds.ROOT);
+      await waitFor(() => expect(FakeGatewaySocket.instances).toHaveLength(1));
+      const [socket] = FakeGatewaySocket.instances;
+      act(() => socket.openAndWelcome());
+
+      // Before any viewability report, the first rendered rows (10) and the
+      // buffer below them (10) stand in, plus the chart.
+      await waitFor(() =>
+        expect(socket.subscribedMarketIds()).toEqual(
+          sorted([...CHART_MARKETS, ...range(0, 19)]),
+        ),
+      );
+      expect(socket.subscribedMarketIds()).not.toContain(marketId(255));
+
+      // Scroll to Markets 255 to 258, past the 250th Market of the Event.
+      await act(async () => {
+        fireEvent(
+          view.getByTestId(EventMarketListTestIds.ROOT),
+          'onViewableItemsChanged',
+          {
+            viewableItems: [255, 256, 257, 258].map((index) => ({
+              item: { type: 'standard', market: event.markets[index] },
+            })),
+          },
+        );
+      });
+
+      // The viewable rows and ten rows above them (none remain below) are
+      // live; the rows scrolled past have left the gateway.
+      await waitFor(() =>
+        expect(socket.subscribedMarketIds()).toEqual(
+          sorted([...CHART_MARKETS, ...range(245, 259)]),
+        ),
+      );
+      expect(socket.subscribedMarketIds()).not.toContain(marketId(19));
+      expect(socket.subscribedMarketIds().length).toBeLessThanOrEqual(
+        PREDICT_LIVE_DATA_DEFAULT_MARKET_MAX_PER_CONNECTION,
+      );
     });
   });
 
