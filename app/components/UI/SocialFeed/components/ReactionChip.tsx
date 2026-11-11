@@ -43,6 +43,10 @@ export interface ReactionChipProps {
 
 const POP_IN = ZoomIn.springify().damping(14).stiffness(240).duration(280);
 const POP_OUT = ZoomOut.duration(140);
+// Equal-width digits plus room for two of them, so a count going 1 → 2 or
+// 9 → 10 does not resize the chip. Three-digit counts still grow it.
+const COUNT_TEXT_STYLE = { fontVariant: ['tabular-nums' as const] };
+const COUNT_TW_CLASS = 'min-w-4';
 
 /**
  * One emoji + count in the engagement row. Tapping it toggles the viewer's
@@ -90,6 +94,8 @@ const ReactionChip: React.FC<ReactionChipProps> = ({
         textProps={{
           variant: TextVariant.BodySm,
           color: TextColor.TextAlternative,
+          style: COUNT_TEXT_STYLE,
+          twClassName: COUNT_TW_CLASS,
         }}
         twClassName={`border px-2 ${
           isSelected ? 'bg-muted border-default' : 'bg-transparent border-muted'
