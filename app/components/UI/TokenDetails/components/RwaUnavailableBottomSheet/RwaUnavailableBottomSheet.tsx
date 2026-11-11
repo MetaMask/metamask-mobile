@@ -10,7 +10,6 @@ import { InteractionManager, TouchableOpacity } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -22,6 +21,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 
 const ONDO_ELIGIBILITY_URL =
   'https://docs.ondo.finance/ondo-global-markets/eligibility';
@@ -40,6 +42,7 @@ const RwaUnavailableBottomSheet = forwardRef<
   RwaUnavailableBottomSheetProps
 >(({ onDismiss }, ref) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [isVisible, setIsVisible] = useState(false);
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -101,9 +104,9 @@ const RwaUnavailableBottomSheet = forwardRef<
 
   return (
     <BottomSheet ref={sheetRef} isInteractable onClose={handleSheetClosed}>
-      <BottomSheetHeader onClose={closeSheet}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={closeSheet}>
         {strings('rwa.unavailable.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <TouchableOpacity
         testID="rwa-unavailable-ondo-eligibility-link"
