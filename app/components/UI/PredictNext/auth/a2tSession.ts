@@ -83,8 +83,7 @@ const parseIssued = (value: unknown): A2tIssued => {
   if (
     typeof body.access_token !== 'string' ||
     body.access_token.length === 0 ||
-    typeof body.token_type !== 'string' ||
-    body.token_type.toLowerCase() !== 'bearer' ||
+    String(body.token_type).toLowerCase() !== 'bearer' ||
     typeof body.expires_in !== 'number' ||
     !Number.isFinite(body.expires_in) ||
     body.expires_in <= 0

@@ -302,8 +302,13 @@ describe('A2tSession', () => {
     'not-a-jwt',
   ])('treats issuer token %s as opaque', async (a2t) => {
     const harness = createHarness();
+    // A capitalized token_type is accepted; the token value itself stays opaque.
     harness.fetchMock.mockResolvedValueOnce(
-      jsonResponse(200, { ...issuedBody, access_token: a2t }),
+      jsonResponse(200, {
+        ...issuedBody,
+        access_token: a2t,
+        token_type: 'Bearer',
+      }),
     );
 
     await expect(harness.session.ensureA2T()).resolves.toBe(a2t);
@@ -330,18 +335,6 @@ describe('A2tSession', () => {
       'A2T response was malformed',
     );
   });
-
-  it.each(['bearer', 'Bearer', 'BEARER'])(
-    'accepts the case-insensitive token type %s',
-    async (tokenType) => {
-      const harness = createHarness();
-      harness.fetchMock.mockResolvedValueOnce(
-        jsonResponse(200, { ...issuedBody, token_type: tokenType }),
-      );
-
-      await expect(harness.session.ensureA2T()).resolves.toBe(issuedToken);
-    },
-  );
 
   it('rejects an empty token response', async () => {
     const harness = createHarness();

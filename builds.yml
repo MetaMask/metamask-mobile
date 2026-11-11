@@ -43,8 +43,8 @@ _api_prod: &api_prod
   REWARDS_MONEY_API_URL: 'https://rewards-money.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   CARD_API_URL: 'https://card.api.cx.metamask.io'
-  # Predict has no prod deployment yet, so prod and dev bundle the dev
-  # predict-api host; _api_uat overrides it. Override via local .js.env if needed.
+  # Predict has no prod deployment yet. _api_uat overrides this host; a local
+  # .js.env wins over this file.
   MM_PREDICT_API_URL: 'https://predict-api.dev-api.cx.metamask.io'
 
 _public_envs: &public_envs # Production hosts plus build flags
