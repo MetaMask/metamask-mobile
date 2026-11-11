@@ -4,7 +4,7 @@ import {
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
 } from '../mocks/socialV1Feed.mock';
-import { isCopyTradeable } from './copyTrade';
+import { isCopyTradeable, toSpotCopyTradeTarget } from './copyTrade';
 
 describe('isCopyTradeable', () => {
   it('accepts an open perps position', () => {
@@ -42,5 +42,75 @@ describe('isCopyTradeable', () => {
     expect(isCopyTradeable({ ...share, showCopyTrade: true })).toBe(true);
     expect(isCopyTradeable({ ...share, showCopyTrade: false })).toBe(false);
     expect(isCopyTradeable(share)).toBe(false);
+  });
+});
+
+describe('toSpotCopyTradeTarget', () => {
+  it('builds the Quick Buy target for an open spot position', () => {
+    expect(toSpotCopyTradeTarget(mockOpenSpotFeedItem())).toEqual({
+      tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+      tokenSymbol: 'PUMP',
+      tokenName: 'PUMP',
+      chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
+  });
+
+  it('builds the target for a composer spot share', () => {
+    const share = {
+      ...mockOpenSpotFeedItem(),
+      variant: 'spotShare' as const,
+      showCopyTrade: true,
+    };
+
+    expect(toSpotCopyTradeTarget(share)?.tokenSymbol).toBe('PUMP');
+  });
+
+  it('prefers the token name and trims the address', () => {
+    const item = mockOpenSpotFeedItem();
+
+    expect(
+      toSpotCopyTradeTarget({
+        ...item,
+        asset: {
+          ...item.asset,
+          name: 'Pump',
+          avatar: { ...item.asset.avatar, tokenAddress: '  0xabc  ' },
+        },
+      }),
+    ).toEqual(
+      expect.objectContaining({ tokenAddress: '0xabc', tokenName: 'Pump' }),
+    );
+  });
+
+  it('returns undefined for a perps position', () => {
+    expect(toSpotCopyTradeTarget(mockOpenPerpsFeedItem())).toBeUndefined();
+  });
+
+  it('returns undefined for an unsupported chain', () => {
+    const item = mockOpenSpotFeedItem();
+
+    expect(
+      toSpotCopyTradeTarget({
+        ...item,
+        asset: {
+          ...item.asset,
+          avatar: { ...item.asset.avatar, chain: 'tron' },
+        },
+      }),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined for a blank token address', () => {
+    const item = mockOpenSpotFeedItem();
+
+    expect(
+      toSpotCopyTradeTarget({
+        ...item,
+        asset: {
+          ...item.asset,
+          avatar: { ...item.asset.avatar, tokenAddress: '   ' },
+        },
+      }),
+    ).toBeUndefined();
   });
 });

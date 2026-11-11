@@ -45,7 +45,7 @@ import {
 } from '../../../Money/constants/moneyEvents';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import EarnSectionListView from './EarnSectionListView';
-import { useMoneyDepositNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -158,12 +158,14 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   ),
 }));
 
-jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(() => ({
+jest.mock('../../../Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: jest.fn(() => ({
     navigateToMoneyHome: (
       ...args: Parameters<typeof mockNavigateToMoneyHome>
     ) => mockNavigateToMoneyHome(...args),
   })),
+}));
+jest.mock('../../../Money/hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 
