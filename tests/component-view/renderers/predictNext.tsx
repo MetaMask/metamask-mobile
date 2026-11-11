@@ -92,6 +92,8 @@ export const renderPredictNext = (
       { name: PredictNextRoutes.EVENT, Component: EventScreen },
       { name: PredictNextRoutes.PORTFOLIO, Component: PortfolioScreen },
       { name: PredictNextRoutes.SEARCH, Component: SearchScreen },
+      // A probe: Home's Trending header leaves Predict for the Explore tab.
+      { name: Routes.TRENDING_VIEW },
     ],
     {
       state: initialStatePredictNext(privacyMode)

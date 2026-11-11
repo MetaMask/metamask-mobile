@@ -25,6 +25,7 @@ import type {
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
+  PredictGameStatus,
   PredictMarket,
   PredictMarketLayout,
   PredictOutcome,
@@ -39,6 +40,10 @@ interface GameEventOptions {
   volume?: string;
   score?: { away: string; home: string };
   askPrices?: { away: string; home: string };
+  /** Defaults to `in_progress`. A `scheduled` Game has no score, period or clock. */
+  status?: PredictGameStatus;
+  /** ISO start time, set as the Event's `startsAt`. */
+  startsAt?: string;
 }
 
 const makeEvent = (
@@ -303,6 +308,8 @@ export const makePredictNextGameEvent = (
     volume = '1500000',
     score = { away: '17', home: '21' },
     askPrices = { away: '0.42', home: '0.58' },
+    status = 'in_progress',
+    startsAt,
   }: GameEventOptions = {},
 ): PredictEvent => {
   const event = makeEvent(id, `${awayTeam} vs ${homeTeam}`, askPrices);
@@ -311,6 +318,7 @@ export const makePredictNextGameEvent = (
   return {
     ...event,
     volume,
+    ...(startsAt ? { startsAt: startsAt as PredictTimestamp } : {}),
     sports: {
       sport: {
         id: 'american-football' as PredictEntityId,
@@ -321,12 +329,12 @@ export const makePredictNextGameEvent = (
         label: competition,
       },
       game: {
-        status: 'in_progress',
+        status,
         awayTeam: { name: awayTeam, abbreviation: awayTeam.slice(0, 3) },
         homeTeam: { name: homeTeam, abbreviation: homeTeam.slice(0, 3) },
-        score,
-        period: 'Q4',
-        clock: '12:22',
+        ...(status === 'scheduled'
+          ? {}
+          : { score, period: 'Q4', clock: '12:22' }),
         observedAt: '2026-08-19T12:00:00Z' as PredictTimestamp,
       },
     },

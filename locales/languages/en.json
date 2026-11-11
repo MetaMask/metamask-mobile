@@ -3862,7 +3862,8 @@
       "sports": "Sports"
     },
     "home_feed": {
-      "trending": "Trending"
+      "trending": "Trending",
+      "sports": "Sports"
     },
     "event": {
       "your_positions": "Your positions",
