@@ -22,6 +22,7 @@ import {
   createComponentViewQueryClient,
   renderComponentViewScreen,
   renderScreenWithRoutes,
+  ToasterBoundary,
 } from '../render';
 import {
   initialStatePerps,
@@ -829,11 +830,14 @@ export function renderPerpsView(
       </Stack.Navigator>
     );
     // App toasts outlive the submitting route and remain visible after navigation.
-    const navigationTree = includeToasts ? (
+    // Perps still uses the legacy toast host; the design-system Toaster covers
+    // social and other migrated toasts rendered from the same tree.
+    const legacyTree = includeToasts ? (
       <PerpsTestToastHost>{stackTree}</PerpsTestToastHost>
     ) : (
       stackTree
     );
+    const navigationTree = <ToasterBoundary>{legacyTree}</ToasterBoundary>;
     return withStreamControls(
       renderWithProvider(navigationTree, { state }),
       stream,

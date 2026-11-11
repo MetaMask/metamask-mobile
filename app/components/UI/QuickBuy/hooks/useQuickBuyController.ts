@@ -4,14 +4,7 @@ import {
   getNativeAssetForChainId,
 } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -75,7 +68,7 @@ import {
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useReceiveTokens } from './useReceiveTokens';
 import I18n, { strings } from '../../../../../locales/i18n';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import {
   selectBridgeFeatureFlags,
@@ -120,7 +113,6 @@ import {
   isSocialTradeSource,
   recordSocialTrade,
 } from '../../../../util/social/socialActivityStorage';
-import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
@@ -317,8 +309,6 @@ export function useQuickBuyController(
   const dispatch = useDispatch();
   const formatters = useFormatters();
   const navigation = useNavigation<AppNavigationProp>();
-  const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
   const resolvePostTradePrompt = usePostTradePromptResolver();
   const isProfileTradingActivityPrivate = useSelector(
@@ -1837,9 +1827,7 @@ export function useQuickBuyController(
       ? undefined
       : beginShareSession();
     const showPendingToast = () =>
-      toastRef?.current?.showToast(
-        buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
-      );
+      toast(buildQuickBuyToastOptions('pending', { trade: tradeToastInfo }));
     onClose();
     if (!shouldPostTradeShare && !isHardwareAddress) {
       showPendingToast();
@@ -1941,10 +1929,7 @@ export function useQuickBuyController(
         // tracked and the app-root handler ignored them. Reconcile against the
         // current bridge status now so the user isn't stuck on the pending
         // toast; if it's still pending, future stateChange events take over.
-        const showToast = toastRef?.current?.showToast;
-        if (showToast) {
-          resolveQuickBuyTerminalToast(txMetaId, showToast, theme);
-        }
+        resolveQuickBuyTerminalToast(txMetaId);
       }
       if (tradeBaseProps) {
         trackTradeCompleted({
@@ -1979,9 +1964,7 @@ export function useQuickBuyController(
           })
         : false;
       if (!sessionUpdated) {
-        toastRef?.current?.showToast(
-          buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
-        );
+        toast(buildQuickBuyToastOptions('failed', { trade: tradeToastInfo }));
       }
       await playErrorNotification();
       if (tradeBaseProps) {
@@ -2010,8 +1993,6 @@ export function useQuickBuyController(
     stxEnabled,
     dispatch,
     onClose,
-    toastRef,
-    theme,
     isNonEvmSourced,
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,

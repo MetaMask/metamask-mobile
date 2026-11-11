@@ -147,11 +147,10 @@ const mockTrackPayWithSelected = jest.fn();
 const mockTrackReceiveTokenSelected = jest.fn();
 const mockTrackSlippageChanged = jest.fn();
 const mockDispatch = jest.fn();
-const { mockShowToast, toastRef: mockToastRef } = jest.requireMock(
-  '../../../../component-library/components/Toast',
+const { toast: mockToast } = jest.requireMock(
+  '@metamask/design-system-react-native',
 ) as {
-  mockShowToast: jest.Mock;
-  toastRef: { current: { showToast?: jest.Mock } | null };
+  toast: jest.Mock;
 };
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>
@@ -3251,7 +3250,7 @@ export const runQuickBuyControllerCases = ({
             },
           );
           expect(onClose).toHaveBeenCalledTimes(1);
-          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(mockToast).not.toHaveBeenCalled();
           expect(mockTrackTradeCompleted).not.toHaveBeenCalled();
         });
 
@@ -3267,7 +3266,7 @@ export const runQuickBuyControllerCases = ({
             await confirmPromise;
           });
 
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
           expect(mockRecordSocialTrade).toHaveBeenCalledTimes(1);
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ status: 'success', tx_hash: '0xhash' }),
@@ -3283,8 +3282,8 @@ export const runQuickBuyControllerCases = ({
             await confirmPromise;
           });
 
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
-          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockToast).not.toHaveBeenCalledWith({ kind: 'pending' });
           expect(mockRecordSocialTrade).not.toHaveBeenCalled();
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ status: 'failed' }),
@@ -3316,7 +3315,7 @@ export const runQuickBuyControllerCases = ({
               transactionHash: '0xhash',
             }),
           );
-          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).not.toHaveBeenCalledWith({ kind: 'pending' });
         });
 
         it('never opens the share sheet when the HW session ends without submitting', async () => {
@@ -3330,7 +3329,7 @@ export const runQuickBuyControllerCases = ({
           });
 
           expect(getPostTradeShareSession()).toBeNull();
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'failed' });
         });
 
         it('never opens the share sheet after signing a quote token trade', async () => {
@@ -3351,7 +3350,7 @@ export const runQuickBuyControllerCases = ({
           });
 
           expect(getPostTradeShareSession()).toBeNull();
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
         });
 
         it('posts the copy-trade intent before signing', async () => {
@@ -4112,9 +4111,8 @@ export const runQuickBuyControllerCases = ({
               tokenSymbol: 'TEST',
               tradeMode: 'buy',
             }),
-            theme: expect.any(Object),
           });
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
           expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
 
           await act(async () => {
@@ -4321,9 +4319,8 @@ export const runQuickBuyControllerCases = ({
               tokenSymbol: 'TEST',
               tradeMode: 'buy',
             }),
-            theme: expect.any(Object),
           });
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
         });
 
         describe('post-trade prompt', () => {
@@ -4357,7 +4354,7 @@ export const runQuickBuyControllerCases = ({
 
           const expectNormalQuickBuyFeedback = () => {
             expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
             expect(trackQuickBuyTrade).toHaveBeenCalledWith(
               'tx-1',
               expect.objectContaining({
@@ -4412,7 +4409,7 @@ export const runQuickBuyControllerCases = ({
                 variant: 'create_profile',
               }),
             );
-            expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+            expect(mockToast).not.toHaveBeenCalledWith({ kind: 'pending' });
             expect(trackQuickBuyTrade).toHaveBeenCalledWith(
               'tx-1',
               expect.objectContaining({
@@ -4496,7 +4493,7 @@ export const runQuickBuyControllerCases = ({
             await submit(true);
 
             expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(mockToast).toHaveBeenCalledWith({ kind: 'pending' });
             expect(trackQuickBuyTrade).toHaveBeenCalledWith(
               'tx-1',
               expect.objectContaining({
@@ -4713,11 +4710,7 @@ export const runQuickBuyControllerCases = ({
             await result.current.handleConfirm();
           });
 
-          expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith(
-            'tx-1',
-            expect.any(Function),
-            expect.any(Object),
-          );
+          expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith('tx-1');
         });
 
         it('uses an empty counter token symbol when the source has no symbol', async () => {
@@ -4740,28 +4733,7 @@ export const runQuickBuyControllerCases = ({
             trade: expect.objectContaining({
               counterTokenSymbol: '',
             }),
-            theme: expect.any(Object),
           });
-        });
-
-        it('skips terminal toast reconcile when the toast ref is missing', async () => {
-          mockToastRef.current = null;
-          mockUsableQuote();
-          (
-            Engine.context.BridgeStatusController.submitTx as jest.Mock
-          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
-
-          try {
-            const { result } = renderHook(createTarget(), jest.fn());
-
-            await act(async () => {
-              await result.current.handleConfirm();
-            });
-
-            expect(resolveQuickBuyTerminalToast).not.toHaveBeenCalled();
-          } finally {
-            mockToastRef.current = { showToast: mockShowToast };
-          }
         });
 
         it('shows a failed toast and does not track the trade when submit throws', async () => {
@@ -4783,9 +4755,8 @@ export const runQuickBuyControllerCases = ({
               tokenSymbol: 'TEST',
               tradeMode: 'buy',
             }),
-            theme: expect.any(Object),
           });
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockToast).toHaveBeenCalledWith({ kind: 'failed' });
           expect(playErrorNotification).toHaveBeenCalledTimes(1);
           expect(trackQuickBuyTrade).not.toHaveBeenCalled();
         });

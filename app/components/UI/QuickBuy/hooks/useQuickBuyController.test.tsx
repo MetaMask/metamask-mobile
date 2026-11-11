@@ -256,23 +256,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../../../../component-library/components/Toast', () => {
-  const actualReact = jest.requireActual('react');
-  const mockShowToast = jest.fn();
-  const toastRef = {
-    current: {
-      showToast: mockShowToast,
-    },
-  };
-
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    __esModule: true,
-    mockShowToast,
-    toastRef,
-    ToastContext: actualReact.createContext({
-      toastRef,
-    }),
-    ToastVariants: { Plain: 'Plain', Icon: 'Icon' },
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
 

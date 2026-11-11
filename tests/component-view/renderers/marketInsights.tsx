@@ -15,6 +15,7 @@ import {
   initialStateMarketInsightsView,
   fiatOrdersRampRoutingSupported,
 } from '../presets/marketInsightsView';
+import { ToasterBoundary } from '../render';
 
 const RootStack = createNativeStackNavigator();
 const BridgeInnerStack = createNativeStackNavigator();
@@ -101,26 +102,28 @@ export function renderMarketInsightsViewWithNavigation(
 
   const stackTree = (
     <QueryClientProvider client={queryClient}>
-      <AccessRestrictedProvider>
-        <RootStack.Navigator
-          initialRouteName={Routes.MARKET_INSIGHTS.VIEW}
-          screenOptions={{ headerShown: false }}
-        >
-          <RootStack.Screen
-            name={Routes.MARKET_INSIGHTS.VIEW}
-            component={MarketInsightsView as unknown as React.ComponentType}
-            initialParams={initialParams}
-          />
-          <RootStack.Screen
-            name={Routes.BRIDGE.ROOT}
-            component={BridgeNavigator}
-          />
-          <RootStack.Screen
-            name={Routes.RAMP.TOKEN_SELECTION}
-            component={RampNavigator}
-          />
-        </RootStack.Navigator>
-      </AccessRestrictedProvider>
+      <ToasterBoundary>
+        <AccessRestrictedProvider>
+          <RootStack.Navigator
+            initialRouteName={Routes.MARKET_INSIGHTS.VIEW}
+            screenOptions={{ headerShown: false }}
+          >
+            <RootStack.Screen
+              name={Routes.MARKET_INSIGHTS.VIEW}
+              component={MarketInsightsView as unknown as React.ComponentType}
+              initialParams={initialParams}
+            />
+            <RootStack.Screen
+              name={Routes.BRIDGE.ROOT}
+              component={BridgeNavigator}
+            />
+            <RootStack.Screen
+              name={Routes.RAMP.TOKEN_SELECTION}
+              component={RampNavigator}
+            />
+          </RootStack.Navigator>
+        </AccessRestrictedProvider>
+      </ToasterBoundary>
     </QueryClientProvider>
   );
 

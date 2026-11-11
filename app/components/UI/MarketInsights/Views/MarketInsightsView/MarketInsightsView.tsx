@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -44,6 +43,8 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   FontWeight,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -71,12 +72,6 @@ import {
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';
-import { useAppThemeFromContext } from '../../../../../util/theme';
 import MarketInsightsFeedbackBottomSheet, {
   MarketInsightsFeedbackReason,
 } from '../../components/MarketInsightsFeedbackBottomSheet';
@@ -247,8 +242,6 @@ const MarketInsightsView: React.FC = () => {
   const { track } = usePerpsEventTracking();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { toastRef } = useContext(ToastContext);
-  const theme = useAppThemeFromContext();
   const [videoEnded, setVideoEnded] = useState(false);
   const [showLastFrame, setShowLastFrame] = useState(false);
   const lastFrameImage = useMemo(
@@ -526,15 +519,13 @@ const MarketInsightsView: React.FC = () => {
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: ComponentLibraryIconName.Confirmation,
-      iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.section,
-      labelOptions: [{ label: strings('market_insights.feedback_submitted') }],
+    toast({
+      title: strings('market_insights.feedback_submitted'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
-  }, [toastRef, theme.colors.success.default, theme.colors.background.section]);
+  }, []);
 
   useEffect(() => {
     hasTrackedViewRef.current = false;

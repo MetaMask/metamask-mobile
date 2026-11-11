@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -38,6 +37,8 @@ import {
   Text,
   TextColor,
   TextVariant,
+  toast,
+  ToastSeverity,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import {
@@ -56,14 +57,8 @@ import {
 import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
-import { useTheme } from '../../../../util/theme';
 import TraderPositionBuyCta from './components/TraderPositionBuyCta';
 import {
   narrowQuickBuyOriginalEntryPoint,
@@ -145,8 +140,6 @@ const TraderPositionView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
-  const { toastRef } = useContext(ToastContext);
 
   const {
     traderId,
@@ -356,16 +349,13 @@ const TraderPositionView = () => {
     }
 
     await ClipboardManager.setString(displayPosition.tokenAddress);
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: ComponentLibraryIconName.Confirmation,
-      iconColor: colors.success.default,
-      labelOptions: [
-        { label: strings('detected_tokens.address_copied_to_clipboard') },
-      ],
+    toast({
+      title: strings('detected_tokens.address_copied_to_clipboard'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
-  }, [colors.success.default, displayPosition?.tokenAddress, toastRef]);
+  }, [displayPosition?.tokenAddress]);
 
   // Quick Buy `source` is always the trade screen; upstream journey attribution
   // is carried separately on `original_entry_point`.
