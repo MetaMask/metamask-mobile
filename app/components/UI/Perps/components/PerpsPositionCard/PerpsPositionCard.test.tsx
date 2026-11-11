@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { Text } from 'react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import {
   PERPS_CONSTANTS,
@@ -8,6 +9,7 @@ import {
 } from '@metamask/perps-controller';
 import PerpsPositionCard from './PerpsPositionCard';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -251,6 +253,9 @@ describe('PerpsPositionCard', () => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
+        return true;
+      }
       if (selector === selectPrivacyMode) {
         return false;
       }
@@ -258,7 +263,159 @@ describe('PerpsPositionCard', () => {
     });
   });
 
+  it('falls back to the isolated presentation when the Cross margin flag is off', () => {
+    // Arrange - eligible and privacy off, but the Cross margin flag is off
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
+        return false;
+      }
+      if (selector === selectPrivacyMode) {
+        return false;
+      }
+      return undefined;
+    });
+    const cross = {
+      ...mockPosition,
+      leverage: { type: 'cross' as const, value: 3 },
+      liquidationPrice: null,
+    };
+
+    // Act
+    render(<PerpsPositionCard position={cross} onMarginPress={jest.fn()} />);
+
+    // Assert - no Cross affordances, and margin editing is restored
+    expect(
+      screen.queryByTestId('cross-margin-tag-lite-ETH'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('cross-liquidation-info-lite-ETH'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+    ).toBeOnTheScreen();
+  });
+
+  it.each([null, '1800'])(
+    'renders Cross liquidation %s without a margin action',
+    (liquidationPrice) => {
+      const cross = {
+        ...mockPosition,
+        leverage: { type: 'cross' as const, value: 3 },
+        liquidationPrice,
+      };
+      const onMarginPress = jest.fn();
+
+      render(
+        <PerpsPositionCard position={cross} onMarginPress={onMarginPress} />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+      );
+
+      expect(screen.getByTestId('cross-margin-tag-lite-ETH')).toBeOnTheScreen();
+      expect(onMarginPress).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId('cross-liquidation-info-lite-ETH'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent(
+        liquidationPrice === null
+          ? 'perps.cross_position.no_liquidation_price'
+          : '$1,800',
+      );
+      expect(
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.cross_position.margin_used'),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('retains the isolated margin edit action', () => {
+    const onMarginPress = jest.fn();
+    render(
+      <PerpsPositionCard
+        position={mockPosition}
+        onMarginPress={onMarginPress}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+    );
+
+    expect(onMarginPress).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId('cross-liquidation-info-lite-ETH'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each([null, '1800'])(
+    'masks Cross liquidation %s in privacy mode',
+    (liquidationPrice) => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: unknown) =>
+          selector === selectPrivacyMode ||
+          selector === selectPerpsCrossMarginEnabledFlag,
+      );
+
+      render(
+        <PerpsPositionCard
+          position={{
+            ...mockPosition,
+            leverage: { type: 'cross', value: 3 },
+            liquidationPrice,
+          }}
+        />,
+      );
+
+      expect(screen.getByTestId('cross-margin-tag-lite-ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('•'.repeat(6));
+      expect(
+        screen.queryByText('perps.cross_position.no_liquidation_price'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText('$1,800')).not.toBeOnTheScreen();
+    },
+  );
+
   describe('Component Rendering', () => {
+    it('exposes P&L and Return as single accessible label/value groups', () => {
+      render(<PerpsPositionCard position={mockPosition} currentPrice={2000} />);
+
+      const pnlCard = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.PNL_CARD,
+      );
+      const returnCard = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.RETURN_CARD,
+      );
+
+      expect(pnlCard).toHaveProp('accessible', true);
+      expect(pnlCard).toHaveTextContent(
+        'perps.position.card.pnl_label+$250.00',
+      );
+      expect(returnCard).toHaveProp('accessible', true);
+      expect(returnCard).toHaveTextContent(
+        'perps.position.card.return_label+1250.00%',
+      );
+    });
+
     it('renders position card with all sections', () => {
       // Arrange
       const currentPrice = 2000;
@@ -371,6 +528,23 @@ describe('PerpsPositionCard', () => {
       expect(
         screen.getByText('perps.order.tp $2.1946, perps.order.sl $2.1234'),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the take profit order count in the auto close row when several take profit orders exist', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        takeProfitPrice: '2.1946',
+        takeProfitCount: 3,
+        stopLossPrice: '2.1234',
+        stopLossCount: 1,
+      };
+
+      render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
+
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.AUTO_CLOSE_VALUE),
+      ).toHaveTextContent('perps.order.tp 3 orders, perps.order.sl $2.1234');
     });
 
     it('renders SHORT position correctly', () => {
@@ -685,6 +859,32 @@ describe('PerpsPositionCard', () => {
       );
       expect(shareButton).toBeNull();
     });
+
+    it('renders the Post to feed button only when one is passed', () => {
+      const onSharePress = jest.fn();
+      const { rerender } = render(
+        <PerpsPositionCard
+          position={mockPosition}
+          onSharePress={onSharePress}
+        />,
+      );
+
+      expect(screen.queryByTestId('post-to-feed-slot')).toBeNull();
+
+      rerender(
+        <PerpsPositionCard
+          position={mockPosition}
+          postToFeedButton={<Text testID="post-to-feed-slot">Post</Text>}
+          onSharePress={onSharePress}
+        />,
+      );
+
+      expect(screen.getByTestId('post-to-feed-slot')).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      );
+      expect(onSharePress).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Privacy Mode', () => {
@@ -728,6 +928,20 @@ describe('PerpsPositionCard', () => {
       expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.RETURN_VALUE),
       ).toHaveTextContent(DOTS_SHORT);
+    });
+
+    it('keeps the Return accessibility group masked when privacy mode is enabled', () => {
+      enablePrivacyMode();
+
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      const returnCard = screen.getByTestId(
+        PerpsPositionCardSelectorsIDs.RETURN_CARD,
+      );
+      expect(returnCard).toHaveTextContent(
+        `perps.position.card.return_label${DOTS_SHORT}`,
+      );
+      expect(returnCard).not.toHaveTextContent(/1250\.00%/);
     });
 
     it('hides margin value when privacy mode is enabled', () => {

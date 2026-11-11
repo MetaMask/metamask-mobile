@@ -13,6 +13,7 @@ const stylesheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: 8,
     },
     valueContainer: {
       flexDirection: 'row',

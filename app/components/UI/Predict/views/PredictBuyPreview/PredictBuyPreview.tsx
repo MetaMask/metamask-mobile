@@ -3,7 +3,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonSize as ButtonSizeHero,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Icon,
   IconName,
   IconSize,
@@ -26,20 +28,9 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
@@ -67,7 +58,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
@@ -76,8 +66,8 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
 import {
+  buildPredictFeeBreakdowns,
   getPredictBuyAllInCost,
-  getPredictExchangeFee,
   roundUpToCents,
 } from '../../utils/orders';
 import { usePredictMaxBetAmount } from '../../hooks/usePredictMaxBetAmount';
@@ -156,8 +146,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         entryPoint,
         predictFeedTab,
         predictScreen,
+        outcome,
       ),
-    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen, outcome],
   );
 
   const {
@@ -165,6 +156,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     isLoading,
     error: placeOrderError,
     result,
+    lastSubmittedPreview,
+    retryOrderState,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder({ transactionActiveAbTests });
@@ -185,6 +178,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     preview,
     error: previewError,
     isCalculating,
+    refetchPreview,
   } = usePredictOrderPreview({
     marketId: market.id,
     outcomeId: outcome.id,
@@ -207,14 +201,20 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const {
     retrySheetRef,
     retrySheetVariant,
+    retryQuote,
+    retryPreviousPrice,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
+    handleRetryConfirm,
   } = usePredictOrderRetry({
     preview,
+    refetchPreview,
+    lastSubmittedPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
   });
 
   // Track screen load performance (balance + initial preview)
@@ -271,12 +271,18 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const isRateLimited = preview?.rateLimited ?? false;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
-  const exchangeFee = getPredictExchangeFee(preview?.fees);
   const previewAllInCost = getPredictBuyAllInCost(preview);
   const total =
     currentValue > 0 && preview
       ? previewAllInCost
       : roundUpToCents(currentValue);
+  const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
+    preview,
+    side: Side.BUY,
+    order: currentValue,
+    metamaskFee,
+    total,
+  });
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
   const isInsufficientBalance =
@@ -319,9 +325,16 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       predictBuyPreviewOrderInitiatedRef.current = true;
       if (isSheetMode) {
         onClose?.();
-      } else {
-        dispatch(StackActions.pop());
+        return;
       }
+
+      // Popping inside the commit that carries `result` makes Fabric mount the
+      // removal of this screen and its re-render in one batch. On Android that
+      // batch can fail with "addViewAt: cannot insert view ... View already has a
+      // parent" (a flatten/unflatten reparent in the same commit), which
+      // destroys the React host. Let the result commit land first, then pop.
+      const popTimer = setTimeout(() => dispatch(StackActions.pop()), 0);
+      return () => clearTimeout(popTimer);
     }
   }, [dispatch, result, isSheetMode, onClose]);
 
@@ -523,53 +536,22 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     </ActiveScrollView>
   );
 
-  const renderActionButton = () => {
-    if (isLoading) {
-      return (
-        <Button
-          label={
-            <Box twClassName="flex-row items-center gap-1">
-              <ActivityIndicator size="small" />
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="font-medium"
-                color={TextColor.PrimaryInverse}
-              >
-                {`${strings('predict.order.placing_prediction')}...`}
-              </Text>
-            </Box>
-          }
-          variant={ButtonVariants.Primary}
-          onPress={onPlaceBet}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={tw.style('opacity-50')}
-          disabled
-        />
-      );
-    }
-
-    return (
-      <ButtonHero
-        testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
-        onPress={onPlaceBet}
-        isDisabled={!canPlaceBet}
-        isLoading={isLoading}
-        size={ButtonSizeHero.Lg}
-        style={tw.style('w-full')}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          style={tw.style('text-white font-medium')}
-        >
-          {outcomeToken?.title} ·{' '}
-          {formatCents(
-            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
-          )}
-        </Text>
-      </ButtonHero>
-    );
-  };
+  const renderActionButton = () => (
+    <Button
+      testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      isDisabled={!canPlaceBet || isLoading}
+      isLoading={isLoading}
+      loadingText={`${strings('predict.order.placing_prediction')}...`}
+      onPress={onPlaceBet}
+    >
+      {`${outcomeToken?.title} · ${formatCents(
+        preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
+      )}`}
+    </Button>
+  );
 
   const renderMinimumBetWarning = () => {
     if (isBalanceLoading || !isBelowMinimum) {
@@ -602,13 +584,19 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         flexDirection={BoxFlexDirection.Column}
         twClassName="border-t border-muted"
       >
-        <PredictFeeSummary
-          disabled={false}
-          total={total}
-          rewardsFeeAmountUsd={rewardsFeeAmountUsd}
-          rewardsLoadingOverride={isCalculating && isUserInputChange}
-          handleFeesInfoPress={handleFeesInfoPress}
-        />
+        {/* Padding lives here rather than on the parent so the top border
+            stays full-bleed while the rows line up with the action button. */}
+        <Box twClassName="px-4">
+          <PredictFeeSummary
+            disabled={false}
+            total={total}
+            originalTotal={originalFeeBreakdown?.total}
+            feePolicy={preview?.feePolicy}
+            rewardsFeeAmountUsd={rewardsFeeAmountUsd}
+            rewardsLoadingOverride={isCalculating && isUserInputChange}
+            handleFeesInfoPress={handleFeesInfoPress}
+          />
+        </Box>
         <Box
           justifyContent={BoxJustifyContent.Center}
           twClassName="gap-2 px-4 pb-0"
@@ -627,6 +615,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
+              style={tw.style('text-center')}
             >
               {strings('predict.consent_sheet.disclaimer')}
             </Text>
@@ -634,7 +623,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               variant={TextVariant.BodyXs}
               style={tw.style('text-info-default')}
               onPress={() => {
-                Linking.openURL('https://polymarket.com/tos');
+                Linking.openURL('https://polymarket.com/tos'); // NOSONAR
               }}
             >
               {strings('predict.consent_sheet.learn_more')}
@@ -647,7 +636,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
 
   const Wrapper = isSheetMode ? Box : SafeAreaView;
   const wrapperProps = isSheetMode
-    ? { twClassName: 'bg-background-default' }
+    ? {}
     : { style: tw.style('flex-1 bg-background-default') };
 
   return (
@@ -668,14 +657,16 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={exchangeFee}
-          metamaskFee={metamaskFee}
+          providerFee={feeBreakdown.exchangeFee}
+          metamaskFee={feeBreakdown.metamaskFee}
+          originalTotal={originalFeeBreakdown?.total}
+          feePolicy={preview?.feePolicy}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
           }
           contractCount={preview?.minAmountReceived ?? 0}
-          betAmount={currentValue}
-          total={total}
+          betAmount={feeBreakdown.order}
+          total={feeBreakdown.total}
           onClose={handleFeeBreakdownClose}
           fakOrdersEnabled={fakOrdersEnabled}
         />
@@ -683,11 +674,11 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={
-          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
-        }
+        preview={retryQuote}
+        previousPrice={retryPreviousPrice}
         side={Side.BUY}
-        onRetry={handleRetryWithBestPrice}
+        onRetry={handleRetry}
+        onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />

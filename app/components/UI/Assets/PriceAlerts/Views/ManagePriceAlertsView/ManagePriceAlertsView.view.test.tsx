@@ -1,4 +1,6 @@
 import '../../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../../__mocks__/@react-native-community/netinfo';
 import { renderManagePriceAlertsViewWithRoutes } from '../../../../../../../tests/component-view/renderers/priceAlerts';
 import {
   setupPriceAlertsApiMock,
@@ -15,12 +17,19 @@ import {
 } from '../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
 
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
 beforeEach(() => {
+  netInfoMock.__setMockNetInfo({
+    type: 'wifi',
+    isInternetReachable: true,
+  });
   setupPriceAlertsApiMock();
 });
 
 afterEach(() => {
   clearPriceAlertsApiMocks();
+  netInfoMock.__resetMockNetInfo();
 });
 
 describeForPlatforms('ManagePriceAlertsView', () => {
@@ -67,7 +76,7 @@ describeForPlatforms('ManagePriceAlertsView', () => {
   });
 
   it('navigates to CreatePriceAlertView with the alert pre-populated when a row is tapped', async () => {
-    const { findByTestId, getByText, queryByTestId } =
+    const { findByTestId, getByRole, getByText, queryByTestId } =
       renderManagePriceAlertsViewWithRoutes();
 
     await waitFor(() => {
@@ -85,7 +94,7 @@ describeForPlatforms('ManagePriceAlertsView', () => {
     await findByTestId(CreatePriceAlertTestIds.CONTAINER);
 
     expect(getByText('Edit ETH price alert')).toBeOnTheScreen();
-    expect(getByText('$3000')).toBeOnTheScreen();
+    expect(getByRole('text', { name: '$3000' })).toBeOnTheScreen();
   });
 
   it('auto-redirects to Create view when no alerts exist for the token', async () => {

@@ -8,6 +8,16 @@
 import { UserResponse } from '../types';
 import { UserAddress } from '../pushProvisioning/types';
 
+interface ProvisioningAddressInput {
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  usState?: string | null;
+  zip?: string | null;
+  phoneNumber?: string | null;
+  phoneCountryCode?: string | null;
+}
+
 /**
  * Shipping address format used for metal card ordering
  */
@@ -30,7 +40,7 @@ export interface ShippingAddress {
  * @returns UserAddress for provisioning, or undefined if incomplete
  */
 export function buildProvisioningUserAddress(
-  userDetails: UserResponse | null | undefined,
+  userDetails: ProvisioningAddressInput | null | undefined,
   cardholderName: string,
 ): UserAddress | undefined {
   if (!userDetails) {
@@ -157,37 +167,3 @@ export function buildShippingAddress(
  * @param name - The name string to sanitize
  * @returns Sanitized name containing only alphanumeric characters and spaces
  */
-function sanitizeName(name: string): string {
-  return name
-    .trim()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9 ]/g, '');
-}
-
-/**
- * Build cardholder full name from user details
- *
- * Uses firstName and lastName from KYC details, sanitized through the same
- * regex used for card ordering at Galileo: `name.trim().replace(/[^a-zA-Z0-9 ]/g, '')`
- *
- * @param userDetails - User details from KYC status
- * @param fallback - Fallback name if user details are incomplete (default: 'Card Holder')
- * @returns Sanitized full cardholder name
- */
-export function buildCardholderName(
-  userDetails: UserResponse | null | undefined,
-  fallback = 'Card Holder',
-): string {
-  if (!userDetails?.firstName && !userDetails?.lastName) {
-    return fallback;
-  }
-
-  const result = [userDetails.firstName, userDetails.lastName]
-    .filter(Boolean)
-    .map((name) => sanitizeName(name as string))
-    .filter(Boolean)
-    .join(' ');
-
-  return result || fallback;
-}

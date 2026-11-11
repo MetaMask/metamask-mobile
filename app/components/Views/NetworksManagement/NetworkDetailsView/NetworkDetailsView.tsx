@@ -19,7 +19,6 @@ import {
   Text,
   TextVariant,
   FontWeight,
-  HeaderStandard,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -68,6 +67,9 @@ import type {
   NetworkFormState,
   UrlSheetPersistOptions,
 } from './NetworkDetailsView.types';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import ButtonIconGlass from '../../../../component-library/components-temp/ButtonIconGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 type NetworkDetailsRouteParams = RouteProp<
   { AddNetworkForm: NetworkDetailsViewParams },
@@ -75,6 +77,7 @@ type NetworkDetailsRouteParams = RouteProp<
 >;
 
 const NetworkDetailsView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const route = useRoute<NetworkDetailsRouteParams>();
   const navigation = useNavigation<AppNavigationProp>();
   const params = route.params;
@@ -264,27 +267,38 @@ const NetworkDetailsView = () => {
       edges={['top', 'bottom']}
       testID={NetworkDetailsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         endAccessory={
           !formHook.form.addMode &&
           canDeleteNetwork(formHook.form.chainId ?? '') ? (
-            <Pressable
-              onPress={handleDelete}
-              testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
-              style={({ pressed }) =>
-                tw.style(
-                  'w-9 h-9 mr-2 items-center justify-center',
-                  pressed && 'opacity-70',
-                )
-              }
-            >
-              <Icon
-                name={IconName.Trash}
-                size={IconSize.Md}
-                color={IconColor.Default}
+            isGlassHeader ? (
+              <ButtonIconGlass
+                isCapsule
+                iconName={IconName.Trash}
+                onPress={handleDelete}
+                testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
               />
-            </Pressable>
+            ) : (
+              <Pressable
+                onPress={handleDelete}
+                testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
+                style={({ pressed }) =>
+                  tw.style(
+                    'w-9 h-9 mr-2 items-center justify-center',
+                    pressed && 'opacity-70',
+                  )
+                }
+              >
+                <Icon
+                  name={IconName.Trash}
+                  size={IconSize.Md}
+                  color={IconColor.Default}
+                />
+              </Pressable>
+            )
           ) : undefined
         }
       >
@@ -308,7 +322,7 @@ const NetworkDetailsView = () => {
             {headerTitle}
           </Text>
         </Box>
-      </HeaderStandard>
+      </HeaderStandardGlass>
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}

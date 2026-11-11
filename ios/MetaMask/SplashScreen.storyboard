@@ -21,10 +21,10 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="fox-splash-screen" translatesAutoresizingMaskIntoConstraints="NO" id="Rmq-1b-Way">
-                                <rect key="frame" x="112.5" y="277.5" width="150" height="112"/>
+                                <rect key="frame" x="115.5" y="261.5" width="144" height="144"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="112" id="fox-height-constraint"/>
-                                    <constraint firstAttribute="width" constant="150" id="fox-width-constraint"/>
+                                    <constraint firstAttribute="height" constant="144" id="fox-height-constraint"/>
+                                    <constraint firstAttribute="width" constant="144" id="fox-width-constraint"/>
                                 </constraints>
                             </imageView>
                         </subviews>
@@ -41,6 +41,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="fox-splash-screen" width="1000" height="1000"/>
+        <image name="fox-splash-screen" width="144" height="144"/>
     </resources>
 </document>

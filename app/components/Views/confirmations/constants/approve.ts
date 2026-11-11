@@ -6,6 +6,10 @@ export const APPROVAL_4BYTE_SELECTORS = {
   PERMIT2_APPROVE: '0x87517c45',
 };
 
+export const APPROVAL_SELECTORS: Set<string> = new Set(
+  Object.values(APPROVAL_4BYTE_SELECTORS),
+);
+
 export const ZERO_AMOUNT = '0';
 
 export const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;

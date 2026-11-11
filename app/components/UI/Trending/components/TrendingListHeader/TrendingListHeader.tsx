@@ -4,11 +4,13 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   HeaderSearch,
   HeaderSearchVariant,
-  HeaderStandard,
   IconName as DSIconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { TrendingListHeaderProps } from './TrendingListHeader.types';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectExploreBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/exploreBrandRefresh';
 
 /**
  * TrendingListHeader Component
@@ -50,6 +52,7 @@ const TrendingListHeader: React.FC<TrendingListHeaderProps> = ({
   onSearchToggle,
   testID,
 }) => {
+  const isGlassHeader = useSelector(selectExploreBrandRefreshEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
 
   const handleBack = useCallback(() => {
@@ -78,6 +81,7 @@ const TrendingListHeader: React.FC<TrendingListHeaderProps> = ({
           value: searchQuery,
           onChangeText: onSearchQueryChange,
           placeholder: strings('trending.search_placeholder'),
+          inputAccessibilityLabel: strings('trending.search_placeholder'),
           onPressClearButton: handleSearchClear,
           autoFocus: true,
           testID: testID ? `${testID}-search-bar` : undefined,
@@ -99,7 +103,9 @@ const TrendingListHeader: React.FC<TrendingListHeaderProps> = ({
   }
 
   return (
-    <HeaderStandard
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
       title={title || strings('trending.trending_tokens')}
       onBack={handleBack}
       backButtonProps={{

@@ -26,7 +26,7 @@ function findV2Order(
   );
 }
 
-export function useRampActivityItems(): ActivityListItem[] {
+function useRampActivityItemPairs(): { id: string; item: ActivityListItem }[] {
   const legacyOrders = useSelector(getOrders);
   const { orders: v2Orders } = useRampsOrders();
 
@@ -35,7 +35,7 @@ export function useRampActivityItems(): ActivityListItem[] {
     const legacyById = new Map(
       legacyOrders.map((order: FiatOrder) => [order.id, order]),
     );
-    const result: ActivityListItem[] = [];
+    const result: { id: string; item: ActivityListItem }[] = [];
 
     for (const displayOrder of displayOrders) {
       if (displayOrder.source === 'legacy') {
@@ -45,7 +45,7 @@ export function useRampActivityItems(): ActivityListItem[] {
         }
         const item = mapRampOrder({ order: legacyOrder });
         if (item) {
-          result.push(item);
+          result.push({ id: legacyOrder.id, item });
         }
         continue;
       }
@@ -56,10 +56,25 @@ export function useRampActivityItems(): ActivityListItem[] {
       }
       const item = mapRampsOrder({ order: v2Order });
       if (item) {
-        result.push(item);
+        result.push({ id: displayOrder.id, item });
       }
     }
 
     return result;
   }, [legacyOrders, v2Orders]);
+}
+
+// TODO: Replace these with @metamak/client-utils mapRampsOrder
+
+export function useRampActivityItems(): ActivityListItem[] {
+  const pairs = useRampActivityItemPairs();
+  return useMemo(() => pairs.map(({ item }) => item), [pairs]);
+}
+
+export function useRampActivityItemsById(): Map<string, ActivityListItem> {
+  const pairs = useRampActivityItemPairs();
+  return useMemo(
+    () => new Map(pairs.map(({ id, item }) => [id.toLowerCase(), item])),
+    [pairs],
+  );
 }

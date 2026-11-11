@@ -18,6 +18,7 @@ import {
 import {
   MoneyLocationEventProperties,
   MoneyBaseEventProperties,
+  MoneyAccountCampaignTriggeredEventProperties,
   MoneyRedirectEventProperties,
   MoneyOnboardingEventProperties,
   MoneyTooltipClickedEventProperties,
@@ -117,7 +118,7 @@ export const useMoneyAnalytics = ({
     // Undefined while loading or on error so a genuine zero can be told apart.
     const totalFiatRaw =
       balanceQueryState === undefined ||
-      balanceQueryState.status === 'loading' ||
+      balanceQueryState.status === 'pending' ||
       balanceQueryState.status === 'error'
         ? undefined
         : new BigNumber(balanceQueryState.data?.totalBalance ?? 0)
@@ -167,6 +168,20 @@ export const useMoneyAnalytics = ({
           .addProperties({
             ...getBaseProperties(),
             ...withRedirectType(withLabel(properties)),
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getBaseProperties, trackEvent],
+  );
+
+  const trackCampaignTriggered = useCallback(
+    (properties: MoneyAccountCampaignTriggeredEventProperties) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MONEY_ACCOUNT_CAMPAIGN_TRIGGERED)
+          .addProperties({
+            ...getBaseProperties(),
+            ...properties,
           })
           .build(),
       );
@@ -319,6 +334,9 @@ export const useMoneyAnalytics = ({
     trackTokenButtonClicked,
     trackTokenSurfaceClicked,
     trackActivitySurfaceClicked,
+
+    // Campaign events
+    trackCampaignTriggered,
 
     // View events
     trackScreenViewed,

@@ -33,12 +33,7 @@ const queryClients = new Set<QueryClient>();
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
-    logger: {
-      log: () => undefined,
-      warn: () => undefined,
-      error: () => undefined,
-    },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
   queryClients.add(queryClient);
 
@@ -200,8 +195,13 @@ describe('usePostTradeTrendingTokens', () => {
       expect(mockGetTrendingTokens).toHaveBeenCalledTimes(2);
     });
 
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.tokens).toEqual([]);
+    // Destination results are published while the Ethereum fill is still in
+    // flight. Waiting for that commit avoids racing an empty list against the
+    // already-resolved destination query.
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.tokens).toEqual([lineaToken]);
+    });
 
     expect(mockGetTrendingTokens).toHaveBeenNthCalledWith(
       1,

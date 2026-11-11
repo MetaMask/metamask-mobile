@@ -7,6 +7,7 @@ import {
 } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Routes from '../../../../constants/navigation/Routes';
 import { useIsPerpsProModeActive } from '../../Perps/utils/perpsModeSwitch';
+import { usePerpsScreenVsBottomSheetAbTest } from '../../Perps/hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
   PERPS_EVENT_VALUE,
@@ -58,6 +59,9 @@ export const usePerpsActions = ({
 }: UsePerpsActionsParams): UsePerpsActionsResult => {
   const navigation = useNavigation<AppNavigationProp>();
   const isProModeActive = useIsPerpsProModeActive();
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest({
+    trackExposure: false,
+  });
 
   const { hasPerpsMarket, marketData, isLoading, error } =
     usePerpsMarketForAsset(symbol);
@@ -84,6 +88,25 @@ export const usePerpsActions = ({
         return;
       }
 
+      // The modal stack is transparent, so the Trade sheet opens over Token
+      // Details instead of on top of an empty Perps screen. After submit the
+      // sheet dismisses back here; the Perps toasts report the order.
+      if (useBottomSheet) {
+        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.ORDER_REDIRECT,
+          params: {
+            direction,
+            asset: marketData.symbol,
+            useBottomSheet: true,
+            stayOnCurrentScreen: true,
+            ...(transactionActiveAbTests?.length
+              ? { transactionActiveAbTests }
+              : {}),
+          },
+        });
+        return;
+      }
+
       // Navigate to the Perps stack, targeting PerpsOrderRedirect
       // This ensures WebSocket is initialized before calling depositWithOrder()
       navigation.navigate(Routes.PERPS.ROOT, {
@@ -102,6 +125,7 @@ export const usePerpsActions = ({
       navigation,
       marketData,
       isProModeActive,
+      useBottomSheet,
       fromTokenDetails,
       transactionActiveAbTests,
     ],

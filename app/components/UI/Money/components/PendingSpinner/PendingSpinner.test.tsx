@@ -1,6 +1,7 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render } from '@testing-library/react-native';
-import { IconSize } from '../../../../../component-library/components/Icons/Icon';
+import { IconSize } from '@metamask/design-system-react-native';
 import PendingSpinner from './PendingSpinner';
 
 describe('PendingSpinner', () => {
@@ -22,9 +23,25 @@ describe('PendingSpinner', () => {
     expect(spinner.props.importantForAccessibility).toBe('no-hide-descendants');
   });
 
-  it('renders at a custom size without a testID', () => {
-    const { toJSON } = render(<PendingSpinner size={IconSize.Lg} />);
+  it('sizes the rotation container to the default icon size', () => {
+    const { getByTestId } = render(<PendingSpinner testID="pending-spinner" />);
 
-    expect(toJSON()).toBeTruthy();
+    const style = StyleSheet.flatten(
+      getByTestId('pending-spinner', { includeHiddenElements: true }).props
+        .style,
+    );
+    expect(style).toMatchObject({ width: 16, height: 16 });
+  });
+
+  it('sizes the rotation container to the requested icon size', () => {
+    const { getByTestId } = render(
+      <PendingSpinner size={IconSize.Lg} testID="pending-spinner" />,
+    );
+
+    const style = StyleSheet.flatten(
+      getByTestId('pending-spinner', { includeHiddenElements: true }).props
+        .style,
+    );
+    expect(style).toMatchObject({ width: 24, height: 24 });
   });
 });

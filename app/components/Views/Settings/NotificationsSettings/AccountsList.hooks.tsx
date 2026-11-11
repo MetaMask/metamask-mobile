@@ -10,24 +10,27 @@ import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { isEvmAccountType } from '@metamask/keyring-api';
-import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 
 export function useNotificationAccountListProps() {
   const accountAddresses = useSelector(getValidNotificationAccounts);
   const accountsMap = useSelector(selectInternalAccountsById);
-  const { update, initialLoading, accountsBeingUpdated, data } =
+  const { update, initialLoading, accountsBeingUpdated, data, error } =
     useFetchAccountNotifications(accountAddresses);
-  const { refetch: refetchPreferences } = useNotificationStoragePreferences();
 
-  // Only disable switches during initial data loading, not when individual accounts are updating
-  const shouldDisableSwitches = initialLoading;
+  // Account settings live in the Trigger API, which reports an unreadable
+  // config as a failure rather than "every account disabled". Surface that
+  // failure instead of showing switches in the wrong position — but only when
+  // there is no earlier successful read to fall back on.
+  const hasAccountSettings = Object.keys(data).length > 0;
+  const accountSettingsError = hasAccountSettings ? null : error;
 
-  // Account toggles rewrite `walletActivity.accounts` behind the cached
-  // preferences, so refresh both — otherwise the next section write PUTs a
-  // stale accounts array.
+  // Only disable switches during initial data loading or when a failed read
+  // left us with no settings to show, not when individual accounts are updating
+  const shouldDisableSwitches = initialLoading || Boolean(accountSettingsError);
+
   const refetchAccountSettings = useCallback(async () => {
-    await Promise.all([update(accountAddresses), refetchPreferences()]);
-  }, [accountAddresses, update, refetchPreferences]);
+    await update(accountAddresses);
+  }, [accountAddresses, update]);
 
   // Helper to get addresses from account IDs
   const getEvmAddressesFromAccountIds = useCallback(
@@ -85,6 +88,7 @@ export function useNotificationAccountListProps() {
   return {
     shouldDisableSwitches,
     isAnyAccountUpdating,
+    accountSettingsError,
     refetchAccountSettings,
     isAccountLoading,
     isAccountEnabled,

@@ -1,10 +1,13 @@
 import React from 'react';
+import { Provider } from 'react-redux';
 import { render, fireEvent } from '@testing-library/react-native';
 import Earned from './Earned';
 import { EarnedTestIds } from './Earned.testIds';
 import { MOCK_EARNED_DATA } from './Earned.constants';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../../reducers';
+import configureStore from '../../../../../util/test/configureStore';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -34,7 +37,12 @@ jest.mock('react-native-reanimated', () => ({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const renderEarned = () => render(<Earned />);
+const renderEarned = () =>
+  render(
+    <Provider store={configureStore({} as RootState)}>
+      <Earned />
+    </Provider>,
+  );
 
 /**
  * Escapes all regex special characters so a plain string can be used

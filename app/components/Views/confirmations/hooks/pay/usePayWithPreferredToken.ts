@@ -7,7 +7,7 @@ import {
 } from './useAutomaticTransactionPayToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { isMatchingPayToken } from '../../utils/transaction-pay';
+import { isMatchingPayToken, payBalanceUsd } from '../../utils/transaction-pay';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 
 export interface PayWithPreferredToken {
@@ -62,7 +62,7 @@ export function usePayWithPreferredToken({
 
     return {
       address: availableToken.address as Hex,
-      balanceUsd: `${availableToken.fiat?.balance ?? 0}`,
+      balanceUsd: payBalanceUsd(availableToken.balanceInSelectedCurrencyAmount),
       chainId: availableToken.chainId as Hex,
       symbol: availableToken.symbol,
     };

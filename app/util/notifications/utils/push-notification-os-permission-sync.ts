@@ -10,27 +10,35 @@ import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
 
 /**
- * Persisted snapshot of the last observed "push is effectively enabled" state:
- * push enabled in-app AND OS notification permission granted. Comparing it
- * against the live state on each sync lets us catch changes made while the app
- * was away (system settings, process death) and emit analytics on the edges.
+ * Persisted result of the last OS notification-permission check. Comparing it
+ * against the live permission on each sync is what lets us detect a change
+ * made while the app was away — in the system settings, and possibly across
+ * process death.
  */
-const readStoredEffectivePushState = (): boolean =>
+const readLastOsPermissionGranted = (): boolean =>
   mmStorage.getLocal(STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT) ===
   true;
 
-const writeStoredEffectivePushState = (value: boolean): void =>
+const writeLastOsPermissionGranted = (value: boolean): void =>
   mmStorage.saveLocal(
     STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT,
     value,
   );
 
-// Read push-enabled from the controller directly rather than Redux so the
-// value is live at the moment the queued sync actually runs — Redux lags
-// controller state through a 250ms batcher.
-const isControllerPushEnabled = (): boolean =>
+// Whether the user has MetaMask notifications switched on. Read from the
+// controller directly rather than Redux so the value is live at the moment the
+// queued sync actually runs — Redux lags controller state through a 250ms
+// batcher.
+//
+// Deliberately not `NotificationServicesPushController.isPushEnabled`: Engine
+// init force-disables that flag whenever OS permission is missing (see
+// create-notification-services-push-controller) and never restores it, so it
+// cannot distinguish "user turned push off" from "the OS revocation we are
+// trying to report".
+const areNotificationsEnabled = (): boolean =>
   Boolean(
-    Engine.context.NotificationServicesPushController?.state?.isPushEnabled,
+    Engine.context.NotificationServicesController?.state
+      ?.isNotificationServicesEnabled,
   );
 
 const trackPushNotificationsDisabled = (): void => {
@@ -52,28 +60,28 @@ const runSync = async (): Promise<void> => {
   }
 
   try {
-    const pushEnabledInApp = isControllerPushEnabled();
+    const notificationsEnabled = areNotificationsEnabled();
     const osPermissionGranted = await isPushPermissionGranted();
-    const wasEffectivelyEnabled = readStoredEffectivePushState();
-    const isEffectivelyEnabled = pushEnabledInApp && osPermissionGranted;
+    const wasOsPermissionGranted = readLastOsPermissionGranted();
 
-    if (wasEffectivelyEnabled === isEffectivelyEnabled) {
+    // Always persist, even when notifications are off, so that a permission
+    // change made while the user was opted out is not reported later as if it
+    // had just happened.
+    writeLastOsPermissionGranted(osPermissionGranted);
+
+    if (
+      wasOsPermissionGranted === osPermissionGranted ||
+      !notificationsEnabled
+    ) {
       return;
     }
-    writeStoredEffectivePushState(isEffectivelyEnabled);
 
-    if (wasEffectivelyEnabled && pushEnabledInApp) {
-      // Push is still on in-app but the OS permission is gone: the user
-      // revoked it from the system settings. An in-app disable also flips the
-      // snapshot to false but lands in neither branch (pushEnabledInApp is
-      // false by the time the disable helper syncs), so no event fires for it.
-      trackPushNotificationsDisabled();
-    } else if (isEffectivelyEnabled) {
-      // Enabled or re-granted: restore the profile trait, which a previous
-      // revocation may have set to false.
+    if (osPermissionGranted) {
       analytics.identify({
         [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: true,
       });
+    } else {
+      trackPushNotificationsDisabled();
     }
   } catch (error) {
     Logger.error(
@@ -83,30 +91,30 @@ const runSync = async (): Promise<void> => {
   }
 };
 
-// Serialize syncs so overlapping runs (an isPushEnabled flip racing a
-// foreground transition) cannot both observe the same stored snapshot and
-// emit duplicate events. Tasks never reject (runSync catches internally), so
-// the chain cannot get stuck.
+// Serialize syncs so overlapping runs (a controller flip racing a foreground
+// transition) cannot both observe the same stored permission and emit
+// duplicate events. Tasks never reject (runSync catches internally), so the
+// chain cannot get stuck.
 let inFlight: Promise<void> = Promise.resolve();
 
 /**
- * Reconciles the persisted "push effectively enabled" snapshot (push enabled
- * in-app AND OS permission granted) with the live state, and emits analytics
- * on the transitions:
+ * Reconciles the persisted OS notification-permission result with the live
+ * permission and reports the edges, as long as the user has MetaMask
+ * notifications switched on:
  *
- * - enabled -> OS permission revoked: fires `Push Notifications Disabled` once
- * per revocation and sets the push profile trait to false. The persisted
- * snapshot flips to false, so repeat checks stay silent until re-granted.
- * - disabled -> enabled (first enable, or permission re-granted): restores the
- * push profile trait to true.
- * - in-app disable: silently clears the snapshot so a later OS-level change is
- * not misreported as a revocation.
+ * - granted -> revoked: fires `Push Notifications Disabled` and sets the push
+ * profile trait to false. Because only the OS permission is tracked, this
+ * still fires when Engine has already force-disabled `isPushEnabled` in
+ * response to the same revocation (the usual Android path, where revoking
+ * kills the process), and it re-arms by itself once permission is granted
+ * again.
+ * - revoked -> granted: restores the push profile trait to true.
  *
- * Call it whenever the effective state may have changed. Note that the in-app
- * enable/disable helpers resolve BEFORE the controller flips `isPushEnabled`
- * (push registration is fire-and-forget inside the controller), so syncing
- * from those helpers is too early — useNotificationOsPermissionEffect instead
- * reacts to the actual `isPushEnabled` change, plus mount and every return to
+ * An in-app disable leaves OS permission untouched, so it produces no edge and
+ * is not reported here.
+ *
+ * Call it whenever the permission may have changed:
+ * useNotificationOsPermissionEffect does so on mount and on every return to
  * the `active` app state.
  */
 export const syncPushNotificationOsPermission = (): Promise<void> => {

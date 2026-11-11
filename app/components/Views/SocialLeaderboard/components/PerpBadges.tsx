@@ -8,8 +8,8 @@ import {
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import type { PerpDirection } from '../utils/perp';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { PerpDirection } from '../../../UI/SocialFeed/utils/perp';
+
 import PerpsLeverage from '../../../UI/Perps/components/PerpsLeverage/PerpsLeverage';
 
 export interface PerpBadgesProps {
@@ -22,8 +22,8 @@ export interface PerpBadgesProps {
 /**
  * Renders the perp metadata badges shown next to a token symbol: an optional
  * leverage pill (e.g. "10x") and a direction pill (LONG green / SHORT red).
- * Used across the trader profile position list, the position detail header,
- * and individual trade rows so perp positions read consistently.
+ * Used across the trader profile position list and the position detail
+ * header so perp positions read consistently.
  */
 const PerpBadges: React.FC<PerpBadgesProps> = ({
   direction,

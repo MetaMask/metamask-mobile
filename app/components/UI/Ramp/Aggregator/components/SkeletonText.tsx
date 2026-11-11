@@ -35,13 +35,13 @@ const createStyles = (colors: Colors) =>
       marginVertical: 10,
     },
     spacingHorizontal: {
-      marginHorizontal: 15,
+      marginHorizontal: 16,
     },
     spacingTop: {
       marginTop: 35,
     },
     spacingBottom: {
-      marginBottom: 25,
+      marginBottom: 24,
     },
     spacingTopSmall: {
       marginTop: 10,

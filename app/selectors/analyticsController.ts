@@ -44,3 +44,28 @@ export const selectAnalyticsOptedIn = createSelector(
   selectAnalyticsControllerState,
   (state) => state && analyticsControllerSelectors.selectOptedIn(state),
 );
+
+/**
+ * Selects whether the user opted in to marketing analytics.
+ *
+ * @returns True when marketing consent is granted, false otherwise, undefined
+ * when controller state is unavailable.
+ */
+export const selectAnalyticsOptedInToMarketing = createSelector(
+  selectAnalyticsControllerState,
+  (state) =>
+    state && analyticsControllerSelectors.selectOptedInToMarketing(state),
+);
+
+/**
+ * Selects whether the user has made a marketing consent decision.
+ *
+ * @returns True after opt-in or opt-out, false while undecided, undefined when
+ * controller state is unavailable.
+ */
+export const selectMarketingConsentDecisionMade = createSelector(
+  selectAnalyticsControllerState,
+  (state) =>
+    state &&
+    analyticsControllerSelectors.selectMarketingConsentDecisionMade(state),
+);

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import { BigNumber } from 'ethers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState, createMockToken } from '../../testUtils';
 import { SwapsBanners } from './SwapsBanners';
@@ -41,10 +40,22 @@ describe('SwapsBanners', () => {
     expect(getByText('second banner')).toBeOnTheScreen();
   });
 
+  it('uses the requested space between stacked banners', () => {
+    const { getByTestId } = renderWithProvider(
+      <SwapsBanners gap={2} onAdjustSourceAmount={mockOnAdjustSourceAmount}>
+        <Text>first banner</Text>
+      </SwapsBanners>,
+      { state },
+    );
+
+    expect(getByTestId(SwapsBannersSelectorsIDs.CONTAINER)).toHaveStyle({
+      gap: 8,
+    });
+  });
+
   it('shares the swap being quoted with the banners', () => {
     const { getByTestId } = renderWithProvider(
       <SwapsBanners
-        latestSourceAtomicBalance={BigNumber.from('1000')}
         location={MetaMetricsSwapsEventSource.TokenView}
         onAdjustSourceAmount={mockOnAdjustSourceAmount}
       >

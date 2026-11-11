@@ -1,23 +1,25 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../../../../UI/Money/hooks/useMoneyAccountInfo';
+import { selectIsMoneyAccountVisible } from '../../../../../UI/Money/selectors/visibility';
 import type { BalanceSlice, FiatConverter, SliceStatus } from '../../types';
 
 export function getMoneySliceStatus({
-  isFeatureEnabled,
+  isMoneyAccountVisible,
   hasMoneyAccount,
   isBalanceLoading,
   isBalanceFetchError,
   hasTokenTotal,
 }: {
-  isFeatureEnabled: boolean;
+  isMoneyAccountVisible: boolean;
   hasMoneyAccount: boolean;
   isBalanceLoading: boolean;
   isBalanceFetchError: boolean;
   hasTokenTotal: boolean;
 }): SliceStatus {
-  if (!isFeatureEnabled || !hasMoneyAccount) {
+  if (!isMoneyAccountVisible || !hasMoneyAccount) {
     return 'ineligible';
   }
   if (isBalanceFetchError) return 'error';
@@ -28,13 +30,18 @@ export function getMoneySliceStatus({
 export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
   const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
     useMoneyAccountInfo();
+  const isMoneyAccountAvailable = useSelector(selectIsMoneyAccountVisible);
   const { tokenTotal, isBalanceLoading, isBalanceFetchError } =
     useMoneyAccountBalance({ enabled: isMoneyAccountFeatureEnabled });
   const { apyPercent, vaultApyQuery } = useMoneyVaultApy({
     enabled: isMoneyAccountFeatureEnabled,
   });
+  const hasNonZeroBalance = tokenTotal?.isZero() === false;
+  const isMoneyAccountVisible =
+    isMoneyAccountAvailable ||
+    (isMoneyAccountFeatureEnabled && hasMoneyAccount && hasNonZeroBalance);
   const moneyStatus = getMoneySliceStatus({
-    isFeatureEnabled: isMoneyAccountFeatureEnabled,
+    isMoneyAccountVisible,
     hasMoneyAccount,
     isBalanceLoading,
     isBalanceFetchError,
@@ -50,27 +57,21 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
       ? 'error'
       : moneyStatus;
   const valueFiat = status === 'ready' ? (convertedValue ?? 0) : 0;
-  const apyLoading = isMoneyAccountFeatureEnabled && vaultApyQuery.isLoading;
+  const apyLoading = isMoneyAccountVisible && vaultApyQuery.isLoading;
   const visibleApyPercent =
-    isMoneyAccountFeatureEnabled && !apyLoading && apyPercent !== undefined
+    isMoneyAccountVisible && !apyLoading && apyPercent !== undefined
       ? apyPercent
       : undefined;
 
   return useMemo(
     () => ({
       key: 'money',
-      isVisible: isMoneyAccountFeatureEnabled,
+      isVisible: isMoneyAccountVisible,
       valueFiat,
       status,
       apyPercent: visibleApyPercent,
       apyLoading,
     }),
-    [
-      apyLoading,
-      isMoneyAccountFeatureEnabled,
-      status,
-      valueFiat,
-      visibleApyPercent,
-    ],
+    [apyLoading, isMoneyAccountVisible, status, valueFiat, visibleApyPercent],
   );
 }

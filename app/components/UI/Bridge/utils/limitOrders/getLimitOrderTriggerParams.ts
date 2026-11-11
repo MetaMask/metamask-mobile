@@ -1,0 +1,125 @@
+import { BigNumber } from 'bignumber.js';
+import type { CreateLimitOrderParams } from '../../api/limitOrders/create';
+import {
+  LIMIT_ORDER_DIRECTION,
+  LimitOrderExecutionType,
+  type LimitOrderPriceComparisonDirection,
+} from '../../constants/limitOrders';
+import { formatLimitOrderFiatPrice } from './formatLimitOrderFiatPrice';
+import { trimTrailingZeros } from '../trimTrailingZeros';
+
+type LimitOrderTrigger = CreateLimitOrderParams['trigger'];
+
+/**
+ * Fractional digits the Bridge API keeps on a trigger price.
+ */
+const LIMIT_ORDER_RATIO_DECIMALS = 12;
+
+export interface GetLimitOrderTriggerParamsOptions {
+  /**
+   * Which side of the pair the limit price is quoted on. Selling quotes the
+   * source token, buying quotes the destination token.
+   */
+  executionType: LimitOrderExecutionType;
+  /**
+   * Whether `limitPrice` is a fiat unit price of the quoted token rather than
+   * an amount of the counter token.
+   */
+  isLimitFiatMode: boolean;
+  /**
+   * The limit price exactly as shown in the price input, i.e. in the user's
+   * display currency in fiat mode, or in counter token units otherwise.
+   */
+  limitPrice: string | undefined;
+  /**
+   * Which side of the limit price fills the order.
+   */
+  priceComparisonDirection: LimitOrderPriceComparisonDirection;
+  /**
+   * How many USD one unit of the display currency is worth, so `1` when the
+   * display currency is already USD. Only used in fiat mode, where the Bridge
+   * API accepts USD prices and nothing else.
+   */
+  fiatToUsdRate: number | undefined;
+}
+
+/**
+ * The limit price as entered on the limit order screen, i.e. everything a
+ * trigger is built from except the exchange rate, which is read when the order
+ * is created.
+ */
+export type LimitOrderTriggerInput = Omit<
+  GetLimitOrderTriggerParamsOptions,
+  'fiatToUsdRate'
+>;
+
+/**
+ * Builds the `trigger` of a `POST /v2/limit-orders` request from the limit
+ * order screen's price state.
+ *
+ * @param options - The quoted side, the limit price and its denomination.
+ * @returns The trigger, or `undefined` when the price is unusable or its USD
+ * equivalent cannot be resolved.
+ */
+export function getLimitOrderTriggerParams({
+  executionType,
+  isLimitFiatMode,
+  limitPrice,
+  priceComparisonDirection,
+  fiatToUsdRate,
+}: GetLimitOrderTriggerParamsOptions): LimitOrderTrigger | undefined {
+  const price = new BigNumber(limitPrice ?? '');
+  if (!price.isFinite() || price.lte(0)) {
+    return undefined;
+  }
+
+  const { threshold, opposite } =
+    LIMIT_ORDER_DIRECTION[priceComparisonDirection];
+
+  // The API reads a ratio as source tokens per destination token. A buy is
+  // quoted that way already, while a sell is quoted per source token, so its
+  // price is inverted, which also flips the side of it that fills the order.
+  if (!isLimitFiatMode) {
+    if (executionType === LimitOrderExecutionType.BUY) {
+      return {
+        kind: 'ratio',
+        threshold,
+        price: trimTrailingZeros(price.toFixed()),
+      };
+    }
+
+    const sourcePerDest = new BigNumber(1).dividedBy(price);
+    const roundedSourcePerDest = sourcePerDest.decimalPlaces(
+      LIMIT_ORDER_RATIO_DECIMALS,
+    );
+
+    if (roundedSourcePerDest.lte(0)) {
+      return undefined;
+    }
+
+    return {
+      kind: 'ratio',
+      threshold: LIMIT_ORDER_DIRECTION[opposite].threshold,
+      price: trimTrailingZeros(roundedSourcePerDest.toFixed()),
+    };
+  }
+
+  const usdPrice = fiatToUsdRate
+    ? formatLimitOrderFiatPrice(price.multipliedBy(fiatToUsdRate))
+    : undefined;
+
+  // Sending a price in the display currency as if it were USD would place the
+  // order at the wrong level, so an unresolved rate drops the trigger instead.
+  if (!usdPrice) {
+    return undefined;
+  }
+
+  return {
+    kind:
+      executionType === LimitOrderExecutionType.SELL
+        ? 'src_price'
+        : 'dest_price',
+    threshold,
+    price: usdPrice,
+  };
+}

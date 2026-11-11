@@ -9,16 +9,8 @@ import type {
   PerpsOrderKind,
   TokenAmount as ClientUtilsTokenAmount,
 } from '@metamask/client-utils';
-import type { Transaction } from '@metamask/keyring-api';
-import type { V1TransactionByHashResponse } from '@metamask/core-backend';
-import type { TransactionGroup } from './adapters/transaction-group';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PredictActivity } from '../../components/UI/Predict/types';
-import type { RampsOrder } from '@metamask/ramps-controller';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { FiatOrder } from '../../reducers/fiatOrders/types';
+import type { TriggerOrderType } from '@metamask/perps-controller';
+import type { CaipChainId } from '@metamask/utils';
 
 export type {
   ActivityKind,
@@ -28,8 +20,36 @@ export type {
 } from '@metamask/client-utils';
 
 export type TokenAmount = ClientUtilsTokenAmount & {
-  isUnlimitedApproval?: boolean;
+  /**
+   * Keyring (non-EVM) amounts are already human-readable. Display/fiat must
+   * not run `formatUnits` on them even when token metadata supplies decimals.
+   */
+  amountIsHumanReadable?: boolean;
 };
+
+/**
+ * Returns whether an asset type represents an NFT standard supported by the
+ * activity UI.
+ *
+ * @param assetType - The asset type to inspect.
+ * @returns `true` for ERC-721 and ERC-1155 assets.
+ */
+export function isNftAssetType(
+  assetType: string | undefined,
+): assetType is 'erc721' | 'erc1155' {
+  const normalizedAssetType = assetType?.toLowerCase();
+  return normalizedAssetType === 'erc721' || normalizedAssetType === 'erc1155';
+}
+
+/**
+ * Returns whether a token amount represents an NFT.
+ *
+ * @param token - The token amount to inspect.
+ * @returns `true` when the token uses an NFT standard.
+ */
+export function isNftToken(token: TokenAmount | undefined): boolean {
+  return isNftAssetType(token?.assetType);
+}
 
 /**
  * Perps order-lifecycle kinds (market/limit/stop, long/short, open/close).
@@ -60,40 +80,79 @@ export function isPerpsOrderKind(kind: ActivityKind): kind is PerpsOrderKind {
   return PERPS_ORDER_KIND_SET.has(kind);
 }
 
-type ActivityRaw =
-  | { type: 'apiEvmTransaction'; data: V1TransactionByHashResponse }
-  | { type: 'keyringTransaction'; data: Transaction }
-  | { type: 'localTransaction'; data: TransactionGroup }
-  | { type: 'perpsTransaction'; data: PerpsTransaction }
-  | { type: 'predictActivity'; data: PredictActivity }
-  | { type: 'rampOrder'; data: FiatOrder | RampsOrder };
-
-interface MobileFields {
-  isEarliestNonce?: boolean;
-  /** @deprecated Get raw transaction data directly as needed */
-  raw?: ActivityRaw;
-}
-
-type SplitByKind<T> = T extends { type: infer K }
-  ? K extends string
-    ? Omit<T, 'type'> & { type: K }
-    : never
-  : never;
-
 type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
   ? TokenAmount
   : T extends object
     ? { [P in keyof T]: WithMobileTokenAmount<T[P]> }
     : T;
 
-interface MobileDataExtras {
-  fees?: ActivityFee[];
+type PredictActivityKind =
+  | 'predictionPlaced'
+  | 'predictionCashedOut'
+  | 'predictionClaimWinnings'
+  | 'predictionSettled';
+
+interface PredictDataExtras {
+  eventTitle?: string;
+  icon?: string;
 }
 
-type WithMobileDataTokens<T> = T extends { data: infer D }
-  ? Omit<T, 'data'> & { data: WithMobileTokenAmount<D> & MobileDataExtras }
-  : T;
+/**
+ * Venue-scoped CAIP-2 `chainId` for Kalshi Predict rows. Kalshi has no chain,
+ * so this is never Polygon or any real chain: it only keys the details source.
+ * The row hides the network badge for `prediction*` kinds and the details
+ * screen fetches a transaction only for `eip155:` chains.
+ */
+export const KALSHI_VENUE_CHAIN_ID: CaipChainId = 'kalshi:mainnet';
 
-export type ActivityListItem = SplitByKind<
-  WithMobileDataTokens<ClientUtilsActivityItem & MobileFields>
+/**
+ * Settlement details, carried on the item so the details screen renders
+ * without a lookup. Amounts are plain decimal strings: shared activity code
+ * must not import PredictNext types (ADR-0020). Proceeds are `data.token`.
+ */
+export interface PredictSettlementExtras {
+  outcomeLabel?: string;
+  marketQuestion?: string;
+  /** Side the Predict User held. */
+  side: 'yes' | 'no';
+  /** The Market's result. `scalar` is a non-binary payout per share. */
+  result: 'yes' | 'no' | 'scalar';
+  shares: string;
+  /** Signed. Absent when the backend cannot establish the cost basis. */
+  realizedPnl?: string;
+}
+
+type ActivityDataExtras<ActivityType> = ActivityType extends 'predictionSettled'
+  ? PredictSettlementExtras & PredictDataExtras & ActivityDataExtrasCommon
+  : ActivityType extends PredictActivityKind
+    ? PredictDataExtras & ActivityDataExtrasCommon
+    : ActivityDataExtrasCommon;
+
+interface ActivityDataExtrasCommon {
+  fees?: ActivityFee[];
+  perpsTriggerOrderType?: TriggerOrderType;
+}
+
+type ActivityItemForKind<T, Kind extends ActivityKind> = T extends {
+  type: infer ActivityType;
+  data: infer D;
+}
+  ? Kind extends Extract<ActivityType, ActivityKind>
+    ? Omit<T, 'type' | 'data'> & {
+        type: Kind;
+        data: WithMobileTokenAmount<D> & ActivityDataExtras<Kind>;
+      }
+    : never
+  : never;
+
+type SplitByKind<T> = {
+  [Kind in ActivityKind]: ActivityItemForKind<T, Kind>;
+}[ActivityKind];
+
+type WithMobileFields<T> = T extends unknown
+  ? T & { isEarliestNonce?: boolean }
+  : never;
+
+export type ActivityListItem = WithMobileFields<
+  SplitByKind<ClientUtilsActivityItem>
 >;

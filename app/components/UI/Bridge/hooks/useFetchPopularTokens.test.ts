@@ -1,4 +1,5 @@
 import { waitFor } from '@testing-library/react-native';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useFetchPopularTokens } from './useFetchPopularTokens';
 import { createMockPopularToken, MOCK_CHAIN_IDS } from '../testUtils/fixtures';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -10,6 +11,8 @@ import {
   trace,
   TraceName,
   TraceOperation,
+  type TraceContext,
+  type TraceRequest,
 } from '../../../../util/trace';
 
 let globalFetchSpy: jest.SpyInstance;
@@ -29,7 +32,9 @@ jest.mock('../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockTrace = trace as jest.MockedFunction<
+  (request: TraceRequest) => TraceContext
+>;
 const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 const mockPopularTokens = [
@@ -42,6 +47,11 @@ const mockIncludeAsset: IncludeAsset = {
   decimals: 18,
   symbol: 'HELLO',
   name: 'Hello',
+};
+
+const defaultFetchParams = {
+  chainIds: [MOCK_CHAIN_IDS.ethereum],
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
 };
 
 describe('useFetchPopularTokens', () => {
@@ -77,7 +87,7 @@ describe('useFetchPopularTokens', () => {
     });
 
     const tokens = await result.current({
-      chainIds: [MOCK_CHAIN_IDS.ethereum],
+      ...defaultFetchParams,
       includeAssets: [mockIncludeAsset],
     });
 
@@ -90,6 +100,7 @@ describe('useFetchPopularTokens', () => {
         body: JSON.stringify({
           chainIds: [MOCK_CHAIN_IDS.ethereum],
           includeAssets: [mockIncludeAsset],
+          featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
         }),
       }),
     );
@@ -103,6 +114,9 @@ describe('useFetchPopularTokens', () => {
         chain_ids: MOCK_CHAIN_IDS.ethereum,
       },
       startTime: expect.any(Number),
+      tags: {
+        feature: 'swap',
+      },
     });
     const traceId = mockTrace.mock.calls[0][0].id;
     expect(mockEndTrace).toHaveBeenCalledWith({
@@ -111,6 +125,35 @@ describe('useFetchPopularTokens', () => {
       timestamp: expect.any(Number),
       data: { result: 'success' },
     });
+  });
+
+  it('includes featureId in the request body when provided', async () => {
+    globalFetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPopularTokens,
+    });
+
+    const { result } = renderHookWithProvider(() => useFetchPopularTokens(), {
+      state: initialState,
+    });
+
+    await result.current({
+      chainIds: [MOCK_CHAIN_IDS.ethereum],
+      includeAssets: [mockIncludeAsset],
+      featureId: FeatureId.LIMIT_ORDER,
+    });
+
+    expect(globalFetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/getTokens/popular'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          chainIds: [MOCK_CHAIN_IDS.ethereum],
+          includeAssets: [mockIncludeAsset],
+          featureId: FeatureId.LIMIT_ORDER,
+        }),
+      }),
+    );
   });
 
   it('defaults includeAssets to an empty array when omitted', async () => {
@@ -123,7 +166,7 @@ describe('useFetchPopularTokens', () => {
       state: initialState,
     });
 
-    await result.current({ chainIds: [MOCK_CHAIN_IDS.ethereum] });
+    await result.current(defaultFetchParams);
 
     expect(globalFetchSpy).toHaveBeenCalledWith(
       expect.any(String),
@@ -131,6 +174,7 @@ describe('useFetchPopularTokens', () => {
         body: JSON.stringify({
           chainIds: [MOCK_CHAIN_IDS.ethereum],
           includeAssets: [],
+          featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
         }),
       }),
     );
@@ -146,13 +190,11 @@ describe('useFetchPopularTokens', () => {
       state: initialState,
     });
 
-    await result.current({ chainIds: [MOCK_CHAIN_IDS.ethereum] });
+    await result.current(defaultFetchParams);
     expect(mockTrace).toHaveBeenCalledTimes(1);
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
 
-    const cachedTokens = await result.current({
-      chainIds: [MOCK_CHAIN_IDS.ethereum],
-    });
+    const cachedTokens = await result.current(defaultFetchParams);
 
     expect(cachedTokens).toStrictEqual(mockPopularTokens);
     expect(globalFetchSpy).toHaveBeenCalledTimes(1);
@@ -264,9 +306,7 @@ describe('useFetchPopularTokens', () => {
           },
         );
 
-        const tokens = await result.current({
-          chainIds: [MOCK_CHAIN_IDS.ethereum],
-        });
+        const tokens = await result.current(defaultFetchParams);
 
         expect(tokens).toBeUndefined();
         expect(popularTokensCache.size).toBe(0);
@@ -294,11 +334,11 @@ describe('useFetchPopularTokens', () => {
     });
 
     await result.current({
-      chainIds: [MOCK_CHAIN_IDS.ethereum],
+      ...defaultFetchParams,
       includeAssets: [],
     });
     await result.current({
-      chainIds: [MOCK_CHAIN_IDS.ethereum],
+      ...defaultFetchParams,
       includeAssets: [mockIncludeAsset],
     });
 

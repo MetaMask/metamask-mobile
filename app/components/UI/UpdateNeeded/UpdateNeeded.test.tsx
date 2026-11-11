@@ -1,9 +1,14 @@
 import React from 'react';
 import { renderScreen } from '../../..//util/test/renderWithProvider';
 import { UpdateNeeded } from './';
+import { createStyles } from './styles';
 import { fireEvent } from '@testing-library/react-native';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import { Linking, Platform } from 'react-native';
+
+jest.mock('../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => true,
+}));
 
 // Mock ReusableModal so that dismissModal immediately invokes its callback,
 // allowing tests to verify Linking.canOpenURL is called on button press.
@@ -34,6 +39,17 @@ beforeEach(() => {
 });
 
 describe('UpdateNeeded', () => {
+  it('keeps a single 16 horizontal gutter', () => {
+    const styles = createStyles({
+      background: { default: 'background-default' },
+    });
+
+    expect(styles.screen.paddingHorizontal).toBe(16);
+    expect(styles.content).not.toHaveProperty('paddingHorizontal');
+    expect(styles.actionButtonWrapper).not.toHaveProperty('paddingHorizontal');
+    expect(styles.actionButtonWrapper.paddingVertical).toBe(16);
+  });
+
   it('should render snapshot correctly', () => {
     const { toJSON } = renderScreen(
       UpdateNeeded,
@@ -58,6 +74,9 @@ describe('UpdateNeeded', () => {
 
     const closeButton = getByTestId('update-needed-modal-close-button');
     expect(closeButton).toBeDefined();
+    expect(getByTestId('update-needed-modal-header')).toHaveStyle({
+      alignSelf: 'stretch',
+    });
 
     const primaryButton = getByText('Update to latest version');
     expect(primaryButton).toBeDefined();

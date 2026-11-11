@@ -26,7 +26,6 @@ export const wallet_switchEthereumChain = async ({
   hooks,
 }) => {
   const {
-    CurrencyRateController,
     NetworkController,
     MultichainNetworkController,
     SelectedNetworkController,
@@ -86,7 +85,6 @@ export const wallet_switchEthereumChain = async ({
       rpcUrl,
       chainId: _chainId,
       controllers: {
-        CurrencyRateController,
         MultichainNetworkController,
         SelectedNetworkController,
       },

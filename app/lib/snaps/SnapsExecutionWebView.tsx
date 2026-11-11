@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { Component } from 'react';
 import { View } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
@@ -14,6 +13,7 @@ import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/web
 import { EmptyObject } from '@metamask/snaps-sdk';
 import { assert, hasProperty } from '@metamask/utils';
 import Logger from '../../util/Logger';
+import { isTestEnvironment } from '../../util/test/utils';
 
 const styles = createStyles();
 
@@ -138,11 +138,12 @@ export class SnapsExecutionWebView extends Component {
             onLoadEnd={props.onWebViewLoad}
             originWhitelist={['*']}
             javaScriptEnabled
-            webviewDebuggingEnabled={__DEV__}
+            // Android applies this flag to every WebView in the process.
+            // BrowserTab enables it in E2E builds; a snap must not turn it off.
+            webviewDebuggingEnabled={__DEV__ || isTestEnvironment}
           />
         ))}
       </View>
     );
   }
 }
-///: END:ONLY_INCLUDE_IF

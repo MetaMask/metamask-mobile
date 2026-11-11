@@ -4,6 +4,7 @@ import PredictThePitchCampaignWinningView from './PredictThePitchCampaignWinning
 import { useGetPredictThePitchOutcome } from '../hooks/useGetPredictThePitchOutcome';
 import { useGetPredictThePitchLeaderboardPosition } from '../hooks/useGetPredictThePitchLeaderboardPosition';
 import Routes from '../../../../constants/navigation/Routes';
+import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
 
 const mockRouteState = {
   params: {
@@ -84,7 +85,7 @@ describe('PredictThePitchCampaignWinningView', () => {
     render(<PredictThePitchCampaignWinningView />);
 
     expect(latestWinningProps).toMatchObject({
-      prizeEmail: 'predictcampaign@consensys.net',
+      prizeEmail: REWARDS_WINNER_CONTACT_EMAIL,
       campaignName: 'Predict The Pitch',
       campaignId: 'predict-campaign-1',
       analyticsPageType: 'predict_the_pitch_campaign_winning',

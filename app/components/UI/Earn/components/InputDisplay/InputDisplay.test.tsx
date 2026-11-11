@@ -1,6 +1,7 @@
 import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
-import InputDisplay, { INPUT_DISPLAY_TEST_IDS, InputDisplayProps } from '.';
+import InputDisplay, { InputDisplayProps } from '.';
+import { INPUT_DISPLAY_TEST_IDS } from './InputDisplay.testIds';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -52,10 +53,6 @@ jest.mock('../../hooks/useEarnTokens', () => () => ({
   })),
 }));
 
-jest.mock('../../selectors/featureFlags', () => ({
-  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
-}));
-
 const mockToken = {
   address: '0x123',
   aggregators: [],
@@ -72,13 +69,6 @@ const mockToken = {
 };
 
 const defaultProps = {
-  isOverMaximum: {
-    isOverMaximumEth: false,
-    isOverMaximumToken: false,
-  },
-  balanceText: 'Balance',
-  balanceValue: '100',
-  isNonZeroAmount: true,
   isFiat: false,
   asset: mockToken,
   amountToken: '50',
@@ -109,45 +99,15 @@ describe('InputDisplay', () => {
     jest.useFakeTimers();
   });
 
-  it('renders balance text correctly', () => {
-    const { getByText } = renderComponent();
-
-    getByText('Balance: 100');
-  });
-
-  it('renders error text when over maximum token', () => {
-    const { getByText } = renderComponent({
-      ...defaultProps,
-      isOverMaximum: { isOverMaximumEth: false, isOverMaximumToken: true },
-      asset: {
-        ...mockToken,
-        symbol: 'USDC',
-        ticker: 'USDC',
-        name: 'USD Coin',
-      },
-    });
-
-    getByText('Not enough USDC');
-  });
-
-  it('renders error text when over maximum ETH', () => {
-    const { getByText } = renderComponent({
-      ...defaultProps,
-      isOverMaximum: { isOverMaximumEth: true, isOverMaximumToken: false },
-    });
-
-    getByText('Not enough ETH');
-  });
-
-  it('displays amount in fiat when isFiat is true', () => {
+  it('exposes the fiat amount and unit as a combined text label', () => {
     const props = { ...defaultProps, isFiat: true };
-    const { getByText } = renderComponent(props);
-    expect(getByText('1000')).toBeTruthy();
-    expect(getByText('USD')).toBeTruthy();
+    const { getByRole } = renderComponent(props);
+
+    expect(getByRole('text', { name: '1000 USD' })).toBeOnTheScreen();
   });
 
-  it('displays amount in token when isFiat is false', () => {
-    const { getByText } = renderComponent({
+  it('exposes the token amount and unit as a combined text label', () => {
+    const { getByRole } = renderComponent({
       ...defaultProps,
       isFiat: false,
       asset: {
@@ -157,8 +117,32 @@ describe('InputDisplay', () => {
         name: 'USD Coin',
       },
     });
-    expect(getByText('50')).toBeTruthy();
-    expect(getByText('USDC')).toBeTruthy();
+
+    expect(getByRole('text', { name: '50 USDC' })).toBeOnTheScreen();
+  });
+
+  it('sizes a short amount and its unit at 88px', () => {
+    const { getByTestId, getByText } = renderComponent();
+    const amountSize = { fontSize: 88, lineHeight: 88 };
+
+    expect(getByText('5')).toHaveStyle(amountSize);
+    expect(getByTestId(INPUT_DISPLAY_TEST_IDS.AMOUNT_SUFFIX)).toHaveStyle(
+      amountSize,
+    );
+  });
+
+  it('exposes and activates the amount row as a labeled button', () => {
+    const onPressAmount = jest.fn();
+    const { getByRole } = renderComponent({
+      ...defaultProps,
+      onPressAmount,
+    });
+    const amountButton = getByRole('button', { name: '50 ETH' });
+
+    fireEvent.press(amountButton);
+
+    expect(amountButton).toBeOnTheScreen();
+    expect(onPressAmount).toHaveBeenCalledTimes(1);
   });
 
   it('calls handleCurrencySwitch when currency toggle is pressed', () => {
