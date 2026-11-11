@@ -17,6 +17,11 @@ export const PredictHomeTestIds = {
   SECTIONS_ERROR: 'predict-next-home-sections-error',
   SECTIONS_RETRY: 'predict-next-home-sections-retry',
   SECTIONS_UNAVAILABLE: 'predict-next-home-sections-unavailable',
+  CATEGORIES: 'predict-next-home-categories',
+  CATEGORIES_HEADER: 'predict-next-home-categories-header',
+  CATEGORIES_LIST: 'predict-next-home-categories-list',
+  categoryChip: (categoryId: string) =>
+    `predict-next-home-category-${categoryId}`,
   section: (feedScreenId: string) =>
     `predict-next-home-section-${feedScreenId}`,
   sectionHeader: (feedScreenId: string) =>

@@ -28,7 +28,7 @@ export const createStyles = (colors: any) =>
     fox: { height: 44, width: 44, marginBottom: 12 },
     questionLabel: {
       fontSize: 18,
-      paddingHorizontal: 30,
+      paddingHorizontal: 16,
       fontFamily: 'Inter-SemiBold',
       textAlign: 'center',
       color: colors.text.default,
@@ -40,7 +40,7 @@ export const createStyles = (colors: any) =>
       color: colors.text.alternative,
       textAlign: 'center',
       lineHeight: 20,
-      paddingHorizontal: 30,
+      paddingHorizontal: 16,
       marginBottom: 12,
       marginTop: 6,
     },

@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -14,12 +13,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
-import { openVbaAccountSetup } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import KycIllustration, {
   KycIllustrationSource,
 } from '../../components/Illustration';
@@ -33,28 +28,31 @@ export const KycIdentityVerifiedSelectorsIDs = {
   CONTINUE_BUTTON: 'kyc-identity-verified-continue-button',
 } as const;
 
+interface KycIdentityVerifiedProps {
+  /** Leaves the verified screen. The caller chooses the destination. */
+  onExit: () => void;
+  /** Continues after approval. The caller chooses the next step. */
+  onContinue: () => void;
+}
+
 /**
- * KYC approved, no usable autoramp yet. Continue opens Choose Currency when
- * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details.
- * Back goes to Money home.
+ * KYC approved. Back and Continue are supplied by the caller.
  */
-const KycIdentityVerified = () => {
+const KycIdentityVerified = ({
+  onExit,
+  onContinue,
+}: KycIdentityVerifiedProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   useTrackKycResultViewed('approved');
-  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
 
   const handleBack = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
+    onExit();
+  }, [onExit]);
 
   const handleContinue = useCallback(() => {
-    openVbaAccountSetup(navigation, chooseCurrency);
-  }, [chooseCurrency, navigation]);
+    onContinue();
+  }, [onContinue]);
 
   return (
     <SafeAreaView

@@ -16,15 +16,15 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
+import { selectMoneyEntryContext } from '../../selectors/entry';
 import { selectHighestBalanceAaveTokenMeetingDepositMinimum } from '../../selectors/aaveOutputTokenEligibility';
-import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 import {
   MoneyDepositTokenType,
   MoneyPostOnboardingRedirectType,
   type MoneyPreferredPaymentToken,
 } from '../../types/navigation';
+import { getMoneyEntryDecision } from '../../navigation/moneyEntryDecision';
 import { isUserRejectedError } from '../../../../../util/errorHandling/isUserRejectedError';
 
 type MoneyDepositDeeplinkRouteProp = RouteProp<
@@ -39,16 +39,13 @@ const MoneyDepositDeeplinkBridge = () => {
   const isMoneyAccountFeatureEnabled = useSelector(
     selectMoneyEnableMoneyAccountFlag,
   );
-  const isMoneyAccountGeoEligible = useSelector(
-    selectIsMoneyAccountGeoEligible,
-  );
   const geolocationStatus = useSelector(selectGeolocationStatus);
   const highestBalanceAaveTokenMeetingDepositMinimum = useSelector(
     selectHighestBalanceAaveTokenMeetingDepositMinimum,
   );
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { isOnboardingRedirectNeeded } = useMoneyOnboardingNavigation();
+  const entryContext = useSelector(selectMoneyEntryContext);
   const hasHandledRequest = useRef(false);
 
   const isGeolocationLoading =
@@ -103,7 +100,9 @@ const MoneyDepositDeeplinkBridge = () => {
       return;
     }
 
-    if (!isMoneyAccountGeoEligible) {
+    const decision = getMoneyEntryDecision('deposit', entryContext);
+
+    if (decision.destination === 'geoBlockSheet') {
       Logger.log(
         '[MoneyDepositDeeplinkBridge] Deposit blocked: user is geo-ineligible',
       );
@@ -111,7 +110,7 @@ const MoneyDepositDeeplinkBridge = () => {
       return;
     }
 
-    if (isOnboardingRedirectNeeded) {
+    if (decision.destination === 'onboarding') {
       navigation.dispatch((state) => ({
         ...StackActions.replace(Routes.MONEY.ONBOARDING, {
           postOnboardingRedirect: {
@@ -155,12 +154,11 @@ const MoneyDepositDeeplinkBridge = () => {
     });
   }, [
     isMoneyAccountFeatureEnabled,
-    isMoneyAccountGeoEligible,
+    entryContext,
     isGeolocationLoading,
     initiateDeposit,
     navigateToGeoBlockSheet,
     navigation,
-    isOnboardingRedirectNeeded,
     preferredPaymentToken,
   ]);
 

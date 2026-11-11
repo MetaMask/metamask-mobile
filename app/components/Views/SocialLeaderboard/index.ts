@@ -1,3 +1,4 @@
+import { withPortfolioBalanceProviders } from '../../UI/PortfolioBalance/withPortfolioBalanceProviders';
 import { withSocialAccountGate } from './shared/withSocialAccountGate';
 import SocialV0ViewScreen from './SocialV0View';
 import SocialV1ViewScreen from './SocialV1View';
@@ -30,7 +31,9 @@ export const FollowConnectionsView = withSocialAccountGate(
 export const ProfilesToFollowView = withSocialAccountGate(
   ProfilesToFollowViewScreen,
 );
-export const ManageProfileView = withSocialAccountGate(ManageProfileViewScreen);
+export const ManageProfileView = withSocialAccountGate(
+  withPortfolioBalanceProviders(ManageProfileViewScreen),
+);
 export const ManageProfileTextEditorView = withSocialAccountGate(
   ManageProfileTextEditorViewScreen,
 );
@@ -38,7 +41,7 @@ export const ManageProfileTradingActivityView = withSocialAccountGate(
   ManageProfileTradingActivityViewScreen,
 );
 export const ManageProfileLinkedAccountView = withSocialAccountGate(
-  ManageProfileLinkedAccountViewScreen,
+  withPortfolioBalanceProviders(ManageProfileLinkedAccountViewScreen),
 );
 export const EditProfileAvatarView = withSocialAccountGate(
   EditProfileAvatarViewScreen,

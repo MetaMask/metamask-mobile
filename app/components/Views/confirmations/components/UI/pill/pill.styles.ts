@@ -12,7 +12,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 4,
       paddingLeft: 8,
       paddingRight: 8,
-      gap: 5,
+      gap: 4,
       flexDirection: 'row',
       alignItems: 'center',
       alignSelf: 'center',
