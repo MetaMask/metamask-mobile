@@ -41,15 +41,20 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
   },
   {
     id: 'identityVerification',
-    // Server-side pending survives reinstall even when the local provider-flow
-    // marker does not, so it must not reopen SumSub.
-    isComplete: (snapshot) =>
-      snapshot.sessionDisclaimersComplete &&
-      snapshot.kycStatus !== 'retry' &&
-      (snapshot.kycStatus === 'approved' ||
-        (snapshot.kycStatus === 'pending' &&
-          snapshot.providerFlowStatus === 'not_started') ||
-        snapshot.providerFlowStatus === 'submitted'),
+    isComplete: (snapshot) => {
+      const submitted =
+        snapshot.providerFlowStatus === 'submitted' ||
+        snapshot.kycCurrentStep === 'processing';
+      const pendingWithoutSubmit =
+        snapshot.kycStatus === 'pending' &&
+        snapshot.providerFlowStatus === 'not_started' &&
+        snapshot.kycCurrentStep !== 'kyc';
+      return (
+        snapshot.sessionDisclaimersComplete &&
+        snapshot.kycStatus !== 'retry' &&
+        (snapshot.kycStatus === 'approved' || pendingWithoutSubmit || submitted)
+      );
+    },
   },
 ];
 
@@ -104,6 +109,7 @@ export const getVbaDestinationForSnapshot = (
 
   if (
     snapshot.kycStatus === 'pending' ||
+    snapshot.kycCurrentStep === 'processing' ||
     (snapshot.providerFlowStatus === 'submitted' &&
       snapshot.kycStatus !== 'retry')
   ) {

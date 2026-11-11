@@ -232,19 +232,30 @@ describe('getVbaDestinationForSnapshot', () => {
     expect(destination).toBe('kycRejected');
   });
 
-  it('routes a reattached provider-pending session to the pending screen after reinstall', () => {
-    const facts = snapshot({
-      sessionExists: true,
-      vendorDisclaimersComplete: true,
-      sessionDisclaimersComplete: true,
-      providerFlowStatus: 'not_started',
-      kycStatus: 'pending',
-    });
+  it.each([
+    ['processing', 'kycPending'],
+    ['kyc', 'identityVerification'],
+    [null, 'kycPending'],
+    ['emailOtpCollection', 'kycPending'],
+    ['phoneOtpCollection', 'kycPending'],
+    ['capabilityAuthorization', 'kycPending'],
+    ['approved', 'kycPending'],
+    ['rejected', 'kycPending'],
+  ] as const)(
+    'kycCurrentStep %s with a pending unsubmitted session opens %s',
+    (kycCurrentStep, destination) => {
+      const facts = snapshot({
+        sessionExists: true,
+        vendorDisclaimersComplete: true,
+        sessionDisclaimersComplete: true,
+        providerFlowStatus: 'not_started',
+        kycStatus: 'pending',
+        kycCurrentStep,
+      });
 
-    const destination = getVbaDestinationForSnapshot(facts);
-
-    expect(destination).toBe('kycPending');
-  });
+      expect(getVbaDestinationForSnapshot(facts)).toBe(destination);
+    },
+  );
 
   it('routes a missing snapshot to the recoverable error screen', () => {
     expect(getVbaDestinationForSnapshot(null)).toBe('error');

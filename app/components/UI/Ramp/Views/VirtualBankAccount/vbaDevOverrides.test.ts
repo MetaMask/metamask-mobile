@@ -17,6 +17,7 @@ const baseSnapshot: VbaOnboardingSnapshot = {
   sessionDisclaimersComplete: true,
   providerFlowStatus: 'submitted',
   kycStatus: 'pending',
+  kycCurrentStep: null,
   autorampStatus: 'not_ready',
 };
 

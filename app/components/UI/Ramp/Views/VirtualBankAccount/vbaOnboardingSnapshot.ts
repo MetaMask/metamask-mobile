@@ -14,5 +14,6 @@ export const EMPTY_VBA_ONBOARDING_SNAPSHOT: VbaOnboardingSnapshot = {
   sessionDisclaimersComplete: false,
   providerFlowStatus: 'not_started',
   kycStatus: 'none',
+  kycCurrentStep: null,
   autorampStatus: 'not_ready',
 };

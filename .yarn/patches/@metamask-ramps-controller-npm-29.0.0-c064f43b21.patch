@@ -1,0 +1,36 @@
+diff --git a/dist/RampsController.d.ts b/dist/RampsController.d.ts
+index 87a681cb0c8b4508d8156a798895f0496599b571..04cb3487c4fd27b92952f7a95dba78e65b34b688 100644
+--- a/dist/RampsController.d.ts
++++ b/dist/RampsController.d.ts
+@@ -145,6 +145,11 @@ export type VbaOnboardingSnapshot = {
+     providerFlowStatus: VbaProviderFlowStatus;
+     /** Overall KYC session outcome used to decide whether autoramp setup can run. */
+     kycStatus: VbaKycStatus;
++    /**
++     * idOS `currentStep` from the KYC session this read already loaded, or
++     * `null` when that session has no step.
++     */
++    kycCurrentStep: string | null;
+     autorampStatus: VbaAutorampStatus;
+ };
+ /**
+diff --git a/dist/RampsController.js b/dist/RampsController.js
+index 437246b67eb78b5d39800fd660288f3ea1bf63fa..1898cefb6e0c9e6def19e6acc2507b30aaa06843 100644
+--- a/dist/RampsController.js
++++ b/dist/RampsController.js
+@@ -153,6 +153,7 @@ const EMPTY_VBA_ONBOARDING_SNAPSHOT = {
+     sessionDisclaimersComplete: false,
+     providerFlowStatus: 'not_started',
+     kycStatus: 'none',
++    kycCurrentStep: null,
+     autorampStatus: 'not_ready',
+ };
+ const VBA_KYC_STATUS_SET = new Set(VBA_KYC_STATUSES);
+@@ -2858,6 +2859,7 @@ export class RampsController extends BaseController {
+             sessionDisclaimersComplete,
+             providerFlowStatus,
+             kycStatus: resolveVbaKycStatus(session, providerFlowStatus),
++            kycCurrentStep: session.currentStep ?? null,
+             autorampStatus: 'not_ready',
+         };
+         if (snapshot.kycStatus !== 'approved') {

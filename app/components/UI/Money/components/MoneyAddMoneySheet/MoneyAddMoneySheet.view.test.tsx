@@ -23,6 +23,8 @@ import { VbaAccountCreateErrorSelectorsIDs } from '../../../Ramp/Views/VirtualBa
 import { VbaDetailsSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaDetails';
 import { VbaOnboardingLoadingSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
 import { VbaOnboardingStubSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingStub';
+import { KycPendingSelectorsIDs } from '../../../KYC/Views/Status/KycPending';
+import { KycSumSubSelectorsIDs } from '../../../KYC/Views/SumSub/SumSubKyc';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
@@ -95,6 +97,7 @@ const emptyOnboardingSnapshot = {
   sessionDisclaimersComplete: false,
   providerFlowStatus: 'not_started',
   kycStatus: 'none',
+  kycCurrentStep: null,
   autorampStatus: 'not_ready',
 } as const;
 
@@ -125,6 +128,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
           sessionDisclaimersComplete: false;
           providerFlowStatus: 'not_started';
           kycStatus: 'none';
+          kycCurrentStep: null;
           autorampStatus: 'not_ready';
         }) => void)
       | undefined;
@@ -271,6 +275,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
       sessionDisclaimersComplete: true,
       providerFlowStatus: 'submitted',
       kycStatus: 'approved',
+      kycCurrentStep: null,
       autorampStatus: 'ready',
     });
     const { findByTestId, queryByTestId } = renderVbaMoneyEntry();
@@ -302,6 +307,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
         sessionDisclaimersComplete: true,
         providerFlowStatus: 'submitted',
         kycStatus: 'approved',
+        kycCurrentStep: null,
         autorampStatus: 'ready',
       })
       .mockResolvedValue({
@@ -310,6 +316,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
         sessionDisclaimersComplete: true,
         providerFlowStatus: 'submitted',
         kycStatus: 'approved',
+        kycCurrentStep: null,
         autorampStatus: 'retryable_failure',
       });
     const { findByTestId } = renderVbaMoneyEntry();
@@ -415,5 +422,73 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     ).toBeOnTheScreen();
     expect(getByText(pixInstructions.pixKey)).toBeOnTheScreen();
     expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+  });
+
+  it('opens identity verification from the bank account row when the session is still on the kyc step', async () => {
+    const kycController = Engine.context.KycController as unknown as {
+      fetchSessionDisclaimers: jest.Mock;
+      recordSessionDisclaimers: jest.Mock;
+      launchProviderFlow: jest.Mock;
+    };
+    kycController.fetchSessionDisclaimers = jest
+      .fn()
+      .mockResolvedValue({ kycProvider: [], idOS: [] });
+    kycController.recordSessionDisclaimers = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    kycController.launchProviderFlow = jest
+      .fn()
+      .mockReturnValue(new Promise(() => undefined));
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'pending',
+      kycCurrentStep: 'kyc',
+      autorampStatus: 'not_ready',
+    });
+    const { findByTestId, queryByTestId } = renderVbaMoneyEntry();
+
+    fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+    fireEvent.press(
+      await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    );
+
+    expect(
+      await findByTestId(KycSumSubSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(kycController.launchProviderFlow).toHaveBeenCalled();
+    expect(queryByTestId(KycSumSubSelectorsIDs.ERROR)).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(KycPendingSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens the pending screen from the bank account row when a submitted session was reinstalled', async () => {
+    const kycController = Engine.context.KycController as unknown as {
+      launchProviderFlow: jest.Mock;
+    };
+    kycController.launchProviderFlow = jest.fn();
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'pending',
+      kycCurrentStep: 'processing',
+      autorampStatus: 'not_ready',
+    });
+    const { findByTestId } = renderVbaMoneyEntry();
+
+    fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+    fireEvent.press(
+      await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    );
+
+    expect(
+      await findByTestId(KycPendingSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(kycController.launchProviderFlow).not.toHaveBeenCalled();
   });
 });

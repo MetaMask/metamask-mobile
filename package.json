@@ -327,7 +327,8 @@
     "metro-core@npm:^0.84.3": "0.84.5",
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
-    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch"
+    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
+    "@metamask/ramps-controller@npm:^29.0.0": "patch:@metamask/ramps-controller@npm%3A29.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-29.0.0-c064f43b21.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
@@ -442,7 +443,7 @@
     "@metamask/profile-controller": "^3.0.0",
     "@metamask/profile-metrics-controller": "^5.2.1",
     "@metamask/profile-sync-controller": "^36.0.0",
-    "@metamask/ramps-controller": "^29.0.0",
+    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@npm%3A29.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-29.0.0-c064f43b21.patch",
     "@metamask/react-data-query": "^1.0.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",

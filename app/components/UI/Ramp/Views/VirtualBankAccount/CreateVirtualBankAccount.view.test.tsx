@@ -88,6 +88,7 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
       sessionDisclaimersComplete: false,
       providerFlowStatus: 'not_started',
       kycStatus: 'none',
+      kycCurrentStep: null,
       autorampStatus: 'not_ready',
     });
     mockGetPaymentMethodsForContext.mockResolvedValue({
