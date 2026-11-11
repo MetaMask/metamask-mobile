@@ -843,9 +843,11 @@ describe('useMoneyAccountDeposit', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockDepositFailed).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
   });
 
-  it('rethrows a Ledger device rejection without logging or showing the dev error alert', async () => {
+  it('rethrows a Ledger device rejection without reporting an error', async () => {
     const ledgerRejection = createLedgerDeviceRejection();
     mockIsUserRejectedError.mockImplementation(actualIsUserRejectedError);
     mockAddTransactionBatch.mockRejectedValue(ledgerRejection);
@@ -1289,9 +1291,11 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockWithdrawFailed).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
   });
 
-  it('rethrows a Ledger device rejection without logging or showing the dev error alert', async () => {
+  it('rethrows a Ledger device rejection without reporting an error', async () => {
     const ledgerRejection = createLedgerDeviceRejection();
     mockIsUserRejectedError.mockImplementation(actualIsUserRejectedError);
     mockAddTransactionBatch.mockRejectedValue(ledgerRejection);
