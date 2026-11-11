@@ -42,7 +42,7 @@ import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
-import { useMoneyHomeNavigation } from '../../../Money/hooks/useMoneyHomeNavigation';
+import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
 import { getMoneyEntryDecision } from '../../../Money/navigation/moneyEntryDecision';
@@ -177,14 +177,15 @@ const EarnSection = ({
     enabled: enabled && isMoneyAccountVisible,
   });
 
-  const { navigateToMoneyHomeFromCta } = useMoneyHomeNavigation();
+  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
-  const { destination: moneyHomeDestination } = getMoneyEntryDecision(
-    'home',
+  const { destination: moneyDepositDestination } = getMoneyEntryDecision(
+    'deposit',
     moneyEntryContext,
   );
   const isMoneyOnboardingRedirectNeeded =
-    moneyHomeDestination === 'onboarding' || moneyHomeDestination === 'splash';
+    moneyDepositDestination === 'onboarding' ||
+    moneyDepositDestination === 'splash';
   const {
     screen_name: earnScreenName,
     entry_point: earnEntryPoint,
@@ -365,15 +366,20 @@ const EarnSection = ({
   ]);
 
   const handleMoneyAccountCardPress = useCallback(() => {
-    navigateToMoneyHomeFromCta({
+    navigateToMoneyDeposit({
       track: ({ redirect_target }) => {
         trackMoneySurfaceClicked({
           component_name: MONEY_COMPONENT_NAMES.EARN_SECTION_MONEY_CARD,
           redirect_target,
         });
       },
+    }).catch((error) => {
+      Logger.error(
+        error as Error,
+        '[EarnSection] Failed to initiate Money deposit',
+      );
     });
-  }, [navigateToMoneyHomeFromCta, trackMoneySurfaceClicked]);
+  }, [navigateToMoneyDeposit, trackMoneySurfaceClicked]);
 
   const handleRetry = useCallback(async () => {
     if (isRetryingRef.current) {

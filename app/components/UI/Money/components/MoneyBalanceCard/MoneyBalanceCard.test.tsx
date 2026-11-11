@@ -16,7 +16,7 @@ import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import { useMoneyCtaDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   BOTTOM_SHEET_NAMES,
@@ -102,7 +102,7 @@ jest.mock('../../hooks/useMoneyHomeNavigation', () => ({
 }));
 jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   __esModule: true,
-  useMoneyDepositNavigation: jest.fn(),
+  useMoneyCtaDepositNavigation: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/user/selectors', () => ({
@@ -161,7 +161,9 @@ const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
   selectMoneyEnableMoneyAccountFlag,
 );
 const mockUseMoneyHomeNavigation = jest.mocked(useMoneyHomeNavigation);
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
+const mockUseMoneyCtaDepositNavigation = jest.mocked(
+  useMoneyCtaDepositNavigation,
+);
 
 const getMockAccessDecision = () => {
   if (!mockSelectMoneyEnableMoneyAccountFlag(undefined as never)) {
@@ -293,7 +295,6 @@ describe('MoneyBalanceCard', () => {
     });
     mockUseMoneyHomeNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
-      navigateToMoneyHomeFromCta: mockNavigateToMoneyHome,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);
     mockNavigateToMoneyDeposit.mockImplementation(
@@ -330,7 +331,7 @@ describe('MoneyBalanceCard', () => {
         await mockInitiateDeposit(options);
       },
     );
-    mockUseMoneyDepositNavigation.mockReturnValue({
+    mockUseMoneyCtaDepositNavigation.mockReturnValue({
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({

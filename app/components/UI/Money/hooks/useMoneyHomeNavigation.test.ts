@@ -3,10 +3,7 @@ import { useSelector } from 'react-redux';
 import { useMoneyHomeNavigation } from './useMoneyHomeNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
-import {
-  selectMoneyCtaEntryContext,
-  selectMoneyEntryContext,
-} from '../selectors/entry';
+import { selectMoneyEntryContext } from '../selectors/entry';
 import { MONEY_BUTTON_INTENTS, SCREEN_NAMES } from '../constants/moneyEvents';
 
 const mockNavigate = jest.fn();
@@ -20,7 +17,6 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../selectors/entry', () => ({
-  selectMoneyCtaEntryContext: jest.fn(),
   selectMoneyEntryContext: jest.fn(),
 }));
 
@@ -35,23 +31,17 @@ const setupSelectorMocks = ({
   hasSeenOnboarding = false,
   isOnboardingEnabled = true,
   accessBlockReason,
-  isSplashRedirectNeeded = false,
 }: {
   hasSeenOnboarding?: boolean;
   isOnboardingEnabled?: boolean;
   accessBlockReason?: 'feature_disabled' | 'geo_blocked';
-  isSplashRedirectNeeded?: boolean;
 } = {}) => {
   const entryContext = {
     accessBlockReason,
     isOnboardingRedirectNeeded: !hasSeenOnboarding && isOnboardingEnabled,
-    isSplashRedirectNeeded,
   };
   mockUseSelector.mockImplementation((selector: unknown) => {
-    if (
-      selector === selectMoneyEntryContext ||
-      selector === selectMoneyCtaEntryContext
-    ) {
+    if (selector === selectMoneyEntryContext) {
       return mockSelectMoneyEntryContext({} as never);
     }
     return undefined;
@@ -218,66 +208,6 @@ describe('useMoneyHomeNavigation', () => {
         redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
         button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
       });
-    });
-  });
-
-  describe('navigateToMoneyHomeFromCta', () => {
-    it('navigates to the splash while it is unseen', () => {
-      setupSelectorMocks({ isSplashRedirectNeeded: true });
-
-      const { result } = renderHook(() => useMoneyHomeNavigation());
-
-      act(() => result.current.navigateToMoneyHomeFromCta());
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH);
-    });
-
-    it('forwards analytics context to the splash', () => {
-      setupSelectorMocks({ isSplashRedirectNeeded: true });
-
-      const { result } = renderHook(() => useMoneyHomeNavigation());
-
-      act(() =>
-        result.current.navigateToMoneyHomeFromCta({ analyticsContext }),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH, {
-        analyticsContext,
-      });
-    });
-
-    it('tracks the splash before navigating to it', () => {
-      setupSelectorMocks({ isSplashRedirectNeeded: true });
-      const track = jest.fn();
-      const { result } = renderHook(() => useMoneyHomeNavigation());
-
-      act(() => result.current.navigateToMoneyHomeFromCta({ track }));
-
-      expect(track).toHaveBeenCalledWith({
-        redirect_target: SCREEN_NAMES.MONEY_SPLASH,
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SPLASH);
-    });
-
-    it('navigates to Money home once the splash is seen', () => {
-      setupSelectorMocks({
-        hasSeenOnboarding: true,
-        isSplashRedirectNeeded: false,
-      });
-
-      const { result } = renderHook(() => useMoneyHomeNavigation());
-
-      act(() => result.current.navigateToMoneyHomeFromCta({ pop: false }));
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HOME_TABS,
-        {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        },
-        { pop: false },
-      );
     });
   });
 });

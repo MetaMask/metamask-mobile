@@ -38,7 +38,7 @@ import BoxGlass from '../../../../../component-library/components-temp/BoxGlass'
 import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import { useMoneyCtaDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
@@ -85,7 +85,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
   });
-  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const handleAddPress = useCallback(async () => {
     try {
       await navigateToMoneyDeposit({

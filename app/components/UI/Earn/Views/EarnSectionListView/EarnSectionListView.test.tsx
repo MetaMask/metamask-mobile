@@ -49,8 +49,6 @@ import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepos
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockNavigateToMoneyHome = jest.fn();
-const mockNavigateToMoneyHomeFromCta = jest.fn();
 let mockMoneyEntryContext: MoneyEntryContext = {
   accessBlockReason: undefined,
   isOnboardingRedirectNeeded: false,
@@ -159,16 +157,6 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   ),
 }));
 
-jest.mock('../../../Money/hooks/useMoneyHomeNavigation', () => ({
-  useMoneyHomeNavigation: jest.fn(() => ({
-    navigateToMoneyHome: (
-      ...args: Parameters<typeof mockNavigateToMoneyHome>
-    ) => mockNavigateToMoneyHome(...args),
-    navigateToMoneyHomeFromCta: (
-      ...args: Parameters<typeof mockNavigateToMoneyHomeFromCta>
-    ) => mockNavigateToMoneyHomeFromCta(...args),
-  })),
-}));
 jest.mock('../../../Money/hooks/useMoneyDepositNavigation', () => ({
   useMoneyCtaDepositNavigation: jest.fn(),
 }));
@@ -424,26 +412,6 @@ describe('EarnSectionListView', () => {
     mockUseEarnAssetCatalogue.mockReturnValue(createCatalogueResult());
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceResult());
     mockUseProjectedEarnings.mockReturnValue(createProjectionResult());
-    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
-      track?.({
-        redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
-          ? 'money_splash'
-          : 'money_home',
-        button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
-          ? 'go_to_money_splash'
-          : 'go_to_money_home',
-      });
-    });
-    mockNavigateToMoneyHomeFromCta.mockImplementation(({ track } = {}) => {
-      track?.({
-        redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
-          ? 'money_splash'
-          : 'money_home',
-        button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
-          ? 'go_to_money_splash'
-          : 'go_to_money_home',
-      });
-    });
     mockNavigateToMoneyDeposit.mockImplementation(
       async ({ track, ...options } = {}) => {
         track?.({
@@ -801,7 +769,7 @@ describe('EarnSectionListView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('navigates back and to Money', () => {
+  it('navigates back and to Add funds', () => {
     const moneyAssets = createMoneyAssets(6);
     mockUseEarnAssetCatalogue.mockReturnValue(
       createCatalogueResult({ assets: moneyAssets }),
@@ -815,13 +783,12 @@ describe('EarnSectionListView', () => {
     fireEvent.press(screen.getByTestId('mock-earn-money-account-row'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToMoneyHomeFromCta).toHaveBeenCalledWith({
-      pop: false,
+    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
       track: expect.any(Function),
     });
     expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith(
       expect.objectContaining({
-        redirect_target: 'money_home',
+        redirect_target: 'money_deposit',
       }),
     );
   });
@@ -837,8 +804,7 @@ describe('EarnSectionListView', () => {
 
     fireEvent.press(screen.getByTestId('mock-earn-money-account-row'));
 
-    expect(mockNavigateToMoneyHomeFromCta).toHaveBeenCalledWith({
-      pop: false,
+    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
       track: expect.any(Function),
     });
     expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith(

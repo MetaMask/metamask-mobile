@@ -4,10 +4,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
 import type { NavigationAnalyticsContext } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import { strings } from '../../../../../locales/i18n';
-import {
-  selectMoneyCtaEntryContext,
-  selectMoneyEntryContext,
-} from '../selectors/entry';
+import { selectMoneyEntryContext } from '../selectors/entry';
 import {
   getMoneyEntryDecision,
   type MoneyEntryDecision,
@@ -33,7 +30,6 @@ interface NavigateToMoneyHomeOptions {
 
 export const useMoneyHomeNavigation = () => {
   const entryContext = useSelector(selectMoneyEntryContext);
-  const ctaEntryContext = useSelector(selectMoneyCtaEntryContext);
 
   const navigateHome = useCallback(
     (
@@ -108,18 +104,5 @@ export const useMoneyHomeNavigation = () => {
     [entryContext, navigateHome],
   );
 
-  /**
-   * Money home entry from a CTA surface, which shows the intro splash before
-   * onboarding/home while it is enabled.
-   */
-  const navigateToMoneyHomeFromCta = useCallback(
-    (options?: NavigateToMoneyHomeOptions) =>
-      navigateHome(
-        options ?? {},
-        getMoneyEntryDecision('home', ctaEntryContext),
-      ),
-    [ctaEntryContext, navigateHome],
-  );
-
-  return { navigateToMoneyHome, navigateToMoneyHomeFromCta };
+  return { navigateToMoneyHome };
 };

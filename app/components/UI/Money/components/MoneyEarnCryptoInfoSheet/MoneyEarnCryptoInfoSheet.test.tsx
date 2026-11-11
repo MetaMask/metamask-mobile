@@ -120,7 +120,6 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     });
     jest.mocked(useMoneyHomeNavigation).mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
-      navigateToMoneyHomeFromCta: mockNavigateToMoneyHome,
     });
     mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
       track?.({

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import EarnMoneyAccountRow from '../feeds/earn/EarnMoneyAccountRow';
 import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
-import { useMoneyHomeNavigation } from '../../../UI/Money/hooks/useMoneyHomeNavigation';
+import { useMoneyCtaDepositNavigation } from '../../../UI/Money/hooks/useMoneyDepositNavigation';
 import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
@@ -13,6 +13,7 @@ import { useMoneyAnalytics } from '../../../UI/Money/hooks/useMoneyAnalytics';
 import { COMPONENT_NAMES as MONEY_COMPONENT_NAMES } from '../../../UI/Money/constants/moneyEvents';
 import { selectMoneyCtaEntryContext } from '../../../UI/Money/selectors/entry';
 import { getMoneyEntryDecision } from '../../../UI/Money/navigation/moneyEntryDecision';
+import Logger from '../../../../util/Logger';
 import { useEarnAnalytics } from '../../../UI/Earn/hooks/useEarnAnalytics';
 import {
   EARN_MODULE_COMPONENT_NAMES,
@@ -45,14 +46,15 @@ const EarnSearchRow = ({
   position: number;
   resultCount?: number;
 }) => {
-  const { navigateToMoneyHomeFromCta } = useMoneyHomeNavigation();
+  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
-  const { destination: moneyHomeDestination } = getMoneyEntryDecision(
-    'home',
+  const { destination: moneyDepositDestination } = getMoneyEntryDecision(
+    'deposit',
     moneyEntryContext,
   );
   const isMoneyOnboardingRedirectNeeded =
-    moneyHomeDestination === 'onboarding' || moneyHomeDestination === 'splash';
+    moneyDepositDestination === 'onboarding' ||
+    moneyDepositDestination === 'splash';
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const { trackSurfaceClicked: trackMoneySurfaceClicked } = useMoneyAnalytics({
     component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,
@@ -66,13 +68,17 @@ const EarnSearchRow = ({
 
   const handlePress = useCallback(() => {
     if (item.kind === 'money-account') {
-      navigateToMoneyHomeFromCta({
-        pop: false,
+      navigateToMoneyDeposit({
         track: ({ redirect_target }) => {
           trackMoneySurfaceClicked({
             redirect_target,
           });
         },
+      }).catch((error) => {
+        Logger.error(
+          error as Error,
+          '[EarnSearchRow] Failed to initiate Money deposit',
+        );
       });
       return;
     }
@@ -99,7 +105,7 @@ const EarnSearchRow = ({
     moneyEntryContext,
     item,
     navigateFromEarnAsset,
-    navigateToMoneyHomeFromCta,
+    navigateToMoneyDeposit,
     position,
     trackMoneySurfaceClicked,
     trackSurfaceClicked,

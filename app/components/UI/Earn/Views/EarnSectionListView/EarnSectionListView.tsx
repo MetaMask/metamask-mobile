@@ -44,7 +44,6 @@ import useMountEffect from '../../../Money/hooks/useMountEffect';
 import { useProjectedEarnings } from '../../../Money/hooks/useProjectedEarnings';
 import type { MoneyDepositAsset } from '../../../Money/selectors/depositTokens';
 import PotentialEarningsTokenRow from '../../../Money/components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
-import { useMoneyHomeNavigation } from '../../../Money/hooks/useMoneyHomeNavigation';
 import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import { isPositiveNumber } from '../../../Money/utils/number';
@@ -259,15 +258,15 @@ const EarnSectionListView = () => {
     isBalanceLoading: isMoneyAccountBalanceLoading,
     refetchBalance: refetchMoneyAccountBalance,
   } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
-  const { navigateToMoneyHomeFromCta } = useMoneyHomeNavigation();
   const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
-  const { destination: moneyHomeDestination } = getMoneyEntryDecision(
-    'home',
+  const { destination: moneyDepositDestination } = getMoneyEntryDecision(
+    'deposit',
     moneyEntryContext,
   );
   const isMoneyOnboardingRedirectNeeded =
-    moneyHomeDestination === 'onboarding' || moneyHomeDestination === 'splash';
+    moneyDepositDestination === 'onboarding' ||
+    moneyDepositDestination === 'splash';
   const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const {
     trackSurfaceClicked: trackMoneySurfaceClicked,
@@ -418,16 +417,20 @@ const EarnSectionListView = () => {
   );
 
   const handleMoneyAccountPress = useCallback(() => {
-    navigateToMoneyHomeFromCta({
-      pop: false,
+    navigateToMoneyDeposit({
       track: ({ redirect_target }) => {
         trackMoneySurfaceClicked({
           component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,
           redirect_target,
         });
       },
+    }).catch((error) => {
+      Logger.error(
+        error as Error,
+        '[EarnSectionListView] Failed to initiate Money deposit',
+      );
     });
-  }, [navigateToMoneyHomeFromCta, trackMoneySurfaceClicked]);
+  }, [navigateToMoneyDeposit, trackMoneySurfaceClicked]);
 
   const handleTokenCardPress = useCallback(
     async (token: MoneyDepositAsset, tokenIndex: number) => {
