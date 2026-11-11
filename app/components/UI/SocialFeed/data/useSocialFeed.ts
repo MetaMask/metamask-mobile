@@ -20,6 +20,11 @@ import {
 import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
+import {
+  pruneStableFeedPosts,
+  retainStableFeedPost,
+  type StableFeedPostEntry,
+} from './stableFeedPost';
 import { getRowSortTimestamp } from './socialFeedRealtime';
 import {
   toSocialFeedRealtimeScope,
@@ -239,10 +244,27 @@ export const useSocialFeed = (
   }, [isGlobalFeed, pages, request]);
 
   const dataUpdatedAt = query.dataUpdatedAt || undefined;
-  const posts = useMemo(
-    () => toSocialFeedPosts(rows, dataUpdatedAt ?? Date.now()),
-    [dataUpdatedAt, rows],
-  );
+  // A new page rebuilds every row wrapper. The cache keeps a post whose
+  // position reference did not change, so the fetch time is not a new post.
+  const postCache = useRef(new Map<string, StableFeedPostEntry>());
+  const posts = useMemo(() => {
+    const activeIds = new Set<string>();
+    const next = rows.map((row) => {
+      activeIds.add(row.item.id);
+      return retainStableFeedPost(
+        postCache.current,
+        row.item.id,
+        row.core,
+        undefined,
+        () => {
+          const [post] = toSocialFeedPosts([row]);
+          return post;
+        },
+      );
+    });
+    pruneStableFeedPosts(postCache.current, activeIds);
+    return next;
+  }, [rows]);
 
   const error = query.error ?? null;
   useLogSocialQueryError(error, {

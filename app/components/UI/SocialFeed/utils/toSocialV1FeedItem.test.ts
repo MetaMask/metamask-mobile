@@ -889,6 +889,8 @@ describe('toSocialV1FeedItem', () => {
       if (afterFiveHours.variant !== 'spotOpen') return;
       expect(afterOneHour.holdTimeLabel).toBe('1h');
       expect(afterFiveHours.holdTimeLabel).toBe('5h');
+      expect(afterOneHour.holdStartedAtMs).toBe(openedAt * 1000);
+      expect(afterFiveHours.holdStartedAtMs).toBe(afterOneHour.holdStartedAtMs);
     });
 
     it('uses the reported hold time once the position is closed', () => {

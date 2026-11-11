@@ -171,6 +171,29 @@ const deriveHoldDurationMs = (
   return span > 0 ? span : null;
 };
 
+/**
+ * When an open hold started. The card formats the elapsed time from this
+ * anchor, so a later page does not have to rebuild the post to keep it current.
+ */
+const deriveHoldStartedAtMs = (core: CoreFeedItem): number | undefined => {
+  const { firstTradeAt } = asFeedCardItem(core);
+
+  if (isPresentNumber(firstTradeAt)) {
+    const startedAtMs = tradeTimestampToMs(firstTradeAt);
+    return startedAtMs > 0 ? startedAtMs : undefined;
+  }
+
+  const timestamps = (core.trades ?? []).map((trade) =>
+    tradeTimestampToMs(trade.timestamp),
+  );
+  if (timestamps.length === 0) {
+    return undefined;
+  }
+
+  const first = Math.min(...timestamps);
+  return first > 0 ? first : undefined;
+};
+
 const toLeverageLabel = (item: {
   leverage: number | null;
 }): string | undefined =>
@@ -295,6 +318,9 @@ export function toSocialV1FeedItem(
   );
   const holdTimeLabel =
     holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs);
+  const holdStartedAtMs = item.isClosed
+    ? undefined
+    : deriveHoldStartedAtMs(core);
 
   if (item.isClosed) {
     const exitPrice = deriveExitPrice(core);
@@ -343,6 +369,7 @@ export function toSocialV1FeedItem(
       entryPriceLabel,
       entryMarketCapLabel: toMarketCapLabel(marketCapPerPrice, entryPrice),
       holdTimeLabel,
+      ...(holdStartedAtMs != null ? { holdStartedAtMs } : {}),
       ...(live ? { live } : {}),
     };
   }
@@ -358,6 +385,7 @@ export function toSocialV1FeedItem(
       currentPrice == null ? undefined : formatTradeUnitPrice(currentPrice),
     entryPriceLabel,
     holdTimeLabel,
+    ...(holdStartedAtMs != null ? { holdStartedAtMs } : {}),
     ...(live ? { live } : {}),
   };
 }
