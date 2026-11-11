@@ -126,6 +126,10 @@ export const useTraderPositions = (
     refetchOnMount: 'always',
   });
 
+  // Focus and reconnect refetches reload every loaded page, not page 1. That
+  // undoes the page-1 poll, can reshuffle a list the reader scrolled, and can
+  // run queryFn on foreground before `enabled` flips false after auto-lock.
+  // The poll keeps page 1 fresh while focused, so these stay off.
   const openQuery = useInfiniteQuery({
     queryKey: buildPaginatedOpenPositionsQueryKey(addressOrId),
     queryFn: ({ pageParam }) =>
@@ -134,6 +138,8 @@ export const useTraderPositions = (
     getNextPageParam: getNextTraderPositionsPageParam,
     enabled: enabled && paginated,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const closedQuery = useInfiniteQuery({
@@ -144,6 +150,8 @@ export const useTraderPositions = (
     getNextPageParam: getNextTraderPositionsPageParam,
     enabled: enabled && paginated,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const openPages = openQuery.data?.pages;

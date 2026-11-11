@@ -681,6 +681,25 @@ describe('useTraderPositions', () => {
       );
     });
 
+    it('turns off focus and reconnect refetches on both infinite queries', () => {
+      renderHook(() => useTraderPositions('trader-1', { paginated: true }));
+
+      expect(mockUseInfiniteQuery).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
+      );
+      expect(mockUseInfiniteQuery).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
+      );
+    });
+
     it('does not forward the refetch interval to the infinite queries', () => {
       renderHook(() =>
         useTraderPositions('trader-1', {
