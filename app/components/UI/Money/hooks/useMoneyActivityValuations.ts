@@ -180,6 +180,7 @@ export function useMoneyActivityValuations({
             },
             async (context) => {
               let requestedCount = 0;
+              let entries = readCachedVaultShareValuations();
 
               for (const [chainId, hashes] of byChain) {
                 const configuredVaults = vaultShareTokens.filter(
@@ -212,16 +213,16 @@ export function useMoneyActivityValuations({
                     ),
                   });
                   await writeCachedVaultShareValuations(newEntries);
+                  entries = [...entries, ...newEntries];
                 }
               }
 
-              const latest = readCachedVaultShareValuations();
               annotateTrace(context, {
                 requested_count: requestedCount,
                 cache_hit_count: page.cached.length,
                 chunk_count: chunkCount,
               });
-              return pageCacheEntries(page.activities, moneyAddress, latest);
+              return pageCacheEntries(page.activities, moneyAddress, entries);
             },
           ),
       } as const;
