@@ -532,3 +532,66 @@ describe('PredictDeviceAuthService.signOperation', () => {
     });
   });
 });
+
+describe('PredictDeviceAuthService.signOperation availability guards', () => {
+  const ORDER = {
+    inputs: {
+      marketId: 'MKT-1',
+      idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+      action: 'buy' as const,
+      outcome: 'yes' as const,
+      amountCents: 5000,
+    },
+    values: { count: '10.00', price: '0.5000' },
+    confirmed: true,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetVenueProfile();
+    mockEnsureDeviceKey.mockResolvedValue(DEVICE_PUBLIC_MATERIAL);
+    mockGetA2t.mockResolvedValue('opaque-a2t');
+  });
+
+  it('returns undefined when the A2T is unavailable', async () => {
+    mockGetA2t.mockResolvedValueOnce(undefined);
+    const { service } = createService();
+
+    await expect(
+      service.signOperation('order.place', ORDER),
+    ).resolves.toBeUndefined();
+  });
+
+  it('clears the session when the user signs out while the key loads', async () => {
+    let signedIn = true;
+    mockEnsureDeviceKey.mockImplementationOnce(async () => {
+      signedIn = false;
+      return DEVICE_PUBLIC_MATERIAL;
+    });
+    const { service } = createService({ isSignedIn: () => signedIn });
+
+    await expect(
+      service.signOperation('order.place', ORDER),
+    ).resolves.toBeUndefined();
+    expect(mockClearSession).toHaveBeenCalled();
+  });
+
+  it('returns undefined when the device key never loads', async () => {
+    mockEnsureDeviceKey.mockResolvedValueOnce(null);
+    const { service } = createService();
+
+    await expect(
+      service.signOperation('order.place', ORDER),
+    ).resolves.toBeUndefined();
+  });
+
+  it('refuses an unconfirmed intent before it signs anything', async () => {
+    const { service } = createService();
+
+    // `claimIntentSignature` is the only guard that reads the confirmation
+    // flag, so this proves the service consults it rather than defaulting.
+    await expect(
+      service.signOperation('order.place', { ...ORDER, confirmed: false }),
+    ).rejects.toMatchObject({ name: 'TemplateError', rule: 'confirmation' });
+  });
+});
