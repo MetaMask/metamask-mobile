@@ -31,7 +31,6 @@ import {
 import { TokenDetailsERC20 } from '../../../../../../utils/token';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Text,
@@ -42,6 +41,8 @@ import { strings } from '../../../../../../../../../../locales/i18n';
 import AnimatedPulse from '../../../../../UI/animated-pulse';
 import { selectContractExchangeRatesByChainId } from '../../../../../../../../../selectors/tokenRatesController';
 import { RootState } from '../../../../../../../../../reducers';
+import BottomSheetHeaderGlass from '../../../../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../../../../selectors/featureFlagController/glassHeaders';
 
 interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
@@ -97,6 +98,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   allowed,
   canDisplayValueAsUnlimited = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -256,9 +258,12 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <BottomSheetHeader onClose={handleRequestClose}>
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
+              onClose={handleRequestClose}
+            >
               {modalHeaderText}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <Box twClassName="flex flex-col">
               <Text style={styles.valueModalText}>
                 {tokenValueMaxPrecision}

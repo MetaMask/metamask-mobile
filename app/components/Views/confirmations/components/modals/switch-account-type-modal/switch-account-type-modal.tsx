@@ -6,7 +6,6 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -22,6 +21,8 @@ import { useEIP7702Networks } from '../../../hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from './account-network-row';
 import styleSheet from './switch-account-type-modal.styles';
 import Engine from '../../../../../../core/Engine';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 interface SwitchAccountTypeModalRouteParams {
   address?: Hex;
@@ -33,6 +34,7 @@ interface SwitchAccountTypeModalParamList {
 }
 
 const SwitchAccountTypeModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const route =
     useRoute<
       RouteProp<
@@ -60,7 +62,8 @@ const SwitchAccountTypeModal = () => {
   if (!address) {
     return (
       <BottomSheet goBack={goBack}>
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onBack={goBack}
           backButtonProps={{ testID: 'switch-account-goback' }}
         />
@@ -75,7 +78,8 @@ const SwitchAccountTypeModal = () => {
 
   return (
     <BottomSheet goBack={goBack}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={goBack}
         backButtonProps={{ testID: 'switch-account-goback' }}
       />

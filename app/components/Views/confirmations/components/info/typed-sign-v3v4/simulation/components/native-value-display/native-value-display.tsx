@@ -22,7 +22,6 @@ import { isNumberValue } from '../../../../../../../../../util/number';
 import { calcTokenAmount } from '../../../../../../../../../util/transactions';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Text,
@@ -33,6 +32,8 @@ import {
  * @see {@link https://github.com/MetaMask/metamask-mobile/issues/12974}
  */
 import styleSheet from '../value-display/value-display.styles';
+import BottomSheetHeaderGlass from '../../../../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../../../../selectors/featureFlagController/glassHeaders';
 
 const NATIVE_DECIMALS = 18;
 
@@ -60,6 +61,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   modalHeaderText,
   value,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -148,9 +150,12 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <BottomSheetHeader onClose={handleRequestClose}>
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
+              onClose={handleRequestClose}
+            >
               {modalHeaderText}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <Box twClassName="flex flex-col p-4 pt-0">
               <Text style={styles.valueModalText}>
                 {tokenValueMaxPrecision}

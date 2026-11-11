@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Text,
   TextVariant,
   type BottomSheetRef,
@@ -16,10 +15,14 @@ import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export const PAY_WITH_BOTTOM_SHEET_TEST_ID = PayWithBottomSheetIDs.BOTTOM_SHEET;
 
 export function PayWithBottomSheet() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { sections } = usePayWithSections();
@@ -45,9 +48,9 @@ export function PayWithBottomSheet() {
       testID={PAY_WITH_BOTTOM_SHEET_TEST_ID}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>{title}</Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <ScrollView testID={`${PAY_WITH_BOTTOM_SHEET_TEST_ID}-scroll`}>
         {sections.map((section) => (
           <PayWithSection key={section.id} config={section} />
