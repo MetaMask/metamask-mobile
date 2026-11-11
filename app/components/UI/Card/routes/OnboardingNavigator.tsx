@@ -11,6 +11,7 @@ import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import ImmersveKYCProcessing from '../components/Onboarding/ImmersveKYCProcessing';
+import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
 import ImmersveFundingApproval from '../components/Onboarding/ImmersveFundingApproval';
 import KYCFailed from '../components/Onboarding/KYCFailed';
 import KYCPending from '../components/Onboarding/KYCPending';
@@ -23,12 +24,10 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
-import { ActivityIndicator } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, IconSize, Spinner } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CardUserPhase } from '../types';
 import Complete from '../components/Onboarding/Complete';
-import LockManagerService from '../../../../core/LockManagerService';
 
 const Stack = createNativeStackNavigator();
 
@@ -44,7 +43,6 @@ const OnboardingNavigator: React.FC = () => {
   }>();
   const onboardingId = useSelector(selectOnboardingId);
   const { user, isLoading, fetchUserData, isReturningSession } = useCardSDK();
-  const [isMounted, setIsMounted] = useState(false);
   // Track user data fetch separately from SDK's isLoading to guard against
   // the SDK init effect resetting isLoading mid-fetch (e.g. when fetchUserData
   // dispatches setUserCardLocation and triggers SDK re-initialization).
@@ -60,34 +58,27 @@ const OnboardingNavigator: React.FC = () => {
       >
     >();
   const hasShownKeepGoingModal = useRef(false);
+  const didMountFetchRef = useRef(false);
 
   // Check if deeplink is navigating directly to Complete screen
   const isDeeplinkToComplete =
     route.params?.screen === Routes.CARD.ONBOARDING.COMPLETE;
 
-  // Fetch fresh user data on mount if user data is missing
-  // This ensures we always have the most up-to-date onboarding information
-  // when the navigator is accessed
+  // Fetch fresh user data once on mount if user data is missing.
+  // didMountFetchRef keeps the one-shot behavior without an exhaustive-deps
+  // disable (inline React-rule disables make React Compiler skip the file).
   useEffect(() => {
-    if (!isMounted && onboardingId && !user) {
+    if (didMountFetchRef.current) {
+      return;
+    }
+    didMountFetchRef.current = true;
+
+    if (onboardingId && !user) {
       fetchUserData().finally(() => setIsFetchingUserData(false));
     } else {
       setIsFetchingUserData(false);
     }
-    setIsMounted(true);
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount
-
-  // Disable auto-lock during Card onboarding flow
-  // This allows users to minimize the app to check personal details
-  // without being locked out and redirected to wallet home
-  useEffect(() => {
-    LockManagerService.stopListening();
-    return () => {
-      LockManagerService.startListening();
-    };
-  }, []);
+  }, [onboardingId, user, fetchUserData]);
 
   const initialRouteName = useMemo(() => {
     // Priority 1: Use cardUserPhase if provided (from login response)
@@ -210,7 +201,10 @@ const OnboardingNavigator: React.FC = () => {
   if ((isLoading || isFetchingUserData) && !user) {
     return (
       <Box twClassName="flex-1 items-center justify-center">
-        <ActivityIndicator testID="activity-indicator" size="large" />
+        <Spinner
+          testID="activity-indicator"
+          spinnerIconProps={{ size: IconSize.Xl }}
+        />
       </Box>
     );
   }
@@ -264,6 +258,11 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_PROCESSING}
         component={ImmersveKYCProcessing}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.IMMERSVE_KYC}
+        component={ImmersveKYCModal}
+        options={{ animation: 'none' }}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.FUNDING_APPROVAL}

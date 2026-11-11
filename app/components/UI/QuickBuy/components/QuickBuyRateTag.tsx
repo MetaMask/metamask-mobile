@@ -4,6 +4,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Text,
   TextVariant,
   TextColor,
@@ -13,6 +14,7 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 
 interface QuickBuyRateTagProps {
   label: string | undefined;
@@ -43,10 +45,14 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      gap={2}
-      testID="quick-buy-rate-tag"
+      gap={1}
+      testID={QuickBuySheetSelectorsIDs.RATE_TAG}
     >
-      <Text variant={TextVariant.BodySm} color={textColor}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={textColor}
+      >
         {displayLabel}
       </Text>
       {onPress ? (
@@ -61,7 +67,7 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
         onPress={onPress}
         activeOpacity={0.7}
         accessibilityRole="button"
-        testID="quick-buy-rate-tag-pressable"
+        testID={QuickBuySheetSelectorsIDs.RATE_TAG_PRESSABLE}
       >
         {content}
       </TouchableOpacity>

@@ -3,6 +3,14 @@
  * - ONLY Engine (business) and minimal native mocks.
  */
 
+jest.mock('expo-web-browser', () => ({
+  openAuthSessionAsync: jest.fn().mockResolvedValue({
+    type: 'success',
+    url: 'https://link.metamask.io/x-oauth-redirect?code=mock-code&state=mock-oauth-state',
+  }),
+  dismissAuthSession: jest.fn(),
+}));
+
 // Engine mock (singleton default export)
 jest.mock('../../app/core/Engine', () => {
   const engine = {
@@ -100,8 +108,16 @@ jest.mock('../../app/core/Engine', () => {
         setPrivacyMode: jest.fn(),
       },
       CardController: {
+        state: { activeProviderId: 'baanx' },
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        getContactDetails: jest.fn().mockResolvedValue({
+          email: 'cardholder@example.com',
+          phone: '+441234567890',
+        }),
+        patchContactDetails: jest.fn().mockResolvedValue(undefined),
         logout: jest.fn().mockResolvedValue(undefined),
+        clearRedeemWithdrawal: jest.fn(),
+        withdrawRedeemable: jest.fn().mockResolvedValue({ txHash: '0xmock' }),
         getCapabilities: jest.fn().mockReturnValue({
           authMethod: 'otp',
           supportsOTP: true,
@@ -109,7 +125,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsFundingLimits: true,
           fundingChains: ['eip155:59144'],
           supportsFreeze: true,
-          supportsPushProvisioning: false,
+          pushProvisioning: { applePay: false, googlePay: false },
           onboarding: { requiresEmail: true },
           supportsPinView: true,
           supportsCashback: true,
@@ -117,7 +133,9 @@ jest.mock('../../app/core/Engine', () => {
           supportsSensitiveDetailsView: false,
           supportsTravel: true,
           supportsTransactionHistory: false,
+          supportsContactDetails: false,
           supportsMoneyAccountLinking: false,
+          reportsVerificationStatus: true,
         }),
       },
       PhishingController: {
@@ -207,12 +225,83 @@ jest.mock('../../app/core/Engine', () => {
       },
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+        getSessionProfile: jest.fn().mockResolvedValue(undefined),
+      },
+      ProfileController: {
+        state: {
+          profile: {
+            profileId: '',
+            username: '',
+            displayName: '',
+            bio: '',
+            linkedAddresses: [],
+            avatarUrl: '',
+            tradingPrivacy: 'public',
+            connectedToX: false,
+            createdAt: '',
+            updatedAt: '',
+          },
+        },
+        createProfile: jest
+          .fn()
+          .mockResolvedValue({ profileId: 'mock-profile-id' }),
+        updateProfile: jest.fn().mockResolvedValue(undefined),
+        checkUsernameAvailability: jest.fn().mockResolvedValue({
+          username: 'wen_cat',
+          available: true,
+          valid: true,
+          normalized: 'wen_cat',
+          errors: [],
+        }),
+        connectX: jest.fn().mockResolvedValue({
+          xUserId: 'x-user-1',
+          xProfileUrl: 'https://x.com/degangirl',
+          username: 'degangirl',
+          displayName: 'Degan Giri',
+          avatarUrl:
+            'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        }),
+        getXAuthorizationUrl: jest.fn().mockResolvedValue({
+          authorizationUrl: 'https://x.com/i/oauth2/authorize?mock=true',
+          state: 'mock-oauth-state',
+        }),
+        fetchAndUpdateProfile: jest.fn().mockResolvedValue({
+          profileId: '',
+          username: '',
+          displayName: '',
+          bio: '',
+          linkedAddresses: [],
+          avatarUrl: '',
+          tradingPrivacy: 'public',
+          connectedToX: false,
+          createdAt: '',
+          updatedAt: '',
+        }),
+        fetchAndUpdateXAccount: jest.fn().mockResolvedValue(undefined),
+        disconnectX: jest.fn().mockResolvedValue(undefined),
       },
       GeolocationController: {
         state: {
           location: 'US',
         },
         refreshGeolocation: jest.fn().mockResolvedValue('US'),
+      },
+      KycService: {
+        getGeoCountry: jest.fn().mockResolvedValue('BR'),
+      },
+      KycController: {
+        readSessionStatus: jest.fn().mockReturnValue(null),
+        // Reinstall recovery asks for the latest vendor session before hydrate.
+        // Null is a first-time user; tests that resume a session override this.
+        getSessionStatusForVendor: jest.fn().mockResolvedValue(null),
+        startSession: jest.fn().mockResolvedValue(undefined),
+        fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
+        recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
+        // Fired, fire-and-forget, once the vendor-terms screen's initial
+        // disclaimers request settles (CreateVirtualBankAccount).
+        ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
       },
       SeedlessOnboardingController: {
         state: {
@@ -269,6 +358,7 @@ jest.mock('../../app/core/Engine', () => {
       RampsController: {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
+        setSelectedProviderForAsset: jest.fn().mockReturnValue(false),
         setSelectedPaymentMethod: jest.fn(),
         setUserRegion: jest.fn().mockResolvedValue(null),
         // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
@@ -276,8 +366,20 @@ jest.mock('../../app/core/Engine', () => {
         // react-query layers run for real in component-view tests.
         getProviders: jest.fn().mockResolvedValue({ providers: [] }),
         getPaymentMethods: jest.fn().mockResolvedValue({ payments: [] }),
+        getPaymentMethodsForContext: jest
+          .fn()
+          .mockResolvedValue({ methods: [], selected: null }),
         getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
         getBuyWidgetData: jest.fn().mockResolvedValue(null),
+        hydrateVbaOnboarding: jest.fn().mockResolvedValue({
+          sessionExists: false,
+          vendorDisclaimersComplete: false,
+          sessionDisclaimersComplete: false,
+          providerFlowStatus: 'not_started',
+          kycStatus: 'none',
+          autorampStatus: 'not_ready',
+        }),
+        transakSetApiKey: jest.fn(),
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
@@ -353,8 +455,14 @@ jest.mock('../../app/core/Engine', () => {
         setLocation: jest.fn(),
         setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
+        fetchQuotes: jest.fn().mockResolvedValue([]),
       },
-      PredictNextController: {},
+      BridgeStatusController: {
+        submitTx: jest.fn().mockResolvedValue({ success: true }),
+      },
+      PredictMarketDataService: {},
+      PredictLiveDataService: {},
+      PredictPortfolioService: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],
@@ -374,7 +482,10 @@ jest.mock('../../app/core/Engine', () => {
           address: '0x0000000000000000000000000000000000000001',
           walletType: 'metamask',
         }),
-        getActivity: jest.fn().mockResolvedValue([]),
+        getActivity: jest.fn().mockResolvedValue({
+          activities: [],
+          nextCursor: undefined,
+        }),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
         getPriceHistory: jest.fn().mockResolvedValue([]),
@@ -422,6 +533,27 @@ jest.mock('../../app/core/Engine', () => {
       // getMarkets returns one market so explore sections render "See all perps"
       PerpsController: {
         state: { isTestnet: false },
+        getRecoveredDispatches: jest.fn().mockResolvedValue([]),
+        getPendingManualRecoveries: jest.fn().mockResolvedValue([]),
+        getScaleOrderGroups: jest.fn().mockResolvedValue([]),
+        reviewScaleOrderGroups: jest.fn().mockResolvedValue([]),
+        getScalePriceLadder: jest.fn().mockResolvedValue({
+          status: 'unavailable',
+          reason: 'not_implemented',
+        }),
+        reconcileRecoveredDispatches: jest.fn().mockResolvedValue([]),
+        acknowledgeRecoveredDispatch: jest.fn().mockResolvedValue(undefined),
+        reviewRecoveryVenue: jest.fn().mockResolvedValue({
+          status: 'unsupported',
+          providerId: 'hyperliquid',
+          reason: 'Recovery review is not supported by this provider',
+        }),
+        resolveRecoveryProtection: jest.fn().mockResolvedValue({
+          status: 'unsupported',
+          providerId: 'hyperliquid',
+          success: false,
+          error: 'Recovery protection is not supported by this provider',
+        }),
         init: jest.fn().mockResolvedValue({ success: true }),
         disconnect: jest.fn().mockResolvedValue(undefined),
         getActiveProvider: jest.fn(() => ({
@@ -435,7 +567,18 @@ jest.mock('../../app/core/Engine', () => {
             : 'https://app.hyperliquid.xyz/explorer',
         ),
         switchProvider: jest.fn().mockResolvedValue({ success: true }),
+        getOrderCapabilities: jest.fn().mockResolvedValue({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['twap', 'scale', 'chase'],
+        }),
+        getMarginModeLock: jest.fn().mockResolvedValue({
+          status: 'unlocked',
+          providerId: 'hyperliquid',
+        }),
+        previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue({
@@ -443,6 +586,14 @@ jest.mock('../../app/core/Engine', () => {
           orderId: 'component-view-close',
         }),
         cancelOrder: jest.fn().mockResolvedValue({ success: true }),
+        editOrder: jest.fn().mockResolvedValue({
+          success: true,
+          orderId: 'component-view-edit-order',
+        }),
+        getChaseOrders: jest.fn().mockResolvedValue([]),
+        suspendChaseOrders: jest.fn().mockResolvedValue([]),
+        getTwapOrders: jest.fn().mockResolvedValue([]),
+        subscribeToTwapOrders: jest.fn(() => () => undefined),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([
           {
@@ -458,13 +609,14 @@ jest.mock('../../app/core/Engine', () => {
           },
           {
             symbol: 'BTC',
-            name: 'Bitcoin',
+            name: 'BTC',
             maxLeverage: '50x',
             price: '$50,000',
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
             openInterest: '$500K',
+            szDecimals: 5,
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),
@@ -507,9 +659,16 @@ jest.mock('../../app/core/Engine', () => {
         savePendingTradeConfiguration: jest.fn(),
         clearPendingTradeConfiguration: jest.fn(),
         setSelectedPaymentToken: jest.fn(),
+        setPerpsMode: jest.fn(),
+        setProLayoutPreferences: jest.fn(),
+        setSelectedOrderType: jest.fn(),
+        setOrderBookPreferences: jest.fn(),
+        setVisibleCandleCount: jest.fn(),
+        saveTradeConfiguration: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
+        saveOrderBookGrouping: jest.fn(),
         getWithdrawalRoutes: jest.fn(() => [
           {
             assetId: 'usdc-mainnet',
@@ -533,6 +692,9 @@ jest.mock('../../app/core/Engine', () => {
       call: jest.fn((action: string, ...args: unknown[]) => {
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
+        if (action === 'MoneyAccountBalanceService:getVaultApy') {
+          return Promise.resolve({ apy: '0.042' });
+        }
         if (
           action === 'SnapController:handleRequest' &&
           params?.request?.method === 'onAmountInput'
@@ -592,6 +754,7 @@ jest.mock('react-native-device-info', () => ({
   getBuildNumber: jest.fn(() => '999'),
   getBrand: jest.fn(() => 'Apple'),
   getApplicationName: jest.fn(() => Promise.resolve('MetaMask')),
+  getTotalMemorySync: jest.fn(() => 6 * 1024 ** 3),
 }));
 
 jest.mock(

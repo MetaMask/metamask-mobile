@@ -1594,25 +1594,32 @@ describe('WebSocketManager', () => {
       expect(mockWebSocketInstances).toHaveLength(3);
     });
 
-    it('stops reconnecting after max attempts', () => {
+    it('keeps reconnecting past the previous attempt cap with the delay capped at the maximum', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
       manager.subscribeToGame('123', callback);
       const initialInstanceCount = mockWebSocketInstances.length;
 
-      for (let i = 0; i < 5; i++) {
+      // Far more consecutive failures than the old MAX_RECONNECT_ATTEMPTS
+      // budget — sports must keep retrying so scores recover without an app
+      // restart (PRED-1334).
+      for (let i = 0; i < 10; i++) {
         const currentIdx = initialInstanceCount - 1 + i;
         mockWebSocketInstances[currentIdx].simulateClose();
-        jest.advanceTimersByTime((i + 1) * 3000);
+        jest.advanceTimersByTime(Math.min((i + 1) * 3000, 30000));
       }
 
-      const afterAttemptsCount = mockWebSocketInstances.length;
-      const lastIdx = afterAttemptsCount - 1;
-      mockWebSocketInstances[lastIdx].simulateClose();
-      jest.advanceTimersByTime(30000);
+      expect(mockWebSocketInstances.length).toBe(initialInstanceCount + 10);
 
-      expect(mockWebSocketInstances).toHaveLength(afterAttemptsCount);
+      // Once attempts exceed the linear backoff window, the delay is capped
+      // at 30s instead of growing unbounded.
+      const lastIdx = mockWebSocketInstances.length - 1;
+      mockWebSocketInstances[lastIdx].simulateClose();
+      jest.advanceTimersByTime(30000 - 1);
+      expect(mockWebSocketInstances.length).toBe(initialInstanceCount + 10);
+      jest.advanceTimersByTime(1);
+      expect(mockWebSocketInstances.length).toBe(initialInstanceCount + 11);
     });
 
     it('resets reconnect attempts on successful connection', () => {
@@ -2620,11 +2627,12 @@ describe('WebSocketManager', () => {
 
       expect(mockWebSocketInstances).toHaveLength(6);
 
+      // Sports keeps retrying past the old attempt cap (delay capped at 30s
+      // once attempts exceed the linear backoff window).
       const lastIdx = mockWebSocketInstances.length - 1;
       mockWebSocketInstances[lastIdx].simulateClose();
-      jest.advanceTimersByTime(60000);
-
-      expect(mockWebSocketInstances).toHaveLength(6);
+      jest.advanceTimersByTime(18000);
+      expect(mockWebSocketInstances).toHaveLength(7);
     });
   });
 
@@ -2966,6 +2974,362 @@ describe('WebSocketManager', () => {
           data: { method: 'rtdsHeartbeat' },
         },
       });
+    });
+  });
+
+  describe('sports heartbeat staleness detection', () => {
+    it('closes the socket and reconnects when no message arrives within the stale threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      const ws = mockWebSocketInstances[0];
+      ws.simulateOpen();
+
+      const countAfterOpen = mockWebSocketInstances.length;
+
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(ws.close).toHaveBeenCalled();
+
+      ws.simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      expect(mockWebSocketInstances.length).toBeGreaterThan(countAfterOpen);
+    });
+
+    it('does not close the socket while messages keep arriving below the stale threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      const ws = mockWebSocketInstances[0];
+      ws.simulateOpen();
+
+      // Run well past the 60s threshold: every game data or PONG message must
+      // reset the staleness clock.
+      for (let i = 0; i < 16; i++) {
+        jest.advanceTimersByTime(5000);
+        if (i % 2 === 0) {
+          ws.simulateMessage({
+            gameId: 123,
+            score: '21-14',
+            elapsed: '12:34',
+            period: 'Q2',
+            live: true,
+            ended: false,
+          });
+        } else {
+          ws.simulateRawMessage('PONG');
+        }
+      }
+
+      expect(ws.close).not.toHaveBeenCalled();
+    });
+
+    it('does not call Logger.error on the first sports heartbeat timeout (transient blip)', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('logs to Logger.error with structured context on the second consecutive sports heartbeat timeout', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      // First timeout: close fired, onclose schedules reconnect.
+      jest.advanceTimersByTime(60000 + 5000);
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+
+      mockWebSocketInstances[0].simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      // Simulate reconnect: new socket opens but stays stale again.
+      const reconnected =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      reconnected.simulateOpen();
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
+        tags: { channel: 'sports' },
+        context: {
+          name: 'WebSocketManager',
+          data: { method: 'sportsHeartbeat' },
+        },
+      });
+    });
+
+    it('stops the heartbeat timer on disconnect so it does not fire after unsubscribe', () => {
+      const manager = WebSocketManager.getInstance();
+      const unsubscribe = manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      unsubscribe();
+      mockedLoggerError.mockClear();
+
+      jest.advanceTimersByTime(120000);
+
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('PolyBolt crypto prices', () => {
+    it('subscribes with btcusd and reports the caller symbol', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: {
+          apiKey: 'key',
+          secret: 'secret',
+          passphrase: 'pass',
+        },
+      });
+      manager.subscribeToCryptoPrices(['btc/usd'], callback, {
+        twapWindowSeconds: 30,
+      });
+
+      expect(
+        mockWebSocketInstances.some((socket) =>
+          socket.url.includes('ws-live-data.polymarket.com'),
+        ),
+      ).toBe(false);
+
+      const socket = mockWebSocketInstances.find(
+        (candidate) => candidate.url === 'wss://ws-live-v2.polymarket.com/ws',
+      );
+      if (!socket) {
+        throw new Error('PolyBolt socket was not opened');
+      }
+
+      socket.simulateOpen();
+      const authFrame = JSON.parse(socket.send.mock.calls[0][0] as string) as {
+        rid: string;
+      };
+      socket.simulateMessage({ op: 'authed', rid: authFrame.rid });
+
+      expect(JSON.parse(socket.send.mock.calls[1][0] as string)).toEqual(
+        expect.objectContaining({
+          op: 'subscribe',
+          subscriptions: [
+            {
+              channel: 'price.crypto.twap',
+              filter: { symbol: 'btcusd', window_seconds: 60 },
+            },
+          ],
+        }),
+      );
+
+      socket.simulateMessage({
+        v: 1,
+        channel: 'price.crypto.twap',
+        snapshot: true,
+        payload: {
+          symbol: 'btcusd',
+          window_seconds: 60,
+          source: 'chainlink',
+          data: [
+            { timestamp: 2, full_accuracy_value: '11' },
+            { timestamp: 1, full_accuracy_value: '10' },
+          ],
+        },
+      });
+
+      expect(callback).toHaveBeenNthCalledWith(1, {
+        symbol: 'btc/usd',
+        price: 10,
+        timestamp: 1,
+        twapWindowSeconds: 60,
+      });
+      expect(callback).toHaveBeenNthCalledWith(2, {
+        symbol: 'btc/usd',
+        price: 11,
+        timestamp: 2,
+        twapWindowSeconds: 60,
+      });
+    });
+
+    const openPolyboltSocket = () => {
+      const socket = mockWebSocketInstances.find(
+        (candidate) => candidate.url === 'wss://ws-live-v2.polymarket.com/ws',
+      );
+      if (!socket) {
+        throw new Error('PolyBolt socket was not opened');
+      }
+      socket.simulateOpen();
+      const authFrame = JSON.parse(socket.send.mock.calls[0][0] as string) as {
+        rid: string;
+      };
+      socket.simulateMessage({ op: 'authed', rid: authFrame.rid });
+      return socket;
+    };
+
+    const livePoint = (source: string, value: string) => ({
+      v: 1,
+      channel: 'price.crypto',
+      seq: 1,
+      ts: 1,
+      payload: {
+        symbol: 'btcusd',
+        value: Number(value),
+        full_accuracy_value: value,
+        timestamp: 1_000,
+        source,
+      },
+    });
+
+    it('keeps a Chainlink and a Binance BTC market apart', () => {
+      const manager = WebSocketManager.getInstance();
+      const chainlinkCallback = jest.fn();
+      const binanceCallback = jest.fn();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: { apiKey: 'key', secret: 'secret', passphrase: 'pass' },
+      });
+
+      manager.subscribeToCryptoPrices(['btc/usd'], chainlinkCallback);
+      manager.subscribeToCryptoPrices(['btc/usd'], binanceCallback, {
+        provider: 'binance',
+      });
+      const socket = openPolyboltSocket();
+
+      const subscriptions = socket.send.mock.calls
+        .map(([frame]) => JSON.parse(frame as string))
+        .filter((frame) => frame.op === 'subscribe')
+        .map((frame) => frame.subscriptions);
+      expect(subscriptions).toEqual([
+        [{ channel: 'price.crypto', filter: { symbol: 'btcusd' } }],
+        [
+          {
+            channel: 'price.crypto',
+            filter: { symbol: 'btcusd', provider: 'binance' },
+          },
+        ],
+      ]);
+
+      socket.simulateMessage(livePoint('chainlink', '100'));
+      socket.simulateMessage(livePoint('binance', '101'));
+      jest.advanceTimersByTime(250);
+
+      expect(chainlinkCallback).toHaveBeenCalledTimes(1);
+      expect(chainlinkCallback).toHaveBeenCalledWith({
+        symbol: 'btc/usd',
+        price: 100,
+        timestamp: 1_000,
+      });
+      expect(binanceCallback).toHaveBeenCalledTimes(1);
+      expect(binanceCallback).toHaveBeenCalledWith({
+        symbol: 'btc/usd',
+        price: 101,
+        timestamp: 1_000,
+      });
+    });
+
+    it('does not pin Chainlink, the default provider', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: { apiKey: 'key', secret: 'secret', passphrase: 'pass' },
+      });
+
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn(), {
+        provider: 'chainlink',
+      });
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const socket = openPolyboltSocket();
+
+      const subscribeFrames = socket.send.mock.calls
+        .map(([frame]) => JSON.parse(frame as string))
+        .filter((frame) => frame.op === 'subscribe');
+      expect(subscribeFrames).toHaveLength(1);
+      expect(subscribeFrames[0].subscriptions).toEqual([
+        { channel: 'price.crypto', filter: { symbol: 'btcusd' } },
+      ]);
+    });
+
+    const polyboltCredentials = {
+      apiKey: 'key',
+      secret: 'secret',
+      passphrase: 'pass',
+    };
+    const rtdsSockets = () =>
+      mockWebSocketInstances.filter((socket) =>
+        socket.url.includes('ws-live-data.polymarket.com'),
+      );
+
+    it('closes PolyBolt and resubscribes over RTDS when switched back', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: polyboltCredentials,
+      });
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const polybolt = openPolyboltSocket();
+      expect(rtdsSockets()).toHaveLength(0);
+
+      manager.useCryptoFeed({ mode: 'rtds' });
+
+      expect(polybolt.close).toHaveBeenCalled();
+      expect(rtdsSockets()).toHaveLength(1);
+
+      manager.useCryptoFeed({ mode: 'rtds' });
+      expect(rtdsSockets()).toHaveLength(1);
+    });
+
+    it('closes the PolyBolt socket when the last price unsubscribes', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: polyboltCredentials,
+      });
+      const unsubscribeBtc = manager.subscribeToCryptoPrices(
+        ['btc/usd'],
+        jest.fn(),
+      );
+      const unsubscribeEth = manager.subscribeToCryptoPrices(
+        ['eth/usd'],
+        jest.fn(),
+      );
+      const socket = openPolyboltSocket();
+      socket.send.mockClear();
+
+      unsubscribeBtc();
+      expect(socket.close).not.toHaveBeenCalled();
+      expect(JSON.parse(socket.send.mock.calls[0][0] as string)).toEqual(
+        expect.objectContaining({
+          op: 'unsubscribe',
+          subscriptions: [
+            { channel: 'price.crypto', filter: { symbol: 'btcusd' } },
+          ],
+        }),
+      );
+
+      unsubscribeEth();
+      expect(socket.close).toHaveBeenCalled();
+      expect(rtdsSockets()).toHaveLength(0);
+    });
+
+    it('does not send PolyBolt a symbol that is not a USD pair', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: polyboltCredentials,
+      });
+
+      manager.subscribeToCryptoPrices(['btcusdt', 'eth/usd'], jest.fn());
+      const socket = openPolyboltSocket();
+
+      const subscribeFrames = socket.send.mock.calls
+        .map(([frame]) => JSON.parse(frame as string))
+        .filter((frame) => frame.op === 'subscribe');
+      expect(subscribeFrames).toHaveLength(1);
+      expect(subscribeFrames[0].subscriptions).toEqual([
+        { channel: 'price.crypto', filter: { symbol: 'ethusd' } },
+      ]);
     });
   });
 });

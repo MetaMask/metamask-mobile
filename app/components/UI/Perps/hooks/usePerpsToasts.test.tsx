@@ -3,8 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import type { GestureResponderEvent } from 'react-native';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
-import usePerpsToasts, { PerpsToastOptions } from './usePerpsToasts';
+import usePerpsToasts, {
+  getPerpsToastLabels,
+  PerpsToastOptions,
+} from './usePerpsToasts';
 import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -31,17 +35,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-let mockTransactionsRedesignEnabled = false;
 let mockDepositMeta: { chainId: string } | undefined;
-
-jest.mock(
-  '../../../../selectors/featureFlagController/activityRedesign',
-  () => ({
-    selectIsTransactionsRedesignEnabled: jest.fn(
-      () => mockTransactionsRedesignEnabled,
-    ),
-  }),
-);
 
 jest.mock('../../../../selectors/transactionController', () => ({
   selectTransactionMetadataById: jest.fn(() => mockDepositMeta),
@@ -63,6 +57,15 @@ jest.mock('../utils/translatePerpsError', () => ({
 
 const pressEvent = {} as GestureResponderEvent;
 
+describe('getPerpsToastLabels', () => {
+  it('maps a title and description for the design-system toast', () => {
+    expect(getPerpsToastLabels('Scale orders placed', '3 orders')).toEqual({
+      title: 'Scale orders placed',
+      description: '3 orders',
+    });
+  });
+});
+
 describe('usePerpsToasts', () => {
   let mockNavigate: jest.Mock;
 
@@ -71,7 +74,6 @@ describe('usePerpsToasts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockTransactionsRedesignEnabled = false;
     mockDepositMeta = undefined;
     mockNavigate = jest.fn();
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
@@ -128,11 +130,11 @@ describe('usePerpsToasts', () => {
 
   describe('PerpsToastOptions configurations', () => {
     describe('accountManagement.deposit', () => {
-      it('returns success configuration with formatted amount', () => {
+      it('returns success configuration reporting the amount added', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
           result.current.PerpsToastOptions.accountManagement.deposit.success(
-            '100 USDC',
+            '100',
           );
 
         expect(config).toMatchObject({
@@ -141,8 +143,31 @@ describe('usePerpsToasts', () => {
           hasNoTimeout: false,
         });
         expect(config.title).toBe('Your Perps account was funded');
-        expect(config.description).toBe('$100 available to trade');
+        expect(config.description).toBe('$100 was added to Perps');
       });
+
+      it('reports sub-dollar amounts added without rounding them away', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.accountManagement.deposit.success(
+            '0.97',
+          );
+
+        expect(config.description).toBe('$0.97 was added to Perps');
+      });
+
+      it.each(['', '0', 'not-a-number'])(
+        'falls back to the generic success subtext when the amount added is %p',
+        (amountAdded) => {
+          const { result } = renderHook(() => usePerpsToasts());
+          const config =
+            result.current.PerpsToastOptions.accountManagement.deposit.success(
+              amountAdded,
+            );
+
+          expect(config.description).toBe('Funds are ready to trade');
+        },
+      );
 
       it('returns in progress configuration with processing time', () => {
         const { result } = renderHook(() => usePerpsToasts());
@@ -160,8 +185,7 @@ describe('usePerpsToasts', () => {
         expect(typeof config.actionButtonOnPress).toBe('function');
       });
 
-      it('tracks to the redesigned details screen when the redesign is enabled', () => {
-        mockTransactionsRedesignEnabled = true;
+      it('tracks to the redesigned details screen when deposit metadata has a chain id', () => {
         mockDepositMeta = { chainId: '0xa4b1' };
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -184,8 +208,8 @@ describe('usePerpsToasts', () => {
         );
       });
 
-      it('tracks to the legacy details screen when the redesign is disabled', () => {
-        mockDepositMeta = { chainId: '0xa4b1' };
+      it('tracks to the legacy details screen when the deposit metadata has no chainId', () => {
+        mockDepositMeta = undefined;
         const { result } = renderHook(() => usePerpsToasts());
         const config =
           result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
@@ -412,6 +436,20 @@ describe('usePerpsToasts', () => {
         expect(config.description).toBe('Network error');
       });
 
+      it('retains a supplied definite refusal reason without changing default failure copy', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.creationFailed(
+            undefined,
+            'Review existing Scale orders before placing another',
+          );
+
+        expect(config.title).toBe('Order failed');
+        expect(config.description).toBe(
+          'Review existing Scale orders before placing another',
+        );
+      });
+
       it('strips hip3 prefix from asset symbol in limit order submitted', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -446,6 +484,117 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config.description).toBe('Long 5 BTC');
+      });
+
+      describe('post-only edit failures', () => {
+        it('says the order was cancelled when the rejection reports a cancelled original', () => {
+          const error =
+            'Error placing new order during modify: Post only order would have immediately matched, bbo was 2347@2347.1.';
+          const { result } = renderHook(() => usePerpsToasts());
+          const config =
+            result.current.PerpsToastOptions.orderManagement.limit.editFailed({
+              reason: 'post_only_would_cross',
+              originalOrder: 'cancelled',
+              error,
+            });
+
+          expect(config.title).toBe(strings('perps.order.order_update_failed'));
+          expect(config.description).toBe(
+            strings('perps.order.order_update_post_only_would_cross'),
+          );
+          expect(`${config.title} ${config.description}`).not.toMatch(
+            /bbo|2347|still open|\[missing/i,
+          );
+        });
+
+        it('keeps the previous-order fallback for edit failures that are not post-only', () => {
+          const { result } = renderHook(() => usePerpsToasts());
+          const config =
+            result.current.PerpsToastOptions.orderManagement.limit.editFailed();
+
+          expect(config.description).toBe(
+            strings('perps.order.order_update_failed_subtitle'),
+          );
+          expect(config.description).not.toMatch(/\[missing/);
+        });
+      });
+    });
+
+    describe('orderManagement.chase', () => {
+      it('identifies Chase while placement is submitted', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.chase.submitted(
+            'long',
+            '0.5',
+            'ETH',
+          );
+
+        expect(config.title).toBe('Chase order submitted');
+        expect(config.description).toBe('Long 0.5 ETH');
+      });
+
+      it('identifies a running Chase after confirmation', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.chase.confirmed(
+            'short',
+            '1',
+            'BTC',
+          );
+
+        expect(config.title).toBe('Chase started');
+        expect(config.description).toBe('Short 1 BTC');
+      });
+    });
+
+    describe('orderManagement.twap', () => {
+      it('describes the TWAP window while placement is submitted', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.twap.submitted(
+            'long',
+            '0.5',
+            'ETH',
+            90,
+          );
+
+        expect(config.title).toBe(strings('perps.order.order_submitted'));
+        expect(config.description).toBe(
+          strings('perps.order.twap_placement_subtitle', {
+            direction: 'Long',
+            amount: '0.5',
+            assetSymbol: 'ETH',
+            duration: `${strings('perps.order.twap_duration_hour', {
+              count: 1,
+            })} ${strings('perps.order.twap_duration_minutes', {
+              count: 30,
+            })}`,
+          }),
+        );
+      });
+
+      it('confirms TWAP placement without claiming a fill', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.twap.confirmed(
+            'short',
+            '1.0',
+            'BTC',
+            45,
+          );
+
+        expect(config.title).toBe(strings('perps.order.twap_started'));
+        expect(config.description).toBe(
+          strings('perps.order.twap_placement_subtitle', {
+            direction: 'Short',
+            amount: '1.0',
+            assetSymbol: 'BTC',
+            duration: strings('perps.order.twap_duration_minutes', {
+              count: 45,
+            }),
+          }),
+        );
       });
     });
 
@@ -514,6 +663,17 @@ describe('usePerpsToasts', () => {
           severity: ToastSeverity.Success,
           hapticsType: NotificationMoment.Success,
         });
+      });
+
+      it('returns TWAP-specific cancellation success copy', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationSuccess(
+            false,
+            'TWAP',
+          );
+
+        expect(config.title).toBe('Twap order cancelled');
       });
 
       it('returns cancellation success configuration without detailed order type (non-reduce only)', () => {
@@ -662,6 +822,24 @@ describe('usePerpsToasts', () => {
     });
 
     describe('positionManagement.closePosition', () => {
+      it('returns position already closed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .positionAlreadyClosed;
+
+        expect(config).toMatchObject({
+          severity: ToastSeverity.Default,
+          hapticsType: NotificationMoment.Warning,
+        });
+        expect(config.title).toBe(
+          strings('perps.close_position.already_closed'),
+        );
+        expect(config.description).toBe(
+          strings('perps.close_position.already_closed_subtitle'),
+        );
+      });
+
       it('returns close full position in progress configuration with details', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -869,6 +1047,32 @@ describe('usePerpsToasts', () => {
         expect(config.title).toEqual(expect.any(String));
       });
 
+      it('returns remove amount changed configuration with the new max', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeAmountChanged(
+            '7.00',
+          );
+
+        expect(config.title).toBe(
+          strings('perps.position.margin.remove_amount_changed_title'),
+        );
+        expect(config.description).toContain('7.00');
+      });
+
+      it('explains nothing is removable when the new max is zero', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeAmountChanged(
+            '0.00',
+          );
+
+        expect(config.description).not.toContain('0.00');
+        expect(config.description).toBe(
+          strings('perps.adjust_margin.no_removable_margin'),
+        );
+      });
+
       it('returns adjustment failed configuration with custom error', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const customError = 'Insufficient funds';
@@ -902,6 +1106,18 @@ describe('usePerpsToasts', () => {
     });
 
     describe('positionManagement.tpsl', () => {
+      it('returns update TPSL in progress configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.tpsl
+            .updateTPSLInProgress;
+
+        expect(config.title).toBe(
+          strings('perps.position.tpsl.update_in_progress'),
+        );
+        expect(config.startAccessory).toBeTruthy();
+      });
+
       it('returns update TPSL success configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -945,7 +1161,7 @@ describe('usePerpsToasts', () => {
         });
         expect(config.title).toBe('Failed to update TP/SL');
         expect(config.description).toBe(
-          'Unable to update take profit/stop loss. Please try again.',
+          'Unable to update take profit/stop loss. Try again.',
         );
       });
 
@@ -963,7 +1179,7 @@ describe('usePerpsToasts', () => {
         });
         expect(config.title).toBe('Failed to update TP/SL');
         expect(config.description).toBe(
-          'Unable to update take profit/stop loss. Please try again.',
+          'Unable to update take profit/stop loss. Try again.',
         );
       });
     });
@@ -1085,6 +1301,17 @@ describe('usePerpsToasts', () => {
           hapticsType: NotificationMoment.Error,
         });
         expect(config.title).toBe('Failed to add market to watchlist');
+      });
+
+      it('returns remove error configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config = result.current.PerpsToastOptions.watchlist.removeError;
+
+        expect(config).toMatchObject({
+          severity: ToastSeverity.Danger,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.title).toBe('Failed to remove market from watchlist');
       });
 
       it('returns limit reached configuration', () => {

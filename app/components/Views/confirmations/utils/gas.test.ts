@@ -1,5 +1,15 @@
 import { BigNumber } from 'bignumber.js';
-import { getFeesFromHex, calculateGasEstimate } from './gas';
+import {
+  GasFeeEstimateType,
+  type TransactionMeta,
+  type TransactionParams,
+} from '@metamask/transaction-controller';
+import {
+  areDappSuggestedAndTxParamGasFeesTheSame,
+  calculateGasEstimate,
+  getFeesFromHex,
+  getMarketFeeFromEstimates,
+} from './gas';
 import {
   getValueFromWeiHex,
   multiplyHexes,
@@ -202,6 +212,146 @@ describe('gas utils', () => {
 
       expect(mockMultiplyHexes).toHaveBeenCalledWith('0x200', '0x5208');
       expect(mockGetFeesFromHexFn).toHaveBeenCalledWith('0xdef');
+    });
+  });
+
+  describe('getMarketFeeFromEstimates', () => {
+    it('returns medium max fee per gas for fee market estimates', () => {
+      expect(
+        getMarketFeeFromEstimates({
+          type: GasFeeEstimateType.FeeMarket,
+          low: { maxFeePerGas: '0x1', maxPriorityFeePerGas: '0x1' },
+          medium: { maxFeePerGas: '0x2', maxPriorityFeePerGas: '0x1' },
+          high: { maxFeePerGas: '0x3', maxPriorityFeePerGas: '0x1' },
+        }),
+      ).toBe('0x2');
+    });
+
+    it('returns medium gas price for legacy estimates', () => {
+      expect(
+        getMarketFeeFromEstimates({
+          type: GasFeeEstimateType.Legacy,
+          low: '0x1',
+          medium: '0x2',
+          high: '0x3',
+        }),
+      ).toBe('0x2');
+    });
+
+    it('returns gas price for gas price estimates', () => {
+      expect(
+        getMarketFeeFromEstimates({
+          type: GasFeeEstimateType.GasPrice,
+          gasPrice: '0x2',
+        }),
+      ).toBe('0x2');
+    });
+
+    it('returns undefined when estimates are missing', () => {
+      expect(getMarketFeeFromEstimates(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('areDappSuggestedAndTxParamGasFeesTheSame', () => {
+    function buildTransactionMeta(
+      txParams: Partial<TransactionParams>,
+      dappSuggestedGasFees?: TransactionMeta['dappSuggestedGasFees'],
+    ) {
+      return {
+        txParams: { from: '0x1', ...txParams },
+        dappSuggestedGasFees,
+      } as TransactionMeta;
+    }
+
+    it('returns true when EIP-1559 fees match dapp EIP-1559 fees', () => {
+      expect(
+        areDappSuggestedAndTxParamGasFeesTheSame(
+          buildTransactionMeta(
+            { maxFeePerGas: '0x2', maxPriorityFeePerGas: '0x1' },
+            { maxFeePerGas: '0x2', maxPriorityFeePerGas: '0x1' },
+          ),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns true when gas price matches dapp gas price', () => {
+      expect(
+        areDappSuggestedAndTxParamGasFeesTheSame(
+          buildTransactionMeta({ gasPrice: '0x2' }, { gasPrice: '0x2' }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns true when EIP-1559 fees both equal dapp gas price', () => {
+      expect(
+        areDappSuggestedAndTxParamGasFeesTheSame(
+          buildTransactionMeta(
+            { maxFeePerGas: '0x2', maxPriorityFeePerGas: '0x2' },
+            { gasPrice: '0x2' },
+          ),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false when max fee per gas differs', () => {
+      expect(
+        areDappSuggestedAndTxParamGasFeesTheSame(
+          buildTransactionMeta(
+            { maxFeePerGas: '0x3', maxPriorityFeePerGas: '0x1' },
+            { maxFeePerGas: '0x2', maxPriorityFeePerGas: '0x1' },
+          ),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when priority fee differs', () => {
+      expect(
+        areDappSuggestedAndTxParamGasFeesTheSame(
+          buildTransactionMeta(
+            { maxFeePerGas: '0x2', maxPriorityFeePerGas: '0x2' },
+            { maxFeePerGas: '0x2', maxPriorityFeePerGas: '0x1' },
+          ),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when gas price differs', () => {
+      expect(
+        areDappSuggestedAndTxParamGasFeesTheSame(
+          buildTransactionMeta({ gasPrice: '0x3' }, { gasPrice: '0x2' }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when tx uses gas price and dapp only suggested EIP-1559 fees', () => {
+      expect(
+        areDappSuggestedAndTxParamGasFeesTheSame(
+          buildTransactionMeta(
+            { gasPrice: '0x3' },
+            { maxFeePerGas: '0x2', maxPriorityFeePerGas: '0x1' },
+          ),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when dapp did not suggest fees', () => {
+      expect(
+        areDappSuggestedAndTxParamGasFeesTheSame(
+          buildTransactionMeta({ gasPrice: '0x2' }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when tx params have no fees', () => {
+      expect(
+        areDappSuggestedAndTxParamGasFeesTheSame(
+          buildTransactionMeta({}, { gasPrice: '0x2' }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when transaction metadata is undefined', () => {
+      expect(areDappSuggestedAndTxParamGasFeesTheSame(undefined)).toBe(false);
     });
   });
 });

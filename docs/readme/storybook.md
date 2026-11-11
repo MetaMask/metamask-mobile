@@ -2,33 +2,25 @@
 
 Storybook is a great tool for working on UI in isolation. Generally all UI should have a storybook file so it can easily be updated and it's a great way to break up a feature into smaller PRs.
 
+On-device Storybook is `@storybook/react-native` 10. Config lives in `.rnstorybook/`.
+
 #### Getting Started with Storybook
 
-Storybook uses the same entry point as our main app (`index.js`), so you'll need to temporarily modify the entry point to run Storybook.
+Storybook does not share the wallet entry. When it is enabled, Metro swaps `index.js` for `.rnstorybook/index.tsx`, so the wallet registration in `index.js` stays as it is. Do not import Storybook from `index.js`.
 
 ##### Steps to Run Storybook:
 
-1. **Modify the entry point** - Open `index.js` in the project root
+1. **Start Metro with Storybook enabled**
 
-2. **Enable Storybook imports** - Uncomment the following lines:
-
-   ```javascript
-   import Storybook from './.storybook';
-   AppRegistry.registerComponent(name, () => Storybook);
+   ```bash
+   yarn storybook
    ```
 
-3. **Disable the regular app registration** - Comment out the following lines:
+   That sets `STORYBOOK_ENABLED=true` and starts the watcher. `STORYBOOK_ENABLED=true yarn watch` does the same thing.
 
-   ```javascript
-   // AppRegistry.registerComponent(name, () =>
-   //   // Disable Sentry for E2E tests
-   //   hasTestOverrides ? Root : Sentry.wrap(Root),
-   // );
-   ```
+2. **Open the app** the same way you normally would (`yarn start:ios` or `yarn start:android`). The simulator launches the Storybook UI instead of the wallet.
 
-4. **Run the app** - Start the app as you normally would
-
-5. **View Storybook** - The app will now launch with the Storybook UI instead of the regular app
+`STORYBOOK_ENABLED` is read by Metro when the config loads. Restart Metro after changing it. With the variable unset, Metro leaves the wallet entry in place and Storybook stays out of the bundle.
 
 ##### Updating Storybook requires
 
@@ -38,25 +30,8 @@ Whenever you add, remove, or move `*.stories.*` files, regenerate Storybook's re
 yarn storybook-generate
 ```
 
-This ensures Storybook picks up all stories correctly in the app.
+Metro also regenerates that file when it starts with `STORYBOOK_ENABLED=true`.
 
 ##### Reverting Back to Normal App
 
-When you're done with Storybook:
-
-1. **Re-comment the Storybook imports**:
-
-   ```javascript
-   // import Storybook from './.storybook';
-   // AppRegistry.registerComponent(name, () => Storybook);
-   ```
-
-2. **Uncomment the regular app registration**:
-   ```javascript
-   AppRegistry.registerComponent(name, () =>
-     // Disable Sentry for E2E tests
-     hasTestOverrides ? Root : Sentry.wrap(Root),
-   );
-   ```
-
-> **Note**: Make sure not to commit these changes to `index.js` as they are only for local development with Storybook.
+Stop Metro and start it again without `STORYBOOK_ENABLED`. No `index.js` edit is required.

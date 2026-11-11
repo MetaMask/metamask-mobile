@@ -5,7 +5,7 @@ import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import type { Notification as NotifeeNotification } from '@notifee/react-native';
 import Logger from '../../util/Logger';
-import { handleDeeplink } from './handlers/legacy/handleDeeplink';
+import { handleDeeplink } from './handlers/handleDeeplink';
 import FCMService, {
   toPushTapResult,
 } from '../../util/notifications/services/FCMService';
@@ -21,6 +21,13 @@ import {
 } from '../AppStateEventListener';
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
 import NotificationsService from '../../util/notifications/services/NotificationService';
+import {
+  startDeeplinkProcessedTrace,
+  endDeeplinkProcessedTrace,
+  cancelDeeplinkProcessedTrace,
+  type DeeplinkPerfAppStartType,
+} from '../Performance/DeeplinkPerformance';
+import { getUnlockAppStartType } from '../Performance/unlockTraces';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -31,6 +38,8 @@ export type DeeplinkResolveResult = DeeplinkIntent | false | null;
  * the URI path may be link ID, not an in-app route. If the resolved params indicate
  * a clicked Branch link with a $deeplink_path, replace the host and path segment
  * with link.metamask.io/$deeplink_path while preserving the original query string.
+ * A query on `$deeplink_path` itself (e.g. `social/profile?traderId=…`) fills
+ * the keys that string does not already have.
  */
 export function rewriteBranchUri(
   uri: string | undefined,
@@ -43,8 +52,23 @@ export function rewriteBranchUri(
 
     const parsed = new URL(uri);
     parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
+    const queryStart = rawPath.indexOf('?');
+    const path = queryStart === -1 ? rawPath : rawPath.slice(0, queryStart);
     // Set the pathname to the sanitized $deeplink_path
-    parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
+    parsed.pathname = `/${path.replace(/^\//, '')}`;
+    // A Branch short link's own query does not carry the route's ids (e.g. a
+    // shared trader's traderId and positionId); the share flow puts them on
+    // $deeplink_path. Copy only keys the short link does not already have, so
+    // an existing query such as a swap amount stays as it was.
+    if (queryStart !== -1) {
+      new URLSearchParams(rawPath.slice(queryStart + 1)).forEach(
+        (value, key) => {
+          if (!parsed.searchParams.has(key)) {
+            parsed.searchParams.set(key, value);
+          }
+        },
+      );
+    }
     return parsed.toString();
   } catch (error) {
     Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);
@@ -84,18 +108,27 @@ export class DeeplinkManager {
       browserCallBack,
       origin,
       onHandled,
+      appStartType = 'warm',
     }: {
       browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<boolean> {
+    const processedTraceToken = startDeeplinkProcessedTrace({
+      url,
+      source: 'parse',
+      appStartType,
+    });
+
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
       browserCallBack,
       onHandled,
+      processedTraceToken,
     });
 
     return typeof result === 'boolean' ? result : Boolean(result);
@@ -105,22 +138,44 @@ export class DeeplinkManager {
     url: string,
     {
       origin,
+      appStartType = getUnlockAppStartType(),
     }: {
       origin: string;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<DeeplinkResolveResult> {
+    const processedTraceToken = startDeeplinkProcessedTrace({
+      url,
+      source: 'resolve',
+      appStartType,
+    });
+
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
       mode: 'resolve',
+      processedTraceToken,
     });
 
     if (result === false) {
+      cancelDeeplinkProcessedTrace({
+        reason: 'rejected',
+        traceToken: processedTraceToken,
+      });
       return false;
     }
 
-    return result && typeof result !== 'boolean' ? result : null;
+    const intent = result && typeof result !== 'boolean' ? result : null;
+
+    if (intent === null) {
+      cancelDeeplinkProcessedTrace({
+        reason: 'unresolved',
+        traceToken: processedTraceToken,
+      });
+    }
+
+    return intent;
   }
 
   static start() {
@@ -272,12 +327,14 @@ export default {
       browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ) => DeeplinkManager.getInstance().parse(url, args),
   resolve: (
     url: string,
     args: {
       origin: string;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ) => DeeplinkManager.getInstance().resolve(url, args),
   setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),

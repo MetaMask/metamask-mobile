@@ -6,6 +6,7 @@ const styleSheet = (params: {
   vars: {
     isFullScreenConfirmation: boolean;
     disableSafeArea?: boolean;
+    expandToSheetHeight?: boolean;
   };
 }) => {
   const { theme, vars } = params;
@@ -14,6 +15,7 @@ const styleSheet = (params: {
     confirmContainer: {
       display: 'flex',
       maxHeight: '100%',
+      ...(vars.expandToSheetHeight ? { flexGrow: 1, flexShrink: 1 } : {}),
     },
     flatContainer: {
       flex: 1,
@@ -25,7 +27,10 @@ const styleSheet = (params: {
       paddingHorizontal: vars.disableSafeArea === true ? 0 : 16,
     },
     scrollViewContent: {
-      flexGrow: vars.isFullScreenConfirmation ? 1 : undefined,
+      flexGrow:
+        vars.isFullScreenConfirmation || vars.expandToSheetHeight
+          ? 1
+          : undefined,
     },
     spinnerContainer: {
       backgroundColor: theme.colors.background.default,

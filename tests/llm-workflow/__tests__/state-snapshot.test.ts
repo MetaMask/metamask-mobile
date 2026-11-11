@@ -77,14 +77,30 @@ describe('MetaMaskMobileStateSnapshotCapability', () => {
 
       expect(result).toEqual({
         isLoaded: false,
-        currentUrl: '',
         extensionId: '',
-        isUnlocked: false,
-        currentScreen: 'unknown',
-        accountAddress: null,
-        networkName: null,
-        chainId: null,
-        balance: null,
+        source: 'stub',
+      });
+    });
+
+    it('omits currentScreen when no known testId is visible', async () => {
+      mockPlatformDriver.getAppState.mockResolvedValue({
+        isLoaded: true,
+        extensionId: 'io.metamask',
+        source: 'stub',
+      });
+      mockPlatformDriver.getTestIds.mockResolvedValue([
+        createTestIdItem('something-else'),
+      ]);
+
+      const result = await stateSnapshotCapability.getState(
+        undefined as never,
+        {} as never,
+      );
+
+      expect(result).toEqual({
+        isLoaded: true,
+        extensionId: 'io.metamask',
+        source: 'stub',
       });
     });
   });

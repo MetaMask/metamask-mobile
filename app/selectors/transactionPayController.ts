@@ -96,10 +96,13 @@ export function isPayTokenSubmitReady(
   return isValidatedDirectDeposit(data) || isValidatedFiatDeposit(data);
 }
 
+// Stable reference so the fallback does not invalidate downstream memoization
+// when the controller state is absent.
+const EMPTY_TRANSACTION_PAY_CONTROLLER_STATE = { transactionData: {} };
+
 const selectTransactionPayControllerState = (state: RootState) =>
-  state.engine.backgroundState.TransactionPayController ?? {
-    transactionData: {},
-  };
+  state.engine.backgroundState.TransactionPayController ??
+  EMPTY_TRANSACTION_PAY_CONTROLLER_STATE;
 
 export const selectTransactionDataByTransactionId = createSelector(
   selectTransactionPayControllerState,

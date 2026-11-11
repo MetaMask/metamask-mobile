@@ -3,17 +3,28 @@ import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import MoneyIcon from '../../../../../../images/money.png';
 import { RootState } from '../../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
-import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagController/confirmations';
+import {
+  selectMetaMaskPayFlags,
+  selectPerpsMoneyAccountNoFeeRouteEnabled,
+} from '../../../../../../selectors/featureFlagController/confirmations';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
+import { NoDepositFeeTag } from '../../../components/UI/no-fee-tag';
+import { ApyTag } from '../../../components/UI/apy-tag';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { getTransactionType } from '../../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
+import { usePayMoneyAccountAvailable } from '../usePayMoneyAccountAvailable';
 import {
   PayWithRowConfig,
   PayWithSectionConfig,
@@ -37,7 +48,27 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const { enableMoneyAccountTransactions } = useSelector(
     selectMetaMaskPayFlags,
   );
+  const isPerpsMoneyAccountNoFeeRouteEnabled = useSelector(
+    selectPerpsMoneyAccountNoFeeRouteEnabled,
+  );
   const { withdrawableFiatFormatted } = useMoneyAccountBalance();
+  const { isAvailable: isMoneyAccountAvailable } =
+    usePayMoneyAccountAvailable();
+
+  // Perps and Predict withdraws only. Those flows pay *into* the Money account,
+  // so the vault rate is what the user earns on the funds they are about to
+  // receive. Every other flow spends from the account, where the rate is not a
+  // property of the payment, so the tag must never show there.
+  const isApyTagTransactionType = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+  ]);
+
+  // Skip the vault APY request entirely on the flows that cannot render the tag.
+  const { apyPercent } = useMoneyVaultApy({
+    enabled: isApyTagTransactionType,
+  });
+  const showApyTag = isApyTagTransactionType && apyPercent !== undefined;
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -49,6 +80,15 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const isEnabled = Boolean(
     transactionType && enableMoneyAccountTransactions[transactionType],
   );
+  // Perps deposits only. Predict deposits are not subsidised, so they must
+  // never show the tag. The gate is the Monad mUSD -> Hyperliquid fixed-spread
+  // route in `confirmations_relay_fixed_spread`.
+  const showNoDepositFeeTag =
+    isPerpsMoneyAccountNoFeeRouteEnabled &&
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+    ]);
 
   const handlePress = useCallback(() => {
     if (transactionId) {
@@ -62,7 +102,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   }, [moneyAccount?.address, navigation, transactionId, transactionMeta]);
 
   return useMemo(() => {
-    if (!isEnabled || !moneyAccount) {
+    if (!isEnabled || !isMoneyAccountAvailable) {
       return null;
     }
 
@@ -81,6 +121,31 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
+      ...(showNoDepositFeeTag || showApyTag
+        ? {
+            tagRenderers: [
+              ...(showApyTag
+                ? [
+                    () => (
+                      <ApyTag
+                        apyPercent={apyPercent}
+                        testID={`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-apy-tag`}
+                      />
+                    ),
+                  ]
+                : []),
+              ...(showNoDepositFeeTag
+                ? [
+                    () => (
+                      <NoDepositFeeTag
+                        testID={`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`}
+                      />
+                    ),
+                  ]
+                : []),
+            ],
+          }
+        : {}),
       trailingElement: isMoneyAccountSelected ? 'checkmark' : 'none',
       onPress: handlePress,
       testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
@@ -93,10 +158,13 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       rows: [row],
     };
   }, [
-    isEnabled,
     handlePress,
+    isEnabled,
+    isMoneyAccountAvailable,
     isMoneyAccountSelected,
-    moneyAccount,
+    showApyTag,
+    showNoDepositFeeTag,
     withdrawableFiatFormatted,
+    apyPercent,
   ]);
 }

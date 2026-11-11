@@ -1,10 +1,15 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
+import type { SocialShellTab } from '../../../Views/SocialLeaderboard/shell/types';
 import type {
   AssetLoaderParams,
   AssetViewParams,
 } from '../../../Views/Asset/Asset.types';
 import type { TokenDetailsRouteParams } from '../../../UI/TokenDetails/constants/constants';
+import type {
+  TdpVersion,
+  TdpTokenCategory,
+} from '../../../UI/TokenDetails/analytics/getTdpAnalyticsBase';
 import type {
   CreatePriceAlertRouteParams,
   PriceAlertRouteParams,
@@ -43,6 +48,11 @@ export type AssetStackParamList = {
   SecurityTrust: TokenDetailsRouteParams & {
     isPricePositive?: boolean;
     useAmbientColor?: boolean;
+  };
+  ContractSecurity: {
+    token: TokenDetailsRouteParams;
+    tdpVersion?: TdpVersion;
+    tokenCategory?: TdpTokenCategory;
   };
   CreatePriceAlert: CreatePriceAlertRouteParams;
   ManagePriceAlerts: PriceAlertRouteParams;
@@ -87,6 +97,7 @@ export type SettingsStackParamList = {
   NetworkDetails: NetworkDetailsViewParams | undefined;
   SDKSessionsManager: undefined;
   SecuritySettings: undefined;
+  MfaSettings: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
   RampHeadlessPlayground: undefined;
@@ -105,20 +116,11 @@ export type SettingsStackParamList = {
   ManualBackupStep2: ManualBackupStep2Params | undefined;
   ManualBackupStep3: ManualBackupStep3Params;
   EnterPasswordSimple: undefined;
-  NotificationsSettings: undefined;
+  NotificationsSettings: { section?: string } | undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   SnapsSettingsList: undefined;
-};
-
-/**
- * Param list for screens inside `ExploreHome` (`TrendingView` tab).
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type TrendingViewStackParamList = {
-  TrendingFeed: ExploreFeedRouteParams | undefined;
 };
 
 /**
@@ -201,6 +203,7 @@ export type TransactionsHomeParamList = {
 export type RewardsHomeParamList = {
   RewardsOnboardingFlow: undefined;
   RewardsDashboard: undefined;
+  RewardsMoneyDashboard: undefined;
 };
 
 /**
@@ -213,8 +216,9 @@ export type RewardsHomeParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type HomeTabsParamList = {
   WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
-  TrendingView: NavigatorScreenParams<TrendingViewStackParamList> | undefined;
+  TrendingView: ExploreFeedRouteParams | undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
+  SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
   TradeWalletActions:
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
@@ -224,6 +228,14 @@ export type HomeTabsParamList = {
     | undefined;
   RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
 };
+
+export interface SocialLeaderboardTabParams {
+  source?: string;
+  showNotificationsBanner?: boolean;
+  landingTab?: 'leaderboard' | 'feed';
+  landingFeedAudience?: 'all' | 'following';
+  initialTab?: SocialShellTab;
+}
 
 /**
  * Param list for `MainNavigator` (`ConnectedMain`).
@@ -235,14 +247,4 @@ export type HomeTabsParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MainStackParamList = {
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
-};
-
-/**
- * Param list for `MainFlow` (`Routes.MAIN_FLOW` / `Main` on the root stack).
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type MainFlowParamList = {
-  Main: NavigatorScreenParams<MainStackParamList> | undefined;
-  ReviewModal: undefined;
 };

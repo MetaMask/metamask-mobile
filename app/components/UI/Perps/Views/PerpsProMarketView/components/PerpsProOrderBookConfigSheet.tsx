@@ -5,11 +5,16 @@ import {
   BottomSheetRef,
   Box,
   BoxFlexDirection,
+  FilterButton,
+  FilterButtonSize,
+  FilterButtonVariant,
+  Switch,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import type { ProLayoutPreferences } from '@metamask/perps-controller';
 import React, {
   useCallback,
   useEffect,
@@ -17,8 +22,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
@@ -28,6 +34,8 @@ import {
   type OrderBookListMetric,
 } from '../../../utils/orderBookGrouping';
 import PerpsProModalPortal from './PerpsProModalPortal';
+import PerpsProOrderBookGlyph from './PerpsProOrderBookGlyph';
+import PerpsProOrderFormGlyph from './PerpsProOrderFormGlyph';
 
 export interface PerpsProOrderBookConfigSheetProps {
   isVisible: boolean;
@@ -36,10 +44,16 @@ export interface PerpsProOrderBookConfigSheetProps {
   metric: OrderBookListMetric;
   grouping: number | null;
   groupingOptions: number[];
+  /** Side the order-book column is currently pinned to. */
+  layout: ProLayoutPreferences['orderBookPosition'];
+  /** Whether a row tap also fills the order size. */
+  sizeOnClick: boolean;
   onApply: (next: {
     currency: OrderBookListCurrency;
     metric: OrderBookListMetric;
     grouping: number;
+    layout: ProLayoutPreferences['orderBookPosition'];
+    sizeOnClick: boolean;
   }) => void;
   onClose: () => void;
   testID?: string;
@@ -55,46 +69,74 @@ const chunkOptions = <T,>(items: T[], size: number): T[][] => {
   return rows;
 };
 
-const createChipStyles = (colors: Colors) =>
+const createThumbnailOptionStyles = (colors: Colors) =>
   StyleSheet.create({
-    chip: {
+    option: {
       flex: 1,
-      height: 40,
       borderRadius: 12,
-      borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 12,
+      paddingVertical: 12,
+      gap: 8,
     },
-    chipSelected: {
+    optionSelected: {
       backgroundColor: colors.background.muted,
-      borderColor: colors.border.default,
     },
-    chipUnselected: {
-      borderColor: colors.border.muted,
+    thumbnail: {
+      flexDirection: 'row',
+      gap: 8,
     },
   });
 
-interface OptionChipProps {
+interface OptionFilterButtonProps {
   label: string;
   isSelected: boolean;
   onPress: () => void;
   testID: string;
 }
 
-/**
- * Outlined option chip matching Figma FilterButton states:
- * - selected: muted fill + border-default + text-default
- * - unselected: transparent + border-muted + text-alternative
- */
-const OptionChip = ({
+/** `FilterButton` never sets `accessibilityState`, so it is passed here. */
+const OptionFilterButton = ({
   label,
   isSelected,
   onPress,
   testID,
-}: OptionChipProps) => {
+}: OptionFilterButtonProps) => (
+  <FilterButton
+    isSelected={isSelected}
+    variant={FilterButtonVariant.Secondary}
+    size={FilterButtonSize.Md}
+    onPress={onPress}
+    accessibilityState={{ selected: isSelected }}
+    twClassName={`flex-1 ${isSelected ? '' : 'border border-muted'}`}
+    testID={testID}
+  >
+    {label}
+  </FilterButton>
+);
+
+interface ThumbnailOptionProps {
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+  testID: string;
+  thumbnail: React.ReactNode;
+}
+
+/**
+ * Not a `FilterButton`: that renders children in a row and cannot stack the
+ * thumbnail above the label. Matches its states by hand instead.
+ */
+const ThumbnailOption = ({
+  label,
+  isSelected,
+  onPress,
+  testID,
+  thumbnail,
+}: ThumbnailOptionProps) => {
   const { colors } = useTheme();
-  const styles = useMemo(() => createChipStyles(colors), [colors]);
+  const styles = useMemo(() => createThumbnailOptionStyles(colors), [colors]);
 
   return (
     <Pressable
@@ -102,11 +144,9 @@ const OptionChip = ({
       accessibilityState={{ selected: isSelected }}
       onPress={onPress}
       testID={testID}
-      style={[
-        styles.chip,
-        isSelected ? styles.chipSelected : styles.chipUnselected,
-      ]}
+      style={[styles.option, isSelected ? styles.optionSelected : null]}
     >
+      <View style={styles.thumbnail}>{thumbnail}</View>
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
@@ -119,8 +159,8 @@ const OptionChip = ({
 };
 
 /**
- * Bottom sheet for Pro order-book list currency, metric, and price grouping.
- * Matches Figma "Order book settings" (layout section omitted).
+ * Bottom sheet for Pro order-book list currency, metric, price grouping, the
+ * side the order-book column is pinned to, and whether a row tap fills size.
  *
  * Rendered inside a Pro modal portal so the sheet is not clipped by the narrow
  * order-book column. The portal preserves the Android View/Modal rendering
@@ -134,6 +174,8 @@ const PerpsProOrderBookConfigSheet = ({
   metric,
   grouping,
   groupingOptions,
+  layout,
+  sizeOnClick,
   onApply,
   onClose,
   testID = 'perps-pro-order-book-config-sheet',
@@ -145,6 +187,9 @@ const PerpsProOrderBookConfigSheet = ({
     useState<OrderBookListCurrency>(currency);
   const [draftMetric, setDraftMetric] = useState<OrderBookListMetric>(metric);
   const [draftGrouping, setDraftGrouping] = useState<number | null>(grouping);
+  const [draftLayout, setDraftLayout] =
+    useState<ProLayoutPreferences['orderBookPosition']>(layout);
+  const [draftSizeOnClick, setDraftSizeOnClick] = useState(sizeOnClick);
 
   // Snapshot props into draft only when the sheet opens. Do not re-sync while
   // open — live grouping/mid updates would wipe in-progress chip selections.
@@ -159,8 +204,10 @@ const PerpsProOrderBookConfigSheet = ({
     setDraftCurrency(currency);
     setDraftMetric(metric);
     setDraftGrouping(grouping);
+    setDraftLayout(layout);
+    setDraftSizeOnClick(sizeOnClick);
     sheetRef.current?.onOpenBottomSheet();
-  }, [isVisible, currency, metric, grouping]);
+  }, [isVisible, currency, metric, grouping, layout, sizeOnClick]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(onClose);
@@ -199,6 +246,26 @@ const PerpsProOrderBookConfigSheet = ({
     [draftGrouping, playSelection],
   );
 
+  const handleLayoutSelect = useCallback(
+    (next: ProLayoutPreferences['orderBookPosition']) => {
+      if (draftLayout === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftLayout(next);
+    },
+    [draftLayout, playSelection],
+  );
+
+  const handleSizeOnClickChange = useCallback(
+    (next: boolean) => {
+      // Haptics are best effort; a failure must not block updating the draft.
+      playSelection().catch(() => undefined);
+      setDraftSizeOnClick(next);
+    },
+    [playSelection],
+  );
+
   const handleSave = useCallback(() => {
     if (draftGrouping === null) {
       return;
@@ -208,12 +275,16 @@ const PerpsProOrderBookConfigSheet = ({
       currency: draftCurrency,
       metric: draftMetric,
       grouping: draftGrouping,
+      layout: draftLayout,
+      sizeOnClick: draftSizeOnClick,
     });
     handleClose();
   }, [
     draftCurrency,
     draftMetric,
     draftGrouping,
+    draftLayout,
+    draftSizeOnClick,
     onApply,
     handleClose,
     playImpact,
@@ -265,13 +336,13 @@ const PerpsProOrderBookConfigSheet = ({
                 twClassName="w-full gap-2 px-4"
                 testID={`${testID}-currency`}
               >
-                <OptionChip
+                <OptionFilterButton
                   label={baseSymbol}
                   isSelected={draftCurrency === 'base'}
                   onPress={() => handleCurrencySelect('base')}
                   testID={`${testID}-currency-base`}
                 />
-                <OptionChip
+                <OptionFilterButton
                   label="USD"
                   isSelected={draftCurrency === 'usd'}
                   onPress={() => handleCurrencySelect('usd')}
@@ -283,13 +354,13 @@ const PerpsProOrderBookConfigSheet = ({
                 twClassName="w-full gap-2 px-4"
                 testID={`${testID}-metric`}
               >
-                <OptionChip
+                <OptionFilterButton
                   label={strings('perps.order_book.size')}
                   isSelected={draftMetric === 'size'}
                   onPress={() => handleMetricSelect('size')}
                   testID={`${testID}-metric-size`}
                 />
-                <OptionChip
+                <OptionFilterButton
                   label={strings('perps.order_book.total')}
                   isSelected={draftMetric === 'total'}
                   onPress={() => handleMetricSelect('total')}
@@ -317,7 +388,7 @@ const PerpsProOrderBookConfigSheet = ({
                   twClassName="w-full gap-2 px-4"
                 >
                   {row.map((value) => (
-                    <OptionChip
+                    <OptionFilterButton
                       key={value}
                       label={formatGroupingLabel(value)}
                       isSelected={draftGrouping === value}
@@ -328,6 +399,59 @@ const PerpsProOrderBookConfigSheet = ({
                 </Box>
               ))}
             </Box>
+          </Box>
+
+          <Box twClassName="w-full gap-2">
+            <Box twClassName="px-4">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {strings('perps.order_book.layout')}
+              </Text>
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="w-full gap-2 px-4"
+              testID={`${testID}-layout`}
+            >
+              <ThumbnailOption
+                label={strings('perps.order_book.layout_left')}
+                isSelected={draftLayout === 'left'}
+                onPress={() => handleLayoutSelect('left')}
+                testID={`${testID}-layout-left`}
+                thumbnail={
+                  <>
+                    <PerpsProOrderBookGlyph align="left" />
+                    <PerpsProOrderFormGlyph />
+                  </>
+                }
+              />
+              <ThumbnailOption
+                label={strings('perps.order_book.layout_right')}
+                isSelected={draftLayout === 'right'}
+                onPress={() => handleLayoutSelect('right')}
+                testID={`${testID}-layout-right`}
+                thumbnail={
+                  <>
+                    <PerpsProOrderFormGlyph />
+                    <PerpsProOrderBookGlyph align="right" />
+                  </>
+                }
+              />
+            </Box>
+          </Box>
+
+          <Box twClassName="w-full px-4">
+            <Switch
+              label={strings('perps.order_book.size_on_click')}
+              isOn={draftSizeOnClick}
+              onValueChange={handleSizeOnClickChange}
+              testID={
+                PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH
+              }
+            />
           </Box>
         </Box>
 

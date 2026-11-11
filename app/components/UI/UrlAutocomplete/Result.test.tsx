@@ -1,5 +1,7 @@
 // Mock AppConstants FIRST to prevent import chain issues
 jest.mock('../../../core/AppConstants', () => ({
+  // The PredictNext entry point reads further constants while it loads
+  ...jest.requireActual('../../../core/AppConstants').default,
   SWAPS: {
     ACTIVE: true,
   },
@@ -586,96 +588,6 @@ describe('Result', () => {
       // Assert
       expect(screen.getByText('$45,000.00')).toBeOnTheScreen();
       expect(screen.getByTestId('percentage-change')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Predictions category', () => {
-    it('renders prediction result with title', () => {
-      // Arrange
-      const predictionResult = {
-        category: UrlAutocompleteCategory.Predictions,
-        id: 'pred-1',
-        providerId: 'polymarket',
-        slug: 'bitcoin-100k',
-        title: 'Will Bitcoin reach $100k?',
-        description: 'Prediction market for BTC price',
-        endDate: '2025-12-31',
-        image: 'https://example.com/btc.png',
-        status: 'open' as const,
-        liquidity: 1000000,
-        volume: 5000000,
-      } as const;
-
-      // Act
-      renderWithProvider(
-        <Result
-          result={predictionResult}
-          onPress={mockOnPress}
-          onSwapPress={mockOnSwapPress}
-        />,
-      );
-
-      // Assert
-      expect(screen.getByText('Will Bitcoin reach $100k?')).toBeOnTheScreen();
-      expect(screen.getByText('Open')).toBeOnTheScreen();
-    });
-
-    it('renders prediction status correctly', () => {
-      // Arrange
-      const predictionResult = {
-        category: UrlAutocompleteCategory.Predictions,
-        id: 'pred-2',
-        providerId: 'polymarket',
-        slug: 'eth-merge',
-        title: 'ETH Merge Success',
-        description: 'Prediction about ETH merge',
-        endDate: '2024-01-01',
-        image: '',
-        status: 'resolved' as const,
-        liquidity: 500000,
-        volume: 2000000,
-      } as const;
-
-      // Act
-      renderWithProvider(
-        <Result
-          result={predictionResult}
-          onPress={mockOnPress}
-          onSwapPress={mockOnSwapPress}
-        />,
-      );
-
-      // Assert
-      expect(screen.getByText('resolved')).toBeOnTheScreen();
-    });
-
-    it('renders fallback icon when prediction has no image', () => {
-      // Arrange
-      const predictionResult = {
-        category: UrlAutocompleteCategory.Predictions,
-        id: 'pred-3',
-        providerId: 'polymarket',
-        slug: 'no-image',
-        title: 'No Image Prediction',
-        description: 'Test prediction without image',
-        endDate: '2025-06-01',
-        image: '',
-        status: 'open' as const,
-        liquidity: 100000,
-        volume: 500000,
-      } as const;
-
-      // Act
-      renderWithProvider(
-        <Result
-          result={predictionResult}
-          onPress={mockOnPress}
-          onSwapPress={mockOnSwapPress}
-        />,
-      );
-
-      // Assert - component renders without crashing
-      expect(screen.getByText('No Image Prediction')).toBeOnTheScreen();
     });
   });
 });

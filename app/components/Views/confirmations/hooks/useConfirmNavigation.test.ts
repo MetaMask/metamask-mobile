@@ -4,11 +4,15 @@ import {
 } from '@metamask/transaction-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { ConfirmationLoader } from '../components/confirm/confirm-component';
+import {
+  ConfirmationLaunchSource,
+  ConfirmationLoader,
+} from '../components/confirm/confirm-component';
 import { useConfirmNavigation } from './useConfirmNavigation';
 import { act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { StackActions } from '@react-navigation/native';
+import { selectTransactions } from '../../../../selectors/transactionController';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -22,33 +26,30 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../core/Engine', () => ({
-  context: {
-    ApprovalController: {
-      rejectRequest: jest.fn(),
-    },
-  },
+  state: { TransactionController: { transactions: [] } },
+  context: { ApprovalController: { rejectRequest: jest.fn() } },
+}));
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  ...jest.requireActual('../../../../selectors/transactionController'),
+  selectTransactions: jest.fn(),
 }));
 
 const STACK_MOCK = 'SomeStack';
 const TRANSACTION_ID_MOCK = '123-456';
 
 function runHook({ transactions }: { transactions?: TransactionMeta[] } = {}) {
+  jest.mocked(selectTransactions).mockReturnValue(transactions ?? []);
+
   return renderHookWithProvider(useConfirmNavigation, {
-    state: {
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: transactions ?? [],
-          },
-        },
-      },
-    },
+    state: {},
   });
 }
 
 describe('useConfirmNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectTransactions).mockReturnValue([]);
   });
 
   it('navigates to confirmation with stack', () => {
@@ -56,12 +57,13 @@ describe('useConfirmNavigation', () => {
 
     navigateToConfirmation({
       stack: STACK_MOCK,
+      amount: '12.34',
       loader: ConfirmationLoader.CustomAmount,
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(STACK_MOCK, {
       screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      params: { loader: ConfirmationLoader.CustomAmount },
+      params: { amount: '12.34', loader: ConfirmationLoader.CustomAmount },
     });
   });
 
@@ -125,6 +127,113 @@ describe('useConfirmNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
       {},
+    );
+  });
+
+  it('navigates forced bottom sheets directly instead of through the parent stack', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      stack: STACK_MOCK,
+      loader: ConfirmationLoader.CustomAmount,
+      amount: '5',
+      forceBottomSheet: true,
+      bottomSheetHeightPercentage: 72,
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_REQUEST_MODAL,
+      {
+        amount: '5',
+        bottomSheetHeightPercentage: 72,
+        forceBottomSheet: true,
+        loader: ConfirmationLoader.CustomAmount,
+      },
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      STACK_MOCK,
+      expect.any(Object),
+    );
+  });
+
+  it('replaces forced bottom sheet route without nesting it in the parent stack', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      stack: STACK_MOCK,
+      loader: ConfirmationLoader.CustomAmount,
+      amount: '5',
+      forceBottomSheet: true,
+      replace: true,
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.CONFIRMATION_REQUEST_MODAL, {
+        amount: '5',
+        forceBottomSheet: true,
+        loader: ConfirmationLoader.CustomAmount,
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('pushes confirmation on the current stack', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      stack: STACK_MOCK,
+      loader: ConfirmationLoader.CustomAmount,
+      launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+      pushOnCurrentStack: true,
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        {
+          loader: ConfirmationLoader.CustomAmount,
+          launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+        },
+      ),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('pushes on the current stack after pending custom amount transactions are rejected', () => {
+    const view = runHook({
+      transactions: [
+        {
+          id: TRANSACTION_ID_MOCK,
+          status: TransactionStatus.unapproved,
+        } as TransactionMeta,
+      ],
+    });
+
+    act(() => {
+      view.result.current.navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        pushOnCurrentStack: true,
+      });
+    });
+
+    expect(
+      jest.mocked(Engine.context.ApprovalController.rejectRequest),
+    ).toHaveBeenCalledWith(TRANSACTION_ID_MOCK, expect.anything());
+    expect(mockDispatch).not.toHaveBeenCalled();
+
+    // useSelector only re-reads the selector after the store state changes.
+    jest.mocked(selectTransactions).mockReturnValue([]);
+    act(() => {
+      const state = view.store.getState();
+      view.store.replaceReducer(() => ({ ...state }));
+      view.store.dispatch({ type: 'tick' });
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        { loader: ConfirmationLoader.CustomAmount },
+      ),
     );
   });
 

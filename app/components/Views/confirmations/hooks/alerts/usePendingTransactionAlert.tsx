@@ -9,7 +9,7 @@ import { selectTransactions } from '../../../../../selectors/transactionControll
 import { SPEEDUP_CANCEL_TRANSACTION_URL } from '../../constants/url';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { Severity } from '../../types/alerts';
+import { NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { PendingTransactionAlertTestIds } from './pending-transaction-alert.testIds';
 
@@ -19,7 +19,7 @@ export const usePendingTransactionAlert = () => {
 
   return useMemo(() => {
     if (!transactionMeta) {
-      return [];
+      return NO_ALERTS;
     }
 
     const showAlert = transactions.some(
@@ -29,7 +29,7 @@ export const usePendingTransactionAlert = () => {
     );
 
     if (!showAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

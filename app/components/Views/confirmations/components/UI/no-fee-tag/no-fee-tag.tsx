@@ -15,3 +15,15 @@ export function NoFeeTag({ testID = 'no-fee-tag' }: NoFeeTagProps = {}) {
     </Box>
   );
 }
+
+export function NoDepositFeeTag({
+  testID = 'no-deposit-fee-tag',
+}: NoFeeTagProps = {}) {
+  return (
+    <Box twClassName="shrink-0">
+      <Tag severity={TagSeverity.Info} testID={testID}>
+        {strings('confirm.pay_with_bottom_sheet.no_deposit_fee')}
+      </Tag>
+    </Box>
+  );
+}

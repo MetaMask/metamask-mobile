@@ -1,7 +1,8 @@
 import React from 'react';
 import { Text } from '@metamask/design-system-react-native';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, within } from '@testing-library/react-native';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
@@ -10,6 +11,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsMarketHeader from './PerpsMarketHeader';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import { createProMarketHeaderTestIDs } from './perpsMarketHeaderTestIds';
 import { GLOW_TOTAL_MS } from '../PerpsModeToggle/PerpsModeSwitchPill';
 import {
@@ -32,6 +34,14 @@ jest.mock('../../hooks/stream', () => ({
   })),
 }));
 jest.mock('../../../../../util/haptics');
+
+let mockIsBrandRefresh = false;
+jest.mock(
+  '../../../../../selectors/featureFlagController/perpsBrandRefresh',
+  () => ({
+    selectPerpsBrandRefreshEnabled: () => mockIsBrandRefresh,
+  }),
+);
 
 const mockMarket: PerpsMarketData = {
   symbol: 'BTC',
@@ -70,6 +80,7 @@ describe('PerpsMarketHeader', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    mockIsBrandRefresh = false;
   });
 
   it('renders the asset name, leverage, and ticker subtitle', () => {
@@ -299,16 +310,31 @@ describe('PerpsMarketHeader', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
-  it('renders the filled star when the market is favorited', () => {
-    const { getByTestId } = renderHeader({
-      onFavoritePress: jest.fn(),
+  it.each([
+    {
       isFavorite: true,
-    });
+      accessibilityLabel: strings('perps.market_details.remove_from_watchlist'),
+    },
+    {
+      isFavorite: false,
+      accessibilityLabel: strings('perps.market_details.add_to_watchlist'),
+    },
+  ])(
+    'exposes $accessibilityLabel when isFavorite is $isFavorite',
+    ({ isFavorite, accessibilityLabel }) => {
+      const { getByTestId } = renderHeader({
+        onFavoritePress: jest.fn(),
+        isFavorite,
+      });
 
-    expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
-    ).toBeOnTheScreen();
-  });
+      const favoriteButton = getByTestId(
+        PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON,
+      );
+
+      expect(favoriteButton).toBeOnTheScreen();
+      expect(favoriteButton.props.accessibilityLabel).toBe(accessibilityLabel);
+    },
+  );
 
   it('fires onModeChange from the active Pro mode pill without waiting for the shimmer', () => {
     jest.useFakeTimers();
@@ -338,26 +364,18 @@ describe('PerpsMarketHeader', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('exposes accessibility labels on back, wallet, and favorite buttons', () => {
+  it('exposes accessibility labels on back and wallet buttons', () => {
     const { getByLabelText } = renderHeader({
       onBackPress: jest.fn(),
       onWalletPress: jest.fn(),
-      onFavoritePress: jest.fn(),
-      isFavorite: false,
     });
 
-    expect(getByLabelText('Back')).toBeOnTheScreen();
-    expect(getByLabelText('Perps balance')).toBeOnTheScreen();
-    expect(getByLabelText('Add to watchlist')).toBeOnTheScreen();
-  });
-
-  it('uses a state-aware accessibility label for the favorite toggle', () => {
-    const { getByLabelText } = renderHeader({
-      onFavoritePress: jest.fn(),
-      isFavorite: true,
-    });
-
-    expect(getByLabelText('Remove from watchlist')).toBeOnTheScreen();
+    expect(
+      getByLabelText(strings('perps.market_details.back')),
+    ).toBeOnTheScreen();
+    expect(
+      getByLabelText(strings('perps.market_details.wallet')),
+    ).toBeOnTheScreen();
   });
 
   it('omits end actions when their handlers are not provided', () => {
@@ -433,5 +451,55 @@ describe('PerpsMarketHeader', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_PRICE),
     ).toHaveTextContent('$---');
+  });
+
+  describe('brand refresh', () => {
+    const testIDs = createProMarketHeaderTestIDs();
+    const glassTestID = `${testIDs.container}-glass`;
+
+    beforeEach(() => {
+      mockIsBrandRefresh = true;
+    });
+
+    it('floats over the content on the glass backdrop', () => {
+      const { getByTestId } = renderHeader();
+
+      expect(getByTestId(glassTestID)).toBeOnTheScreen();
+      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('pads the status bar by topInset', () => {
+      const { getByTestId } = renderHeader({ topInset: 47 });
+
+      expect(getByTestId(glassTestID)).toHaveStyle({ paddingTop: 47 });
+    });
+
+    it('groups the wallet and favorite icons in one capsule', () => {
+      const { getByTestId } = renderHeader({
+        onWalletPress: jest.fn(),
+        onFavoritePress: jest.fn(),
+      });
+
+      const capsule = getByTestId(`${testIDs.container}-actions-capsule`);
+      expect(
+        within(capsule).getByTestId(testIDs.walletButton as string),
+      ).toBeOnTheScreen();
+      expect(
+        within(capsule).getByTestId(testIDs.favoriteButton as string),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the plain in-flow header when the flag is off', () => {
+      mockIsBrandRefresh = false;
+
+      const { queryByTestId } = renderHeader({
+        onWalletPress: jest.fn(),
+        onFavoritePress: jest.fn(),
+      });
+
+      expect(queryByTestId(glassTestID)).toBeNull();
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(queryByTestId(`${testIDs.container}-actions-capsule`)).toBeNull();
+    });
   });
 });

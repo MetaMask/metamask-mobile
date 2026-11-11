@@ -15,12 +15,22 @@ export interface ConfirmationContextParams {
   isFooterVisible?: boolean;
   isConfirmationSubmitting: boolean;
   isConfirmationSubmittingRef: React.RefObject<boolean>;
+  isGasFeeModalVisible: boolean;
   isHeadlessBuyInProgress: boolean;
   isTransactionValueUpdating: boolean;
   isTransactionDataUpdating: boolean;
+  /**
+   * The fiat amount currently being typed on the amount keypad, before the
+   * user commits it. Amount alerts are evaluated against this so a cap that
+   * blocks the keypad still enters the confirmation alert context — and so
+   * reaches alert metrics — rather than only existing as local keypad state.
+   */
+  pendingFiatAmount: string | undefined;
+  setPendingFiatAmount: (pendingFiatAmount: string | undefined) => void;
   setHeadlessBuyError: (error: string | undefined) => void;
   setIsConfirmationSubmitting: (isConfirmationSubmitting: boolean) => void;
   setIsFooterVisible: (isFooterVisible: boolean) => void;
+  setIsGasFeeModalVisible: (isGasFeeModalVisible: boolean) => void;
   setIsHeadlessBuyInProgress: (isHeadlessBuyInProgress: boolean) => void;
   setIsTransactionValueUpdating: (isTransactionValueUpdating: boolean) => void;
   setIsTransactionDataUpdating: (isTransactionDataUpdating: boolean) => void;
@@ -34,12 +44,16 @@ const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   isFooterVisible: true,
   isConfirmationSubmitting: false,
   isConfirmationSubmittingRef: { current: false },
+  isGasFeeModalVisible: false,
   isHeadlessBuyInProgress: false,
   isTransactionDataUpdating: false,
   isTransactionValueUpdating: false,
+  pendingFiatAmount: undefined,
+  setPendingFiatAmount: noop,
   setHeadlessBuyError: noop,
   setIsConfirmationSubmitting: noop,
   setIsFooterVisible: noop,
+  setIsGasFeeModalVisible: noop,
   setIsHeadlessBuyInProgress: noop,
   setIsTransactionDataUpdating: noop,
   setIsTransactionValueUpdating: noop,
@@ -59,6 +73,8 @@ export const ConfirmationContextProvider: React.FC<
 
   const [isFooterVisible, setIsFooterVisible] = useState<boolean>();
 
+  const [isGasFeeModalVisible, setIsGasFeeModalVisible] = useState(false);
+
   const [headlessBuyError, setHeadlessBuyError] = useState<
     string | undefined
   >();
@@ -67,6 +83,10 @@ export const ConfirmationContextProvider: React.FC<
 
   const [isTransactionDataUpdating, setIsTransactionDataUpdating] =
     useState<boolean>(false);
+
+  const [pendingFiatAmount, setPendingFiatAmount] = useState<
+    string | undefined
+  >();
 
   const isConfirmationSubmittingRef = useRef(false);
   const [isConfirmationSubmitting, setIsConfirmationSubmittingState] =
@@ -84,13 +104,17 @@ export const ConfirmationContextProvider: React.FC<
       mmPayRequestInProgressNavHandler,
       headlessBuyError,
       isFooterVisible,
+      isGasFeeModalVisible,
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
       isConfirmationSubmitting,
       isConfirmationSubmittingRef,
+      pendingFiatAmount,
+      setPendingFiatAmount,
       setHeadlessBuyError,
       setIsFooterVisible,
+      setIsGasFeeModalVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
@@ -100,13 +124,17 @@ export const ConfirmationContextProvider: React.FC<
       mmPayRequestInProgressNavHandler,
       headlessBuyError,
       isFooterVisible,
+      isGasFeeModalVisible,
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
       isConfirmationSubmitting,
       isConfirmationSubmittingRef,
+      pendingFiatAmount,
+      setPendingFiatAmount,
       setHeadlessBuyError,
       setIsFooterVisible,
+      setIsGasFeeModalVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,

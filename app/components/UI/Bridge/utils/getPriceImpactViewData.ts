@@ -16,7 +16,7 @@ export const getPriceImpactViewData = ({
 }: Params) => {
   if (!priceImpactValue) {
     return {
-      textColor: TextColor.TextAlternative,
+      textColor: TextColor.TextDefault,
       icon: undefined,
       title: 'bridge.price_impact_info_title',
       description: 'bridge.price_impact_info_description',
@@ -27,7 +27,7 @@ export const getPriceImpactViewData = ({
 
   if (!Number.isFinite(priceImpact)) {
     return {
-      textColor: TextColor.TextAlternative,
+      textColor: TextColor.TextDefault,
       icon: undefined,
       title: 'bridge.price_impact_info_title',
       description: 'bridge.price_impact_info_description',
@@ -59,7 +59,7 @@ export const getPriceImpactViewData = ({
   }
 
   return {
-    textColor: TextColor.TextAlternative,
+    textColor: TextColor.TextDefault,
     icon: undefined,
     title: 'bridge.price_impact_info_title',
     description: 'bridge.price_impact_info_description',
@@ -78,6 +78,8 @@ export function parsePriceImpact(priceImpactStr: string | undefined): number {
 /**
  * Returns true when the price impact meets or exceeds the error threshold,
  * falling back to AppConstants when the feature flag is not set.
+ *
+ * @deprecated Use useBridgeQuoteContext or useSwapQuotes shouldShowPriceImpactError instead.
  */
 export function exceedsPriceImpactErrorThreshold(
   priceImpact: number,

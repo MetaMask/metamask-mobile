@@ -24,11 +24,12 @@ import {
   BoxFlexDirection,
   Button,
   ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconName,
   IconColor,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -68,6 +69,8 @@ import {
   validateWords,
   validateMnemonic,
 } from './validation';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 async function checkSeedlessPasswordOutdated(): Promise<boolean> {
   return Authentication.checkIsSeedlessPasswordOutdated({
@@ -101,6 +104,7 @@ function showImportSrpErrorAlert(errorMessage: string): void {
  * View that's displayed when the user is trying to import a new secret recovery phrase
  */
 const ImportNewSecretRecoveryPhrase = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
@@ -275,7 +279,9 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         backButtonProps={{
           onPress: dismiss,
@@ -296,7 +302,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            twClassName="gap-0.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -306,15 +312,17 @@ const ImportNewSecretRecoveryPhrase = () => {
             </Text>
             <ButtonIcon
               iconName={IconName.Info}
+              size={ButtonIconSize.Xs}
               iconProps={{
                 color: IconColor.IconAlternative,
+                size: IconSize.Sm,
               }}
               onPress={showWhatIsSeedPhrase}
               testID="info-icon"
             />
           </Box>
         }
-        twClassName="px-4 pt-1 pb-3"
+        twClassName="px-4 pt-3 pb-6"
       />
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style(
@@ -341,6 +349,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             uniqueId={uniqueId}
             onCurrentWordChange={setCurrentInputWord}
             autoFocus={false}
+            includeTopMargin={false}
           />
         </Box>
       </KeyboardAwareScrollView>

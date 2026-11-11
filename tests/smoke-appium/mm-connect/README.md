@@ -10,7 +10,7 @@ yarn appium-smoke:mmconnect:android
 ```
 
 Requires a **main-e2e release** APK (`HAS_TEST_OVERRIDES=true`). See
-[`docs/testing/appium-smoke-testing.md`](../../../docs/testing/appium-smoke-testing.md).
+[`tests/docs/appium-smoke-testing.md`](../../docs/appium-smoke-testing.md).
 
 ## Specs
 

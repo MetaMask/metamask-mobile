@@ -18,7 +18,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
       flex: 1,
     },
     contentContainer: {
-      paddingVertical: 15,
+      paddingVertical: 16,
     },
     categoryWrapper: {
       padding: 10,
@@ -36,7 +36,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     bookmarkIco: {
       width: 26,
       height: 26,
-      marginRight: 7,
+      marginRight: 8,
       borderRadius: 13,
     },
     fallbackTextStyle: {
@@ -58,7 +58,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     },
     itemWrapper: {
       flexDirection: 'row',
-      paddingHorizontal: 15,
+      paddingHorizontal: 16,
     },
     textContent: {
       flex: 1,

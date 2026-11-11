@@ -6,11 +6,13 @@ import {
   MULTICHAIN_ADDRESS_ROW_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID,
+  MULTICHAIN_ADDRESS_ROW_ACCOUNT_TYPE_LABEL_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_ADDRESS_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from './MultichainAddressRow.constants';
 import { IconName } from '@metamask/design-system-react-native';
+import { BtcAccountType, EthAccountType } from '@metamask/keyring-api';
 
 // Mock useCopyClipboard hook
 jest.mock(
@@ -43,6 +45,37 @@ describe('MultichainAddressRow', () => {
       MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID,
     );
     expect(networkName.props.children).toBe('Ethereum Mainnet');
+  });
+
+  it('renders the Bitcoin account type label beside the network name', () => {
+    const { getByTestId } = render(
+      <MultichainAddressRow
+        {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS}
+        chainId="bip122:000000000019d6689c085ae165831e93"
+        networkName="Bitcoin"
+        accountType={BtcAccountType.P2wpkh}
+      />,
+    );
+
+    expect(
+      getByTestId(MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID).props.children,
+    ).toBe('Bitcoin');
+    expect(
+      getByTestId(MULTICHAIN_ADDRESS_ROW_ACCOUNT_TYPE_LABEL_TEST_ID),
+    ).toHaveTextContent('Native SegWit');
+  });
+
+  it('does not render an account type label for EVM accounts', () => {
+    const { queryByTestId } = render(
+      <MultichainAddressRow
+        {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS}
+        accountType={EthAccountType.Eoa}
+      />,
+    );
+
+    expect(
+      queryByTestId(MULTICHAIN_ADDRESS_ROW_ACCOUNT_TYPE_LABEL_TEST_ID),
+    ).toBeNull();
   });
 
   it('renders the truncated address', () => {

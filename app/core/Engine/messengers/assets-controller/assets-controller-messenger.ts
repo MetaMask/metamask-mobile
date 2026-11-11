@@ -6,7 +6,6 @@ import {
 } from '@metamask/messenger';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
-import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import { RootMessenger } from '../../types';
 
@@ -17,9 +16,6 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:initialized',
   // Stop asset tracking when the account tree is cleared
   'AccountTreeController:uninitialized',
-  // core#9478: use exported :stateChange (not local :stateChanged aliases)
-  // Still required for post-init account-set changes (e.g. snap accounts)
-  'AccountTreeController:stateChange',
   // core#9388: RPC balance refresh when enabling custom RPC networks (e.g. DXC)
   // StakedBalanceDataSource also listens to this
   'NetworkEnablementController:stateChange',
@@ -40,6 +36,8 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'PreferencesController:stateChange',
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
+  // core#10585: Snap keyring confirmations refresh balances when AccountActivity is down
+  'MultichainTransactionsController:transactionConfirmed',
   // Real-time post-tx balances (AccountActivityService WS path)
   'AccountActivityService:balanceUpdated',
   'AccountActivityService:statusChanged',
@@ -79,6 +77,9 @@ export function getAssetsControllerMessenger(
       'PermissionController:getPermissions',
       'PhishingController:bulkScanTokens',
       'RemoteFeatureFlagController:getState',
+      'AccountTreeController:isInitialized',
+      'ClientController:getState',
+      'KeyringController:isUnlocked',
     ],
     events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
     messenger,
@@ -90,7 +91,6 @@ export function getAssetsControllerMessenger(
 type AssetsControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
   | PreferencesControllerGetStateAction
-  | RemoteFeatureFlagControllerGetStateAction
   | AnalyticsControllerActions;
 
 export type AssetsControllerInitMessenger = Messenger<
@@ -121,7 +121,6 @@ export function getAssetsControllerInitMessenger(
     actions: [
       'AuthenticationController:getBearerToken',
       'PreferencesController:getState',
-      'RemoteFeatureFlagController:getState',
       'AnalyticsController:trackEvent',
     ],
     events: [],

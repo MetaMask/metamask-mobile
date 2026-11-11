@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FullWindowOverlay } from 'react-native-screens';
 
@@ -12,6 +12,8 @@ interface Step {
   error?: string;
   nodeId?: string;
   debug?: { nodeId?: string; proofTarget?: unknown };
+  /** 'top' while a bottom sheet is shown, so the HUD never covers what it documents. */
+  placement?: 'top' | 'bottom';
 }
 
 // Step bus. The HUD owns the registry so nothing outside this leaf module needs
@@ -123,17 +125,20 @@ const styles = StyleSheet.create({
 const AgentStepHudInner = () => {
   const [step, setStep] = useState<Step | null>(null);
   const insets = useSafeAreaInsets();
+  const atTop = step?.placement === 'top';
 
   const containerStyle = useMemo(
     () => [
       styles.container,
+      atTop
+        ? { top: Math.max(insets.top, 0) }
+        : { bottom: Math.max(insets.bottom, 0) },
       {
-        bottom: Math.max(insets.bottom, 0),
         paddingLeft: Math.max(insets.left, 10),
         paddingRight: Math.max(insets.right, 10),
       },
     ],
-    [insets.left, insets.right, insets.bottom],
+    [atTop, insets.left, insets.right, insets.top, insets.bottom],
   );
 
   useEffect(() => {
@@ -155,24 +160,26 @@ const AgentStepHudInner = () => {
         ? styles.badgeTextPass
         : styles.badgeTextRunning;
 
-  // FullWindowOverlay (iOS) renders the HUD in a UIWindow above every native
-  // layer — including native-stack modal screens (perps close-position/TPSL,
-  // etc.), which a plain absolute/zIndex View in the JS root cannot reach. On
-  // Android it is a passthrough, so root-level rendering is preserved.
-  return (
-    <FullWindowOverlay>
-      <View style={containerStyle} pointerEvents="none">
-        <Text style={styles.line}>
-          <Text style={[styles.badgeText, badgeTextStyle]}>{badge}</Text>
-          {intent ? `  ${intent}` : ''}
+  const content = (
+    <View style={containerStyle} pointerEvents="none">
+      <Text style={styles.line}>
+        <Text style={[styles.badgeText, badgeTextStyle]}>{badge}</Text>
+        {intent ? `  ${intent}` : ''}
+      </Text>
+      {secondary.map((detail) => (
+        <Text key={detail} style={styles.secondary}>
+          {detail}
         </Text>
-        {secondary.map((detail) => (
-          <Text key={detail} style={styles.secondary}>
-            {detail}
-          </Text>
-        ))}
-      </View>
-    </FullWindowOverlay>
+      ))}
+    </View>
+  );
+
+  // iOS needs a UIWindow overlay to cover native-stack modals. Android keeps
+  // the root-level view; FullWindowOverlay is unsupported there and warns.
+  return Platform.OS === 'ios' ? (
+    <FullWindowOverlay>{content}</FullWindowOverlay>
+  ) : (
+    content
   );
 };
 

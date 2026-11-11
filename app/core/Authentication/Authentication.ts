@@ -15,6 +15,7 @@ import {
   passwordSet,
   setExistingUser,
   setIsConnectionRemoved,
+  setMoneyOnboardingSeen,
 } from '../../actions/user';
 import {
   clearOnboarding,
@@ -50,7 +51,9 @@ import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
+import { signOutCardAfterPasswordChange } from '../signOutCardAfterPasswordChange';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
+import { setBrazeResetInProgress } from '../Braze/resetInProgress';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
@@ -62,8 +65,10 @@ import {
   SeedlessOnboardingControllerErrorMessage,
   EncAccountDataType,
   SeedlessOnboardingMigrationVersion,
+  InvalidPrimarySecretDataTypeError,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { selectAnalyticsId } from '../../selectors/analyticsController';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
   SeedlessOnboardingControllerError,
@@ -73,13 +78,16 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import ReactQueryService from '../ReactQueryService';
 import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
+import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
+import { clearSocialIdentityState } from '../../util/social/clearSocialIdentityState';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -96,13 +104,166 @@ import {
   SecurityLevel,
   authenticateAsync,
 } from 'expo-local-authentication';
-import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
+import {
+  classifyUnlockError,
+  getAuthIcon,
+  getAuthLabel,
+  getAuthType,
+} from './utils';
+import { trackForcedReset } from '../../util/analytics/accountAccessTracking';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
+import { captureExceptionForced } from '../../util/sentry/utils';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
+import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
+import {
+  clearUnlockAppStartType,
+  getUnlockAppStartType,
+  resumeUnlockDeeplinkNavigatedAfterOptIn,
+} from '../Performance/unlockTraces';
+
+type Incident1745IdentifySource =
+  | 'rehydrateSeedPhrase'
+  | 'syncSeedPhrases'
+  | 'unlockIdentify';
+
+type Incident1745Shape =
+  | 'no_secrets'
+  | 'invalid_primary_secret'
+  | 'primary_mismatch';
+
+function areUint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  return a.every((byte, index) => byte === b[index]);
+}
+
+function reportIncident1745AffectedUser({
+  source,
+  shape,
+  cause_message,
+  remote_data_type,
+}: {
+  source: Incident1745IdentifySource;
+  shape: Incident1745Shape;
+  cause_message?: string;
+  remote_data_type?: string;
+}): void {
+  const profileId = selectAnalyticsId(ReduxService.store.getState());
+  captureExceptionForced(
+    new Error(`incident_1745: corrupted seedless backup detected in ${source}`),
+    {
+      incident: 'incident_1745',
+      shape,
+      profile_id: profileId ?? 'unknown',
+      ...(cause_message ? { cause_message } : {}),
+      ...(remote_data_type ? { remote_data_type } : {}),
+    },
+  ).catch(() => undefined);
+}
+
+/**
+ * Force-report incident 1745 Shape A when seedless metadata has no usable primary SRP.
+ *
+ * On `@metamask/seedless-onboarding-controller` >= 11, `fetchAllSecretData` throws
+ * `NoSecretDataFound` / `InvalidPrimarySecretDataTypeError` before returning secrets
+ * (new `EncAccountDataType` schema + legacy type fallback). Post-fetch `[0].type`
+ * checks alone are not enough to identify affected users.
+ *
+ * Shapes B/C (mislabeled primary that still fetches successfully) are covered by
+ * {@link identifyIncident1745AffectedUser}.
+ */
+export function reportIncident1745Shape1IfNeeded(
+  error: unknown,
+  source: Incident1745IdentifySource,
+): void {
+  const err = error instanceof Error ? error : new Error(String(error));
+  const isNoSecrets = containsErrorMessage(
+    err,
+    SeedlessOnboardingControllerErrorMessage.NoSecretDataFound,
+  );
+  const isInvalidPrimary =
+    error instanceof InvalidPrimarySecretDataTypeError ||
+    containsErrorMessage(
+      err,
+      SeedlessOnboardingControllerErrorMessage.InvalidPrimarySecretDataType,
+    );
+
+  if (!isNoSecrets && !isInvalidPrimary) {
+    return;
+  }
+
+  reportIncident1745AffectedUser({
+    source,
+    shape: isNoSecrets ? 'no_secrets' : 'invalid_primary_secret',
+    cause_message: err.message,
+  });
+}
+
+/**
+ * Full incident 1745 identification (Shapes A/B/C) for seedless users.
+ *
+ * Per core#10219 identify-users guidance: on unlock, fetch remote secrets, resolve
+ * the remote primary (controller V1 earliest-mnemonic / V2 `PrimarySrp` sort), and
+ * compare it to the local primary HD keyring mnemonic.
+ *
+ * - Shape A: fetch throws `NoSecretDataFound` / `InvalidPrimarySecretDataType`
+ * - Shape B/C: fetch succeeds but remote "primary" bytes ≠ local primary HD
+ *
+ * @param password - Wallet password (required by KeyringController.exportSeedPhrase).
+ */
+export async function identifyIncident1745AffectedUser(
+  password: string,
+): Promise<void> {
+  try {
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return;
+    }
+
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
+
+    let remoteSecrets: Awaited<
+      ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+    >;
+    try {
+      remoteSecrets = await SeedlessOnboardingController.fetchAllSecretData();
+    } catch (error) {
+      // Shape A only when controller signals missing/invalid primary.
+      // Other failures (network, auth, crypto) are intentionally ignored.
+      reportIncident1745Shape1IfNeeded(error, 'unlockIdentify');
+      return;
+    }
+
+    // Controller guarantees a mnemonic primary at [0] when fetch resolves.
+    const remotePrimary = remoteSecrets[0];
+
+    let localPrimarySeed: Uint8Array;
+    try {
+      // Omit keyringId → primary HD keyring (KeyringController default).
+      localPrimarySeed = await KeyringController.exportSeedPhrase({
+        password,
+      });
+    } catch {
+      // Cannot compare without local primary — do not classify.
+      return;
+    }
+
+    if (!areUint8ArraysEqual(localPrimarySeed, remotePrimary.data)) {
+      // Shape B (V1 earliest-imported) / C (V2 mislabeled PrimarySrp).
+      reportIncident1745AffectedUser({
+        source: 'unlockIdentify',
+        shape: 'primary_mismatch',
+        remote_data_type: String(remotePrimary.dataType ?? remotePrimary.type),
+      });
+    }
+  } catch {
+    // Identification must never surface to unlock UX.
+  }
+}
 
 /**
  * Holds auth data used to determine auth configuration
@@ -238,7 +399,7 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<EntropySourceId> => {
     // Restore vault with user entered password
-    if (clearEngine) await Engine.resetState();
+    if (clearEngine) await this.resetEngineState();
 
     const { MultichainAccountService } = Engine.context;
 
@@ -312,7 +473,7 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
-    await Engine.resetState();
+    await this.resetEngineState();
 
     const { MultichainAccountService } = Engine.context;
 
@@ -322,6 +483,21 @@ class AuthenticationService {
     });
 
     password = this.wipeSensitiveData();
+  };
+
+  /**
+   * Resets Engine state for a new wallet and drops every cached read the app
+   * query client hydrated from the previous one. A wallet reset replaces the
+   * person within one process, so no cached read may answer for the previous
+   * Predict User. The Predict services purge their own cache inside the
+   * reset; this clears the shared client that mirrors them, and nothing else
+   * (lock, account switch, sign-out) clears it.
+   */
+  private resetEngineState = async (): Promise<void> => {
+    await Engine.resetState();
+    // After the reset, never before: the reset's own teardown publishes cache
+    // events, so clearing last leaves no copy for them to restore.
+    ReactQueryService.queryClient.clear();
   };
 
   /**
@@ -397,6 +573,8 @@ class AuthenticationService {
     // Restore vault with empty password
     await KeyringController.submitPassword('');
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      Engine.context.AuthenticationController.clearState();
       await SeedlessOnboardingController.clearState();
     }
     await this.resetPassword();
@@ -618,18 +796,11 @@ class AuthenticationService {
     isQrSync: boolean = false,
   ): Promise<void> => {
     try {
-      const primaryEntropySource = await this.newWalletVaultAndRestore(
-        password,
-        parsedSeed,
-        clearEngine,
-      );
+      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 
       await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
-        Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
-          primaryEntropySource,
-        );
         await Engine.context.QrSyncController.importRemainingSecrets();
       }
 
@@ -776,6 +947,7 @@ class AuthenticationService {
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
    * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
+   * @param options.navigationBehavior - `preserve` leaves the current route in place. Resume uses it because the privacy cover is hiding that route. The default navigates to Home, a pending deeplink, or the metrics opt-in screen.
    * @returns - void
    */
   unlockWallet = async (
@@ -783,6 +955,7 @@ class AuthenticationService {
       password,
       authPreference,
       onBeforeNavigate,
+      navigationBehavior = 'default',
       // Optional onboarding trace context; forwarded to rehydrateSeedPhrase so the seedless
       // OnboardingFetchSrps span nests under the onboarding journey. Omitted by non-onboarding
       // callers (login/biometric unlock), which leaves tracing behaviour unchanged for them.
@@ -791,6 +964,7 @@ class AuthenticationService {
       password?: string;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
+      navigationBehavior?: 'default' | 'preserve';
       parentContext?: TraceContext;
     } = {
       password: undefined,
@@ -855,11 +1029,29 @@ class AuthenticationService {
           this.dispatchPasswordSet();
           this.postLoginAsyncOperations().catch(() => undefined);
 
+          // Incident 1745 ID (Shapes A/B/C): async, non-blocking remote vs local
+          // primary compare. Skip oauth rehydrate — Shape A is already reported
+          // there, and the local vault was rebuilt from remote so B/C cannot apply.
+          if (
+            passwordToUse &&
+            !authPreference?.oauth2Login &&
+            selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+          ) {
+            identifyIncident1745AffectedUser(passwordToUse).catch(
+              () => undefined,
+            );
+          }
+
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
 
           if (onBeforeNavigate) {
             await onBeforeNavigate();
+          }
+
+          // Resume already has a route under the privacy cover. Leave it.
+          if (navigationBehavior === 'preserve') {
+            return;
           }
 
           // TODO: Refactor this orchestration to sagas.
@@ -869,6 +1061,10 @@ class AuthenticationService {
             OPTIN_META_METRICS_UI_SEEN,
           );
           if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
+            const deeplinkAppStartType = getUnlockAppStartType();
+            cancelDeeplinkNavigatedTrace({ reason: 'metrics_opt_in' });
+            clearUnlockAppStartType();
+
             NavigationService.navigation?.reset({
               routes: [
                 {
@@ -877,6 +1073,14 @@ class AuthenticationService {
                     screen: Routes.ONBOARDING.NAV,
                     params: {
                       screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      params: {
+                        onContinue: async () => {
+                          resumeUnlockDeeplinkNavigatedAfterOptIn({
+                            appStartType: deeplinkAppStartType,
+                          });
+                          await navigateToPostUnlockHome();
+                        },
+                      },
                     },
                   },
                 },
@@ -952,6 +1156,8 @@ class AuthenticationService {
       if (error instanceof Error) {
         // Track unlockWallet error as analytics.
         trackErrorAsAnalytics('Unlock Wallet Error', error.message);
+        // Track App Unlocked Failed with whether lockApp reset the keychain.
+        trackForcedReset(classifyUnlockError(error), shouldResetOnLock);
       }
       throw ensureError(error, 'Unlock wallet failed');
     } finally {
@@ -1080,6 +1286,11 @@ class AuthenticationService {
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
 
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      // Must run before the temporary vault unlocks so pairing/sync cannot
+      // attach that wallet to the previous profile.
+      Engine.context.AuthenticationController.clearState();
+
       // Disable automatic vault backups during OAuth error recovery
       EngineClass.disableAutomaticVaultBackup = true;
 
@@ -1104,8 +1315,23 @@ class AuthenticationService {
     }
 
     // 1. fetch all seed phrases
-    const [rootSecret, ...otherSecrets] =
-      await SeedlessOnboardingController.fetchAllSecretData();
+    let rootSecret:
+      | Awaited<
+          ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+        >[number]
+      | undefined;
+    let otherSecrets: Awaited<
+      ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+    >;
+    try {
+      [rootSecret, ...otherSecrets] =
+        await SeedlessOnboardingController.fetchAllSecretData();
+    } catch (error) {
+      // Controller throws NoSecretDataFound / InvalidPrimarySecretDataType before
+      // returning secrets when primary SRP metadata is missing or corrupted.
+      reportIncident1745Shape1IfNeeded(error, 'syncSeedPhrases');
+      throw error;
+    }
     if (!rootSecret) {
       throw new Error('No root SRP found');
     }
@@ -1320,6 +1546,10 @@ class AuthenticationService {
       } catch (error) {
         const err = ensureError(error, 'Fetch SRPs failed');
 
+        // Controller validates primary SRP (legacy type + EncAccountDataType) and
+        // throws before returning secrets — report Shape 1 here, not post-fetch.
+        reportIncident1745Shape1IfNeeded(error, 'rehydrateSeedPhrase');
+
         // trace only if error is not an incorrect password error
         if (
           !containsErrorMessage(
@@ -1493,6 +1723,9 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
+      // Card logout is a remote call with no timeout. It must not delay the
+      // unlock or sit between the password change and the key sync.
+      signOutCardAfterPasswordChange().catch(() => undefined);
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true, reset: false });
@@ -1536,6 +1769,39 @@ class AuthenticationService {
       }
       return false;
     }
+  };
+
+  /**
+   * Prompts biometric unlock after checking whether the seedless password is
+   * outdated. Shared by cold start and resume so both prompt identically.
+   * Rejects when unlock fails; callers decide the Login fallback.
+   */
+  tryBiometricUnlock = async (options?: {
+    navigationBehavior?: 'default' | 'preserve';
+  }): Promise<void> => {
+    if (
+      await this.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: false,
+      })
+    ) {
+      NavigationService.navigation?.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.REHYDRATE,
+            params: { isSeedlessPasswordOutdated: true },
+          },
+        ],
+      });
+      return;
+    }
+
+    if (options?.navigationBehavior === 'preserve') {
+      await this.unlockWallet({ navigationBehavior: 'preserve' });
+      return;
+    }
+
+    await this.unlockWallet();
   };
 
   /**
@@ -1693,13 +1959,26 @@ class AuthenticationService {
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
-    clearBrazeUser();
+    await clearBrazeUser();
     await this.resetWalletState();
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(clearOnboarding());
+    // `moneyOnboardingSeen` lives in persisted user state and is not wiped by
+    // Engine rebuild — without this, Money splash is skipped after reset.
+    ReduxService.store.dispatch(setMoneyOnboardingSeen(false));
   };
+
+  /**
+   * Drops the auth session and unsets the Segment canonical profile trait.
+   */
+  private clearAuthSession(): void {
+    Engine.context.AuthenticationController.clearState();
+    analytics.identify({
+      [UserProfileProperty.CANONICAL_PROFILE_ID]: null,
+    });
+  }
 
   /**
    * Resets the wallet state by creating a new wallet and clearing all related state.
@@ -1723,6 +2002,22 @@ class AuthenticationService {
       // data (with the still-present old tokens) only to discard it in resetAll.
       Engine.context.CardController.setResetInProgress(true);
 
+      // Suppress Braze identity sync for the whole reset. The throwaway vault
+      // below is signed in by `useAutoSignIn` from a React effect on a later
+      // tick (after `dispatchLogin`), so the flag must stay set until the app
+      // is locked — clearing it when `newWalletAndKeychain` returns would let
+      // that deferred effect fire a `changeUser` for a wallet that is
+      // discarded immediately, which is pure request noise.
+      setBrazeResetInProgress(true);
+
+      // Previous auth session and social profile must be gone before the
+      // throwaway vault unlocks. ProfileController persists the social
+      // username separately from AuthenticationController, and
+      // Engine.resetState does not clear it (that path also recreates the
+      // vault on password change for the same SRP).
+      this.clearAuthSession();
+      await clearSocialIdentityState(Engine.context);
+
       try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -1730,10 +2025,28 @@ class AuthenticationService {
 
         Engine.context.SeedlessOnboardingController.clearState();
 
+        Engine.context.KycController.clearState();
+
+        // Drop VBA autoramp cursors. They are not keyed by wallet profile and
+        // otherwise survive reset, so Money Activity can show another
+        // customer's Pending bank transfer before the new wallet KYCs.
+        const rampsController = Engine.context.RampsController as {
+          state?: { autoramps?: { id: string }[] };
+          removeAutoramp?: (autorampId: string) => void;
+        };
+        const staleAutorampIds = (rampsController.state?.autoramps ?? []).map(
+          (autoramp) => autoramp.id,
+        );
+        for (const autorampId of staleAutorampIds) {
+          rampsController.removeAutoramp?.(autorampId);
+        }
+
         await depositResetProviderToken();
 
         // Cancel any running bulk link saga before resetting rewards state
         ReduxService.store.dispatch(cancelBulkLink());
+
+        await Engine.controllerMessenger.call('PredictDeviceAuthService:reset');
 
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 
@@ -1743,6 +2056,16 @@ class AuthenticationService {
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
       } finally {
+        // Throwaway vault may have signed in while unlocked and refetched the
+        // previous social profile into controller state or the query cache.
+        // Always wipe, including when a later step throws and resetWalletState
+        // swallows it.
+        this.clearAuthSession();
+        await clearSocialIdentityState(Engine.context);
+        ReactQueryService.queryClient.clear();
+        // The deferred `useAutoSignIn` effect has run by now (the app is
+        // locked), so Braze identity sync can react to sign-in again.
+        setBrazeResetInProgress(false);
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
         // ALWAYS re-enable Card reactive fetching, even if an error occurs

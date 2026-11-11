@@ -12,7 +12,7 @@ const createStyles = (_params: { theme: Theme }) =>
       borderRadius: 15,
     },
     skeletonItemContainer: {
-      paddingLeft: 18,
+      paddingLeft: 16,
       paddingRight: 10,
       paddingVertical: 12,
     },
