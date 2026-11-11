@@ -888,6 +888,68 @@ describe('CardAuthentication', () => {
       });
     });
 
+    it('asks for a new email code after going back to login', async () => {
+      mockPasswordlessFlag.enabled = true;
+      const auth = makeAuthReturn();
+      let step: { type: 'otp' | 'email_password'; destination?: string } = {
+        type: 'email_password',
+      };
+      mockUseCardAuth.mockImplementation(
+        () =>
+          ({
+            ...auth,
+            currentStep: step,
+          }) as ReturnType<typeof useCardAuth>,
+      );
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
+        'user@example.com',
+      );
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      fireEvent.changeText(
+        screen.getByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+        '123456',
+      );
+      await waitFor(() => {
+        expect(mockSubmitMutateAsync).toHaveBeenCalledWith({
+          type: 'email_code',
+          email: 'user@example.com',
+          code: '123456',
+        });
+      });
+
+      step = { type: 'otp', destination: '+1555****90' };
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(1000);
+      });
+      step = { type: 'email_password' };
+      fireEvent.press(
+        screen.getByTestId(
+          CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON,
+        ),
+      );
+
+      expect(
+        screen.queryByTestId(CardAuthenticationSelectors.EMAIL_CODE_FIELD),
+      ).toBeNull();
+      expect(screen.getByText('Email me a code')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+      });
+      expect(mockRequestEmailCode).toHaveBeenCalledTimes(2);
+      expect(mockRequestEmailCode).toHaveBeenLastCalledWith('user@example.com');
+    });
+
     it('does not show the code field when the email changes before the request finishes', async () => {
       mockPasswordlessFlag.enabled = true;
       let finishRequest: () => void = () => undefined;

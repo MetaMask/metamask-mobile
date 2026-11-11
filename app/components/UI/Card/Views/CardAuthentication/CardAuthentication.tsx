@@ -363,14 +363,19 @@ const CardAuthentication = () => {
     setWalletError(null);
   }, []);
 
-  useEffect(() => {
-    resetTransientAuthState();
+  const clearEmailCode = useCallback(() => {
     emailCodeRequestId.current += 1;
+    submittedEmailCodeRef.current = '';
     setEmailCode('');
     setEmailCodeSent(false);
     setLatestEmailCodeSubmitted(null);
+  }, []);
+
+  useEffect(() => {
+    resetTransientAuthState();
+    clearEmailCode();
     clearAuthFailureRef.current();
-  }, [countryKey, resetTransientAuthState]);
+  }, [countryKey, resetTransientAuthState, clearEmailCode]);
 
   useResetOnResolvedKind(resolution?.kind, resetTransientAuthState);
 
@@ -398,14 +403,11 @@ const CardAuthentication = () => {
 
   const handleEmailChange = useCallback(
     (newEmail: string) => {
-      emailCodeRequestId.current += 1;
       setEmail(newEmail);
-      setEmailCode('');
-      setEmailCodeSent(false);
-      setLatestEmailCodeSubmitted(null);
+      clearEmailCode();
       clearAuthFailure();
     },
-    [clearAuthFailure],
+    [clearAuthFailure, clearEmailCode],
   );
 
   const handlePasswordChange = useCallback(
@@ -831,8 +833,9 @@ const CardAuthentication = () => {
     setLatestValueSubmitted(null);
     setResendCooldown(60);
     setBanner(null);
+    clearEmailCode();
     resetToLogin();
-  }, [resetToLogin]);
+  }, [clearEmailCode, resetToLogin]);
 
   const handleRequestEmailCode = useCallback(async () => {
     const requestedEmail = email.trim();
