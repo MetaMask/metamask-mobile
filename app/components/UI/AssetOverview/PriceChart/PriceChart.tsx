@@ -120,6 +120,17 @@ const createChartPanResponder = ({
   });
 };
 
+// Ref lives inside the hook so the compiler does not see it ("Cannot access refs during render"); keeps the PanResponder alive across prop/layout updates mid-drag.
+const useStableCallback = <Args extends unknown[]>(
+  callback: (...args: Args) => void,
+) => {
+  const callbackRef = useRef(callback);
+  useEffect(() => {
+    callbackRef.current = callback;
+  });
+  return useCallback((...args: Args) => callbackRef.current(...args), []);
+};
+
 interface PriceChartProps {
   prices: TokenPrice[];
   priceDiff: number;
@@ -308,9 +319,15 @@ const PriceChart = ({
     ],
   );
 
+  const stableUpdatePosition = useStableCallback(updatePosition);
+
   const panResponder = useMemo(
-    () => createChartPanResponder({ updatePosition, setIsChartBeingTouched }),
-    [updatePosition, setIsChartBeingTouched],
+    () =>
+      createChartPanResponder({
+        updatePosition: stableUpdatePosition,
+        setIsChartBeingTouched,
+      }),
+    [stableUpdatePosition, setIsChartBeingTouched],
   );
 
   const Line = (props: Partial<LineProps>) => {
