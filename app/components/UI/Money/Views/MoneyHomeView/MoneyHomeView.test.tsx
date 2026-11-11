@@ -90,6 +90,7 @@ import {
 import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
+import { useCardEnableCard } from '../../../Card/Views/CardHome/hooks/useCardEnableCard';
 import {
   useVbaHomeCard,
   useVbaHomeCardRefresh,
@@ -439,6 +440,17 @@ jest.mock('../../../Card/hooks/useCardHomeData', () => ({
   })),
 }));
 
+jest.mock('../../../Card/Views/CardHome/hooks/useCardEnableCard', () => ({
+  useCardEnableCard: jest.fn(() => ({
+    canEnableCard: false,
+    enableCard: null,
+    provisioningView: 'provisioning',
+    setupStep: null,
+    isEnableCardPending: false,
+    markCardFlowOpened: jest.fn(),
+  })),
+}));
+
 const mockTrackButtonClicked = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
 const mockTrackTooltipClicked = jest.fn();
@@ -623,6 +635,7 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
 const mockUseCardHomeData = jest.mocked(useCardHomeData);
+const mockUseCardEnableCard = jest.mocked(useCardEnableCard);
 
 const apiActivityResult = (
   overrides: Partial<ReturnType<typeof useMoneyAccountApiActivity>> = {},
@@ -826,6 +839,25 @@ describe('MoneyHomeView', () => {
     // clearAllMocks() resets call history but not a previously-set
     // mockReturnValue, so explicitly restore the default (visible) state.
     mockSelectPrivacyMode.mockReturnValue(false);
+    mockUseCardEnableCard.mockReturnValue({
+      canEnableCard: false,
+      enableCard: null,
+      provisioningView: 'provisioning',
+      setupStep: null,
+      isEnableCardPending: false,
+      markCardFlowOpened: jest.fn(),
+    });
+    mockUseCardHomeData.mockReturnValue({
+      data: null,
+      isLoading: false,
+      isRefreshing: false,
+      isError: false,
+      refetch: jest.fn(),
+      primaryToken: null,
+      availableTokens: [],
+      fundingTokens: [],
+      balanceMap: new Map(),
+    });
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
@@ -3746,6 +3778,121 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
       ).toBeOnTheScreen();
+    });
+
+    it('replaces the card upsell with the unfinished setup card row', () => {
+      const enableCard = jest.fn();
+      mockSelectIsCardholder.mockReturnValue(false);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          isCardAuthenticated: true,
+          isCardVerified: false,
+          reportsVerificationStatus: false,
+          isMoneyCardSectionAvailable: true,
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+        }),
+      );
+      mockUseCardHomeData.mockReturnValue({
+        data: {
+          alerts: [{ type: 'card_provisioning', dismissable: false }],
+        },
+        isLoading: false,
+        isRefreshing: false,
+        isError: false,
+        refetch: jest.fn(),
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
+      } as unknown as ReturnType<typeof useCardHomeData>);
+      mockUseCardEnableCard.mockReturnValue({
+        canEnableCard: true,
+        enableCard,
+        provisioningView: 'hidden',
+        setupStep: 'kyc',
+        isEnableCardPending: false,
+        markCardFlowOpened: jest.fn(),
+      });
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.metamask_card.setup.finish_kyc_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.metamask_card.setup.finish_kyc_description')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON),
+      );
+
+      expect(enableCard).toHaveBeenCalledTimes(1);
+      expect(mockUseCardEnableCard).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          navigateFromOutsideCard: true,
+          recheckOnFocus: true,
+        }),
+      );
+    });
+
+    it('marks the Card flow before opening Card Home from the setup row', () => {
+      const markCardFlowOpened = jest.fn();
+      mockSelectIsCardholder.mockReturnValue(false);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          isCardAuthenticated: true,
+          isCardVerified: false,
+          reportsVerificationStatus: false,
+          isMoneyCardSectionAvailable: true,
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+        }),
+      );
+      mockUseCardHomeData.mockReturnValue({
+        data: {
+          alerts: [{ type: 'card_provisioning', dismissable: false }],
+        },
+        isLoading: false,
+        isRefreshing: false,
+        isError: false,
+        refetch: jest.fn(),
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
+      } as unknown as ReturnType<typeof useCardHomeData>);
+      mockUseCardEnableCard.mockReturnValue({
+        canEnableCard: true,
+        enableCard: jest.fn(),
+        provisioningView: 'hidden',
+        setupStep: 'kyc',
+        isEnableCardPending: false,
+        markCardFlowOpened,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+
+      expect(markCardFlowOpened).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
+      expect(markCardFlowOpened.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
     });
 
     it('hides the upsell MetaMask Card when the Money account is not visible', () => {

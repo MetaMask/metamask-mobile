@@ -272,7 +272,8 @@ const CardHome = () => {
   }, [openInWallet]);
 
   const { canEnableCard, enableCard, provisioningView, isEnableCardPending } =
-    useCardEnableCard(data);
+    useCardEnableCard(data, { recheckOnFocus: true });
+  const isSetupReconciling = provisioningView === 'reconciling';
 
   // Still in identity review with no signed-in Card account: show the pending
   // banner and the waiting layout (no Add funds or card management).
@@ -583,6 +584,13 @@ const CardHome = () => {
 
   const hasAlertOnlyState = hasSetupAlerts && effectiveActions.length === 0;
 
+  const showLinkMoneyAccountCta =
+    canLinkMoneyAccount &&
+    !isUkMigrationForced &&
+    !isLoading &&
+    !hasSetupActions &&
+    !hasSetupAlerts;
+
   const showSpendingLimitProgress =
     isAuthenticated &&
     data?.primaryFundingAsset?.status === FundingAssetStatus.Limited &&
@@ -820,7 +828,7 @@ const CardHome = () => {
                 />
               ) : (
                 <CardImageSection
-                  isLoading={isLoading}
+                  isLoading={isLoading || isSetupReconciling}
                   isCardDetailsLoading={
                     actions.isCardDetailsLoading ||
                     actions.isSensitiveDetailsLoading
@@ -886,7 +894,9 @@ const CardHome = () => {
                   isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
                   onAddFunds={actions.addFundsAction}
                   onEnableCard={enableCard ?? actions.enableCardAction}
-                  isEnableCardDisabled={isEnableCardPending}
+                  isEnableCardDisabled={
+                    isEnableCardPending || isSetupReconciling
+                  }
                 />
               </Box>
             )}
@@ -942,7 +952,7 @@ const CardHome = () => {
           </Box>
         )}
 
-        {canLinkMoneyAccount && !isUkMigrationForced && (
+        {showLinkMoneyAccountCta && (
           <>
             <Box twClassName="mb-6 mt-7">
               <MoneyMetaMaskCard
